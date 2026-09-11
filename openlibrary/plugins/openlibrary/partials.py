@@ -1,16 +1,17 @@
 from dataclasses import dataclass
 from hashlib import md5
-from typing import Literal, NotRequired, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
+from markupsafe import Markup
 from pydantic import BaseModel
 
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.core.helpers import affiliate_id
+from openlibrary.core.helpers import affiliate_id, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
@@ -22,6 +23,7 @@ from openlibrary.core.vendors import (
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
+from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
 from openlibrary.plugins.upstream.utils import json_encode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
@@ -113,17 +115,137 @@ class CarouselLoadMoreParams(BaseModel):
     published_in: str = ""
 
 
+_CAROUSEL_CARD_FALLBACK_COVER = "https://openlibrary.org/static/images/icons/avatar_book.png"
+# NOTE: Hard-coded to keep behavior unchanged during Templetor to Jinja conversion
+# (PR 13578, issue 13570). Source template `books/custom_carousel_card.html:4`
+# used `cover_host = '//covers.openlibrary.org'`. This keeps the DOM identical.
+# Consider to use `get_coverstore_public_url()` in a follow-up change.
+_CAROUSEL_CARD_COVER_HOST = "//covers.openlibrary.org"
+
+
+def _resolve_carousel_card_cover_url(book) -> str | Literal[False]:
+    """Resolve the cover image URL for a book. Serves both a Thing (with
+    ``get_cover_url``) and a plain dict/Solr-doc shape."""
+    if hasattr(book, "get_cover_url") and book.get_cover_url("M"):
+        return book.get_cover_url("M")
+    if book.get("cover_url"):
+        return book.get("cover_url")
+    cover_id = book.get("cover_id") or book.get("cover_i") or (book.get("covers") and book["covers"][0])
+    if cover_id and cover_id != -1:
+        return f"{_CAROUSEL_CARD_COVER_HOST}/b/id/{cover_id}-M.jpg"
+    if book.get("ia"):
+        return f"{_CAROUSEL_CARD_COVER_HOST}/b/ia/{book.get('ia')[0]}-M.jpg?default={_CAROUSEL_CARD_FALLBACK_COVER}"
+    if book.get("ocaid"):
+        return f"{_CAROUSEL_CARD_COVER_HOST}/b/ia/{book.get('ocaid')}-M.jpg?default={_CAROUSEL_CARD_FALLBACK_COVER}"
+    if book.get("cover_edition_key"):
+        return f"{_CAROUSEL_CARD_COVER_HOST}/b/olid/{book.get('cover_edition_key')}-M.jpg"
+    return False
+
+
+def _resolve_carousel_card_author_names(book) -> list[str]:
+    """Serves both a Thing (list of author Things with a .name) and a plain
+    dict/Solr-doc shape (author_name: list[str])."""
+    if book.get("authors"):
+        return [author.name or _("name missing") for author in book.authors]
+    if book.get("author_name"):
+        return book.get("author_name", [])
+    return []
+
+
+def _render_carousel_card_loan_status(book, *, work_key: str, secondary_action: bool, key: str) -> Markup:
+    """Bridge call into the still-Templetor LoanStatus macro (183 lines, 8
+    other callers; out of scope for this conversion per issue #13570).
+    TODO: Convert LoanStatus to jinja and remove this bridge.
+    """
+    macro = render_macro(
+        "LoanStatus",
+        (book,),
+        work_key=work_key,
+        listen=False,
+        secondary_action=secondary_action,
+        analytics_override="BookCarousel|{action}Click|%s" % key,
+    )
+    return Markup(str(macro["__body__"]))
+
+
+class CarouselCardData(TypedDict):
+    url: str
+    title: str
+    byline: str
+    author_names: list[str]
+    cover_url: str | Literal[False]
+    loan: dict[str, Any] | None
+    expiry_utc: str
+    expiry_display: str
+    is_bookreader: bool
+    waitlist_size: int
+    key: str
+    lazy: bool
+    layout: str | None
+    loan_status_html: Markup
+    return_confirm_i18n: str
+    request_fullpath: str
+
+
+@public
+def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_path: str, secondary_action: bool = False) -> CarouselCardData:
+    """Gather data for books/custom_carousel_card.html.jinja.
+
+    Like ReadingGoalProgressPartial.generate: Python gathers (hasattr/DB),
+    Jinja only renders. No HTML is built here except loan_status_html which
+    bridges the still-Templetor LoanStatus.
+    """
+
+    url = book.get("key") or book.url
+    title = book.get("title", "")
+    author_names = _resolve_carousel_card_author_names(book)
+    byline = _(" by %(name)s", name=", ".join(author_names)) if author_names else ""
+
+    loan = book.get("loan")
+    waitlist_size = 0
+    if loan and hasattr(book, "get_waitinglist_size"):
+        waitlist_size = book.get_waitinglist_size()
+
+    expiry = loan.get("expiry") if loan else None
+    if expiry:
+        expiry_dt = datetime_from_isoformat(expiry)
+        expiry_utc = datetimestr_utc(expiry_dt)
+        expiry_display = datestr(expiry_dt)
+    else:
+        expiry_utc = ""
+        expiry_display = ""
+
+    return {
+        "url": url,
+        "title": title,
+        "byline": byline,
+        "author_names": author_names,
+        "cover_url": _resolve_carousel_card_cover_url(book),
+        "loan": loan,
+        "expiry_utc": expiry_utc,
+        "expiry_display": expiry_display,
+        "is_bookreader": bool(loan and loan.get("resource_type") == "bookreader"),
+        "waitlist_size": waitlist_size,
+        "key": key,
+        "lazy": lazy,
+        "layout": layout,
+        "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, secondary_action=(secondary_action and not loan), key=key),
+        "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
+        "request_fullpath": full_path,
+    }
+
+
 class CarouselCardPartial:
     """Handler for carousel "load_more" requests"""
 
     MAX_VISIBLE_CARDS = 5
 
     @classmethod
-    async def generate_async(cls, params: CarouselLoadMoreParams) -> dict:
+    async def generate_async(cls, params: CarouselLoadMoreParams, full_path: str) -> dict:
         # Do search
         search_results = await cls._make_book_query(params)
 
-        # Render cards
+        # Render cards — gather data in Python, render in Jinja (like ReadingGoalProgressPartial)
         cards = []
         for index, work in enumerate(search_results):
             lazy = index > cls.MAX_VISIBLE_CARDS
@@ -135,18 +257,15 @@ class CarouselCardPartial:
             else:
                 book = editions.get("docs", [None])[0]
             book["authors"] = work.get("authors", [])
+            book = web.storage(book)
 
-            cards.append(
-                render_template(
-                    "books/custom_carousel_card",
-                    web.storage(book),
-                    lazy,
-                    params.layout,
-                    key=params.key,
-                )
-            )
+            try:
+                data = get_carousel_card_data(book, lazy, params.layout, params.key, full_path)
+                cards.append(render_jinja_template("books/custom_carousel_card.html.jinja", **data))
+            except Exception:  # noqa: BLE001  # per-card isolation: one bad card should not break whole carousel
+                continue
 
-        return {"partials": [str(template) for template in cards]}
+        return {"partials": cards}
 
     @classmethod
     async def _make_book_query(cls, params: CarouselLoadMoreParams) -> list:
