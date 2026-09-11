@@ -31,7 +31,7 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
             </div>
             $if current_goal:
             <span id="reading-goal-container">
-              $:render_template('reading_goals/reading_goal_progress', [current_goal])
+              $:render_jinja_template("reading_goals/reading_goal_progress.html.jinja", entries=[current_goal])
             </span>
           </div>
         </li>

@@ -61,7 +61,8 @@ $if test or (books and len(books) >= min_books):
               $ loan = book.get('loan')
               $if loan:
                 $ book2['loan'] = loan
-              $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
+              $ data = get_carousel_card_data(book2, lazy_load, layout, key, request.fullpath, secondary_action=secondary_action)
+              $:render_jinja_template("books/custom_carousel_card.html.jinja", **data)
         </div>
       </div>
     </div>

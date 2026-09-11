@@ -101,7 +101,8 @@ th.status {
                             <span class="red">$_("Not yet downloaded.") </span><br/>
                             <a href="$loan['loan_link']">$_("Download Now")</a>
                         $else:
-                            $:macros.FormatExpiry(loan['expiry'])
+                            $ expiry_dt = datetime_from_isoformat(loan['expiry'])
+                            $:render_jinja_template("FormatExpiry.html.jinja", expiry_utc=datetimestr_utc(expiry_dt), expiry_display=datestr(expiry_dt))
                         <span class="smaller grey sansserif" style="display: block; margin-top: var(--spacing-stack-sm);">$:_("Return via<br/>Adobe Digital Editions")</span>
                 </td>
             </tr>
