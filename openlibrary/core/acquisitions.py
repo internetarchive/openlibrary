@@ -20,6 +20,8 @@ from typing import TYPE_CHECKING
 
 import web
 
+from openlibrary.utils import extract_numeric_id_from_olid
+
 from . import db
 from .db import CommonExtras
 
@@ -95,6 +97,45 @@ class Acquisition(web.storage, CommonExtras):
         return {row.local_id: Acquisition._from_row(row) for row in rows}
 
     @staticmethod
+    def get_by_editions(edition_ids: list[int]) -> dict[int, list[Acquisition]]:
+        """Batch-fetch acquisitions for many editions, grouped by ``edition_id``.
+
+        Used to weave acquisitions into a page of search results without N+1
+        queries.
+        """
+        if not edition_ids:
+            return {}
+        rows: ResultSet = db.query(
+            "SELECT * FROM acquisitions WHERE edition_id IN $edition_ids ORDER BY edition_id, provider_name",
+            vars={"edition_ids": edition_ids},
+        )
+        grouped: dict[int, list[Acquisition]] = {}
+        for row in rows:
+            acquisition = Acquisition._from_row(row)
+            grouped.setdefault(acquisition.edition_id, []).append(acquisition)
+        return grouped
+
+    @staticmethod
+    def get_by_works(work_ids: list[int]) -> dict[int, list[Acquisition]]:
+        """Batch-fetch acquisitions for many works, grouped by ``work_id``.
+
+        The work-level counterpart of :meth:`get_by_editions`. A search for a
+        title returns *works*, so this is what lets a result say "buy from
+        $1.01" without the caller having to ask for edition sub-documents.
+        """
+        if not work_ids:
+            return {}
+        rows: ResultSet = db.query(
+            "SELECT * FROM acquisitions WHERE work_id IN $work_ids ORDER BY work_id, edition_id, provider_name",
+            vars={"work_ids": work_ids},
+        )
+        grouped: dict[int, list[Acquisition]] = {}
+        for row in rows:
+            acquisition = Acquisition._from_row(row)
+            grouped.setdefault(acquisition.work_id, []).append(acquisition)
+        return grouped
+
+    @staticmethod
     def get_by_work(work_id: int) -> list[Acquisition]:
         rows: ResultSet = db.query(
             "SELECT * FROM acquisitions WHERE work_id=$work_id ORDER BY edition_id, provider_name",
@@ -140,3 +181,70 @@ class Acquisition(web.storage, CommonExtras):
                 )
             )
         return Acquisition._from_row(result[0]) if result else None
+
+
+def add_acquisitions(docs: list[dict]) -> None:
+    """Attach provider acquisitions to a page of search-result docs (#12844).
+
+    Handles both shapes a search can return, because they are not
+    interchangeable and the naive query returns the first one:
+
+    - a **work** doc (``/works/OL...W``) -- what ``/search.json`` returns unless
+      the caller asks for edition sub-documents. Matched on ``work_id``, so the
+      result spans every edition of the work and each entry names the edition it
+      belongs to. A search for a title has to be able to say "buy from $1.01"
+      without the client knowing to request editions first; an earlier version
+      of this only handled edition docs and so silently attached nothing to the
+      obvious query.
+    - an **edition** doc (``/books/OL...M``) -- what appears under
+      ``editions.docs`` when they are requested. Matched on ``edition_id``.
+
+    Each entry carries ``provider_name``, ``local_id`` and ``edition_key``::
+
+        [{"provider_name": "betterworldbooks", "local_id": "978...",
+          "edition_key": "/books/OL61605616M",
+          "access": "buy", "price": {"currency": "USD", "value": 1.01}, ...},
+         {"provider_name": "lenny", "local_id": "51008637",
+          "edition_key": "/books/OL51008637M",
+          "access": "open-access", "format": "text/html", ...}]
+
+    Two queries at most per page, both on indexed columns. Read at query time
+    rather than indexed into Solr because prices change far more often than
+    bibliographic data, and re-indexing an edition per price change is not
+    viable. #12844
+    """
+    works: dict[int, dict] = {}
+    editions: dict[int, dict] = {}
+    for doc in docs:
+        key = doc.get("key") or ""
+        target = editions if key.startswith("/books/OL") else works if key.startswith("/works/OL") else None
+        if target is None:
+            continue
+        try:
+            target[int(extract_numeric_id_from_olid(key))] = doc
+        except ValueError, TypeError:
+            continue
+
+    for by_id, fetch in ((editions, Acquisition.get_by_editions), (works, Acquisition.get_by_works)):
+        if not by_id:
+            continue
+        for id_, rows in fetch(list(by_id)).items():
+            # Flattened across providers. A row's `data` is
+            # `{"acquisitions": [...]}` holding every link that publication
+            # offers, so spreading the blob would nest a list under an
+            # "acquisitions" key inside each entry. A consumer wants one flat
+            # list it can filter by access or price, with each entry labelled by
+            # the provider it came from and the edition it applies to -- an
+            # edition can carry a BWB price and a Gutenberg epub at once.
+            flattened = [
+                {
+                    "provider_name": row.provider_name,
+                    "local_id": row.local_id,
+                    "edition_key": f"/books/OL{row.edition_id}M",
+                    **acquisition,
+                }
+                for row in rows
+                for acquisition in (row.data or {}).get("acquisitions") or []
+            ]
+            if flattened:
+                by_id[id_]["acquisitions"] = flattened
