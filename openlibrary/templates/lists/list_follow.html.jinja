@@ -13,7 +13,7 @@
         </a>
         <a class="list-follow-card__covers" href="{{ card.url }}">
             {% for img_url in cached_info["covers"] %}
-                {% set cover_url = img_url.replace("-S.jpg", "-M.jpg") if img_url else "/static/images/icons/avatar_book-sm.png" %}
+                {% set cover_url = img_url.replace("-S.jpg", "-M.jpg") if img_url else static_url("images/icons/avatar_book-sm.png") %}
                 <img src="{{ cover_url }}"
                      alt="{{ _('Cover of book') }}"
                      loading="lazy"
@@ -57,7 +57,7 @@
         {% else %}
             <div class="list-follow-card__bottom-community">
                 <div class="list-follow-card__user">
-                    <img src="/static/images/openlibrary-128x128.png"
+                    <img src="{{ static_url('images/openlibrary-128x128.png') }}"
                          alt="{{ _('OpenLibrary Logo') }}" />
                     <div class="list-follow-card__community-label">
                         <i>{{ _("Community List") }}</i>
@@ -67,6 +67,3 @@
         {% endif %}
     </div>
 {% endmacro %}
-{% for card in cards %}
-    {{ list_card(card) }}
-{% endfor %}

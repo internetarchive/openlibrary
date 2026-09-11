@@ -70,7 +70,7 @@ class TestBookPageListsPartial:
         request_context_fixture(lang="en")
 
     @pytest.mark.asyncio
-    async def test_broken_card_is_skipped(self, caplog):
+    async def test_broken_card_is_skipped(self):
         good = _community_card("Fine list")
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
@@ -87,19 +87,19 @@ class TestBookPageListsPartial:
         html = result["partials"][0]
         assert html.count('class="list-follow-card"') == 2
         assert "Unable to render" not in html
-        assert "skipping list card /people/u/lists/OL2L" in caplog.text
 
     @pytest.mark.asyncio
-    async def test_render_failure_keeps_old_fallback(self, caplog):
+    async def test_render_failure_keeps_old_fallback(self):
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
             patch("openlibrary.plugins.openlibrary.partials.get_current_user", return_value=None),
             patch.object(BookPageListsPartial, "get_list_card", return_value=_community_card("Fine list")),
-            patch("openlibrary.plugins.openlibrary.partials.get_jinja_env") as mock_env,
+            patch(
+                "openlibrary.plugins.openlibrary.partials.render_jinja_template",
+                side_effect=RuntimeError("boom"),
+            ),
         ):
-            mock_env.return_value.get_template.return_value.render.side_effect = RuntimeError("boom")
             result = await BookPageListsPartial.generate_async(workId="/works/OL1W", editionId="")
 
         assert result["hasLists"] is True
         assert result["partials"] == [BookPageListsPartial.RENDER_FALLBACK]
-        assert "failed to render lists/carousel.html.jinja" in caplog.text

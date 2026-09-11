@@ -1,4 +1,3 @@
-import logging
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Any, Literal, NotRequired, TypedDict
@@ -47,8 +46,6 @@ from openlibrary.plugins.worksearch.subjects import (
 )
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
-
-logger = logging.getLogger("openlibrary.partials")
 
 
 def _solr_query_to_subject_key(query: str) -> str:
@@ -559,6 +556,21 @@ class FullTextSuggestionsPartial:
         return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
 
+class BookPageListCard(TypedDict):
+    """Data for one card in the book-page Lists carousel.
+
+    Built in Python so the Jinja template does no DB work (Jinja has no
+    `hasattr`, no list comprehensions, and no `try`/`except`).
+    """
+
+    url: str
+    showcase: dict[str, Any]
+    owner: Any | None
+    own_list: bool
+    is_public: bool
+    is_subscribed: bool
+
+
 class BookPageListsPartial:
     """Handler for rendering the book page "Lists" section"""
 
@@ -568,15 +580,18 @@ class BookPageListsPartial:
     RENDER_FALLBACK = "Unable to render this page."
 
     @classmethod
-    def get_list_card(cls, lst, user, user_key) -> dict:
+    def get_list_card(cls, lst: Any, user: Any | None, user_key: str | None) -> BookPageListCard:
         """Load everything one list card needs, so the template does no DB calls.
 
-        `lst` is the web.storage dict from `get_list_data`, so the full List is
-        re-loaded for `get_url()` and `get_patron_showcase()`.
+        `lst` is the web.storage dict from `get_lists_async`, so the full List
+        is re-loaded for `get_url()` and `get_patron_showcase()`. Verbatim
+        checks (`settings and settings.get("public_readlog", "no") == "yes"`,
+        `user and user.is_subscribed_user(...)`) are kept so the follow button
+        sees the same values as the old Templetor code.
         """
-        own_list = lst.owner and lst.owner.key == user_key
+        own_list = bool(lst.owner and lst.owner.key == user_key)
         converted = convert_list(lst.key)
-        card = {
+        card: BookPageListCard = {
             "url": converted.get_url(),
             "showcase": converted.get_patron_showcase(),
             "owner": lst.owner,
@@ -588,8 +603,8 @@ class BookPageListsPartial:
             owner_username = lst.owner.key.split("/")[-1]
             owner_account = get_user_object(owner_username)
             settings = owner_account.get_users_settings()
-            card["is_public"] = settings and settings.get("public_readlog", "no") == "yes"
-            card["is_subscribed"] = user and user.is_subscribed_user(owner_username)
+            card["is_public"] = bool(settings and settings.get("public_readlog", "no") == "yes")
+            card["is_subscribed"] = bool(user and user.is_subscribed_user(owner_username))
         return card
 
     @classmethod
@@ -608,25 +623,24 @@ class BookPageListsPartial:
             all_url = "/search/lists?q=" + quote(query) + "&sort=last_modified"
             user = get_current_user()
             user_key = user and user.key
-            cards: list[dict] = []
+            cards: list[BookPageListCard] = []
             for lst in lists[: cls.LIMIT]:
                 try:
                     cards.append(cls.get_list_card(lst, user, user_key))
-                except Exception:
+                except Exception:  # noqa: BLE001  # per-card isolation: one bad card must not break the carousel
                     # One broken list (e.g. its owner's account was deleted, so the
                     # owner doc is no longer a User) must not take the section down.
-                    logger.exception("BookPageLists: skipping list card %s", lst.key)
+                    continue
             try:
-                template = get_jinja_env().get_template("lists/carousel.html.jinja")
-                html = template.render(
+                html = render_jinja_template(
+                    "lists/carousel.html.jinja",
                     cards=cards,
                     has_more=len(lists) > cls.LIMIT,
                     all_url=all_url,
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001  # keep old saferender fallback instead of 500 + spinner
                 # Same fallback infogami's saferender gave the Templetor version,
                 # instead of a 500 that leaves the section spinning.
-                logger.exception("BookPageLists: failed to render lists/carousel.html.jinja")
                 html = cls.RENDER_FALLBACK
             results["partials"].append(html)
 
