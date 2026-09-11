@@ -1195,11 +1195,11 @@ msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
 msgstr[1] ""
 
-#: account/loans.html books/custom_carousel_card.html
+#: account/loans.html books/custom_carousel_card.html.jinja
 msgid "Not yet downloaded."
 msgstr ""
 
-#: account/loans.html books/custom_carousel_card.html
+#: account/loans.html books/custom_carousel_card.html.jinja
 msgid "Download Now"
 msgstr ""
 
@@ -3108,35 +3108,22 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: books/custom_carousel_card.html type/author/view.html
-msgid "name missing"
-msgstr ""
-
-#: books/custom_carousel_card.html books/mobile_carousel.html
-#, python-format
-msgid " by %(name)s"
-msgstr ""
-
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
 msgid_plural "%(count)d people waiting"
 msgstr[0] ""
 msgstr[1] ""
 
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 msgid "Return via ADE"
 msgstr ""
 
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 msgid "Loan Expired"
 msgstr ""
 
-#: ReturnForm.html books/custom_carousel_card.html
-msgid "Really return this book?"
-msgstr ""
-
-#: ReturnForm.html books/custom_carousel_card.html
+#: ReturnForm.html books/custom_carousel_card.html.jinja
 msgid "Return book"
 msgstr ""
 
@@ -3317,6 +3304,11 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
+msgstr ""
+
+#: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid " by %(name)s"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
@@ -6105,6 +6097,10 @@ msgstr ""
 msgid "Author Identifiers Purpose"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/partials.py type/author/view.html
+msgid "name missing"
+msgstr ""
+
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
@@ -6995,7 +6991,7 @@ msgstr ""
 msgid "Go to next section"
 msgstr ""
 
-#: FormatExpiry.html
+#: FormatExpiry.html.jinja
 msgid "Expires"
 msgstr ""
 
@@ -7172,6 +7168,10 @@ msgstr ""
 
 #: RelatedSubjects.html.jinja
 msgid "Related..."
+msgstr ""
+
+#: ReturnForm.html openlibrary/plugins/openlibrary/partials.py
+msgid "Really return this book?"
 msgstr ""
 
 #: SearchResultsWork.html

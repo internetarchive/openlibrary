@@ -75,7 +75,7 @@ $else:
                 </td>
                 <td class="expires">
                     $if 'expiry' in loan:
-                        $:macros.FormatExpiry(loan['expiry'])
+                        $:render_jinja_template("FormatExpiry.html.jinja", expiry=loan['expiry'], datetime_from_isoformat=datetime_from_isoformat, datestr=datestr, datetimestr_utc=datetimestr_utc)
                     $else:
                         -
                 </td>

@@ -19,5 +19,5 @@ $ i18n_strings = {
   />
   <input type="hidden" name="action" value="return" />
   <input type="hidden" name="redirect" value="$request.fullpath" />
-  $:macros.FormatExpiry(expiry)
+  $:render_jinja_template("FormatExpiry.html.jinja", expiry=expiry, datetime_from_isoformat=datetime_from_isoformat, datestr=datestr, datetimestr_utc=datetimestr_utc)
 </form>

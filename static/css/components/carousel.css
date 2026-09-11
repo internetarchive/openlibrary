@@ -269,6 +269,11 @@
   color: var(--button-hover-blue);
   text-decoration: underline;
 }
+
+.loan-overlay-badge__ade-notice {
+  opacity: 0.9;
+}
+
 .ol-action-row {
   display: flex;
   gap: 4px;
