@@ -87,12 +87,11 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
     <button class="hamburger-trigger" aria-label="$_('Menu')" aria-expanded="false">
       $if ctx.user:
         $# No linked archive.org account means no avatar to fetch (that URL 403s), so
-        $# use the glyph. A linked account with no picture still 200s -- archive.org
-        $# serves its own silhouette there, which we can't detect without a round-trip.
+        $# use the glyph instead. A linked account with no picture still 200s --
+        $# archive.org serves its own silhouette there.
         $ ia_id = get_internet_archive_id(ctx.user.key)
         $if ia_id:
-          <img class="account__icon" src="https://archive.org/services/img/$(ia_id)" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
-          <span class="account__icon-fallback" hidden>$:macros.icon("circle-user-round", size="lg", label=_("My account"), extra_class="account__icon-glyph")</span>
+          <img class="account__icon" src="https://archive.org/services/img/$(ia_id)" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
         $else:
           $:macros.icon("circle-user-round", size="lg", label=_("My account"), extra_class="account__icon-glyph")
         $if shows_merge_count and cached_get_counts_by_mode(mode='open') > 0:
