@@ -221,7 +221,7 @@ class TestTokenExchange:
                 pass
 
             def json(self):
-                return {"access_token": "at-123", "token_type": "Bearer"}
+                return {"access_token": "at-123", "refresh_token": "rt-456", "token_type": "Bearer"}
 
         def fake_post(url, data=None, headers=None, timeout=None):
             captured["url"] = url
@@ -237,11 +237,26 @@ class TestTokenExchange:
             "code_verifier": "verifier-abc",
             "redirect_uri": "https://openlibrary.org/borrow/lenny/callback",
         }
-        assert lenny.exchange_code(pending, "code-xyz") == "at-123"
+        assert lenny.exchange_code(pending, "code-xyz") == ("at-123", "rt-456")
         assert captured["url"] == DISCOVERY["token_endpoint"]
         assert captured["data"]["code_verifier"] == "verifier-abc"
         assert captured["data"]["grant_type"] == "authorization_code"
-        assert "refresh_token" not in captured["data"]
+        assert "refresh_token" not in captured["data"], "the code grant does not present a refresh token"
+
+    def test_a_missing_refresh_token_is_not_an_error(self, memcache, monkeypatch):
+        """A node is not obliged to issue one, and a borrow works without it."""
+
+        class Resp:
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return {"access_token": "at-only"}
+
+        monkeypatch.setattr(lenny, "discover", lambda issuer: DISCOVERY)
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: Resp())
+        pending = {"issuer": NODE["issuer"], "code_verifier": "v", "client_id": "c", "client_secret": "s", "redirect_uri": "r"}
+        assert lenny.exchange_code(pending, "code") == ("at-only", "")
 
     def test_a_response_without_a_token_raises(self, memcache, monkeypatch):
         class Resp:
