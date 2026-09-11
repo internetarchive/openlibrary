@@ -33,7 +33,7 @@ logger = logging.getLogger("openlibrary.design")
 
 # Custom Elements Manifest generated from JSDoc on the Lit components by
 # `npx cem analyze` (see custom-elements-manifest.config.mjs), which
-# `make lit-components` runs. Generated, not committed — see .gitignore.
+# `make components` runs. Generated, not committed — see .gitignore.
 MANIFEST_PATH = Path(__file__).parents[2] / "components" / "lit" / "custom-elements.json"
 
 
@@ -339,7 +339,7 @@ def load_components():
         manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     except OSError, ValueError:
         logger.warning(
-            "Could not read Custom Elements Manifest at %s — the design page's API tables will be empty. Run `make lit-components` to generate it.",
+            "Could not read Custom Elements Manifest at %s — the design page's API tables will be empty. Run `make components` to generate it.",
             MANIFEST_PATH,
         )
         return {}

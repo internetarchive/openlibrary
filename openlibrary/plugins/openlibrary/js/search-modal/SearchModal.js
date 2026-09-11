@@ -2,8 +2,8 @@ import { LitElement, html, css, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 // The <ol-*> custom elements this modal uses (ol-icon, ol-dialog, ol-toggle,
 // ol-select-popover) are registered by the site-wide
-// Lit bundle: build/lit-components/production/ol-components.js, loaded from
-// openlibrary/templates/site/footer.html. Do NOT re-import those component
+// Lit bundle: build/components/production/ol-components.js, loaded from
+// openlibrary/templates/site.html.jinja. Do NOT re-import those component
 // modules here — re-running customElements.define() throws NotSupportedError,
 // which aborts the rest of that bundle and unregisters every other component.
 import { debounce } from '../nonjquery_utils.js';

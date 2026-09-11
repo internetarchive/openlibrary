@@ -37,7 +37,7 @@ from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
 
 if TYPE_CHECKING:
-    from openlibrary.fastapi.utils import FlashType
+    from openlibrary.fastapi.shared.utils import FlashType
 
 logger = logging.getLogger("openlibrary.borrow")
 
