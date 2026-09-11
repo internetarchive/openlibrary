@@ -80,8 +80,15 @@ Defined in `openlibrary/plugins/upstream/addtag.py`:
 
 ```python
 SUBJECT_SUB_TYPES = [
-    "subject", "person", "place", "time",
-    "genre", "subgenre", "content_format", "literary_form", "mood",
+    "subject",
+    "person",
+    "place",
+    "time",
+    "genre",
+    "subgenre",
+    "content_format",
+    "literary_form",
+    "mood",
 ]
 TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
 ```
