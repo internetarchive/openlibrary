@@ -74,3 +74,11 @@ test-results/
 # Local dev state for /status testing-environment (deploy table)
 /_testing-prs.json
 /_dev-merged_status.txt
+# rust
+rust_solr/target/
+lake/
+*.parquet
+works.json
+authors.json
+editions_by_work.json
+solr_docs.jsonl

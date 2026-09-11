@@ -8,5 +8,5 @@ sed --expression='s/\\u0000//g' | \
 psql -d postgres --user=postgres -c  "
     TRUNCATE $DESTINATION;
     COPY $DESTINATION
-    FROM STDIN with delimiter E'\t' escape '\' quote E'\b' FREEZE csv
+    FROM STDIN with delimiter E'\t' escape '\' quote E'\b' FREEZE csv NULL '\N'
 "

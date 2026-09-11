@@ -408,6 +408,88 @@ curl "http://localhost:8983/solr/openlibrary/select?q=frankenstein&rows=3&wt=jso
 docker compose run --rm home python -m openlibrary.solr.update --config conf/openlibrary.yml --update pprint /works/OL45883W
 ```
 
+### Rust full (isolated, 8985) — work/edition Gold via DuckDB + Rust
+
+> ⚠️ **Dump mixup incident (2026-08-23).** The first pipeline was built from a 7.1 GB file named `ol_dump_2026-07-31.txt.gz` that was actually a **January-2024 snapshot** (last record `2024-01-14`). Works/editions were rebuilt from the genuine **18 GB** dump, but authors and lists had been loaded from the stale bronze (~55% of authors / ~50% of lists missing vs production). The stale repo `lake/` tree and the bad `/storage` dump were deleted. **The good data lives at `/mnt/HC_Volume_106672133/openlibrary/lake_full/`** — always point loaders there:
+>
+> | Source (18 GB dump) | Rows |
+> |---|---|
+> | `lake_full/bronze/authors.parquet` | 15,380,614 |
+> | `lake_full/bronze/works.parquet` | 41,504,065 |
+> | `lake_full/bronze/editions.parquet` | 56,615,822 |
+> | `lake_full/bronze/lists.parquet` | 262,818 (260,316 named) |
+
+`compose.rust_full.yaml` runs an isolated `solr:10.0.0` at `http://localhost:8985` (`solr_rust_full`, `4g` heap, `ramBufferSizeMB=512`, `autoSoftCommit -1`, mount `/mnt/HC_Volume_106672133/solr_rust_full`) so `dev 8983` (`7.2M` docs) stays untouched. `rust_solr` builds `work` docs with nested `edition` children from `lake_full/bronze/*.parquet` + `lake_full/silver` buckets (`rust_solr/src/main.rs`, `query.rs`, `transform/mod.rs`).
+
+**Gold pipeline (from dump `ol_dump_2026-07-31.txt.gz` 18 GB at `/mnt/HC_Volume_106672133/openlibrary/dumps/`):**
+```bash
+# once (LAKE=/mnt/HC_Volume_106672133/openlibrary/lake_full)
+.venv/bin/python mvp_bronze.py          # -> lake_full/bronze/{works,editions,authors}.parquet 119M rows
+.venv/bin/python mvp_silver_py.py       # -> lake_full/silver/editions.parquet + works_b/editions_bucketed
+
+# 10k sanity (START_AT=/works/OL1W)
+cargo run --release -p rust_solr -- --limit 10000 --out /tmp/rust_10k.parquet
+curl "http://localhost:8985/solr/openlibrary/select?q=type:work&rows=0" # -> 10000
+
+# full 41.5M works + 56.6M editions (~96M docs incl nested) via chunked manifests
+.venv/bin/python mvp_partition_orphans.py   # one-time: bucket ~1.95M orphan editions -> silver/orphans_bucketed/
+cargo build --release
+for i in $(seq 0 1440); do cargo run --release -p rust_solr -- --chunks lake_full/silver/chunks_10000.json --chunk-index $i --out lake_full/gold/rust_full/part-$(printf %04d $i).parquet; done
+# NDJSON per chunk + parallel load: split -l 50000 chunk_ | parallel -j8 'curl --data-binary @{} http://localhost:8985/solr/openlibrary/update/json/docs?commitWithin=60000'
+curl "http://localhost:8985/solr/openlibrary/update?commit=true"
+curl "http://localhost:8985/solr/openlibrary/select?q=*:*&facet=true&facet.field=type&rows=0" # edition ~54M work ~41M
+```
+
+**Authors are dropped at Gold build** — `rust_solr/src/main.rs:92` fetches `bronze/authors.parquet` only for denorm (`author_key/name/facet` into `work`) and emits `work` only (`transform/mod.rs:202`). So `facet type:author` `0` and `GET /search/authors?q=mark` empty (`AuthorSearchScheme: universe type:author`).
+
+**Fix — stream authors separately without re-running Gold** (`mvp_authors_to_solr.py`, raw `VARCHAR` `->` Solr, no `dict`):
+```bash
+# minimal fields for AuthorSearchScheme (name/alternate_names/birth_date) — ~9min 15.4M
+.venv/bin/python mvp_authors_to_solr.py --bronze /mnt/HC_Volume_106672133/openlibrary/lake_full/bronze/authors.parquet --solr http://localhost:8985/solr/openlibrary --batch 10000
+# verify
+curl "http://localhost:8985/solr/openlibrary/select?q=*:*&fq=type:author&rows=0" # -> ~15380614
+curl "http://localhost:8985/solr/openlibrary/select?q=mark&fq=type:author&rows=3&fl=key,name" | python3 -m json.tool
+# full facet now: edition 54M work 41M author 15.4M (111M total)
+```
+`work_count/top_work/top_subjects` aggregated by `AuthorSolrUpdater` via Solr `author_key` facet are **now covered lake-side**: `mvp_author_aggregates.py` recomputes the exact facet semantics (per-field top-10 term buckets merged `(count,val)` DESC without cross-field dedup, ratings/reading-log sums through `work_ratings_summary_from_counts`) and posts atomic updates to all 15.4M authors (~30 min). Validated 300/300 top authors against the real updater querying a loaded index (`--validate N`).
+
+**Lists** are also dropped at Gold (`ListSolrUpdater` equivalent); stream them via `mvp_lists_to_solr.py` (minimal fields for `ListSearchScheme` name search):
+```bash
+.venv/bin/python mvp_lists_to_solr.py --bronze /mnt/HC_Volume_106672133/openlibrary/lake_full/bronze/lists.parquet --batch 10000 --concurrency 8
+# verify
+curl "http://localhost:8985/solr/openlibrary/select?q=*:*&fq=type:list&rows=0" # -> ~260316 (named lists only)
+```
+
+**Availability (ebook_access) is REAL when `--ia-metadata` is passed** — `rust_solr` ports `InternetArchiveProvider.get_access` (`openlibrary/book_providers.py:337`): `inlibrary`→`borrowable`, `printdisabled`→`printdisabled`, access-restricted/no-collections→`unclassified`, else `public`; missing ocaids degrade to `unclassified` exactly like prod. Also emits work-level `ia_collection`, `lending_edition_s`/`lending_identifier_s`/`printdisabled_s` (deprecated fields, parity), and real nested-edition availability + scorecard fields. Without the flag, every ocaid degrades to `unclassified` (skip-IA mode). Metadata comes from `mvp_ia_fetch.py` (`services/search/v1/scrape` — exact, unthrottled; prod's `advancedsearch.php?doc_ids=` bulk returns unrelated rows from outside prod):
+```bash
+.venv/bin/python mvp_ia_fetch.py --limit 1000        # smoke test
+.venv/bin/python mvp_ia_fetch.py                     # full ~6.4M ocaids, resumable parts/ -> ia_lite.parquet
+cargo run --release -p rust_solr -- --chunks ... --chunk-index 0 --out part-0000.parquet \
+  --ia-metadata /mnt/HC_Volume_106672133/openlibrary/lake_full/ia/ia_lite.parquet
+```
+
+**Ghost docs, provider identifiers, series names, osp_count — closed.** `mvp_ratings_to_solr.py` guards against creating stub works (gold SEMI-JOIN) and cleans historical ones (`--cleanup-ghosts`); the rust builder walks the full PROVIDER_ORDER identifier chain with multi-provider `ebook_provider`; series names resolve from bronze other.parquet `/type/series` docs; `mvp_osp_to_solr.py` posts ghost-guarded osp counts from the official IA dump (1,292,547 works live).
+
+**Builder parity: 0 field diffs vs `WorkSolrUpdater`, including orphan fake-works.** `mvp_py_ground.py` runs the real Python updater over the same lake rows (fed the same ia_lite parquet); `mvp_diff_check.py` diffs field-by-field (order-insensitive multivalued, equal-length lcc/ddc max-ties, ±1h index-time `last_modified_i` allowed). Verified on 98,142 works across 5 runs → `FULL PARITY ✓`. Orphan editions (~1.95M with no linked work) are indexed as standalone `/works/OLxxxM` fake works in chunk mode — one-time `mvp_partition_orphans.py` builds `silver/orphans_bucketed/`; rust picks them up per-chunk automatically.
+
+**Ratings / ReadingLog are also dropped at Gold** — `WorkSolrBuilder:582,586` `ratings_average/ratings_sortable/ratings_count{1..5}` (`openlibrary/core/ratings.py:126` `work_ratings_summary_from_counts`) + `readinglog_count/want_to_read_count/...` (`openlibrary/core/bookshelves.py:687` `get_work_summary`) need `postgres` `ratings` (`838k rows` `495k works`) + `bookshelves_books` (`12.5M rows` `3.18M works`) via `solr_duckdb/parquet/ratings.parquet:5.1M` + `reading_log.parquet:55M`. Not in `lake/bronze` dumps.
+
+**Fix — atomic `{"set":}` updates without rebuilding Gold** (`mvp_ratings_to_solr.py`, `httpx.AsyncClient` `concurrency 8` default, `bench 8` optimal on `4c` `103M`):
+```bash
+# from solr_duckdb/parquet (already zstd) — no postgres needed, bench 50k: ratings 41.9s->31.9s 24% win, readingLog 77.9s->21.3s 3.6× win at conc8
+# single 1: ~90min (ratings 25min + readingLog 66min) -> conc8 ~28min (5min + 22min + commit 25s)
+.venv/bin/python mvp_ratings_to_solr.py --solr http://localhost:8985/solr/openlibrary --batch 10000 --concurrency 8
+# sweep 1,2,4,8,16 on 50k sample: --bench --limit 50000 --batch 10000 (ratings) / readingLog
+.venv/bin/python mvp_ratings_to_solr.py --bench --limit 50000 --batch 10000 --no-commit
+# from solr_duckdb/parquet explicitly:
+.venv/bin/python mvp_ratings_to_solr.py --ratings /root/solr_duckdb/parquet/ratings.parquet --reading-log /root/solr_duckdb/parquet/reading_log.parquet --solr http://localhost:8985/solr/openlibrary --batch 10000 --concurrency 8
+# verify
+curl "http://localhost:8985/solr/openlibrary/select?q=ratings_average:*&rows=0" # -> 495805
+curl "http://localhost:8985/solr/openlibrary/select?q=readinglog_count:*&rows=0" # -> 3188995
+curl "http://localhost:8985/solr/openlibrary/select?q=type:work&rows=5&fl=key,ratings_average,readinglog_count&sort=ratings_sortable+desc" | python3 -m json.tool
+```
+Only works with `ratings>0` `~0.5M` `50 batches` + readingLog `~3.2M` `318 batches` `*0.33s single` `~2min` `+ commit 25s` vs `Gold` rebuild `~5h`; `conc8` `~28min` on `4c` `4g` `ramBuffer 512` `autoSoftCommit -1` `compose.rust_full.yaml:1`. `duckdb` direct `parquet` `~0.5s` vs `psql COPY GROUP BY` `~5s`; `ol_dump*.gz` `563s` `~10×` slower.
+
 ## Public Documentation
 
 | Audience | URL | What's there |
