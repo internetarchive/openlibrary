@@ -1,16 +1,16 @@
 # AGENTS.md
 
-> **Canonical guide:** [`docs/ai/README.md`](docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
+> **Canonical guide:** [`docs/ai/README.md`](/docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
 
 ## Quick Reference
 
 **Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · webpack · Solr 10
 
-> 📖 **Guides:** [`docs/ai/i18n.md`](docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](docs/ai/README.md) — full architecture and data-model. [`docs/wiki/developers/frontend/jinja.md`](docs/wiki/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
+> 📖 **Guides:** [`docs/ai/i18n.md`](/docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](/docs/ai/README.md) — full architecture and data-model. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
 
 > 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
 >
-> 📄 **Jinja:** When touching Jinja files (`*.html.jinja`) — creating, editing, or converting from Templetor — read [`docs/wiki/developers/frontend/jinja.md`](docs/wiki/developers/frontend/jinja.md) first for syntax, conventions, and known conversion pitfalls. `docs/wiki/` is a separate repo (not a submodule), cloned automatically on container startup by `docker/ol-home-start.sh`. If it's missing (e.g. working outside Docker), clone it:
+> 📄 **Jinja:** When touching Jinja files (`*.html.jinja`) — creating, editing, or converting from Templetor — read [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) first for syntax, conventions, and known conversion pitfalls. `docs/wiki/` is a separate repo (not a submodule), cloned automatically on container startup by `docker/ol-home-start.sh`. If it's missing (e.g. working outside Docker), clone it:
 > ```bash
 > git clone https://github.com/internetarchive/openlibrary.wiki.git docs/wiki
 > ```
