@@ -4,7 +4,7 @@
  * CSS custom properties for the Open Library design system.
  *
  * Each file defines :root custom properties for a specific category.
- * This barrel file is compiled by the CSS build (vite-css.config.mjs) into
+ * This barrel file is compiled by the CSS build (scripts/vite/build.mjs) into
  * a single CSS file loaded in <head> for all pages.
  */
 
