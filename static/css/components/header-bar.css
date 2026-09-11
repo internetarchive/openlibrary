@@ -448,92 +448,46 @@
 }
 
 /* ── Header nav controls ─────────────────────────────────────
- * The header renders before the Lit bundle hydrates, so these controls can't
- * be <ol-button>s. The two classes below reproduce the ghost and primary
- * variants in the light DOM; keep them in step with OLButton.js. The explicit
- * `font-weight: normal` is one of them: <ol-button> declares no weight, so it
- * renders at the page's, and a native <button> would otherwise take the UA's.
+ * The header's buttons are real <a href>s and a slotted <button>, so they
+ * can't be <ol-button>s: an <ol-button href> renders no anchor until the Lit
+ * bundle upgrades it, and these have to navigate with JS blocked. They use the
+ * static twins from ol-button.css instead — `.ol-button-static` plus the
+ * `--ghost` / `--primary` modifier — which share the component's selector
+ * lists, so there is nothing here to hold in step with OLButton.js.
+ *
+ * What stays below is only what the header does differently: its taller
+ * control height, its one-off label size, and a hover toned to the header's
+ * own canvas rather than the page's.
  */
 
-/* Ghost — the header's low-emphasis controls (My Books, Browse, Log In):
-   transparent at rest, filled on hover, and height-locked to the header
-   control height so they line up with the search field. */
-.header-bar .nav-ghost-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-  height: var(--header-control-height);
-  box-sizing: border-box;
+.header-bar .ol-button-static {
+  --ol-button-height: var(--header-control-height);
   padding: 0 var(--spacing-inset-md);
-  border: 0;
-  border-radius: var(--border-radius-md);
-  background: none;
-  color: var(--color-text);
-  font-family: inherit;
   font-size: var(--header-control-font-size);
+  /* <ol-button> declares no weight, so it renders at the page's; a native
+     <button> would otherwise take the UA's. */
   font-weight: normal;
-  text-decoration: none;
-  cursor: pointer;
-  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
-  transition: transform var(--duration-press);
 }
 
 /* Leading glyphs only echo the label beside them, so they sit on the
    decorative tier like the browse popover's link icons. */
-.header-bar .nav-ghost-btn__icon {
+.header-bar .ol-button-static__icon {
   flex: none;
   color: var(--color-icon-muted);
 }
 
-/* A subtle darken of the canvas the header sits on. (--beige is a near match
- * for that canvas, so it'd read as no hover at all.) */
-.header-bar .nav-ghost-btn:hover,
-.header-bar .nav-ghost-btn:focus-visible,
+/* A subtle darken of the canvas the header sits on, in place of the component's
+ * neutral grey. (--beige is a near match for that canvas, so the default would
+ * read as no hover at all.) The open Browse trigger holds the same fill. */
+@media (hover: hover) and (pointer: fine) {
+  .header-bar .ol-button-static--ghost:hover {
+    background-color: var(--beige-three);
+  }
+}
+
+.header-bar .ol-button-static--ghost:focus-visible,
 .browse-popover[open] .browse-popover__trigger {
   background-color: var(--beige-three);
-}
-
-/* Tactile press feedback, matching ol-button's press-scale on activation. */
-.header-bar .nav-ghost-btn:active {
-  transform: scale(var(--press-scale));
-}
-
-/* Primary — the one high-emphasis control in the header (Sign Up). Carries
-   ol-button's fill, lift, and specular top edge, which is what separates a
-   filled control from a flat block of color. */
-.header-bar .nav-primary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--header-control-height);
-  box-sizing: border-box;
-  padding: 0 var(--spacing-inset-md);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--border-radius-button);
-  background-color: var(--color-primary);
-  color: var(--white);
-  font-family: inherit;
-  font-size: var(--header-control-font-size);
-  font-weight: normal;
-  white-space: nowrap;
-  text-decoration: none;
-  cursor: pointer;
-  box-shadow:
-    var(--box-shadow-raised),
-    inset 0 1px 0 color-mix(in srgb, var(--white) 18%, var(--color-primary));
-  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
-  transition: transform var(--duration-press);
-}
-
-/* Lightens on hover the way ol-button's filled variants do — brightness()
-   carries the fill, border, and specular edge together. */
-.header-bar .nav-primary-btn:hover,
-.header-bar .nav-primary-btn:focus-visible {
-  filter: brightness(1.1);
-}
-
-.header-bar .nav-primary-btn:active {
-  transform: scale(var(--press-scale));
 }
 
 /* ── Browse popover ──────────────────────────────────────────

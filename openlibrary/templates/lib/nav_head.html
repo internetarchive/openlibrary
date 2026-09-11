@@ -33,7 +33,7 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
   $   'label': _('My Books'),
   $   'icon': 'bookmark',
   $   'links': myBooksLinks,
-  $   'link-class': 'nav-ghost-btn'
+  $   'link-class': 'ol-button-static ol-button-static--ghost'
   $ }
   <ul class="navigation-component">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
@@ -79,8 +79,8 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
 
   $if not ctx.user:
     <ul class="auth-component">
-      <li class="hide-me"><a class="nav-ghost-btn" href="/account/login">$_("Log In")</a></li>
-      <li><a class="nav-primary-btn" href="/account/create">$_("Sign Up")</a></li>
+      <li class="hide-me"><a class="ol-button-static ol-button-static--ghost" href="/account/login">$_("Log In")</a></li>
+      <li><a class="ol-button-static ol-button-static--primary" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
   <div class="hamburger-component" data-ol-link-track="HeaderBar|Hamburger">

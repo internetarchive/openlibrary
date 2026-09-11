@@ -26,7 +26,7 @@ $ singleton = len(props.get('links', [])) == 1
         data-ol-link-track="$tracker_value"
     >
       $if props.get('icon'):
-        $:macros.icon(props['icon'], size="sm", extra_class="nav-ghost-btn__icon")
+        $:macros.icon(props['icon'], size="sm", extra_class="ol-button-static__icon")
       $(props['label'])
     </a>
   $else:
