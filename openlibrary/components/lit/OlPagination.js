@@ -161,6 +161,11 @@ export class OlPagination extends LitElement {
             padding: 0;
         }
 
+        /* Previous points toward the start edge, which is the right under RTL. */
+        :host(:dir(rtl)) .pagination-arrow ol-icon {
+            transform: scaleX(-1);
+        }
+
         /* Height-matched to the items; natural width, since it's not a target. */
         .ellipsis {
             display: flex;

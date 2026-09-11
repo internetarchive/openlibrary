@@ -25,10 +25,17 @@
    is worse than not documenting it at all. */
 @import "components/ol-message.css";
 
+/* Page and component titles set in the serif; import the face so it loads. */
+@import "fonts/literata.css";
+@import "fonts/schibsted-grotesk.css";
+
 .ds {
   --ds-gutter: var(--spacing-inset-md);
   --ds-sidebar-width: 208px;
+  /* Title stacked over the section tabs. */
   --ds-masthead-height: 112px;
+  /* Backgrounds run edge to edge; the masthead row and the page body cap at this. */
+  --ds-max-width: 1240px;
 
   padding: 0 var(--ds-gutter) var(--spacing-inset-xl);
   color: var(--color-text);
@@ -53,52 +60,85 @@ html:has(.ds) {
   top: 0;
   z-index: var(--z-index-level-2);
   margin: 0 calc(var(--ds-gutter) * -1);
-  padding: var(--spacing-inset-md) var(--ds-gutter);
-  background-color: var(--color-surface-header);
+  /* No bottom padding: the tabs run down to the divider so the current tab's
+     underline sits on it. */
+  padding: var(--spacing-inset-md) var(--ds-gutter) 0;
+  background-color: var(--color-surface);
   border-bottom: var(--border-divider);
 }
 
-.ds__masthead-row {
+.ds__masthead-inner {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-xl);
-  align-items: baseline;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+  max-width: var(--ds-max-width);
+  margin: 0 auto;
 }
 
 .ds__title {
   margin: 0;
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-title-large);
-  color: var(--color-text);
+  font-weight: 500;
+  color: var(--color-text-heading);
 }
 
+/* Section tabs. Plain links, since each one loads a page. Underline-style so
+   they read as navigation rather than a control, and scroll rather than wrap
+   so four sections fit a phone. Bleeds to the viewport edge on mobile so the
+   scroll runs to the screen edge rather than stopping at the gutter. */
 .ds__tabs {
   display: flex;
-  gap: var(--spacing-inline-md);
+  margin: 0 calc(var(--ds-gutter) * -1);
+  /* Less the tab's own padding on the left, so the first label lands on the gutter. */
+  padding: 0 var(--ds-gutter) 0 calc(var(--ds-gutter) - var(--spacing-md));
   overflow-x: auto;
+  /* A scrollbar under a tab row reads as a second divider; the cut-off last
+     label is cue enough. */
+  scrollbar-width: none;
 }
 
+.ds__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* ol-button's horizontal padding, so the underline runs 12px past the label
+   on each side. The row's left edge is pulled out by the same amount (below),
+   so the first label still sits flush without the overflow clip eating the
+   first tab's overhang. */
 .ds__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex-shrink: 0;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  border-radius: var(--border-radius-button);
-  color: var(--color-text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+  /* Transparent on every tab so the current one's underline shifts nothing. */
+  border-bottom: 2px solid transparent;
   font-size: var(--font-size-label-large);
-  text-decoration: none;
   white-space: nowrap;
 }
 
-/* Nav chrome stays neutral — blue is reserved for links in content. The
-   masthead is already neutral-100, so hover lifts to white. */
-.ds__tab:hover {
-  background-color: var(--color-surface);
-  color: var(--color-text);
+/* A hidden bold twin of the label sizes the tab for its heaviest state, so
+   the current tab can go bold without the row reflowing. The visible label
+   centers in that width, and the underline spans it. */
+.ds__tab-ghost {
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: 600;
 }
 
-.ds__tab--current,
-.ds__tab--current:hover {
-  background-color: var(--color-surface);
-  color: var(--color-text);
+.ds__tab--current {
+  border-bottom-color: var(--color-text);
   font-weight: 600;
+}
+
+/* Much lighter than the current tab's bar, so a hovered neighbour reads as a
+   preview rather than extending the active underline into one long line. */
+@media (hover: hover) and (pointer: fine) {
+  .ds__tab:not(.ds__tab--current):hover {
+    border-bottom-color: var(--color-border-muted);
+  }
 }
 
 /* ------------------------------------------------------------------ layout */
@@ -108,12 +148,23 @@ html:has(.ds) {
   flex-direction: column;
   gap: var(--spacing-stack-lg);
   align-items: stretch;
+  max-width: var(--ds-max-width);
+  margin: 0 auto;
   padding-top: var(--spacing-stack-lg);
 }
 
 .ds__main {
   flex: 1;
   min-width: 0;
+}
+
+/* The page's name, from the section list, so the masthead can stay a brand
+   rather than the heading. A step above the section titles beneath it. */
+.ds__page-title {
+  margin: 0 0 var(--spacing-stack-lg);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-headline-large);
+  color: var(--color-text-heading);
 }
 
 /* ----------------------------------------------------------------- sidebar */
@@ -135,18 +186,23 @@ html:has(.ds) {
 }
 
 .ds__nav-list a {
-  display: block;
-  padding: var(--spacing-inset-sm);
+  display: flex;
+  align-items: center;
+  /* Menu-row contract (tokens/control-heights.css): the token sets the row
+     height, so the block padding stays under it. */
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs) var(--spacing-inset-sm);
   border-radius: var(--border-radius-button);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-label-medium);
+  color: var(--color-text);
+  font-size: var(--font-size-label-large);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.ds__nav-list a:hover {
-  background-color: var(--color-surface-sunken);
-  color: var(--color-text);
+@media (hover: hover) and (pointer: fine) {
+  .ds__nav-list a:hover {
+    background-color: var(--color-surface-sunken);
+  }
 }
 
 .ds__nav-list a.is-current {
@@ -164,11 +220,19 @@ html:has(.ds) {
 .ds__nav-group-title {
   display: none;
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  border-radius: var(--border-radius-button);
   color: var(--color-text-muted);
-  font-size: var(--font-size-label-small);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+}
+
+/* A jump to the group's section, so it takes the rows' hover. */
+@media (hover: hover) and (pointer: fine) {
+  .ds__nav-group-title:hover {
+    background-color: var(--color-surface-sunken);
+  }
 }
 
 /* Sits above the nav in the sidebar, separated by a rule so it reads as a
@@ -207,15 +271,34 @@ html:has(.ds) {
   border-bottom: 0;
 }
 
-/* Inside the tray the nav stacks, as in the desktop sidebar. Link padding is
-   left at the base value: the tray is touched, not clicked. */
+/* Inside the tray the nav stacks, as in the desktop sidebar, with a 4px gutter
+   that the rows give back as padding, so labels stay 16px from the panel and
+   the hover fill reads as a pill rather than a band. */
 .ds__nav-popover .ds__nav {
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md)
-    var(--spacing-inset-lg);
+  padding: var(--spacing-inset-sm) var(--menu-row-inset) var(--spacing-inset-lg);
 }
 
 .ds__nav-popover .ds__nav-list {
   display: block;
+}
+
+.ds__nav-popover .ds__nav-list a {
+  padding-inline: var(--menu-row-padding-inline);
+  font-size: var(--font-size-body-large);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ds__nav-popover .ds__nav-list a:hover {
+    background-color: var(--color-hover-overlay);
+  }
+}
+
+/* The current row is marked in colour only: a weight change would re-measure
+   the label and shift the row. Declared after the hover rule so a hovered
+   current row keeps its colour. */
+.ds__nav-popover .ds__nav-list a.is-current {
+  color: var(--color-link);
+  font-weight: inherit;
 }
 
 .ds__nav-popover .ds__nav-group {
@@ -225,6 +308,13 @@ html:has(.ds) {
 
 .ds__nav-popover .ds__nav-group-title {
   display: block;
+  padding: var(--spacing-inset-xs) var(--menu-row-padding-inline);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ds__nav-popover .ds__nav-group-title:hover {
+    background-color: var(--color-hover-overlay);
+  }
 }
 
 .ds__empty {
@@ -245,29 +335,57 @@ html:has(.ds) {
 
 .ds-section__title {
   margin: 0 0 var(--spacing-stack-sm);
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-headline-small);
-  color: var(--color-text);
+  color: var(--color-text-heading);
 }
 
-/* On Components the section title labels a group of components, and the
-   component titles below it are the headings people scan for. At 24px bold it
-   sat 2px from them and read as a sibling; as a quiet eyebrow over a rule it
-   reads as the container it is. */
-/* The eyebrow's rule already marks where a group starts, so the section's own
-   closing rule would land a second hairline a few pixels above it. */
-.ds-section:has(> .ds-section__title--eyebrow) {
+/* The eyebrow's rule already marks where a section starts, so the section's
+   own closing rule would land a second hairline a few pixels above it. */
+.ds-section:has(> .ds-section__title--eyebrow),
+.ds-section:has(> .ds-section__title--group) {
   border-bottom: 0;
+}
+
+/* The divider is the boundary, so the section keeps only its margin: with the
+   padding too, the air above the label was four times the air below it. */
+.ds-section:has(> .ds-section__title--group) {
+  padding-bottom: 0;
 }
 
 .ds-section__title--eyebrow {
   padding-bottom: var(--spacing-stack-xs);
   margin-bottom: var(--spacing-stack-md);
   border-bottom: var(--border-divider);
-  font-size: var(--font-size-label-medium);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
   color: var(--color-text-muted);
+}
+
+/* On Components the section title names a group of components, and the
+   component titles beneath it are what people scan for. As a heading it either
+   competed with them or vanished among them, so it is a divider instead: a caps
+   label with the rule running out to its right. */
+.ds-section__title--group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+  margin-bottom: var(--spacing-stack-lg);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-secondary);
+}
+
+.ds-section__title--group::after {
+  content: "";
+  flex: 1;
+  border-top: var(--border-divider);
 }
 
 .ds-section__blurb,
@@ -275,7 +393,7 @@ html:has(.ds) {
 .ds-lead {
   max-width: 78ch;
   margin: 0 0 var(--spacing-stack-md);
-  color: var(--color-text-secondary);
+  color: var(--color-text);
   font-size: var(--font-size-body-medium);
 }
 
@@ -310,7 +428,7 @@ html:has(.ds) {
 .ds-tier__title {
   margin: 0 0 var(--spacing-stack-xs);
   font-size: var(--font-size-title-medium);
-  color: var(--color-text);
+  color: var(--color-text-heading);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -321,8 +439,9 @@ html:has(.ds) {
 
 .ds-group__title {
   margin: 0 0 var(--spacing-stack-sm);
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-title-medium);
-  color: var(--color-text);
+  color: var(--color-text-heading);
 }
 
 .ds-group__diagram {
@@ -354,7 +473,7 @@ html:has(.ds) {
 
 .ds-notes p {
   margin: 0 0 var(--spacing-stack-xs);
-  color: var(--color-text-secondary);
+  color: var(--color-text);
 }
 
 .ds-notes p:last-child {
@@ -370,13 +489,13 @@ html:has(.ds) {
 .ds-example__title {
   margin: 0 0 var(--spacing-stack-xs);
   font-size: var(--font-size-title-small);
-  color: var(--color-text);
+  color: var(--color-text-heading);
 }
 
 .ds-example__note {
   max-width: 78ch;
   margin: 0 0 var(--spacing-stack-sm);
-  color: var(--color-text-secondary);
+  color: var(--color-text);
   font-size: var(--font-size-body-medium);
 }
 
@@ -409,7 +528,7 @@ html:has(.ds) {
 .ds .ds-example__output p {
   width: 100%;
   margin: var(--spacing-stack-xs) 0 0;
-  color: var(--color-text-secondary);
+  color: var(--color-text);
   font-size: var(--font-size-body-medium);
 }
 
@@ -546,8 +665,9 @@ html:has(.ds) {
   gap: var(--spacing-inline-md);
   align-items: baseline;
   margin: 0 0 var(--spacing-stack-xs);
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-title-large);
-  color: var(--color-text);
+  color: var(--color-text-heading);
 }
 
 .ds-component__tag {
@@ -749,7 +869,7 @@ html:has(.ds) {
 .ds-api__group {
   margin: var(--spacing-stack-md) 0 var(--spacing-stack-xs);
   font-size: var(--font-size-label-large);
-  color: var(--color-text);
+  color: var(--color-text-heading);
 }
 
 /* ------------------------------------------------------------------ tables */
@@ -1063,23 +1183,49 @@ html:has(.ds) {
   cursor: pointer;
 }
 
+/* Demo rows inside a panel follow the menu-row contract in
+   tokens/control-heights.css: one row height, inset from the panel edge so
+   the hover fill reads as a pill, not a band running edge to edge. */
 .ds-demo-menu {
+  display: flex;
+  flex-direction: column;
   min-width: 160px;
   margin: 0;
-  padding: var(--spacing-inset-xs) 0;
+  padding: var(--menu-row-inset) 0;
   list-style: none;
 }
 
-.ds-demo-menu li {
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+.ds-demo-menu > li,
+.ds-demo-menu > .ds-demo-menu__link {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--menu-row-height);
+  margin-inline: var(--menu-row-inset);
+  padding: var(--spacing-inset-xs) var(--menu-row-padding-inline);
+  border-radius: var(--border-radius-button);
+  color: var(--color-text);
+  font-size: var(--font-size-body-medium);
+  text-decoration: none;
   cursor: pointer;
 }
 
-.ds-demo-menu li:hover {
-  background: var(--color-surface-sunken);
+@media (hover: hover) and (pointer: fine) {
+  .ds-demo-menu > li:hover,
+  .ds-demo-menu > .ds-demo-menu__link:hover {
+    background: var(--color-hover-overlay);
+  }
 }
 
-.ds-demo-menu__divided {
+.ds-demo-menu > .ds-demo-menu__link:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+/* Inset to the row edge, so the rule and the pills share one column. */
+.ds-demo-menu__divider {
+  margin: var(--menu-row-inset);
+  border: 0;
   border-top: var(--border-divider);
 }
 
@@ -1242,10 +1388,15 @@ fieldset.ds-demo-row {
 
 .ds-state-grid__head {
   color: var(--color-text-secondary);
-  font-size: var(--font-size-label-medium);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+}
+
+.ds-state-grid__none {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-small);
 }
 
 .ds-longform {
@@ -1336,9 +1487,1035 @@ fieldset.ds-demo-row {
   border-radius: var(--border-radius-button);
 }
 
+/* Right-to-left check (see design/playground.html.jinja). The demos below
+   inherit dir from .rtl-check, which the segmented control flips, so every
+   rule here is logical on purpose: a physical left/right would mask the very
+   drift the section exists to expose. */
+.rtl-check__controls {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.rtl-check {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+}
+
+.rtl-check > .ds-group__title:not(:first-child) {
+  margin-top: var(--spacing-stack-lg);
+}
+
+/* A cut-down book page: cover at the inline start, record beside it. */
+.rtl-check__book {
+  align-items: flex-start;
+  gap: var(--spacing-inline-xl);
+}
+
+.rtl-check__cover {
+  flex: none;
+  width: 96px;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--border-radius-sm);
+  background: linear-gradient(160deg, var(--neutral-200), var(--neutral-400));
+}
+
+.rtl-check__record {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+  min-width: 0;
+}
+
+.rtl-check__title {
+  margin: 0;
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-headline-medium);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.rtl-check__subtitle {
+  margin: 0;
+  font-family: var(--font-family-subtitle);
+  font-size: var(--font-size-title-medium);
+  color: var(--color-text-secondary);
+}
+
+.rtl-check__byline {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text-secondary);
+}
+
+.rtl-check__record ol-read-more {
+  width: 100%;
+}
+
+/* A mock edit form: stacked fields, actions at the inline end. */
+.rtl-check__form {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-stack-md);
+  max-width: 480px;
+}
+
+.rtl-check__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.rtl-check__hint {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.rtl-check__input {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--control-height-medium);
+  padding: 0 var(--spacing-inset-sm);
+  font: inherit;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: var(--border-input);
+  border-radius: var(--border-radius-input);
+}
+
+.rtl-check__actions {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  justify-content: flex-end;
+}
+
 /* ----------------------------------------------------------------- desktop */
 
 /* ------------------------------------------------------------ link resets */
+
+/* -------------------------------------------------------------- principles */
+
+.ds-principles-intro .ds-lead {
+  max-width: 60ch;
+  font-size: var(--font-size-body-large);
+}
+
+/* Two columns from the desktop breakpoint, so the page is a gallery of figures
+   rather than a long scroll. The grid carries the closing rule; the sections
+   inside drop theirs so the columns don't end on staggered hairlines. */
+.ds-principles {
+  display: grid;
+  gap: var(--spacing-section-gap-desktop) var(--spacing-section-gap);
+  padding-bottom: var(--spacing-stack-xl);
+  margin-bottom: var(--spacing-stack-xl);
+  border-bottom: var(--border-divider);
+}
+
+/* --width-breakpoint-desktop */
+@media (min-width: 960px) {
+  .ds-principles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Three columns once the shell is near its max width, so the figures stay
+   figure-sized instead of growing into billboards. */
+@media (min-width: 1200px) {
+  .ds-principles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ds-principles .ds-principle {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+/* The figure wrapper is the container, not .ds-fig: container units on the
+   container element itself resolve against the viewport, so a padding or
+   font-size on .ds-fig--* would size to the window instead of the column. */
+.ds-principle__figure {
+  container-type: inline-size;
+  margin: 0 0 var(--spacing-stack-md);
+}
+
+/* A figure is an abstract composition built from the system's own tokens and
+   components. Nothing in one is a control: pointer events are off so the real
+   components inside (a button at 800%, a loading button) can't hover or focus.
+   Sizes are in cqw so the composition scales with the column instead of
+   cropping differently at every width. */
+.ds-fig {
+  position: relative;
+  aspect-ratio: 9 / 4;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  pointer-events: none;
+  user-select: none;
+}
+
+.ds-fig__caption {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-muted);
+}
+
+.ds-principle__number {
+  margin-bottom: var(--spacing-stack-xs);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-medium);
+  color: var(--color-text-muted);
+}
+
+.ds-principle__title {
+  margin: 0 0 var(--spacing-stack-sm);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-headline-medium);
+  line-height: 1.15;
+  color: var(--color-text-heading);
+}
+
+.ds-principle__blurb {
+  max-width: 66ch;
+  margin: 0 0 var(--spacing-stack-md);
+  font-size: var(--font-size-body-large);
+  color: var(--color-text);
+}
+
+.ds-principle__example-title {
+  margin: 0 0 var(--spacing-stack-xs);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-muted);
+}
+
+.ds-principle__example {
+  max-width: 78ch;
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+.ds-tensions {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  max-width: 78ch;
+  margin: 0;
+}
+
+.ds-tensions__title {
+  margin: 0 0 var(--spacing-stack-xs);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-title-medium);
+  color: var(--color-text-heading);
+}
+
+.ds-tensions__body {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+}
+
+/* 01 Tools before brand: the brand sheet out of focus, and a bench of real
+   controls at 1x in front of it. The bench shrinks to its controls and sits
+   centred, wrapping to rows only when the column is too narrow for one. */
+.ds-fig--tools {
+  background: var(--color-background);
+}
+
+.ds-fig__bench {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: 88cqw;
+  translate: -50% -50%;
+  padding: var(--spacing-inset-lg);
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+/* A brand sheet: mark, name and tagline, blurred as one group. */
+.ds-fig__identity {
+  position: absolute;
+  top: 16%;
+  left: 8cqw;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 1.5cqw 3cqw;
+  align-items: center;
+  color: var(--color-border);
+  filter: blur(0.5cqw);
+}
+
+.ds-fig__identity-mark {
+  grid-row: span 2;
+  width: 12cqw;
+  height: 12cqw;
+  background: var(--color-border);
+  border-radius: var(--border-radius-circle);
+}
+
+.ds-fig__identity-name {
+  font-family: var(--font-family-serif);
+  font-size: 9cqw;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ds-fig__identity-tagline {
+  width: 34cqw;
+  height: 2.2cqw;
+  background: var(--color-border-muted);
+  border-radius: var(--border-radius-pill);
+}
+
+/* 02 Keep the paper: the surface stack fanned out on the canvas. */
+.ds-fig--paper {
+  background: var(--color-background);
+  /* The deck animation stacks the sheets with local z-index tokens. */
+  isolation: isolate;
+}
+
+.ds-fig__sheet {
+  position: absolute;
+  width: 46cqw;
+  height: 62%;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+.ds-fig__sheet--sunken {
+  top: 10%;
+  left: 14cqw;
+  background: var(--color-surface-sunken);
+}
+
+.ds-fig__sheet--surface {
+  top: 19%;
+  left: 27cqw;
+  background: var(--color-surface);
+}
+
+.ds-fig__sheet--raised {
+  top: 28%;
+  left: 40cqw;
+  background: var(--color-surface-raised);
+  box-shadow: var(--box-shadow-overlay);
+}
+
+/* 03 Quiet surface: the toast for a reading goal, small and in the corner,
+   on a surface that is otherwise empty. */
+.ds-fig--toast {
+  background: var(--color-background);
+}
+
+.ds-fig__toast {
+  position: absolute;
+  bottom: 10%;
+  left: 8cqw;
+  display: flex;
+  gap: 2cqw;
+  align-items: center;
+  padding: 2.2cqw 3.2cqw;
+  font-size: 2.6cqw;
+  line-height: 1;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--border-radius-notification);
+  box-shadow: var(--box-shadow-floating);
+}
+
+.ds-fig__toast-dot {
+  width: 2cqw;
+  height: 2cqw;
+  background: var(--color-success-object);
+  border-radius: var(--border-radius-circle);
+}
+
+/* 04 Everything answers back: rest, hover and press at 4x. Hover uses the
+   real button's tokens. Press is exaggerated on purpose: the real squeeze is
+   --press-scale and the fill stays on hover, but at a glance that reads as no
+   change at all. */
+.ds-fig--states {
+  display: flex;
+  gap: 6cqw;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6cqw;
+}
+
+.ds-fig__state-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2cqw;
+  align-items: center;
+}
+
+.ds-fig__state,
+.ds-fig__focused {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 12.8cqw;
+  padding: 0 4.8cqw;
+  background: var(--color-surface);
+  border: 0.4cqw solid var(--color-border-subtle);
+  border-radius: 3.2cqw;
+  font-family: var(--font-family-button);
+  font-size: 5.6cqw;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.ds-fig__state--hover,
+.ds-fig__state--press {
+  background: var(--color-control-hover);
+  border-color: var(--color-border-muted);
+}
+
+.ds-fig__state--press {
+  background: var(--color-border-subtle);
+  border-color: var(--color-border);
+  transform: scale(0.88);
+}
+
+/* 05 Never hide the wait: a page progress bar, a skeleton, a loading button. */
+.ds-fig__progress {
+  position: absolute;
+  top: 16%;
+  right: 8cqw;
+  left: 8cqw;
+  height: 1.6cqw;
+  overflow: hidden;
+  background: var(--color-border-subtle);
+  border-radius: var(--border-radius-pill);
+}
+
+.ds-fig__progress-fill {
+  width: 62%;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--border-radius-pill);
+}
+
+.ds-fig__skeleton {
+  position: absolute;
+  top: 50%;
+  left: 8cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 2.4cqw;
+  width: 38cqw;
+}
+
+.ds-fig__bone {
+  display: block;
+  height: 2.8cqw;
+  background: var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+}
+
+.ds-fig__bone--w70 {
+  width: 70%;
+}
+
+.ds-fig__bone--w45 {
+  width: 45%;
+}
+
+.ds-fig__bone--w60 {
+  width: 60%;
+}
+
+.ds-fig__wait-button {
+  position: absolute;
+  top: 42%;
+  right: 8cqw;
+  transform: scale(2.5);
+  transform-origin: 100% 0;
+}
+
+/* 06 Motion is information: the enter curve against linear, and the
+   duration scale as bars, laid out as one centred pair. */
+.ds-fig--motion {
+  display: flex;
+  gap: 7cqw;
+  align-items: stretch;
+  justify-content: center;
+  padding: 6cqw 4cqw;
+}
+
+.ds-fig__curve {
+  flex: none;
+  width: 30cqw;
+  height: auto;
+  overflow: visible;
+}
+
+.ds-fig__curve-linear {
+  fill: none;
+  stroke: var(--color-border-muted);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.ds-fig__curve-path {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.ds-fig__durations {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ds-fig__duration {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+}
+
+.ds-fig__duration-bar {
+  flex: none;
+  width: calc(var(--ds-fig-ms) / 400 * 20cqw);
+  height: 1.4cqw;
+  background: var(--color-primary);
+  border-radius: var(--border-radius-pill);
+}
+
+.ds-fig__duration-label {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+  white-space: nowrap;
+  color: var(--color-text-muted);
+}
+
+/* 07 Dense on the desk: a workbench of 26px controls beside a phone of 48px ones. */
+.ds-fig--density {
+  display: flex;
+  gap: 6cqw;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-sunken);
+}
+
+.ds-fig__desk {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1cqw;
+  width: 52cqw;
+  padding: 2cqw;
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+.ds-fig__hand {
+  display: flex;
+  flex-direction: column;
+  gap: 2cqw;
+  width: 18cqw;
+  padding: 2.4cqw 2cqw;
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--border-radius-overlay);
+}
+
+.ds-fig__block {
+  display: block;
+  background: var(--color-surface-sunken);
+  border: var(--border-input);
+  border-radius: var(--border-radius-button);
+}
+
+.ds-fig__block--sm {
+  height: 2.6cqw;
+}
+
+.ds-fig__block--lg {
+  height: 4.8cqw;
+}
+
+/* 08 Keyboard: a keycap and a focused control at 4x, ring and offset scaled. */
+.ds-fig--focus {
+  display: flex;
+  gap: 8cqw;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-fig__keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14cqw;
+  height: 9cqw;
+  background: var(--color-surface-sunken);
+  border: var(--border-card);
+  border-bottom-width: 0.6cqw;
+  border-radius: 1.6cqw;
+  box-shadow: var(--box-shadow-raised);
+  font-family: var(--font-family-code);
+  font-size: 2.8cqw;
+  color: var(--color-text-secondary);
+}
+
+.ds-fig__focused {
+  box-shadow:
+    0 0 0 0.8cqw var(--color-surface),
+    0 0 0 1.6cqw var(--color-focus-ring);
+}
+
+/* 09 One way to say each thing: five shapes, one selected look. */
+.ds-fig--selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3cqw;
+  place-content: center center;
+  align-items: center;
+  padding: 6cqw 10cqw;
+}
+
+.ds-fig__sel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 6.4cqw;
+  padding: 0 3cqw;
+  background: var(--color-control-selected-bg);
+  border-radius: 1.6cqw;
+  font-family: var(--font-family-button);
+  font-size: 3cqw;
+  font-weight: 500;
+  color: var(--color-link);
+}
+
+.ds-fig__sel--chip {
+  border-radius: var(--border-radius-pill);
+}
+
+.ds-fig__sel--page {
+  width: 6.4cqw;
+  padding: 0;
+}
+
+.ds-fig__sel--tab {
+  border-bottom: 0.5cqw solid var(--color-link);
+  border-radius: 1cqw 1cqw 0 0;
+}
+
+.ds-fig__sel--row {
+  flex-basis: 100%;
+  justify-content: flex-start;
+}
+
+/* 10 Nothing shifts: the same tabs marking the current one with weight, then
+   with color. The guide hangs off the stable row's last tab. */
+.ds-fig--shift {
+  display: grid;
+  gap: 5cqw;
+  place-content: center;
+  font-family: var(--font-family-sans);
+  font-size: 6cqw;
+  line-height: 1;
+  color: var(--color-text-secondary);
+}
+
+.ds-fig__tabs {
+  display: flex;
+  gap: 5cqw;
+}
+
+.ds-fig__tab--bold {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.ds-fig__tab--color {
+  color: var(--color-link);
+}
+
+.ds-fig__tab--guide {
+  position: relative;
+}
+
+.ds-fig__tab--guide::before {
+  content: "";
+  position: absolute;
+  top: -12cqw;
+  bottom: -1.5cqw;
+  left: 0;
+  border-left: 2px dashed var(--color-border-muted);
+}
+
+/* 11 Accessible is the floor: the text ramp above the line, the decorative
+   tier below it. */
+.ds-fig--floor {
+  display: flex;
+  flex-direction: column;
+  gap: 2cqw;
+  justify-content: center;
+  padding: 0 10cqw;
+}
+
+.ds-fig__floor-samples {
+  display: flex;
+  gap: 8cqw;
+  align-items: baseline;
+  font-family: var(--font-family-serif);
+  font-size: 12cqw;
+  line-height: 1;
+}
+
+.ds-fig__floor-samples--below {
+  font-size: 8cqw;
+}
+
+.ds-fig__floor-sample--ink {
+  color: var(--color-text);
+}
+
+.ds-fig__floor-sample--secondary {
+  color: var(--color-text-secondary);
+}
+
+.ds-fig__floor-sample--muted {
+  color: var(--color-text-muted);
+}
+
+.ds-fig__floor-sample--decorative {
+  color: var(--color-border-muted);
+}
+
+.ds-fig__floor-line {
+  position: relative;
+  border-top: 0.4cqw solid var(--color-text);
+}
+
+.ds-fig__floor-line .ds-fig__caption {
+  position: absolute;
+  top: 0.8cqw;
+  right: 0;
+}
+
+/* ----------------------------------------------------- figure animations */
+
+/* Looping illustrations. Static by default: every animation here is behind
+   the no-preference query, so a reduced-motion reader gets the still figures
+   above unchanged. Timings are illustration pacing, not the motion tokens;
+   only the curves reuse them. */
+@media (prefers-reduced-motion: no-preference) {
+  /* 02 Keep the paper: a deck. Each sheet makes a quick move on the enter
+     curve, then rests; the rests take most of the cycle. Three sheets a third
+     of a cycle apart, so one is always about to move. */
+  .ds-fig--paper .ds-fig__sheet {
+    top: 10%;
+    left: 14cqw;
+    background: var(--color-surface);
+    animation: ds-fig-deck 7.5s var(--ease-enter) infinite;
+  }
+
+  .ds-fig--paper .ds-fig__sheet--raised {
+    animation-delay: -5s;
+  }
+
+  .ds-fig--paper .ds-fig__sheet--surface {
+    animation-delay: -2.5s;
+  }
+
+  /* 04 The press squeezes on a loop. */
+  .ds-fig__state--press {
+    animation: ds-fig-press 3s infinite;
+  }
+
+  /* 05 The bar fills and restarts; the skeleton breathes. */
+  .ds-fig__progress-fill {
+    animation: ds-fig-fill 6s var(--ease-out-quart) infinite;
+  }
+
+  .ds-fig__bone {
+    animation: ds-fig-breathe 1.6s ease-in-out infinite;
+  }
+
+  /* 06 Each bar grows at its own token duration on the enter curve, holds,
+     then all reset together every 2.4s. */
+  .ds-fig__duration-bar {
+    transform-origin: 0 50%;
+    animation: 2.4s var(--ease-enter) infinite;
+  }
+
+  .ds-fig__duration-bar--80 {
+    animation-name: ds-fig-grow-80;
+  }
+
+  .ds-fig__duration-bar--150 {
+    animation-name: ds-fig-grow-150;
+  }
+
+  .ds-fig__duration-bar--200 {
+    animation-name: ds-fig-grow-200;
+  }
+
+  .ds-fig__duration-bar--300 {
+    animation-name: ds-fig-grow-300;
+  }
+
+  .ds-fig__duration-bar--400 {
+    animation-name: ds-fig-grow-400;
+  }
+
+  /* 08 The key goes down, the ring appears, then both release. */
+  .ds-fig__keycap {
+    animation: ds-fig-keypress 4s step-end infinite;
+  }
+
+  .ds-fig__focused {
+    animation: ds-fig-ring 4s step-end infinite;
+  }
+
+  /* 11 The top row toggles weight and jumps; the bottom row toggles colour
+     and holds still. */
+  .ds-fig__tab--bold {
+    animation: ds-fig-weight 2.4s step-end infinite;
+  }
+
+  .ds-fig__tab--color {
+    animation: ds-fig-colour 2.4s step-end infinite;
+  }
+}
+
+/* Each move takes about 8% of the cycle (600ms); the rest of each third is
+   the hold. The timing function is set on the frame a move starts from. */
+@keyframes ds-fig-deck {
+  0% {
+    translate: -2cqw 1cqw;
+    rotate: -4deg;
+    scale: 0.96;
+    z-index: var(--z-index-local-1);
+    opacity: 0;
+    box-shadow: none;
+    animation-timing-function: var(--ease-enter);
+  }
+
+  8%,
+  33.3% {
+    translate: 0 0;
+    rotate: -2.5deg;
+    scale: 0.98;
+    z-index: var(--z-index-local-1);
+    opacity: 1;
+    box-shadow: none;
+    animation-timing-function: var(--ease-enter);
+  }
+
+  41%,
+  66.6% {
+    translate: 13cqw 4cqw;
+    rotate: -0.5deg;
+    scale: 1;
+    z-index: var(--z-index-local-2);
+    box-shadow: var(--box-shadow-floating);
+    animation-timing-function: var(--ease-enter);
+  }
+
+  74%,
+  92% {
+    translate: 26cqw 8cqw;
+    rotate: 1.5deg;
+    scale: 1;
+    z-index: var(--z-index-local-3);
+    opacity: 1;
+    box-shadow: var(--box-shadow-overlay);
+    animation-timing-function: var(--ease-exit);
+  }
+
+  100% {
+    translate: 38cqw 2cqw;
+    rotate: 7deg;
+    scale: 1.03;
+    z-index: var(--z-index-local-3);
+    opacity: 0;
+    box-shadow: var(--box-shadow-overlay);
+  }
+}
+
+@keyframes ds-fig-press {
+  0%,
+  55% {
+    transform: scale(1);
+    background: var(--color-control-hover);
+    border-color: var(--color-border-muted);
+    animation-timing-function: step-end;
+  }
+
+  58%,
+  88% {
+    transform: scale(0.88);
+    background: var(--color-border-subtle);
+    border-color: var(--color-border);
+  }
+
+  91%,
+  100% {
+    transform: scale(1);
+    background: var(--color-control-hover);
+    border-color: var(--color-border-muted);
+  }
+}
+
+@keyframes ds-fig-fill {
+  0% {
+    width: 0;
+  }
+
+  85%,
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes ds-fig-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* Growth ends at duration / 2400ms; the rest of each cycle is the hold. */
+@keyframes ds-fig-grow-80 {
+  0% {
+    transform: scaleX(0);
+  }
+
+  3.33%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes ds-fig-grow-150 {
+  0% {
+    transform: scaleX(0);
+  }
+
+  6.25%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes ds-fig-grow-200 {
+  0% {
+    transform: scaleX(0);
+  }
+
+  8.33%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes ds-fig-grow-300 {
+  0% {
+    transform: scaleX(0);
+  }
+
+  12.5%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes ds-fig-grow-400 {
+  0% {
+    transform: scaleX(0);
+  }
+
+  16.67%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes ds-fig-keypress {
+  0%,
+  100% {
+    translate: 0 0;
+    border-bottom-width: 0.6cqw;
+  }
+
+  15%,
+  30% {
+    translate: 0 0.4cqw;
+    border-bottom-width: 0.2cqw;
+  }
+}
+
+@keyframes ds-fig-ring {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0.8cqw var(--color-surface),
+      0 0 0 1.6cqw transparent;
+  }
+
+  30%,
+  80% {
+    box-shadow:
+      0 0 0 0.8cqw var(--color-surface),
+      0 0 0 1.6cqw var(--color-focus-ring);
+  }
+}
+
+@keyframes ds-fig-weight {
+  0%,
+  100% {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  50% {
+    font-weight: 700;
+    color: var(--color-text);
+  }
+}
+
+@keyframes ds-fig-colour {
+  0%,
+  100% {
+    color: var(--color-text-secondary);
+  }
+
+  50% {
+    color: var(--color-link);
+  }
+}
 
 /* The site-wide `a:link { text-decoration: underline }` from base/common.css both
    outweighs a lone class and lands after these rules, and decoration inherited
@@ -1346,14 +2523,57 @@ fieldset.ds-demo-row {
    out at a specificity that wins. Kept last so it never precedes the rules it
    is overriding. Links inside demo content are deliberately left alone. */
 .ds a.ds__tab,
-.ds .ds__nav-list a {
+.ds .ds__nav-list a,
+.ds a.ds__nav-group-title {
+  text-decoration: none;
+}
+
+/* Same fight for color: nav chrome stays neutral, since blue is reserved for
+   links in content. */
+.ds a.ds__nav-group-title {
+  color: var(--color-text-muted);
+}
+
+.ds a.ds__tab {
+  color: var(--color-text-secondary);
+}
+
+.ds a.ds__tab:hover,
+.ds a.ds__tab--current {
+  color: var(--color-text);
+}
+
+/* The title is a link home to the first section, but reads as a title. */
+.ds a.ds__title-link,
+.ds a.ds__title-link:hover,
+.ds a.ds__title-link:visited {
+  color: inherit;
   text-decoration: none;
 }
 
 @media only screen and (min-width: 768px) {
   .ds {
     --ds-gutter: var(--spacing-inset-xl);
-    --ds-masthead-height: 72px;
+    /* Title and tabs share one row. */
+    --ds-masthead-height: 61px;
+  }
+
+  /* One row, each half aligned to its column below: the title sits over the
+     sidebar and the section tabs over the content they change. Baseline
+     alignment keeps the title level with the tab labels. */
+  .ds__masthead-inner {
+    flex-direction: row;
+    gap: var(--spacing-section-gap);
+    align-items: baseline;
+  }
+
+  .ds__title {
+    flex: 0 0 var(--ds-sidebar-width);
+  }
+
+  .ds__tabs {
+    margin: 0 0 0 calc(var(--spacing-md) * -1);
+    padding: 0;
   }
 
   .ds__layout {
@@ -1375,13 +2595,6 @@ fieldset.ds-demo-row {
 
   .ds__nav-list {
     display: block;
-  }
-
-  /* Stacked here, so the block padding sets the gap between links rather than
-     the tap-target height it controls in the mobile row. Tightened to keep a
-     long contents list scannable as one column. */
-  .ds__nav-list a {
-    padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   }
 
   .ds__nav-group {
