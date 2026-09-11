@@ -133,7 +133,7 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item:active:not([aria-disabled="true"]):not([aria-current="page"]) {
-            transform: scale(0.92);
+            transform: scale(var(--press-scale-compact));
         }
 
         .pagination-item:focus {
