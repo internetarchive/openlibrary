@@ -9,15 +9,15 @@
  *
  * Hover never transitions color (see docs/ai/design.md, "Animations"). Exits
  * reuse the enter curve at a shorter duration; exit <= enter.
+ *
+ * --ease-move and --ease-state have no callers yet: the four semantic curves
+ * are the published vocabulary, and a component reaches for the one that names
+ * what it is doing rather than inventing a curve.
  */
 :root {
   /* Primitives */
-  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-  --ease-in-cubic: cubic-bezier(0.55, 0.055, 0.675, 0.19);
   --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
-  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
 
   /* Semantic easing */
   --ease-enter: var(--ease-out-quint); /* a surface appearing: popover, drawer, toast, banner */
