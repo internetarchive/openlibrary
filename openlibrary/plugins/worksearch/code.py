@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import functools
 import itertools
@@ -1183,18 +1184,33 @@ async def _process_solr_search_response(response: SearchResponse, fields: str) -
         docs_for_availability = [(work["editions"]["docs"][0] if work.get("editions", {}).get("docs") else work) for work in processed_response.get("docs", [])]
         await add_availability_async(docs_for_availability)
 
-    if fields == "*" or "acquisitions" in fields:
+    # Exact membership, never `fields == "*"` and never a substring test.
+    # `fields` arrives as a list from /search.json but as a STRING from internal
+    # callers, and work_search_async's own default is the string "*" -- so a
+    # `fields == "*"` disjunct would silently switch two Postgres queries on for
+    # any caller that omits the argument, and `"acquisitions" in fields` on a
+    # string would also fire for "acquisitions_count" or "my_acquisitions_thing".
+    # Acquisitions are asked for by name or not at all.
+    requested = set(fields.split(",")) if isinstance(fields, str) else set(fields or ())
+    if "acquisitions" in requested:
         # Weave provider acquisitions from the acquisitions table at query time
         # (edition-scoped, batched) rather than embedding them in Solr. #12844
         docs_for_acquisitions = [(work["editions"]["docs"][0] if work.get("editions", {}).get("docs") else work) for work in processed_response.get("docs", [])]
         try:
-            add_acquisitions(docs_for_acquisitions)
+            # Off the event loop. add_acquisitions is synchronous psycopg2, and
+            # this coroutine runs ON the loop (FastAPI only offloads non-async
+            # endpoints), so calling it directly stalls every other request in
+            # the worker -- including callers who never asked for acquisitions.
+            # Measured: a 1s weave delayed five unrelated 10ms requests by ~1s.
+            # The try/except catches a database that is DOWN; only getting off
+            # the loop bounds the damage from one that is merely SLOW.
+            await asyncio.to_thread(add_acquisitions, docs_for_acquisitions)
         except Exception:
-            # Acquisitions are an additive field read from Postgres at query
-            # time, so the database being down or slow must not fail the search
-            # itself. Verified before this guard existed: stopping Postgres made
-            # /search.json?fields=...,acquisitions return a 500 with a
-            # traceback, while the same query without the field returned 200.
+            # Acquisitions are an additive field read at query time, so the
+            # database must not be able to fail the search itself. Verified
+            # before this guard existed: with Postgres stopped,
+            # /search.json?fields=...,acquisitions returned a 500 with a
+            # traceback while the same query without the field returned 200.
             # Degrade to results without prices rather than no results.
             logger.exception("failed to weave acquisitions; returning results without them")
 

@@ -4,8 +4,14 @@ from typing import Final
 import pytest
 import web
 
-from openlibrary.core.acquisitions import Acquisition, add_acquisitions
-from openlibrary.core.db import get_db
+from openlibrary.core.acquisitions import (
+    MAX_ACQUISITIONS_PER_DOC,
+    MAX_ROWS_PER_QUERY,
+    Acquisition,
+    _row_budget,
+    add_acquisitions,
+)
+from openlibrary.core.db import _get_db, get_db
 from openlibrary.plugins.worksearch.code import (
     SearchResponse,
     _process_solr_search_response,
@@ -22,13 +28,23 @@ CREATE TABLE acquisitions (
 
 
 @pytest.fixture
-def acquisitions_db():
-    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+def acquisitions_db(tmp_path):
+    """A file-backed SQLite database, deliberately not ``:memory:``.
+
+    The search path now weaves on a worker thread (``asyncio.to_thread``), and
+    web.py holds its connection per thread, so each thread opens its own. A
+    ``:memory:`` database is private to one connection, which would make the
+    table invisible from that thread -- so an in-memory fixture cannot exercise
+    the path production takes.
+    """
+    web.config.db_parameters = {"dbn": "sqlite", "db": str(tmp_path / "acq.db")}
+    _get_db.cache_clear()
     db = get_db()
     db.query("DROP TABLE IF EXISTS acquisitions;")
     db.query(ACQUISITIONS_DDL)
     yield db
     db.query("DROP TABLE IF EXISTS acquisitions;")
+    _get_db.cache_clear()
 
 
 def test_add_acquisitions_weaves_by_edition(acquisitions_db):
@@ -291,3 +307,193 @@ def test_a_database_failure_does_not_fail_the_search(monkeypatch, acquisitions_d
     out = _process([{"key": "/works/OL450063W", "title": "Frankenstein"}], ["key", "title", "acquisitions"])
     assert out["docs"][0]["title"] == "Frankenstein"
     assert "acquisitions" not in out["docs"][0]
+
+
+# ---------------------------------------------------------------------------
+# Defects found by adversarial review. Each of these failed before its fix.
+# ---------------------------------------------------------------------------
+
+
+class TestProviderCannotRelabelItself:
+    """`data` is written from an external provider feed, so it is untrusted.
+
+    The injected labels must win over the blob. `edition_key` is the one a
+    client uses to decide which edition a price applies to, so a feed choosing
+    it would be worse than not having it at all.
+    """
+
+    def test_a_feed_cannot_spoof_the_labels(self, acquisitions_db):
+        Acquisition.upsert(
+            work_id=450063,
+            edition_id=36620178,
+            provider_name="realprovider",
+            local_id="real-1",
+            data={
+                "acquisitions": [
+                    {
+                        "access": "buy",
+                        "provider_name": "SPOOFED",
+                        "local_id": "SPOOFED",
+                        "edition_key": "/books/OL666M",
+                    }
+                ]
+            },
+        )
+        docs = [{"key": "/books/OL36620178M"}]
+        add_acquisitions(docs)
+        entry = docs[0]["acquisitions"][0]
+        assert entry["provider_name"] == "realprovider"
+        assert entry["local_id"] == "real-1"
+        assert entry["edition_key"] == "/books/OL36620178M"
+
+    def test_the_promised_keys_are_actually_present(self, acquisitions_db):
+        """The docstring promises provider_name, local_id and edition_key."""
+        Acquisition.upsert(
+            work_id=1,
+            edition_id=2,
+            provider_name="lenny",
+            local_id="abc",
+            data={"acquisitions": [{"access": "open-access"}]},
+        )
+        docs = [{"key": "/books/OL2M"}]
+        add_acquisitions(docs)
+        assert docs[0]["acquisitions"][0]["local_id"] == "abc"
+        assert docs[0]["acquisitions"][0]["provider_name"] == "lenny"
+        assert docs[0]["acquisitions"][0]["edition_key"] == "/books/OL2M"
+
+
+class TestOneBadRowDoesNotBlankThePage:
+    def test_a_non_object_data_blob_skips_only_its_own_row(self, acquisitions_db):
+        """jsonb's top level can be a list, so `.get` on it raises. The caller's
+        guard is page-wide, so an unhandled row would cost every doc its prices."""
+        acquisitions_db.query(
+            "INSERT INTO acquisitions (work_id, edition_id, provider_name, local_id, data) VALUES (450063, 36620178, 'broken', 'b-1', '[\"not an object\"]')"
+        )
+        Acquisition.upsert(
+            work_id=450063,
+            edition_id=36620178,
+            provider_name="betterworldbooks",
+            local_id="good-1",
+            data={"acquisitions": [{"access": "buy", "price": {"currency": "USD", "value": 1.01}}]},
+        )
+        docs = [{"key": "/works/OL450063W"}]
+        add_acquisitions(docs)
+        providers = [a["provider_name"] for a in docs[0]["acquisitions"]]
+        assert providers == ["betterworldbooks"], "the good row survives the bad one"
+
+    def test_a_non_object_entry_is_skipped(self, acquisitions_db):
+        Acquisition.upsert(
+            work_id=1,
+            edition_id=2,
+            provider_name="lenny",
+            local_id="a",
+            data={"acquisitions": ["a bare string", {"access": "open-access"}]},
+        )
+        docs = [{"key": "/books/OL2M"}]
+        add_acquisitions(docs)
+        assert [a["access"] for a in docs[0]["acquisitions"]] == ["open-access"]
+
+
+class TestResponseSizeIsBounded:
+    def test_entries_per_doc_are_capped(self, acquisitions_db):
+        """A work can have thousands of editions with several links each, and
+        /search.json's `limit` has no upper bound -- so without a cap a single
+        page can render a multi-megabyte response from two cheap queries."""
+        for edition_id in range(1, 40):
+            Acquisition.upsert(
+                work_id=450063,
+                edition_id=edition_id,
+                provider_name="betterworldbooks",
+                local_id=f"isbn-{edition_id}",
+                data={"acquisitions": [{"access": "buy"}, {"access": "sample"}]},
+            )
+        docs = [{"key": "/works/OL450063W"}]
+        add_acquisitions(docs)
+        assert len(docs[0]["acquisitions"]) == MAX_ACQUISITIONS_PER_DOC
+
+    def test_the_row_budget_is_absolutely_capped(self):
+        assert _row_budget(1) == MAX_ACQUISITIONS_PER_DOC
+        assert _row_budget(10) == 10 * MAX_ACQUISITIONS_PER_DOC
+        assert _row_budget(1_000_000) == MAX_ROWS_PER_QUERY
+
+
+class TestMalformedKeys:
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "/books/OL",  # raises IndexError in extract_numeric_id_from_olid
+            "/works/OL",
+            "/books/OL" + "9" * 80 + "M",  # int too large for the database
+            "/books/OLM",
+            "/books/OL12.5M",
+        ],
+    )
+    def test_a_malformed_key_does_not_lose_the_page(self, acquisitions_db, key):
+        Acquisition.upsert(
+            work_id=1,
+            edition_id=2,
+            provider_name="lenny",
+            local_id="a",
+            data={"acquisitions": [{"access": "open-access"}]},
+        )
+        docs = [{"key": key}, {"key": "/books/OL2M"}]
+        add_acquisitions(docs)
+        assert "acquisitions" not in docs[0]
+        assert docs[1]["acquisitions"][0]["access"] == "open-access", "the good doc is unaffected"
+
+
+class TestFieldMatching:
+    """`fields` is a list from /search.json but a STRING from internal callers,
+    and work_search_async's own default is the string "*"."""
+
+    def test_the_string_star_does_not_weave(self, one_acquisition, monkeypatch):
+        """Otherwise any internal caller omitting `fields` silently switches on
+        two Postgres queries per search.
+
+        `availability` is stubbed because the string "*" DOES satisfy its own
+        `fields == "*"` check, so it would try a real network call -- which is
+        incidentally why acquisitions should not copy that shape.
+        """
+
+        async def no_availability(docs, mode="identifier"):
+            return docs
+
+        monkeypatch.setattr("openlibrary.plugins.worksearch.code.add_availability_async", no_availability)
+        out = _process([{"key": "/works/OL450063W"}], "*")
+        assert "acquisitions" not in out["docs"][0]
+
+    @pytest.mark.parametrize("fields", ["key,title,acquisitions_count", "key,my_acquisitions_thing", "key,num_acquisitionsX"])
+    def test_a_field_merely_containing_the_word_does_not_weave(self, one_acquisition, fields):
+        """A substring test would fire for all of these."""
+        out = _process([{"key": "/works/OL450063W"}], fields)
+        assert "acquisitions" not in out["docs"][0]
+
+    def test_a_comma_separated_string_asking_for_it_does_weave(self, one_acquisition):
+        out = _process([{"key": "/works/OL450063W"}], "key,title,acquisitions")
+        assert out["docs"][0]["acquisitions"][0]["price"]["value"] == 1.25
+
+
+def test_two_rows_for_one_edition_and_provider_have_a_stable_order(acquisitions_db):
+    """(edition_id, provider_name) is NOT unique.
+
+    The table's UNIQUE is (local_id, provider_name), so one provider can hold
+    two rows for the same edition -- an ISBN-10 and an ISBN-13 for one book, say
+    -- and without local_id in the ORDER BY their order is whatever the database
+    feels like, so a client sees the two prices swap places between identical
+    requests.
+    """
+    for local_id, value in (("isbn13-978", 9.99), ("isbn10-048", 1.01)):
+        Acquisition.upsert(
+            work_id=450063,
+            edition_id=36620178,
+            provider_name="betterworldbooks",
+            local_id=local_id,
+            data={"acquisitions": [{"access": "buy", "price": {"currency": "USD", "value": value}}]},
+        )
+    seen = []
+    for _ in range(3):
+        docs = [{"key": "/books/OL36620178M"}]
+        add_acquisitions(docs)
+        seen.append([a["local_id"] for a in docs[0]["acquisitions"]])
+    assert seen[0] == ["isbn10-048", "isbn13-978"], "ordered by local_id, not by insertion"
+    assert seen[0] == seen[1] == seen[2]

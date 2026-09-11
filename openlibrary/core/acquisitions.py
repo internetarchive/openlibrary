@@ -104,10 +104,18 @@ class Acquisition(web.storage, CommonExtras):
         queries.
         """
         if not edition_ids:
+            # `IN ()` is a syntax error on Postgres. SQLite accepts it, so a
+            # test suite running on SQLite cannot catch a missing guard here.
             return {}
         rows: ResultSet = db.query(
-            "SELECT * FROM acquisitions WHERE edition_id IN $edition_ids ORDER BY edition_id, provider_name",
-            vars={"edition_ids": edition_ids},
+            "SELECT * FROM acquisitions WHERE edition_id IN $edition_ids"
+            # local_id breaks the tie: (edition_id, provider_name) is NOT
+            # unique -- the table's UNIQUE is (local_id, provider_name) -- so
+            # one provider can hold two rows for one edition (an ISBN-10 and an
+            # ISBN-13, say) and without this their order is arbitrary.
+            " ORDER BY edition_id, provider_name, local_id"
+            " LIMIT $limit",
+            vars={"edition_ids": edition_ids, "limit": _row_budget(len(edition_ids))},
         )
         grouped: dict[int, list[Acquisition]] = {}
         for row in rows:
@@ -126,8 +134,8 @@ class Acquisition(web.storage, CommonExtras):
         if not work_ids:
             return {}
         rows: ResultSet = db.query(
-            "SELECT * FROM acquisitions WHERE work_id IN $work_ids ORDER BY work_id, edition_id, provider_name",
-            vars={"work_ids": work_ids},
+            "SELECT * FROM acquisitions WHERE work_id IN $work_ids ORDER BY work_id, edition_id, provider_name, local_id LIMIT $limit",
+            vars={"work_ids": work_ids, "limit": _row_budget(len(work_ids))},
         )
         grouped: dict[int, list[Acquisition]] = {}
         for row in rows:
@@ -183,6 +191,29 @@ class Acquisition(web.storage, CommonExtras):
         return Acquisition._from_row(result[0]) if result else None
 
 
+_MAX_DB_INT = 2**31 - 1
+"""Largest value the ``integer`` columns can hold."""
+
+MAX_ACQUISITIONS_PER_DOC = 24
+"""Cap on entries attached to one search doc.
+
+The work branch is unbounded by nature: a work can have thousands of editions,
+each with several links. One work with 300 priced editions and two links apiece
+renders 600 entries and ~70KB on a single document, and a page of those is a
+multi-megabyte response from two cheap queries -- and `/search.json`'s `limit`
+has no upper bound, unlike list search which clamps to 1000. Truncating is the
+lesser evil; a client that needs every price for a work should ask for that
+work's editions.
+"""
+
+MAX_ROWS_PER_QUERY = 2000
+"""Absolute ceiling on rows fetched for one page, whatever its size."""
+
+
+def _row_budget(id_count: int) -> int:
+    return min(MAX_ROWS_PER_QUERY, max(1, id_count) * MAX_ACQUISITIONS_PER_DOC)
+
+
 def add_acquisitions(docs: list[dict]) -> None:
     """Attach provider acquisitions to a page of search-result docs (#12844).
 
@@ -221,30 +252,73 @@ def add_acquisitions(docs: list[dict]) -> None:
         if target is None:
             continue
         try:
-            target[int(extract_numeric_id_from_olid(key))] = doc
-        except ValueError, TypeError:
+            numeric_id = int(extract_numeric_id_from_olid(key))
+        except ValueError, TypeError, IndexError:
+            # IndexError: extract_numeric_id_from_olid indexes olid[-1], so a
+            # bare "/books/OL" raises rather than returning nothing.
             continue
+        if not 0 < numeric_id <= _MAX_DB_INT:
+            # Python ints are arbitrary precision, so "/books/OL<80 digits>M"
+            # parses happily and only fails once it reaches the database -- as
+            # an OverflowError from the driver, inside the caller's page-wide
+            # guard, costing every document on the page its prices. Rejected
+            # here instead, where it costs only this key.
+            continue
+        target[numeric_id] = doc
 
     for by_id, fetch in ((editions, Acquisition.get_by_editions), (works, Acquisition.get_by_works)):
         if not by_id:
             continue
         for id_, rows in fetch(list(by_id)).items():
-            # Flattened across providers. A row's `data` is
-            # `{"acquisitions": [...]}` holding every link that publication
-            # offers, so spreading the blob would nest a list under an
-            # "acquisitions" key inside each entry. A consumer wants one flat
-            # list it can filter by access or price, with each entry labelled by
-            # the provider it came from and the edition it applies to -- an
-            # edition can carry a BWB price and a Gutenberg epub at once.
-            flattened = [
+            if flattened := _flatten(rows):
+                by_id[id_]["acquisitions"] = flattened
+
+
+def _flatten(rows: list[Acquisition]) -> list[dict]:
+    """One flat list of acquisitions for a doc, from its rows.
+
+    Flattened across providers because a consumer wants a single list it can
+    filter by access or price -- an edition can carry a Better World Books
+    price and a Gutenberg epub at once -- with each entry labelled by the
+    provider it came from and the edition it applies to.
+
+    Two things this defends against, because ``data`` is a blob written from an
+    external provider feed rather than by us:
+
+    - **A provider does not get to relabel itself.** The injected keys are
+      applied AFTER the blob is spread, so a feed cannot assert a
+      ``provider_name``, ``local_id`` or ``edition_key`` that contradicts its
+      own row. ``edition_key`` exists precisely to tell a client which edition
+      a price belongs to, so letting a feed choose it would be worse than
+      omitting it.
+    - **One malformed row must not blank the page.** ``data`` is jsonb, so its
+      top level can be a list, a string or a number, and ``.get`` on those
+      raises. The caller's guard is page-wide, so an unhandled row here would
+      cost every document its prices; skipping the row costs only that row.
+    """
+    flattened: list[dict] = []
+    for row in rows:
+        data = row.data if isinstance(row.data, dict) else {}
+        entries = data.get("acquisitions")
+        if not isinstance(entries, list):
+            logger.warning(
+                "acquisitions row %s/%s has an unusable data blob; skipping it",
+                row.provider_name,
+                row.local_id,
+            )
+            continue
+        for acquisition in entries:
+            if not isinstance(acquisition, dict):
+                continue
+            flattened.append(
                 {
+                    **acquisition,
                     "provider_name": row.provider_name,
                     "local_id": row.local_id,
                     "edition_key": f"/books/OL{row.edition_id}M",
-                    **acquisition,
                 }
-                for row in rows
-                for acquisition in (row.data or {}).get("acquisitions") or []
-            ]
-            if flattened:
-                by_id[id_]["acquisitions"] = flattened
+            )
+            if len(flattened) >= MAX_ACQUISITIONS_PER_DOC:
+                logger.info("truncating acquisitions for edition %s at %d entries", row.edition_id, MAX_ACQUISITIONS_PER_DOC)
+                return flattened
+    return flattened
