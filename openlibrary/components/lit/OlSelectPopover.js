@@ -112,10 +112,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             display: inline-block;
             font-family: var(--font-family-body);
 
-            /* Sizing for the panel below, declared here rather than on .panel
-               itself: the panel is slotted into <ol-popover>, whose tray
-               clears these so the content fills the full-bleed sheet, and an
-               override only reaches it by inheriting past the tray. */
+            /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
             --ol-popover-content-max-width: 360px;
             --ol-popover-content-max-height: min(70vh, 480px);
         }

@@ -18,13 +18,11 @@
  * the element isn't interactive before upgrade, and keeping this sheet small
  * keeps it easy to hold in step with the recipe in OLButton.js.
  *
- * The one exception is `.ol-button-static` at the foot of the file: the same
- * look on plain markup that can't be an <ol-button> at all — chiefly a real
- * <a href> that must navigate with JS blocked, where <ol-button href> would
- * render no anchor until it upgrades. It joins the resting-look selector lists
- * so the two can't drift, and carries its own interactive states — it never
- * upgrades, so nothing in shadow DOM covers it. `--ghost` and `--primary`
- * modifiers join the matching variant lists the same way.
+ * The exception is `.ol-button-static` at the foot of the file: the same look on
+ * markup that can't be an <ol-button> — chiefly an <a href> that must navigate
+ * with JS blocked, where <ol-button href> renders no anchor until it upgrades.
+ * It and its `--ghost` / `--primary` modifiers join the selector lists above, so
+ * they can't drift, and carry their own interactive states.
  */
 
 ol-button:not(:defined),
@@ -164,12 +162,9 @@ a.ol-button-static--primary:visited {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  /* The secondary look only, mirroring OLButton.js's per-variant hover — the
-     modifiers below carry their own. Hover changes the fill, so
-     --control-surface moves with it, otherwise the specular highlight stays
-     toned to the resting color. The border drops in step with the fill (both
-     ~7% in lightness) so the whole button reads as one shape rather than the
-     fill darkening inside a static outline. */
+  /* The secondary look only, mirroring OLButton.js's per-variant hover; the
+     modifiers below carry their own. --control-surface moves with the fill, and
+     the border drops in step with it, so the button reads as one shape. */
   .ol-button-static:not(
       .ol-button-static--ghost,
       .ol-button-static--primary
@@ -180,11 +175,9 @@ a.ol-button-static--primary:visited {
   }
 }
 
-/* Ghost and primary carry their own hover, mirroring OLButton.js: the neutral
-   fill for ghost, and brightness() for the one saturated fill — it moves the
-   fill, border and specular edge together, so there's nothing to keep in sync.
-   Both must stay after the secondary hover above, which they tie on
-   specificity. */
+/* Ghost and primary carry their own hover, mirroring OLButton.js. brightness()
+   moves the primary's fill, border and specular edge together. Both must stay
+   after the secondary hover above, which they tie on specificity. */
 @media (hover: hover) and (pointer: fine) {
   .ol-button-static--ghost:hover {
     background-color: var(--color-control-hover);

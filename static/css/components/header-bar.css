@@ -9,10 +9,9 @@
  */
 
 .header-bar {
-  /* One height for every control in the header row — the search field, the
-     My Books / Browse ghost buttons, and the account/menu button — so they
-     all line up. Large at every width: touch-friendly on mobile, and roomy
-     enough around the 24px glyphs in the account button. */
+  /* One height for every control in the header row — search field, My Books /
+     Browse, account button — so they line up. Large at every width: touch-friendly
+     on mobile, roomy around the account button's 24px glyphs. */
   --header-control-height: var(--control-height-large);
   /* One type size for the row's labels too. A one-off step between the 14px
      and 16px tokens. */
@@ -129,9 +128,8 @@
 }
 
 /* Avatar inside the account/menu ghost button. Circular to match the glyph it
-   falls back to, so the two states have the same silhouette; object-fit crops
-   rather than squashes, since archive.org serves portraits and landscapes
-   alongside squares. flex-shrink keeps it whole beside the hamburger glyph. */
+   falls back to; object-fit crops rather than squashes, since archive.org serves
+   portraits and landscapes too. flex-shrink keeps it whole beside the glyph. */
 .header-bar .header-dropdown .account__icon,
 .header-bar .hamburger-component .account__icon {
   border: var(--border-width-thick) solid var(--color-border-muted);
@@ -165,11 +163,9 @@
   font-weight: bold;
 }
 
-/* Chrome reset for the controls inside a header dropdown (the app drawer's
-   logout button). No `display` or `color` here: this selector outranks
-   `.nav-ghost-btn`, and the two nav items need that class's own `inline-flex`
-   centering; the drawer's rows get `display: block` and their color from
-   `.header-bar .dropdown-menu li a` above. */
+/* Chrome reset for controls inside a header dropdown (the drawer's logout
+   button). No `display` or `color`: this outranks the nav items, which need their
+   own inline-flex centering, and the drawer's rows get theirs from above. */
 .header-bar .header-dropdown button,
 .header-bar .header-dropdown a {
   text-decoration: none;
@@ -300,10 +296,9 @@
   position: relative;
 }
 
-/* The avatar (when signed in) and the hamburger glyph are grouped into one ghost
-   button: transparent at rest, filled on hover and while the drawer is open.
-   `color` is not optional: the glyph is currentColor, and a <button> doesn't
-   inherit color — iOS Safari resolves the UA's ButtonText to its system blue. */
+/* The avatar (when signed in) and the hamburger glyph share one ghost button:
+   transparent at rest, filled on hover and while the drawer is open. `color` is
+   required — iOS Safari resolves a <button>'s UA ButtonText to system blue. */
 .hamburger-trigger {
   position: relative;
   display: flex;
@@ -448,16 +443,9 @@
 }
 
 /* ── Header nav controls ─────────────────────────────────────
- * The header's buttons are real <a href>s and a slotted <button>, so they
- * can't be <ol-button>s: an <ol-button href> renders no anchor until the Lit
- * bundle upgrades it, and these have to navigate with JS blocked. They use the
- * static twins from ol-button.css instead — `.ol-button-static` plus the
- * `--ghost` / `--primary` modifier — which share the component's selector
- * lists, so there is nothing here to hold in step with OLButton.js.
- *
- * What stays below is only what the header does differently: its taller
- * control height, its one-off label size, and a hover toned to the header's
- * own canvas rather than the page's.
+ * Real <a href>s and a slotted <button>, so they can't be <ol-button>s: an
+ * <ol-button href> renders no anchor until Lit upgrades it. They use
+ * ol-button.css's static twins; below is only the header's own deltas.
  */
 
 .header-bar .ol-button-static {
@@ -491,13 +479,9 @@
 }
 
 /* ── Browse popover ──────────────────────────────────────────
- * The Browse nav item uses the <ol-popover> web component (rendered by
- * openlibrary/templates/lib/browse_popover.html) instead of a native
- * <details> dropdown. The panel opens with a single column of featured
- * destinations (icon + title + description) above a divider, followed by a
- * list of simple links. ol-popover owns the panel chrome (background, radius,
- * shadow) and the mobile bottom-tray behavior; these rules style the slotted
- * trigger and content.
+ * The Browse nav item is an <ol-popover> (see lib/browse_popover.html), not a
+ * <details> dropdown. ol-popover owns the panel chrome and the mobile tray;
+ * these rules style the slotted trigger and content.
  */
 
 .header-bar .browse-popover {
@@ -689,9 +673,8 @@
 }
 
 /* ── Barcode scanner button ──────────────────────────────────────────────
-   Standalone control that sits next to the search pill in the header
-   (not nested inside it). Only surfaced on touch devices since scanning
-   needs a camera. */
+   Sits next to the search pill, not inside it. Touch devices only, since
+   scanning needs a camera. */
 .search-by-barcode {
   flex-shrink: 0;
   display: inline-flex;
@@ -812,11 +795,9 @@
   border-bottom: none;
 }
 
-/* Column flex rather than a block: it centres a single-line row on the shared
- * menu-row height, and still stacks the one row that carries a subheading.
- * Padding stays under the row height so min-height is what sets it.
- * No pill radius here: rows are divided by hairlines for now, and a rounded
- * hover fill butting against a straight rule looks broken. */
+/* Column flex rather than a block: centres a single-line row on the shared
+ * menu-row height, and still stacks the row that carries a subheading. No pill
+ * radius — a rounded fill butting against the row's hairline looks broken. */
 .drawer-menu__item a,
 .drawer-menu__item a:link,
 .drawer-menu__item a:visited,
@@ -987,10 +968,8 @@
 }
 
 /* ── Tablet ──────────────────────────────────────────────────
- * Was components/header-bar--tablet.css, which every page entry point imported
- * behind this media query and legacy.css hand-inlined a second time. The two
- * copies had already drifted (padding-top was 5px in legacy.css); this is the
- * single copy.
+ * Was components/header-bar--tablet.css, which legacy.css also hand-inlined.
+ * The copies had drifted (padding-top was 5px there); this is the single copy.
  */
 @media only screen and (min-width: 768px) /* --width-breakpoint-tablet */ {
   .header-bar {
@@ -1017,9 +996,8 @@
 
 /* ── Desktop ─────────────────────────────────────────────────
  * Was components/header-bar--desktop.css, duplicated the same way (logo
- * padding-right had drifted to 15px in legacy.css). Stays last in the file so
- * it still outranks the max-width: 960px block above, as it did when it was a
- * trailing @import.
+ * padding-right had drifted to 15px). Stays last so it still outranks the
+ * max-width: 960px block above, as the trailing @import did.
  */
 @media all and (min-width: 960px) /* --width-breakpoint-desktop */ {
   .header-bar {
