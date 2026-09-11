@@ -13,10 +13,9 @@
 @import "tokens/breakpoints.css";
 @import "tokens/colors.css";
 @import "tokens/control-heights.css";
-@import "tokens/font-families.css";
 @import "tokens/icon-sizes.css";
-@import "tokens/line-heights.css";
 @import "tokens/motion.css";
 @import "tokens/press.css";
 @import "tokens/spacing.css";
+@import "tokens/typography.css";
 @import "tokens/z-index.css";
