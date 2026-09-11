@@ -9,6 +9,8 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
+    get_authenticated_user,
+    is_librarian,
     require_authenticated_user,
 )
 from openlibrary.fastapi.shared.dependencies import get_fullpath
@@ -37,6 +39,7 @@ SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 async def search_facets_partial(
     data: Annotated[str, Query(description="JSON-encoded data with search parameters")],
     sfw: Annotated[str | None, Cookie()] = None,
+    is_librarian: Annotated[bool, Depends(is_librarian)] = False,
 ) -> dict:
     """
     Get search facets sidebar and selected facets HTML.
@@ -51,7 +54,7 @@ async def search_facets_partial(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes")
+    return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes", show_merge_authors=is_librarian)
 
 
 @router.get("/partials/SubjectPublishingHistory.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -97,13 +100,14 @@ async def affiliate_links_partial(
 async def book_page_lists_partial(
     workId: Annotated[str, Query(description="Work ID (e.g., /works/OL53924W)")] = "",
     editionId: Annotated[str, Query(description="Edition ID (e.g., /books/OL7353617M)")] = "",
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)] = None,
 ) -> dict:
     """
     Get book page lists section HTML.
 
     At least one of workId or editionId must be provided.
     """
-    return await BookPageListsPartial.generate_async(workId=workId, editionId=editionId)
+    return await BookPageListsPartial.generate_async(workId=workId, editionId=editionId, user=user)
 
 
 @router.get("/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from hashlib import md5
-from typing import Any, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
 from markupsafe import Markup
 from pydantic import BaseModel
 
-from infogami.utils.view import public, render_template
-from openlibrary.accounts import get_current_user
+from infogami.utils.view import public
 from openlibrary.core import cache
+from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
@@ -22,9 +24,13 @@ from openlibrary.core.vendors import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
-from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
+from openlibrary.plugins.openlibrary.lists import (
+    convert_list,
+    get_lists_async,
+    get_user_lists,
+)
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
-from openlibrary.plugins.upstream.utils import json_encode, render_macro
+from openlibrary.plugins.upstream.utils import get_user_object, json_encode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
@@ -42,6 +48,9 @@ from openlibrary.plugins.worksearch.subjects import (
 )
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
+
+if TYPE_CHECKING:
+    from openlibrary.fastapi.auth import AuthenticatedUser
 
 
 def _solr_query_to_subject_key(query: str) -> str:
@@ -453,9 +462,7 @@ class SearchFacetsPartial:
     """Handler for search facets sidebar and "selected facets" affordances."""
 
     @classmethod
-    async def generate_async(cls, data: dict, sfw: bool = False) -> dict:
-        user = get_current_user()
-        show_merge_authors = bool(user and user.is_librarian_or_higher())
+    async def generate_async(cls, data: dict, sfw: bool = False, show_merge_authors: bool = False) -> dict:
 
         path = data.get("path")
         query = data.get("query", "")
@@ -552,11 +559,52 @@ class FullTextSuggestionsPartial:
         return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
 
+class BookPageListCard(TypedDict):
+    """Data for one Lists carousel card."""
+
+    url: str
+    showcase: dict[str, Any]
+    owner: Any | None
+    own_list: bool
+    is_public: bool
+    is_subscribed: int
+
+
 class BookPageListsPartial:
-    """Handler for rendering the book page "Lists" section"""
+    """Renders the Lists section on a book page."""
+
+    LIMIT = 5
+    RENDER_FALLBACK = "Unable to render this page."
 
     @classmethod
-    async def generate_async(cls, workId: str, editionId: str) -> dict:
+    def get_list_card(cls, lst: Any, user: AuthenticatedUser | None) -> BookPageListCard:
+        """Build data for one card. Keep DB calls out of the template.
+
+        ``lst`` is a web.storage from get_lists_async. Reload the full List
+        for get_url and get_patron_showcase. The public_readlog check matches
+        the old Templetor code. is_subscribed uses the same PubSub check as
+        User.is_subscribed_user.
+        """
+        own_list = bool(user and lst.owner and lst.owner.key == user.user_key)
+        converted = convert_list(lst.key)
+        card: BookPageListCard = {
+            "url": converted.get_url(),
+            "showcase": converted.get_patron_showcase(),
+            "owner": lst.owner,
+            "own_list": own_list,
+            "is_public": False,
+            "is_subscribed": 0,
+        }
+        if lst.owner and not own_list:
+            owner_username = lst.owner.key.split("/")[-1]
+            owner_account = get_user_object(owner_username)
+            settings = owner_account.get_users_settings()
+            card["is_public"] = bool(settings and settings.get("public_readlog", "no") == "yes")
+            card["is_subscribed"] = 1 if (user and PubSub.is_subscribed(user.username, owner_username)) else 0
+        return card
+
+    @classmethod
+    async def generate_async(cls, workId: str, editionId: str, user: AuthenticatedUser | None) -> dict:
         results: dict = {"partials": []}
         keys = [k for k in (workId, editionId) if k]
 
@@ -569,8 +617,22 @@ class BookPageListsPartial:
         else:
             query = "seed_count:[2 TO *] seed:(%s)" % " OR ".join(f'"{k}"' for k in keys)
             all_url = "/search/lists?q=" + quote(query) + "&sort=last_modified"
-            lists_template = render_template("lists/carousel", lists, all_url)
-            results["partials"].append(str(lists_template))
+            cards: list[BookPageListCard] = []
+            for lst in lists[: cls.LIMIT]:
+                try:
+                    cards.append(cls.get_list_card(lst, user))
+                except Exception:  # noqa: BLE001  # one bad list shouldn't break the whole section
+                    continue
+            try:
+                html = render_jinja_template(
+                    "lists/carousel.html.jinja",
+                    cards=cards,
+                    has_more=len(lists) > cls.LIMIT,
+                    all_url=all_url,
+                )
+            except Exception:  # noqa: BLE001  # same fallback the old saferender gave
+                html = cls.RENDER_FALLBACK
+            results["partials"].append(html)
 
         return results
 
