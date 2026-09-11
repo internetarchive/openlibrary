@@ -268,7 +268,7 @@ export class OLMarkdownEditor extends LitElement {
       .toolbar-btn:hover:not(:disabled) { background: var(--color-hover-overlay); }
     }
 
-    .toolbar-btn:active:not(:disabled) { transform: scale(0.95); }
+    .toolbar-btn:active:not(:disabled) { transform: scale(var(--press-scale-compact)); }
 
     .toolbar-btn.is-active {
       background: var(--light-grey);

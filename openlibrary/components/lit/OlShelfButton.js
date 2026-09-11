@@ -141,11 +141,11 @@ export class OlShelfButton extends LitElement {
                         var(--white) var(--control-highlight-strength),
                         var(--control-surface)
                     );
-            transition: transform 0.08s;
+            transition: transform var(--duration-press);
         }
 
         .split:active {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         .split--on {
@@ -242,7 +242,7 @@ export class OlShelfButton extends LitElement {
             color: var(--color-text);
             cursor: pointer;
             --control-highlight-strength: 35%;
-            transition: transform 0.08s;
+            transition: transform var(--duration-press);
         }
 
         /* The visible circle is smaller than the 32px hit target. Same inset
@@ -282,7 +282,7 @@ export class OlShelfButton extends LitElement {
         }
 
         .save:active {
-            transform: scale(0.95);
+            transform: scale(var(--press-scale-compact));
         }
 
         .save:focus-visible {
