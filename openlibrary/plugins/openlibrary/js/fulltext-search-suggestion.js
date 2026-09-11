@@ -18,7 +18,12 @@ function showLoadingIndicators(fulltextSearchSuggestion) {
     return isLoading;
 }
 async function getPartials(fulltextSearchSuggestion, query) {
-    return fetch(buildPartialsUrl('FulltextSearchSuggestion', {data: query}))
+    const params = {data: query};
+    const providerPref = new URLSearchParams(window.location.search).get('providerPref');
+    if (providerPref) {
+        params.providerPref = providerPref;
+    }
+    return fetch(buildPartialsUrl('FulltextSearchSuggestion', params))
         .then((resp) => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);

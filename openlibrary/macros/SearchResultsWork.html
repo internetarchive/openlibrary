@@ -30,7 +30,7 @@ $code:
   if doc_type == 'solr_edition':
     work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed['key'])
   else:
-    book_provider = get_book_provider(doc)
+    book_provider = get_book_provider(doc, query_param('providerPref'))
     if book_provider and doc_type.endswith('_work'):
       work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
     else:

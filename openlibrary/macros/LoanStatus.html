@@ -18,7 +18,7 @@ $ book_title = doc.get('title') if hasattr(doc, 'get') else getattr(doc, 'title'
 $ user = get_current_user()
 
 $if lending_state is None:
-  $ lending_state = get_lending_state(doc, user=user, check_loan_status=check_loan_status)
+  $ lending_state = get_lending_state(doc, user=user, check_loan_status=check_loan_status, provider_pref=query_param('providerPref'))
 
 $ waiting_loan_total_time = 0
 $ waiting_loan = None
@@ -28,7 +28,7 @@ $if lending_state == 'waitlist':
   $ waiting_loan_total_time = time() - waiting_loan_start_time
 
 $if not waiting_loan:
-  $ book_provider = get_book_provider(doc)
+  $ book_provider = get_book_provider(doc, query_param('providerPref'))
 $else:
   $ book_provider = get_book_provider.ia
 

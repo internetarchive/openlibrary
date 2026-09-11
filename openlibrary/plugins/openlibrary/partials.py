@@ -560,7 +560,7 @@ class FullTextSuggestionsPartialResult:
     has_error: bool = False
 
 
-def get_fulltext_suggestion_item_data(doc: Any) -> dict[str, Any]:
+def get_fulltext_suggestion_item_data(doc: Any, provider_pref: str | None = None) -> dict[str, Any]:
     """Prepare display data for a full-text search suggestion item."""
     doc_type = (
         "infogami_work"
@@ -576,7 +576,7 @@ def get_fulltext_suggestion_item_data(doc: Any) -> dict[str, Any]:
 
     if doc_type == "solr_edition":
         work_edition_url = book_url + "?edition=" + quote("key:" + selected_ed.key)
-    elif (book_provider := get_book_provider(doc)) and doc_type.endswith("_work"):
+    elif (book_provider := get_book_provider(doc, provider_pref=provider_pref)) and doc_type.endswith("_work"):
         work_edition_url = book_url + "?edition=" + quote(book_provider.get_best_identifier_slug(doc))
     else:
         work_edition_url = book_url
@@ -652,7 +652,7 @@ class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     @classmethod
-    async def generate_async(cls, query: str) -> FullTextSuggestionsPartialResult:
+    async def generate_async(cls, query: str, provider_pref: str | None = None) -> FullTextSuggestionsPartialResult:
         data = await fulltext_search_async(query)
         hits = data.get("hits", {})
         if not hits.get("total"):
@@ -660,7 +660,7 @@ class FullTextSuggestionsPartial:
         else:
             suggestions = [
                 {
-                    "item": get_fulltext_suggestion_item_data(hit["edition"]),
+                    "item": get_fulltext_suggestion_item_data(hit["edition"], provider_pref=provider_pref),
                     "snippet": get_fulltext_suggestion_snippet_data(hit),
                 }
                 for hit in hits.get("hits", [])[:4]
