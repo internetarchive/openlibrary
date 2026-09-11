@@ -399,6 +399,7 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
     log_file: str | None = None,
     log_level=logging.INFO,
     dry_run: bool = False,
+    skip_ia_metadata: bool = False,
 ) -> None:
     """
     :param cmd: Whether to do the index or just fetch end of the chunk
@@ -413,6 +414,9 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
     :param last_modified: Limit results to those modifier >= this date
     :param progress: Where/if to save progress indicator to
     :param log_file: Redirect logs to file instead of stdout
+    :param skip_ia_metadata: If true, skip fetching Internet Archive metadata for editions
+    (both the bulk pre-caching step and any per-document fallback fetches).
+    ia_collection, ia_box_id, and related fields will be empty in the Solr documents.
     """
 
     logging.basicConfig(
@@ -514,6 +518,8 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
 
     # load the contents of the config?
     with LocalPostgresDataProvider(postgres) as db:
+        db.skip_ia_metadata = skip_ia_metadata
+
         # Check to see where we should be starting from
         if cmd == "fetch-end":
             next_start_query = build_job_query(job, start_at, limit, last_modified, 1)
@@ -561,6 +567,7 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
             plog.update(next=keys[0], cached=len(db.cache), ia_cache=0)
 
             with LocalPostgresDataProvider(postgres) as db2:
+                db2.skip_ia_metadata = skip_ia_metadata
                 key_range = [keys[0], keys[-1]]
 
                 if job == "works":
@@ -572,11 +579,12 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
                     )
 
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = await simple_timeit_async(db2.cache_cached_editions_ia_metadata())
-                    plog.update(
-                        q_ia=plog.last_entry.q_ia + ocaids_time,
-                        ia_cache=len(db2.ia_cache),
-                    )
+                    if not skip_ia_metadata:
+                        ocaids_time, _ = await simple_timeit_async(db2.cache_cached_editions_ia_metadata())
+                        plog.update(
+                            q_ia=plog.last_entry.q_ia + ocaids_time,
+                            ia_cache=len(db2.ia_cache),
+                        )
 
                     # cache authors
                     authors_time, _ = simple_timeit(lambda: db2.cache_work_authors(*key_range))
@@ -590,11 +598,12 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
                     db2.cache_work_reading_logs(*key_range)
                 elif job == "orphans":
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = await simple_timeit_async(db2.cache_cached_editions_ia_metadata())
-                    plog.update(
-                        q_ia=plog.last_entry.q_ia + ocaids_time,
-                        ia_cache=len(db2.ia_cache),
-                    )
+                    if not skip_ia_metadata:
+                        ocaids_time, _ = await simple_timeit_async(db2.cache_cached_editions_ia_metadata())
+                        plog.update(
+                            q_ia=plog.last_entry.q_ia + ocaids_time,
+                            ia_cache=len(db2.ia_cache),
+                        )
 
                     # cache authors
                     authors_time, _ = simple_timeit(lambda: db2.cache_edition_authors(*key_range))
