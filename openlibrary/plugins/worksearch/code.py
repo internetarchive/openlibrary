@@ -1187,7 +1187,16 @@ async def _process_solr_search_response(response: SearchResponse, fields: str) -
         # Weave provider acquisitions from the acquisitions table at query time
         # (edition-scoped, batched) rather than embedding them in Solr. #12844
         docs_for_acquisitions = [(work["editions"]["docs"][0] if work.get("editions", {}).get("docs") else work) for work in processed_response.get("docs", [])]
-        add_acquisitions(docs_for_acquisitions)
+        try:
+            add_acquisitions(docs_for_acquisitions)
+        except Exception:
+            # Acquisitions are an additive field read from Postgres at query
+            # time, so the database being down or slow must not fail the search
+            # itself. Verified before this guard existed: stopping Postgres made
+            # /search.json?fields=...,acquisitions return a 500 with a
+            # traceback, while the same query without the field returned 200.
+            # Degrade to results without prices rather than no results.
+            logger.exception("failed to weave acquisitions; returning results without them")
 
     return processed_response
 

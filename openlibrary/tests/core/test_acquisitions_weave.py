@@ -273,3 +273,21 @@ def test_edition_subdocs_are_woven_not_the_work_wrapper(one_acquisition):
     edition = out["docs"][0]["editions"]["docs"][0]
     assert edition["acquisitions"][0]["price"]["value"] == 1.25
     assert "acquisitions" not in out["docs"][0], "the wrapper work doc is not the target"
+
+
+def test_a_database_failure_does_not_fail_the_search(monkeypatch, acquisitions_db):
+    """Acquisitions are additive, so Postgres being down must not fail the search.
+
+    Verified live before the guard existed: with Postgres stopped,
+    /search.json?fields=key,title,acquisitions returned HTTP 500 with a
+    traceback, while the same query without the field returned 200. The search
+    should degrade to results without prices, not to no results.
+    """
+
+    def boom(docs):
+        raise RuntimeError("server closed the connection unexpectedly")
+
+    monkeypatch.setattr("openlibrary.plugins.worksearch.code.add_acquisitions", boom)
+    out = _process([{"key": "/works/OL450063W", "title": "Frankenstein"}], ["key", "title", "acquisitions"])
+    assert out["docs"][0]["title"] == "Frankenstein"
+    assert "acquisitions" not in out["docs"][0]
