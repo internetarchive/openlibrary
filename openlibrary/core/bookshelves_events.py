@@ -67,6 +67,25 @@ class BookshelvesEvents(db.CommonExtras):
         return results[0] if results else None
 
     @classmethod
+    def get_latest_event_dates(cls, username: str, work_ids: list[int], event_type: int) -> dict[int, dict]:
+        """`get_latest_event_date` for a batch: work_id -> {id, event_date}, only for works with an event."""
+        if not work_ids:
+            return {}
+        oldb = db.get_db()
+        data = {
+            "username": username,
+            "work_ids": work_ids,
+            "event_type": event_type,
+        }
+        query = (
+            f"SELECT DISTINCT ON (work_id) id, work_id, event_date FROM {cls.TABLENAME}"
+            " WHERE username=$username AND work_id IN $work_ids"
+            " AND event_type=$event_type"
+            " ORDER BY work_id, event_date DESC"
+        )
+        return {row.work_id: {"id": row.id, "event_date": row.event_date} for row in oldb.query(query, vars=data)}
+
+    @classmethod
     def get_user_yearly_read_counts(cls, username: str) -> list[tuple[int, int]]:
         """Returns books read by year for a given user."""
         results = db.get_db().query(

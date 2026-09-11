@@ -1,0 +1,78 @@
+$def with ()
+$# Labels for <ol-shelf-button> and <ol-shelf-actions>, rendered once per page
+$# by site/body.html and handed out by book-state.js. Keys and English strings
+$# must match DEFAULT_LABELS in OlShelfButton.js and OlShelfActions.js, and
+$# NOTE_LABELS in book-state.js. A plural set carries one form per CLDR
+$# category; the component picks by count.
+$code:
+  labels = {
+      # OlShelfButton.js
+      "save": _("Save %(title)s to your reading log"),
+      "saved": _("%(title)s is on your reading log"),
+      "shelfToggle": _("%(shelf)s: %(title)s"),
+      "shelfMenu": _("More options for %(title)s"),
+      "addToListFor": _("Add %(title)s to a list"),
+      # OlShelfActions.js
+      "actionsFor": _("Actions for %(title)s"),
+      "readingLog": _("Reading log"),
+      "wantToRead": _("Want to Read"),
+      "currentlyReading": _("Currently Reading"),
+      "alreadyRead": _("Already Read"),
+      "stoppedReading": _("Stopped Reading"),
+      "addedToShelf": _("Added to %(shelf)s"),
+      "removedFromShelf": _("Removed from shelf"),
+      "rated": _("Rated %(rating)s of 5"),
+      "ratingCleared": _("Rating cleared"),
+      "dateSaved": _("Finished %(date)s"),
+      "rateThisBook": _("Rate this book"),
+      "rateStar": _("Rate %(rating)s of 5"),
+      "clearRating": _("Clear rating"),
+      "addToList": _("Add to list"),
+      "back": _("Back"),
+      "createList": _("Create a list"),
+      "listName": _("List name"),
+      "create": _("Create"),
+      "filterLists": _("Filter lists…"),
+      "createFirstList": _("Create your first list"),
+      "noMatchingLists": _("No lists match."),
+      "loadingLists": _("Loading lists…"),
+      "itemsInList": {
+          "one": ungettext("%(count)s item", "%(count)s items", 1),
+          "two": ungettext("%(count)s item", "%(count)s items", 2),
+          "few": ungettext("%(count)s item", "%(count)s items", 3),
+          "many": ungettext("%(count)s item", "%(count)s items", 11),
+          "other": ungettext("%(count)s item", "%(count)s items", 100),
+      },
+      # Shown beside a list that already holds this book as something else: other
+      # editions of it, or the book with no edition named. Ticking the row adds
+      # this edition alongside, so the label is what makes that deliberate, and
+      # it stays afterwards as the count of copies of the book on that list.
+      "otherEditions": {
+          "one": ungettext("%(count)s other edition", "%(count)s other editions", 1),
+          "two": ungettext("%(count)s other edition", "%(count)s other editions", 2),
+          "few": ungettext("%(count)s other edition", "%(count)s other editions", 3),
+          "many": ungettext("%(count)s other edition", "%(count)s other editions", 11),
+          "other": ungettext("%(count)s other edition", "%(count)s other editions", 100),
+      },
+      "anyEdition": _("Any edition"),
+      "inLists": _("In %(count)s of your lists"),
+      "recentLists": _("Recently used"),
+      "pinnedLists": _("On this book and recently used"),
+      "otherLists": _("Other lists"),
+      "addedToList": _("Added to %(name)s"),
+      "removedFromList": _("Removed from %(name)s"),
+      "errorGeneric": _("Something went wrong. Please try again."),
+      "whenFinished": _("When did you finish this book?"),
+      "today": _("Today"),
+      "inYear": _("In %(year)s"),
+      "otherDate": _("Other date"),
+      "year": _("Year"),
+      "month": _("Month"),
+      "day": _("Day"),
+      "saveDate": _("Save"),
+      "didNotRead": _("I didn’t read this"),
+      # book-state.js
+      "movedTo": _("Moved to %(shelf)s"),
+      "undo": _("Undo"),
+  }
+<input type="hidden" name="shelf-button-i18n-strings" value="$json_encode(labels)">

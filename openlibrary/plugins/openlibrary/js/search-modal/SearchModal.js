@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 // The <ol-*> custom elements this modal uses (ol-icon, ol-dialog, ol-toggle,
 // ol-select-popover) are registered by the site-wide
@@ -9,6 +10,8 @@ import { repeat } from 'lit/directives/repeat.js';
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { trackEvent } from '../ol.analytics.js';
+import { buildPartialsUrl } from '../utils.js';
+import { readLabels } from '../book-state.js';
 import {
     AVAILABILITY_OPTIONS,
     AVAILABILITY_TO_PARAMS,
@@ -79,6 +82,8 @@ const RESULTS_LIMIT     = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
 // autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
 const MIN_QUERY_LENGTH  = 3;
+/** "/works/OL1W" → "OL1W" */
+const olidOf = key => key.split('/').pop();
 const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
 
 // The bare common-word "the" matches almost everything and isn't worth a Solr
@@ -110,6 +115,7 @@ export class SearchModal extends LitElement {
         _langsLoading: { state: true },
         _navigatingKey: { state: true },
         _recentSearches: { state: true },
+        _readingState: { state: true },
     };
 
     static styles = css`
@@ -396,6 +402,31 @@ export class SearchModal extends LitElement {
 
         @media (prefers-reduced-motion: reduce) { .result { transition: none; } }
 
+        /* The link and the shelf button are siblings (a button cannot live inside
+           an anchor); the row carries the hover tint so the two read as one. */
+        .result-row {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .result-row .result {
+            flex: 1;
+            min-width: 0;
+            padding-right: var(--spacing-sm);
+        }
+
+        .result-row ol-shelf-button {
+            flex-shrink: 0;
+            /* Centred on the 50px cover: (50 − 32) / 2 below the row's padding. */
+            margin: calc(var(--spacing-sm) + 9px) var(--spacing-lg) 0 0;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .result-row:hover { background: var(--lightest-grey); }
+        }
+
+        .result-row:focus-within { background: var(--lightest-grey); }
+
         .result__cover-link {
             position: relative;
             display: flex;
@@ -472,40 +503,37 @@ export class SearchModal extends LitElement {
             font-weight: 400;
         }
 
-        /* Trailing column at the row's edge (.result__meta's flex:1 pushes it
-           right): the "Readable" pill, with the "In <language>" hint stacked
-           directly beneath it. Right-aligned and top-aligned so the access
-           information reads as one unit, apart from the title/author block. */
-        .result__access-col {
-            flex-shrink: 0;
-            align-self: flex-start;
+        /* The title truncates; the badge beside it stays whole. */
+        .result__title-line {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: var(--spacing-3xs);
+            gap: var(--spacing-xs);
+            min-width: 0;
         }
 
-        /* "Readable" pill — a quiet status indicator, not a button (the whole
-           row is the link). Green echoes the site's "you can read this" hue. */
-        .result__access {
-            padding: var(--spacing-3xs) var(--spacing-xs);
-            border-radius: var(--border-radius-button);
-            font-size: var(--font-size-label-small);
-            font-weight: 600;
-            letter-spacing: 0.02em;
+        .result__title-line .result__title { flex: 0 1 auto; min-width: 0; }
+
+        /* Status badge beside the title: a label, not a button. Bordered so it
+           reads as a chip on the hover tint too. Muted by default, which
+           "Readable in <language>" wears: a readable copy with a caveat. */
+        .result__badge {
+            flex-shrink: 0;
+            padding: 0 var(--spacing-2xs);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-badge);
+            font-size: var(--font-size-label-medium);
+            font-weight: 500;
+            line-height: 1.5;
             white-space: nowrap;
-            color: var(--open-green);
-            background: hsla(126, 100%, 30%, 0.1);
-        }
-
-        /* Quiet "In <language>" hint shown under the Readable pill when the
-           readable copy isn't in the patron's site language. Informational, not
-           a button — muted so it sits below the pill without competing with it. */
-        .result__lang {
             color: var(--color-text-muted);
-            font-size: var(--font-size-label-small);
-            font-weight: 400;
-            white-space: nowrap;
+            background: var(--color-surface-sunken);
+        }
+
+        /* "Readable" — green echoes the site's "you can read this" hue. */
+        .result__badge--readable {
+            color: var(--color-success-fg);
+            border-color: var(--color-success-border);
+            background: var(--color-success-bg);
         }
 
         .empty, .loading {
@@ -620,7 +648,8 @@ export class SearchModal extends LitElement {
            take a moment to start painting. During that gap the chosen row
            holds full opacity while the rest dim back and its cover darkens
            under a spinner. */
-        .results.is-navigating .result { opacity: 0.4; }
+        .results.is-navigating .result,
+        .results.is-navigating ol-shelf-button { opacity: 0.4; }
 
         .results.is-navigating .result.is-target {
             opacity: 1;
@@ -779,6 +808,16 @@ export class SearchModal extends LitElement {
         // toggled off and back, an edit-and-undo — never re-fires. Reset per open.
         this._outcomeTracked = new Set();
         this._outcomeTimer   = null;
+
+        // For the rows' shelf buttons. State is keyed by work OLID and outlives
+        // the query, so a book seen again never refetches. Filled on intent.
+        this._userKey       = '';
+        this._shelfLabels   = null;
+        this._readingState  = new Map();
+        this._stateRequested = new Set();
+        this._shelfStateWanted = false;
+        this._onBookStateChange = this._onBookStateChange.bind(this);
+        this._onBookCheckIn     = this._onBookCheckIn.bind(this);
     }
 
     connectedCallback() {
@@ -791,10 +830,15 @@ export class SearchModal extends LitElement {
             this._seeAllLoading = false;
         };
         window.addEventListener('pageshow', this._onPageShow);
+        // At the document, so a change made anywhere on the page reaches the same map.
+        document.addEventListener('ol-book-state-change', this._onBookStateChange);
+        document.addEventListener('ol-book-check-in', this._onBookCheckIn);
     }
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
+        document.removeEventListener('ol-book-state-change', this._onBookStateChange);
+        document.removeEventListener('ol-book-check-in', this._onBookCheckIn);
         clearTimeout(this._outcomeTimer);
         super.disconnectedCallback();
     }
@@ -1119,7 +1163,11 @@ export class SearchModal extends LitElement {
                     </ul>
                 ` : nothing}
                 <h3 class="results-heading">${this._i18n.topResults}</h3>
-                <ul class="results-list">${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
+                <ul
+                    class="results-list"
+                    @pointerenter=${this._onShelfIntent}
+                    @focusin=${this._onShelfIntent}
+                >${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
             </div>
         `;
     }
@@ -1282,14 +1330,14 @@ export class SearchModal extends LitElement {
         // language: with Readable Only off the language-matched edition wins
         // promotion and, when it isn't readable, the row carries no badge. (Turn
         // Readable Only on and the subquery instead promotes the readable foreign
-        // copy, which earns the badge plus an "In <language>" hint.) Falls back to
+        // copy, which earns a "Readable in <language>" badge.) Falls back to
         // the work-level aggregate only when no edition was promoted — editions
         // disabled via SOLR_EDITIONS, or an edition-less work — so those still
         // badge from the work.
         const readable = edition ? editionReadable : this._isReadableAccess(work.ebook_access);
 
-        // Name the promoted edition's language below the "Readable" badge so the
-        // patron knows the language of the copy this row opens. Gated on the
+        // Name the promoted edition's language in the badge ("Readable in Dutch")
+        // so the patron knows the language of the copy this row opens. Gated on the
         // promoted edition's own readability (so we only name a language for a copy
         // we've confirmed readable); since the badge now keys off this same edition,
         // the hint never shows without it. Two cases drive it:
@@ -1347,7 +1395,16 @@ export class SearchModal extends LitElement {
             coverSrcset = nothing;
         }
 
-        return html`<li>
+        const title = display.title || work.title || this._i18n.untitled;
+
+        let badge = nothing;
+        if (otherLang) {
+            badge = html`<span class="result__badge">${sprintf(this._i18n.readableInLanguage, otherLang)}</span>`;
+        } else if (readable) {
+            badge = html`<span class="result__badge result__badge--readable">${this._i18n.accessReadable}</span>`;
+        }
+
+        return html`<li class="result-row">
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
@@ -1358,16 +1415,93 @@ export class SearchModal extends LitElement {
                         <span class="result__spinner" aria-hidden="true"></span>
                     </span>
                     <span class="result__meta">
-                        <span class="result__title">${display.title || work.title || this._i18n.untitled}</span>
+                        <span class="result__title-line">
+                            <span class="result__title">${title}</span>
+                            ${badge}
+                        </span>
                         ${author ? html`<span class="result__author">${author}</span>` : nothing}
                         ${year ? html`<span class="result__year">${year}</span>` : nothing}
                     </span>
-                    ${readable ? html`<span class="result__access-col">
-                        <span class="result__access">${this._i18n.accessReadable}</span>
-                        ${otherLang ? html`<span class="result__lang">${sprintf(this._i18n.inLanguage, otherLang)}</span>` : nothing}
-                    </span>` : nothing}
                 </a>
+                ${this._renderShelfButton(work, edition, title)}
             </li>`;
+    }
+
+    // ── Shelf buttons ─────────────────────────────────────────────────────
+
+    // Shelf is work-level, so the button acts on the work even when the row
+    // links to an edition; the edition rides along so the shelf records the copy.
+    _renderShelfButton(work, edition, title) {
+        const state = this._readingState.get(olidOf(work.key));
+        return html`<ol-shelf-button
+            variant="outline"
+            work-key=${work.key}
+            edition-key=${ifDefined(edition?.key ? olidOf(edition.key) : undefined)}
+            book-title=${title}
+            user-key=${this._userKey}
+            .labels=${this._shelfLabels || {}}
+            .shelf=${state?.shelf ?? null}
+            .rating=${state?.rating ?? null}
+            .readDate=${state?.read_date ?? null}
+            .eventId=${state?.event_id ?? null}
+            ?pending=${Boolean(this._userKey) && !state}
+            @pointerdown=${this._onShelfIntent}
+        ></ol-shelf-button>`;
+    }
+
+    // State is fetched on intent (hover or focus on the results, a press on a
+    // button), not with the search: one request then covers every row while
+    // the modal stays open, and readers who only navigate cost nothing.
+    _onShelfIntent() {
+        if (this._shelfStateWanted) return;
+        this._shelfStateWanted = true;
+        this._loadShelfState();
+    }
+
+    // A failed batch is forgotten so the next intent tries it again.
+    async _loadShelfState() {
+        if (!this._userKey) return;
+        const olids = this._results
+            .map(work => olidOf(work.key))
+            .filter(olid => !this._readingState.has(olid) && !this._stateRequested.has(olid));
+        if (olids.length === 0) return;
+        olids.forEach(olid => this._stateRequested.add(olid));
+        let works;
+        try {
+            const response = await fetch(buildPartialsUrl('ReadingState', { work_ids: olids.join(',') }), { credentials: 'same-origin' });
+            if (!response.ok) throw new Error(`ReadingState → ${response.status}`);
+            works = (await response.json()).works;
+        } catch {
+            olids.forEach(olid => this._stateRequested.delete(olid));
+            return;
+        }
+        this._readingState = new Map([...this._readingState, ...Object.entries(works)]);
+    }
+
+    // Only a known book is patched. An unknown one is fetched whole instead,
+    // once intent is shown: a patch alone would let the popover act on the
+    // shelf without knowing the date.
+    _patchShelfState(key, patch) {
+        const olid = olidOf(key);
+        const current = this._readingState.get(olid);
+        if (!current) {
+            if (this._shelfStateWanted) this._loadShelfState();
+            return;
+        }
+        this._readingState = new Map(this._readingState).set(olid, { ...current, ...patch });
+    }
+
+    _onBookStateChange(e) {
+        const { key, shelf, rating } = e.detail;
+        const patch = { shelf: shelf ?? null, rating: rating ?? null };
+        // Off the shelf takes the check-ins with it (the server deletes them).
+        if (patch.shelf === null) Object.assign(patch, { read_date: null, event_id: null });
+        this._patchShelfState(key, patch);
+    }
+
+    _onBookCheckIn(e) {
+        const { key, date, eventId } = e.detail;
+        this._patchShelfState(key, { read_date: date, event_id: eventId });
     }
 
     // The footer button shows the actual hit count once a search lands
@@ -1436,6 +1570,8 @@ export class SearchModal extends LitElement {
         // would clear it, but reopening to a frozen spinner looks broken.
         this._loading = false;
         this._seeAllLoading = false;
+        // Intent is per visit; the fetched state is kept.
+        this._shelfStateWanted = false;
     }
 
     // A result is a native anchor, so pressing it navigates the whole window.
@@ -1528,7 +1664,12 @@ export class SearchModal extends LitElement {
     // (Enter on a focused row activates the native link/button as usual.)
     _onResultsKeydown(e) {
         if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-        const row = e.target.closest('.result');
+        // From a row's shelf button the arrows step rows too, unless its popover
+        // is open and owns them. (Keys from its shadow tree arrive retargeted to the button.)
+        let row = e.target.closest('.result');
+        if (!row && e.target.matches('ol-shelf-button') && !e.target.hasAttribute('open')) {
+            row = e.target.closest('.result-row')?.querySelector('.result');
+        }
         if (!row) return;
         const rows = this._focusableRows();
         const idx  = rows.indexOf(row);
@@ -1642,6 +1783,7 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
+                if (this._shelfStateWanted) this._loadShelfState();
                 // Record the settled outcome — ResultsShown or NoResults —
                 // deferred so only a query the patron actually stops on counts
                 // (not each partial typed on the way). See _scheduleOutcomeTrack.
@@ -1785,6 +1927,9 @@ export function initSearchModal(trigger) {
     // from ctx.user.is_printdisabled()). Widens the "Readable" badge to
     // printdisabled scans for these patrons, matching the readable count.
     modal._printDisabled = trigger.dataset.printDisabled === 'true';
+    // For the rows' shelf buttons (site/body.html, my_books/shelf_button_i18n).
+    modal._userKey = document.body.dataset.userKey || '';
+    modal._shelfLabels = readLabels();
 
     document.body.appendChild(modal);
     modal.attachToTrigger(trigger);

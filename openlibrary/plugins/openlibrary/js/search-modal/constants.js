@@ -94,13 +94,13 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     topResults: 'Top results',
     untitled: 'Untitled',
     authorLabel: 'Author',
-    // Result-row access badge, shown for any readable book (public-domain or
-    // lendable). Keep short — it sits in a small pill at the row edge.
+    // Result-row access badge, shown beside the title for any readable book
+    // (public-domain or lendable). Keep short — it sits in a small badge.
     accessReadable: 'Readable',
-    // Shown on a readable result whose only readable copy is in a language other
-    // than the patron's site language. %s = the localized language name, e.g.
-    // "In French". Filled client-side via sprintf.
-    inLanguage: 'In %s',
+    // Replaces "Readable" when the readable copy is in a language other than the
+    // patron's site language. %s = the localized language name, e.g.
+    // "Readable in French". Filled client-side via sprintf.
+    readableInLanguage: 'Readable in %s',
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
 };

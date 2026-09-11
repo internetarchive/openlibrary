@@ -35,7 +35,6 @@
 @import "components/illustration.css";
 @import "components/rating-form.css";
 @import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
 @import "components/listLists.css";
 @import "components/readerStats.css";
 @import "components/link-box.css";
@@ -57,7 +56,6 @@
 @import "components/modal-links.css";
 @import "components/list-follow.css";
 @import "components/tagging-menu.css";
-@import "components/check-in.css";
 @import "components/reading-goal.css";
 @import "components/work-title-and-author.css";
 @import "components/shareLinks.css";

@@ -21,9 +21,11 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
+from openlibrary.core.reading_state import ReadingState, get_reading_state
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -376,15 +378,6 @@ class mybooks_readinglog(delegate.page):
 
 
 @public
-def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
-    if not username:
-        return None
-    work_id = extract_numeric_id_from_olid(work_key)
-    status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
-    return status_id
-
-
-@public
 class MyBooksTemplate:
     # Reading log shelves
     READING_LOG_KEYS = frozenset(
@@ -604,6 +597,109 @@ def add_read_statuses(username, works):
         work_olid = work.key.split("/")[-1]
         work["readinglog"] = results_map.get(work_olid)
     return works
+
+
+def work_key_of(doc) -> str | None:
+    """The work behind a doc: a work, an edition with its work, or an edition a carousel handed a `work_key`; None for anything else (an author, a subject)."""
+    if not hasattr(doc, "get"):
+        return getattr(doc, "key", None) if str(getattr(doc, "key", "")).startswith("/works/") else None
+    if work_key := doc.get("work_key"):
+        return work_key
+    key = doc.get("key")
+    if not key:
+        return None
+    if key.startswith("/works/"):
+        return key
+    if key.startswith("/books/") and (works := doc.get("works")):
+        work = works[0]
+        return work.key if hasattr(work, "key") else work.get("key")
+    return None
+
+
+def edition_key_of(doc) -> str | None:
+    """The edition a shelf change records: the doc itself when it is one, the edition a Solr result selected, or the one the reader logged."""
+    if not hasattr(doc, "get"):
+        return None
+    key = doc.get("key") or ""
+    if key.startswith("/books/"):
+        return key
+    # Solr hands editions as a list, or as a dict holding `docs`.
+    editions = doc.get("editions") or []
+    if isinstance(editions, dict):
+        editions = editions.get("docs") or []
+    if editions:
+        return editions[0].get("key")
+    if logged := doc.get("logged_edition"):
+        return logged
+    if olids := doc.get("edition_key"):
+        return f"/books/{olids[0]}"
+    return None
+
+
+def list_seed_of(doc) -> str | None:
+    """A seed with no work to shelve but a list to join: an author, or an edition on its own."""
+    key = doc.get("key") if hasattr(doc, "get") else None
+    return key if key and key.startswith(("/authors/", "/books/")) else None
+
+
+def _shelf_title_of(doc) -> str:
+    """The work's title when an edition carries its work, else the doc's own title or name."""
+    key = doc.get("key") or ""
+    # An author's `title` is an honorific ("OBE"), and their `works` a lazy query.
+    if key.startswith("/authors/"):
+        return doc.get("name") or ""
+    if key.startswith("/books/") and (works := doc.get("works")) and (title := works[0].get("title")):
+        return title
+    return doc.get("title") or ""
+
+
+@public
+def shelf_button_for(doc, variant: str = "split", reading_state: dict[str, ReadingState] | None = None, cached: bool = False) -> str:
+    """The `<ol-shelf-button>` for a doc, Solr or Infogami: a work or an edition to shelve, or an
+    author or orphaned edition that can only join a list (`lists-only`). Empty for anything else.
+
+    `reading_state` is the page's `reading_state_for()`; left out, the button looks its own up.
+    `cached` leaves off the reader's key and state, for HTML shared across readers (carousel
+    cards); book-state.js fills both in.
+    """
+    work_key = work_key_of(doc)
+    seed_key = work_key or list_seed_of(doc)
+    if not seed_key:
+        return ""
+    user_key = ""
+    state: ReadingState | dict[str, Any] = {}
+    if not cached:
+        user = accounts.get_current_user()
+        user_key = user.key if user else ""
+    if work_key and not cached:
+        states = reading_state if reading_state is not None else reading_state_for([doc])
+        state = states.get(work_key) or {}
+    return render_jinja_template(
+        "my_books/shelf_button.html.jinja",
+        variant=variant,
+        work_key=seed_key,
+        title=_shelf_title_of(doc),
+        edition_key=edition_key_of(doc) if work_key else None,
+        user_key=user_key,
+        state=state,
+        hydrated=not cached,
+        lists_only=not work_key,
+    )
+
+
+@public
+def reading_state_for(docs) -> dict[str, ReadingState]:
+    """The signed-in reader's shelf, rating and last finish date for the works in `docs`, keyed by work key.
+
+    Empty when signed out. Call once per page of rows and pass the result down.
+    """
+    user = accounts.get_current_user()
+    if not user:
+        return {}
+    keys = {key for doc in docs if (key := work_key_of(doc))}
+    by_id = {int(extract_numeric_id_from_olid(key)): key for key in keys}
+    states = get_reading_state(user.key.split("/")[-1], list(by_id))
+    return {by_id[work_id]: state for work_id, state in states.items()}
 
 
 class PatronBooknotes:

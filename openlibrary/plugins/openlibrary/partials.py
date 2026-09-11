@@ -16,6 +16,7 @@ from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
+from openlibrary.core.reading_state import ReadingState, get_reading_state
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
@@ -30,10 +31,12 @@ from openlibrary.plugins.openlibrary.lists import (
     get_user_lists,
 )
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
+from openlibrary.plugins.upstream.mybooks import shelf_button_for
 from openlibrary.plugins.upstream.utils import get_user_object, json_encode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
+    get_solr_works,
     run_solr_query_async,
     work_search_async,
 )
@@ -46,6 +49,7 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
 
@@ -87,14 +91,11 @@ class ReadingGoalProgressPartial:
 
 
 class MyBooksDropperListsPartial:
-    """Handler for the MyBooks dropper list component."""
+    """The reader's lists with their members, for the popover's lists store and the book page's lists strip."""
 
     @classmethod
     def generate(cls) -> dict:
         user_lists = get_user_lists(None)
-
-        template = get_jinja_env().get_template("lists/dropper_lists.html.jinja")
-        dropper = template.render(lists=user_lists, json_encode=json_encode)
         list_data = {
             list_data["key"]: {
                 "members": list_data["list_items"],
@@ -102,11 +103,33 @@ class MyBooksDropperListsPartial:
             }
             for list_data in user_lists
         }
+        return {"listData": list_data}
 
-        return {
-            "dropper": dropper,
-            "listData": list_data,
-        }
+
+class WorkEditionsPartial:
+    """Every edition OLID of a work, so the popover can tell that a list holding one of them holds the book.
+
+    A list records whichever copy the reader was looking at, so the same book can sit on a
+    list under any of its editions. Matching only the key this button would write reads
+    those lists as empty and files the book a second time.
+
+    The answer is the same for every reader, so it is fetched per book on open rather than
+    for every member of every list up front, and carousels pay nothing for it.
+    """
+
+    @classmethod
+    def generate(cls, work_olid: str) -> dict[str, list[str]]:
+        doc = get_solr_works({f"/works/{work_olid}"}, fields={"key", "edition_key"}).get(f"/works/{work_olid}")
+        return {"editions": list(doc.get("edition_key") or []) if doc else []}
+
+
+class ReadingStatePartial:
+    """The opening state for `<ol-shelf-button>`s the server rendered without it (carousels); book-state.js asks here."""
+
+    @classmethod
+    def generate(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
+        work_ids = [int(extract_numeric_id_from_olid(olid)) for olid in work_olids]
+        return {f"OL{work_id}W": state for work_id, state in get_reading_state(username, work_ids).items()}
 
 
 class CarouselLoadMoreParams(BaseModel):
@@ -194,6 +217,7 @@ class CarouselCardData(TypedDict):
     loan_status_html: Markup
     return_confirm_i18n: str
     request_fullpath: str
+    shelf_button_html: Markup
 
 
 @public
@@ -241,6 +265,8 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, secondary_action=(secondary_action and not loan), key=key),
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
+        # Cached across readers, so no user or state: book-state.js fills both in.
+        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", cached=True)),
     }
 
 
@@ -266,6 +292,8 @@ class CarouselCardPartial:
             else:
                 book = editions.get("docs", [None])[0]
             book["authors"] = work.get("authors", [])
+            # An edition doc carries no work key; the shelf button needs it.
+            book["work_key"] = work.get("key")
             book = web.storage(book)
 
             try:

@@ -57,9 +57,7 @@ describe('SelectionManager', () => {
         const sm = setupSelectionManager();
         const { listItem, link } = createTestElementsForProcessClick();
 
-        link.addEventListener('click', () => {
-            sm.processClick({ target: link, currentTarget: listItem });
-        });
+        listItem.addEventListener('click', sm.processClick);
 
         expect(listItem.classList.contains('ile-selected')).toBe(false);
         link.click();
@@ -72,15 +70,32 @@ describe('SelectionManager', () => {
         const sm = setupSelectionManager();
         const { listItem } = createTestElementsForProcessClick();
 
-        listItem.addEventListener('click', () => {
-            sm.processClick({ target: listItem, currentTarget: listItem });
-        });
+        listItem.addEventListener('click', sm.processClick);
 
         expect(listItem.classList.contains('ile-selected')).toBe(false);
         listItem.click();
         expect(listItem.classList.contains('ile-selected')).toBe(true);
         listItem.click();
         expect(listItem.classList.contains('ile-selected')).toBe(false);
+
+        jest.clearAllMocks();
+    });
+
+    test('processClick - clicking a button inside a web component', () => {
+        const sm = setupSelectionManager();
+        const { listItem } = createTestElementsForProcessClick();
+
+        // The button lives in a shadow root, so the row sees the host as the target.
+        const host = document.createElement('ol-shelf-button');
+        const button = document.createElement('button');
+        host.attachShadow({ mode: 'open' }).appendChild(button);
+        listItem.appendChild(host);
+        listItem.addEventListener('click', sm.processClick);
+
+        button.click();
+        expect(listItem.classList.contains('ile-selected')).toBe(false);
+        host.click();
+        expect(listItem.classList.contains('ile-selected')).toBe(true);
 
         jest.clearAllMocks();
     });

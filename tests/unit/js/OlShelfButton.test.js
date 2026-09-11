@@ -70,6 +70,18 @@ describe('ol-shelf-button shapes', () => {
         expect(q(el, '.main')).toBeNull();
     });
 
+    test('outline is the icon shape in a bordered square: same trigger, same glyph', async() => {
+        const el = await mount({ variant: 'outline', userKey: '/people/tester' });
+        expect(el.getAttribute('variant')).toBe('outline');
+        expect(q(el, '.save').getAttribute('aria-label')).toBe('Save The Two Towers to your reading log');
+        expect(q(el, 'ol-icon').getAttribute('name')).toBe('bookmark');
+        expect(q(el, '.main')).toBeNull();
+        el.shelf = SHELF.ALREADY_READ;
+        await el.updateComplete;
+        expect(q(el, '.save').classList.contains('save--on')).toBe(true);
+        expect(q(el, 'ol-icon').getAttribute('name')).toBe('circle-check-filled');
+    });
+
     test('on a shelf, both shapes show it', async() => {
         const split = await mount({ shelf: SHELF.ALREADY_READ, userKey: '/people/tester' });
         expect(q(split, '.main').textContent.trim()).toBe('Already Read');
@@ -83,21 +95,29 @@ describe('ol-shelf-button shapes', () => {
     test('the icon shape draws the shelf\'s glyph once shelved', async() => {
         const off = await mount({ variant: 'icon' });
         expect(q(off, 'ol-icon').getAttribute('name')).toBe('bookmark');
-        expect(q(off, 'ol-icon').hasAttribute('filled')).toBe(false);
 
-        // Only the bookmark fills; the stroked glyphs would turn into blobs.
+        // Shelved: the shelf's own glyph, as a solid shape.
         const wanted = await mount({ variant: 'icon', shelf: SHELF.WANT_TO_READ });
-        expect(q(wanted, 'ol-icon').getAttribute('name')).toBe('bookmark');
-        expect(q(wanted, 'ol-icon').hasAttribute('filled')).toBe(true);
-
+        expect(q(wanted, 'ol-icon').getAttribute('name')).toBe('bookmark-filled');
         const reading = await mount({ variant: 'icon', shelf: SHELF.CURRENTLY_READING });
-        expect(q(reading, 'ol-icon').getAttribute('name')).toBe('book-open');
-        expect(q(reading, 'ol-icon').hasAttribute('filled')).toBe(false);
-
+        expect(q(reading, 'ol-icon').getAttribute('name')).toBe('book-open-filled');
         const read = await mount({ variant: 'icon', shelf: SHELF.ALREADY_READ });
-        expect(q(read, 'ol-icon').getAttribute('name')).toBe('circle-check');
+        expect(q(read, 'ol-icon').getAttribute('name')).toBe('circle-check-filled');
         const stopped = await mount({ variant: 'icon', shelf: SHELF.STOPPED_READING });
-        expect(q(stopped, 'ol-icon').getAttribute('name')).toBe('circle-pause');
+        expect(q(stopped, 'ol-icon').getAttribute('name')).toBe('circle-pause-filled');
+    });
+
+    test('a glyph change swaps the icon in place, with no outgoing layer', async() => {
+        const el = await mount({ variant: 'icon' });
+        el.shelf = SHELF.ALREADY_READ;
+        await el.updateComplete;
+        const glyphs = el.shadowRoot.querySelectorAll('ol-icon');
+        expect(glyphs.length).toBe(1);
+        expect(glyphs[0].getAttribute('name')).toBe('circle-check-filled');
+
+        el.shelf = null;
+        await el.updateComplete;
+        expect(q(el, 'ol-icon').getAttribute('name')).toBe('bookmark');
     });
 
     test('reflects the shelf, so the page\'s CSS can tell a saved book apart', async() => {
@@ -167,9 +187,9 @@ describe('ol-shelf-button state changes', () => {
         expect(post.init.body.get('edition_id')).toBe('OL1M');
     });
 
-    test('clicking main while on a shelf removes it', async() => {
+    test('clicking main while on Want to Read removes it', async() => {
         stubFetch();
-        const el = await mount({ shelf: SHELF.ALREADY_READ, rating: 5, userKey: '/people/tester' });
+        const el = await mount({ shelf: SHELF.WANT_TO_READ, rating: 5, userKey: '/people/tester' });
         const seen = [];
         el.addEventListener('ol-book-state-change', e => seen.push(e.detail));
 
@@ -179,8 +199,27 @@ describe('ol-shelf-button state changes', () => {
         await new Promise(r => setTimeout(r, 0));
         // The removal is a POST against the shelf the book is already on.
         const post = fetchCalls.find(c => c.url.endsWith('/works/OL1W/bookshelves.json'));
-        expect(post.init.body.get('bookshelf_id')).toBe(String(SHELF.ALREADY_READ));
+        expect(post.init.body.get('bookshelf_id')).toBe(String(SHELF.WANT_TO_READ));
     });
+
+    // Leaving a reading shelf goes through the menu, which routes Already Read
+    // via its date pane; one tap on the main half must not delete check-ins.
+    test.each([SHELF.CURRENTLY_READING, SHELF.ALREADY_READ, SHELF.STOPPED_READING])(
+        'clicking main while on shelf %i opens the menu and posts nothing', async(shelf) => {
+            stubFetch();
+            const el = await mount({ shelf, userKey: '/people/tester' });
+            const seen = [];
+            el.addEventListener('ol-book-state-change', e => seen.push(e.detail));
+
+            q(el, '.main').click();
+            await new Promise(r => setTimeout(r, 0));
+
+            expect(seen).toEqual([]);
+            expect(fetchCalls.filter(c => c.url.endsWith('/works/OL1W/bookshelves.json'))).toHaveLength(0);
+            const popover = q(el, 'ol-shelf-actions').shadowRoot.querySelector('ol-popover');
+            expect(popover.open).toBe(true);
+        },
+    );
 
     test('a second click before the request lands is dropped', async() => {
         stubFetch();
@@ -287,6 +326,39 @@ describe('ol-shelf-button pass-through to the popover', () => {
         const el = await mount({ userKey: '/people/tester' });
         expect(q(el, 'ol-shelf-actions').hideRating).toBe(false);
     });
+
+    test('hands pending to ol-shelf-actions, and reflects it', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester', pending: true });
+        expect(q(el, 'ol-shelf-actions').pending).toBe(true);
+        expect(el.hasAttribute('pending')).toBe(true);
+    });
+});
+
+describe('ol-shelf-button pending', () => {
+    // With the shelf unknown the main half's toggle would be a guess, and a wrong guess removes the book.
+    test('the main half does nothing until the state is known', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester', pending: true });
+        const seen = [];
+        el.addEventListener('ol-book-state-change', e => seen.push(e.detail));
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        expect(seen).toEqual([]);
+        expect(fetchCalls).toHaveLength(0);
+
+        el.pending = false;
+        await el.updateComplete;
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        expect(seen).toHaveLength(1);
+    });
+
+    test('looks unshelved rather than guessing', async() => {
+        const el = await mount({ variant: 'outline', userKey: '/people/tester', pending: true });
+        expect(q(el, '.save').classList.contains('save--on')).toBe(false);
+        expect(q(el, 'ol-icon').getAttribute('name')).toBe('bookmark');
+    });
 });
 
 describe('ol-shelf-button accessible name and state', () => {
@@ -323,5 +395,36 @@ describe('ol-shelf-button accessible name and state', () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester', labels: { wantToRead: 'À lire', shelfToggle: '%(title)s — %(shelf)s' } });
         expect(q(el, '.main').getAttribute('aria-label')).toBe('The Two Towers — À lire');
+    });
+});
+
+describe('ol-shelf-button lists-only', () => {
+    // A seed with no work to shelve: an author, or an edition on its own.
+    test('the split shape is one "Add to list" trigger, no main half', async() => {
+        const el = await mount({ userKey: '/people/tester', workKey: '/authors/OL3A', editionKey: '', bookTitle: 'Ursula K. Le Guin', listsOnly: true });
+        expect(q(el, '.split--list')).not.toBeNull();
+        expect(q(el, '.more')).toBeNull();
+        const trigger = q(el, '.main');
+        expect(trigger.getAttribute('slot')).toBe('trigger');
+        expect(trigger.textContent).toContain('Add to list');
+        expect(trigger.getAttribute('aria-label')).toBe('Add to list: Ursula K. Le Guin');
+        expect(trigger.hasAttribute('aria-pressed')).toBe(false);
+        expect(q(el, 'ol-shelf-actions').listsOnly).toBe(true);
+    });
+
+    test('the icon shape draws a list-plus and says so', async() => {
+        const el = await mount({ userKey: '/people/tester', variant: 'icon', workKey: '/books/OL2M', bookTitle: 'Orphan', listsOnly: true });
+        expect(q(el, 'ol-icon.glyph').getAttribute('name')).toBe('list-plus');
+        expect(q(el, '.save').getAttribute('aria-label')).toBe('Add Orphan to a list');
+    });
+
+    // jsdom refuses the navigation itself; the cancelled click and the
+    // remembered intent are what is asserted, as for the shelf shapes.
+    test('signed out, the trigger cancels the click and remembers an add-to-list intent', async() => {
+        const el = await mount({ userKey: '', workKey: '/authors/OL3A', bookTitle: 'Ursula K. Le Guin', listsOnly: true });
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        q(el, '.main').dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(true);
+        expect(pendingAction()).toMatchObject({ name: 'Ursula K. Le Guin', action: 'Add to list' });
     });
 });

@@ -1,11 +1,17 @@
-$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel')
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel', count=None, shelf=None)
+
+$# A shelf carousel's count is its own element so book-state.js can keep it current.
+$ count_markup = ''
+$if count is not None:
+  $ count_markup = ' (<span data-shelf-count="%d">%d</span>)' % (shelf, count) if shelf else ' (%d)' % count
+
 
 $if test or (books and len(books) >= min_books):
     <div class="carousel-section">
       $if title and url:
         <div class="carousel-section-header">
           <h2 class="home-h2">
-            <a data-ol-link-track="BookCarousel|HeaderClick|$key" href="$url">$title</a>
+            <a data-ol-link-track="BookCarousel|HeaderClick|$key" href="$url">$title$:count_markup</a>
           </h2>
         </div>
       <div class="carousel-container carousel-container-decorated">
@@ -49,6 +55,9 @@ $if test or (books and len(books) >= min_books):
                               target_data = docs[0]
               $ book2 = target_data if hasattr(target_data, 'key') else storage(target_data)
               $ book2['authors'] = book.get('authors', [])
+              $if target_data is not book:
+                $# An edition doc carries no work key; the shelf button needs it.
+                $ book2['work_key'] = book.get('key')
               $ loan = book.get('loan')
               $if loan:
                 $ book2['loan'] = loan

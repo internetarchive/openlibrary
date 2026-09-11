@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
+from pydantic import BaseModel, BeforeValidator
 
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
@@ -13,6 +15,7 @@ from openlibrary.fastapi.auth import (
     is_librarian,
     require_authenticated_user,
 )
+from openlibrary.fastapi.models import parse_comma_separated_list
 from openlibrary.fastapi.shared.dependencies import get_fullpath
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
@@ -24,9 +27,11 @@ from openlibrary.plugins.openlibrary.partials import (
     LazyCarouselPartial,
     MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
+    ReadingStatePartial,
     SearchFacetsPartial,
     SubjectPublishingHistoryPartial,
     SubjectRelatedPartial,
+    WorkEditionsPartial,
 )
 
 router = APIRouter()
@@ -147,15 +152,83 @@ async def my_books_dropper_lists_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
     """
-    Get MyBooks dropper lists HTML and list data for the current user.
+    Get the current user's lists.
 
     Returns:
-    - dropper: HTML string for the dropper lists component
     - listData: dict mapping list keys to their members and names
     """
     # Despite the fact we are not yet using the user directly, it gives us faster
     # auth checking and api documentation.
     return MyBooksDropperListsPartial.generate()
+
+
+MAX_READING_STATE_WORKS = 100
+WORK_OLID = re.compile(r"^OL\d+W$")
+
+
+def parse_work_olids(v: str | list[str]) -> list[str]:
+    """Comma-separated work OLIDs; anything that is not one is a 422, not a 500."""
+    olids = [olid.strip() for olid in parse_comma_separated_list(v) if olid.strip()]
+    if bad := [olid for olid in olids if not WORK_OLID.match(olid)]:
+        raise ValueError(f"Not a work OLID: {bad[0]}")
+    return olids
+
+
+def parse_work_olid(v: str) -> str:
+    """One work OLID; anything else is a 422, not a 500."""
+    olid = v.strip()
+    if not WORK_OLID.match(olid):
+        raise ValueError(f"Not a work OLID: {v}")
+    return olid
+
+
+class WorkEditionsResponse(BaseModel):
+    editions: list[str]
+
+
+@router.get("/partials/WorkEditions.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+def work_editions_partial(
+    work_id: Annotated[str, BeforeValidator(parse_work_olid), Query(description="A work OLID, e.g. OL1W")],
+) -> WorkEditionsResponse:
+    """
+    Every edition OLID of a work.
+
+    The shelf popover asks on open: a list records the edition the reader was looking at,
+    so a list holding any edition of this work already holds the book. Not reader-specific,
+    and the same answer for everyone.
+    """
+    return WorkEditionsResponse(**WorkEditionsPartial.generate(work_id))
+
+
+class ReadingStateEntry(BaseModel):
+    shelf: int | None
+    rating: int | None
+    read_date: str | None
+    event_id: int | None
+
+
+class ReadingStateResponse(BaseModel):
+    user_key: str
+    works: dict[str, ReadingStateEntry]
+
+
+@router.get("/partials/ReadingState.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+def reading_state_partial(
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    work_ids: Annotated[
+        list[str],
+        BeforeValidator(parse_work_olids),
+        Query(description="Comma-separated work OLIDs, e.g. OL1W,OL2W", max_length=MAX_READING_STATE_WORKS),
+    ],
+) -> ReadingStateResponse:
+    """
+    The current user's shelf, rating and last finish date for each work, keyed by OLID.
+
+    Every requested work is present, with nulls where the reader has no state.
+    book-state.js hydrates carousel shelf buttons from this.
+    """
+    states = ReadingStatePartial.generate(user.username, work_ids)
+    return ReadingStateResponse(user_key=user.user_key, works={olid: ReadingStateEntry(**state) for olid, state in states.items()})
 
 
 @router.get("/partials/LazyCarousel.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

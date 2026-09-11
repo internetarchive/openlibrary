@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
@@ -18,17 +18,26 @@ export const DEFAULT_LABELS = {
     // it is the visible label.
     shelfToggle: '%(shelf)s: %(title)s',
     shelfMenu: 'More options for %(title)s',
+    addToListFor: 'Add %(title)s to a list',
 };
 
 /**
- * The control that puts a book on a reading-log shelf, in the two shapes the
- * site needs: a bordered split button for a row (`split`), and a round badge
- * that floats over cover art (`icon`): an outlined bookmark until the book is
- * on a shelf, then that shelf's own glyph.
+ * The control that puts a book on a reading-log shelf, in the three shapes the
+ * site needs: a bordered split button for a row (`split`), a round badge that
+ * floats over cover art (`icon`), and that badge's glyph in a bordered square
+ * (`outline`) for a row with room for a button but not a label. The badge and
+ * the square show an outlined bookmark until the book is on a shelf, then that
+ * shelf's own glyph, solid.
  *
- * Both open the same `<ol-shelf-actions>` popover; the split variant adds a main
- * half that toggles between Want to Read and off without opening anything.
- * Signed out, either shape sends the visitor to log in with the intent
+ * All three open the same `<ol-shelf-actions>` popover; the split variant adds
+ * a main half that toggles Want to Read on and off without opening anything.
+ * With `lists-only` the same shapes serve a seed that has no work to shelve
+ * (an author, an edition on its own): the split becomes one "Add to list"
+ * trigger, the glyph a list-plus, and the popover opens on its lists pane.
+ * Once the book is on one of the three reading shelves the main half opens the
+ * popover instead: those shelves carry dates, ratings and goal progress, so
+ * leaving one goes through the menu, which takes Already Read via its date
+ * pane. Signed out, every shape sends the visitor to log in with the intent
  * remembered.
  *
  * **Stateless by design.** It never writes to `shelf` or `rating` itself — it
@@ -39,8 +48,10 @@ export const DEFAULT_LABELS = {
  *
  * @element ol-shelf-button
  *
- * @prop {String} variant - "split" (default) or "icon"
- * @prop {String} workKey - "/works/OL…W", the book this acts on
+ * @prop {String} variant - "split" (default), "icon" or "outline"
+ * @prop {String} workKey - "/works/OL…W", the book this acts on. With
+ *     `lists-only`, the seed instead: "/authors/OL…A" or "/books/OL…M"
+ * @prop {Boolean} listsOnly - No shelf to act on; only the lists pane
  * @prop {String} editionKey - "OL…M", recorded with the shelf change when known
  * @prop {String} bookTitle - Used in the accessible labels. Named `book-title`
  *     because a `title` attribute would draw a native browser tooltip
@@ -55,10 +66,14 @@ export const DEFAULT_LABELS = {
  * @prop {Number} eventId - Id of that check-in, so editing the date amends it
  * @prop {String} userKey - "/people/<username>" when signed in; empty sends the
  *     visitor to log in instead of opening the popover
+ * @prop {Boolean} pending - The reader's state is not known yet. The button
+ *     looks unshelved and the popover holds its rows: posting a shelf the book
+ *     is already on removes it, so a guess could undo a save
  * @prop {String} placement - ol-popover placement for the actions panel;
  *     unset uses its default
- * @prop {Boolean} hideRating - Drop the popover's stars. For surfaces that
- *     already show a rating control for the same book
+ * @prop {Boolean} hideRating - Always drop the popover's stars. Without it
+ *     the popover drops them itself while a visible star form for the same
+ *     book is on the page
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @fires ol-book-state-change - The shelf or rating changed, optimistically or
@@ -89,6 +104,8 @@ export class OlShelfButton extends LitElement {
         placement: { type: String },
         labels: { type: Object },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
+        listsOnly: { type: Boolean, attribute: 'lists-only', reflect: true },
+        pending: { type: Boolean, reflect: true },
         _announce: { state: true },
     };
 
@@ -156,7 +173,7 @@ export class OlShelfButton extends LitElement {
         .main {
             flex: 1;
             min-width: 0;
-            padding: 0 var(--spacing-sm);
+            padding: 0 var(--spacing-xs);
             white-space: nowrap;
             overflow: hidden;
         }
@@ -174,8 +191,14 @@ export class OlShelfButton extends LitElement {
             display: flex;
         }
 
+        /* Lists-only: the trigger is the whole button. */
+        .split--list > ol-shelf-actions {
+            flex: 1;
+            min-width: 0;
+        }
+
         .more {
-            width: 40px;
+            width: 32px;
             border-left: 1px solid var(--color-border-subtle);
         }
 
@@ -241,11 +264,17 @@ export class OlShelfButton extends LitElement {
                     );
         }
 
-        .save ol-icon {
+        /* The circle stays white; only the glyph turns blue once shelved. */
+        .glyph {
             position: relative;
             width: 14px;
             height: 14px;
+            color: var(--primary-blue);
             --ol-icon-stroke-width: 2.5;
+        }
+
+        .glyph[name="bookmark"] {
+            color: var(--color-text);
         }
 
         .save:hover {
@@ -265,9 +294,59 @@ export class OlShelfButton extends LitElement {
             outline-offset: 2px;
         }
 
-        /* Saved: the circle stays white; only the glyph turns blue. */
-        .save--on {
-            color: var(--primary-blue);
+        /* ── Outline variant ──────────────────────────────────────── */
+
+        /* The split button's bordered, raised shape at icon width. No circle or
+           drop shadow, and the hover is a tint, not a grow. */
+        :host([variant="outline"]) .save {
+            box-sizing: border-box;
+            width: var(--control-height-medium);
+            height: var(--control-height-medium);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-button);
+            background: var(--white);
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+        }
+
+        :host([variant="outline"]) .save::before {
+            content: none;
+        }
+
+        :host([variant="outline"]) .glyph {
+            width: 16px;
+            height: 16px;
+            --ol-icon-stroke-width: 2;
+        }
+
+        :host([variant="outline"]) .save--on {
+            border-color: var(--color-control-selected-border);
+            background: var(--color-control-selected-bg);
+            --control-surface: var(--color-control-selected-surface);
+        }
+
+        :host([variant="outline"]) .save:hover {
+            transform: none;
+            background: var(--color-hover-overlay);
+        }
+
+        :host([variant="outline"]) .save--on:hover {
+            background: var(--color-control-selected-bg-hover);
+        }
+
+        :host([variant="outline"]) .save:active {
+            transform: scale(0.97);
+        }
+
+        :host([variant="outline"]) .save:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: -2px;
         }
 
         /* Live region: read out, never laid out. */
@@ -294,7 +373,14 @@ export class OlShelfButton extends LitElement {
         this.userKey = '';
         this.labels = {};
         this.hideRating = false;
+        this.listsOnly = false;
+        this.pending = false;
         this._announce = '';
+    }
+
+    /** The badge's glyph: the shelf's own once shelved, a list-plus in lists-only mode. */
+    get _icon() {
+        return this.listsOnly ? 'list-plus' : this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
     }
 
     t(key, vars) {
@@ -312,8 +398,13 @@ export class OlShelfButton extends LitElement {
         return this.shelf !== null && this.shelf !== undefined;
     }
 
+    /** The badge and the square share one trigger: a glyph, no label. */
+    get _glyphShaped() {
+        return this.variant === 'icon' || this.variant === 'outline';
+    }
+
     render() {
-        return this.variant === 'icon' ? this._renderIcon() : this._renderSplit();
+        return this._glyphShaped ? this._renderIcon() : this._renderSplit();
     }
 
     /**
@@ -333,6 +424,8 @@ export class OlShelfButton extends LitElement {
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}
                 ?hide-rating=${this.hideRating}
+                ?lists-only=${this.listsOnly}
+                ?pending=${this.pending}
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >${trigger}</ol-shelf-actions>
@@ -341,22 +434,37 @@ export class OlShelfButton extends LitElement {
 
     _renderIcon() {
         const on = this._on;
-        // The shelf's glyph once shelved. Only the bookmark fills well: the
-        // others are stroked shapes that would turn into blobs.
-        const icon = on ? SHELF_ICON[this.shelf] : 'bookmark';
-        const filled = on && this.shelf === SHELF.WANT_TO_READ;
+        const title = this.bookTitle;
+        const label = this.listsOnly ? this.t('addToListFor', { title }) : on ? this.t('saved', { title }) : this.t('save', { title });
         return this._withActions(html`
             <button
                 type="button"
                 slot="trigger"
                 class="save ${classMap({ 'save--on': on })}"
-                aria-label=${on ? this.t('saved', { title: this.bookTitle }) : this.t('save', { title: this.bookTitle })}
+                aria-label=${label}
                 @click=${this.userKey ? undefined : this._onLoggedOut}
-            ><ol-icon name=${icon} ?filled=${filled}></ol-icon></button>
+            ><ol-icon class="glyph" name=${this._icon}></ol-icon></button>
         `);
     }
 
     _renderSplit() {
+        // Lists-only: one labelled trigger in the split's frame, no main half.
+        if (this.listsOnly) {
+            const label = this.t('addToList');
+            return html`
+                <div class="split split--list">
+                    ${this._withActions(html`
+                        <button
+                            type="button"
+                            slot="trigger"
+                            class="main"
+                            aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
+                            @click=${this.userKey ? undefined : this._onLoggedOut}
+                        ><ol-icon name="list-plus"></ol-icon><span>${label}</span></button>
+                    `)}
+                </div>
+            `;
+        }
         const on = this._on;
         const label = this.t(SHELF_LABEL[this.shelf ?? SHELF.WANT_TO_READ]);
         return html`
@@ -392,6 +500,10 @@ export class OlShelfButton extends LitElement {
         }));
     }
 
+    _openActions() {
+        this.shadowRoot.querySelector('ol-shelf-actions')?.open();
+    }
+
     _onPopoverOpen() {
         this.toggleAttribute('open', true);
     }
@@ -406,18 +518,19 @@ export class OlShelfButton extends LitElement {
         // No resumeUrl: come back to the page they were on. On a book page that
         // is the same thing, but from a list of results it is not — the legacy
         // dropper returned them to their results too.
-        redirectToLogin({ action: this.t('wantToRead'), title: this.bookTitle });
+        redirectToLogin({ action: this.t(this.listsOnly ? 'addToList' : 'wantToRead'), title: this.bookTitle });
     }
 
     async _onMainClick(e) {
         if (!this.userKey) return this._onLoggedOut(e);
         // The shelf we emit only comes back down as a property a tick later, so
         // a second click before the request lands would toggle twice on the
-        // server while the button shows one change.
-        if (this._pending) return;
+        // server while the button shows one change. Unknown state is the same risk.
+        if (this._pending || this.pending) return;
         const previous = this.shelf ?? null;
-        // On a shelf → clicking removes; otherwise → Want to Read.
-        const target = previous ?? SHELF.WANT_TO_READ;
+        if (previous !== null && previous !== SHELF.WANT_TO_READ) return this._openActions();
+        // Want to Read is a bookmark: one tap on, one tap off.
+        const target = SHELF.WANT_TO_READ;
         const next = previous === null ? SHELF.WANT_TO_READ : null;
         this._emitState(next);
         // The pressed state flips when the surface hands the shelf back down;

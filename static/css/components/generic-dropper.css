@@ -1,102 +1,3 @@
-.generic-dropper-wrapper {
-  position: relative;
-  isolation: isolate;
-  min-height: 50px;
-}
-
-.generic-dropper-wrapper--active {
-  z-index: var(--z-index-level-1);
-}
-
-.generic-dropper {
-  position: absolute;
-  width: 100%;
-  z-index: var(--z-index-level-14);
-}
-
-.generic-dropper__actions {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  cursor: pointer;
-  border-radius: var(--border-radius-button);
-  border: 1px solid var(--mid-grey);
-  overflow: hidden;
-}
-
-.generic-dropper__actions * {
-  color: var(--color-text);
-  background-color: var(--lightest-grey);
-}
-
-.generic-dropper__actions .generic-dropper__primary {
-  flex: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  margin: auto;
-  height: inherit;
-}
-
-/* stylelint-disable max-nesting-depth */
-.generic-dropper__actions .generic-dropper__primary button {
-  border: none;
-  cursor: pointer;
-  font-size: var(--font-size-label-large);
-  height: 100%;
-  width: 100%;
-}
-/* stylelint-enable max-nesting-depth */
-
-.generic-dropper__actions .generic-dropper__dropclick {
-  border-left: 1px solid var(--color-border-subtle);
-  text-decoration: none;
-  height: inherit;
-  width: 32px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* stylelint-disable max-nesting-depth */
-.generic-dropper__actions .generic-dropper__dropclick h3 {
-  flex: 1;
-}
-
-.generic-dropper__actions .generic-dropper__dropclick .arrow {
-  width: 23px;
-  height: 23px;
-  background-image: url(/static/images/icons/icon_dropit.png);
-  background-repeat: no-repeat;
-  filter: grayscale(100%);
-  background-position: 0 0;
-  background-size: 45px;
-}
-
-/* stylelint-disable selector-max-specificity */
-.generic-dropper__actions .generic-dropper__dropclick .arrow.up {
-  background-position: -22px 0;
-}
-/* stylelint-enable max-nesting-depth */
-/* stylelint-enable selector-max-specificity */
-
-.generic-dropper__dropdown {
-  display: none;
-  width: 100%;
-  border-top: 1px solid var(--color-border-subtle);
-  position: absolute;
-  font-size: var(--font-size-label-medium);
-}
-
-.book-progress-btn {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.generic-dropper__primary .book-progress-btn:disabled {
-  cursor: default;
-  opacity: 1; /* For the disabled state to avoid flickering. */
-}
-
 /* Unified Read Button Styling */
 .cta-dropper {
   display: flex;
@@ -113,7 +14,7 @@
   height: 100%;
   margin: auto;
   width: 24px;
-  /* style for animated arrow on dropdown button. Copied from "Want to Read" dropper above */
+  /* animated arrow on the dropdown button */
   content: "";
   background: url(/static/images/icons/icon_dropit.png) no-repeat center;
   background-position: 0;

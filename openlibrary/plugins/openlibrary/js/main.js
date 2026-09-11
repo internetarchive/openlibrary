@@ -404,25 +404,17 @@ $(function() {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
-    const droppers = document.querySelectorAll('.dropper');
-    const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper');
-    if (droppers.length || genericDroppers.length) {
-        import('./dropper')
-            .then((module) => {
-                module.initDroppers(droppers);
-                module.initGenericDroppers(genericDroppers);
-            });
+    // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
+    if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
+        import('./book-state')
+            .then(module => module.initBookState());
     }
 
-    // My Books Droppers (includes New List Form and Reading Check-Ins):
-    const myBooksDroppers = document.querySelectorAll('.my-books-dropper');
-    if (myBooksDroppers.length) {
-        const actionableListShowcases = document.querySelectorAll('.actionable-item');
-
-        import('./my-books')
-            .then((module) => {
-                module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases);
-            });
+    // The lists a book is on, under the shelf button on its page:
+    const activeListsShowcase = document.querySelector('.already-lists[data-seed-keys]');
+    if (activeListsShowcase) {
+        import('./lists/active-showcase')
+            .then(module => module.initActiveListsShowcase(activeListsShowcase));
     }
 
     // TODO: Make these selectors a consistent interface
