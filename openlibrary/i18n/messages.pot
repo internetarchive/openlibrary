@@ -1695,10 +1695,6 @@ msgstr ""
 msgid "Then, come back to Open Library and find some great books!"
 msgstr ""
 
-#: account/view.html
-msgid "Yearly Reading Goal"
-msgstr ""
-
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
 msgstr ""
@@ -5444,6 +5440,10 @@ msgstr ""
 #: reading_goals/reading_goal_progress.html.jinja
 #, python-format
 msgid "Edit %(year)d Reading Goal"
+msgstr ""
+
+#: reading_goals/yearly_goal_dialog.html.jinja
+msgid "Yearly Reading Goal"
 msgstr ""
 
 #: recentchanges/header.html

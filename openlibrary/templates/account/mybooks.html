@@ -101,7 +101,7 @@ $def empty_mobile_carousel(data):
             </div>
             $if current_goal:
               <span id="reading-goal-container">
-                $:render_jinja_template('reading_goals/reading_goal_progress.html.jinja', goals=[current_goal], render_jinja_template=render_jinja_template)
+                $:render_jinja_template("reading_goals/reading_goal_progress.html.jinja", entries=[current_goal])
               </span>
           </div>
         </li>

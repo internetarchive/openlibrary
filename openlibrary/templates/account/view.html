@@ -8,8 +8,7 @@ $var title: $header_title
 
 <div class="mybooks">
   $if mb.is_my_page:
-    $ reading_goal_form = render_jinja_template('reading_goals/reading_goal_form.html.jinja', year=current_year())
-    $:render_jinja_template('native_dialog.html.jinja', id='yearly-goal-modal', content=reading_goal_form, title=_('Yearly Reading Goal'))
+    $:render_jinja_template("reading_goals/yearly_goal_dialog.html.jinja", year=current_year())
   $:mb.render_sidebar()
 
   $ css = 'no-padding' if mb.key == 'mybooks' else ''
