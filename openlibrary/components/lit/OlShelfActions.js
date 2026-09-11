@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin, fetchWorkEditions } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -34,6 +34,9 @@ export const DEFAULT_LABELS = {
     rateStar: 'Rate %(rating)s of 5',
     clearRating: 'Clear rating',
     addToList: 'Add to list',
+    // A plural set: how many other editions of this book the list already holds.
+    otherEditions: { one: '%(count)s other edition', other: '%(count)s other editions' },
+    anyEdition: 'Any edition',
     back: 'Back',
     createList: 'Create a list',
     listName: 'List name',
@@ -77,6 +80,17 @@ const PIN_THRESHOLD = 5;
  * derived from this, so a new pane is an entry here plus a `_render*`.
  */
 const PANES = ['main', 'lists', 'checkIn'];
+
+/**
+ * Work key → promise of its edition keys. Module-level, so several buttons for
+ * the same book share one request and re-opening costs nothing.
+ */
+const EDITION_KEYS = new Map();
+
+/** Forget the cached editions (tests). */
+export function resetWorkEditionsCache() {
+    EDITION_KEYS.clear();
+}
 
 /**
  * Per-book action popover: reading-log shelves, a star rating, and an
@@ -138,6 +152,8 @@ export class OlShelfActions extends LitElement {
         listsOnly: { type: Boolean, attribute: 'lists-only' },
         pending: { type: Boolean, reflect: true },
         _starsElsewhere: { state: true },
+        _editionKeys: { state: true },
+        _matchPending: { state: true },
         _pane: { state: true },
         _snap: { state: true },
         _trackHeight: { state: true },
@@ -680,8 +696,17 @@ export class OlShelfActions extends LitElement {
             box-shadow: inset 0 0 0 1px var(--color-border-subtle);
         }
 
-        .list-row .name {
+        /* Name over label. The name is what the reader is looking for, so it
+           keeps the full width and the annotation goes under it rather than
+           taking room from it. */
+        .list-row .text {
             flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-row .name {
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -691,6 +716,18 @@ export class OlShelfActions extends LitElement {
         .count {
             color: var(--color-text-secondary);
             font-size: var(--font-size-label-medium);
+        }
+
+        /* Says the book is on this list already, as another edition or with no
+           edition named. Tight leading, so a labelled row grows by one small
+           line rather than by a whole row. */
+        .list-row .other-form {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.3;
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-label-small);
         }
 
         /* Live region: read out, never laid out. */
@@ -742,6 +779,8 @@ export class OlShelfActions extends LitElement {
         this.hideRating = false;
         this.listsOnly = false;
         this._starsElsewhere = false;
+        this._editionKeys = [];
+        this._matchPending = false;
         this._warm = false;
         // Capture-phase, so the panes exist before ol-popover's own trigger
         // handling measures the panel.
@@ -823,8 +862,61 @@ export class OlShelfActions extends LitElement {
         return translate(this.labels, DEFAULT_LABELS, key, vars);
     }
 
+    /**
+     * The key a list records: the edition when the surface knows one, else the
+     * work. A list is a shelf of copies, so which copy the reader was looking
+     * at is worth keeping — that was the old dropper's default too. A
+     * `lists-only` seed (an author, an edition with no work) carries its own
+     * key in `book.key` and is never rewritten.
+     */
     get _seedKey() {
-        return this.book?.key || '';
+        const edition = this.book?.editionKey;
+        if (!edition || this.listsOnly) return this.book?.key || '';
+        return edition.startsWith('/') ? edition : `/books/${edition}`;
+    }
+
+    /**
+     * The work's other editions, asked for once per book and shared by every
+     * popover on the page. A failure resolves to nothing rather than rejecting:
+     * the pane then matches on the two keys it already has, which is where it
+     * stood before, instead of spinning for an answer that is not coming.
+     */
+    _loadEditionKeys() {
+        const workKey = this.book?.key;
+        if (!workKey || this.listsOnly || !workKey.startsWith('/works/')) return null;
+        if (!EDITION_KEYS.has(workKey)) {
+            EDITION_KEYS.set(workKey, fetchWorkEditions(workKey).catch(() => []));
+        }
+        return EDITION_KEYS.get(workKey);
+    }
+
+    /**
+     * Whether the list holds this exact seed — the copy in front of the reader.
+     * This is what the checkbox says, and all it ever adds or removes.
+     */
+    _holdsSeed(list) {
+        return !!list && list.members.includes(this._seedKey);
+    }
+
+    /**
+     * What else of this book the list holds, beside the copy this row is for:
+     * `{ kind: 'edition', count }` for other editions of it, `{ kind: 'work' }`
+     * for the book with no edition named, or null. Ticking the row adds this
+     * edition alongside — some lists collect editions on purpose — so this
+     * stands whether the row is ticked or not: before, it is the warning that
+     * the book is already here; after, it is the count of copies on the list.
+     */
+    _otherForm(list) {
+        if (!list) return null;
+        const count = list.members.filter(key => key !== this._seedKey && this._editionKeys.includes(key)).length;
+        if (count) return { kind: 'edition', count };
+        if (this.book?.key && this.book.key !== this._seedKey && list.members.includes(this.book.key)) return { kind: 'work' };
+        return null;
+    }
+
+    /** Whether this book is on the list at all, however it was filed. Counts and pinning ask this. */
+    _inList(list) {
+        return this._holdsSeed(list) || !!this._otherForm(list);
     }
 
     render() {
@@ -902,7 +994,7 @@ export class OlShelfActions extends LitElement {
                 <button type="button" class="row" @click=${this._openLists}>
                     <ol-icon class="obd-icon" name="list-plus"></ol-icon>
                     <span class="label">${this.t('addToList')}</span>
-                    ${this._listCount ? html`<span class="count" aria-label=${this.t('inLists', { count: this._listCount })}>${this._listCount}</span>` : nothing}
+                    ${this._listCount && !this._matchPending ? html`<span class="count" aria-label=${this.t('inLists', { count: this._listCount })}>${this._listCount}</span>` : nothing}
                     <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
                 </button>
                 ${this._renderRecentShortcut()}
@@ -924,7 +1016,7 @@ export class OlShelfActions extends LitElement {
         // they arrive the remembered name carries the row, so the panel does
         // not grow one mid-open. A list that has gone takes the row with it.
         if (getLists() && !list) return nothing;
-        const inList = !!list?.members.includes(this._seedKey);
+        const inList = this._holdsSeed(list);
         return html`
             <button
                 type="button"
@@ -1193,7 +1285,7 @@ export class OlShelfActions extends LitElement {
 
     _renderListItems() {
         const lists = getLists();
-        if (this._listsLoading || (lists === null && !this._listsFailed)) {
+        if (this._listsLoading || this._matchPending || (lists === null && !this._listsFailed)) {
             return html`<div class="loading" role="status"><ol-icon class="obd-icon spinner" name="loader"></ol-icon>${this.t('loadingLists')}</div>`;
         }
         // No lists at all: the create form above is the whole pane.
@@ -1226,11 +1318,15 @@ export class OlShelfActions extends LitElement {
         // static and fine with index reconciliation.
         return repeat(keys, key => key, key => {
             const list = lists[key];
-            const checked = list.members.includes(this._seedKey);
+            const checked = this._holdsSeed(list);
+            const other = this._otherForm(list);
             return html`
                 <label class="list-row ${classMap({ target: key === target })}">
                     <input type="checkbox" .checked=${checked} @change=${e => this._onListToggle(key, e.target.checked)} />
-                    <span class="name">${list.listName}</span>
+                    <span class="text">
+                        <span class="name">${list.listName}</span>
+                        ${other ? html`<span class="other-form">${other.kind === 'edition' ? this.t('otherEditions', { count: other.count }) : this.t('anyEdition')}</span>` : nothing}
+                    </span>
                     <span class="count" aria-label=${this.t('itemsInList', { count: list.members.length })}>${list.members.length}</span>
                 </label>
             `;
@@ -1300,6 +1396,18 @@ export class OlShelfActions extends LitElement {
         // only after a trip to the lists pane. One request per page — every
         // popover reads the shared lists store.
         if (this.userKey) this._loadLists({ quiet: true }).then(() => this._snapshotLists());
+        // Which editions count as this book is the other half of that answer,
+        // so the count and the ticks wait for it rather than show a list the
+        // book is already on as empty. The shelf rows stay live throughout.
+        const editions = this.userKey && this._loadEditionKeys();
+        if (editions) {
+            this._matchPending = this._editionKeys.length === 0;
+            editions.then(keys => {
+                this._editionKeys = keys;
+                this._matchPending = false;
+                this._snapshotLists();
+            });
+        }
     }
 
     _onCloseRequest(e) {
@@ -1583,7 +1691,7 @@ export class OlShelfActions extends LitElement {
         const lists = getLists() || {};
         this._order = Object.keys(lists);
         this._recent = getRecentLists(this.userKey);
-        this._members = this._order.filter(key => lists[key].members.includes(this._seedKey));
+        this._members = this._order.filter(key => this._inList(lists[key]));
     }
 
     /**
@@ -1641,7 +1749,7 @@ export class OlShelfActions extends LitElement {
     get _listCount() {
         const lists = getLists();
         if (!lists) return 0;
-        return Object.values(lists).filter(l => l.members.includes(this._seedKey)).length;
+        return Object.values(lists).filter(list => this._inList(list)).length;
     }
 
     /** `quiet` is for the open-time prefetch: no toast, no login bounce. */
@@ -1697,7 +1805,7 @@ export class OlShelfActions extends LitElement {
         const key = pinned[0] ?? rest[0];
         if (!key) return;
         const name = lists[key].listName;
-        const checked = !lists[key].members.includes(this._seedKey);
+        const checked = !this._holdsSeed(lists[key]);
         this._say(this.t(checked ? 'addedToList' : 'removedFromList', { name }));
         this._onListToggle(key, checked);
     }

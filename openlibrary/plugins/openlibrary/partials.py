@@ -36,6 +36,7 @@ from openlibrary.plugins.upstream.utils import get_user_object, json_encode, ren
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
+    get_solr_works,
     run_solr_query_async,
     work_search_async,
 )
@@ -103,6 +104,23 @@ class MyBooksDropperListsPartial:
             for list_data in user_lists
         }
         return {"listData": list_data}
+
+
+class WorkEditionsPartial:
+    """Every edition OLID of a work, so the popover can tell that a list holding one of them holds the book.
+
+    A list records whichever copy the reader was looking at, so the same book can sit on a
+    list under any of its editions. Matching only the key this button would write reads
+    those lists as empty and files the book a second time.
+
+    The answer is the same for every reader, so it is fetched per book on open rather than
+    for every member of every list up front, and carousels pay nothing for it.
+    """
+
+    @classmethod
+    def generate(cls, work_olid: str) -> dict[str, list[str]]:
+        doc = get_solr_works({f"/works/{work_olid}"}, fields={"key", "edition_key"}).get(f"/works/{work_olid}")
+        return {"editions": list(doc.get("edition_key") or []) if doc else []}
 
 
 class ReadingStatePartial:

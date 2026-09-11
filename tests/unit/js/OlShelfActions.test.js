@@ -4,7 +4,7 @@
  * toggle, create, and the recently-used lists it leans on). Network is stubbed
  * at `fetch`.
  */
-import { OlShelfActions } from '../../../openlibrary/components/lit/OlShelfActions.js';
+import { OlShelfActions, resetWorkEditionsCache } from '../../../openlibrary/components/lit/OlShelfActions.js';
 import { fmt, plural, translate } from '../../../openlibrary/components/lit/utils/labels.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
@@ -15,9 +15,18 @@ const BOOK = { key: '/works/OL1W', title: 'Project Hail Mary', firstPublishYear:
 
 let calls;
 let listData;
+/** Editions of BOOK's work, as the WorkEditions partial would answer. */
+let workEditions;
+/** Set to a promise to hold that answer back and watch what the pane does meanwhile. */
+let heldEditions;
+/** Make the editions request fail, to check the pane still works without it. */
+let failEditions;
 
 function stubFetch({ failWith } = {}) {
     calls = [];
+    workEditions = [];
+    heldEditions = null;
+    failEditions = false;
     listData = {
         '/people/tester/lists/OL1L': { listName: 'Summer 2026', members: ['/works/OL7W'] },
         '/people/tester/lists/OL2L': { listName: 'Sci-fi to reread', members: ['/works/OL1W'] },
@@ -26,6 +35,10 @@ function stubFetch({ failWith } = {}) {
         calls.push({ url, init });
         if (failWith) return { ok: false, status: failWith, json: async() => ({}) };
         let body = {};
+        if (String(url).includes('/partials/WorkEditions.json')) {
+            if (failEditions) return { ok: false, status: 500, json: async() => ({}) };
+            return { ok: true, status: 200, json: async() => ({ editions: heldEditions ? await heldEditions : workEditions }) };
+        }
         if (url.endsWith('/partials/MyBooksDropperLists.json')) body = { dropper: '', listData };
         if (url.endsWith('/lists.json') && init?.method === 'POST') body = { key: '/people/tester/lists/OL3L', revision: 1 };
         if (url.includes('/check-ins')) body = { status: 'ok', id: 42 };
@@ -47,6 +60,7 @@ beforeAll(() => {
 
 beforeEach(() => {
     resetListsStore();
+    resetWorkEditionsCache();
     clearRecentLists();
 });
 
@@ -243,7 +257,10 @@ describe('ol-shelf-actions lists pane', () => {
         expect(calls.some(c => c.url.endsWith('/partials/MyBooksDropperLists.json'))).toBe(true);
         const rows = qa(el, '.list-row');
         expect(rows.map(r => r.querySelector('.name').textContent)).toEqual(['Summer 2026', 'Sci-fi to reread']);
-        expect(rows.map(r => r.querySelector('input').checked)).toEqual([false, true]);
+        // Neither row is ticked: OL2L holds the book with no edition named, so
+        // it carries the label instead of the tick.
+        expect(rows.map(r => r.querySelector('input').checked)).toEqual([false, false]);
+        expect(rows.map(r => r.querySelector('.other-form')?.textContent ?? null)).toEqual([null, 'Any edition']);
         expect(rows.map(r => r.querySelector('.count').textContent)).toEqual(['1', '1']);
     });
 
@@ -266,6 +283,8 @@ describe('ol-shelf-actions lists pane', () => {
 
     test('toggling a checkbox adds/removes the seed', async() => {
         stubFetch();
+        // OL2L holds the edition this button writes, so its row is the ticked one.
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL9M'];
         const el = await mount();
         q(el, '.group:last-child .row').click();
         await tick(el);
@@ -277,13 +296,14 @@ describe('ol-shelf-actions lists pane', () => {
         await tick(el);
         const add = calls.find(c => c.url === '/people/tester/lists/OL1L/seeds.json');
         const remove = calls.find(c => c.url === '/people/tester/lists/OL2L/seeds.json');
-        expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
-        expect(JSON.parse(remove.init.body)).toEqual({ remove: [{ key: '/works/OL1W' }] });
+        expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/books/OL9M' }] });
+        expect(JSON.parse(remove.init.body)).toEqual({ remove: [{ key: '/books/OL9M' }] });
         expect(qa(el, '.list-row .count').map(c => c.textContent)).toEqual(['2', '0']);
     });
 
     test('toggling a checkbox announces it with ol-list-change', async() => {
         stubFetch();
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL9M'];
         const el = await mount();
         q(el, '.group:last-child .row').click();
         await tick(el);
@@ -297,9 +317,142 @@ describe('ol-shelf-actions lists pane', () => {
         second.dispatchEvent(new Event('change'));
         await tick(el);
         expect(seen).toEqual([
-            { key: '/people/tester/lists/OL1L', name: 'Summer 2026', seedKey: '/works/OL1W', member: true },
-            { key: '/people/tester/lists/OL2L', name: 'Sci-fi to reread', seedKey: '/works/OL1W', member: false },
+            { key: '/people/tester/lists/OL1L', name: 'Summer 2026', seedKey: '/books/OL9M', member: true },
+            { key: '/people/tester/lists/OL2L', name: 'Sci-fi to reread', seedKey: '/books/OL9M', member: false },
         ]);
+    });
+
+    test('a list holding another edition says so, and takes this one too', async() => {
+        stubFetch();
+        // OL2L holds /books/OL8M — another edition of the same work, filed from
+        // some other surface. Nothing on this button names that key.
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL8M'];
+        workEditions = ['OL9M', 'OL8M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const [, second] = qa(el, '.list-row');
+        // Unticked, because this edition is not on it — but the row says the
+        // book is, so adding is a choice rather than an accident.
+        expect(second.querySelector('input').checked).toBe(false);
+        expect(second.querySelector('.other-form').textContent).toBe('1 other edition');
+        const input = second.querySelector('input');
+        input.checked = true;
+        input.dispatchEvent(new Event('change'));
+        await tick(el);
+        const add = calls.find(c => c.url === '/people/tester/lists/OL2L/seeds.json');
+        expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/books/OL9M' }] });
+        // Both editions now, which is the whole point of allowing it.
+        expect(getLists()['/people/tester/lists/OL2L'].members).toEqual(['/books/OL8M', '/books/OL9M']);
+        // And the label stands: ticked, it is the count of copies on the list.
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('1 other edition');
+    });
+
+    test('the label counts every other edition the list holds', async() => {
+        stubFetch();
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL8M', '/books/OL7M'];
+        workEditions = ['OL9M', 'OL8M', 'OL7M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('2 other editions');
+    });
+
+    test('unticking takes only this edition, never the one already there', async() => {
+        stubFetch();
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL8M', '/books/OL9M'];
+        workEditions = ['OL9M', 'OL8M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const [, second] = qa(el, '.list-row input');
+        expect(second.checked).toBe(true);
+        second.checked = false;
+        second.dispatchEvent(new Event('change'));
+        await tick(el);
+        const remove = calls.find(c => c.url === '/people/tester/lists/OL2L/seeds.json');
+        expect(JSON.parse(remove.init.body)).toEqual({ remove: [{ key: '/books/OL9M' }] });
+        expect(getLists()['/people/tester/lists/OL2L'].members).toEqual(['/books/OL8M']);
+    });
+
+    test('the lists pane waits rather than show a list the book is on as bare', async() => {
+        stubFetch();
+        let release;
+        heldEditions = new Promise(resolve => { release = resolve; });
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL8M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        // Editions still in flight: the spinner stands in, so no row can claim
+        // the book is absent when another edition of it is already there.
+        expect(q(el, '.loading')).not.toBeNull();
+        expect(qa(el, '.list-row input')).toHaveLength(0);
+        release(['OL9M', 'OL8M']);
+        await tick(el);
+        expect(q(el, '.loading')).toBeNull();
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('1 other edition');
+    });
+
+    test('the editions are fetched once for a book, however many popovers ask', async() => {
+        stubFetch();
+        workEditions = ['OL9M'];
+        const el = await mount();
+        const sibling = await mount();
+        await tick(el);
+        await tick(sibling);
+        const fetches = calls.filter(c => String(c.url).includes('WorkEditions'));
+        expect(fetches).toHaveLength(1);
+    });
+
+    test('a book whose editions cannot be fetched still matches on what it knows', async() => {
+        stubFetch();
+        failEditions = true;
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        // OL2L holds the work, which this button names itself, so the pane is
+        // usable and correct without the fetch.
+        expect(q(el, '.loading')).toBeNull();
+        // OL2L holds the work, which this button names itself, so that much is
+        // still known without the fetch — only sibling editions go unseen.
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('Any edition');
+    });
+
+    test('a list holding the book with no edition named says so', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        // OL2L holds /works/OL1W: the book, no edition named. This button
+        // writes an edition, so the row is unticked and labelled.
+        const [, second] = qa(el, '.list-row');
+        expect(second.querySelector('input').checked).toBe(false);
+        expect(second.querySelector('.other-form').textContent).toBe('Any edition');
+        // It still counts as the book being on a list.
+        expect(el._listCount).toBe(1);
+    });
+
+    test('a list with neither the book nor any edition of it is bare', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const [first] = qa(el, '.list-row');
+        expect(first.querySelector('input').checked).toBe(false);
+        expect(first.querySelector('.other-form')).toBeNull();
+    });
+
+    test('with no edition in view the work is what gets filed', async() => {
+        stubFetch();
+        const el = await mount({ book: { key: '/works/OL1W', title: 'Project Hail Mary' } });
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const [first] = qa(el, '.list-row input');
+        first.checked = true;
+        first.dispatchEvent(new Event('change'));
+        await tick(el);
+        const add = calls.find(c => c.url === '/people/tester/lists/OL1L/seeds.json');
+        expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
     });
 
     test('create list inlines an input, posts, and prepends the new list', async() => {
@@ -315,7 +468,7 @@ describe('ol-shelf-actions lists pane', () => {
         form.dispatchEvent(new Event('submit', { cancelable: true }));
         await tick(el);
         const post = calls.find(c => c.url === '/people/tester/lists.json');
-        expect(JSON.parse(post.init.body)).toEqual({ name: 'Gothic autumn', description: '', seeds: [{ key: '/works/OL1W' }] });
+        expect(JSON.parse(post.init.body)).toEqual({ name: 'Gothic autumn', description: '', seeds: [{ key: '/books/OL9M' }] });
         expect(el._creating).toBe(false);
         const rows = qa(el, '.list-row');
         expect(rows[0].querySelector('.name').textContent).toBe('Gothic autumn');
@@ -423,13 +576,13 @@ describe('ol-shelf-actions shared lists', () => {
         document.addEventListener('ol-list-created', e => seen.push(e), { once: true });
         await createList(el, 'Gothic autumn');
         expect(seen).toHaveLength(1);
-        expect(seen[0].detail).toEqual({ key: '/people/tester/lists/OL3L', name: 'Gothic autumn', seedKey: '/works/OL1W' });
+        expect(seen[0].detail).toEqual({ key: '/people/tester/lists/OL3L', name: 'Gothic autumn', seedKey: '/books/OL9M' });
     });
 
     test('a sibling popover picks up the new list without refetching', async() => {
         stubFetch();
         const el = await mount();
-        const sibling = await mount({ book: { ...BOOK, key: '/works/OL2W' } });
+        const sibling = await mount({ book: { ...BOOK, key: '/works/OL2W', editionKey: 'OL8M' } });
         await tick(sibling);
         const fetches = () => calls.filter(c => c.url.endsWith('/partials/MyBooksDropperLists.json')).length;
         const before = fetches();
@@ -512,7 +665,7 @@ describe('ol-shelf-actions recent lists', () => {
         await openPane(el);
         await toggle(el, 0, true);
 
-        const next = await mount({ book: { ...BOOK, key: '/works/OL2W' } });
+        const next = await mount({ book: { ...BOOK, key: '/works/OL2W', editionKey: 'OL8M' } });
         await tick(next);
         const shortcut = q(next, '.row.shortcut');
         expect(shortcut.querySelector('.label').textContent).toBe('Summer 2026');
@@ -521,7 +674,7 @@ describe('ol-shelf-actions recent lists', () => {
         shortcut.click();
         await tick(next);
         const post = calls.filter(c => c.url === '/people/tester/lists/OL1L/seeds.json').pop();
-        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/works/OL2W' }] });
+        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/books/OL8M' }] });
         expect(q(next, '.row.shortcut').getAttribute('aria-pressed')).toBe('true');
     });
 
@@ -622,7 +775,7 @@ describe('ol-shelf-actions recent lists', () => {
         input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }));
         await tick(el);
         const post = calls.find(c => c.url === '/people/tester/lists/OL1L/seeds.json');
-        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
+        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/books/OL9M' }] });
         expect(q(el, '.sr-only').textContent).toBe('Added to Summer 2026');
         // The filter stays put: the row it matched is right there, now checked.
         expect(input.value).toBe('summer');

@@ -43,6 +43,18 @@ $code:
           "many": ungettext("%(count)s item", "%(count)s items", 11),
           "other": ungettext("%(count)s item", "%(count)s items", 100),
       },
+      # Shown beside a list that already holds this book as something else: other
+      # editions of it, or the book with no edition named. Ticking the row adds
+      # this edition alongside, so the label is what makes that deliberate, and
+      # it stays afterwards as the count of copies of the book on that list.
+      "otherEditions": {
+          "one": ungettext("%(count)s other edition", "%(count)s other editions", 1),
+          "two": ungettext("%(count)s other edition", "%(count)s other editions", 2),
+          "few": ungettext("%(count)s other edition", "%(count)s other editions", 3),
+          "many": ungettext("%(count)s other edition", "%(count)s other editions", 11),
+          "other": ungettext("%(count)s other edition", "%(count)s other editions", 100),
+      },
+      "anyEdition": _("Any edition"),
       "inLists": _("In %(count)s of your lists"),
       "recentLists": _("Recently used"),
       "pinnedLists": _("On this book and recently used"),

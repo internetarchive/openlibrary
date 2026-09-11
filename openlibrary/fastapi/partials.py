@@ -31,6 +31,7 @@ from openlibrary.plugins.openlibrary.partials import (
     SearchFacetsPartial,
     SubjectPublishingHistoryPartial,
     SubjectRelatedPartial,
+    WorkEditionsPartial,
 )
 
 router = APIRouter()
@@ -171,6 +172,32 @@ def parse_work_olids(v: str | list[str]) -> list[str]:
     if bad := [olid for olid in olids if not WORK_OLID.match(olid)]:
         raise ValueError(f"Not a work OLID: {bad[0]}")
     return olids
+
+
+def parse_work_olid(v: str) -> str:
+    """One work OLID; anything else is a 422, not a 500."""
+    olid = v.strip()
+    if not WORK_OLID.match(olid):
+        raise ValueError(f"Not a work OLID: {v}")
+    return olid
+
+
+class WorkEditionsResponse(BaseModel):
+    editions: list[str]
+
+
+@router.get("/partials/WorkEditions.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+def work_editions_partial(
+    work_id: Annotated[str, BeforeValidator(parse_work_olid), Query(description="A work OLID, e.g. OL1W")],
+) -> WorkEditionsResponse:
+    """
+    Every edition OLID of a work.
+
+    The shelf popover asks on open: a list records the edition the reader was looking at,
+    so a list holding any edition of this work already holds the book. Not reader-specific,
+    and the same answer for everyone.
+    """
+    return WorkEditionsResponse(**WorkEditionsPartial.generate(work_id))
 
 
 class ReadingStateEntry(BaseModel):

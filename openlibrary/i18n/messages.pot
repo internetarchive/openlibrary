@@ -5250,6 +5250,17 @@ msgstr[1] ""
 
 #: my_books/shelf_button_i18n.html
 #, python-format
+msgid "%(count)s other edition"
+msgid_plural "%(count)s other editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: my_books/shelf_button_i18n.html
+msgid "Any edition"
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
+#, python-format
 msgid "In %(count)s of your lists"
 msgstr ""
 
