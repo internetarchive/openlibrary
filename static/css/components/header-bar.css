@@ -98,11 +98,14 @@
 }
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
 
+/* The merge-count badge is pinned 6px outside the trigger's corner, so the
+   gutter has to clear it: at 4px the badge ran off the header's right edge on
+   a phone, where the header spans the full viewport. */
 .header-bar .hamburger-component {
   -webkit-box-ordinal-group: 5;
   -ms-flex-order: 4;
   order: 4;
-  margin-right: var(--spacing-inline-sm);
+  margin-right: var(--spacing-inline-md);
 }
 
 /* The trigger around it is the ghost surface now, so the glyph carries no
