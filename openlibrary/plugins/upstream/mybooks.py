@@ -621,7 +621,9 @@ class PatronBooknotes:
             entry["work"] = self._get_work(entry["work_key"])
             entry["work_details"] = self._get_work_details(entry["work"])
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            entry["editions"] = {k: site.get().get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+            edition_keys = {f"/books/OL{k}M": k for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+            editions = site.get().get_many(list(edition_keys))
+            entry["editions"] = {edition_keys[edition.key]: edition for edition in editions}
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
