@@ -44,7 +44,7 @@ class TestGetNotes:
             }
         )
 
-    def test_get_notes_fetches_editions_with_single_get_many_call(self, mock_site):
+    def test_get_notes_fetches_works_and_editions_via_single_get_many_batches(self, mock_site):
         self._save_fixtures(mock_site)
 
         get_many_calls = []
@@ -60,12 +60,33 @@ class TestGetNotes:
             result = _make_patron_booknotes(mock_site).get_notes()
 
         non_empty_calls = [keys for keys in get_many_calls if keys]
-        assert non_empty_calls == [["/books/OL123M", "/books/OL456M"]]
+        assert non_empty_calls == [["/works/OL1W"], ["/books/OL123M", "/books/OL456M"]]
 
         entry = result[0]
+        assert entry["work_key"] == "/works/OL1W"
+        assert entry["work"].title == "Test Work"
+        assert entry["work_details"]["title"] == "Test Work"
         assert set(entry["editions"]) == {123, 456}
         assert entry["editions"][123].title == "Edition 123"
         assert entry["editions"][456].title == "Edition 456"
+
+    def test_get_notes_batches_multiple_work_lookups_and_preserves_ordering(self, mock_site):
+        mock_site.save({"key": "/works/OL1W", "type": {"key": "/type/work"}, "title": "Work One"})
+        mock_site.save({"key": "/works/OL2W", "type": {"key": "/type/work"}, "title": "Work Two"})
+
+        notes_data = [
+            {"work_id": 1, "notes": [{"edition_id": 123, "notes": "note 123"}]},
+            {"work_id": 2, "notes": [{"edition_id": 456, "notes": "note 456"}]},
+        ]
+
+        with patch.object(Booknotes, "get_notes_grouped_by_work", return_value=notes_data):
+            result = _make_patron_booknotes(mock_site).get_notes()
+
+        assert [entry["work"].title for entry in result] == ["Work One", "Work Two"]
+        assert [entry["work"] for entry in result] == [
+            mock_site.get("/works/OL1W"),
+            mock_site.get("/works/OL2W"),
+        ]
 
     def test_get_notes_skips_null_edition_and_missing_editions(self, mock_site):
         self._save_fixtures(mock_site)
