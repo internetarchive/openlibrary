@@ -1787,33 +1787,6 @@ div#subjectLists p {
   span.count {
     white-space: nowrap;
   }
-  /* inlined from components/header-bar--tablet.css */
-  .header-bar {
-    padding-top: 5px;
-  }
-
-  /* The width and height attributes of logo-icon should be equal to */
-  /* dimensions of /static/images/openlibrary-logo-tighter.svg */
-  .header-bar .logo-component .logo-icon {
-    height: 47px;
-    width: 189px;
-  }
-
-  .header-bar .auth-component .hide-me {
-    display: inline;
-  }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-  }
-
-  .header-bar .search-component {
-    -webkit-box-ordinal-group: 4;
-    -ms-flex-order: 3;
-    order: 3;
-  }
   /* inlined from components/page-banner--tablet.css */
   .page-banner .btn {
     display: inline;
@@ -1863,91 +1836,6 @@ div#subjectLists p {
 
 /* Desktop: @width-breakpoint-desktop = 960px */
 @media all and (min-width: 960px) {
-  /* inlined from components/header-bar--desktop.css */
-  .header-bar {
-    margin: var(--spacing-md) auto;
-    padding-top: 0;
-    -webkit-box-orient: horizontal;
-    -webkit-box-direction: normal;
-    -ms-flex-direction: row;
-    flex-direction: row;
-  }
-
-  .header-bar .auth-component {
-    -webkit-box-ordinal-group: 7;
-    -ms-flex-order: 6;
-    order: 6;
-  }
-
-  .header-bar .logo-component {
-    /* border-right: 1px solid var(--color-border-muted); */
-    padding-right: 15px;
-  }
-
-  .header-bar .navigation-component {
-    display: flex;
-    align-items: center;
-    -webkit-box-ordinal-group: 3;
-    -ms-flex-order: 2;
-    order: 2;
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-  }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-radius: 3px;
-    border: 1px solid var(--color-border-muted);
-  }
-
-  .header-bar .navigation-component li .dropdown-menu {
-    width: auto;
-    white-space: nowrap;
-  }
-
-  /* Mirrors header-bar--desktop.css: restores the wide "Search 🔍" bar
-     with its faux-input chrome at desktop. Mobile/touch widths keep the
-     bare icon-only button. */
-  .header-bar .search-component .search-bar-component {
-    width: 100%;
-    /* Height-locked (border included) to the shared header control height so
-       the faux input lines up exactly with the nav and account buttons. */
-    height: var(--header-control-height);
-    box-sizing: border-box;
-    background-color: var(--grey-fafafa);
-    border: 1px solid var(--color-border-muted);
-    border-radius: var(--border-radius-input);
-  }
-
-  .header-bar .search-bar-trigger {
-    flex: 1;
-    min-width: 0;
-    /* The wrapper above owns the height now; let the trigger stretch to fill
-       the space inside its border instead of forcing the mobile minimum. */
-    min-height: 0;
-    justify-content: space-between;
-    gap: var(--spacing-inline-sm);
-    padding: 0 var(--spacing-inset-md);
-  }
-
-  .header-bar .search-bar-trigger__label {
-    display: block;
-    flex: 1;
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .header-bar .hamburger-component {
-    -webkit-box-ordinal-group: 5;
-    -ms-flex-order: 6;
-    order: 6;
-  }
-
-  .header-bar.mobile {
-    display: none;
-  }
   /** These styles are used on the page for editing a book.
   They may be used in another places as well */
   fieldset.minor {
