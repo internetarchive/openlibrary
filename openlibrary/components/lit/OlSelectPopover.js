@@ -136,6 +136,8 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
 
         /* ── Filter input ────────────────────────────────────────── */
 
+        /* Uniform padding; at 8px inside the 16px panel the field's 8px
+           radius sits concentric with the panel corners. */
         .filter {
             position: relative;
             padding: var(--spacing-inset-sm);
@@ -211,10 +213,10 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
             color: var(--color-text-muted);
-            font-size: var(--font-size-label-medium);
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
         }
 
         .item {
@@ -324,7 +326,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .item-count {
             margin-left: auto;
             flex-shrink: 0;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
             font-variant-numeric: tabular-nums;
         }
@@ -341,17 +343,17 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             justify-content: center;
             gap: var(--spacing-inline-sm);
             padding: var(--spacing-inset-md);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-body-medium);
         }
         .loading-spinner {
             width: 14px;
             height: 14px;
             border: 2px solid var(--color-border-subtle);
-            border-top-color: var(--accessible-grey);
+            border-top-color: var(--color-text-muted);
             border-radius: 50%;
             flex-shrink: 0;
-            animation: ol-sp-spin 0.65s linear infinite;
+            animation: ol-sp-spin var(--duration-spin) linear infinite;
         }
 
         @media (prefers-reduced-motion: reduce) {

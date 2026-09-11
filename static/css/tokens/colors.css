@@ -94,10 +94,12 @@
 
   /* Text */
   --color-text: var(--neutral-800);
-  --color-text-heading: var(--neutral-700); /* headings sit a step lighter than body ink */
+  --color-text-heading: var(--neutral-800); /* same ink as body; size and weight carry the hierarchy */
   --color-text-secondary: var(--neutral-600);
   --color-text-muted: var(--neutral-500); /* only readable on white or --neutral-50 */
   --color-text-inverse: var(--white);
+  /* The dark fill that --color-text-inverse sits on — tooltips, dark chips. */
+  --color-surface-inverse: var(--neutral-800);
 
   /* Decorative tier: 2.5:1 on white, under WCAG 1.4.11's 3:1. Inert chrome only
      — a chevron beside a label, a placeholder glyph. An icon that carries
@@ -108,7 +110,9 @@
   --color-background: var(--paper); /* page canvas — what body paints */
   --color-surface: var(--white); /* cards, inputs, dropdowns */
   --color-surface-raised: var(--white);
-  --color-surface-sunken: var(--neutral-100);
+  /* A step lighter than -header: recessed panels and image wells should read as
+     a shade off the surface around them, not as a filled block. */
+  --color-surface-sunken: var(--neutral-50);
   --color-surface-header: var(--neutral-100);
 
   /* Links */
@@ -127,6 +131,8 @@
   --color-primary-active: var(--blue-700);
   --color-primary-subtle: var(--blue-50);
   --color-on-primary: var(--white);
+  /* Destructive action fill (delete, remove). Pair with --color-on-primary. */
+  --color-destructive: var(--red-500);
 
   /* Disabled */
   --color-disabled-bg: var(--neutral-300);
@@ -134,10 +140,12 @@
 
   /* Hover for flat rows — menu items, list rows, popover items. See-through, so
      it darkens whatever surface the row sits on rather than forcing one grey. */
-  --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 12%, transparent);
+  --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 8%, transparent);
 
   /* Hover for raised controls. Opaque — see --color-control-selected-surface. */
   --color-control-hover: var(--neutral-100);
+  /* The well a control's thumb moves in — the segmented control's track. */
+  --color-control-track: var(--neutral-100);
   /* Drag handle on a sheet or tray — see-through ink, like --color-hover-overlay. */
   --color-drag-handle: color-mix(in srgb, var(--ink-overlay) 20%, transparent);
 
@@ -160,6 +168,7 @@
   --color-border-error: var(--red-500);
   --color-border-muted: var(--neutral-300); /* dividers — decorative, 1.6:1 on white */
   --color-border-subtle: var(--neutral-200);
+  --color-border-extra-subtle: var(--neutral-100); /* repeated row separators — decorative, 1.11:1 on white */
   --color-focus-ring: var(--blue-500);
 
   /* Messages and notices. Info borrows the blue ramp rather than its own hue. */
@@ -181,6 +190,7 @@
      same shape switched off: dark enough that a white knob still reads on it. */
   --color-success-object: var(--green-400);
   --color-error-object: var(--red-400);
+  --color-warning-object: var(--amber-400);
   --color-neutral-object: var(--neutral-300);
 }
 

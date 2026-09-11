@@ -22,7 +22,7 @@
  */
 
 ol-banner {
-  --banner-accent: var(--primary-blue);
+  --banner-accent: var(--color-primary);
 
   display: flex;
   align-items: flex-start;
@@ -31,7 +31,7 @@ ol-banner {
   background-color: color-mix(in srgb, var(--banner-accent) 8%, var(--white));
   border: 1px solid color-mix(in srgb, var(--banner-accent) 30%, var(--white));
   border-radius: var(--border-radius-notification);
-  color: var(--darker-grey);
+  color: var(--color-text);
   font-family: var(--font-family-body);
   font-size: var(--font-size-body-medium);
   line-height: 1.4;
@@ -39,20 +39,20 @@ ol-banner {
   /* Exit only — banners show on every page view, so they must not
      animate in (frequency principle) */
   transition:
-    opacity 200ms ease-out,
-    transform 200ms ease-out;
+    opacity var(--duration-base) var(--ease-enter),
+    transform var(--duration-base) var(--ease-enter);
 }
 
 ol-banner[variant="success"] {
-  --banner-accent: var(--green);
+  --banner-accent: var(--color-success-object);
 }
 
 ol-banner[variant="warning"] {
-  --banner-accent: var(--orange);
+  --banner-accent: var(--color-warning-object);
 }
 
 ol-banner[variant="danger"] {
-  --banner-accent: var(--red);
+  --banner-accent: var(--color-error-object);
 }
 
 /* Plain appearance: flush edges for banners that abut other UI */
@@ -141,7 +141,7 @@ ol-banner > .ol-banner__close ol-icon {
 
 @media (hover: hover) and (pointer: fine) {
   ol-banner > .ol-banner__close:hover {
-    color: var(--darker-grey);
+    color: var(--color-text);
   }
 }
 

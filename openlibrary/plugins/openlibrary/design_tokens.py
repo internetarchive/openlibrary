@@ -52,6 +52,7 @@ _DISPLAY_ORDER = (
     "border-radius",
     "borders",
     "control-heights",
+    "press",
     "z-index",
     "breakpoints",
 )

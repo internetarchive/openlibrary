@@ -266,7 +266,6 @@
   display: flex;
   gap: var(--spacing-inline-sm);
   line-height: 1.2em;
-  transition: background-color 0.2s;
 }
 
 .srw__chapters .srw__chapter em {
@@ -286,7 +285,6 @@
   color: var(--color-text-secondary);
   padding: var(--spacing-inset-sm) 0;
   line-height: var(--line-height-meta);
-  transition: color 0.2s;
   text-decoration: dotted underline;
 }
 

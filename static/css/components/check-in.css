@@ -70,7 +70,6 @@
 .check-in-prompt a {
   display: inline-block;
   padding: var(--spacing-inset-sm);
-  transition: background-color 0.2s;
   border-radius: var(--border-radius-button);
 }
 
