@@ -11,7 +11,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id
-from openlibrary.core.jinja import get_jinja_env
+from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
@@ -70,9 +70,9 @@ class ReadingGoalProgressPartial:
     @classmethod
     def generate(cls, year: int) -> dict:
         goal = get_reading_goals(year=year)
-        component = render_template("reading_goals/reading_goal_progress", [goal])
-
-        return {"partials": str(component)}
+        entries = [goal] if goal else []
+        component = render_jinja_template("reading_goals/reading_goal_progress.html.jinja", entries=entries)
+        return {"partials": component}
 
 
 class MyBooksDropperListsPartial:
