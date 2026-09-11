@@ -124,9 +124,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             /* One height across every menu row; a described or wrapping row
                grows past it. */
             min-height: var(--menu-row-height);
-            /* Inset from the panel edge so the hover fill reads as a pill
-               rather than a band running edge to edge. The padding gives back
-               what the margin takes, so the radio column stays at 16px. */
+            /* The menu-row pill; see OlMenuPopover.js for the recipe. */
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-xs);
             padding-inline: var(--menu-row-padding-inline);

@@ -102,9 +102,11 @@ export class OlMenuPopover extends LitElement {
             box-sizing: border-box;
             /* One height across every menu row; a wrapping label grows past it. */
             min-height: var(--menu-row-height);
-            /* Inset from the panel edge so the hover fill reads as a pill
-               rather than a band running edge to edge. The padding gives back
-               what the margin takes, so the label column stays at 16px. */
+            /* The menu-row pill, shared verbatim with OlOptionsPopover and
+               OlSelectPopover: inset from the panel edge so the hover fill
+               reads as a pill rather than a band running edge to edge, with the
+               padding giving back what the margin takes so the label column
+               stays at 16px. */
             margin: 0 var(--menu-row-inset);
             padding-block: var(--spacing-inset-xs);
             padding-inline: var(--menu-row-padding-inline);
