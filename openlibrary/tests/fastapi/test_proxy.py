@@ -8,7 +8,7 @@ import pytest
 from fastapi import FastAPI, Request, Response
 from fastapi.testclient import TestClient
 
-from openlibrary.fastapi.proxy import StatelessCookieJar, _rebase_redirect, proxy_to_webpy
+from openlibrary.fastapi.proxy import StatelessCookieJar, _new_async_session, _rebase_redirect, proxy_to_webpy
 
 
 def _make_app():
@@ -282,6 +282,8 @@ def test_upstream_cookies_do_not_leak_to_the_next_visitor():
 
     The client is shared by every proxied request, so an upstream Set-Cookie it
     kept would be attached to the next request arriving without a Cookie header.
+    This drives the real client from `_new_async_session`, so dropping its cookie
+    jar fails here rather than only in the jar's own unit test.
     """
     seen_cookie_headers = []
 
@@ -289,12 +291,7 @@ def test_upstream_cookies_do_not_leak_to_the_next_visitor():
         seen_cookie_headers.append(request.headers.get("cookie"))
         return httpx.Response(200, headers={"set-cookie": "session=someone-elses; Path=/"}, content=b"ok")
 
-    real_client = httpx.AsyncClient(
-        follow_redirects=False,
-        timeout=None,
-        cookies=StatelessCookieJar(),
-        transport=httpx.MockTransport(handler),
-    )
+    real_client = _new_async_session(transport=httpx.MockTransport(handler))
 
     with _proxy_client(real_client) as client:
         client.post("/account/login", content=b"")
