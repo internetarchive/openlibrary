@@ -341,7 +341,7 @@ def _resolve_edition_request(page, query_params):
     return None, None, None
 
 
-def _fetch_editions(work, requested, provider, selected_id, mode):
+def _fetch_editions(work, requested, provider, selected_id, mode, provider_pref: str | None = None):
     """Fetch a work's editions, applying the ebooks-only / edition-limit rules.
 
     Book availability of the fetched editions is injected by the bulk
@@ -365,13 +365,22 @@ def _fetch_editions(work, requested, provider, selected_id, mode):
 
     editions = []
     if ebooks_only:
-        editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
+        editions = work.get_sorted_editions(
+            ebooks_only=ebooks_only,
+            limit=editions_limit,
+            keys=keys,
+            provider_pref=provider_pref,
+        )
     if not editions:
-        editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
+        editions = work.get_sorted_editions(
+            limit=editions_limit,
+            keys=keys,
+            provider_pref=provider_pref,
+        )
     return editions, editions_limit
 
 
-def _select_edition(editions, requested, provider, selected_id, page):
+def _select_edition(editions, requested, provider, selected_id, page, provider_pref: str | None = None):
     """Pick the edition to render: the explicitly requested one, the one
     matching a requested provider/id, else the default best edition."""
     if not editions:
@@ -382,6 +391,8 @@ def _select_edition(editions, requested, provider, selected_id, page):
         return next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0]), provider
     from openlibrary.book_providers import get_best_edition
 
+    if provider_pref:
+        return get_best_edition(editions, provider_pref=provider_pref)
     return get_best_edition(editions)
 
 
@@ -427,19 +438,35 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
             logger.warning("get_document(%r) returned None for redirect %r", redir.key, page.key)
         work["title"] = "↪ " + redir.key
 
+    provider_pref = query_params.get("providerPref")
     requested, provider, selected_id = _resolve_edition_request(page, query_params)
-    editions, editions_limit = _fetch_editions(work, requested, provider, selected_id, query_params.get("mode"))
+    editions, editions_limit = _fetch_editions(
+        work,
+        requested,
+        provider,
+        selected_id,
+        query_params.get("mode"),
+        provider_pref=provider_pref,
+    )
     availabilities = {e.availability.get("identifier"): e.availability for e in editions}
 
     previews = [e for e in editions if e.get("ocaid")]
 
-    edition, provider = _select_edition(editions, requested, provider, selected_id, page)
+    edition, provider = _select_edition(
+        editions,
+        requested,
+        provider,
+        selected_id,
+        page,
+        provider_pref=provider_pref,
+    )
     _attach_availability(edition, availabilities)
 
     lending_state = lending.get_lending_state(
         edition or work,
         user=user,
         check_loan_status=bool(user),
+        provider_pref=provider_pref,
     )
 
     return BookPageContext(
