@@ -36,8 +36,8 @@ Not every interactive element needs a web component.
 Build and watch with:
 
 ```bash
-npm run watch:lit-components   # Dev mode
-make lit-components            # One-off build
+npm run watch:components    # Dev mode
+make components             # One-off build
 ```
 
 ## Naming
@@ -154,7 +154,7 @@ npm run build-assets:lit-manifest   # one-off — runs `npx cem analyze`
 npm run watch:lit-manifest          # regenerate on change during dev
 ```
 
-`make lit-components` also regenerates the manifest as part of the build. Config lives in `custom-elements-manifest.config.mjs`.
+`make components` also regenerates the manifest as part of the build. Config lives in `custom-elements-manifest.config.mjs`.
 
 ## HTML and Semantics
 
@@ -561,7 +561,7 @@ _onPopoverOpen() {
 1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).
 2. Register the component by adding an export to `openlibrary/components/lit/index.js`.
 3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables. Type any closed set of values as a union, not `{String}` — see [Type the enum, don't describe it](#type-the-enum-dont-describe-it).
-4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) so the API table renders locally; the JSON is gitignored and rebuilt by `make lit-components` in CI/deploy.
+4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) so the API table renders locally; the JSON is gitignored and rebuilt by `make components` in CI/deploy.
 5. Add a demo partial at `openlibrary/templates/design/components/<id>.html.jinja` defining a `{% macro demos() %}` of `ex.example(...)` calls, and register a `Component(...)` row in `COMPONENTS` in `openlibrary/plugins/openlibrary/design.py`. The row drives the sidebar, section order, and the *Avoid* line; the API table renders from the manifest. Nothing on the page is hand-listed — `openlibrary/templates/design.html` is only a shim into `design/layout.html.jinja`, so there is no section markup to add there.
 6. If it renders an anchored overlay panel, promote it to the top layer — see [Overlays and the top layer](#overlays-and-the-top-layer).
-7. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080/developers/design.
+7. Build with `npm run watch:components` and verify the component renders at http://localhost:8080/developers/design.

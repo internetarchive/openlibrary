@@ -57,9 +57,9 @@ $def render_carousel_cover(book, lazy, index):
             src="$(cover_url)"/>
         $else:
           <div class="carousel__item__blankcover"  title="$(title)">
-            <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
+            <div class="carousel__item__blankcover--title">$:render_jinja_template("TruncateString.html.jinja", s=title, n=70)</div>
             $if author_names:
-              <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
+              <div class="carousel__item__blankcover--authors">$:render_jinja_template("TruncateString.html.jinja", s=', '.join(author_names), n=30)</div>
           </div>
       </a>
     </div>
