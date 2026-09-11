@@ -1,0 +1,47 @@
+# Build agent for the Rust solr pipeline (Jenkinsfile.rust).
+# Pinned toolchain + baked Python deps; docker CLI drives the host daemon via
+# the mounted socket (same pattern as the controller Dockerfile).
+#
+# Build:  docker build -f Dockerfile.rust-agent -t openlibrary/solr-rust-agent:latest .
+FROM python:3.14-slim-bookworm
+
+ARG RUST_VERSION=1.98.0
+ARG DOCKER_CLI_VERSION=29.7.2
+
+# build-essential: libduckdb-sys compiles DuckDB C++ at cargo-build time.
+# git: cargo git deps. procps: `pkill` used by stage cleanup guards.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential curl ca-certificates git procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Docker CLI + compose plugin (host daemon via socket mount; no daemon inside)
+ARG DOCKER_CLI_VERSION=29.7.2
+RUN curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_CLI_VERSION}.tgz" \
+        | tar xz --strip-components=1 -C /usr/local/bin docker/docker \
+    && mkdir -p /usr/local/lib/docker/cli-plugins \
+    && curl -fsSL "https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64" \
+        -o /usr/local/lib/docker/cli-plugins/docker-compose \
+    && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose \
+    && docker --version && docker compose version
+
+# Pinned rust toolchain
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION} \
+    && rustc --version && cargo --version
+
+# Python deps for the mvp_* lake/loaders scripts (pinned to versions the
+# pipeline was validated against)
+RUN pip install --no-cache-dir \
+    duckdb==1.5.0 \
+    pyarrow==25.0.1 \
+    httpx==0.28.1 \
+    orjson==3.12.0 \
+    numpy==2.3.1
+
+# Cargo registry + target dir live on a mounted volume so the ~35 min cold
+# libduckdb-sys build happens once per machine, not once per build.
+ENV CARGO_TARGET_DIR=/opt/cargo-cache/target
+VOLUME ["/opt/cargo-cache"]

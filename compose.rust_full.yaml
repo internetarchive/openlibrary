@@ -1,0 +1,31 @@
+# Isolated Solr for the rust_full gold load (14.4M docs).
+# Deliberately separate from the dev `solr` service (port 8983 / solr-data volume).
+# Usage: docker compose -f compose.rust_full.yaml up -d solr_rust_full
+services:
+  solr_rust_full:
+    image: solr:10.0.0
+    ports:
+      - "8985:8983"
+    environment:
+      # Load-tuning (fast_solr_inserts.md): soft commits off, hard commit w/o searcher.
+      # openSearcher=false is hardcoded in solrconfig.xml autoCommit.
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=-1
+        -Dsolr.autoCommit.maxTime=60000
+        -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=rust_full
+      - SOLR_MODULES=analysis-extras
+      # 14.4M-doc ingest needs more than the default 512m/1g heap.
+      # 4g (not 5g): host OOM-killer hit the container at 5g during segment merges.
+      - SOLR_HEAP=4g
+    volumes:
+      # Solr data lives on the big /mnt volume (857G) so segment merges never
+      # fill the 150G root disk. Bind mount; directory prepared and chowned.
+      - /mnt/HC_Volume_106672133/solr_rust_full:/var/solr
+      # Dedicated configset copy with ramBufferSizeMB=512 (dev conf/solr untouched)
+      - ./conf/solr_rust_full:/opt/solr/server/solr/configsets/olconfig:ro
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
