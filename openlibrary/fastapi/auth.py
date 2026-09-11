@@ -182,7 +182,8 @@ async def require_librarian(
         ):
             return {"message": "You have librarian access!"}
     """
-    if not _is_librarian_from_authenticated_user(_):
+    user = get_current_user()
+    if not (user and user.is_librarian_or_higher()):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
