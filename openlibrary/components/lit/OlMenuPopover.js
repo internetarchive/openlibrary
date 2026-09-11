@@ -57,6 +57,12 @@ export class OlMenuPopover extends LitElement {
         :host {
             display: inline-block;
             font-family: var(--font-family-body);
+
+            /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+            --ol-popover-content-max-width: 360px;
+            --ol-popover-content-max-height: min(70vh, 480px);
         }
 
         /* No trigger styles here: the default trigger is an <ol-button>,
@@ -66,8 +72,8 @@ export class OlMenuPopover extends LitElement {
             display: flex;
             flex-direction: column;
             min-width: 200px;
-            max-width: min(90vw, 360px);
-            max-height: min(70vh, 480px);
+            max-width: var(--ol-popover-content-max-width);
+            max-height: var(--ol-popover-content-max-height);
         }
 
         .menu {
@@ -95,9 +101,9 @@ export class OlMenuPopover extends LitElement {
             box-sizing: border-box;
             /* One height across every menu row; a wrapping label grows past it. */
             min-height: var(--menu-row-height);
-            /* Inset from the panel edge so the hover fill reads as a pill
-               rather than a band running edge to edge. The padding gives back
-               what the margin takes, so the label column stays at 16px. */
+            /* The menu-row pill, shared verbatim with OlOptionsPopover and
+               OlSelectPopover: inset from the panel edge so the hover fill reads
+               as a pill, the padding giving back what the margin takes. */
             margin: 0 var(--menu-row-inset);
             padding-block: var(--spacing-inset-xs);
             padding-inline: var(--menu-row-padding-inline);
@@ -127,10 +133,9 @@ export class OlMenuPopover extends LitElement {
             }
         }
 
-        /* No radio on the row to carry the state, so the label carries it —
-           colour only, since a weight change would re-measure the label and
-           shift the row. The fill stays reserved for hover, which then reads
-           the same on the current row as on any other. */
+        /* No radio on the row, so the label carries the state — colour only,
+           since a weight change would re-measure the label and shift the row.
+           The fill stays reserved for hover. */
         .item[aria-checked="true"] {
             color: var(--color-link);
         }

@@ -111,6 +111,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         :host {
             display: inline-block;
             font-family: var(--font-family-body);
+
+            /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+            --ol-popover-content-max-width: 360px;
+            --ol-popover-content-max-height: min(70vh, 480px);
         }
 
         /* The default trigger is an <ol-button> injected as a light-DOM child
@@ -124,8 +130,8 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             flex-direction: column;
             min-width: 240px;
-            max-width: min(90vw, 360px);
-            max-height: min(70vh, 480px);
+            max-width: var(--ol-popover-content-max-width);
+            max-height: var(--ol-popover-content-max-height);
         }
 
         /* ── Filter input ────────────────────────────────────────── */
@@ -224,9 +230,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             box-sizing: border-box;
             /* One height across every menu row. */
             min-height: var(--menu-row-height);
-            /* Inset from the panel edge so the hover fill reads as a pill
-               rather than a band running edge to edge. The padding gives back
-               what the margin takes, so the checkbox column stays at 16px. */
+            /* The menu-row pill; see OlMenuPopover.js for the recipe. */
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-xs);
             padding-inline: var(--menu-row-padding-inline);

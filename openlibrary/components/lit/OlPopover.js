@@ -70,6 +70,12 @@ function _removeFromOverlayStack(el) {
  *
  * @attr aria-label - Forwarded to the inner dialog as its accessible name.
  *
+ * @cssprop [--ol-popover-content-max-width] - Width cap for slotted content; the
+ *     panel is `width: auto` and never shrinks, so long content clamps itself.
+ *     Set it on the wrapping element; the tray clears it for its full-bleed sheet.
+ * @cssprop [--ol-popover-content-max-height] - Height cap for slotted content, so
+ *     an inner scroll region resolves. As above; the tray swaps in its own cap.
+ *
  * @fires ol-popover-open - Fired when the popover opens.
  *     detail: { placement: String }
  * @fires ol-popover-close - Cancelable. Fired when the popover requests to
@@ -108,6 +114,12 @@ export class OlPopover extends LitElement {
             display: inline-flex;
             align-items: center;
             position: relative;
+
+            /* Shared by the tray panel, its handle and the content cap, so the
+               three can't drift. The handle sits above the content, so the
+               content's share is the cap minus the handle. */
+            --_tray-max-height: 85dvh;
+            --_tray-handle-height: 16px;
         }
 
 
@@ -217,7 +229,7 @@ export class OlPopover extends LitElement {
             right: 0;
             width: auto;
             max-height: 85vh;
-            max-height: 85dvh;
+            max-height: var(--_tray-max-height);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             margin: 0 12px calc(12px + env(safe-area-inset-bottom));
@@ -225,6 +237,12 @@ export class OlPopover extends LitElement {
             opacity: 1;
             transform: translateY(100%);
             touch-action: manipulation;
+
+            /* Full-bleed, so the anchored panel's width cap would leave dead
+               space; drop it and hand the content the tray's height cap so its
+               scroll region resolves. Keyed off .tray to track the JS breakpoint. */
+            --ol-popover-content-max-width: none;
+            --ol-popover-content-max-height: calc(var(--_tray-max-height) - var(--_tray-handle-height));
         }
 
         .panel.tray[data-state="preparing"],
@@ -256,6 +274,10 @@ export class OlPopover extends LitElement {
         .tray-handle {
             display: flex;
             justify-content: center;
+            box-sizing: border-box;
+            /* Height declared rather than left to the padding, so it is the
+               number .panel.tray subtracts from the content cap. */
+            height: var(--_tray-handle-height);
             padding: 10px 0 2px;
             cursor: grab;
             touch-action: none;

@@ -1,23 +1,17 @@
 /**
  * Motion
  * ======
- * Durations and easing for transitions and animations. Two tiers, like colors:
- * primitives are named Penner curves; semantic tokens answer the question a
- * component actually has — is something entering, leaving, moving, or changing
- * state? Reach for the semantic token. Add a primitive only when a semantic
- * token will reference it.
- *
- * Hover never transitions color (see docs/ai/design.md, "Animations"). Exits
- * reuse the enter curve at a shorter duration; exit <= enter.
+ * Durations and easing. Two tiers, like colors: primitives are named Penner
+ * curves; semantic tokens name what a component is doing. Reach for the
+ * semantic token; add a primitive only when a semantic token references it.
+ * Hover never transitions color (see docs/ai/design.md, "Animations").
+ * --ease-move and --ease-state have no callers yet — they are vocabulary.
  */
 :root {
   /* Primitives */
   --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-  --ease-in-cubic: cubic-bezier(0.55, 0.055, 0.675, 0.19);
   --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
-  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
 
   /* Semantic easing */
   --ease-enter: var(--ease-out-quint); /* a surface appearing: popover, drawer, toast, banner */

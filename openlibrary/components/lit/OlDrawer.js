@@ -128,11 +128,9 @@ export class OlDrawer extends LitElement {
 
         /* ── Scrim ── */
 
-        /* Same scrim as ol-dialog and the ol-popover tray: the drawer is
-           modal, so it blurs. The blur is what lets the dim stay light — 32%
-           over a page of covers still reads as content; blurred, it doesn't.
-           Declared constant and carried by opacity, never animated as a
-           radius: this layer is viewport-sized and the slide runs --duration-slower. */
+        /* Same scrim as ol-dialog and the ol-popover tray: the drawer is modal,
+           so it blurs. The blur is what lets the dim stay light. Constant and
+           carried by opacity — animating a viewport-sized blur is expensive. */
         .scrim {
             position: absolute;
             inset: 0;

@@ -9,6 +9,13 @@
  */
 
 .header-bar {
+  /* One height for every control in the header row — search field, My Books /
+     Browse, account button — so they line up. Large at every width: touch-friendly
+     on mobile, roomy around the account button's 24px glyphs. */
+  --header-control-height: var(--control-height-large);
+  /* One type size for the row's labels too. A one-off step between the 14px
+     and 16px tokens. */
+  --header-control-font-size: 15px;
   max-width: 1060px;
   min-width: 300px;
   margin: 0 auto;
@@ -53,11 +60,6 @@
   /* stylelint-enable declaration-block-no-duplicate-properties */
 }
 
-.header-bar .auth-component li button,
-.header-bar .auth-component li a {
-  color: var(--color-text);
-}
-
 .header-bar .dropdown-menu {
   text-align: left;
   background-color: var(--light-beige);
@@ -95,24 +97,29 @@
 }
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
 
+/* The merge-count badge is pinned 6px outside the trigger's corner, so the
+   gutter has to clear it: at 4px the badge ran off the header's right edge on
+   a phone, where the header spans the full viewport. */
 .header-bar .hamburger-component {
   -webkit-box-ordinal-group: 5;
   -ms-flex-order: 4;
   order: 4;
-  margin-right: var(--spacing-inline-sm);
+  margin-right: var(--spacing-inline-md);
 }
 
+/* The trigger around it is the ghost surface now, so the glyph carries no
+   padding or radius of its own. */
 .header-bar .hamburger-component .hamburger__icon {
   width: 22px;
   height: 22px;
-  padding: 0 var(--spacing-inset-sm);
-  border-radius: 3px;
-  box-sizing: content-box;
+  flex-shrink: 0;
 }
 
 .header-bar .header-dropdown summary::before {
-  /* For the <details> polyfill used for IE11 */
+  /* For the <details> polyfill used for IE11. display: none keeps it from
+     becoming an empty flex item that picks up the summary's gap. */
   content: "" !important;
+  display: none;
 }
 
 .header-bar .header-dropdown .header-dropdown__icon {
@@ -120,31 +127,48 @@
   height: 40px;
 }
 
+/* Avatar inside the account/menu ghost button. Circular to match the glyph it
+   falls back to; object-fit crops rather than squashes, since archive.org serves
+   portraits and landscapes too. flex-shrink keeps it whole beside the glyph. */
 .header-bar .header-dropdown .account__icon,
 .header-bar .hamburger-component .account__icon {
-  border: 2px solid var(--account-icon-border);
-  border-radius: 4px;
+  border: var(--border-width-thick) solid var(--color-border-muted);
+  border-radius: var(--border-radius-avatar);
   width: 30px;
   height: 30px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
+/* The no-avatar fallback is a glyph, not a framed photo: it matches the avatar's
+   footprint but skips its border. */
+.header-bar .hamburger-component .account__icon-glyph {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+/* Pending-merge count, pinned to the top-right corner of the account/menu
+   ghost button (the trigger is its positioning context). */
 .header-bar .header-dropdown .mr-notifications,
 .header-bar .hamburger-component .mr-notifications {
   position: absolute;
+  top: -6px;
+  right: -6px;
   background: var(--color-primary);
   color: var(--white);
   border-radius: var(--border-radius-notification);
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  padding: 1px var(--spacing-inset-xs);
   font-size: var(--font-size-label-medium);
-  margin-top: var(--spacing-stack-lg);
   font-weight: bold;
 }
 
+/* Chrome reset for controls inside a header dropdown (the drawer's logout
+   button). No `display` or `color`: this outranks the nav items, which need their
+   own inline-flex centering, and the drawer's rows get theirs from above. */
 .header-bar .header-dropdown button,
 .header-bar .header-dropdown a {
-  color: var(--white);
   text-decoration: none;
-  display: block;
   border: 0;
   background: none;
 }
@@ -183,16 +207,16 @@
   pointer-events: none;
   user-select: none;
   width: max-content;
-  padding: 4px 6px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 2px 5px;
+  font-size: 9px;
+  font-weight: 500;
   letter-spacing: 0.025em;
   text-transform: uppercase;
   line-height: var(--line-height-chip);
   border-radius: var(--border-radius-tooltip);
   color: var(--white);
   left: 40px;
-  top: 44px;
+  top: 40px;
   z-index: var(--z-index-level-2);
 }
 
@@ -227,15 +251,17 @@
   -ms-flex-preferred-size: 100%;
   flex-basis: 100%;
   padding: 0;
-  font-size: 1em;
+  font-size: var(--header-control-font-size);
 }
 
-/* stylelint-disable max-nesting-depth, selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+/* No `display` here: the two nav items (My Books, Browse) are `.nav-ghost-btn`s
+   that need the class's own `inline-flex` centering, and this selector outranks
+   it. */
 .header-bar .navigation-component li button,
 .header-bar .navigation-component li a {
   color: var(--color-text);
   text-decoration: none;
-  display: block;
 }
 
 .header-bar .navigation-component li button:visited,
@@ -243,22 +269,7 @@
   color: var(--color-text);
   text-decoration: none;
 }
-
-.header-bar .navigation-component li .dropdown-menu {
-  position: absolute;
-  text-align: left;
-  width: 100%;
-  top: 4px;
-}
-
-.header-bar .navigation-component li .dropdown-menu li a {
-  color: var(--darker-grey);
-}
-
-.header-bar .navigation-component li .navigation-dropdown-component {
-  position: relative;
-}
-/* stylelint-enable max-nesting-depth, selector-max-specificity */
+/* stylelint-enable selector-max-specificity */
 
 .header-bar .search-component {
   -webkit-box-ordinal-group: 3;
@@ -285,41 +296,50 @@
   position: relative;
 }
 
-/* `color` is not optional: the glyph is currentColor, and a <button> doesn't
-   inherit color — iOS Safari resolves the UA's ButtonText to its system blue. */
+/* The avatar (when signed in) and the hamburger glyph share one ghost button:
+   transparent at rest, filled on hover and while the drawer is open. `color` is
+   required — iOS Safari resolves a <button>'s UA ButtonText to system blue. */
 .hamburger-trigger {
+  position: relative;
   display: flex;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  cursor: pointer;
-  background: none;
+  gap: var(--spacing-inline-md);
+  height: var(--header-control-height);
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-sm);
   border: none;
-  padding: 0;
+  border-radius: var(--border-radius-button);
+  background: none;
   color: var(--color-text);
+  cursor: pointer;
+  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  transition: transform var(--duration-press);
+}
+
+.hamburger-trigger:hover,
+.hamburger-trigger:focus-visible {
+  background-color: var(--beige-three);
+}
+
+.hamburger-trigger:active {
+  transform: scale(var(--press-scale));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hamburger-trigger {
+    transition: none;
+  }
+
+  .hamburger-trigger:active {
+    transform: none;
+  }
 }
 
 .navigation-component {
   text-align: center;
   position: relative;
-}
-
-.navigation-component summary::marker {
-  content: "";
-  font-size: 0;
-}
-
-.navigation-component summary::-webkit-details-marker {
-  display: none;
-}
-
-.navigation-component summary {
-  cursor: pointer;
-}
-
-.navigation-component .down-arrow {
-  position: relative;
-  top: -2px;
 }
 
 .logo-component {
@@ -351,12 +371,6 @@
 @media only screen and (min-width: 25em) {
   .header-bar .search-component {
     margin-right: 15px;
-  }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
   }
 }
 
@@ -401,12 +415,6 @@
     -ms-flex-order: 6;
     order: 6;
   }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-  }
 }
 
 @media only screen and (max-width: 960px) /* @width-breakpoint-desktop */ {
@@ -420,7 +428,7 @@
       var(--header-bar-gradient-end)
     );
     padding: var(--spacing-inset-xs) 0;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
+    border-bottom: 1px solid var(--color-border-muted);
     z-index: var(--z-index-level-3);
   }
 
@@ -432,61 +440,57 @@
   .header-bar .search-component {
     height: 44px;
   }
+}
 
-  .header-bar.mobile {
-    padding: var(--spacing-inset-sm) 0;
+/* ── Header nav controls ─────────────────────────────────────
+ * Real <a href>s and a slotted <button>, so they can't be <ol-button>s: an
+ * <ol-button href> renders no anchor until Lit upgrades it. They use
+ * ol-button.css's static twins; below is only the header's own deltas.
+ */
+
+.header-bar .ol-button-static {
+  --ol-button-height: var(--header-control-height);
+  padding: 0 var(--spacing-inset-md);
+  font-size: var(--header-control-font-size);
+  /* <ol-button> declares no weight, so it renders at the page's; a native
+     <button> would otherwise take the UA's. */
+  font-weight: normal;
+}
+
+/* Leading glyphs only echo the label beside them, so they sit on the
+   decorative tier like the browse popover's link icons. */
+.header-bar .ol-button-static__icon {
+  flex: none;
+  color: var(--color-icon-muted);
+}
+
+/* A subtle darken of the canvas the header sits on, in place of the component's
+ * neutral grey. (--beige is a near match for that canvas, so the default would
+ * read as no hover at all.) The open Browse trigger holds the same fill. */
+@media (hover: hover) and (pointer: fine) {
+  .header-bar .ol-button-static--ghost:hover {
+    background-color: var(--beige-three);
   }
 }
 
+.header-bar .ol-button-static--ghost:focus-visible,
+.browse-popover[open] .browse-popover__trigger {
+  background-color: var(--beige-three);
+}
+
 /* ── Browse popover ──────────────────────────────────────────
- * The Browse nav item uses the <ol-popover> web component (rendered by
- * openlibrary/templates/lib/browse_popover.html) instead of a native
- * <details> dropdown. The panel opens with a single column of featured
- * destinations (icon + title + description) above a divider, followed by a
- * list of simple links. ol-popover owns the panel chrome (background, radius,
- * shadow) and the mobile bottom-tray behavior; these rules style the slotted
- * trigger and content.
+ * The Browse nav item is an <ol-popover> (see lib/browse_popover.html), not a
+ * <details> dropdown. ol-popover owns the panel chrome and the mobile tray;
+ * these rules style the slotted trigger and content.
  */
 
 .header-bar .browse-popover {
   display: inline-flex;
 }
 
-.header-bar .navigation-component .browse-popover__trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-  /* Roomier click target; negative inline margin keeps the text aligned with
-   * the sibling nav items rather than pushing them apart. */
-  margin: 0 calc(-1 * var(--spacing-inset-md));
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  border: 0;
-  border-radius: var(--border-radius-md);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  cursor: pointer;
-  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
-  transition: transform var(--duration-press);
-}
-
-/* A subtle darken of the canvas the header sits on. (--beige is a near match
- * for that canvas, so it'd read as no hover at all.) */
-.navigation-component .browse-popover__trigger:hover,
-.navigation-component .browse-popover__trigger:focus-visible,
-.browse-popover[open] .browse-popover__trigger {
-  background-color: var(--beige-three);
-}
-
-/* Tactile press feedback, matching ol-button's press-scale on activation. */
-.navigation-component .browse-popover__trigger:active {
-  transform: scale(var(--press-scale));
-}
-
-/* Stroked chevron matching the web-component popovers (OlSelectPopover etc.).
- * Overrides the generic .down-arrow nudge and rotates when the popover opens. */
+/* Stroked chevron matching the web-component popovers (OlSelectPopover etc.),
+ * rotated when the popover opens. */
 .navigation-component .browse-popover__trigger .down-arrow {
-  top: 0;
   width: 16px;
   height: 16px;
   transition: transform var(--duration-fast) var(--ease-enter);
@@ -497,7 +501,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navigation-component .browse-popover__trigger,
+  .header-bar .nav-ghost-btn,
+  .header-bar .nav-primary-btn,
   .navigation-component .browse-popover__trigger .down-arrow {
     transition: none;
   }
@@ -552,7 +557,7 @@
   height: 36px;
   border-radius: var(--border-radius-md);
   background: var(--light-beige);
-  color: var(--primary-blue);
+  color: var(--blue-400);
 }
 
 /* The hover fill darkens the panel under the tile too, so deepen the tile to
@@ -597,10 +602,7 @@
   margin: 0;
 }
 
-/* `.navigation-component` is in the selector to outrank the blanket
-   `.navigation-component li a { display: block }` above, which would otherwise
-   win on specificity and drop the row out of flex layout.
-   min-height rather than `height`: these rows are the one place in the panel a
+/* min-height rather than `height`: these rows are the one place in the panel a
    label can wrap (the mobile tray narrows to the viewport), so the row grows
    with its text instead of clipping it. */
 .header-bar .navigation-component .browse-popover__link {
@@ -635,22 +637,33 @@
    (background, border, radius), the trigger expands to fill the slot,
    and the label is shown beside the icon — the original wide "Search 🔍"
    bar. `aria-label="Search"` on the button supplies the accessible name
-   in both modes. */
+   in both modes.
+
+   The magnifier is the Lucide `search` sprite glyph (see macros.icon);
+   ol-icon--md supplies its 20px box. */
 .search-bar-trigger {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 44px;
-  min-height: 38px;
+  min-height: var(--header-control-height);
   padding: 0 var(--spacing-inset-sm);
   background: transparent;
   border: 0;
   border-radius: var(--border-radius-input);
-  color: var(--color-text-secondary);
+  /* Match the nav ghost buttons: the row's shared type size, full text color
+     for the label, muted for the glyph, so the whole header row reads as one
+     set of controls. */
+  color: var(--color-text);
   font-family: inherit;
-  font-size: 1em;
+  font-size: var(--header-control-font-size);
+  font-weight: normal;
   cursor: pointer;
+}
+
+.search-bar-trigger .search-bar-trigger__icon {
+  color: var(--color-icon-muted);
 }
 
 /* Hidden on mobile/touch; the desktop file flips this back to `block`
@@ -659,34 +672,27 @@
   display: none;
 }
 
-/* Darker than the trigger's placeholder-grey label, matching the barcode and
-   hamburger icons on either side. */
-.search-bar-trigger__icon {
-  color: var(--color-text);
-}
-
 /* ── Barcode scanner button ──────────────────────────────────────────────
-   Standalone control that sits next to the search pill in the header
-   (not nested inside it). Only surfaced on touch devices since scanning
-   needs a camera. */
+   Sits next to the search pill, not inside it. Touch devices only, since
+   scanning needs a camera. */
 .search-by-barcode {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  min-height: 38px;
+  width: var(--header-control-height);
+  min-height: var(--header-control-height);
   border-radius: var(--border-radius-input);
 }
 
-/* Match the search magnifier and the hamburger. The link states outrank
+/* Match the search magnifier's muted glyph color. The link states outrank
    a:link/:visited/:hover in base/common.css, which would otherwise paint the
    icon link-blue. */
 .search-by-barcode,
 .search-by-barcode:link,
 .search-by-barcode:visited,
 .search-by-barcode:hover {
-  color: var(--color-text);
+  color: var(--color-icon-muted);
 }
 
 .search-by-barcode img {
@@ -707,12 +713,6 @@
 @media (hover: hover) and (pointer: fine) {
   .search-by-barcode {
     display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .search-by-barcode {
-    transition: none;
   }
 }
 
@@ -795,11 +795,9 @@
   border-bottom: none;
 }
 
-/* Column flex rather than a block: it centres a single-line row on the shared
- * menu-row height, and still stacks the one row that carries a subheading.
- * Padding stays under the row height so min-height is what sets it.
- * No pill radius here: rows are divided by hairlines for now, and a rounded
- * hover fill butting against a straight rule looks broken. */
+/* Column flex rather than a block: centres a single-line row on the shared
+ * menu-row height, and still stacks the row that carries a subheading. No pill
+ * radius — a rounded fill butting against the row's hairline looks broken. */
 .drawer-menu__item a,
 .drawer-menu__item a:link,
 .drawer-menu__item a:visited,
@@ -966,5 +964,113 @@
 @media (prefers-reduced-motion: reduce) {
   .drawer-menu .is-target::after {
     animation-duration: 2s;
+  }
+}
+
+/* ── Tablet ──────────────────────────────────────────────────
+ * Was components/header-bar--tablet.css, which legacy.css also hand-inlined.
+ * The copies had drifted (padding-top was 5px there); this is the single copy.
+ */
+@media only screen and (min-width: 768px) /* --width-breakpoint-tablet */ {
+  .header-bar {
+    padding-top: var(--spacing-inset-xs);
+  }
+
+  /* The width and height attributes of logo-icon should be equal to */
+  /* dimensions of /static/images/openlibrary-logo-tighter.svg */
+  .header-bar .logo-component .logo-icon {
+    height: 47px;
+    width: 189px;
+  }
+
+  .header-bar .auth-component .hide-me {
+    display: inline;
+  }
+
+  .header-bar .search-component {
+    -webkit-box-ordinal-group: 4;
+    -ms-flex-order: 3;
+    order: 3;
+  }
+}
+
+/* ── Desktop ─────────────────────────────────────────────────
+ * Was components/header-bar--desktop.css, duplicated the same way (logo
+ * padding-right had drifted to 15px). Stays last so it still outranks the
+ * max-width: 960px block above, as the trailing @import did.
+ */
+@media all and (min-width: 960px) /* --width-breakpoint-desktop */ {
+  .header-bar {
+    margin: var(--spacing-md) auto;
+    padding-top: 0;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+  }
+
+  .header-bar .auth-component {
+    -webkit-box-ordinal-group: 7;
+    -ms-flex-order: 6;
+    order: 6;
+  }
+
+  .header-bar .logo-component {
+    padding-right: var(--spacing-inset-md);
+  }
+
+  .header-bar .navigation-component {
+    display: flex;
+    align-items: center;
+    -webkit-box-ordinal-group: 3;
+    -ms-flex-order: 2;
+    order: 2;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+  }
+
+  /* Restores the wide "Search 🔍" bar: the wrapper gains the faux-input chrome
+     and fills the search-component slot, the trigger stretches inside it, and
+     the label shows. Mobile/touch widths keep the bare icon-only button. */
+  .header-bar .search-component .search-bar-component {
+    width: 100%;
+    /* Height-locked (border included) to the shared header control height so
+       the faux input lines up exactly with the nav and account buttons. */
+    height: var(--header-control-height);
+    box-sizing: border-box;
+    background-color: var(--grey-fafafa);
+    border: 1px solid var(--color-border-muted);
+    border-radius: var(--border-radius-input);
+  }
+
+  .header-bar .search-bar-trigger {
+    flex: 1;
+    min-width: 0;
+    /* The wrapper above owns the height now; let the trigger stretch to fill
+       the space inside its border instead of forcing the mobile minimum. */
+    min-height: 0;
+    justify-content: space-between;
+    gap: var(--spacing-inline-sm);
+    padding: 0 var(--spacing-inset-md);
+  }
+
+  .header-bar .search-bar-trigger__label {
+    display: block;
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-bar .hamburger-component {
+    -webkit-box-ordinal-group: 5;
+    -ms-flex-order: 6;
+    order: 6;
+  }
+
+  .header-bar.mobile {
+    display: none;
   }
 }

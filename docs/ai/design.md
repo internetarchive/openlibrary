@@ -223,7 +223,7 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | File | Contents |
 |---|---|
 | `static/css/tokens/colors.css` | Color primitives, semantic color tokens, deprecated legacy aliases |
-| `static/css/tokens/spacing.css` | Spacing scale |
+| `static/css/tokens/spacing.css` | Spacing scale (inset / inline / stack) |
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
 | `static/css/tokens/typography.css` | All text tokens: family, size, weight, and line-height primitives, then the text-style roles (`heading`, `subheading`, `overline`) one token per property; apply a role's tokens together |
 | `static/css/tokens/motion.css` | Easing primitives and semantic motion tokens (`--ease-enter`, `--duration-base`, …) |
@@ -452,7 +452,7 @@ Every transition and animation gets a `prefers-reduced-motion: reduce` override 
 | --- | --- |
 | Icon next to a button label | Put the SVG in `ol-button`'s `icon-start` / `icon-end` slot — it's sized to the button (14/16/18px by size) and gapped automatically; don't set width/height/margin on the SVG or add a `::part(label)` gap |
 | Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
-| Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)` |
+| Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)`; time it with `--duration-base` and `--ease-enter` |
 | Sequential tooltips feel slow | Skip delay/animation after first tooltip |
 | Hover triggers on mobile | Use `@media (hover: hover) and (pointer: fine)` — see [Mobile](#mobile) |
 

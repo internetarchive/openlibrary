@@ -68,6 +68,12 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         :host {
             display: inline-block;
             font-family: var(--font-family-body);
+
+            /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+            --ol-popover-content-max-width: 400px;
+            --ol-popover-content-max-height: min(70vh, 480px);
         }
 
         /* The default trigger is a light-DOM <ol-button> (see
@@ -82,8 +88,8 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             flex-direction: column;
             min-width: 280px;
-            max-width: min(90vw, 400px);
-            max-height: min(70vh, 480px);
+            max-width: var(--ol-popover-content-max-width);
+            max-height: var(--ol-popover-content-max-height);
         }
 
         .group {
@@ -117,9 +123,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             /* One height across every menu row; a described or wrapping row
                grows past it. */
             min-height: var(--menu-row-height);
-            /* Inset from the panel edge so the hover fill reads as a pill
-               rather than a band running edge to edge. The padding gives back
-               what the margin takes, so the radio column stays at 16px. */
+            /* The menu-row pill; see OlMenuPopover.js for the recipe. */
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-xs);
             padding-inline: var(--menu-row-padding-inline);

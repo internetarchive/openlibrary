@@ -18,10 +18,11 @@
  * the element isn't interactive before upgrade, and keeping this sheet small
  * keeps it easy to hold in step with the recipe in OLButton.js.
  *
- * The one exception is `.ol-button-static` at the foot of the file: the same
- * look on plain markup that can't be an <ol-button> at all. It joins the
- * resting-look selector lists so the two can't drift, and carries its own
- * interactive states — it never upgrades, so nothing in shadow DOM covers it.
+ * The exception is `.ol-button-static` at the foot of the file: the same look on
+ * markup that can't be an <ol-button> — chiefly an <a href> that must navigate
+ * with JS blocked, where <ol-button href> renders no anchor until it upgrades.
+ * It and its `--ghost` / `--primary` modifiers join the selector lists above, so
+ * they can't drift, and carry their own interactive states.
  */
 
 ol-button:not(:defined),
@@ -105,7 +106,8 @@ ol-button[elevation="floating"]:not(:defined) {
 }
 
 /* Variants */
-ol-button[variant="primary"]:not(:defined) {
+ol-button[variant="primary"]:not(:defined),
+.ol-button-static--primary {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--white);
@@ -121,7 +123,8 @@ ol-button[variant="destructive"]:not(:defined) {
   --control-highlight-strength: 18%;
 }
 
-ol-button[variant="ghost"]:not(:defined) {
+ol-button[variant="ghost"]:not(:defined),
+.ol-button-static--ghost {
   background-color: transparent;
   border-color: transparent;
   box-shadow: none;
@@ -146,19 +149,43 @@ a.ol-button-static:visited {
   text-decoration: none;
 }
 
+/* The one filled static variant keeps its own ink: the link rule above ties it
+   on specificity, so without this an <a> Sign Up would take the page's text
+   color on a blue fill. */
+a.ol-button-static--primary:link,
+a.ol-button-static--primary:visited {
+  color: var(--white);
+}
+
 .ol-button-static {
   transition: transform var(--duration-press);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  /* Hover changes the fill, so --control-surface moves with it — otherwise the
-     specular highlight stays toned to the resting color. The border drops in
-     step with the fill (both ~7% in lightness) so the whole button reads as
-     one shape rather than the fill darkening inside a static outline. */
-  .ol-button-static:hover {
+  /* The secondary look only, mirroring OLButton.js's per-variant hover; the
+     modifiers below carry their own. --control-surface moves with the fill, and
+     the border drops in step with it, so the button reads as one shape. */
+  .ol-button-static:not(
+      .ol-button-static--ghost,
+      .ol-button-static--primary
+    ):hover {
     background-color: var(--color-control-hover);
     border-color: var(--color-border-muted);
     --control-surface: var(--color-control-hover);
+  }
+}
+
+/* Ghost and primary carry their own hover, mirroring OLButton.js. brightness()
+   moves the primary's fill, border and specular edge together. Both must stay
+   after the secondary hover above, which they tie on specificity. */
+@media (hover: hover) and (pointer: fine) {
+  .ol-button-static--ghost:hover {
+    background-color: var(--color-control-hover);
+    border-color: transparent;
+  }
+
+  .ol-button-static--primary:hover {
+    filter: brightness(1.1);
   }
 }
 
