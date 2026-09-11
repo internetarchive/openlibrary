@@ -1,6 +1,4 @@
-/* Search Inside band at the foot of /search (macros/FulltextSearchSuggestion.html).
-   The rows are the /search/inside result items under the page's section
-   label; the footer button carries the band's one call to action. */
+/* Search Inside band at the foot of /search (macros/FulltextSearchSuggestion.html). */
 .fulltext-suggestions {
   margin: var(--spacing-stack-lg) 0;
 }
@@ -25,8 +23,7 @@
   margin-top: var(--spacing-stack-sm);
 }
 
-/* Nothing new to preview (every hit is already on the page): label and
-   button share one row. */
+/* Nothing new to preview: label and button share one row. */
 .fulltext-suggestions--compact {
   display: flex;
   align-items: center;
@@ -39,7 +36,7 @@
   margin-bottom: 0;
 }
 
-/* Fetch-failure message with its retry link (fulltext-search-suggestion.js). */
+/* Injected by fulltext-search-suggestion.js when the fetch fails. */
 .fulltext-suggestions__retry {
   display: block;
   padding: var(--spacing-inset-xs);

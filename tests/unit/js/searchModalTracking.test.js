@@ -27,8 +27,6 @@ describe('SearchModal result-click tracking', () => {
         expect(modal._navigatingKey).toBe('/works/OL1W');
     });
 
-    // A new-tab open is still the patron choosing that row, so it counts as a
-    // click — it just leaves this page (and so the spinner) alone.
     test.each(['metaKey', 'ctrlKey', 'shiftKey', 'altKey'])(
         '%s-click still tracks and saves, but shows no loading treatment',
         (modifier) => {
@@ -148,8 +146,7 @@ describe('SearchModal fulltext see-all label', () => {
         expect(modal._track).toHaveBeenCalledWith('FulltextSeeAll', 'hasResults:passage');
     });
 
-    // An outage and an honest empty result both leave _results empty; only the
-    // flag tells them apart, and the outage is the one worth seeing.
+    // An outage and an empty result both leave _results empty; only the flag differs.
     test('a catalog outage outranks the passage shape', () => {
         const modal = modalWith({ results: [], query: PASSAGE, failed: true });
 
@@ -213,9 +210,6 @@ describe('SearchModal outcome events', () => {
         expect(modal._track).toHaveBeenCalledWith('ResultsShown', 'availability+language');
     });
 
-    // The regression that forced per-action timers: a band outcome landing
-    // inside the catalog outcome's window used to cancel it, deleting the
-    // denominator of the very ratio these events exist to compute.
     test('a band outcome does not cancel the catalog outcome beside it', () => {
         const modal = settled();
         modal._visibleFtHits = () => [{}, {}];
@@ -319,10 +313,8 @@ describe('FulltextBand attempt reporting', () => {
     });
 });
 
-// The bias these exist to remove: an outcome scheduled on the idle window used
-// to die with the page when the patron acted before the window elapsed, so the
-// fastest searches — which skew toward good catalog answers — never reached the
-// denominator that every rate is computed against.
+// A fast exit must settle pending outcomes, or the quickest searches (often good
+// catalog answers) never reach the denominator.
 describe('SearchModal outcome flushing', () => {
     const KEY = '/search.json?q=dune';
 
@@ -399,8 +391,6 @@ describe('SearchModal outcome flushing', () => {
         expect(modal._track).toHaveBeenCalledTimes(2);
     });
 
-    // A flush still only reports the query that is actually current — an exit
-    // taken while a superseded search was pending must not resurrect it.
     test('flushing does not settle an outcome whose query moved on', () => {
         const modal = pending();
         modal._activeFetchKey = '/search.json?q=dune+messiah';

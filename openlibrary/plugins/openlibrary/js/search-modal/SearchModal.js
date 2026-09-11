@@ -82,9 +82,7 @@ const RESULTS_LIMIT     = 10;
 // autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
 const MIN_QUERY_LENGTH  = 3;
 const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
-// How long a query must stand unchanged before its outcome is counted. Long
-// enough that partial strings typed on the way to it don't each register as a
-// search of their own.
+// Idle time before a query's outcome counts, so partials typed on the way don't.
 const OUTCOME_DEBOUNCE_MS = 1200;
 
 // The bare common-word "the" matches almost everything and isn't worth a Solr
@@ -92,12 +90,7 @@ const OUTCOME_DEBOUNCE_MS = 1200;
 // to /search is still allowed for it (handled by the length-only gates).
 const AUTOCOMPLETE_STOPWORDS = new Set(['the']);
 
-// Counts in the narrow footer labels, where an exact six- or seven-digit total
-// pushes the two buttons past a small phone. Intl does the rounding *and* the
-// suffix per locale ("135K", "1.23M", "13万"), which a hand-rolled "k" wouldn't.
-// Three significant digits keeps four-digit counts honest ("1.2K", not "1K") and
-// caps the rest at five characters. Only the narrow forms use it: the wide ones
-// have room to stay exact, and the accessible name is always the wide form.
+// Narrow footer labels only; Intl localizes the suffix ("135K", "13万").
 const compactCount = n => new Intl.NumberFormat(undefined, { notation: 'compact', maximumSignificantDigits: 3 }).format(n);
 
 // A drag the trigger should accept: it carries plain text (a text selection
@@ -386,14 +379,8 @@ export class SearchModal extends LitElement {
             text-transform: uppercase;
         }
 
-        /* A heading that starts a new section mid-list (e.g. "Search inside
-           books" after the top results) gets clear air separating it from
-           the rows above. */
         .results-list + .results-heading { margin-top: var(--spacing-lg); }
 
-        /* Heading with a leading glyph (the "Search inside books" band): the
-           icon flags that these rows are a different kind of match — text
-           from inside the scans, not catalogue records. */
         .results-heading--icon {
             display: flex;
             align-items: center;
@@ -570,11 +557,7 @@ export class SearchModal extends LitElement {
 
         /* ── "Search inside books" band ────────────────────────────── */
 
-        /* The band is a card of its own, inset from the full-bleed rows above
-           it: these are matches from inside the scans, and the frame says so
-           before the heading does. Everything the band owns lives in the card
-           — heading, snippet rows, and the see-all that leads to the full
-           /search/inside surface. */
+        /* Inset card: sets matches from inside the scans apart from catalog rows. */
         .ft-band {
             margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
             border: var(--border-card);
@@ -583,18 +566,12 @@ export class SearchModal extends LitElement {
             overflow: hidden;
         }
 
-        /* Inside the card the heading is a titled bar: the card's top border
-           gives it the separation the standalone heading needed margin for.
-           The band's rules match the card's own border rather than the list
-           hairline above, which is a shade off this fill and barely
-           registers on it. */
+        /* Rules match the card border; the list hairline barely shows on this fill. */
         .ft-band .results-heading {
             padding: var(--spacing-sm) var(--spacing-md);
             border-bottom: 1px solid var(--color-border-subtle);
         }
 
-        /* Rows sit inset to the card, and the first leans on the heading's
-           rule rather than drawing a second line under it. */
         .ft-band .result {
             padding-left: var(--spacing-md);
             padding-right: var(--spacing-md);
@@ -603,19 +580,13 @@ export class SearchModal extends LitElement {
         .ft-band .results-list li { border-top-color: var(--color-border-subtle); }
         .ft-band .results-list li:first-child { border-top: none; }
 
-        /* The card's own footer, holding the see-all under the rows it
-           summarises. */
         .ft-band__footer {
             padding: var(--spacing-sm) var(--spacing-md);
             border-top: 1px solid var(--color-border-subtle);
         }
 
-        /* Snippet passage from inside the book, marked by a rule down its left
-           edge — the quotation convention, and the same treatment .fsi-quote
-           carries on /search and /search/inside. Not boxed: the band is
-           already a card, and cards nested in it read as chrome around the one
-           thing — the passage — the patron came to the band for. The bar is
-           inert here; the row is the link, so hover belongs to the row. */
+        /* Left rule marks the passage, as .fsi-quote does. Not boxed: the band
+           is already a card. */
         .ft-quote {
             display: block;
             margin-top: var(--spacing-2xs);
@@ -628,8 +599,7 @@ export class SearchModal extends LitElement {
             overflow-wrap: anywhere;
         }
 
-        /* These titles are long ones (scanned volumes carry their subtitles),
-           so let them wrap to a second line before clamping. */
+        /* Scanned titles carry their subtitles, so allow two lines. */
         .ft-result .result__title {
             display: -webkit-box;
             -webkit-box-orient: vertical;
@@ -637,9 +607,7 @@ export class SearchModal extends LitElement {
             white-space: normal;
         }
 
-        /* Clamp the passage so a long OCR run can't balloon the row. Three
-           lines at full row width is already more text than the four the
-           half-width column held. */
+        /* So a long OCR run can't balloon the row. */
         .ft-quote__text {
             display: -webkit-box;
             -webkit-box-orient: vertical;
@@ -647,11 +615,8 @@ export class SearchModal extends LitElement {
             overflow: hidden;
         }
 
-        /* Match treatment follows the /search/inside quote cards (.fsi-quote
-           strong) — amber highlight, medium weight — one step up the ramp:
-           those sit on white, these on the band's tinted fill, where amber-50
-           all but disappears. The padding bleeds outward so the box doesn't
-           push the punctuation after it. */
+        /* One step up from .fsi-quote's amber-50, which vanishes on this fill.
+           The padding bleeds out so it doesn't shift the punctuation. */
         .ft-quote mark {
             background-color: var(--amber-100);
             color: inherit;
@@ -834,10 +799,7 @@ export class SearchModal extends LitElement {
         /* The primary "See N books" holds the right edge. */
         .footer ol-button:last-child { margin-left: auto; }
 
-        /* Two-tier button labels: both forms are slotted and one is hidden by
-           width (see _responsiveLabel). The buttons carry the wide form as an
-           explicit aria-label, so which span is showing never changes what a
-           screen reader announces. */
+        /* Width picks a label form; aria-label keeps the wide one. */
         .footer .label-narrow { display: none; }
 
         /* ── Mobile overrides ──────────────────────────────────────── */
@@ -887,10 +849,7 @@ export class SearchModal extends LitElement {
         // Same, for the band's "Search Inside N books" button.
         this._ftSeeAllLoading = false;
         this._hasSearched  = false;
-        // Whether the last search ended in a transport/HTTP error rather than
-        // an honest empty result. Both leave _results empty, but only one is a
-        // catalog gap — the fulltext see-all label reports them apart. Not
-        // reactive: nothing renders from it, it's read at click time.
+        // A failed fetch, not an empty result. Non-reactive: read at click time.
         this._searchFailed = false;
         this._langsLoading = false;
         this._navigatingKey = null;
@@ -940,9 +899,7 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
 
-        // "Search inside books" band. When it fetches is FulltextBand's call —
-        // the modal reports what happened (query changed, Solr settled, Solr
-        // failed) and mirrors the result into reactive state.
+        // FulltextBand decides when to fetch; the modal mirrors its result.
         this._ftHits  = [];
         this._ftTotal = null;
         this._ftSearchKey = null;
@@ -961,15 +918,9 @@ export class SearchModal extends LitElement {
         // are already right for this query, so re-opening the dropper is free.
         this._facetKey       = null;
         this._activeFacetKey = null;
-        // Search-outcome analytics (ResultsShown / NoResults / SearchFailed /
-        // FulltextBand): keys already counted this modal session, so re-settling
-        // the same query — a filter toggled off and back, an edit-and-undo —
-        // never re-fires. Reset per open. One pending entry *per action*: the
-        // band resolves on its own schedule, and a shared handle would let its
-        // outcome cancel the catalog outcome it's supposed to sit beside —
-        // silently deleting the denominator of the very ratio these measure.
-        // Each entry keeps its own `fire` so an exit can settle it early
-        // (see _flushOutcomes) instead of losing it to the page unload.
+        // Search-outcome analytics: keys already counted this modal session, so
+        // re-settling the same query never re-fires. Reset per open. One timer
+        // per action, so the band's outcome can't cancel the catalog's.
         this._outcomeTracked = new Set();
         this._outcomeTimers  = new Map();
     }
@@ -1299,10 +1250,7 @@ export class SearchModal extends LitElement {
         }
 
         if (this._results.length === 0 && this._hasSearched) {
-            // The fulltext band doubles as a no-results rescue: nothing in the
-            // catalog matched, but the query may still appear inside books.
-            // When the band has hits, scope the empty message to the catalog —
-            // "No results found" above visible results would contradict itself.
+            // The band doubles as a no-results rescue; with hits, scope the message to the catalog.
             const emptyLabel = this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
             return html`<div class="results" @keydown=${this._onResultsKeydown}>
                 <div class="empty">${emptyLabel}</div>
@@ -1325,20 +1273,12 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // The band rows actually shown: the fetched pool minus any hit whose scan
-    // is already a catalog row above (mirroring /search's `exclude` dedupe),
-    // trimmed to FULLTEXT_LIMIT. Computed at render time because the Solr and
-    // fulltext fetches race — whichever lands last, the next render dedupes
-    // against the final pairing.
+    // Hits minus scans already listed above. Computed at render since the two fetches race.
     _visibleFtHits() {
         return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
     }
 
-    // The "Search inside books" band: Search Inside snippet matches rendered
-    // after the metadata results (and as the no-results rescue). Hidden
-    // entirely until a fulltext response with hits lands — no spinner, no
-    // empty state: a secondary surface earns its space only when it has
-    // something to show.
+    // Hidden until hits land: no spinner or empty state for a secondary surface.
     _renderFulltextBand() {
         const hits = this._visibleFtHits();
         if (hits.length === 0) return nothing;
@@ -1356,21 +1296,8 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // The band's see-all, in the card's own footer under the snippet rows it
-    // summarises. Present whenever the band is: /search/inside is a bigger
-    // surface (more context per hit, its own filters, a shareable URL), so the
-    // door is worth offering even when the rows above cover the whole result
-    // set.
-    //
-    // The *count* is what has to earn its place. It shows only when it's both
-    // current (see _ftTotalIsCurrent) and larger than the rows already on
-    // screen: "Search Inside 23,783 books". Otherwise the button falls back to
-    // a plain "Search Inside" — the link is still honest, only the number
-    // isn't in hand. The visible text is the accessible name too (no
-    // aria-label): it's already a full sentence, and a name that differs from
-    // the label breaks voice control's "click Search Inside". The button owns
-    // a row of the card at every width, so unlike the footer primary it never
-    // needs a narrow form.
+    // The count shows only when current and larger than the rows shown. No
+    // aria-label: the visible text is the name, so voice control can say it.
     _renderFulltextSeeAll() {
         const shown = this._visibleFtHits().length;
         if (shown === 0) return nothing;
@@ -1387,28 +1314,17 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // Whether _ftTotal was measured for the search this button links to. The
-    // band's hits deliberately linger across an edit (no per-keystroke flicker)
-    // but the total is a claim about one query and one set of filters, so an
-    // edit or a filter toggle must drop the count rather than pair an old
-    // number with a link to the new search.
+    // Hits linger across edits, but the total belongs to one query + filters.
     _ftTotalIsCurrent() {
         if (typeof this._ftTotal !== 'number') return false;
         return this._ftSearchKey === fulltextSearchParams(this._query.trim(), this._fulltextFilters()).toString();
     }
 
-    // The band button's label, e.g. "Search Inside 134 books".
     _seeAllInsideLabel() {
         return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
     }
 
-    // One snippet row: cover, then title / author / year stacked exactly like
-    // a book row, with the quote (match marked) as a card in the trailing
-    // column. The whole row opens BookReader with the query (?q=) — its own
-    // in-book search finds and highlights the passage (the same link the
-    // /search/inside page uses). The query is phrase-quoted like the FTS
-    // request that produced the hit, so BookReader searches for the passage
-    // rather than each word.
+    // Opens BookReader with the phrase-quoted query; its in-book search finds the passage.
     _renderFulltextHit(hit, q, index = 0) {
         const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
         const segments = parseSnippet(hit.snippet);
@@ -1680,9 +1596,7 @@ export class SearchModal extends LitElement {
             </li>`;
     }
 
-    // The footer's primary: the way through to /search. Its label is the wide
-    // form of _seeAllLabels, which is also its accessible name — the narrow
-    // form only swaps what's on screen (see _responsiveLabel).
+    // aria-label keeps the wide form; the narrow one only swaps what's on screen.
     _renderSeeAll() {
         const { wide, narrow } = this._seeAllLabels();
         return html`
@@ -1699,11 +1613,7 @@ export class SearchModal extends LitElement {
     // The footer button shows the actual hit count once a search lands
     // (e.g. "See all 1,234 books"); the bare "See results" label is
     // used before any results are in (initial open, query under MIN_QUERY_LENGTH,
-    // or fetch error). A search that settled on zero hits instead gets a
-    // destination label ("Go to full search") — the button still usefully leads
-    // to /search, but "See results" would promise results that aren't there.
-    // Only the there's-more case has a distinct narrow form; the rest are short
-    // enough to sit beside the fulltext see-all as they are.
+    // or fetch error). Zero hits gets "Go to full search" instead.
     _seeAllLabels() {
         const n = this._numFound;
         if (this._hasSearched && n === 0) return { wide: this._i18n.seeNone, narrow: this._i18n.seeNone };
@@ -1722,10 +1632,7 @@ export class SearchModal extends LitElement {
         return { wide: label, narrow: label };
     }
 
-    // A footer label in both its forms: CSS shows one and hides the other by
-    // viewport width (.label-wide / .label-narrow). Both are rendered rather
-    // than picked in JS so the swap follows a media query, not a stale match
-    // captured at render time.
+    // Render both forms so a media query, not a render-time match, picks one.
     _responsiveLabel(wide, narrow) {
         return html`<span class="label-wide">${wide}</span><span class="label-narrow">${narrow}</span>`;
     }
@@ -1743,15 +1650,8 @@ export class SearchModal extends LitElement {
         this._outcomeTimers.clear();
     }
 
-    // Settle every pending outcome now, rather than waiting out the idle window.
-    // Called from the modal's exits — a result press, either see-all, closing the
-    // dialog. The window exists to answer "has the patron settled on this query?"
-    // and those actions answer it directly: acting on results is stronger
-    // evidence of a settled query than 1.2s of silence, and waiting for silence
-    // that a page unload will interrupt just loses the event. Without this the
-    // fastest searches — the ones a patron resolves in under a second, which
-    // skew toward good catalog answers — drop out of the denominator entirely
-    // and every rate computed from these events reads wrong.
+    // Settle pending outcomes at the modal's exits: acting on results proves the
+    // query settled, and waiting out the idle window would lose it to unload.
     _flushOutcomes() {
         const pending = [...this._outcomeTimers.values()];
         this._outcomeTimers.clear();
@@ -1761,10 +1661,8 @@ export class SearchModal extends LitElement {
         }
     }
 
-    // Which filter categories were active, as the outcome events report it —
-    // never the filter values or the query text; that catalog-gap detail belongs
-    // in the server search logs. It lets a genuine catalog gap (`unfiltered`)
-    // read apart from an over-constrained search.
+    // Active filter categories — never values or query text — so a catalog gap
+    // (`unfiltered`) reads apart from an over-constrained search.
     _filterLabel() {
         const active = [];
         if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
@@ -1772,25 +1670,10 @@ export class SearchModal extends LitElement {
         return active.length ? active.join('+') : 'unfiltered';
     }
 
-    // Fire a search-outcome event — `ResultsShown`, `NoResults`, `SearchFailed`
-    // or `FulltextBand` — only for a query the patron has settled on. Deferring
-    // behind a short idle window (and re-checking _activeFetchKey when it fires)
-    // drops the transient states a query passes through while being typed: each
-    // keystroke starts a fresh fetch that supersedes this key, so only the query
-    // left standing counts (rather than every partial string on the way to it).
-    // The per-session Set collapses repeat settles of the same key — a filter
-    // toggled off and back, an edit-and-undo — to one event.
-    //
-    // Every action shares one fetchKey namespace, so the three catalog outcomes
-    // partition the searches this modal settled and FulltextBand counts a subset
-    // of the same denominator:
-    //
-    //   fulltext reach = FulltextBand(shown:*)
-    //                  / (ResultsShown + NoResults + SearchFailed)
-    //
-    // `buildLabel` runs at *fire* time, not schedule time — the catalog and
-    // fulltext fetches race, and some labels can only be read once both have
-    // landed.
+    // Fire a search-outcome event only for a query the patron settled on: the
+    // idle window and _activeFetchKey check drop partials, and the per-session
+    // Set collapses repeat settles. `buildLabel` runs at fire time since the
+    // catalog and fulltext fetches race.
     _scheduleOutcomeTrack(action, fetchKey, buildLabel) {
         if (!fetchKey) return;
         const fire = () => {
@@ -1806,17 +1689,8 @@ export class SearchModal extends LitElement {
         this._outcomeTimers.set(action, { id: setTimeout(fire, OUTCOME_DEBOUNCE_MS), fire });
     }
 
-    // The band ran for this search. Recorded against the *catalog* fetch key
-    // rather than the band's own URL: fulltextSearchParams collapses
-    // availability to a flag and keeps only the first language, so two distinct
-    // searches can share one band URL — and a reach ratio is only meaningful if
-    // its numerator counts the same unit as its denominator.
-    //
-    // The label is deliberately built at fire time. `shown` has to mean rows the
-    // patron could actually see, which is _visibleFtHits (the fetched pool minus
-    // hits deduped against the catalog rows, trimmed to FULLTEXT_LIMIT) — and
-    // that is only knowable once the racing catalog fetch has landed too. A pool
-    // of nine hits can still render an empty band.
+    // Keyed on the catalog fetch so the band counts the same unit as the catalog
+    // outcomes. `shown` is rows visible after dedupe, known only at fire time.
     _scheduleBandOutcome(status) {
         this._scheduleOutcomeTrack('FulltextBand', this._activeFetchKey, () => {
             if (status === 'failed') return 'failed';
@@ -1832,11 +1706,7 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
-        // Settle rather than drop: closing on a search that already returned is
-        // an abandonment, and a patron who bails on an empty result the instant
-        // they see it is the clearest NoResults there is. Dropping these would
-        // leave fast abandonment out of the denominator while fast successes
-        // (flushed at the exits above) stayed in, tilting every rate.
+        // Settle rather than drop: closing on a returned search is an abandonment worth counting.
         this._flushOutcomes();
         // Drop any in-flight spinner so a search interrupted by closing the
         // modal doesn't show a stale "Searching…" on reopen. The next keystroke
@@ -1853,18 +1723,12 @@ export class SearchModal extends LitElement {
     // leave them untreated.
     _onResultPress(e, key, meta) {
         if (e.defaultPrevented) return;
-        // Settle the search's own outcome before the click event, so a search
-        // resolved faster than the idle window still lands in the denominator
-        // the click will be measured against.
+        // Settle the search's outcome before the click it's measured against.
         this._flushOutcomes();
-        // Track which row was chosen by type + 1-based rank (e.g. "work:3",
-        // "author:1", "rank:2") — never the title. A modified click (new
-        // tab/window) is still the patron picking that row, so it counts here
-        // and saves the query, exactly like the see-all buttons.
+        // Track the row by type + 1-based rank (e.g. "work:3") — never the title.
+        // Modified clicks count too; only the loading treatment below skips them.
         if (meta) this._track(meta.event, meta.label);
         this._saveCurrentSearch();
-        // Only an unmodified primary click navigates *this* window, so the
-        // loading treatment stops here.
         if (e.button !== 0) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         this._navigatingKey = key;
@@ -1962,11 +1826,8 @@ export class SearchModal extends LitElement {
     // Screen-reader announcement for the live region: the result count once a
     // search lands, "no results" when a search came back empty, and nothing
     // while idle/typing/loading (so the region stays quiet until there's news).
-    // The "Search inside books" band is appended as a second sentence whenever
-    // it has rows on screen. It lands on its own schedule, after the catalog
-    // settles, and the region is aria-atomic — so the whole text re-announces
-    // and a patron who heard "No matching books or authors" then hears that
-    // three matches turned up inside books. Sighted users see the band appear.
+    // Band rows add a second sentence; the region is aria-atomic, so a late band
+    // re-announces the whole text.
     _resultsAnnouncement() {
         if (!this._shouldAutocomplete()) return '';
         const catalog = this._catalogAnnouncement();
@@ -1986,9 +1847,7 @@ export class SearchModal extends LitElement {
         return sprintf(this._i18n.resultsAnnounce, shown.toLocaleString(), total.toLocaleString());
     }
 
-    // The band half: how many snippet rows are on screen, e.g. "3 matches
-    // found inside books". Counts the rows the patron can reach, not the
-    // backend total — that number lives on the see-all button.
+    // Rows on screen, not the backend total (that's on the see-all).
     _bandAnnouncement() {
         const shown = this._visibleFtHits().length;
         if (shown === 0) return '';
@@ -2047,19 +1906,8 @@ export class SearchModal extends LitElement {
         window.location.assign(url);
     }
 
-    // Label a fulltext see-all click with the state it was made from, so the
-    // event says *why* the patron left for /search/inside rather than only
-    // that they did. Two axes, joined as "<catalog>:<reason>":
-    //
-    //   catalog — hasResults / noResults, mirroring SeeAllResults. The band
-    //     renders over a weak-but-non-empty catalog answer as well as an empty
-    //     one, so this is a real split, not a constant.
-    //   reason  — why the band was on screen at all: a deliberate passage-shaped
-    //     query (the patron came looking for a passage), a weak catalog answer
-    //     (the band as rescue), or a catalog outage. An outage wins the label
-    //     even for a passage query: it is the anomaly worth seeing.
-    //
-    // Six combinations at most, so the label stays a usable Matomo dimension.
+    // "<catalog>:<reason>" — whether results showed, and why the band did: a
+    // passage query, a weak catalog answer, or an outage (which wins).
     _fulltextSeeAllLabel() {
         const catalog = this._results.length ? 'hasResults' : 'noResults';
         let reason;
@@ -2069,10 +1917,7 @@ export class SearchModal extends LitElement {
         return `${catalog}:${reason}`;
     }
 
-    // The fulltext see-all is a native link (href on the ol-button), so a plain
-    // click navigates the whole window. Flag it so its spinner shows during the
-    // navigation delay; modified clicks (new tab/window) leave this page in
-    // place, so they stay untreated — mirrors _onResultPress.
+    // Mirrors _onResultPress: tracked always, spinner only for a plain click.
     _onFulltextSeeAll(e) {
         if (e.defaultPrevented) return;
         this._flushOutcomes();
@@ -2139,10 +1984,7 @@ export class SearchModal extends LitElement {
                     clearReadableCount: this._availability === 'readable',
                 });
                 this._ftBand.solrFailed(trimmed);
-                // An outage used to log nothing at all — neither ResultsShown
-                // nor NoResults — quietly dropping failed searches out of every
-                // rate computed from those two. Scheduled *after* _resetResults,
-                // which cancels pending outcome timers.
+                // After _resetResults, which cancels pending outcome timers.
                 this._scheduleOutcomeTrack('SearchFailed', fetchKey);
             });
     }
@@ -2233,17 +2075,13 @@ export class SearchModal extends LitElement {
         }
     }
 
-    // Every path that starts a search goes through here, so the metadata
-    // request and the fulltext band can't drift apart — the band's own gating
-    // (passage-shaped now, or after a weak Solr answer) lives in FulltextBand.
+    // Single entry point so the catalog fetch and the band can't drift apart.
     _scheduleSearch() {
         this._debouncedFetch();
         this._ftBand.queryChanged(this._query);
     }
 
-    // The modal's filter state, as the fulltext surfaces express it. Any
-    // non-default availability maps to a single readable flag — the FTS index's
-    // collections can't split open vs borrowable more finely.
+    // One readable flag: the FTS collections can't split open vs borrowable.
     _fulltextFilters() {
         return {
             readable: this._availability !== DEFAULT_AVAILABILITY,

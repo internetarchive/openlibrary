@@ -253,9 +253,6 @@ async def search_inside_json(
         Query(description="Filter by language — a MARC code (e.g. fre) or language name. The FTS backend takes one language; extra values are ignored."),
     ] = None,
 ):
-    # facets=True is the historical default; lightweight callers (e.g. the
-    # header search modal's snippet band) pass facets=false to skip the
-    # aggregations work upstream.
     resolved = resolve_language(language)
     return await fulltext_search_async(
         q,
@@ -264,12 +261,8 @@ async def search_inside_json(
         limit=pagination.limit,
         js=True,
         facets=facets,
-        # Readability filters the fetched hits, not the query: a readable
-        # clause in `q` would switch the FTS endpoint to its Lucene parser,
-        # which ignores olonly=true and searches all of archive.org.
         readable=readable,
-        # The name, not the MARC code — resolve_language also narrows a
-        # multi-language request to the one the backend's `lang` param takes.
+        # FTS takes the language name, not the MARC code.
         language=resolved[1] if resolved else None,
     )
 

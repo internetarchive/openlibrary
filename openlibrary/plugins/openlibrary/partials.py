@@ -425,11 +425,8 @@ class FullTextSuggestionsPartial:
 
     @classmethod
     async def generate_async(cls, query: str, exclude: Iterable[str] = ()) -> FullTextSuggestionsPartialResult:
-        # The macro renders at most 3 suggestions; fetch just a few spare hits
-        # to cover ones excluded (already on the page) or with no matching OL
-        # edition. Every fetched hit costs availability + Infobase hydration,
-        # so the old default of 100 hydrated ~96 hits per render that were
-        # never shown.
+        # The macro shows at most 3; a few spares cover excluded or unhydrated hits.
+        # Every fetched hit costs availability + Infobase hydration.
         data = await fulltext_search_async(query, limit=10)
         rows, total = fulltext_page(data)
         rows = exclude_ocaids(rows, exclude)

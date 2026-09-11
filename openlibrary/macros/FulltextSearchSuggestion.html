@@ -1,9 +1,6 @@
 $def with(query, rows, total)
 
-$# Search Inside band at the foot of /search: a taste of what the query finds
-$# inside scanned books, pointing at /search/inside for the rest. Rows are the
-$# /search/inside result items (macros/FulltextResults.html) minus their
-$# lending/list controls, so the band's one button is the see-all.
+$# Search Inside preview band at the foot of /search.
 $ shown = rows[:3]
 
 $def render_snippets(query, row):
@@ -13,15 +10,11 @@ $def render_snippets(query, row):
 
 $ num_found = commify(total)
 $ see_all_url = "/search/inside?%s" % urlencode(dict(q=query))
-$# Same label as the modal's band button (SearchModal._renderFulltextSeeAll).
-$# The visible text doubles as the accessible name — no aria-label — so what a
-$# voice-control user reads is what they can say.
+$# No aria-label: the visible text is the accessible name, so voice-control users can say it.
 $ see_all_label = ungettext('Search Inside %(count)s book', 'Search Inside %(count)s books', total, count=num_found)
 
 $if not shown and total:
-  $# Every fetched hit is a book the page already lists (see `exclude` in
-  $# templates/work_search.html), so there's nothing new to preview — just
-  $# the way through to the full results.
+  $# Every hit is already listed on the page (see `exclude`), so just link through.
   <section class="fulltext-suggestions fulltext-suggestions--compact" aria-labelledby="fulltext-suggestions-heading">
     <h2 id="fulltext-suggestions-heading" class="search-results-section-label fulltext-suggestions__header">
       $:macros.icon("text-search", size="sm")

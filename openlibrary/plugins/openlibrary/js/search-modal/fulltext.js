@@ -1,19 +1,13 @@
-/**
- * Helpers for the search modal's "Search inside books" band — parsing the
- * IA fulltext API's snippet markup and hit fields into renderable data.
- * Kept free of Lit/DOM so they're unit-testable.
- */
+/** Pure helpers for the search modal's Search Inside band, kept DOM-free for unit tests. */
 
-/** Word count at/above which an unquoted query reads as a passage, not a title. */
+/** Word count at which an unquoted query reads as a passage, not a title. */
 export const PASSAGE_WORD_COUNT = 5;
 
-/** How many top Solr docs are checked for query-term overlap in solrLooksWeak. */
+/** Top Solr docs checked by solrLooksWeak. */
 export const WEAK_SCAN_LIMIT = 3;
 
-// Words too common to count as a real title/author overlap on their own.
-// Interrogatives are here because questions rely on this check for their
-// rescue: "how do birds navigate?" overlapping a "How to..." title is not
-// evidence the question was answered.
+// Too common to count as title/author overlap. Interrogatives are included so
+// "how do birds navigate?" isn't "answered" by a "How to..." title.
 const OVERLAP_STOPWORDS = new Set([
     'the', 'and', 'for', 'with', 'from', 'was', 'are', 'not', 'but',
     'his', 'her', 'its', 'this', 'that', 'you', 'all',
@@ -21,13 +15,11 @@ const OVERLAP_STOPWORDS = new Set([
 ]);
 
 /**
- * Mirror of phrase_query in core/fulltext.py: the query BookReader's in-book
- * search receives, as one straight-quoted phrase. Bare words match anywhere
- * in the book, and the FTS backend mishandles stray or curly quotes, so
- * quotes are stripped and the whole query re-wrapped.
+ * Mirror of phrase_query in core/fulltext.py: one straight-quoted phrase so
+ * BookReader finds the passage, not each word. Stray/curly quotes break FTS.
  *
  * @param {string} query
- * @returns {string} the quoted phrase, or '' when nothing is left
+ * @returns {string} '' when nothing is left
  */
 export function phraseQuery(query) {
     const words = (query || '').replace(/[\u201c\u201d\u201e\u201f]/g, '"').replace(/"/g, ' ').split(/\s+/).filter(Boolean);
@@ -40,11 +32,8 @@ function fold(s) {
 }
 
 /**
- * True when the query reads like a passage rather than a title/author lookup —
- * a quoted phrase (straight or curly quotes), or PASSAGE_WORD_COUNT+ words —
- * words remembered from inside a book. A question mark is deliberately not a
- * signal: short interrogatives are usually titles ("Where's Waldo?"), and a
- * real question Solr answers badly is already caught by solrLooksWeak.
+ * True for a quoted phrase or PASSAGE_WORD_COUNT+ words. A "?" isn't a signal:
+ * short questions are usually titles ("Where's Waldo?").
  *
  * @param {string} query
  * @returns {boolean}
@@ -57,21 +46,9 @@ export function isPassageQuery(query) {
 }
 
 /**
- * True when the Solr response looks like it didn't really answer the query —
- * no docs at all, or none of the top WEAK_SCAN_LIMIT docs share a meaningful
- * word with the query. Each doc is judged by what the modal would render for
- * it: title, subtitle, the promoted edition's title (a language-matched query
- * like "kammer" hits the German edition, not the work's English title), and
- * authors.
- *
- * Overlap is a word-boundary prefix in either direction — "gats" matches
- * "Gatsby" mid-typing, and "hobbits" matches "The Hobbit" — but both sides
- * must be meaningful words (3+ letters, no stopwords), so "art" doesn't match
- * "Bartleby" and a misspelling like "hobit" still finds no overlap and
- * correctly reads as weak.
- *
- * Queries with no meaningful words (all short/stopwords) can't be judged and
- * are treated as answered.
+ * True when none of the top docs share a meaningful word with the query. Words
+ * match by prefix either way ("gats"→"Gatsby", "hobbits"→"Hobbit") but must be
+ * 3+ letters, so "art" misses "Bartleby" and a typo like "hobit" reads as weak.
  *
  * @param {Array<{title?: string, subtitle?: string, author_name?: string[],
  *   editions?: {docs?: Array<{title?: string}>}}>} docs
@@ -94,14 +71,11 @@ export function solrLooksWeak(docs, query) {
 }
 
 /**
- * Split an IA fulltext snippet into segments. The API wraps each query match
- * in {{{ }}} markers; returning segments (rather than an HTML string) lets the
- * caller render matched text in a real <mark> element without ever putting
- * API-controlled text through innerHTML.
+ * Split an IA snippet on its {{{match}}} markers, so matches render in <mark>
+ * without API text ever going through innerHTML.
  *
- * @param {string} snippet - raw snippet text with {{{match}}} markers
- * @returns {Array<{text: string, match: boolean}>} ordered segments; empty
- *   for a missing/empty snippet
+ * @param {string} snippet
+ * @returns {Array<{text: string, match: boolean}>}
  */
 export function parseSnippet(snippet) {
     if (typeof snippet !== 'string' || snippet === '') return [];
@@ -111,8 +85,7 @@ export function parseSnippet(snippet) {
     for (const chunk of chunks.slice(1)) {
         const end = chunk.indexOf('}}}');
         if (end === -1) {
-            // Unbalanced marker (truncated snippet) — keep the text as a
-            // match rather than dropping it.
+            // Unbalanced marker (truncated snippet): keep the text.
             if (chunk) segments.push({ text: chunk, match: true });
         } else {
             const matched = chunk.slice(0, end);
@@ -125,22 +98,13 @@ export function parseSnippet(snippet) {
 }
 
 /**
- * Normalize one fulltext API hit into the fields the band renders. Prefers
- * the hydrated OL edition (attached server-side when a matching OL record
- * exists for the scan) and falls back to the scan's own metadata fields, so
- * a hit without an OL edition still renders instead of being dropped. (With
- * a language filter active such hits are already dropped server-side.)
+ * Normalize a fulltext hit for the band, falling back from the hydrated OL
+ * edition to the scan's own metadata so hits without an OL record still render.
+ * Year always comes from meta_year; hydrated editions carry none.
  *
- * The author comes from the edition when there is one, else from the scan's
- * `meta_creator` (IA's own catalogue field, present on nearly every hit). The
- * year is always the scan's `meta_year` — the hydrated edition carries none.
- * The cover falls back to the scan's own, the same IA cover URLs the book
- * rows use, so a hit without an OL record still shows its cover.
- *
- * @param {Object} hit - one entry of the /search/inside.json hits.hits array
+ * @param {Object} hit - one /search/inside.json hits.hits entry
  * @returns {{ia: string, title: string, author: string, year: string,
- *   snippet: string, coverUrl: string, coverSrcset: string}|null} null when
- *   the hit has no scan identifier or no snippet to show
+ *   snippet: string, coverUrl: string, coverSrcset: string}|null} null without an identifier or snippet
  */
 export function fulltextHitDisplay(hit) {
     const fields = (hit && hit.fields) || {};
@@ -161,22 +125,16 @@ export function fulltextHitDisplay(hit) {
     return { ia, title, author, year, snippet, coverUrl, coverSrcset };
 }
 
-/**
- * Author names from a scan's `meta_creator`. Each value is usually one name,
- * catalogue-style ("Tyler, Denise"), but multi-author scans sometimes pack
- * every name into one value separated by bare commas ("A Ganci,B Crespo,…").
- * A comma with no space after it is a separator; "Last, First" keeps its
- * space and stays whole. IA also leaves MARC relator terms on some names
- * ("Eyre, Richard M., author"); that trailing role is dropped. Capped at
- * three names like the /search/inside page.
- *
- * @param {string[]|string|undefined} metaCreator
- * @returns {string} comma-joined names, or '' when there are none
- */
-/** Trailing MARC relator term IA sometimes leaves on a creator name
- *  (", author", ", editor.", ", joint author", ", ed."). */
+/** Trailing MARC relator term on some IA creator names (", author", ", ed."). */
 const CREATOR_ROLE_SUFFIX = /(?:,\s*(?:joint\s+)?(?:author|editor|illustrator|translator|compiler|contributor|photographer|narrator|ed|comp|tr|ill)\.?)+$/i;
 
+/**
+ * Up to three author names from a scan's `meta_creator`. A comma with no space
+ * separates packed names ("A Ganci,B Crespo"); "Last, First" stays whole.
+ *
+ * @param {string[]|string|undefined} metaCreator
+ * @returns {string}
+ */
 export function creatorsFromMeta(metaCreator) {
     const values = Array.isArray(metaCreator) ? metaCreator : (metaCreator ? [metaCreator] : []);
     return values
@@ -188,14 +146,12 @@ export function creatorsFromMeta(metaCreator) {
 }
 
 /**
- * Drop band hits whose scan is already among the modal's catalog rows — the
- * same dedupe /search applies via `exclude_ocaids` (core/fulltext.py), so a
- * top result isn't immediately repeated as a snippet row. A work is "listed"
- * under every ocaid in its `ia` field plus its promoted editions' `ia`.
+ * Drop hits whose scan is already a catalog row in the modal, by work or
+ * promoted-edition `ia` (mirrors `exclude_ocaids` in core/fulltext.py).
  *
- * @param {{ia: string}[]} hits - display hits from fulltextHitDisplay
- * @param {Object[]} docs - /search.json work docs (the modal's SEARCH_FIELDS shape)
- * @returns {{ia: string}[]} the hits not already listed, original order kept
+ * @param {{ia: string}[]} hits
+ * @param {Object[]} docs - /search.json work docs
+ * @returns {{ia: string}[]}
  */
 export function dedupeFulltextHits(hits, docs) {
     const listed = new Set();

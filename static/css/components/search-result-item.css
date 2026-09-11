@@ -103,8 +103,6 @@
   overflow-wrap: break-word;
 }
 
-/* Publish year on its own line under the author (title / author / year,
-   as in the search modal). */
 .searchResultItem .bookyear {
   display: block;
   color: var(--color-text-muted);
@@ -385,9 +383,7 @@
     text-align: right;
   }
 
-  /* /search/inside: with no facets sidebar, flex gives the cover column the
-     full 175px basis. Cap it at the footprint the covers actually get on
-     /search's list view, where the sidebar shrinks the column to ~105px. */
+  /* /search/inside has no facets sidebar; cap the cover at the ~105px it gets on /search. */
   .search-results-container .searchResultItem .bookcover {
     width: 105px;
     flex-shrink: 0;
@@ -399,12 +395,8 @@
     max-height: 170px;
   }
 
-  /* Fulltext rows: the quoted passages (.serp-extra) sit in a full-width row
-     under the details and CTA columns, with the cover spanning beside it.
-     The rows are sized auto/1fr rather than left to the grid: a cover taller
-     than the text beside it would otherwise have its excess split between
-     both rows, opening a gap between the details and the passages that
-     belong right under them. */
+  /* Passages (.serp-extra) span a row under details/CTA. auto/1fr rows keep a
+     tall cover's extra height from opening a gap between details and passages. */
   .list-books--fulltext .searchResultItem .sri__main {
     display: grid;
     grid-template:
@@ -431,8 +423,7 @@
   }
 }
 
-/* Align the quote cards with the details text; on mobile (stacked flex
-   column, centered) the row still needs its full width. */
+/* Full width even in mobile's centered flex column. */
 .list-books--fulltext .serp-extra {
   width: 100%;
   box-sizing: border-box;

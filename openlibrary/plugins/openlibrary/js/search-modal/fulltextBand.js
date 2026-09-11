@@ -1,40 +1,24 @@
 /**
- * State and fetching for the search modal's "Search inside books" band.
- *
- * Search Inside is a rescue-and-passages surface, not an every-query one, and
- * the 2020 rollback of always-on fulltext was a load story — so the decision of
- * *whether* to call the backend lives here rather than scattered across the
- * modal's input handlers. The modal tells this controller what happened
- * (`queryChanged`, `solrSettled`, `solrFailed`) and gets `{hits, total,
- * searchKey}` back through `onChange`; it never decides for itself when to
- * fetch. The published hits are an overfetched pool: the modal dedupes them
- * against its catalog rows and trims to FULLTEXT_LIMIT at render time.
- *
- * The gating heuristics themselves (isPassageQuery, solrLooksWeak) are pure
- * functions in ./fulltext.js.
+ * Decides when the search modal's band queries Search Inside, and holds its
+ * state. Fetches are gated to passages and Solr rescues: always-on fulltext
+ * was rolled back in 2020 over backend load.
  */
 
 import { debounce } from '../nonjquery_utils.js';
 import { fulltextHitDisplay, isPassageQuery, solrLooksWeak } from './fulltext.js';
 
-/** Snippet rows in the band. Small on purpose: every fulltext hit costs
- *  availability + edition hydration server-side, and the band is a teaser
- *  pointing at /search/inside, not a result list. */
+/** Small because each hit costs server-side hydration; the band is a teaser. */
 export const FULLTEXT_LIMIT = 3;
 
-/** Hits fetched beyond FULLTEXT_LIMIT. Two consumers need the headroom: the
- *  server drops unreadable hits when the readable filter is on, and the modal
- *  drops hits that duplicate a catalog row (dedupeFulltextHits) — either way
- *  the band would thin out to a row or two without spares. */
+/** Spare hits, since readable filtering and catalog dedupe both drop some. */
 const OVERFETCH = 3;
 
-/** Passage-shaped queries fetch on their own timer — slower than the metadata
- *  debounce, because this is a secondary surface on an external backend. */
+/** Slower than the metadata debounce: a secondary surface on an external backend. */
 const PASSAGE_DEBOUNCE_MS = 800;
 
 /**
- * Build the /search/inside query string for a query + the modal's filters.
- * Shared by the fetch and the band's "see more" link so they can't drift.
+ * /search/inside params for a query + filters, shared by the fetch and the
+ * "see all" link so they can't drift.
  *
  * @param {string} query
  * @param {{readable: boolean, languages: string[]}} filters
@@ -42,13 +26,9 @@ const PASSAGE_DEBOUNCE_MS = 800;
  */
 export function fulltextSearchParams(query, filters) {
     const params = new URLSearchParams({ q: query });
-    // Any non-default availability maps to readable=true — the FTS index's
-    // collections can't split open vs borrowable more finely.
+    // FTS can't split open vs borrowable, so any availability filter maps here.
     if (filters.readable) params.set('readable', 'true');
-    // MARC codes; the server maps them onto languageSorter. Only the first
-    // survives: the FTS backend's `lang` param takes one language and the
-    // handler drops the rest, so sending more would leave the band — and the
-    // "see all" URL — claiming a filter that was never applied.
+    // The FTS backend takes one language; sending more would misreport the filter.
     if (filters.languages.length) params.append('language', filters.languages[0]);
     return params;
 }
@@ -58,10 +38,8 @@ export class FulltextBand {
      * @param {object} options
      * @param {() => {readable: boolean, languages: string[]}} options.getFilters
      * @param {(state: {hits: object[], total: number|null, searchKey: string|null}) => void} options.onChange
-     * @param {(status: 'resolved'|'failed') => void} [options.onAttempt] - called
-     *   once per fetch that wasn't superseded. Lets the modal count how often the
-     *   band was *asked* for, not just how often it had something to show — the
-     *   two differ, and only the pair gives the band's own hit rate.
+     * @param {(status: 'resolved'|'failed') => void} [options.onAttempt] - once per
+     *   non-superseded fetch, so the modal can measure the band's hit rate.
      */
     constructor({ getFilters, onChange, onAttempt }) {
         this._getFilters = getFilters;
@@ -70,34 +48,24 @@ export class FulltextBand {
         this._fetchKey = null;
         this.hits = [];
         this.total = null;
-        // The /search/inside params these hits were measured for — the modal's
-        // proof that a total still describes what its "see all" link points at.
+        // Params these hits were fetched for, so the modal can tell a total
+        // still matches its "see all" link.
         this.searchKey = null;
-        // The passage test runs at fire time, on the query the timer settled
-        // on — a timer scheduled under an older query can't fetch for the
-        // edited one.
+        // Tested at fire time, so an edit that stops being a passage cancels the fetch.
         this._debouncedPassageFetch = debounce((query) => {
             if (isPassageQuery(query)) this._fetch(query);
         }, PASSAGE_DEBOUNCE_MS, false);
     }
 
-    /**
-     * The query changed. A passage-shaped query fetches on the debounce; every
-     * other query waits for Solr and comes back through solrSettled, so a clean
-     * title lookup issues no fulltext request at all.
-     *
-     * Any in-flight response is invalidated first: without that, a band fetched
-     * for the previous query can land during the debounce window and paint
-     * under the edited one.
-     */
+    /** Passage queries fetch on the debounce; others wait for solrSettled. Also
+     *  invalidates any in-flight fetch so a stale band can't paint. */
     queryChanged(query) {
         this._fetchKey = null;
         this._debouncedPassageFetch(query);
     }
 
-    /** Solr answered. A weak answer promotes the band to a rescue; a strong one
-     *  clears it, so a good title match isn't trailed by a stale band. Passage
-     *  queries are already fetching on their own timer — leave them alone. */
+    /** A weak Solr answer fetches as a rescue; a strong one clears the band.
+     *  Passage queries already fetch on their own timer. */
     solrSettled(query, docs) {
         if (isPassageQuery(query)) return;
         if (solrLooksWeak(docs, query)) {
@@ -107,8 +75,7 @@ export class FulltextBand {
         }
     }
 
-    /** Solr itself failed — the fulltext band is the only rescue left, and it
-     *  runs on a separate backend. */
+    /** Fulltext runs on a separate backend, so it can still rescue a Solr failure. */
     solrFailed(query) {
         this._fetch(query);
     }
@@ -119,9 +86,7 @@ export class FulltextBand {
         this._set([], null, null);
     }
 
-    /** Publish new band state, skipping the notify when nothing actually
-     *  changed — clear() runs on most keystrokes and would otherwise churn a
-     *  re-render per stroke. */
+    /** Skips no-op notifies; clear() runs on most keystrokes. */
     _set(hits, total, searchKey) {
         if (this.hits.length === 0 && hits.length === 0 && this.total === total) return;
         this.hits = hits;
@@ -136,8 +101,7 @@ export class FulltextBand {
 
         const filters = this._getFilters();
         const params = fulltextSearchParams(trimmed, filters);
-        // Captured before the fetch-only params go on: this is the /search/inside
-        // query string the results about to land describe.
+        // Captured before the fetch-only params below.
         const searchKey = params.toString();
         params.set('facets', 'false');
         params.set('limit', String(FULLTEXT_LIMIT * OVERFETCH));
@@ -157,8 +121,7 @@ export class FulltextBand {
                 );
                 this._onAttempt('resolved');
             })
-            // Silent: the band simply doesn't render. It's a secondary
-            // discovery surface, not the primary result list.
+            // Silent: the band is secondary, so it just doesn't render.
             .catch(() => {
                 if (this._fetchKey !== url) return;
                 this.clear();

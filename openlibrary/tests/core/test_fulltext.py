@@ -63,11 +63,6 @@ class Test_fulltext_search_api:
 
     @pytest.mark.asyncio
     async def test_duplicate_ocaids_all_hydrate(self, httpx_mock, monkeypatch):
-        """Two hits sharing an ocaid must both get the edition attached.
-
-        The old ocaids.index() matching found only the first occurrence, so the
-        second hit got no edition and was silently dropped by the templates.
-        """
         url = "http://mock"
         monkeypatch.setattr(config, "plugin_inside", {"search_endpoint": url}, raising=False)
         httpx_mock.add_response(
@@ -101,13 +96,6 @@ class Test_fulltext_search_api:
 
 
 class Test_phrase_query:
-    """Every query reaches the FTS backend as one straight-quoted phrase.
-
-    The rules were measured against the backend: curly quotes aren't
-    delimiters, an unbalanced quote degrades to bare words, an inner quote
-    splits the phrase, and backslash escaping is inert.
-    """
-
     @pytest.mark.parametrize(
         ("raw", "expected"),
         [
@@ -191,8 +179,7 @@ class Test_phrase_query:
 
 @pytest.mark.usefixtures("request_context_fixture")
 class Test_is_passage_query:
-    """Mirrors isPassageQuery() in search-modal/fulltext.js: a quoted phrase
-    or a PASSAGE_WORD_COUNT+ word query reads as a passage, not a title."""
+    """Mirrors isPassageQuery() in search-modal/fulltext.js."""
 
     @pytest.mark.parametrize(
         ("query", "expected"),
@@ -221,9 +208,7 @@ class Test_is_passage_query:
 class Test_fulltext_search_async_phrasing:
     @pytest.fixture(autouse=True)
     def _req_context(self):
-        # fulltext_search_api reads req_context (x-preferred-client-id header);
-        # outside a request the ContextVar is deliberately unset — see
-        # create_context_for_script's docstring.
+        # fulltext_search_api reads req_context, which is unset outside a request.
         token = request_context.req_context.set(request_context.create_context_for_script())
         yield
         request_context.req_context.reset(token)

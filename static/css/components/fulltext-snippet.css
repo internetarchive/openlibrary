@@ -1,9 +1,5 @@
-/* Search Inside quoted passages (/search/inside, macros/FulltextSnippet.html).
-   Each passage is a link into BookReader, marked by a rule down its left edge —
-   the quotation convention — rather than boxed as a card: the rows already sit
-   on their own tinted surface, and a card inside a card frames the passage
-   instead of showing it. Stacked full width so a passage gets the whole
-   measure rather than half of it, matching the search modal's band. */
+/* Search Inside quoted passages (macros/FulltextSnippet.html). A left rule rather
+   than a card, since the rows already sit on a tinted surface. */
 .fsi-quotes {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -25,8 +21,6 @@
   overflow-wrap: anywhere;
 }
 
-/* No card left to fill, so the rule carries the hover: the passage under the
-   pointer is the one whose bar darkens. */
 .fsi-quote:hover {
   border-left-color: var(--color-border);
 }
@@ -37,11 +31,8 @@
   border-left-color: var(--color-border);
 }
 
-/* The matched terms. A highlight rather than bold: at small serif sizes bold
-   alone barely registers against surrounding OCR text. One step up the amber
-   ramp from the white cards these used to sit in — on the row's tinted
-   surface amber-50 all but disappears. Padding bleeds outward so the
-   highlight box breathes without pushing the punctuation after it. */
+/* Matched terms: a highlight, since bold barely registers in small serif text.
+   The negative margin keeps the padding from pushing adjacent punctuation. */
 .fsi-quote strong {
   font-weight: 500;
   background-color: var(--amber-100);

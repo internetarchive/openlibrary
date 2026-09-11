@@ -18,8 +18,6 @@ describe('selectionFor', () => {
     });
 
     test('keeps only the language just picked on a single-select surface', () => {
-        // /search/inside: the FTS `lang` param takes one value, so a second
-        // pick replaces the first rather than adding to it.
         expect(selectionFor(SINGLE, ['fre', 'ger'], 'ger')).toEqual(['ger']);
     });
 
@@ -28,7 +26,6 @@ describe('selectionFor', () => {
     });
 
     test('truncates a seeded selection from a hand-edited URL', () => {
-        // No `added` here — this is init reading ?language=fre&language=ger.
         expect(selectionFor(SINGLE, ['fre', 'ger'])).toEqual(['fre']);
     });
 
@@ -55,9 +52,7 @@ describe('sticky filter round-trip', () => {
 
     describe('syncSessionStorageFromUrl', () => {
         test('/search/inside keeps an availability its URL cannot express', () => {
-            // The regression this guards: readable=true is the only availability
-            // /search/inside can write, so reading it back as 'readable' would
-            // broaden a "Free to read now" pick the patron never touched.
+            // readable=true is all /search/inside can write; don't broaden 'open' to it.
             store('open', []);
             syncSessionStorageFromUrl(INSIDE, q('q=dracula&readable=true'));
             expect(storedAvailability()).toBe('open');
@@ -136,8 +131,7 @@ describe('sticky filter round-trip', () => {
 
     test('a pass through /search/inside leaves the /search filters intact', () => {
         store('open', ['eng', 'fre']);
-        // Both init steps, in the order a page load runs them: sticky filters
-        // rewrite the bare URL, then that URL is mirrored back to storage.
+        // Page-load order: sticky filters rewrite the URL, then it's mirrored back.
         syncSessionStorageFromUrl(INSIDE, stickyFilterParams(INSIDE, q('q=dracula')));
         expect(storedAvailability()).toBe('open');
         expect(storedLanguages()).toEqual(['eng', 'fre']);

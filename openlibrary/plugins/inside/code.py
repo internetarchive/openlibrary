@@ -13,13 +13,8 @@ RESULTS_PER_PAGE = 20
 
 
 def empty_reason(query: str, rows: list, total: int, filtered: bool) -> str | None:
-    """Why this page has nothing to show, or None when it has rows.
-
-    `total` counts matches the page never rendered — ones the readable filter
-    dropped, or ones past the end of the result set — so an empty page always
-    needs a reason of its own. Deciding here rather than in the template is what
-    keeps the cases exhaustive: a count sitting above an empty list with no
-    explanation is the failure mode.
+    """Why the page is empty, or None when it has rows.
+    `total` counts hits the page never rendered, so an empty page always needs a reason.
 
     >>> empty_reason("dune", [], 0, filtered=False)
     'no_matches'
@@ -47,15 +42,10 @@ class search_inside(delegate.page):
         query = i.q
         page = int(i.page)
         readable = i.readable == "true"
-        # (code, name): the FTS query takes the name, generated URLs keep the
-        # code so the filter popover and the search modal can read the selection
-        # back. resolve_language is also where a multi-language request is
-        # narrowed to the one the backend can apply.
+        # (code, name): FTS takes the name; generated URLs keep the code.
         language = resolve_language(i.language)
 
-        # Readability filters the fetched hits rather than the query: a readable
-        # clause in `q` would flip the FTS endpoint to its Lucene parser, which
-        # ignores olonly=true and searches all of archive.org.
+        # Readable filters fetched hits, not `q` (see the `lang` note in fulltext_search_async).
         results = (
             async_bridge.run(
                 fulltext_search_async(

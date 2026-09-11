@@ -1,11 +1,10 @@
 /**
- * Wires the availability toggle + language filter popover on the search
- * results surfaces: /search (work_search.html) and /search/inside
- * (search/inside.html), each with its own URL-param dialect (see SURFACES).
- * The controls render empty from the template; this module seeds them with
- * the current selection, navigates to an updated URL on the same page when a
- * filter changes, and keeps the cross-page sticky-filter state in
- * sessionStorage so the header search modal and the page filters stay in sync.
+ * Wires the availability toggle + language filter popover on /search and
+ * /search/inside (each with its own URL-param dialect; see SURFACES). They
+ * render empty from the template; this module seeds them with the current
+ * selection, navigates to an updated URL when a filter changes, and keeps the
+ * cross-page sticky-filter state in sessionStorage so the header search modal
+ * and the page filters stay in sync.
  *
  * Persistence model — URL is the source of truth on these pages:
  *
@@ -13,8 +12,7 @@
  *    `language`), sessionStorage is mirrored from the URL. This way the modal
  *    will reflect a filter change made via the toggle, the language popover, or
  *    the sidebar language facet (which navigates the page with a new `language=`
- *    param) the next time it opens. A surface only overwrites what it could
- *    have written itself — see syncSessionStorageFromUrl.
+ *    param) the next time it opens.
  *
  *  - On init, if the URL carries NO filter params and sessionStorage has a
  *    non-default value, we replace-navigate to /search with those sticky
@@ -51,13 +49,8 @@ const AVAILABILITY_PARAM_KEYS = [
     ...new Set(Object.values(AVAILABILITY_TO_PARAMS).flatMap(Object.keys)),
 ];
 
-// Per-surface param dialects for the shared filter row. /search speaks Solr
-// (has_fulltext/public_scan…); /search/inside speaks the FTS endpoint's single
-// readable=true param — its collections can't split open vs borrowable, so any
-// non-default stored availability maps to the broad readable filter there.
-// facetCounts marks the surfaces whose results actually come from Solr:
-// /search/facets.json counts Solr matches, which would misdescribe the FTS
-// result set on /search/inside.
+// Per-surface URL param dialects. The FTS backend behind /search/inside has one
+// readable=true filter (no open vs borrowable split) and no Solr facet counts.
 export const SURFACES = {
     '/search': {
         readAvailability: (params) => availabilityFromParams((name) => params.get(name)),
@@ -72,10 +65,8 @@ export const SURFACES = {
         availabilityParams: (value) =>
             value === DEFAULT_AVAILABILITY ? {} : { readable: 'true' },
         facetCounts: false,
-        // The FTS backend's `lang` param takes one language: `lang=a,b` returns
-        // nothing and a repeated param keeps only the first. So the popover
-        // behaves as a radio group here rather than offering a multi-select we
-        // can't honor. Drop this flag if `lang` learns to OR.
+        // FTS `lang` takes one language (`lang=a,b` returns nothing), so the
+        // popover acts as a radio group here.
         singleLanguage: true,
     },
 };
@@ -125,10 +116,8 @@ function urlHasAnyFilterParam(surface, params) {
 }
 
 /**
- * Whether two availability values are indistinguishable in this surface's URL.
- * /search/inside collapses open/borrowable/readable onto one readable=true, so
- * comparing the params rather than the values is what tells an actual filter
- * change apart from that surface reading back its own narrowed output.
+ * Whether two availability values produce the same URL params on this surface
+ * (/search/inside collapses open/borrowable/readable onto readable=true).
  *
  * @param {object} surface - entry from SURFACES
  * @param {string} a
@@ -147,11 +136,8 @@ function sameAvailabilityOnSurface(surface, a, b) {
  * with the same selection next time. Both keys are written on every load, so
  * removing a filter via the popovers/sidebar clears the stored value too.
  *
- * Each key is only overwritten when the URL says something the stored value
- * could not have produced *here*: /search/inside can express neither a
- * specific availability nor a second language, and taking its own output at
- * face value would narrow a selection made on /search that the patron never
- * touched. Anything the surface could not have written is a real change.
+ * A stored value survives when the URL is just this surface's narrowed form of
+ * it, so /search/inside doesn't clobber a selection made on /search.
  */
 export function syncSessionStorageFromUrl(surface, params) {
     const storedAvail = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
@@ -167,9 +153,8 @@ export function syncSessionStorageFromUrl(surface, params) {
 }
 
 /**
- * The query string this page should carry once the session's sticky filters
- * are applied, or null when there's nothing to apply — the URL already owns a
- * filter param, or nothing non-default is stored.
+ * The query string with the session's sticky filters applied, or null when the
+ * URL already has a filter param or nothing non-default is stored.
  *
  * @param {object} surface - entry from SURFACES
  * @param {URLSearchParams} params - the current query string
@@ -187,9 +172,7 @@ export function stickyFilterParams(surface, params) {
     const next = new URLSearchParams(params);
     const mapped = surface.availabilityParams(storedAvail);
     Object.entries(mapped).forEach(([key, value]) => next.set(key, value));
-    // Narrowed to what the surface can apply: a URL claiming two languages on
-    // a single-language surface would seed the popover with a filter the
-    // handler drops. syncSessionStorageFromUrl keeps the full stored list.
+    // Narrowed for the URL only; storage keeps the full list.
     selectionFor(surface, storedLangs).forEach(code => next.append('language', code));
     return next;
 }
@@ -271,8 +254,7 @@ export function initSearchFilterBar(container) {
         // Seed with the curated defaults so a pre-selected language renders its
         // label immediately, without waiting on (or requiring) the network.
         languageEl.items = DEFAULT_LANGUAGE_OPTIONS;
-        // Truncate here too, not just on change: a hand-edited URL can carry
-        // several language params, and only the first one is actually applied.
+        // A hand-edited URL can carry several languages; only the first applies.
         languageEl.selected = selectionFor(surface, currentParams.getAll('language'));
 
         // Defer fetching the full catalogue + context-aware counts until the
@@ -333,9 +315,7 @@ export function initSearchFilterBar(container) {
         });
 
         languageEl.addEventListener('ol-select-popover-change', (e) => {
-            // On a single-language surface the click that just landed wins, so
-            // picking a second language replaces the first instead of adding
-            // to it. `added` is null when the click was a deselect.
+            // Single-language: a new pick replaces the old (`added` is null on deselect).
             const selected = surface.singleLanguage
                 ? selectionFor(surface, e.detail.selected, e.detail.added)
                 : e.detail.selected;

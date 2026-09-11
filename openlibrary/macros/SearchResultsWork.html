@@ -52,9 +52,7 @@ $code:
   else:
     full_work_title = doc.get('title', '') + (': ' + doc['subtitle'] if doc.get('subtitle') else '')
 
-  # Year shown on its own line below the author. Only data already on the
-  # record — never a second lookup: solr docs carry first_publish_year; infogami editions
-  # carry publish_date, from which we pull the 4-digit year.
+  # Only data already on the record; never a second lookup.
   title_year = None
   if show_title_year:
     if doc_type.startswith('solr_'):
@@ -287,8 +285,7 @@ $code:
           $:rating
     </div>
 
-    $# Full-width row under the details/CTA columns (the cover spans beside
-    $# it); .list-books--fulltext grids .sri__main to place it.
+    $# Full-width row under details/CTA, placed by the .list-books--fulltext grid.
     $if extra_row:
       $:extra_row
   </div>

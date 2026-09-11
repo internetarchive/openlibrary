@@ -2,17 +2,14 @@ $def with (q, row=None)
 
 $ ia_base_url = "https://archive.org"
 
-$# Every quote opens BookReader with the query — its own in-book search finds
-$# and highlights the match. No page deep-links: the FTS index we queried has
-$# no page knowledge (per IA), so there is nothing more precise to link to.
-$# phrase_query keeps BookReader searching for the passage, not each word.
+$# The FTS index has no page numbers, so quotes open BookReader's in-book search instead.
+$# phrase_query keeps it searching for the passage, not each word.
 $ href = "%s/details/%s?%s" % (ia_base_url, row.ocaid, urlencode(dict(ref='ol', q=phrase_query(q))))
 
 <ul class="fsi-quotes">
   $for snippet in row.snippets[:2]:
     <li>
-      $# snippet.html escapes each segment and marks the matches; see Snippet in
-      $# core/fulltext.py. Never interpolate snippet text directly.
+      $# snippet.html is pre-escaped (core/fulltext.py). Never interpolate snippet text directly.
       <a class="fsi-quote" href="$href" data-ol-link-track="SearchInsideCard|QuoteClick">&hellip;$:snippet.html&hellip;</a>
     </li>
 </ul>

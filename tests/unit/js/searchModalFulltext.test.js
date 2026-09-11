@@ -187,8 +187,7 @@ describe('solrLooksWeak', () => {
     });
 
     test('reverse prefixes only count for meaningful doc words', () => {
-        // "The Room"'s "the" is a prefix of "theodore", but a stopword is not
-        // evidence the query was answered.
+        // "the" prefixes "theodore", but a stopword isn't evidence of an answer.
         expect(solrLooksWeak([{ title: 'The Room' }], 'theodore roosevelt')).toBe(true);
     });
 
@@ -210,7 +209,6 @@ describe('solrLooksWeak', () => {
     });
 
     test('overlap must be word-initial', () => {
-        // "art" appears mid-word in "Bartleby" — that's not an answer.
         expect(solrLooksWeak([{ title: 'Bartleby the Scrivener' }], 'art')).toBe(true);
     });
 
@@ -218,8 +216,7 @@ describe('solrLooksWeak', () => {
         expect(solrLooksWeak([gatsby], 'the and')).toBe(false);
     });
 
-    // The case that used to justify treating "?" as a passage signal: prod Solr
-    // answers it with one unrelated book, so the weak path already rescues it.
+    // Prod Solr answers this with one unrelated book.
     test('a question Solr answers badly is weak', () => {
         expect(solrLooksWeak([{ title: 'The Human Planet' }], 'who coined meritocracy?')).toBe(true);
     });
@@ -281,8 +278,7 @@ describe('fulltextSearchParams', () => {
         expect(params.get('readable')).toBe('true');
     });
 
-    // The FTS backend's `lang` param takes one language and the handler drops
-    // the rest, so the band and its "see all" URL must not claim more.
+    // The FTS `lang` param takes one language.
     test('narrows the language selection to the first code', () => {
         const params = fulltextSearchParams('white whale', { readable: false, languages: ['fre', 'ger'] });
         expect(params.getAll('language')).toEqual(['fre']);
@@ -315,8 +311,6 @@ describe('live-region announcement', () => {
         expect(settled()._resultsAnnouncement()).toBe('No results found');
     });
 
-    // The band is the rescue: a patron who only hears "no matching books"
-    // never learns the passage was found inside three of them.
     test('an empty catalog with a band names the catalog gap and the band rows', () => {
         expect(settled({ ftHits: hits(3) })._resultsAnnouncement())
             .toBe('No matching books or authors. 3 matches found inside books');
@@ -358,9 +352,7 @@ describe('fulltext see-all freshness', () => {
         expect(modalFor('white whale', 'q=white+whale')._ftTotalIsCurrent()).toBe(true);
     });
 
-    // The band's hits linger through an edit so it doesn't flicker per keystroke.
-    // The total must not: it would pair a count nobody measured for this query
-    // with a link that carries the edited one.
+    // Hits linger through an edit to avoid flicker; the count must not.
     test('an edit drops the count', () => {
         expect(modalFor('white whales', 'q=white+whale')._ftTotalIsCurrent()).toBe(false);
     });
@@ -375,16 +367,13 @@ describe('fulltext see-all freshness', () => {
         expect(modalFor('white whale', null, null)._ftTotalIsCurrent()).toBe(false);
     });
 
-    // A total that's already fully on screen still counts as current — it's
-    // _renderFulltextSeeAll that drops the redundant number, keeping the button.
+    // _renderFulltextSeeAll is what drops the redundant number.
     test('a fully-shown total is still current', () => {
         expect(modalFor('white whale', 'q=white+whale', 2)._ftTotalIsCurrent()).toBe(true);
     });
 });
 
 describe('catalog see-all labels', () => {
-    // The there's-more case is the only one with a distinct narrow form; the
-    // rest are short enough to stand as they are.
     test('offers a shorter form when there are more results than rows shown', () => {
         const modal = new SearchModal();
         modal._hasSearched = true;

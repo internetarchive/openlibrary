@@ -4,11 +4,9 @@ $# labels, placeholders, aria-labels and status messages. Rendered into the
 $# trigger's `data-i18n-ui` attribute and read client-side by
 $# search-modal/constants.js (searchModalStringsFromElement). The keys and
 $# English source strings here must match DEFAULT_SEARCH_MODAL_STRINGS in that
-$# same file. `%s` (in "See all %s books", "Remove … from recent searches",
-$# "Search Inside %s books", …) is filled in client-side via sprintf. (Availability option labels live in search/availability_i18n.html.)
-$# The *Narrow keys are shorter forms of the label above them, shown on narrow
-$# viewports where the footer holds two buttons; the longer form stays the
-$# button's accessible name at both widths, so keep the two saying the same thing.
+$# same file. `%s` is filled in client-side via sprintf. (Availability option
+$# labels live in search/availability_i18n.html.) *Narrow keys are short forms for
+$# narrow viewports; the long form stays the accessible name, so keep them in sync.
 $ search_modal_i18n = {
 $     "dialogAria":          _("Search Open Library"),
 $     "inputPlaceholder":    _("Search books and authors…"),

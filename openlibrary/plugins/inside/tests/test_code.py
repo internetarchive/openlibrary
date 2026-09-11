@@ -29,8 +29,6 @@ def test_readable_keeps_public_and_borrowable():
 
 
 def test_readable_drops_hits_with_no_availability_record():
-    # An unknown scan can't be shown as readable — but see the fail-open case
-    # below: that's about the lookup failing wholesale, not one missing entry.
     assert filter_readable([hit("unknown")], {"other": {"is_readable": True}}) == []
 
 
@@ -44,8 +42,7 @@ def test_readable_fails_open_when_availability_lookup_failed():
 
 
 def test_rows_carry_parsed_snippets():
-    """page_num stays on the wire untouched: the cross-document FTS index has
-    no page knowledge (per IA), so rows never carry page numbers."""
+    """page_num is ignored: the FTS index has no page knowledge."""
     rows, total = fulltext_page(
         {
             "hits": {
@@ -91,7 +88,6 @@ def test_rows_fall_back_to_ia_metadata_when_no_edition_hydrated():
 
 
 def test_rows_tolerate_fields_that_are_present_but_empty():
-    """A present-but-empty field used to raise IndexError off `[0]` indexing."""
     rows, _ = fulltext_page({"hits": {"total": 1, "hits": [{"fields": {"identifier": ["scan3"], "meta_title": [], "page_num": []}}]}})
     (row,) = rows
     assert (row.title, row.snippets) == ("scan3", [])
@@ -103,8 +99,6 @@ def test_no_rows_from_an_empty_or_failed_response(results):
 
 
 def test_snippet_html_escapes_every_segment():
-    """The snippet is API-controlled OCR text: it becomes markup in exactly one
-    place, and the only tags in the result are the ones we added."""
     (snippet,) = fulltext_page({"hits": {"total": 1, "hits": [{"fields": {"identifier": ["x"]}, "highlight": {"text": ['<b>a & b</b> {{{"c"}}}']}}]}})[0][
         0
     ].snippets
@@ -130,14 +124,11 @@ def languages(monkeypatch):
 
 @pytest.mark.parametrize("value", ["ger", "German", "  german  "])
 def test_resolve_language_accepts_codes_and_names(languages, value):
-    """Our own URLs carry MARC codes; a hand-edited one may carry the name."""
     assert resolve_language([value]) == ("ger", "German")
 
 
 def test_resolve_language_narrows_to_one(languages):
-    # `lang=a,b` matches nothing upstream and a repeated param keeps only the
-    # first, so one language is all we can honor — and this is the only place
-    # that gets decided.
+    # FTS `lang` is single-valued.
     assert resolve_language(["ger", "fre"]) == ("ger", "German")
 
 
@@ -150,9 +141,6 @@ def test_resolve_language_returns_none_without_a_usable_value(languages, values)
 
 
 def test_empty_reason_distinguishes_filtered_from_past_the_end():
-    """`total` counts matches the page never rendered, so an empty page always
-    needs a reason — a count above an empty list with no explanation is the bug
-    this replaced."""
     assert empty_reason("dune", [], 0, filtered=False) == "no_matches"
     assert empty_reason("dune", [], 4312, filtered=True) == "filtered_out"
     assert empty_reason("dune", [], 4312, filtered=False) == "past_end"
@@ -182,8 +170,7 @@ async def search_params(monkeypatch, **kwargs) -> dict:
 
 @pytest.mark.asyncio
 async def test_query_is_sent_as_a_phrase_with_olonly(monkeypatch):
-    # Only the phrase quotes may be added to `q`: a field clause would flip the
-    # endpoint to its Lucene parser, which silently ignores olonly.
+    # A field clause in `q` would flip FTS to its Lucene parser, which ignores olonly.
     params = await search_params(monkeypatch)
     assert params["q"] == '"moby dick"'
     assert params["olonly"] == "true"

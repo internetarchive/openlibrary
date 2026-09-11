@@ -5,10 +5,8 @@ $var title: $_('Search Open Library for %s', q)
 $ bodyclass = ctx.setdefault('bodyclass', [])
 $ bodyclass.append('search-page')
 
-$# Totals are estimates, hence "about". With a filter on they also count hits
-$# this page dropped, so the "1 - 20 of" range would skip numbers between pages
-$# — show the bare total instead. The handler decides whether the page is empty
-$# and why (empty_reason); this template only renders that decision.
+$# Totals are estimates ("about"). Filtered totals include hits the page dropped,
+$# so a "1 - 20 of" range would skip numbers; show the bare total instead.
 $ filtered = bool(readable or language)
 $ range_start = (page - 1) * results_per_page + 1
 
@@ -19,9 +17,6 @@ $ range_start = (page - 1) * results_per_page + 1
 <div id="contentBody">
   $:macros.SearchNavigation()
 
-  $# Same stacked-controls structure as /search (work_search.html): the
-  $# .search-controls wrapper owns the vertical rhythm between the search box,
-  $# filter row and stats with a single gap.
   <div class="search-controls">
     <form class="siteSearch search-row olform" action="/search/inside">
       $:render_template("search/searchbox", q=q, autofocus=True)
@@ -32,12 +27,8 @@ $ range_start = (page - 1) * results_per_page + 1
     </form>
 
     $if q:
-      $# Same filter row as /search (work_search.html): the empty controls are
-      $# seeded and wired client-side by SearchFilterBar.js, which maps them onto
-      $# this page's readable/language params. No sort or layout tools: the FTS
-      $# backend only ranks by relevance, and snippet rows have no grid form.
-      $# No count on the toggle: it would need a second query the FTS backend
-      $# parses differently, over a different corpus, with approximate totals.
+      $# Wired by SearchFilterBar.js. No sort (FTS only ranks by relevance) and no
+      $# toggle count (it would need a second FTS query with approximate totals).
       <div class="search-filter-row" id="search-filter-row">
         <ol-toggle
           variant="button"
@@ -47,10 +38,7 @@ $ range_start = (page - 1) * results_per_page + 1
         <ol-select-popover
           label="$_('Language')"
           placeholder="$_('Search languages…')"
-          $# Both headings carry the same hint: this surface filters by one
-          $# language, because the FTS backend's lang param takes one. The
-          $# unselected heading alone would vanish once a language is picked —
-          $# exactly when someone reaches for a second one.
+          $# Both headings say "one": the FTS lang param takes a single language.
           unselected-heading="$_('Choose one language')"
           suggestions-heading="$_('Choose one language')"
           loading-label="$_('Loading…')"
