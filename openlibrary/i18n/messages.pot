@@ -33,7 +33,7 @@ msgstr ""
 msgid "or"
 msgstr ""
 
-#: account.html databarHistory.html databarTemplate.html databarView.html my_books/check_ins/check_in_prompt.html reading_goals/reading_goal_progress.html subjects.html type/edition/compact_title.html type/user/view.html
+#: account.html databarHistory.html databarTemplate.html databarView.html my_books/check_ins/check_in_prompt.html reading_goals/reading_goal_progress.html.jinja subjects.html type/edition/compact_title.html type/user/view.html
 msgid "Edit"
 msgstr ""
 
@@ -532,7 +532,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: NotesModal.html ObservationsModal.html ShareModal.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html
+#: NotesModal.html ObservationsModal.html ShareModal.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html.jinja
 msgid "Close"
 msgstr ""
 
@@ -840,7 +840,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html widget.html
+#: reading_goals/reading_goal_form.html.jinja widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -932,11 +932,11 @@ msgstr ""
 msgid "Checking Search Inside matches"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html.jinja lib/nav_foot.html merge/authors.html openlibrary/plugins/openlibrary/authors.py publishers/view.html work_search.html
+#: SearchNavigation.html authors/index.html.jinja lib/nav_foot.html.jinja merge/authors.html openlibrary/plugins/openlibrary/authors.py publishers/view.html work_search.html
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html openlibrary/plugins/upstream/mybooks.py work_search.html
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html.jinja openlibrary/plugins/upstream/mybooks.py work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1195,11 +1195,11 @@ msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
 msgstr[1] ""
 
-#: account/loans.html books/custom_carousel_card.html
+#: account/loans.html books/custom_carousel_card.html.jinja
 msgid "Not yet downloaded."
 msgstr ""
 
-#: account/loans.html books/custom_carousel_card.html
+#: account/loans.html books/custom_carousel_card.html.jinja
 msgid "Download Now"
 msgstr ""
 
@@ -1695,10 +1695,6 @@ msgstr ""
 msgid "Then, come back to Open Library and find some great books!"
 msgstr ""
 
-#: account/view.html
-msgid "Yearly Reading Goal"
-msgstr ""
-
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
 msgstr ""
@@ -1861,7 +1857,7 @@ msgstr ""
 msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
-#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
+#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html.jinja
 msgid "Submit"
 msgstr ""
 
@@ -1873,7 +1869,7 @@ msgstr ""
 msgid "You need to have JavaScript turned on to see the nifty chart!"
 msgstr ""
 
-#: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html site/stats.html
+#: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html site/stats.html.jinja
 msgid "Summary"
 msgstr ""
 
@@ -3075,7 +3071,7 @@ msgstr ""
 msgid "Add another author?"
 msgstr ""
 
-#: books/check.html lib/nav_foot.html lib/nav_head.html
+#: books/check.html lib/nav_foot.html.jinja lib/nav_head.html
 msgid "Add a Book"
 msgstr ""
 
@@ -3112,35 +3108,22 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: books/custom_carousel_card.html type/author/view.html
-msgid "name missing"
-msgstr ""
-
-#: books/custom_carousel_card.html books/mobile_carousel.html
-#, python-format
-msgid " by %(name)s"
-msgstr ""
-
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
 msgid_plural "%(count)d people waiting"
 msgstr[0] ""
 msgstr[1] ""
 
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 msgid "Return via ADE"
 msgstr ""
 
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 msgid "Loan Expired"
 msgstr ""
 
-#: ReturnForm.html books/custom_carousel_card.html
-msgid "Really return this book?"
-msgstr ""
-
-#: ReturnForm.html books/custom_carousel_card.html
+#: ReturnForm.html books/custom_carousel_card.html.jinja
 msgid "Return book"
 msgstr ""
 
@@ -3321,6 +3304,11 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
+msgstr ""
+
+#: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid " by %(name)s"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
@@ -3759,7 +3747,7 @@ msgstr ""
 msgid "Note the highest number in each pagination pattern."
 msgstr ""
 
-#: books/edit/edition.html lib/nav_foot.html
+#: books/edit/edition.html lib/nav_foot.html.jinja
 msgid "Help"
 msgstr ""
 
@@ -4441,193 +4429,193 @@ msgstr ""
 msgid "Edited by %(user)s"
 msgstr ""
 
-#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
+#: lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Vision"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Volunteer"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Partner With Us"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Jobs"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Careers"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Blog"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Terms of Service"
 msgstr ""
 
-#: lib/nav_foot.html site/alert.html
+#: lib/nav_foot.html.jinja site/alert.html
 msgid "Donate"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Discover"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Go home"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Home"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Explore Books"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Explore authors"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html lib/nav_foot.html openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Explore collections"
 msgstr ""
 
-#: lib/nav_foot.html openlibrary/plugins/openlibrary/nav.py type/page/view.html
+#: lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/nav.py type/page/view.html
 msgid "Collections"
 msgstr ""
 
-#: SearchNavigation.html lib/nav_foot.html openlibrary/plugins/openlibrary/nav.py search/advancedsearch.html
+#: SearchNavigation.html lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/nav.py search/advancedsearch.html
 msgid "Advanced Search"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Navigate to top of this page"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Return to Top"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Develop"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Explore Open Library Developer Center"
 msgstr ""
 
-#: lib/nav_foot.html lib/nav_head.html
+#: lib/nav_foot.html.jinja lib/nav_head.html
 msgid "Developer Center"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Explore Open Library APIs"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "API Documentation"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Bulk Open Library data"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Bulk Data Dumps"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Write a bot"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Writing Bots"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Help Center"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Contact"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Contact Us"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Suggest Edits"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Suggesting Edits"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Add a new book to Open Library"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Release Notes"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Bluesky"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Open Library on Bluesky"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Twitter"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Open Library on Twitter"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "GitHub"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Open Library on GitHub"
 msgstr ""
 
-#: lib/nav_foot.html site/alert.html
+#: lib/nav_foot.html.jinja site/alert.html
 msgid "Change Website Language"
 msgstr ""
 
-#: lib/nav_foot.html lib/nav_head.html type/list/embed.html
+#: lib/nav_foot.html.jinja lib/nav_head.html type/list/embed.html
 msgid "Open Library logo"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 msgid "Open Library is an initiative of the <a href=\"//archive.org/\">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href=\"//archive.org/projects/\">projects</a> include the <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org\">archive-it.org</a>"
 msgstr ""
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 #, python-format
-msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
 msgstr ""
 
 #: lib/nav_head.html
@@ -5428,22 +5416,26 @@ msgstr ""
 msgid "published most by this publisher"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html
+#: reading_goals/reading_goal_form.html.jinja
 msgid "How many books would you like to read this year?"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html
+#: reading_goals/reading_goal_form.html.jinja
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
 msgstr ""
 
-#: reading_goals/reading_goal_progress.html
+#: reading_goals/reading_goal_progress.html.jinja
 #, python-format
 msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
 msgstr ""
 
-#: reading_goals/reading_goal_progress.html
+#: reading_goals/reading_goal_progress.html.jinja
 #, python-format
 msgid "Edit %(year)d Reading Goal"
+msgstr ""
+
+#: reading_goals/yearly_goal_dialog.html.jinja
+msgid "Yearly Reading Goal"
 msgstr ""
 
 #: recentchanges/header.html
@@ -5945,11 +5937,11 @@ msgstr ""
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
 msgstr ""
 
-#: site/stats.html
+#: site/stats.html.jinja
 msgid "Debug Stats"
 msgstr ""
 
-#: EditionNavBar.html site/stats.html
+#: EditionNavBar.html site/stats.html.jinja
 msgid "Details"
 msgstr ""
 
@@ -6103,6 +6095,10 @@ msgstr ""
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py type/author/view.html
+msgid "name missing"
 msgstr ""
 
 #: type/author/view.html type/edition/view.html type/work/view.html
@@ -6995,7 +6991,7 @@ msgstr ""
 msgid "Go to next section"
 msgstr ""
 
-#: FormatExpiry.html
+#: FormatExpiry.html.jinja
 msgid "Expires"
 msgstr ""
 
@@ -7172,6 +7168,10 @@ msgstr ""
 
 #: RelatedSubjects.html.jinja
 msgid "Related..."
+msgstr ""
+
+#: ReturnForm.html openlibrary/plugins/openlibrary/partials.py
+msgid "Really return this book?"
 msgstr ""
 
 #: SearchResultsWork.html

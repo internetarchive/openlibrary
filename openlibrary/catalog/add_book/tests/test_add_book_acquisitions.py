@@ -97,7 +97,7 @@ def test_load_upserts_acquisitions_for_new_edition(mock_site, add_languages, ia_
     assert len(rows) == 1
     assert rows[0].provider_name == "lenny"
     assert rows[0].local_id == "37044775"
-    assert rows[0].data["access"] == "open-access"
+    assert rows[0].data["acquisitions"][0]["access"] == "open-access"
 
     # acquisitions must not leak onto the edition object
     edition = mock_site.get(reply["edition"]["key"])
@@ -111,7 +111,7 @@ def test_reimport_updates_acquisition_in_place(mock_site, add_languages, ia_writ
     edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
     rows = Acquisition.get_by_edition(edition_id)
     assert len(rows) == 1  # refreshed, not duplicated
-    assert rows[0].data["price"]["value"] == 2.0
+    assert rows[0].data["acquisitions"][0]["price"]["value"] == 2.0
 
 
 def test_load_without_acquisitions_still_works(mock_site, add_languages, ia_writeback, acquisitions_db):
@@ -184,4 +184,72 @@ def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_
     assert len(rows) == 1
     assert rows[0].provider_name == "lenny"
     assert rows[0].local_id == rec["acquisitions"][0]["local_id"]
-    assert rows[0].data["access"] == "open-access"
+    assert rows[0].data["acquisitions"][0]["access"] == "open-access"
+
+
+def test_every_acquisition_of_a_publication_is_kept(mock_site, add_languages, ia_writeback, acquisitions_db):
+    """All links share one row, so all of them must survive.
+
+    `acquisitions` is UNIQUE on (local_id, provider_name). Upserting each
+    acquisition of a publication separately made them overwrite one another and
+    only the LAST survived -- a Gutenberg book offering epub, html and txt kept
+    one link, and a record carrying both a price and a download kept whichever
+    came last.
+    """
+    rec = {
+        "title": "Multi Format",
+        "source_records": ["lenny:1342"],
+        "authors": [{"name": "Jane Austen"}],
+        "identifiers": {"lenny": ["1342"]},
+        "acquisitions": [
+            {"provider_name": "lenny", "local_id": "1342", "data": {"access": "open-access", "format": "application/epub+zip", "url": "https://g/1342.epub"}},
+            {"provider_name": "lenny", "local_id": "1342", "data": {"access": "open-access", "format": "text/html", "url": "https://g/1342.html"}},
+            {"provider_name": "lenny", "local_id": "1342", "data": {"access": "open-access", "format": "text/plain", "url": "https://g/1342.txt"}},
+        ],
+    }
+
+    load(rec)
+
+    rows = list(acquisitions_db.select("acquisitions"))
+    assert len(rows) == 1, "all links for one publication share a single row"
+    stored = rows[0].data if isinstance(rows[0].data, dict) else json.loads(rows[0].data)
+    assert [a["format"] for a in stored["acquisitions"]] == [
+        "application/epub+zip",
+        "text/html",
+        "text/plain",
+    ]
+
+
+def test_a_later_save_replaces_withdrawn_links(mock_site, add_languages, ia_writeback, acquisitions_db):
+    """The feed is authoritative for its own publication, so a link the provider
+    has withdrawn must disappear rather than linger forever. That is why the set
+    is replaced rather than merged into what is already stored."""
+    base = {
+        "title": "Shrinking Formats",
+        "source_records": ["lenny:99"],
+        "authors": [{"name": "A N Author"}],
+        "identifiers": {"lenny": ["99"]},
+    }
+    load(
+        dict(
+            base,
+            acquisitions=[
+                {"provider_name": "lenny", "local_id": "99", "data": {"access": "open-access", "format": "application/epub+zip"}},
+                {"provider_name": "lenny", "local_id": "99", "data": {"access": "open-access", "format": "text/html"}},
+            ],
+        )
+    )
+
+    # The provider drops the html edition.
+    load(
+        dict(
+            base,
+            acquisitions=[
+                {"provider_name": "lenny", "local_id": "99", "data": {"access": "open-access", "format": "application/epub+zip"}},
+            ],
+        )
+    )
+
+    rows = list(acquisitions_db.select("acquisitions"))
+    stored = rows[0].data if isinstance(rows[0].data, dict) else json.loads(rows[0].data)
+    assert [a["format"] for a in stored["acquisitions"]] == ["application/epub+zip"]

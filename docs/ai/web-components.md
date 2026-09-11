@@ -36,8 +36,8 @@ Not every interactive element needs a web component.
 Build and watch with:
 
 ```bash
-npm run watch:lit-components   # Dev mode
-make lit-components            # One-off build
+npm run watch:components    # Dev mode
+make components             # One-off build
 ```
 
 ## Naming
@@ -154,7 +154,7 @@ npm run build-assets:lit-manifest   # one-off — runs `npx cem analyze`
 npm run watch:lit-manifest          # regenerate on change during dev
 ```
 
-`make lit-components` also regenerates the manifest as part of the build. Config lives in `custom-elements-manifest.config.mjs`.
+`make components` also regenerates the manifest as part of the build. Config lives in `custom-elements-manifest.config.mjs`.
 
 ## HTML and Semantics
 
@@ -255,7 +255,7 @@ A shadow-DOM component that is server-rendered can still look right before upgra
 - Light-DOM components: tag-scoped rules in `static/css/components/<tag>.css`, registered in `ol-components.css`.
 - Use OL design tokens where possible. Token files live in `static/css/tokens/`.
 - Avoid outer margins on reusable components — spacing between elements is the parent's responsibility.
-- **Buttons inside a shadow root: compose `<ol-button>`, don't hand-copy its CSS.** `ol-button` renders in shadow DOM, so it works inside any other component's template (`ol-dialog` and `ol-toast` use it for their close controls). Add `import './OLButton.js';` at the top of the component so the element is registered whenever the component is — this is safe *within the Lit bundle* (ES modules evaluate once; the "never side-effect import from page JS" rule in [Registration](#registration) is about a second webpack bundle). Use `variant` / `size` / `shape` and the `icon-start` / `icon-end` slots for a leading or trailing SVG; only the glyph size (`.close-button svg { width … }`) belongs in the host component's styles. If the control genuinely isn't a button shape (pagination items, carousel arrows), keep a raw `<button>` and take the focus-ring / press-feedback rules from `ol-button` as the reference.
+- **Buttons inside a shadow root: compose `<ol-button>`, don't hand-copy its CSS.** `ol-button` renders in shadow DOM, so it works inside any other component's template (`ol-dialog` and `ol-toast` use it for their close controls). Add `import './OLButton.js';` at the top of the component so the element is registered whenever the component is — this is safe *within the Lit bundle* (ES modules evaluate once; the "never side-effect import from page JS" rule in [Registration](#registration) is about a second copy of the page bundle). Use `variant` / `size` / `shape` and the `icon-start` / `icon-end` slots for a leading or trailing SVG; only the glyph size (`.close-button svg { width … }`) belongs in the host component's styles. If the control genuinely isn't a button shape (pagination items, carousel arrows), keep a raw `<button>` and take the focus-ring / press-feedback rules from `ol-button` as the reference.
 
 ## Overlays and the top layer
 
@@ -352,7 +352,7 @@ customElements.define('ol-my-widget', OlMyWidget);
 
 **`ol-components.js` is the single registration site for every `<ol-*>` custom element.** It is built from `openlibrary/components/lit/index.js` (which re-exports every component, running each `define()` as a side effect) and loaded site-wide from `openlibrary/templates/site/footer.html`.
 
-If you need to drive a Lit component from page JS that webpack bundles (e.g., the search-modal entrypoint), import the component's exported class only if you need the class identifier — and never as a bare side-effect import. Re-running `customElements.define()` from a second bundle throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause. The component will already be registered by `ol-components.js` before any page-JS handler (jQuery `DOMContentLoaded`) runs.
+If you need to drive a Lit component from the page-JS bundle (e.g., the search-modal entrypoint), import the component's exported class only if you need the class identifier — and never as a bare side-effect import. Re-running `customElements.define()` from a second bundle throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause. The component will already be registered by `ol-components.js` before any page-JS handler (jQuery `DOMContentLoaded`) runs.
 
 ## Focus and Shadow DOM
 
@@ -561,7 +561,7 @@ _onPopoverOpen() {
 1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).
 2. Register the component by adding an export to `openlibrary/components/lit/index.js`.
 3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables. Type any closed set of values as a union, not `{String}` — see [Type the enum, don't describe it](#type-the-enum-dont-describe-it).
-4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) so the API table renders locally; the JSON is gitignored and rebuilt by `make lit-components` in CI/deploy.
+4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) so the API table renders locally; the JSON is gitignored and rebuilt by `make components` in CI/deploy.
 5. Add a demo partial at `openlibrary/templates/design/components/<id>.html.jinja` defining a `{% macro demos() %}` of `ex.example(...)` calls, and register a `Component(...)` row in `COMPONENTS` in `openlibrary/plugins/openlibrary/design.py`. The row drives the sidebar, section order, and the *Avoid* line; the API table renders from the manifest. Nothing on the page is hand-listed — `openlibrary/templates/design.html` is only a shim into `design/layout.html.jinja`, so there is no section markup to add there.
 6. If it renders an anchored overlay panel, promote it to the top layer — see [Overlays and the top layer](#overlays-and-the-top-layer).
-7. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080/developers/design.
+7. Build with `npm run watch:components` and verify the component renders at http://localhost:8080/developers/design.

@@ -17,9 +17,9 @@ On startup, the `home` container runs `docker/ol-home-start.sh`, which clones th
 Build targets are in the `Makefile`. Key dev workflow commands:
 
 ```bash
-make all                    # Build everything (css, js, components, lit-components, i18n)
-npm run watch               # Dev mode with hot reload (CSS + JS)
-npm run watch:lit-components # Watch Lit components
+make all                    # Build everything (frontend, i18n)
+npm run watch               # Dev mode with hot reload (CSS + JS + components)
+npm run watch:components     # Watch components only
 ```
 
 ## Testing
@@ -197,10 +197,10 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Frontend
 
-- **CSS:** CSS files in `static/css/`, compiled via Vite (`vite-css.config.mjs`). Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
-- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
-- **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
-- **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
+- **CSS:** CSS files in `static/css/`, compiled via `scripts/vite/build.mjs` (`--only css`) to `static/build/css/`. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
+- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via `scripts/vite/build.mjs` (`--only js`) to `static/build/js/`.
+- **Vue components:** `openlibrary/components/*.vue`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
+- **Lit web components:** `openlibrary/components/lit/`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
 
 ### Browser Support
@@ -209,8 +209,8 @@ We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Comp
 
 What the toolchain guarantees:
 
-- **Webpack JS** is transpiled by Babel (`@babel/preset-env` + core-js `useBuiltIns: "usage"`) — modern *syntax* and core-js-coverable *built-ins* are handled automatically.
-- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `openlibrary/components/vite*.config.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari11.1', 'ios11.3']` in `scripts/vite/build.mjs`, matching `browserslist`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/main.js`. `all.js` is a `<script type="module">`, so the floor is Safari/iOS 11.x plus evergreen Chrome/Edge/Firefox per `browserslist`.
+- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `scripts/vite/build.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
 - **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
 
 Rules for new code:

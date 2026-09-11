@@ -322,6 +322,12 @@ export class OLMarkdownEditor extends LitElement {
       box-shadow: var(--box-shadow-focus);
     }
 
+    /* iOS zooms in on focus when the input font is < 16px; bump it up on
+       mobile to suppress that. */
+    @media (max-width: 767px) {
+      .link-input { font-size: var(--font-size-body-large); }
+    }
+
     .error-state {
       padding: var(--spacing-inset-sm);
       border: var(--border-width-control) solid var(--color-border-error);

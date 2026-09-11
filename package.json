@@ -4,19 +4,20 @@
   "repository": "github:internetarchive/openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
-    "watch": "npx concurrently --names js,css,components,lit --prefix-colors --kill-others npm:watch:js npm:watch:css npm:watch:components npm:watch:lit-components",
-    "watch-polling": "env FORCE_POLLING=true npm run watch",
-    "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
-    "watch:css": "npx vite build -c vite-css.config.mjs --watch --mode development",
-    "watch:lit-components": "BUILD_DIR=static/build/lit-components npx vite build -c openlibrary/components/vite-lit.config.mjs --watch",
+    "watch": "node scripts/vite/build.mjs --watch --mode development",
+    "watch-polling": "FORCE_POLLING=true npm run watch",
+    "watch:js": "node scripts/vite/build.mjs --only js --watch --mode development",
+    "watch:css": "node scripts/vite/build.mjs --only css --watch --mode development",
     "watch:lit-manifest": "npx cem analyze --watch",
-    "watch:components": "mkdir -p static/build/components && BUILD_DIR=static/build/components npx vite build -c openlibrary/components/vite.config.mjs --watch",
-    "build-assets": "make js && make css && make components && make icons && make lit-components",
+    "watch:components": "node scripts/vite/build.mjs --only components --watch --mode development",
+    "watch:lit-components": "echo 'warning: watch:lit-components is deprecated, use watch:components instead' && npm run watch:components",
+    "build": "node scripts/vite/build.mjs",
+    "build-assets": "make js && make css && make components && make icons",
     "build-assets:css": "make css",
     "build-assets:components": "make components",
     "build-assets:js": "make js",
     "build-assets:icons": "make icons",
-    "build-assets:lit-components": "make lit-components",
+    "build-assets:lit-components": "make components",
     "build-assets:lit-manifest": "npx cem analyze",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
     "lint": "npx concurrently --group npm:lint:js npm:lint:css",
@@ -50,13 +51,11 @@
     "@tiptap/pm": "^3.20.4",
     "@tiptap/starter-kit": "^3.20.4",
     "@vitejs/plugin-vue": "^6.0.6",
-    "babel-loader": "^10.0.0",
     "bundlesize2": "^0.0.35",
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
     "concurrently": "^10.0.0",
     "core-js": "^3.37.1",
-    "css-loader": "^7.1.4",
     "datatables.net-dt": "1.13.11",
     "diff": "^4.0.4",
     "eslint": "^9.39.4",
@@ -79,7 +78,6 @@
     "prismjs": "^1.30.0",
     "sinon": "21.1.2",
     "slick-carousel": "1.6.0",
-    "style-loader": "^4.0.0",
     "stylelint": "^16.26.1",
     "stylelint-declaration-strict-value": "^1.11.1",
     "stylelint-prettier": "^5.0.3",
@@ -90,9 +88,12 @@
     "vue": "^3.5.34",
     "vue-async-computed": "^4.0.1",
     "vue-multiselect": "^3.5.0",
-    "webpack": "^5.106.2",
-    "webpack-cli": "^5.1.4",
-    "workbox-webpack-plugin": "^7.4.1"
+    "workbox-cacheable-response": "^7.4.1",
+    "workbox-core": "^7.4.1",
+    "workbox-expiration": "^7.4.1",
+    "workbox-recipes": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
   },
   "engines": {
     "node": "^24.0.0"
@@ -128,7 +129,7 @@
           ]
         }
       ],
-      "\\.[jt]sx?$": "babel-jest"
+      "\\.(?:[cm]?[jt]sx?)$": "babel-jest"
     },
     "transformIgnorePatterns": [
       "node_modules[\\\\/](?!(lit|lit-html|lit-element|@lit)[\\\\/])"

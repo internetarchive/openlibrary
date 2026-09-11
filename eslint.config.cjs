@@ -1,6 +1,9 @@
 const js = require("@eslint/js");
 const vuePlugin = require("eslint-plugin-vue");
 const globals = require("globals");
+// NOTE: .babelrc is test/lint-only (babel-jest + this parser). The production
+// page-JS build uses Vite/Oxc with explicit core-js imports in
+// openlibrary/plugins/openlibrary/js/main.js (see scripts/vite/build.mjs).
 const babelParser = require("@babel/eslint-parser");
 
 /** @type {import('eslint').Linter.Config[]} */
@@ -10,7 +13,6 @@ module.exports = [
     ignores: [
       ".*",
       "*.config.js",
-      "*.config.mjs",
       "conf/",
       "config/",
       "docker/",
@@ -18,7 +20,7 @@ module.exports = [
       "infogami/",
       "node_modules/",
       "openlibrary/components/lit/icons.generated.js",
-      "scripts/",
+      "scripts/gh_scripts/",
       "static/build/",
       "build/",
       "coverage/",
@@ -34,8 +36,6 @@ module.exports = [
   // Configuration for build and config files (CommonJS)
   {
     files: [
-      "webpack.config.js",
-      "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
       "stylelint/*.cjs",
@@ -52,12 +52,12 @@ module.exports = [
     },
   },
 
-  // Configuration for Vite config files (ES modules)
+  // Configuration for Vite shared modules (ES modules)
   {
     files: [
-      "openlibrary/components/vite.config.mjs",
-      "openlibrary/components/vite-lit.config.mjs",
-      "vite-css.config.mjs",
+      "vite-asset-urls.mjs",
+      "custom-elements-manifest.config.mjs",
+      "scripts/vite/**/*.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
@@ -93,8 +93,6 @@ module.exports = [
       },
       globals: {
         ...globals.browser,
-        $: "readonly",
-        jQuery: "readonly",
       },
     },
     rules: {
@@ -116,6 +114,17 @@ module.exports = [
         },
       ],
       "no-useless-escape": "error",
+      "no-warning-comments": [
+        "error",
+        {
+          // The webpackChunkName magic comments were removed in the Vite
+          // migration; they are dead under Vite (chunks are named after
+          // their imported file). Flag any that slip back in so the
+          // cleanup stays enforced.
+          terms: ["webpackChunkName"],
+          location: "anywhere",
+        },
+      ],
       "space-in-parens": "error",
       "vars-on-top": "error",
       "prefer-const": "error",
