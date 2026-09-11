@@ -153,7 +153,9 @@ function initCopy(root) {
  * Mark the sidebar link for whichever section is currently on screen.
  */
 function initScrollSpy(root) {
-    const links = [...root.querySelectorAll('.ds__sidebar a[href^="#"]')];
+    // Group titles are jumps, not positions: a section spans the whole viewport
+    // for most of a scroll, so observing it would starve the links beneath it.
+    const links = [...root.querySelectorAll('.ds__sidebar .ds__nav-list a[href^="#"]')];
     if (!links.length || !('IntersectionObserver' in window)) return;
 
     const linkById = new Map(links.map((link) => [decodeURIComponent(link.hash.slice(1)), link]));
