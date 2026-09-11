@@ -10,7 +10,6 @@ from markupsafe import Markup
 from pydantic import BaseModel
 
 from infogami.utils.view import public
-from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import fulltext_search_async
@@ -463,9 +462,7 @@ class SearchFacetsPartial:
     """Handler for search facets sidebar and "selected facets" affordances."""
 
     @classmethod
-    async def generate_async(cls, data: dict, sfw: bool = False) -> dict:
-        user = get_current_user()
-        show_merge_authors = bool(user and user.is_librarian_or_higher())
+    async def generate_async(cls, data: dict, sfw: bool = False, show_merge_authors: bool = False) -> dict:
 
         path = data.get("path")
         query = data.get("query", "")
@@ -581,13 +578,12 @@ class BookPageListsPartial:
 
     @classmethod
     def get_list_card(cls, lst: Any, user: AuthenticatedUser | None) -> BookPageListCard:
-        """Build the data for one card. Keeps DB calls out of the template.
+        """Build data for one card. Keep DB calls out of the template.
 
-        ``lst`` comes from ``get_lists_async`` as a ``web.storage``. We reload
-        the full List for ``get_url`` and ``get_patron_showcase``. The
-        ``public_readlog`` check is copied exactly from the old Templetor
-        code so the follow button doesn't change behavior. ``is_subscribed``
-        is the same ``PubSub`` check ``User.is_subscribed_user`` does.
+        ``lst`` is a web.storage from get_lists_async. Reload the full List
+        for get_url and get_patron_showcase. The public_readlog check matches
+        the old Templetor code. is_subscribed uses the same PubSub check as
+        User.is_subscribed_user.
         """
         own_list = bool(user and lst.owner and lst.owner.key == user.user_key)
         converted = convert_list(lst.key)
