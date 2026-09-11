@@ -8,7 +8,7 @@ import web
 from markupsafe import Markup
 from pydantic import BaseModel
 
-from infogami.utils.view import public, render_template
+from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
@@ -28,10 +28,8 @@ from openlibrary.plugins.openlibrary.lists import (
     get_lists_async,
     get_user_lists,
 )
-from openlibrary.plugins.upstream.utils import get_user_object, json_encode, render_macro
-from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
-from openlibrary.plugins.upstream.utils import json_encode, render_macro
+from openlibrary.plugins.upstream.utils import get_user_object, json_encode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
