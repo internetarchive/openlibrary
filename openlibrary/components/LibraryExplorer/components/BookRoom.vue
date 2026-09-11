@@ -232,17 +232,35 @@ export default {
     },
     props: {
         /** @type {import('../utils.js').ClassificationTree} */
-        classification: Object,
-        appSettings: Object,
+        classification: {
+            type: Object,
+            required: true
+        },
+        appSettings: {
+            type: Object,
+            required: true
+        },
 
         /** The classification to jump to @example 658.91500202854 */
-        jumpTo: String,
-        sort: String,
+        jumpTo: {
+            type: String,
+            default: ''
+        },
+        sort: {
+            type: String,
+            default: ''
+        },
         // Raw, mutable filter/sort state (genre mode's GenreFilterBar mutates these
         // directly, same reference LibraryToolbar.vue already mutates -- `filter`/`sort`
         // above are the derived string/order value used for the actual Solr queries).
-        filterState: Object,
-        sortState: Object,
+        filterState: {
+            type: Object,
+            default: null
+        },
+        sortState: {
+            type: Object,
+            default: null
+        },
         // Genre mode's basic/enriched tree toggle -- see LibraryExplorer.vue's genreEnriched
         // watcher, which is what actually swaps `classification.root` when this changes.
         genreEnriched: Boolean,
@@ -257,6 +275,7 @@ export default {
             type: String
         },
         features: {
+            type: Object,
             default: () => ({
                 book3d: true,
                 cover: 'image',
@@ -264,6 +283,7 @@ export default {
             })
         }
     },
+    emits: ['update:genre-enriched'],
     data() {
         const jumpToData = this.jumpTo && (
             this.classification.alphabeticalTopNav
@@ -381,12 +401,12 @@ export default {
             this.stickyHeaderEl = this.$refs.stickyHeader;
 
             // The site header only auto-hides on window scroll (header-scroll.js, wired up
-            // in index.js) -- genre mode's own pane (.book-room, this component's root) is
+            // in main.js) -- genre mode's own pane (.book-room, this component's root) is
             // its own scroll container, so window.scrollY never changes here and that
             // listener never fires. Drive the same behavior from this pane's scroll instead.
             const siteHeader = document.getElementById('site-header-autohide');
             if (siteHeader) {
-                import(/* webpackChunkName: "header-scroll" */ '../../../plugins/openlibrary/js/header-scroll.js')
+                import('../../../plugins/openlibrary/js/header-scroll.js')
                     .then(module => {
                         this._teardownHeaderAutoHide = module.initHeaderAutoHide(siteHeader, this.$el, hidden => {
                             this.$el.classList.toggle('header-collapsed', hidden);

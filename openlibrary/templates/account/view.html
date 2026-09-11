@@ -8,8 +8,7 @@ $var title: $header_title
 
 <div class="mybooks">
   $if mb.is_my_page:
-    $ reading_goal_form = render_template('reading_goals/reading_goal_form', year=current_year())
-    $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal'))
+    $:render_jinja_template("reading_goals/yearly_goal_dialog.html.jinja", year=current_year())
   $:mb.render_sidebar()
 
   $ css = 'no-padding' if mb.key == 'mybooks' else ''
@@ -71,7 +70,8 @@ $var title: $header_title
             $set_share_links(url=request.canonical_url, title=header_title, view_context=ctx)
             $if ctx.get('share_links'):
               $ share_str = _('Share')
-              $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20" alt=""> %s</a>' % share_str
+              $ share_glyph = macros.icon("share-2", extra_class="icon-link__image")
+              $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon">%s %s</a>' % (share_glyph, share_str)
               $ page_url = request.home
               $ share_links = ctx.get('share_links')
               $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)

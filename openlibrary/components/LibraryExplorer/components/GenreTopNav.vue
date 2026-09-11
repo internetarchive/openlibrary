@@ -56,9 +56,15 @@ export default {
     },
     props: {
         /** @type {import('../utils').ClassificationNode[]} */
-        nodes: Array,
+        nodes: {
+            type: Array,
+            required: true
+        },
         // -1 means "All Genres" is the current selection, not one of `nodes`.
-        activeIndex: Number,
+        activeIndex: {
+            type: Number,
+            required: true
+        },
     },
     emits: ['select', 'select-all'],
     data() {

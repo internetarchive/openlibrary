@@ -3,18 +3,24 @@ from functools import cache as functools_cache
 from pathlib import Path
 from typing import Any
 
+import web
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
 
 
 def render_jinja_template(template_name: str, **kwargs: Any) -> str:
     """Render a Jinja template and return the resulting HTML string.
 
-    This is a generic helper to render any Jinja template from the macros
-    directory and pass it values from Templetor templates.
+    A generic helper to render any Jinja template from the macros or
+    templates directory and pass it values, from Templetor templates,
+    other Jinja templates, or plain Python.
 
     Usage in Templetor template:
         $:render_template("MyTemplate.html.jinja", foo="bar")
+
+    Usage in Python (e.g. serving the site layout):
+        render_jinja_template("site.html.jinja", page=page)
     """
     env = get_jinja_env()
     template = env.get_template(template_name)
@@ -80,7 +86,38 @@ def get_jinja_env() -> Environment:
     # Import is deferred to avoid circular imports at module level.
     from infogami.utils.view import render_template
 
-    env.globals["render_templetor_template"] = render_template
+    def _render_templetor_template(name: str, *args: Any, **kwargs: Any) -> Markup:
+        """Render a Templetor template and return it as trusted HTML.
+
+        ``Markup`` because a rendered template is HTML by construction and
+        the env autoescapes — without it every call site would need
+        ``|safe`` (see ``icon`` below for the same rationale).
+        """
+        return Markup(str(render_template(name, *args, **kwargs)))
+
+    env.globals["render_templetor_template"] = _render_templetor_template
+
+    def _icon(name: str, size: str = "md", label: str = "", extra_class: str = "") -> Markup:
+        """Draw an icon from the icon sprite. See /developers/design/icons.
+
+        Jinja has no ``macros`` namespace, so without this global every template
+        wanting an icon must be handed the macro as a render kwarg. ``Markup``
+        because the macro emits trusted SVG and the env autoescapes.
+        """
+        macro = web.template.Template.globals["macros"]["icon"]
+        rendered = macro(name, size=size, label=label, extra_class=extra_class)
+        return Markup(str(rendered).strip())
+
+    # An exception to the "10 or more templates" rule below: an icon is a design
+    # system primitive any template may need.
+    env.globals["icon"] = _icon
+
+    # static_url is used by many templates (site shell, nav, macros) so it
+    # is a true Jinja global, like icon. Import here to avoid circular
+    # import at module load time.
+    from openlibrary.plugins.upstream.code import static_url
+
+    env.globals["static_url"] = static_url
 
     # A force-escape filter that works even under autoescape=True.
     # Jinja2's built-in ``escape``/``e`` filter is a no-op when autoescaping

@@ -32,7 +32,10 @@
 <script>
 export default {
     props: {
-        doc: Object,
+        doc: {
+            type: Object,
+            required: true
+        },
         isPrimary: {
             type: Boolean,
             default: false

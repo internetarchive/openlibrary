@@ -159,7 +159,7 @@ $:macros.HiddenSaveButton("addWork")
                     <div id="hiddenWorkIdentifiers"></div>
                     <div id="identifiers-display-works">
                         $ admin = str(bool(ctx.user) and ctx.user.is_super_librarian_or_higher())
-                        $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=work.get_identifiers().values(), output_selector='#hiddenWorkIdentifiers', id_config_string=work_config.identifiers, input_prefix='work--identifiers', multiple='true', admin=admin))
+                        $:render_component('IdentifiersInput', attrs={'assigned-ids-string': work.get_identifiers().values(), 'output-selector': '#hiddenWorkIdentifiers', 'id-config-string': work_config.identifiers, 'input-prefix': 'work--identifiers', 'multiple': 'true', 'admin': admin})
                     </div>
                 </fieldset>
             </div>

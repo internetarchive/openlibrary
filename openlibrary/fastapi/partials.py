@@ -9,8 +9,11 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
+    get_authenticated_user,
+    is_librarian,
     require_authenticated_user,
 )
+from openlibrary.fastapi.shared.dependencies import get_fullpath
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
@@ -22,6 +25,8 @@ from openlibrary.plugins.openlibrary.partials import (
     MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
     SearchFacetsPartial,
+    SubjectPublishingHistoryPartial,
+    SubjectRelatedPartial,
 )
 
 router = APIRouter()
@@ -34,6 +39,7 @@ SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 async def search_facets_partial(
     data: Annotated[str, Query(description="JSON-encoded data with search parameters")],
     sfw: Annotated[str | None, Cookie()] = None,
+    is_librarian: Annotated[bool, Depends(is_librarian)] = False,
 ) -> dict:
     """
     Get search facets sidebar and selected facets HTML.
@@ -48,7 +54,27 @@ async def search_facets_partial(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes")
+    return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes", show_merge_authors=is_librarian)
+
+
+@router.get("/partials/SubjectPublishingHistory.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def subject_publishing_history_partial(
+    key: Annotated[str, Query(description="Subject key (e.g. /subjects/cooking)")],
+) -> dict:
+    """
+    Get the subject page's publishing-history chart HTML.
+    """
+    return await SubjectPublishingHistoryPartial.generate_async(key=key)
+
+
+@router.get("/partials/SubjectRelated.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def subject_related_partial(
+    key: Annotated[str, Query(description="Subject key (e.g. /subjects/cooking)")],
+) -> dict:
+    """
+    Get the subject page's related subjects/places/people/times widget HTML.
+    """
+    return await SubjectRelatedPartial.generate_async(key=key)
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -74,13 +100,14 @@ async def affiliate_links_partial(
 async def book_page_lists_partial(
     workId: Annotated[str, Query(description="Work ID (e.g., /works/OL53924W)")] = "",
     editionId: Annotated[str, Query(description="Edition ID (e.g., /books/OL7353617M)")] = "",
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)] = None,
 ) -> dict:
     """
     Get book page lists section HTML.
 
     At least one of workId or editionId must be provided.
     """
-    return await BookPageListsPartial.generate_async(workId=workId, editionId=editionId)
+    return await BookPageListsPartial.generate_async(workId=workId, editionId=editionId, user=user)
 
 
 @router.get("/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -144,6 +171,7 @@ async def lazy_carousel_partial(
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def carousel_load_more_partial(
     params: Annotated[CarouselLoadMoreParams, Query()],
+    full_path: Annotated[str, Depends(get_fullpath)],
 ) -> dict:
     """
     Get additional carousel card HTML for paginated carousels.
@@ -152,4 +180,4 @@ async def carousel_load_more_partial(
     queryType (SEARCH | BROWSE | TRENDING | SUBJECTS), q, limit, page,
     sorts, subject, hasFulltextOnly, key, layout, published_in.
     """
-    return await CarouselCardPartial.generate_async(params=params)
+    return await CarouselCardPartial.generate_async(params=params, full_path=full_path)

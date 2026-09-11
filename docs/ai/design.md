@@ -58,6 +58,33 @@ Set `scroll-margin-top` for scrollable elements to ensure proper space above ele
 }
 ```
 
+### Blur follows modality, not viewport width
+
+A surface blurs the page behind it when it is **modal** — when the page is
+inert and a tap on the scrim is a dismiss. Blur is the signal that what's
+behind is out of reach, so it tracks reachability, not screen size.
+
+`ol-dialog` and `ol-drawer` are always modal, so they always carry the scrim
+and its `backdrop-filter`. `ol-popover` is the instructive case: as a desktop
+popover it is non-modal — the page stays live behind it, so it has no backdrop
+at all — while its mobile bottom tray *is* modal, with a tap-to-dismiss scrim,
+and so it blurs. The same component blurs in one mode and not the other because
+modality changed, not because the viewport got narrow.
+
+The practical consequence: don't reach for a blur because a surface is
+full-screen on a phone, and don't drop one because a surface is small. Ask
+whether the page behind is still usable.
+
+```css
+/* Both come from the shared overlay tokens, so every modal surface
+   dims and blurs by the same amount. */
+.scrim {
+  background: var(--overlay-backdrop-color);
+  backdrop-filter: blur(var(--overlay-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--overlay-backdrop-blur));
+}
+```
+
 ## Design Tokens
 
 Open Library uses a two-tier token system defined as CSS custom properties in `static/css/tokens/`.
@@ -72,7 +99,7 @@ Raw values with no semantic meaning — the base palette. `colors.css` defines f
 
 ```css
 --neutral-800: hsl(41, 14%, 21%);
---blue-500: hsl(206, 95%, 39%);
+--blue-500: hsl(210, 82%, 40%);
 --spacing-lg: 1rem;
 --border-radius-lg: 9px;
 ```
@@ -90,7 +117,11 @@ Semantic tokens reference primitives and describe purpose, not appearance.
 --border-radius-card: var(--border-radius-lg);
 ```
 
-The main semantic groups in `colors.css`: text (`--color-text`, `-secondary`, `-muted`, `-inverse`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), borders (`--color-border`, `-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{success,error,warning}-{fg,bg,border}`).
+The main semantic groups in `colors.css`: text (`--color-text`, `-heading`, `-secondary`, `-muted`, `-inverse`), icons (`--color-icon-muted`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), borders (`--color-border`, `-muted`, `-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{info,success,error,warning}-{fg,bg,border}`).
+
+Two of these are a **decorative tier** and carry that caveat in `colors.css`: `--color-border-muted` (1.6:1 on white) and `--color-icon-muted` (2.5:1). In new code they're for dividers and inert chrome — anything a user has to *read*, or that is the sole marker of a control's edge, needs `--color-border` or darker.
+
+You will find existing control borders on `--color-border-muted`. They were migrated at their original weight so the token rollout stayed a no-op; that they sit below 3:1 is a pre-existing gap to fix deliberately, not a precedent to copy.
 
 Hover has two tokens, split by mechanism rather than by surface. `--color-hover-overlay` is a translucent overlay for flat interactive rows (popover items, menu items, list rows) — it composes over whatever surface it lands on, so a row on `--color-surface-sunken` or `-header` still darkens instead of matching its own background. `--color-control-hover` is an opaque fill for raised controls, and must stay opaque: alpha fed to `--control-surface` inverts the specular highlight.
 
@@ -111,9 +142,17 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | File | Contents |
 |---|---|
 | `static/css/tokens/colors.css` | Color primitives, semantic color tokens, deprecated legacy aliases |
-| `static/css/tokens/spacing.css` | Spacing scale |
+| `static/css/tokens/spacing.css` | Spacing scale (inset / inline / stack) |
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
+| `static/css/tokens/borders.css` | Border widths, divider and overlay borders, backdrop scrim |
+| `static/css/tokens/breakpoints.css` | Viewport breakpoints |
+| `static/css/tokens/control-heights.css` | Control heights and the menu-row contract |
 | `static/css/tokens/font-families.css` | Font families and sizes |
+| `static/css/tokens/icon-sizes.css` | Icon sizes |
+| `static/css/tokens/line-heights.css` | Line heights |
+| `static/css/tokens/motion.css` | Durations and easing curves |
+| `static/css/tokens/press.css` | Press-feedback scale tiers |
+| `static/css/tokens/z-index.css` | Stacking levels |
 
 ### Tokens in Shadow DOM
 
@@ -143,13 +182,13 @@ color changes.
 /* Good - hover is instant; only the press-scale animates */
 .button {
   background: var(--white);
-  transition: transform 0.08s;
+  transition: transform var(--duration-press);
 }
 .button:hover {
   background: var(--lightest-grey);
 }
 .button:active {
-  transform: scale(0.97);
+  transform: scale(var(--press-scale));
 }
 ```
 
@@ -190,14 +229,14 @@ one declaration, so there's nothing to keep in sync.
 
 ```css
 /* Light fill: darken fill + border on hover */
-ol-button[variant="secondary"] > button:hover {
-  background-color: var(--lightest-grey);
+:host([variant="secondary"]) .control:hover {
+  background-color: var(--color-control-hover);
   border-color: var(--light-grey);
 }
 
 /* Saturated fill: lighten the whole thing at once */
-ol-button[variant="primary"] > button:hover,
-ol-button[variant="destructive"] > button:hover {
+:host([variant="primary"]) .control:hover,
+:host([variant="destructive"]) .control:hover {
   filter: brightness(1.1);
 }
 ```
@@ -209,10 +248,11 @@ change; only the `:active` press-scale animates.
 
 | Scenario | Solution |
 | --- | --- |
-| Make buttons feel responsive | Add `transform: scale(0.97)` on `:active` |
+| Make buttons feel responsive | Add `transform: scale(var(--press-scale))` on `:active` — buttons only; icon-only controls take `--press-scale-compact` and stretched ones `--press-scale-wide` (see `tokens/press.css`). Menu rows and drawer items press with a fill, no squeeze: a shrinking row reads as the panel moving rather than the row being pressed. |
+| Icon next to a button label | Put the SVG in `ol-button`'s `icon-start` / `icon-end` slot — it's sized to the button (14/16/18px by size) and gapped automatically; don't set width/height/margin on the SVG or add a `::part(label)` gap |
 | Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
 | Hover border looks detached from fill | Shift `border-color` by the same amount as the fill |
-| Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)` |
+| Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)`; time it with `--duration-base` and `--ease-enter` |
 | Shaky/jittery animations | Add `will-change: transform` |
 | Hover causes flicker | Animate child element, not parent |
 | Popover scales from wrong point | Set `transform-origin` to trigger location |

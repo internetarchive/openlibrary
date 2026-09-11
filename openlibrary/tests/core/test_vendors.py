@@ -1,4 +1,6 @@
+import importlib
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -309,7 +311,10 @@ def test_get_amazon_metadata() -> None:
         return MockResponse()
 
     with (
-        patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
@@ -361,7 +366,10 @@ async def test_get_amazon_metadata_async() -> None:
     # Use the ISBN-13 form of the same book for a distinct cache key.
     isbn = "9780590353427"
     with (
-        patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = await get_amazon_metadata_async(id_=isbn, id_type="isbn", timeout=5.0)
@@ -759,6 +767,21 @@ def _make_creators_item() -> CItem:
             ]
         ),
     )
+
+
+def test_amazon_creatorsapi_lazy_import_resolves() -> None:
+    """
+    `AmazonCreatorsAPI.__init__` does `from amazon_creatorsapi import ...` at call
+    time, so a missing dependency surfaces only when the affiliate server boots.
+
+    This matters more since #13277 removed the legacy PA-API fallback: there is no
+    longer a second client to degrade to, so a broken import is a total outage. The
+    module ships inside `python-amazon-paapi` (requirements.txt), which is not an
+    obvious place to look, so a dependency bump can break it with nothing else failing.
+    """
+    module = importlib.import_module("amazon_creatorsapi")
+    assert hasattr(module, "AmazonCreatorsApi")
+    assert hasattr(module.Country, "US")
 
 
 # ---- AmazonCreatorsAPI.serialize() tests ------------------------------------

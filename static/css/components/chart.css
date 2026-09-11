@@ -23,6 +23,12 @@
   background-position: 340px 60px;
   box-sizing: border-box;
 }
+/* Only show the spinner background while its loading indicator is visible --
+   otherwise it bleeds through the async-partial-retry prompt, which lives
+   alongside it rather than replacing .chart outright. */
+.chart:has(.loadingIndicator.hidden) {
+  background-image: none;
+}
 .chartYaxis {
   position: absolute;
   left: -65px;
@@ -34,7 +40,7 @@
   -o-transform: rotate(-90deg);
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
   font-size: 10px;
-  color: var(--olive);
+  color: var(--color-success-fg);
   text-transform: uppercase;
 }
 .chartXaxis {
@@ -44,7 +50,7 @@
   width: 100%;
   text-align: center;
   font-size: 10px;
-  color: var(--olive);
+  color: var(--color-success-fg);
   text-transform: uppercase;
 }
 .chartZoom {

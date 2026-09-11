@@ -47,13 +47,8 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status, title):
 
 $def list_cta(user_key, page_url, title):
   $ data_attr = get_preserve_intent_attrs(_('Add to List'), title, "book")
-  $if user_key:
-    <h3 class="primary-action" $:data_attr>$_('Add to List')</h3>
-  $else:
-    $# XXX: Check if classes are needed here
-    <a href="/account/login?redirect=$page_url" class="dropclick plain js-login-intent" $:data_attr>
-      <h3>$_('Add to List')</h3>
-    </a>
+  $ login_class = "js-login-intent" if not user_key else ""
+  <button class="book-progress-btn primary-action $(login_class)" type="button" $:data_attr>$_('Add to List')</button>
 
 $if work_key:
   $:reading_log_cta(work_key, edition_key, user_key, read_status, title)

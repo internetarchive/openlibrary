@@ -9,8 +9,6 @@ import os
 import sys
 
 import infogami
-from infogami.utils.app import pages
-from openlibrary.plugins.openlibrary import deprecated_handler
 
 
 def setup():
@@ -28,24 +26,6 @@ def setup():
     import openlibrary.plugins.admin.code
     import openlibrary.plugins.upstream.code
     import openlibrary.plugins.importapi.code  # noqa: F401 registers endpoints
-
-    # Register deprecated endpoint handlers AFTER all plugins have loaded
-    # This must be done here, after all plugins are imported, to ensure our handlers
-    # override the deprecated ones
-    # This is only temporary while we move to fastapi
-
-    for path, encoding in deprecated_handler.DEPRECATED_PATHS:
-        if path not in pages:
-            pages[path] = {}
-        old_handler = pages[path].get(encoding)
-        print(
-            f"DEBUG [openlibrary/code.py]: Registering deprecated handler for {path}, old handler was: {old_handler}",
-            file=sys.stderr,
-        )
-        if encoding == "json":
-            pages[path]["json"] = deprecated_handler.DeprecatedJSONEndpointHandler
-        else:
-            pages[path][None] = deprecated_handler.DeprecatedEndpointHandler
 
     load_views()
 

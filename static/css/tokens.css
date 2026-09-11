@@ -4,8 +4,8 @@
  * CSS custom properties for the Open Library design system.
  *
  * Each file defines :root custom properties for a specific category.
- * This barrel file is compiled by webpack into a single CSS file
- * loaded in <head> for all pages.
+ * This barrel file is compiled by the CSS build (scripts/vite/build.mjs) into
+ * a single CSS file loaded in <head> for all pages.
  */
 
 @import "tokens/border-radius.css";
@@ -13,7 +13,9 @@
 @import "tokens/breakpoints.css";
 @import "tokens/colors.css";
 @import "tokens/control-heights.css";
-@import "tokens/font-families.css";
-@import "tokens/line-heights.css";
+@import "tokens/icon-sizes.css";
+@import "tokens/motion.css";
+@import "tokens/press.css";
 @import "tokens/spacing.css";
+@import "tokens/typography.css";
 @import "tokens/z-index.css";

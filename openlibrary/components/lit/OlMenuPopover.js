@@ -57,30 +57,36 @@ export class OlMenuPopover extends LitElement {
         :host {
             display: inline-block;
             font-family: var(--font-family-body);
+
+            /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+            --ol-popover-content-max-width: 360px;
+            --ol-popover-content-max-height: min(70vh, 480px);
         }
 
-        /* No trigger styles here: the default trigger is a light-DOM
-           <ol-button>, painted by the global ol-button.css. */
+        /* No trigger styles here: the default trigger is an <ol-button>,
+           which paints itself. */
 
         .panel {
             display: flex;
             flex-direction: column;
             min-width: 200px;
-            max-width: min(90vw, 360px);
-            max-height: min(70vh, 480px);
+            max-width: var(--ol-popover-content-max-width);
+            max-height: var(--ol-popover-content-max-height);
         }
 
         .menu {
             display: flex;
             flex-direction: column;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
             overflow-y: auto;
         }
 
         .menu-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -90,25 +96,35 @@ export class OlMenuPopover extends LitElement {
         /* Real <button>s so Enter/Space activate natively; the keydown handler
            only moves focus. UA button box reset so they read as menu rows. */
         .item {
-            display: block;
-            width: 100%;
+            display: flex;
+            align-items: center;
             box-sizing: border-box;
-            margin: 0;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            /* One height across every menu row; a wrapping label grows past it. */
+            min-height: var(--menu-row-height);
+            /* The menu-row pill, shared verbatim with OlOptionsPopover and
+               OlSelectPopover: inset from the panel edge so the hover fill reads
+               as a pill, the padding giving back what the margin takes. */
+            margin: 0 var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
             border: 0;
+            border-radius: var(--border-radius-button);
             background: none;
-            color: var(--darker-grey);
+            /* A real <button>, so the page ink has to be inherited explicitly. */
+            color: inherit;
             font-family: inherit;
             font-size: 14px;
-            font-weight: 500;
-            line-height: 1.4;
+            font-weight: 400;
+            line-height: var(--line-height-control);
             text-align: left;
             cursor: pointer;
         }
 
-        /* Nested items are a subset of the item above them. */
+        /* Nested items are a subset of the item above them. Less the row's own
+           inset, so the indent is measured from the panel like every other
+           label offset. */
         .item--nested {
-            padding-left: var(--spacing-inset-xl);
+            padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -117,20 +133,15 @@ export class OlMenuPopover extends LitElement {
             }
         }
 
-        /* No radio to carry the state, so the row shows it — same tint and
-           weight ol-options-popover uses. */
+        /* No radio on the row, so the label carries the state — colour only,
+           since a weight change would re-measure the label and shift the row.
+           The fill stays reserved for hover. */
         .item[aria-checked="true"] {
-            background: var(--color-control-selected-bg);
             color: var(--color-link);
-            font-weight: 600;
-        }
-
-        .item[aria-checked="true"]:hover {
-            background: var(--color-control-selected-bg-hover);
         }
 
         .item:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: -2px;
         }
     `;
@@ -167,7 +178,6 @@ export class OlMenuPopover extends LitElement {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label=${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}
                 @ol-popover-open=${this._onPopoverOpen}
             >
@@ -182,8 +192,9 @@ export class OlMenuPopover extends LitElement {
     }
 
     /**
-     * Build the default trigger in light DOM so ol-button.css can paint it —
-     * that sheet can't cross a shadow boundary.
+     * Build the default trigger as a real light-DOM child, so it is
+     * structurally identical to a consumer-supplied trigger (slotted, focusable
+     * from the page, and styled by ol-button itself).
      *
      * @returns {void}
      */

@@ -157,13 +157,22 @@ const TAG_ITEMS = (() => {
 
 export default {
     props: {
-        filterState: Object,
-        sortState: Object,
+        filterState: {
+            type: Object,
+            default: null
+        },
+        sortState: {
+            type: Object,
+            default: null
+        },
         genreEnriched: Boolean,
         // The actual .genre-sticky-header element (not a CSS selector -- avoids resolving
         // one across the shadow root) that the selected-filter pills teleport to. null
         // until BookRoom.vue's own mounted() resolves its template ref.
-        chipsTeleportTarget: Object,
+        chipsTeleportTarget: {
+            type: Object,
+            default: null
+        },
         // Language keys (e.g. "/languages/eng") pulled from a shared ?language= URL param
         // by LibraryExplorer.vue's data(). Every other URL-shareable filter is a plain
         // string filterState/sortState already holds directly, so LibraryExplorer.vue

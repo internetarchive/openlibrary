@@ -61,7 +61,10 @@ import ShelfProgressBar from './ShelfProgressBar.vue';
 export default {
     components: { RightArrowIcon, ShelfProgressBar },
     props: {
-        node: Object,
+        node: {
+            type: Object,
+            required: true
+        },
         expanded: {
             type: Boolean,
             default: false,

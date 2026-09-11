@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Install mailpit (SMTP capture + web UI)
 ARG MAILPIT_VERSION=1.21.6
@@ -23,4 +23,4 @@ RUN chmod +x start.sh
 # FastAPI mock on 8090; mailpit SMTP on 1025; mailpit web UI on 8025
 EXPOSE 8090 1025 8025
 
-CMD ["/app/start.sh"]
+CMD ["sh", "/app/start.sh"]

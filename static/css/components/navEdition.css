@@ -9,7 +9,7 @@ div.navEdition {
 }
 
 span.booktitle {
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-family: var(--font-family-title);
   font-weight: bold;
 }

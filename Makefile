@@ -9,49 +9,37 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components i18n lint frontend
+.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend
 
-all: git css js components lit-components i18n
+all: git frontend i18n
 
-frontend: css js components lit-components
-
-node_modules: package-lock.json package.json
-	npm ci --no-audit --no-fund
-
-css: node_modules
-	mkdir -p $(BUILD)/css_new
-	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx webpack --config webpack.config.css.js
-	mkdir -p $(BUILD)/css
-	rm -rf $(BUILD)/css
-	mv $(BUILD)/css_new $(BUILD)/css
-
-js: node_modules
-	mkdir -p $(BUILD)/js_new
-	BUILD_DIR=$(BUILD)/js_new NODE_ENV=production npx webpack
-	# This adds FSF licensing for AGPLv3 to our js (for librejs)
-	for js in $(BUILD)/js_new/*.js; do \
-		echo "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0" | cat - $$js > /tmp/js && mv /tmp/js $$js; \
-		echo "\n// @license-end"  >> $$js; \
-	done
-	mkdir -p $(BUILD)/js
-	rm -rf $(BUILD)/js
-	mv $(BUILD)/js_new $(BUILD)/js
-
-components: node_modules
-	mkdir -p $(BUILD)/components_new
-	BUILD_DIR=$(BUILD)/components_new npx vite build -c openlibrary/components/vite.config.mjs
-	mkdir -p $(BUILD)/components
-	rm -rf $(BUILD)/components
-	mv $(BUILD)/components_new $(BUILD)/components
-
-lit-components: node_modules
+frontend: node_modules icons
 	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
 	npx cem analyze
-	mkdir -p $(BUILD)/lit-components_new
-	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/vite-lit.config.mjs
-	mkdir -p $(BUILD)/lit-components
-	rm -rf $(BUILD)/lit-components
-	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
+	node scripts/vite/build.mjs
+
+node_modules: package-lock.json package.json
+ifeq ($(LOCAL_DEV),true)
+	npm ci --no-audit --no-fund
+endif
+
+css: node_modules
+	node scripts/vite/build.mjs --only css
+
+js: node_modules
+	node scripts/vite/build.mjs --only js
+
+components: node_modules icons
+	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
+	npx cem analyze
+	node scripts/vite/build.mjs --only components
+
+lit-components: components
+
+icons:
+	# Build the icon sprite and the Lit glyph module from static/icons/src/.
+	# Neither is committed. No node_modules prerequisite — the script is pure Node.
+	node scripts/build_icon_sprite.mjs
 
 i18n:
 	python ./scripts/i18n-messages compile
@@ -79,9 +67,9 @@ reindex-solr:
 
 lint:
 	# See the pyproject.toml file for ruff's settings
-	python -m ruff check .
+	uv run --with-requirements requirements_test.txt ruff check .
 
-PYTEST_ARGS = . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
+PYTEST_ARGS ?= . --doctest-modules
 
 test-py:
 	pytest $(PYTEST_ARGS)

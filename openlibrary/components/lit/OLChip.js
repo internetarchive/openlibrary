@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+import './OlIcon.js';
 
 /**
  * OLChip - A pill-shaped interactive chip web component
@@ -8,9 +9,9 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  * click events, and optional link behavior via href.
  *
  * @prop {Boolean} selected - Whether the chip is in a selected state
- * @prop {String} size - Chip size: "small" or "medium" (default)
- * @prop {String} variant - Domain category that tints the chip:
- *   "language" | "subject" | "genre" | "author" | "place" | "neutral".
+ * @prop {"small" | "medium"} size - Default: "medium"
+ * @prop {"language" | "subject" | "genre" | "author" | "place" | "neutral"} variant -
+ *   Domain category that tints the chip.
  *   Omit for the default (white / solid-blue-when-selected) chip. The chip
  *   maps the variant to a soft-tint palette internally (see colors.css); a
  *   variant chip keeps its tint when `selected` and just gains a close icon.
@@ -50,7 +51,12 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --chip-padding-block: var(--spacing-xs);
             --chip-padding-inline: var(--spacing-md);
             --chip-icon-size: 14px;
-            --chip-icon-gap: var(--spacing-2xs);
+            --chip-icon-gap: var(--spacing-xs);
+            /* The x glyph paints across the middle of its 24-unit viewBox
+               (6 -> 18, stroke included), leaving 3/16 of the icon box empty on
+               each side. The slack is pulled back out below so the chip spaces
+               the painted glyph rather than its box. */
+            --_chip-icon-slack: calc(var(--chip-icon-size) * 3 / 16);
 
             /* Color slots. Default = idle, unselected neutral chip; overridden
                below by [selected] and by each domain [variant]. */
@@ -65,6 +71,9 @@ export class OLChip extends FocusableHostMixin(LitElement) {
                nudges each domain tint's border down by a proportional amount. */
             --_chip-border-hover: color-mix(in srgb, var(--_chip-border) 92%, black);
             --_chip-count-fg: #777;
+            /* Specular top edge, on ol-button's scale: full on the light tints,
+               dialed down on the solid blue fill below. */
+            --control-highlight-strength: 35%;
 
             display: inline-block;
         }
@@ -73,10 +82,10 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --chip-padding-block: var(--spacing-2xs);
             --chip-padding-inline: var(--spacing-sm);
             --chip-icon-size: 12px;
+            --chip-icon-gap: var(--spacing-2xs);
         }
 
         .chip {
-            position: relative;
             display: inline-flex;
             align-items: center;
             padding: var(--chip-padding-block) var(--chip-padding-inline);
@@ -87,6 +96,20 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             line-height: var(--line-height-chip);
             background: var(--_chip-bg);
             color: var(--_chip-fg);
+            /* Raised look, matching ol-button. Declared here rather than on
+               :host so :hover can retone the highlight and the surface never
+               leaks to slotted content; held in a var so :focus-visible can
+               layer the focus ring without restating the resting shadow. */
+            --control-surface: var(--_chip-bg);
+            --_chip-raised-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+            box-shadow: var(--_chip-raised-shadow);
             cursor: pointer;
             user-select: none;
             text-decoration: none;
@@ -96,16 +119,19 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             .chip:hover {
                 background: var(--_chip-bg-hover);
                 border-color: var(--_chip-border-hover);
+                /* Track the background, or the highlight stays toned to the
+                   resting fill. */
+                --control-surface: var(--_chip-bg-hover);
             }
         }
 
         .chip:active {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         .chip:focus-visible {
             outline: none;
-            box-shadow: var(--box-shadow-focus);
+            box-shadow: var(--box-shadow-focus), var(--_chip-raised-shadow);
         }
 
         /* Default selected (no domain variant): solid primary-blue fill. */
@@ -119,6 +145,9 @@ export class OLChip extends FocusableHostMixin(LitElement) {
                filter carries the whole pill, edge included. */
             --_chip-border-hover: var(--_chip-border);
             --_chip-count-fg: #c6e1f0;
+            /* A white edge reads much louder on the dark fill than on a tint
+               (same 18% as primary buttons). */
+            --control-highlight-strength: 18%;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -127,15 +156,10 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             }
         }
 
-        /* Selected chips reserve room for the leading close icon (all variants). */
-        :host([selected]) .chip {
-            padding-inline-start: calc(var(--chip-padding-inline) + var(--chip-icon-size) + var(--chip-icon-gap));
-        }
-
         /* ── Domain variants: soft category-colored tint ──────────────────
-           The tint is identical whether or not the chip is selected; the
-           [selected] rule above only reserves space for the close icon, so a
-           selected variant chip reads as a removable, category-colored pill. */
+           The tint is identical whether or not the chip is selected; selecting
+           one only adds the close icon, so a selected variant chip reads as a
+           removable, category-colored pill. */
         :host([variant="language"]) {
             --_chip-bg: var(--color-chip-language-bg);
             --_chip-fg: var(--color-chip-language-fg);
@@ -189,19 +213,23 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             font-size: var(--font-size-label-medium);
         }
 
-        /* Close icon for selected state */
+        /* Close icon for selected state. Negative margins absorb the glyph's
+           dead space, so the leading inset and the gap to the label both
+           measure from the painted x. */
         .icon-slot {
-            position: absolute;
-            inset-inline-start: var(--chip-padding-inline);
-            top: 50%;
-            transform: translateY(-50%);
+            display: inline-flex;
+            flex: none;
             width: var(--chip-icon-size);
             height: var(--chip-icon-size);
+            margin-inline:
+                calc(-1 * var(--_chip-icon-slack))
+                calc(var(--chip-icon-gap) - var(--_chip-icon-slack));
         }
 
         .icon {
             width: var(--chip-icon-size);
             height: var(--chip-icon-size);
+            --ol-icon-stroke-width: 3;
         }
 
         /* Count */
@@ -236,18 +264,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
 
         return html`
             <span class="icon-slot">
-                <svg
-                    class="icon"
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="3"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
+                <ol-icon class="icon" name="x"></ol-icon>
             </span>
         `;
     }

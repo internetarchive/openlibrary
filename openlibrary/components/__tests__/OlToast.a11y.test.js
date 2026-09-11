@@ -30,7 +30,9 @@ describe('OlToast a11y', () => {
 
     test('close button has an accessible name', async() => {
         const el = await mount('<ol-toast message="Changes saved."></ol-toast>');
-        expect(el.shadowRoot.querySelector('button').getAttribute('aria-label')).toBe('Close');
+        // The close control is an <ol-button>; the real <button> lives in its shadow root.
+        const button = el.shadowRoot.querySelector('ol-button').shadowRoot.querySelector('button');
+        expect(button.getAttribute('aria-label')).toBe('Close');
     });
 
     test('regression guard: an unlabelled close button is reported as button-name', async() => {

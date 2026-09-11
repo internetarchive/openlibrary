@@ -32,7 +32,7 @@ h1 {
 body,
 p,
 li {
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 body {
   font-size: 100%;
@@ -54,10 +54,10 @@ hr {
 }
 li {
   list-style: none;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 a:link {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 a:hover {
@@ -69,16 +69,21 @@ a:visited {
   text-decoration: underline;
 }
 /* Note more heading styles can be found in base/headings
-   This provides the minimum possible */
+   This provides the minimum possible: h1-h3 take the heading role and
+   h4-h6 the subheading role from tokens/typography.css. */
 h1,
 h2,
-h3,
+h3 {
+  font-family: var(--font-family-heading);
+  color: var(--color-text-heading);
+  font-weight: var(--font-weight-heading);
+}
 h4,
 h5,
 h6 {
-  font-family: var(--font-family-body);
-  color: var(--grey);
-  font-weight: 600;
+  font-family: var(--font-family-subheading);
+  color: var(--color-text-heading);
+  font-weight: var(--font-weight-subheading);
 }
 div.head {
   margin-bottom: var(--spacing-stack-sm);
@@ -91,7 +96,7 @@ pre,
 code {
   font-family: var(--font-family-code);
   font-size: 0.875em;
-  font-weight: normal;
+  font-weight: var(--font-weight-regular);
   white-space: pre-wrap;
 }
 

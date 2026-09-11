@@ -20,6 +20,8 @@ BARREL_PATH = TOKENS_DIR.parent / "tokens.css"
 # Comments come first in the alternation, so a declaration written inside a
 # comment is consumed as prose rather than picked up as a token.
 _SCAN_RE = re.compile(r"/\*(?P<comment>.*?)\*/|(?P<name>--[\w-]+)\s*:\s*(?P<value>[^;{}]+);", re.DOTALL)
+_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+_CONDITIONAL_RE = re.compile(r"@(?:media|supports|container)\b[^{;]*\{")
 _IMPORT_RE = re.compile(r"""@import\s+["']tokens/([\w-]+)\.css["']""")
 _VAR_RE = re.compile(r"^var\(\s*(--[\w-]+)\s*\)$")
 _RAMP_RE = re.compile(r"^(--[\w-]+?)-(\d+)$")
@@ -36,12 +38,23 @@ _DIAGRAM_CHARS = set("┌┐└┘├┤┬┴┼─│")
 # An indented run is an example or a table, not prose.
 _PRE_INDENT = 2
 _COLOR_PREFIXES = ("#", "hsl", "rgb", "color-mix", "oklch", "oklab", "lab", "lch")
+# A typography token is named for the property it feeds, so Foundations can preview it with that property.
+_TEXT_PROPERTIES = ("font-family", "font-size", "font-weight", "line-height", "letter-spacing", "text-transform")
 _TITLE_SPLIT_LENGTH = 60
 _MIN_RAMP_STEPS = 3
 # Marks a tier as belonging to one component, not the shared vocabulary.
 _INTERNAL_MARKER = "@internal"
 # Reading order for the Foundations page. Anything not listed sorts to the end.
-_DISPLAY_ORDER = ("colors", "font-families", "line-heights", "spacing", "border-radius", "borders", "control-heights", "z-index", "breakpoints")
+_DISPLAY_ORDER = (
+    "colors",
+    "typography",
+    "spacing",
+    "border-radius",
+    "borders",
+    "control-heights",
+    "z-index",
+    "breakpoints",
+)
 
 
 @dataclass(frozen=True)
@@ -82,6 +95,11 @@ class Token:
     @property
     def is_color(self) -> bool:
         return self.display_value.lower().startswith(_COLOR_PREFIXES)
+
+    @property
+    def css_property(self) -> str:
+        """The property a typography token feeds, read off its name; empty for other categories."""
+        return next((prop for prop in _TEXT_PROPERTIES if self.name.startswith(f"--{prop}-")), "")
 
 
 @dataclass
@@ -263,8 +281,47 @@ def _clean_comment(raw: str) -> tuple[str, list[Block]]:
     return "", _blocks([first.strip(), *rest])
 
 
+def _mask_conditional(text: str) -> str:
+    """Hide every conditional block (``@media``, ``@supports``, ``@container``)
+    from the parser, along with the comment introducing it.
+
+    Such a block restates a token the base ``:root`` already declares — a smaller
+    display size for phones, say. Foundations shows one row per token, so reading
+    both would list that token twice with two different values, and strand its
+    lead-in comment as a heading with nothing under it.
+
+    Blanked rather than cut, so every offset survives and a trailing comment still
+    reads as trailing. Braces are counted on a comment-free copy of the text,
+    because a comment can spell out a brace of its own — breakpoints.css documents
+    ``@media (min-width: 768px) { ... }`` as prose — which would otherwise close
+    the block early and swallow the real ``:root`` below it.
+    """
+    comment_starts = {match.end(): match.start() for match in _COMMENT_RE.finditer(text)}
+    scan = _COMMENT_RE.sub(lambda match: " " * len(match.group()), text)
+    masked = list(text)
+    for match in _CONDITIONAL_RE.finditer(scan):
+        depth, end = 1, match.end()
+        while end < len(scan) and depth:
+            depth += {"{": 1, "}": -1}.get(scan[end], 0)
+            end += 1
+        # Walk back over the comments stacked directly above, one per pass. A
+        # `*/` that closes no comment we matched — a stray one left by a bad
+        # edit — has no start to walk back to, so stop there rather than raise
+        # and take the whole page with it. `is None` because a comment opening
+        # the file starts at 0.
+        start = match.start()
+        while (lead := text[:start].rstrip()).endswith("*/"):
+            if (comment_start := comment_starts.get(len(lead))) is None:
+                break
+            start = comment_start
+        for index in range(start, end):
+            if masked[index] != "\n":
+                masked[index] = " "
+    return "".join(masked)
+
+
 def _parse_file(path: Path) -> TokenCategory:
-    text = path.read_text(encoding="utf-8")
+    text = _mask_conditional(path.read_text(encoding="utf-8"))
     category_title = path.stem.replace("-", " ").title()
     groups: list[TokenGroup] = []
     current = TokenGroup()

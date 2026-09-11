@@ -75,6 +75,7 @@ async def fetch_subject_data(
         sort=params.sort,
         details=params.details,
         request_label="SUBJECT_ENGINE_API",
+        facet_fields=None,
         **filters,
     )
 

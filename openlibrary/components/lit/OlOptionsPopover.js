@@ -68,13 +68,19 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         :host {
             display: inline-block;
             font-family: var(--font-family-body);
+
+            /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+            --ol-popover-content-max-width: 400px;
+            --ol-popover-content-max-height: min(70vh, 480px);
         }
 
         /* The default trigger is a light-DOM <ol-button> (see
-           _createDefaultTrigger), painted by the global ol-button.css — there
-           are no trigger styles here. That keeps this trigger on the shared
-           control-height tokens and gives it ol-button's automatic disclosure
-           chevron, so it lines up with <ol-select-popover> beside it. */
+           _createDefaultTrigger), which paints itself — there are no trigger
+           styles here. That keeps this trigger on the shared control-height
+           tokens and gives it ol-button's automatic disclosure chevron, so it
+           lines up with <ol-select-popover> beside it. */
 
         /* ── Panel layout ────────────────────────────────────────── */
 
@@ -82,21 +88,21 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             flex-direction: column;
             min-width: 280px;
-            max-width: min(90vw, 400px);
-            max-height: min(70vh, 480px);
+            max-width: var(--ol-popover-content-max-width);
+            max-height: var(--ol-popover-content-max-height);
         }
 
         .group {
             list-style: none;
             margin: 0;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
             overflow-y: auto;
         }
 
         .group-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -111,17 +117,39 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
         .item-row {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: var(--spacing-inline-md);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            box-sizing: border-box;
+            /* One height across every menu row; a described or wrapping row
+               grows past it. */
+            min-height: var(--menu-row-height);
+            /* The menu-row pill; see OlMenuPopover.js for the recipe. */
+            margin-inline: var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
+            border-radius: var(--border-radius-button);
+            line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
         }
 
+        /* A description makes the row multi-line, so the radio rides the label
+           rather than the whole box. */
+        .item-row:has(.item-description) {
+            align-items: flex-start;
+        }
+
+        /* Nudged onto the label's optical centre, which centring can't do
+           once the row is top-aligned. */
+        .item-row:has(.item-description) .item-radio {
+            margin-top: 2px;
+        }
+
         /* Nested options are a subset of the option above them; indent the
-           whole row so the hierarchy reads at a glance. */
+           whole row so the hierarchy reads at a glance. Less the row's own
+           inset, so the indent is measured from the panel. */
         .item--nested .item-row {
-            padding-left: var(--spacing-inset-xl);
+            padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -135,21 +163,16 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             background: var(--color-hover-overlay);
         }
 
-        .item--selected .item-row {
-            background: var(--color-control-selected-bg);
-        }
-
-        .item--selected .item-row:focus-within,
-        .item--selected .item-row:hover {
-            background: var(--color-control-selected-bg-hover);
-        }
+        /* No selected-row styling: the radio is the state. A tint plus a blue
+           label on top of a checked radio says the same thing three times, and
+           it makes the selected row look hovered. */
 
         .item-radio {
             flex-shrink: 0;
             width: 16px;
             height: 16px;
-            margin: 2px 0 0;
-            accent-color: var(--primary-blue);
+            margin: 0;
+            accent-color: var(--color-primary);
             cursor: pointer;
         }
 
@@ -166,31 +189,21 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
         .item-label {
             display: block;
-            color: var(--darker-grey);
-            font-weight: 500;
-        }
-
-        .item--selected .item-label {
-            color: var(--link-blue);
-            font-weight: 600;
+            font-weight: 400;
         }
 
         .item-description {
             display: block;
             margin-top: 2px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 12px;
             line-height: 1.35;
-        }
-
-        .item--selected .item-description {
-            color: var(--link-blue);
         }
 
         .item-count {
             flex-shrink: 0;
             margin-left: var(--spacing-inline-md);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 13px;
             font-variant-numeric: tabular-nums;
         }
@@ -260,7 +273,6 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label="${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}"
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
@@ -276,8 +288,8 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     }
 
     /**
-     * Build the default trigger in *light* DOM, so the global ol-button.css can
-     * paint it — that sheet can't cross a shadow boundary. Mirrors
+     * Build the default trigger as a real light-DOM child, structurally
+     * identical to a consumer-supplied trigger. Mirrors
      * <ol-select-popover>._createDefaultTrigger.
      *
      * @returns {void}
@@ -345,7 +357,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // FIX (WCAG 1.3.1): no leading whitespace/newline before <li> — Lit
         // template literal whitespace creates real text nodes that accesslint
         // flags as direct text content inside <ul>.
-        return html`<li class="item ${isSelected ? 'item--selected' : ''} ${item.nested ? 'item--nested' : ''}">
+        return html`<li class="item ${item.nested ? 'item--nested' : ''}">
                 <label class="item-row">
                     <input
                         type="radio"

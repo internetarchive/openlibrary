@@ -28,7 +28,7 @@
 .reviews__label {
   font-weight: bold;
   margin-top: 4px;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 0.7em;
@@ -46,7 +46,7 @@
   font-weight: 500;
   margin-right: 5px;
   font-size: 0.9em;
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
 }
 
 .reviews__pill {
@@ -54,7 +54,7 @@
   margin-top: 3px;
   margin-right: 3px;
   padding: 4px 8px;
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: 16px;
   font-size: var(--font-size-label-large);
   text-indent: 0;
@@ -63,7 +63,7 @@
 
 .reviews__pill .percentage {
   font-size: 0.8em;
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
 }
 
 .reviews-header {

@@ -354,9 +354,9 @@ class cover:
         except TypeError, ValueError:
             return False
 
-    def get_tar_filename(self, coverid, size):
+    def get_tar_filename(self, coverid: int, size):
         """Returns tarfile:offset:size for given coverid."""
-        tarindex = coverid / 10000
+        tarindex = coverid // 10000
         index = coverid % 10000
         array_offset, array_size = get_tar_index(tarindex, size)
 
@@ -376,8 +376,12 @@ class cover:
         return _query(category, key, value)
 
 
+# mypy can't check callers against this signature: functools.cache's stub types its
+# wrapper's __call__ as taking *args: Hashable, erasing the real parameter types.
+# https://github.com/python/mypy/issues/16261
 @functools.cache
-def get_tar_index(tarindex, size):
+def get_tar_index(tarindex: int, size):
+    assert config.data_root is not None
     path = os.path.join(config.data_root, get_tarindex_path(tarindex, size))
     if not os.path.exists(path):
         return None, None

@@ -1,7 +1,4 @@
 $def with (title)
-
-<!DOCTYPE html>
-<html lang="$(get_lang() or 'en')">
 <head>
     <meta charset="utf-8">
     <meta name="format-detection" content="telephone=no">
@@ -17,7 +14,7 @@ $def with (title)
         <link rel="preconnect" href="https://apollo.archive.org">
 
     <link rel="search" type="application/opensearchdescription+xml" title="Open Library" href="/static/opensearch.xml">
-    <link rel="manifest" href="/static/manifest.json">
+    <link rel="manifest" href="$static_url('manifest.json')">
 
     <link href="/static/images/openlibrary-128x128.png" rel="apple-touch-icon" />
     <link href="/static/images/openlibrary-152x152.png" rel="apple-touch-icon" sizes="152x152" />
@@ -31,6 +28,10 @@ $def with (title)
         $# Env-specific favicons (green "D" / orange "T") so dev and testing tabs stand out
         <link href="/static/images/openlibrary-$(ol_env)-192x192.png" rel="icon" sizes="192x192" />
         <link href="/static/images/openlibrary-$(ol_env)-128x128.png" rel="icon" sizes="128x128" />
+    $# Icon sprite: one cacheable asset behind every <use href="…#icon-*">, and where
+    $# client JS (<ol-icon>) reads the hashed URL from. Deliberately not a rel=preload:
+    $# an as=image preload isn't credited against the <use> fetch, so it double-fetches.
+    <meta name="ol-icon-sprite" content="$icon_sprite_url()">
     $# Loaded separately from page-*.css so they cache once and serve every page from cache.
     <link href="$static_url('build/css/tokens.css')" rel="stylesheet" type="text/css" />
     <link href="$static_url('build/css/ol-components.css')" rel="stylesheet" type="text/css" />

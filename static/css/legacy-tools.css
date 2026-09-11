@@ -204,7 +204,7 @@
 }
 
 .Tools h3.closed span.head {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools h4 {
@@ -236,13 +236,13 @@
   list-style-type: none;
   font-size: 0.75em;
   margin-top: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools .panel p {
   font-size: 0.75em;
   margin-top: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools div.icon {

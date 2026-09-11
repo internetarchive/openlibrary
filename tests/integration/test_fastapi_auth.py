@@ -9,7 +9,8 @@
 """Integration tests for FastAPI authentication endpoints.
 
 These tests are marked as "integration" and are skipped by default.
-They require a running FastAPI server on localhost:18080.
+They require a running FastAPI server on localhost:8080 (FastAPI is the
+primary local dev entry point; see openlibrary/fastapi/proxy.py).
 
 Run explicitly with:
     uv run pytest -m integration tests/integration/test_fastapi_auth.py -v
@@ -18,7 +19,7 @@ Run explicitly with:
 import pytest
 import requests
 
-BASE_URL = "http://localhost:18080"
+BASE_URL = "http://localhost:8080"
 USERNAME = "openlibrary@example.com"
 PASSWORD = "admin123"
 

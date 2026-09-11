@@ -40,7 +40,7 @@ filterwarnings = [
     # Ignore sqlite3 default timestamp converter warnings from web.py (Python 3.14 deprecation)
     'ignore:The default timestamp converter is deprecated:DeprecationWarning:web',
 ]
-addopts = "-m 'not integration'"
+addopts = "-m 'not integration' --ignore=infogami --ignore=vendor --ignore=node_modules"
 markers = [
     "integration: marks tests as integration tests that require external services (deselect with '-m \"not integration\"')"
 ]
@@ -215,7 +215,6 @@ max-statements = 70
 "openlibrary/catalog/add_book/__init__.py" = ["PLC0415"]
 "openlibrary/code.py" = ["PLC0415"]
 "openlibrary/core/lists/model.py" = ["PLC0415"]
-"openlibrary/coverstore/tests/test_coverstore.py" = ["PLC0415"]
 "openlibrary/mocks/mock_infobase.py" = ["PLC0415"]
 "openlibrary/solr/data_provider.py" = ["PLC0415"]
 "openlibrary/views/showmarc.py" = ["PLC0415"]

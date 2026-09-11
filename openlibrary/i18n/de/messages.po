@@ -6261,14 +6261,10 @@ msgstr ""
 "href=\"//archive.org/\">archive.org</a> und <a href=\"//archive-it.org"
 "\">archive-it.org</a>"
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 #, python-format
-msgid ""
-"version <a "
-"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
-msgstr ""
-"Version <a "
-"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
+msgstr "Version <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
 
 # | msgid "Reading Log"
 #: lib/nav_head.html
@@ -7790,10 +7786,6 @@ msgstr "Meistbewertete Bücher (seit Beginn)"
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
 msgstr "Wir konnten keine Bücher finden, über"
-
-#: swagger/swaggerui.html
-msgid "OpenAPI"
-msgstr "OpenAPI"
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html

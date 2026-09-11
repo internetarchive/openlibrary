@@ -20,7 +20,7 @@
 
 .goal-form__learn-more {
   font-size: var(--font-size-label-small);
-  color: var(--dark-grey);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -36,7 +36,7 @@
 
 .goal-form__note {
   margin: 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: var(--font-size-label-small);
   text-align: center;
 }
@@ -50,13 +50,13 @@
   padding: 8px 12px;
   font-size: var(--font-size-label-large);
   text-align: center;
-  border: 2px solid var(--lighter-grey);
+  border: 2px solid var(--color-border-subtle);
   border-radius: var(--border-radius-input);
   outline: none;
 }
 
 .goal-form__input-section input:focus {
-  border-color: var(--primary-blue);
+  border-color: var(--color-border-focused);
   box-shadow: 0 0 0 2px hsla(202, 96%, 37%, 0.2);
 }
 
@@ -103,7 +103,7 @@
 
 /* Styles for the yearly reading goal progress component */
 .reading-goal-progress {
-  color: var(--dark-grey);
+  color: var(--color-text);
   padding: 5px 0;
 }
 
@@ -122,7 +122,7 @@
 
 .reading-goal-progress__completed {
   display: inline-block;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   height: inherit;
   border-radius: inherit;
 }

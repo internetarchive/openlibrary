@@ -4,10 +4,7 @@ import io
 from unittest.mock import patch
 
 import pytest
-import web
 from PIL import Image
-
-from openlibrary.plugins.openlibrary.api import create_qrcode as legacy_create_qrcode
 
 
 class FakeImage:
@@ -51,23 +48,3 @@ class TestQRCodeEndpoint:
         response = fastapi_client.post("/qrcode", data={"path": "/books/OL1M"})
 
         assert response.status_code == 405
-
-
-def test_qrcode_target_url_matches_legacy(fastapi_client):
-    legacy_qr_urls = []
-    fastapi_qr_urls = []
-
-    with (
-        patch("openlibrary.plugins.openlibrary.api.web.ctx", web.storage(home="http://testserver")),
-        patch("openlibrary.plugins.openlibrary.api.web.input", return_value=web.storage(path="/books/OL1M")),
-        patch("openlibrary.plugins.openlibrary.api.web.header"),
-        patch("openlibrary.plugins.openlibrary.api.qrcode.make", side_effect=lambda url: legacy_qr_urls.append(url) or FakeImage()),
-        pytest.deprecated_call(match="migrated to fastapi"),
-    ):
-        legacy_create_qrcode().GET()
-
-    with patch("openlibrary.fastapi.internal.api.qrcode.make", side_effect=lambda url: fastapi_qr_urls.append(url) or FakeImage()):
-        response = fastapi_client.get("/qrcode?path=/books/OL1M")
-
-    assert response.status_code == 200
-    assert legacy_qr_urls == fastapi_qr_urls == ["http://testserver/books/OL1M"]

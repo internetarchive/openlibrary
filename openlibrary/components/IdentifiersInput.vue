@@ -21,7 +21,7 @@
         </option>
         <template v-if="hasPopularIds">
           <option
-            v-for="entry in popularIds.filter(e => isAdmin || e.name !== 'ocaid')"
+            v-for="entry in popularIdConfigs.filter(e => isAdmin || e.name !== 'ocaid')"
             :key="entry.name"
             :value="entry.name"
           >
@@ -124,22 +124,22 @@ export default {
     // the view automatically re-renders
     props: {
         /** The list of ids currently associated with the entity in the database in string form */
-        assigned_ids_string: {
+        assignedIdsString: {
             type: String,
-            //default: () =>  "{'wikidata': 'Q10000'}"
+            required: true
         },
         /** everything from https://openlibrary.org/config/author
          * Most importantly:
          * {"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, ... ]}
          */
-        id_config_string: {
+        idConfigString: {
             type: String,
             required: true
         },
         /** see createHiddenInputs function for usage
          * #hiddenEditionIdentifiers, #hiddenWorkIdentifiers
          */
-        output_selector: {
+        outputSelector: {
             type: String,
             required: true
         },
@@ -147,8 +147,9 @@ export default {
         Where to save; eg author--remote_ids-- for authors or
         edition--identifiers-- for editions
         */
-        input_prefix: {
-            type: String
+        inputPrefix: {
+            type: String,
+            required: true
         },
         /** Editions and works can have multiple identifiers in the form of a list
          * Not applicable to author identifiers
@@ -165,7 +166,7 @@ export default {
          * Expects a list containing the name field from the
          * respective identifiers.yaml file
         */
-        popular_ids: {
+        popularIds: {
             type: String,
             default: '',
         },
@@ -183,11 +184,11 @@ export default {
 
     computed: {
         idConfigs: function() {
-            return JSON.parse(decodeURIComponent(this.id_config_string));
+            return JSON.parse(decodeURIComponent(this.idConfigString));
         },
-        popularIds: function() {
-            if (this.popular_ids) {
-                const popularIdNames = JSON.parse(decodeURIComponent(this.popular_ids));
+        popularIdConfigs: function() {
+            if (this.popularIds) {
+                const popularIdNames = JSON.parse(decodeURIComponent(this.popularIds));
                 return this.idConfigs.filter((config) => popularIdNames.includes(config.name));
             }
             return [];
@@ -202,7 +203,7 @@ export default {
             return this.selectedIdentifier !== '' && this.inputValue !== '' && (this.isAdmin || this.selectedIdentifier !== 'ocaid');
         },
         hasPopularIds: function() {
-            return Object.keys(this.popularIds).length !== 0;
+            return Object.keys(this.popularIdConfigs).length !== 0;
         },
         isAdmin: function() {
             return this.admin.toLowerCase() === 'true';
@@ -220,7 +221,7 @@ export default {
             },
     },
     created: function(){
-        this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
+        this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assignedIdsString));
         if (this.assignedIdentifiers.length === 0) {
             this.assignedIdentifiers = {};
             return;
@@ -251,10 +252,10 @@ export default {
                 const existingIds = this.assignedIdentifiers[this.selectedIdentifier] ?? [];
                 // Only one Internet Archive ID (ocaid) is allowed per edition
                 if (this.selectedIdentifier === 'ocaid' && existingIds.length > 0) {
-                    errorDisplay('Only one Internet Archive ID is allowed per edition.', this.output_selector);
+                    errorDisplay('Only one Internet Archive ID is allowed per edition.', this.outputSelector);
                     return;
                 }
-                const validEditionId = validateIdentifiers(this.selectedIdentifier, this.inputValue, existingIds, this.output_selector);
+                const validEditionId = validateIdentifiers(this.selectedIdentifier, this.inputValue, existingIds, this.outputSelector);
                 if (validEditionId) {
                     if (!this.assignedIdentifiers[this.selectedIdentifier]) {
                         this.inputValue = [this.inputValue];
@@ -267,9 +268,9 @@ export default {
                     return;
                 }
             } else if (this.assignedIdentifiers[this.selectedIdentifier]) {
-                errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`, this.output_selector);
+                errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`, this.outputSelector);
                 return;
-            } else { errorDisplay('', this.output_selector); }
+            } else { errorDisplay('', this.outputSelector); }
 
             this.assignedIdentifiers[this.selectedIdentifier] = this.inputValue;
             this.inputValue = '';
@@ -295,17 +296,17 @@ export default {
                 let num = 0;
                 for (const [key, value] of Object.entries(this.assignedIdentifiers)) {
                     for (const idx in value) {
-                        html += `<input type="hidden" name="${this.input_prefix}--${num}--name" value="${key}"/>`;
-                        html += `<input type="hidden" name="${this.input_prefix}--${num}--value" value="${value[idx]}"/>`;
+                        html += `<input type="hidden" name="${this.inputPrefix}--${num}--name" value="${key}"/>`;
+                        html += `<input type="hidden" name="${this.inputPrefix}--${num}--value" value="${value[idx]}"/>`;
                         num += 1;
                     }
                 }
             }
             else {
                 html = Object.entries(this.assignedIdentifiers)
-                    .map(([name, value]) => `<input type="hidden" name="${this.input_prefix}--${name}" value="${value}"/>`).join('');
+                    .map(([name, value]) => `<input type="hidden" name="${this.inputPrefix}--${name}" value="${value}"/>`).join('');
             }
-            document.querySelector(this.output_selector).innerHTML = html;
+            document.querySelector(this.outputSelector).innerHTML = html;
         },
         selectIdentifierByInputValue: function() {
             // Ignore for edition identifiers

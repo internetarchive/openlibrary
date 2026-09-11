@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { collectConsoleErrors } from './helpers';
+import { collectConsoleErrors, login, E2E_EMAIL, E2E_PASSWORD } from './helpers';
 
 test.describe('Login page @smoke', () => {
     test('loads with Log In heading', async ({ page }) => {
@@ -20,16 +20,32 @@ test.describe('Login page @smoke', () => {
         await expect(page.locator('input[name="password"]')).toBeVisible();
     });
 
-    test('invalid credentials do not crash the page', async ({ page }) => {
+    test('wrong password shows an error and stays on the login page', async ({ page }) => {
+        // The dev mock IA auth accepts any non-empty password except the
+        // sentinel "bad_password" (docker/mockservices/main.py), so this is
+        // the only wrong password that fails in both dev and production.
         await page.goto('/account/login');
         await page.fill('input[name="username"]', 'nobody@example.com');
-        await page.fill('input[name="password"]', 'wrongpassword123');
+        await page.fill('input[name="password"]', 'bad_password');
         await page.click('button[name="login"]');
-        // Should stay on login-related page (not crash to 500)
         await expect(page.locator('#header-bar').first()).toBeVisible({ timeout: 10_000 });
-        const status = page.url();
-        // Should not redirect to a 500 page
-        expect(status).not.toContain('500');
+        expect(new URL(page.url()).pathname).toBe('/account/login');
+        await expect(page.locator('.flash-messages .error')).toBeVisible();
+        // Still anonymous
+        await expect(page.locator('#header-bar a[href="/account/login"]').first()).toBeAttached();
+    });
+
+    test('form login with valid credentials lands on My Books', async ({ page }) => {
+        // The form authenticates against IA by email, unlike login.json.
+        test.skip(!E2E_EMAIL, 'No credentials for this environment — set OL_E2E_EMAIL / OL_E2E_PASSWORD');
+        const errors = collectConsoleErrors(page);
+        await page.goto('/account/login');
+        await page.fill('input[name="username"]', E2E_EMAIL);
+        await page.fill('input[name="password"]', E2E_PASSWORD);
+        await page.click('button[name="login"]');
+        await page.waitForURL(/\/people\/[^/]+\/books/, { timeout: 10_000 });
+        await expect(page.locator('#header-bar').first()).toBeVisible();
+        expect(errors()).toHaveLength(0);
     });
 
     test('mobile: form fields are visible and not clipped @mobile', async ({ page }) => {
@@ -41,5 +57,19 @@ test.describe('Login page @smoke', () => {
         // Input should be fully within the viewport horizontally
         const viewport = page.viewportSize();
         expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width + 1);
+    });
+
+    test.describe('when already logged in', () => {
+        test.beforeEach(({ page }) => login(page));
+
+        test('shows the already-logged-in notice instead of the form', async ({ page }) => {
+            const errors = collectConsoleErrors(page);
+            await page.goto('/account/login');
+            await expect(page.locator('#contentBody')).toContainText(/already logged in/i);
+            await expect(page.locator('input[name="username"]')).toHaveCount(0);
+            // Guards the LOCAL_DEV credential autofill, which used to run
+            // against a form that isn't rendered for logged-in users.
+            expect(errors()).toHaveLength(0);
+        });
     });
 });

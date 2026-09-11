@@ -5750,14 +5750,10 @@ msgstr ""
 "href=\"//archive.org/\">archive.org</a>, <a href=\"//archive-it.org"
 "\">archive-it.org</a>가 있습니다."
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 #, python-format
-msgid ""
-"version <a "
-"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
-msgstr ""
-"버전 <a "
-"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
+msgstr "버전 <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
 
 #: lib/nav_head.html
 msgid "Loans, Reading Log, Lists, Stats"
@@ -7153,10 +7149,6 @@ msgstr "전체 기간 가장 많이 평가된 책"
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
 msgstr "다음에 관한 책을 찾을 수 없습니다:"
-
-#: swagger/swaggerui.html
-msgid "OpenAPI"
-msgstr "OpenAPI"
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html

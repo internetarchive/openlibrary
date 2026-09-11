@@ -19,8 +19,14 @@
 <script>
 export default {
     props: {
-        sections: Array,
-        index: Number,
+        sections: {
+            type: Array,
+            required: true
+        },
+        index: {
+            type: Number,
+            required: true
+        },
     },
 };
 </script>

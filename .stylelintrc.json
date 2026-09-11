@@ -1,7 +1,8 @@
 {
   "extends": ["stylelint-prettier/recommended"],
   "plugins": [
-    "stylelint-declaration-strict-value"
+    "stylelint-declaration-strict-value",
+    "./stylelint/ol-import-at-top.cjs"
   ],
   "rules": {
     "scale-unlimited/declaration-strict-value": [
@@ -35,12 +36,27 @@
 		"selector-pseudo-element-no-unknown": true,
 		"selector-type-no-unknown": [true, {"ignoreTypes": ["/^ol-/"]}],
 		"media-feature-name-no-unknown": true,
-		"at-rule-no-unknown": true,
+    "at-rule-no-unknown": true,
+    "ol/import-at-top": true,
 		"comment-no-empty": true,
 		"no-duplicate-at-import-rules": true,
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
 		"font-family-no-missing-generic-family-keyword": [true, {"ignoreFontFamilies": ["!important"]}],
 		"no-descending-specificity": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["static/css/base/common.css"],
+      "rules": {
+        "scale-unlimited/declaration-strict-value": [
+          ["font-family", "font-weight", "background-color", "z-index", "color"],
+          {
+            "disableFix": true,
+            "ignoreValues": ["inherit", "transparent", "none"]
+          }
+        ]
+      }
+    }
+  ]
 }

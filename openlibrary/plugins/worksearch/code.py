@@ -42,7 +42,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
-from openlibrary.utils.request_context import req_context
+from openlibrary.utils.request_context import get_request_lang, req_context
 from openlibrary.utils.solr import (
     DEFAULT_PASS_TIME_ALLOWED,
     DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -207,17 +207,8 @@ def _get_readable_count(param: dict, search_response) -> int | None:
     return resp.num_found
 
 
-@public
-def get_request_lang() -> str:
-    """The request's UI language, safe to call from templates rendered on
-    either the legacy web.py server or the FastAPI server. The Templetor
-    global `get_lang()` reads `web.ctx.lang` directly, which isn't populated
-    by FastAPI — partials rendered there would AttributeError. Reading from
-    the unified `req_context` works on both. Falls back to 'en'."""
-    try:
-        return req_context.get().lang or "en"
-    except LookupError:
-        return "en"
+# Make public
+public(get_request_lang)
 
 
 async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None = None, editions=False) -> dict[str, web.storage]:
@@ -234,10 +225,17 @@ async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None
         # To get the top matching edition, need to do a proper query
         resp = await run_solr_query_async(
             WorkSearchScheme(solr_editions=editions),
-            {"q": "key:(%s)" % " OR ".join(work_keys)},
+            {"q": "*:*"},
             rows=len(work_keys),
             fields=list(fields),
             facet=False,
+            extra_params=[
+                # {!terms f=key} uses Solr's TermsQuery, which avoids the
+                # maxBooleanClauses limit an OR-joined query hits at large key
+                # counts. It's put in an fq (rather than q) to bypass user-query
+                # processing, which would mangle the local-params syntax.
+                ("fq", "{!terms f=key}" + ",".join(work_keys)),
+            ],
         )
         return {
             # storify isn't typed properly, but basically recursively call web.storage
@@ -250,7 +248,6 @@ async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None
 
 # Create a sync wrapper for backward compatibility
 get_solr_works = async_bridge.wrap(get_solr_works_async, "get_solr_works")
-public(get_solr_works)
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:
@@ -347,7 +344,9 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     spellcheck_count=None,
     offset=None,
     fields: str | list[str] | None = None,
-    facet: bool | Iterable[str] = True,
+    # Iterable items are either a bare field name or a
+    # {"name": ..., "sort"/"limit": ...} spec -- see the isinstance checks below.
+    facet: bool | Iterable[str | dict[str, Any]] = True,
     highlight: bool = False,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
@@ -493,7 +492,9 @@ async def run_solr_query_async(
     spellcheck_count=None,
     offset=None,
     fields: str | list[str] | None = None,
-    facet: bool | Iterable[str] = True,
+    # Iterable items are either a bare field name or a
+    # {"name": ..., "sort"/"limit": ...} spec -- see the isinstance checks below.
+    facet: bool | Iterable[str | dict[str, Any]] = True,
     highlight: bool = False,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
@@ -651,8 +652,6 @@ class SearchResponse:
 def get_doc(doc: SolrDocument):
     """
     Coerce a solr document to look more like an Open Library edition/work. Ish.
-
-    called from work_search template
     """
     result = web.storage(
         key=doc["key"],
@@ -884,10 +883,13 @@ class search(delegate.page):
         q_joined = " ".join(q_list)
         author_suggestions = derive_authors(search_response.docs, q_joined)
 
+        works = [get_doc(doc) for doc in search_response.docs]
+        add_availability([(w.get("editions") or [None])[0] or w for w in works])
+
         return render.work_search(
             q_joined,
             search_response,
-            get_doc,
+            works,
             param,
             page,
             rows,
@@ -897,7 +899,7 @@ class search(delegate.page):
         )
 
 
-def works_by_author(
+async def works_by_author_async(
     akey: str,
     sort="editions",
     page=1,
@@ -907,11 +909,12 @@ def works_by_author(
     query: str | None = None,
     request_label: SolrRequestLabel = "UNLABELLED",
 ):
+    """Search Solr for an author's works, enriched with availability."""
     param = {"q": query or "*:*"}
     if has_fulltext:
         param["has_fulltext"] = "true"
 
-    result = run_solr_query(
+    result = await run_solr_query_async(
         WorkSearchScheme(),
         param=param,
         page=page,
@@ -935,8 +938,11 @@ def works_by_author(
     )
 
     result.docs = [get_doc(doc) for doc in result.docs]
-    add_availability([(work.get("editions") or [None])[0] or work for work in result.docs])
+    await add_availability_async([(work.get("editions") or [None])[0] or work for work in result.docs])
     return result
+
+
+works_by_author = async_bridge.wrap(works_by_author_async)
 
 
 def top_books_from_author(akey: str, rows=5) -> SearchResponse:
@@ -1099,7 +1105,6 @@ class author_search(delegate.page):
         return resp
 
 
-@public
 def random_author_search(limit=10) -> SearchResponse:
     return run_solr_query(
         AuthorSearchScheme(),

@@ -1,14 +1,20 @@
 # AGENTS.md
 
-> **Canonical guide:** [`docs/ai/README.md`](docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
+> **Canonical guide:** [`docs/ai/README.md`](/docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
 
 ## Quick Reference
 
-**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · webpack · Solr 10
+**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · Vite · Solr 10
 
-> 📖 **Guides:** [`docs/ai/i18n.md`](docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](docs/ai/README.md) — full architecture and data-model.
+> 📖 **Guides:** [`docs/ai/i18n.md`](/docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](/docs/ai/README.md) — full architecture and data-model. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
 
 > 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
+>
+> 📄 **Jinja:** When touching Jinja files (`*.html.jinja`) — creating, editing, or converting from Templetor — read [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) first for syntax, conventions, and known conversion pitfalls. `docs/wiki/` is a separate repo (not a submodule), cloned automatically on container startup by `docker/ol-home-start.sh`. If it's missing (e.g. working outside Docker), clone it:
+> ```bash
+> git clone https://github.com/internetarchive/openlibrary.wiki.git docs/wiki
+> ```
+> (Inside the Docker container the same command runs with `/openlibrary/docs/wiki` — see `docker/ol-home-start.sh`.)
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
@@ -20,7 +26,7 @@
 pre-commit run --files <file1> <file2> ...
 ```
 
-The `mypy` and `generate-pot` hooks will fail on the host (they need `infogami` which only lives in Docker) — that's expected. Everything else must pass. Common auto-fixes that pre-commit applies and you should do yourself first:
+Every hook passes on the host, `mypy` and `generate-pot` included — pre-commit builds an isolated environment per hook, so none of them need Docker. Run `make git` first, though. Both of those hooks read `infogami`, a symlink into the `vendor/infogami` submodule, so while that submodule is unchecked out they fail with `Cannot read file 'infogami'` and `ModuleNotFoundError: No module named 'infogami'`. Everything must pass. Common auto-fixes that pre-commit applies and you should do yourself first:
 
 - **Double quotes** — use `"string"` not `'string'` in all new Python code (the Ruff formatter enforces this)
 - **Import order** — imports must be sorted: stdlib → third-party (alphabetical within each group) → local (ruff isort enforces this)
@@ -91,17 +97,17 @@ cat /tmp/cookies.txt
 2. **Use the session cookie in subsequent requests:**
 ```bash
 # Just use -b to send the cookie automatically (no manual extraction needed)
-curl -X POST "http://localhost:18080/people/openlibrary/lists/OL1L/delete.json" -b /tmp/cookies.txt
-curl "http://localhost:18080/people/openlibrary/lists/OL1L.json" -b /tmp/cookies.txt
+curl -X POST "http://localhost:8080/people/openlibrary/lists/OL1L/delete.json" -b /tmp/cookies.txt
+curl "http://localhost:8080/people/openlibrary/lists/OL1L.json" -b /tmp/cookies.txt
 ```
 
-**Note:** Sessions expire — always login fresh before testing. Both web.py (port 8080) and FastAPI (port 18080) share the same auth system.
+**Note:** Sessions expire — always login fresh before testing. In local dev, FastAPI serves on port 8080 and proxies unmatched requests to web.py; both share the same auth system.
 
 ### FastAPI and web.py Interaction
 
-Open Library runs two web servers in parallel:
-- **web.py** (port 8080) — **Legacy** (web.py / Infogami) — no new endpoints here, use FastAPI
-- **FastAPI** (port 18080) — New async endpoints via nginx proxy
+Open Library runs two web servers:
+- **FastAPI** — primary entry point in local dev (port 8080); unmatched requests proxy to web.py via `openlibrary/fastapi/proxy.py`. All new endpoints go here.
+- **web.py** — **Legacy** (web.py / Infogami) — no new endpoints here, use FastAPI. In local dev it is reached through the FastAPI fallback proxy; in production/staging it is still the front door on port 8080 (FastAPI on 18080).
 
 When testing:
 - Both servers share the same database

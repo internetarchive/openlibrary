@@ -18,8 +18,9 @@
         <template #before>
           <span
             class="symbol"
-            v-html="displaySymbol(o.label)"
-          />
+          >
+            {{ displaySymbol(o.label) }}
+          </span>
         </template>
       </OLChip>
     </div>
@@ -74,6 +75,7 @@ export default {
             default: 0
         }
     },
+    emits: ['update-selected'],
     data: function() {
         return {
             /**
@@ -116,19 +118,19 @@ export default {
             return this.selectedId === id;
         },
         /**
-         * Returns an HTML code denoting what symbol to display in a book tag type chip.
+         * Returns the Unicode symbol to display in a book tag type chip.
          *
          * Will return a bullet symbol if no book tags of a chip's type have been selected,
          * and a heavy checkmark otherwise.
          *
-         * @returns {String} An HTML code representing selections of a type.
+         * @returns {String} A Unicode symbol representing selections of a type.
          */
         displaySymbol: function(type) {
             if (this.allSelectedValues[type] && this.allSelectedValues[type].length) {
-                // &#10004; - Heavy checkmark
-                return '&#10004;';
+                // ✔ - Heavy checkmark
+                return '✔';
             }
-            return '&bull;';
+            return '•';
         }
     }
 };

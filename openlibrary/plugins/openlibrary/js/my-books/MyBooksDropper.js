@@ -105,10 +105,14 @@ export class MyBooksDropper extends Dropper {
     /**
      * Creates loading animation for list loading indicator.
      *
-     * @param {HTMLElement} loadingIndicator
-     * @returns {NodeJS.Timer}
+     * @param {HTMLElement|null} loadingIndicator
+     * @returns {NodeJS.Timer|null}
      */
     initLoadingAnimation(loadingIndicator) {
+        // The indicator is only rendered for authenticated patrons, so without
+        // this guard the interval throws on every tick for anonymous visitors.
+        if (!loadingIndicator) return null;
+
         let count = 0;
         const intervalId = setInterval(function() {
             let ellipsis = '';
@@ -173,6 +177,16 @@ export class MyBooksDropper extends Dropper {
             const anchors = this.dropper.querySelectorAll('.modify-list');
             this.readingLists.initModifyListAffordances(anchors);
         }
+    }
+
+    /**
+     * Returns the ID of the shelf that this dropper's book is currently on,
+     * or `null` if the book is unshelved.
+     *
+     * @returns {ReadingLogShelf|null}
+     */
+    getActiveShelfId() {
+        return this.readingLogForms.getActiveShelfId();
     }
 
     /**

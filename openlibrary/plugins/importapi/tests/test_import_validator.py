@@ -177,6 +177,51 @@ class TestMinimalDifferentiableStrongIdRecord:
                 validator.validate(record)
 
 
+# A record from a registered provider feed: title + authors + a stable provider
+# identifier, but no ISBN/LCCN and no publisher.
+feed_sourced_record = {
+    "title": "The Blue Castle",
+    "source_records": ["project_gutenberg:67979"],
+    "authors": [{"name": "Montgomery, L. M."}],
+    "identifiers": {"project_gutenberg": ["67979"]},
+}
+
+
+class TestFeedRegistrySourcedRecord:
+    """
+    Records from a *registered* provider feed (e.g. Project Gutenberg, Lenny) may
+    import on a stable provider identifier alone — no ISBN/LCCN and no publisher
+    required — because such feeds are often open-access/public-domain. The public
+    import path does not get this exemption: the source must name a registered
+    feed. See #12844.
+    """
+
+    def test_registered_feed_source_validates_on_identifier(self, monkeypatch) -> None:
+        monkeypatch.setattr(import_validator, "_registered_feed_providers", staticmethod(lambda: {"project_gutenberg", "lenny"}))
+        assert import_validator().validate(dict(feed_sourced_record)) is True
+
+    def test_unregistered_source_is_still_rejected(self, monkeypatch) -> None:
+        monkeypatch.setattr(import_validator, "_registered_feed_providers", staticmethod(lambda: {"project_gutenberg"}))
+        record = dict(feed_sourced_record, source_records=["randomvendor:67979"])
+        with pytest.raises(ValidationError):
+            import_validator().validate(record)
+
+    def test_registered_feed_source_still_needs_an_identifier(self, monkeypatch) -> None:
+        monkeypatch.setattr(import_validator, "_registered_feed_providers", staticmethod(lambda: {"project_gutenberg"}))
+        record = dict(feed_sourced_record)
+        del record["identifiers"]
+        with pytest.raises(ValidationError):
+            import_validator().validate(record)
+
+    def test_spoofed_source_prefix_without_matching_identifier_is_rejected(self, monkeypatch) -> None:
+        """A registered source prefix is not a free pass: the identifiers must corroborate it."""
+        monkeypatch.setattr(import_validator, "_registered_feed_providers", staticmethod(lambda: {"project_gutenberg"}))
+        # Claims a gutenberg source but the identifier is keyed by something else.
+        record = dict(feed_sourced_record, identifiers={"madeup": ["x"]})
+        with pytest.raises(ValidationError):
+            import_validator().validate(record)
+
+
 def test_minimal_complete_record() -> None:
     """
     A minimal complete record has a:

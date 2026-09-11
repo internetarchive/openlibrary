@@ -139,6 +139,34 @@ async def require_authenticated_user(
     return user
 
 
+def _is_librarian_from_authenticated_user(user: AuthenticatedUser | None) -> bool:
+    """Return True if the authenticated user is a librarian.
+
+    AuthenticatedUser has no groups, so load the full User via site.
+    Return False for anon or on error.
+    """
+    if not user:
+        return False
+    from openlibrary.utils.request_context import site  # noqa: PLC0415
+
+    try:
+        user_obj = site.get().get(f"/people/{user.username}")
+    except Exception:  # noqa: BLE001
+        return False
+    return bool(user_obj and user_obj.is_librarian_or_higher())
+
+
+def is_librarian(
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)] = None,
+) -> bool:
+    """Check if user is librarian, without requiring login.
+
+    Returns True for librarian/admin/super-librarian, False otherwise.
+    Use for flags like show_merge_authors.
+    """
+    return _is_librarian_from_authenticated_user(user)
+
+
 async def require_librarian(
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> AuthenticatedUser:
@@ -165,3 +193,31 @@ async def require_librarian(
 
 
 LibrarianDep = Annotated[AuthenticatedUser, Depends(require_librarian)]
+
+
+async def require_maintainer(
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> AuthenticatedUser:
+    """FastAPI dependency that requires maintainer-level access.
+
+    Checks that the authenticated user is a member of the maintainers or admin
+    usergroup. Returns 403 if the user lacks sufficient permissions.
+
+    Usage:
+        @router.get("/protected")
+        async def protected_route(
+            _: Annotated[AuthenticatedUser, Depends(require_maintainer)],
+        ):
+            return {"message": "You have maintainer access!"}
+    """
+    user = get_current_user()
+    if not (user and user.is_maintainer()):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
+
+    return _
+
+
+MaintainerDep = Annotated[AuthenticatedUser, Depends(require_maintainer)]

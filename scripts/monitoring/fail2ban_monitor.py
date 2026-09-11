@@ -1,6 +1,20 @@
 from scripts.monitoring.utils import bash_run
 
 
+def get_jail_list() -> list[str]:
+    """
+    Returns the list of currently configured fail2ban jails.
+    """
+    result = bash_run(
+        "fail2ban-client status | grep 'Jail list'",
+        capture_output=True,
+    )
+    jails_str = result.stdout.strip().split(":", 1)[-1].strip()
+    if not jails_str:
+        return []
+    return [jail.strip() for jail in jails_str.split(",")]
+
+
 def get_fail2ban_counts(jail: str) -> tuple[int, int]:
     """
     Returns (currently_failed, currently_banned) counts for the given fail2ban jail.

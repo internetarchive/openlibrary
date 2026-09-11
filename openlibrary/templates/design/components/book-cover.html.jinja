@@ -1,0 +1,31 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {# Same server-rendered opening state as the shelf-button demos — it is the
+       same work, and the sync script only keeps them in step after a change. #}
+    {% set garden = reading_state.get('OL69612W') or {} %}
+    <p class="ds-lead">
+        A book cover at a fixed 2:3 ratio, with somewhere to float a control over it. It knows nothing about shelves, availability or search — give it an image URL and a title. When there is no artwork it draws a title/author panel instead, so a shelf of covers keeps its rhythm rather than opening a hole. The <code>overlay</code> slot is where the save button goes; the component owns the corner so a consumer never positions it.
+    </p>
+    {% call ex.example("With artwork", "The common case. The image is lazy, and its alt text is the title and author — a cover is a picture of the book, not decoration.", output_style="display: flex; gap: 16px; width: 420px;") %}
+        <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" href="/works/OL69612W" style="width: 128px;">
+        </ol-book-cover>
+    {% endcall %}
+    {% call ex.example("No artwork", "The generated cover. The title clamps to four lines and the author sits under it in small caps. At size=\"small\" the author is dropped — a 72px row cover has no room for it.", output_style="display: flex; gap: 16px; align-items: flex-start;") %}
+        <ol-book-cover book-title="The Fellowship of the Ring" authors="J.R.R. Tolkien" style="width: 128px;">
+        </ol-book-cover>
+        <ol-book-cover size="small" book-title="The Fellowship of the Ring" authors="J.R.R. Tolkien" style="width: 72px;">
+        </ol-book-cover>
+    {% endcall %}
+    {% call ex.example("Hover card", "A pointer gets the title, year and author over the cover. ol-tooltip arms on the same media query cover-card layouts hide their caption with, so exactly one of the two ever shows.", output_style="display: flex; gap: 16px; width: 420px; padding-top: 48px;") %}
+        <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" year="1911" href="/works/OL69612W" style="width: 128px;">
+        </ol-book-cover>
+    {% endcall %}
+    {% call ex.example("Overlay", "Anything slotted into overlay takes the top-right corner, over the artwork and outside the link — so hovering the control is not hovering the cover, and clicking it does not navigate.",
+        code="<ol-book-cover src=\"https://covers.openlibrary.org/b/id/12622062-M.jpg\"\n               book-title=\"The Secret Garden\"\n               authors=\"Frances Hodgson Burnett\"\n               href=\"/works/OL69612W\">\n  <ol-shelf-button slot=\"overlay\" variant=\"icon\"\n                   user-key=\"/people/you\"\n                   work-key=\"/works/OL69612W\"\n                   book-title=\"The Secret Garden\">\n  </ol-shelf-button>\n</ol-book-cover>",
+        output_style="display: flex; gap: 16px; width: 420px;") %}
+        <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" href="/works/OL69612W" style="width: 128px;">
+            <ol-shelf-button class="demo-secret-garden" slot="overlay" variant="icon" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden" {% if garden.get('shelf') %}shelf="{{ garden['shelf'] }}"{% endif %} {% if garden.get('rating') %}rating="{{ garden['rating'] }}"{% endif %}>
+            </ol-shelf-button>
+        </ol-book-cover>
+    {% endcall %}
+{% endmacro %}

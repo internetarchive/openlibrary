@@ -8,16 +8,18 @@ Open Library (openlibrary.org) is an open, editable library catalog by the Inter
 
 ## Development Setup
 
-Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
+Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. FastAPI is the primary entry point on port 8080; unmatched requests are proxied to the legacy web.py app by `openlibrary/fastapi/proxy.py` (the old web.py-on-8080 / FastAPI-on-18080 layout was swapped in #13423).
+
+On startup, the `home` container runs `docker/ol-home-start.sh`, which clones the [GitHub wiki](https://github.com/internetarchive/openlibrary.wiki) into `docs/wiki/` (gitignored). The wiki holds operational/how-to documentation that is **not** in this repo — search `docs/wiki/` locally before turning to a web search.
 
 ## Build Commands
 
 Build targets are in the `Makefile`. Key dev workflow commands:
 
 ```bash
-make all                    # Build everything (css, js, components, lit-components, i18n)
-npm run watch               # Dev mode with hot reload (CSS + JS)
-npm run watch:lit-components # Watch Lit components
+make all                    # Build everything (frontend, i18n)
+npm run watch               # Dev mode with hot reload (CSS + JS + components)
+npm run watch:components     # Watch components only
 ```
 
 ## Testing
@@ -91,7 +93,7 @@ matches the app's configured `http_ext_header_uri`. The dev app sets this to
   `X-12-action: merge-authors`, `X-12-comment: ...`, `X-12-data: {...}`.
 - **Prefer FastAPI endpoints instead:** they share the session auth and need
   no custom headers — e.g. author merges via
-  `POST http://localhost:18080/authors/merge.json`.
+  `POST http://localhost:8080/authors/merge.json`.
 
 ### Scripts must log in via the JSON endpoint
 
@@ -162,7 +164,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 
 **Routes (web.py/Infogami):** Defined as classes extending `delegate.page` in plugin `code.py` files. The class attribute `path` is a regex pattern, and `GET`/`POST` methods handle requests.
 
-**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app.
+**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`.
 
 **Key plugins:**
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
@@ -195,10 +197,10 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Frontend
 
-- **CSS:** CSS files in `static/css/`, compiled via webpack. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
-- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
-- **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
-- **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
+- **CSS:** CSS files in `static/css/`, compiled via `scripts/vite/build.mjs` (`--only css`) to `static/build/css/`. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
+- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via `scripts/vite/build.mjs` (`--only js`) to `static/build/js/`.
+- **Vue components:** `openlibrary/components/*.vue`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
+- **Lit web components:** `openlibrary/components/lit/`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
 
 ### Browser Support
@@ -207,8 +209,8 @@ We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Comp
 
 What the toolchain guarantees:
 
-- **Webpack JS** is transpiled by Babel (`@babel/preset-env` + core-js `useBuiltIns: "usage"`) — modern *syntax* and core-js-coverable *built-ins* are handled automatically.
-- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `openlibrary/components/vite*.config.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari11.1', 'ios11.3']` in `scripts/vite/build.mjs`, matching `browserslist`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/main.js`. `all.js` is a `<script type="module">`, so the floor is Safari/iOS 11.x plus evergreen Chrome/Edge/Firefox per `browserslist`.
+- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `scripts/vite/build.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
 - **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
 
 Rules for new code:
@@ -280,6 +282,7 @@ Deep-dive references for major system domains. Each covers production architectu
 | Solr config | `conf/solr/` |
 | i18n translations | `openlibrary/i18n/` |
 | Infogami submodule | `vendor/infogami/` |
+| GitHub wiki (local clone) | `docs/wiki/` |
 
 ## Contributing to These Docs
 
