@@ -1,46 +1,12 @@
-{#
-    Renders a loan's expiry date/time, if any. Mirrors the old Templetor macro:
-        $def with(expiry)
-        $if expiry:
-            $ expiry_datetime = datetime_from_isoformat(expiry)
-            <div class="local-date-time">
-                $_('Expires')
-                <time datetime="$datetimestr_utc(expiry_datetime)" title="$datetimestr_utc(expiry_datetime)">
-                    $datestr(expiry_datetime)
-                </time>
-            </div>
-
-    `datetime_from_isoformat`, `datestr`, and `datetimestr_utc` are passed in
-    as render kwargs rather than added as Jinja env globals, since this is
-    the only template that needs them (see core/jinja.py guidance).
-
-    Usage:
-    - From another Jinja template:
-        {% from "FormatExpiry.html.jinja" import format_expiry %}
-        {{ format_expiry(loan.expiry, datetime_from_isoformat, datestr, datetimestr_utc) }}
-    - From a Templetor template (bridge):
-        $:render_jinja_template(
-            "FormatExpiry.html.jinja",
-            expiry=loan.get('expiry'),
-            datetime_from_isoformat=datetime_from_isoformat,
-            datestr=datestr,
-            datetimestr_utc=datetimestr_utc,
-        )
-#}
-{% macro format_expiry(expiry, datetime_from_isoformat, datestr, datetimestr_utc) -%}
-    {%- if expiry %}
-        {%- set expiry_datetime = datetime_from_isoformat(expiry) %}
+{# Renders loan expiry if present. #}
+{% macro format_expiry(expiry_utc, expiry_display) -%}
+    {%- if expiry_utc %}
         <div class="local-date-time">
             {{ _("Expires") }}
-            <time datetime="{{ datetimestr_utc(expiry_datetime) }}"
-                  title="{{ datetimestr_utc(expiry_datetime) }}">
-                {{ datestr(expiry_datetime) }}
-            </time>
+            <time datetime="{{ expiry_utc }}" title="{{ expiry_utc }}">{{ expiry_display }}</time>
         </div>
     {%- endif -%}
 {%- endmacro -%}
-{#- Guarded top-level call: see TruncateString.html.jinja for why this is
-    necessary for a macro file that is both imported and directly rendered. -#}
-{%- if expiry is defined -%}
-    {{ format_expiry(expiry, datetime_from_isoformat, datestr, datetimestr_utc) }}
+{%- if expiry_utc is defined and expiry_display is defined -%}
+    {{ format_expiry(expiry_utc, expiry_display) }}
 {%- endif -%}

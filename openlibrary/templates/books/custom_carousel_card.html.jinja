@@ -1,17 +1,12 @@
 {#
     Renders a single carousel card. Converted from the old Templetor template
-    templates/books/custom_carousel_card.html.
+    templates/books/custom_carousel_card.html. Data is gathered in Python
+    via get_carousel_card_data() (see partials.py) — like
+    ReadingGoalProgressPartial — since Jinja has no `hasattr` and some checks
+    (get_cover_url, get_waitinglist_size) can hit the DB.
 
-    `book` here is a fully-resolved rendering context (see
-    CarouselCardContext / build_carousel_card_context in
-    openlibrary/plugins/openlibrary/partials.py), NOT the raw Work/Edition or
-    Solr dict. The two data shapes a "book" can arrive as (a Thing vs a plain
-    dict) are resolved in Python, since Jinja has no `hasattr` and the
-    resolution there (get_cover_url, get_waitinglist_size) can hit the DB.
-
-    LoanStatus is intentionally left as Templetor (bridged) per issue #13570;
-    `loan_status_html` is its pre-rendered output, computed in Python via
-    render_macro("LoanStatus", ...).
+    LoanStatus is still Templetor (bridged) per issue #13570;
+    `loan_status_html` is pre-rendered in Python via render_macro("LoanStatus").
 #}
 {% from "TruncateString.html.jinja" import truncate_string %}
 {% from "FormatExpiry.html.jinja" import format_expiry %}
@@ -19,10 +14,10 @@
     <div class="book-cover">
         <div class="book-cover-wrapper">
             {% if loan %}
-                {% if has_expiry or waitlist_size or not is_bookreader %}
+                {% if expiry_utc or waitlist_size or not is_bookreader %}
                     <div class="loan-overlay-badge">
-                        {% if has_expiry %}
-                            {{ format_expiry(loan.get('expiry'), datetime_from_isoformat, datestr, datetimestr_utc) }}
+                        {% if expiry_utc %}
+                            {{ format_expiry(expiry_utc, expiry_display) }}
                         {% endif %}
                         {% if waitlist_size %}
                             <div class="loan-overlay-badge__waitlist">
@@ -55,48 +50,43 @@
                          loading="lazy"
                          title="{{ title }}{{ byline }}"
                          alt="{{ title }}{{ byline }}"
-                         {% if lazy and layout == 'carousel' %}
-                         data-lazy="{{ cover_url }}"
-                         src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" />
+                         {% if lazy and layout == 'carousel' %} data-lazy="{{ cover_url }}" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" {% else %} src="{{ cover_url }}" {% endif %} />
                 {% else %}
-                    src="{{ cover_url }}"/>
+                    <div class="carousel__item__blankcover" title="{{ title }}">
+                        <div class="carousel__item__blankcover--title">{{ truncate_string(title, 70) }}</div>
+                        {% if author_names %}
+                            <div class="carousel__item__blankcover--authors">{{ truncate_string(author_names | join(', '), 30) }}</div>
+                        {% endif %}
+                    </div>
                 {% endif %}
-            {% else %}
-                <div class="carousel__item__blankcover" title="{{ title }}">
-                    <div class="carousel__item__blankcover--title">{{ truncate_string(title, 70) }}</div>
-                    {% if author_names %}
-                        <div class="carousel__item__blankcover--authors">{{ truncate_string(author_names | join(', '), 30) }}</div>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </a>
-    </div>
-</div>
-<div class="ol-action-row">
-    <div class="ol-macro-wrapper">{{ loan_status_html }}</div>
-    {% if loan and loan.get('resource_type') == 'bookreader' %}
-        <div class="ol-return-wrapper cta-button-group">
-            <form action="/borrow/ia/{{ loan.get('ocaid') }}"
-                  method="post"
-                  class="return-form"
-                  data-i18n="{{ return_confirm_i18n }}">
-                <input type="hidden" name="action" value="return" />
-                <input type="hidden" name="redirect" value="{{ request_fullpath }}" />
-                <button type="submit"
-                        class="cta-btn cta-btn--available"
-                        title="{{ _('Return book') }}"
-                        aria-label="{{ _('Return book') }}"
-                        data-ol-link-track="BookCarousel|ReturnClick|{{ key }}">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         height="20px"
-                         viewBox="0 -960 960 960"
-                         width="20px"
-                         fill="#FFFFFF">
-                        <path d="M288-192v-72h288q50 0 85-35t35-85q0-50-35-85t-85-35H330l93 93-51 51-180-180 180-180 51 51-93 93h246q80 0 136 56t56 136q0 80-56 136t-136 56H288Z" />
-                    </svg>
-                </button>
-            </form>
+            </a>
         </div>
-    {% endif %}
-</div>
+    </div>
+    <div class="ol-action-row">
+        <div class="ol-macro-wrapper">{{ loan_status_html }}</div>
+        {% if loan and loan.get('resource_type') == 'bookreader' %}
+            <div class="ol-return-wrapper cta-button-group">
+                <form action="/borrow/ia/{{ loan.get('ocaid') }}"
+                      method="post"
+                      class="return-form"
+                      data-i18n="{{ return_confirm_i18n }}">
+                    <input type="hidden" name="action" value="return" />
+                    <input type="hidden" name="redirect" value="{{ request_fullpath }}" />
+                    <button type="submit"
+                            class="cta-btn cta-btn--available"
+                            title="{{ _('Return book') }}"
+                            aria-label="{{ _('Return book') }}"
+                            data-ol-link-track="BookCarousel|ReturnClick|{{ key }}">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             height="20px"
+                             viewBox="0 -960 960 960"
+                             width="20px"
+                             fill="#FFFFFF">
+                            <path d="M288-192v-72h288q50 0 85-35t35-85q0-50-35-85t-85-35H330l93 93-51 51-180-180 180-180 51 51-93 93h246q80 0 136 56t56 136q0 80-56 136t-136 56H288Z" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
 </div>

@@ -75,7 +75,8 @@ $else:
                 </td>
                 <td class="expires">
                     $if 'expiry' in loan:
-                        $:render_jinja_template("FormatExpiry.html.jinja", expiry=loan['expiry'], datetime_from_isoformat=datetime_from_isoformat, datestr=datestr, datetimestr_utc=datetimestr_utc)
+                        $ expiry_dt = datetime_from_isoformat(loan['expiry'])
+                        $:render_jinja_template("FormatExpiry.html.jinja", expiry_utc=datetimestr_utc(expiry_dt), expiry_display=datestr(expiry_dt))
                     $else:
                         -
                 </td>

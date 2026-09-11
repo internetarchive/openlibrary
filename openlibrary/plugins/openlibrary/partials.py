@@ -1,5 +1,4 @@
-import logging
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
@@ -120,34 +119,6 @@ _CAROUSEL_CARD_FALLBACK_COVER = "https://openlibrary.org/static/images/icons/ava
 _CAROUSEL_CARD_COVER_HOST = "//covers.openlibrary.org"
 
 
-@dataclass(frozen=True, slots=True)
-class CarouselCardContext:
-    """Fully-resolved rendering context for books/custom_carousel_card.html.jinja.
-
-    Built in Python (not Jinja) specifically because resolving it requires
-    `hasattr` checks across the two shapes a "book" can arrive in (a Thing
-    vs. a plain Solr/dict record), which Jinja has no equivalent for, and
-    because some of those checks (get_cover_url, get_waitinglist_size) can
-    hit the DB and templates must not do IO.
-    """
-
-    url: str
-    title: str
-    byline: str
-    author_names: list[str]
-    cover_url: str | Literal[False]
-    loan: dict | None
-    has_expiry: bool
-    is_bookreader: bool
-    waitlist_size: int
-    key: str
-    lazy: bool
-    layout: str | None
-    loan_status_html: Markup
-    return_confirm_i18n: str
-    request_fullpath: str
-
-
 def _resolve_carousel_card_cover_url(book) -> str | Literal[False]:
     """Resolve the cover image URL for a book. Serves both a Thing (with
     ``get_cover_url``) and a plain dict/Solr-doc shape."""
@@ -191,11 +162,15 @@ def _render_carousel_card_loan_status(book, *, work_key: str, secondary_action: 
     return Markup(str(macro["__body__"]))
 
 
-logger = logging.getLogger("openlibrary.plugins.openlibrary.partials")
+@public
+def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, secondary_action: bool = False) -> dict:
+    """Gather data for books/custom_carousel_card.html.jinja.
 
+    Like ReadingGoalProgressPartial.generate: Python gathers (hasattr/DB),
+    Jinja only renders. No HTML is built here except loan_status_html which
+    bridges the still-Templetor LoanStatus.
+    """
 
-def build_carousel_card_context(book, lazy: bool, layout: str | None, key: str, secondary_action: bool = False) -> CarouselCardContext:
-    """Resolve everything books/custom_carousel_card.html.jinja needs to render."""
     url = book.get("key") or book.url
     title = book.get("title", "")
     author_names = _resolve_carousel_card_author_names(book)
@@ -206,46 +181,33 @@ def build_carousel_card_context(book, lazy: bool, layout: str | None, key: str, 
     if loan and hasattr(book, "get_waitinglist_size"):
         waitlist_size = book.get_waitinglist_size()
 
-    return CarouselCardContext(
-        url=url,
-        title=title,
-        byline=byline,
-        author_names=author_names,
-        cover_url=_resolve_carousel_card_cover_url(book),
-        loan=loan,
-        has_expiry=bool(loan and loan.get("expiry")),
-        is_bookreader=bool(loan and loan.get("resource_type") == "bookreader"),
-        waitlist_size=waitlist_size,
-        key=key,
-        lazy=lazy,
-        layout=layout,
-        loan_status_html=_render_carousel_card_loan_status(book, work_key=url, secondary_action=(secondary_action and not loan), key=key),
-        return_confirm_i18n=json_encode({"confirm_return": _("Really return this book?")}),
-        request_fullpath=web.ctx.fullpath,
-    )
+    expiry = loan.get("expiry") if loan else None
+    if expiry:
+        expiry_dt = datetime_from_isoformat(expiry)
+        expiry_utc = datetimestr_utc(expiry_dt)
+        expiry_display = datestr(expiry_dt)
+    else:
+        expiry_utc = ""
+        expiry_display = ""
 
-
-@public
-def render_carousel_card(book, lazy: bool, layout: str | None, key: str, secondary_action: bool = False) -> str:
-    """Templetor-facing bridge for the Jinja carousel card partial.
-
-    Builds the render context and renders books/custom_carousel_card.html.jinja.
-    Failures are isolated per-card so one bad card doesn't break the whole
-    carousel or Load More response.
-    """
-    try:
-        ctx = build_carousel_card_context(book, lazy, layout, key, secondary_action=secondary_action)
-        ctx_kwargs = {field.name: getattr(ctx, field.name) for field in fields(ctx)}
-        template = get_jinja_env().get_template("books/custom_carousel_card.html.jinja")
-        return template.render(
-            **ctx_kwargs,
-            datetime_from_isoformat=datetime_from_isoformat,
-            datestr=datestr,
-            datetimestr_utc=datetimestr_utc,
-        )
-    except Exception:
-        logger.exception("Failed to render carousel card for book %r", getattr(book, "key", book))
-        return ""
+    return {
+        "url": url,
+        "title": title,
+        "byline": byline,
+        "author_names": author_names,
+        "cover_url": _resolve_carousel_card_cover_url(book),
+        "loan": loan,
+        "expiry_utc": expiry_utc,
+        "expiry_display": expiry_display,
+        "is_bookreader": bool(loan and loan.get("resource_type") == "bookreader"),
+        "waitlist_size": waitlist_size,
+        "key": key,
+        "lazy": lazy,
+        "layout": layout,
+        "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, secondary_action=(secondary_action and not loan), key=key),
+        "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
+        "request_fullpath": getattr(web.ctx, "fullpath", "/"),
+    }
 
 
 class CarouselCardPartial:
@@ -258,8 +220,7 @@ class CarouselCardPartial:
         # Do search
         search_results = await cls._make_book_query(params)
 
-        # Render cards
-        template = get_jinja_env().get_template("books/custom_carousel_card.html.jinja")
+        # Render cards — gather data in Python, render in Jinja (like ReadingGoalProgressPartial)
         cards = []
         for index, work in enumerate(search_results):
             lazy = index > cls.MAX_VISIBLE_CARDS
@@ -274,18 +235,9 @@ class CarouselCardPartial:
             book = web.storage(book)
 
             try:
-                ctx = build_carousel_card_context(book, lazy, params.layout, params.key)
-                ctx_kwargs = {field.name: getattr(ctx, field.name) for field in fields(ctx)}
-                cards.append(
-                    template.render(
-                        **ctx_kwargs,
-                        datetime_from_isoformat=datetime_from_isoformat,
-                        datestr=datestr,
-                        datetimestr_utc=datetimestr_utc,
-                    )
-                )
-            except Exception:
-                logger.exception("Failed to render carousel card for book %r", getattr(book, "key", book))
+                data = get_carousel_card_data(book, lazy, params.layout, params.key)
+                cards.append(render_jinja_template("books/custom_carousel_card.html.jinja", **data))
+            except Exception:  # noqa: BLE001  # per-card isolation: one bad card should not break whole carousel
                 continue
 
         return {"partials": cards}
