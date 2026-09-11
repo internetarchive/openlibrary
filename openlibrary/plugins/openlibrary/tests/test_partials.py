@@ -74,14 +74,13 @@ class TestBookPageListsPartial:
         good = _community_card("Fine list")
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
-            patch("openlibrary.plugins.openlibrary.partials.get_current_user", return_value=None),
             patch.object(
                 BookPageListsPartial,
                 "get_list_card",
                 side_effect=[good, AttributeError("'Thing' object has no attribute 'get_users_settings'"), good],
             ),
         ):
-            result = await BookPageListsPartial.generate_async(workId="/works/OL1W", editionId="")
+            result = await BookPageListsPartial.generate_async(workId="/works/OL1W", editionId="", user=None)
 
         assert result["hasLists"] is True
         html = result["partials"][0]
@@ -92,14 +91,13 @@ class TestBookPageListsPartial:
     async def test_render_failure_keeps_old_fallback(self):
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
-            patch("openlibrary.plugins.openlibrary.partials.get_current_user", return_value=None),
             patch.object(BookPageListsPartial, "get_list_card", return_value=_community_card("Fine list")),
             patch(
                 "openlibrary.plugins.openlibrary.partials.render_jinja_template",
                 side_effect=RuntimeError("boom"),
             ),
         ):
-            result = await BookPageListsPartial.generate_async(workId="/works/OL1W", editionId="")
+            result = await BookPageListsPartial.generate_async(workId="/works/OL1W", editionId="", user=None)
 
         assert result["hasLists"] is True
         assert result["partials"] == [BookPageListsPartial.RENDER_FALLBACK]

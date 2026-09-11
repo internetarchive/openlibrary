@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from hashlib import md5
-from typing import Any, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
@@ -10,6 +12,7 @@ from pydantic import BaseModel
 from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
+from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
@@ -46,6 +49,9 @@ from openlibrary.plugins.worksearch.subjects import (
 )
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
+
+if TYPE_CHECKING:
+    from openlibrary.fastapi.auth import AuthenticatedUser
 
 
 def _solr_query_to_subject_key(query: str) -> str:
@@ -580,16 +586,17 @@ class BookPageListsPartial:
     RENDER_FALLBACK = "Unable to render this page."
 
     @classmethod
-    def get_list_card(cls, lst: Any, user: Any | None, user_key: str | None) -> BookPageListCard:
+    def get_list_card(cls, lst: Any, user: AuthenticatedUser | None) -> BookPageListCard:
         """Load everything one list card needs, so the template does no DB calls.
 
         `lst` is the web.storage dict from `get_lists_async`, so the full List
         is re-loaded for `get_url()` and `get_patron_showcase()`. Verbatim
-        checks (`settings and settings.get("public_readlog", "no") == "yes"`,
-        `user and user.is_subscribed_user(...)`) are kept so the follow button
-        sees the same values as the old Templetor code.
+        checks (`settings and settings.get("public_readlog", "no") == "yes"`) are
+        kept so the follow button sees the same values as the old Templetor code.
+        `is_subscribed` uses ``PubSub.is_subscribed`` via the authenticated
+        username (same check ``User.is_subscribed_user`` does internally).
         """
-        own_list = bool(lst.owner and lst.owner.key == user_key)
+        own_list = bool(user and lst.owner and lst.owner.key == user.user_key)
         converted = convert_list(lst.key)
         card: BookPageListCard = {
             "url": converted.get_url(),
@@ -604,11 +611,11 @@ class BookPageListsPartial:
             owner_account = get_user_object(owner_username)
             settings = owner_account.get_users_settings()
             card["is_public"] = bool(settings and settings.get("public_readlog", "no") == "yes")
-            card["is_subscribed"] = bool(user and user.is_subscribed_user(owner_username))
+            card["is_subscribed"] = bool(user and PubSub.is_subscribed(user.username, owner_username))
         return card
 
     @classmethod
-    async def generate_async(cls, workId: str, editionId: str) -> dict:
+    async def generate_async(cls, workId: str, editionId: str, user: AuthenticatedUser | None) -> dict:
         results: dict = {"partials": []}
         keys = [k for k in (workId, editionId) if k]
 
@@ -621,12 +628,10 @@ class BookPageListsPartial:
         else:
             query = "seed_count:[2 TO *] seed:(%s)" % " OR ".join(f'"{k}"' for k in keys)
             all_url = "/search/lists?q=" + quote(query) + "&sort=last_modified"
-            user = get_current_user()
-            user_key = user and user.key
             cards: list[BookPageListCard] = []
             for lst in lists[: cls.LIMIT]:
                 try:
-                    cards.append(cls.get_list_card(lst, user, user_key))
+                    cards.append(cls.get_list_card(lst, user))
                 except Exception:  # noqa: BLE001  # per-card isolation: one bad card must not break the carousel
                     # One broken list (e.g. its owner's account was deleted, so the
                     # owner doc is no longer a User) must not take the section down.
