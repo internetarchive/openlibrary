@@ -570,7 +570,7 @@ class BookPageListCard(TypedDict):
     owner: Any | None
     own_list: bool
     is_public: bool
-    is_subscribed: bool
+    is_subscribed: int
 
 
 class BookPageListsPartial:
@@ -597,14 +597,14 @@ class BookPageListsPartial:
             "owner": lst.owner,
             "own_list": own_list,
             "is_public": False,
-            "is_subscribed": False,
+            "is_subscribed": 0,
         }
         if lst.owner and not own_list:
             owner_username = lst.owner.key.split("/")[-1]
             owner_account = get_user_object(owner_username)
             settings = owner_account.get_users_settings()
             card["is_public"] = bool(settings and settings.get("public_readlog", "no") == "yes")
-            card["is_subscribed"] = bool(user and PubSub.is_subscribed(user.username, owner_username))
+            card["is_subscribed"] = 1 if (user and PubSub.is_subscribed(user.username, owner_username)) else 0
         return card
 
     @classmethod

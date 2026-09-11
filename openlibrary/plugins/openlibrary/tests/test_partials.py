@@ -52,7 +52,7 @@ def _community_card(title: str) -> dict:
         "owner": None,
         "own_list": False,
         "is_public": False,
-        "is_subscribed": False,
+        "is_subscribed": 0,
     }
 
 
