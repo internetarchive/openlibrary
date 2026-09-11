@@ -616,9 +616,12 @@ class PatronBooknotes:
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
 
-        for entry in notes:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
+        works = {w.key: w for w in site.get().get_many(work_keys)}
+
+        for work_key, entry in zip(work_keys, notes):
+            entry["work_key"] = work_key
+            entry["work"] = works.get(work_key)
             entry["work_details"] = self._get_work_details(entry["work"])
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
             edition_keys = {f"/books/OL{k}M": k for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
