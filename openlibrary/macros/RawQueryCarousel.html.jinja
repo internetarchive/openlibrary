@@ -1,0 +1,32 @@
+{# A carousel for an Open Library search query.
+   Data comes from get_query_carousel_data() in openlibrary/plugins/openlibrary/partials.py,
+   which owns the safe_mode query rewrite, the lazy-load config JSON, the Solr fetch
+   and the load-more config. With `lazy` this is only the placeholder that
+   lazy-carousel.js fills in through /partials/LazyCarousel.json; otherwise the data
+   also carries books/custom_carousel.html.jinja's, which is included below. #}
+{% if lazy %}
+    <div class="lazy-carousel" data-config="{{ lazy_config_json }}">
+        {{ loading_indicator_html | safe }}
+        <div class="lazy-carousel-retry hidden">
+            {{ _("Failed to fetch carousel.") }} <a href="#" class="retry-btn">{{ _("Retry?") }}</a>
+        </div>
+        {% if fallback %}
+            <div class="lazy-carousel-fallback hidden">
+                {{ _("No books match the current filters.") }} <a href="#" class="retry-btn">{{ _("Retry without filters?") }}</a>
+            </div>
+        {% endif %}
+    </div>
+{% else %}
+    {# Enable search within this query #}
+    {% if search %}
+        <form action="/search" class="olform pagesearchbox">
+            <input type="hidden" name="q" value="{{ query }}" />
+            {% if has_fulltext_only %}
+                <input type="hidden" name="has_fulltext" value="true" />
+            {% endif %}
+            <input type="text" placeholder="{{ _('Search collection') }}" name="q2" />
+            <input type="submit" />
+        </form>
+    {% endif %}
+    {% include "books/custom_carousel.html.jinja" %}
+{% endif %}

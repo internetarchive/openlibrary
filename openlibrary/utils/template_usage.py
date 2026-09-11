@@ -188,7 +188,7 @@ class FileIndex:
     # extensions at resolve time ("site/head.tmpl" references site/head).
     quoted: frozenset[str]
     # Word tokens: Templetor macros are referenced by bare name everywhere
-    # ($:macros.X, render_macro("X"), CacheableMacro("X"), JS components).
+    # ($:macros.X, render_macro("X"), JS components).
     words: frozenset[str]
     # Attributes accessed on render (render.notfound(...)): root-level
     # Templetor templates.

@@ -245,28 +245,32 @@ def render_macro(name, args, **kwargs):
     return dict(web.template.Template.globals["macros"][name](*args, **kwargs))
 
 
+CACHED_MACRO_TIMEOUT = 5 * 60
+
+
+def cached_macro_key_prefix(name: str) -> str:
+    """Memcache key prefix for a cached render of ``name``: the name plus the
+    request facets that change what it renders (language, print-disabled,
+    sfw, bot)."""
+    req_context = request_context.req_context.get()
+    key_prefix = f"{name}.{req_context.lang}"
+    if req_context.print_disabled:
+        key_prefix += ".pd"
+    if req_context.sfw:
+        key_prefix += ".sfw"
+    if req_context.is_bot:
+        key_prefix += ".bot"
+    return key_prefix
+
+
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
     from openlibrary.utils.request_context import caching_prethread
 
-    def get_key_prefix():
-        req_context = request_context.req_context.get()
-        lang = req_context.lang
-        key_prefix = f"{name}.{lang}"
-        if req_context.print_disabled:
-            key_prefix += ".pd"
-        if req_context.sfw:
-            key_prefix += ".sfw"
-        if req_context.is_bot:
-            key_prefix += ".bot"
-        return key_prefix
-
-    five_minutes = 5 * 60
-    key_prefix = get_key_prefix()
     mc = cache.memcache_memoize(
         render_macro,
-        key_prefix=key_prefix,
-        timeout=five_minutes,
+        key_prefix=cached_macro_key_prefix(name),
+        timeout=CACHED_MACRO_TIMEOUT,
         prethread=caching_prethread(),
         hash_args=True,  # this avoids cache key length overflow
     )
