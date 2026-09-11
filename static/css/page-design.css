@@ -18,9 +18,7 @@
 @import "components/header.css";
 @import "components/footer.css";
 @import "components/language.css";
-@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
 @import "components/page-banner--tablet.css" only screen and (min-width: 768px);
-@import "components/header-bar--desktop.css" all and (min-width: 960px);
 
 /* Stylesheets for the CSS components documented on this page. Documenting a
    CSS component without loading its stylesheet renders unstyled markup, which
