@@ -563,11 +563,7 @@ class FullTextSuggestionsPartial:
 
 
 class BookPageListCard(TypedDict):
-    """Data for one card in the book-page Lists carousel.
-
-    Built in Python so the Jinja template does no DB work (Jinja has no
-    `hasattr`, no list comprehensions, and no `try`/`except`).
-    """
+    """Data for one Lists carousel card."""
 
     url: str
     showcase: dict[str, Any]
@@ -578,23 +574,20 @@ class BookPageListCard(TypedDict):
 
 
 class BookPageListsPartial:
-    """Handler for rendering the book page "Lists" section"""
+    """Renders the Lists section on a book page."""
 
-    # Number of list cards shown in the carousel
     LIMIT = 5
-    # What the Templetor render showed (via infogami's saferender) when a template raised
     RENDER_FALLBACK = "Unable to render this page."
 
     @classmethod
     def get_list_card(cls, lst: Any, user: AuthenticatedUser | None) -> BookPageListCard:
-        """Load everything one list card needs, so the template does no DB calls.
+        """Build the data for one card. Keeps DB calls out of the template.
 
-        `lst` is the web.storage dict from `get_lists_async`, so the full List
-        is re-loaded for `get_url()` and `get_patron_showcase()`. Verbatim
-        checks (`settings and settings.get("public_readlog", "no") == "yes"`) are
-        kept so the follow button sees the same values as the old Templetor code.
-        `is_subscribed` uses ``PubSub.is_subscribed`` via the authenticated
-        username (same check ``User.is_subscribed_user`` does internally).
+        ``lst`` comes from ``get_lists_async`` as a ``web.storage``. We reload
+        the full List for ``get_url`` and ``get_patron_showcase``. The
+        ``public_readlog`` check is copied exactly from the old Templetor
+        code so the follow button doesn't change behavior. ``is_subscribed``
+        is the same ``PubSub`` check ``User.is_subscribed_user`` does.
         """
         own_list = bool(user and lst.owner and lst.owner.key == user.user_key)
         converted = convert_list(lst.key)
@@ -632,9 +625,7 @@ class BookPageListsPartial:
             for lst in lists[: cls.LIMIT]:
                 try:
                     cards.append(cls.get_list_card(lst, user))
-                except Exception:  # noqa: BLE001  # per-card isolation: one bad card must not break the carousel
-                    # One broken list (e.g. its owner's account was deleted, so the
-                    # owner doc is no longer a User) must not take the section down.
+                except Exception:  # noqa: BLE001  # one bad list shouldn't break the whole section
                     continue
             try:
                 html = render_jinja_template(
@@ -643,9 +634,7 @@ class BookPageListsPartial:
                     has_more=len(lists) > cls.LIMIT,
                     all_url=all_url,
                 )
-            except Exception:  # noqa: BLE001  # keep old saferender fallback instead of 500 + spinner
-                # Same fallback infogami's saferender gave the Templetor version,
-                # instead of a 500 that leaves the section spinning.
+            except Exception:  # noqa: BLE001  # same fallback the old saferender gave
                 html = cls.RENDER_FALLBACK
             results["partials"].append(html)
 
