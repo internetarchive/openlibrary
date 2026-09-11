@@ -11,6 +11,7 @@ from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
 )
+from openlibrary.fastapi.shared.dependencies import get_fullpath
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
@@ -166,6 +167,7 @@ async def lazy_carousel_partial(
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def carousel_load_more_partial(
     params: Annotated[CarouselLoadMoreParams, Query()],
+    full_path: Annotated[str, Depends(get_fullpath)],
 ) -> dict:
     """
     Get additional carousel card HTML for paginated carousels.
@@ -174,4 +176,4 @@ async def carousel_load_more_partial(
     queryType (SEARCH | BROWSE | TRENDING | SUBJECTS), q, limit, page,
     sorts, subject, hasFulltextOnly, key, layout, published_in.
     """
-    return await CarouselCardPartial.generate_async(params=params)
+    return await CarouselCardPartial.generate_async(params=params, full_path=full_path)
