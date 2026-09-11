@@ -70,6 +70,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             --toggle-knob-inset: 2px;
             --toggle-gap: 10px;
 
+            /* The knob rests at the inline start and travels toward the inline
+               end, so the sign flips under RTL. */
+            --_toggle-knob-travel: calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset));
+
             /* Color slots. Default = plain, unchecked toggle; overridden below
                by [checked] and by the [variant="button"] container states. */
             --_toggle-bg: transparent;
@@ -136,6 +140,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            so the sign flips under RTL. */
         :host {
             --_toggle-knob-travel: calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset));
+        }
+
+        :host(:dir(rtl)) {
+            --_toggle-knob-travel: calc(-1 * (var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset)));
         }
 
         :host(:dir(rtl)) {
