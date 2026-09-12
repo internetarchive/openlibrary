@@ -177,3 +177,25 @@ CREATE TABLE feed_registry (
 );
 
 CREATE INDEX feed_registry_provider_name ON feed_registry (provider_name);
+
+-- Librarian batch operations (openlibrary/core/batch_ops.py): one row per
+-- previewed/applied/requested batch so it can be reviewed and reverted as a unit.
+CREATE TABLE librarian_batches (
+    id serial NOT NULL PRIMARY KEY,
+    username text NOT NULL,
+    action text NOT NULL,
+    params json,
+    items json,
+    changes json,
+    warnings json,
+    overrides json,
+    status text NOT NULL DEFAULT 'previewed',
+    mrid integer DEFAULT NULL,
+    comment text,
+    summary text,
+    created timestamp WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc'),
+    updated timestamp WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'utc')
+);
+
+CREATE INDEX librarian_batches_username_idx ON librarian_batches (username);
+CREATE INDEX librarian_batches_status_idx ON librarian_batches (status);

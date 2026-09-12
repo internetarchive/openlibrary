@@ -10,8 +10,9 @@ import './OlIcon.js';
  *
  * @prop {Boolean} selected - Whether the chip is in a selected state
  * @prop {"small" | "medium"} size - Default: "medium"
- * @prop {"language" | "subject" | "genre" | "author" | "place" | "neutral"} variant -
- *   Domain category that tints the chip.
+ * @prop {"language" | "subject" | "genre" | "author" | "place" | "neutral" | "info" | "success" | "warning" | "danger"} variant -
+ *   Domain category that tints the chip, or a status level (info / success /
+ *   warning / danger) drawn from the status tokens for chips that report a state.
  *   Omit for the default (white / solid-blue-when-selected) chip. The chip
  *   maps the variant to a soft-tint palette internally (see colors.css); a
  *   variant chip keeps its tint when `selected` and just gains a close icon.
@@ -206,6 +207,42 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-border: var(--color-chip-neutral-border);
             --_chip-bg-hover: var(--color-chip-neutral-bg-hover);
             --_chip-count-fg: var(--accessible-grey);
+        }
+
+        /* ── Status variants: the chip reports a state (a check passed, a
+           warning, a block). Same soft-tint model, drawn from the status tokens
+           so a warning chip and a warning banner agree. Hover darkens the tint
+           through the same overlay the surfaces use. */
+        :host([variant="info"]) {
+            --_chip-bg: var(--color-info-bg);
+            --_chip-fg: var(--color-info-fg);
+            --_chip-border: var(--color-info-border);
+            --_chip-bg-hover: color-mix(in srgb, var(--color-info-bg), var(--color-hover-overlay));
+            --_chip-count-fg: var(--color-info-fg);
+        }
+
+        :host([variant="success"]) {
+            --_chip-bg: var(--color-success-bg);
+            --_chip-fg: var(--color-success-fg);
+            --_chip-border: var(--color-success-border);
+            --_chip-bg-hover: color-mix(in srgb, var(--color-success-bg), var(--color-hover-overlay));
+            --_chip-count-fg: var(--color-success-fg);
+        }
+
+        :host([variant="warning"]) {
+            --_chip-bg: var(--color-warning-bg);
+            --_chip-fg: var(--color-warning-fg);
+            --_chip-border: var(--color-warning-border);
+            --_chip-bg-hover: color-mix(in srgb, var(--color-warning-bg), var(--color-hover-overlay));
+            --_chip-count-fg: var(--color-warning-fg);
+        }
+
+        :host([variant="danger"]) {
+            --_chip-bg: var(--color-error-bg);
+            --_chip-fg: var(--color-error-fg);
+            --_chip-border: var(--color-error-border);
+            --_chip-bg-hover: color-mix(in srgb, var(--color-error-bg), var(--color-hover-overlay));
+            --_chip-count-fg: var(--color-error-fg);
         }
 
         /* Small size */

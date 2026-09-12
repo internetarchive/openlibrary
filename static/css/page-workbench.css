@@ -1,0 +1,159 @@
+/**
+ * The librarian workbench (/librarians/workbench) and the batch review page
+ * (/librarians/batch/<id>). The workbench itself is <ol-workbench>, styled in
+ * its shadow root; this file sets up the full-width page around it and styles
+ * the server-rendered batch page.
+ */
+
+@import "base/common.css";
+@import "base/headings.css";
+@import "base/helpers-common.css";
+@import "layout/index.css";
+@import "components/header-bar.css";
+@import "components/iaBar.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "components/page-banner.css";
+@import "components/header.css";
+@import "components/footer.css";
+@import "components/language.css";
+@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
+@import "components/ol-message.css";
+@import "fonts/literata.css";
+@import "fonts/schibsted-grotesk.css";
+
+body.librarians-page #test-body-mobile {
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------- workbench */
+
+ol-workbench {
+  display: block;
+  min-height: calc(100vh - 120px);
+}
+
+/* Before the component upgrades: a quiet title, no layout shift when it mounts. */
+ol-workbench:not(:defined) .workbench__fallback {
+  padding: var(--spacing-2xl) var(--spacing-3xl);
+  color: var(--color-text-secondary);
+}
+
+ol-workbench:defined .workbench__fallback {
+  display: none;
+}
+
+/* ------------------------------------------------------------- batch page */
+
+.librarian-batch,
+.librarian-batch + #contentHead,
+body.librarians-page #contentHead {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-3xl);
+}
+
+.librarian-batch__meta {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+.librarian-batch__summary {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-title-medium);
+}
+
+.librarian-batch__status {
+  display: inline-block;
+  padding: 0 var(--spacing-xs);
+  border-radius: var(--border-radius-badge);
+  background: var(--color-surface-sunken);
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-semibold);
+  text-transform: capitalize;
+}
+
+.librarian-batch__status--applied {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+.librarian-batch__status--requested {
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+
+.librarian-batch__status--declined,
+.librarian-batch__status--failed {
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+.librarian-batch__warnings {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-lg);
+}
+
+.librarian-batch__warning {
+  padding: var(--spacing-xs) 0;
+  border-top: var(--border-width) solid var(--color-border-muted);
+}
+
+.librarian-batch__tag {
+  display: inline-block;
+  min-width: 48px;
+  margin-right: var(--spacing-sm);
+  font-size: var(--font-size-label-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.librarian-batch__warning--block .librarian-batch__tag {
+  color: var(--color-error-fg);
+}
+
+.librarian-batch__warning--warn .librarian-batch__tag {
+  color: var(--color-warning-fg);
+}
+
+.librarian-batch__changes {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-body-small);
+}
+
+.librarian-batch__changes th,
+.librarian-batch__changes td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-bottom: var(--border-width) solid var(--color-border-muted);
+}
+
+.librarian-batch__changes th {
+  font-size: var(--font-size-label-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.librarian-batch__key {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-label-medium);
+  color: var(--color-text-muted);
+}
+
+.librarian-batch__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+}
+
+.librarian-batch__result {
+  color: var(--color-error-fg);
+}

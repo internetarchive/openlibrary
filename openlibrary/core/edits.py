@@ -46,6 +46,8 @@ class CommunityEditsQueue:
         {
             "WORK_MERGE": 1,
             "AUTHOR_MERGE": 2,
+            # A librarian batch (openlibrary.core.batch_ops) awaiting a super-librarian
+            "BATCH": 3,
         }
     )
 
