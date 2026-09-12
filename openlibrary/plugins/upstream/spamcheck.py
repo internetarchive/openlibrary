@@ -1,8 +1,6 @@
 import re
 from collections.abc import Iterable
 
-import web
-
 from openlibrary.utils.request_context import site
 
 
@@ -32,7 +30,7 @@ def _update_spam_doc(**kwargs) -> None:
     site.get().store["spamwords"] = doc
 
 
-def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
+def is_spam(i, allow_privileged_edits: bool = False) -> bool:
     user = site.get().get_user()
 
     if user:
@@ -56,8 +54,6 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
         return True
 
     spamwords = get_spam_words()
-    if i is None:
-        i = web.input()
     text = str(dict(i)).lower()
     return any(re.search(w.lower(), text) for w in spamwords)
 
