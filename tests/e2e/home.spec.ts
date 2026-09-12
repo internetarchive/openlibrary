@@ -40,7 +40,10 @@ test.describe('Home page @smoke', () => {
         test('header shows the account menu instead of Log In', async ({ page }) => {
             await page.goto('/');
             const header = page.locator('#header-bar').first();
-            await expect(header.locator('a[href="/account"]').first()).toBeAttached();
+            // My Books and the avatar are the header's account affordance. The
+            // /account settings link sits in the hamburger drawer, outside it.
+            await expect(header.locator('a[href="/account/books"]').first()).toBeAttached();
+            await expect(header.locator('img.account__icon').first()).toBeAttached();
             await expect(header.locator('a[href="/account/login"]')).toHaveCount(0);
             await expect(header.locator('a[href="/account/create"]')).toHaveCount(0);
         });
