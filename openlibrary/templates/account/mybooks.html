@@ -23,7 +23,8 @@ $def year_span(year, use_local_year=False):
               "min_books": 1,
               "load_more": None,
               "compact_mode": True,
-              "test": False
+              "test": False,
+              "full_path": web.ctx.fullpath,
           })) if books else None
 
   $def empty_carousel(data):

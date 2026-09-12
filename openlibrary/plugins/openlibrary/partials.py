@@ -664,7 +664,7 @@ class LazyCarouselPartial:
     """Handler for lazily-loaded query carousels."""
 
     @classmethod
-    async def generate_async(cls, params: LazyCarouselParams) -> dict:
+    async def generate_async(cls, params: LazyCarouselParams, full_path: str = "/") -> dict:
         books = await gather_lazy_carousel_data_async(
             query=params.query,
             sort=params.sort,
@@ -686,6 +686,7 @@ class LazyCarouselPartial:
             fallback=params.fallback,
             safe_mode=params.safe_mode,
             books_data=books["docs"],
+            full_path=full_path,
         )
         return {"partials": render_jinja_template("RawQueryCarousel.html.jinja", **data)}
 
@@ -814,6 +815,7 @@ def get_book_carousel_data(
     compact_mode: bool = False,
     secondary_action: bool = False,
     layout: str = "carousel",
+    full_path: str | None = None,
 ) -> BookCarouselData:
     """Gather the data for books/custom_carousel.html.jinja.
 
@@ -849,13 +851,23 @@ def get_book_carousel_data(
     }
     # The card is rendered here because get_carousel_card_data() returns flat keys and
     # Jinja cannot splat a dict into an {% include %}. Same pair as CarouselCardPartial.
-    cards = [
-        render_jinja_template(
-            "books/custom_carousel_card.html.jinja",
-            **get_carousel_card_data(_carousel_card_book(book), index >= CAROUSEL_EAGER_COVERS, layout, key, web.ctx.fullpath, secondary_action=secondary_action),
-        )
-        for index, book in enumerate(books)
-    ]
+    # Use explicit full_path when caller gives it. Fall back to web.ctx.fullpath for Templetor callers.
+    request_fullpath = full_path if full_path is not None else getattr(web.ctx, "fullpath", "/")
+    cards: list[str] = []
+    for index, book in enumerate(books):
+        try:
+            card_book = _carousel_card_book(book)
+            data = get_carousel_card_data(
+                card_book,
+                index >= CAROUSEL_EAGER_COVERS,
+                layout,
+                key,
+                request_fullpath,
+                secondary_action=secondary_action,
+            )
+            cards.append(render_jinja_template("books/custom_carousel_card.html.jinja", **data))
+        except Exception:  # noqa: BLE001  # one bad card does not stop the full carousel
+            continue
     return BookCarouselData(
         show=True,
         title=title,
@@ -884,6 +896,7 @@ def get_query_carousel_data(
     safe_mode: bool = True,
     fallback: str | bool | None = None,
     books_data: list | None = None,
+    full_path: str | None = None,
 ) -> dict:
     """Gather the data for macros/RawQueryCarousel.html.jinja.
 
@@ -935,6 +948,7 @@ def get_query_carousel_data(
             key=key,
             load_more={"queryType": "SEARCH", "q": query, "limit": limit, "sorts": sort, "hasFulltextOnly": has_fulltext_only},
             layout=layout,
+            full_path=full_path,
         ),
     }
 
