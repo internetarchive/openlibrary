@@ -13,12 +13,13 @@ from pydantic import BaseModel
 
 from infogami.infobase.client import ClientException
 from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
+from openlibrary.fastapi.utils import ClientIpDep  # noqa: TC001
 from openlibrary.plugins.upstream.edits import perform_merge_update
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
     AuthorRedirectEngine,
 )
-from openlibrary.utils.request_context import req_context, web_ctx_ip
+from openlibrary.utils.request_context import web_ctx_ip
 from openlibrary.utils.retry import MaxRetriesExceeded
 
 router = APIRouter(tags=["merge-authors"])
@@ -33,8 +34,8 @@ class MergeAuthorsBody(BaseModel):
 
 
 @router.post("/authors/merge.json")
-def merge_authors_json(_: LibrarianDep, data: MergeAuthorsBody) -> Any:
-    with web_ctx_ip(req_context.get().x_forwarded_for or "127.0.0.1"):
+def merge_authors_json(_: LibrarianDep, client_ip: ClientIpDep, data: MergeAuthorsBody) -> Any:
+    with web_ctx_ip(client_ip):
         try:
             engine = AuthorMergeEngine(AuthorRedirectEngine())
             merge_result = engine.merge(data.master, data.duplicates)

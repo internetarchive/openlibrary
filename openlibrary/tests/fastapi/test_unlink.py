@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from infogami.infobase.client import ClientException
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
-from openlibrary.fastapi.unlink import DEFAULT_UNLINK_COMMENT, _make_dark
+from openlibrary.fastapi.link import DEFAULT_UNLINK_COMMENT, _make_dark
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 
@@ -71,8 +71,8 @@ def _unlink_post(
     )
     try:
         with (
-            patch("openlibrary.fastapi.unlink.HMACToken.verify", **hmac_kw),
-            patch("openlibrary.fastapi.unlink.accounts.RunAs"),
+            patch("openlibrary.fastapi.link.HMACToken.verify", **hmac_kw),
+            patch("openlibrary.fastapi.link.accounts.RunAs"),
         ):
             response = client.post("/api/unlink", data=data)
     finally:
@@ -126,17 +126,17 @@ class TestUnlinkIAOL:
     def test_hmac_failure(self, fastapi_client):
         resp, _ = _unlink_post(fastapi_client, hmac_return_value=False)
         assert resp.status_code == 401
-        assert resp.content == b""
+        assert resp.json() == {"detail": "Unauthorized"}
 
     def test_expired_token(self, fastapi_client):
         resp, _ = _unlink_post(fastapi_client, hmac_side_effect=ExpiredTokenError())
         assert resp.status_code == 401
-        assert resp.content == b""
+        assert resp.json() == {"detail": "Unauthorized"}
 
     def test_value_error(self, fastapi_client):
         resp, _ = _unlink_post(fastapi_client, hmac_side_effect=ValueError())
         assert resp.status_code == 401
-        assert resp.content == b""
+        assert resp.json() == {"detail": "Unauthorized"}
 
     def test_missing_key_error(self, fastapi_client):
         resp, _ = _unlink_post(fastapi_client, hmac_side_effect=MissingKeyError())
@@ -170,7 +170,7 @@ class TestMakeDark:
 
         _site_token = site.set(fake_site)
         try:
-            with patch("openlibrary.fastapi.unlink.accounts.RunAs"):
+            with patch("openlibrary.fastapi.link.accounts.RunAs"):
                 _make_dark(edition, "foo123")
         finally:
             site.reset(_site_token)
@@ -184,7 +184,7 @@ class TestMakeDark:
 
         _site_token = site.set(fake_site)
         try:
-            with patch("openlibrary.fastapi.unlink.accounts.RunAs"):
+            with patch("openlibrary.fastapi.link.accounts.RunAs"):
                 _make_dark(edition, "foo123", comment="")
         finally:
             site.reset(_site_token)
@@ -198,7 +198,7 @@ class TestMakeDark:
 
         _site_token = site.set(fake_site)
         try:
-            with patch("openlibrary.fastapi.unlink.accounts.RunAs"):
+            with patch("openlibrary.fastapi.link.accounts.RunAs"):
                 _make_dark(edition, "foo123", comment="Wrong item linked during digitization")
         finally:
             site.reset(_site_token)
@@ -212,7 +212,7 @@ class TestMakeDark:
 
         _site_token = site.set(fake_site)
         try:
-            with patch("openlibrary.fastapi.unlink.accounts.RunAs"):
+            with patch("openlibrary.fastapi.link.accounts.RunAs"):
                 _make_dark(edition, "foo123", comment="Wrong Item")
         finally:
             site.reset(_site_token)

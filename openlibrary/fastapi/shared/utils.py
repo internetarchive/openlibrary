@@ -3,14 +3,31 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 from urllib.parse import quote
+
+from fastapi import Depends
+
+from openlibrary.utils.request_context import req_context
 
 if TYPE_CHECKING:
     from fastapi import Response
 
 # Flash banner types ever used with add_flash_message / the flash cookie.
 FlashType = Literal["error", "note", "success", "info"]
+
+
+def get_client_ip() -> str:
+    """Return the client IP for the current request.
+
+    Uses the first entry of X-Forwarded-For when present, falling back to
+    the loopback address (e.g. for internal or test requests).
+    """
+    x_fwd = req_context.get().x_forwarded_for
+    return x_fwd.split(",")[0].strip() if x_fwd else "127.0.0.1"
+
+
+ClientIpDep = Annotated[str, Depends(get_client_ip)]
 
 
 def set_flash_cookie(response: Response, flash_type: FlashType, message: str) -> None:
