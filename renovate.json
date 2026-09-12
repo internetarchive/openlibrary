@@ -50,6 +50,9 @@
     {
       "matchPackageNames": [
         "vitest",
+        "@vitest/browser-playwright",
+        "vitest-browser-lit",
+        "vitest-browser-vue",
         "bundlesize2",
         "stylelint",
         "stylelint-declaration-strict-value",
