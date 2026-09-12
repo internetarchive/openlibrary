@@ -675,7 +675,7 @@ class CarouselPartial:
         # Build eager data here. Keep lazy logic in build_carousel_placeholder_config.
         # Apply safe_mode to the query for the book carousel as build_carousel_placeholder_config does for lazy.
         effective_query = f"{params.query} {_SAFE_MODE_FILTER}" if params.safe_mode else params.query
-        book_data = get_carousel_data(
+        book_data = get_book_carousel_data(
             books=[web.storage(b) for b in books["docs"]],
             title=params.title,
             url=params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort}),
@@ -847,7 +847,7 @@ class EagerQueryCarouselData(BookCarouselData):
 
 
 @public
-def get_carousel_data(
+def get_book_carousel_data(
     books: list | None = None,
     *,
     min_books: int = 1,
