@@ -74,7 +74,6 @@
     "lucene-query-parser": "1.2.0",
     "prettier": "^3.5.3",
     "prismjs": "^1.30.0",
-    "sinon": "21.1.2",
     "slick-carousel": "1.6.0",
     "stylelint": "^16.26.1",
     "stylelint-declaration-strict-value": "^1.11.1",
