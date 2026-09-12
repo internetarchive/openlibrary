@@ -386,23 +386,25 @@ def _select_edition(editions, requested, provider, selected_id, page):
 
 
 def _attach_availability(edition, availabilities):
-    """Seed the selected edition's availability from the bulk map, falling
-    back to the ground-truth API for that edition only when bulk errored
-    (the one outbound call left on book pages)."""
+    """Seed the selected edition's availability from the bulk map.
+
+    The ground-truth fallback below is temporarily disabled while IA
+    availability is degraded; it was the last outbound IA call on book pages.
+    """
     if not edition.get("availability"):
         edition["availability"] = (edition.get("ocaid") and availabilities.get(edition["ocaid"])) or {}
 
-    ocaid = edition.get("ocaid")
-    if edition.get("availability", {}).get("status") == "error" and ocaid:
-        try:
-            if gt := lending.get_cached_groundtruth_availability(ocaid):
-                # Copy, not mutate: the bulk dict may be shared with availabilities/editions
-                edition["availability"] = {**edition["availability"], **gt}
-        except Exception:
-            # Unlike the old template-side call (caught by Templetor's
-            # saferender()), an uncaught exception here would 500 the whole
-            # page. Keep the bulk ("error") availability instead.
-            logger.exception("get_cached_groundtruth_availability(%r) failed; keeping bulk availability", ocaid)
+    # ocaid = edition.get("ocaid")
+    # if edition.get("availability", {}).get("status") == "error" and ocaid:
+    #     try:
+    #         if gt := lending.get_cached_groundtruth_availability(ocaid):
+    #             # Copy, not mutate: the bulk dict may be shared with availabilities/editions
+    #             edition["availability"] = {**edition["availability"], **gt}
+    #     except Exception:
+    #         # Unlike the old template-side call (caught by Templetor's
+    #         # saferender()), an uncaught exception here would 500 the whole
+    #         # page. Keep the bulk ("error") availability instead.
+    #         logger.exception("get_cached_groundtruth_availability(%r) failed; keeping bulk availability", ocaid)
 
 
 def prepare_book_page(page, query_params, user=None) -> BookPageContext:
