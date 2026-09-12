@@ -54,13 +54,9 @@ def test_unified_loans_carousel_merges_active_and_history():
     mock_mb.readlog = MagicMock()
     mock_mb.readlog.get_works.return_value = MagicMock(docs=[])
 
-    # Stub site.get().get to resolve the active books
+    # Stub site.get().get_many to batch-resolve the active books
     mock_site = MagicMock()
-    site_map = {
-        "/books/OL1M": active_loan_book_A,
-        "/books/OL2M": active_loan_book_B,
-    }
-    mock_site.get.side_effect = site_map.get
+    mock_site.get_many.return_value = [active_loan_book_A, active_loan_book_B]
 
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
@@ -144,7 +140,7 @@ def test_active_loan_ranks_above_recently_returned():
     mock_mb.readlog.get_works.return_value = MagicMock(docs=[])
 
     mock_site = MagicMock()
-    mock_site.get.side_effect = {"/books/OL1M": active_loan_book_A}.get
+    mock_site.get_many.return_value = [active_loan_book_A]
 
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
@@ -203,7 +199,7 @@ def _mb_for_viewer(*, is_my_page: bool):
 
 def _run_render(mb, mock_history_data):
     mock_site = MagicMock()
-    mock_site.get.side_effect = {}.get
+    mock_site.get_many.return_value = []
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
     with (
@@ -243,3 +239,223 @@ def test_loan_history_still_fetched_on_own_profile():
 
     mock_history_data.assert_called_once()
     assert mock_history_data.call_args.args[0] == "viewer"
+
+
+def _run_carousel_render(loans, get_many_side_effect, is_my_page=True, history_docs=None):
+    """Helper: run mybooks_home.render_template and return the loans carousel docs."""
+    req_context.set(RequestContextVars(x_forwarded_for=None, user_agent=None, lang="en", solr_editions=True, print_disabled=False, is_bot=False))
+
+    mock_mb = MagicMock(spec=MyBooksTemplate)
+    mock_mb.me = MagicMock()
+    mock_mb.me.key = "/people/testuser"
+    mock_mb.username = "testuser"
+    mock_mb.user = MagicMock()
+    mock_mb.is_public = False
+    mock_mb.key = "mybooks"
+    mock_mb.counts = {}
+    mock_mb.lists = []
+    mock_mb.component_times = {}
+    mock_mb.is_my_page = is_my_page
+    mock_mb.current_goal = None
+    mock_mb.readlog = MagicMock()
+    mock_mb.readlog.get_works.return_value = MagicMock(docs=[])
+
+    mock_site = MagicMock()
+    mock_site.get_many.side_effect = get_many_side_effect
+
+    mock_site_context = MagicMock()
+    mock_site_context.get.return_value = mock_site
+
+    mock_render = MagicMock()
+    history_docs = history_docs or []
+
+    with (
+        patch("openlibrary.plugins.upstream.mybooks.get_loans_of_user", return_value=loans),
+        patch("openlibrary.plugins.upstream.mybooks.get_loan_history_data", return_value={"docs": history_docs}),
+        patch("openlibrary.plugins.upstream.mybooks.site", mock_site_context),
+        patch("openlibrary.plugins.upstream.mybooks.render", mock_render),
+    ):
+        mybooks_home().render_template(mock_mb)
+
+    args, _kwargs = mock_render.__getitem__.return_value.call_args
+    return args[1]["loans"]
+
+
+def test_missing_book_keys_skipped():
+    """Loan pointing to a nonexistent edition is silently dropped."""
+    mock_book = MagicMock()
+    mock_book.key = "/books/OL1M"
+    mock_book.works = [MagicMock(key="/works/OL1W")]
+
+    loans = [
+        {"book": "/books/OL999M", "loaned_at": 100.0},  # missing
+        {"book": "/books/OL1M", "loaned_at": 200.0},  # present
+    ]
+
+    # First get_many call (initial batch) — only OL1M resolves
+    carousel = _run_carousel_render(
+        loans,
+        get_many_side_effect=lambda keys: [mock_book] if "/books/OL1M" in keys else [],
+    )
+
+    assert len(carousel.docs) == 1
+    assert carousel.docs[0].key == "/books/OL1M"
+
+
+def test_duplicate_book_keys_deduplicated():
+    """Two loans for the same key produce one get_many call, last loan wins."""
+    mock_book = MagicMock()
+    mock_book.key = "/books/OL1M"
+    mock_book.works = [MagicMock(key="/works/OL1W")]
+
+    loans = [
+        {"book": "/books/OL1M", "loaned_at": 100.0},
+        {"book": "/books/OL1M", "loaned_at": 200.0},
+    ]
+
+    get_many_calls = []
+
+    def track_get_many(keys):
+        get_many_calls.append(list(keys))
+        return [mock_book]
+
+    carousel = _run_carousel_render(loans, get_many_side_effect=track_get_many)
+
+    # get_many should be called once with the deduplicated key
+    assert len(get_many_calls) == 1
+    assert get_many_calls[0] == ["/books/OL1M"]
+
+    assert len(carousel.docs) == 1
+    # Last loan wins in merged_books
+    assert carousel.docs[0].loan == {"book": "/books/OL1M", "loaned_at": 200.0}
+
+
+def test_redirect_chain_resolved():
+    """A loan pointing to a /type/redirect is followed to its final target."""
+    redirect_book = MagicMock()
+    redirect_book.key = "/books/ia:olc123"
+    redirect_book.type.key = "/type/redirect"
+    redirect_book.location = "/books/OL2M"
+
+    resolved_book = MagicMock()
+    resolved_book.key = "/books/OL2M"
+    resolved_book.works = [MagicMock(key="/works/OL2W")]
+
+    loans = [{"book": "/books/ia:olc123", "loaned_at": 500.0}]
+
+    get_many_calls = []
+
+    def track_get_many(keys):
+        get_many_calls.append(list(keys))
+        if "/books/ia:olc123" in keys:
+            return [redirect_book]
+        if "/books/OL2M" in keys:
+            return [resolved_book]
+        return []
+
+    carousel = _run_carousel_render(loans, get_many_side_effect=track_get_many)
+
+    # Two get_many calls: initial batch + redirect hop
+    assert len(get_many_calls) == 2
+    assert get_many_calls[0] == ["/books/ia:olc123"]
+    assert get_many_calls[1] == ["/books/OL2M"]
+
+    assert len(carousel.docs) == 1
+    assert carousel.docs[0].key == "/books/OL2M"
+    assert carousel.docs[0].loan == {"book": "/books/ia:olc123", "loaned_at": 500.0}
+
+
+def test_multi_hop_redirect_resolves():
+    """Redirect → redirect → real book: up to 5 hops are followed."""
+    hop1 = MagicMock()
+    hop1.key = "/books/ia:abc"
+    hop1.type.key = "/type/redirect"
+    hop1.location = "/books/OL10M"
+
+    hop2 = MagicMock()
+    hop2.key = "/books/OL10M"
+    hop2.type.key = "/type/redirect"
+    hop2.location = "/books/OL20M"
+
+    final = MagicMock()
+    final.key = "/books/OL20M"
+    final.works = [MagicMock(key="/works/OL20W")]
+
+    loans = [{"book": "/books/ia:abc", "loaned_at": 300.0}]
+
+    get_many_calls = []
+
+    def track_get_many(keys):
+        get_many_calls.append(list(keys))
+        key_set = set(keys)
+        results = []
+        if "/books/ia:abc" in key_set:
+            results.append(hop1)
+        if "/books/OL10M" in key_set:
+            results.append(hop2)
+        if "/books/OL20M" in key_set:
+            results.append(final)
+        return results
+
+    carousel = _run_carousel_render(loans, get_many_side_effect=track_get_many)
+
+    # Initial + hop1 + hop2 = 3 get_many calls
+    assert len(get_many_calls) == 3
+    assert carousel.docs[0].key == "/books/OL20M"
+
+
+def test_redirect_to_nonexistent_target_drops_loan():
+    """If a redirect target doesn't exist, the loan is silently dropped."""
+    redirect_book = MagicMock()
+    redirect_book.key = "/books/ia:olc999"
+    redirect_book.type.key = "/type/redirect"
+    redirect_book.location = "/books/OL_NOPE"
+
+    loans = [{"book": "/books/ia:olc999", "loaned_at": 100.0}]
+
+    carousel = _run_carousel_render(
+        loans,
+        # Initial fetch returns the redirect; follow-up returns nothing for the target
+        get_many_side_effect=lambda keys: [redirect_book] if "/books/ia:olc999" in keys else [],
+    )
+
+    assert len(carousel.docs) == 0
+
+
+def test_mixed_loans_redirects_and_missing():
+    """Mix of normal, redirect, and missing loans all handled in one pass."""
+    normal_book = MagicMock()
+    normal_book.key = "/books/OL1M"
+    normal_book.works = [MagicMock(key="/works/OL1W")]
+
+    redirect_book = MagicMock()
+    redirect_book.key = "/books/ia:olc5"
+    redirect_book.type.key = "/type/redirect"
+    redirect_book.location = "/books/OL2M"
+
+    resolved_book = MagicMock()
+    resolved_book.key = "/books/OL2M"
+    resolved_book.works = [MagicMock(key="/works/OL2W")]
+
+    loans = [
+        {"book": "/books/OL1M", "loaned_at": 100.0},  # normal
+        {"book": "/books/OL_MISSING", "loaned_at": 200.0},  # missing
+        {"book": "/books/ia:olc5", "loaned_at": 300.0},  # redirect
+    ]
+
+    def track_get_many(keys):
+        key_set = set(keys)
+        # Initial batch (contains all three keys)
+        if "/books/OL_MISSING" in key_set:
+            return [b for b in [normal_book, redirect_book] if b.key in key_set]
+        # Redirect hop (only /books/OL2M)
+        if "/books/OL2M" in key_set:
+            return [resolved_book]
+        return []
+
+    carousel = _run_carousel_render(loans, get_many_side_effect=track_get_many)
+
+    # Missing loan dropped; normal + resolved redirect remain
+    assert len(carousel.docs) == 2
+    keys_in_carousel = {doc.key for doc in carousel.docs}
+    assert keys_in_carousel == {"/books/OL1M", "/books/OL2M"}
