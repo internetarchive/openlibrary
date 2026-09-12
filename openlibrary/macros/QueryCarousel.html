@@ -24,10 +24,7 @@ $if user_lang_only:
 
 $ fallback = fallback and fallback_query
 
-$if use_cache and not lazy:
-    $# Note this won't work with fallback; the JS that handles retries is in lazy-carousel.js
-    $ carousel = get_cached_query_carousel_data(query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode, full_path=web.ctx.fullpath)
-$else:
-    $ carousel = get_query_carousel_data(query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, lazy=lazy, fallback=fallback, safe_mode=safe_mode, full_path=web.ctx.fullpath)
+$# Eager case lives only in CarouselPartial (fastapi/partials.py). Templates use placeholder only.
+$ carousel = build_carousel_placeholder_config(query=query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode)
 
-$:render_jinja_template("RawQueryCarousel.html.jinja", **carousel)
+$:render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **carousel)

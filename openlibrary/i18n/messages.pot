@@ -7119,23 +7119,23 @@ msgid "Retry"
 msgstr ""
 
 #: RawQueryCarousel.html.jinja
+msgid "Search collection"
+msgstr ""
+
+#: RawQueryCarouselPlaceholder.html.jinja
 msgid "Failed to fetch carousel."
 msgstr ""
 
-#: RawQueryCarousel.html.jinja
+#: RawQueryCarouselPlaceholder.html.jinja
 msgid "Retry?"
 msgstr ""
 
-#: RawQueryCarousel.html.jinja
+#: RawQueryCarouselPlaceholder.html.jinja
 msgid "No books match the current filters."
 msgstr ""
 
-#: RawQueryCarousel.html.jinja
+#: RawQueryCarouselPlaceholder.html.jinja
 msgid "Retry without filters?"
-msgstr ""
-
-#: RawQueryCarousel.html.jinja
-msgid "Search collection"
 msgstr ""
 
 #: ReadButton.html

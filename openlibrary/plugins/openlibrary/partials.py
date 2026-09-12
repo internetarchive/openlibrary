@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from hashlib import md5
-from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
@@ -31,8 +31,6 @@ from openlibrary.plugins.openlibrary.lists import (
 )
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
 from openlibrary.plugins.upstream.utils import (
-    CACHED_MACRO_TIMEOUT,
-    cached_macro_key_prefix,
     get_user_object,
     json_encode,
     render_macro,
@@ -53,7 +51,6 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
-from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -660,8 +657,11 @@ class LazyCarouselParams(BaseModel):
     safe_mode: bool = True
 
 
-class LazyCarouselPartial:
-    """Handler for lazily-loaded query carousels."""
+class CarouselPartial:
+    """Handler for lazily-loaded query carousels. Builds the eager carousel only here.
+
+    Name is generic. Endpoint stays /partials/LazyCarousel.json for now.
+    """
 
     @classmethod
     async def generate_async(cls, params: LazyCarouselParams, full_path: str = "/") -> dict:
@@ -672,21 +672,37 @@ class LazyCarouselPartial:
             has_fulltext_only=params.has_fulltext_only,
             safe_mode=params.safe_mode,
         )
-        data = get_query_carousel_data(
-            params.query,
-            lazy=False,
+        # Build eager data here. Keep lazy logic in build_carousel_placeholder_config.
+        # Apply safe_mode to the query for the book carousel as build_carousel_placeholder_config does for lazy.
+        effective_query = f"{params.query} {_SAFE_MODE_FILTER}" if params.safe_mode else params.query
+        book_data = get_carousel_data(
+            books=[web.storage(b) for b in books["docs"]],
             title=params.title,
-            sort=params.sort,
+            url=params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort}),
             key=params.key,
-            limit=params.limit,
-            search=params.search,
-            has_fulltext_only=params.has_fulltext_only,
-            url=params.url,
+            load_more={
+                "queryType": "SEARCH",
+                "q": effective_query,
+                "limit": params.limit,
+                "sorts": params.sort,
+                "hasFulltextOnly": params.has_fulltext_only,
+            },
             layout=params.layout,
-            fallback=params.fallback,
-            safe_mode=params.safe_mode,
-            books_data=books["docs"],
             full_path=full_path,
+        )
+        data = EagerQueryCarouselData(
+            search=params.search,
+            query=effective_query,
+            has_fulltext_only=params.has_fulltext_only,
+            show=book_data["show"],
+            title=book_data["title"],
+            url=book_data["url"],
+            key=book_data["key"],
+            grid=book_data["grid"],
+            compact=book_data["compact"],
+            loadjs=book_data["loadjs"],
+            config_json=book_data["config_json"],
+            cards=book_data["cards"],
         )
         return {"partials": render_jinja_template("RawQueryCarousel.html.jinja", **data)}
 
@@ -733,12 +749,7 @@ async def gather_lazy_carousel_data_async(
     has_fulltext_only: bool,
     safe_mode: bool,
 ) -> CarouselData:
-    """Fetch carousel book data from Solr and return a typed dict with the docs.
-
-    Called from LazyCarouselPartial.generate_async() and, through the sync
-    bridge below, from get_query_carousel_data() when a carousel is rendered
-    without pre-fetched books.
-    """
+    """Fetch carousel book data from Solr and return a typed dict with the docs."""
     if safe_mode and _SAFE_MODE_FILTER not in query:
         effective_query = f"{query} {_SAFE_MODE_FILTER}".strip()
     else:
@@ -765,8 +776,6 @@ async def gather_lazy_carousel_data_async(
     return return_dict
 
 
-gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async, "gather_lazy_carousel_data")
-
 # Query carousels. Was macros/RawQueryCarousel.html + books/custom_carousel.html;
 # the logic those two Templetor files carried lives here now.
 
@@ -789,13 +798,31 @@ def _carousel_card_book(book: Any) -> Any:
     return card_book
 
 
-class BookCarouselData(TypedDict):
-    """Data for books/custom_carousel.html.jinja."""
+class CarouselCommonData(TypedDict):
+    """Shared display fields for all carousels. Keeps title, url, key in sync."""
 
-    show: bool
     title: str | None
     url: str | None
     key: str
+
+
+class CarouselQueryParams(CarouselCommonData):
+    """Shared query fields for lazy and eager. Keeps query, sort, limit in sync."""
+
+    query: str
+    sort: str
+    limit: int
+    search: bool
+    has_fulltext_only: bool
+    layout: str
+    fallback: str | bool | None
+    safe_mode: bool
+
+
+class BookCarouselData(CarouselCommonData):
+    """Data for books/custom_carousel.html.jinja."""
+
+    show: bool
     grid: str
     compact: str
     loadjs: str
@@ -803,19 +830,34 @@ class BookCarouselData(TypedDict):
     cards: list[str]
 
 
+class CarouselPlaceholderData(TypedDict):
+    """Data for the lazy placeholder. Shows config JSON for lazy-carousel.js."""
+
+    lazy_config_json: str
+    loading_indicator_html: str
+    fallback: str | bool | None
+
+
+class EagerQueryCarouselData(BookCarouselData):
+    """Data for the eager carousel. Holds search fields plus book carousel data."""
+
+    search: bool
+    query: str
+    has_fulltext_only: bool
+
+
 @public
-def get_book_carousel_data(
+def get_carousel_data(
     books: list | None = None,
-    title: str | None = "",
-    url: str | None = "",
-    key: str = "",
+    *,
     min_books: int = 1,
     load_more: dict | None = None,
     test: bool = False,
     compact_mode: bool = False,
     secondary_action: bool = False,
     layout: str = "carousel",
-    full_path: str | None = None,
+    full_path: str,
+    **common: Unpack[CarouselCommonData],
 ) -> BookCarouselData:
     """Gather the data for books/custom_carousel.html.jinja.
 
@@ -823,6 +865,9 @@ def get_book_carousel_data(
     template then renders nothing, as the old Templetor ``$if`` did. @public so
     home/index.html, account/loans.html and account/mybooks.html can call it.
     """
+    title = common.get("title", "")
+    url = common.get("url", "")
+    key = common.get("key", "")
     books = books or []
     if not (test or (books and len(books) >= min_books)):
         return BookCarouselData(show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[])
@@ -851,8 +896,6 @@ def get_book_carousel_data(
     }
     # The card is rendered here because get_carousel_card_data() returns flat keys and
     # Jinja cannot splat a dict into an {% include %}. Same pair as CarouselCardPartial.
-    # Use explicit full_path when caller gives it. Fall back to web.ctx.fullpath for Templetor callers.
-    request_fullpath = full_path if full_path is not None else getattr(web.ctx, "fullpath", "/")
     cards: list[str] = []
     for index, book in enumerate(books):
         try:
@@ -862,7 +905,7 @@ def get_book_carousel_data(
                 index >= CAROUSEL_EAGER_COVERS,
                 layout,
                 key,
-                request_fullpath,
+                full_path,
                 secondary_action=secondary_action,
             )
             cards.append(render_jinja_template("books/custom_carousel_card.html.jinja", **data))
@@ -882,93 +925,35 @@ def get_book_carousel_data(
 
 
 @public
-def get_query_carousel_data(
-    query: str,
-    title: str | None = None,
-    sort: str = "new",
-    key: str = "",
-    limit: int = 20,
-    search: bool = False,
-    has_fulltext_only: bool = True,
-    url: str | None = None,
-    layout: str = "carousel",
-    lazy: bool = True,
-    safe_mode: bool = True,
-    fallback: str | bool | None = None,
-    books_data: list | None = None,
-    full_path: str | None = None,
-) -> dict:
-    """Gather the data for macros/RawQueryCarousel.html.jinja.
+def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> CarouselPlaceholderData:
+    """Build config for the placeholder at macros/RawQueryCarouselPlaceholder.html.jinja.
 
-    With ``lazy`` (the default) that is only the placeholder config lazy-carousel.js
-    fetches the real carousel with, from /partials/LazyCarousel.json. Otherwise the
-    books come from ``books_data`` when the caller already fetched them
-    (LazyCarouselPartial), else from Solr, and the rest is the book carousel's data.
-    ``safe_mode`` hides covers tagged content_warning. @public for QueryCarousel.html.
+    Builds the config JSON for lazy-carousel.js. No Solr call. Eager data is built
+    only in CarouselPartial, which owns the Solr fetch.
+    ``safe_mode`` adds the content_warning filter. For QueryCarousel.html.
     """
-    if safe_mode:
+    query = params["query"]
+    if params.get("safe_mode", True):
         query = f"{query} {_SAFE_MODE_FILTER}"
-
-    if lazy:
-        config: dict[str, Any] = {
-            "query": query,
-            "sort": sort,
-            "key": key,
-            "limit": limit,
-            "search": search,
-            "has_fulltext_only": has_fulltext_only,
-            "layout": layout,
-            "fallback": fallback,
-        }
-        if title:
-            config["title"] = title
-        if url:
-            config["url"] = url
-        return {
-            "lazy": True,
-            "lazy_config_json": json_encode(config),
-            # LoadingIndicator stays Templetor (10 other callers), so it is bridged
-            # here and passed in, like the card's loan_status_html.
-            "loading_indicator_html": str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
-            "fallback": fallback,
-        }
-
-    if books_data is None:
-        books_data = gather_lazy_carousel_data(query, sort=sort, limit=limit, has_fulltext_only=has_fulltext_only, safe_mode=safe_mode)["docs"]
-    return {
-        "lazy": False,
-        "search": search,
+    config: dict[str, Any] = {
         "query": query,
-        "has_fulltext_only": has_fulltext_only,
-        **get_book_carousel_data(
-            books=[web.storage(book) for book in books_data],
-            title=title,
-            # Don't need fields in the search UI url, since they don't do anything there
-            url=url or "/search?" + urlencode({"q": query, "sort": sort}),
-            key=key,
-            load_more={"queryType": "SEARCH", "q": query, "limit": limit, "sorts": sort, "hasFulltextOnly": has_fulltext_only},
-            layout=layout,
-            full_path=full_path,
-        ),
+        "sort": params.get("sort", "new"),
+        "key": params.get("key", ""),
+        "limit": params.get("limit", 20),
+        "search": params.get("search", False),
+        "has_fulltext_only": params.get("has_fulltext_only", True),
+        "layout": params.get("layout", "carousel"),
+        "fallback": params.get("fallback"),
+        **({"title": params["title"]} if params.get("title") else {}),
+        **({"url": params["url"]} if params.get("url") else {}),
     }
-
-
-@public
-def get_cached_query_carousel_data(query: str, **kwargs: Any) -> dict:
-    """get_query_carousel_data() through memcache, for QueryCarousel.html's
-    ``use_cache`` path. Was CacheableMacro("RawQueryCarousel", ...): same key prefix
-    (the old macro name plus language, print-disabled, sfw and bot), same timeout.
-    """
-    from openlibrary.utils.request_context import caching_prethread
-
-    mc = cache.memcache_memoize(
-        get_query_carousel_data,
-        key_prefix=cached_macro_key_prefix("RawQueryCarousel"),
-        timeout=CACHED_MACRO_TIMEOUT,
-        prethread=caching_prethread(),
-        hash_args=True,  # this avoids cache key length overflow
+    return CarouselPlaceholderData(
+        lazy_config_json=json_encode(config),
+        # LoadingIndicator stays Templetor (10 other callers), so it is bridged
+        # here and passed in, like the card's loan_status_html.
+        loading_indicator_html=str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
+        fallback=params.get("fallback"),
     )
-    return mc(query, **kwargs)
 
 
 def setup():

@@ -1,27 +1,13 @@
-{# Shows a carousel for a query. #}
+{# Shows the carousel with books. #}
 {% from "books/custom_carousel.html.jinja" import book_carousel %}
-{% if lazy %}
-    <div class="lazy-carousel" data-config="{{ lazy_config_json }}">
-        {{ loading_indicator_html | safe }}
-        <div class="lazy-carousel-retry hidden">
-            {{ _("Failed to fetch carousel.") }} <a href="#" class="retry-btn">{{ _("Retry?") }}</a>
-        </div>
-        {% if fallback %}
-            <div class="lazy-carousel-fallback hidden">
-                {{ _("No books match the current filters.") }} <a href="#" class="retry-btn">{{ _("Retry without filters?") }}</a>
-            </div>
+{% if search %}
+    <form action="/search" class="olform pagesearchbox">
+        <input type="hidden" name="q" value="{{ query }}" />
+        {% if has_fulltext_only %}
+            <input type="hidden" name="has_fulltext" value="true" />
         {% endif %}
-    </div>
-{% else %}
-    {% if search %}
-        <form action="/search" class="olform pagesearchbox">
-            <input type="hidden" name="q" value="{{ query }}" />
-            {% if has_fulltext_only %}
-                <input type="hidden" name="has_fulltext" value="true" />
-            {% endif %}
-            <input type="text" placeholder="{{ _('Search collection') }}" name="q2" />
-            <input type="submit" />
-        </form>
-    {% endif %}
-    {{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards) }}
+        <input type="text" placeholder="{{ _('Search collection') }}" name="q2" />
+        <input type="submit" />
+    </form>
 {% endif %}
+{{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards) }}
