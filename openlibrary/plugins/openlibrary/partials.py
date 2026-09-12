@@ -129,10 +129,10 @@ class CarouselLoadMoreParams(BaseModel):
 
 
 _CAROUSEL_CARD_FALLBACK_COVER = "https://openlibrary.org/static/images/icons/avatar_book.png"
-# NOTE: Hard-coded to keep behavior unchanged during Templetor to Jinja conversion
-# (PR 13578, issue 13570). Source template `books/custom_carousel_card.html:4`
-# used `cover_host = '//covers.openlibrary.org'`. This keeps the DOM identical.
-# Consider to use `get_coverstore_public_url()` in a follow-up change.
+# NOTE: Hard-coded to keep behavior unchanged during the Templetor to Jinja
+# conversion (PR 13578, issue 13570): the since-deleted Templetor template
+# `books/custom_carousel_card.html` hard-coded this host, and the DOM must stay
+# identical. Consider using `get_coverstore_public_url()` in a follow-up change.
 _CAROUSEL_CARD_COVER_HOST = "//covers.openlibrary.org"
 
 

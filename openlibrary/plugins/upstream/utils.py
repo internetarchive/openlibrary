@@ -245,45 +245,6 @@ def render_macro(name, args, **kwargs):
     return dict(web.template.Template.globals["macros"][name](*args, **kwargs))
 
 
-CACHED_MACRO_TIMEOUT = 5 * 60
-
-
-def cached_macro_key_prefix(name: str) -> str:
-    """Memcache key prefix for a cached render of ``name``: the name plus the
-    request facets that change what it renders (language, print-disabled,
-    sfw, bot)."""
-    req_context = request_context.req_context.get()
-    key_prefix = f"{name}.{req_context.lang}"
-    if req_context.print_disabled:
-        key_prefix += ".pd"
-    if req_context.sfw:
-        key_prefix += ".sfw"
-    if req_context.is_bot:
-        key_prefix += ".bot"
-    return key_prefix
-
-
-@public
-def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.utils.request_context import caching_prethread
-
-    mc = cache.memcache_memoize(
-        render_macro,
-        key_prefix=cached_macro_key_prefix(name),
-        timeout=CACHED_MACRO_TIMEOUT,
-        prethread=caching_prethread(),
-        hash_args=True,  # this avoids cache key length overflow
-    )
-
-    try:
-        page = mc(name, args, **kwargs)
-        if page.get("do_not_cache") == "True":
-            mc.memcache_delete_by_args(name, args, **kwargs)
-        return web.template.TemplateResult(page)
-    except ValueError, TypeError:
-        return "<span>Failed to render macro</span>"
-
-
 def get_message(name: str, *args) -> str:
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)
