@@ -1,0 +1,576 @@
+[
+  {
+    "name": "Absurd",
+    "short": "absurd",
+    "query": "absurd*",
+    "hierarchyQuery": "absurd*",
+    "count": 0
+  },
+  {
+    "name": "Action",
+    "short": "action",
+    "query": "action*",
+    "hierarchyQuery": "action*",
+    "count": 0
+  },
+  {
+    "name": "Adventure",
+    "short": "adventure",
+    "query": "adventure*",
+    "hierarchyQuery": "adventure*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Picaresque",
+        "short": "picaresque",
+        "query": "picaresque*",
+        "hierarchyQuery": "adventure/picaresque*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Steampunk",
+        "short": "steampunk",
+        "query": "steampunk*",
+        "hierarchyQuery": "adventure/steampunk*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Comedy",
+    "short": "comedy",
+    "query": "comedy*",
+    "hierarchyQuery": "comedy*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Picaresque",
+        "short": "picaresque",
+        "query": "picaresque*",
+        "hierarchyQuery": "comedy/picaresque*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Crime",
+    "short": "crime",
+    "query": "crime*",
+    "hierarchyQuery": "crime*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Detective",
+        "short": "detective",
+        "query": "detective*",
+        "hierarchyQuery": "crime/detective*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Espionage",
+        "short": "espionage",
+        "query": "espionage*",
+        "hierarchyQuery": "crime/espionage*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "True Crime",
+        "short": "true-crime",
+        "query": "true-crime*",
+        "hierarchyQuery": "crime/true-crime*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Drama",
+    "short": "drama",
+    "query": "drama*",
+    "hierarchyQuery": "drama*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Cli-fi",
+        "short": "cli-fi",
+        "query": "cli-fi*",
+        "hierarchyQuery": "drama/cli-fi*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Coming of Age",
+        "short": "coming-of-age",
+        "query": "coming-of-age*",
+        "hierarchyQuery": "drama/coming-of-age*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Epistolary",
+        "short": "epistolary",
+        "query": "epistolary*",
+        "hierarchyQuery": "drama/epistolary*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Family Saga",
+        "short": "family-saga",
+        "query": "family-saga*",
+        "hierarchyQuery": "drama/family-saga*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Melodrama",
+        "short": "melodrama",
+        "query": "melodrama*",
+        "hierarchyQuery": "drama/melodrama*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Psychological",
+        "short": "psychological",
+        "query": "psychological*",
+        "hierarchyQuery": "drama/psychological*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Fantasy",
+    "short": "fantasy",
+    "query": "fantasy*",
+    "hierarchyQuery": "fantasy*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "short": "apocalyptic",
+        "query": "apocalyptic*",
+        "hierarchyQuery": "fantasy/apocalyptic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Coming of Age",
+        "short": "coming-of-age",
+        "query": "coming-of-age*",
+        "hierarchyQuery": "fantasy/coming-of-age*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Dystopian",
+        "short": "dystopian",
+        "query": "dystopian*",
+        "hierarchyQuery": "fantasy/dystopian*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Epic",
+        "short": "epic",
+        "query": "epic*",
+        "hierarchyQuery": "fantasy/epic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Post-Apocalyptic",
+        "short": "post-apocalyptic",
+        "query": "post-apocalyptic*",
+        "hierarchyQuery": "fantasy/post-apocalyptic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Steampunk",
+        "short": "steampunk",
+        "query": "steampunk*",
+        "hierarchyQuery": "fantasy/steampunk*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Utopian",
+        "short": "utopian",
+        "query": "utopian*",
+        "hierarchyQuery": "fantasy/utopian*",
+        "count": 0,
+        "requiresIntersection": true
+      }
+    ]
+  },
+  {
+    "name": "Historical",
+    "short": "historical",
+    "query": "historical*",
+    "hierarchyQuery": "historical*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Epic",
+        "short": "epic",
+        "query": "epic*",
+        "hierarchyQuery": "historical/epic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Family Saga",
+        "short": "family-saga",
+        "query": "family-saga*",
+        "hierarchyQuery": "historical/family-saga*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Horror",
+    "short": "horror",
+    "query": "horror*",
+    "hierarchyQuery": "horror*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "short": "apocalyptic",
+        "query": "apocalyptic*",
+        "hierarchyQuery": "horror/apocalyptic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Cult",
+        "short": "cult",
+        "query": "cult*",
+        "hierarchyQuery": "horror/cult*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Epistolary",
+        "short": "epistolary",
+        "query": "epistolary*",
+        "hierarchyQuery": "horror/epistolary*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Gothic",
+        "short": "gothic",
+        "query": "gothic*",
+        "hierarchyQuery": "horror/gothic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Post-Apocalyptic",
+        "short": "post-apocalyptic",
+        "query": "post-apocalyptic*",
+        "hierarchyQuery": "horror/post-apocalyptic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Psychological",
+        "short": "psychological",
+        "query": "psychological*",
+        "hierarchyQuery": "horror/psychological*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Humor",
+    "short": "humor",
+    "query": "humor*",
+    "hierarchyQuery": "humor*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Gonzo",
+        "short": "gonzo",
+        "query": "gonzo*",
+        "hierarchyQuery": "humor/gonzo*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "LGBTQ+",
+    "short": "lgbtq",
+    "query": "lgbtq*",
+    "hierarchyQuery": "lgbtq*",
+    "count": 0
+  },
+  {
+    "name": "Literary",
+    "short": "literary",
+    "query": "literary*",
+    "hierarchyQuery": "literary*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Coming of Age",
+        "short": "coming-of-age",
+        "query": "coming-of-age*",
+        "hierarchyQuery": "literary/coming-of-age*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Cult",
+        "short": "cult",
+        "query": "cult*",
+        "hierarchyQuery": "literary/cult*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Gonzo",
+        "short": "gonzo",
+        "query": "gonzo*",
+        "hierarchyQuery": "literary/gonzo*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Gothic",
+        "short": "gothic",
+        "query": "gothic*",
+        "hierarchyQuery": "literary/gothic*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Mystery",
+    "short": "mystery",
+    "query": "mystery*",
+    "hierarchyQuery": "mystery*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Detective",
+        "short": "detective",
+        "query": "detective*",
+        "hierarchyQuery": "mystery/detective*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Locked Room",
+        "short": "locked-room",
+        "query": "locked-room*",
+        "hierarchyQuery": "mystery/locked-room*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Mythology",
+    "short": "mythology",
+    "query": "mythology*",
+    "hierarchyQuery": "mythology*",
+    "count": 0
+  },
+  {
+    "name": "Romance",
+    "short": "romance",
+    "query": "romance*",
+    "hierarchyQuery": "romance*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Coming of Age",
+        "short": "coming-of-age",
+        "query": "coming-of-age*",
+        "hierarchyQuery": "romance/coming-of-age*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Epistolary",
+        "short": "epistolary",
+        "query": "epistolary*",
+        "hierarchyQuery": "romance/epistolary*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Gothic",
+        "short": "gothic",
+        "query": "gothic*",
+        "hierarchyQuery": "romance/gothic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Melodrama",
+        "short": "melodrama",
+        "query": "melodrama*",
+        "hierarchyQuery": "romance/melodrama*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Satire",
+    "short": "satire",
+    "query": "satire*",
+    "hierarchyQuery": "satire*",
+    "count": 0
+  },
+  {
+    "name": "Sci-Fi",
+    "short": "sci-fi",
+    "query": "sci-fi*",
+    "hierarchyQuery": "sci-fi*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "short": "apocalyptic",
+        "query": "apocalyptic*",
+        "hierarchyQuery": "sci-fi/apocalyptic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Biopunk",
+        "short": "biopunk",
+        "query": "biopunk*",
+        "hierarchyQuery": "sci-fi/biopunk*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Cli-fi",
+        "short": "cli-fi",
+        "query": "cli-fi*",
+        "hierarchyQuery": "sci-fi/cli-fi*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Cyberpunk",
+        "short": "cyberpunk",
+        "query": "cyberpunk*",
+        "hierarchyQuery": "sci-fi/cyberpunk*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Dystopian",
+        "short": "dystopian",
+        "query": "dystopian*",
+        "hierarchyQuery": "sci-fi/dystopian*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Epic",
+        "short": "epic",
+        "query": "epic*",
+        "hierarchyQuery": "sci-fi/epic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Futurism",
+        "short": "futurism",
+        "query": "futurism*",
+        "hierarchyQuery": "sci-fi/futurism*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Post-Apocalyptic",
+        "short": "post-apocalyptic",
+        "query": "post-apocalyptic*",
+        "hierarchyQuery": "sci-fi/post-apocalyptic*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Space Opera",
+        "short": "space-opera",
+        "query": "space-opera*",
+        "hierarchyQuery": "sci-fi/space-opera*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Steampunk",
+        "short": "steampunk",
+        "query": "steampunk*",
+        "hierarchyQuery": "sci-fi/steampunk*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Utopian",
+        "short": "utopian",
+        "query": "utopian*",
+        "hierarchyQuery": "sci-fi/utopian*",
+        "count": 0,
+        "requiresIntersection": true
+      }
+    ]
+  },
+  {
+    "name": "Thriller",
+    "short": "thriller",
+    "query": "thriller*",
+    "hierarchyQuery": "thriller*",
+    "count": 0,
+    "children": [
+      {
+        "name": "Espionage",
+        "short": "espionage",
+        "query": "espionage*",
+        "hierarchyQuery": "thriller/espionage*",
+        "count": 0,
+        "requiresIntersection": false
+      },
+      {
+        "name": "Psychological",
+        "short": "psychological",
+        "query": "psychological*",
+        "hierarchyQuery": "thriller/psychological*",
+        "count": 0,
+        "requiresIntersection": false
+      }
+    ]
+  },
+  {
+    "name": "Tragedy",
+    "short": "tragedy",
+    "query": "tragedy*",
+    "hierarchyQuery": "tragedy*",
+    "count": 0
+  },
+  {
+    "name": "Western",
+    "short": "western",
+    "query": "western*",
+    "hierarchyQuery": "western*",
+    "count": 0
+  }
+]
