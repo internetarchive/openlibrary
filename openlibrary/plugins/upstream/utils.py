@@ -245,41 +245,6 @@ def render_macro(name, args, **kwargs):
     return dict(web.template.Template.globals["macros"][name](*args, **kwargs))
 
 
-@public
-def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.utils.request_context import caching_prethread
-
-    def get_key_prefix():
-        req_context = request_context.req_context.get()
-        lang = req_context.lang
-        key_prefix = f"{name}.{lang}"
-        if req_context.print_disabled:
-            key_prefix += ".pd"
-        if req_context.sfw:
-            key_prefix += ".sfw"
-        if req_context.is_bot:
-            key_prefix += ".bot"
-        return key_prefix
-
-    five_minutes = 5 * 60
-    key_prefix = get_key_prefix()
-    mc = cache.memcache_memoize(
-        render_macro,
-        key_prefix=key_prefix,
-        timeout=five_minutes,
-        prethread=caching_prethread(),
-        hash_args=True,  # this avoids cache key length overflow
-    )
-
-    try:
-        page = mc(name, args, **kwargs)
-        if page.get("do_not_cache") == "True":
-            mc.memcache_delete_by_args(name, args, **kwargs)
-        return web.template.TemplateResult(page)
-    except ValueError, TypeError:
-        return "<span>Failed to render macro</span>"
-
-
 def get_message(name: str, *args) -> str:
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)

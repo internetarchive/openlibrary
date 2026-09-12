@@ -19,9 +19,9 @@ from openlibrary.plugins.openlibrary.partials import (
     BookPageListsPartial,
     CarouselCardPartial,
     CarouselLoadMoreParams,
+    CarouselPartial,
     FullTextSuggestionsPartial,
     LazyCarouselParams,
-    LazyCarouselPartial,
     MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
     SearchFacetsPartial,
@@ -161,11 +161,13 @@ async def my_books_dropper_lists_partial(
 @router.get("/partials/LazyCarousel.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def lazy_carousel_partial(
     params: Annotated[LazyCarouselParams, Query()],
+    full_path: Annotated[str, Depends(get_fullpath)],
 ) -> dict:
     """
     Get lazily-loaded carousel HTML.
+    TODO: Drop the lazy naming. Partials always load later.
     """
-    return await LazyCarouselPartial.generate_async(params=params)
+    return await CarouselPartial.generate_async(params=params, full_path=full_path)
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

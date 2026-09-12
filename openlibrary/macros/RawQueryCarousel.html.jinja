@@ -1,0 +1,13 @@
+{# Shows the carousel with books. #}
+{% from "books/custom_carousel.html.jinja" import book_carousel %}
+{% if search %}
+    <form action="/search" class="olform pagesearchbox">
+        <input type="hidden" name="q" value="{{ query }}" />
+        {% if has_fulltext_only %}
+            <input type="hidden" name="has_fulltext" value="true" />
+        {% endif %}
+        <input type="text" placeholder="{{ _('Search collection') }}" name="q2" />
+        <input type="submit" />
+    </form>
+{% endif %}
+{{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards) }}

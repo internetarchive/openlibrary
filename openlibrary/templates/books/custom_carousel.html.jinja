@@ -1,0 +1,26 @@
+{# Shows one book carousel. #}
+{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards) %}
+    {% if show %}
+        <div class="carousel-section">
+            {% if title and url %}
+                <div class="carousel-section-header">
+                    <h2 class="home-h2">
+                        <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
+                           href="{{ url }}">{{ title }}</a>
+                    </h2>
+                </div>
+            {% endif %}
+            <div class="carousel-container carousel-container-decorated">
+                <div class="carousel {{ grid }} {{ compact }} {{ loadjs }}"
+                     data-config="{{ config_json }}">
+                    {% for card in cards %}
+                        {{ card | safe }}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endmacro %}
+{% if show is defined %}
+    {{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards) }}
+{% endif %}
