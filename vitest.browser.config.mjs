@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
+import vue from '@vitejs/plugin-vue';
 
 /**
  * Vitest Browser Mode: component tests that need the things jsdom only
@@ -14,6 +15,9 @@ import { playwright } from '@vitest/browser-playwright';
  * jsdom config's `include` globs never match, so no test runs twice.
  */
 export default defineConfig({
+    // Compiles .vue single-file components (only .vue files are affected, so
+    // the Lit suites are untouched).
+    plugins: [vue()],
     test: {
         include: ['tests/browser/**/*.browser.test.js'],
         browser: {
