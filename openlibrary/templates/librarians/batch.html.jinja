@@ -1,0 +1,101 @@
+{# /librarians/batch/<id> — the review page a queued batch links to from the merge queue. #}
+{% set status = batch.status %}
+<div id="contentHead">
+    <h1>{{ _("Batch #%(id)s", id=batch.id) }}</h1>
+    <p class="librarian-batch__meta">
+        <strong>{{ batch.action | replace('_', ' ') }}</strong>
+        · {{ _("by %(username)s", username=batch.username) }}
+        · {{ batch.created[:16] | replace('T', ' ') }}
+        · <span class="librarian-batch__status librarian-batch__status--{{ status }}">{{ status | replace('_', ' ') }}</span>
+        {% if batch.mrid %}
+            · <a href="/merges?mrid={{ batch.mrid }}">{{ _("Request #%(id)s", id=batch.mrid) }}</a>
+        {% endif %}
+    </p>
+    {% if batch.summary %}<p class="librarian-batch__summary">{{ batch.summary }}</p>{% endif %}
+    {% if batch.comment %}<p>{{ batch.comment }}</p>{% endif %}
+</div>
+<div id="contentBody"
+     class="librarian-batch"
+     data-batch-id="{{ batch.id }}">
+    {% if batch.warnings %}
+        <h2>{{ _("Warnings") }}</h2>
+        <ul class="librarian-batch__warnings">
+            {% for w in batch.warnings %}
+                <li class="librarian-batch__warning librarian-batch__warning--{{ w.level }}">
+                    <span class="librarian-batch__tag">{{ w.level }}</span>
+                    {% if w.key %}<a href="{{ w.key }}">{{ w.key.split("/") | last }}</a> ·{% endif %}
+                    {{ w.text }}
+                    {% if w.code in batch.overrides %}<em>({{ _("acknowledged") }})</em>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <h2>{{ _("Changes") }}</h2>
+    {% if batch.changes %}
+        <table class="librarian-batch__changes">
+            <thead>
+                <tr>
+                    <th>{{ _("Record") }}</th>
+                    <th>{{ _("Field") }}</th>
+                    <th>{{ _("From") }}</th>
+                    <th>{{ _("To") }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in batch.changes %}
+                    <tr>
+                        <td><a href="{{ c.key }}">{{ c.key.split("/") | last }}</a></td>
+                        <td>{{ c.field }}</td>
+                        <td>{{ c["from"] | string if c["from"] is not none else "—" }}</td>
+                        <td>{{ c.to | string if c.to is not none else "—" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>{{ _("This batch makes no record changes (a flag is a report).") }}</p>
+    {% endif %}
+    <h2>{{ _("Records") }}</h2>
+    <ul>
+        {% for it in batch["items"] %}
+            <li>
+                <a href="{{ it.key }}">{{ it.title or it.key }}</a>{% if it.title %} <span class="librarian-batch__key">{{ it.key }}</span>{% endif %}
+                {% if it.before_revision %}· {{ _("revision %(n)s before", n=it.before_revision) }}{% endif %}
+                {% if it.after_revision %}→ {{ it.after_revision }}{% endif %}
+                {% if it.reverted %}· {{ _("reverted") }}{% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="librarian-batch__actions">
+        {% if status == "requested" and is_super %}
+            <ol-button variant="primary" data-batch-apply>
+                {{ _("Apply") }}
+            </ol-button>
+            <ol-button variant="secondary" data-batch-decline>
+                {{ _("Decline") }}
+            </ol-button>
+        {% elif status in ("applied", "partially_reverted") and (is_super or username == batch.username) %}
+            <ol-button variant="secondary" data-batch-revert>
+                {{ _("Undo the whole batch") }}
+            </ol-button>
+        {% endif %}
+        <span class="librarian-batch__result" role="status"></span>
+    </div>
+    <script>
+        // Three buttons, three POSTs; the page reloads to show the new status.
+        (function () {
+            var root = document.querySelector('.librarian-batch');
+            var id = root.dataset.batchId;
+            var out = root.querySelector('.librarian-batch__result');
+            function post(path) {
+                return fetch('/librarians/batch/' + id + path, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' }, body: '{}'
+                }).then(function (r) { return r.json().then(function (j) { return r.ok ? location.reload() : (out.textContent = (j.detail && j.detail.error) || r.statusText); }); });
+            }
+            root.querySelector('[data-batch-apply]') && root.querySelector('[data-batch-apply]').addEventListener('click', function () { post('/apply.json'); });
+            root.querySelector('[data-batch-decline]') && root.querySelector('[data-batch-decline]').addEventListener('click', function () { post('/decline.json'); });
+            root.querySelector('[data-batch-revert]') && root.querySelector('[data-batch-revert]').addEventListener('click', function () { post('/revert.json'); });
+        })();
+    </script>
+</div>

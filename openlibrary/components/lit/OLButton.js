@@ -60,7 +60,8 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *
  * @prop {"primary" | "secondary" | "destructive" | "ghost"} variant - Default: "secondary".
  *   Ghost is transparent with no border or lift; it fills on hover.
- * @prop {"small" | "medium" | "large"}            size    - Default: "medium"
+ * @prop {"x-small" | "small" | "medium" | "large"} size - Default: "medium". x-small is for
+ *   dense tool chrome (icon buttons in a list row); pair it with secondary or ghost, never primary.
  * @prop {"icon" | "circle"} shape - Icon-only: width equals the size's height,
  *   no horizontal padding. "circle" additionally rounds it. Give it an aria-label.
  * @prop {"floating"} elevation - Heavier drop shadow for a control that sits
@@ -211,6 +212,12 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         /* Sizes */
+        :host([size="x-small"]) .control {
+            --ol-button-height: var(--control-height-x-small);
+            padding: 0 var(--spacing-xs);
+            font-size: var(--font-size-label-small);
+        }
+
         :host([size="small"]) .control {
             --ol-button-height: var(--control-height-small);
             padding: 0 var(--spacing-sm);
@@ -384,6 +391,10 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             flex-shrink: 0;
             width: var(--_icon-size);
             height: var(--_icon-size);
+        }
+
+        :host([size="x-small"]) .label {
+            --_icon-size: 12px;
         }
 
         :host([size="small"]) .label {

@@ -198,6 +198,16 @@ Route handlers render templates via `render_template("path/name", args)` which m
 - `vendors.py` — External vendor integrations
 - `ia.py` — Internet Archive integration
 
+### Librarian workbench
+
+`/librarians/workbench` (librarians only; `openlibrary/plugins/openlibrary/librarians.py` serves the page, `openlibrary/fastapi/librarians.py` the JSON). One Lit component, `ol-workbench` (`components/lit/OlWorkbench.js`), owns the page: worklists in a rail, a query bar, a dense grid (`ol-workbench-grid`), a record panel (`ol-record-panel`), an action form (`ol-workbench-action-form`), and the preview dialog (`ol-batch-preview`) every write goes through. Query state mirrors into the URL so a worklist view is a link.
+
+- **Queries.** `core/workbench.py`: Solr picks the records (`type:edition|work|author`; free text is edismax, anything with `field:` is passed as Lucene), the database fills the rows (`hydrate`: the rows, their works, their authors — three `get_many` calls) and computes health chips (author mismatch, low-trust import, future date, orphan, no identifiers…). `FILTERS` map filter ids to Solr `fq` clauses, or to page-scope checks that narrow the fetched rows (labelled "on this page" in the UI). Editions are Solr child documents; nothing else in the codebase queries them directly.
+- **Worklists.** Built-ins in `BUILTIN_WORKLISTS` plus saved queries in the store (`/librarians/worklists/<id>`, type `librarian-worklist`), shared between librarians; counts are `numFound` memoized for five minutes.
+- **Writes.** `core/batch_ops.py`: every action (tag, move_editions, set_author, set_field, merge_editions, flag, delete, set_identifier) plans, previews with checks from `core/record_context.py`, and applies as one `save_many` recorded in `librarian_batches` (`core/librarian_batches.py`, `schema.sql`) so it can be reverted as a unit or per record. Super-librarians apply; librarians request, which files a `BATCH` row in `community_edits_queue` that a super-librarian applies from the Batches tab or `/librarians/batch/<id>`. A preview never writes (a "new work" target is a placeholder key until apply); a revert refuses records edited since unless forced.
+- **Panel edits.** Whitelisted fields (`batch_ops.SETTABLE_FIELDS`) edit in place and stage as pending changes; "Preview changes" turns each (field, value) group into a `set_field` batch.
+- Strings: `DEFAULT_LABELS` in `components/lit/workbench-labels.js`, mirrored by the `labels` dict at the top of `templates/librarians/workbench.html.jinja` (emitted with `|tojson`; keep the two in step).
+
 ### Frontend
 
 - **CSS:** CSS files in `static/css/`, compiled via `scripts/vite/build.mjs` (`--only css`) to `static/build/css/`. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.

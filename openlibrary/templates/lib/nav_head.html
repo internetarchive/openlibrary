@@ -122,6 +122,9 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
       </li>
       $if is_privileged_user:
         <li class="drawer-menu__item">
+          <a href="$(homepath())/librarians/workbench" data-ol-link-track="Hamburger|Workbench">$_("Librarian workbench")</a>
+        </li>
+        <li class="drawer-menu__item">
           $if shows_merge_count and cached_get_counts_by_mode(mode='open') > 0:
             <div class="drawer-menu__badge">$(cached_get_counts_by_mode(mode='open'))</div>
           <a href="$(homepath())/merges" data-ol-link-track="Hamburger|MyRequests">$_("Pending Merge Requests")</a>
