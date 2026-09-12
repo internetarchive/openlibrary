@@ -51,8 +51,10 @@ jobs:
       - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test
       # Browser-mode component tests (tests/browser/) run the components in
-      # real Chromium via Playwright; --with-deps installs the system packages.
-      - run: npx playwright install --with-deps chromium
+      # real Chromium via Playwright. The runner image ships Chromium's system
+      # libraries already (verified: every --with-deps package was current), so
+      # only the revision-locked browser binaries need fetching.
+      - run: npx playwright install chromium
       - run: npm run test:js:browser
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
