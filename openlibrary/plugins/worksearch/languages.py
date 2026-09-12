@@ -1,10 +1,12 @@
 """Language pages"""
 
+import functools
 import logging
 from dataclasses import dataclass
 from typing import Literal, override
 
 import web
+from icu import Collator, Locale
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
@@ -15,6 +17,13 @@ from openlibrary.utils.async_utils import async_bridge
 from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
+
+
+@functools.cache
+def _get_collator(lang: str) -> Collator:
+    collator = Collator.createInstance(Locale(lang))
+    collator.setStrength(Collator.PRIMARY)
+    return collator
 
 
 async def get_top_languages(
@@ -33,7 +42,11 @@ async def get_top_languages(
         )
         for (lang_key, count) in await get_all_language_counts("work")
     ]
-    results.sort(key=lambda x: x[sort].casefold() if sort == "name" else x[sort], reverse=sort in ("count", "ebook_edition_count"))
+    if sort == "name":
+        collator = _get_collator(user_lang or "en")
+        results.sort(key=lambda x: collator.getSortKey(x.name or ""))
+    else:
+        results.sort(key=lambda x: x[sort], reverse=sort in ("count", "ebook_edition_count"))
     return results[:limit]
 
 
