@@ -1,9 +1,5 @@
-{# A carousel for an Open Library search query.
-   Data comes from get_query_carousel_data() in openlibrary/plugins/openlibrary/partials.py,
-   which owns the safe_mode query rewrite, the lazy-load config JSON, the Solr fetch
-   and the load-more config. With `lazy` this is only the placeholder that
-   lazy-carousel.js fills in through /partials/LazyCarousel.json; otherwise the data
-   also carries books/custom_carousel.html.jinja's, which is included below. #}
+{# Shows a carousel for a query. #}
+{% from "books/custom_carousel.html.jinja" import book_carousel %}
 {% if lazy %}
     <div class="lazy-carousel" data-config="{{ lazy_config_json }}">
         {{ loading_indicator_html | safe }}
@@ -17,7 +13,6 @@
         {% endif %}
     </div>
 {% else %}
-    {# Enable search within this query #}
     {% if search %}
         <form action="/search" class="olform pagesearchbox">
             <input type="hidden" name="q" value="{{ query }}" />
@@ -28,5 +23,5 @@
             <input type="submit" />
         </form>
     {% endif %}
-    {% include "books/custom_carousel.html.jinja" %}
+    {{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards) }}
 {% endif %}
