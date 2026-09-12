@@ -181,7 +181,7 @@ export default {
 .slide-left-leave-active,
 .slide-right-enter-active,
 .slide-right-leave-active {
-  transition: transform .22s cubic-bezier(.4, 0, .2, 1);
+  transition: transform var(--duration-base) var(--ease-move);
 }
 .slide-left-leave-active,
 .slide-right-leave-active {

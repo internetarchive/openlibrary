@@ -24,7 +24,7 @@ async function state(page: Page) {
         if (!room) return null;
         const shelves = [...root.querySelectorAll('.shelf')] as HTMLElement[];
         const filter = root.querySelector('.genre-filter-bar') as HTMLElement | null;
-        const nav = root.querySelector('.genre-top-nav-wrapper') as HTMLElement | null;
+        const nav = root.querySelector('.genre-sticky-header') as HTMLElement | null;
         const home = root.querySelector('.genre-scroll-home') as HTMLElement | null;
         const cs = (el: Element | null) => (el ? getComputedStyle(el) : null);
         return {
@@ -39,8 +39,8 @@ async function state(page: Page) {
             homeExists: !!home,
             homeStop: home ? cs(home)!.scrollSnapStop : null,
             navPosition: nav ? cs(nav)!.position : null,
-            navTop: nav ? Math.round(nav.getBoundingClientRect().top) : null,
-            filterTop: filter ? Math.round(filter.getBoundingClientRect().top) : null,
+            navTop: nav ? Math.round(nav.getBoundingClientRect().top - room.getBoundingClientRect().top) : null,
+            filterTop: filter ? Math.round(filter.getBoundingClientRect().top - room.getBoundingClientRect().top) : null,
             filterVisible: filter ? filter.getBoundingClientRect().bottom > 0 : false,
         };
     });
@@ -108,7 +108,10 @@ test.describe('Genre Explorer scroll UX @smoke', () => {
         expect(s.filterVisible).toBe(true);
     });
 
-    test('scroll: nav stays sticky, filter controls scroll up and away', async ({ page }) => {
+    // The nav and the filter controls are pinned together as one sticky unit
+    // (.genre-sticky-header), so the controls stay reachable however far you scroll --
+    // they are not meant to scroll away with the shelves.
+    test('scroll: the controls stay pinned to the top of the pane', async ({ page }) => {
         await page.goto(URL);
         await page.waitForTimeout(1500);
         await skipIfNotMounted(page);
@@ -119,10 +122,13 @@ test.describe('Genre Explorer scroll UX @smoke', () => {
         await setRoomScroll(page, 1400);
         await page.waitForTimeout(300);
         const deep = (await state(page))!;
-        // Nav is still pinned near the top of the pane...
+        // The sticky header is still pinned to the top of the pane (offsets above are
+        // measured from the pane, so this holds whether or not the site header has
+        // auto-hidden and shifted the pane up)...
         expect(deep.navTop).toBeLessThanOrEqual(home.navTop! + 2);
-        // ...while the filter has scrolled up and away (further up than it was at home).
-        expect(deep.filterTop!).toBeLessThan(filterTopAtHome);
+        // ...and so are the filter controls inside it, still on screen and unmoved.
+        expect(Math.abs(deep.filterTop! - filterTopAtHome)).toBeLessThanOrEqual(2);
+        expect(deep.filterVisible).toBe(true);
     });
 });
 

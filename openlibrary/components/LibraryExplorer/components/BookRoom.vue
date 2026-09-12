@@ -43,13 +43,6 @@
         @update:genre-enriched="$emit('update:genre-enriched', $event)"
         @ready="updateWidths"
       />
-      <!-- The bookcase's own top board -- a wood-plank frame mirroring the shelves' own
-           baseboard, so the case reads as one continuous carcass topped and bottomed the
-           same way, rather than shelves just starting abruptly under the nav. -->
-      <div
-        class="genre-top-board"
-        aria-hidden="true"
-      />
     </div>
     <div
       v-else
@@ -997,23 +990,14 @@ button {
 }
 
 .book-room.genre-mode {
-  /* Modern, elegant bookcase: a warm off-white "wall", clean matte wooden shelf boards that
-     float on soft warm shadows, and books grounded with gentle contact shadows. Warm-wood
-     palette kept in variables so the whole case stays cohesive. */
-  /* Warm honey-oak bookcase palette (à la a modern wood bookshop) + slate chalkboard for
-     the section signs. */
-  --wall: #b28d57;         /* oak back panel of the case */
-  --wall-lo: #93713f;      /* recessed/shadowed oak */
-  --wood-top: #d2ac74;     /* lit shelf-board surface (faces the light) */
-  --wood-face: #b28a55;    /* shelf-board front edge */
-  --wood-deep: #7f5f37;    /* shelf-board base / grain shadow */
-  --wood-frame: #6f5231;   /* dark oak frame around the chalkboard signs */
-  --chalk-board: #2b2a26;  /* slate */
-  --chalk-ink: #f0ebde;    /* chalk */
-  --shelf-cast: rgba(40, 24, 6, .42);    /* warm shadow the board/sign casts */
-  --book-cast: rgba(30, 18, 4, .42);     /* contact shadow under each book */
-  --oak-grain: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27500%27%20height%3D%27120%27%3E%3Cfilter%20id%3D%27g%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.003%200.09%27%20numOctaves%3D%274%27%20seed%3D%279%27%2F%3E%3CfeColorMatrix%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200.16%200%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27500%27%20height%3D%27120%27%20filter%3D%27url%28%23g%29%27%2F%3E%3C%2Fsvg%3E");
-  background: var(--wall);
+  /* Genre mode paints with the design system's own surfaces: the pane is the page
+     canvas, each shelf a surface, and shelf edges are single divider rules. */
+  background: var(--color-background);
+  /* LibraryExplorer.vue's root sets its own "bahnschrift"/"Avenir" stacks, which every
+     genre-mode descendant would otherwise inherit. Point genre mode at the site
+     typeface instead; DDC/LCC keeps its existing look. */
+  font-family: var(--font-family-body);
+  color: var(--color-text);
   /* THE genre-mode scroll container. It holds the whole explorer -- sticky top nav, the
      filter controls, and the shelves -- in ONE scroll region, so the nav stays pinned, the
      controls scroll up and away, and the shelves snap, all as one gesture-driven scroll.
@@ -1027,7 +1011,7 @@ button {
   overflow-x: hidden;
   scroll-snap-type: y mandatory;
   overscroll-behavior: contain;
-  transition: height .25s ease-out, margin-top .25s ease-out;
+  transition: height var(--duration-base) var(--ease-move), margin-top var(--duration-base) var(--ease-move);
 }
 /* The site header hides via transform (see header-bar.css), which never reclaims its own
    layout space -- invisible on a normal page (already scrolled past by the time it hides),
@@ -1035,6 +1019,11 @@ button {
    above the pane where the header used to be instead of the pane growing into it. Shift up
    by exactly the header's own height (--site-header-reclaim-height, measured in
    updateWidths) and grow by the same amount so the pane's bottom edge stays put. */
+@media (prefers-reduced-motion: reduce) {
+  .book-room.genre-mode {
+    transition: none;
+  }
+}
 .book-room.genre-mode.header-collapsed {
   height: calc(var(--genre-pane-height, 85vh) + var(--site-header-reclaim-height, 0px));
   margin-top: calc(-1 * var(--site-header-reclaim-height, 0px));
@@ -1044,35 +1033,27 @@ button {
    win and muddy the wall. Naming both classes here (3 classes) makes the clean cream wall
    authoritative regardless of bundle order. */
 .book-room.style--aesthetic--wip.genre-mode {
-  /* The "room" the bookcase sits in -- a soft neutral, deliberately NOT wood: the wood is
-     the background of each shelf (which scrolls with its books), so it never reads as a
-     static, tiled wallpaper. Controls that scroll over this sit on the neutral, not the
-     wood. */
-  background: #e9e0cf;
+  background: var(--color-background);
 }
-/* The sticky unit as a whole -- top nav, filter "sign", and the bookcase's own top board
-   (all below) -- so the controls are always visible instead of scrolling away with the
-   page. Opaque (matches the room wall) so shelves scrolling underneath never show through
-   any gap between the nav and the sign below it. */
+/* The sticky unit as a whole -- top nav, filter controls, and the selected-filter chips --
+   so the controls stay reachable instead of scrolling away with the shelves. Opaque, and
+   ruled off at the bottom, so shelves scrolling underneath never bleed through. */
 .book-room.genre-mode .genre-sticky-header {
   position: sticky;
   top: 0;
-  z-index: 10;
-  background: #6c614e;
+  z-index: var(--z-index-local-4);
+  background: var(--color-background);
+  border-bottom: var(--border-width-divider) solid var(--color-border-subtle);
 }
-/* GenreFilterBar restyled as a small hanging sign: centered, sized to its own content
-   (not a full-width bar), hanging by two thin strings from the dark nav above -- like a
-   little placard tacked up in a shop window, rather than a form spanning the room. */
+/* The filter controls read as a toolbar on the canvas -- centered, sized to their own
+   content, no surface of their own. The controls are already raised (ol-toggle,
+   ol-select-popover); framing them in a second card only doubles the edges. */
 .book-room.genre-mode .genre-filter-bar {
   position: relative;
   width: fit-content;
   max-width: min(90vw, 900px);
-  margin: 15px auto 25px auto;
-  padding: 10px 18px;
-  background: #f3ead4;
-  border: 1px solid rgba(0, 0, 0, .25);
-  border-radius: 4px;
-  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .45);
+  margin: 0 auto;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
 }
 /* On a narrow viewport the controls don't fit their max-width (90vw here) on one line --
    the base rule's flex-wrap: wrap would spill them onto a second/third row, growing the
@@ -1088,67 +1069,17 @@ button {
     -webkit-overflow-scrolling: touch;
   }
 }
-.book-room.genre-mode .genre-filter-bar::before,
-.book-room.genre-mode .genre-filter-bar::after {
-  content: "";
-  position: absolute;
-  top: -18px;
-  width: 2px;
-  height: 18px;
-  background: linear-gradient(to bottom, transparent, #8a7355 35%);
-}
-.book-room.genre-mode .genre-filter-bar::before { left: 30%; }
-.book-room.genre-mode .genre-filter-bar::after { left: 70%; }
-/* Selected-filter pills float just above the top board (see .genre-top-board) rather than
-   adding their own row inside the sign -- like a little placard resting on the shelf's own
-   edge, so picking a filter never grows .genre-sticky-header's height. Teleported (see
-   GenreFilterBar.vue) to be a direct child of .genre-sticky-header, so this positions
-   relative to that, not .genre-filter-bar -- out-specifies GenreFilterBar's own scoped
-   .genre-filter-bar__chips (flex-basis: 100%, an in-flow row), which is what that rule is
-   for everywhere it isn't overridden -- there is nowhere else it's used, since
-   GenreFilterBar only ever renders in genre mode. */
+/* Selected-filter chips sit in their own row at the bottom of the sticky header, so they
+   stay visible while the shelves scroll. In flow rather than absolutely positioned: the
+   header's measured height (--genre-nav-height, which each shelf's scroll-margin-top
+   reads) is refreshed whenever the row changes, so snapping follows the new height --
+   see GenreFilterBar's chips watcher. */
 .book-room.genre-mode .genre-filter-bar__chips {
-  position: absolute;
-  left: 50%;
-  bottom: 20px;
-  transform: translateX(-50%);
   flex-basis: auto;
-  width: max-content;
-  max-width: 90vw;
-  margin-top: 0;
-}
-/* Sits the pill on the board the same way the board's own lighting reads: the board's
-   gradient (--wood-top lit at the top, darkening toward --wood-deep) implies an overhead
-   light, so the pill's own shadow falls straight down beneath it, not off to a side like
-   the books' upper-left key light -- a diagonal offset here just looked like a mismatched
-   light source. Tight and dark near the pill, short falloff -- a crisp contact shadow, not
-   a soft blurred halo. box-shadow/border-radius work on ol-chip's own host box from
-   outside its shadow root (unlike its internal .chip fill/border, which are shadow-
-   encapsulated) -- the host has no border-radius of its own by default, so it's set here
-   to match the pill shape, otherwise the shadow would render as a rectangle behind a
-   rounded pill. */
-.book-room.genre-mode .genre-filter-bar__chips ol-chip {
-  border-radius: 999px;
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, .4),
-    0 3px 4px -1px rgba(0, 0, 0, .45);
-}
-/* The bookcase's own top board -- the same wood-plank treatment as each shelf's baseboard
-   (see .shelf-carousel::after below), so the case reads as one continuous carcass topped
-   and bottomed the same way instead of shelves just starting abruptly under the nav. */
-.book-room.genre-mode .genre-top-board {
-  height: 20px;
-  background:
-    var(--oak-grain),
-    linear-gradient(180deg,
-      var(--wood-top) 0%,
-      var(--wood-top) 8px,
-      var(--wood-face) 9px,
-      var(--wood-deep) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 247, 231, .5),
-    inset 0 -2px 4px rgba(0, 0, 0, .3),
-    0 6px 10px -4px var(--shelf-cast);
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
 }
 /* Home is a real snap position at scrollTop 0 (see the .genre-scroll-home sentinel in the
    template for why it's anchored here and not on the sticky nav, whose scroll-snap-align
@@ -1199,35 +1130,22 @@ button {
   scroll-snap-stop: always;
   scroll-margin-top: var(--genre-nav-height, 0px);
 }
-/* Wood is the background of the SHELF itself, so it scrolls with the books rather than
-   being a static, tiled page backdrop. Sized to cover so the grain never visibly tiles
-   within a shelf. margin-bottom 0 (4-class selector beats the wip aesthetic's 35px) so the
-   shelves stack tight like a real case. */
+/* Each shelf is a sunken surface the books sit in, ruled off from the next by a single
+   divider. margin-bottom 0 (4-class selector beats the wip aesthetic's 35px) so the rows
+   stack flush and the dividers do the separating. */
 .book-room.style--aesthetic--wip.genre-mode .shelf {
   position: relative;
   margin-bottom: 0;
-  background-color: var(--wall);
-  background-image:
-    var(--oak-grain),
-    radial-gradient(130% 60% at 50% 0%, rgba(255, 238, 205, .16), transparent 55%),
-    linear-gradient(180deg, rgba(22, 12, 3, .34) 0, transparent 30px);
-  background-size: cover, cover, 100% 100%;
-  background-repeat: no-repeat;
+  background-color: var(--color-surface);
 }
 
-/* A softer, more contemporary take on the bookcase/shelf skin for genre mode: layered
-   shadows (top highlight, bottom lift) instead of a flat 3px black border, and a richer
-   multi-stop walnut gradient instead of a flat black box -- still explicitly a wood
-   shelf (skeuomorphic), just less "clip-art". Scoped to .genre-mode so DDC/LCC's
-   existing look is untouched.
-
-   Full-bleed rather than a centered 900px card (see .bookshelf-wrapper below) -- one
-   continuous shelf spanning the viewport, not a boxed-in card, so there's no left/right
-   edge for books to visibly get cut off against. No border-radius here for the same
-   reason: rounded corners only make sense where an edge is actually visible (top/bottom). */
+/* Full-bleed rather than a centered 900px card (see .bookshelf-wrapper below) -- one
+   continuous row spanning the viewport, so there's no left/right edge for books to
+   visibly get cut off against, and no border-radius for the same reason. Scoped to
+   .genre-mode so DDC/LCC's existing look is untouched. */
 .book-room.style--aesthetic--wip.genre-mode .bookshelf {
-  background: transparent;   /* the warm wall (.book-room) shows through; 4-class selector
-                                out-specifies the wip aesthetic's own .bookshelf wood skin */
+  background: transparent;   /* the shelf surface below shows through; 4-class selector
+                                out-specifies the wip aesthetic's own .bookshelf skin */
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -1237,9 +1155,8 @@ button {
      here -- drop it so vertical snap belongs to the document. */
   overflow: visible;
   /* The base rule's 36px top padding made room for DDC/LCC's own big per-bookcase sign,
-     which genre mode never renders (one bookcase, selected via the top nav instead) --
-     now that the sticky header ends in its own top board, that padding just left a dead
-     gap between it and the first shelf. */
+     which genre mode never renders (one bookcase, selected via the top nav instead), so
+     it just left a dead gap under the sticky header. */
   padding: 0;
 }
 .book-room.genre-mode .bookshelf-wrapper {
@@ -1262,142 +1179,52 @@ button {
 .book-room.style--aesthetic--wip.genre-mode .bookshelf-wrapper {
   margin-left: 0;
 }
-/* Skeuomorphic shelf ledge (genre mode). Books rest on a real wooden plank: a lit top
-   surface, a darker front lip for thickness, a soft drop shadow so the shelf reads as
-   floating, and a contact shadow that grounds the books on it. Modern-but-real -- warm
-   wood + soft diffuse shadows, not flat cartoon planks. --shelf-plank-h reserves the space
-   the plank occupies (via padding-bottom) so book bottoms sit ON its surface, not over it. */
+/* The shelf's own ledge: a baseboard strip closing the row off at the bottom, with a
+   divider rule along its top edge where the books meet it. --shelf-base-h reserves the
+   space it occupies (via padding-bottom) so book bottoms land on it rather than over it. */
 .book-room.style--aesthetic--wip.genre-mode .shelf-carousel {
-  --shelf-plank-h: 31px;
+  --shelf-base-h: 24px;
   position: relative;
   border: 0;
   border-radius: 0;
   /* Shelf.vue's base height (285px) leaves a lot of dead air above the covers -- 4-class
-     selector out-specifies it for genre mode only (DDC/LCC keeps 285px). No padding-top
-     (removed in favor of a taller height): the extra room above the covers was dead air,
-     not something worth reserving via padding. */
+     selector out-specifies it for genre mode only (DDC/LCC keeps 285px). */
   height: 280px;
-  /* transparent so the oak wall shows through; 4-class selector out-specifies the wip
-     aesthetic's own brown .shelf-carousel skin. The inset top shadow is the underside of
-     the shelf above, seating each row inside the case (depth). */
+  /* transparent so the shelf surface shows through; 4-class selector out-specifies the
+     wip aesthetic's own .shelf-carousel skin. */
   background: transparent;
-  /* Less than --shelf-plank-h (the board's own height, used below) on purpose: the books'
-     flex row is sized to this padding-bottom, so shrinking it by --shelf-sink lets books
-     extend that far down into the board's own box instead of stopping at its back edge.
-     Only the board's lit top surface (its top ~10px) gets covered; its front face stays
-     visible below every book, which is what actually reads as resting ON the board rather
-     than floating just above it with the whole board exposed underneath. */
-  --shelf-sink: 5px;
-  padding-bottom: calc(var(--shelf-plank-h) - var(--shelf-sink));
-  box-shadow: inset 0 17px 17px -16px rgba(18, 10, 2, .6);
+  padding-bottom: var(--shelf-base-h);
 }
-/* soft contact shadow the books pool onto the board -- grounds the row */
-.book-room.genre-mode .shelf-carousel::before {
-  content: "";
-  position: absolute;
-  left: 4%;
-  right: 4%;
-  bottom: calc(var(--shelf-plank-h) - 5px);
-  height: 16px;
-  background: radial-gradient(70% 100% at 50% 100%, rgba(60, 40, 16, .26), transparent 78%);
-  pointer-events: none;
-  z-index: 0;
-}
-/* The shelf board: a thick, grained wooden plank. Reads as looking slightly down onto it --
-   a bright lit front-top lip, a top surface receding into shadow at the back seam, then the
-   tall front face (its thickness), all wrapped in wood grain and a faint varnish sheen. A
-   broad soft shadow beneath makes it float above the shelf below. */
+/* The baseboard itself -- the surface the shelf label is pinned to, and the line the
+   books stand on. */
 .book-room.genre-mode .shelf-carousel::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: var(--shelf-plank-h);
-  background:
-    var(--oak-grain),
-    linear-gradient(180deg,
-      var(--wood-top) 0%,
-      var(--wood-top) 10px,       /* top surface (catches the light) */
-      var(--wood-face) 11px,      /* front edge */
-      var(--wood-deep) 100%);
-  border-radius: 1px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 247, 231, .5),          /* fine lit top edge */
-    inset 0 -2px 4px rgba(0, 0, 0, .3),             /* front-face base darkens */
-    0 4px 7px -3px var(--shelf-cast),                /* crisp near shadow */
-    0 16px 26px -12px var(--shelf-cast);             /* soft floating shadow */
+  height: var(--shelf-base-h);
+  background: var(--color-surface-sunken);
+  border-top: var(--border-width-divider) solid var(--color-border-subtle);
   pointer-events: none;
-  z-index: 1;
+  z-index: var(--z-index-local-1);
 }
-/* A single light source cast across the WHOLE shelf, no WebGL/canvas needed -- a soft warm
-   glow from the upper-left easing into a faint dark falloff at the lower-right, layered
-   over the carousel with a blend mode so it modulates the books' existing colors rather
-   than sitting on top as a flat tint. Every shelf gets the identical gradient, which is
-   what makes it read as one consistent room light rather than each book's own tiny sheen
-   (below) looking disconnected from its neighbours. z-index 2: above the carousel (which
-   has no explicit z-index of its own) but below the baseboard label (z-index 3), so the
-   label stays perfectly crisp instead of getting tinted too. */
-.book-room.style--aesthetic--wip.genre-mode .shelf::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    radial-gradient(65% 60% at 12% 8%, rgba(255, 248, 224, .35), transparent 60%),
-    linear-gradient(135deg, rgba(255, 255, 255, .08) 0%, transparent 45%, rgba(20, 12, 4, .16) 100%);
-  mix-blend-mode: soft-light;
-}
-/* Give each flat cover a step toward a real, photographed book -- subtle, never comical:
-   a soft studio-light sheen, a thin page fore-edge for thickness, and a layered realistic
-   shadow so it reads as an object sitting proud of the shelf, not a sticker. */
+/* Covers lift off the shelf surface with a single soft shadow -- enough to separate a
+   pale cover from the surface behind it, and nothing more. */
 .book-room.genre-mode .book .cover,
 .book-room.genre-mode .book > img {
-  border-radius: 2px;
-  box-shadow:
-    0 1px 1px #0000004d,          /* tight contact edge */
-    0 7px 12px -5px var(--book-cast),      /* soft ambient */
-    8px 2px 10px 2px #00000047;   /* light from upper-left -> shadow lower-right */
+  border-radius: var(--border-radius-thumbnail);
+  box-shadow: var(--box-shadow-floating);
 }
-/* soft directional sheen across the cover (studio light from the upper-left) */
-.book-room.genre-mode .book::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(108deg,
-    rgba(255, 255, 255, .16) 0%,
-    rgba(255, 255, 255, .04) 16%,
-    transparent 34%,
-    transparent 90%,
-    rgba(0, 0, 0, .1) 100%);
-}
-/* a thin block of page edges on the right, giving the book real thickness */
-.book-room.genre-mode .book::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  bottom: 1px;
-  right: -3px;
-  width: 4px;
-  z-index: 1;
-  border-radius: 0 2px 2px 0;
-  background: repeating-linear-gradient(90deg, rgba(120, 100, 70, .55) 0 .5px, #efe6d2 .5px 1.6px);
-  box-shadow: 1px 2px 4px -1px rgba(0, 0, 0, .4);
-}
-/* The subgenre name is DELETED from above the shelf and affixed to the front of the wooden
-   baseboard -- a small printed shelf-edge label, like a real bookstore. It's absolutely
-   positioned onto the board area (it can't literally live in the ::after pseudo, which
-   can't hold dynamic text), which also removes the empty label space that used to sit above
-   each shelf. */
+/* The subgenre name moves from above the shelf onto the baseboard, where it reads as the
+   row's label. Absolutely positioned onto the baseboard area (it can't live in the ::after
+   pseudo, which can't hold dynamic text), which also removes the empty label space that
+   used to sit above each shelf. */
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label {
   position: absolute;
-  left: 20px;
-  bottom: 3px;
-  z-index: 3;
+  left: var(--spacing-inset-md);
+  bottom: 0;
+  z-index: var(--z-index-local-3);
   margin: 0;
   padding: 0;
   background: transparent;
@@ -1426,16 +1253,11 @@ button {
   bottom: 0;
   transform: translateX(-50%);
   display: inline-block;
-  font-family: "Helvetica Neue", Arial, sans-serif;
-  font-size: .72em;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  color: #2e2109;
-  background: #f3ead4;
-  padding: 3px 10px;
-  border-radius: 2px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .4);
+  padding: 0 var(--spacing-inset-xs);
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-single);
+  color: var(--color-text-heading);
   white-space: nowrap;
 }
 /* The book carousels scroll horizontally; without this, a leftward trackpad swipe that
@@ -1444,12 +1266,10 @@ button {
    lower-level gesture; opting the horizontal axis out of overscroll (none) is what does. */
 .book-room.genre-mode .books-carousel {
   overscroll-behavior-x: none;
-  /* Sits above the shelf-board pseudo-elements (z-index 0/1 on .shelf-carousel) -- without
-     this, the --shelf-sink overlap (books extending down into the board's own box, above)
-     rendered backwards: the board painted OVER the bottom of every cover instead of the
-     cover sitting in front of it. */
+  /* Sits above the baseboard pseudo-element (z-index local-1 on .shelf-carousel), so a
+     cover is never painted over by the board it stands on. */
   position: relative;
-  z-index: 2;
+  z-index: var(--z-index-local-2);
 }
 /* Match the shelf-carousel height override above so a loading shelf's skeleton doesn't
    reserve 285px and then jump to 280px once results arrive. */
@@ -1457,51 +1277,40 @@ button {
   height: 280px;
 }
 
-/* ---- coherence pass ---- */
-
-/* Seat books ON the board: the base .book has margin-bottom:10px which floated them ~10px
-   above the shelf surface. A skeleton shimmer fills each cover slot while its image loads
-   (the opaque cover paints over it once ready), so shelves populate gracefully instead of
-   showing blank boxes with an orphaned rating badge. */
+/* Seat books on the baseboard: the base .book has margin-bottom:10px, which floated them
+   above it. A skeleton shimmer fills each cover slot while its image loads (the opaque
+   cover paints over it once ready), so shelves populate gracefully instead of showing
+   blank boxes with an orphaned rating badge. */
 @keyframes ol-cover-skeleton {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
-/* 4-class selector out-specifies Shelf.vue's `.shelf >>> .book { margin-bottom: 10px }`
+/* 4-class selector out-specifies Shelf.vue's `.shelf :deep(.book) { margin-bottom: 10px }`
    (which ties a 3-class rule and won on source order, keeping the books floating). */
 .book-room.genre-mode .books-carousel .book {
   margin-bottom: 0;
-  border-radius: 2px;
+  border-radius: var(--border-radius-thumbnail);
   /* Drop BooksCarousel's `min-height: 90%`: it makes the .book box ~90% of the carousel
-     height regardless of the (usually shorter) loaded cover, leaving empty space above the
-     image. The hover transform then scales/lifts that oversized box from its bottom and
-     reads as broken. min-height:0 makes the box hug the actual cover so the lift is true. */
+     height regardless of the (usually shorter) loaded cover, leaving empty space above
+     the image and a hit area that extends well past the cover. */
   min-height: 0;
-  transition: transform .18s ease, box-shadow .18s ease;
-  transform-origin: bottom center;
-  /* A few books leaning back off true vertical, like a real shelf where not every spine
-     stands perfectly straight -- pivoted from the bottom (transform-origin above) so it
-     reads as leaning back against the shelf behind it, not tipping sideways into its
-     neighbour. perspective() gives rotateX() actual depth to tilt into, rather than just
-     flattening the cover vertically. --book-tilt is set per nth-child below; most books
-     get 0deg so the effect stays a light accent, not a gimmick. */
-  transform: perspective(600px) rotateX(var(--book-tilt, 0deg));
+  /* Press feedback only. Hover is a shadow change and lands instantly -- easing it in
+     reads as lag (see docs/ai/design.md). */
+  transition: transform var(--duration-press);
 }
-.book-room.genre-mode .books-carousel .book:nth-child(7n+2) { --book-tilt: 6deg; }
-.book-room.genre-mode .books-carousel .book:nth-child(7n+5) { --book-tilt: 4deg; }
-/* Hover: lift the cover off the shelf -- rise a few px and scale up a touch, come in FRONT
-   of its neighbours and the baseboard label (z-index). Feels like picking it up, and lifts
-   it clear of anything occluding it. */
-.book-room.genre-mode .books-carousel .book:hover {
-  transform: perspective(600px) rotateX(var(--book-tilt, 0deg)) translateY(-5px) scale(1.04);
-  z-index: 5;
+@media (hover: hover) and (pointer: fine) {
+  /* Hover deepens the cover's shadow and brings it in front of its neighbours, so the
+     larger shadow isn't clipped by the next cover along. */
+  .book-room.genre-mode .books-carousel .book:hover {
+    z-index: var(--z-index-local-5);
+  }
+  .book-room.genre-mode .book:hover .cover,
+  .book-room.genre-mode .book:hover > img {
+    box-shadow: var(--box-shadow-overlay);
+  }
 }
-.book-room.genre-mode .book:hover .cover,
-.book-room.genre-mode .book:hover > img {
-  /* Bigger, softer, and lower than the resting shadow (below) -- reads as the book casting
-     a shadow further down onto the shelf as it lifts away from it. No colored glow (that
-     read as a yellow/white blur, not a shadow). */
-  box-shadow: 0 26px 34px -10px rgba(0, 0, 0, .6);
+.book-room.genre-mode .books-carousel .book:active {
+  transform: scale(var(--press-scale));
 }
 /* Per-cover skeleton shimmer, removed the instant the image loads. It can't live only on
    the image's background: covers are object-fit:contain (letterboxed), so the background
@@ -1509,9 +1318,19 @@ button {
    the image's load event (onCoverLoaded) and the shimmer targets `:not(.is-loaded)` only. */
 .book-room.genre-mode .book .cover:not(.is-loaded),
 .book-room.genre-mode .book > img:not(.is-loaded) {
-  background-image: linear-gradient(100deg, #c1a06f 26%, #dcc199 46%, #c1a06f 66%);
+  background-color: var(--color-border-subtle);
+  background-image: linear-gradient(100deg,
+    var(--color-border-subtle) 26%,
+    var(--color-surface-sunken) 46%,
+    var(--color-border-subtle) 66%);
   background-size: 220% 100%;
   animation: ol-cover-skeleton 1.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-room.genre-mode .book .cover:not(.is-loaded),
+  .book-room.genre-mode .book > img:not(.is-loaded) {
+    animation: none;
+  }
 }
 
 /* Hide the vestigial DDC section-scrub track -- the thin translucent-white bar that read as
@@ -1521,20 +1340,19 @@ button {
 }
 
 /* The subgenre index list's base color:inherit picks up ShelfLabel.vue's dark-bookcase
-   white text (correct for DDC/LCC), which is unreadable against genre mode's light wood
-   wall. Force a dark ink here to match the baseboard label's own text color. */
+   white text (correct for DDC/LCC), which is unreadable on genre mode's light surface. */
 .book-room.genre-mode .shelf-index a {
-  color: #2e2109;
+  color: var(--color-link);
 }
 
-/* Soft, on-theme loading/error indicator instead of the harsh black pill. */
+/* Loading/error state, on the system's own message surface rather than a harsh black pill. */
 .book-room.genre-mode .status-text {
-  background: rgba(58, 38, 18, .82);
-  color: #f6ecda;
-  border-radius: 0 0 999px 999px;
-  padding: 4px 16px;
-  font-size: .82em;
-  letter-spacing: .02em;
-  box-shadow: 0 3px 8px -2px rgba(0, 0, 0, .4);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: var(--border-width-divider) solid var(--color-border-subtle);
+  border-top: 0;
+  border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-md);
+  font-size: var(--font-size-body-small);
 }
 </style>

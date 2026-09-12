@@ -231,7 +231,10 @@ def get_featured_genres():
     genres = json.loads(GENRE_JSON_PATH.read_text())
     return [
         {
-            "key": f"/explore/genres?jumpTo=genre:{genre['short']}",
+            # jumpTo is "<classification field>:<value>", and the genre tree's field is
+            # subject_key (see LibraryExplorer.vue) -- "genre:" finds no classification and
+            # throws before the explorer mounts.
+            "key": f"/explore/genres?jumpTo=subject_key:{genre['short']}",
             "presentable_name": genre["name"],
             "work_count": genre.get("count", 0),
         }

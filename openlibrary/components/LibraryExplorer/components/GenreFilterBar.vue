@@ -244,6 +244,18 @@ export default {
             return chips;
         },
     },
+    watch: {
+        // The chip row lives in flow at the bottom of BookRoom's sticky header, so adding
+        // or clearing a filter changes that header's height -- and each shelf's
+        // scroll-margin-top is measured from it (--genre-nav-height). Re-measure on the
+        // tick after the row re-renders, or snapping keeps clearing the old height.
+        'activeChips.length': {
+            async handler() {
+                await nextTick();
+                this.$emit('ready');
+            },
+        },
+    },
     async mounted() {
         // Also wait out the languages fetch here (rather than firing-and-forgetting it in
         // created()) so the Language popover's real item list -- not a still-empty one --
@@ -292,9 +304,9 @@ export default {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 14px;
-  margin-bottom: 24px;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  margin-bottom: var(--spacing-stack-lg);
 }
 
 /* flex-basis: 100% forces this onto its own row below the controls above, rather than
@@ -302,6 +314,6 @@ export default {
 .genre-filter-bar__chips {
   flex-basis: 100%;
   justify-content: center;
-  margin-top: 4px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 </style>

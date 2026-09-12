@@ -415,26 +415,38 @@ export default {
    (flex-end) with slightly varied heights so it looks like a row of books loading in. */
 .ol-carousel-skeleton {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-inline-lg);
   align-items: flex-end;
   height: 285px;
-  padding: 0 16px;
+  padding: 0 var(--spacing-inset-md);
   overflow: hidden;
 }
 .skeleton-book {
   flex: 0 0 auto;
   width: 150px;
   height: 232px;
-  border-radius: 3px;
-  background: linear-gradient(100deg,
-    rgba(120, 90, 50, .16) 26%, rgba(120, 90, 50, .05) 46%, rgba(120, 90, 50, .16) 66%);
+  border-radius: var(--border-radius-thumbnail);
+  background-color: var(--color-border-subtle);
+  background-image: linear-gradient(100deg,
+    var(--color-border-subtle) 26%,
+    var(--color-surface-sunken) 46%,
+    var(--color-border-subtle) 66%);
   background-size: 220% 100%;
   animation: ol-skeleton-shimmer 1.5s ease-in-out infinite;
 }
+/* Three heights in rotation so a loading shelf reads as books of differing sizes rather
+   than a picket fence. */
 .skeleton-book:nth-child(3n) { height: 206px; }
 .skeleton-book:nth-child(3n + 1) { height: 248px; }
 @keyframes ol-skeleton-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+/* The shimmer is decoration on top of a shape that already reserves the space, so it can
+   simply stop. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-book {
+    animation: none;
+  }
 }
 </style>

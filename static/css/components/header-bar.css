@@ -16,7 +16,7 @@
   position: sticky;
   top: 0;
   z-index: var(--z-index-sticky);
-  transition: transform 0.25s ease-out;
+  transition: transform var(--duration-base) var(--ease-move);
 }
 .site-header-autohide.header-hidden {
   /* -100% alone isn't enough: it's relative to this wrapper's own flow-box height, which
