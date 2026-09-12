@@ -16,7 +16,7 @@ function installDomStubs() {
     const dialogProto = window.HTMLDialogElement.prototype;
     dialogProto.showModal = function() { this.open = true; };
     dialogProto.close = function() { this.open = false; };
-    Element.prototype.scrollIntoView = jest.fn();
+    Element.prototype.scrollIntoView = vi.fn();
     // The body scroll lock restores the offset through it on release.
     const realScrollTo = window.scrollTo;
     window.scrollTo = () => {};
@@ -60,7 +60,7 @@ describe('ol-drawer Tab trap', () => {
     afterEach(() => {
         document.body.innerHTML = '';
         restoreDom();
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     it('scrolls the newly focused element into view', async() => {
@@ -107,7 +107,7 @@ describe('ol-drawer Tab trap', () => {
         // panel parked off-screen made that scroll the dialog sideways.
         const el = await mountDrawer();
         const second = el.querySelector('#second');
-        const focusSpy = jest.spyOn(second, 'focus');
+        const focusSpy = vi.spyOn(second, 'focus');
 
         pressTab();
 

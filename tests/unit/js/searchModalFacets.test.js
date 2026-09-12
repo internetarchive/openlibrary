@@ -12,10 +12,10 @@ import { fetchLanguageOptions } from '../../../openlibrary/plugins/openlibrary/j
 import { fetchFacetCounts } from '../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js';
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
 
-jest.mock('../../../openlibrary/plugins/openlibrary/js/search-modal/languages.js');
-jest.mock('../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js', () => ({
-    ...jest.requireActual('../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js'),
-    fetchFacetCounts: jest.fn(),
+vi.mock('../../../openlibrary/plugins/openlibrary/js/search-modal/languages.js');
+vi.mock('../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js', async(importOriginal) => ({
+    ...(await importOriginal()),
+    fetchFacetCounts: vi.fn(),
 }));
 
 const CATALOGUE = [
@@ -37,7 +37,7 @@ function makeModal(query = 'tolkien') {
 }
 
 beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     fetchLanguageOptions.mockResolvedValue(CATALOGUE);
     fetchFacetCounts.mockResolvedValue(COUNTS);
 });

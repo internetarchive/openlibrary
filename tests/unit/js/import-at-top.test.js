@@ -5,8 +5,8 @@ import path from 'path';
 
 // Invoke the real stylelint CLI (repo config + `ol/import-at-top` plugin) on a
 // fixture file, and return how many times the rule fired. Spawning the CLI
-// avoids importing stylelint into jest (its FileCache module breaks under the
-// repo's jsdom test environment).
+// avoids importing stylelint into the test runner (its FileCache module breaks
+// under the repo's jsdom test environment).
 const repoRoot = path.join(__dirname, '../../..');
 const stylelintBin = path.join(repoRoot, 'node_modules/.bin/stylelint');
 

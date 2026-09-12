@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import sinon from 'sinon';
 import { initDroppers, initGenericDroppers } from '../../../openlibrary/plugins/openlibrary/js/dropper';
 import { Dropper } from '../../../openlibrary/plugins/openlibrary/js/dropper/Dropper';
 import { legacyBookDropperMarkup, openDropperMarkup, closedDropperMarkup, disabledDropperMarkup } from './sample-html/dropper-test-data';
@@ -9,7 +8,7 @@ import * as nonjquery_utils from '../../../openlibrary/plugins/openlibrary/js/no
 describe('initDroppers', () => {
     test('dropdown changes arrow direction on click', () => {
         // Stub debounce to avoid have to manipulate time (!)
-        const stub = sinon.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
+        const stub = vi.spyOn(nonjquery_utils, 'debounce').mockImplementation(fn => fn);
 
         $(document.body).html(legacyBookDropperMarkup);
         const $dropclick = $('.dropclick');
@@ -24,7 +23,7 @@ describe('initDroppers', () => {
             expect($arrow.hasClass('up')).toBe(false);
         }
 
-        stub.restore();
+        stub.mockRestore();
     });
 });
 
@@ -133,7 +132,7 @@ describe('Dropper.js class', () => {
         const arrow = wrapper.querySelector('.arrow');
 
         const dropper = new Dropper(wrapper);
-        const spy = jest.spyOn(dropper, 'toggleDropper');
+        const spy = vi.spyOn(dropper, 'toggleDropper');
 
         // Dropper should be closed initially:
         expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
@@ -152,7 +151,7 @@ describe('Dropper.js class', () => {
         expect(arrow.classList.contains('up')).toBe(true);
         expect(spy).toHaveBeenCalled();
 
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     it('can be closed if not disabled', () => {
@@ -223,7 +222,7 @@ describe('Dropper.js class', () => {
 
     describe('Dropper event methods', () => {
         afterEach(() => {
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
         it('calls `onDisabledClick()` when dropper is clicked while disabled', () => {
@@ -232,7 +231,7 @@ describe('Dropper.js class', () => {
             const dropper = new Dropper(wrapper);
             dropper.initialize();
 
-            const onDisabledClickFn = jest.spyOn(dropper, 'onDisabledClick');
+            const onDisabledClickFn = vi.spyOn(dropper, 'onDisabledClick');
 
             // Check initial state:
             expect(dropper.isDropperDisabled).toBe(true);
@@ -255,7 +254,7 @@ describe('Dropper.js class', () => {
             const dropper = new Dropper(wrapper);
             dropper.initialize();
 
-            const onCloseFn = jest.spyOn(dropper, 'onClose');
+            const onCloseFn = vi.spyOn(dropper, 'onClose');
 
             // Check initial state:
             expect(dropper.isDropperOpen).toBe(true);
@@ -282,8 +281,8 @@ describe('Dropper.js class', () => {
             const dropper = new Dropper(wrapper);
             dropper.initialize();
 
-            const onCloseFn = jest.spyOn(dropper, 'onClose');
-            const onOpenFn = jest.spyOn(dropper, 'onOpen');
+            const onCloseFn = vi.spyOn(dropper, 'onClose');
+            const onOpenFn = vi.spyOn(dropper, 'onOpen');
 
             // Check initial state:
             expect(dropper.isDropperOpen).toBe(false);

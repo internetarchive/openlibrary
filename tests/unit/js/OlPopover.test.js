@@ -16,11 +16,11 @@
 /** Minimal Popover API stand-in: jsdom implements neither the methods nor the pseudo-class. */
 function installPopoverApiStub() {
     const open = new WeakSet();
-    HTMLElement.prototype.showPopover = jest.fn(function() {
+    HTMLElement.prototype.showPopover = vi.fn(function() {
         if (open.has(this)) throw new DOMException('already open', 'InvalidStateError');
         open.add(this);
     });
-    HTMLElement.prototype.hidePopover = jest.fn(function() {
+    HTMLElement.prototype.hidePopover = vi.fn(function() {
         if (!open.has(this)) throw new DOMException('not open', 'InvalidStateError');
         open.delete(this);
     });
@@ -58,14 +58,12 @@ function installMatchMediaStub(matches = false) {
 let tagSeq = 0;
 async function mountPopover() {
     const tag = `ol-popover-test-${++tagSeq}`;
-    let el;
-    await jest.isolateModulesAsync(async() => {
-        const { OlPopover } = await import('../../../openlibrary/components/lit/OlPopover.js');
-        customElements.define(tag, class extends OlPopover {});
-        el = document.createElement(tag);
-        el.innerHTML = '<button slot="trigger">Open</button><div>Panel content</div>';
-        document.body.appendChild(el);
-    });
+    vi.resetModules();
+    const { OlPopover } = await import('../../../openlibrary/components/lit/OlPopover.js');
+    customElements.define(tag, class extends OlPopover {});
+    const el = document.createElement(tag);
+    el.innerHTML = '<button slot="trigger">Open</button><div>Panel content</div>';
+    document.body.appendChild(el);
     await el.updateComplete;
     return el;
 }
@@ -168,7 +166,7 @@ describe('ol-popover close fallback', () => {
     let realScrollTo;
 
     beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         installMatchMediaStub();
         // jsdom has no scrollTo; releasing the mobile scroll lock calls it.
         realScrollTo = window.scrollTo;
@@ -178,7 +176,7 @@ describe('ol-popover close fallback', () => {
 
     afterEach(() => {
         window.scrollTo = realScrollTo;
-        jest.useRealTimers();
+        vi.useRealTimers();
         popoverApi?.restore();
         popoverApi = null;
         document.body.innerHTML = '';
@@ -199,7 +197,7 @@ describe('ol-popover close fallback', () => {
         expect(el._animState).toBe('exiting');
 
         // No transitionend in jsdom, exactly as in a tab that paints no frames.
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
 
         expect(el._animState).toBe('closed');
         expect(popoverApi.isOpen(panel)).toBe(false);
@@ -220,7 +218,7 @@ describe('ol-popover close fallback', () => {
 
         // The armed timer must not fire a second cleanup into the closed popover.
         const hideCalls = HTMLElement.prototype.hidePopover.mock.calls.length;
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
         expect(HTMLElement.prototype.hidePopover.mock.calls.length).toBe(hideCalls);
     });
 
@@ -233,7 +231,7 @@ describe('ol-popover close fallback', () => {
         await el.updateComplete;
 
         await openAndSettle(el);
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
 
         expect(el._animState).not.toBe('closed');
         expect(popoverApi.isOpen(panelOf(el))).toBe(true);
@@ -253,7 +251,7 @@ describe('ol-popover close fallback', () => {
 
         el.open = false;
         await el.updateComplete;
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
 
         expect(document.body.style.position).toBe('');
     });

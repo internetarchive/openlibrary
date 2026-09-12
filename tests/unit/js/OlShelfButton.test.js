@@ -11,7 +11,7 @@ let fetchCalls;
 
 function stubFetch({ ok = true, status = 200 } = {}) {
     fetchCalls = [];
-    global.fetch = jest.fn(async(url, init) => {
+    global.fetch = vi.fn(async(url, init) => {
         fetchCalls.push({ url, init });
         return { ok, status, json: async() => ({ bookshelves_affected: 1 }) };
     });

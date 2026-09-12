@@ -3,12 +3,12 @@ import { checkInForm, checkInContainer, checkInFormModal } from './sample-html/c
 import { CreateListForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/CreateListForm';
 import { CheckInComponents, CheckInForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/CheckInComponents';
 
-jest.mock('jquery-ui/ui/widgets/dialog', () => {});
-jest.mock('../../../openlibrary/plugins/openlibrary/js/dialog', () => ({
-    initDialogClosers: jest.fn(),
+vi.mock('jquery-ui/ui/widgets/dialog', () => ({}));
+vi.mock('../../../openlibrary/plugins/openlibrary/js/dialog', () => ({
+    initDialogClosers: vi.fn(),
 }));
-jest.mock('../../../openlibrary/plugins/openlibrary/js/Toast', () => ({
-    PersistentToast: jest.fn().mockImplementation(() => ({ show: jest.fn() })),
+vi.mock('../../../openlibrary/plugins/openlibrary/js/Toast', () => ({
+    PersistentToast: vi.fn().mockImplementation(() => ({ show: vi.fn() })),
 }));
 
 /**
@@ -59,17 +59,17 @@ describe('CheckInComponents class', () => {
     beforeEach(() => {
         document.body.innerHTML = checkInContainer + checkInFormModal;
         // Mock $.colorbox used by closeModal()
-        global.$ = { colorbox: { close: jest.fn() } };
+        global.$ = { colorbox: { close: vi.fn() } };
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('stores the event id from the server response after a successful check-in via prompt', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: jest.fn().mockResolvedValue({ status: 'ok', id: 789 }),
+            json: vi.fn().mockResolvedValue({ status: 'ok', id: 789 }),
         });
 
         const components = createAndInitialize();
@@ -82,9 +82,9 @@ describe('CheckInComponents class', () => {
     });
 
     it('stores the event id from the server response after a successful check-in via form submit button', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: jest.fn().mockResolvedValue({ status: 'ok', id: 456 }),
+            json: vi.fn().mockResolvedValue({ status: 'ok', id: 456 }),
         });
 
         const components = createAndInitialize();
@@ -95,10 +95,10 @@ describe('CheckInComponents class', () => {
     });
 
     it('does not set event id when server response has no id field', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             // Server returns ok but no id (edge case)
-            json: jest.fn().mockResolvedValue({ status: 'ok' }),
+            json: vi.fn().mockResolvedValue({ status: 'ok' }),
         });
 
         const components = createAndInitialize();
@@ -110,14 +110,14 @@ describe('CheckInComponents class', () => {
     });
 
     it('performs a DELETE request with the stored event id after a check-in then delete', async() => {
-        const mockFetch = jest.fn()
+        const mockFetch = vi.fn()
             .mockResolvedValueOnce({
                 ok: true,
-                json: jest.fn().mockResolvedValue({ status: 'ok', id: 789 }),
+                json: vi.fn().mockResolvedValue({ status: 'ok', id: 789 }),
             })
             .mockResolvedValueOnce({
                 ok: true,
-                json: jest.fn().mockResolvedValue({ status: 'ok' }),
+                json: vi.fn().mockResolvedValue({ status: 'ok' }),
             });
         global.fetch = mockFetch;
 
@@ -290,7 +290,7 @@ describe('CheckInComponents class', () => {
     });
 
     it('sends check-in POST requests as JSON', () => {
-        global.fetch = jest.fn();
+        global.fetch = vi.fn();
         const checkInComponents = new CheckInComponents();
         const eventData = {
             event_type: 3,

@@ -71,6 +71,9 @@ uv.lock
 playwright-report/
 test-results/
 
+# Vitest browser-mode artifacts (failure screenshots, attachments)
+.vitest/
+
 # Local dev state for /status testing-environment (deploy table)
 /_testing-prs.json
 /_dev-merged_status.txt

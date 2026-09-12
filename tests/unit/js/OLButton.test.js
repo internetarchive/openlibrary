@@ -299,7 +299,7 @@ describe('OLButton', () => {
             // e.g. the button is inside another component's shadow root and the
             // form is outside — the proxy can't associate, ElementInternals can.
             const el = await mount({ type: 'submit' });
-            const fakeForm = { requestSubmit: jest.fn(), reset: jest.fn() };
+            const fakeForm = { requestSubmit: vi.fn(), reset: vi.fn() };
             el._internals.form = fakeForm;
             control(el).click();
             await flush();

@@ -1,10 +1,11 @@
 /**
  * Shared setup for Lit component accessibility tests.
  *
- * These tests render the real components and run axe over the resulting
+ * These tests render the real components and run axe-core over the resulting
  * shadow DOM, so a change to a component's markup is what makes them fail.
  */
-import { axe } from 'jest-axe';
+import axe from 'axe-core';
+import { expect } from 'vitest';
 
 /**
  * Document-level rules check whole-page structure (landmarks, page headings),
@@ -17,6 +18,36 @@ export const AXE_COMPONENT_CONFIG = {
         'page-has-heading-one': { enabled: false },
     },
 };
+
+/**
+ * Vitest matcher: assert that an axe-core results object has no violations.
+ *
+ * Usage after `expect.extend({ toHaveNoViolations })`:
+ *     const results = await checkA11y();
+ *     expect(results).toHaveNoViolations();
+ */
+export function toHaveNoViolations(received) {
+    const pass = received.violations.length === 0;
+
+    const message = () => {
+        const headline = this?.isNot
+            ? 'expected axe-core to find violations, but none were found'
+            : `expected no accessibility violations, but found ${received.violations.length}`;
+
+        const details = received.violations
+            .map((v) => {
+                const nodes = v.nodes.map((n) => `    - ${n.html}`).join('\n');
+                return `  ${v.id}: ${v.description}\n${nodes}`;
+            })
+            .join('\n');
+
+        return [headline, details].filter(Boolean).join('\n');
+    };
+
+    return { message, pass };
+}
+
+expect.extend({ toHaveNoViolations });
 
 /**
  * jsdom implements no media queries, so every component that calls
@@ -33,7 +64,7 @@ export function stubMatchMedia({ mobile = false, reducedMotion = true, hover = t
         '(max-width: 767px)': mobile,
         '(hover: hover) and (pointer: fine)': hover,
     };
-    window.matchMedia = jest.fn().mockImplementation((query) => {
+    window.matchMedia = vi.fn().mockImplementation((query) => {
         if (!(query in answers)) {
             throw new Error(`stubMatchMedia has no answer for "${query}". Add it to the map in test-utils/a11y.js.`);
         }
@@ -41,11 +72,11 @@ export function stubMatchMedia({ mobile = false, reducedMotion = true, hover = t
             matches: answers[query],
             media: query,
             onchange: null,
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            dispatchEvent: jest.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            dispatchEvent: vi.fn(),
         };
     });
 }
@@ -104,6 +135,7 @@ export function cleanup() {
     document.body.innerHTML = '';
 }
 
+/** Run axe-core over `node` with component-friendly rule overrides. */
 export async function checkA11y(node = document.body) {
-    return axe(node, AXE_COMPONENT_CONFIG);
+    return axe.run(node, AXE_COMPONENT_CONFIG);
 }
