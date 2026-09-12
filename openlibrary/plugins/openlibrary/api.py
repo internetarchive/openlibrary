@@ -649,6 +649,7 @@ class opds_home(delegate.page):
 DEFAULT_UNLINK_COMMENT = "Unlink OCAID: Item no longer available"
 
 
+@deprecated("migrated to fastapi")
 class unlink_ia_ol(delegate.page):
     path = "/api/unlink"
     encoding = "json"

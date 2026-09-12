@@ -7,7 +7,11 @@ cross-cutting need emerges.
 
 from __future__ import annotations
 
-from fastapi import Request  # noqa: TC002  # runtime dependency for FastAPI injection
+from typing import Annotated
+
+from fastapi import Depends, Request  # runtime dependency for FastAPI injection
+
+from openlibrary.utils.request_context import req_context
 
 
 def get_fullpath(request: Request) -> str:
@@ -39,3 +43,16 @@ def get_fullpath(request: Request) -> str:
     explicit and local until a cross-cutting need emerges.
     """
     return request.url.path + (f"?{request.url.query}" if request.url.query else "")
+
+
+def get_client_ip() -> str:
+    """Return the client IP for the current request.
+
+    Uses the first entry of X-Forwarded-For when present, falling back to
+    the loopback address (e.g. for internal or test requests).
+    """
+    x_fwd = req_context.get().x_forwarded_for
+    return x_fwd.split(",")[0].strip() if x_fwd else "127.0.0.1"
+
+
+ClientIpDep = Annotated[str, Depends(get_client_ip)]
