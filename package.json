@@ -50,7 +50,6 @@
     "@tiptap/pm": "^3.20.4",
     "@tiptap/starter-kit": "^3.20.4",
     "@vitejs/plugin-vue": "^6.0.6",
-    "@vitest/coverage-v8": "^5.0.0",
     "axe-core": "^4.13.0",
     "bundlesize2": "^0.0.35",
     "chart.js": "2.9.4",

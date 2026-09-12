@@ -443,7 +443,7 @@ See `OlSelectPopover._onItemToggle` for the reference implementation.
 ### Testing focus
 
 - jsdom **does** support `attachShadow`, slotting, and shadow `activeElement` traversal, so the walker and utilities are unit-tested faithfully (`tests/unit/js/focusUtils.test.js`).
-- Real Lit components aren't instantiated in jest (tests use a `MockBase`), and jsdom has no `delegatesFocus`/`showModal`/layout. Verify full tab cycles deterministically: invoke the real handler (`{key:'Tab',shiftKey,preventDefault}`) and assert `getDeepActiveElement()`. **Always test Shift+Tab too** — reverse-only traps are invisible forward.
+- Real Lit components aren't instantiated in the test runner (tests use a `MockBase`), and jsdom has no `delegatesFocus`/`showModal`/layout. Verify full tab cycles deterministically: invoke the real handler (`{key:'Tab',shiftKey,preventDefault}`) and assert `getDeepActiveElement()`. **Always test Shift+Tab too** — reverse-only traps are invisible forward.
 
 ## Form participation (FormAssociatedMixin)
 

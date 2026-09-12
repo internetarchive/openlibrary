@@ -50,9 +50,5 @@ export default defineConfig({
         return false;
       }
     },
-    coverage: {
-      provider: 'v8',
-      include: ['openlibrary/plugins/openlibrary/js/**/*.js'],
-    },
   },
 });
