@@ -960,7 +960,26 @@ class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        return render_template("search/advancedsearch.html")
+        # facets are only a fallback
+        i = web.input(
+            q="",
+            title="",
+            author="",
+            isbn="",
+            subject="",
+            place="",
+            person="",
+            publisher="",
+            subject_facet="",
+            publisher_facet="",
+            person_facet="",
+            place_facet="",
+        )
+        i.subject = i.subject or i.subject_facet
+        i.publisher = i.publisher or i.publisher_facet
+        i.person = i.person or i.person_facet
+        i.place = i.place or i.place_facet
+        return render_template("search/advancedsearch.html", i)
 
 
 @dataclass
