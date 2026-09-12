@@ -21,10 +21,9 @@ import re
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-from openlibrary.core import cache
+from openlibrary.core import cache, librarian_batches
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
-from openlibrary.core.librarian_batches import LibrarianBatches
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.utils.request_context import site
 
@@ -267,9 +266,11 @@ def pending_for(key: str) -> list[dict[str, Any]]:
     except Exception:
         logger.warning("pending merge lookup failed for %s", key, exc_info=True)
     try:
-        out.extend({"kind": "batch", "id": b["id"], "title": b["action"], "url": f"/librarians/batch/{b['id']}"} for b in LibrarianBatches.pending_for_key(key))
+        out.extend(
+            {"kind": "request", "id": r["id"], "title": r["summary"] or r["action"], "url": r["url"]} for r in librarian_batches.open_requests_for_key(key)
+        )
     except Exception:
-        logger.warning("pending batch lookup failed for %s", key, exc_info=True)
+        logger.warning("pending request lookup failed for %s", key, exc_info=True)
     return out
 
 

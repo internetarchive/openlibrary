@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from openlibrary.core import batch_ops, workbench
+from openlibrary.core import batch_ops, librarian_batches, workbench
 from openlibrary.fastapi import librarians
 from openlibrary.fastapi.auth import AuthenticatedUser, require_librarian
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
@@ -138,10 +138,34 @@ def test_batch_errors_keep_status_and_extra(fastapi_client, librarian, monkeypat
 def test_batches_listing_is_scoped_to_self_for_librarians(fastapi_client, librarian, monkeypatch):
     librarian.is_super_librarian_or_higher.return_value = False
     seen = {}
-    monkeypatch.setattr(librarians.LibrarianBatches, "list_batches", lambda **kw: seen.update(kw) or [])
+    monkeypatch.setattr(librarian_batches, "list_batches", lambda **kw: seen.update(batches=kw) or [{"kind": "batch", "id": 9, "created": "2026-09-12T10:00:00"}])
+    monkeypatch.setattr(
+        librarian_batches, "list_requests", lambda **kw: seen.update(requests=kw) or [{"kind": "request", "id": 2, "created": "2026-09-13T10:00:00"}]
+    )
     r = fastapi_client.get("/librarians/batches.json?mine=false")
     assert r.status_code == 200
-    assert seen["username"] == "libby"
+    assert seen["batches"]["username"] == "libby"
+    assert seen["requests"]["username"] == "libby"
+    # Batches and requests come back as one list, newest first.
+    assert [(b["kind"], b["id"]) for b in r.json()["batches"]] == [("request", 2), ("batch", 9)]
+
+
+def test_unknown_batch_and_request_are_404(fastapi_client, librarian, monkeypatch):
+    monkeypatch.setattr(librarian_batches, "get_batch", lambda bid: None)
+    monkeypatch.setattr(librarian_batches, "get_request", lambda rid: None)
+    assert fastapi_client.get("/librarians/batch/5.json").status_code == 404
+    assert fastapi_client.get("/librarians/request/5.json").status_code == 404
+
+
+def test_request_apply_and_decline_route_to_the_request(fastapi_client, librarian, monkeypatch):
+    seen = {}
+    monkeypatch.setattr(
+        batch_ops, "apply_requested", lambda user, rid, comment=None, overrides=None: seen.update(apply=(rid, overrides)) or {"status": "applied"}
+    )
+    monkeypatch.setattr(batch_ops, "decline_requested", lambda user, rid, comment=None: seen.update(decline=(rid, comment)) or {"status": "declined"})
+    assert fastapi_client.post("/librarians/request/4/apply.json", json={"overrides": ["has_scan"]}).status_code == 200
+    assert fastapi_client.post("/librarians/request/4/decline.json", json={"comment": "not a dupe"}).status_code == 200
+    assert seen == {"apply": (4, ["has_scan"]), "decline": (4, "not a dupe")}
 
 
 def test_revert_forwards_key_and_force(fastapi_client, librarian, monkeypatch):

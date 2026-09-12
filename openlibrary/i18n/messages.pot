@@ -4699,6 +4699,11 @@ msgstr ""
 msgid "Quality Criteria"
 msgstr ""
 
+#: librarians/batch.html.jinja librarians/workbench.html.jinja
+#, python-format
+msgid "Request #%(id)s"
+msgstr ""
+
 #: librarians/batch.html.jinja
 #, python-format
 msgid "Batch #%(id)s"
@@ -4711,7 +4716,21 @@ msgstr ""
 
 #: librarians/batch.html.jinja
 #, python-format
-msgid "Request #%(id)s"
+msgid "Merge queue #%(id)s"
+msgstr ""
+
+#: librarians/batch.html.jinja
+#, python-format
+msgid "Applied as batch #%(id)s"
+msgstr ""
+
+#: librarians/batch.html.jinja
+#, python-format
+msgid "From request #%(id)s"
+msgstr ""
+
+#: librarians/batch.html.jinja
+msgid "Edit history"
 msgstr ""
 
 #: librarians/batch.html.jinja librarians/workbench.html.jinja
@@ -4736,6 +4755,11 @@ msgstr ""
 
 #: librarians/batch.html.jinja librarians/workbench.html.jinja
 msgid "To"
+msgstr ""
+
+#: librarians/batch.html.jinja
+#, python-format
+msgid "Showing the first %(shown)s of %(total)s changes."
 msgstr ""
 
 #: librarians/batch.html.jinja

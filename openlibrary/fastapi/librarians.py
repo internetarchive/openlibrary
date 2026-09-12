@@ -12,8 +12,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from openlibrary.accounts import get_current_user
-from openlibrary.core import batch_ops, record_context, workbench
-from openlibrary.core.librarian_batches import LibrarianBatches
+from openlibrary.core import batch_ops, librarian_batches, record_context, workbench
 from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
 from openlibrary.utils.request_context import req_context, web_ctx_ip
 
@@ -195,43 +194,21 @@ def batch(_: LibrarianDep, body: BatchBody) -> dict[str, Any]:
 
 
 @router.get("/librarians/batches.json")
-def batches(auth: LibrarianDep, mine: bool = True, status: str | None = None, limit: int = 30, offset: int = 0) -> dict[str, Any]:
+def batches(auth: LibrarianDep, mine: bool = True, limit: int = 30) -> dict[str, Any]:
+    """Applied batches (changesets) and requests (store documents), newest first."""
     user = _user()
     username = auth.username if (mine or not user.is_super_librarian_or_higher()) else None
-    rows = LibrarianBatches.list_batches(username=username, status=status, limit=min(limit, 100), offset=offset)
-    return {"batches": rows}
+    limit = min(limit, 100)
+    rows = librarian_batches.list_batches(username=username, limit=limit) + librarian_batches.list_requests(username=username, limit=limit)
+    rows.sort(key=lambda r: r.get("created") or "", reverse=True)
+    return {"batches": rows[:limit]}
 
 
 @router.get("/librarians/batch/{batch_id}.json")
 def batch_detail(_: LibrarianDep, batch_id: int) -> dict[str, Any]:
-    row = LibrarianBatches.get(batch_id)
-    if not row:
+    if not (row := librarian_batches.get_batch(batch_id)):
         raise HTTPException(status_code=404, detail={"error": "Batch not found"})
     return row
-
-
-class BatchDecisionBody(BaseModel):
-    comment: str | None = Field(default=None, max_length=500)
-    overrides: list[str] = Field(default_factory=list)
-
-
-@router.post("/librarians/batch/{batch_id}/apply.json")
-def batch_apply(_: LibrarianDep, batch_id: int, body: BatchDecisionBody | None = None) -> dict[str, Any]:
-    user = _user()
-    with web_ctx_ip(_client_ip()):
-        try:
-            return batch_ops.apply_requested(user, batch_id, comment=body.comment if body else None, overrides=body.overrides if body else None)
-        except batch_ops.BatchError as e:
-            raise _batch_error(e) from e
-
-
-@router.post("/librarians/batch/{batch_id}/decline.json")
-def batch_decline(_: LibrarianDep, batch_id: int, body: BatchDecisionBody | None = None) -> dict[str, Any]:
-    user = _user()
-    try:
-        return batch_ops.decline_requested(user, batch_id, comment=body.comment if body else None)
-    except batch_ops.BatchError as e:
-        raise _batch_error(e) from e
 
 
 class RevertBody(BaseModel):
@@ -247,6 +224,37 @@ def batch_revert(_: LibrarianDep, batch_id: int, body: RevertBody | None = None)
             return batch_ops.revert(user, batch_id, key=body.key if body else None, force=bool(body and body.force))
         except batch_ops.BatchError as e:
             raise _batch_error(e) from e
+
+
+@router.get("/librarians/request/{request_id}.json")
+def request_detail(_: LibrarianDep, request_id: int) -> dict[str, Any]:
+    if not (row := librarian_batches.get_request(request_id)):
+        raise HTTPException(status_code=404, detail={"error": "Request not found"})
+    return row
+
+
+class DecisionBody(BaseModel):
+    comment: str | None = Field(default=None, max_length=500)
+    overrides: list[str] = Field(default_factory=list)
+
+
+@router.post("/librarians/request/{request_id}/apply.json")
+def request_apply(_: LibrarianDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
+    user = _user()
+    with web_ctx_ip(_client_ip()):
+        try:
+            return batch_ops.apply_requested(user, request_id, comment=body.comment if body else None, overrides=body.overrides if body else None)
+        except batch_ops.BatchError as e:
+            raise _batch_error(e) from e
+
+
+@router.post("/librarians/request/{request_id}/decline.json")
+def request_decline(_: LibrarianDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
+    user = _user()
+    try:
+        return batch_ops.decline_requested(user, request_id, comment=body.comment if body else None)
+    except batch_ops.BatchError as e:
+        raise _batch_error(e) from e
 
 
 # ── Context ──────────────────────────────────────────────────────────

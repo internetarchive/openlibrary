@@ -190,6 +190,8 @@ export class OlWorkbench extends LitElement {
         } catch (e) {
             this._error = this.t('error', { error: e.message });
         }
+        // A link can open straight onto the Batches tab, which run() leaves alone.
+        if (this._tab === 'batches') this.loadBatches();
         await this.run();
     }
 
@@ -609,8 +611,8 @@ export class OlWorkbench extends LitElement {
 
     async batchDo(b, what, force = false) {
         try {
-            if (what === 'apply') await api.batchApply(b.id, null, []);
-            else if (what === 'decline') await api.batchDecline(b.id, null);
+            if (what === 'apply') await api.requestApply(b.id, null, []);
+            else if (what === 'decline') await api.requestDecline(b.id, null);
             else if (what === 'revert') await api.batchRevert(b.id, null, force);
             await this.loadBatches();
         } catch (e) {
@@ -621,7 +623,7 @@ export class OlWorkbench extends LitElement {
                 const blocks = e.detail.warnings.filter((w) => w.level === 'block');
                 if (blocks.length && window.confirm(`${blocks.map((w) => w.text).join('\n')}\n\n${this.t('override')}?`)) {
                     try {
-                        await api.batchApply(b.id, null, blocks.map((w) => w.code));
+                        await api.requestApply(b.id, null, blocks.map((w) => w.code));
                         await this.loadBatches();
                         return;
                     } catch (err) {
@@ -765,13 +767,13 @@ export class OlWorkbench extends LitElement {
                     <thead><tr><th>#</th><th>${this.t('status')}</th><th>${this.t('changes')}</th><th></th><th></th></tr></thead>
                     <tbody>${rows.map((b) => html`
                         <tr>
-                            <td><a href=${`/librarians/batch/${b.id}`}>#${b.id}</a></td>
+                            <td><a href=${b.url}>${b.kind === 'request' ? this.t('requestNumber', { id: b.id }) : `#${b.id}`}</a></td>
                             <td><span class="status" data-s=${b.status}>${b.status.replace(/_/g, ' ')}</span></td>
                             <td>${b.summary || b.action}<div class="muted">${this.t('by', { username: b.username })} · ${(b.created || '').slice(0, 16).replace('T', ' ')}${b.comment ? html` · ${b.comment}` : nothing}</div></td>
-                            <td class="muted">${(b.items || []).length}</td>
+                            <td class="muted">${b.item_count ?? ''}</td>
                             <td><div class="bacts">
-                                ${b.status === 'requested' && this.canApply ? html`<ol-button size="x-small" variant="primary" @click=${() => this.batchDo(b, 'apply')}>${this.t('applyBatch')}</ol-button><ol-button size="x-small" variant="ghost" @click=${() => this.batchDo(b, 'decline')}>${this.t('decline')}</ol-button>` : nothing}
-                                ${(b.status === 'applied' || b.status === 'partially_reverted') && (this.canApply || b.username === this.username) ? html`<ol-button size="x-small" variant="secondary" @click=${() => this.batchDo(b, 'revert')}>${this.t('revert')}</ol-button>` : nothing}
+                                ${b.kind === 'request' && b.status === 'requested' && this.canApply ? html`<ol-button size="x-small" variant="primary" @click=${() => this.batchDo(b, 'apply')}>${this.t('applyBatch')}</ol-button><ol-button size="x-small" variant="ghost" @click=${() => this.batchDo(b, 'decline')}>${this.t('decline')}</ol-button>` : nothing}
+                                ${b.kind === 'batch' && (b.status === 'applied' || b.status === 'partially_reverted') && (this.canApply || b.username === this.username) ? html`<ol-button size="x-small" variant="secondary" @click=${() => this.batchDo(b, 'revert')}>${this.t('revert')}</ol-button>` : nothing}
                             </div></td>
                         </tr>`)}</tbody>
                 </table>`}

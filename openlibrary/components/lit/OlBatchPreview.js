@@ -322,13 +322,13 @@ export class OlBatchPreview extends LitElement {
         const r = this._result;
         if (this._reverted) return html`<div class="result reverted"><strong>${this.t('undone')}</strong></div>`;
         if (r.status === 'requested') {
-            return html`<div class="result requested"><strong>${this.t('requested')}</strong><span>#${r.batch_id} · <a href="/merges?mode=open">${this.t('batches')}</a></span></div>`;
+            return html`<div class="result requested"><strong>${this.t('requested')}</strong><span><a href=${r.url} target="_blank" rel="noopener">${this.t('requestNumber', { id: r.request_id })}</a> · <a href="/merges?mode=open">${this.t('queue')}</a></span></div>`;
         }
         return html`
             <div class="result">
                 <strong>${this.t('applied')} · ${r.applied} ${r.failed ? html`· ${r.failed} failed` : nothing}</strong>
                 <span>${this.t('solrLag')}</span>
-                <span class="muted">#${r.batch_id} · ${r.summary || ''}</span>
+                <span class="muted">${r.url ? html`<a href=${r.url} target="_blank" rel="noopener">#${r.batch_id}</a>` : nothing} · ${r.summary || ''}</span>
             </div>`;
     }
 

@@ -38,9 +38,10 @@ export const api = {
     // Batches
     batch: (body) => send('/librarians/batch.json', { method: 'POST', body: json(body) }),
     batches: (params = {}) => send(`/librarians/batches.json?${new URLSearchParams(params)}`),
-    batchApply: (id, comment, overrides = []) => send(`/librarians/batch/${id}/apply.json`, { method: 'POST', body: json({ comment, overrides }) }),
-    batchDecline: (id, comment) => send(`/librarians/batch/${id}/decline.json`, { method: 'POST', body: json({ comment }) }),
+    // An applied batch is a changeset; a request waits in the store until a super-librarian decides.
     batchRevert: (id, key, force = false) => send(`/librarians/batch/${id}/revert.json`, { method: 'POST', body: json({ key, force }) }),
+    requestApply: (id, comment, overrides = []) => send(`/librarians/request/${id}/apply.json`, { method: 'POST', body: json({ comment, overrides }) }),
+    requestDecline: (id, comment) => send(`/librarians/request/${id}/decline.json`, { method: 'POST', body: json({ comment }) }),
     context: (key) => send(`/librarians/context.json?key=${encodeURIComponent(key)}`),
     checks: (action, keys) => send(`/librarians/checks.json?action=${action}&keys=${encodeURIComponent(keys.join(','))}`),
     // Lists (existing endpoints)

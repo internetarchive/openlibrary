@@ -1,22 +1,37 @@
-{# /librarians/batch/<id> — the review page a queued batch links to from the merge queue. #}
+{# /librarians/batch/<id> (an applied batch, which is a changeset) and
+   /librarians/request/<id> (a batch waiting for a super-librarian). Both come
+   from openlibrary/core/librarian_batches.py in the same shape. #}
 {% set status = batch.status %}
+{% set is_request = batch.kind == "request" %}
 <div id="contentHead">
-    <h1>{{ _("Batch #%(id)s", id=batch.id) }}</h1>
+    <h1>
+        {% if is_request %}
+            {{ _("Request #%(id)s", id=batch.id) }}
+        {% else %}
+            {{ _("Batch #%(id)s", id=batch.id) }}
+        {% endif %}
+    </h1>
     <p class="librarian-batch__meta">
-        <strong>{{ batch.action | replace('_', ' ') }}</strong>
+        <strong>{{ (batch.action or "") | replace('_', ' ') }}</strong>
         · {{ _("by %(username)s", username=batch.username) }}
         · {{ batch.created[:16] | replace('T', ' ') }}
         · <span class="librarian-batch__status librarian-batch__status--{{ status }}">{{ status | replace('_', ' ') }}</span>
         {% if batch.mrid %}
-            · <a href="/merges?mrid={{ batch.mrid }}">{{ _("Request #%(id)s", id=batch.mrid) }}</a>
+            · <a href="/merges?mrid={{ batch.mrid }}">{{ _("Merge queue #%(id)s", id=batch.mrid) }}</a>
+        {% endif %}
+        {% if is_request and batch.batch %}
+            · <a href="/librarians/batch/{{ batch.batch }}">{{ _("Applied as batch #%(id)s", id=batch.batch) }}</a>
+        {% elif not is_request and batch.request %}
+            · <a href="/librarians/request/{{ batch.request }}">{{ _("From request #%(id)s", id=batch.request) }}</a>
+        {% endif %}
+        {% if not is_request %}
+            · <a href="/recentchanges/goto/{{ batch.id }}">{{ _("Edit history") }}</a>
         {% endif %}
     </p>
     {% if batch.summary %}<p class="librarian-batch__summary">{{ batch.summary }}</p>{% endif %}
     {% if batch.comment %}<p>{{ batch.comment }}</p>{% endif %}
 </div>
-<div id="contentBody"
-     class="librarian-batch"
-     data-batch-id="{{ batch.id }}">
+<div id="contentBody" class="librarian-batch" data-api="{{ batch.url }}">
     {% if batch.warnings %}
         <h2>{{ _("Warnings") }}</h2>
         <ul class="librarian-batch__warnings">
@@ -44,7 +59,9 @@
             <tbody>
                 {% for c in batch.changes %}
                     <tr>
-                        <td><a href="{{ c.key }}">{{ c.key.split("/") | last }}</a></td>
+                        <td>
+                            <a href="{{ c.key }}">{{ c.key.split("/") | last }}</a>
+                        </td>
                         <td>{{ c.field }}</td>
                         <td>{{ c["from"] | string if c["from"] is not none else "—" }}</td>
                         <td>{{ c.to | string if c.to is not none else "—" }}</td>
@@ -52,6 +69,9 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if batch.changes_total > batch.changes | length %}
+            <p>{{ _("Showing the first %(shown)s of %(total)s changes.", shown=batch.changes | length, total=batch.changes_total) }}</p>
+        {% endif %}
     {% else %}
         <p>{{ _("This batch makes no record changes (a flag is a report).") }}</p>
     {% endif %}
@@ -59,7 +79,8 @@
     <ul>
         {% for it in batch["items"] %}
             <li>
-                <a href="{{ it.key }}">{{ it.title or it.key }}</a>{% if it.title %} <span class="librarian-batch__key">{{ it.key }}</span>{% endif %}
+                <a href="{{ it.key }}">{{ it.title or it.key }}</a>
+                {% if it.title %}<span class="librarian-batch__key">{{ it.key }}</span>{% endif %}
                 {% if it.before_revision %}· {{ _("revision %(n)s before", n=it.before_revision) }}{% endif %}
                 {% if it.after_revision %}→ {{ it.after_revision }}{% endif %}
                 {% if it.reverted %}· {{ _("reverted") }}{% endif %}
@@ -67,35 +88,37 @@
         {% endfor %}
     </ul>
     <div class="librarian-batch__actions">
-        {% if status == "requested" and is_super %}
-            <ol-button variant="primary" data-batch-apply>
+        {% if is_request and status == "requested" and is_super %}
+            <ol-button variant="primary" data-action="/apply.json">
                 {{ _("Apply") }}
             </ol-button>
-            <ol-button variant="secondary" data-batch-decline>
+            <ol-button variant="secondary" data-action="/decline.json">
                 {{ _("Decline") }}
             </ol-button>
-        {% elif status in ("applied", "partially_reverted") and (is_super or username == batch.username) %}
-            <ol-button variant="secondary" data-batch-revert>
+        {% elif not is_request and status in ("applied", "partially_reverted") and (is_super or username == batch.username) %}
+            <ol-button variant="secondary" data-action="/revert.json">
                 {{ _("Undo the whole batch") }}
             </ol-button>
         {% endif %}
         <span class="librarian-batch__result" role="status"></span>
     </div>
     <script>
-        // Three buttons, three POSTs; the page reloads to show the new status.
+        // Each button POSTs to the record's JSON endpoint; the page reloads to show the new status.
         (function () {
             var root = document.querySelector('.librarian-batch');
-            var id = root.dataset.batchId;
             var out = root.querySelector('.librarian-batch__result');
-            function post(path) {
-                return fetch('/librarians/batch/' + id + path, {
-                    method: 'POST', credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json' }, body: '{}'
-                }).then(function (r) { return r.json().then(function (j) { return r.ok ? location.reload() : (out.textContent = (j.detail && j.detail.error) || r.statusText); }); });
-            }
-            root.querySelector('[data-batch-apply]') && root.querySelector('[data-batch-apply]').addEventListener('click', function () { post('/apply.json'); });
-            root.querySelector('[data-batch-decline]') && root.querySelector('[data-batch-decline]').addEventListener('click', function () { post('/decline.json'); });
-            root.querySelector('[data-batch-revert]') && root.querySelector('[data-batch-revert]').addEventListener('click', function () { post('/revert.json'); });
+            root.querySelectorAll('[data-action]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    fetch(root.dataset.api + button.dataset.action, {
+                        method: 'POST', credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' }, body: '{}'
+                    }).then(function (r) {
+                        return r.json().then(function (j) {
+                            return r.ok ? location.reload() : (out.textContent = (j.detail && j.detail.error) || r.statusText);
+                        });
+                    });
+                });
+            });
         })();
     </script>
 </div>

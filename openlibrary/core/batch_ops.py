@@ -2,8 +2,9 @@
 
 One entry point (``run``) takes an action name, the records it applies to and
 the action's parameters, and either returns a preview (what would change, with
-warnings) or applies it as a single ``save_many`` recorded in
-``librarian_batches`` so it can be reverted as a unit.
+warnings) or applies it as a single ``save_many``. That changeset is the batch:
+its id is the batch id and it can be reverted as a unit or per record (see
+``librarian_batches`` for how batches and requests are stored).
 
 Role split: a super-librarian *applies*; a librarian *requests*, which files
 the batch in the community edits queue for a super-librarian to apply. The
@@ -20,9 +21,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
-from openlibrary.core import stats
+from openlibrary.core import librarian_batches, stats
 from openlibrary.core.edits import CommunityEditsQueue
-from openlibrary.core.librarian_batches import LibrarianBatches
 from openlibrary.core.record_context import (
     RecordType,
     checks_for,
@@ -568,7 +568,7 @@ def _public_plan(plan: Plan) -> dict[str, Any]:
 
 
 def _stored_items(docs: dict[str, dict[str, Any]], creates: list[str]) -> list[dict[str, Any]]:
-    """What the batch row remembers per record: key, pre-batch revision, and a title for listings."""
+    """What a request remembers per record: key, pre-batch revision, and a title for listings."""
     items = [{"key": k, "before_revision": d.get("revision"), "title": _title(d)} for k, d in docs.items()]
     return items + [{"key": k, "before_revision": 0} for k in creates]
 
@@ -623,9 +623,7 @@ def run(
     stored_items = _stored_items(docs, plan.creates)
 
     if mode == "request":
-        batch_id = LibrarianBatches.create(
-            ctx.username, action, params, stored_items, plan.changes, warnings, overrides, status="requested", comment=comment, summary=plan.summary
-        )
+        request_id = librarian_batches.create_request(ctx.username, action, params, stored_items, plan.changes, warnings, overrides, plan.summary, comment)
         title = f"{act.label}: {plan.summary}"
         if act.name == "flag":
             title = (
@@ -633,59 +631,50 @@ def run(
                 + ", ".join(_title(d) for d in list(docs.values())[:3])
                 + (" …" if len(docs) > 3 else "")
             )
+        url = f"/librarians/request/{request_id}"
         mrid = CommunityEditsQueue.submit_request(
-            url=f"/librarians/batch/{batch_id}",
+            url=url,
             submitter=ctx.username,
             title=title[:200],
             comment=comment,
             mr_type=CommunityEditsQueue.TYPE["BATCH"],
         )
-        LibrarianBatches.update(batch_id, mrid=mrid)
+        librarian_batches.update_request(request_id, mrid=mrid)
         stats.increment(f"ol.librarians.batch.{action}.requested")
-        return {**out, "batch_id": batch_id, "mrid": mrid, "status": "requested"}
+        return {**out, "request_id": request_id, "url": url, "mrid": mrid, "status": "requested"}
 
-    return _apply(ctx, act, plan, params, stored_items, warnings, overrides, comment, existing_id=None, mrid=None)
+    return _apply(ctx, act, docs, plan, params, warnings, overrides, comment)
 
 
 def _apply(
     ctx: Ctx,
     act: Action,
+    docs: dict[str, dict[str, Any]],
     plan: Plan,
     params: dict[str, Any],
-    stored_items: list[dict[str, Any]],
     warnings: list[dict[str, Any]],
     overrides: list[str],
     comment: str | None,
-    existing_id: int | None,
-    mrid: int | None,
+    request_id: int | None = None,
+    mrid: int | None = None,
+    review_comment: str | None = None,
 ) -> dict[str, Any]:
-    if existing_id is None:
-        batch_id = LibrarianBatches.create(
-            ctx.username, act.name, params, stored_items, plan.changes, warnings, overrides, status="applying", comment=comment, mrid=mrid, summary=plan.summary
-        )
-    else:
-        batch_id = existing_id
-        LibrarianBatches.update(
-            batch_id, status="applying", items=stored_items, changes=plan.changes, warnings=warnings, overrides=overrides, summary=plan.summary
-        )
-    save_comment = (comment or plan.summary or act.label)[:250]
+    """One save_many; the changeset it makes is the batch. ``review_comment`` is
+    what the applying super-librarian adds to the queue thread, if anything."""
+    uid = librarian_batches.new_uid()
+    titles = {k: _title(d) for k, d in docs.items()} | {d["key"]: _title(d) for d in plan.docs if d.get("key") in plan.creates}
+    data = librarian_batches.batch_data(uid, act.name, params, plan.summary, warnings, overrides, plan.changes, plan.creates, titles, request_id, mrid)
     try:
-        result = site.get().save_many(
-            plan.docs,
-            comment=f"{save_comment} (batch #{batch_id})",
-            action="librarian-batch",
-            data={"batch_id": batch_id, "action": act.name, "params": {k: v for k, v in params.items() if k != "comment"}},
-        )
+        result = site.get().save_many(plan.docs, comment=(comment or plan.summary or act.label)[:250], action=librarian_batches.APPLY_KIND, data=data)
     except Exception as e:
-        LibrarianBatches.update(batch_id, status="failed")
-        logger.exception("batch %s failed", batch_id)
-        raise BatchError(f"Saving failed: {getattr(e, 'message', str(e))}", 500, batch_id=batch_id) from e
+        logger.exception("batch %s (%s) failed", uid, act.name)
+        raise BatchError(f"Saving failed: {getattr(e, 'message', str(e))}", 500) from e
+    batch_id = librarian_batches.find_applied(uid)
     after = {r["key"]: r["revision"] for r in result or []}
-    for it in stored_items:
-        it["after_revision"] = after.get(it["key"])
-    LibrarianBatches.update(batch_id, status="applied", items=stored_items)
+    if request_id is not None:
+        librarian_batches.update_request(request_id, status="applied", batch=batch_id)
     if mrid:
-        CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], ctx.username, comment=comment)
+        CommunityEditsQueue.update_request_status(mrid, CommunityEditsQueue.STATUS["MERGED"], ctx.username, comment=review_comment)
     stats.increment(f"ol.librarians.batch.{act.name}.applied")
     stats.increment(f"ol.librarians.batch.{act.name}.records", n=len(plan.docs))
     for code in overrides:
@@ -693,6 +682,7 @@ def _apply(
     return {
         "status": "applied",
         "batch_id": batch_id,
+        "url": f"/librarians/batch/{batch_id}" if batch_id else None,
         "applied": len(after),
         "failed": max(0, len(plan.docs) - len(after)),
         "summary": plan.summary,
@@ -703,97 +693,96 @@ def _apply(
     }
 
 
-def apply_requested(user: Any, batch_id: int, comment: str | None = None, overrides: list[str] | None = None) -> dict[str, Any]:
-    """A super-librarian applies a batch a librarian requested. The plan is rebuilt
+def _requested(request_id: int) -> dict[str, Any]:
+    req = librarian_batches.get_request(request_id)
+    if not req:
+        raise BatchError("Request not found.", 404)
+    if req["status"] != "requested":
+        raise BatchError(f"Request is {req['status']}, not waiting for review.", 409)
+    return req
+
+
+def apply_requested(user: Any, request_id: int, comment: str | None = None, overrides: list[str] | None = None) -> dict[str, Any]:
+    """A super-librarian applies a librarian's request. The plan is rebuilt
     against current records, and blocks must be acknowledged by the applier."""
-    batch = LibrarianBatches.get(batch_id)
-    if not batch:
-        raise BatchError("Batch not found.", 404)
-    if batch["status"] != "requested":
-        raise BatchError(f"Batch is {batch['status']}, not requested.", 409)
+    req = _requested(request_id)
     ctx = Ctx(username=user.key.split("/")[-1], is_super=bool(user.is_super_librarian_or_higher()), dry_run=False)
     if not ctx.is_super:
         raise BatchError("Only super-librarians can apply requested batches.", 403)
-    items = [{"key": it["key"]} for it in batch["items"] if it.get("before_revision")]
-    act, docs, plan, warnings, _resolved = _prepare(batch["action"], items, batch["params"] or {}, ctx)
-    if act.name == "flag":
+    if req["action"] == "flag":
         raise BatchError("A flag is a report, not an edit; act on it with delete or merge.", 400)
-    overrides = uniq(list(batch.get("overrides") or []) + list(overrides or []))
+    items = [{"key": it["key"]} for it in req["items"] if it.get("before_revision")]
+    act, docs, plan, warnings, _resolved = _prepare(req["action"], items, req["params"], ctx)
+    overrides = uniq(list(req["overrides"]) + list(overrides or []))
     blocks = [w for w in warnings if w["level"] == "block" and w["code"] not in overrides]
     if blocks:
         raise BatchError("The batch has blocking warnings; acknowledge them to apply.", 409, warnings=warnings)
-    stored_items = _stored_items(docs, plan.creates)
     return _apply(
-        ctx, act, plan, batch["params"] or {}, stored_items, warnings, overrides, comment or batch.get("comment"), existing_id=batch_id, mrid=batch.get("mrid")
+        ctx,
+        act,
+        docs,
+        plan,
+        req["params"],
+        warnings,
+        overrides,
+        comment or req["comment"] or None,
+        request_id=request_id,
+        mrid=req["mrid"],
+        review_comment=comment,
     )
 
 
-def decline_requested(user: Any, batch_id: int, comment: str | None = None) -> dict[str, Any]:
-    batch = LibrarianBatches.get(batch_id)
-    if not batch:
-        raise BatchError("Batch not found.", 404)
-    username = user.key.split("/")[-1]
+def decline_requested(user: Any, request_id: int, comment: str | None = None) -> dict[str, Any]:
     if not user.is_super_librarian_or_higher():
         raise BatchError("Only super-librarians can decline requested batches.", 403)
-    if batch["status"] != "requested":
-        raise BatchError(f"Batch is {batch['status']}, not requested.", 409)
-    LibrarianBatches.update(batch_id, status="declined")
-    if batch.get("mrid"):
-        CommunityEditsQueue.update_request_status(batch["mrid"], CommunityEditsQueue.STATUS["DECLINED"], username, comment=comment)
-    return {"status": "declined", "batch_id": batch_id}
+    req = _requested(request_id)
+    librarian_batches.update_request(request_id, status="declined", decline_comment=comment)
+    if req["mrid"]:
+        CommunityEditsQueue.update_request_status(req["mrid"], CommunityEditsQueue.STATUS["DECLINED"], user.key.split("/")[-1], comment=comment)
+    return {"status": "declined", "request_id": request_id}
 
 
 def revert(user: Any, batch_id: int, key: str | None = None, force: bool = False) -> dict[str, Any]:
     """Restore every record the batch touched (or one of them) to its pre-batch revision.
 
     A record edited again since the batch is left alone (409 with ``moved``)
-    unless ``force`` is set, so an undo never silently discards someone's later work."""
-    batch = LibrarianBatches.get(batch_id)
+    unless ``force`` is set, so an undo never silently discards someone's later work.
+    The revert is its own changeset, linked to the batch through ``parent_changeset``."""
+    batch = librarian_batches.get_batch(batch_id)
     if not batch:
         raise BatchError("Batch not found.", 404)
     if batch["status"] not in ("applied", "partially_reverted"):
         raise BatchError(f"Batch is {batch['status']}; only applied batches can be reverted.", 409)
-    username = user.key.split("/")[-1]
-    if not (user.is_super_librarian_or_higher() or username == batch["username"]):
+    if not (user.is_super_librarian_or_higher() or user.key.split("/")[-1] == batch["username"]):
         raise BatchError("Only the batch's author or a super-librarian can revert it.", 403)
-    items = batch["items"]
+    items = [it for it in batch["items"] if not it["reverted"]]
     if key:
         nk = normalize_key(key)
         items = [it for it in items if it["key"] == nk]
         if not items:
-            raise BatchError("That record is not part of this batch.", 404)
+            raise BatchError("That record is not part of this batch, or is already reverted.", 404)
     current = {t.key: t.dict().get("revision") for t in site.get().get_many([it["key"] for it in items])}
-    moved = {
-        it["key"]: current[it["key"]]
-        for it in items
-        if not it.get("reverted") and it.get("after_revision") and current.get(it["key"]) not in (None, it["after_revision"])
-    }
+    moved = {it["key"]: current[it["key"]] for it in items if current.get(it["key"]) not in (None, it["after_revision"])}
     if moved and not force:
         raise BatchError("Some records were edited after the batch; revert them one at a time or force the revert.", 409, moved=moved)
     docs = []
     for it in items:
-        if it.get("reverted"):
-            continue
-        before = it.get("before_revision") or 0
-        if before == 0:
+        if it["before_revision"] == 0:
             docs.append({"key": it["key"], "type": {"key": "/type/delete"}})
-        else:
-            thing = site.get().get(it["key"], before)
-            if thing is None:
-                raise BatchError(f"Could not load {it['key']} at revision {before}.", 500)
-            docs.append(thing.dict())
+            continue
+        thing = site.get().get(it["key"], it["before_revision"])
+        if thing is None:
+            raise BatchError(f"Could not load {it['key']} at revision {it['before_revision']}.", 500)
+        docs.append(thing.dict())
     if not docs:
         return {"status": batch["status"], "batch_id": batch_id, "reverted": 0}
     try:
-        result = site.get().save_many(docs, comment=f"Revert batch #{batch_id}", action="librarian-batch-revert", data={"batch_id": batch_id})
+        result = site.get().save_many(
+            docs, comment=f"Revert batch #{batch_id}", action=librarian_batches.REVERT_KIND, data=librarian_batches.revert_data(batch_id)
+        )
     except Exception as e:
         logger.exception("revert of batch %s failed", batch_id)
         raise BatchError(f"Revert failed: {getattr(e, 'message', str(e))}", 500) from e
-    reverted = {r["key"] for r in result or []}
-    for it in batch["items"]:
-        if it["key"] in reverted:
-            it["reverted"] = True
-    status = "reverted" if all(it.get("reverted") for it in batch["items"]) else "partially_reverted"
-    LibrarianBatches.update(batch_id, status=status, items=batch["items"])
+    after = librarian_batches.get_batch(batch_id)
     stats.increment(f"ol.librarians.batch.{batch['action']}.reverted")
-    return {"status": status, "batch_id": batch_id, "reverted": len(reverted)}
+    return {"status": after["status"] if after else "reverted", "batch_id": batch_id, "reverted": len(result or [])}

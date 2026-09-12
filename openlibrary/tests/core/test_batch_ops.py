@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from openlibrary.core import batch_ops
+from openlibrary.core import batch_ops, librarian_batches
 from openlibrary.core import record_context as rc
 from openlibrary.utils.request_context import site
 
@@ -20,11 +20,60 @@ class FakeThing:
         return dict(self._doc)
 
 
+class FakeChangeset:
+    """Like infobase: the id comes back as a string."""
+
+    def __init__(self, d):
+        self._d = {**d, "id": str(d["id"])}
+        self.id = str(d["id"])
+        self.kind = d["kind"]
+        self.author = None
+        self.changes = d["changes"]
+        self.data = d["data"]
+
+    def dict(self):
+        return dict(self._d)
+
+
+class FakeStore(dict):
+    """The infobase store: documents by key, queryable by any flattened field."""
+
+    @staticmethod
+    def _flat(doc, prefix=""):
+        for k, v in doc.items():
+            name = f"{prefix}{k}"
+            if isinstance(v, dict):
+                yield from FakeStore._flat(v, name + ".")
+            elif isinstance(v, list):
+                for x in v:
+                    yield name, x
+            else:
+                yield name, v
+
+    def values(self, type=None, name=None, value=None, limit=100):
+        docs = [d for _k, d in sorted(self.items(), reverse=True) if d.get("type") == type]
+        if name is not None:
+            docs = [d for d in docs if (name, value) in set(self._flat(d))]
+        return docs[:limit]
+
+
+class FakeSeq:
+    def __init__(self):
+        self.values = {}
+
+    def next_value(self, name):
+        self.values[name] = self.values.get(name, 0) + 1
+        return self.values[name]
+
+
 class FakeSite:
     def __init__(self, docs):
         self.docs = {d["key"]: dict(d) for d in docs}
         self.history = {}
         self.saved = []
+        self.changesets = []
+        self.store = FakeStore()
+        self.seq = FakeSeq()
         self.next_key = 100
 
     def get(self, key, revision=None):
@@ -47,7 +96,25 @@ class FakeSite:
         return []
 
     def recentchanges(self, query):
-        return []
+        out = []
+        for d in reversed(self.changesets):
+            if "kind" in query and d["kind"] != query["kind"]:
+                continue
+            if "author" in query and d["author"]["key"] != query["author"]:
+                continue
+            if "key" in query and query["key"] not in {c["key"] for c in d["changes"]}:
+                continue
+            for v in (query.get("data") or {}).values():
+                # transaction_index.value is text: infobase 500s on a non-string filter value.
+                assert isinstance(v, str), "changeset data filters must be strings"
+            if any(str(d["data"].get(k)) != v for k, v in (query.get("data") or {}).items()):
+                continue
+            out.append(FakeChangeset(d))
+        offset = query.get("offset", 0)
+        return out[offset : offset + query.get("limit", 100)]
+
+    def get_change(self, id):
+        return next((FakeChangeset(d) for d in self.changesets if str(d["id"]) == str(id)), None)
 
     def save_many(self, docs, comment=None, data=None, action=None):
         self.saved.append({"docs": docs, "comment": comment, "action": action, "data": data})
@@ -60,6 +127,18 @@ class FakeSite:
                 self.history[(key, old.get("revision", 0))] = dict(old)
             self.docs[key] = {**d, "revision": rev}
             out.append({"key": key, "revision": rev})
+        n = len(self.changesets) + 1
+        self.changesets.append(
+            {
+                "id": n,
+                "kind": action,
+                "timestamp": f"2026-09-13T00:00:{n:02d}",
+                "comment": comment,
+                "author": {"key": "/people/tester"},
+                "changes": out,
+                "data": data or {},
+            }
+        )
         return out
 
 
@@ -111,40 +190,12 @@ def fakes(monkeypatch):
     monkeypatch.setattr(rc, "_lists_count", lambda key: 0)
     monkeypatch.setattr(rc, "_readinglog_count", lambda key: 0)
     monkeypatch.setattr(batch_ops.stats, "increment", lambda *a, **k: None)
-    rows = {}
-    batches = MagicMock()
-
-    def create(username, action, params, items, changes, warnings, overrides, status="requested", comment=None, mrid=None, summary=None):
-        bid = len(rows) + 1
-        rows[bid] = {
-            "id": bid,
-            "username": username,
-            "action": action,
-            "params": params,
-            "items": items,
-            "changes": changes,
-            "warnings": warnings,
-            "overrides": overrides,
-            "status": status,
-            "comment": comment,
-            "mrid": mrid,
-            "summary": summary,
-        }
-        return bid
-
-    def update(bid, **fields):
-        rows[bid].update(fields)
-
-    batches.create.side_effect = create
-    batches.update.side_effect = update
-    batches.get.side_effect = rows.get
-    monkeypatch.setattr(batch_ops, "LibrarianBatches", batches)
     queue = MagicMock()
     queue.TYPE = {"BATCH": 3, "WORK_MERGE": 1, "AUTHOR_MERGE": 2}
     queue.STATUS = {"PENDING": 1, "MERGED": 2, "DECLINED": 0}
     queue.submit_request.return_value = 77
     monkeypatch.setattr(batch_ops, "CommunityEditsQueue", queue)
-    return {"site": s, "rows": rows, "queue": queue}
+    return {"site": s, "queue": queue}
 
 
 def test_tag_preview_folds_editions_to_their_work():
@@ -208,8 +259,16 @@ def test_librarian_request_files_a_queue_row(fakes):
     assert out["status"] == "requested"
     assert out["mrid"] == 77
     fakes["queue"].submit_request.assert_called_once()
-    assert fakes["rows"][1]["status"] == "requested"
-    assert fakes["site"].saved == []
+    assert fakes["queue"].submit_request.call_args.kwargs["url"] == f"/librarians/request/{out['request_id']}"
+    req = librarian_batches.get_request(out["request_id"])
+    assert req["status"] == "requested"
+    assert req["mrid"] == 77
+    assert req["items"] == [{"key": "/works/OL1W", "title": "Shiloh", "before_revision": 2, "after_revision": None, "reverted": False}]
+    assert fakes["site"].saved == [], "a request writes nothing to records"
+    # A request and an applied batch share the item shape the review page renders.
+    assert set(req["items"][0]) == set(
+        librarian_batches.get_batch(batch_ops.run(user(), "tag", [{"key": "OL2W"}], {"add": {"subjects": ["x"]}}, dry_run=False)["batch_id"])["items"][0]
+    )
 
 
 def test_apply_writes_one_save_many_and_records_revisions(fakes):
@@ -220,7 +279,14 @@ def test_apply_writes_one_save_many_and_records_revisions(fakes):
     assert len(saved) == 1
     assert saved[0]["action"] == "librarian-batch"
     assert saved[0]["comment"].startswith("test")
-    assert fakes["rows"][1]["items"][0]["after_revision"] == 3
+    # The changeset is the batch: its id is the batch id, and it carries what the review page shows.
+    batch = librarian_batches.get_batch(out["batch_id"])
+    assert batch["status"] == "applied"
+    assert batch["action"] == "tag"
+    assert batch["username"] == "tester"
+    assert batch["items"] == [{"key": "/works/OL1W", "title": "Shiloh", "before_revision": 2, "after_revision": 3, "reverted": False}]
+    assert batch["changes"][0]["to"] == ["Dogs", "Virginia"]
+    assert [b["id"] for b in librarian_batches.list_batches(username="tester")] == [out["batch_id"]]
 
 
 def test_apply_refuses_stale_revisions():
@@ -231,12 +297,17 @@ def test_apply_refuses_stale_revisions():
 
 
 def test_revert_restores_previous_revision(fakes):
-    batch_ops.run(user(), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    applied = batch_ops.run(user(), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
     assert fakes["site"].docs["/works/OL1W"]["subjects"] == ["Dogs", "Virginia"]
-    out = batch_ops.revert(user(), 1)
+    out = batch_ops.revert(user(), applied["batch_id"])
     assert out["status"] == "reverted"
     assert fakes["site"].docs["/works/OL1W"]["subjects"] == ["Dogs"]
     assert fakes["site"].saved[-1]["action"] == "librarian-batch-revert"
+    assert fakes["site"].saved[-1]["data"] == {"parent_changeset": applied["batch_id"]}
+    assert librarian_batches.get_batch(applied["batch_id"])["status"] == "reverted"
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.revert(user(), applied["batch_id"])
+    assert e.value.status == 409
 
 
 def test_flag_always_requests():
@@ -258,7 +329,7 @@ def test_flag_is_never_applied(fakes):
     req = batch_ops.run(user(is_super=True), "flag", [{"key": "OL1W"}], {"reason": "review"}, dry_run=False)
     assert req["status"] == "requested"
     with pytest.raises(batch_ops.BatchError) as e:
-        batch_ops.apply_requested(user(), req["batch_id"])
+        batch_ops.apply_requested(user(), req["request_id"])
     assert e.value.status == 400
 
 
@@ -266,14 +337,22 @@ def test_apply_requested_needs_acknowledged_blocks(fakes, monkeypatch):
     """A librarian's request carries the block; the super-librarian acknowledges it at apply."""
     req = batch_ops.run(user(is_super=False), "merge_editions", [{"key": "OL1M"}, {"key": "OL2M"}], {}, dry_run=False)
     assert req["status"] == "requested"
-    fakes["rows"][req["batch_id"]]["warnings"].append({"level": "block", "code": "test_block", "text": "x"})
     # The plan is rebuilt on apply, so inject the block through a check.
     monkeypatch.setattr(rc, "check_merge_editions", lambda docs: [{"level": "block", "code": "test_block", "text": "x"}])
     with pytest.raises(batch_ops.BatchError) as e:
-        batch_ops.apply_requested(user(), req["batch_id"])
+        batch_ops.apply_requested(user(), req["request_id"])
     assert e.value.status == 409
-    out = batch_ops.apply_requested(user(), req["batch_id"], overrides=["test_block"])
+    out = batch_ops.apply_requested(user(), req["request_id"], overrides=["test_block"])
     assert out["status"] == "applied"
+    # The request and the batch point at each other; the queue row is closed.
+    assert librarian_batches.get_request(req["request_id"])["batch"] == out["batch_id"]
+    assert librarian_batches.get_batch(out["batch_id"])["request"] == req["request_id"]
+    fakes["queue"].update_request_status.assert_called_once()
+    # The requester's comment is already on the queue thread; applying doesn't repeat it.
+    assert fakes["queue"].update_request_status.call_args.kwargs["comment"] is None
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.apply_requested(user(), req["request_id"])
+    assert e.value.status == 409
 
 
 def test_super_apply_needs_override_for_blocks(fakes):
@@ -290,20 +369,70 @@ def test_super_apply_needs_override_for_blocks(fakes):
 def test_decline_is_super_only(fakes):
     req = batch_ops.run(user(is_super=False), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
     with pytest.raises(batch_ops.BatchError) as e:
-        batch_ops.decline_requested(user(is_super=False), req["batch_id"])
+        batch_ops.decline_requested(user(is_super=False), req["request_id"])
     assert e.value.status == 403
-    out = batch_ops.decline_requested(user(), req["batch_id"])
+    out = batch_ops.decline_requested(user(), req["request_id"])
     assert out["status"] == "declined"
+    assert librarian_batches.get_request(req["request_id"])["status"] == "declined"
 
 
 def test_revert_refuses_records_edited_since(fakes):
-    batch_ops.run(user(), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    applied = batch_ops.run(user(), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
     # Someone edits the work after the batch.
     fakes["site"].save_many([{**fakes["site"].docs["/works/OL1W"], "title": "Shiloh!"}])
     with pytest.raises(batch_ops.BatchError) as e:
-        batch_ops.revert(user(), 1)
+        batch_ops.revert(user(), applied["batch_id"])
     assert e.value.status == 409
     assert e.value.extra["moved"] == {"/works/OL1W": 4}
-    out = batch_ops.revert(user(), 1, force=True)
+    out = batch_ops.revert(user(), applied["batch_id"], force=True)
     assert out["status"] == "reverted"
     assert fakes["site"].docs["/works/OL1W"]["subjects"] == ["Dogs"]
+
+
+def test_per_record_revert_leaves_the_batch_partially_reverted(fakes):
+    applied = batch_ops.run(user(), "set_field", [{"key": "OL1M"}, {"key": "OL2M"}], {"field": "publishers", "value": ["Scholastic"]}, dry_run=False)
+    out = batch_ops.revert(user(), applied["batch_id"], key="OL1M")
+    assert out["status"] == "partially_reverted"
+    assert fakes["site"].docs["/books/OL1M"]["publishers"] == ["Atheneum"]
+    assert fakes["site"].docs["/books/OL2M"]["publishers"] == ["Scholastic"]
+    batch = librarian_batches.get_batch(applied["batch_id"])
+    assert {it["key"]: it["reverted"] for it in batch["items"]} == {"/books/OL1M": True, "/books/OL2M": False}
+    assert batch_ops.revert(user(), applied["batch_id"])["status"] == "reverted"
+
+
+def test_revert_of_a_created_record_deletes_it(fakes):
+    applied = batch_ops.run(user(), "move_editions", [{"key": "OL1M"}], {"target": "new"}, dry_run=False)
+    new_work = applied["creates"][0]
+    batch_ops.revert(user(), applied["batch_id"])
+    assert fakes["site"].docs[new_work]["type"] == {"key": "/type/delete"}
+    assert fakes["site"].docs["/books/OL1M"]["works"] == [{"key": "/works/OL1W"}]
+
+
+def test_only_the_author_or_a_super_librarian_reverts(fakes):
+    applied = batch_ops.run(user(), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    other = user(is_super=False)
+    other.key = "/people/someone-else"
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.revert(other, applied["batch_id"])
+    assert e.value.status == 403
+
+
+def test_open_requests_are_found_by_record_until_decided(fakes):
+    req = batch_ops.run(user(is_super=False), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    assert [r["id"] for r in librarian_batches.open_requests_for_key("/works/OL1W")] == [req["request_id"]]
+    assert librarian_batches.open_requests_for_key("/works/OL2W") == []
+    assert [r["id"] for r in librarian_batches.list_requests(username="tester")] == [req["request_id"]]
+    batch_ops.decline_requested(user(), req["request_id"])
+    assert librarian_batches.open_requests_for_key("/works/OL1W") == []
+    assert rc.pending_for("/works/OL1W") == []
+
+
+def test_unknown_batch_and_request_ids():
+    assert librarian_batches.get_batch(999) is None
+    assert librarian_batches.get_request(999) is None
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.revert(user(), 999)
+    assert e.value.status == 404
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.apply_requested(user(), 999)
+    assert e.value.status == 404

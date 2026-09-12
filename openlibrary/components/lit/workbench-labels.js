@@ -188,6 +188,7 @@ export const DEFAULT_LABELS = {
     forceRevert: 'Revert anyway',
     revertMoved: 'Some records were edited after this batch.',
     viewBatch: 'View',
+    requestNumber: 'Request #%(id)s',
     noBatches: 'No batches yet.',
 };
 

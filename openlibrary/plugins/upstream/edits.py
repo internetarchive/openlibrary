@@ -242,7 +242,7 @@ class community_edits_queue(delegate.page):
         elif mr_type == CommunityEditsQueue.TYPE["AUTHOR_MERGE"]:
             return f"/authors/merge?records={','.join(olids)}"
         elif mr_type == CommunityEditsQueue.TYPE["BATCH"] and olids:
-            return f"/librarians/batch/{olids[0]}"
+            return f"/librarians/request/{olids[0]}"
         return ""
 
     @staticmethod
