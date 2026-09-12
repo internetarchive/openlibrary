@@ -186,6 +186,48 @@ class TestRedirects:
         )
         assert len(c.docs) == 0
 
+    def test_missing_redirect_target_fetched_once(self):
+        """A redirect to a missing target is fetched once, not once per hop iteration."""
+        redirect = _make_book("/books/ia:x", is_redirect=True, redirect_target="/books/OL_NOPE")
+        calls = []
+
+        def gm(keys):
+            calls.append(list(keys))
+            return [r for r in [redirect] if r.key in keys]
+
+        c = _render([{"book": "/books/ia:x", "loaned_at": 1.0}], gm)
+        assert len(c.docs) == 0
+        assert calls == [["/books/ia:x"], ["/books/OL_NOPE"]]
+
+    def test_redirect_target_already_fetched_reused(self):
+        """A redirect pointing to a key already fetched (e.g. another loan's book)
+        does not trigger an extra get_many call."""
+        redirect = _make_book("/books/ia:r1", is_redirect=True, redirect_target="/books/OL1M")
+        direct = _make_book("/books/OL1M", "/works/OL1W")
+        calls = []
+
+        def gm(keys):
+            calls.append(list(keys))
+            s = set(keys)
+            r = []
+            if "/books/ia:r1" in s:
+                r.append(redirect)
+            if "/books/OL1M" in s:
+                r.append(direct)
+            return r
+
+        loans = [
+            {"book": "/books/OL1M", "loaned_at": 100.0},
+            {"book": "/books/ia:r1", "loaned_at": 200.0},
+        ]
+        c = _render(loans, gm)
+        # Initial batch only; the redirect's target was already fetched.
+        assert calls == [["/books/OL1M", "/books/ia:r1"]]
+        assert len(c.docs) == 1
+        # Both loans resolve to the same work; the last one wins.
+        assert c.docs[0].key == "/books/OL1M"
+        assert c.docs[0].loan["loaned_at"] == 200.0
+
     def test_concurrent_redirects_batched_in_one_hop(self):
         """Two loans both redirecting should share a single get_many call per hop."""
         r1 = _make_book("/books/ia:a", is_redirect=True, redirect_target="/books/OL1M")

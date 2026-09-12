@@ -78,41 +78,40 @@ class mybooks_home(delegate.page):
             # Dictionary mapping dedup_key -> (book, timestamp, is_active)
             merged_books: dict[str, tuple[Any, float, bool]] = {}
 
-            # Batch-fetch all loan book keys in one request.
-            book_keys = [loan["book"] for loan in myloans if loan.get("book")]
-            unique_keys = list(dict.fromkeys(book_keys))
-            fetched = site.get().get_many(unique_keys) if unique_keys else []
-            book_map: dict[str, Any] = {b.key: b for b in fetched}
-
-            # Resolve /type/redirect chains in batches (up to 5 hops).
-            # {loan_index: resolved_book_key} — tracks where each loan ends up.
-            loan_target: dict[int, str] = {}
-            for idx, loan in enumerate(myloans):
-                if loan.get("book") and loan["book"] in book_map:
-                    loan_target[idx] = loan["book"]
+            # Resolve books independently of loans: batch-fetch the unique loan
+            # book keys, then keep fetching /type/redirect targets in batches
+            # (up to 5 hops). Nothing is fetched inside the loan loop below.
+            book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
+            fetched_keys = set(book_keys)
+            book_map: dict[str, Any] = {}
+            if book_keys:
+                book_map.update({b.key: b for b in site.get().get_many(book_keys)})
 
             for _ in range(5):
-                unresolved = {
-                    idx: book_map[target].location
-                    for idx, target in loan_target.items()
-                    if getattr(getattr(book_map[target], "type", None), "key", None) == "/type/redirect"
+                redirect_locations = {
+                    book.location
+                    for book in book_map.values()
+                    if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
                 }
-                if not unresolved:
+                if not redirect_locations:
                     break
-                redirect_keys = list(dict.fromkeys(unresolved.values()))
-                redirect_books = site.get().get_many(redirect_keys)
-                redirect_map = {rb.key: rb for rb in redirect_books}
-                for idx, target_key in unresolved.items():
-                    if resolved := redirect_map.get(target_key):
-                        book_map[target_key] = resolved
-                        loan_target[idx] = target_key
-                    else:
-                        del loan_target[idx]
+                fetched_keys.update(redirect_locations)
+                book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
 
-            # Build merged_books from resolved loans.
-            for idx, loan in enumerate(myloans):
-                if idx in loan_target:
-                    book = book_map[loan_target[idx]]
+            # Process loans in one loop, following redirect chains through book_map.
+            for loan in myloans:
+                book_key = loan.get("book")
+                if not book_key:
+                    continue
+                book = book_map.get(book_key)
+                if not book:
+                    continue
+                for _ in range(5):
+                    if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                        book = book_map.get(book.location)
+                    else:
+                        break
+                if book:
                     book.loan = loan
                     works = getattr(book, "works", None)
                     work_key = works[0].key if works and len(works) > 0 else book.key
