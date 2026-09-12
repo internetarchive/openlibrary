@@ -32,15 +32,19 @@ class Recaptcha(web.form.Input):
         self.error = None
 
     def validate(self, value=None):
+        """web.py form Validator shim. Signup forms call this with the field value."""
+        i = web.input()
+        return self.validate_response(i.get("g-recaptcha-response"), web.ctx.ip)
+
+    def validate_response(self, response=None, remoteip=None):
         def accept_error(error_codes: list[str]) -> bool:
             return not any(error in INVALIDATING_ERRORS for error in error_codes)
 
-        i = web.input()
         url = config.get("recaptcha_url")
         params = {
             "secret": self._private_key,
-            "response": i.get("g-recaptcha-response"),
-            "remoteip": web.ctx.ip,
+            "response": response,
+            "remoteip": remoteip,
         }
 
         try:
