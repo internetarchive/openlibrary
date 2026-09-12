@@ -443,7 +443,7 @@ See `OlSelectPopover._onItemToggle` for the reference implementation.
 ### Testing focus
 
 - jsdom **does** support `attachShadow`, slotting, and shadow `activeElement` traversal, so the walker and utilities are unit-tested faithfully (`tests/unit/js/focusUtils.test.js`).
-- Real Lit components aren't instantiated in the test runner (tests use a `MockBase`), and jsdom has no `delegatesFocus`/`showModal`/layout. Verify full tab cycles deterministically: invoke the real handler (`{key:'Tab',shiftKey,preventDefault}`) and assert `getDeepActiveElement()`. **Always test Shift+Tab too** — reverse-only traps are invisible forward.
+- Real Lit components aren't instantiated in the jsdom runner (tests use a `MockBase`), and jsdom has no `delegatesFocus`/`showModal`/layout. Verify full tab cycles deterministically: invoke the real handler (`{key:'Tab',shiftKey,preventDefault}`) and assert `getDeepActiveElement()`. **Always test Shift+Tab too** — reverse-only traps are invisible forward. The full trap in a real browser is covered by browser mode — see [Testing](#testing) (`OlDrawer.browser.test.js`).
 
 ## Form participation (FormAssociatedMixin)
 
@@ -555,6 +555,15 @@ _onPopoverOpen() {
 767px matches the breakpoint that `ol-popover` uses to switch into its mobile tray layout — stay consistent with that so behavior matches what the user sees.
 
 (Inputs in this component should also use `font-size: 16px` to prevent iOS Safari's auto-zoom on focus — see [design.md](design.md#mobile).)
+
+## Testing
+
+Two runners, split by filename so nothing runs twice:
+
+- **jsdom** — `tests/unit/js/*.test.js`, run by `npm run test:js`. The default, and right for logic, ARIA wiring, events, and translated labels: anything that doesn't depend on geometry.
+- **Browser mode** — `tests/browser/*.browser.test.js`, run by `npm run test:js:browser` (also in CI). Real Chromium: real layout, `ResizeObserver`/`IntersectionObserver`, the `<dialog>`/Popover top layer, and trusted pointer and keyboard input. Use it when the behavior under test *is* a browser primitive jsdom can only stub — scroll and snap, focus + scroll-into-view, top-layer stacking, hit-testing, lazy loading on intersection.
+
+A harness that spends more lines faking the browser than asserting the component (the pre-browser-mode `OlCarousel.test.js` is the cautionary example) is the signal to write the test in browser mode instead. Browser suites mount real components through `vitest-browser-lit` / `vitest-browser-vue`, whose locators and `expect.element` assertions retry — so smooth scrolling, settling and animation need no sleeps. Stub `window.fetch` for the network and nothing else. See `OlDrawer.browser.test.js`, `OlCarousel.browser.test.js`, and `LibraryExplorer.browser.test.js` for the patterns.
 
 ## New Component Checklist
 

@@ -40,6 +40,7 @@ make test-py-uv PYTEST_ARGS="openlibrary/tests/fastapi/"
 # Or directly: uv run --with-requirements requirements_test.txt pytest openlibrary/tests/fastapi/
 
 npm run test:js             # JS tests
+npm run test:js:browser     # JS component tests in real Chromium (browser mode)
 make lint                   # Python lint (ruff)
 npm run lint                # JS + CSS lint
 npm run lint-fix            # Auto-fix JS/CSS
