@@ -18,7 +18,7 @@ from pydantic import (
     model_validator,
 )
 
-from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.fulltext import fulltext_search_async, resolve_language
 from openlibrary.fastapi.models import (
     Pagination,
     PaginationLimit20,
@@ -246,14 +246,24 @@ async def search_json(
 async def search_inside_json(
     pagination: Annotated[PaginationLimit20, Depends()],
     q: Annotated[str, Query(title="Search query")],
+    facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
+    readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
+    language: Annotated[
+        list[str] | None,
+        Query(description="Filter by language — a MARC code (e.g. fre) or language name. The FTS backend takes one language; extra values are ignored."),
+    ] = None,
 ):
+    resolved = resolve_language(language)
     return await fulltext_search_async(
         q,
         page=pagination.page,
         offset=pagination.offset,
         limit=pagination.limit,
         js=True,
-        facets=True,
+        facets=facets,
+        readable=readable,
+        # FTS takes the language name, not the MARC code.
+        language=resolved[1] if resolved else None,
     )
 
 

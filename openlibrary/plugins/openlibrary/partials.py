@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
@@ -12,7 +13,7 @@ from pydantic import BaseModel
 from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
-from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.fulltext import exclude_ocaids, fulltext_page, fulltext_search_async
 from openlibrary.core.helpers import affiliate_id, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
@@ -553,13 +554,16 @@ class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     @classmethod
-    async def generate_async(cls, query: str) -> FullTextSuggestionsPartialResult:
-        data = await fulltext_search_async(query)
-        hits = data.get("hits", {})
-        if not hits.get("total"):
+    async def generate_async(cls, query: str, exclude: Iterable[str] = ()) -> FullTextSuggestionsPartialResult:
+        # The macro shows at most 3; a few spares cover excluded or unhydrated hits.
+        # Every fetched hit costs availability + Infobase hydration.
+        data = await fulltext_search_async(query, limit=10)
+        rows, total = fulltext_page(data)
+        rows = exclude_ocaids(rows, exclude)
+        if not rows and not total:
             macro = "<div></div>"
         else:
-            macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, data)
+            macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, rows, total)
         return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
 

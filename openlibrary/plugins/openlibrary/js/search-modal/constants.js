@@ -73,10 +73,15 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // the modal renders inline — when every hit is already shown there's nothing
     // more to "see all" of. seeOne/seeMany are the all-shown cases; seeAllMany is
     // the there's-more case (always plural, since a lone result is always shown).
+    // Counts are books (works); author rows come from the same docs.
     seeAll: 'See results',
-    seeOne: 'See %s result',
-    seeMany: 'See %s results',
-    seeAllMany: 'See all %s results',
+    // Zero hits: the button still leads to /search, so name the destination.
+    seeNone: 'Go to full search',
+    seeOne: 'See %s book',
+    seeMany: 'See %s books',
+    seeAllMany: 'See all %s books',
+    // Narrow-footer form of seeAllMany; the wide form stays the accessible name.
+    seeAllManyNarrow: 'All %s books',
     clearAll: 'Clear all',
     filtersAria: 'Search filters',
     availabilityLabel: 'Availability',
@@ -86,12 +91,15 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languagesLoading: 'Loading…',
     searching: 'Searching…',
     noResults: 'No results found',
+    // When only the Search Inside band has matches, "No results found" would contradict it.
+    noCatalogResults: 'No matching books or authors',
     // Screen-reader-only live announcement when results land: first %s = rows
     // shown in the modal, second %s = total matches. e.g. "Showing 7 of 134,731
     // results". Sighted users see the list appear; this gives assistive tech the
     // same feedback (see the aria-live region in SearchModal.render).
     resultsAnnounce: 'Showing %s of %s results',
-    topResults: 'Top results',
+    authorResults: 'Authors',
+    topResults: 'Books',
     untitled: 'Untitled',
     authorLabel: 'Author',
     // Result-row access badge, shown for any readable book (public-domain or
@@ -103,6 +111,15 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     inLanguage: 'In %s',
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
+    // %s = books with matches. Always plural: the button only shows when the
+    // total exceeds the hits shown inline.
+    insideHeading: 'Search inside books',
+    seeAllInside: 'Search Inside %s books',
+    // Before a total is measured for the current input.
+    seeAllInsidePlain: 'Search Inside',
+    // %s = snippet rows shown (1–3), not the backend total.
+    insideAnnounceOne: '%s match found inside books',
+    insideAnnounceMany: '%s matches found inside books',
 };
 
 /**

@@ -93,7 +93,7 @@
   padding: 0;
   color: var(--color-text);
   font-size: 1.1em;
-  font-weight: 700;
+  font-weight: 600;
   font-family: var(--font-family-title);
   line-height: var(--line-height-heading);
 
@@ -101,6 +101,13 @@
      container that previously guarded #5810 (it grew a scrollbar
      under Literata's taller glyph metrics). */
   overflow-wrap: break-word;
+}
+
+.searchResultItem .bookyear {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  font-family: var(--font-family-body);
 }
 
 .searchResultItem .details {
@@ -375,6 +382,52 @@
     width: 175px;
     text-align: right;
   }
+
+  /* /search/inside has no facets sidebar; cap the cover at the ~105px it gets on /search. */
+  .search-results-container .searchResultItem .bookcover {
+    width: 105px;
+    flex-shrink: 0;
+  }
+
+  .search-results-container .searchResultItem .bookcover :where(img) {
+    width: auto;
+    max-width: 100%;
+    max-height: 170px;
+  }
+
+  /* Passages (.serp-extra) span a row under details/CTA. auto/1fr rows keep a
+     tall cover's extra height from opening a gap between details and passages. */
+  .list-books--fulltext .searchResultItem .sri__main {
+    display: grid;
+    grid-template:
+      "cover details cta" auto
+      "cover extra extra" 1fr
+      / auto minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .list-books--fulltext .searchResultItem .bookcover {
+    grid-area: cover;
+  }
+
+  .list-books--fulltext .searchResultItem .details {
+    grid-area: details;
+  }
+
+  .list-books--fulltext .searchResultItem .searchResultItemCTA {
+    grid-area: cta;
+  }
+
+  .list-books--fulltext .searchResultItem .serp-extra {
+    grid-area: extra;
+  }
+}
+
+/* Full width even in mobile's centered flex column. */
+.list-books--fulltext .serp-extra {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-xs) var(--spacing-inset-xs);
 }
 
 /* Normalize cover image height so CTA buttons align across all cards in a row. */

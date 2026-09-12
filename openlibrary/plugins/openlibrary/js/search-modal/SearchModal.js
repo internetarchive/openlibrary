@@ -32,6 +32,8 @@ import {
 import { fetchLanguageOptions } from './languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
+import { dedupeFulltextHits, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
+import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
 // edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
@@ -80,11 +82,16 @@ const RESULTS_LIMIT     = 10;
 // autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
 const MIN_QUERY_LENGTH  = 3;
 const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
+// Idle time before a query's outcome counts, so partials typed on the way don't.
+const OUTCOME_DEBOUNCE_MS = 1200;
 
 // The bare common-word "the" matches almost everything and isn't worth a Solr
 // round-trip, so the legacy SearchBar skipped it for autocomplete. Navigation
 // to /search is still allowed for it (handled by the length-only gates).
 const AUTOCOMPLETE_STOPWORDS = new Set(['the']);
+
+// Narrow footer labels only; Intl localizes the suffix ("135K", "13万").
+const compactCount = n => new Intl.NumberFormat(undefined, { notation: 'compact', maximumSignificantDigits: 3 }).format(n);
 
 // A drag the trigger should accept: it carries plain text (a text selection
 // or a URL) and is not an ILE book selection, which stores JSON as text/plain.
@@ -105,17 +112,21 @@ export class SearchModal extends LitElement {
         _readableCount: { state: true },
         _loading: { state: true },
         _seeAllLoading: { state: true },
+        _ftSeeAllLoading: { state: true },
         _hasSearched: { state: true },
         _languageItems: { state: true },
         _langsLoading: { state: true },
         _navigatingKey: { state: true },
         _recentSearches: { state: true },
+        _ftHits: { state: true },
+        _ftTotal: { state: true },
+        _ftSearchKey: { state: true },
     };
 
     static styles = css`
         :host {
             font-family: var(--font-family-body);
-            color: var(--darker-grey);
+            color: var(--color-text);
         }
 
         /* Visually hidden but available to screen readers (used by the
@@ -187,7 +198,7 @@ export class SearchModal extends LitElement {
             display: inline-flex;
             align-items: center;
             padding: var(--spacing-2xs) var(--spacing-sm);
-            background: var(--white);
+            background: var(--color-surface);
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
             color: var(--color-text-muted);
@@ -200,7 +211,7 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .esc-pill:hover { background: var(--lightest-grey); }
+            .esc-pill:hover { background: var(--color-control-hover); }
         }
 
         .esc-pill:focus-visible {
@@ -268,8 +279,8 @@ export class SearchModal extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .clear-btn:hover {
-                background: var(--lightest-grey);
-                color: var(--darker-grey);
+                background: var(--color-control-hover);
+                color: var(--color-text);
             }
         }
 
@@ -353,6 +364,20 @@ export class SearchModal extends LitElement {
             text-transform: uppercase;
         }
 
+        .results-list + .results-heading { margin-top: var(--spacing-lg); }
+
+        .results-heading--icon {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2xs);
+        }
+
+        .results-heading--icon ol-icon {
+            flex-shrink: 0;
+            width: 14px;
+            height: 14px;
+        }
+
         .results-list {
             list-style: none;
             margin: 0;
@@ -364,7 +389,7 @@ export class SearchModal extends LitElement {
            as texture rather than structure. Adjacent rows share one line. */
         .results-list li { border-top: 1px solid var(--lightest-grey); }
 
-        /* Sets the author suggestion apart from the "Top results" works below.
+        /* Sets the author suggestion apart from the "Books" works below.
            The row hairlines draw the dividing line; this just adds air. */
         .author-suggestion { margin-bottom: var(--spacing-2xs); }
 
@@ -383,14 +408,14 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .result:hover { background: var(--lightest-grey); }
+            .result:hover { background: var(--color-control-hover); }
         }
 
         /* Both the author suggestion and the work rows are single anchors, so
            the same focus highlight covers the whole row. */
         .result:focus-visible {
             outline: none;
-            background: var(--lightest-grey);
+            background: var(--color-control-hover);
             box-shadow: inset var(--focus-width) 0 0 var(--color-focus-ring);
         }
 
@@ -407,7 +432,7 @@ export class SearchModal extends LitElement {
             width: 36px;
             height: 50px;
             object-fit: cover;
-            background: var(--lightest-grey);
+            background: var(--color-surface-sunken);
             border-radius: var(--border-radius-thumbnail);
         }
 
@@ -425,7 +450,7 @@ export class SearchModal extends LitElement {
             height: 36px;
             overflow: hidden;
             color: var(--color-text-muted);
-            background: var(--lightest-grey);
+            background: var(--color-surface-sunken);
             border-radius: var(--border-radius-avatar);
         }
 
@@ -449,7 +474,7 @@ export class SearchModal extends LitElement {
         .result__title {
             display: block;
             overflow: hidden;
-            color: var(--darker-grey);
+            color: var(--color-text);
             font-weight: 600;
             text-decoration: none;
             text-overflow: ellipsis;
@@ -515,6 +540,78 @@ export class SearchModal extends LitElement {
             text-align: center;
         }
 
+        /* ── "Search inside books" band ────────────────────────────── */
+
+        /* Inset card: sets matches from inside the scans apart from catalog rows. */
+        .ft-band {
+            margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+            border: var(--border-card);
+            border-radius: var(--border-radius-card);
+            background-color: var(--color-surface-sunken);
+            overflow: hidden;
+        }
+
+        /* Rules match the card border; the list hairline barely shows on this fill. */
+        .ft-band .results-heading {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
+        .ft-band .result {
+            padding-left: var(--spacing-md);
+            padding-right: var(--spacing-md);
+        }
+
+        .ft-band .results-list li { border-top-color: var(--color-border-subtle); }
+        .ft-band .results-list li:first-child { border-top: none; }
+
+        .ft-band__footer {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-top: 1px solid var(--color-border-subtle);
+        }
+
+        /* Left rule marks the passage, as .fsi-quote does. Not boxed: the band
+           is already a card. */
+        .ft-quote {
+            display: block;
+            margin-top: var(--spacing-2xs);
+            padding: var(--spacing-3xs) 0 var(--spacing-3xs) var(--spacing-md);
+            border-left: 3px solid var(--color-border-muted);
+            color: var(--color-text);
+            font-family: var(--font-family-quote);
+            font-size: var(--font-size-body-medium);
+            line-height: var(--line-height-relaxed);
+            overflow-wrap: anywhere;
+        }
+
+        /* Scanned titles carry their subtitles, so allow two lines. */
+        .ft-result .result__title {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            white-space: normal;
+        }
+
+        /* So a long OCR run can't balloon the row. */
+        .ft-quote__text {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+        }
+
+        /* One step up from .fsi-quote's amber-50, which vanishes on this fill.
+           The padding bleeds out so it doesn't shift the punctuation. */
+        .ft-quote mark {
+            background-color: var(--amber-100);
+            color: inherit;
+            font-weight: 500;
+            border-radius: var(--border-radius-sm);
+            padding: 0 var(--spacing-inline-xs);
+            margin: 0 calc(-1 * var(--spacing-inline-xs));
+            box-decoration-break: clone;
+        }
+
         /* Animated trailing dots on the "Searching" label. The three dots
            cycle 1 → 2 → 3 → 2 → 1 (a bounce) on a shared 4-step timeline:
            dot 1 is always shown, dot 2 hides only in the first step, dot 3
@@ -566,7 +663,8 @@ export class SearchModal extends LitElement {
             align-items: center;
             justify-content: center;
             height: 28px;
-            color: var(--color-text-muted);
+            /* Decorative — the heading already says these are recent searches. */
+            color: var(--color-icon-muted);
         }
 
         .result__recent-icon ol-icon { width: 18px; height: 18px; }
@@ -624,7 +722,7 @@ export class SearchModal extends LitElement {
 
         .results.is-navigating .result.is-target {
             opacity: 1;
-            background: var(--lightest-grey);
+            background: var(--color-control-hover);
         }
 
         .result.is-target .result__cover,
@@ -675,10 +773,19 @@ export class SearchModal extends LitElement {
 
         .footer {
             display: flex;
-            justify-content: flex-end;
+            align-items: center;
+            gap: var(--spacing-md);
             padding: var(--spacing-sm) var(--spacing-lg);
             border-top: var(--border-divider);
         }
+
+        .footer ol-button { flex-shrink: 0; }
+
+        /* The primary "See N books" holds the right edge. */
+        .footer ol-button:last-child { margin-left: auto; }
+
+        /* Width picks a label form; aria-label keeps the wide one. */
+        .footer .label-narrow { display: none; }
 
         /* ── Mobile overrides ──────────────────────────────────────── */
 
@@ -687,7 +794,11 @@ export class SearchModal extends LitElement {
             .results { max-height: none; flex: 1; }
             /* The footer is pinned by the dialog's flex column (it sits
                outside the scrolling body). */
-            .footer { background: var(--white); }
+            .footer { background: var(--color-surface); }
+
+            /* Narrow rows, long counts — swap in the short labels. */
+            .footer .label-wide { display: none; }
+            .footer .label-narrow { display: inline; }
 
             /* Flat search row: no boxed field — the back arrow and input read
                as one line under the bar's bottom divider (kept from the base
@@ -720,7 +831,11 @@ export class SearchModal extends LitElement {
         // Set when the patron commits to /search (click or Enter) and the page
         // begins navigating; mirrors how a pressed result uses _navigatingKey.
         this._seeAllLoading = false;
+        // Same, for the band's "Search Inside N books" button.
+        this._ftSeeAllLoading = false;
         this._hasSearched  = false;
+        // A failed fetch, not an empty result. Non-reactive: read at click time.
+        this._searchFailed = false;
         this._langsLoading = false;
         this._navigatingKey = null;
 
@@ -768,17 +883,31 @@ export class SearchModal extends LitElement {
 
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
+
+        // FulltextBand decides when to fetch; the modal mirrors its result.
+        this._ftHits  = [];
+        this._ftTotal = null;
+        this._ftSearchKey = null;
+        this._ftBand  = new FulltextBand({
+            getFilters: () => this._fulltextFilters(),
+            onChange: ({ hits, total, searchKey }) => {
+                this._ftHits      = hits;
+                this._ftTotal     = total;
+                this._ftSearchKey = searchKey;
+            },
+            onAttempt: (status) => this._scheduleBandOutcome(status),
+        });
         this._allLangsLoaded = false;
         // Search context the currently-merged language counts describe, and the
         // one a request is in flight for. Equal keys mean the counts on screen
         // are already right for this query, so re-opening the dropper is free.
         this._facetKey       = null;
         this._activeFacetKey = null;
-        // Search-outcome analytics (NoResults / ResultsShown): keys already
-        // counted this modal session, so re-settling the same query — a filter
-        // toggled off and back, an edit-and-undo — never re-fires. Reset per open.
+        // Search-outcome analytics: keys already counted this modal session, so
+        // re-settling the same query never re-fires. Reset per open. One timer
+        // per action, so the band's outcome can't cancel the catalog's.
         this._outcomeTracked = new Set();
-        this._outcomeTimer   = null;
+        this._outcomeTimers  = new Map();
     }
 
     connectedCallback() {
@@ -789,13 +918,14 @@ export class SearchModal extends LitElement {
         this._onPageShow = () => {
             this._navigatingKey = null;
             this._seeAllLoading = false;
+            this._ftSeeAllLoading = false;
         };
         window.addEventListener('pageshow', this._onPageShow);
     }
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
-        clearTimeout(this._outcomeTimer);
+        this._clearOutcomeTimers();
         super.disconnectedCallback();
     }
 
@@ -854,7 +984,7 @@ export class SearchModal extends LitElement {
     // (false); `clearReadableCount` is false in the main fetch's error path,
     // where the separate readable-count request owns that field.
     _resetResults({ hasSearched, clearReadableCount = true } = {}) {
-        clearTimeout(this._outcomeTimer);
+        this._clearOutcomeTimers();
         this._results           = [];
         this._authorSuggestions = [];
         this._numFound          = null;
@@ -871,8 +1001,10 @@ export class SearchModal extends LitElement {
         this._query          = '';
         this._navigatingKey  = null;
         this._seeAllLoading  = false;
+        this._ftSeeAllLoading = false;
         this._activeFetchKey = null;
         this._resetResults({ hasSearched: false });
+        this._ftBand.clear();
         const input = this.renderRoot.querySelector('.search-input');
         if (input) {
             input.value = '';
@@ -1034,12 +1166,7 @@ export class SearchModal extends LitElement {
                 ${this._renderResults()}
 
                 <div slot="footer" class="footer">
-                    <ol-button
-                        variant="primary"
-                        ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
-                        ?loading=${this._seeAllLoading}
-                        @click=${this._onSeeAllResults}
-                    >${this._seeAllLabel()}</ol-button>
+                    ${this._renderSeeAll()}
                 </div>
             </ol-dialog>
         `;
@@ -1108,20 +1235,104 @@ export class SearchModal extends LitElement {
         }
 
         if (this._results.length === 0 && this._hasSearched) {
-            return html`<div class="results"><div class="empty">${this._i18n.noResults}</div></div>`;
+            // The band doubles as a no-results rescue; with hits, scope the message to the catalog.
+            const emptyLabel = this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
+            return html`<div class="results" @keydown=${this._onResultsKeydown}>
+                <div class="empty">${emptyLabel}</div>
+                ${this._renderFulltextBand()}
+            </div>`;
         }
 
         return html`
             <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
                 ${this._authorSuggestions.length ? html`
+                    <h3 class="results-heading">${this._i18n.authorResults}</h3>
                     <ul class="results-list author-suggestion">
                         ${repeat(this._authorSuggestions, a => a.key, (a, i) => this._renderAuthorSuggestion(a, i))}
                     </ul>
                 ` : nothing}
                 <h3 class="results-heading">${this._i18n.topResults}</h3>
                 <ul class="results-list">${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
+                ${this._renderFulltextBand()}
             </div>
         `;
+    }
+
+    // Hits minus scans already listed above. Computed at render since the two fetches race.
+    _visibleFtHits() {
+        return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
+    }
+
+    // Hidden until hits land: no spinner or empty state for a secondary surface.
+    _renderFulltextBand() {
+        const hits = this._visibleFtHits();
+        if (hits.length === 0) return nothing;
+        const q = this._query.trim();
+        return html`
+            <div class="ft-band">
+                <h3 class="results-heading results-heading--icon">
+                    ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
+                </h3>
+                <ul class="results-list">
+                    ${hits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
+                </ul>
+                <div class="ft-band__footer">${this._renderFulltextSeeAll()}</div>
+            </div>
+        `;
+    }
+
+    // The count shows only when current and larger than the rows shown. No
+    // aria-label: the visible text is the name, so voice control can say it.
+    _renderFulltextSeeAll() {
+        const shown = this._visibleFtHits().length;
+        if (shown === 0) return nothing;
+        const counted = this._ftTotalIsCurrent() && this._ftTotal > shown;
+        const q = this._query.trim();
+        const href = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
+        return html`
+            <ol-button
+                variant="secondary"
+                href=${href}
+                ?loading=${this._ftSeeAllLoading}
+                @click=${this._onFulltextSeeAll}
+            >${counted ? this._seeAllInsideLabel() : this._i18n.seeAllInsidePlain}</ol-button>
+        `;
+    }
+
+    // Hits linger across edits, but the total belongs to one query + filters.
+    _ftTotalIsCurrent() {
+        if (typeof this._ftTotal !== 'number') return false;
+        return this._ftSearchKey === fulltextSearchParams(this._query.trim(), this._fulltextFilters()).toString();
+    }
+
+    _seeAllInsideLabel() {
+        return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
+    }
+
+    // Opens BookReader with the phrase-quoted query; its in-book search finds the passage.
+    _renderFulltextHit(hit, q, index = 0) {
+        const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
+        const segments = parseSnippet(hit.snippet);
+        return html`<li>
+                <a
+                    class="result ft-result ${this._navigatingKey === href ? 'is-target' : ''}"
+                    href=${href}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'FulltextClick', label: `rank:${index + 1}` })}
+                >
+                    <span class="result__cover-link">
+                        <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} srcset=${hit.coverSrcset || nothing} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
+                        <span class="result__spinner" aria-hidden="true"></span>
+                    </span>
+                    <span class="result__meta">
+                        <span class="result__title">${hit.title || this._i18n.untitled}</span>
+                        ${hit.author ? html`<span class="result__author">${hit.author}</span>` : nothing}
+                        ${hit.year ? html`<span class="result__year">${hit.year}</span>` : nothing}
+                        <span class="ft-quote">
+                            <span class="ft-quote__text">…${segments.map(s => s.match ? html`<mark>${s.text}</mark>` : s.text)}…</span>
+                        </span>
+                    </span>
+                </a>
+            </li>`;
     }
 
     _renderRecentSearches() {
@@ -1165,7 +1376,7 @@ export class SearchModal extends LitElement {
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = query;
         this._loading = true;
-        this._debouncedFetch();
+        this._scheduleSearch();
     }
 
     // role="button" rows activate on Enter and Space. Keydowns bubbling up
@@ -1194,7 +1405,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href, { type: 'author', rank: index + 1 })}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'ResultClick', label: `author:${index + 1}` })}
                 >
                     <span class="result__avatar">
                         ${SearchModal._personIcon}
@@ -1351,7 +1562,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href, { type: display === edition ? 'edition' : 'work', rank: index + 1 })}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'ResultClick', label: `${display === edition ? 'edition' : 'work'}:${index + 1}` })}
                 >
                     <span class="result__cover-link">
                         <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
@@ -1370,21 +1581,45 @@ export class SearchModal extends LitElement {
             </li>`;
     }
 
+    // aria-label keeps the wide form; the narrow one only swaps what's on screen.
+    _renderSeeAll() {
+        const { wide, narrow } = this._seeAllLabels();
+        return html`
+            <ol-button
+                variant="primary"
+                aria-label=${wide}
+                ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
+                ?loading=${this._seeAllLoading}
+                @click=${this._onSeeAllResults}
+            >${this._responsiveLabel(wide, narrow)}</ol-button>
+        `;
+    }
+
     // The footer button shows the actual hit count once a search lands
-    // (e.g. "See all 1,234 results"); the bare "See all results" label is
+    // (e.g. "See all 1,234 books"); the bare "See results" label is
     // used before any results are in (initial open, query under MIN_QUERY_LENGTH,
-    // or fetch error).
-    _seeAllLabel() {
+    // or fetch error). Zero hits gets "Go to full search" instead.
+    _seeAllLabels() {
         const n = this._numFound;
-        if (typeof n !== 'number' || n <= 0) return this._i18n.seeAll;
+        if (this._hasSearched && n === 0) return { wide: this._i18n.seeNone, narrow: this._i18n.seeNone };
+        if (typeof n !== 'number' || n <= 0) return { wide: this._i18n.seeAll, narrow: this._i18n.seeAll };
+        const count = n.toLocaleString();
         // "all" is only meaningful when there are more matches than we render
         // inline. Once every hit is shown, drop "all" (and "all 1" never made
         // sense). A there's-more count is always plural, so seeAllMany suffices.
-        let template;
-        if (n > this._results.length) template = this._i18n.seeAllMany;
-        else if (n === 1) template = this._i18n.seeOne;
-        else template = this._i18n.seeMany;
-        return sprintf(template, n.toLocaleString());
+        if (n > this._results.length) {
+            return {
+                wide: sprintf(this._i18n.seeAllMany, count),
+                narrow: sprintf(this._i18n.seeAllManyNarrow, compactCount(n)),
+            };
+        }
+        const label = sprintf(n === 1 ? this._i18n.seeOne : this._i18n.seeMany, count);
+        return { wide: label, narrow: label };
+    }
+
+    // Render both forms so a media query, not a render-time match, picks one.
+    _responsiveLabel(wide, narrow) {
+        return html`<span class="label-wide">${wide}</span><span class="label-narrow">${narrow}</span>`;
     }
 
     // ── Event handlers ───────────────────────────────────────────────────
@@ -1394,31 +1629,59 @@ export class SearchModal extends LitElement {
         trackEvent('SearchModal', action, label);
     }
 
-    // Fire a search-outcome event — `ResultsShown` or `NoResults` — only for a
-    // query the patron has settled on. Deferring behind a short idle window (and
-    // re-checking _activeFetchKey when it fires) drops the transient states a
-    // query passes through while being typed: each keystroke starts a fresh fetch
-    // that supersedes this key, so only the query left standing counts (rather
-    // than every partial string on the way to it). The per-session Set collapses
-    // repeat settles of the same key — a filter toggled off and back, an
-    // edit-and-undo — to one event. Both outcomes carry the same active-filter
-    // *category* label (never the filter values or query text; that catalog-gap
-    // detail belongs in the server search logs) so a genuine catalog gap
-    // (`unfiltered`) reads apart from an over-constrained search — and so the
-    // no-results rate NoResults / (NoResults + ResultsShown) is sliceable by
-    // filter state.
-    _scheduleOutcomeTrack(action, fetchKey) {
-        clearTimeout(this._outcomeTimer);
-        this._outcomeTimer = setTimeout(() => {
+    /** Drop every pending outcome — the query moved on, so it never settled. */
+    _clearOutcomeTimers() {
+        for (const { id } of this._outcomeTimers.values()) clearTimeout(id);
+        this._outcomeTimers.clear();
+    }
+
+    // Settle pending outcomes at the modal's exits: acting on results proves the
+    // query settled, and waiting out the idle window would lose it to unload.
+    _flushOutcomes() {
+        const pending = [...this._outcomeTimers.values()];
+        this._outcomeTimers.clear();
+        for (const { id, fire } of pending) {
+            clearTimeout(id);
+            fire();
+        }
+    }
+
+    // Active filter categories — never values or query text — so a catalog gap
+    // (`unfiltered`) reads apart from an over-constrained search.
+    _filterLabel() {
+        const active = [];
+        if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
+        if (this._languages.length > 0) active.push('language');
+        return active.length ? active.join('+') : 'unfiltered';
+    }
+
+    // Fire a search-outcome event only for a query the patron settled on: the
+    // idle window and _activeFetchKey check drop partials, and the per-session
+    // Set collapses repeat settles. `buildLabel` runs at fire time since the
+    // catalog and fulltext fetches race.
+    _scheduleOutcomeTrack(action, fetchKey, buildLabel) {
+        if (!fetchKey) return;
+        const fire = () => {
+            this._outcomeTimers.delete(action);
             if (this._activeFetchKey !== fetchKey) return;   // query moved on
             const key = `${action}:${fetchKey}`;
-            if (this._outcomeTracked.has(key)) return;
+            if (this._outcomeTracked.has(key)) return;       // already counted
             this._outcomeTracked.add(key);
-            const active = [];
-            if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
-            if (this._languages.length > 0) active.push('language');
-            this._track(action, active.length ? active.join('+') : 'unfiltered');
-        }, 1200);
+            this._track(action, buildLabel ? buildLabel() : this._filterLabel());
+        };
+        const pending = this._outcomeTimers.get(action);
+        if (pending) clearTimeout(pending.id);
+        this._outcomeTimers.set(action, { id: setTimeout(fire, OUTCOME_DEBOUNCE_MS), fire });
+    }
+
+    // Keyed on the catalog fetch so the band counts the same unit as the catalog
+    // outcomes. `shown` is rows visible after dedupe, known only at fire time.
+    _scheduleBandOutcome(status) {
+        this._scheduleOutcomeTrack('FulltextBand', this._activeFetchKey, () => {
+            if (status === 'failed') return 'failed';
+            const shown = this._visibleFtHits().length;
+            return shown ? `shown:${shown}` : 'empty';
+        });
     }
 
     _onDialogOpened() {
@@ -1428,14 +1691,14 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
-        // Drop any pending outcome timer so a search interrupted by closing the
-        // modal doesn't fire a phantom event after the fact.
-        clearTimeout(this._outcomeTimer);
+        // Settle rather than drop: closing on a returned search is an abandonment worth counting.
+        this._flushOutcomes();
         // Drop any in-flight spinner so a search interrupted by closing the
         // modal doesn't show a stale "Searching…" on reopen. The next keystroke
         // would clear it, but reopening to a frozen spinner looks broken.
         this._loading = false;
         this._seeAllLoading = false;
+        this._ftSeeAllLoading = false;
     }
 
     // A result is a native anchor, so pressing it navigates the whole window.
@@ -1444,13 +1707,15 @@ export class SearchModal extends LitElement {
     // gap. Modified clicks (open in new tab/window) don't navigate this page —
     // leave them untreated.
     _onResultPress(e, key, meta) {
-        if (e.defaultPrevented || e.button !== 0) return;
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        // Track which row was chosen by type + 1-based rank (e.g. "work:3",
-        // "author:1") — never the title. New-tab/modified clicks return above,
-        // so this counts the in-window navigations the typeahead drove.
-        if (meta) this._track('ResultClick', `${meta.type}:${meta.rank}`);
+        if (e.defaultPrevented) return;
+        // Settle the search's outcome before the click it's measured against.
+        this._flushOutcomes();
+        // Track the row by type + 1-based rank (e.g. "work:3") — never the title.
+        // Modified clicks count too; only the loading treatment below skips them.
+        if (meta) this._track(meta.event, meta.label);
         this._saveCurrentSearch();
+        if (e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         this._navigatingKey = key;
     }
 
@@ -1478,7 +1743,7 @@ export class SearchModal extends LitElement {
         if (input) input.value = text;
         if (this._shouldAutocomplete()) {
             this._loading = true;
-            this._debouncedFetch();
+            this._scheduleSearch();
         }
     }
 
@@ -1487,6 +1752,7 @@ export class SearchModal extends LitElement {
         this._navigatingKey = null;
         if (!this._shouldAutocomplete()) {
             this._resetResults({ hasSearched: false });
+            this._ftBand.clear();
             return;
         }
         // Drop the previous query's author suggestion immediately. Stale book
@@ -1496,7 +1762,7 @@ export class SearchModal extends LitElement {
         // resolves.
         this._authorSuggestions = [];
         this._loading = true;
-        this._debouncedFetch();
+        this._scheduleSearch();
     }
 
     _onInputKeydown(e) {
@@ -1545,14 +1811,32 @@ export class SearchModal extends LitElement {
     // Screen-reader announcement for the live region: the result count once a
     // search lands, "no results" when a search came back empty, and nothing
     // while idle/typing/loading (so the region stays quiet until there's news).
+    // Band rows add a second sentence; the region is aria-atomic, so a late band
+    // re-announces the whole text.
     _resultsAnnouncement() {
         if (!this._shouldAutocomplete()) return '';
+        const catalog = this._catalogAnnouncement();
+        if (!catalog) return '';
+        const band = this._bandAnnouncement();
+        return band ? `${catalog}. ${band}` : catalog;
+    }
+
+    // The catalog half of the announcement, or '' while there's no news yet.
+    _catalogAnnouncement() {
         if (this._results.length === 0) {
-            return this._hasSearched && !this._loading ? this._i18n.noResults : '';
+            if (!this._hasSearched || this._loading) return '';
+            return this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
         }
         const shown = this._results.length;
         const total = typeof this._numFound === 'number' ? this._numFound : shown;
         return sprintf(this._i18n.resultsAnnounce, shown.toLocaleString(), total.toLocaleString());
+    }
+
+    // Rows on screen, not the backend total (that's on the see-all).
+    _bandAnnouncement() {
+        const shown = this._visibleFtHits().length;
+        if (shown === 0) return '';
+        return sprintf(shown === 1 ? this._i18n.insideAnnounceOne : this._i18n.insideAnnounceMany, shown.toLocaleString());
     }
 
     _onAvailabilityToggle(e) {
@@ -1582,7 +1866,7 @@ export class SearchModal extends LitElement {
     _refetchIfActive() {
         if (this._shouldAutocomplete()) {
             this._loading = true;
-            this._debouncedFetch();
+            this._scheduleSearch();
         }
     }
 
@@ -1593,12 +1877,40 @@ export class SearchModal extends LitElement {
         // Distinguish a fall-through from the typeahead (results were showing)
         // from a blind jump to /search (no inline results yet) — the ratio of
         // this to ResultClick tells us whether the typeahead satisfies intent.
+        this._flushOutcomes();
         this._track('SeeAllResults', this._results.length ? 'hasResults' : 'noResults');
         // Flag the footer button so its spinner shows during the navigation
         // delay (the page keeps painting until /search arrives). Mirrors how a
         // pressed result sets _navigatingKey before the window navigates.
         this._seeAllLoading = true;
+        this._navigate(url);
+    }
+
+    /** Whole-window navigation, as its own seam so tests can observe it. */
+    _navigate(url) {
         window.location.assign(url);
+    }
+
+    // "<catalog>:<reason>" — whether results showed, and why the band did: a
+    // passage query, a weak catalog answer, or an outage (which wins).
+    _fulltextSeeAllLabel() {
+        const catalog = this._results.length ? 'hasResults' : 'noResults';
+        let reason;
+        if (this._searchFailed) reason = 'solrFailed';
+        else if (isPassageQuery(this._query.trim())) reason = 'passage';
+        else reason = 'weakSolr';
+        return `${catalog}:${reason}`;
+    }
+
+    // Mirrors _onResultPress: tracked always, spinner only for a plain click.
+    _onFulltextSeeAll(e) {
+        if (e.defaultPrevented) return;
+        this._flushOutcomes();
+        this._track('FulltextSeeAll', this._fulltextSeeAllLabel());
+        this._saveCurrentSearch();
+        if (e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        this._ftSeeAllLoading = true;
     }
 
     // ── Data layer ───────────────────────────────────────────────────────
@@ -1623,6 +1935,7 @@ export class SearchModal extends LitElement {
         const url      = this._buildSearchJsonUrl(trimmed);
         const fetchKey = url;
         this._activeFetchKey = fetchKey;
+        this._searchFailed   = false;
 
         // When the readable filter is off, the main numFound is the all-books
         // total and says nothing about the readable subset, so fetch that count
@@ -1642,6 +1955,7 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
+                this._ftBand.solrSettled(trimmed, this._results);
                 // Record the settled outcome — ResultsShown or NoResults —
                 // deferred so only a query the patron actually stops on counts
                 // (not each partial typed on the way). See _scheduleOutcomeTrack.
@@ -1649,10 +1963,14 @@ export class SearchModal extends LitElement {
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
+                this._searchFailed = true;
                 this._resetResults({
                     hasSearched: true,
                     clearReadableCount: this._availability === 'readable',
                 });
+                this._ftBand.solrFailed(trimmed);
+                // After _resetResults, which cancels pending outcome timers.
+                this._scheduleOutcomeTrack('SearchFailed', fetchKey);
             });
     }
 
@@ -1742,6 +2060,20 @@ export class SearchModal extends LitElement {
         }
     }
 
+    // Single entry point so the catalog fetch and the band can't drift apart.
+    _scheduleSearch() {
+        this._debouncedFetch();
+        this._ftBand.queryChanged(this._query);
+    }
+
+    // One readable flag: the FTS collections can't split open vs borrowable.
+    _fulltextFilters() {
+        return {
+            readable: this._availability !== DEFAULT_AVAILABILITY,
+            languages: this._languages,
+        };
+    }
+
     // ── Static icons ─────────────────────────────────────────────────────
 
     static _clockIcon = html`<ol-icon name="clock"></ol-icon>`;
@@ -1753,6 +2085,8 @@ export class SearchModal extends LitElement {
     static _backIcon = html`<ol-icon name="arrow-left"></ol-icon>`;
 
     static _personIcon = html`<ol-icon name="user"></ol-icon>`;
+
+    static _textSearchIcon = html`<ol-icon name="text-search" aria-hidden="true"></ol-icon>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);

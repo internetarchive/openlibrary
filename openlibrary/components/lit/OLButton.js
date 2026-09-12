@@ -21,7 +21,8 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *
  * Links: set `href` and it renders an <a> instead, styled identically, so a
  * button-shaped navigation CTA ("Read", "Borrow") needs no separate recipe.
- * `disabled` / `loading` on a link drop the href and set aria-disabled.
+ * `disabled` on a link drops the href and sets aria-disabled. `loading` keeps
+ * it, so a spinner set from the link's own click can't cancel the navigation.
  *
  * Forms: `type="submit"` / `type="reset"` behave like a native button. The
  * shadow-rendered control can't be a form's submit button (it has no form
@@ -593,6 +594,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
      * Implicit submission (Enter in a text field) never comes through here —
      * the browser clicks the proxy directly.
      *
+     * Also on the link control, where it blocks keyboard re-activation while
+     * loading (a loading link keeps its href).
+     *
      * @param {MouseEvent} e
      * @returns {void}
      */
@@ -644,13 +648,13 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         if (this.href !== undefined && this.href !== null) {
             // A link can't be disabled natively: drop the href (no navigation,
-            // no tab stop) and say so via aria-disabled. The host's
-            // pointer-events: none handles clicks.
+            // no tab stop) and say so via aria-disabled. `loading` keeps the
+            // href (see class doc); the host's pointer-events: none blocks clicks.
             return html`
                 <a
                     class="control"
                     part="control"
-                    href=${inert ? nothing : this.href}
+                    href=${this.isDisabled ? nothing : this.href}
                     target=${this.target ?? nothing}
                     rel=${this.rel ?? nothing}
                     download=${this.download ?? nothing}
@@ -659,6 +663,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                     aria-label=${this.a11yLabel ?? nothing}
                     aria-haspopup=${this.a11yHasPopup ?? nothing}
                     aria-expanded=${this.a11yExpanded ?? nothing}
+                    @click=${this._onControlClick}
                 >${content}</a>
             `;
         }

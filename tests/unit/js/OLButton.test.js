@@ -117,12 +117,31 @@ describe('OLButton', () => {
         expect(a.getAttribute('aria-disabled')).toBe('true');
     });
 
-    test('a loading link is also inert and reports aria-busy', async() => {
+    test('a loading link keeps its href but blocks activation, and reports aria-busy', async() => {
         const el = await mount({ href: '/x', loading: '' });
         const a = control(el);
-        expect(a.hasAttribute('href')).toBe(false);
+        expect(a.getAttribute('href')).toBe('/x');
         expect(a.getAttribute('aria-disabled')).toBe('true');
         expect(a.getAttribute('aria-busy')).toBe('true');
+        const e = new MouseEvent('click', { bubbles: true, cancelable: true, composed: true });
+        a.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(true);
+    });
+
+    test('a click on a live link passes through, and loading set by it keeps the href', async() => {
+        const el = await mount({ href: '/x' });
+        const a = control(el);
+        // The guard only stops jsdom navigating; record what the component did first.
+        let preventedByComponent = null;
+        const guard = (e) => { preventedByComponent = e.defaultPrevented; e.preventDefault(); };
+        document.addEventListener('click', guard);
+        a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true }));
+        document.removeEventListener('click', guard);
+        expect(preventedByComponent).toBe(false);
+        // Consumers set loading from this click; the href must survive the re-render.
+        el.loading = true;
+        await el.updateComplete;
+        expect(control(el).getAttribute('href')).toBe('/x');
     });
 
     test('toggling href swaps between <a> and <button>', async() => {
