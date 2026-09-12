@@ -7,9 +7,9 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Query
+from openlibrary.fastapi.utils import ClientIpDep
 
 from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
-from openlibrary.fastapi.utils import ClientIpDep  # noqa: TC001
 from openlibrary.plugins.importapi.import_ui import ImportPreviewRequest
 from openlibrary.utils.request_context import web_ctx_ip
 

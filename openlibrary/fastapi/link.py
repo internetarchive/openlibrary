@@ -11,11 +11,11 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from fastapi.responses import JSONResponse
+from openlibrary.fastapi.utils import ClientIpDep
 
 from infogami.infobase.client import ClientException
 from openlibrary import accounts
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
-from openlibrary.fastapi.utils import ClientIpDep  # noqa: TC001
 from openlibrary.utils.request_context import site, web_ctx_ip
 
 logger = logging.getLogger("openlibrary.fastapi.link")

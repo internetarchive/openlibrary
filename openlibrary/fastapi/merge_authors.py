@@ -9,11 +9,11 @@ import json
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from openlibrary.fastapi.utils import ClientIpDep
 from pydantic import BaseModel
 
 from infogami.infobase.client import ClientException
 from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
-from openlibrary.fastapi.utils import ClientIpDep  # noqa: TC001
 from openlibrary.plugins.upstream.edits import perform_merge_update
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
