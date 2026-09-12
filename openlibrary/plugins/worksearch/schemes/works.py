@@ -626,6 +626,7 @@ class WorkSearchScheme(SearchScheme):
         self,
         non_solr_fields: set[str],
         solr_result: dict,
+        provider_pref: str | None = None,
     ) -> None:
         from openlibrary.plugins.upstream.models import Edition, Work
 
@@ -664,7 +665,7 @@ class WorkSearchScheme(SearchScheme):
                     val = getattr(db_thing, field_name)
                     if field_name == "providers":
                         ed = cast(Edition, db_thing)
-                        solr_doc[field_name] = [acq.__dict__ for acq in get_acquisitions(solr_doc, ed)]
+                        solr_doc[field_name] = [acq.__dict__ for acq in get_acquisitions(solr_doc, ed, provider_pref=provider_pref)]
                     elif isinstance(val, infogami.infobase.client.Nothing):
                         continue
                     elif field_name == "description":

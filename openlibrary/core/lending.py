@@ -905,7 +905,7 @@ ia_lending_api = IA_Lending_API()
 
 
 @public
-def get_lending_state(doc, user=None, check_loan_status=False) -> str:
+def get_lending_state(doc, user=None, check_loan_status=False, provider_pref: str | None = None) -> str:
     """Resolves the user-facing lending/availability state of a document (Work, Edition, or Solr dict).
 
     Returns one of: "borrowed", "partner", "open", "printdisabled", "borrowable", "waitlist", "checkedout", "preview_only", "locate"
@@ -926,7 +926,7 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
     # 2. Cheap check: Book provider is not IA
     from openlibrary.book_providers import get_book_provider
 
-    book_provider = get_book_provider(doc)
+    book_provider = get_book_provider(doc, provider_pref=provider_pref)
     bp_short_name = book_provider.short_name if (book_provider and hasattr(book_provider, "short_name")) else ""
     if book_provider and bp_short_name != "ia":
         return "partner"
