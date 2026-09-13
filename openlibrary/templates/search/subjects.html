@@ -41,7 +41,7 @@ $if q and response and not response.error and response.num_found:
     <ul class="subjectList">
     $for doc in response.docs:
         $ n = doc['name']
-        $ key = '/subjects/' + url_map.get(doc['subject_type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '').replace('/', '')
+        $ key = '/subjects/' + url_map.get(doc['subject_type'], '') + url_quote(n.lower().replace(' ', '_'))
 
         <li>
             <a href="$key">$n</a>
