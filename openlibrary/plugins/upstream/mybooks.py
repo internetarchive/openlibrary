@@ -619,14 +619,23 @@ class PatronBooknotes:
         work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
         works = {w.key: w for w in site.get().get_many(work_keys)}
 
+        for entry in notes:
+            entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
+
+        all_edition_keys = {
+            f"/books/OL{edition_id}M": edition_id for entry in notes for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+        }
+        editions = {edition.key: edition for edition in site.get().get_many(list(all_edition_keys))}
+
         for work_key, entry in zip(work_keys, notes):
             entry["work_key"] = work_key
             entry["work"] = works.get(work_key)
             entry["work_details"] = self._get_work_details(entry["work"])
-            entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            edition_keys = {f"/books/OL{k}M": k for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
-            editions = site.get().get_many(list(edition_keys))
-            entry["editions"] = {edition_keys[edition.key]: edition for edition in editions}
+            entry["editions"] = {
+                edition_id: editions[f"/books/OL{edition_id}M"]
+                for edition_id in entry["notes"]
+                if edition_id != Booknotes.NULL_EDITION_VALUE and f"/books/OL{edition_id}M" in editions
+            }
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
