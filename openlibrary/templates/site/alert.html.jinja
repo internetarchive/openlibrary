@@ -1,0 +1,31 @@
+{% if not layout.is_bot %}
+    {% include "site/donation_banner.html.jinja" %}
+{% endif %}
+<div id="topNotice">
+    <div class="page-banner page-banner-black page-banner-center">
+        <div class="iaBar">
+            <a class="iaLogo" href="https://archive.org">
+                <img alt="{{ _('Internet Archive logo') }}"
+                     src="{{ static_url('images/ia-logo.svg') }}"
+                     width="160">
+            </a>
+            {# detect-missing-i18n-skip-line #}
+            <a class="ghost-btn iabar-mobile"
+               href="https://archive.org/donate/?platform=ol&amp;origin=olwww-TopNavDonateButton"
+               data-ol-link-track="IABar|DonateButton">{{ _("Donate") }} <span class="heart" aria-hidden="true">♥</span></a>
+            <div class="language-component header-dropdown iabar-mobile">
+                <details>
+                    <summary>
+                        <span>{{ layout.active_ui_lang['localized'] }}</span>
+                        {{ icon("globe", size="sm", label=_("Change Website Language")) }}
+                    </summary>
+                    <div class="language-dropdown-component">
+                        {% with classes="dropdown-menu" %}
+                            {% include "languages/language_list.html.jinja" %}
+                        {% endwith %}
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+</div>
