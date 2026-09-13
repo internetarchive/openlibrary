@@ -6996,10 +6996,6 @@ msgid "Expires"
 msgstr ""
 
 #: FulltextSearchSuggestion.html.jinja
-msgid "Checking for Search Inside matches"
-msgstr ""
-
-#: FulltextSearchSuggestion.html.jinja
 #, python-format
 msgid "%(book_count)s books found with matching passages"
 msgstr ""
@@ -8159,6 +8155,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Checking for Search Inside matches"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

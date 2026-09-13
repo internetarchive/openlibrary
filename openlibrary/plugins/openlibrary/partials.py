@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
-from infogami.utils.view import public
 from markupsafe import Markup
 from pydantic import BaseModel
 
+from infogami.utils.view import public
 from openlibrary.book_providers import get_book_provider, get_cover_url
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
