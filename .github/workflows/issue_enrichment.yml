@@ -16,33 +16,86 @@ permissions:
   id-token: write
 
 concurrency:
-  group: issue-enrichment-${{ github.event.issue.number }}
+  # `github.event.issue.number` is empty on workflow_dispatch, which collapsed every
+  # manual run into one group named `issue-enrichment-`. Fall back to the input.
+  group: issue-enrichment-${{ github.event.issue.number || inputs.issue_number }}
   cancel-in-progress: false
 
 jobs:
   enrich:
     runs-on: ubuntu-latest
-    # openlibrary-bot's account type is "User", not "Bot" (confirmed via the
-    # GitHub API), so `user.type != 'Bot'` alone does NOT exclude it -- it
-    # only catches genuine GitHub Apps (dependabot[bot], renovate[bot], etc).
-    # The explicit login check below is required to skip our own bot's issues.
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.issue.user.type != 'Bot' &&
-       github.event.issue.user.login != 'openlibrary-bot' &&
-       !contains(github.event.issue.labels.*.name, 'agentic-workflows'))
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
+      # Skip decisions are made here, in code, rather than inside the prompt.
+      #
+      # They used to live only in issue_enrichment.md, which had two costs. First, we
+      # paid for a full model run just to decide to do nothing -- issue #13214 burned
+      # ~$0.31 and 3 turns to conclude "authored by openlibrary-bot, skip". Second, and
+      # worse: a legitimate skip and a silent failure both look identical from outside
+      # (green job, no comment), so there was no way to assert that enrichment actually
+      # produced output. That ambiguity is exactly why the 2026-07-18..07-31 outage ran
+      # for 13 days unnoticed (#13229).
+      #
+      # Deciding up front makes the run cheap when it should skip, and makes the
+      # assertion at the end unambiguous when it should not.
+      #
+      # These mirror the "Always skip if" rules in issue_enrichment.md. The prompt keeps
+      # its copy as defence in depth -- if the two ever disagree, the prompt only ever
+      # skips *more*, never less, so the assertion cannot produce a false failure.
+      - name: Decide whether this issue should be enriched
+        id: gate
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const issue_number = Number(
+              context.eventName === 'workflow_dispatch'
+                ? context.payload.inputs.issue_number
+                : context.payload.issue.number
+            );
+            core.setOutput('issue_number', String(issue_number));
+
+            const { data: issue } = await github.rest.issues.get({
+              ...context.repo, issue_number,
+            });
+            const login = issue.user.login;
+
+            const reasons = [];
+            // openlibrary-bot's account type is "User", not "Bot" (confirmed via the
+            // GitHub API), so the type check alone does NOT exclude it. The explicit
+            // login check is required.
+            if (login === 'openlibrary-bot') reasons.push('authored by openlibrary-bot');
+            if (login.endsWith('[bot]')) reasons.push(`authored by a GitHub App (${login})`);
+            if (issue.user.type === 'Bot') reasons.push(`account type is Bot (${login})`);
+            if ((issue.labels || []).some((l) => (l.name || l) === 'agentic-workflows')) {
+              reasons.push('labelled agentic-workflows');
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo, issue_number, per_page: 100,
+            });
+            if (comments.some((c) => (c.body || '').includes('<!-- ol-issue-bot -->'))) {
+              reasons.push('already enriched (<!-- ol-issue-bot --> marker present)');
+            }
+
+            const should = reasons.length === 0;
+            core.setOutput('should_enrich', String(should));
+            if (should) {
+              core.info(`Issue #${issue_number} by @${login} will be enriched.`);
+            } else {
+              core.notice(`Skipping issue #${issue_number}: ${reasons.join('; ')}`);
+            }
+
       - name: Enrich issue
+        if: steps.gate.outputs.should_enrich == 'true'
         # Pinned deliberately -- do not restore the floating `@v1`.
         #
         # This SHA is the last version confirmed to actually post enrichment output:
         # "chore: bump Claude Code to 2.1.212 and Agent SDK to 0.3.212" (2026-07-17).
         # After `@v1` moved past it, every invocation *in this repo* reported success
-        # while posting nothing at all. See PR body for the run-by-run evidence.
+        # while posting nothing at all.
         #
         # This is NOT a blanket break for all consumers of the action -- it is specific
         # to workflows that set `allowed_non_write_users`, which turns on subprocess
@@ -51,18 +104,13 @@ jobs:
         # Bash call inside that sandbox fails with
         # `bwrap: Can't create file at /home/.mcp.json: Permission denied` -- so Claude
         # reasons normally but cannot run `gh issue comment`, and the job still exits 0.
-        # Both this workflow and pr_autoresponder.yml set `allowed_non_write_users: "*"`,
-        # which is why we are in the affected minority and the tracker is not flooded.
         #
         # Caveat, so the next person does not over-trust this: our first silent run was
         # on 2.1.214, below #1547's stated 2.1.216 boundary. So either that boundary is
-        # approximate or a second cause overlaps. The pin is validated empirically
-        # regardless -- dispatching this branch posted real output on #13205 and #13222.
+        # approximate or a second cause overlaps.
         #
-        # Pinning to an immutable SHA is also the practice GitHub recommends for
-        # third-party actions, so this is worth keeping even after the upstream
-        # regression is understood. Bump it intentionally, and verify a real issue
-        # gets a comment afterwards.
+        # Unpin once #1547 is fixed upstream -- and when you do, verify a real issue gets
+        # a comment afterwards rather than trusting a green run.
         uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
         with:
           prompt: |
@@ -82,3 +130,37 @@ jobs:
           # by maintainers -- defeating the workflow's purpose. Bypass is safe
           # here since --allowedTools is already scoped to issue-only operations.
           allowed_non_write_users: "*"
+
+      # The step that makes a silent failure impossible.
+      #
+      # claude-code-action exits 0 whether it posted or not, so a green job proves
+      # nothing on its own. If the gate said this issue should be enriched, then a
+      # comment carrying the marker must exist by now -- every posting path in
+      # issue_enrichment.md ends with it, including the two short canned replies.
+      # `always()` matters: when the model step itself fails (e.g. it exhausts
+      # --max-turns), GitHub skips subsequent steps by default, so the assertion would
+      # not run precisely when something went wrong. The job is already red in that
+      # case, but the assertion's message is the useful diagnostic.
+      - name: Assert enrichment was actually posted
+        if: always() && steps.gate.outputs.should_enrich == 'true'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const issue_number = Number('${{ steps.gate.outputs.issue_number }}');
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo, issue_number, per_page: 100,
+            });
+            const posted = comments.find((c) => (c.body || '').includes('<!-- ol-issue-bot -->'));
+
+            if (!posted) {
+              core.setFailed(
+                `Enrichment produced no output on issue #${issue_number}. The gate determined this ` +
+                `issue should be enriched and the model step reported success, but no comment ` +
+                `carrying the <!-- ol-issue-bot --> marker exists. This is the silent-failure mode ` +
+                `that ran unnoticed from 2026-07-18 to 07-31 (see #13229) -- failing loudly instead. ` +
+                `Check the run's result JSON for permission_denials_count before assuming the model ` +
+                `simply chose not to comment.`
+              );
+              return;
+            }
+            core.info(`Enrichment confirmed on #${issue_number}: comment ${posted.id} by @${posted.user.login}.`);
