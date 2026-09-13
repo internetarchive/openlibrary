@@ -564,7 +564,7 @@ export class OlWorkbench extends LitElement {
         const groups = new Map();
         for (const [key, fields] of Object.entries(this._pending)) {
             for (const [field, value] of Object.entries(fields)) {
-                const id = `${field} ${JSON.stringify(value)}`;
+                const id = `${field}\u0000${JSON.stringify(value)}`;
                 if (!groups.has(id)) groups.set(id, { field, value, keys: [] });
                 groups.get(id).keys.push(key);
             }
