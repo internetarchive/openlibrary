@@ -1,8 +1,8 @@
 import { initSortOptions } from '../../../openlibrary/plugins/openlibrary/js/sort_options.js';
 
-// Must be `mock`-prefixed: jest hoists the factory above the declarations.
-const mockTrackEvent = jest.fn();
-jest.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
+// Must be `mock`-prefixed: vitest hoists the factory above the declarations.
+const mockTrackEvent = vi.fn();
+vi.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
     trackEvent: (...args) => mockTrackEvent(...args),
 }));
 
@@ -33,7 +33,7 @@ describe('initSortOptions', () => {
         document.body.innerHTML = '';
         mockTrackEvent.mockClear();
         // jsdom's window.location can't be replaced or spied on.
-        navigate = jest.fn();
+        navigate = vi.fn();
     });
 
     test('navigates to the committed option url', () => {

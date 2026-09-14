@@ -2,7 +2,7 @@ import $ from 'jquery';
 
 import { Carousel } from '../../../openlibrary/plugins/openlibrary/js/carousel/Carousel';
 
-jest.mock('slick-carousel', () => {});
+vi.mock('slick-carousel', () => ({}));
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -47,15 +47,15 @@ describe('Carousel', () => {
 
         slick = {
             $slides: makeSlides(6),
-            addSlide: jest.fn(() => {
+            addSlide: vi.fn(() => {
                 slick.$slides = makeSlides(slick.$slides.length + 1);
             }),
-            removeSlide: jest.fn(() => {
+            removeSlide: vi.fn(() => {
                 slick.$slides = makeSlides(slick.$slides.length - 1);
             })
         };
 
-        $.fn.slick = jest.fn(function(arg) {
+        $.fn.slick = vi.fn(function(arg) {
             if (arg === 'getSlick') {
                 return slick;
             }
@@ -66,12 +66,12 @@ describe('Carousel', () => {
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     test('unlocks and removes the loading slide when loading more cards fails', async() => {
         const request = $.Deferred();
-        $.ajax = jest.fn(() => request.promise());
+        $.ajax = vi.fn(() => request.promise());
         carousel.loadMore.locked = true;
 
         carousel.fetchPartials();
@@ -98,7 +98,7 @@ describe('Carousel', () => {
         });
         carousel = new Carousel($('.carousel'));
         const request = $.Deferred();
-        $.ajax = jest.fn(() => request.promise());
+        $.ajax = vi.fn(() => request.promise());
         carousel.loadMore.locked = true;
 
         carousel.fetchPartials();
@@ -113,7 +113,7 @@ describe('Carousel', () => {
         document.querySelector('input[name="carousel-i18n-strings"]').remove();
         carousel = new Carousel($('.carousel'));
         const request = $.Deferred();
-        jest.spyOn($, 'ajax').mockReturnValue(request.promise());
+        vi.spyOn($, 'ajax').mockReturnValue(request.promise());
         carousel.loadMore.locked = true;
 
         expect(() => carousel.fetchPartials()).not.toThrow();

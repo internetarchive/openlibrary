@@ -41,6 +41,9 @@ pytest openlibrary/core/tests/test_models.py::test_function_name -xvs
 # JavaScript tests
 npm run test:js
 
+# JavaScript component tests in a real browser (Vitest browser mode)
+npm run test:js:browser
+
 # i18n validation
 make test-i18n
 
@@ -250,7 +253,7 @@ These companion docs cover specific areas in depth:
 - [Accessibility](a11y/index.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
 - [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
 - [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
-- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM
+- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
 - [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
 
 ## Domain Knowledge Bases
@@ -278,6 +281,7 @@ Deep-dive references for major system domains. Each covers production architectu
 | Lit components | `openlibrary/components/lit/` |
 | Python tests | `tests/`, `openlibrary/**/tests/` |
 | JS tests | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
+| Browser-mode component tests | `tests/browser/` |
 | Docker config | `docker/`, `compose.yaml` |
 | Solr config | `conf/solr/` |
 | i18n translations | `openlibrary/i18n/` |
