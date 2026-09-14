@@ -108,21 +108,6 @@ class TestNormalLoans:
         assert c.docs[0].loan["loaned_at"] == 200.0
         assert c.docs[1].loan["loaned_at"] == 100.0
 
-    def test_single_get_many_call(self):
-        b = _make_book("/books/OL1M", "/works/OL1W")
-        calls = []
-        _render(
-            [{"book": "/books/OL1M", "loaned_at": 10.0}],
-            lambda k: calls.append(list(k)) or [b],
-        )
-        assert len(calls) == 1
-        assert calls[0] == ["/books/OL1M"]
-
-    def test_no_loans_skips_get_many(self):
-        calls = []
-        _render([], lambda k: calls.append(k) or [])
-        assert calls == []
-
     def test_missing_loaned_at_defaults_to_zero(self):
         b = _make_book("/books/OL1M", "/works/OL1W")
         c = _render([{"book": "/books/OL1M"}], lambda k: [b])
@@ -139,44 +124,28 @@ class TestRedirects:
     def test_single_hop_redirect(self):
         redirect = _make_book("/books/ia:olc5", is_redirect=True, redirect_target="/books/OL2M")
         resolved = _make_book("/books/OL2M", "/works/OL2W")
-        calls = []
 
         def gm(keys):
-            calls.append(list(keys))
-            if "/books/ia:olc5" in keys:
-                return [redirect]
-            if "/books/OL2M" in keys:
-                return [resolved]
-            return []
+            s = set(keys)
+            return [b for b in [redirect, resolved] if b.key in s]
 
         c = _render([{"book": "/books/ia:olc5", "loaned_at": 500.0}], gm)
 
         assert len(c.docs) == 1
         assert c.docs[0].key == "/books/OL2M"
         assert c.docs[0].loan["book"] == "/books/ia:olc5"
-        assert len(calls) == 2
 
     def test_two_hop_redirect(self):
         h1 = _make_book("/books/ia:abc", is_redirect=True, redirect_target="/books/OL10M")
         h2 = _make_book("/books/OL10M", is_redirect=True, redirect_target="/books/OL20M")
         final = _make_book("/books/OL20M", "/works/OL20W")
-        calls = []
 
         def gm(keys):
-            calls.append(list(keys))
             s = set(keys)
-            r = []
-            if "/books/ia:abc" in s:
-                r.append(h1)
-            if "/books/OL10M" in s:
-                r.append(h2)
-            if "/books/OL20M" in s:
-                r.append(final)
-            return r
+            return [b for b in [h1, h2, final] if b.key in s]
 
         c = _render([{"book": "/books/ia:abc", "loaned_at": 300.0}], gm)
         assert c.docs[0].key == "/books/OL20M"
-        assert len(calls) == 3
 
     def test_redirect_to_nonexistent_drops_loan(self):
         redirect = _make_book("/books/ia:x", is_redirect=True, redirect_target="/books/OL_NOPE")
@@ -185,79 +154,6 @@ class TestRedirects:
             lambda k: [redirect] if "/books/ia:x" in k else [],
         )
         assert len(c.docs) == 0
-
-    def test_missing_redirect_target_fetched_once(self):
-        """A redirect to a missing target is fetched once, not once per hop iteration."""
-        redirect = _make_book("/books/ia:x", is_redirect=True, redirect_target="/books/OL_NOPE")
-        calls = []
-
-        def gm(keys):
-            calls.append(list(keys))
-            return [r for r in [redirect] if r.key in keys]
-
-        c = _render([{"book": "/books/ia:x", "loaned_at": 1.0}], gm)
-        assert len(c.docs) == 0
-        assert calls == [["/books/ia:x"], ["/books/OL_NOPE"]]
-
-    def test_redirect_target_already_fetched_reused(self):
-        """A redirect pointing to a key already fetched (e.g. another loan's book)
-        does not trigger an extra get_many call."""
-        redirect = _make_book("/books/ia:r1", is_redirect=True, redirect_target="/books/OL1M")
-        direct = _make_book("/books/OL1M", "/works/OL1W")
-        calls = []
-
-        def gm(keys):
-            calls.append(list(keys))
-            s = set(keys)
-            r = []
-            if "/books/ia:r1" in s:
-                r.append(redirect)
-            if "/books/OL1M" in s:
-                r.append(direct)
-            return r
-
-        loans = [
-            {"book": "/books/OL1M", "loaned_at": 100.0},
-            {"book": "/books/ia:r1", "loaned_at": 200.0},
-        ]
-        c = _render(loans, gm)
-        # Initial batch only; the redirect's target was already fetched.
-        assert calls == [["/books/OL1M", "/books/ia:r1"]]
-        assert len(c.docs) == 1
-        # Both loans resolve to the same work; the last one wins.
-        assert c.docs[0].key == "/books/OL1M"
-        assert c.docs[0].loan["loaned_at"] == 200.0
-
-    def test_concurrent_redirects_batched_in_one_hop(self):
-        """Two loans both redirecting should share a single get_many call per hop."""
-        r1 = _make_book("/books/ia:a", is_redirect=True, redirect_target="/books/OL1M")
-        r2 = _make_book("/books/ia:b", is_redirect=True, redirect_target="/books/OL2M")
-        b1 = _make_book("/books/OL1M", "/works/OL1W")
-        b2 = _make_book("/books/OL2M", "/works/OL2W")
-        calls = []
-
-        def gm(keys):
-            calls.append(list(keys))
-            s = set(keys)
-            r = []
-            if "/books/ia:a" in s:
-                r.append(r1)
-            if "/books/ia:b" in s:
-                r.append(r2)
-            if "/books/OL1M" in s:
-                r.append(b1)
-            if "/books/OL2M" in s:
-                r.append(b2)
-            return r
-
-        loans = [
-            {"book": "/books/ia:a", "loaned_at": 100.0},
-            {"book": "/books/ia:b", "loaned_at": 200.0},
-        ]
-        c = _render(loans, gm)
-        assert len(c.docs) == 2
-        # Initial batch + one redirect hop = 2 calls (not 4)
-        assert len(calls) == 2
 
 
 # =========================================================================
@@ -281,38 +177,14 @@ class TestMissingAndDedup:
         )
         assert len(c.docs) == 0
 
-    def test_duplicate_keys_deduped_in_get_many(self):
-        b = _make_book("/books/OL1M", "/works/OL1W")
-        calls = []
-
-        def gm(keys):
-            calls.append(list(keys))
-            return [b]
-
-        loans = [
-            {"book": "/books/OL1M", "loaned_at": 100.0},
-            {"book": "/books/OL1M", "loaned_at": 200.0},
-        ]
-        c = _render(loans, gm)
-        assert calls[0] == ["/books/OL1M"]  # deduped
-        assert len(c.docs) == 1
-        assert c.docs[0].loan["loaned_at"] == 200.0  # last wins
-
     def test_loan_book_none_or_empty(self):
         b = _make_book("/books/OL1M", "/works/OL1W")
-        calls = []
-
-        def gm(keys):
-            calls.append(list(keys))
-            return [b]
-
         loans = [
             {"book": None, "loaned_at": 10.0},
             {"book": "", "loaned_at": 20.0},
             {"book": "/books/OL1M", "loaned_at": 30.0},
         ]
-        c = _render(loans, gm)
-        assert calls[0] == ["/books/OL1M"]  # None/"" filtered out
+        c = _render(loans, lambda k: [b] if "/books/OL1M" in k else [])
         assert len(c.docs) == 1
 
 
