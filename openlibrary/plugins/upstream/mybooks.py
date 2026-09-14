@@ -6,11 +6,11 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
-from web.template import TemplateResult
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import public, render
+from web.template import TemplateResult
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
@@ -617,7 +617,7 @@ class PatronBooknotes:
         notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
 
         work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
-        works = {w.key: w for w in site.get().get_many(work_keys)}
+        works = {w.key: w for w in site.get().get_many(work_keys)} if work_keys else {}
 
         for entry in notes:
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
@@ -625,16 +625,15 @@ class PatronBooknotes:
         all_edition_keys = {
             f"/books/OL{edition_id}M": edition_id for entry in notes for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
         }
-        editions = {edition.key: edition for edition in site.get().get_many(list(all_edition_keys))}
+        edition_keys = list(all_edition_keys)
+        editions = {edition.key: edition for edition in site.get().get_many(edition_keys)} if edition_keys else {}
 
         for work_key, entry in zip(work_keys, notes):
             entry["work_key"] = work_key
             entry["work"] = works.get(work_key)
             entry["work_details"] = self._get_work_details(entry["work"])
             entry["editions"] = {
-                edition_id: editions[f"/books/OL{edition_id}M"]
-                for edition_id in entry["notes"]
-                if edition_id != Booknotes.NULL_EDITION_VALUE and f"/books/OL{edition_id}M" in editions
+                edition_id: editions.get(f"/books/OL{edition_id}M") for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
             }
         return notes
 
