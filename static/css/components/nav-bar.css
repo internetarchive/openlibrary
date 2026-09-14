@@ -1,3 +1,5 @@
+/* Legacy page-level overlay: keep its z-index band as is and add no new consumers.
+   New overlays use ol-popover / ol-dialog, which live in the top layer (#12363). */
 .nav-bar {
   margin-bottom: 20px;
   font-weight: bold;
@@ -43,7 +45,8 @@
   clip-path: inset(0 0 -15px 0);
   margin-bottom: 20px;
   background: var(--white);
-  z-index: var(--z-index-level-5);
+  /* Legacy value: sticky chrome that has to clear page-level dropdowns. */
+  z-index: var(--z-index-dropdown);
 }
 
 .nav-bar-wrapper .nav-bar {
@@ -64,6 +67,7 @@
   right: 0;
   top: 0;
   bottom: 0;
+  /* stylelint-disable-next-line declaration-property-value-disallowed-list -- 10000 has no semantic band; legacy, see #12363 */
   z-index: var(--z-index-level-14);
   width: 44px;
   background: linear-gradient(to right, transparent, var(--white) 10px);
@@ -76,6 +80,7 @@
   left: 0;
   top: 0;
   bottom: 0;
+  /* stylelint-disable-next-line declaration-property-value-disallowed-list -- 10000 has no semantic band; legacy, see #12363 */
   z-index: var(--z-index-level-14);
   width: 44px;
   background: linear-gradient(to left, transparent, var(--white) 10px);
@@ -84,7 +89,8 @@
 .nav-bar-wrapper .nav-bar.work-menu {
   padding: 8px 20px 0;
   background: var(--white);
-  z-index: var(--z-index-level-5);
+  /* Legacy value, same reason as .nav-bar above. */
+  z-index: var(--z-index-dropdown);
   gap: 4px;
   scrollbar-width: thin;
 }

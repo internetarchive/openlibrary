@@ -1,6 +1,9 @@
 /**
  * UI-Dialog
  * https://docs.openlibrary.org/designers/design-pattern-library.html#ui-dialog
+ *
+ * Legacy page-level overlay: keep its z-index band as is and add no new consumers.
+ * New overlays use ol-dialog, which lives in the top layer (#12363).
  */
 .ui-dialog {
   position: relative;
@@ -10,6 +13,7 @@
   border-radius: var(--border-radius-overlay);
   -webkit-box-shadow: 1px 3px 10px var(--black);
   box-shadow: 1px 3px 10px var(--black);
+  /* stylelint-disable-next-line declaration-property-value-disallowed-list -- 10000 has no semantic band; legacy, see #12363 */
   z-index: var(--z-index-level-14) !important;
 }
 .ui-dialog .ui-dialog-titlebar {

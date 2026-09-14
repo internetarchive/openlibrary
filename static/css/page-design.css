@@ -58,7 +58,7 @@ html:has(.ds) {
 .ds__masthead {
   position: sticky;
   top: 0;
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-raised);
   margin: 0 calc(var(--ds-gutter) * -1);
   /* No bottom padding: the tabs run down to the divider so the current tab's
      underline sits on it. */
@@ -566,7 +566,7 @@ html:has(.ds) {
   position: absolute;
   top: var(--spacing-inset-xs);
   right: var(--spacing-inset-xs);
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-base);
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   border: 0;
   border-radius: var(--border-radius-badge);
