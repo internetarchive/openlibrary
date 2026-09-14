@@ -521,6 +521,12 @@ $(function() {
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
+    const smoothScrollLinks = document.querySelectorAll('a[data-ol-smooth-scroll]');
+    if (smoothScrollLinks.length) {
+        import('./smooth-scroll-links')
+            .then((module) => module.initSmoothScrollLinks(smoothScrollLinks));
+    }
+
     // Book page navbar initialization:
     const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper');
     if (navbarWrappers.length) {

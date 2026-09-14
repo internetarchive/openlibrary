@@ -67,6 +67,8 @@ export function unlockBodyScroll() {
         Object.assign(document.body.style, savedBodyStyle);
         savedBodyStyle = null;
     }
-    window.scrollTo(0, savedScrollY);
+    // `instant` overrides any `scroll-behavior: smooth` on <html>, which would
+    // otherwise flash the page at the top and animate back down.
+    window.scrollTo({ top: savedScrollY, behavior: 'instant' });
     savedScrollY = 0;
 }
