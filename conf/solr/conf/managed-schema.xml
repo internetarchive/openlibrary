@@ -611,33 +611,41 @@
         <!-- in this example, we will only use synonyms at query time
         <filter name="synonymGraph" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
         -->
-        <!-- Case insensitive stop word removal.
-        -->
-        <!-- Disabling because it's causing a few issues with our queries. See https://github.com/internetarchive/openlibrary/issues/3317#issuecomment-837506502 -->
-        <!-- <filter name="stop"
-                ignoreCase="true"
-                words="lang/stopwords_en.txt"
-        /> -->
         <filter name="icuFolding"/>
         <filter name="wordDelimiterGraph" types="wordtypes.txt" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
         <filter name="lowercase"/>
         <filter name="keywordMarker" protected="protwords.txt"/>
         <filter name="porterStem"/>
         <filter name="flattenGraph" />
+        <!-- Case insensitive stop word removal. Must run after flattenGraph: StopFilter
+             leaves a position gap for each removed stopword (e.g. two consecutive
+             stopwords leave a gap of 2), but flattenGraph mis-flattens gaps larger
+             than 1 when they occur upstream of it, silently shrinking them to 1 and
+             breaking phrase queries that span the removed words. Running stop last
+             means flattenGraph never sees a gap, only the graph wordDelimiterGraph
+             actually produced. See https://github.com/internetarchive/openlibrary/issues/5393
+        -->
+        <filter name="stop"
+                ignoreCase="true"
+                words="lang/stopwords_en.txt"
+        />
       </analyzer>
       <analyzer type="query">
         <tokenizer name="whitespace"/>
         <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <!-- Disabling because it's causing a few issues with our queries. See https://github.com/internetarchive/openlibrary/issues/3317#issuecomment-837506502 -->
-        <!-- <filter name="stop"
-                ignoreCase="true"
-                words="lang/stopwords_en.txt"
-        /> -->
         <filter name="icuFolding"/>
         <filter name="wordDelimiterGraph" types="wordtypes.txt" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
         <filter name="lowercase"/>
         <filter name="keywordMarker" protected="protwords.txt"/>
         <filter name="porterStem"/>
+        <!-- Kept in the same relative position as the index analyzer (last) for
+             symmetry, even though there's no flattenGraph here to interact with.
+             See https://github.com/internetarchive/openlibrary/issues/5393
+        -->
+        <filter name="stop"
+                ignoreCase="true"
+                words="lang/stopwords_en.txt"
+        />
       </analyzer>
     </fieldType>
 
