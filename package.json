@@ -29,8 +29,9 @@
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
     "pretest:js": "node scripts/build_icon_sprite.mjs",
-    "test:js": "jest",
-    "test:a11y": "jest openlibrary/components/__tests__/",
+    "test:js": "vitest run",
+    "test:js:browser": "vitest run -c vitest.browser.config.mjs",
+    "test:a11y": "vitest run openlibrary/components/__tests__/",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
@@ -51,6 +52,8 @@
     "@tiptap/pm": "^3.20.4",
     "@tiptap/starter-kit": "^3.20.4",
     "@vitejs/plugin-vue": "^6.0.6",
+    "@vitest/browser-playwright": "^5.0.0",
+    "axe-core": "^4.13.0",
     "bundlesize2": "^0.0.35",
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
@@ -64,19 +67,16 @@
     "flot": "0.8.3",
     "globals": "^15.14.0",
     "isbn3": "1.2.19",
-    "jest": "^30.4.2",
-    "jest-axe": "^10.0.0",
-    "jest-environment-jsdom": "^30.4.1",
     "jquery": "3.7.1",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.14.2",
     "jquery-ui-touch-punch": "0.2.3",
+    "jsdom": "^30.0.1",
     "lit": "^3.2.1",
     "lodash": "4.18.1",
     "lucene-query-parser": "1.2.0",
     "prettier": "^3.5.3",
     "prismjs": "^1.30.0",
-    "sinon": "21.1.2",
     "slick-carousel": "1.6.0",
     "stylelint": "^16.26.1",
     "stylelint-declaration-strict-value": "^1.11.1",
@@ -85,6 +85,9 @@
     "tesseract.js": "^4.1.4",
     "tiptap-markdown": "^0.9.0",
     "vite": "^8.0.5",
+    "vitest": "^5.0.0",
+    "vitest-browser-lit": "^1.0.1",
+    "vitest-browser-vue": "^3.1.0",
     "vue": "^3.5.34",
     "vue-async-computed": "^4.0.1",
     "vue-multiselect": "^3.5.0",
@@ -97,56 +100,6 @@
   },
   "engines": {
     "node": "^24.0.0"
-  },
-  "jest": {
-    "roots": [
-      "<rootDir>/openlibrary/plugins/openlibrary/js/",
-      "<rootDir>/openlibrary/components/__tests__/",
-      "<rootDir>/tests/unit/js/"
-    ],
-    "moduleNameMapper": {
-      "\\.css$": "<rootDir>/tests/unit/js/styleMock.js",
-      "sinon": "<rootDir>/node_modules/sinon/pkg/sinon.js"
-    },
-    "setupFiles": [
-      "<rootDir>/tests/unit/js/setup.js"
-    ],
-    "transform": {
-      "node_modules[\\\\/](lit|lit-html|lit-element|@lit)[\\\\/]": [
-        "babel-jest",
-        {
-          "babelrc": false,
-          "configFile": false,
-          "presets": [
-            [
-              "@babel/preset-env",
-              {
-                "targets": {
-                  "node": "current"
-                }
-              }
-            ]
-          ]
-        }
-      ],
-      "\\.(?:[cm]?[jt]sx?)$": "babel-jest"
-    },
-    "transformIgnorePatterns": [
-      "node_modules[\\\\/](?!(lit|lit-html|lit-element|@lit)[\\\\/])"
-    ],
-    "testEnvironment": "jsdom",
-    "collectCoverageFrom": [
-      "openlibrary/plugins/openlibrary/js/**/*.js"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 14,
-        "functions": 11,
-        "lines": 14,
-        "statements": 14
-      }
-    },
-    "collectCoverage": false
   },
   "overrides": {
     "@ericblade/quagga2": {

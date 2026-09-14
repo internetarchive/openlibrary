@@ -1,0 +1,12 @@
+{# Shows a carousel placeholder. #}
+<div class="lazy-carousel" data-config="{{ lazy_config_json }}">
+    {{ loading_indicator_html | safe }}
+    <div class="lazy-carousel-retry hidden">
+        {{ _("Failed to fetch carousel.") }} <a href="#" class="retry-btn">{{ _("Retry?") }}</a>
+    </div>
+    {% if fallback %}
+        <div class="lazy-carousel-fallback hidden">
+            {{ _("No books match the current filters.") }} <a href="#" class="retry-btn">{{ _("Retry without filters?") }}</a>
+        </div>
+    {% endif %}
+</div>

@@ -5,11 +5,8 @@
  * wiring the component writes onto the slotted trigger, and the panel's
  * dialog semantics once open.
  */
-import { toHaveNoViolations } from 'jest-axe';
 import { checkA11y, cleanup, mount, openPopover, setupComponentEnv } from '../test-utils/a11y.js';
 import '../lit/OlPopover.js';
-
-expect.extend(toHaveNoViolations);
 
 const POPOVER = `
     <ol-popover aria-label="Edit options">
