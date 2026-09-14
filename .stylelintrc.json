@@ -66,10 +66,7 @@
       }
     },
     {
-      "files": [
-        "openlibrary/components/lit/*.js",
-        "openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js"
-      ],
+      "files": ["openlibrary/components/lit/*.js"],
       "customSyntax": "postcss-lit",
       "rules": {
         "prettier/prettier": null,
