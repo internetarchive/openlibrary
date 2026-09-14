@@ -66,26 +66,6 @@
       }
     },
     {
-      "files": ["**/*.vue"],
-      "customSyntax": "postcss-html",
-      "rules": {
-        "scale-unlimited/declaration-strict-value": [
-          ["z-index"],
-          { "disableFix": true, "ignoreValues": ["inherit", "transparent", "none"] }
-        ],
-        "color-no-hex": null,
-        "color-named": null,
-        "no-descending-specificity": null,
-        "no-duplicate-selectors": null,
-        "declaration-block-no-duplicate-properties": null,
-        "declaration-block-no-redundant-longhand-properties": null,
-        "shorthand-property-no-redundant-values": null,
-        "length-zero-no-unit": null,
-        "selector-max-specificity": null,
-        "selector-pseudo-class-no-unknown": [true, {"ignorePseudoClasses": ["selected", "deep"]}]
-      }
-    },
-    {
       "files": [
         "openlibrary/components/lit/*.js",
         "openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js"
