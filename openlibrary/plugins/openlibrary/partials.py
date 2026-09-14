@@ -358,6 +358,11 @@ class CarouselCardPartial:
         return subject.get("works", [])
 
 
+# Temporarily disabled due to amazon request timing out. While off, pages skip
+# the client-side price lookup entirely.
+AFFILIATE_PRICES_ENABLED = False
+
+
 @dataclass(frozen=True, slots=True)
 class AffiliateStoreBuildContext:
     title: str
@@ -374,7 +379,6 @@ class AffiliateStore:
     name: str
     link: str
     price: str | None = None
-    price_note: str = ""
 
 
 def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
@@ -385,7 +389,7 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
         bwb_link = f"https://www.betterworldbooks.com/product/detail/{ctx.isbn}"
 
     bwb_market_price = ctx.bwb_metadata.get("market_price") if ctx.bwb_metadata else None
-    bwb_price = ctx.bwb_metadata.get("price") if ctx.bwb_metadata else None
+    bwb_price_amt = ctx.bwb_metadata.get("price_amt") if ctx.bwb_metadata else None
     amz_price = ctx.amz_metadata.get("price") if ctx.amz_metadata else None
 
     primary_stores: list[AffiliateStore] = [
@@ -394,8 +398,7 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
             analytics_key="BetterWorldBooks",
             name=_("Better World Books"),
             link=bwb_link,
-            price=bwb_price,
-            price_note=_(" - includes shipping"),
+            price=f"${bwb_price_amt}" if bwb_price_amt else None,
         )
     ]
 
@@ -442,7 +445,7 @@ class AffiliateLinksPartial:
     ) -> dict:
         bwb_metadata = None
         amz_metadata = None
-        should_fetch_prices = not is_bot() and prices
+        should_fetch_prices = AFFILIATE_PRICES_ENABLED and prices and not is_bot()
         if should_fetch_prices and isbn:
             bwb_metadata = await get_betterworldbooks_metadata(isbn)
             if not bwb_metadata or not bwb_metadata.get("market_price"):
@@ -452,14 +455,21 @@ class AffiliateLinksPartial:
             bwb_metadata = None
 
         ctx = AffiliateStoreBuildContext(title, isbn, asin, bwb_metadata, amz_metadata)
+        return {"partials": _render_affiliate_links(ctx)}
 
-        primary_stores = build_primary_stores(ctx)
-        more_stores = build_more_stores(ctx)
 
-        template = get_jinja_env().get_template("AffiliateLinks.html.jinja")
-        html = template.render(primary_stores=primary_stores, more_stores=more_stores)
+def _render_affiliate_links(ctx: AffiliateStoreBuildContext, price_lookup: dict | None = None) -> str:
+    template = get_jinja_env().get_template("AffiliateLinks.html.jinja")
+    return template.render(primary_stores=build_primary_stores(ctx), more_stores=build_more_stores(ctx), price_lookup=price_lookup)
 
-        return {"partials": html}
+
+@public
+def render_affiliate_links(title: str, isbn: str | None, asin: str | None, prices: bool) -> str:
+    """Render the Buy popover's store rows with the page. When prices apply,
+    the section carries a price lookup that affiliate-links.js fills in later."""
+    ctx = AffiliateStoreBuildContext(title, isbn, asin, None, None)
+    price_lookup = {"title": title, "isbn": isbn, "asin": asin or ""} if AFFILIATE_PRICES_ENABLED and prices and isbn else None
+    return _render_affiliate_links(ctx, price_lookup)
 
 
 class SearchFacetsPartial:

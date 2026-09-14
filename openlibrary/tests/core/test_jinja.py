@@ -276,11 +276,13 @@ class TestGetJinjaEnv:
         env = get_jinja_env()
         assert env.lstrip_blocks is True
 
-    def test_can_load_and_render_affiliate_links_template(self, request_context_fixture):
+    def test_can_load_and_render_affiliate_links_template(self, request_context_fixture, monkeypatch):
         """Should be able to load the AffiliateLinks.html.jinja template
         from the macros/ directory and render it with store data."""
         request_context_fixture(lang="en")
         env = get_jinja_env()
+        # The icon global calls a Templetor macro, which isn't loaded in tests.
+        monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
         tpl = env.get_template("AffiliateLinks.html.jinja")
         output = tpl.render(
             primary_stores=[
@@ -290,10 +292,10 @@ class TestGetJinjaEnv:
                     "name": "Test Store",
                     "link": "https://example.com/book",
                     "price": None,  # StrictUndefined - must include all accessed attrs
-                    "price_note": "",
                 }
             ],
             more_stores=[],
+            price_lookup=None,
         )
         # Should contain the store link
         assert "https://example.com/book" in output
