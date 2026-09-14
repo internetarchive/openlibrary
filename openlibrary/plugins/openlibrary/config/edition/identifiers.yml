@@ -29,6 +29,11 @@ identifiers:
     name: depósito_legal
     notes: ''
     website: https://www.bne.es/en/catalogues
+-   label: Biblioteca Nacional de Portugal (BNP)
+    name: bnp
+    notes: ''
+    url: https://id.bnportugal.gov.pt/bib/catbnp/@@@
+    website: https://www.bnportugal.gov.pt/
 -   label: Bibliothèque nationale de France (BnF)
     name: bibliothèque_nationale_de_france
     notes: ''

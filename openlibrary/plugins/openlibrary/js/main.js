@@ -607,8 +607,8 @@ $(function() {
             .then(module => module.initPasswordToggling(passwordVisibilityToggle));
     }
 
-    // Affiliate links:
-    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section');
+    // Affiliate link prices:
+    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section[data-isbn]');
     if (affiliateLinksSection.length) {
         import('./affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection));

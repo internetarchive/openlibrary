@@ -96,8 +96,7 @@ async def affiliate_links_partial(
         title=title,
         isbn=isbn,
         asin=asin,
-        # Temporarily disabled due to amazon request timing out
-        prices=False,
+        prices=prices,
     )
 
 

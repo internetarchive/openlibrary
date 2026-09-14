@@ -11,10 +11,6 @@
   width: 100%;
 }
 
-.mobile-vendor {
-  display: none;
-}
-
 .read-options,
 .btn-notice {
   font-size: 1em;
@@ -87,17 +83,6 @@
   font-size: 0.78em;
 }
 
-.read-options .check-availability,
-.btn-notice .check-availability {
-  font-size: var(--font-size-label-large);
-  border-top: 1px solid var(--lightest-grey);
-}
-
-.read-options .check-other-editions,
-.btn-notice .check-other-editions {
-  text-align: center;
-}
-
 .read-options strong,
 .btn-notice strong {
   font-size: 12.5px;
@@ -124,50 +109,8 @@
 }
 /* stylelint-enable selector-max-specificity */
 
-ul.book-locate-options li,
 ul.ebook-download-options li {
   margin: 5px 0;
-}
-
-.buy-options-table {
-  line-height: 2em;
-}
-
-.buy-options-table .more {
-  margin-left: 0;
-  cursor: pointer;
-}
-
-.buy-options-table + small {
-  display: block;
-  margin-top: 10px;
-}
-
-.cta-section-title.world-cat-link {
-  margin-top: 0;
-}
-
-.sponsorship-card {
-  border-radius: 5px;
-  padding: 10px;
-  border: 2px solid hsla(202, 96%, 28%, 0.2);
-  background: hsla(202, 40%, 95%, 0.5);
-  font-size: 0.8em;
-  text-align: center;
-}
-
-.sponsorship-card q {
-  display: block;
-  font-style: oblique;
-  text-align: center;
-}
-
-.sponsorship-card hr {
-  background: hsla(202, 96%, 28%, 0.35);
-}
-
-.sponsorship-card a.learn-more {
-  font-size: 0.9em;
 }
 
 .Tools .booklinks li {
@@ -178,14 +121,9 @@ ul.ebook-download-options li {
 /* desktop */
 @media only screen and (min-width: 960px /* @width-breakpoint-desktop */) {
   /* stylelint-disable selector-max-specificity */
-  .mobile-vendor,
   .cta-button-group.mobile,
   .readers-stats__wrapper.mobile {
     display: none;
-  }
-
-  .desktop-vendor {
-    display: inline;
   }
 
   .cta-button-group.desktop {
@@ -196,13 +134,8 @@ ul.ebook-download-options li {
 
 /* mobile */
 @media only screen and (max-width: 960px /* @width-breakpoint-desktop */) {
-  .desktop-vendor,
   .cta-button-group.desktop {
     display: none;
-  }
-
-  .mobile-vendor {
-    display: inline;
   }
 
   .Tools .btn-notice,
