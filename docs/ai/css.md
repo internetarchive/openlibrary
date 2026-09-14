@@ -54,7 +54,7 @@ Use only bottom margins for vertical spacing, never top margins. One-directional
 
 Always use semantic tokens instead of hardcoded values. Stylelint will reject raw hex colors, named colors, and hardcoded values for `font-family`, `background-color`, `z-index`, and `color`.
 
-Stylelint runs on plain CSS and on the Lit `css\`\`` literals in any JS file under `openlibrary/` (`postcss-lit` extracts them; files without one lint as empty). Lit is held to the z-index rules only for now — the color, specificity and duplicate-declaration rules are switched off for it in `.stylelintrc.json` until the existing violations are cleaned up. Do not add new ones. Never run `stylelint --fix` on the Lit files: `postcss-lit` re-indents multi-line comments on the way back out, so `lint-fix:css` and the pre-commit hook only check them.
+Stylelint runs on plain CSS and on the Lit `css\`\`` literals in `openlibrary/components/lit/` (`postcss-lit`). Lit is held to the z-index rules only for now — the color, specificity and duplicate-declaration rules are switched off for it in `.stylelintrc.json` until the existing violations are cleaned up. Do not add new ones. Never run `stylelint --fix` on the Lit files: `postcss-lit` re-indents multi-line comments on the way back out, so `lint-fix:css` and the pre-commit hook only check them.
 
 For `z-index` specifically: never reference a `--z-index-level-*` primitive outside `static/css/tokens/z-index.css`. Use a semantic band (`--z-index-sticky`, `--z-index-fixed`, …) for page chrome, or `--z-index-local-*` inside an `isolation: isolate` root for component-internal layering. Stylelint warns on primitive use today and will error once the legacy consumers are retargeted (#12363).
 
