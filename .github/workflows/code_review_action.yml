@@ -9,12 +9,12 @@ name: Code Review Action
 # SECURITY -- the two-job split below is the whole design, read before editing.
 #
 # `analyze` reads untrusted PR content (diff, source) and holds NO write permission and NO PAT.
-# `post` holds the write permission and the PAT, runs no model, and takes the analysis only as
+# `post` holds the write permission and the scoped PAT, runs no model, and takes the analysis only as
 # a JSON artifact which it re-validates against the diff before posting. A prompt injection in
 # a PR can therefore change what the review *says* -- it is a public comment either way -- but
 # cannot reach a write API, because the process that read it has nothing to write with.
 #
-# Do not "simplify" this into one job. Do not add OL_BOT_PAT to `analyze`. Do not add write
+# Do not "simplify" this into one job. Do not add any PAT to `analyze`. Do not add write
 # scopes to `analyze`'s permissions block.
 #
 # Fork PRs: `pull_request` from a fork gets no secrets, so the review_requested path covers
@@ -212,7 +212,10 @@ jobs:
           PR: ${{ needs.analyze.outputs.pr }}
           HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
         with:
-          github-token: ${{ secrets.OL_BOT_PAT }}
+          # Scoped fine-grained PAT (openlibrary-bot, org member): Issues + Pull requests
+          # read/write, Contents + Commit statuses read, on the Open Library repos only.
+          # Deliberately NOT the broad OL_BOT_PAT, and deliberately not present in `analyze`.
+          github-token: ${{ secrets.OL_BOT_ACTIONS_PAT }}
           script: |
             const fs = require('fs');
             const owner = context.repo.owner, repo = context.repo.repo;
