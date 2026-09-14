@@ -1,7 +1,7 @@
 {% macro affiliate_link(store) %}
     {#- Icons are presentation, so they live here rather than on AffiliateStore.
         An unknown store falls back to a generic glyph. -#}
-    {% set store_icons = {"betterworldbooks": "recycle", "amazon": "package", "bookshop-org": "store"} %}
+    {% set store_icons = {"betterworldbooks": "recycle", "amazon": "box", "bookshop-org": "store"} %}
     <div class="buy-option prices-{{ store.key }}"
          data-store="{{ store.key }}">
         <a class="buy-option__link"
