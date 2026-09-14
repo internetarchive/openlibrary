@@ -12,7 +12,7 @@ let posts;
 function stubFetch(works = {}, { status = 200 } = {}) {
     calls = [];
     posts = [];
-    global.fetch = jest.fn(async(url, init) => {
+    global.fetch = vi.fn(async(url, init) => {
         if (init?.method === 'POST') posts.push({ url: String(url), body: init.body });
         else calls.push(new URL(String(url)));
         return { ok: status < 400, status, json: async() => ({ user_key: '/people/tester', works }) };

@@ -20,7 +20,7 @@ let calls;
 
 function stubFetch({ ok = true, works = STATE } = {}) {
     calls = [];
-    global.fetch = jest.fn(async(url) => {
+    global.fetch = vi.fn(async(url) => {
         calls.push(String(url));
         return { ok, status: ok ? 200 : 500, json: async() => ({ user_key: '/people/tester', works }) };
     });
