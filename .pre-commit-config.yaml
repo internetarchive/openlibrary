@@ -120,7 +120,7 @@ repos:
         # Same hook, but check-only. postcss-lit can't write Lit files back without
         # shifting comment indentation, so --fix would rewrite files that had no errors.
         # Keep the file list in sync with lint:css in package.json.
-        files: ^openlibrary/components/lit/[^/]+\.js$
+        files: ^openlibrary/.*\.js$
         additional_dependencies: *stylelint_deps
         args: [--allow-empty-input]
 

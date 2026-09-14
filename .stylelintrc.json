@@ -66,10 +66,11 @@
       }
     },
     {
-      "files": ["openlibrary/components/lit/*.js"],
+      "files": ["openlibrary/**/*.js"],
       "customSyntax": "postcss-lit",
       "rules": {
         "prettier/prettier": null,
+        "no-empty-source": null,
         "scale-unlimited/declaration-strict-value": [
           ["z-index"],
           { "disableFix": true, "ignoreValues": ["inherit", "transparent", "none"] }
