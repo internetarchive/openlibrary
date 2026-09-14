@@ -117,9 +117,9 @@ repos:
         args: [--fix, --allow-empty-input]
       - id: stylelint
         name: stylelint (lit)
-        # Keep in sync with lint:css in package.json. Check-only: postcss-lit's
-        # round-trip re-indents multi-line comments inside css`` literals, so
-        # --fix would rewrite files nothing flagged.
+        # Same hook, but check-only. postcss-lit can't write Lit files back without
+        # shifting comment indentation, so --fix would rewrite files that had no errors.
+        # Keep the file list in sync with lint:css in package.json.
         files: ^openlibrary/components/lit/[^/]+\.js$|^openlibrary/plugins/openlibrary/js/search-modal/SearchModal\.js$
         additional_dependencies: *stylelint_deps
         args: [--allow-empty-input]
