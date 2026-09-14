@@ -36,15 +36,20 @@ if coverstore_config := os.getenv("COVERSTORE_CONFIG"):
 logger = logging.getLogger("coverstore")
 
 CoverSize = Literal["S", "M", "L", ""]
+# books, authors, works -- the rows of the coverstore `category` table. Annotating the
+# handlers is what keeps an unknown category out of db.new(), where get_category_id()
+# would miss and store the cover against a null category_id.
+CoverCategory = Literal["a", "b", "w"]
 
 
 class CoverSizeConvertor(Convertor[str]):  # codespell:ignore convertor
     """Restricts the ``-S``/``-M``/``-L`` filename suffix to the three real sizes.
 
-    An unrestricted size would make the sized route swallow the last hyphenated
-    segment of a size-less path: ``/b/isbn/978-0-14-118776-1.jpg`` would parse as
-    ISBN ``978-0-14-118776`` at size ``1``, and ``/b/id/1-X.jpg`` as size ``X``,
-    rather than both falling through to the size-less route.
+    This has to constrain *routing*, not just validate, so that a size-less path
+    falls through to the size-less route: an unrestricted size would make
+    ``/b/isbn/978-0-14-118776-1.jpg`` match as ISBN ``978-0-14-118776`` at size
+    ``1``, and ``/b/id/1-X.jpg`` as size ``X``. Unlike the category, which nothing
+    falls through on and so is left to a ``Literal`` annotation.
     """
 
     regex = "[SML]"
@@ -86,12 +91,10 @@ def get_cover_id(olkeys: list[str]) -> int | None:
     return None
 
 
-def _query(category: str, key: str, value: str) -> int | None:
+def _query(category: CoverCategory, key: str, value: str) -> int | None:
     if key == "olid":
         prefixes = {"a": "/authors/", "b": "/books/", "w": "/works/"}
-        if category in prefixes:
-            olkey = prefixes[category] + value
-            return get_cover_id([olkey])
+        return get_cover_id([prefixes[category] + value])
     elif category == "b":
         if key == "isbn":
             value = value.replace("-", "").strip()
@@ -148,7 +151,7 @@ def index() -> Response:
 
 @router.post("/{category}/upload2", include_in_schema=False)
 def upload2(
-    category: str,
+    category: CoverCategory,
     olid: Annotated[str | None, Form()] = None,
     author: Annotated[str | None, Form()] = None,
     data: Annotated[bytes | None, File()] = None,
@@ -312,7 +315,7 @@ def _serve_default(default: str) -> Response:
         return Response(status_code=404)
 
 
-def _serve_cover(request: Request, category: str, key: str, value: str, size: CoverSize, default: str) -> Response:
+def _serve_cover(request: Request, category: CoverCategory, key: str, value: str, size: CoverSize, default: str) -> Response:
     key = key.lower()
 
     cover_id: int | None = None
@@ -369,7 +372,7 @@ def _serve_cover(request: Request, category: str, key: str, value: str, size: Co
 @router.get("/{category}/{key}/{value}-{size:cover_size}.jpg", include_in_schema=False)
 def cover_sized(
     request: Request,
-    category: str,
+    category: CoverCategory,
     key: str,
     value: str,
     size: str,
@@ -381,7 +384,7 @@ def cover_sized(
 @router.get("/{category}/{key}/{value}.jpg", include_in_schema=False)
 def cover_unsized(
     request: Request,
-    category: str,
+    category: CoverCategory,
     key: str,
     value: str,
     default: Annotated[str, Query()] = "true",
@@ -390,7 +393,7 @@ def cover_unsized(
 
 
 @router.get("/{category}/{key}/{value}.json", include_in_schema=False)
-def cover_details(category: str, key: str, value: str) -> Response:
+def cover_details(category: CoverCategory, key: str, value: str) -> Response:
     if key == "id":
         d = db.details(safeint(value))
         if not d:
@@ -408,7 +411,7 @@ def cover_details(category: str, key: str, value: str) -> Response:
 
 @router.get("/{category}/query", include_in_schema=False)
 def query(
-    category: str,
+    category: CoverCategory,
     olid: Annotated[str | None, Query()] = None,
     offset: Annotated[str, Query()] = "0",
     limit: Annotated[str, Query()] = "10",
@@ -449,7 +452,7 @@ def query(
 @router.post("/{category}/touch", include_in_schema=False)
 def touch(
     request: Request,
-    category: str,
+    category: CoverCategory,
     id: Annotated[str | None, Form()] = None,
     redirect_url: Annotated[str | None, Form()] = None,
 ) -> Response:
@@ -463,7 +466,7 @@ def touch(
 
 @router.post("/{category}/delete", include_in_schema=False)
 def delete(
-    category: str,
+    category: CoverCategory,
     id: Annotated[str | None, Form()] = None,
     redirect_url: Annotated[str | None, Form()] = None,
 ) -> Response:
@@ -480,7 +483,7 @@ def delete(
 @router.post("/{category}/upload", include_in_schema=False)
 def upload(
     request: Request,
-    category: str,
+    category: CoverCategory,
     olid: Annotated[str, Form()],
     author: Annotated[str | None, Form()] = None,
     file: Annotated[bytes | None, File()] = None,

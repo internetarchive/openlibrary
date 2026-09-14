@@ -5,7 +5,7 @@ from os.path import abspath, dirname, join, pardir
 
 import pytest
 import web
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.testclient import TestClient
 
 from openlibrary.coverstore import archive, code, config, coverlib, schema, utils
@@ -143,6 +143,35 @@ class TestCoverRouting:
     def test_default_param(self, client):
         client.get("/b/id/1-M.jpg?default=false")
         assert client.served["default"] == "false"
+
+
+class TestCoverCategory:
+    """Only books/authors/works exist as categories; anything else must not route."""
+
+    @pytest.fixture
+    def client(self, monkeypatch):
+        monkeypatch.setattr(code, "_serve_cover", lambda *a: Response(status_code=204))
+        return TestClient(make_app())
+
+    @pytest.mark.parametrize("category", ["a", "b", "w"])
+    def test_real_categories_route(self, client, category):
+        assert client.get(f"/{category}/id/1-M.jpg").status_code == 204
+
+    @pytest.mark.parametrize("path", ["/x/id/1-M.jpg", "/bb/id/1-M.jpg", "/B/id/1-M.jpg", "/b2/id/1-M.jpg"])
+    def test_unknown_categories_are_rejected(self, client, path):
+        # 422 from the Literal; no real traffic reaches these, so the code needn't be a 404
+        assert client.get(path).status_code == 422
+
+    def test_unknown_category_cannot_reach_upload(self, monkeypatch):
+        monkeypatch.setattr(code, "save_image", lambda *a, **kw: pytest.fail("must not reach save_image"))
+        assert TestClient(make_app()).post("/x/upload2", files={"data": b"x"}).status_code == 422
+
+    @pytest.mark.parametrize("category", ["a", "b", "w"])
+    def test_olid_lookup_uses_the_right_prefix(self, monkeypatch, category):
+        seen = []
+        monkeypatch.setattr(code, "get_cover_id", seen.extend)
+        code._query(category, "olid", "OL1X")
+        assert seen == [{"a": "/authors/OL1X", "b": "/books/OL1X", "w": "/works/OL1X"}[category]]
 
 
 class TestCoverKeyCasing:
