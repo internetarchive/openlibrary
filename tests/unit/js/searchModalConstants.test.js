@@ -218,7 +218,7 @@ describe('readableLanguageMismatch', () => {
 describe('recent searches (localStorage)', () => {
     beforeEach(() => {
         localStorage.clear();
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     describe('readRecentSearches', () => {
@@ -248,7 +248,7 @@ describe('recent searches (localStorage)', () => {
         });
 
         test('returns [] when localStorage.getItem throws (private browsing)', () => {
-            jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+            vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
             expect(readRecentSearches()).toEqual([]);
         });
     });
@@ -276,7 +276,7 @@ describe('recent searches (localStorage)', () => {
         });
 
         test('silently ignores a setItem failure (quota / private browsing)', () => {
-            jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+            vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
             expect(() => saveRecentSearch('whatever')).not.toThrow();
         });
     });
@@ -300,7 +300,7 @@ describe('recent searches (localStorage)', () => {
 describe('readStoredLanguages (sessionStorage)', () => {
     beforeEach(() => {
         sessionStorage.clear();
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     test('returns [] when nothing is stored', () => {
@@ -328,7 +328,7 @@ describe('readStoredLanguages (sessionStorage)', () => {
     });
 
     test('returns [] when sessionStorage.getItem throws (private browsing)', () => {
-        jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
         expect(readStoredLanguages()).toEqual([]);
     });
 });

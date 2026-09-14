@@ -29,14 +29,14 @@ const pr = {
 
 describe('Testing Environment utils', () => {
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
         delete global.fetch;
     });
 
     test('fetches JSON with same-origin credentials', async() => {
         const payload = { prs: [pr] };
-        const response = { ok: true, json: jest.fn().mockResolvedValue(payload) };
-        global.fetch = jest.fn().mockResolvedValue(response);
+        const response = { ok: true, json: vi.fn().mockResolvedValue(payload) };
+        global.fetch = vi.fn().mockResolvedValue(response);
 
         await expect(getTestingStatus()).resolves.toBe(payload);
         expect(global.fetch).toHaveBeenCalledWith('/status/testing.json', {
@@ -47,7 +47,7 @@ describe('Testing Environment utils', () => {
 
     test('posts actions form-encoded, repeating array fields', async() => {
         const body = { ok: true };
-        global.fetch = jest.fn().mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue(body) });
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
 
         await expect(postAction('/status/remove', { prs: [13269, 13270] })).resolves.toBe(body);
 
@@ -64,16 +64,16 @@ describe('Testing Environment utils', () => {
     test('resolves the JSON body of successful posts', async() => {
         // Business failures still resolve: {"ok": false, "error": "<code>"} is
         // a completed request, and the component turns the code into a toast.
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: jest.fn().mockResolvedValue({ ok: false, error: 'deploy_failed' })
+            json: vi.fn().mockResolvedValue({ ok: false, error: 'deploy_failed' })
         });
 
         await expect(postAction('/status/deploy', {})).resolves.toEqual({ ok: false, error: 'deploy_failed' });
     });
 
     test('rejects failed fetches and posts', async() => {
-        global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 });
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
 
         await expect(getTestingStatus()).rejects.toThrow('500');
         await expect(postAction('/status/remove', {})).rejects.toThrow('failed');
