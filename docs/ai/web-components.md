@@ -36,8 +36,8 @@ Not every interactive element needs a web component.
 Build and watch with:
 
 ```bash
-npm run watch:lit-components   # Dev mode
-make lit-components            # One-off build
+npm run watch:components    # Dev mode
+make components             # One-off build
 ```
 
 ## Naming
@@ -99,7 +99,7 @@ The API reference tables on `/developers/design` are **generated, not hand-writt
 
 To make a component's API appear in the tables:
 
-- **Properties** — declare each public property in `static properties` and document it with `@prop {Type} name - description`. The *Attribute* column comes from the property's `attribute` mapping: use `{ attribute: 'kebab-name' }` for multi-word names; single-word props map 1:1.
+- **Properties** — declare each public property in `static properties` and document it with `@prop {Type} name - description`. The *Attribute* column comes from the property's `attribute` mapping: use `{ attribute: 'kebab-name' }` for multi-word names; single-word props map 1:1. **A prop with a closed set of string values is typed as a union, not `{String}`** — see below.
 - **Events** — `@fires event-name - description`. Describe the `detail` payload in the description (e.g. `detail: { selected: Boolean }`).
 - **Slots** — `@slot - description` for the default slot; `@slot name - description` for named slots.
 - **CSS custom properties** — `@cssprop [--name=default] - description`. The bracketed default fills the *Default* column.
@@ -107,6 +107,28 @@ To make a component's API appear in the tables:
 - **Tag name** — read from `customElements.define('ol-name', ...)`. An explicit `@element ol-name` tag is optional, for clarity only.
 
 Intentionally **excluded** from the tables: internal reactive state (Lit `state: true`, conventionally `_`-prefixed) and any non-public member — keep those out of `@prop`.
+
+### Type the enum, don't describe it
+
+The *Type* column is `type.text` copied verbatim out of the JSDoc, so `@prop {String} variant` renders the useless word `String` and the real answer ends up buried in prose that nothing checks. **Write the allowed values as a union type.** Editors then autocomplete them, `tsc --checkJs` catches typos, and the design page's table lists them without anyone maintaining a second copy.
+
+```js
+// Good — the values ARE the type
+ * @prop {"small" | "medium"} size - Default: "medium"
+ * @prop {"neutral" | "success" | "warning" | "danger"} variant - Default: "neutral"
+
+// Bad — the type says nothing and the values drift out of sync with the code
+ * @prop {String} size - Chip size: "small" or "medium" (default)
+```
+
+Where the line falls:
+
+- **Closed set of string literals** → union (`variant`, `size`, `mode`, `placement`, `appearance`, `type`). One legal value is still a union: `@prop {"floating"} elevation`, `@prop {"button"} variant` — omitting the attribute is the other state.
+- **Open-ended string** → `{String}` (`label`, `href`, `name`, every `label*` i18n override, a CSS length like `maxHeight`).
+- **Composed grammar rather than a fixed list** → `{String}`, with the grammar spelled out in the description. `ol-popover` / `ol-tooltip` `placement` is `"{side}"` or `"{side}-{align}"`; enumerating all 16 combinations would be noise in the table. Prefer the union whenever the list is short enough to read at a glance (roughly six or fewer).
+- **State the default in the description** (`Default: "medium"`), never in the type — the manifest reads the *Default* column from the field's initializer, and repeating it in the type just makes the type wrong.
+- **Don't restate the values in the description** once they're in the type. That duplication is exactly what drifts.
+- **Quote style follows the file.** Both `{"start" | "end"}` and `{'start' | 'end'}` render fine; match whichever the component's own JSDoc already uses rather than churning it.
 
 Example (from `OLChip.js`):
 
@@ -132,7 +154,7 @@ npm run build-assets:lit-manifest   # one-off — runs `npx cem analyze`
 npm run watch:lit-manifest          # regenerate on change during dev
 ```
 
-`make lit-components` also regenerates the manifest as part of the build. Config lives in `custom-elements-manifest.config.mjs`.
+`make components` also regenerates the manifest as part of the build. Config lives in `custom-elements-manifest.config.mjs`.
 
 ## HTML and Semantics
 
@@ -233,7 +255,7 @@ A shadow-DOM component that is server-rendered can still look right before upgra
 - Light-DOM components: tag-scoped rules in `static/css/components/<tag>.css`, registered in `ol-components.css`.
 - Use OL design tokens where possible. Token files live in `static/css/tokens/`.
 - Avoid outer margins on reusable components — spacing between elements is the parent's responsibility.
-- **Buttons inside a shadow root: compose `<ol-button>`, don't hand-copy its CSS.** `ol-button` renders in shadow DOM, so it works inside any other component's template (`ol-dialog` and `ol-toast` use it for their close controls). Add `import './OLButton.js';` at the top of the component so the element is registered whenever the component is — this is safe *within the Lit bundle* (ES modules evaluate once; the "never side-effect import from page JS" rule in [Registration](#registration) is about a second webpack bundle). Use `variant` / `size` / `shape` and the `icon-start` / `icon-end` slots for a leading or trailing SVG; only the glyph size (`.close-button svg { width … }`) belongs in the host component's styles. If the control genuinely isn't a button shape (pagination items, carousel arrows), keep a raw `<button>` and take the focus-ring / press-feedback rules from `ol-button` as the reference.
+- **Buttons inside a shadow root: compose `<ol-button>`, don't hand-copy its CSS.** `ol-button` renders in shadow DOM, so it works inside any other component's template (`ol-dialog` and `ol-toast` use it for their close controls). Add `import './OLButton.js';` at the top of the component so the element is registered whenever the component is — this is safe *within the Lit bundle* (ES modules evaluate once; the "never side-effect import from page JS" rule in [Registration](#registration) is about a second copy of the page bundle). Use `variant` / `size` / `shape` and the `icon-start` / `icon-end` slots for a leading or trailing SVG; only the glyph size (`.close-button svg { width … }`) belongs in the host component's styles. If the control genuinely isn't a button shape (pagination items, carousel arrows), keep a raw `<button>` and take the focus-ring / press-feedback rules from `ol-button` as the reference.
 
 ## Overlays and the top layer
 
@@ -330,7 +352,7 @@ customElements.define('ol-my-widget', OlMyWidget);
 
 **`ol-components.js` is the single registration site for every `<ol-*>` custom element.** It is built from `openlibrary/components/lit/index.js` (which re-exports every component, running each `define()` as a side effect) and loaded site-wide from `openlibrary/templates/site/footer.html`.
 
-If you need to drive a Lit component from page JS that webpack bundles (e.g., the search-modal entrypoint), import the component's exported class only if you need the class identifier — and never as a bare side-effect import. Re-running `customElements.define()` from a second bundle throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause. The component will already be registered by `ol-components.js` before any page-JS handler (jQuery `DOMContentLoaded`) runs.
+If you need to drive a Lit component from the page-JS bundle (e.g., the search-modal entrypoint), import the component's exported class only if you need the class identifier — and never as a bare side-effect import. Re-running `customElements.define()` from a second bundle throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause. The component will already be registered by `ol-components.js` before any page-JS handler (jQuery `DOMContentLoaded`) runs.
 
 ## Focus and Shadow DOM
 
@@ -421,7 +443,7 @@ See `OlSelectPopover._onItemToggle` for the reference implementation.
 ### Testing focus
 
 - jsdom **does** support `attachShadow`, slotting, and shadow `activeElement` traversal, so the walker and utilities are unit-tested faithfully (`tests/unit/js/focusUtils.test.js`).
-- Real Lit components aren't instantiated in jest (tests use a `MockBase`), and jsdom has no `delegatesFocus`/`showModal`/layout. Verify full tab cycles deterministically: invoke the real handler (`{key:'Tab',shiftKey,preventDefault}`) and assert `getDeepActiveElement()`. **Always test Shift+Tab too** — reverse-only traps are invisible forward.
+- Real Lit components aren't instantiated in the jsdom runner (tests use a `MockBase`), and jsdom has no `delegatesFocus`/`showModal`/layout. Verify full tab cycles deterministically: invoke the real handler (`{key:'Tab',shiftKey,preventDefault}`) and assert `getDeepActiveElement()`. **Always test Shift+Tab too** — reverse-only traps are invisible forward. The full trap in a real browser is covered by browser mode — see [Testing](#testing) (`OlDrawer.browser.test.js`).
 
 ## Form participation (FormAssociatedMixin)
 
@@ -534,12 +556,21 @@ _onPopoverOpen() {
 
 (Inputs in this component should also use `font-size: 16px` to prevent iOS Safari's auto-zoom on focus — see [design.md](design.md#mobile).)
 
+## Testing
+
+Two runners, split by filename so nothing runs twice:
+
+- **jsdom** — `tests/unit/js/*.test.js`, run by `npm run test:js`. The default, and right for logic, ARIA wiring, events, and translated labels: anything that doesn't depend on geometry.
+- **Browser mode** — `tests/browser/*.browser.test.js`, run by `npm run test:js:browser` (also in CI). Real Chromium: real layout, `ResizeObserver`/`IntersectionObserver`, the `<dialog>`/Popover top layer, and trusted pointer and keyboard input. Use it when the behavior under test *is* a browser primitive jsdom can only stub — scroll and snap, focus + scroll-into-view, top-layer stacking, hit-testing, lazy loading on intersection.
+
+A harness that spends more lines faking the browser than asserting the component (the pre-browser-mode `OlCarousel.test.js` is the cautionary example) is the signal to write the test in browser mode instead. Browser suites mount real components through `vitest-browser-lit` / `vitest-browser-vue`, whose locators and `expect.element` assertions retry — so smooth scrolling, settling and animation need no sleeps. Stub `window.fetch` for the network and nothing else. See `OlDrawer.browser.test.js`, `OlCarousel.browser.test.js`, and `LibraryExplorer.browser.test.js` for the patterns.
+
 ## New Component Checklist
 
 1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).
 2. Register the component by adding an export to `openlibrary/components/lit/index.js`.
-3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables.
-4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) so the API table renders locally; the JSON is gitignored and rebuilt by `make lit-components` in CI/deploy.
+3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables. Type any closed set of values as a union, not `{String}` — see [Type the enum, don't describe it](#type-the-enum-dont-describe-it).
+4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) so the API table renders locally; the JSON is gitignored and rebuilt by `make components` in CI/deploy.
 5. Add a demo partial at `openlibrary/templates/design/components/<id>.html.jinja` defining a `{% macro demos() %}` of `ex.example(...)` calls, and register a `Component(...)` row in `COMPONENTS` in `openlibrary/plugins/openlibrary/design.py`. The row drives the sidebar, section order, and the *Avoid* line; the API table renders from the manifest. Nothing on the page is hand-listed — `openlibrary/templates/design.html` is only a shim into `design/layout.html.jinja`, so there is no section markup to add there.
 6. If it renders an anchored overlay panel, promote it to the top layer — see [Overlays and the top layer](#overlays-and-the-top-layer).
-7. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080/developers/design.
+7. Build with `npm run watch:components` and verify the component renders at http://localhost:8080/developers/design.

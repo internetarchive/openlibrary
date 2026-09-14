@@ -9,9 +9,9 @@ import './OlIcon.js';
  * click events, and optional link behavior via href.
  *
  * @prop {Boolean} selected - Whether the chip is in a selected state
- * @prop {String} size - Chip size: "small" or "medium" (default)
- * @prop {String} variant - Domain category that tints the chip:
- *   "language" | "subject" | "genre" | "author" | "place" | "neutral".
+ * @prop {"small" | "medium"} size - Default: "medium"
+ * @prop {"language" | "subject" | "genre" | "author" | "place" | "neutral"} variant -
+ *   Domain category that tints the chip.
  *   Omit for the default (white / solid-blue-when-selected) chip. The chip
  *   maps the variant to a soft-tint palette internally (see colors.css); a
  *   variant chip keeps its tint when `selected` and just gains a close icon.
@@ -126,7 +126,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         }
 
         .chip:active {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         .chip:focus-visible {

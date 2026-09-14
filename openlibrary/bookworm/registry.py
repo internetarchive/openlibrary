@@ -43,6 +43,19 @@ CursorStyle = Literal["client", "modified_since"]
 CURSOR_CLIENT: CursorStyle = "client"
 CURSOR_MODIFIED_SINCE: CursorStyle = "modified_since"
 
+STATUS_PENDING = "pending"
+STATUS_ACTIVE = "active"
+"""Whether a registered feed is harvested by a scheduled run.
+
+A feed registers as ``pending`` so it can be inspected and dry-run before it is
+allowed to write. ``harvest_all`` skips anything that is not active; harvesting
+one feed explicitly by ``--provider`` still works, which is what makes the
+validate-then-activate rollout possible.
+
+Rows written before this existed carry no status and are treated as active, so
+adding this cannot silently stop an already-running feed.
+"""
+
 
 def _utcnow() -> datetime.datetime:
     return datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
@@ -125,6 +138,20 @@ class FeedRegistry(web.storage):
         return FeedRegistry.find(provider_name, url)
 
     @staticmethod
+    def set_status(id: int, status: str) -> int:
+        """Flip a feed between ``pending`` and ``active``.
+
+        Merges into the existing ``data`` blob: status shares it with the
+        connector config, so replacing the blob would drop ``id_strategy`` and
+        ``cursor_style``.
+        """
+        feed = FeedRegistry.get_by_id(id)
+        if feed is None:
+            raise ValueError(f"no feed with id {id}")
+        blob = {**(feed.data or {}), "status": status}
+        return db.update("feed_registry", where="id=$id", vars={"id": id}, data=json.dumps(blob), updated=_utcnow())
+
+    @staticmethod
     def advance(id: int, last_updated: datetime.datetime, data: dict | None = None) -> int:
         """Move the processing cursor (``last_updated``) forward."""
         fields: dict[str, Any] = {"last_updated": last_updated, "updated": _utcnow()}
@@ -139,8 +166,22 @@ class FeedRegistry(web.storage):
         return (self.data or {}).get("id_strategy", "isbn")
 
     @property
+    def local_id_is_ol_edition(self) -> bool:
+        """Whether this feed's local id is itself an OL edition number."""
+        return bool((self.data or {}).get("local_id_is_ol_edition", False))
+
+    @property
     def cursor_style(self) -> CursorStyle:
         return (self.data or {}).get("cursor_style", CURSOR_CLIENT)
+
+    @property
+    def status(self) -> str:
+        return (self.data or {}).get("status", STATUS_ACTIVE)
+
+    @property
+    def is_active(self) -> bool:
+        """Whether a scheduled harvest should pick this feed up."""
+        return self.status == STATUS_ACTIVE
 
     @property
     def supports_modified_since(self) -> bool:
@@ -161,4 +202,8 @@ class FeedRegistry(web.storage):
 
     def to_feed(self) -> Feed:
         """The :class:`~openlibrary.bookworm.opds.Feed` parser config for this row."""
-        return Feed(provider_name=self.provider_name, id_strategy=self.id_strategy)
+        return Feed(
+            provider_name=self.provider_name,
+            id_strategy=self.id_strategy,
+            local_id_is_ol_edition=self.local_id_is_ol_edition,
+        )

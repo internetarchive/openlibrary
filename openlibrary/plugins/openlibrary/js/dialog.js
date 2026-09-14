@@ -1,4 +1,5 @@
-import 'jquery-ui/ui/widgets/dialog';
+import $ from 'jquery';
+import './jquery-ui-dialog';
 // For dialog boxes (e.g. add to list)
 import 'jquery-colorbox';
 import { trackEvent } from './ol.analytics.js';

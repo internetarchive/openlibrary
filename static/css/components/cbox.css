@@ -1,4 +1,4 @@
-/* For changes in this file to take effect you must run make js instead of the usual make css because this is imported by the index.js */
+/* For changes in this file to take effect you must run make js instead of the usual make css because this is imported by main.js (via js-all.css) */
 /* stylelint-disable selector-max-specificity */
 
 /* COLORBOX POP-UP */

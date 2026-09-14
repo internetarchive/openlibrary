@@ -35,9 +35,10 @@ class bulk_tag_works(delegate.page):
         # Number of tags removed per work:
         docs_removing = 0
 
-        for work in works:
-            w = web.ctx.site.get(f"/works/{work}")
+        keys = [f"/works/{work}" for work in works]
+        ws = web.ctx.site.get_many(keys)
 
+        for w in ws:
             current_subjects = {
                 # XXX : Should an empty list be the default for these?
                 "subjects": uniq(w.get("subjects", "")),

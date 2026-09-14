@@ -38,12 +38,23 @@ _DIAGRAM_CHARS = set("┌┐└┘├┤┬┴┼─│")
 # An indented run is an example or a table, not prose.
 _PRE_INDENT = 2
 _COLOR_PREFIXES = ("#", "hsl", "rgb", "color-mix", "oklch", "oklab", "lab", "lch")
+# A typography token is named for the property it feeds, so Foundations can preview it with that property.
+_TEXT_PROPERTIES = ("font-family", "font-size", "font-weight", "line-height", "letter-spacing", "text-transform")
 _TITLE_SPLIT_LENGTH = 60
 _MIN_RAMP_STEPS = 3
 # Marks a tier as belonging to one component, not the shared vocabulary.
 _INTERNAL_MARKER = "@internal"
 # Reading order for the Foundations page. Anything not listed sorts to the end.
-_DISPLAY_ORDER = ("colors", "font-families", "line-heights", "spacing", "border-radius", "borders", "control-heights", "z-index", "breakpoints")
+_DISPLAY_ORDER = (
+    "colors",
+    "typography",
+    "spacing",
+    "border-radius",
+    "borders",
+    "control-heights",
+    "z-index",
+    "breakpoints",
+)
 
 
 @dataclass(frozen=True)
@@ -84,6 +95,11 @@ class Token:
     @property
     def is_color(self) -> bool:
         return self.display_value.lower().startswith(_COLOR_PREFIXES)
+
+    @property
+    def css_property(self) -> str:
+        """The property a typography token feeds, read off its name; empty for other categories."""
+        return next((prop for prop in _TEXT_PROPERTIES if self.name.startswith(f"--{prop}-")), "")
 
 
 @dataclass

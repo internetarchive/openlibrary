@@ -5211,10 +5211,10 @@ msgstr "Логотип Open Library"
 msgid "Open Library is an initiative of the <a href=\"//archive.org/\">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href=\"//archive.org/projects/\">projects</a> include the <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org\">archive-it.org</a>"
 msgstr "Open Library- это инициатива <a href=\"//archive.org/\">Internet Archive</a>, некоммерческой организации 501(c)(3), создающей электронную библиотеку интернет-сайтов и других культурных артефактов в цифровой форме. Включая другие <a href=\"//archive.org/projects/\">проекты</a> <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/web/\">archive.org</a> и <a href=\"//archive-it.org\">archive-it.org</a>"
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 #, python-format
-msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
-msgstr "версия <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
+msgstr "версия <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
 
 #: lib/nav_head.html
 #, fuzzy

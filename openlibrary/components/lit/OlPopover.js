@@ -51,7 +51,9 @@ function _removeFromOverlayStack(el) {
  * Non-modal: while open it keeps focus within the panel, but Tab/Shift+Tab off
  * either edge closes it and returns focus to the trigger (a keyboard user must
  * be able to Tab out — the page behind stays interactive, so we don't set
- * `aria-modal`). Restores focus to the previously-focused element on close. The
+ * `aria-modal`). The mobile tray is the exception: it has a scrim and locks
+ * scroll, so it is `aria-modal` and a screen reader stays inside it too.
+ * Restores focus to the previously-focused element on close. The
  * host's `aria-label` is forwarded to the inner dialog as its accessible name.
  *
  * @element ol-popover
@@ -59,12 +61,20 @@ function _removeFromOverlayStack(el) {
  * @prop {Boolean} open - Whether the popover is currently open
  * @prop {String} placement - Preferred placement relative to the trigger.
  *     Format: "{side}-{align}" where side is "top" or "bottom" and align is
- *     "start", "center", or "end". Default: "bottom-center"
+ *     "start", "center", or "end". Default: "bottom-start" — a panel is
+ *     usually wider than the control that opens it, and aligning their leading
+ *     edges keeps it under the trigger instead of straddling it.
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
  *
  * @attr aria-label - Forwarded to the inner dialog as its accessible name.
+ *
+ * @cssprop [--ol-popover-content-max-width] - Width cap for slotted content; the
+ *     panel is `width: auto` and never shrinks, so long content clamps itself.
+ *     Set it on the wrapping element; the tray clears it for its full-bleed sheet.
+ * @cssprop [--ol-popover-content-max-height] - Height cap for slotted content, so
+ *     an inner scroll region resolves. As above; the tray swaps in its own cap.
  *
  * @fires ol-popover-open - Fired when the popover opens.
  *     detail: { placement: String }
@@ -104,6 +114,12 @@ export class OlPopover extends LitElement {
             display: inline-flex;
             align-items: center;
             position: relative;
+
+            /* Shared by the tray panel, its handle and the content cap, so the
+               three can't drift. The handle sits above the content, so the
+               content's share is the cap minus the handle. */
+            --_tray-max-height: 85dvh;
+            --_tray-handle-height: 16px;
         }
 
 
@@ -122,14 +138,16 @@ export class OlPopover extends LitElement {
         /* Neutralize the UA's [popover] defaults (inset: 0, margin: auto,
            border, padding, overflow, system colors) so the top-layer panel is
            laid out purely by the inline top/left we compute. Must precede
-           .panel.tray, which restates its own inset and margin. */
+           .panel.tray, which restates its own inset and margin. The border is
+           restated rather than zeroed: this rule outranks .panel, and the
+           hairline is what separates the panel from the page. */
         .panel[popover] {
             inset: auto;
             width: auto;
             height: auto;
             margin: 0;
             padding: 0;
-            border: none;
+            border: var(--border-overlay);
             overflow: visible;
             color: inherit;
         }
@@ -148,8 +166,8 @@ export class OlPopover extends LitElement {
 
         .panel[data-state="entering"] {
             transition:
-                opacity 200ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                transform 200ms cubic-bezier(0.165, 0.84, 0.44, 1);
+                opacity var(--duration-base) var(--ease-enter),
+                transform var(--duration-base) var(--ease-enter);
         }
 
         .panel[data-state="exiting"] {
@@ -157,8 +175,8 @@ export class OlPopover extends LitElement {
             transform: scale(0.95);
             pointer-events: none;
             transition:
-                opacity 150ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                transform 150ms cubic-bezier(0.165, 0.84, 0.44, 1);
+                opacity var(--duration-fast) var(--ease-exit),
+                transform var(--duration-fast) var(--ease-exit);
             will-change: transform, opacity;
         }
 
@@ -193,13 +211,13 @@ export class OlPopover extends LitElement {
         }
 
         .backdrop[data-state="entering"] {
-            transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity var(--duration-slow) var(--ease-enter);
         }
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity var(--duration-base) var(--ease-enter);
         }
 
         /* ── Mobile tray panel ── */
@@ -211,14 +229,20 @@ export class OlPopover extends LitElement {
             right: 0;
             width: auto;
             max-height: 85vh;
-            max-height: 85dvh;
+            max-height: var(--_tray-max-height);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             margin: 0 12px calc(12px + env(safe-area-inset-bottom));
-            border-radius: 20px;
+            border-radius: var(--border-radius-overlay);
             opacity: 1;
             transform: translateY(100%);
             touch-action: manipulation;
+
+            /* Full-bleed, so the anchored panel's width cap would leave dead
+               space; drop it and hand the content the tray's height cap so its
+               scroll region resolves. Keyed off .tray to track the JS breakpoint. */
+            --ol-popover-content-max-width: none;
+            --ol-popover-content-max-height: calc(var(--_tray-max-height) - var(--_tray-handle-height));
         }
 
         .panel.tray[data-state="preparing"],
@@ -234,14 +258,14 @@ export class OlPopover extends LitElement {
         }
 
         .panel.tray[data-state="entering"] {
-            transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform var(--duration-slow) var(--ease-enter);
         }
 
         .panel.tray[data-state="exiting"] {
             opacity: 1;
             transform: translateY(100%);
             pointer-events: none;
-            transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform var(--duration-base) var(--ease-enter);
             will-change: transform;
         }
 
@@ -250,6 +274,10 @@ export class OlPopover extends LitElement {
         .tray-handle {
             display: flex;
             justify-content: center;
+            box-sizing: border-box;
+            /* Height declared rather than left to the padding, so it is the
+               number .panel.tray subtracts from the content cap. */
+            height: var(--_tray-handle-height);
             padding: 10px 0 2px;
             cursor: grab;
             touch-action: none;
@@ -263,7 +291,7 @@ export class OlPopover extends LitElement {
             width: 36px;
             height: 4px;
             border-radius: 2px;
-            background: hsla(0, 0%, 0%, 0.2);
+            background: var(--color-drag-handle);
         }
 
         /* ── Focus sentinel (visually hidden) ── */
@@ -295,7 +323,7 @@ export class OlPopover extends LitElement {
     constructor() {
         super();
         this.open = false;
-        this.placement = 'bottom-center';
+        this.placement = 'bottom-start';
         this.offset = 4;
         this.autoClose = true;
         this._position = { top: 0, left: 0 };
@@ -356,6 +384,7 @@ export class OlPopover extends LitElement {
                     data-state="${this._animState}"
                     role="dialog"
                     aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
+                    aria-modal="${ifDefined(this._mobile ? 'true' : undefined)}"
                     tabindex="-1"
                     style="${this._mobile ? '' : `
                         top: ${this._position.top}px;
@@ -560,16 +589,17 @@ export class OlPopover extends LitElement {
 
     // ── Trigger ARIA ────────────────────────────────────────────
 
+    /**
+     * No aria-controls: the trigger is slotted from outside this shadow root
+     * and the panel's id lives inside it, so the reference could never resolve
+     * — a dangling IDREF is worse than none. haspopup + expanded carry the
+     * relationship.
+     */
     _syncTriggerAria() {
         const trigger = this._triggerEl;
         if (!trigger) return;
         trigger.setAttribute('aria-haspopup', 'dialog');
         trigger.setAttribute('aria-expanded', String(this.open));
-        if (this.open) {
-            trigger.setAttribute('aria-controls', this._panelId);
-        } else {
-            trigger.removeAttribute('aria-controls');
-        }
     }
 
     // ── Focus containment (non-modal: Tab out closes) ───────────
@@ -693,9 +723,9 @@ export class OlPopover extends LitElement {
     }
 
     _parsePlacement(placement) {
-        const parts = (placement || 'bottom-center').split('-');
+        const parts = (placement || 'bottom-start').split('-');
         const side = parts[0] === 'top' ? 'top' : 'bottom';
-        const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'center';
+        const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'start';
         return [side, align];
     }
 
@@ -792,6 +822,7 @@ export class OlPopover extends LitElement {
         this._touchStartY = touch.clientY;
         this._touchStartTime = Date.now();
         this._isDragging = false;
+        this._dragBlocked = false;
         this._lastDragY = 0;
         this._isHandleDrag = !!(handle && path.includes(handle));
         // Read scroll position from the actual scroll container under the touch,
@@ -818,12 +849,21 @@ export class OlPopover extends LitElement {
     }
 
     _onTouchMove(e) {
+        if (this._dragBlocked) return;
+
         const touch = e.touches[0];
         const deltaY = touch.clientY - this._touchStartY;
 
         if (!this._isDragging) {
             // Start drag if touching handle, or at scroll-top and swiping down
             if (this._isHandleDrag || (this._touchScrollTop <= 0 && deltaY > 5)) {
+                // Scrolling already underway — the browser won't let us cancel
+                // the gesture, and preventDefault() would only log a console
+                // intervention. Leave the rest of the touch to the scroller.
+                if (!e.cancelable) {
+                    this._dragBlocked = true;
+                    return;
+                }
                 this._isDragging = true;
             } else {
                 return; // Let normal scroll happen
@@ -832,7 +872,7 @@ export class OlPopover extends LitElement {
 
         const dragY = Math.max(0, deltaY);
         this._lastDragY = dragY;
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
 
         const panel = this.shadowRoot.querySelector('.panel');
         if (panel) {
@@ -856,6 +896,7 @@ export class OlPopover extends LitElement {
         const velocity = dragY / Math.max(elapsed, 1);
 
         this._isDragging = false;
+        this._dragBlocked = false;
         this._lastDragY = 0;
 
         const panel = this.shadowRoot.querySelector('.panel');
@@ -867,11 +908,11 @@ export class OlPopover extends LitElement {
         if (dragY > DISMISS_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
             // Swipe dismiss — animate to off-screen, then close
             if (panel) {
-                panel.style.transition = 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                panel.style.transition = 'transform var(--duration-base) var(--ease-enter)';
                 panel.style.transform = 'translateY(100%)';
             }
             if (backdrop) {
-                backdrop.style.transition = 'opacity 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                backdrop.style.transition = 'opacity var(--duration-base) var(--ease-enter)';
                 backdrop.style.opacity = '0';
             }
 
@@ -898,11 +939,11 @@ export class OlPopover extends LitElement {
         } else {
             // Snap back to open position
             if (panel) {
-                panel.style.transition = 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                panel.style.transition = 'transform var(--duration-base) var(--ease-enter)';
                 panel.style.transform = '';
             }
             if (backdrop) {
-                backdrop.style.transition = 'opacity 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                backdrop.style.transition = 'opacity var(--duration-base) var(--ease-enter)';
                 backdrop.style.opacity = '';
             }
 

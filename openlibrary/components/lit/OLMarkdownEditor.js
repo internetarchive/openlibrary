@@ -268,7 +268,7 @@ export class OLMarkdownEditor extends LitElement {
       .toolbar-btn:hover:not(:disabled) { background: var(--color-hover-overlay); }
     }
 
-    .toolbar-btn:active:not(:disabled) { transform: scale(0.95); }
+    .toolbar-btn:active:not(:disabled) { transform: scale(var(--press-scale-compact)); }
 
     .toolbar-btn.is-active {
       background: var(--light-grey);
@@ -320,6 +320,12 @@ export class OLMarkdownEditor extends LitElement {
     .link-input:focus {
       border: var(--border-input-focused);
       box-shadow: var(--box-shadow-focus);
+    }
+
+    /* iOS zooms in on focus when the input font is < 16px; bump it up on
+       mobile to suppress that. */
+    @media (max-width: 767px) {
+      .link-input { font-size: var(--font-size-body-large); }
     }
 
     .error-state {

@@ -155,7 +155,7 @@ ol-banner > .ol-banner__close:focus-visible {
 }
 
 ol-banner > .ol-banner__close:active {
-  transform: scale(0.92);
+  transform: scale(var(--press-scale-compact));
 }
 
 /* Warning's icon is a self-contained, filled caution-triangle (see OlBanner.js)

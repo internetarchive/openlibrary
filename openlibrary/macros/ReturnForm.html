@@ -19,5 +19,8 @@ $ i18n_strings = {
   />
   <input type="hidden" name="action" value="return" />
   <input type="hidden" name="redirect" value="$request.fullpath" />
-  $:macros.FormatExpiry(expiry)
+  $ expiry_dt = datetime_from_isoformat(expiry) if expiry else None
+  $ expiry_utc = datetimestr_utc(expiry_dt) if expiry_dt else ""
+  $ expiry_display = datestr(expiry_dt) if expiry_dt else ""
+  $:render_jinja_template("FormatExpiry.html.jinja", expiry_utc=expiry_utc, expiry_display=expiry_display)
 </form>

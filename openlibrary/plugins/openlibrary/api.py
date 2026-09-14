@@ -649,6 +649,7 @@ class opds_home(delegate.page):
 DEFAULT_UNLINK_COMMENT = "Unlink OCAID: Item no longer available"
 
 
+@deprecated("migrated to fastapi")
 class unlink_ia_ol(delegate.page):
     path = "/api/unlink"
     encoding = "json"
@@ -681,7 +682,7 @@ class unlink_ia_ol(delegate.page):
         if not edition_keys:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
-        editions = [web.ctx.site.get(key) for key in edition_keys]
+        editions = web.ctx.site.get_many(edition_keys)
         logger.info(f"Disassociating {ocaid} from the following editions: {', '.join(edition_keys)}")
 
         # Update records

@@ -7,8 +7,9 @@ import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
  *
  * @element ol-pagination
  *
- * @prop {String} mode - Display mode: "full" (default) shows page numbers with arrows,
- *                       "arrows" shows only previous/next arrows (useful when total is unknown)
+ * @prop {"full" | "arrows"} mode - Display mode: "full" (default) shows page numbers
+ *                       with arrows, "arrows" shows only previous/next arrows (useful
+ *                       when total is unknown)
  * @prop {"small" | "medium"} size - Default: "medium". Heights track the shared
  *                                  control-height tokens, so a same-size button lines up.
  * @prop {Number} totalPages - Total number of pages (required for "full" mode)
@@ -132,7 +133,7 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item:active:not([aria-disabled="true"]):not([aria-current="page"]) {
-            transform: scale(0.92);
+            transform: scale(var(--press-scale-compact));
         }
 
         .pagination-item:focus {
@@ -158,6 +159,11 @@ export class OlPagination extends LitElement {
         /* No text to inset — min-width centers the icon. */
         .pagination-arrow {
             padding: 0;
+        }
+
+        /* Previous points toward the start edge, which is the right under RTL. */
+        :host(:dir(rtl)) .pagination-arrow ol-icon {
+            transform: scaleX(-1);
         }
 
         /* Height-matched to the items; natural width, since it's not a target. */

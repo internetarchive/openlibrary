@@ -21,7 +21,7 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @property {String} name - Form field name. When set and the toggle is
  *   checked, it submits with the enclosing `<form>` (see FormAssociatedMixin).
  * @property {String} value - Value submitted when checked. Default "on".
- * @property {String} variant - Omit for the default (plain) toggle, or
+ * @property {"button"} variant - Omit for the default (plain) toggle, or
  *   "button" for a bordered, raised container styled like
  *   ol-button[variant="secondary"] (subtle drop shadow, inset specular edge on
  *   hover) that fills with a soft blue tint when checked.
@@ -69,6 +69,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             --toggle-knob-size: 16px;
             --toggle-knob-inset: 2px;
             --toggle-gap: 10px;
+
+            /* The knob rests at the inline start and travels toward the inline
+               end, so the sign flips under RTL. */
+            --_toggle-knob-travel: calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset));
 
             /* Color slots. Default = plain, unchecked toggle; overridden below
                by [checked] and by the [variant="button"] container states. */
@@ -132,13 +136,16 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             transition: transform 150ms ease;
         }
 
+        :host(:dir(rtl)) {
+            --_toggle-knob-travel: calc(-1 * (var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset)));
+        }
+
         :host([checked]) .toggle__knob {
-            transform: translateX(
-                calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset))
-            );
+            transform: translateX(var(--_toggle-knob-travel));
         }
 
         @media (prefers-reduced-motion: reduce) {
+            .toggle,
             .toggle__switch,
             .toggle__knob {
                 transition: none;
@@ -193,6 +200,15 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 var(--box-shadow-raised),
                 inset 0 1px 0 var(--_toggle-inset-highlight);
             box-shadow: var(--_toggle-raised-shadow);
+            /* Hover colors snap in; only the press-scale animates. */
+            transition: transform var(--duration-press);
+        }
+
+        /* Press feedback — the button variant is a self-contained control (its
+           own border, fill, and raised shadow), so it squeezes on press like
+           ol-button. Its text-control width puts it in the default tier. */
+        :host([variant="button"]) .toggle:active {
+            transform: scale(var(--press-scale));
         }
 
         /* The base .toggle:focus-visible ring is a single box-shadow, but the

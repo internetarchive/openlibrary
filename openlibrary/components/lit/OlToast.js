@@ -35,8 +35,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  *
  * @element ol-toast
  *
- * @prop {String}  type       - "info" (default) | "success" | "error".
- *                              Errors use role="alert" / assertive announcements.
+ * @prop {"info" | "success" | "error"} type - Default: "info". Errors use
+ *                              role="alert" / assertive announcements.
  * @prop {String}  message     - The (already translated) message text.
  * @prop {String}  description - Optional secondary line, rendered smaller and muted.
  * @prop {Boolean} persistent - Toast stays until explicitly closed (no timer).

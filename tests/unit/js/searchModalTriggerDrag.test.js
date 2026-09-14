@@ -3,22 +3,22 @@ import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-
 function dispatch(trigger, type, dataTransfer) {
     const event = new Event(type, { bubbles: true, cancelable: true });
     event.dataTransfer = dataTransfer;
-    const preventDefault = jest.spyOn(event, 'preventDefault');
+    const preventDefault = vi.spyOn(event, 'preventDefault');
     trigger.dispatchEvent(event);
     return preventDefault;
 }
 
 function setup() {
     const modal = new SearchModal();
-    modal._openModal = jest.fn();
-    modal._applyDroppedText = jest.fn();
+    modal._openModal = vi.fn();
+    modal._applyDroppedText = vi.fn();
     const trigger = document.createElement('button');
     modal.attachToTrigger(trigger);
     return { modal, trigger };
 }
 
 function textTransfer(text) {
-    return { types: ['text/plain'], dropEffect: '', getData: jest.fn().mockReturnValue(text) };
+    return { types: ['text/plain'], dropEffect: '', getData: vi.fn().mockReturnValue(text) };
 }
 
 describe('SearchModal trigger drag-and-drop', () => {
@@ -72,7 +72,7 @@ describe('SearchModal trigger drag-and-drop', () => {
         ['an ILE book selection', ['text/plain', 'application/x.ile+json']],
     ])('ignores a drag of %s', (_label, types) => {
         const { modal, trigger } = setup();
-        const dataTransfer = { types, dropEffect: '', getData: jest.fn().mockReturnValue('{"x":1}') };
+        const dataTransfer = { types, dropEffect: '', getData: vi.fn().mockReturnValue('{"x":1}') };
 
         const dragover = dispatch(trigger, 'dragover', dataTransfer);
         const drop = dispatch(trigger, 'drop', dataTransfer);

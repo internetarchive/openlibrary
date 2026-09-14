@@ -77,6 +77,24 @@ class Acquisition(web.storage, CommonExtras):
         return [Acquisition._from_row(row) for row in rows]
 
     @staticmethod
+    def find_many(provider_name: str, local_ids: list[str]) -> dict[str, Acquisition]:
+        """Acquisitions for a provider, keyed by ``local_id``.
+
+        The durable record of what was last stored for a feed's publication.
+        ``import_item.data`` is cleared once a row completes
+        (:meth:`ImportItem.set_status`), so this is the only thing left to
+        compare a re-offered record against -- which is how a harvest tells a
+        genuine price change from a provider re-publishing an unchanged record.
+        """
+        if not local_ids:
+            return {}
+        rows: ResultSet = db.query(
+            "SELECT * FROM acquisitions WHERE provider_name=$provider_name AND local_id IN $local_ids",
+            vars={"provider_name": provider_name, "local_ids": local_ids},
+        )
+        return {row.local_id: Acquisition._from_row(row) for row in rows}
+
+    @staticmethod
     def get_by_work(work_id: int) -> list[Acquisition]:
         rows: ResultSet = db.query(
             "SELECT * FROM acquisitions WHERE work_id=$work_id ORDER BY edition_id, provider_name",

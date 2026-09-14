@@ -22,18 +22,22 @@ import { glyphs } from './icons.generated.js';
  * @prop {'sm' | 'md' | 'lg'} size  - "sm" (16px) | "md" (20px, default) | "lg" (24px).
  * @prop {String} label - Accessible name; exposes the icon as role="img". Without
  *                        it the icon is aria-hidden.
+ * @prop {Boolean} filled - Paint the glyph's interior in currentColor, for
+ *                          on/off states like a saved bookmark or a rated star.
  *
  * @cssprop [--ol-icon-stroke-width] - Stroke weight, overriding the size default.
  *
  * @example
  * <ol-icon name="search"></ol-icon>
  * <ol-icon name="globe" size="lg" label="Language"></ol-icon>
+ * <ol-icon name="bookmark" filled></ol-icon>
  */
 export class OlIcon extends LitElement {
     static properties = {
         name: { type: String, reflect: true },
         size: { type: String, reflect: true },
         label: { type: String },
+        filled: { type: Boolean, reflect: true },
     };
 
     // The host box is sized here and again in ol-icon.css. The duplication is
@@ -78,6 +82,11 @@ export class OlIcon extends LitElement {
         :host([size='lg']) svg {
             stroke-width: var(--ol-icon-stroke-width, var(--icon-stroke-lg));
         }
+
+        /* The source's fill="none" is a presentation attribute, so CSS wins. */
+        :host([filled]) svg {
+            fill: currentColor;
+        }
     `;
 
     constructor() {
@@ -85,6 +94,7 @@ export class OlIcon extends LitElement {
         this.name = '';
         this.size = 'md';
         this.label = '';
+        this.filled = false;
     }
 
     // Decorative by default; named only when the caller supplies a label. On the

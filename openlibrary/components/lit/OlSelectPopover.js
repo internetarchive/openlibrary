@@ -3,6 +3,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import './OlPopover.js';
 import './OLButton.js';
 
@@ -110,6 +111,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         :host {
             display: inline-block;
             font-family: var(--font-family-body);
+
+            /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+            --ol-popover-content-max-width: 360px;
+            --ol-popover-content-max-height: min(70vh, 480px);
         }
 
         /* The default trigger is an <ol-button> injected as a light-DOM child
@@ -123,8 +130,8 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             flex-direction: column;
             min-width: 240px;
-            max-width: min(90vw, 360px);
-            max-height: min(70vh, 480px);
+            max-width: var(--ol-popover-content-max-width);
+            max-height: var(--ol-popover-content-max-height);
         }
 
         /* ── Filter input ────────────────────────────────────────── */
@@ -185,7 +192,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .group {
             list-style: none;
             margin: 0;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
         }
 
         /* Pinned above the suggestions scroll region, like the filter input.
@@ -218,7 +225,15 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             align-items: center;
             gap: var(--spacing-inline-md);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            box-sizing: border-box;
+            /* One height across every menu row. */
+            min-height: var(--menu-row-height);
+            /* The menu-row pill; see OlMenuPopover.js for the recipe. */
+            margin-inline: var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
+            border-radius: var(--border-radius-button);
+            line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
         }
@@ -234,23 +249,16 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             background: var(--color-hover-overlay);
         }
 
-        .item--selected .item-row {
-            background: var(--color-control-selected-bg);
-            color: var(--color-link);
-            font-weight: 600;
-        }
-
-        .item--selected .item-row:focus-within,
-        .item--selected .item-row:hover {
-            background: var(--color-control-selected-bg-hover);
-        }
+        /* No selected-row styling: the checkbox is the state, and the selected
+           group pins the chosen items to the top of the panel. A tint on top of
+           both only makes the row look hovered. */
 
         .item-checkbox {
             flex-shrink: 0;
             width: 16px;
             height: 16px;
             margin: 0;
-            accent-color: var(--primary-blue);
+            accent-color: var(--color-primary);
             cursor: pointer;
         }
 
@@ -359,7 +367,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this.items = [];
         this.selected = [];
         this.label = '';
-        this.searchThreshold = 8;
+        this.searchThreshold = FILTER_THRESHOLD;
         this.placeholder = 'Filter…';
         this.unselectedHeading = '';
         this.selectedHeading = 'SELECTED';
@@ -417,7 +425,6 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label="${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}"
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
@@ -618,7 +625,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _renderItem(item) {
         const isSelected = (this.selected || []).includes(item.value);
         return html`
-            <li class="item ${isSelected ? 'item--selected' : ''}">
+            <li class="item">
                 <label class="item-row">
                     <input
                         type="checkbox"

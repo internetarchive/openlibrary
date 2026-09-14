@@ -254,7 +254,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         }
 
         .segment:active:not(:disabled) {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         /* The selected segment's raised-white-pill look now lives on the

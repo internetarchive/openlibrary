@@ -24,6 +24,7 @@ from openlibrary.core.batch_imports import (
 )
 from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.layout import SiteLayoutTemplate
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
@@ -53,6 +54,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.openlibrary.nav import BROWSE_FEATURED_COUNT, browse_links
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10
 from openlibrary.utils.sentry import get_sentry
@@ -1058,6 +1060,28 @@ class memory(delegate.page):
         return delegate.RawText(str(h.heap()))
 
 
+def get_supported_languages() -> dict[str, dict[str, str]]:
+    return {
+        "ar": {"code": "ar", "localized": _("Arabic"), "native": "العربية"},
+        "cs": {"code": "cs", "localized": _("Czech"), "native": "Čeština"},
+        "de": {"code": "de", "localized": _("German"), "native": "Deutsch"},
+        "en": {"code": "en", "localized": _("English"), "native": "English"},
+        "es": {"code": "es", "localized": _("Spanish"), "native": "Español"},
+        "fr": {"code": "fr", "localized": _("French"), "native": "Français"},
+        "hi": {"code": "hi", "localized": _("Hindi"), "native": "हिंदी"},
+        "hr": {"code": "hr", "localized": _("Croatian"), "native": "Hrvatski"},
+        "it": {"code": "it", "localized": _("Italian"), "native": "Italiano"},
+        "ko": {"code": "ko", "localized": _("Korean"), "native": "한국어"},
+        "pt": {"code": "pt", "localized": _("Portuguese"), "native": "Português"},
+        "ro": {"code": "ro", "localized": _("Romanian"), "native": "Română"},
+        "sc": {"code": "sc", "localized": _("Sardinian"), "native": "Sardu"},
+        "te": {"code": "te", "localized": _("Telugu"), "native": "తెలుగు"},
+        "uk": {"code": "uk", "localized": _("Ukrainian"), "native": "Українська"},
+        "zh": {"code": "zh", "localized": _("Chinese"), "native": "中文"},
+        "tl": {"code": "tl", "localized": _("Filipino"), "native": "Filipino"},
+    }
+
+
 def is_bot():
     """Check if the current request is from a bot."""
     return req_context.get().is_bot
@@ -1081,27 +1105,6 @@ def setup_template_globals():
         get_cover_url,
     )
 
-    def get_supported_languages():
-        return {
-            "ar": {"code": "ar", "localized": _("Arabic"), "native": "العربية"},
-            "cs": {"code": "cs", "localized": _("Czech"), "native": "Čeština"},
-            "de": {"code": "de", "localized": _("German"), "native": "Deutsch"},
-            "en": {"code": "en", "localized": _("English"), "native": "English"},
-            "es": {"code": "es", "localized": _("Spanish"), "native": "Español"},
-            "fr": {"code": "fr", "localized": _("French"), "native": "Français"},
-            "hi": {"code": "hi", "localized": _("Hindi"), "native": "हिंदी"},
-            "hr": {"code": "hr", "localized": _("Croatian"), "native": "Hrvatski"},
-            "it": {"code": "it", "localized": _("Italian"), "native": "Italiano"},
-            "ko": {"code": "ko", "localized": _("Korean"), "native": "한국어"},
-            "pt": {"code": "pt", "localized": _("Portuguese"), "native": "Português"},
-            "ro": {"code": "ro", "localized": _("Romanian"), "native": "Română"},
-            "sc": {"code": "sc", "localized": _("Sardinian"), "native": "Sardu"},
-            "te": {"code": "te", "localized": _("Telugu"), "native": "తెలుగు"},
-            "uk": {"code": "uk", "localized": _("Ukrainian"), "native": "Українська"},
-            "zh": {"code": "zh", "localized": _("Chinese"), "native": "中文"},
-            "tl": {"code": "tl", "localized": _("Filipino"), "native": "Filipino"},
-        }
-
     web.template.Template.globals.update(
         {
             "cookies": web.cookies,
@@ -1123,6 +1126,8 @@ def setup_template_globals():
             "get_sentry": get_sentry,
             "get_ol_env": get_ol_env,
             "get_deployment_name": get_deployment_name,
+            "browse_links": browse_links,
+            "BROWSE_FEATURED_COUNT": BROWSE_FEATURED_COUNT,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
@@ -1160,6 +1165,10 @@ def setup():
     template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
     macro.load_macros("openlibrary/plugins/openlibrary", lazy=True)
     i18n.load_strings("openlibrary/plugins/openlibrary")
+
+    # Infogami wraps every page in its Templetor ``site`` template; serve
+    # the site layout from Jinja instead.
+    template.render.add_source({"site": SiteLayoutTemplate()})
 
     sentry.setup()
     home.setup()

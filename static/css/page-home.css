@@ -27,8 +27,4 @@
 @import "components/language.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
-@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
 @import "components/page-banner--tablet.css" only screen and (min-width: 768px);
-
-/* Desktop: @width-breakpoint-desktop = 960px */
-@import "components/header-bar--desktop.css" all and (min-width: 960px);

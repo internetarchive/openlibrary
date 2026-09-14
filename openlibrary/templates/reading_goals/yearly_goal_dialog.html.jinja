@@ -1,0 +1,7 @@
+{# Standalone yearly-goal modal for account/view.html (Templetor).
+   Rendered by render_yearly_goal_dialog(year) in
+   openlibrary/plugins/openlibrary/reading_goals.py.
+   Composes macros — no HTML is passed from Python, only the primitive `year`. #}
+{% from "reading_goals/reading_goal_form.html.jinja" import goal_form %}
+{% from "native_dialog.html.jinja" import dialog %}
+{{ dialog(id="yearly-goal-modal", title=_("Yearly Reading Goal"), content=goal_form(none, year, false)) }}

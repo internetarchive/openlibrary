@@ -20,16 +20,16 @@ import { slotHasContent } from './utils/slot-utils.js';
  *     accessible name when `withoutHeader` is true.
  * @prop {Boolean} withoutHeader - Hide the default header (title + close
  *     button). The `header` slot still works.
- * @prop {String} width - Width preset: `'small'` (400px), `'medium'` (550px,
- *     default), or `'large'` (800px). Override per-instance via
- *     `--ol-dialog-width-*` host CSS variables.
+ * @prop {'small' | 'medium' | 'large'} width - Width preset: `'small'` (400px),
+ *     `'medium'` (550px, default), or `'large'` (800px). Override per-instance
+ *     via `--ol-dialog-width-*` host CSS variables.
  * @prop {Boolean} closeOnBackdropClick - Whether clicking the backdrop closes
  *     the dialog. Default `true`. Attribute: `close-on-backdrop-click`.
  * @prop {Boolean} closeOnEscape - Whether pressing Escape closes the dialog.
  *     Default `true`. Attribute: `close-on-escape`.
  * @prop {Boolean} fullscreenOnMobile - At viewports ≤767px, render edge-to-edge
  *     (full viewport, no border-radius). Attribute: `fullscreen-on-mobile`.
- * @prop {String} placement - `'center'` (default) keeps the dialog vertically
+ * @prop {'center' | 'top'} placement - `'center'` (default) keeps the dialog vertically
  *     centered like a normal modal. `'top'` anchors it a fixed distance from
  *     the top of the viewport so the top edge stays put as content grows or
  *     shrinks (command-palette / search-modal pattern).

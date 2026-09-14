@@ -148,7 +148,9 @@ def _parse_solr_editions_from_web() -> bool:
     """Parse solr_editions from web.py context."""
 
     def read_query_string():
-        return web.input(editions=None).get("editions")
+        # _method="GET" keeps this off the request body. Without it web.py parses
+        # multipart POSTs here, draining wsgi.input before the handler sees it.
+        return web.input(editions=None, _method="GET").get("editions")
 
     def read_cookie():
         if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):

@@ -20,9 +20,9 @@ function createTestElementsForProcessClick() {
 
 function setupSelectionManager() {
     const sm = new SelectionManager(null, '/search');
-    sm.ile = { $statusImages: { append: jest.fn() } };
+    sm.ile = { $statusImages: { append: vi.fn() } };
     sm.selectedItems = { work: [] };
-    sm.updateToolbar = jest.fn();
+    sm.updateToolbar = vi.fn();
     return sm;
 }
 
@@ -65,7 +65,7 @@ describe('SelectionManager', () => {
         link.click();
         expect(listItem.classList.contains('ile-selected')).toBe(false);
 
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     test('processClick - clicking on listItem', () => {
@@ -82,6 +82,6 @@ describe('SelectionManager', () => {
         listItem.click();
         expect(listItem.classList.contains('ile-selected')).toBe(false);
 
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 });
