@@ -5,6 +5,8 @@ from os.path import abspath, dirname, join, pardir
 
 import pytest
 import web
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from openlibrary.coverstore import archive, code, config, coverlib, schema, utils
 
@@ -52,32 +54,30 @@ class Mock:
         self.calls.append(call)
 
 
+def make_app() -> FastAPI:
+    app = FastAPI()
+    app.include_router(code.router)
+    return app
+
+
 class WebTestCase:
     def setup_method(self, method):
-        self.browser = code.app.browser()
+        self.browser = TestClient(make_app())
 
     def jsonget(self, path):
-        self.browser.open(path)
-        return json.loads(self.browser.data)
+        return self.browser.get(path).json()
 
     def upload(self, olid, path):
         """Uploads an image in static dir"""
-        b = self.browser
-
-        path = join(static_dir, path)
-        with open(path) as file:
-            content_type, data = utils.urlencode({"olid": olid, "data": file.read()})
-        b.open("/b/upload2", data, {"Content-Type": content_type})
-        return json.loads(b.data)["id"]
+        with open(join(static_dir, path), "rb") as file:
+            resp = self.browser.post("/b/upload2", data={"olid": olid}, files={"data": file.read()})
+        return resp.json()["id"]
 
     def delete(self, id, redirect_url=None):
-        b = self.browser
-
         params = {"id": id}
         if redirect_url:
             params["redirect_url"] = redirect_url
-        b.open("/b/delete", urllib.parse.urlencode(params))
-        return b.data
+        return self.browser.post("/b/delete", data=params).text
 
     def static_path(self, path):
         return join(static_dir, path)
@@ -99,7 +99,71 @@ class TestDB:
 
 class TestWebapp(WebTestCase):
     def test_get(self):
-        assert code.app.request("/").status == "200 OK"
+        assert self.browser.get("/").status_code == 200
+
+
+class TestCoverRouting:
+    """The cover filename patterns are the part of the web.py -> FastAPI port that
+    can silently change meaning, so pin the parsing down."""
+
+    @pytest.fixture
+    def client(self, monkeypatch):
+        served = {}
+
+        def fake_serve_cover(request, category, key, value, size, default):
+            served.update(category=category, key=key, value=value, size=size, default=default)
+            from fastapi import Response
+
+            return Response(status_code=204)
+
+        monkeypatch.setattr(code, "_serve_cover", fake_serve_cover)
+        client = TestClient(make_app())
+        client.served = served
+        return client
+
+    @pytest.mark.parametrize(
+        ("path", "expected"),
+        [
+            ("/b/id/12345-M.jpg", ("b", "id", "12345", "M")),
+            ("/b/id/12345.jpg", ("b", "id", "12345", "")),
+            # a greedy value must not eat the size out of a hyphenated ISBN
+            ("/b/isbn/978-0-14-118776-1-M.jpg", ("b", "isbn", "978-0-14-118776-1", "M")),
+            # ...nor treat its last segment as a size when no size was asked for
+            ("/b/isbn/978-0-14-118776-1.jpg", ("b", "isbn", "978-0-14-118776-1", "")),
+            # an unknown size is part of the value, not a size
+            ("/b/id/123-X.jpg", ("b", "id", "123-X", "")),
+            ("/a/olid/OL1A-S.jpg", ("a", "olid", "OL1A", "S")),
+        ],
+    )
+    def test_cover_path_parsing(self, client, path, expected):
+        assert client.get(path).status_code == 204
+        served = client.served
+        assert (served["category"], served["key"], served["value"], served["size"]) == expected
+
+    def test_default_param(self, client):
+        client.get("/b/id/1-M.jpg?default=false")
+        assert client.served["default"] == "false"
+
+
+class TestCoverKeyCasing:
+    """Uppercase keys are a steady slice of production traffic (ISBN/ID/OLID)."""
+
+    @pytest.mark.parametrize("key", ["isbn", "ISBN", "Isbn"])
+    def test_key_is_lowercased_before_lookup(self, monkeypatch, key):
+        seen = {}
+
+        def fake_query(category, key, value):
+            seen.update(category=category, key=key, value=value)
+
+        monkeypatch.setattr(code, "_query", fake_query)
+        TestClient(make_app()).get(f"/b/{key}/978-0-14-118776-1-M.jpg")
+        # hyphens stripped, and the key normalized so the isbn branch is reached
+        assert seen == {"category": "b", "key": "isbn", "value": "9780141187761"}
+
+    def test_uppercase_id_key_skips_lookup(self, monkeypatch):
+        monkeypatch.setattr(code, "_query", lambda *a: pytest.fail("id keys must not hit _query"))
+        monkeypatch.setattr(code, "get_details", lambda coverid, size="": None)
+        assert TestClient(make_app()).get("/b/ID/123-M.jpg").status_code in (200, 404)
 
 
 @pytest.mark.skip(reason="Currently needs running db and openlibrary user. TODO: Make this more flexible.")

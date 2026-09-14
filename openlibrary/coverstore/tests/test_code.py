@@ -37,7 +37,7 @@ def test_parse_tarindex():
     assert (offsets[42], sizes[42]) == (0, 0)
 
 
-class Test_cover:
+class TestCoverLookup:
     def test_get_tar_filename(self, monkeypatch):
         offsets = {}
         sizes = {}
@@ -48,7 +48,7 @@ class Test_cover:
             return array_offsets, array_sizes
 
         monkeypatch.setattr(code, "get_tar_index", _get_tar_index)
-        f = code.cover().get_tar_filename
+        f = code.get_tar_filename
 
         assert f(42, "s") is None
 
@@ -58,7 +58,7 @@ class Test_cover:
         assert f(42, "s") == "s_covers_0000_00.tar:1234:567"
         assert f(30042, "s") == "s_covers_0000_03.tar:1234:567"
 
-        d = code.cover().get_details(42, "s")
+        d = code.get_details(42, "s")
         assert isinstance(d, web.storage)
         assert d == {
             "id": 42,
