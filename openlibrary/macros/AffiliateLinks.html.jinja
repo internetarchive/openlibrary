@@ -1,19 +1,26 @@
 {% macro affiliate_link(store) %}
-    <div class="buy-option prices-{{ store.key }}">
+    {#- Icons are presentation, so they live here rather than on AffiliateStore.
+        An unknown store falls back to a generic glyph. -#}
+    {% set store_icons = {"betterworldbooks": "recycle", "amazon": "package", "bookshop-org": "store"} %}
+    <div class="buy-option prices-{{ store.key }}"
+         data-store="{{ store.key }}">
         <a class="buy-option__link"
            href="{{ store.link }}"
            title="{{ _('Look for this edition for sale at %(store)s', store=store.name) }}"
            data-ol-link-track="BuyLink|{{ store.analytics_key }}"
            target="_blank"
            rel="noopener noreferrer">
+            {{ icon(store_icons.get(store.key, "link"), size="sm") }}
             <span class="buy-option__name">{{ store.name }}</span>
             {% if store.price %}
-                <span class="buy-option__price" name="price">{{ store.price }}{{ store.price_note }}</span>
+                <span class="buy-option__price">{{ store.price }}</span>
             {% endif %}
         </a>
     </div>
 {% endmacro %}
-<div class="affiliate-links-section">
+{#- price_lookup marks a page-rendered section whose prices affiliate-links.js fills in later. -#}
+<div class="affiliate-links-section"
+     {%- if price_lookup %} data-title="{{ price_lookup.title }}" data-isbn="{{ price_lookup.isbn }}" data-asin="{{ price_lookup.asin }}"{% endif %}>
     <div class="buy-options__list">
         {% for store in primary_stores %}{{ affiliate_link(store) | safe }}{% endfor %}
         {% for store in more_stores %}{{ affiliate_link(store) | safe }}{% endfor %}

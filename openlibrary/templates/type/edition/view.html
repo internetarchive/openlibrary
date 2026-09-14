@@ -131,11 +131,8 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = macros.AffiliateLinksLoadingIndicator(edition.title, isbn_13, asin, prices)
+$ affiliate_links = render_affiliate_links(edition.title, isbn_13, asin, prices)
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
-
-$ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
-$ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book" data-lending-state="$lending_state">
   <div class="workDetails">
@@ -147,7 +144,7 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times, lending_state=lending_state)
+      $:macros.databarWork(edition or work, affiliate_links, editions_page=True, render_times=component_times, lending_state=lending_state)
     </div>
 
     <div class="editionAbout">
