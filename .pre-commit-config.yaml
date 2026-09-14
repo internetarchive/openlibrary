@@ -105,15 +105,26 @@ repos:
     rev: 0.0.2
     hooks:
       - id: stylelint
-        files: \.css$
-        additional_dependencies:
+        # Keep in sync with lint:css in package.json: plain CSS and Vue SFC
+        # <style> blocks here; the Lit css`` literals in the next hook.
+        files: \.css$|\.vue$
+        additional_dependencies: &stylelint_deps
           - stylelint@16.22.0
           - stylelint-declaration-strict-value@1.11.1
           - stylelint-prettier@5.0.3
+          - postcss-html@2.0.0
+          - postcss-lit@1.4.1
         # --allow-empty-input: pre-commit passes the staged .css files, and
         # stylelint fails with AllFilesIgnoredError if .stylelintignore excludes
         # all of them (e.g. a commit only touching static/css/tokens/).
         args: [--fix, --allow-empty-input]
+      - id: stylelint
+        name: stylelint (lit)
+        # Check-only: postcss-lit's round-trip re-indents multi-line comments
+        # inside css`` literals, so --fix would rewrite files nothing flagged.
+        files: ^openlibrary/components/lit/[^/]+\.js$|^openlibrary/plugins/openlibrary/js/search-modal/SearchModal\.js$
+        additional_dependencies: *stylelint_deps
+        args: [--allow-empty-input]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v10.8.0
