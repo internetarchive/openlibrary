@@ -11,11 +11,13 @@ import textwrap
 from email.utils import format_datetime, parsedate_to_datetime
 from typing import Annotated, Final, Literal, cast
 
+import httpx
 import requests
 import web
 from fastapi import APIRouter, File, Form, Query, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from PIL import Image, ImageDraw, ImageFont
+from starlette.concurrency import run_in_threadpool
 from starlette.convertors import Convertor, register_url_convertor  # codespell:ignore convertors,convertor
 
 from openlibrary.coverstore import config, db
@@ -24,6 +26,7 @@ from openlibrary.coverstore.server import load_config
 from openlibrary.coverstore.utils import (
     changequery,
     download_external_image,
+    get_async_session,
     ol_get,
     ol_things,
     safeint,
@@ -80,10 +83,10 @@ class PartialCoverDetails(web.storage):
     created: datetime.datetime
 
 
-def get_cover_id(olkeys: list[str]) -> int | None:
+async def get_cover_id(olkeys: list[str]) -> int | None:
     """Return the first cover from the list of ol keys."""
     for olkey in olkeys:
-        doc = ol_get(olkey)
+        doc = await ol_get(olkey)
         if not doc:
             continue
         is_author = doc["key"].startswith("/authors")
@@ -95,18 +98,18 @@ def get_cover_id(olkeys: list[str]) -> int | None:
     return None
 
 
-def _query(category: CoverCategory, key: str, value: str) -> int | None:
+async def _query(category: CoverCategory, key: str, value: str) -> int | None:
     if key == "olid":
         prefixes = {"a": "/authors/", "b": "/books/", "w": "/works/"}
-        return get_cover_id([prefixes[category] + value])
+        return await get_cover_id([prefixes[category] + value])
     elif category == "b":
         if key == "isbn":
             value = value.replace("-", "").strip()
             key = "isbn_"
         if key == "oclc":
             key = "oclc_numbers"
-        olkeys = ol_things(key, value)
-        return get_cover_id(olkeys)
+        olkeys = await ol_things(key, value)
+        return await get_cover_id(olkeys)
     return None
 
 
@@ -154,7 +157,7 @@ def index() -> Response:
 
 
 @router.post("/{category}/upload2", include_in_schema=False)
-def upload2(
+async def upload2(
     category: CoverCategory,
     olid: Annotated[str | None, Form()] = None,
     author: Annotated[str | None, Form()] = None,
@@ -172,7 +175,7 @@ def upload2(
 
     if source_url:
         try:
-            data = download_external_image(source_url)
+            data = await download_external_image(source_url)
         except:
             return error(ERROR_INVALID_URL)
 
@@ -180,7 +183,7 @@ def upload2(
         return error(ERROR_EMPTY)
 
     try:
-        d = save_image(data, category=category, olid=olid, author=author, source_url=source_url, ip=ip)
+        d = await run_in_threadpool(save_image, data, category=category, olid=olid, author=author, source_url=source_url, ip=ip)
     except ValueError:
         return error(ERROR_BAD_IMAGE)
 
@@ -205,11 +208,12 @@ def zipview_url_from_id(coverid: int, size: CoverSizeUpper, protocol: str = "htt
     return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
-def get_ia_cover_url(identifier: str, size: Literal["S", "M", "L"]) -> str | None:
+async def get_ia_cover_url(identifier: str, size: Literal["S", "M", "L"]) -> str | None:
     url = f"https://archive.org/metadata/{identifier}/metadata"
     try:
-        d = requests.get(url).json().get("result", {})
-    except OSError, ValueError:
+        resp = await get_async_session().get(url)
+        d = resp.json().get("result", {})
+    except httpx.RequestError, ValueError:
         return None
 
     # Not a text item or no images or scan is not complete yet
@@ -303,7 +307,7 @@ def parse_tarindex(file: io.TextIOBase):
     return array_offset, array_size
 
 
-def _serve_default(default: str) -> Response:
+async def _serve_default(default: str) -> Response:
     """The fallback when no cover matched: the configured placeholder, a caller-supplied
     URL, or a plain 404."""
 
@@ -312,41 +316,41 @@ def _serve_default(default: str) -> Response:
 
     if config.default_image and default.lower() != "false" and not is_valid_url(default):
         media_type = mimetypes.guess_type(config.default_image)[0] or "image/jpeg"
-        return Response(content=read_file(config.default_image), media_type=media_type)
+        return Response(content=await run_in_threadpool(read_file, config.default_image), media_type=media_type)
     elif is_valid_url(default):
         return RedirectResponse(default, status_code=303)
     else:
         return Response(status_code=404)
 
 
-def _serve_cover(request: Request, category: CoverCategory, key: str, value: str, size: CoverSizeUpper, default: str) -> Response:
+async def _serve_cover(request: Request, category: CoverCategory, key: str, value: str, size: CoverSizeUpper, default: str) -> Response:
     key = key.lower()
 
     cover_id: int | None = None
     if key == "isbn":
         normalized_isbn = value.replace("-", "").strip()  # strip hyphens from ISBN
-        cover_id = _query(category, key, normalized_isbn)
+        cover_id = await _query(category, key, normalized_isbn)
     elif key == "ia":
         # archive.org only derives page images at a named size, so a size-less
         # request has nothing to redirect to.
-        if size and (url := get_ia_cover_url(value, size)):
+        if size and (url := await get_ia_cover_url(value, size)):
             return RedirectResponse(url, status_code=302)
         cover_id = None  # notfound or redirect to default. handled later.
     elif key != "id":
-        cover_id = _query(category, key, value)
+        cover_id = await _query(category, key, value)
     else:
         cover_id = safeint(value)
 
     if cover_id is None or cover_id in config.blocked_covers:
-        return _serve_default(default)
+        return await _serve_default(default)
 
     # redirect to archive.org cluster for large size and original images whenever possible
     if size in ("L", "") and is_cover_in_cluster(cover_id):
         return RedirectResponse(zipview_url_from_id(cover_id, size, request.url.scheme), status_code=302)
 
-    d = get_details(cover_id, SIZE_LOWER[size])
+    d = await run_in_threadpool(get_details, cover_id, SIZE_LOWER[size])
     if not d:
-        return _serve_default(default)
+        return await _serve_default(default)
 
     headers = {"Cache-Control": "public"}
     if key == "id":
@@ -370,13 +374,14 @@ def _serve_cover(request: Request, category: CoverCategory, key: str, value: str
         if d.id >= 8_000_000 and d.uploaded:
             url = archive.Cover.get_cover_url(d.id, size=size, protocol=request.url.scheme)
             return RedirectResponse(url, status_code=302)
-        return Response(content=read_image(d, size), media_type="image/jpeg", headers=headers)
+        content = await run_in_threadpool(read_image, d, size)
+        return Response(content=content, media_type="image/jpeg", headers=headers)
     except OSError:
         return Response(status_code=404)
 
 
 @router.get("/{category}/{key}/{value}-{size:cover_size}.jpg", include_in_schema=False)
-def cover_sized(
+async def cover_sized(
     request: Request,
     category: CoverCategory,
     key: str,
@@ -384,24 +389,24 @@ def cover_sized(
     size: Literal["S", "M", "L"],
     default: Annotated[str, Query()] = "true",
 ) -> Response:
-    return _serve_cover(request, category, key, value, size, default)
+    return await _serve_cover(request, category, key, value, size, default)
 
 
 @router.get("/{category}/{key}/{value}.jpg", include_in_schema=False)
-def cover_unsized(
+async def cover_unsized(
     request: Request,
     category: CoverCategory,
     key: str,
     value: str,
     default: Annotated[str, Query()] = "true",
 ) -> Response:
-    return _serve_cover(request, category, key, value, "", default)
+    return await _serve_cover(request, category, key, value, "", default)
 
 
 @router.get("/{category}/{key}/{value}.json", include_in_schema=False)
-def cover_details(category: CoverCategory, key: str, value: str) -> Response:
+async def cover_details(category: CoverCategory, key: str, value: str) -> Response:
     if key == "id":
-        d = db.details(safeint(value))
+        d = await run_in_threadpool(db.details, safeint(value))
         if not d:
             return Response(status_code=404)
         if isinstance(d["created"], datetime.datetime):
@@ -409,7 +414,7 @@ def cover_details(category: CoverCategory, key: str, value: str) -> Response:
             d["last_modified"] = d["last_modified"].isoformat()
         return Response(content=json.dumps(d), media_type="application/json")
 
-    cover_id = _query(category, key, value)
+    cover_id = await _query(category, key, value)
     if cover_id is None:
         return Response(status_code=404)
     return RedirectResponse(f"/{category}/id/{cover_id}.json", status_code=302)
@@ -487,7 +492,7 @@ def delete(
 
 
 @router.post("/{category}/upload", include_in_schema=False)
-def upload(
+async def upload(
     request: Request,
     category: CoverCategory,
     olid: Annotated[str, Form()],
@@ -509,7 +514,7 @@ def upload(
     data = file
     if source_url:
         try:
-            data = download_external_image(source_url)
+            data = await download_external_image(source_url)
         except:
             return error(ERROR_INVALID_URL)
 
@@ -517,7 +522,8 @@ def upload(
         return error(ERROR_EMPTY)
 
     try:
-        save_image(
+        await run_in_threadpool(
+            save_image,
             data,
             category=category,
             olid=olid,
