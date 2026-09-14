@@ -9,12 +9,17 @@ from __future__ import annotations
 
 import asyncio
 import os
+from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Form, HTTPException, status
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
 from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
-from openlibrary.plugins.openlibrary.status import TestingStatus, load_testing_status_async
+from openlibrary.plugins.openlibrary.status import (
+    TestingStatus,
+    add_prs_async,
+    load_testing_status_async,
+)
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
@@ -46,3 +51,17 @@ async def testing_status(_: MaintainerDep) -> TestingStatus:
             }
         )
     return result
+
+
+@router.post("/status/add")
+async def add_prs(
+    _: MaintainerDep,
+    pr: Annotated[str, Form()] = "",
+) -> dict[str, Any]:
+    try:
+        return await add_prs_async(pr)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No valid PR numbers specified",
+        )

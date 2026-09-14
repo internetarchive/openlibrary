@@ -578,7 +578,7 @@ def test_add_appends_pr_when_github_succeeds():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
@@ -605,7 +605,7 @@ def test_add_skips_pr_and_marks_failure_when_github_errors():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
@@ -684,7 +684,7 @@ def test_add_cancels_a_staged_removal():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info") as mock_info,
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock) as mock_info,
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
+from warnings import deprecated
 
 import httpx
 import web
@@ -72,58 +73,20 @@ def _json_error(error: str) -> delegate.RawText:
     return delegate.RawText(json.dumps({"ok": False, "error": error}), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class status_add(delegate.page):
     path = "/status/add"
 
     def POST(self):
         if not _is_maintainer():
             raise web.unauthorized()
-        i = web.input(pr="")
-        raw = re.split(r"[\s,]+", i.pr.strip())
-        pr_numbers = []
-        for val in raw:
-            if val:
-                with contextlib.suppress(ValueError, AttributeError):
-                    pr_numbers.append(_parse_pr_number(val))
-        if not pr_numbers:
+        try:
+            result = _add_prs(web.input(pr="").pr)
+        except ValueError:
             raise web.badrequest()
-        state = _load_testing_state() or TestingState(last_deploy_at="", prs=[])
-        existing = {p.pr for p in state.prs}
-        # Re-adding a PR whose removal is staged is an undo, not a new add.
-        for p in state.prs:
-            if p.pr in pr_numbers:
-                p.pending_remove = False
-        user = get_current_user()
-        failed = []
-        for pr_number in pr_numbers:
-            if pr_number not in existing:
-                info = _get_pr_info(pr_number)
-                if info.get("error"):
-                    # GitHub unreachable, rate-limited, or an invalid PR — never
-                    # pretend the add landed. The error response lets the panel
-                    # keep the input so the failure is visible.
-                    failed.append(pr_number)
-                    continue
-                state.prs.append(
-                    TestingPR(
-                        pr=pr_number,
-                        commit=info["head_sha"],
-                        active=True,
-                        title=info["title"],
-                        added_at=datetime.datetime.now(datetime.UTC).isoformat(),
-                        added_by=user.key.split("/")[-1] if user else "",
-                        author=info["author"],
-                        author_avatar=info["author_avatar"],
-                        assignee=info["assignee"],
-                        assignee_avatar=info["assignee_avatar"],
-                    )
-                )
-                existing.add(pr_number)
-        _save_testing_state(state)
-        _evict_drift_cache()
-        if failed:
-            return _json_error("add_failed")
-        return _json_ok()
+        if result["ok"]:
+            return _json_ok()
+        return _json_error(result["error"])
 
 
 class status_remove(delegate.page):
@@ -645,6 +608,52 @@ async def load_testing_status_async() -> TestingStatus | None:
     return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
 
 
+async def add_prs_async(raw_pr_input: str) -> dict:
+    raw = re.split(r"[\s,]+", raw_pr_input.strip())
+    pr_numbers = []
+    for val in raw:
+        if val:
+            with contextlib.suppress(ValueError, AttributeError):
+                pr_numbers.append(_parse_pr_number(val))
+    if not pr_numbers:
+        raise ValueError(f"No valid PR numbers in: {raw_pr_input!r}")
+
+    state = _load_testing_state() or TestingState(last_deploy_at="", prs=[])
+    existing = {p.pr for p in state.prs}
+    # Re-adding a PR whose removal is staged is an undo, not a new add.
+    for p in state.prs:
+        if p.pr in pr_numbers:
+            p.pending_remove = False
+    user = get_current_user()
+    failed = []
+    for pr_number in pr_numbers:
+        if pr_number not in existing:
+            info = await _get_pr_info_async(pr_number)
+            if info.get("error"):
+                failed.append(pr_number)
+                continue
+            state.prs.append(
+                TestingPR(
+                    pr=pr_number,
+                    commit=info["head_sha"],
+                    active=True,
+                    title=info["title"],
+                    added_at=datetime.datetime.now(datetime.UTC).isoformat(),
+                    added_by=user.key.split("/")[-1] if user else "",
+                    author=info["author"],
+                    author_avatar=info["author_avatar"],
+                    assignee=info["assignee"],
+                    assignee_avatar=info["assignee_avatar"],
+                )
+            )
+            existing.add(pr_number)
+    _save_testing_state(state)
+    _evict_drift_cache()
+    if failed:
+        return {"ok": False, "error": "add_failed"}
+    return {"ok": True}
+
+
 # A failed merge is recorded two ways, depending on which machinery wrote the
 # file: git's own message when the transcript captures merge output, or the
 # deploy script's summary (see scripts/make-integration-branch.sh):
@@ -848,6 +857,7 @@ async def _get_pr_drift_async(pr: TestingPR) -> dict:
 _get_pr_info = async_bridge.wrap(_get_pr_info_async)
 _get_drift_info = async_bridge.wrap(_get_drift_info_async)
 load_testing_status = async_bridge.wrap(load_testing_status_async)
+_add_prs = async_bridge.wrap(add_prs_async)
 
 
 def _parse_pr_number(value: str) -> int:
