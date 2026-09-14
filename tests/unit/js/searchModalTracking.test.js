@@ -3,8 +3,8 @@ import { FulltextBand } from '../../../openlibrary/plugins/openlibrary/js/search
 
 function setup() {
     const modal = new SearchModal();
-    modal._track = jest.fn();
-    modal._saveCurrentSearch = jest.fn();
+    modal._track = vi.fn();
+    modal._saveCurrentSearch = vi.fn();
     return modal;
 }
 
@@ -167,8 +167,8 @@ describe('SearchModal outcome events', () => {
         return modal;
     }
 
-    beforeEach(() => jest.useFakeTimers());
-    afterEach(() => jest.useRealTimers());
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
 
     test('an outcome fires only once the query has stood still', () => {
         const modal = settled();
@@ -176,7 +176,7 @@ describe('SearchModal outcome events', () => {
         modal._scheduleOutcomeTrack('NoResults', KEY);
         expect(modal._track).not.toHaveBeenCalled();
 
-        jest.runAllTimers();
+        vi.runAllTimers();
         expect(modal._track).toHaveBeenCalledWith('NoResults', 'unfiltered');
     });
 
@@ -185,7 +185,7 @@ describe('SearchModal outcome events', () => {
 
         modal._scheduleOutcomeTrack('NoResults', KEY);
         modal._activeFetchKey = '/search.json?q=dune+messiah';
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).not.toHaveBeenCalled();
     });
@@ -194,9 +194,9 @@ describe('SearchModal outcome events', () => {
         const modal = settled();
 
         modal._scheduleOutcomeTrack('ResultsShown', KEY);
-        jest.runAllTimers();
+        vi.runAllTimers();
         modal._scheduleOutcomeTrack('ResultsShown', KEY);
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).toHaveBeenCalledTimes(1);
     });
@@ -205,7 +205,7 @@ describe('SearchModal outcome events', () => {
         const modal = settled({ availability: 'readable', languages: ['ger'] });
 
         modal._scheduleOutcomeTrack('ResultsShown', KEY);
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).toHaveBeenCalledWith('ResultsShown', 'availability+language');
     });
@@ -216,7 +216,7 @@ describe('SearchModal outcome events', () => {
 
         modal._scheduleOutcomeTrack('NoResults', KEY);
         modal._scheduleBandOutcome('resolved');
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).toHaveBeenCalledWith('NoResults', 'unfiltered');
         expect(modal._track).toHaveBeenCalledWith('FulltextBand', 'shown:2');
@@ -229,7 +229,7 @@ describe('SearchModal outcome events', () => {
         modal._visibleFtHits = () => [];
 
         modal._scheduleBandOutcome('resolved');
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).toHaveBeenCalledWith('FulltextBand', 'empty');
     });
@@ -238,7 +238,7 @@ describe('SearchModal outcome events', () => {
         const modal = settled();
 
         modal._scheduleBandOutcome('failed');
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).toHaveBeenCalledWith('FulltextBand', 'failed');
     });
@@ -248,7 +248,7 @@ describe('SearchModal outcome events', () => {
         modal._activeFetchKey = null;
 
         modal._scheduleBandOutcome('resolved');
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).not.toHaveBeenCalled();
     });
@@ -259,7 +259,7 @@ describe('SearchModal outcome events', () => {
         modal._scheduleOutcomeTrack('NoResults', KEY);
         modal._scheduleBandOutcome('resolved');
         modal._clearOutcomeTimers();
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).not.toHaveBeenCalled();
     });
@@ -279,11 +279,11 @@ describe('FulltextBand attempt reporting', () => {
     }
 
     test('a resolved fetch reports the attempt', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             json: async() => ({ hits: { hits: [], total: 0 } }),
         });
-        const onAttempt = jest.fn();
+        const onAttempt = vi.fn();
 
         band(onAttempt).solrFailed('dune');
         await flush();
@@ -292,8 +292,8 @@ describe('FulltextBand attempt reporting', () => {
     });
 
     test('a failed fetch reports the attempt too, so it is not lost', async() => {
-        global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 502 });
-        const onAttempt = jest.fn();
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 502 });
+        const onAttempt = vi.fn();
 
         band(onAttempt).solrFailed('dune');
         await flush();
@@ -302,8 +302,8 @@ describe('FulltextBand attempt reporting', () => {
     });
 
     test('a band that never fetches reports nothing', () => {
-        global.fetch = jest.fn();
-        const onAttempt = jest.fn();
+        global.fetch = vi.fn();
+        const onAttempt = vi.fn();
 
         // A strong catalog answer clears the band instead of calling out.
         band(onAttempt).solrSettled('dune', [{ title: 'Dune' }]);
@@ -328,8 +328,8 @@ describe('SearchModal outcome flushing', () => {
         return modal;
     }
 
-    beforeEach(() => jest.useFakeTimers());
-    afterEach(() => jest.useRealTimers());
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
 
     test('pressing a result settles the search before the click is counted', () => {
         const modal = pending();
@@ -343,8 +343,8 @@ describe('SearchModal outcome flushing', () => {
     test('the catalog see-all settles the search it is leaving', () => {
         const modal = pending();
         modal._buildSearchUrl = () => '/search?q=dune';
-        modal._saveCurrentSearch = jest.fn();
-        modal._navigate = jest.fn();
+        modal._saveCurrentSearch = vi.fn();
+        modal._navigate = vi.fn();
 
         modal._onSeeAllResults();
 
@@ -374,7 +374,7 @@ describe('SearchModal outcome flushing', () => {
         const modal = pending();
 
         modal._flushOutcomes();
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).toHaveBeenCalledTimes(1);
     });
@@ -404,7 +404,7 @@ describe('SearchModal outcome flushing', () => {
         const modal = pending();
 
         modal._resetResults({ hasSearched: false });
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(modal._track).not.toHaveBeenCalled();
     });
