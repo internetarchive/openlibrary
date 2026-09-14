@@ -5,6 +5,7 @@ import json
 import re
 import socket
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -84,30 +85,29 @@ def _json_error(error: str) -> delegate.RawText:
     return delegate.RawText(json.dumps({"ok": False, "error": error}), content_type="application/json")
 
 
-class status_remove(delegate.page):
-    path = "/status/remove"
+def remove_testing_prs(prs: Iterable[int]) -> None:
+    """Remove PRs from testing state.
 
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_remove = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_remove:
-            return _json_ok()
-        # Removing a live PR stages the removal — the deploy deletes the row —
-        # so restore is a true undo: the pin and toggle state survive. A PR
-        # that never reached the box has nothing to undo and drops outright.
-        kept = []
-        for p in state.prs:
-            if p.pr in to_remove:
-                if not _live_now(state, p):
-                    continue
-                p.pending_remove = True
-            kept.append(p)
-        state.prs = kept
-        _save_testing_state(state)
-        return _json_ok()
+    Removing a live PR stages the removal (pending_remove = True) — the deploy deletes
+    the row — so restore is a true undo: the pin and toggle state survive. A PR that
+    never reached the box has nothing to undo and drops outright.
+    """
+    to_remove = {int(p) for p in prs}
+    state = _load_testing_state()
+    if not state or not to_remove:
+        return
+    # Removing a live PR stages the removal — the deploy deletes the row —
+    # so restore is a true undo: the pin and toggle state survive. A PR
+    # that never reached the box has nothing to undo and drops outright.
+    kept = []
+    for p in state.prs:
+        if p.pr in to_remove:
+            if not _live_now(state, p):
+                continue
+            p.pending_remove = True
+        kept.append(p)
+    state.prs = kept
+    _save_testing_state(state)
 
 
 class status_restore(delegate.page):
