@@ -174,6 +174,25 @@ class TestCoverCategory:
         assert seen == [{"a": "/authors/OL1X", "b": "/books/OL1X", "w": "/works/OL1X"}[category]]
 
 
+class TestIaCovers:
+    """archive.org only derives page images at a named size."""
+
+    @pytest.fixture
+    def client(self, monkeypatch):
+        monkeypatch.setattr(code, "get_ia_cover_url", lambda identifier, size: f"https://ia/{identifier}-{size}")
+        monkeypatch.setattr(code, "get_details", lambda coverid, size="": None)
+        return TestClient(make_app())
+
+    @pytest.mark.parametrize("size", ["S", "M", "L"])
+    def test_sized_ia_request_redirects(self, client, size):
+        r = client.get(f"/b/ia/someitem-{size}.jpg", follow_redirects=False)
+        assert (r.status_code, r.headers["location"]) == (302, f"https://ia/someitem-{size}")
+
+    def test_size_less_ia_request_falls_through(self, client):
+        # there is no original-size page image; this used to raise KeyError -> 500
+        assert client.get("/b/ia/someitem.jpg").status_code in (200, 404)
+
+
 class TestCoverKeyCasing:
     """Uppercase keys are a steady slice of production traffic (ISBN/ID/OLID)."""
 

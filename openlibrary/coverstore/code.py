@@ -9,7 +9,7 @@ import mimetypes
 import os
 import textwrap
 from email.utils import format_datetime, parsedate_to_datetime
-from typing import Annotated, Literal, cast
+from typing import Annotated, Final, Literal, cast
 
 import requests
 import web
@@ -35,7 +35,11 @@ if coverstore_config := os.getenv("COVERSTORE_CONFIG"):
 
 logger = logging.getLogger("coverstore")
 
-CoverSize = Literal["S", "M", "L", ""]
+# A size is spelled uppercase in a URL ("" being the original upload) and lowercase in
+# db column names (filename_m) and tar paths (m_covers_0000_00.tar).
+CoverSizeUpper = Literal["S", "M", "L", ""]
+CoverSizeLower = Literal["s", "m", "l", ""]
+SIZE_LOWER: Final[dict[CoverSizeUpper, CoverSizeLower]] = {"S": "s", "M": "m", "L": "l", "": ""}
 # books, authors, works -- the rows of the coverstore `category` table. Annotating the
 # handlers is what keeps an unknown category out of db.new(), where get_category_id()
 # would miss and store the cover against a null category_id.
@@ -192,7 +196,7 @@ def trim_microsecond(date):
 IMAGES_PER_ITEM = 10_000
 
 
-def zipview_url_from_id(coverid: int, size: str, protocol: str = "https") -> str:
+def zipview_url_from_id(coverid: int, size: CoverSizeUpper, protocol: str = "https") -> str:
     suffix = size and ("-" + size.upper())
     item_index = coverid // IMAGES_PER_ITEM
     itemid = "olcovers%d" % item_index
@@ -201,7 +205,7 @@ def zipview_url_from_id(coverid: int, size: str, protocol: str = "https") -> str
     return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
-def get_ia_cover_url(identifier: str, size: CoverSize = "M") -> str | None:
+def get_ia_cover_url(identifier: str, size: Literal["S", "M", "L"]) -> str | None:
     url = f"https://archive.org/metadata/{identifier}/metadata"
     try:
         d = requests.get(url).json().get("result", {})
@@ -216,7 +220,7 @@ def get_ia_cover_url(identifier: str, size: CoverSize = "M") -> str | None:
     return "https://archive.org/download/%s/page/cover_w%d_h%d.jpg" % (identifier, w, h)
 
 
-def get_details(coverid: int, size: str = "") -> PartialCoverDetails | db.CoverDbDetails | None:
+def get_details(coverid: int, size: CoverSizeLower = "") -> PartialCoverDetails | db.CoverDbDetails | None:
     # Use tar index if available to avoid db query. We have 0-6M images in tar balls.
     if coverid < 6_000_000 and size in "sml":
         path = get_tar_filename(coverid, size)
@@ -241,7 +245,7 @@ def is_cover_in_cluster(coverid: int) -> bool:
         return False
 
 
-def get_tar_filename(coverid: int, size: str) -> str | None:
+def get_tar_filename(coverid: int, size: CoverSizeLower) -> str | None:
     """Returns tarfile:offset:size for given coverid."""
     tarindex = coverid // 10000
     index = coverid % 10000
@@ -262,7 +266,7 @@ def get_tar_filename(coverid: int, size: str) -> str | None:
 # wrapper's __call__ as taking *args: Hashable, erasing the real parameter types.
 # https://github.com/python/mypy/issues/16261
 @functools.cache
-def get_tar_index(tarindex: int, size):
+def get_tar_index(tarindex: int, size: CoverSizeLower):
     assert config.data_root is not None
     path = os.path.join(config.data_root, get_tarindex_path(tarindex, size))
     if not os.path.exists(path):
@@ -271,7 +275,7 @@ def get_tar_index(tarindex: int, size):
     return parse_tarindex(open(path))
 
 
-def get_tarindex_path(index, size):
+def get_tarindex_path(index: int, size: CoverSizeLower) -> str:
     name = "%06d" % index
     if size:
         prefix = f"{size}_covers"
@@ -315,7 +319,7 @@ def _serve_default(default: str) -> Response:
         return Response(status_code=404)
 
 
-def _serve_cover(request: Request, category: CoverCategory, key: str, value: str, size: CoverSize, default: str) -> Response:
+def _serve_cover(request: Request, category: CoverCategory, key: str, value: str, size: CoverSizeUpper, default: str) -> Response:
     key = key.lower()
 
     cover_id: int | None = None
@@ -323,7 +327,9 @@ def _serve_cover(request: Request, category: CoverCategory, key: str, value: str
         normalized_isbn = value.replace("-", "").strip()  # strip hyphens from ISBN
         cover_id = _query(category, key, normalized_isbn)
     elif key == "ia":
-        if url := get_ia_cover_url(value, size):
+        # archive.org only derives page images at a named size, so a size-less
+        # request has nothing to redirect to.
+        if size and (url := get_ia_cover_url(value, size)):
             return RedirectResponse(url, status_code=302)
         cover_id = None  # notfound or redirect to default. handled later.
     elif key != "id":
@@ -338,7 +344,7 @@ def _serve_cover(request: Request, category: CoverCategory, key: str, value: str
     if size in ("L", "") and is_cover_in_cluster(cover_id):
         return RedirectResponse(zipview_url_from_id(cover_id, size, request.url.scheme), status_code=302)
 
-    d = get_details(cover_id, size.lower())
+    d = get_details(cover_id, SIZE_LOWER[size])
     if not d:
         return _serve_default(default)
 
@@ -346,7 +352,7 @@ def _serve_cover(request: Request, category: CoverCategory, key: str, value: str
     if key == "id":
         # set cache-for-ever headers only when requested with ID
         created = trim_microsecond(d.created)
-        etag = f"{d.id}-{size.lower()}"
+        etag = f"{d.id}-{SIZE_LOWER[size]}"
         headers["Last-Modified"] = _httpdate(created)
         headers["ETag"] = f'"{etag}"'
         if is_cached_copy_fresh(request, created, etag):
@@ -375,10 +381,10 @@ def cover_sized(
     category: CoverCategory,
     key: str,
     value: str,
-    size: str,
+    size: Literal["S", "M", "L"],
     default: Annotated[str, Query()] = "true",
 ) -> Response:
-    return _serve_cover(request, category, key, value, cast(CoverSize, size), default)
+    return _serve_cover(request, category, key, value, size, default)
 
 
 @router.get("/{category}/{key}/{value}.jpg", include_in_schema=False)
