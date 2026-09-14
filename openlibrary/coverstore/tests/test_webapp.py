@@ -2,6 +2,7 @@ import json
 import urllib
 from os import system
 from os.path import abspath, dirname, join, pardir
+from typing import ClassVar
 
 import pytest
 import web
@@ -110,10 +111,8 @@ class TestCoverRouting:
     def client(self, monkeypatch):
         served = {}
 
-        def fake_serve_cover(request, category, key, value, size, default):
+        async def fake_serve_cover(request, category, key, value, size, default):
             served.update(category=category, key=key, value=value, size=size, default=default)
-            from fastapi import Response
-
             return Response(status_code=204)
 
         monkeypatch.setattr(code, "_serve_cover", fake_serve_cover)
@@ -150,7 +149,10 @@ class TestCoverCategory:
 
     @pytest.fixture
     def client(self, monkeypatch):
-        monkeypatch.setattr(code, "_serve_cover", lambda *a: Response(status_code=204))
+        async def fake_serve_cover(*a):
+            return Response(status_code=204)
+
+        monkeypatch.setattr(code, "_serve_cover", fake_serve_cover)
         return TestClient(make_app())
 
     @pytest.mark.parametrize("category", ["a", "b", "w"])
@@ -166,11 +168,16 @@ class TestCoverCategory:
         monkeypatch.setattr(code, "save_image", lambda *a, **kw: pytest.fail("must not reach save_image"))
         assert TestClient(make_app()).post("/x/upload2", files={"data": b"x"}).status_code == 422
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize("category", ["a", "b", "w"])
-    def test_olid_lookup_uses_the_right_prefix(self, monkeypatch, category):
+    async def test_olid_lookup_uses_the_right_prefix(self, monkeypatch, category):
         seen = []
-        monkeypatch.setattr(code, "get_cover_id", seen.extend)
-        code._query(category, "olid", "OL1X")
+
+        async def fake_get_cover_id(olkeys):
+            seen.extend(olkeys)
+
+        monkeypatch.setattr(code, "get_cover_id", fake_get_cover_id)
+        await code._query(category, "olid", "OL1X")
         assert seen == [{"a": "/authors/OL1X", "b": "/books/OL1X", "w": "/works/OL1X"}[category]]
 
 
@@ -179,7 +186,10 @@ class TestIaCovers:
 
     @pytest.fixture
     def client(self, monkeypatch):
-        monkeypatch.setattr(code, "get_ia_cover_url", lambda identifier, size: f"https://ia/{identifier}-{size}")
+        async def fake_ia_url(identifier, size):
+            return f"https://ia/{identifier}-{size}"
+
+        monkeypatch.setattr(code, "get_ia_cover_url", fake_ia_url)
         monkeypatch.setattr(code, "get_details", lambda coverid, size="": None)
         return TestClient(make_app())
 
@@ -193,6 +203,62 @@ class TestIaCovers:
         assert client.get("/b/ia/someitem.jpg").status_code in (200, 404)
 
 
+class TestIaCoverUrl:
+    """Exercises the real get_ia_cover_url, stubbing only the HTTP transport --
+    stubbing the function itself would miss anything wrong inside it."""
+
+    @staticmethod
+    def _patch_transport(monkeypatch, payload):
+        import httpx
+
+        from openlibrary.coverstore import utils as cutils
+
+        def handler(request):
+            return httpx.Response(200, json=payload)
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        monkeypatch.setattr(cutils, "get_async_session", lambda: client)
+        monkeypatch.setattr(code, "get_async_session", lambda: client)
+
+    SCANNED: ClassVar = {"result": {"mediatype": "texts", "repub_state": "4", "imagecount": "100"}}
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(("size", "expected"), [("S", "w116_h58"), ("M", "w180_h360"), ("L", "w500_h500")])
+    async def test_scanned_text_item(self, monkeypatch, size, expected):
+        self._patch_transport(monkeypatch, self.SCANNED)
+        url = await code.get_ia_cover_url("someitem", size)
+        assert url == f"https://archive.org/download/someitem/page/cover_{expected}.jpg"
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {"result": {"mediatype": "movies", "repub_state": "4", "imagecount": "1"}},
+            {"result": {"mediatype": "texts", "repub_state": "2", "imagecount": "1"}},
+            {"result": {"mediatype": "texts", "repub_state": "4"}},  # no imagecount: not scanned yet
+            {},
+        ],
+    )
+    async def test_items_without_a_usable_cover(self, monkeypatch, payload):
+        self._patch_transport(monkeypatch, payload)
+        assert await code.get_ia_cover_url("someitem", "M") is None
+
+    @pytest.mark.asyncio
+    async def test_network_failure_is_swallowed(self, monkeypatch):
+        import httpx
+
+        from openlibrary.coverstore import utils as cutils
+
+        def boom(request):
+            raise httpx.ConnectTimeout("archive.org is down")
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(boom))
+        monkeypatch.setattr(cutils, "get_async_session", lambda: client)
+        monkeypatch.setattr(code, "get_async_session", lambda: client)
+        # httpx.RequestError is not an OSError, unlike requests' -- easy to miss when porting
+        assert await code.get_ia_cover_url("someitem", "M") is None
+
+
 class TestCoverKeyCasing:
     """Uppercase keys are a steady slice of production traffic (ISBN/ID/OLID)."""
 
@@ -200,7 +266,7 @@ class TestCoverKeyCasing:
     def test_key_is_lowercased_before_lookup(self, monkeypatch, key):
         seen = {}
 
-        def fake_query(category, key, value):
+        async def fake_query(category, key, value):
             seen.update(category=category, key=key, value=value)
 
         monkeypatch.setattr(code, "_query", fake_query)
@@ -209,7 +275,10 @@ class TestCoverKeyCasing:
         assert seen == {"category": "b", "key": "isbn", "value": "9780141187761"}
 
     def test_uppercase_id_key_skips_lookup(self, monkeypatch):
-        monkeypatch.setattr(code, "_query", lambda *a: pytest.fail("id keys must not hit _query"))
+        async def fail_query(*a):
+            pytest.fail("id keys must not hit _query")
+
+        monkeypatch.setattr(code, "_query", fail_query)
         monkeypatch.setattr(code, "get_details", lambda coverid, size="": None)
         assert TestClient(make_app()).get("/b/ID/123-M.jpg").status_code in (200, 404)
 
