@@ -18,7 +18,6 @@ from openlibrary.catalog.utils import (
     tidy_isbn,
 )
 
-
 # National Bibliographic Agencies mapped to OL identfiers:
 AGENCY_MAPPING = {
     "DE-101": "dnb",
@@ -27,6 +26,7 @@ AGENCY_MAPPING = {
     "GyFmDB": "dnb",
     "PoLiBN": "bnp",
 }
+LEGACY_BNF_PREFIX = "FRBNF"  # bnf identifier expects the modern ark: id form (see url: in identifiers.yml)
 logger = logging.getLogger("openlibrary.catalog.marc")
 max_number_of_pages = 50000  # no monograph should be longer than 50,000 pages
 re_bad_char = re.compile("\ufffd")
@@ -126,7 +126,7 @@ def read_agency_control_number(rec: MarcBase) -> dict[str, list[str]] | None:
         (source,) = f.get_subfield_values("2") or [""]
         (control_number,) = f.get_subfield_values("a") or [""]
         identifier = AGENCY_MAPPING.get(source)
-        if identifier and control_number:
+        if identifier and control_number and not control_number.startswith(LEGACY_BNF_PREFIX):
             return {identifier: [control_number]}
     return None
 
