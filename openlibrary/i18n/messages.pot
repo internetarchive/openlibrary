@@ -2790,6 +2790,10 @@ msgstr ""
 msgid "More at OpenStax"
 msgstr ""
 
+#: LoanStatus.html ReadButton.html book_providers/read_button.html my_books/dropper.html
+msgid "More reading options"
+msgstr ""
+
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
@@ -3795,7 +3799,7 @@ msgstr ""
 msgid "Provider Name"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html databarWork.html
 msgid "Buy"
 msgstr ""
 
@@ -4122,7 +4126,7 @@ msgstr ""
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html.jinja
+#: home/about.html search/work_search_facets.html.jinja
 msgid "More"
 msgstr ""
 
@@ -5191,10 +5195,6 @@ msgstr ""
 #: my_books/dropper.html
 #, python-format
 msgid "More reading options for %(title)s"
-msgstr ""
-
-#: ReadButton.html my_books/dropper.html
-msgid "More reading options"
 msgstr ""
 
 #: my_books/primary_action.html
@@ -6281,10 +6281,6 @@ msgstr ""
 msgid "ISBNs"
 msgstr ""
 
-#: databarWork.html type/edition/view.html type/work/view.html
-msgid "Buy this book"
-msgstr ""
-
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
 msgstr ""
@@ -6913,10 +6909,6 @@ msgstr ""
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
 
-#: AffiliateLinksLoadingIndicator.html
-msgid "Fetching prices"
-msgstr ""
-
 #: BatchImportNavigation.html
 msgid "Pending Imports"
 msgstr ""
@@ -7054,6 +7046,10 @@ msgid "You'll be next in line."
 msgstr ""
 
 #: LoanStatus.html
+msgid "All copies are checked out."
+msgstr ""
+
+#: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
 msgstr ""
 
@@ -7066,7 +7062,7 @@ msgid "Only a preview is available."
 msgstr ""
 
 #: LocateButton.html
-msgid "Locate"
+msgid "Find in a library"
 msgstr ""
 
 #: NotInLibrary.html
@@ -7606,18 +7602,6 @@ msgstr ""
 msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
 msgstr ""
 
-#: WorldcatLink.html
-msgid "Check nearby libraries"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "Check WorldCat for an edition near you"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "WorldCat"
-msgstr ""
-
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
 msgstr ""
@@ -7650,6 +7634,10 @@ msgstr ""
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
+msgstr ""
+
+#: databarWork.html
+msgid "Buy this book"
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8147,10 +8135,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Better World Books"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
-msgid " - includes shipping"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
