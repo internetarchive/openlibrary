@@ -715,23 +715,6 @@ export class OlShelfActions extends LitElement {
             outline-offset: -2px;
         }
 
-        /* The recent lists, above the rest. Same inset rule as the panel's
-           other separators, drawn under the group rather than between rows. */
-        .group-lists.pinned {
-            position: relative;
-            padding-bottom: var(--spacing-inset-xs);
-            margin-bottom: var(--spacing-inset-xs);
-        }
-
-        .group-lists.pinned::after {
-            content: "";
-            position: absolute;
-            inset-inline: var(--spacing-inset-md);
-            bottom: 0;
-            height: 1px;
-            background: var(--color-border-subtle);
-        }
-
         /* What Enter commits to, marked so the key is never a guess. */
         .list-row.target {
             box-shadow: inset 0 0 0 1px var(--color-border-subtle);
@@ -1378,19 +1361,17 @@ export class OlShelfActions extends LitElement {
         // filter to have typed; without one, Enter has no obvious target.
         const target = this._listFilter.trim() ? (pinned[0] ?? rest[0]) : null;
         if (!pinned.length) return this._renderListRows(lists, rest, target);
-        const group = (keys, label, isPinned) => html`
-            <div class="group-lists ${classMap({ pinned: isPinned })}" role="group" aria-label=${this.t(label)}>
+        const group = (keys, label) => html`
+            <div class="group-lists" role="group" aria-label=${this.t(label)}>
                 ${this._renderListRows(lists, keys, target)}
             </div>
         `;
         // The pinned group's label follows what is actually in it, so it never
         // promises rows for this book when there are none.
         const pinnedLabel = pinned.some(key => this._members.includes(key)) ? 'pinnedLists' : 'recentLists';
-        // The rule under the pinned group is a separator, so it needs both
-        // sides; a filter that matched only pinned rows leaves them plain.
         return html`
-            ${group(pinned, pinnedLabel, rest.length > 0)}
-            ${rest.length ? group(rest, 'otherLists', false) : nothing}
+            ${group(pinned, pinnedLabel)}
+            ${rest.length ? group(rest, 'otherLists') : nothing}
         `;
     }
 
@@ -1641,9 +1622,11 @@ export class OlShelfActions extends LitElement {
     async _openCheckIn({ amending = false } = {}) {
         this._pane = 'checkIn';
         this._amending = amending;
-        // The same event the old prompt's "Edit" link sent, so the dashboards
-        // that counted date edits keep counting them.
-        if (amending && this.readDate) trackEvent('CheckInPrompt', 'EditDate');
+        // The prompt asked unbidden is counted as shown, so the answers and
+        // skips it gets can be read as a rate. Amending an existing date is
+        // the old prompt's "Edit" link, under the name its dashboards use.
+        if (!amending) trackEvent('CheckInPrompt', 'Shown');
+        else if (this.readDate) trackEvent('CheckInPrompt', 'EditDate');
         // A date the shortcuts cannot express would otherwise sit unseen
         // behind a collapsed row, so the pane opens on it. Focus still lands
         // on Today: the reader is being shown their answer, not asked to

@@ -167,6 +167,26 @@ describe('ol-shelf-button popover', () => {
         expect(q(el, 'ol-shelf-actions')).toBeNull();
         expect(q(el, '.more')).not.toBeNull();
     });
+
+    // The denominator for every save the popover reports: how many opens,
+    // and from which shape.
+    test('an open is reported, labelled by shape', async() => {
+        window._paq = [];
+        try {
+            for (const [props, label] of [
+                [{ variant: 'split' }, 'split'],
+                [{ variant: 'icon' }, 'icon'],
+                [{ variant: 'outline', listsOnly: true }, 'outline-lists'],
+            ]) {
+                const el = await mount({ userKey: '/people/tester', ...props });
+                q(el, 'ol-shelf-actions').dispatchEvent(new CustomEvent('ol-popover-open', { bubbles: true, composed: true }));
+                expect(window._paq.at(-1)).toEqual(['trackEvent', 'ShelfActions', 'Open', label]);
+            }
+            expect(window._paq).toHaveLength(3);
+        } finally {
+            delete window._paq;
+        }
+    });
 });
 
 describe('ol-shelf-button state changes', () => {

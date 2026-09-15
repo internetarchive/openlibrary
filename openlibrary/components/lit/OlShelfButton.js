@@ -504,8 +504,14 @@ export class OlShelfButton extends LitElement {
         this.shadowRoot.querySelector('ol-shelf-actions')?.open();
     }
 
+    /**
+     * Every open is counted, labelled by shape, so the saves reported later
+     * have a denominator: how many people got as far as the menu, and from
+     * which control.
+     */
     _onPopoverOpen() {
         this.toggleAttribute('open', true);
+        trackEvent('ShelfActions', 'Open', this.listsOnly ? `${this.variant}-lists` : this.variant);
     }
 
     /** A close the panel cancels (Escape stepping back a pane) is not a close. */

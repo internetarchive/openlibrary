@@ -1423,37 +1423,44 @@ describe('ol-shelf-actions check-in pane', () => {
             return el;
         };
 
+        // Marking a book read asks the question unbidden: that is the
+        // impression the answers below are measured against.
+        test('the prompt reports itself shown when it follows a shelf change', async() => {
+            await openPane();
+            expect(events()).toEqual([['CheckInPrompt', 'Shown']]);
+        });
+
         test('Today is the prompt\'s SetDateToday', async() => {
             const el = await openPane();
             todayRow(el).click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'SetDateToday']]);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateToday']]);
         });
 
         test('a quick year is the prompt\'s SetDateCurrentYear', async() => {
             const el = await openPane();
             yearRows(el)[0].click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'SetDateCurrentYear']]);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCurrentYear']]);
         });
 
         test('opening the fields is the prompt\'s Other; saving them is the form\'s submit', async() => {
             const el = await openPane();
             otherDateRow(el).click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'SetDateCustom']]);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCustom']]);
             el._setDatePart('year', '2024');
             await tick(el);
             checkInPane(el).querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'SetDateCustom'], ['CheckInForm', 'SubmitCheckIn']]);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCustom'], ['CheckInForm', 'SubmitCheckIn']]);
         });
 
         test('Skip is its own event', async() => {
             const el = await openPane();
             skipRow(el).click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'Skip']]);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'Skip']]);
         });
 
         test('reopening the pane on a recorded date is the prompt\'s EditDate', async() => {
@@ -1461,6 +1468,7 @@ describe('ol-shelf-actions check-in pane', () => {
             expect(events()).toEqual([['CheckInPrompt', 'EditDate']]);
         });
 
+        // Asked for by the reader, not put to them: neither shown nor an edit.
         test('reopening it with no date yet is not an edit', async() => {
             await openPane({ shelf: SHELF.ALREADY_READ });
             expect(events()).toEqual([]);
