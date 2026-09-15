@@ -85,7 +85,7 @@ def _post_add(client, state, pr_value="12914", gh_info=None):
             return_value=gh_info if gh_info is not None else _gh_info(),
         ),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
         return client.post("/status/add", data={"pr": pr_value})
 
@@ -906,7 +906,7 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock) as mock_info,
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
         response = fastapi_client.post("/status/add", data={"pr": "13269"})
 
@@ -916,23 +916,27 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
     assert state.prs[0].pending_remove is False
     # Already in the set: no GitHub fetch, no fresh row.
     mock_info.assert_not_called()
+    # Nothing was added, so nothing about the cached drift changed.
+    mock_extend.assert_called_once_with({})
 
 
-def test_add_persists_the_state_and_evicts_the_drift_cache(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     state = _empty_state()
+    gh_info = _gh_info()
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=_gh_info()),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache") as mock_evict,
+        patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
         response = fastapi_client.post("/status/add", data={"pr": "12914"})
 
     assert response.status_code == 200
     mock_save.assert_called_once_with(state)
-    mock_evict.assert_called_once_with()
+    # The new PR is handed to the cache so the panel's next read needn't refetch.
+    mock_extend.assert_called_once_with({12914: gh_info})
 
 
 def test_add_requires_auth(fastapi_client):
@@ -950,6 +954,97 @@ def test_add_forbidden_for_non_maintainer(fastapi_client, mock_authenticated_use
     assert response.status_code == 403
     assert response.json()["detail"] == "Insufficient permissions"
     assert state.prs == []
+
+
+def _dict_memcache(store: dict) -> MagicMock:
+    """A memcache stub backed by ``store``, so get/set/delete round-trip like memcached.
+
+    ``delete`` really clears the entry, so a test using this stub fails if the
+    code under test evicts the cache instead of extending it.
+    """
+    mc = MagicMock()
+    mc.get.side_effect = store.get
+    mc.set.side_effect = lambda key, value, expires=0: store.__setitem__(key, value)
+    mc.delete.side_effect = lambda key: store.pop(key, None)
+    return mc
+
+
+def test_extend_drift_cache_keeps_the_rows_already_cached():
+    """A new PR is recorded in the cached drift; the existing rows survive.
+
+    Regression: the add path used to evict the whole cache, forcing the next
+    read to refetch every row — the cost is the fan-out, not the added row.
+    """
+    existing = {"13269": {"head_sha": "1d23364", "drift": 3, "merged": False, "closed": False}}
+    store = {status_module._DRIFT_CACHE_KEY: existing}
+    mc = _dict_memcache(store)
+
+    with patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc):
+        status_module._extend_drift_cache({12914: _gh_info()})
+
+    written = store[status_module._DRIFT_CACHE_KEY]
+    assert written["13269"] == existing["13269"]
+    # Pinned to its current head, so it is 0 behind by construction.
+    assert written["12914"] == {"head_sha": "abc1234", "drift": 0, "merged": False, "closed": False}
+    assert mc.set.call_args.kwargs == {"expires": status_module._DRIFT_CACHE_TTL}
+
+
+def test_extend_drift_cache_is_a_noop_when_nothing_is_cached():
+    """A cold cache needs no patching: the next read fetches the full set anyway."""
+    store = {}
+    mc = _dict_memcache(store)
+
+    with patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc):
+        status_module._extend_drift_cache({12914: _gh_info()})
+
+    assert mc.set.call_count == 0
+
+
+def test_extend_drift_cache_is_a_noop_with_no_new_prs():
+    """A pure undo (re-adding an existing PR) adds nothing, so nothing is written."""
+    store = {status_module._DRIFT_CACHE_KEY: {"13269": {"head_sha": "1d23364", "drift": 3, "merged": False, "closed": False}}}
+    mc = _dict_memcache(store)
+
+    with patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc):
+        status_module._extend_drift_cache({})
+
+    assert mc.set.call_count == 0
+
+
+@pytest.mark.asyncio
+async def test_adding_a_pr_leaves_the_next_read_a_cache_hit():
+    """The read after an add is served from cache, including the new row.
+
+    This is the point of updating the cache instead of evicting it: the panel
+    GETs /status/testing.json right after POSTing /status/add, and that read
+    must not fan out to GitHub again.
+    """
+    store = {
+        status_module._DRIFT_CACHE_KEY: {
+            "13269": {"head_sha": "1d23364", "drift": 3, "merged": False, "closed": False},
+        }
+    }
+    mc = _dict_memcache(store)
+    state = _empty_state()
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=_gh_info()),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+    ):
+        assert await status_module.add_prs([12914], "testuser") == {"ok": True}
+
+        with patch(
+            "openlibrary.plugins.openlibrary.status._github_get_async",
+            side_effect=AssertionError("the read refetched from GitHub"),
+        ):
+            drift, from_cache = await status_module._get_drift_info_async(state, persist=False)
+
+    assert from_cache is True
+    assert drift[12914]["drift"] == 0
+    assert drift[12914]["head_sha"] == "abc1234"
+    assert drift[13269]["drift"] == 3  # the pre-existing row is still there
 
 
 def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):

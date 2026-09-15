@@ -22,7 +22,7 @@ from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, trigger_rebuild
 from openlibrary.utils import get_software_version
-from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 
 status_info: dict[str, Any] = {}
 
@@ -630,6 +630,7 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
         if p.pr in pr_numbers:
             p.pending_remove = False
     failed = []
+    added: dict[int, dict] = {}
     for pr_number in pr_numbers:
         if pr_number not in existing:
             info = await _get_pr_info_async(pr_number)
@@ -654,8 +655,9 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
                 )
             )
             existing.add(pr_number)
+            added[pr_number] = info
     _save_testing_state(state)
-    _evict_drift_cache()
+    _extend_drift_cache(added)
     if failed:
         return {"ok": False, "error": "add_failed"}
     return {"ok": True}
@@ -716,6 +718,13 @@ def _is_maintainer() -> bool:
     return bool(user and user.is_maintainer())
 
 
+# One pooled client per event loop. The drift fan-out makes up to two GitHub
+# calls per PR, and a fresh AsyncClient per call would pay a TCP + TLS
+# handshake every time. cache_per_event_loop keeps a separate pool per loop,
+# since AsyncBridge's background loop and FastAPI's can't share one.
+get_github_client = cache_per_event_loop(lambda: httpx.AsyncClient(timeout=5.0))
+
+
 async def _github_get_async(path: str) -> dict:
     """GET a GitHub API path; raises httpx.HTTPError (network or non-2xx) on failure."""
     url = f"{_GITHUB_API_BASE}/{path}"
@@ -725,10 +734,9 @@ async def _github_get_async(path: str) -> dict:
     }
     if token := getattr(config, "github_api_token", None):
         headers["Authorization"] = f"Bearer {token}"
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        resp = await client.get(url, headers=headers)
-        resp.raise_for_status()
-        return resp.json()
+    resp = await get_github_client().get(url, headers=headers)
+    resp.raise_for_status()
+    return resp.json()
 
 
 async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
@@ -766,6 +774,35 @@ async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tu
 
 def _evict_drift_cache() -> None:
     cache.get_memcache().delete(_DRIFT_CACHE_KEY)
+
+
+def _extend_drift_cache(new_prs: dict[int, dict]) -> None:
+    """Record freshly added PRs in the drift cache, leaving the rest of it intact.
+
+    Adding a PR says nothing about the drift of the PRs already in the set, so
+    evicting the whole cache would make the panel's next read refetch every row
+    over GitHub — the cost is in the fan-out, not the added row. Each new PR is
+    pinned to its current head, so its drift is already known: 0 behind, not
+    merged. ``merged``/``closed`` are defaults rather than observations —
+    ``_get_pr_info_async`` doesn't report them — and the next fetch replaces
+    them within ``_DRIFT_CACHE_TTL``, the same staleness window every other
+    cached row already lives with.
+
+    A cold cache is a no-op: the next read fetches the full set anyway.
+    """
+    if not new_prs:
+        return
+    mc = cache.get_memcache()
+    if (cached := mc.get(_DRIFT_CACHE_KEY)) is None:
+        return
+    for pr_number, info in new_prs.items():
+        cached[str(pr_number)] = {
+            "head_sha": info["head_sha"][:7],
+            "drift": 0,
+            "merged": False,
+            "closed": False,
+        }
+    mc.set(_DRIFT_CACHE_KEY, cached, expires=_DRIFT_CACHE_TTL)
 
 
 async def _get_pr_info_async(pr_number: int) -> dict:
