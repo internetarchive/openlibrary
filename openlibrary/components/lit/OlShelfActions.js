@@ -55,7 +55,7 @@ export const DEFAULT_LABELS = {
     otherLists: 'Other lists',
     addedToList: 'Added to %(name)s',
     removedFromList: 'Removed from %(name)s',
-    myLists: 'My lists',
+    manageLists: 'Manage lists',
     errorGeneric: 'Something went wrong. Please try again.',
     whenFinished: 'When did you finish this book?',
     skipDate: 'Skip',
@@ -1358,7 +1358,7 @@ export class OlShelfActions extends LitElement {
             ${!this._listTotal || !this.userKey ? nothing : html`
                 <div class="lists-footer">
                     <ol-button class="lists-link" variant="ghost" size="small" href=${`${this.userKey}/lists`}>
-                        ${this.t('myLists')}<ol-icon slot="icon-end" name="arrow-right"></ol-icon>
+                        ${this.t('manageLists')}<ol-icon slot="icon-end" name="arrow-right"></ol-icon>
                     </ol-button>
                 </div>
             `}

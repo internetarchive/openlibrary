@@ -1643,7 +1643,7 @@ msgstr ""
 msgid "Reading Log"
 msgstr ""
 
-#: account/sidebar.html my_books/shelf_button_i18n.html
+#: account/sidebar.html
 msgid "My lists"
 msgstr ""
 
@@ -5290,6 +5290,10 @@ msgstr ""
 #: my_books/shelf_button_i18n.html
 #, python-format
 msgid "Removed from %(name)s"
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
+msgid "Manage lists"
 msgstr ""
 
 #: my_books/shelf_button_i18n.html

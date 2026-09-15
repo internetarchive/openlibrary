@@ -484,7 +484,7 @@ describe('ol-shelf-actions lists pane', () => {
         await tick(el);
         const link = q(el, '.lists-footer ol-button');
         expect(link.getAttribute('href')).toBe('/people/tester/lists');
-        expect(link.textContent.trim()).toBe('My lists');
+        expect(link.textContent.trim()).toBe('Manage lists');
     });
 
     test('Escape in the lists pane goes back instead of closing', async() => {
