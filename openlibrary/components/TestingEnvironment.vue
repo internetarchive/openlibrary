@@ -42,7 +42,7 @@ try {
 // ── Composables ─────────────────────────────────────────────────────
 const { setToast } = useToast();
 
-// busy is a shared re-entrancy guard between status fetching and actions.
+// busy marks the action queue as processing and pauses background refreshes.
 const busy = shallowRef(false);
 const { view, payload, now, loadStatus, retry } = useTestingStatus(busy);
 const { refreshing, adding, deploying, addInput, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
