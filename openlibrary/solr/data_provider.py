@@ -139,7 +139,7 @@ class DataProvider:
             return r.json()["response"]["docs"]
         except HTTPError:
             logger.warning("IA bulk query failed")
-        except ValueError, KeyError:
+        except (ValueError, KeyError):
             logger.warning(f"IA bulk query failed {r.status_code}: {r.json()['error']}")
 
         # Only here if an exception occurred
