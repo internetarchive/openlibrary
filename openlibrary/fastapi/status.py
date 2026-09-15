@@ -8,12 +8,11 @@ via JSON without a browser.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import os
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Form, HTTPException, Request, status
-from pydantic import BaseModel, BeforeValidator
+from fastapi import APIRouter, Form, HTTPException, status
+from pydantic import BeforeValidator
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
 from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
@@ -27,10 +26,6 @@ from openlibrary.plugins.openlibrary.status import (
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
-
-
-class StatusActionResponse(BaseModel):
-    ok: bool = True
 
 
 @router.get(
@@ -61,8 +56,6 @@ async def testing_status(_: MaintainerDep) -> TestingStatus:
     return result
 
 
-# The add form posts a single ``pr`` field holding whitespace/comma-separated
-# numbers or PR URLs; the service-layer tokenizer turns it into ints.
 PrNumbersDep = Annotated[list[int], BeforeValidator(parse_pr_numbers), Form(alias="pr")]
 
 
@@ -80,45 +73,10 @@ async def add_prs_endpoint(
     return await add_prs(pr_numbers, user.username)
 
 
-@router.post(
-    "/status/remove",
-    response_model=StatusActionResponse,
-    description="Removes PRs from the testing environment (stages removal if live, deletes outright if not yet deployed).",
-)
-async def remove_prs(
-    request: Request,
+@router.post("/status/remove")
+def remove_prs(
     _: MaintainerDep,
-) -> StatusActionResponse:
+    prs: Annotated[list[int], Form()] = [],  # noqa: B006
+) -> dict[str, Any]:
     """Remove PRs from the testing environment state."""
-    content_type = (request.headers.get("content-type") or "").lower()
-    prs: list[Any] = []
-    if "application/json" in content_type:
-        with contextlib.suppress(Exception):
-            body = await request.json()
-            if isinstance(body, dict):
-                raw = body.get("prs", [])
-                prs = raw if isinstance(raw, list) else [raw]
-            elif isinstance(body, list):
-                prs = body
-    elif "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
-        with contextlib.suppress(Exception):
-            form = await request.form()
-            prs = form.getlist("prs")
-    else:
-        prs = request.query_params.getlist("prs")
-
-    if not prs:
-        with contextlib.suppress(Exception):
-            form = await request.form()
-            prs = form.getlist("prs")
-    if not prs:
-        prs = request.query_params.getlist("prs")
-
-    clean_prs: set[int] = set()
-    for p in prs:
-        if isinstance(p, (str, int)):
-            with contextlib.suppress(ValueError, TypeError):
-                clean_prs.add(int(p))
-
-    remove_testing_prs(clean_prs)
-    return StatusActionResponse(ok=True)
+    return remove_testing_prs(prs)

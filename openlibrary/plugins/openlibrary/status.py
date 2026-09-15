@@ -5,7 +5,6 @@ import json
 import re
 import socket
 import sys
-from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -13,11 +12,11 @@ from urllib.parse import urlencode
 
 import httpx
 import web
+from pydantic import BaseModel, Field, field_serializer
+
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
-from pydantic import BaseModel, Field, field_serializer
-
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
@@ -54,9 +53,6 @@ class status(delegate.page):
     def GET(self):
         is_maintainer_user = _is_maintainer()
         has_testing_state = _load_testing_state() is not None
-        # The panel reads its state from FastAPI in the browser. Keep only this
-        # lightweight existence/permission check so non-maintainers do not get
-        # a shell that would immediately produce a 403 from the JSON endpoint.
         show_testing = has_testing_state and is_maintainer_user
         return render_template(
             "status",
@@ -85,29 +81,26 @@ def _json_error(error: str) -> delegate.RawText:
     return delegate.RawText(json.dumps({"ok": False, "error": error}), content_type="application/json")
 
 
-def remove_testing_prs(prs: Iterable[int]) -> None:
-    """Remove PRs from testing state.
-
-    Removing a live PR stages the removal (pending_remove = True) — the deploy deletes
-    the row — so restore is a true undo: the pin and toggle state survive. A PR that
-    never reached the box has nothing to undo and drops outright.
-    """
+def remove_testing_prs(prs: list[int]) -> dict[str, Any]:
+    """Remove PRs from the testing state."""
     to_remove = {int(p) for p in prs}
     state = _load_testing_state()
     if not state or not to_remove:
-        return
-    # Removing a live PR stages the removal — the deploy deletes the row —
-    # so restore is a true undo: the pin and toggle state survive. A PR
-    # that never reached the box has nothing to undo and drops outright.
+        return {"ok": True, "staged_prs": [], "removed_prs": []}
+    staged_prs = []
+    removed_prs = []
     kept = []
     for p in state.prs:
         if p.pr in to_remove:
             if not _live_now(state, p):
+                removed_prs.append(p.pr)
                 continue
             p.pending_remove = True
+            staged_prs.append(p.pr)
         kept.append(p)
     state.prs = kept
     _save_testing_state(state)
+    return {"ok": True, "staged_prs": staged_prs, "removed_prs": removed_prs}
 
 
 class status_restore(delegate.page):

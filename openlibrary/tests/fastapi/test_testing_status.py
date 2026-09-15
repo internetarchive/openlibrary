@@ -632,8 +632,9 @@ def test_remove_stages_a_removal_for_a_live_pr():
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        status_module.remove_testing_prs([13269])
+        result = status_module.remove_testing_prs([13269])
 
+    assert result == {"ok": True, "staged_prs": [13269], "removed_prs": []}
     assert [p.pr for p in state.prs] == [13269]
     assert state.prs[0].pending_remove is True
     assert state.prs[0].pull_latest_sha == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
@@ -650,8 +651,9 @@ def test_remove_deletes_a_never_deployed_pr_outright():
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
     ):
-        status_module.remove_testing_prs([13269])
+        result = status_module.remove_testing_prs([13269])
 
+    assert result == {"ok": True, "staged_prs": [], "removed_prs": [13269]}
     assert state.prs == []
 
 
@@ -1472,58 +1474,26 @@ def test_remove_prs_endpoint_forbidden_for_non_maintainer(fastapi_client, mock_a
     mock.assert_not_called()
 
 
-def test_remove_prs_endpoint_form_encoded(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+def test_remove_prs_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
+        mock.return_value = {"ok": True, "staged_prs": [13269], "removed_prs": []}
         response = fastapi_client.post("/status/remove", data={"prs": ["13269"]})
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True}
-    mock.assert_called_once_with({13269})
+    assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": []}
+    mock.assert_called_once_with([13269])
 
 
 def test_remove_prs_endpoint_repeated_form_fields(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
+        mock.return_value = {"ok": True, "staged_prs": [13269, 13270], "removed_prs": []}
         response = fastapi_client.post("/status/remove", data={"prs": ["13269", "13270"]})
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True}
-    mock.assert_called_once_with({13269, 13270})
-
-
-def test_remove_prs_endpoint_json(fastapi_client, mock_authenticated_user, mock_maintainer_user):
-    mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
-        response = fastapi_client.post("/status/remove", json={"prs": [13269, 13270]})
-
-    assert response.status_code == 200
-    assert response.json() == {"ok": True}
-    mock.assert_called_once_with({13269, 13270})
-
-
-def test_remove_prs_endpoint_empty_and_invalid(fastapi_client, mock_authenticated_user, mock_maintainer_user):
-    mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
-        response = fastapi_client.post("/status/remove", data={"prs": ["not_a_number", ""]})
-
-    assert response.status_code == 200
-    assert response.json() == {"ok": True}
-    mock.assert_called_once_with(set())
-
-
-def test_remove_prs_endpoint_raw_urlencoded(fastapi_client, mock_authenticated_user, mock_maintainer_user):
-    mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
-        response = fastapi_client.post(
-            "/status/remove",
-            content="prs=13269&prs=13270",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-
-    assert response.status_code == 200
-    assert response.json() == {"ok": True}
-    mock.assert_called_once_with({13269, 13270})
+    assert response.json() == {"ok": True, "staged_prs": [13269, 13270], "removed_prs": []}
+    mock.assert_called_once_with([13269, 13270])
 
 
 def test_remove_prs_endpoint_e2e_stages_live_pr(fastapi_client, mock_authenticated_user, mock_maintainer_user):
@@ -1540,7 +1510,7 @@ def test_remove_prs_endpoint_e2e_stages_live_pr(fastapi_client, mock_authenticat
         response = fastapi_client.post("/status/remove", data={"prs": ["13269"]})
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True}
+    assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": []}
     assert [p.pr for p in state.prs] == [13269]
     assert state.prs[0].pending_remove is True
     assert state.prs[0].pull_latest_sha == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
@@ -1557,9 +1527,9 @@ def test_remove_prs_endpoint_e2e_deletes_never_deployed_pr(fastapi_client, mock_
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        response = fastapi_client.post("/status/remove", json={"prs": [13269]})
+        response = fastapi_client.post("/status/remove", data={"prs": ["13269"]})
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True}
+    assert response.json() == {"ok": True, "staged_prs": [], "removed_prs": [13269]}
     assert state.prs == []
     mock_save.assert_called_once_with(state)
