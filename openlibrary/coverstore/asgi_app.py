@@ -1,8 +1,10 @@
 """ASGI entry point for the coverstore server.
 
-The route handlers are deliberately sync ``def``: FastAPI runs those in a
-threadpool, so the blocking web.py database and filesystem calls underneath
-stay safe without being rewritten as async.
+Handlers that make outbound HTTP calls are ``async def`` so those calls don't
+hold a worker; the web.py database and filesystem calls they also make are
+still blocking, and run on the event loop. Keeping the worker count modest is
+what bounds the cost of that -- see the covers service in
+compose.production.yaml.
 """
 
 from __future__ import annotations

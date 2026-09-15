@@ -17,7 +17,6 @@ import web
 from fastapi import APIRouter, File, Form, Query, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from PIL import Image, ImageDraw, ImageFont
-from starlette.concurrency import run_in_threadpool
 from starlette.convertors import Convertor, register_url_convertor
 
 from openlibrary.coverstore import config, db
@@ -183,7 +182,7 @@ async def upload2(
         return error(ERROR_EMPTY)
 
     try:
-        d = await run_in_threadpool(save_image, data, category=category, olid=olid, author=author, source_url=source_url, ip=ip)
+        d = save_image(data, category=category, olid=olid, author=author, source_url=source_url, ip=ip)
     except ValueError:
         return error(ERROR_BAD_IMAGE)
 
@@ -307,7 +306,7 @@ def parse_tarindex(file: io.TextIOBase):
     return array_offset, array_size
 
 
-async def _serve_default(default: str) -> Response:
+def _serve_default(default: str) -> Response:
     """The fallback when no cover matched: the configured placeholder, a caller-supplied
     URL, or a plain 404."""
 
@@ -316,7 +315,7 @@ async def _serve_default(default: str) -> Response:
 
     if config.default_image and default.lower() != "false" and not is_valid_url(default):
         media_type = mimetypes.guess_type(config.default_image)[0] or "image/jpeg"
-        return Response(content=await run_in_threadpool(read_file, config.default_image), media_type=media_type)
+        return Response(content=read_file(config.default_image), media_type=media_type)
     elif is_valid_url(default):
         return RedirectResponse(default, status_code=303)
     else:
@@ -342,15 +341,15 @@ async def _serve_cover(request: Request, category: CoverCategory, key: str, valu
         cover_id = safeint(value)
 
     if cover_id is None or cover_id in config.blocked_covers:
-        return await _serve_default(default)
+        return _serve_default(default)
 
     # redirect to archive.org cluster for large size and original images whenever possible
     if size in ("L", "") and is_cover_in_cluster(cover_id):
         return RedirectResponse(zipview_url_from_id(cover_id, size, request.url.scheme), status_code=302)
 
-    d = await run_in_threadpool(get_details, cover_id, SIZE_LOWER[size])
+    d = get_details(cover_id, SIZE_LOWER[size])
     if not d:
-        return await _serve_default(default)
+        return _serve_default(default)
 
     headers = {"Cache-Control": "public"}
     if key == "id":
@@ -374,8 +373,7 @@ async def _serve_cover(request: Request, category: CoverCategory, key: str, valu
         if d.id >= 8_000_000 and d.uploaded:
             url = archive.Cover.get_cover_url(d.id, size=size, protocol=request.url.scheme)
             return RedirectResponse(url, status_code=302)
-        content = await run_in_threadpool(read_image, d, size)
-        return Response(content=content, media_type="image/jpeg", headers=headers)
+        return Response(content=read_image(d, size), media_type="image/jpeg", headers=headers)
     except OSError:
         return Response(status_code=404)
 
@@ -406,7 +404,7 @@ async def cover_unsized(
 @router.get("/{category}/{key}/{value}.json", include_in_schema=False)
 async def cover_details(category: CoverCategory, key: str, value: str) -> Response:
     if key == "id":
-        d = await run_in_threadpool(db.details, safeint(value))
+        d = db.details(safeint(value))
         if not d:
             return Response(status_code=404)
         if isinstance(d["created"], datetime.datetime):
@@ -522,8 +520,7 @@ async def upload(
         return error(ERROR_EMPTY)
 
     try:
-        await run_in_threadpool(
-            save_image,
+        save_image(
             data,
             category=category,
             olid=olid,
