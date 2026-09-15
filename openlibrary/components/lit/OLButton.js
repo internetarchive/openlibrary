@@ -98,6 +98,11 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *   <ol-button shape="circle" elevation="floating" aria-label="Save">+</ol-button>
  */
 export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
+    /** `host.focus()` lands on the inner control even where delegatesFocus is unavailable (jsdom). */
+    get _focusTarget() {
+        return this.shadowRoot?.querySelector('.control') ?? null;
+    }
+
     static properties = {
         variant: { type: String, reflect: true },
         size: { type: String, reflect: true },

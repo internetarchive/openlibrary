@@ -1643,7 +1643,7 @@ msgstr ""
 msgid "Reading Log"
 msgstr ""
 
-#: account/sidebar.html
+#: account/sidebar.html my_books/shelf_button_i18n.html
 msgid "My lists"
 msgstr ""
 
@@ -5265,8 +5265,10 @@ msgstr ""
 
 #: my_books/shelf_button_i18n.html
 #, python-format
-msgid "In %(count)s of your lists"
-msgstr ""
+msgid "On %(count)s list"
+msgid_plural "On %(count)s lists"
+msgstr[0] ""
+msgstr[1] ""
 
 #: my_books/shelf_button_i18n.html
 msgid "Recently used"
@@ -5295,7 +5297,15 @@ msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
+msgid "Add date"
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
 msgid "When did you finish this book?"
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
+msgid "Skip"
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
