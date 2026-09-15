@@ -1,14 +1,5 @@
 import { shallowRef } from 'vue';
-import { effectiveActive, postAction } from '../utils.js';
-
-// The action endpoints answer {"ok": false, "error": "<code>"} for
-// business failures; map each code to the translated toast that
-// explains it.
-const ACTION_ERRORS = {
-    add_failed: 'actionFailed',
-    deploy_failed: 'deployFailedTrigger',
-    deploy_unconfigured: 'deployUnconfigured'
-};
+import { actionErrorMessage, effectiveActive, postAction } from '../utils.js';
 
 /**
  * PR toggle, update, remove, restore, deploy, refresh, and add actions.
@@ -41,8 +32,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
             // completed request, not a thrown fetch — say why instead of
             // pretending the action landed.
             if (result && result.ok === false) {
-                const key = ACTION_ERRORS[result.error] || 'actionFailed';
-                setToast(text(key));
+                setToast(actionErrorMessage(result, strings));
                 return result;
             }
             return result;
