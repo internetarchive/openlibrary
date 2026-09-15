@@ -7062,7 +7062,7 @@ msgid "Only a preview is available."
 msgstr ""
 
 #: LocateButton.html
-msgid "Find in a library"
+msgid "Nearby Libraries"
 msgstr ""
 
 #: NotInLibrary.html
