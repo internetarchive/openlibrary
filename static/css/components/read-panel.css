@@ -30,7 +30,7 @@
 .btn-notice .cta-button-group,
 .btn-notice .cta-btn.cta-btn--no-pointer,
 .btn-notice .cta-dropper__menu {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* Some preview rules are too specific and need to be rewritten */
