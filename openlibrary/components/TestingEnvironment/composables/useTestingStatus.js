@@ -1,5 +1,24 @@
-import { shallowRef, onMounted, onBeforeUnmount } from 'vue';
+import { ref, shallowRef, onMounted, onBeforeUnmount } from 'vue';
 import { getTestingStatus } from '../utils.js';
+
+const CACHE_KEY = 'openlibrary:testing-environment-status';
+
+function readStatusCache() {
+    try {
+        const item = localStorage.getItem(CACHE_KEY);
+        return item ? JSON.parse(item) : null;
+    } catch {
+        return null;
+    }
+}
+
+function writeStatusCache(data) {
+    try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    } catch {
+        // Ignore disabled storage and quota errors.
+    }
+}
 
 /**
  * Fetches, caches, and periodically refreshes the testing-environment
@@ -16,8 +35,9 @@ import { getTestingStatus } from '../utils.js';
  * }}
  */
 export function useTestingStatus(busy) {
-    const view = shallowRef('loading'); // 'loading' | 'error' | 'ready'
-    const payload = shallowRef(null);
+    const initialPayload = readStatusCache();
+    const view = ref(initialPayload ? 'ready' : 'loading'); // 'loading' | 'error' | 'ready'
+    const payload = shallowRef(initialPayload);
     const now = shallowRef(Date.now());
 
     let timer = null;
@@ -25,18 +45,19 @@ export function useTestingStatus(busy) {
     // ── Core fetch ───────────────────────────────────────────────────
     async function loadStatus(showLoading = false, renderError = true, manageBusy = true) {
         if (manageBusy) busy.value = true;
-        if (showLoading) view.value = 'loading';
+        if (showLoading && !payload.value) view.value = 'loading';
         try {
             const newPayload = await getTestingStatus();
             // Skip the assignment when nothing changed — a fresh object
             // identity would repaint the panel (the flash on tab return).
             if (!payload.value || JSON.stringify(newPayload) !== JSON.stringify(payload.value)) {
                 payload.value = newPayload;
+                writeStatusCache(newPayload);
             }
             view.value = 'ready';
             return true;
         } catch {
-            if (renderError) view.value = 'error';
+            if (renderError && !payload.value) view.value = 'error';
             return false;
         } finally {
             if (manageBusy) busy.value = false;

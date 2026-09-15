@@ -1,5 +1,5 @@
 <script setup>
-import { shallowRef, computed, watch, onBeforeUnmount } from 'vue';
+import { shallowRef, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import TestingRow from './TestingEnvironment/TestingRow.vue';
 import DeploySection from './TestingEnvironment/DeploySection.vue';
 import { DEFAULT_STRINGS, applyDeployBadge, decodeAndParseJSON, faviconEnv } from './TestingEnvironment/utils.js';
@@ -82,7 +82,19 @@ watch(
     { immediate: true }
 );
 
-onBeforeUnmount(() => syncDeployFavicon(false));
+onMounted(() => {
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+    document.documentElement.style.overflowAnchor = 'none';
+    document.body.style.overflowAnchor = 'none';
+});
+
+onBeforeUnmount(() => {
+    syncDeployFavicon(false);
+    document.documentElement.style.overflowAnchor = '';
+    document.body.style.overflowAnchor = '';
+});
 </script>
 
 <template>
@@ -91,20 +103,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
     :aria-busy="busy ? 'true' : 'false'"
   >
     <div
-      v-if="view === 'loading'"
-      class="testing-env__main"
-    >
-      <p
-        class="testing-env__blank"
-        role="status"
-        aria-live="polite"
-      >
-        {{ strings.loading }}
-      </p>
-    </div>
-
-    <div
-      v-else-if="view === 'error'"
+      v-if="view === 'error' && !prs.length"
       class="testing-env__main"
     >
       <div
@@ -122,13 +121,16 @@ onBeforeUnmount(() => syncDeployFavicon(false));
       </div>
     </div>
 
-    <div
-      v-else
-    >
+    <div v-else>
       <div class="testing-env__main">
         <header class="testing-env__bar">
           <h2 class="testing-env__title">
             {{ strings.title }}
+            <span
+              v-if="view === 'loading' || busy"
+              class="testing-env__spinner testing-env__spinner--small"
+              aria-hidden="true"
+            />
           </h2>
           <form
             v-if="isMaintainer"
@@ -215,6 +217,14 @@ onBeforeUnmount(() => syncDeployFavicon(false));
           </table>
         </div>
         <p
+          v-else-if="view === 'loading'"
+          class="testing-env__blank"
+          role="status"
+          aria-live="polite"
+        >
+          {{ strings.loading }}
+        </p>
+        <p
           v-else
           class="testing-env__blank"
         >
@@ -223,7 +233,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
       </div>
 
       <DeploySection
-        :payload="payload"
+        :payload="payload || {}"
         :now="now"
         :maintainer="isMaintainer"
         :strings="strings"
