@@ -19,6 +19,7 @@ from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
 from openlibrary.plugins.openlibrary.status import (
     TestingStatus,
     add_prs,
+    deploy_testing_status,
     load_testing_status_async,
     refresh_testing_status,
     remove_testing_prs,
@@ -96,3 +97,9 @@ def set_prs_active_endpoint(
 def refresh_status(_: MaintainerDep) -> dict[str, bool]:
     """Refresh testing-environment data from GitHub on the next read."""
     return refresh_testing_status()
+
+
+@router.post("/status/deploy")
+def deploy_status(_: MaintainerDep) -> dict[str, bool | str]:
+    """Deploy the staged testing-environment changes."""
+    return deploy_testing_status()

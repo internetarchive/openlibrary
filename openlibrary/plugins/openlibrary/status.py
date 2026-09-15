@@ -160,50 +160,44 @@ class status_pull_latest(delegate.page):
         return _json_ok()
 
 
-class status_deploy(delegate.page):
-    path = "/status/deploy"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        state = _load_testing_state()
-        if not state:
-            return _json_ok()
-        # Drop staged removals and merged/closed PRs on the *un-mutated* state;
-        # persist=False so the drift metadata refresh can never write staged
-        # changes before Jenkins accepts the build.
-        drift_info, _ = _get_drift_info(state, persist=False)
-        state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
-        # Apply all pending changes before deploying
-        for p in state.prs:
-            if p.pull_latest_sha:
-                p.commit = p.pull_latest_sha
-                p.pull_latest_sha = ""
-            if p.pending_active is not None:
-                p.active = p.pending_active
-                p.pending_active = None
-        # Nothing above is persisted until Jenkins accepts the build, so a failed
-        # trigger leaves every staged change intact and retryable.
-        outcome = trigger_rebuild(state.prs)
-        if outcome == "failed":
-            return _json_error("deploy_failed")
-        user = get_current_user()
-        state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
-        state.deployed_by = user.key.split("/")[-1] if user else ""
-        # What this build puts on the box: active PRs only, the same filter
-        # trigger_rebuild sends. Recorded so a later removal has a set to be
-        # missing from — nothing else survives one.
-        state.deployed = {p.pr: p.title for p in state.prs if p.active}
-        if outcome == "triggered":
-            state.deploy_started_at = state.last_deploy_at
-        _save_testing_state(state)
-        _evict_drift_cache()
-        # "unconfigured" (no Jenkins token, local dev) still advances state so
-        # the panel is exercisable, but the response says the box was never
-        # touched so the UI doesn't claim a real deploy happened.
-        if outcome == "triggered":
-            return _json_ok()
-        return _json_error("deploy_unconfigured")
+def deploy_testing_status() -> dict[str, bool | str]:
+    """Apply staged changes and trigger a testing deploy."""
+    state = _load_testing_state()
+    if not state:
+        return {"ok": True}
+    # Drop staged removals and merged/closed PRs on the unmutated state. The
+    # drift metadata refresh must not write staged changes before Jenkins
+    # accepts the build.
+    drift_info, _ = _get_drift_info(state, persist=False)
+    state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
+    # Apply all pending changes before deploying.
+    for p in state.prs:
+        if p.pull_latest_sha:
+            p.commit = p.pull_latest_sha
+            p.pull_latest_sha = ""
+        if p.pending_active is not None:
+            p.active = p.pending_active
+            p.pending_active = None
+    # Nothing above is persisted until Jenkins accepts the build, so a failed
+    # trigger leaves every staged change intact and retryable.
+    outcome = trigger_rebuild(state.prs)
+    if outcome == "failed":
+        return {"ok": False, "error": "deploy_failed"}
+    user = get_current_user()
+    state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
+    state.deployed_by = user.key.split("/")[-1] if user else ""
+    # Record only active PRs, matching the list sent to Jenkins. This lets a
+    # later removal tell which PRs actually reached the testing environment.
+    state.deployed = {p.pr: p.title for p in state.prs if p.active}
+    if outcome == "triggered":
+        state.deploy_started_at = state.last_deploy_at
+    _save_testing_state(state)
+    _evict_drift_cache()
+    if outcome == "triggered":
+        return {"ok": True}
+    # Local development and instances without Jenkins still advance state, but
+    # the response tells the UI that no real deploy happened.
+    return {"ok": False, "error": "deploy_unconfigured"}
 
 
 def refresh_testing_status() -> dict[str, bool]:

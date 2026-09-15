@@ -104,7 +104,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     async function deploy() {
         deploying.value = true;
         try {
-            await enqueue('/status/deploy', {});
+            await enqueue('/status/deploy', {}, 'action', true);
         } finally {
             deploying.value = false;
         }

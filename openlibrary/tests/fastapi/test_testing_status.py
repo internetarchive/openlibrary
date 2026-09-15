@@ -407,7 +407,7 @@ def test_deploy_drops_closed_prs():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        status_module.status_deploy().POST()
+        status_module.deploy_testing_status()
 
     assert state.prs == []
 
@@ -428,7 +428,7 @@ def test_deploy_drops_staged_removals():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        status_module.status_deploy().POST()
+        status_module.deploy_testing_status()
 
     assert [p.pr for p in state.prs] == [13238]
     assert state.deployed == {13238: survivor.title}
@@ -743,9 +743,9 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        response = status_module.status_deploy().POST()
+        response = status_module.deploy_testing_status()
 
-    assert json.loads(response["rawtext"]) == {"ok": False, "error": "deploy_unconfigured"}
+    assert response == {"ok": False, "error": "deploy_unconfigured"}
     # No build was accepted, so no deploy window starts…
     assert state.deploy_started_at == ""
     # …but the record advances so a dev can exercise the rest of the panel.
@@ -869,9 +869,9 @@ def test_deploy_failure_never_persists_staged_changes():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="failed"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        response = status_module.status_deploy().POST()
+        response = status_module.deploy_testing_status()
 
-    assert json.loads(response["rawtext"]) == {"ok": False, "error": "deploy_failed"}
+    assert response == {"ok": False, "error": "deploy_failed"}
     # The drift read is a read, not a commit: it must not persist.
     mock_drift.assert_called_once_with(state, persist=False)
     mock_save.assert_not_called()
@@ -897,9 +897,9 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        response = status_module.status_deploy().POST()
+        response = status_module.deploy_testing_status()
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert response == {"ok": True}
     # Pin applied and consumed.
     assert pinned.commit == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
     assert pinned.pull_latest_sha == ""
@@ -928,7 +928,7 @@ def test_deploy_records_who_clicked_it():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=user),
     ):
-        status_module.status_deploy().POST()
+        status_module.deploy_testing_status()
 
     assert state.deployed_by == "mecha-kraken"
 
@@ -1495,6 +1495,22 @@ def test_refresh_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.refresh_testing_status", return_value={"ok": True}) as mock:
         response = fastapi_client.post("/status/refresh", json={})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with()
+
+
+def test_deploy_status_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/deploy", json={})
+
+    assert response.status_code == 401
+
+
+def test_deploy_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.deploy_testing_status", return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/deploy", json={})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
