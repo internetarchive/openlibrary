@@ -681,7 +681,8 @@ def test_restore_clears_a_staged_removal():
     mock_save.assert_called_once_with(state)
 
 
-def test_pull_latest_stages_the_new_head_sha():
+@pytest.mark.asyncio
+async def test_pull_latest_stages_the_new_head_sha():
     pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
     state = _make_state(prs=[pr])
     info = _gh_info(pr.pr).model_copy(update={"head_sha": "f" * 40})
@@ -689,10 +690,10 @@ def test_pull_latest_stages_the_new_head_sha():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=info),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        response = status_module.pull_latest_prs([pr.pr])
+        response = await status_module.pull_latest_prs([pr.pr])
 
     assert response == {"ok": True}
     assert pr.pull_latest_sha == "f" * 40
@@ -703,7 +704,8 @@ def test_pull_latest_stages_the_new_head_sha():
     "error",
     [status_module.PRNotFoundError("gone"), status_module.GitHubUnavailableError("rate limited")],
 )
-def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
+@pytest.mark.asyncio
+async def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
     """A GitHub failure leaves the row alone and still answers ok.
 
     Regression guard: ``_get_pr_info`` used to signal failure with an empty
@@ -716,10 +718,10 @@ def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", side_effect=error),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, side_effect=error),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
     ):
-        response = status_module.pull_latest_prs([pr.pr])
+        response = await status_module.pull_latest_prs([pr.pr])
 
     assert response == {"ok": True}
     assert pr.pull_latest_sha == ""

@@ -134,20 +134,23 @@ def set_prs_active(prs: list[int], active: bool) -> dict[str, bool]:
     return {"ok": True}
 
 
-def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
+async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
     """Stage the latest GitHub commit for PRs in the testing set."""
     state = _load_testing_state()
     if not state:
         return {"ok": True}
     requested = set(prs)
-    for p in state.prs:
-        if p.pr in requested:
-            try:
-                info = _get_pr_info(p.pr)
-            except GitHubAPIError:
-                continue
-            if info.head_sha and info.head_sha != p.commit:
-                p.pull_latest_sha = info.head_sha
+    selected = [p for p in state.prs if p.pr in requested]
+
+    async def get_info(pr: TestingPR) -> tuple[TestingPR, GitHubPRInfo | None]:
+        try:
+            return pr, await _get_pr_info_async(pr.pr)
+        except GitHubAPIError:
+            return pr, None
+
+    for pr, info in await asyncio.gather(*(get_info(pr) for pr in selected)):
+        if info and info.head_sha and info.head_sha != pr.commit:
+            pr.pull_latest_sha = info.head_sha
     _save_testing_state(state)
     return {"ok": True}
 

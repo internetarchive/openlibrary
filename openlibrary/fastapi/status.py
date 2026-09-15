@@ -86,12 +86,12 @@ def remove_prs(
 
 
 @router.post("/status/pull-latest")
-def pull_latest(
+async def pull_latest(
     _: MaintainerDep,
     data: PRsRequest,
 ) -> dict[str, bool]:
     """Stage the latest GitHub commit for PRs in the testing set."""
-    return pull_latest_prs(data.prs)
+    return await pull_latest_prs(data.prs)
 
 
 @router.patch("/status/testing/prs")
