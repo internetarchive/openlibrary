@@ -24,9 +24,9 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
     }
 
-    async function executeAction(action, fields, useJson = false) {
+    async function executeAction(action, fields, useJson = false, method = 'POST') {
         try {
-            const result = await postAction(action, fields, useJson);
+            const result = await postAction(action, fields, useJson, method);
             await loadStatus(false, false, false);
             // A business failure ({"ok": false, "error": "<code>"}) is a
             // completed request, not a thrown fetch — say why instead of
@@ -49,7 +49,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         try {
             while (queue.length) {
                 const item = queue.shift();
-                const result = await executeAction(item.action, item.fields, item.useJson);
+                const result = await executeAction(item.action, item.fields, item.useJson, item.method);
                 item.waiters.forEach(({ resolve }) => resolve(result));
             }
         } finally {
@@ -63,14 +63,14 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
      * pull-latest actions share one request; deploy and other actions remain
      * ordered queue barriers.
      */
-    function enqueue(action, fields, kind = 'action', useJson = false) {
+    function enqueue(action, fields, kind = 'action', useJson = false, method = 'POST') {
         const waiter = new Promise((resolve) => {
             const last = queue[queue.length - 1];
             if (kind === 'pull-latest' && last?.kind === kind) {
                 last.fields.prs.push(...fields.prs);
                 last.waiters.push({ resolve });
             } else {
-                queue.push({ action, fields, kind, useJson, waiters: [{ resolve }] });
+                queue.push({ action, fields, kind, useJson, method, waiters: [{ resolve }] });
             }
         });
         drainQueue();
@@ -82,7 +82,8 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
             '/status/testing/prs',
             { prs: [pr.pr], active: !effectiveActive(pr) },
             'action',
-            true
+            true,
+            'PATCH'
         );
     }
 

@@ -68,6 +68,18 @@ describe('Testing Environment utils', () => {
         );
     });
 
+    test('patches status activation as JSON', async() => {
+        const body = { ok: true };
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
+
+        await expect(postAction('/status/testing/prs', { prs: [13269], active: false }, true, 'PATCH')).resolves.toBe(body);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/status/testing/prs',
+            expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ prs: [13269], active: false }) })
+        );
+    });
+
     test('posts add actions as JSON', async() => {
         const body = { ok: true };
         global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
