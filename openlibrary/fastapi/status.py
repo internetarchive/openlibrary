@@ -11,10 +11,10 @@ import asyncio
 import os
 from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
+from openlibrary.fastapi.auth import AuthenticatedUser, require_maintainer
 from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
 from openlibrary.plugins.openlibrary.status import (
     TestingStatus,
@@ -29,7 +29,11 @@ from openlibrary.plugins.openlibrary.status import (
 )
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
-router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
+router = APIRouter(
+    tags=["status"],
+    dependencies=[Depends(require_maintainer)],
+    include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
+)
 
 
 class PRsRequest(BaseModel):
@@ -45,7 +49,7 @@ class ActivePRsRequest(PRsRequest):
     response_model=TestingStatus,
     description="Returns the current status of the testing environment (PRs pinned for testing deploys).",
 )
-async def testing_status(_: MaintainerDep) -> TestingStatus:
+async def testing_status() -> TestingStatus:
     """Return the testing environment status backing the /status deploy table.
 
     The GitHub drift fetch and the Jenkins fetch run concurrently. The latest
@@ -70,7 +74,7 @@ async def testing_status(_: MaintainerDep) -> TestingStatus:
 
 @router.post("/status/add")
 async def add_prs_endpoint(
-    user: MaintainerDep,
+    user: Annotated[AuthenticatedUser, Depends(require_maintainer)],
     data: PRsRequest,
 ) -> dict[str, Any]:
     """Add PRs to the testing set."""
@@ -79,7 +83,6 @@ async def add_prs_endpoint(
 
 @router.post("/status/remove")
 def remove_prs(
-    _: MaintainerDep,
     data: PRsRequest,
 ) -> dict[str, Any]:
     """Remove PRs from the testing environment state."""
@@ -87,14 +90,13 @@ def remove_prs(
 
 
 @router.post("/status/restore")
-def restore_status(_: MaintainerDep, data: PRsRequest) -> dict[str, bool]:
+def restore_status(data: PRsRequest) -> dict[str, bool]:
     """Restore PRs with staged removals."""
     return restore_prs(data.prs)
 
 
 @router.post("/status/pull-latest")
 async def pull_latest(
-    _: MaintainerDep,
     data: PRsRequest,
 ) -> dict[str, bool]:
     """Stage the latest GitHub commit for PRs in the testing set."""
@@ -103,7 +105,6 @@ async def pull_latest(
 
 @router.patch("/status/testing/prs")
 def set_prs_active_endpoint(
-    _: MaintainerDep,
     data: ActivePRsRequest,
 ) -> dict[str, Any]:
     """Stage PRs to be enabled or disabled on the next testing deploy."""
@@ -111,12 +112,12 @@ def set_prs_active_endpoint(
 
 
 @router.post("/status/refresh")
-def refresh_status(_: MaintainerDep) -> dict[str, bool]:
+def refresh_status() -> dict[str, bool]:
     """Refresh testing-environment data from GitHub on the next read."""
     return refresh_testing_status()
 
 
 @router.post("/status/deploy")
-def deploy_status(_: MaintainerDep) -> dict[str, bool | str]:
+def deploy_status() -> dict[str, bool | str]:
     """Deploy the staged testing-environment changes."""
     return deploy_testing_status()
