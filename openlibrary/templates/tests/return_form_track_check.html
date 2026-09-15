@@ -1,0 +1,9 @@
+$def with (analytics_track)
+$# Test-only fixture. Drives macros/ReturnForm.html's `analytics_track`
+$# parameter end-to-end so its data-ol-link-track attribute construction can be
+$# checked. The real call sites (account/loans.html, macros/LoanStatus.html)
+$# only pass hardcoded literals, so there's no top-level parameter to drive an
+$# injection test through them directly -- same situation as
+$# tests/icon_link_pattern_check.html.
+$# See openlibrary/tests/test_link_track_attribute_escaping.py.
+$:macros.ReturnForm("OCAID1", None, analytics_track=analytics_track)

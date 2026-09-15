@@ -127,10 +127,22 @@ async function waitUntil(predicate, sleep = 100, maxSleep = 2000) {
 export default {
     components: { BooksCarousel },
     props: {
-        query: String,
-        node: Object,
-        fetchCoordinator: Object,
+        query: {
+            type: String,
+            required: true
+        },
+        node: {
+            type: Object,
+            default: () => ({
+                requests: {}
+            })
+        },
+        fetchCoordinator: {
+            type: Object,
+            default: null
+        },
         sort: {
+            type: String,
             default: 'editions',
         },
         limit: {
@@ -257,11 +269,13 @@ export default {
             const url = `${CONFIGS.OL_BASE_SEARCH}/search.json?${params.toString()}`;
 
             this.status = 'Loading';
-            const fetch = this.fetchCoordinator ?
+            // Shadowing `fetch` with a const of the same name would put the
+            // fallback on the right in the temporal dead zone — name it.
+            const doFetch = this.fetchCoordinator ?
                 this.fetchCoordinator.fetch.bind(this.fetchCoordinator, { priority: () => 10 + this.intersectionRatio, name: this.query }) :
                 fetch;
             try {
-                const r = await fetch(url, {
+                const r = await doFetch(url, {
                     cache,
                     signal: this.lastFetchAbortController?.signal,
                 }).then(r => r.json());

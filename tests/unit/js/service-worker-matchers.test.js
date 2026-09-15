@@ -46,7 +46,7 @@ describe('URL Matchers', () => {
     describe('matchStaticImages', () => {
         test('matches static images', () => {
             expect(matchStaticImages(_u('https://openlibrary.org/static/images/down-arrow.png'))).toBe(true);
-            expect(matchStaticImages(_u('https://testing.openlibrary.org/static/images/icons/barcode_scanner.svg'))).toBe(true);
+            expect(matchStaticImages(_u('https://testing.openlibrary.org/static/images/icons/open-book.svg'))).toBe(true);
         });
 
         test('does not match other URLs', () => {

@@ -153,17 +153,30 @@ export default {
     },
     props: {
         /** @type {import('../utils.js').ClassificationTree} */
-        classification: Object,
-        appSettings: Object,
+        classification: {
+            type: Object,
+            required: true
+        },
+        appSettings: {
+            type: Object,
+            required: true
+        },
 
         /** The classification to jump to @example 658.91500202854 */
-        jumpTo: String,
-        sort: String,
+        jumpTo: {
+            type: String,
+            default: ''
+        },
+        sort: {
+            type: String,
+            default: ''
+        },
         filter: {
             default: '',
             type: String
         },
         features: {
+            type: Object,
             default: () => ({
                 book3d: true,
                 cover: 'image',
@@ -317,11 +330,19 @@ button {
   margin-bottom: 40px;
 }
 
+/* Seal the room's internal layering (books, shelves, signs) off from the
+   page. The toolbar outside still paints above everything in the room —
+   the whole isolated room sits at `auto` beneath its `fixed`. */
+.book-room {
+  isolation: isolate;
+}
+
 .lr-signs {
   position: sticky;
   top: 10px;
   pointer-events: none;
-  z-index: 10;
+  /* Above the shelves and books (local-1) inside the isolated room. */
+  z-index: var(--z-index-local-2);
   display: flex;
 }
 @media (max-width: 450px) {

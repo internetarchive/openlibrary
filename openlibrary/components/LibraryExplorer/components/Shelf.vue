@@ -194,16 +194,44 @@ export default {
     },
     props: {
         /** @type {import('../utils').ClassificationNode} */
-        node: Object,
-        parent: Object,
+        node: {
+            type: Object,
+            required: true
+        },
+        parent: {
+            type: Object,
+            required: true
+        },
 
-        labels: Array,
+        labels: {
+            type: Array,
+            default: () => []
+        },
         /** @type {import('../utils').ClassificationTree} */
-        classification: Object,
-        expandBookshelf: Function,
-        features: Object,
-        filter: String,
-        sort: String,
+        classification: {
+            type: Object,
+            required: true
+        },
+        expandBookshelf: {
+            type: Function,
+            required: true
+        },
+        features: {
+            type: Object,
+            default: () => ({
+                book3d: true,
+                cover: 'image',
+                shelfLabel: 'slider',
+            })
+        },
+        filter: {
+            type: String,
+            default: ''
+        },
+        sort: {
+            type: String,
+            default: ''
+        },
     },
 
     data() {
@@ -225,13 +253,13 @@ export default {
   contain: strict;
 }
 
-.shelf >>> .book {
+.shelf :deep(.book) {
   justify-content: flex-end;
   margin-bottom: 10px;
 }
 
-.shelf >>> .book:first-child .book-3d,
-.shelf >>> .book-end-start + .book .book-3d {
+.shelf :deep(.book:first-child .book-3d),
+.shelf :deep(.book-end-start + .book .book-3d) {
   margin-left: 20px;
 }
 

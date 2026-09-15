@@ -11,7 +11,7 @@
   margin: 0 auto;
   background-color: var(--white);
   border-radius: 5px;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
   z-index: var(--z-index-level-1);
   position: relative;
 }

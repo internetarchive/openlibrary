@@ -11,5 +11,11 @@ $if ocaid:
       data-iframe-link="https://archive.org/details/$ocaid"
       data-ol-link-track="CTAClick|Preview">$(_('Preview Only') if show_only else _('Preview'))</a>
   </div>
+$else:
+  <div class="cta-button-group">
+    <span class="cta-btn cta-btn--no-preview">
+      $_("No Preview")
+    </span>
+  </div>
 
 $:macros.BookPreviewFloater()

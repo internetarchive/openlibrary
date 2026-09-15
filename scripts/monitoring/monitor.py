@@ -5,16 +5,16 @@ Defines various monitoring jobs, that check the health of the system.
 
 import asyncio
 import os
-import re
 import time
 
 import httpx
 
-from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts
+from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts, get_jail_list
 from scripts.monitoring.solr_updater_monitor import get_solr_updater_lag_event
 from scripts.monitoring.utils import (
     GraphiteEvent,
     bash_run,
+    graphite_safe,
     limit_server,
 )
 from scripts.utils.scheduler import OlAsyncIOScheduler
@@ -99,17 +99,6 @@ async def monitor_solr():
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 async def monitor_partner_useragents():
-
-    def graphite_safe(s: str) -> str:
-        """Normalize a string for safe use as a Graphite metric name."""
-        # Replace dots and spaces with underscores
-        s = s.replace(".", "_").replace(" ", "_")
-        # Remove or replace unsafe characters
-        s = re.sub(r"[^A-Za-z0-9_-]+", "_", s)
-        # Collapse multiple underscores
-        s = re.sub(r"_+", "_", s)
-        # Strip leading/trailing underscores or dots
-        return s.strip("._")
 
     def extract_agent_counts(ua_counts, allowed_names=None):
         agent_counts = {}
@@ -250,24 +239,27 @@ async def monitor_empty_homepage():
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 def monitor_fail2ban():
-    """Logs fail2ban nginx-429 jail stats (currently failed and banned counts)."""
-    failed, banned = get_fail2ban_counts("nginx-429")
+    """Logs fail2ban jail stats (currently failed and banned counts) for every configured jail."""
     ts = int(time.time())
-    GraphiteEvent.submit_many(
-        [
+    events = []
+    for jail in get_jail_list():
+        failed, banned = get_fail2ban_counts(jail)
+        jail_bucket = graphite_safe(jail)
+        events.append(
             GraphiteEvent(
-                path="stats.ol.fail2ban.nginx-429.failed",
+                path=f"stats.ol.fail2ban.{jail_bucket}.failed",
                 value=float(failed),
                 timestamp=ts,
-            ),
+            )
+        )
+        events.append(
             GraphiteEvent(
-                path="stats.ol.fail2ban.nginx-429.banned",
+                path=f"stats.ol.fail2ban.{jail_bucket}.banned",
                 value=float(banned),
                 timestamp=ts,
-            ),
-        ],
-        GRAPHITE_URL,
-    )
+            )
+        )
+    GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
 @limit_server(["ol-home0"], scheduler)

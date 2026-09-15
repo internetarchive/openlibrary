@@ -2,6 +2,8 @@ import { LitElement, html, css, nothing } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import './OlIcon.js';
+import './OlTooltip.js';
 
 /**
  * OlSegmentedControl - A single-select control styled like ol-button.
@@ -12,8 +14,8 @@ import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
  *
  * Options are declared as light-DOM <ol-segment> children carrying a `value`
  * attribute; their content is the label — plain text, or markup such as an
- * <svg> icon. Icon-only segments must add a `label` attribute to name the radio
- * (used as the aria-label and a hover title). Children are read once on connect
+ * <ol-icon>. Icon-only segments must add a `label` attribute to name the radio
+ * (used as the aria-label and a hover tooltip). Children are read once on connect
  * and re-rendered as accessible radios in the shadow root, so the control needs
  * no per-option wiring from the consuming page.
  *
@@ -43,8 +45,8 @@ import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
  *
  * @example
  *   <ol-segmented-control value="grid" accessible-label="View">
- *     <ol-segment value="grid" label="Grid"><svg ...></svg></ol-segment>
- *     <ol-segment value="list" label="List"><svg ...></svg></ol-segment>
+ *     <ol-segment value="grid" label="Grid"><ol-icon name="layout-grid"></ol-icon></ol-segment>
+ *     <ol-segment value="list" label="List"><ol-icon name="list"></ol-icon></ol-segment>
  *   </ol-segmented-control>
  */
 export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
@@ -62,7 +64,10 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             display: inline-flex;
             vertical-align: middle;
 
-            --pill-radius: var(--border-radius-button);
+            /* Concentric with the track: the pill sits one --spacing-3xs inside
+               it, so its radius has to shed that inset or it reads rounder than
+               the corner containing it. */
+            --pill-radius: calc(var(--border-radius-button) - var(--spacing-3xs));
 
             /* A crisp ease-out (no overshoot) for the slide — the pill should
                feel like it snaps to the new segment, not bounce. */
@@ -75,7 +80,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             width: 100%;
         }
 
-        :host([disabled]) {
+        :host(:disabled) {
             opacity: 0.55;
             cursor: not-allowed;
         }
@@ -119,7 +124,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
            the track's content height — its segments fill that via height: 100%. */
         .layer--base {
             position: relative;
-            z-index: 1;
+            z-index: var(--z-index-local-2);
             height: 100%;
         }
 
@@ -129,7 +134,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
         .layer--active {
             position: absolute;
-            z-index: 2;
+            z-index: var(--z-index-local-3);
             inset: var(--spacing-3xs);
             display: flex;
             pointer-events: none;
@@ -141,10 +146,10 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
         /* The selected segment's text. Doubled class (.segment.segment--ghost)
            so this beats the later, equal-specificity ".segment" color rule —
-           otherwise the cascade resolves the ghost to --accessible-grey and the
+           otherwise the cascade resolves the ghost to --color-text-muted and the
            selected segment looks dimmed instead of full-strength #333. */
         .segment.segment--ghost {
-            color: var(--dark-grey);
+            color: var(--color-text);
         }
 
         /* The sliding white pill — carries the raised look the selected segment
@@ -152,7 +157,12 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
            segment; its shadow can't be clipped, hence its own element. */
         .pill {
             position: absolute;
-            z-index: 0;
+            z-index: var(--z-index-local-1);
+            /* border-box so _measure()'s width — a segment's border-box width —
+               isn't widened by this element's own border. Without it the pill
+               overhangs its segment by 2px, swallowing the track's right
+               padding on the last segment. */
+            box-sizing: border-box;
             top: var(--spacing-3xs);
             bottom: var(--spacing-3xs);
             left: var(--spacing-3xs);
@@ -186,6 +196,13 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             transition: clip-path var(--slide-duration) var(--slide-ease);
         }
 
+        /* The tooltip wrapper around an icon segment must generate no box: the
+           button has to stay a direct flex item of .layer--base so full-width
+           sizing and _measure()'s rects match the ghost layer exactly. */
+        ol-tooltip {
+            display: contents;
+        }
+
         .segment {
             display: inline-flex;
             align-items: center;
@@ -200,7 +217,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             background-color: transparent;
             /* Non-selected segments are dimmed so the selected one reads as
                active; hover and the selected pill darken back to full strength. */
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
             line-height: var(--line-height-control);
@@ -221,7 +238,9 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         }
 
         /* Icon segments: size the glyph to the control and let it inherit the
-           segment's color so it tracks selected/hover states like text does. */
+           segment's color so it tracks selected/hover states like text does.
+           An outer-tree rule beats <ol-icon>'s own :host size, so this wins. */
+        .segment ol-icon,
         .segment svg {
             display: block;
             width: 18px;
@@ -230,12 +249,12 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
         @media (hover: hover) and (pointer: fine) {
             .segment:not([aria-checked="true"]):not(:disabled):hover {
-                color: var(--dark-grey);
+                color: var(--color-text);
             }
         }
 
         .segment:active:not(:disabled) {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         /* The selected segment's raised-white-pill look now lives on the
@@ -263,6 +282,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             font-size: var(--font-size-label-medium);
         }
 
+        :host([size="small"]) .segment ol-icon,
         :host([size="small"]) .segment svg {
             width: 16px;
             height: 16px;
@@ -277,6 +297,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             font-size: var(--font-size-body-large);
         }
 
+        :host([size="large"]) .segment ol-icon,
         :host([size="large"]) .segment svg {
             width: 20px;
             height: 20px;
@@ -367,8 +388,13 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         }
     }
 
-    firstUpdated() {
+    async firstUpdated() {
         this._track = this.renderRoot.querySelector('.track');
+        // Icon segments are slotted into an <ol-tooltip>, which renders its own
+        // <slot> a microtask later; until it does, those buttons have no box and
+        // would measure as zero-width. Wait for them before sizing the pill.
+        const tooltips = Array.from(this.renderRoot.querySelectorAll('ol-tooltip'));
+        await Promise.all(tooltips.map((t) => t.updateComplete));
         // Place the pill/active layer, reveal them, then enable transitions one
         // frame later so the first placement doesn't animate from the origin.
         this._measure();
@@ -490,21 +516,27 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
     _renderSegment(option, i, activeIndex) {
         const checked = option.value === this.value;
-        // Icon-only segments have no visible text, so name them with aria-label
-        // and surface the same name as a hover title.
+        // Icon-only segments have no visible text, so name them with aria-label.
         const labelAttr = option.isMarkup ? option.accessibleLabel : nothing;
-        return html`
+        const button = html`
             <button
                 class="segment"
                 type="button"
                 role="radio"
                 aria-checked=${checked ? 'true' : 'false'}
                 aria-label=${labelAttr}
-                title=${labelAttr}
                 tabindex=${i === activeIndex ? '0' : '-1'}
-                ?disabled=${this.disabled || option.disabled}
+                ?disabled=${this.isDisabled || option.disabled}
                 @click=${() => this._select(option.value)}
             >${option.isMarkup ? unsafeHTML(option.content) : option.content}</button>
+        `;
+        // An icon alone doesn't say what it does, so repeat its name in a
+        // tooltip. Below the control: these sit in toolbars where the space
+        // above usually belongs to another row.
+        if (!option.isMarkup || !option.accessibleLabel) return button;
+        return html`
+            <ol-tooltip content=${option.accessibleLabel} placement="bottom"
+            >${button}</ol-tooltip>
         `;
     }
 }

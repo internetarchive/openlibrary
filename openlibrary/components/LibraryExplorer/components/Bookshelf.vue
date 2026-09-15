@@ -25,13 +25,38 @@ export default {
     },
 
     props: {
-        classification: Object,
-        node: Object,
-        expandBookshelf: Function,
-        labels: Array,
-        features: Object,
-        filter: String,
-        sort: String,
+        classification: {
+            type: Object,
+            required: true
+        },
+        node: {
+            type: Object,
+            required: true
+        },
+        expandBookshelf: {
+            type: Function,
+            required: true
+        },
+        labels: {
+            type: Array,
+            default: () => []
+        },
+        features: {
+            type: Object,
+            default: () => ({
+                book3d: true,
+                cover: 'image',
+                shelfLabel: 'slider',
+            })
+        },
+        filter: {
+            type: String,
+            default: ''
+        },
+        sort: {
+            type: String,
+            default: ''
+        },
     },
 
 };
@@ -54,7 +79,7 @@ export default {
   border-radius: 4px;
   background: black;
   flex-shrink: 0;
-  z-index: 1;
+  z-index: var(--z-index-local-1);
   animation: bookshelf-appear .2s;
 
   transition-property: transform, opacity, filter;

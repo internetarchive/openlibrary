@@ -1,0 +1,104 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Default", "Above 8 items a filter input renders automatically. Selected items move to a SELECTED group on next open.",
+        code='<ol-select-popover\n  label="Language"\n  placeholder="Filter languages…"\n  unselected-heading="LANGUAGES"\n  items=\'[{"value":"en","label":"English"}, ...]\'>\n  <ol-button slot="trigger">Language</ol-button>\n</ol-select-popover>') %}
+        <ol-select-popover id="demo-select-langs" label="Language" placeholder="Filter languages…" unselected-heading="LANGUAGES" aria-label="Language filter">
+            <ol-button slot="trigger">
+                Language
+            </ol-button>
+        </ol-select-popover>
+        <p>Selected: <strong id="demo-select-langs-out">(none)</strong></p>
+        <script>
+            (function () {
+                const el = document.getElementById('demo-select-langs');
+                const out = document.getElementById('demo-select-langs-out');
+                el.items = [
+                    { value: 'en', label: 'English' }, { value: 'es', label: 'Spanish' },
+                    { value: 'fr', label: 'French' }, { value: 'de', label: 'German' },
+                    { value: 'it', label: 'Italian' }, { value: 'pt', label: 'Portuguese' },
+                    { value: 'zh', label: 'Chinese' }, { value: 'ja', label: 'Japanese' },
+                    { value: 'ru', label: 'Russian' }, { value: 'ar', label: 'Arabic' },
+                    { value: 'hi', label: 'Hindi' }, { value: 'ko', label: 'Korean' }
+                ];
+                el.addEventListener('ol-select-popover-change', (e) => {
+                    out.textContent = e.detail.selected.length === 0 ? '(none)' : e.detail.selected.join(', ');
+                });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Small list, no search", "At 8 items or fewer the filter input is hidden. Override with search-threshold — 0 always shows it, a large value always hides it.") %}
+        <ol-select-popover id="demo-select-layout" label="Layout" unselected-heading="LAYOUTS" aria-label="Layout filter">
+            <ol-button slot="trigger">
+                Layout
+            </ol-button>
+        </ol-select-popover>
+        <script>
+            document.getElementById('demo-select-layout').items = [
+                { value: 'grid', label: 'Grid' }, { value: 'list', label: 'List' }, { value: 'compact', label: 'Compact' }
+            ];
+        </script>
+    {% endcall %}
+    {% call ex.example("Custom trigger", "Any element with slot=\"trigger\" works; the component handles open/close and ARIA wiring.") %}
+        <ol-select-popover id="demo-select-custom" label="Genre" unselected-heading="GENRES" aria-label="Genre filter">
+            <a slot="trigger"
+               href="#"
+               role="button"
+               class="ds-demo-link-trigger"
+               onclick="event.preventDefault();">Pick a genre</a>
+        </ol-select-popover>
+        <script>
+            document.getElementById('demo-select-custom').items = [
+                { value: 'fic', label: 'Fiction' }, { value: 'nf', label: 'Non-fiction' },
+                { value: 'sci', label: 'Science' }, { value: 'his', label: 'History' },
+                { value: 'bio', label: 'Biography' }
+            ];
+        </script>
+    {% endcall %}
+    {% call ex.example("Paired with a chip group", "Selections render as chips next to the trigger. Clicking a chip's close icon removes that selection from the popover. Keep the chip group derived from the popover rather than giving it its own state, so there is one place to read the current selection.") %}
+        <div class="ds-demo-row">
+            <ol-select-popover id="demo-select-chips" label="Language" placeholder="Filter languages…" unselected-heading="LANGUAGES" aria-label="Language filter">
+                <ol-button slot="trigger">
+                    Language
+                </ol-button>
+            </ol-select-popover>
+            <ol-chip-group id="demo-select-chips-group" gap="small">
+            </ol-chip-group>
+        </div>
+        <script>
+            (function () {
+                const popover = document.getElementById('demo-select-chips');
+                const chipGroup = document.getElementById('demo-select-chips-group');
+                const items = [
+                    { value: 'en', label: 'English' }, { value: 'es', label: 'Spanish' },
+                    { value: 'fr', label: 'French' }, { value: 'de', label: 'German' },
+                    { value: 'it', label: 'Italian' }, { value: 'pt', label: 'Portuguese' },
+                    { value: 'zh', label: 'Chinese' }, { value: 'ja', label: 'Japanese' },
+                    { value: 'ru', label: 'Russian' }
+                ];
+                popover.items = items;
+                const labelByValue = Object.fromEntries(items.map((item) => [item.value, item.label]));
+
+                function renderChips(selected) {
+                    chipGroup.innerHTML = '';
+                    selected.forEach((value) => {
+                        const chip = document.createElement('ol-chip');
+                        chip.setAttribute('selected', '');
+                        chip.setAttribute('size', 'small');
+                        chip.dataset.value = value;
+                        chip.textContent = labelByValue[value] || value;
+                        chipGroup.appendChild(chip);
+                    });
+                }
+
+                popover.addEventListener('ol-select-popover-change', (e) => renderChips(e.detail.selected));
+                // A selected chip's close icon fires ol-chip-select with detail.selected false.
+                chipGroup.addEventListener('ol-chip-select', (e) => {
+                    if (e.detail.selected !== false) return;
+                    const next = (popover.selected || []).filter((value) => value !== e.target.dataset.value);
+                    popover.selected = next;
+                    renderChips(next);
+                });
+            })();
+        </script>
+    {% endcall %}
+{% endmacro %}

@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from unittest.mock import MagicMock, patch
-
-import pytest
-import web as web_mod
 
 from infogami.infobase.client import ClientException
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
-from openlibrary.plugins.openlibrary.api import link_ia_ol as legacy_link
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 
@@ -152,65 +147,3 @@ class TestLinkIAOL:
         )
         assert resp.status_code == 500
         assert resp.json()["detail"] == "Save failed"
-
-    def test_response_matches_legacy(self, fastapi_client):
-        msg = "ocaid123|OL123M|9999999999"
-        form_data = {"digest": "d", "msg": msg}
-
-        legacy_edition = MagicMock()
-        legacy_edition.dict.return_value = {
-            "key": "/books/OL123M",
-            "title": "Test Edition",
-        }
-        legacy_site = MagicMock()
-        legacy_site.get.return_value = legacy_edition
-
-        fastapi_edition = MagicMock()
-        fastapi_edition.dict.return_value = {
-            "key": "/books/OL123M",
-            "title": "Test Edition",
-        }
-        fastapi_site = MagicMock()
-        fastapi_site.get.return_value = fastapi_edition
-
-        _site_token = site.set(MagicMock())
-        _req_token = req_context.set(
-            RequestContextVars(
-                x_forwarded_for=None,
-                user_agent=None,
-                lang="en",
-                solr_editions=True,
-                print_disabled=False,
-            )
-        )
-        try:
-            # Minimal web.py request context for the legacy handler
-            web_mod.ctx.site = legacy_site
-            web_mod.ctx.ip = "127.0.0.1"
-            web_mod.ctx.env = {
-                "REQUEST_METHOD": "GET",
-                "QUERY_STRING": f"digest={form_data['digest']}&msg={form_data['msg']}",
-            }
-
-            with (
-                patch("openlibrary.plugins.openlibrary.api.HMACToken.verify", return_value=True),
-                patch("openlibrary.plugins.openlibrary.api.accounts.RunAs"),
-                patch("openlibrary.fastapi.link.HMACToken.verify", return_value=True),
-                patch("openlibrary.fastapi.link.accounts.RunAs"),
-                pytest.deprecated_call(match="migrated to fastapi"),
-            ):
-                legacy_resp = json.loads(legacy_link().POST()["rawtext"])
-
-                site.set(fastapi_site)
-                fastapi_resp = fastapi_client.post("/api/link", data=form_data)
-        finally:
-            site.reset(_site_token)
-            req_context.reset(_req_token)
-
-        assert fastapi_resp.status_code == 200
-        assert fastapi_resp.json() == legacy_resp
-        fastapi_site.save.assert_called_once_with(
-            legacy_site.save.call_args[0][0],
-            legacy_site.save.call_args[0][1],
-            action=legacy_site.save.call_args[1]["action"],
-        )

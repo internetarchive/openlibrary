@@ -91,7 +91,7 @@
   color: var(--black);
 }
 .fsi__book-title a:hover {
-  color: var(--header-nav-hover-color);
+  color: var(--color-link);
 }
 .fsi__book-author {
   line-height: 1.2em;

@@ -1,5 +1,5 @@
 name: pr_update_labeler
-on:
+on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
   pull_request_target:
     types:
       - synchronize
@@ -13,7 +13,9 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/labeler@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/labeler@b8dd2d9be0f68b860e7dae5dae7d772984eacd6d # v6.2.0
         with:
           sync-labels: true

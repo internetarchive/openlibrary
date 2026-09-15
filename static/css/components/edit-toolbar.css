@@ -9,13 +9,15 @@ div#editHistory {
   width: auto;
 }
 
+/* The Edit control carries its own button padding, so all this needs is the
+   inline gap separating it from the edit info beside it. */
 div.editButton {
   width: auto;
   display: inline-block;
+  padding-left: var(--spacing-inline-md);
 }
 
 div#editInfo {
-  float: right;
   white-space: normal;
   text-align: right;
 }
@@ -27,11 +29,12 @@ div#editInfo > div {
   font-family: var(--font-family-body);
 }
 
-div#editInfo .smallest {
-  padding-top: var(--spacing-inset-xs);
-}
-
+/* Flex at every width, not just tablet-up: under the old float layout the
+   button landed on the opposite side below 768px. */
 div#editTools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   white-space: nowrap;
   padding: 0 0 var(--spacing-inset-md);
 }

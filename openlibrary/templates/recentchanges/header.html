@@ -12,7 +12,7 @@ $ label = label or change.kind.replace("_", " ").replace("-", " ").title()
         </div>
         <div class="smallest gray sansserif">$datestr(change.timestamp)</div>
     </div>
-    $if change.can_undo() and "undo" in ctx.features:
+    $if change.can_undo() and ctx.user and ctx.user.is_super_librarian_or_higher():
         <div class="editButton">
             <form id="undo-form" method="POST">
                 <button class="linkButton" name="#" accesskey="u" id="undo-button" type="submit">$_("Undo All")</button>

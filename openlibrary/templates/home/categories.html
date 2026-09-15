@@ -1,7 +1,6 @@
-$def with (test=False)
+$def with (featured_subjects)
 
-$ subjects = get_cached_featured_subjects() if not test else []
-$if subjects:
+$if featured_subjects:
   <div class="carousel-section">
     <div class="carousel-section-header">
       <h2 class="home-h2"><a href="/subjects">$_('Browse by Subject')</a></h2>
@@ -9,7 +8,7 @@ $if subjects:
     <div class="carousel-container">
       <div class="carousel carousel--progressively-enhanced"
         data-config="$json_encode({'carouselKey': 'categories', 'booksPerBreakpoint': [6, 5, 4, 3, 2, 2]})">
-        $for subject in subjects:
+        $for subject in featured_subjects:
           $ presentable_subject_name = subject['presentable_name']
           $ icon = subject['key'].split('/')[-1]
           <div class="category-item carousel__item">

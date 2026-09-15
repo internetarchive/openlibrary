@@ -2,6 +2,7 @@ from os.path import abspath, dirname, exists, join, pardir
 
 import pytest
 import web
+from PIL import Image
 
 from openlibrary.coverstore import config, coverlib, utils
 
@@ -55,8 +56,6 @@ def test_bad_image(image_dir):
 
 def test_resize_image_aspect_ratio():
     """make sure the aspect-ratio is maintained"""
-    from PIL import Image
-
     img = Image.new("RGB", (100, 200))
 
     img2 = coverlib.resize_image(img, (40, 40))

@@ -32,13 +32,16 @@ Email: configure smtp_server=mockservices, smtp_port=1025, dummy_sendmail=False
 """
 
 import asyncio
+import hashlib
 import itertools
 import json as jsonlib
 import logging
 import random
+import time
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Any
 
 import httpx
 from fastapi import FastAPI, Header, Request
@@ -66,16 +69,20 @@ app = FastAPI(title="OL Mock Services", docs_url="/mock/docs", lifespan=_lifespa
 # (not "status") from the response.
 #
 # Supported ops: authenticate, info, issue_otp, redeem_otp, create, issue_key, activate
-# Dev credentials: email=test@example.com, password=<any non-empty>
+# Dev credentials: email=openlibrary@example.com, password=<any non-empty>
+#                  (password "bad_password" is rejected, so the error path
+#                  is reachable from the login form / e2e tests)
+# Every dev login resolves to /people/openlibrary, the seeded admin account.
 # Dev S3 keys:     access=foo, secret=foo
 # Dev OTP code:    123456
 # ---------------------------------------------------------------------------
 
 _DEV_S3 = {"access": "foo", "secret": "foo"}
-_DEV_SCREENNAME = "testuser"
-_DEV_EMAIL = "test@example.com"
+_DEV_SCREENNAME = "openlibrary"
+_DEV_EMAIL = "openlibrary@example.com"
 _DEV_OTP = "123456"
 _DEV_TOKEN = "dev_placeholder_token"
+_DEV_BAD_PASSWORD = "bad_password"
 
 
 @app.post("/services/xauthn/")
@@ -86,7 +93,7 @@ async def xauth(op: str, request: Request) -> JSONResponse:
         body = {}
 
     if op == "authenticate":
-        if not body.get("password"):
+        if body.get("password") in (None, "", _DEV_BAD_PASSWORD):
             return JSONResponse({"success": False, "values": {"reason": "bad_password"}})
         return JSONResponse(
             {
@@ -99,6 +106,8 @@ async def xauth(op: str, request: Request) -> JSONResponse:
                     "itemname": "@" + _DEV_SCREENNAME,
                     "verified": True,
                     "locked": False,
+                    "access": _DEV_S3["access"],
+                    "secret": _DEV_S3["secret"],
                 },
             }
         )
@@ -114,6 +123,8 @@ async def xauth(op: str, request: Request) -> JSONResponse:
                     "itemname": "@" + _DEV_SCREENNAME,
                     "screenname": _DEV_SCREENNAME,
                     "verified": True,
+                    "access": _DEV_S3["access"],
+                    "secret": _DEV_S3["secret"],
                 },
             }
         )
@@ -133,6 +144,8 @@ async def xauth(op: str, request: Request) -> JSONResponse:
                         "itemname": "@" + _DEV_SCREENNAME,
                         "screenname": _DEV_SCREENNAME,
                         "token": _DEV_TOKEN,
+                        "access": _DEV_S3["access"],
+                        "secret": _DEV_S3["secret"],
                     },
                 }
             )
@@ -204,11 +217,216 @@ async def s3auth(authorization: Annotated[str | None, Header()] = None) -> JSONR
 # ---------------------------------------------------------------------------
 # IA Loans API  (was /internal/fake/loans in account.py)
 # POST /services/loans/loan/
+#
+# Supports:
+#   - Borrowing: s3_loan_api(action="borrow_book" / "browse_book", identifier=...)
+#   - Returning: s3_loan_api(action="return_loan", identifier=...)
+#   - Active loans query: ia_lending_api.find_loans(userid=...) / method="loan.query"
+#   - Loan history query: s3_loan_api(action="user_borrow_history", limit=..., offset=...)
 # ---------------------------------------------------------------------------
+
+_active_loans: dict[str, dict[str, dict]] = defaultdict(dict)
+_loan_history: dict[str, list[dict]] = defaultdict(list)
+_loans_lock = asyncio.Lock()
+
+
+async def _extract_request_params(request: Request) -> dict[str, Any]:
+    params: dict[str, Any] = dict(request.query_params)
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                params.update(body)
+        except (ValueError, UnicodeDecodeError):  # fmt: skip
+            pass
+    elif "form" in content_type:
+        try:
+            form = await request.form()
+            params.update({key: val for key, val in form.items() if isinstance(val, str)})
+        except (ValueError, RuntimeError):  # fmt: skip
+            pass
+    return params
+
+
+def _normalize_userid(uid: str | None) -> str:
+    if not uid:
+        return "@" + _DEV_SCREENNAME
+    if uid.startswith("ol:"):
+        return "@" + uid[len("ol:") :]
+    if not uid.startswith("@"):
+        return "@" + uid
+    return uid
+
+
+AVAILABILITY_VARIANTS = [
+    # 0. "Read" (Open Access / Public Domain)
+    {
+        "status": "open",
+        "is_readable": True,
+        "is_lendable": False,
+        "is_previewable": True,
+    },
+    # 1. "Browse" (CDL available to browse *and* borrow; OL favors browse)
+    {
+        "status": "borrow_available",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": True,
+        "available_to_browse": True,
+        "is_previewable": True,
+    },
+    # 2. "Borrow" (14-day CDL borrow only; this title is not offered for browse).
+    #    Needed as its own variant because user_can_borrow_edition_async() checks
+    #    available_to_browse first, so a title with both flags always renders the
+    #    browse CTA and the borrow CTA would otherwise be unreachable in dev.
+    {
+        "status": "borrow_available",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": True,
+        "available_to_browse": False,
+        "is_previewable": True,
+    },
+    # 3. "Join Waitlist" (All copies on loan, waitlist open)
+    {
+        "status": "borrow_unavailable",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": False,
+        "available_to_browse": False,
+        "available_to_waitlist": True,
+        "num_waitlist": 3,
+        "is_previewable": True,
+    },
+    # 4. "Checked Out" (All copies on loan, waitlist closed)
+    {
+        "status": "borrow_unavailable",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": False,
+        "available_to_browse": False,
+        "available_to_waitlist": False,
+        "is_previewable": True,
+    },
+    # 5. "Preview Only" (Previewable on BookReader)
+    {
+        "status": "preview_only",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_previewable": True,
+    },
+    # 6. "Print Disabled" / DAISY (Restricted to print-disabled patrons)
+    {
+        "status": "printdisabled",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_printdisabled": True,
+        "is_previewable": False,
+    },
+    # 7. "Locate" (No digital copies on IA)
+    {
+        "status": "error",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_previewable": False,
+    },
+]
+
+
+def _deterministic_availability(item_id: str) -> dict[str, Any]:
+    idx = int(hashlib.md5(item_id.encode("utf-8")).hexdigest(), 16) % len(AVAILABILITY_VARIANTS)
+    res = AVAILABILITY_VARIANTS[idx].copy()
+    res["identifier"] = item_id
+    return res
 
 
 @app.post("/services/loans/loan/")
-async def loans() -> JSONResponse:
+async def loans(request: Request) -> JSONResponse:
+    params = await _extract_request_params(request)
+    action = params.get("action")
+    method = params.get("method")
+    identifier = params.get("identifier")
+    userid = _normalize_userid(params.get("userid"))
+
+    async with _loans_lock:
+        # 0. S3 groundtruth availability query
+        if action == "availability" and identifier:
+            avail = _deterministic_availability(identifier)
+            return JSONResponse({"status": "ok", "lending_status": avail})
+
+        # 1. Query active loans
+        if method == "loan.query":
+            user_loans = _active_loans[userid]
+            if identifier:
+                loan = user_loans.get(identifier)
+                return JSONResponse({"result": [loan] if loan else []})
+            return JSONResponse({"result": list(user_loans.values())})
+
+        if method == "waitinglist.query":
+            return JSONResponse({"result": []})
+
+        # 2. Borrow a book
+        if action in ("borrow_book", "browse_book") and identifier:
+            loan_id = next(_next_loan_uid)
+            now = datetime.now(UTC)
+            # Match IA's real loan periods: browse is a 1-hour read, borrow is a
+            # 14-day CDL loan. The expiry is patron-visible (macros.FormatExpiry
+            # on the loans page and carousel cards), so giving browse 14 days
+            # would render the wrong thing in the UI dev is trying to preview.
+            loan_period = timedelta(hours=1) if action == "browse_book" else timedelta(days=14)
+            until_str = (now + loan_period).strftime("%Y-%m-%d %H:%M:%S")
+            loan_obj = {
+                "_key": f"/loans/{loan_id}",
+                "id": loan_id,
+                "identifier": identifier,
+                "userid": userid,
+                "ol_key": None,
+                "format": "bookreader",
+                "resource_id": identifier,
+                "loaned_at": time.time(),
+                "created": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "until": until_str,
+                "expiry": until_str,
+                "fulfilled": True,
+                "loan_link": f"/stream/{identifier}",
+                "book": f"/books/ia:{identifier}",
+            }
+            _active_loans[userid][identifier] = loan_obj
+
+            history_record = {
+                "identifier": identifier,
+                "updatedate": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "loan_id": f"a1000001-0001-4000-8000-{loan_id:012x}",
+            }
+            _loan_history[userid] = [h for h in _loan_history[userid] if h.get("identifier") != identifier]
+            _loan_history[userid].insert(0, history_record)
+
+            return JSONResponse({"status": "ok", "result": {"loan": loan_obj}})
+
+        # 3. Return a book
+        if action == "return_loan" and identifier:
+            _active_loans[userid].pop(identifier, None)
+            now_str = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
+            history_record = {
+                "identifier": identifier,
+                "updatedate": now_str,
+                "loan_id": f"a1000001-0001-4000-8000-{next(_next_loan_uid):012x}",
+            }
+            _loan_history[userid] = [h for h in _loan_history[userid] if h.get("identifier") != identifier]
+            _loan_history[userid].insert(0, history_record)
+            return JSONResponse({"status": "ok"})
+
+        # 4. User borrow history query
+        if action == "user_borrow_history":
+            try:
+                limit = int(params.get("limit", 25))
+                offset = int(params.get("offset", 0))
+            except TypeError, ValueError:
+                limit, offset = 25, 0
+            items = _loan_history[userid][offset : offset + limit]
+            return JSONResponse({"history": {"items": items}})
+
     return JSONResponse({})
 
 
@@ -320,14 +538,34 @@ async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JS
 
 
 # ---------------------------------------------------------------------------
-# IA Availability API v2  (was not mocked — pointed at real archive.org)
-# POST /services/availability/
+# IA Availability API v2
+# GET/POST /services/availability/
 # ---------------------------------------------------------------------------
 
 
-@app.post("/services/availability/")
-async def availability() -> JSONResponse:
-    return JSONResponse({"responses": {}})
+@app.api_route("/services/availability/", methods=["GET", "POST"])
+async def availability(
+    request: Request,
+    identifier: str | None = None,
+    openlibrary_work: str | None = None,
+    openlibrary_edition: str | None = None,
+) -> JSONResponse:
+    raw_ids: str | list[str] = identifier or openlibrary_work or openlibrary_edition or ""
+    if not raw_ids and request.method == "POST":
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                raw_ids = body.get("identifier") or body.get("openlibrary_work") or body.get("openlibrary_edition") or ""
+        except (ValueError, UnicodeDecodeError):  # fmt: skip
+            pass
+
+    if isinstance(raw_ids, list):
+        ids = [str(i).strip() for i in raw_ids if str(i).strip()]
+    else:
+        ids = [i.strip() for i in str(raw_ids).split(",") if i.strip()]
+
+    responses = {item_id: _deterministic_availability(item_id) for item_id in ids}
+    return JSONResponse({"success": True, "responses": responses})
 
 
 # ---------------------------------------------------------------------------
@@ -383,6 +621,111 @@ async def amazon_get_items(request: Request) -> JSONResponse:
         for asin in item_ids
     ]
     return JSONResponse({"ItemsResult": {"Items": items}})
+
+
+# ---------------------------------------------------------------------------
+# Matomo Reporting API  (Core Vitals retention scoring, issue #11956)
+# POST /matomo/index.php
+#
+# matomo.archive.org is restricted to IA's network, so retention scoring is
+# otherwise untestable locally. Point the client at this instead:
+#   MATOMO_URL=http://mockservices:8090/matomo
+#
+# Returns visits in the shape Live.getLastVisitsDetails does. The part worth
+# mocking faithfully is the wire format: `dimension1` is a FLAT field on the
+# visit -- this endpoint never returns the `customDimensions` structure it looks
+# like it should -- and engagement lives in `actionDetails` as a mix of `event`
+# and `action` entries. Newest-first ordering and `minTimestamp` filtering are
+# honoured so paging and window behaviour can be exercised against it.
+# ---------------------------------------------------------------------------
+
+MATOMO_COHORTS = ["visitor", "d0", "d1+", "d7+", "d14+", "d30+", "d90+"]
+
+# Deliberately a different length from MATOMO_COHORTS (7) so cohorts and events
+# do not advance in lockstep -- otherwise `visitor` would always carry the same
+# event and most cohort/event pairs would never appear in the feed.
+MATOMO_SAMPLE_EVENTS = [
+    ("CTAClick", "Read"),
+    ("CTAClick", "Borrow"),
+    ("ReadingLog", "WantToRead"),
+    ("MainNav", "MyBooks"),
+    # Real traffic a consumer's schema may have no row for; included so callers
+    # can assert unmapped events are ignored rather than fatal.
+    ("SearchModal", "Open"),
+]
+
+# Fixed at import, and deliberately NOT derived from the caller's
+# `minTimestamp`: if visit times are built from the filter then every visit is
+# after it by construction, the mock can never disagree with the filter, and the
+# one property `minTimestamp` exists to enforce becomes untestable. Two days back
+# so the feed sits comfortably inside a client's maximum window while still being
+# old enough that "since a minute ago" correctly returns nothing.
+MATOMO_MOCK_EPOCH = int((datetime.now(UTC) - timedelta(days=2)).timestamp())
+MATOMO_MOCK_VISITS = 12
+# Seconds between consecutive visits in the fake feed.
+MATOMO_MOCK_INTERVAL = 60
+
+
+def _matomo_visit(index: int) -> dict:
+    """One synthetic visit, fully determined by `index`."""
+    cohort = MATOMO_COHORTS[index % len(MATOMO_COHORTS)]
+    category, action = MATOMO_SAMPLE_EVENTS[index % len(MATOMO_SAMPLE_EVENTS)]
+    timestamp = MATOMO_MOCK_EPOCH + index * MATOMO_MOCK_INTERVAL
+    return {
+        "idVisit": str(index),
+        # Flat, exactly as the real API returns it.
+        "dimension1": cohort,
+        "visitorId": f"visitor{index:04d}",
+        "userId": None,
+        "firstActionTimestamp": timestamp,
+        "serverTimestamp": timestamp,
+        "actionDetails": [
+            {"type": "event", "eventCategory": category, "eventAction": action},
+            {"type": "action", "url": f"https://openlibrary.org/works/OL{index}W/Mock_Book"},
+        ],
+    }
+
+
+def _matomo_form_int(form, key: str, default: int) -> int:
+    """Read an int from a form body.
+
+    Starlette types form values as `str | UploadFile`, hence the str() before
+    int(); a non-numeric value is a caller error and should surface as one.
+    """
+    raw = form.get(key, default)
+    try:
+        return int(str(raw))
+    except (TypeError, ValueError):  # fmt: skip
+        raise ValueError(f"{key} must be an integer, got {raw!r}") from None
+
+
+@app.post("/matomo/index.php")
+async def matomo_api(request: Request) -> JSONResponse:
+    form = await request.form()
+    method = str(form.get("method", ""))
+
+    if not form.get("token_auth"):
+        return JSONResponse({"result": "error", "message": "Requests to the API must be authenticated"})
+
+    if method != "Live.getLastVisitsDetails":
+        return JSONResponse({"result": "error", "message": f"Mock does not implement {method}"})
+
+    try:
+        limit = _matomo_form_int(form, "filter_limit", 500)
+        offset = _matomo_form_int(form, "filter_offset", 0)
+        since = _matomo_form_int(form, "minTimestamp", 0)
+    except ValueError as exc:
+        logger.warning("Invalid Matomo API request parameters", exc_info=exc)
+        return JSONResponse({"result": "error", "message": "Invalid request parameters"})
+    if limit < 1 or offset < 0:
+        return JSONResponse({"result": "error", "message": "filter_limit must be >= 1 and filter_offset >= 0"})
+
+    # Filter on the feed's own timestamps, so `minTimestamp` is actually honoured
+    # and a narrower window really does return fewer visits. Newest first, which
+    # is the order the real endpoint uses and what makes paging overlap possible.
+    feed = [v for v in (_matomo_visit(i) for i in range(MATOMO_MOCK_VISITS)) if v["firstActionTimestamp"] >= since]
+    feed.reverse()
+    return JSONResponse(feed[offset : offset + limit])
 
 
 # ---------------------------------------------------------------------------

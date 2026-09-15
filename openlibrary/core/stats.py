@@ -29,7 +29,7 @@ def create_stats_client(cfg=config):
             host, port = stats_server.rsplit(":", 1)
             return StatsClient(host, port)
         else:
-            logger.critical("Couldn't find statsd_server section in config")
+            logger.debug("Couldn't find statsd_server section in config")
             return False
     except Exception as e:
         logger.critical("Couldn't create stats client - %s", e, exc_info=True)

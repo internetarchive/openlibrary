@@ -8,7 +8,6 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
-import babel
 import web
 from babel.messages import Catalog, Message
 from babel.messages.extract import (
@@ -338,14 +337,6 @@ def load_translations(lang: str):
         return Translations(open(mo_path, "rb"))
 
 
-@functools.cache
-def load_locale(lang: str):
-    try:
-        return babel.Locale(lang)
-    except babel.UnknownLocaleError:
-        return None
-
-
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
@@ -419,13 +410,6 @@ def ungettext(s1, s2, _n, *a, **kw):
         return value % kw
     else:
         return value
-
-
-def gettext_territory(code):
-    """Returns the territory name in the current locale."""
-    # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-    locale = load_locale(req_context.get().lang)
-    return locale.territories.get(code, code)
 
 
 gettext = GetText()

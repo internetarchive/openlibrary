@@ -65,6 +65,8 @@ a.list-card {
   display: flex;
   align-items: center;
   padding: 0 20px;
+  /* Contain the cover stack's layering. */
+  isolation: isolate;
 }
 
 .list-card__covers img {
@@ -75,17 +77,17 @@ a.list-card {
 
 /* @overlap: 8.5px */
 .list-card__covers img:nth-child(1) {
-  z-index: var(--z-index-level-3);
+  z-index: var(--z-index-local-3);
   transform: translate(0, 20px);
 }
 
 .list-card__covers img:nth-child(2) {
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-local-2);
   transform: translate(-8.5px, 20px);
 }
 
 .list-card__covers img:nth-child(3) {
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-local-1);
   transform: translate(-17px, 20px);
 }
 

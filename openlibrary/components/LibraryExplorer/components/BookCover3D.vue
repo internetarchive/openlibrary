@@ -55,9 +55,15 @@ export default {
             type: Number,
             default: 50
         },
-        book: Object,
-        /** @type {'image' | 'text'} */
-        cover: String,
+        book: {
+            type: Object,
+            required: true
+        },
+        cover: {
+            type: String,
+            default: 'image',
+            validator: val => ['image', 'text'].includes(val)
+        },
     },
 
     data() {

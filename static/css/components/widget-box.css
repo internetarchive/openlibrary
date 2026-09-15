@@ -3,7 +3,7 @@
  * https://docs.openlibrary.org/designers/design-pattern-library.html#widgetbox
  */
 .widget-box .head > div {
-  color: var(--olive) !important;
+  color: var(--color-success-fg) !important;
   font-size: 10px;
 }
 

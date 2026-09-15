@@ -16,7 +16,6 @@ from infogami import config
 from infogami.utils import stats
 from infogami.utils.app import find_mode, find_page, find_view
 from openlibrary.core import stats as graphite_stats
-from openlibrary.core.features import features
 
 logger = logging.getLogger("openlibrary.stats")
 TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
@@ -66,8 +65,7 @@ def stats_hook():
     stats_summary = stats.stats_summary()
     update_all_stats(stats_summary)
     try:
-        if features.stats_header:
-            web.header("X-OL-Stats", format_stats(stats_summary))
+        web.header("X-OL-Stats", format_stats(stats_summary))
     except Exception as e:
         # don't let errors in stats collection break the app.
         print(str(e), file=web.debug)

@@ -53,16 +53,19 @@ export default {
         },
         lists: {
             type: Object,
+            default: null
         },
         bookshelves: {
             type: Object,
+            default: null
         },
         ratings: {
             type: Object,
+            default: null
         },
         merged: {
             type: Object,
-            required: false
+            default: null
         }
     },
 };

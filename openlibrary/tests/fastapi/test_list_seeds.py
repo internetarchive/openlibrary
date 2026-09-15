@@ -67,7 +67,7 @@ class TestListSeedsPost:
         with (
             patch("openlibrary.fastapi.lists.site") as mock_site_context,
             patch(
-                "openlibrary.fastapi.lists._LegacyListSeeds.process_seeds_update",
+                "openlibrary.fastapi.lists._process_seeds_update",
                 return_value=expected,
             ) as mock_process,
         ):

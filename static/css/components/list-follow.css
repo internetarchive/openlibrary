@@ -20,6 +20,9 @@
 .list-follow-card {
   display: flex;
   flex-direction: column;
+  /* Contain the cover/avatar stack — the avatar overlaps up into the covers
+     strip, so the card (their common ancestor) is the isolation root. */
+  isolation: isolate;
 
   background-color: var(--beige);
 
@@ -80,7 +83,7 @@ a.list-follow-card__header {
   margin-right: var(--spacing-inline-sm);
   margin-top: -10px;
   position: relative;
-  z-index: var(--z-index-level-3);
+  z-index: var(--z-index-local-3);
   border: 2px solid var(--white);
   flex-shrink: 0;
 }
@@ -97,7 +100,7 @@ a.list-follow-card__header {
 
 a.list-follow-card__username-link {
   text-decoration: none;
-  color: var(--dark-grey-two);
+  color: var(--color-text-secondary);
   padding-bottom: var(--spacing-inset-xs);
   text-overflow: ellipsis;
   overflow: hidden;
@@ -222,17 +225,17 @@ a.list-follow-card__username-link {
 
 /* @overlap: 8.5px */
 .list-follow-card__covers img:nth-child(1) {
-  z-index: var(--z-index-level-3);
+  z-index: var(--z-index-local-3);
   transform: translate(0, 20px);
 }
 
 .list-follow-card__covers img:nth-child(2) {
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-local-2);
   transform: translate(-8.5px, 20px);
 }
 
 .list-follow-card__covers img:nth-child(3) {
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-local-1);
   transform: translate(-17px, 20px);
 }
 

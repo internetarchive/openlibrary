@@ -193,7 +193,13 @@ class readinglog_stats(app.view):
 
         stats = get_cached_reading_log_stats(limit)
 
-        solr_docs = get_solr_works({f"/works/OL{item['work_id']}W" for leaderboard in stats["leaderboard"].values() for item in leaderboard})
+        all_keys = {f"/works/OL{item['work_id']}W" for leaderboard in stats["leaderboard"].values() for item in leaderboard}
+        solr_docs = get_solr_works(all_keys)
+
+        # Batch-fetch any works Solr missed in a single call instead of
+        # one web.ctx.site.get() per work (N+1).
+        miss_keys = [key for key in all_keys if key not in solr_docs]
+        db_works = {w.key: w for w in web.ctx.site.get_many(miss_keys)} if miss_keys else {}
 
         # Fetch works from solr and inject into leaderboard
         for leaderboard in stats["leaderboard"].values():
@@ -202,7 +208,7 @@ class readinglog_stats(app.view):
                 if key in solr_docs:
                     item["work"] = solr_docs[key]
                 else:
-                    item["work"] = web.ctx.site.get(key)
+                    item["work"] = db_works.get(key)
 
         works = [item["work"] for leaderboard in stats["leaderboard"].values() for item in leaderboard]
 

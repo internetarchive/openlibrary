@@ -1,0 +1,24 @@
+{# Renders a collection of reading goals progress components.
+   `entries` are YearlyGoal objects (year, goal, books_read, progress,
+   completed) from yearly_reading_goals.py — the template composes the
+   nested macros, no HTML is passed down. #}
+{% from "reading_goals/reading_goal_form.html.jinja" import goal_form %}
+{% from "native_dialog.html.jinja" import dialog %}
+<div class="reading-goal-progress-container">
+    {% for entry in entries %}
+        <div class="reading-goal-progress">
+            <div class="reading-goal-progress__body">
+                <div class="reading-goal-progress__progress-bar">
+                    <span class="reading-goal-progress__completed"
+                          style="width: {{ entry.completed }}%"></span>
+                </div>
+                <div class="reading-goal-progress__details">
+                    <a href="/account/books/already-read/year/{{ entry.year }}"
+                       data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">{{ _('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> Books', books_read=entry.books_read, goal=entry.goal) | safe }}</a>
+                    <a class="edit-reading-goal-link" href="javascript:;">{{ _("Edit") }}</a>
+                </div>
+                {{ dialog(id="yearly-goal-modal-" ~ loop.index, title=_("Edit %(year)d Reading Goal", year=entry.year), content=goal_form(entry.goal, entry.year, true)) }}
+            </div>
+        </div>
+    {% endfor %}
+</div>

@@ -224,7 +224,7 @@ Notable dynamic field patterns:
 
 ## Search Endpoints
 
-All `*.json` endpoints are defined in `openlibrary/fastapi/search.py`, served by FastAPI (port 18080, proxied from 8080).
+All `*.json` endpoints are defined in `openlibrary/fastapi/search.py`, served by FastAPI (the primary server on port 8080 in local dev; port 18080 behind the site proxy in production/staging).
 
 | Endpoint | Handler | Purpose |
 |----------|---------|---------|

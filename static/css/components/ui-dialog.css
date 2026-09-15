@@ -15,7 +15,7 @@
 .ui-dialog .ui-dialog-titlebar {
   position: relative;
   font-weight: normal;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1em;
   margin: 0.2em 0;
   padding: 8px 0;

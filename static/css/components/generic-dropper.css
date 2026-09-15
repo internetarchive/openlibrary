@@ -25,7 +25,7 @@
 }
 
 .generic-dropper__actions * {
-  color: var(--dark-grey);
+  color: var(--color-text);
   background-color: var(--lightest-grey);
 }
 
@@ -48,7 +48,7 @@
 /* stylelint-enable max-nesting-depth */
 
 .generic-dropper__actions .generic-dropper__dropclick {
-  border-left: 1px solid var(--lighter-grey);
+  border-left: 1px solid var(--color-border-subtle);
   text-decoration: none;
   height: inherit;
   width: 32px;
@@ -82,7 +82,7 @@
 .generic-dropper__dropdown {
   display: none;
   width: 100%;
-  border-top: 1px solid var(--lighter-grey);
+  border-top: 1px solid var(--color-border-subtle);
   position: absolute;
   font-size: var(--font-size-label-medium);
 }
@@ -139,7 +139,7 @@
 /* dropdown containing Listen/Search/Download/Locate buttons */
 .dropper-menu {
   z-index: var(--z-index-level-4);
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 5px;
   background-color: var(--white);
   position: absolute;
@@ -177,7 +177,7 @@
 }
 
 .dropper-menu li + li {
-  border-top: 1px solid var(--lighter-grey);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .dropper-menu li:first-child,

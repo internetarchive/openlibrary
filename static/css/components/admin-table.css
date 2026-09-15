@@ -1,7 +1,7 @@
 .measurements {
   width: 100%;
   margin: var(--spacing-stack-sm) 0 var(--spacing-stack-xl);
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 .measurements th {
   font-family: var(--font-family-body);

@@ -21,7 +21,7 @@
 }
 
 .readers-stats {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: var(--font-size-label-large);
   margin-bottom: 20px;
 }

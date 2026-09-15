@@ -66,6 +66,7 @@
   --spacing-stack-md: var(--spacing-lg);     /* 16px – default stack gap (e.g. book detail fields) */
   --spacing-stack-lg: var(--spacing-2xl);    /* 24px – between content blocks (e.g. edition groups) */
   --spacing-stack-xl: var(--spacing-3xl);    /* 32px – between major sections (e.g. work tabs) */
+  --spacing-stack-2xl: var(--spacing-5xl);   /* 48px – editorial air (e.g. above a section heading in long-form prose) */
 
   /* ---- Inset: padding inside a container ----
    *

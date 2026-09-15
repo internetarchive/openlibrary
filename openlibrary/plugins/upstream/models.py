@@ -14,10 +14,10 @@ from infogami.infobase import client
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
-from openlibrary.plugins.upstream import borrow
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
-from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.code import works_by_author, works_by_author_async
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.solr_types import SolrDocument
@@ -41,6 +41,24 @@ def follow_redirect(doc):
         return web.ctx.site.get(key)
     else:
         return doc
+
+
+def find_references(doc):
+    """Yields all references ({"key": ...} dicts) found in the given data.
+
+    Note: infogami's SaveProcessor (infogami/infobase/writequery.py) has a
+    similar method for the same purpose. It is instance-bound, so we keep this
+    small standalone copy; keep the two in sync when either changes.
+    """
+    if isinstance(doc, dict):
+        if len(doc) == 1 and "key" in doc:
+            yield doc["key"]
+        else:
+            for value in doc.values():
+                yield from find_references(value)
+    elif isinstance(doc, list):
+        for value in doc:
+            yield from find_references(value)
 
 
 class Edition(models.Edition):
@@ -215,17 +233,6 @@ class Edition(models.Edition):
         self._ia_meta_fields = meta
         return self._ia_meta_fields
 
-    def get_current_and_available_loans(self):
-        current_loans = borrow.get_edition_loans(self)
-        current_and_available_loans = (
-            current_loans,
-            self._get_available_loans(current_loans),
-        )
-        return current_and_available_loans
-
-    def get_current_loans(self):
-        return borrow.get_edition_loans(self)
-
     def get_available_loans(self):
         """
         Get the resource types currently available to be loaned out for this edition.  Does NOT
@@ -243,21 +250,10 @@ class Edition(models.Edition):
         if lending.is_loaned_out(self.ocaid):
             return []
 
-        # find available loans. there are no current loans
-        return self._get_available_loans([])
-
-    def _get_available_loans(self, current_loans):
-        if current_loans:
+        if lending.is_loaned_out_on_ia(self.ocaid):
             return []
 
-        if not self.ocaid:
-            return []
-
-        resource_id = f"bookreader:{self.ocaid}"
-        if borrow.is_loaned_out(resource_id):
-            return []
-
-        return [{"resource_id": resource_id, "resource_type": "bookreader", "size": None}]
+        return [{"resource_id": f"bookreader:{self.ocaid}", "resource_type": "bookreader", "size": None}]
 
     def update_loan_status(self):
         """Update the loan status"""
@@ -306,8 +302,6 @@ class Edition(models.Edition):
             "lccn",
             "oclc_numbers",
             "ocaid",
-            "dewey_decimal_class",
-            "lc_classifications",
         )
 
         d = {}
@@ -337,7 +331,7 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
-        if not d.items():
+        if not self.identifiers:
             self.identifiers = None
 
     def get_classifications(self):
@@ -486,28 +480,42 @@ class Author(models.Author):
     def get_olid(self):
         return self.key.split("/")[-1]
 
-    def get_books(self, q=""):
-        i = web.input(sort="editions", page=1, rows=20, mode="")
+    def get_books(self, q="", sort="editions", page=1, rows=20, mode=""):
         try:
             # safeguard from passing zero/negative offsets to solr
-            page = max(1, int(i.page))
-        except ValueError:
+            page = max(1, int(page))
+        except ValueError, TypeError:
             page = 1
         return works_by_author(
             self.get_olid(),
-            sort=i.sort,
+            sort=sort,
             page=page,
-            rows=i.rows,
-            has_fulltext=i.mode == "ebooks",
+            rows=rows,
+            has_fulltext=mode == "ebooks",
             query=q,
             facet=True,
             request_label="AUTHOR_BOOKS_PAGE",
         )
 
-    def get_work_count(self):
+    def get_readable_book_count(self, q="") -> int:
+        """Number of this author's works readable in-browser, for the sublabel on
+        the author page's "Readable Only" toggle. One rows=0 count query, scoped
+        to the same `q` as the results it labels — the same approach
+        _get_readable_count takes for /search.
+        """
+        return works_by_author(
+            self.get_olid(),
+            rows=0,
+            has_fulltext=True,
+            query=q,
+            facet=False,
+            request_label="AUTHOR_BOOKS_READABLE_COUNT",
+        ).num_found
+
+    async def get_work_count(self):
         """Returns the number of works by this author."""
         # TODO: avoid duplicate works_by_author calls
-        result = works_by_author(self.get_olid(), rows=0)
+        result = await works_by_author_async(self.get_olid(), rows=0)
         return result.num_found
 
     def as_fake_solr_record(self):
@@ -846,7 +854,7 @@ class User(models.User):
             return 0
 
     def get_loan_count(self) -> int:
-        return len(borrow.get_loans(self))
+        return len(lending.get_loans_of_user(self.key))
 
     def get_loans(self):
         self.update_loan_status()
@@ -918,6 +926,40 @@ class Changeset(client.Changeset):
         data = {"parent_changeset": self.id}
         comment = "undo " + self.comment
         return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
+
+    def get_undo_error(self):
+        """Returns a user-facing message if this changeset cannot be undone, or None.
+
+        Undo saves every changed document at (revision - 1) in a single
+        save_many call, which infobase validates against the current state of
+        every reference. A reference to a record that no longer exists, or that
+        has since been merged into another record (a /type/redirect), makes the
+        whole save fail. That is what made undoing old author merges return 500
+        (see internetarchive/openlibrary#5664). This pre-check detects the
+        failure so the UI can explain it instead of showing an error page.
+        """
+        docs = [self._get_doc(c["key"], c["revision"] - 1) for c in self.changes]
+        in_batch = {doc["key"] for doc in docs}
+
+        refs = {ref for doc in docs for ref in find_references(doc) if ref not in in_batch}
+        things = {t.key: t for t in web.ctx.site.get_many(sorted(refs))}
+
+        for doc in docs:
+            for ref in find_references(doc):
+                if ref in in_batch:
+                    continue
+                thing = things.get(ref)
+                if thing is None:
+                    return _("This merge cannot be undone automatically because %(record)s references %(reference)s, which no longer exists.") % {
+                        "record": doc["key"],
+                        "reference": ref,
+                    }
+                thing_type = thing.type.key if hasattr(thing.type, "key") else thing.type
+                if thing_type == "/type/redirect":
+                    return _(
+                        "This merge cannot be undone automatically because %(record)s references %(reference)s, which has since been merged into another record."
+                    ) % {"record": doc["key"], "reference": ref}
+        return None
 
     def get_undo_changeset(self):
         """Returns the changeset that undone this transaction if one exists, None otherwise."""

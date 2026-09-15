@@ -4,20 +4,23 @@ This should go into infogami.
 """
 
 import json
+import logging
 import math
 
 import web
 import yaml
 
-from infogami.utils import delegate, features
+from infogami.infobase import client
+from infogami.utils import delegate
 from infogami.utils.view import (
-    add_flash_message,  # noqa: F401 side effects may be needed
+    add_flash_message,
     public,
     render,
     render_template,
     safeint,
 )  # TODO: unused import?
 from openlibrary.accounts import get_current_user
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_changes
 from openlibrary.utils import dateutil
 
@@ -172,15 +175,26 @@ class recentchanges_view(delegate.page):
 
     # Required for reverting changesets
     def POST(self, id):
-        allowed_usergroups = ["/usergroup/admin", "/usergroup/super-librarians"]
-        if not (user := get_current_user()) or not (user.is_member_of_any(allowed_usergroups)):
+        if not (user := get_current_user()) or not user.is_super_librarian_or_higher():
             raise web.unauthorized()
-        if not features.is_enabled("undo"):
-            return render_template("permission_denied", web.ctx.path, "Permission denied to undo.")
-
         id = int(id)
         change = web.ctx.site.get_change(id)
-        change._undo()
+        if not change:
+            web.ctx.status = "404 Not Found"
+            return render.notfound(web.ctx.path)
+        if undo_error := change.get_undo_error():
+            # The undo's save would be rejected by infobase validation, e.g.
+            # because pre-merge records reference authors that have since been
+            # merged into other authors. See internetarchive/openlibrary#5664.
+            add_flash_message("error", undo_error)
+        else:
+            try:
+                change._undo()
+            except client.ClientException as e:
+                # Fallback for failures the pre-check can't anticipate. The
+                # infobase write is atomic, so nothing was partially undone.
+                logging.getLogger("openlibrary").exception("Failed to undo changeset %s: %s", id, e)
+                add_flash_message("error", _("This change could not be undone automatically."))
         raise web.seeother(change.url())
 
 

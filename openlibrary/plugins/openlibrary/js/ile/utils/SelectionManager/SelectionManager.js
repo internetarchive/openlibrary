@@ -343,8 +343,12 @@ SelectionManager.DROP_HANDLERS = [
             console.log('move', data);
             window.ILE.setStatusText('Working...');
             try {
-                await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
-                window.ILE.setStatusText('Completed!');
+                const { total, failed } = await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
+                if (failed) {
+                    window.ILE.setStatusText(`Something went wrong: ${failed}/${total} failed to save.`);
+                } else {
+                    window.ILE.setStatusText(`Completed! ${total}/${total} saved.`);
+                }
             } catch (e) {
                 window.ILE.setStatusText('Errored!');
                 throw e;
@@ -365,8 +369,12 @@ SelectionManager.DROP_HANDLERS = [
                     const ed = await fetch(`/books/${location.pathname.match(/OL\d+M/)[0]}.json`).then(r => r.json());
                     workOlid = ed.works[0].key.match(/OL\d+W/)[0];
                 }
-                await move_to_work(data.items, data.from, workOlid);
-                window.ILE.setStatusText('Completed!');
+                const { total, failed } = await move_to_work(data.items, data.from, workOlid);
+                if (failed) {
+                    window.ILE.setStatusText(`Something went wrong: ${failed}/${total} failed to save.`);
+                } else {
+                    window.ILE.setStatusText(`Completed! ${total}/${total} saved.`);
+                }
             } catch (e) {
                 window.ILE.setStatusText('Errored!');
                 throw e;

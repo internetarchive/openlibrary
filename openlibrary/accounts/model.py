@@ -27,6 +27,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.plugins.openlibrary.pd import get_pd_org
 from openlibrary.utils.request_context import site
 
 try:
@@ -105,21 +106,20 @@ def decrypt_s3_keys(token: str) -> tuple[str, str]:
     return access, secret
 
 
-def get_s3_keys(account) -> dict | None:
-    """Return S3 keys from the session cookie, falling back to the account store.
+def parse_s3_cookie(s3_cookie: str | None) -> dict | None:
+    """Decrypt an "s3" cookie value into {"access": ..., "secret": ...}.
 
-    New logins set an encrypted ``s3`` cookie; this fallback handles sessions
-    that predate the cookie-based approach.
+    Returns None if there's no cookie, or it's tampered/stale.
     """
-    if token := web.cookies().get("s3"):
-        try:
-            from cryptography.fernet import InvalidToken
+    if not s3_cookie:
+        return None
+    try:
+        from cryptography.fernet import InvalidToken
 
-            access, secret = decrypt_s3_keys(token)
-            return {"access": access, "secret": secret}
-        except InvalidToken:
-            pass  # tampered or stale cookie; fall through to store
-    return web.ctx.site.store.get(account._key, {}).get("s3_keys")
+        access, secret = decrypt_s3_keys(s3_cookie)
+        return {"access": access, "secret": secret}
+    except InvalidToken:
+        return None
 
 
 def create_verification_cookie_value() -> str:
@@ -706,11 +706,11 @@ class OpenLibraryAccount(Account):
             u.save_preferences(prefs)
 
     def send_pd_email(self):
-        if org := self.pd_authority:
-            if org == "unqualified":
-                org = "vtmas_disabilityresources"
+        if org_id := self.pd_authority:
+            if org_id == "unqualified":
+                org_id = "vtmas_disabilityresources"
             displayname = web.safestr(self.displayname)
-            msg = render_template("email/account/pd_request", displayname=displayname, org=org)
+            msg = render_template("email/account/pd_request", displayname=displayname, org=get_pd_org(org_id))
             web.sendmail(
                 config.from_address,
                 self.email,

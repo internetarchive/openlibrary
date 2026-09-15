@@ -19,6 +19,15 @@
  *       updated(c) { if (c.has('checked') || c.has('value')) this._syncFormValue(); }
  *   }
  *
+ * Disabled state: an ancestor `<fieldset disabled>` reports through
+ * `formDisabledCallback`, which is kept in `_formDisabled` — separate from the
+ * consumer's own `disabled` property. Never write it back into `disabled`: that
+ * reflects the `disabled` attribute onto the host, and an attribute-disabled
+ * FACE stays disabled after the fieldset is re-enabled (the browser sees no
+ * state change, so the callback never fires again). Consumers render and gate
+ * on `isDisabled` (either source) and style with `:host(:disabled)`, which the
+ * browser keeps in sync with both.
+ *
  * @template {new (...args: any[]) => import('lit').LitElement} T
  * @param {T} BaseClass
  * @returns {T} The base class with form participation applied.
@@ -30,6 +39,8 @@ export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
         ...BaseClass.properties,
         /** Read by the browser when creating the form. Must be specified for an element to take part in form submissions. */
         name: { type: String, reflect: true },
+        /** Set by the browser via formDisabledCallback (ancestor `<fieldset disabled>`). Not reflected — see the class doc. */
+        _formDisabled: { state: true },
     };
 
     /** @param {...any} args */
@@ -38,6 +49,18 @@ export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
         // Optional-chained for non-browser contexts where the method is absent;
         // it can't throw here, since this mixin sets formAssociated itself.
         this._internals = this.attachInternals?.() ?? null;
+        this._formDisabled = false;
+    }
+
+    /**
+     * Whether the control is disabled from either source: its own `disabled`
+     * property or an ancestor `<fieldset disabled>`. Use this — not `disabled` —
+     * to gate interaction and to set `?disabled` on inner controls.
+     *
+     * @returns {boolean}
+     */
+    get isDisabled() {
+        return Boolean(this.disabled) || this._formDisabled;
     }
 
     /** @returns {HTMLFormElement|null} The form this control belongs to. */
@@ -72,15 +95,31 @@ export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
     }
 
     /**
-     * Called by the browser when an ancestor `<fieldset disabled>` disables this
-     * control. Mirrored onto `disabled` so visuals and interaction follow.
+     * Reflect `disabled` before render rather than after (Lit's default). The
+     * browser answers the attribute change with a synchronous
+     * `formDisabledCallback`, and a property set that late in an update is
+     * dropped — the control would render one state behind.
+     *
+     * @param {Map<string, unknown>} changed
+     * @returns {void}
+     */
+    willUpdate(changed) {
+        super.willUpdate?.(changed);
+        if (changed.has('disabled')) this.toggleAttribute('disabled', Boolean(this.disabled));
+    }
+
+    /**
+     * Called by the browser when the element's form-disabled state changes —
+     * an ancestor `<fieldset disabled>` toggled, or the host's own `disabled`
+     * attribute did. Recorded separately from `disabled`; see the class doc for
+     * why it must not be mirrored back onto that property.
      *
      * @override
      * @param {boolean} disabled
      * @returns {void}
      */
     formDisabledCallback(disabled) {
-        this.disabled = disabled;
+        this._formDisabled = disabled;
     }
 
     /**

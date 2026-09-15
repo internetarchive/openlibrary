@@ -34,7 +34,10 @@ import _ from 'lodash';
 
 export default {
     props: {
-        excerpts: Array
+        excerpts: {
+            type: Array,
+            default: () => []
+        }
     },
     computed: {
         fields() {

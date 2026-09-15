@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /*
  * FIXME: The methods loadEditionsGraph, plot_minigraph and plot_tooltip_graph
  * need to be refactored once unit tests have been added to the repo. They

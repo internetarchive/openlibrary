@@ -26,7 +26,7 @@
 .markdown-content blockquote {
   margin-left: 1rem;
   padding: 0.5rem 1rem;
-  border-left: 2px solid var(--beige-deep);
+  border-left: 2px solid var(--color-border-subtle);
   color: var(--darker-grey);
   background: var(--off-white);
   font-style: italic;

@@ -8,6 +8,7 @@ import httpx
 from httpx import HTTPError, HTTPStatusError, TimeoutException
 
 from openlibrary import config
+from openlibrary.utils.async_utils import cache_per_event_loop
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 if TYPE_CHECKING:
@@ -18,7 +19,7 @@ logger = logging.getLogger("openlibrary.solr")
 
 solr_base_url = None
 solr_next: bool | None = None
-httpx_client = httpx.AsyncClient()
+get_httpx_client = cache_per_event_loop(httpx.AsyncClient)
 
 
 def load_config(c_config="conf/openlibrary.yml"):
@@ -135,7 +136,7 @@ async def solr_update(
     async def make_request():
         logger.debug(f"POSTing update to {solr_base_url}/update {params}")
         try:
-            resp = await httpx_client.post(
+            resp = await get_httpx_client().post(
                 f"{solr_base_url}/update",
                 # Large batches especially can take a decent chunk of time
                 timeout=300,
@@ -208,7 +209,7 @@ async def solr_insert_documents(
         params["update.chain"] = "tolerant-chain"
     logger.debug(f"POSTing update to {solr_base_url}/update {params}")
     try:
-        resp = await httpx_client.post(
+        resp = await get_httpx_client().post(
             f"{solr_base_url}/update",
             timeout=timeout,
             params=params,

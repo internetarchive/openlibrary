@@ -6,6 +6,7 @@
  */
 
 // Export components (importing also registers them as custom elements)
+export { OlIcon } from './OlIcon.js';
 export { OLReadMore } from './OLReadMore.js';
 export { OlPagination } from './OlPagination.js';
 export { OlTooltip } from './OlTooltip.js';
@@ -14,6 +15,7 @@ export { OlDialog } from './OlDialog.js';
 export { OlPopover } from './OlPopover.js';
 export { OlSelectPopover } from './OlSelectPopover.js';
 export { OlOptionsPopover } from './OlOptionsPopover.js';
+export { OlMenuPopover } from './OlMenuPopover.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
 export { OLButton } from './OLButton.js';
@@ -25,3 +27,7 @@ export { OlToastRegion, showToast } from './OlToastRegion.js';
 export { OpenLibraryOTP } from './OpenLibraryOTP.js';
 export { OlCarousel } from './OlCarousel.js';
 export { OlScorecard } from './OlScorecard.js';
+export { OlDrawer } from './OlDrawer.js';
+export { OlBookCover } from './OlBookCover.js';
+export { OlShelfActions } from './OlShelfActions.js';
+export { OlShelfButton } from './OlShelfButton.js';

@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     LibrarianDep,
+    MaintainerDep,
     authenticate_user_from_cookie,
     get_authenticated_user,
     require_authenticated_user,
@@ -219,6 +220,83 @@ def test_require_librarian_returns_403_when_user_is_none():
 
         client = TestClient(app, raise_server_exceptions=False)
         response = client.get("/librarian-only")
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Insufficient permissions"
+
+    app.dependency_overrides.clear()
+
+
+# ---------------------------------------------------------------------------
+# require_maintainer tests
+# ---------------------------------------------------------------------------
+
+
+def _build_maintainer_app():
+    """Create a minimal FastAPI app with one route protected by require_maintainer."""
+    app = FastAPI()
+
+    @app.get("/maintainer-only")
+    async def maintainer_route(_: MaintainerDep):
+        return {"message": "access granted"}
+
+    return app
+
+
+def test_require_maintainer_returns_401_with_no_cookie():
+    """require_maintainer must raise HTTP 401 when the user is not authenticated."""
+    app = _build_maintainer_app()
+    client = TestClient(app, raise_server_exceptions=False)
+    response = client.get("/maintainer-only")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
+
+
+def test_require_maintainer_returns_403_for_regular_user():
+    """require_maintainer must raise HTTP 403 when the user lacks maintainer-level roles."""
+    app = _build_maintainer_app()
+    app.dependency_overrides[require_authenticated_user] = lambda: FAKE_AUTH_USER
+
+    with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
+        user = MagicMock()
+        user.is_maintainer.return_value = False
+        mock_get_user.return_value = user
+
+        client = TestClient(app, raise_server_exceptions=False)
+        response = client.get("/maintainer-only")
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Insufficient permissions"
+
+    app.dependency_overrides.clear()
+
+
+def test_require_maintainer_allows_maintainer():
+    """require_maintainer allows access for maintainer users."""
+    app = _build_maintainer_app()
+    app.dependency_overrides[require_authenticated_user] = lambda: FAKE_AUTH_USER
+
+    with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
+        user = MagicMock()
+        user.is_maintainer.return_value = True
+        mock_get_user.return_value = user
+
+        client = TestClient(app, raise_server_exceptions=False)
+        response = client.get("/maintainer-only")
+        assert response.status_code == 200
+        assert response.json() == {"message": "access granted"}
+
+    app.dependency_overrides.clear()
+
+
+def test_require_maintainer_returns_403_when_user_is_none():
+    """require_maintainer returns 403 when get_current_user returns None."""
+    app = _build_maintainer_app()
+    app.dependency_overrides[require_authenticated_user] = lambda: FAKE_AUTH_USER
+
+    with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
+        mock_get_user.return_value = None
+
+        client = TestClient(app, raise_server_exceptions=False)
+        response = client.get("/maintainer-only")
         assert response.status_code == 403
         assert response.json()["detail"] == "Insufficient permissions"
 

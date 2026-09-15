@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
@@ -34,8 +35,31 @@ from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.utils.request_context import req_context
 
 router = APIRouter()
+
+# Facet fields exposed by /search/facets.json — mirrors WorkSearchScheme.facet_fields
+FacetField = Literal[
+    "author_facet",
+    "first_publish_year",
+    "has_fulltext",
+    "language",
+    "person_facet",
+    "place_facet",
+    "public_scan_b",
+    "publisher_facet",
+    "subject_facet",
+    "time_facet",
+]
+
+# process_facet_counts renames author_facet → author_key internally; map back so
+# the response key always matches the caller's requested field name.
+_FACET_INTERNAL_RENAME = {"author_key": "author_facet"}
+
+# Whether to expose internal-only endpoints in the OpenAPI schema.
+# Only shown when running with LOCAL_DEV set (e.g. docker compose).
+SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 
 
 class PublicQueryOptions(BaseModel):
@@ -139,6 +163,32 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             query_fields |= set(WorkSearchScheme.field_name_map.keys())
             q = self.model_dump(include=query_fields, exclude_none=True)
             return q
+
+
+class FacetRequestParams(PublicQueryOptions):
+    """
+    Query params for /search/facets.json — the search context plus the field(s) to count.
+
+    `field` is a model field rather than a sibling parameter because FastAPI only expands a
+    Pydantic query model when nothing else in the signature is a list-typed `Query`. Declared
+    separately, the model binds as one scalar named "params" and every request 422s; under
+    `Depends()` it binds but the inherited list filters (language, subject_facet, ...) silently
+    arrive empty, so the counts ignore them.
+    """
+
+    field: list[FacetField] = Field(
+        ...,
+        min_length=1,
+        description="Facet field(s) to return. Repeat for multiple.",
+    )
+
+
+class FacetValue(BaseModel):
+    """A single facet option returned by /search/facets.json."""
+
+    value: str = Field(description="Filter value to pass back to /search.json (e.g. 'eng', 'OL9A')")
+    label: str = Field(description="Human-readable display label — differs from value for author_facet")
+    count: int = Field(description="Number of matching works")
 
 
 class SearchResponse(BaseModel):
@@ -348,3 +398,48 @@ async def search_authors_json(
         doc["key"] = doc["key"].split("/")[-1]
 
     return raw_resp
+
+
+@router.get(
+    "/search/facets.json",
+    tags=["internal"],
+    include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
+    response_model=dict[str, list[FacetValue]],
+)
+async def search_facets_json(
+    request: Request,
+    params: Annotated[FacetRequestParams, Query()],
+    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)] = None,
+) -> dict[str, list[FacetValue]]:
+    """
+    Returns context-aware facet values for one or more search facet fields.
+
+    Queries Solr with rows=0 alongside the current search params, returning only
+    values with count > 0, ordered by count descending. Designed to power the
+    OlSelectPopover components in the search results filter bar (PR #12949).
+
+    Example: GET /search/facets.json?field=language&field=subject_facet&q=lord+of+the+rings
+    """
+    search_response = await run_solr_query_async(
+        WorkSearchScheme(lang=request.state.lang, solr_editions=req_context.get().solr_editions),
+        params.model_dump(exclude={"field"}, exclude_none=True),
+        rows=0,
+        page=1,
+        fields=["key", "editions"],  # opt into the same edition block-join as /search
+        facet=list(params.field),
+        highlight=False,
+        request_label="BOOK_SEARCH_FACETS",
+        solr_internals_params=solr_internals_params,
+    )
+
+    result: dict[str, list[FacetValue]] = {f: [] for f in params.field}
+    if search_response.facet_counts:
+        for facet_field, values in search_response.facet_counts.items():
+            output_key = _FACET_INTERNAL_RENAME.get(facet_field, facet_field)
+            if output_key not in result:
+                continue
+            # values are (filter_value, display_label, count) tuples; label differs
+            # from value for author_facet (name vs OL key) and "Name|key" subject fields.
+            result[output_key] = [FacetValue(value=value, label=label, count=count) for value, label, count in values if count > 0]
+
+    return result

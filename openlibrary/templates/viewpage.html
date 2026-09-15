@@ -1,8 +1,8 @@
-$def with (page)
+$def with (page, book_page_context=None)
 
 $ v = query_param("v", None)
 
-$if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
+$if ctx.user and ctx.user.is_super_librarian_or_higher():
     $if v and not page.key.startswith("/books/ia:"):
         <div id="revertNotice">
             <form name="revert" method="POST" action="$changequery(m='revert')">
@@ -21,7 +21,12 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
 
 $page.prefetch()
 
-$ view = thingview(page)
+$if book_page_context is not None:
+  $# /works and /books pages: lending/availability was already prepared
+  $# in Python (see prepare_book_page() in openlibrary/plugins/upstream/code.py).
+  $ view = render_template("type/edition/view", page, None, book_page_context)
+$else:
+  $ view = thingview(page)
 
 $var title: $:view.title
 

@@ -16,7 +16,8 @@
 
 .carousel .slick-prev,
 .carousel .slick-next {
-  z-index: var(--z-index-level-4);
+  /* Local: only needs to clear the slick track's transform context. */
+  z-index: var(--z-index-local-1);
 }
 
 .carousel .slick-prev:before {

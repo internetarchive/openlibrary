@@ -1,87 +1,26 @@
-$def with (page, edition=None)
+$def with (page, edition=None, book_page_context=None)
 
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
+$ is_privileged_user = ctx.user and ctx.user.is_super_librarian_or_higher()
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 
 $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 $ tab = input(tab=None).tab
-$ editions = []
 $ page_type = page.key.split('/')[1]
-$ show_observations = True
 
-$if page.key.startswith('/works'):
-  $ work = page
-$elif page.works:
-  $ work = list(page.works)[0]
-$else:
-  $ work = page.make_work_from_orphaned_edition()
-  $ show_observations = False
+$# Work, selected edition, editions, and lending state are resolved in
+$# Python by prepare_book_page() before this template renders (see
+$# openlibrary/plugins/upstream/code.py), so no lending/availability I/O
+$# (including the ground-truth availability fallback) happens here.
+$ work = book_page_context.work
+$ edition = book_page_context.edition
+$ editions = book_page_context.editions
+$ editions_limit = book_page_context.editions_limit
+$ previews = book_page_context.previews
+$ show_observations = book_page_context.show_observations
+$ lending_state = book_page_context.lending_state
 
-$# This can happen when looking at past versions of an edition who's work
-$# has since been merged.
-$if work.type.key == '/type/redirect':
-  $ redir = work
-  $ work = get_document(redir.key)
-  $ work['title'] = '↪ ' + redir.key
-
-$ edition = storage({})
-$if query_param('edition', '').startswith('key:'):
-  $ edition = get_type(query_param('edition', '').split(':')[1])
-$elif page.key.startswith('/books'):
-  $# We are on an editions page: an edition has been explicitly selected
-  $ edition = page
-
-$ selected_provider = None
-$ selected_id = None
-$ provider = None
-$if query_param('edition') and not edition:
-  $if ':' in query_param('edition'):
-    $ [selected_provider, selected_id] = query_param('edition').split(':')
-  $else:
-    $ [selected_provider, selected_id] = ['ia', query_param('edition')]
-  $ provider = get_book_provider_by_name(selected_provider)
-
-$ component_times['get_sorted_editions'] = time()
-
-$# Fetch a work's editions
-$# Used for loading the editions table
-$# Book availability of editions injected by bulk get_availability API
-$ edition_count = work.edition_count if work and work.edition_count else 1
-$ ebooks_only = (query_param('mode') == 'ebooks') or (query_param('mode') != 'all' and edition_count > 10)
-
-$# For performance reasons, limit to 10 ebooks
-$# Tradeoff: limits our ability to select best edition
-$ editions_limit = None if query_param('mode') in ['all', 'ebooks'] else 10
-$# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
-$ keys = (edition and [edition.key]) or (provider and provider.get_olids(selected_id))
-$if ebooks_only:
-  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
-$if not editions:
-  $# use ebooks_only to determine whether to lazyload editions table
-  $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
-$ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
-$ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
-
-$# This collects which books are previewable in any manner
-$ previews = [e for e in editions if e.get('ocaid')]
-
-$# Choose an edition to render
-$if editions and not edition:
-  $# We're presumably on a work url
-  $# edition selection strategy (e.g. language, by id, first w/ ocaid)
-  $if provider:
-    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0])
-  $else:
-    $ edition, provider = get_best_edition(editions)
-
-$# Just in case edition is not set, treat as work
-$ edition = edition or page
-
-$if not edition.get('availability'):
-  $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
@@ -192,13 +131,8 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = macros.AffiliateLinksLoadingIndicator(edition.title, isbn_13, asin, prices)
+$ affiliate_links = render_affiliate_links(edition.title, isbn_13, asin, prices)
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
-
-$ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
-$ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
-
-$ lending_state = get_lending_state(edition or work, check_loan_status=bool(ctx.user))
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book" data-lending-state="$lending_state">
   <div class="workDetails">
@@ -210,7 +144,7 @@ $ lending_state = get_lending_state(edition or work, check_loan_status=bool(ctx.
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times, lending_state=lending_state)
+      $:macros.databarWork(edition or work, affiliate_links, editions_page=True, render_times=component_times, lending_state=lending_state)
     </div>
 
     <div class="editionAbout">
@@ -304,19 +238,6 @@ $ lending_state = get_lending_state(edition or work, check_loan_status=bool(ctx.
                     <span>$isbn</span>
                 </div>
           </div>
-      </div>
-
-      <div class="Tools">
-        <div class="panel mobile-vendor">
-          <div class="btn-notice">
-            $:worldcat_link
-
-            <div class="cta-section">
-              <p class="cta-section-title">$_('Buy this book')</p>
-              $:affiliate_links
-            </div>
-          </div>
-        </div>
       </div>
 
       $ seen = set()

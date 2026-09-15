@@ -17,7 +17,7 @@ p.category-count {
   text-align: center;
   font-size: 0.7em;
   line-height: 1;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: 0 0 1px;
   margin: 0;
   margin-top: var(--spacing-stack-xs);

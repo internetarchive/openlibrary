@@ -1,0 +1,87 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Default", "Chips are spaced with an 8px gap and wrap when they exceed the container width.") %}
+        <ol-chip-group>
+            <ol-chip>
+                Fiction
+            </ol-chip>
+            <ol-chip>
+                Science
+            </ol-chip>
+            <ol-chip>
+                History
+            </ol-chip>
+            <ol-chip>
+                Poetry
+            </ol-chip>
+            <ol-chip>
+                Drama
+            </ol-chip>
+        </ol-chip-group>
+    {% endcall %}
+    {% call ex.example("Gap", "small is 4px, large is 12px.", output_style="display: flex; flex-direction: column; gap: 16px;") %}
+        <ol-chip-group gap="small">
+            <ol-chip size="small">
+                Fiction
+            </ol-chip>
+            <ol-chip size="small">
+                Science
+            </ol-chip>
+            <ol-chip size="small">
+                History
+            </ol-chip>
+        </ol-chip-group>
+        <ol-chip-group gap="large">
+            <ol-chip>
+                Fiction
+            </ol-chip>
+            <ol-chip>
+                Science
+            </ol-chip>
+            <ol-chip>
+                History
+            </ol-chip>
+        </ol-chip-group>
+    {% endcall %}
+    {% call ex.example("Wrapping", "Narrow the container and chips flow onto the next line.", output_style="max-width: 300px;") %}
+        <ol-chip-group>
+            <ol-chip>
+                Fiction
+            </ol-chip>
+            <ol-chip>
+                Science
+            </ol-chip>
+            <ol-chip>
+                History
+            </ol-chip>
+            <ol-chip>
+                Poetry
+            </ol-chip>
+            <ol-chip>
+                Drama
+            </ol-chip>
+            <ol-chip>
+                Essays
+            </ol-chip>
+            <ol-chip>
+                Biography
+            </ol-chip>
+        </ol-chip-group>
+    {% endcall %}
+    {% call ex.example("Mixed chip states", "Any combination of sizes, states, and link chips works.") %}
+        <ol-chip-group>
+            <ol-chip href="/subjects/fiction" count="1,024">
+                Fiction
+            </ol-chip>
+            <ol-chip href="/subjects/history" count="76" selected>
+                History
+            </ol-chip>
+            <ol-chip href="/subjects/science" count="512">
+                Science
+            </ol-chip>
+            <ol-chip href="/subjects/poetry" count="33">
+                Poetry
+            </ol-chip>
+        </ol-chip-group>
+    {% endcall %}
+{% endmacro %}

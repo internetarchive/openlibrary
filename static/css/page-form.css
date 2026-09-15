@@ -62,7 +62,7 @@ div#revertLink,
   background-color: var(--light-yellow);
   margin: 0 10px;
   border-radius: 8px;
-  border: 1px solid var(--dark-yellow);
+  border: 1px solid var(--color-warning-border);
 }
 .portlet {
   margin: 7px 13px 13px 7px;
@@ -70,7 +70,7 @@ div#revertLink,
   width: 70px;
   height: 70px;
   overflow: hidden;
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   cursor: move;
 }
@@ -94,7 +94,7 @@ div#revertLink,
 .imageSaved {
   width: 300px;
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 .imageSaved .imageSaved__button {
   text-decoration: none;

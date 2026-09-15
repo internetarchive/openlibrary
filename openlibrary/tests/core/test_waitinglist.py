@@ -7,8 +7,6 @@ import datetime
 import json
 from unittest.mock import Mock
 
-import pytest
-
 from openlibrary.core import lending
 from openlibrary.core.waitinglist import WaitingLoan
 
@@ -88,54 +86,6 @@ class TestWaitingLoanUpdate:
 
         # Verify the API was called with correct params
         mock_update.assert_called_once_with(identifier="B1", userid="@ol_u1", status="available", email_sent=True)
-
-
-class TestWaitingLoanIsExpired:
-    """Tests for the is_expired method."""
-
-    def test_is_expired_when_status_available_and_expiry_past(self):
-        """Test that a loan is expired when status is available and expiry has passed."""
-        # Use a past expiry date
-        past_expiry = (datetime.datetime.utcnow() - datetime.timedelta(hours=1)).isoformat()
-
-        w = WaitingLoan(
-            {
-                "status": "available",
-                "expiry": past_expiry,
-            }
-        )
-        assert w.is_expired() is True
-
-    def test_not_expired_when_status_waiting(self):
-        """Test that a loan is not expired when status is waiting, regardless of expiry."""
-        past_expiry = (datetime.datetime.utcnow() - datetime.timedelta(hours=1)).isoformat()
-
-        w = WaitingLoan(
-            {
-                "status": "waiting",
-                "expiry": past_expiry,
-            }
-        )
-        assert w.is_expired() is False
-
-    def test_not_expired_when_expiry_future(self):
-        """Test that a loan is not expired when expiry is in the future."""
-        future_expiry = (datetime.datetime.utcnow() + datetime.timedelta(hours=1)).isoformat()
-
-        w = WaitingLoan(
-            {
-                "status": "available",
-                "expiry": future_expiry,
-            }
-        )
-        assert w.is_expired() is False
-
-    def test_not_expired_when_no_expiry(self):
-        """Test that a loan is not expired when there's no expiry date."""
-        w = WaitingLoan({"status": "available"})
-        # This should raise KeyError, testing that expiry is required for this check
-        with pytest.raises(KeyError):
-            w.is_expired()
 
 
 class TestWaitingLoanGetWaitingInDays:

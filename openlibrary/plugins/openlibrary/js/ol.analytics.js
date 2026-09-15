@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
 * OpenLibrary-specific convenience functions for use with Archive.org athena.js
 *
@@ -65,6 +66,7 @@ export default function initAnalytics() {
             var category_action = $(this).attr('data-ol-link-track').split('|');
             // for testing,
             // console.log(category_action[0], category_action[1]);
+            trackEvent(category_action[0], category_action[1], category_action[2]);
             window.archive_analytics.ol_send_event_ping({
                 category: category_action[0],
                 action: category_action[1],
@@ -74,8 +76,14 @@ export default function initAnalytics() {
     }
     window.vs = vs;
 
-    // NOTE: This might cause issues if this script is made async #4474
-    window.addEventListener('DOMContentLoaded', function send_analytics_pageview() {
+    // The bundle loads asynchronously, so DOMContentLoaded may already have fired (#4474)
+    function sendPageview() {
+        if (!window.archive_analytics) return;
         window.archive_analytics.send_pageview({});
-    });
+    }
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', sendPageview);
+    } else {
+        sendPageview();
+    }
 }

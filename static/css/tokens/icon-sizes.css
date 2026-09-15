@@ -1,0 +1,20 @@
+/**
+ * Icon Sizes
+ * ==========
+ * The size scale for <ol-icon> and the $:macros.icon() macro, in rem so icons
+ * follow the reader's font size.
+ *
+ * Stroke is in 24x24 grid units, which the box scales down with the geometry.
+ * Held at 2 throughout, `lg` would land at a full 2px and read heavier than the
+ * same glyph one step down, so it is corrected to 1.75 — keeping absolute weight
+ * near-constant across the scale.
+ */
+:root {
+  --icon-size-sm: 1rem;     /* 16px – inline with body text, dense toolbars */
+  --icon-size-md: 1.25rem;  /* 20px – default */
+  --icon-size-lg: 1.5rem;   /* 24px – standalone buttons, headers */
+
+  --icon-stroke-sm: 2;      /* renders 1.33px */
+  --icon-stroke-md: 2;      /* renders 1.67px */
+  --icon-stroke-lg: 1.75;   /* renders 1.75px – optically corrected, see above */
+}

@@ -1,0 +1,63 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        Looks like <a href="#options-popover">Options Popover</a>, behaves differently — pick by what activating an item <em>does</em>. This is an action menu: arrows move focus only, and nothing happens until Enter or a click, which is what makes it safe to wire to navigation. Options Popover is a form control that holds a value and moves its selection as you arrow through it. The sort control on search, author, list and reading-log pages is the canonical consumer here: choosing an item loads a new URL, so arrowing past "Trending" must not navigate.
+    </p>
+    {% call ex.example("Basic menu", "Give it items, a value for the current choice, and a label naming the menu. Without a slotted trigger it injects an ol-button showing the current item's label.",
+        code='<ol-menu-popover\n  label="Sort by"\n  value="relevance"\n  items=\'[{"value":"relevance","label":"Relevance"}, ...]\'>\n</ol-menu-popover>') %}
+        <ol-menu-popover id="demo-menu-sort" label="Sort by" value="relevance" aria-label="Sort order">
+        </ol-menu-popover>
+        <p>Last selected: <strong id="demo-menu-sort-out">—</strong></p>
+        <script>
+            (function () {
+                const el = document.getElementById('demo-menu-sort');
+                el.items = [
+                    { value: 'relevance', label: 'Relevance' },
+                    { value: 'editions', label: 'Most Editions' },
+                    { value: 'old', label: 'First Published' },
+                    { value: 'new', label: 'Most Recent' },
+                    { value: 'rating', label: 'Top Rated' }
+                ];
+                el.addEventListener('ol-menu-popover-select', (e) => {
+                    document.getElementById('demo-menu-sort-out').textContent = e.detail.value;
+                });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Nested items", "Mark an item nested to indent it as a subset of the one above. The reading-log sorts hang shelf filters under their parent sort this way.",
+        code='items=\'[\n  {"value":"readinglog","label":"Reading Log"},\n  {"value":"want_to_read","label":"Want to Read","nested":true},\n  {"value":"already_read","label":"Already Read","nested":true}\n]\'') %}
+        <ol-menu-popover id="demo-menu-nested" label="Sort by" value="readinglog" aria-label="Sort order with nested items">
+        </ol-menu-popover>
+        <script>
+            document.getElementById('demo-menu-nested').items = [
+                { value: 'relevance', label: 'Relevance' },
+                { value: 'readinglog', label: 'Reading Log' },
+                { value: 'want_to_read', label: 'Want to Read', nested: true },
+                { value: 'currently_reading', label: 'Currently Reading', nested: true },
+                { value: 'already_read', label: 'Already Read', nested: true },
+                { value: 'trending', label: 'Trending' }
+            ];
+        </script>
+    {% endcall %}
+    {% call ex.example("Custom trigger", "Slot a trigger when you need control over its size, or want it server-rendered — a server-rendered trigger has no layout shift while the component upgrades, which is why the sort control slots one.") %}
+        <ol-menu-popover id="demo-menu-trigger" label="Sort by" value="index" aria-label="Sort order with slotted trigger">
+            <ol-button slot="trigger" size="small">
+                List Order
+            </ol-button>
+        </ol-menu-popover>
+        <script>
+            document.getElementById('demo-menu-trigger').items = [
+                { value: 'index', label: 'List Order' },
+                { value: 'last_modified', label: 'Last Modified' }
+            ];
+        </script>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Keyboard.</b> Arrows and Home/End move focus between items and wrap, selecting nothing; Enter, Space or a click activates the focused item and closes. Escape closes without selecting and returns focus to the trigger. Down on the trigger opens the menu onto the current item. A roving tabindex keeps the whole menu one tab stop.
+        </p>
+        <p>
+            <b>Accessibility.</b> The panel is a <code>menu</code> of <code>menuitemradio</code> items, the current one carrying <code>aria-checked</code>. The trigger is named "<em>label</em>, current item" — otherwise it announces a bare value with no clue what it's a value of. That applies to a slotted trigger too; author an <code>aria-label</code> on yours to override it.
+        </p>
+    </div>
+{% endmacro %}

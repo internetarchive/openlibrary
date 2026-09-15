@@ -33,7 +33,10 @@ export default {
             default: '',
             type: String
         },
-        classification: Object
+        classification: {
+            type: Object,
+            required: true
+        }
     },
     data() {
         return {};

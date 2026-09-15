@@ -24,7 +24,7 @@
         :class="{ selected: selected[record.key]}"
         :cell-selected="isCellUsed"
         :merged="merge ? merge.record : null"
-        :show_diffs="show_diffs"
+        :show-diffs="showDiffs"
       >
         <template #pre>
           <td
@@ -107,9 +107,15 @@ export default {
         MergeRow
     },
     props: {
-        olids: Array,
-        show_diffs: Boolean,
-        primary: String
+        olids: {
+            type: Array,
+            required: true
+        },
+        showDiffs: Boolean,
+        primary: {
+            type: String,
+            default: ''
+        }
     },
     data() {
         return {
@@ -345,11 +351,14 @@ time {
 table.main {
   border-collapse: collapse;
   min-width: 100%;
+  /* Contain the sticky header/footer's stacking. A shadow root is not a stacking
+     context, so without this their z-index competes with the whole page. */
+  isolation: isolate;
 }
 table.main thead,
 table.main tfoot {
   position: sticky;
-  z-index: 300;
+  z-index: var(--z-index-local-1);
 }
 table.main > thead {
   top: 0;

@@ -1,0 +1,79 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Navigation drawer", "Slides in from the right edge. Focus is trapped inside, background scroll is locked, and Escape or a backdrop click dismisses it. On touch devices you can also swipe it away.",
+        code='<ol-drawer label="Menu" placement="end">\n  <nav>…</nav>\n</ol-drawer>\n\n<script>\n  document.querySelector(\'ol-drawer\').open = true;\n</script>') %}
+        <ol-button id="demo-drawer-end-trigger" variant="secondary">
+            Open menu…
+        </ol-button>
+        <ol-drawer id="demo-drawer-end" label="Menu">
+            <ul class="ds-demo-menu">
+                <li>My Books</li>
+                <li>My Profile</li>
+                <li>Settings</li>
+                <li>Subjects</li>
+                <li>Trending</li>
+                <li>Library Explorer</li>
+            </ul>
+        </ol-drawer>
+        <script>
+            (function () {
+                const drawer = document.getElementById('demo-drawer-end');
+                document.body.appendChild(drawer);
+                document.getElementById('demo-drawer-end-trigger').addEventListener('click', () => { drawer.open = true; });
+            })();
+        </script>
+{% endcall %}
+{% call ex.example("Start placement", "placement=\"start\" slides from the left (right in RTL). Swipe-to-dismiss follows the placement, so the gesture always moves the panel off its own edge.",
+        code='<ol-drawer label="Filters" placement="start">…</ol-drawer>') %}
+        <ol-button id="demo-drawer-start-trigger" variant="secondary">
+            Open filters…
+        </ol-button>
+        <ol-drawer id="demo-drawer-start" label="Filters" placement="start">
+            <ul class="ds-demo-menu">
+                <li>
+                    <label>
+                        <input type="checkbox">
+                        Available to borrow
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox">
+                        Has ebook
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox">
+                        English only
+                    </label>
+                </li>
+            </ul>
+        </ol-drawer>
+        <script>
+            (function () {
+                const drawer = document.getElementById('demo-drawer-start');
+                document.body.appendChild(drawer);
+                document.getElementById('demo-drawer-start-trigger').addEventListener('click', () => { drawer.open = true; });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Custom width", "--ol-drawer-width sets the panel width; it never exceeds the viewport. --ol-drawer-enter-duration and --ol-drawer-exit-duration tune the slide.",
+        code='<ol-drawer label="Wide panel" style="--ol-drawer-width: 420px">…</ol-drawer>') %}
+        <ol-button id="demo-drawer-wide-trigger" variant="secondary">
+            Open wide drawer…
+        </ol-button>
+        <ol-drawer id="demo-drawer-wide" label="Wide panel" style="--ol-drawer-width: 420px;">
+            <ul class="ds-demo-menu">
+                <li>420px wide instead of the 300px default.</li>
+            </ul>
+        </ol-drawer>
+        <script>
+            (function () {
+                const drawer = document.getElementById('demo-drawer-wide');
+                document.body.appendChild(drawer);
+                document.getElementById('demo-drawer-wide-trigger').addEventListener('click', () => { drawer.open = true; });
+            })();
+        </script>
+    {% endcall %}
+{% endmacro %}
