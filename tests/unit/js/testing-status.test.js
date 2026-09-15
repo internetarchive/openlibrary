@@ -1,5 +1,7 @@
 import {
+    ACTION_ERRORS,
     DEFAULT_STRINGS,
+    actionErrorMessage,
     canUpdate,
     decodeAndParseJSON,
     driftPill,
@@ -92,6 +94,63 @@ describe('Testing Environment utils', () => {
             .toBe('Deploy succeeded 5 minutes ago by openlibrary');
         expect(sprintf(DEFAULT_STRINGS.lastDeployBy, '5 minutes ago', 'openlibrary'))
             .toBe('Last deploy 5 minutes ago by openlibrary');
+    });
+
+    test('names the PR an add could not find', () => {
+        const result = { ok: false, error: 'add_failed', failed_prs: { 9999: 'not_found' } };
+
+        expect(actionErrorMessage(result, DEFAULT_STRINGS)).toBe('PR 9999 does not exist.');
+    });
+
+    test('separates a GitHub outage from a missing PR', () => {
+        const result = { ok: false, error: 'add_failed', failed_prs: { 12914: 'unavailable' } };
+
+        expect(actionErrorMessage(result, DEFAULT_STRINGS))
+            .toBe('Could not check PR 12914 — GitHub is unavailable.');
+    });
+
+    test('lists every failed PR in numeric order', () => {
+        // Insertion order is deliberately unsorted: the server's dict order
+        // doesn't survive JSON (integer-like keys are re-sorted by the engine),
+        // so the message sorts rather than showing an order nobody chose.
+        const result = {
+            ok: false,
+            error: 'add_failed',
+            failed_prs: { 13269: 'unavailable', 9999: 'not_found', 12914: 'not_found' }
+        };
+
+        expect(actionErrorMessage(result, DEFAULT_STRINGS))
+            .toBe('PR 9999 does not exist. PR 12914 does not exist. Could not check PR 13269 — GitHub is unavailable.');
+    });
+
+    test('still names the PR when the reason is unrecognized', () => {
+        const result = { ok: false, error: 'add_failed', failed_prs: { 9999: 'something_new' } };
+
+        expect(actionErrorMessage(result, DEFAULT_STRINGS)).toBe('Could not add PR 9999.');
+    });
+
+    test('falls back to the generic string when an add carries no detail', () => {
+        expect(actionErrorMessage({ ok: false, error: 'add_failed' }, DEFAULT_STRINGS))
+            .toBe('Could not complete that action.');
+        expect(actionErrorMessage({ ok: false, error: 'add_failed', failed_prs: {} }, DEFAULT_STRINGS))
+            .toBe('Could not complete that action.');
+    });
+
+    test('maps the other action failures to their fixed strings', () => {
+        expect(actionErrorMessage({ ok: false, error: 'deploy_failed' }, DEFAULT_STRINGS))
+            .toBe('Could not start the deploy — Jenkins did not accept the build.');
+        expect(actionErrorMessage({ ok: false, error: 'deploy_unconfigured' }, DEFAULT_STRINGS))
+            .toBe('Deploy is not configured on this instance — nothing was deployed.');
+        expect(actionErrorMessage({ ok: false, error: 'who_knows' }, DEFAULT_STRINGS))
+            .toBe('Could not complete that action.');
+    });
+
+    test('every action error code has a string to show', () => {
+        // Guards a code being added to ACTION_ERRORS without its string, which
+        // would toast the bare key.
+        Object.entries(ACTION_ERRORS).forEach(([code, key]) => {
+            expect(DEFAULT_STRINGS[key], `${code} -> ${key}`).toBeTruthy();
+        });
     });
 
     test('detects the favicon environment', () => {
