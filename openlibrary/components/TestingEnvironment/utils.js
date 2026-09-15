@@ -17,6 +17,9 @@ export const DEFAULT_STRINGS = {
     loadError: 'Could not load the testing environment.',
     retry: 'Try again',
     actionFailed: 'Could not complete that action.',
+    addFailedNotFound: 'PR %s does not exist.',
+    addFailedUnavailable: 'Could not check PR %s — GitHub is unavailable.',
+    addFailedOther: 'Could not add PR %s.',
     title: 'Testing Environment',
     addPrs: 'Add PRs',
     addPlaceholder: 'PR numbers or URLs, space or comma separated',
@@ -74,6 +77,43 @@ export const DEFAULT_STRINGS = {
  */
 export function sprintf(fmt, ...args) {
     return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
+}
+
+/**
+ * The action endpoints answer {"ok": false, "error": "<code>"} for business
+ * failures; each code maps to the string that explains it.
+ */
+export const ACTION_ERRORS = {
+    add_failed: 'actionFailed',
+    deploy_failed: 'deployFailedTrigger',
+    deploy_unconfigured: 'deployUnconfigured'
+};
+
+/**
+ * The toast to show for a failed action.
+ *
+ * An add that GitHub rejected carries `failed_prs` ({number: reason}), so it
+ * can name the numbers that didn't land and why. Every other code — and an
+ * add without that detail — falls back to its fixed string.
+ */
+export function actionErrorMessage(result, strings) {
+    const failed = result?.failed_prs;
+    if (result?.error === 'add_failed' && failed && Object.keys(failed).length) {
+        const reasons = {
+            not_found: strings.addFailedNotFound,
+            unavailable: strings.addFailedUnavailable
+        };
+        // Numeric order, not insertion order: JSON object keys that look like
+        // integers come back re-sorted ascending by the JS engine, so relying
+        // on the server's order would show them in an order nobody chose.
+        return Object.keys(failed)
+            .map(Number)
+            .sort((a, b) => a - b)
+            .map((prNumber) => sprintf(reasons[failed[prNumber]] || strings.addFailedOther, prNumber))
+            .join(' ');
+    }
+    const key = ACTION_ERRORS[result?.error] || 'actionFailed';
+    return strings[key] || strings.actionFailed || key;
 }
 
 /**

@@ -6,7 +6,7 @@ import { getTestingStatus } from '../utils.js';
  * state from the server.  The 1 s interval bumps `now` every tick (so
  * relative labels advance) and only hits the network every 5th tick.
  *
- * @param {import('vue').ShallowRef<boolean>} busy — re-entrancy guard shared with useActions
+ * @param {import('vue').ShallowRef<boolean>} busy — action queue state shared with useActions
  * @returns {{
  *   view:   import('vue').ShallowRef<string>,
  *   payload: import('vue').ShallowRef<object|null>,
