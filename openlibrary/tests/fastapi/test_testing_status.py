@@ -1485,6 +1485,22 @@ def test_set_prs_active_endpoint(fastapi_client, mock_authenticated_user, mock_m
     mock.assert_called_once_with([13269], active)
 
 
+def test_refresh_status_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/refresh", json={})
+
+    assert response.status_code == 401
+
+
+def test_refresh_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.refresh_testing_status", return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/refresh", json={})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with()
+
+
 def test_remove_prs_endpoint_accepts_multiple_prs(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:

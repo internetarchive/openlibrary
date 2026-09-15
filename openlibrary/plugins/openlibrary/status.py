@@ -206,14 +206,10 @@ class status_deploy(delegate.page):
         return _json_error("deploy_unconfigured")
 
 
-class status_refresh(delegate.page):
-    path = "/status/refresh"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        _evict_drift_cache()
-        return _json_ok()
+def refresh_testing_status() -> dict[str, bool]:
+    """Evict cached testing-environment drift data."""
+    _evict_drift_cache()
+    return {"ok": True}
 
 
 def _is_deploying(state: TestingState) -> bool:

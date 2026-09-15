@@ -20,6 +20,7 @@ from openlibrary.plugins.openlibrary.status import (
     TestingStatus,
     add_prs,
     load_testing_status_async,
+    refresh_testing_status,
     remove_testing_prs,
     set_prs_active,
 )
@@ -89,3 +90,9 @@ def set_prs_active_endpoint(
 ) -> dict[str, Any]:
     """Stage PRs to be enabled or disabled on the next testing deploy."""
     return set_prs_active(data.prs, data.active)
+
+
+@router.post("/status/refresh")
+def refresh_status(_: MaintainerDep) -> dict[str, bool]:
+    """Refresh testing-environment data from GitHub on the next read."""
+    return refresh_testing_status()

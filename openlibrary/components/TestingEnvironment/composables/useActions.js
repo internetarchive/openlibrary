@@ -113,7 +113,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     async function refresh() {
         refreshing.value = true;
         try {
-            await enqueue('/status/refresh', {});
+            await enqueue('/status/refresh', {}, 'action', true);
         } finally {
             refreshing.value = false;
         }
