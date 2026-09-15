@@ -4,7 +4,7 @@
     {% set store_icons = {"betterworldbooks": "recycle", "amazon": "box", "bookshop-org": "store"} %}
     <div class="buy-option prices-{{ store.key }}"
          data-store="{{ store.key }}">
-        <a class="buy-option__link"
+        <a class="buy-option__link popover-menu__item"
            href="{{ store.link }}"
            title="{{ _('Look for this edition for sale at %(store)s', store=store.name) }}"
            data-ol-link-track="BuyLink|{{ store.analytics_key }}"

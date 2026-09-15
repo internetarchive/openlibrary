@@ -25,9 +25,11 @@
 .read-options .cta-btn,
 .read-options .cta-button-group,
 .read-options .cta-btn.cta-btn--no-pointer,
+.read-options .cta-dropper__menu,
 .btn-notice .cta-btn,
 .btn-notice .cta-button-group,
-.btn-notice .cta-btn.cta-btn--no-pointer {
+.btn-notice .cta-btn.cta-btn--no-pointer,
+.btn-notice .cta-dropper__menu {
   margin-bottom: 10px;
 }
 

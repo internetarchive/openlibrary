@@ -18,50 +18,7 @@
   margin-top: var(--spacing-stack-xs);
 }
 
-/* Buy options popover content. Rows follow the Browse popover's menu rows
-   (header-bar.css): a 4px panel gutter, pill hover fill, muted leading icon. */
-.buy-options {
-  box-sizing: border-box;
-  width: 100%;
-  padding: var(--spacing-inset-sm) var(--menu-row-inset);
-  background-color: var(--color-surface);
-  border-radius: var(--border-radius-overlay);
-  text-align: left;
-}
-
-@media only screen and (min-width: 768px) {
-  .buy-options {
-    width: 240px;
-  }
-}
-
-.buy-options .buy-option__link {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-  min-height: var(--menu-row-height);
-  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
-  border-radius: var(--border-radius-button);
-  color: var(--color-text);
-  font-size: var(--font-size-body-medium);
-  text-decoration: none;
-}
-
-.buy-options .buy-option__link .ol-icon {
-  color: var(--color-icon-muted);
-}
-
-.buy-options .buy-option__link:focus-visible {
-  background-color: var(--color-hover-overlay);
-}
-
-/* Gated so a tapped row doesn't stay highlighted on touch screens */
-@media (hover: hover) and (pointer: fine) {
-  .buy-options .buy-option__link:hover {
-    background-color: var(--color-hover-overlay);
-  }
-}
-
+/* Buy options popover content. Panel and row styles come from popover-menu.css. */
 .buy-options .buy-option__price {
   margin-left: auto;
   white-space: nowrap;
@@ -119,19 +76,22 @@
   top: 0;
   width: 32px;
   height: 100%;
-  border-left: 1px solid var(--grey);
+  border-left: 1px solid var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.cta-btn--buy .arrow-down::after {
-  content: "";
-  display: block;
-  width: 23px;
-  height: 23px;
-  background: url(/static/images/icons/icon_dropit.png) no-repeat center;
-  background-position: 0;
-  background-size: 45px;
-  filter: brightness(0) invert(1);
+.buy-popover__chevron {
+  transition: transform 0.2s;
+}
+
+.buy-popover[open] .buy-popover__chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buy-popover__chevron {
+    transition: none;
+  }
 }

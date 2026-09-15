@@ -1,0 +1,50 @@
+/**
+ * popover-menu.css — a list of link rows slotted into <ol-popover>.
+ *
+ * Shared by the Read/Borrow and Buy menus. Rows follow the menu-row contract
+ * (tokens/control-heights.css): a 4px panel gutter, pill hover fill, muted icon.
+ */
+
+.popover-menu {
+  box-sizing: border-box;
+  width: 240px;
+  max-width: calc(100vw - 24px);
+  padding: var(--spacing-inset-sm) var(--menu-row-inset);
+  text-align: left;
+}
+
+/* The mobile tray spans the viewport, so the panel fills it */
+@media (max-width: 767px) /* --width-breakpoint-tablet - 1px; matches OlPopover.js _mobile */ {
+  .popover-menu {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.popover-menu .popover-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  border-radius: var(--border-radius-button);
+  color: var(--color-text);
+  font-size: var(--font-size-body-medium);
+  text-decoration: none;
+}
+
+.popover-menu .popover-menu__item .ol-icon {
+  color: var(--color-icon-muted);
+}
+
+.popover-menu .popover-menu__item:focus-visible,
+.popover-menu .popover-menu__item:active {
+  background-color: var(--color-hover-overlay);
+}
+
+/* Gated so a tapped row doesn't stay highlighted on touch screens */
+@media (hover: hover) and (pointer: fine) {
+  .popover-menu .popover-menu__item:hover {
+    background-color: var(--color-hover-overlay);
+  }
+}
