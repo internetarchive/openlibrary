@@ -13,7 +13,7 @@ import os
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Form, HTTPException, Request, status
-from pydantic import BeforeValidator, BaseModel
+from pydantic import BaseModel, BeforeValidator
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
 from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
