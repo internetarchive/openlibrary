@@ -21,6 +21,7 @@ from openlibrary.plugins.openlibrary.status import (
     add_prs,
     load_testing_status_async,
     remove_testing_prs,
+    set_prs_active,
 )
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
@@ -29,6 +30,10 @@ router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 
 class PRsRequest(BaseModel):
     prs: list[Annotated[int, Field(ge=1000)]] = Field(min_length=1)
+
+
+class ActivePRsRequest(PRsRequest):
+    active: bool
 
 
 @router.get(
@@ -75,3 +80,12 @@ def remove_prs(
 ) -> dict[str, Any]:
     """Remove PRs from the testing environment state."""
     return remove_testing_prs(data.prs)
+
+
+@router.patch("/status/testing/prs")
+def set_prs_active_endpoint(
+    _: MaintainerDep,
+    data: ActivePRsRequest,
+) -> dict[str, Any]:
+    """Stage PRs to be enabled or disabled on the next testing deploy."""
+    return set_prs_active(data.prs, data.active)

@@ -1468,7 +1468,24 @@ def test_remove_prs_endpoint(fastapi_client, mock_authenticated_user, mock_maint
     mock.assert_called_once_with([13269])
 
 
-def test_remove_prs_endpoint_repeated_form_fields(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+def test_set_prs_active_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.patch("/status/testing/prs", json={"prs": [13269], "active": True})
+
+    assert response.status_code == 401
+
+
+@pytest.mark.parametrize("active", [True, False])
+def test_set_prs_active_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user, active):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.set_prs_active", return_value={"ok": True}) as mock:
+        response = fastapi_client.patch("/status/testing/prs", json={"prs": [13269], "active": active})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with([13269], active)
+
+
+def test_remove_prs_endpoint_accepts_multiple_prs(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
         mock.return_value = {"ok": True, "staged_prs": [13269, 13270], "removed_prs": []}

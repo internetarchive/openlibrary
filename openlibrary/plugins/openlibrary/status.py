@@ -121,40 +121,17 @@ class status_restore(delegate.page):
         return _json_ok()
 
 
-class status_enable(delegate.page):
-    path = "/status/enable"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_enable = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_enable:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_enable:
-                p.pending_active = True
-        _save_testing_state(state)
-        return _json_ok()
-
-
-class status_disable(delegate.page):
-    path = "/status/disable"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_disable = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_disable:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_disable:
-                p.pending_active = False
-        _save_testing_state(state)
-        return _json_ok()
+def set_prs_active(prs: list[int], active: bool) -> dict[str, bool]:
+    """Stage an active-state change for PRs in the testing set."""
+    state = _load_testing_state()
+    if not state:
+        return {"ok": True}
+    requested = set(prs)
+    for p in state.prs:
+        if p.pr in requested:
+            p.pending_active = active
+    _save_testing_state(state)
+    return {"ok": True}
 
 
 class status_pull_latest(delegate.page):

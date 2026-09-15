@@ -78,8 +78,12 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     }
 
     function togglePr(pr) {
-        const action = effectiveActive(pr) ? '/status/disable' : '/status/enable';
-        enqueue(action, { prs: [pr.pr] });
+        enqueue(
+            '/status/testing/prs',
+            { prs: [pr.pr], active: !effectiveActive(pr) },
+            'action',
+            true
+        );
     }
 
     function updatePr(pr) {
