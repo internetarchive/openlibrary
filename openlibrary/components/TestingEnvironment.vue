@@ -40,7 +40,7 @@ try {
 }
 
 // ── Composables ─────────────────────────────────────────────────────
-const { toast, setToast } = useToast();
+const { setToast } = useToast();
 
 // busy is a shared re-entrancy guard between status fetching and actions.
 const busy = shallowRef(false);
@@ -233,15 +233,6 @@ onBeforeUnmount(() => syncDeployFavicon(false));
         @deploy="deploy"
         @refresh="refresh"
       />
-    </div>
-
-    <div
-      v-if="toast"
-      class="testing-env__toast"
-      role="status"
-      aria-live="polite"
-    >
-      {{ toast }}
     </div>
   </section>
 </template>
