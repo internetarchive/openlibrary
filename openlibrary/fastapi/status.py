@@ -12,13 +12,15 @@ import os
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Form, HTTPException, status
+from pydantic import BeforeValidator
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
 from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
 from openlibrary.plugins.openlibrary.status import (
     TestingStatus,
-    add_prs_async,
+    add_prs,
     load_testing_status_async,
+    parse_pr_numbers,
 )
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
@@ -53,15 +55,20 @@ async def testing_status(_: MaintainerDep) -> TestingStatus:
     return result
 
 
+# The add form posts a single ``pr`` field holding whitespace/comma-separated
+# numbers or PR URLs; the service-layer tokenizer turns it into ints.
+PrNumbersDep = Annotated[list[int], BeforeValidator(parse_pr_numbers), Form(alias="pr")]
+
+
 @router.post("/status/add")
-async def add_prs(
-    _: MaintainerDep,
-    pr: Annotated[str, Form()] = "",
+async def add_prs_endpoint(
+    user: MaintainerDep,
+    pr_numbers: PrNumbersDep = [],  # noqa: B006
 ) -> dict[str, Any]:
-    try:
-        return await add_prs_async(pr)
-    except ValueError:
+    """Add PRs to the testing set."""
+    if not pr_numbers:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No valid PR numbers specified",
         )
+    return await add_prs(pr_numbers, user.username)

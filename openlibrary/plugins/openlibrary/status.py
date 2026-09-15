@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
-from warnings import deprecated
 
 import httpx
 import web
@@ -71,22 +70,6 @@ def _json_error(error: str) -> delegate.RawText:
     message; auth and input errors stay real HTTP errors (401/400).
     """
     return delegate.RawText(json.dumps({"ok": False, "error": error}), content_type="application/json")
-
-
-@deprecated("migrated to fastapi")
-class status_add(delegate.page):
-    path = "/status/add"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        try:
-            result = _add_prs(web.input(pr="").pr)
-        except ValueError:
-            raise web.badrequest()
-        if result["ok"]:
-            return _json_ok()
-        return _json_error(result["error"])
 
 
 class status_remove(delegate.page):
@@ -608,28 +591,52 @@ async def load_testing_status_async() -> TestingStatus | None:
     return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
 
 
-async def add_prs_async(raw_pr_input: str) -> dict:
-    raw = re.split(r"[\s,]+", raw_pr_input.strip())
-    pr_numbers = []
-    for val in raw:
-        if val:
-            with contextlib.suppress(ValueError, AttributeError):
-                pr_numbers.append(_parse_pr_number(val))
-    if not pr_numbers:
-        raise ValueError(f"No valid PR numbers in: {raw_pr_input!r}")
+def _parse_pr_number(value: str) -> int:
+    """Parse one token as a PR number, accepting ``#123`` or a PR URL."""
+    value = value.strip()
+    if "/issues/" in value:
+        raise ValueError(f"Not a PR URL (looks like an issue): {value!r}")
+    if m := re.search(r"/pull/(\d+)", value):
+        return int(m.group(1))
+    return int(value.lstrip("#"))
 
+
+def parse_pr_numbers(value: str | list[str]) -> list[int]:
+    """Split whitespace/comma-separated PR input into numbers, dropping bad tokens.
+
+    The panel's add input accepts ``"12914 13269"``, ``"12914,13269"``,
+    ``"#12914"``, and PR URLs interchangeably. Unparsable tokens (including
+    issue URLs) are skipped; input with no valid PR yields an empty list so the
+    caller can reject it rather than guessing.
+    """
+    if not value:
+        return []
+    if isinstance(value, str):
+        value = [value]
+    numbers: list[int] = []
+    for token in re.split(r"[\s,]+", " ".join(str(item) for item in value).strip()):
+        if token:
+            with contextlib.suppress(ValueError, AttributeError):
+                numbers.append(_parse_pr_number(token))
+    return numbers
+
+
+async def add_prs(pr_numbers: list[int], username: str) -> dict:
+    """Append new PRs to the testing set and clear any staged removal on re-adds."""
     state = _load_testing_state() or TestingState(last_deploy_at="", prs=[])
     existing = {p.pr for p in state.prs}
     # Re-adding a PR whose removal is staged is an undo, not a new add.
     for p in state.prs:
         if p.pr in pr_numbers:
             p.pending_remove = False
-    user = get_current_user()
     failed = []
     for pr_number in pr_numbers:
         if pr_number not in existing:
             info = await _get_pr_info_async(pr_number)
             if info.get("error"):
+                # GitHub unreachable, rate-limited, or an invalid PR — never
+                # pretend the add landed. The error response lets the panel
+                # keep the input so the failure is visible.
                 failed.append(pr_number)
                 continue
             state.prs.append(
@@ -639,7 +646,7 @@ async def add_prs_async(raw_pr_input: str) -> dict:
                     active=True,
                     title=info["title"],
                     added_at=datetime.datetime.now(datetime.UTC).isoformat(),
-                    added_by=user.key.split("/")[-1] if user else "",
+                    added_by=username,
                     author=info["author"],
                     author_avatar=info["author_avatar"],
                     assignee=info["assignee"],
@@ -850,23 +857,13 @@ async def _get_pr_drift_async(pr: TestingPR) -> dict:
         }
 
 
-# Sync bridge wrappers: the web.py action handlers (status_add, status_deploy)
-# are sync, so they reach the async implementations above through AsyncBridge's
-# background event loop instead of duplicating them. FastAPI should call the
-# ``*_async`` versions directly and await them (see openlibrary/utils/async_utils.py).
+# Sync bridge wrappers: the remaining web.py action handlers reach the async
+# implementations above through AsyncBridge's background event loop instead of
+# duplicating them. FastAPI should call the ``*_async`` versions directly and
+# await them (see openlibrary/utils/async_utils.py).
 _get_pr_info = async_bridge.wrap(_get_pr_info_async)
 _get_drift_info = async_bridge.wrap(_get_drift_info_async)
 load_testing_status = async_bridge.wrap(load_testing_status_async)
-_add_prs = async_bridge.wrap(add_prs_async)
-
-
-def _parse_pr_number(value: str) -> int:
-    value = value.strip()
-    if "/issues/" in value:
-        raise ValueError(f"Not a PR URL (looks like an issue): {value!r}")
-    if m := re.search(r"/pull/(\d+)", value):
-        return int(m.group(1))
-    return int(value.lstrip("#"))
 
 
 @public

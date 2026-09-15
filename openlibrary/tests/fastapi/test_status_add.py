@@ -7,20 +7,29 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 import openlibrary.plugins.openlibrary.status as status_module
+from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 
 
 @pytest.fixture
 def mock_maintainer_user(monkeypatch):
     """Patch get_current_user (used by require_maintainer) with a user of configurable role."""
 
-    def create_user(is_maintainer: bool = False, key: str = "/people/openlibrary"):
+    def create_user(is_maintainer: bool = False):
         user = MagicMock()
         user.is_maintainer.return_value = is_maintainer
-        user.key = key
         monkeypatch.setattr("openlibrary.fastapi.auth.get_current_user", lambda: user)
         return user
 
     return create_user
+
+
+def _as_user(client, username: str) -> None:
+    """Override the authenticated user so the endpoint records ``username``."""
+    client.app.dependency_overrides[require_authenticated_user] = lambda: AuthenticatedUser(
+        username=username,
+        user_key=f"/people/{username}",
+        timestamp="2026-01-01T00:00:00",
+    )
 
 
 def _gh_info(pr_number: int = 12914) -> dict:
@@ -47,7 +56,7 @@ def _gh_error(error: str = "unavailable") -> dict:
     }
 
 
-def _post_add(client, state, pr_value="12914", gh_side_effect=None, gh_info=None, current_user=None):
+def _post_add(client, state, pr_value="12914", gh_side_effect=None, gh_info=None):
     """POST /status/add with standardized mocks so tests only override what they need."""
     if gh_side_effect is not None:
         get_pr_info_patch = patch(
@@ -66,7 +75,6 @@ def _post_add(client, state, pr_value="12914", gh_side_effect=None, gh_info=None
         get_pr_info_patch,
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
-        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=current_user),
     ):
         return client.post("/status/add", data={"pr": pr_value})
 
@@ -89,7 +97,7 @@ class TestStatusAdd:
         assert pr.title == "Test PR 12914"
         assert pr.author == "author"
         assert pr.assignee == "assignee"
-        assert pr.added_by == ""
+        assert pr.added_by == "testuser"
 
     def test_add_multiple_prs_space_and_url_separated(self, fastapi_client, mock_authenticated_user, mock_maintainer_user):
         mock_maintainer_user(is_maintainer=True)
@@ -107,12 +115,40 @@ class TestStatusAdd:
         assert resp.json() == {"ok": True}
         assert [p.pr for p in state.prs] == [12914, 13269]
 
+    def test_add_multiple_prs_comma_separated(self, fastapi_client, mock_authenticated_user, mock_maintainer_user):
+        """Comma-separated input adds every PR, same as the space-separated form."""
+        mock_maintainer_user(is_maintainer=True)
+        state = status_module.TestingState(last_deploy_at="", prs=[])
+        infos = {12914: _gh_info(12914), 13269: _gh_info(13269)}
+
+        resp = _post_add(
+            fastapi_client,
+            state,
+            pr_value="12914,13269",
+            gh_side_effect=lambda n: infos[n],
+        )
+
+        assert resp.status_code == 200
+        assert resp.json() == {"ok": True}
+        assert [p.pr for p in state.prs] == [12914, 13269]
+
+    def test_add_keeps_valid_prs_when_a_token_is_invalid(self, fastapi_client, mock_authenticated_user, mock_maintainer_user):
+        """One bad token doesn't discard the valid ones around it."""
+        mock_maintainer_user(is_maintainer=True)
+        state = status_module.TestingState(last_deploy_at="", prs=[])
+
+        resp = _post_add(fastapi_client, state, pr_value="12914 not-a-number")
+
+        assert resp.status_code == 200
+        assert resp.json() == {"ok": True}
+        assert [p.pr for p in state.prs] == [12914]
+
     def test_add_records_the_acting_user(self, fastapi_client, mock_authenticated_user, mock_maintainer_user):
         mock_maintainer_user(is_maintainer=True)
         state = status_module.TestingState(last_deploy_at="", prs=[])
-        user = mock_maintainer_user(is_maintainer=True, key="/people/mecha-kraken")
+        _as_user(fastapi_client, "mecha-kraken")
 
-        resp = _post_add(fastapi_client, state, current_user=user)
+        resp = _post_add(fastapi_client, state)
 
         assert resp.status_code == 200
         assert state.prs[0].added_by == "mecha-kraken"
@@ -158,7 +194,6 @@ class TestStatusAdd:
             patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock) as mock_info,
             patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
             patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
-            patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
         ):
             resp = fastapi_client.post("/status/add", data={"pr": "13269"})
 
@@ -177,7 +212,6 @@ class TestStatusAdd:
             patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=_gh_info()),
             patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
             patch("openlibrary.plugins.openlibrary.status._evict_drift_cache") as mock_evict,
-            patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
         ):
             resp = fastapi_client.post("/status/add", data={"pr": "12914"})
 

@@ -563,61 +563,6 @@ def _make_deploy_state():
     return _make_state(prs=[pinned, toggled])
 
 
-def test_add_appends_pr_when_github_succeeds():
-    """A successful GitHub fetch adds the PR and answers ok."""
-    state = status_module.TestingState(last_deploy_at="", prs=[])
-    gh_info = {
-        "title": "Test PR",
-        "head_sha": "abc1234def5678901234567890123456789012345",
-        "author": "author",
-        "author_avatar": "",
-        "assignee": "assignee",
-        "assignee_avatar": "",
-        "error": "",
-    }
-    with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
-        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
-        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
-        patch("web.input", return_value=web.storage(pr="12914")),
-    ):
-        response = status_module.status_add().POST()
-
-    assert json.loads(response["rawtext"]) == {"ok": True}
-    assert [p.pr for p in state.prs] == [12914]
-
-
-def test_add_skips_pr_and_marks_failure_when_github_errors():
-    """A GitHub failure (rate limit, outage, invalid PR) must not pretend the add landed."""
-    state = status_module.TestingState(last_deploy_at="", prs=[])
-    gh_info = {
-        "title": "PR #12914",
-        "head_sha": "",
-        "author": "",
-        "author_avatar": "",
-        "assignee": "",
-        "assignee_avatar": "",
-        "error": "unavailable",
-    }
-    with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
-        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
-        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
-        patch("web.input", return_value=web.storage(pr="12914")),
-    ):
-        response = status_module.status_add().POST()
-
-    # The error code is what lets the panel keep the add input.
-    assert json.loads(response["rawtext"]) == {"ok": False, "error": "add_failed"}
-    assert state.prs == []
-
-
 def test_remove_stages_a_removal_for_a_live_pr():
     """Removing a deployed PR stages it: the row survives with its pin and toggle."""
     pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
@@ -675,30 +620,6 @@ def test_restore_clears_a_staged_removal():
     mock_save.assert_called_once_with(state)
 
 
-def test_add_cancels_a_staged_removal():
-    """Re-adding a PR whose removal is staged is an undo, not a duplicate row."""
-    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
-    pr.pending_remove = True
-    state = _make_state(prs=[pr])
-
-    with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock) as mock_info,
-        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
-        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
-        patch("web.input", return_value=web.storage(pr="13269")),
-    ):
-        response = status_module.status_add().POST()
-
-    assert json.loads(response["rawtext"]) == {"ok": True}
-    assert [p.pr for p in state.prs] == [13269]
-    assert state.prs[0].pending_remove is False
-    # Already in the set: no GitHub fetch, no fresh row.
-    mock_info.assert_not_called()
-
-
 def test_deploy_unconfigured_answers_error_but_advances_state():
     """Local dev (no Jenkins token): state advances so the UI is exercisable,
     but the response says nothing was actually deployed."""
@@ -720,6 +641,29 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
     assert state.deploy_started_at == ""
     # …but the record advances so a dev can exercise the rest of the panel.
     assert state.deployed == {13269: "Test PR"}
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("12914", [12914]),
+        ("12914 13269", [12914, 13269]),
+        ("12914,13269", [12914, 13269]),
+        ("12914, 13269", [12914, 13269]),
+        ("posted by author (12914)", []),  # plain text has no PR number
+        ("#12914", [12914]),
+        ("https://github.com/internetarchive/openlibrary/pull/13269", [13269]),
+        ("https://github.com/internetarchive/openlibrary/issues/123", []),  # issue URLs are rejected
+        ("12914 not-a-number", [12914]),  # bad tokens are dropped, valid ones kept
+        ("", []),
+        ("   ", []),
+        ("\t12914\n13269\t", [12914, 13269]),
+        (["12914", "13269"], [12914, 13269]),  # FastAPI passes a list for repeated form fields
+    ],
+)
+def test_parse_pr_numbers(raw, expected):
+    """The input tokenizer accepts whitespace, commas, #numbers, and PR URLs."""
+    assert status_module.parse_pr_numbers(raw) == expected
 
 
 def test_get_pr_info_distinguishes_not_found_from_unavailable():
