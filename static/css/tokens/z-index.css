@@ -1,9 +1,8 @@
 /**
  * Z-Index Primitives
  * ======================
- * Raw stacking values. Never reference these from a component — Stylelint
- * flags it. Consume the semantic tokens below instead.
- * Gaps in numbering (6–12, 15) are intentional deletions; do not fill them.
+ * Raw stacking values. Components use the semantic tokens below, never these
+ * (Stylelint enforces it). Gaps in numbering are deliberate; do not fill them.
  */
 :root {
   --z-index-level-negative: -1;
@@ -21,40 +20,24 @@
 /**
  * Z-Index Semantic Tokens
  * ====================
- * There are three kinds of layering on the site, and only one of them uses
- * these tokens.
+ * Three kinds of layering; only page chrome uses these tokens.
  *
- * 1. Overlays (dialogs, drawers, popovers, tooltips, menus) live in the
- *    browser's top layer and carry no z-index at all. ol-dialog and ol-drawer
- *    get there through <dialog>.showModal(); ol-popover and ol-tooltip through
- *    the Popover API (see openlibrary/components/lit/utils/top-layer.js).
- *    Nothing on the page can paint over a top-layer element and no ancestor
- *    can trap it, so no number could do better. Order within the top layer
- *    is promotion order: last shown is on top.
+ * 1. Overlays (dialogs, drawers, popovers, tooltips, menus) use the browser's
+ *    top layer via <dialog>.showModal() or the Popover API (see
+ *    components/lit/utils/top-layer.js). No z-index; last shown is on top.
+ * 2. Page chrome (sticky headers, nav bars, toolbars) uses the bands below,
+ *    `behind` to `fixed`. Need more than `fixed`? It's an overlay: use the
+ *    top layer.
+ * 3. Component internals set `isolation: isolate` and use --z-index-local-*.
  *
- * 2. Page chrome (sticky headers, nav bars, toolbars) is ordered by the
- *    bands below, from `behind` up to `fixed`. If you think you need a value
- *    above `fixed`, you are building an overlay: promote it to the top layer
- *    instead of outbidding.
- *
- * 3. Component internals (cover fans, carousel arrows, star ratings) set
- *    `isolation: isolate` on their root and use the --z-index-local-* ordinals
- *    further down. Their values never touch the page-level vocabulary.
- *
- * The four bands above `fixed` (`dropdown`, `modal`, `overlay`, `toast`) are
- * legacy. They order page-level overlays that predate the top layer: jQuery UI
- * dialogs, colorbox, jQuery autocomplete, the generic dropper, nav-bar menus
- * and the legacy toast container. Add no new consumers. Note that `toast` is
- * not "always on top": anything in the top layer paints above it, which is why
- * a legacy toast fired before a modal opens is dimmed behind the backdrop.
+ * The bands above `fixed` are legacy, for pre-top-layer overlays (jQuery UI,
+ * colorbox, autocomplete, dropper, nav-bar menus, toasts). Add no new
+ * consumers. Anything in the top layer paints above even `toast`.
  *
  * Rules:
- *   1. Never write a raw z-index number, and never reference a
- *      --z-index-level-* primitive — Stylelint rejects both.
- *   2. A shadow root is NOT a stacking context — a z-index inside a web
- *      component competes with the whole page unless an ancestor isolates it.
- *   3. Within a band, ties resolve by document order. A component that must
- *      beat its band peers needs its own band or isolation: isolate.
+ *   1. No raw z-index numbers and no --z-index-level-* primitives.
+ *   2. A shadow root is not a stacking context; isolate an ancestor.
+ *   3. Ties within a band resolve by document order.
  *
  * Layer hierarchy (high → low):
  *
@@ -62,42 +45,34 @@
  *   overlay    --z-index-overlay    99999   ← legacy: jQuery autocomplete, manage-covers
  *   modal      --z-index-modal      9999    ← legacy: jQuery UI overlay scrim
  *   dropdown   --z-index-dropdown   999     ← legacy: language selector, nav-bar, compact-title;
- *                                             also the fixed+z-index fallback for ol-popover and
- *                                             ol-tooltip on browsers without the Popover API
- *   fixed      --z-index-fixed      10      ← toolbars over content (ILE toolbar, LibraryToolbar, dropper-menu)
+ *                                             popover/tooltip fallback without the Popover API
+ *   fixed      --z-index-fixed      10      ← toolbars over content
  *   sticky     --z-index-sticky     3       ← mobile site header
- *   raised     --z-index-raised     2       ← one step above base siblings (page-banner, carousel captions)
+ *   raised     --z-index-raised     2       ← one step above base
  *   base       --z-index-base       1       ← minimum lift above static flow
- *   behind     --z-index-behind     -1      ← behind parent content (decorative/animations)
+ *   behind     --z-index-behind     -1      ← behind parent content
  *
- * 10000 (--z-index-level-14) has no band. Its four remaining uses (jQuery UI
- * dialog panel, generic dropper panel, nav-bar scroll arrows) keep the primitive
- * with an inline note until those overlays are replaced.
- *
- * There is no zero token — `z-index: 0` orders nothing (it paints identically
- * to `auto`); its only effect is creating a stacking context, and the explicit
- * spelling for that is `isolation: isolate`.
+ * 10000 (--z-index-level-14) has no band; its few legacy uses carry an
+ * inline note. There is no zero token: use `isolation: isolate` instead.
  */
 :root {
-  --z-index-behind:   var(--z-index-level-negative); /* -1      – decorative elements behind parent (e.g. .editionCover animation) */
-  --z-index-base:     var(--z-index-level-1);        /*  1      – minimum lift above static flow (e.g. chevrons, sticky compare card) */
-  --z-index-raised:   var(--z-index-level-2);        /*  2      – one step above base (e.g. page-banner, header-bar items) */
-  --z-index-sticky:   var(--z-index-level-3);        /*  3      – mobile sticky site header (#header-bar at ≤960px) */
-  --z-index-fixed:    var(--z-index-level-4);        /* 10      – toolbars over content (e.g. ILE toolbar, LibraryToolbar, dropper-menu) */
-  --z-index-dropdown: var(--z-index-level-5);        /* 999     – legacy page-level floating panels (e.g. language selector, nav-bar) */
-  --z-index-modal:    var(--z-index-level-13);       /* 9999    – legacy jQuery UI overlay scrim */
-  --z-index-overlay:  var(--z-index-level-16);       /* 99999   – legacy: above jQuery UI dialogs (e.g. autocomplete inside a dialog) */
-  --z-index-toast:    var(--z-index-level-17);       /* 999999  – legacy toast container and colorbox; still below the top layer */
+  --z-index-behind:   var(--z-index-level-negative); /* -1      – behind parent (e.g. .editionCover animation) */
+  --z-index-base:     var(--z-index-level-1);        /*  1      – e.g. chevrons, sticky compare card */
+  --z-index-raised:   var(--z-index-level-2);        /*  2      – e.g. page-banner, header-bar items */
+  --z-index-sticky:   var(--z-index-level-3);        /*  3      – #header-bar at ≤960px */
+  --z-index-fixed:    var(--z-index-level-4);        /* 10      – e.g. ILE toolbar, LibraryToolbar, dropper-menu */
+  --z-index-dropdown: var(--z-index-level-5);        /* 999     – legacy floating panels */
+  --z-index-modal:    var(--z-index-level-13);       /* 9999    – legacy jQuery UI scrim */
+  --z-index-overlay:  var(--z-index-level-16);       /* 99999   – legacy: above jQuery UI dialogs */
+  --z-index-toast:    var(--z-index-level-17);       /* 999999  – legacy toasts, colorbox */
 }
 
 /**
  * Local Layers
  * ============
- * Ordinal steps for layering INSIDE a component whose root sets
- * `isolation: isolate`. The ordinals only order siblings within that scope —
- * they are meaningless outside it. Never use these without isolation on an
- * ancestor, and never use the semantic bands above for component-internal
- * ordering. Negative internal layers keep --z-index-behind.
+ * Ordinals for layering inside a component whose root sets
+ * `isolation: isolate`. Meaningless without it. Use --z-index-behind for
+ * negative layers.
  */
 :root {
   --z-index-local-1: 1;
