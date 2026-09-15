@@ -38,12 +38,11 @@
 
 /* Rows grow downward for offer details, so the icon pins to the first line */
 .buy-options .buy-option__link {
-  --buy-option-line: calc(var(--menu-row-height) - 2 * var(--spacing-sm));
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-inline-md);
-  min-height: var(--menu-row-height);
   box-sizing: border-box;
+  min-height: var(--menu-row-height);
   padding: var(--spacing-sm) var(--menu-row-padding-inline);
   border-radius: var(--border-radius-button);
   color: var(--color-text);
@@ -52,29 +51,18 @@
 }
 
 .buy-options .buy-option__link .ol-icon {
-  flex-shrink: 0;
-  margin-top: calc((var(--buy-option-line) - var(--icon-size-sm)) / 2);
+  margin-top: var(--spacing-3xs);
   color: var(--color-icon-muted);
 }
 
-.buy-options .buy-option__body {
-  display: flex;
+.buy-option__body {
   flex: 1;
-  flex-direction: column;
-  gap: var(--spacing-3xs);
   min-width: 0;
 }
 
-.buy-options .buy-option__header {
+.buy-option__header {
   display: flex;
-  align-items: center;
   gap: var(--spacing-inline-md);
-  min-height: var(--buy-option-line);
-}
-
-.buy-options .buy-option__name {
-  flex: 1;
-  min-width: 0;
 }
 
 .buy-options .buy-option__link:focus-visible {
@@ -88,24 +76,24 @@
   }
 }
 
-.buy-options .buy-option__price {
+.buy-option__price {
+  margin-left: auto;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-medium);
 }
 
-.buy-options .buy-option__list-price {
+.buy-option__list-price {
   margin-right: var(--spacing-inline-sm);
   color: var(--color-text-muted);
   font-size: var(--font-size-label-medium);
-  font-weight: var(--font-weight-regular);
 }
 
 /* Offers and store notes as one muted run: "12 used from $4.28 · In Stock" */
-.buy-options .buy-option__details {
+.buy-option__details {
+  display: block;
   color: var(--color-text-muted);
   font-size: var(--font-size-label-medium);
-  font-variant-numeric: tabular-nums;
   line-height: var(--line-height-meta);
 }
 
@@ -114,7 +102,7 @@
   margin-inline: var(--spacing-inline-sm);
 }
 
-.buy-options .buy-option__detail--savings {
+.buy-option__detail--savings {
   color: var(--color-success-fg);
 }
 
