@@ -101,6 +101,15 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     logger.warning("Unexpected author type error: %s", work["key"])
                 authors = [a for a in authors if a["type"]["key"] == "/type/author"]
 
+                # Fetch tags (genres, subgenres, audience)
+                tag_keys = [
+                    key
+                    for field in ("genres", "subgenres", "audience")
+                    for key in work.get(field, [])
+                ]
+                tags = [await self.data_provider.get_document(key) for key in tag_keys]
+                tags = [t for t in tags if t["type"]["key"] == "/type/tag"]
+
                 # Fetch series
                 series_edges = uniq(
                     [
@@ -136,6 +145,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     self.data_provider,
                     ia_metadata,
                     trending_data,
+                    tags,
                 ).build()
             except:  # noqa: E722
                 logger.error("failed to update work %s", work["key"], exc_info=True)
@@ -279,10 +289,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         data_provider: DataProvider,
         ia_metadata: dict[str, bp.IALiteMetadata | None],
         trending_data: dict,
+        tags: list[dict],
     ):
         self._work = work
         self._editions = editions
         self._authors = authors
+        self._tags = tags
         self._series = series
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
@@ -666,6 +678,33 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @cached_property
     def author_name(self) -> list[str]:
         return [a.get("name", "") for a in self._authors]
+
+    def _tags_of_type(self, tag_type: str) -> list[dict]:
+        return [t for t in self._tags if t.get("tag_type") == tag_type]
+
+    @cached_property
+    def genre_key(self) -> list[str]:
+        return [t["key"].split("/")[-1] for t in self._tags_of_type("genres")]
+
+    @cached_property
+    def genre_name(self) -> list[str]:
+        return [t.get("name", "") for t in self._tags_of_type("genres")]
+
+    @cached_property
+    def subgenre_key(self) -> list[str]:
+        return [t["key"].split("/")[-1] for t in self._tags_of_type("subgenres")]
+
+    @cached_property
+    def subgenre_name(self) -> list[str]:
+        return [t.get("name", "") for t in self._tags_of_type("subgenres")]
+
+    @cached_property
+    def audience_key(self) -> list[str]:
+        return [t["key"].split("/")[-1] for t in self._tags_of_type("audience")]
+
+    @cached_property
+    def audience_name(self) -> list[str]:
+        return [t.get("name", "") for t in self._tags_of_type("audience")]
 
     @cached_property
     def author_alternative_name(self) -> set[str]:
