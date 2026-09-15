@@ -88,7 +88,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     }
 
     function updatePr(pr) {
-        enqueue('/status/pull-latest', { prs: [pr.pr] }, 'pull-latest');
+        enqueue('/status/pull-latest', { prs: [pr.pr] }, 'pull-latest', true);
     }
 
     function removePr(pr) {

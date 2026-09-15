@@ -134,30 +134,22 @@ def set_prs_active(prs: list[int], active: bool) -> dict[str, bool]:
     return {"ok": True}
 
 
-class status_pull_latest(delegate.page):
-    path = "/status/pull-latest"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_update = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_update:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_update:
-                try:
-                    info = _get_pr_info(p.pr)
-                except GitHubAPIError:
-                    # GitHub is down or the PR is gone. This endpoint has always
-                    # treated that as "nothing to update" and answered ok, so the
-                    # row is left alone rather than failing the whole request.
-                    continue
-                if info.head_sha and info.head_sha != p.commit:
-                    p.pull_latest_sha = info.head_sha
-        _save_testing_state(state)
-        return _json_ok()
+def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
+    """Stage the latest GitHub commit for PRs in the testing set."""
+    state = _load_testing_state()
+    if not state:
+        return {"ok": True}
+    requested = set(prs)
+    for p in state.prs:
+        if p.pr in requested:
+            try:
+                info = _get_pr_info(p.pr)
+            except GitHubAPIError:
+                continue
+            if info.head_sha and info.head_sha != p.commit:
+                p.pull_latest_sha = info.head_sha
+    _save_testing_state(state)
+    return {"ok": True}
 
 
 def deploy_testing_status() -> dict[str, bool | str]:

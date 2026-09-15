@@ -21,6 +21,7 @@ from openlibrary.plugins.openlibrary.status import (
     add_prs,
     deploy_testing_status,
     load_testing_status_async,
+    pull_latest_prs,
     refresh_testing_status,
     remove_testing_prs,
     set_prs_active,
@@ -82,6 +83,15 @@ def remove_prs(
 ) -> dict[str, Any]:
     """Remove PRs from the testing environment state."""
     return remove_testing_prs(data.prs)
+
+
+@router.post("/status/pull-latest")
+def pull_latest(
+    _: MaintainerDep,
+    data: PRsRequest,
+) -> dict[str, bool]:
+    """Stage the latest GitHub commit for PRs in the testing set."""
+    return pull_latest_prs(data.prs)
 
 
 @router.patch("/status/testing/prs")

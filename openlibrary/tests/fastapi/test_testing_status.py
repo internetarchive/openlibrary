@@ -396,7 +396,6 @@ def test_deploy_drops_closed_prs():
     state = _make_state(prs=[pr])
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
             "openlibrary.plugins.openlibrary.status._get_drift_info",
@@ -692,11 +691,10 @@ def test_pull_latest_stages_the_new_head_sha():
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        patch("web.input", return_value=web.storage(prs=[str(pr.pr)])),
     ):
-        response = status_module.status_pull_latest().POST()
+        response = status_module.pull_latest_prs([pr.pr])
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert response == {"ok": True}
     assert pr.pull_latest_sha == "f" * 40
     mock_save.assert_called_once_with(state)
 
@@ -717,15 +715,13 @@ def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
     state = _make_state(prs=[pr])
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_pr_info", side_effect=error),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("web.input", return_value=web.storage(prs=[str(pr.pr)])),
     ):
-        response = status_module.status_pull_latest().POST()
+        response = status_module.pull_latest_prs([pr.pr])
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert response == {"ok": True}
     assert pr.pull_latest_sha == ""
 
 
@@ -1515,6 +1511,22 @@ def test_deploy_status_endpoint(fastapi_client, mock_authenticated_user, mock_ma
     assert response.status_code == 200
     assert response.json() == {"ok": True}
     mock.assert_called_once_with()
+
+
+def test_pull_latest_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/pull-latest", json={"prs": [13269]})
+
+    assert response.status_code == 401
+
+
+def test_pull_latest_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.pull_latest_prs", return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/pull-latest", json={"prs": [13269]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with([13269])
 
 
 def test_remove_prs_endpoint_accepts_multiple_prs(fastapi_client, mock_authenticated_user, mock_maintainer_user):
