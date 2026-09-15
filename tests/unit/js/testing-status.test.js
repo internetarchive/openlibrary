@@ -47,18 +47,22 @@ describe('Testing Environment utils', () => {
         });
     });
 
-    test('posts actions form-encoded, repeating array fields', async() => {
+    test('posts remove actions as JSON', async() => {
         const body = { ok: true };
         global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
 
-        await expect(postAction('/status/remove', { prs: [13269, 13270] })).resolves.toBe(body);
+        await expect(postAction('/status/remove', { prs: [13269, 13270] }, true)).resolves.toBe(body);
 
         expect(global.fetch).toHaveBeenCalledWith(
             '/status/remove',
             expect.objectContaining({
                 method: 'POST',
                 credentials: 'same-origin',
-                body: new URLSearchParams([['prs', '13269'], ['prs', '13270']])
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({ prs: [13269, 13270] })
             })
         );
     });

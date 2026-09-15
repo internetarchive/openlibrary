@@ -12,7 +12,7 @@ import os
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Form, HTTPException, status
-from pydantic import BeforeValidator
+from pydantic import BaseModel, BeforeValidator
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
 from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
@@ -26,6 +26,10 @@ from openlibrary.plugins.openlibrary.status import (
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
+
+
+class RemovePRsRequest(BaseModel):
+    prs: list[int]
 
 
 @router.get(
@@ -76,7 +80,7 @@ async def add_prs_endpoint(
 @router.post("/status/remove")
 def remove_prs(
     _: MaintainerDep,
-    prs: Annotated[list[int], Form()] = [],  # noqa: B006
+    data: RemovePRsRequest,
 ) -> dict[str, Any]:
     """Remove PRs from the testing environment state."""
-    return remove_testing_prs(prs)
+    return remove_testing_prs(data.prs)

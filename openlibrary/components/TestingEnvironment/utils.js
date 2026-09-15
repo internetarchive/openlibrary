@@ -139,26 +139,25 @@ export async function getTestingStatus() {
 }
 
 /**
- * POST an action and resolve its JSON body. The status handlers answer
- * {"ok": true} or {"ok": false, "error": "<code>"} directly — no redirect to
- * re-fetch — so callers toast on ok=false and then reload the panel state
- * from /status/testing.json. Array values are repeated so
- * web.input(prs=[]) sees multiple checkboxes.
+ * POST an action and resolve its JSON body. JSON is used by endpoints that
+ * accept a request body; older actions continue to use form encoding.
  */
-export async function postAction(action, fields = {}) {
-    const body = new URLSearchParams();
-    for (const [key, value] of Object.entries(fields)) {
-        if (Array.isArray(value)) {
-            value.forEach((item) => body.append(key, item));
-        } else {
-            body.append(key, value);
+export async function postAction(action, fields = {}, useJson = false) {
+    const body = useJson ? JSON.stringify(fields) : new URLSearchParams();
+    if (!useJson) {
+        for (const [key, value] of Object.entries(fields)) {
+            if (Array.isArray(value)) {
+                value.forEach((item) => body.append(key, item));
+            } else {
+                body.append(key, value);
+            }
         }
     }
 
     const response = await fetch(action, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': useJson ? 'application/json' : 'application/x-www-form-urlencoded',
             Accept: 'application/json'
         },
         credentials: 'same-origin',

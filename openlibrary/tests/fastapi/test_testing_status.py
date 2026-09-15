@@ -1478,7 +1478,7 @@ def test_remove_prs_endpoint(fastapi_client, mock_authenticated_user, mock_maint
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
         mock.return_value = {"ok": True, "staged_prs": [13269], "removed_prs": []}
-        response = fastapi_client.post("/status/remove", data={"prs": ["13269"]})
+        response = fastapi_client.post("/status/remove", json={"prs": [13269]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": []}
@@ -1489,7 +1489,7 @@ def test_remove_prs_endpoint_repeated_form_fields(fastapi_client, mock_authentic
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
         mock.return_value = {"ok": True, "staged_prs": [13269, 13270], "removed_prs": []}
-        response = fastapi_client.post("/status/remove", data={"prs": ["13269", "13270"]})
+        response = fastapi_client.post("/status/remove", json={"prs": [13269, 13270]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True, "staged_prs": [13269, 13270], "removed_prs": []}
@@ -1507,7 +1507,7 @@ def test_remove_prs_endpoint_e2e_stages_live_pr(fastapi_client, mock_authenticat
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        response = fastapi_client.post("/status/remove", data={"prs": ["13269"]})
+        response = fastapi_client.post("/status/remove", json={"prs": [13269]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": []}
@@ -1527,7 +1527,7 @@ def test_remove_prs_endpoint_e2e_deletes_never_deployed_pr(fastapi_client, mock_
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        response = fastapi_client.post("/status/remove", data={"prs": ["13269"]})
+        response = fastapi_client.post("/status/remove", json={"prs": [13269]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True, "staged_prs": [], "removed_prs": [13269]}
