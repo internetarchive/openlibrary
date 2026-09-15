@@ -184,8 +184,8 @@ class status_pull_latest(delegate.page):
                     # treated that as "nothing to update" and answered ok, so the
                     # row is left alone rather than failing the whole request.
                     continue
-                if info["head_sha"] and info["head_sha"] != p.commit:
-                    p.pull_latest_sha = info["head_sha"]
+                if info.head_sha and info.head_sha != p.commit:
+                    p.pull_latest_sha = info.head_sha
         _save_testing_state(state)
         return _json_ok()
 
@@ -401,6 +401,23 @@ class PRStatus:
         return PRStatus(pull_line=lines[0], status=lines[-1], body="\n".join(lines[1:]))
 
 
+class GitHubPRInfo(BaseModel):
+    """The PR metadata fetched from GitHub.
+
+    A transport shape, not persisted state: it carries only what GitHub
+    reports, so a value here is always real data (``_get_pr_info_async`` raises
+    rather than returning placeholders).
+    """
+
+    pr: int
+    title: str
+    head_sha: str
+    author: str = ""
+    author_avatar: str = ""
+    assignee: str = ""
+    assignee_avatar: str = ""
+
+
 class TestingPR(BaseModel):
     pr: int
     commit: str  # pinned commit SHA (full)
@@ -424,6 +441,27 @@ class TestingPR(BaseModel):
         # the live state changes nothing on deploy, so it isn't persisted or
         # served. ``pending_toggle`` is the effective staged direction.
         return self.pending_toggle
+
+    @classmethod
+    def from_github(cls, info: GitHubPRInfo, username: str) -> TestingPR:
+        """Build a newly added row from GitHub metadata, credited to ``username``.
+
+        ``added_at`` is set explicitly rather than defaulted: the field defaults
+        to "" so state files predating it still load, and a factory default
+        would stamp an invented "now" onto legacy rows — making them look newly
+        added and rewriting their real timestamps on the next save.
+        """
+        return cls(
+            pr=info.pr,
+            commit=info.head_sha,
+            title=info.title,
+            added_at=datetime.datetime.now(datetime.UTC).isoformat(),
+            added_by=username,
+            author=info.author,
+            author_avatar=info.author_avatar,
+            assignee=info.assignee,
+            assignee_avatar=info.assignee_avatar,
+        )
 
     @property
     def short_commit(self) -> str:
@@ -648,7 +686,7 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
         if p.pr in pr_numbers:
             p.pending_remove = False
     failed: dict[int, str] = {}
-    added: dict[int, dict] = {}
+    added: dict[int, GitHubPRInfo] = {}
 
     for pr_number in pr_numbers:
         if pr_number in existing:
@@ -664,20 +702,7 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
             # which number was rejected.
             failed[pr_number] = "unavailable"
             continue
-        state.prs.append(
-            TestingPR(
-                pr=pr_number,
-                commit=info["head_sha"],
-                active=True,
-                title=info["title"],
-                added_at=datetime.datetime.now(datetime.UTC).isoformat(),
-                added_by=username,
-                author=info["author"],
-                author_avatar=info["author_avatar"],
-                assignee=info["assignee"],
-                assignee_avatar=info["assignee_avatar"],
-            )
-        )
+        state.prs.append(TestingPR.from_github(info, username))
         existing.add(pr_number)
         added[pr_number] = info
     _save_testing_state(state)
@@ -800,7 +825,7 @@ def _evict_drift_cache() -> None:
     cache.get_memcache().delete(_DRIFT_CACHE_KEY)
 
 
-def _extend_drift_cache(new_prs: dict[int, dict]) -> None:
+def _extend_drift_cache(new_prs: dict[int, GitHubPRInfo]) -> None:
     """Record freshly added PRs in the drift cache, leaving the rest of it intact.
 
     Adding a PR says nothing about the drift of the PRs already in the set, so
@@ -821,7 +846,7 @@ def _extend_drift_cache(new_prs: dict[int, dict]) -> None:
         return
     for pr_number, info in new_prs.items():
         cached[str(pr_number)] = {
-            "head_sha": info["head_sha"][:7],
+            "head_sha": info.head_sha[:7],
             "drift": 0,
             "merged": False,
             "closed": False,
@@ -829,25 +854,26 @@ def _extend_drift_cache(new_prs: dict[int, dict]) -> None:
     mc.set(_DRIFT_CACHE_KEY, cached, expires=_DRIFT_CACHE_TTL)
 
 
-async def _get_pr_info_async(pr_number: int) -> dict:
+async def _get_pr_info_async(pr_number: int) -> GitHubPRInfo:
     """Fetch title, HEAD SHA, author, and assignee for a PR from GitHub.
 
     Raises ``PRNotFoundError`` on a 404 and ``GitHubUnavailableError`` for rate
     limits, network failures, or an unparsable body — so callers can tell a bad
-    PR number from a GitHub outage, and a returned dict is always real data.
+    PR number from a GitHub outage, and a returned value is always real data.
     """
     try:
         pr = await _github_get_async(f"pulls/{pr_number}")
         user = pr.get("user") or {}
         assignee = pr.get("assignee") or {}
-        return {
-            "title": pr.get("title", f"PR #{pr_number}"),
-            "head_sha": pr["head"]["sha"],
-            "author": user.get("login", ""),
-            "author_avatar": user.get("avatar_url", ""),
-            "assignee": assignee.get("login", ""),
-            "assignee_avatar": assignee.get("avatar_url", ""),
-        }
+        return GitHubPRInfo(
+            pr=pr_number,
+            title=pr.get("title") or f"PR #{pr_number}",
+            head_sha=pr["head"]["sha"],
+            author=user.get("login", ""),
+            author_avatar=user.get("avatar_url", ""),
+            assignee=assignee.get("login", ""),
+            assignee_avatar=assignee.get("avatar_url", ""),
+        )
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             raise PRNotFoundError(f"PR #{pr_number} not found") from e

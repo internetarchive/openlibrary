@@ -52,23 +52,28 @@ def _empty_state():
     return status_module.TestingState(last_deploy_at="", prs=[])
 
 
-def _gh_info(pr_number: int = 12914) -> dict:
+def _gh_info(pr_number: int = 12914) -> status_module.GitHubPRInfo:
     """A successful GitHub PR lookup result."""
-    return {
-        "title": f"Test PR {pr_number}",
-        "head_sha": "abc1234def5678901234567890123456789012345",
-        "author": "author",
-        "author_avatar": "",
-        "assignee": "assignee",
-        "assignee_avatar": "",
-    }
+    return status_module.GitHubPRInfo(
+        pr=pr_number,
+        title=f"Test PR {pr_number}",
+        head_sha="abc1234def5678901234567890123456789012345",
+        author="author",
+        assignee="assignee",
+    )
+
+
+async def _gh_lookup(pr_number: int) -> status_module.GitHubPRInfo:
+    """Stand-in for ``_get_pr_info_async``: describes the PR it was asked about."""
+    return _gh_info(pr_number)
 
 
 def _post_add(client, state, pr_value="12914", gh=None):
     """POST /status/add with the state file and GitHub lookups stubbed out.
 
-    ``gh`` is either a dict (the lookup succeeds and returns it) or an exception
-    instance (the lookup fails by raising it); None means a success payload.
+    ``gh`` is either a ``GitHubPRInfo`` (the lookup returns it for every number)
+    or an exception instance (the lookup raises it); None means a lookup that
+    returns the right info for whichever PR number was requested.
     """
     if isinstance(gh, BaseException):
         get_pr_info = patch(
@@ -76,11 +81,16 @@ def _post_add(client, state, pr_value="12914", gh=None):
             new_callable=AsyncMock,
             side_effect=gh,
         )
+    elif gh is None:
+        get_pr_info = patch(
+            "openlibrary.plugins.openlibrary.status._get_pr_info_async",
+            side_effect=_gh_lookup,
+        )
     else:
         get_pr_info = patch(
             "openlibrary.plugins.openlibrary.status._get_pr_info_async",
             new_callable=AsyncMock,
-            return_value=gh if gh is not None else _gh_info(),
+            return_value=gh,
         )
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
@@ -671,7 +681,7 @@ def test_restore_clears_a_staged_removal():
 def test_pull_latest_stages_the_new_head_sha():
     pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
     state = _make_state(prs=[pr])
-    info = _gh_info(pr.pr) | {"head_sha": "f" * 40}
+    info = _gh_info(pr.pr).model_copy(update={"head_sha": "f" * 40})
 
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
@@ -814,14 +824,45 @@ def test_get_pr_info_returns_only_valid_data_on_success():
     with patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value=body):
         info = status_module._get_pr_info(12914)
 
-    assert info == {
-        "title": "A PR",
-        "head_sha": "abc1234def5678901234567890123456789012345",
-        "author": "author",
-        "author_avatar": "https://example.com/a.png",
-        "assignee": "",
-        "assignee_avatar": "",
+    assert info == status_module.GitHubPRInfo(
+        pr=12914,
+        title="A PR",
+        head_sha="abc1234def5678901234567890123456789012345",
+        author="author",
+        author_avatar="https://example.com/a.png",
+    )
+
+
+def test_get_pr_info_falls_back_when_the_title_is_empty():
+    """GitHub always sends a title, but an empty one shouldn't render a blank row."""
+    body = {
+        "title": "",
+        "head": {"sha": "abc1234def5678901234567890123456789012345"},
+        "user": {},
+        "assignee": None,
     }
+    with patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value=body):
+        info = status_module._get_pr_info(12914)
+
+    assert info.title == "PR #12914"
+
+
+def test_from_github_builds_a_row_from_the_lookup():
+    """The DTO converts to a persisted row, stamped and credited."""
+    pr = status_module.TestingPR.from_github(_gh_info(13269), "mecha-kraken")
+
+    assert pr.pr == 13269
+    assert pr.commit == "abc1234def5678901234567890123456789012345"
+    assert pr.title == "Test PR 13269"
+    assert pr.added_by == "mecha-kraken"
+    assert pr.author == "author"
+    assert pr.assignee == "assignee"
+    assert pr.active is True
+    # Stamped with a real time, not the "" that legacy state files carry.
+    assert pr.added_at
+    # The staging fields stay at their defaults: a fresh add is not staged.
+    assert pr.pending_remove is False
+    assert pr.pull_latest_sha == ""
 
 
 def test_deploy_failure_never_persists_staged_changes():
@@ -993,7 +1034,7 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
     mock_maintainer_user(is_maintainer=True)
     state = _empty_state()
 
-    async def lookup(pr_number: int) -> dict:
+    async def lookup(pr_number: int) -> status_module.GitHubPRInfo:
         if pr_number == 9999:
             raise status_module.PRNotFoundError(f"PR #{pr_number} not found")
         return _gh_info(pr_number)
