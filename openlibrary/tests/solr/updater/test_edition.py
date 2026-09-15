@@ -1,7 +1,8 @@
 import pytest
 
 from openlibrary.solr.updater.edition import EditionSolrBuilder, EditionSolrUpdater, sort_title
-from openlibrary.tests.solr.test_update import FakeDataProvider, make_edition
+from openlibrary.solr.updater.work import WorkSolrBuilder
+from openlibrary.tests.solr.test_update import FakeDataProvider, make_edition, make_work
 
 
 class TestEditionSolrUpdater:
@@ -53,3 +54,63 @@ class TestEditionSolrBuilder:
         assert EditionSolrBuilder(edition, solr_work={}, db_work=None, db_authors=[])._identifiers == {
             "id_some_weird_key": ["id-1", "id-2"],
         }
+
+    def test_carries_genre_fields_from_work_builder(self):
+        genre = {
+            "key": "/tags/OL177T",
+            "type": {"key": "/type/tag"},
+            "name": "Romance",
+            "tag_type": "genres",
+        }
+        work_builder = WorkSolrBuilder(
+            work=make_work(),
+            editions=[],
+            authors=[],
+            series=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={},
+            trending_data={},
+            tags=[genre],
+        )
+        edition = make_edition()
+        doc = EditionSolrBuilder(
+            edition, solr_work=work_builder, db_work=None, db_authors=[]
+        ).build()
+        assert doc["genre_key"] == ["OL177T"]
+        assert doc["genre_name"] == ["Romance"]
+        assert "subgenre_key" not in doc
+        assert "subgenre_name" not in doc
+        assert "audience_key" not in doc
+        assert "audience_name" not in doc
+
+    def test_carries_genre_fields_from_work_dict(self):
+        edition = make_edition()
+        doc = EditionSolrBuilder(
+            edition,
+            solr_work={
+                "genre_key": ["OL177T"],
+                "genre_name": ["Romance"],
+                "subgenre_key": ["OL272T"],
+                "subgenre_name": ["Cyberpunk"],
+                "audience_key": ["OL301T"],
+                "audience_name": ["Adult"],
+            },
+            db_work=None,
+            db_authors=[],
+        ).build()
+        assert doc["genre_key"] == ["OL177T"]
+        assert doc["genre_name"] == ["Romance"]
+        assert doc["subgenre_key"] == ["OL272T"]
+        assert doc["subgenre_name"] == ["Cyberpunk"]
+        assert doc["audience_key"] == ["OL301T"]
+        assert doc["audience_name"] == ["Adult"]
+
+    def test_missing_genre_fields_from_work_dict(self):
+        edition = make_edition()
+        doc = EditionSolrBuilder(
+            edition, solr_work={"author_name": ["Foo"]}, db_work=None, db_authors=[]
+        ).build()
+        assert "genre_key" not in doc
+        assert "genre_name" not in doc
+        assert "subgenre_key" not in doc
+        assert "audience_key" not in doc
