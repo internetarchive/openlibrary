@@ -80,7 +80,7 @@
 
 <script>
 import BooksCarousel from './BooksCarousel.vue';
-import debounce from 'lodash/debounce';
+import { debounce } from '../../../plugins/openlibrary/js/nonjquery_utils.js';
 
 import CONFIGS from '../../configs';
 // import * as Vibrant from "node-vibrant";

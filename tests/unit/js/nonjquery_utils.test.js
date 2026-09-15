@@ -1,4 +1,4 @@
-import { debounce } from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
+import { debounce, maxBy, uniqBy } from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
 
 describe('debounce', () => {
     afterEach(() => {
@@ -52,5 +52,26 @@ describe('debounce', () => {
         }
         vi.advanceTimersByTime(100);
         expect(spy).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('uniqBy', () => {
+    test('keeps the first item for each key', () => {
+        const items = [{ id: 1, n: 'a' }, { id: 2, n: 'b' }, { id: 1, n: 'c' }];
+        expect(uniqBy(items, x => x.id)).toEqual([{ id: 1, n: 'a' }, { id: 2, n: 'b' }]);
+    });
+
+    test('treats undefined as a key', () => {
+        expect(uniqBy([undefined, { value: 'x' }, undefined], x => x?.value)).toEqual([undefined, { value: 'x' }]);
+    });
+});
+
+describe('maxBy', () => {
+    test('returns the first item with the largest key', () => {
+        expect(maxBy(['aa', 'b', 'cc'], s => s.length)).toBe('aa');
+    });
+
+    test('returns undefined for an empty array', () => {
+        expect(maxBy([], x => x)).toBeUndefined();
     });
 });
