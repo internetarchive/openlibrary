@@ -52,18 +52,8 @@ def _empty_state():
     return status_module.TestingState(last_deploy_at="", prs=[])
 
 
-def _gh_info(pr_number: int = 12914, error: str = "") -> dict:
-    """A GitHub PR lookup result; a non-empty ``error`` makes it a failure payload."""
-    if error:
-        return {
-            "title": f"PR #{pr_number}",
-            "head_sha": "",
-            "author": "",
-            "author_avatar": "",
-            "assignee": "",
-            "assignee_avatar": "",
-            "error": error,
-        }
+def _gh_info(pr_number: int = 12914) -> dict:
+    """A successful GitHub PR lookup result."""
     return {
         "title": f"Test PR {pr_number}",
         "head_sha": "abc1234def5678901234567890123456789012345",
@@ -71,19 +61,30 @@ def _gh_info(pr_number: int = 12914, error: str = "") -> dict:
         "author_avatar": "",
         "assignee": "assignee",
         "assignee_avatar": "",
-        "error": "",
     }
 
 
-def _post_add(client, state, pr_value="12914", gh_info=None):
-    """POST /status/add with the state file and GitHub lookups stubbed out."""
-    with (
-        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch(
+def _post_add(client, state, pr_value="12914", gh=None):
+    """POST /status/add with the state file and GitHub lookups stubbed out.
+
+    ``gh`` is either a dict (the lookup succeeds and returns it) or an exception
+    instance (the lookup fails by raising it); None means a success payload.
+    """
+    if isinstance(gh, BaseException):
+        get_pr_info = patch(
             "openlibrary.plugins.openlibrary.status._get_pr_info_async",
             new_callable=AsyncMock,
-            return_value=gh_info if gh_info is not None else _gh_info(),
-        ),
+            side_effect=gh,
+        )
+    else:
+        get_pr_info = patch(
+            "openlibrary.plugins.openlibrary.status._get_pr_info_async",
+            new_callable=AsyncMock,
+            return_value=gh if gh is not None else _gh_info(),
+        )
+    with (
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        get_pr_info,
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
@@ -667,6 +668,53 @@ def test_restore_clears_a_staged_removal():
     mock_save.assert_called_once_with(state)
 
 
+def test_pull_latest_stages_the_new_head_sha():
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+    info = _gh_info(pr.pr) | {"head_sha": "f" * 40}
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=info),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+        patch("web.input", return_value=web.storage(prs=[str(pr.pr)])),
+    ):
+        response = status_module.status_pull_latest().POST()
+
+    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert pr.pull_latest_sha == "f" * 40
+    mock_save.assert_called_once_with(state)
+
+
+@pytest.mark.parametrize(
+    "error",
+    [status_module.PRNotFoundError("gone"), status_module.GitHubUnavailableError("rate limited")],
+)
+def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
+    """A GitHub failure leaves the row alone and still answers ok.
+
+    Regression guard: ``_get_pr_info`` used to signal failure with an empty
+    ``head_sha`` rather than raising. Now that it raises, this handler has to
+    catch it — an uncaught error here would 500 the endpoint, where it has
+    always been a silent no-op.
+    """
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info", side_effect=error),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("web.input", return_value=web.storage(prs=[str(pr.pr)])),
+    ):
+        response = status_module.status_pull_latest().POST()
+
+    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert pr.pull_latest_sha == ""
+
+
 def test_deploy_unconfigured_answers_error_but_advances_state():
     """Local dev (no Jenkins token): state advances so the UI is exercisable,
     but the response says nothing was actually deployed."""
@@ -713,24 +761,67 @@ def test_parse_pr_numbers(raw, expected):
     assert status_module.parse_pr_numbers(raw) == expected
 
 
-def test_get_pr_info_distinguishes_not_found_from_unavailable():
-    """404 → not_found; rate limit → unavailable; both leave head_sha empty."""
+def test_get_pr_info_raises_not_found_on_404():
+    """A 404 is its own failure mode, so callers can say "no such PR"."""
     request = httpx.Request("GET", "https://api.github.com/repos/internetarchive/openlibrary/pulls/12914")
-    with patch(
-        "openlibrary.plugins.openlibrary.status._github_get_async",
-        side_effect=httpx.HTTPStatusError("Not Found", request=request, response=httpx.Response(404, request=request)),
+    with (
+        patch(
+            "openlibrary.plugins.openlibrary.status._github_get_async",
+            side_effect=httpx.HTTPStatusError("Not Found", request=request, response=httpx.Response(404, request=request)),
+        ),
+        pytest.raises(status_module.PRNotFoundError),
     ):
-        info = status_module._get_pr_info(12914)
-    assert info["error"] == "not_found"
-    assert info["head_sha"] == ""
+        status_module._get_pr_info(12914)
 
-    with patch(
-        "openlibrary.plugins.openlibrary.status._github_get_async",
-        side_effect=httpx.HTTPStatusError("rate limit exceeded", request=request, response=httpx.Response(403, request=request)),
+
+def test_get_pr_info_raises_unavailable_on_rate_limit():
+    """Anything that isn't a 404 is an outage, not a missing PR."""
+    request = httpx.Request("GET", "https://api.github.com/repos/internetarchive/openlibrary/pulls/12914")
+    with (
+        patch(
+            "openlibrary.plugins.openlibrary.status._github_get_async",
+            side_effect=httpx.HTTPStatusError("rate limit exceeded", request=request, response=httpx.Response(403, request=request)),
+        ),
+        pytest.raises(status_module.GitHubUnavailableError),
     ):
+        status_module._get_pr_info(12914)
+
+
+def test_get_pr_info_raises_unavailable_on_network_error_and_bad_body():
+    """A network failure and a malformed payload are both outages, not absences."""
+    with (
+        patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=httpx.ConnectError("no route")),
+        pytest.raises(status_module.GitHubUnavailableError),
+    ):
+        status_module._get_pr_info(12914)
+
+    # A 200 whose body is missing "head" — the KeyError path.
+    with (
+        patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value={"title": "no head key"}),
+        pytest.raises(status_module.GitHubUnavailableError),
+    ):
+        status_module._get_pr_info(12914)
+
+
+def test_get_pr_info_returns_only_valid_data_on_success():
+    """A returned payload always carries real values — no error sentinel to check."""
+    body = {
+        "title": "A PR",
+        "head": {"sha": "abc1234def5678901234567890123456789012345"},
+        "user": {"login": "author", "avatar_url": "https://example.com/a.png"},
+        "assignee": None,
+    }
+    with patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value=body):
         info = status_module._get_pr_info(12914)
-    assert info["error"] == "unavailable"
-    assert info["head_sha"] == ""
+
+    assert info == {
+        "title": "A PR",
+        "head_sha": "abc1234def5678901234567890123456789012345",
+        "author": "author",
+        "author_avatar": "https://example.com/a.png",
+        "assignee": "",
+        "assignee_avatar": "",
+    }
 
 
 def test_deploy_failure_never_persists_staged_changes():
@@ -872,16 +963,53 @@ def test_add_accepts_several_prs_at_once(pr_value, expected, fastapi_client, moc
 
 
 def test_add_answers_ok_false_when_github_fails(fastapi_client, mock_authenticated_user, mock_maintainer_user):
-    """A GitHub failure (rate limit, outage, invalid PR) must not pretend the add landed."""
+    """A GitHub failure (rate limit, outage) must not pretend the add landed."""
     mock_maintainer_user(is_maintainer=True)
     state = _empty_state()
 
-    response = _post_add(fastapi_client, state, gh_info=_gh_info(error="unavailable"))
+    response = _post_add(fastapi_client, state, gh=status_module.GitHubUnavailableError("rate limited"))
 
-    # The error code is what lets the panel keep the add input.
+    # The error code is what lets the panel keep the add input; failed_prs says
+    # which number was rejected and why.
     assert response.status_code == 200
-    assert response.json() == {"ok": False, "error": "add_failed"}
+    assert response.json() == {"ok": False, "error": "add_failed", "failed_prs": {"12914": "unavailable"}}
     assert state.prs == []
+
+
+def test_add_reports_a_missing_pr_as_not_found(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """A 404 is distinguishable from an outage, so the panel can say "no such PR"."""
+    mock_maintainer_user(is_maintainer=True)
+    state = _empty_state()
+
+    response = _post_add(fastapi_client, state, gh=status_module.PRNotFoundError("PR #12914 not found"))
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": False, "error": "add_failed", "failed_prs": {"12914": "not_found"}}
+    assert state.prs == []
+
+
+def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """Failures are per-PR: one bad number doesn't discard the good ones."""
+    mock_maintainer_user(is_maintainer=True)
+    state = _empty_state()
+
+    async def lookup(pr_number: int) -> dict:
+        if pr_number == 9999:
+            raise status_module.PRNotFoundError(f"PR #{pr_number} not found")
+        return _gh_info(pr_number)
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", side_effect=lookup),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
+    ):
+        response = fastapi_client.post("/status/add", data={"pr": "12914 9999"})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": False, "error": "add_failed", "failed_prs": {"9999": "not_found"}}
+    # The valid one still landed.
+    assert [p.pr for p in state.prs] == [12914]
 
 
 @pytest.mark.parametrize("pr_value", ["", "   ", "not a number"])

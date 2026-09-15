@@ -37,6 +37,18 @@ _DEPLOY_WINDOW = 10 * 60  # 10 minutes
 _CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
 
 
+class GitHubAPIError(Exception):
+    """A GitHub lookup failed. Base for the failure modes callers act on."""
+
+
+class PRNotFoundError(GitHubAPIError):
+    """GitHub answered 404: the PR number doesn't exist, or isn't visible."""
+
+
+class GitHubUnavailableError(GitHubAPIError):
+    """Rate limits, network outages, timeouts, or an unparsable response."""
+
+
 class status(delegate.page):
     def GET(self):
         is_maintainer_user = _is_maintainer()
@@ -165,7 +177,13 @@ class status_pull_latest(delegate.page):
             return _json_ok()
         for p in state.prs:
             if p.pr in to_update:
-                info = _get_pr_info(p.pr)
+                try:
+                    info = _get_pr_info(p.pr)
+                except GitHubAPIError:
+                    # GitHub is down or the PR is gone. This endpoint has always
+                    # treated that as "nothing to update" and answered ok, so the
+                    # row is left alone rather than failing the whole request.
+                    continue
                 if info["head_sha"] and info["head_sha"] != p.commit:
                     p.pull_latest_sha = info["head_sha"]
         _save_testing_state(state)
@@ -629,37 +647,43 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
     for p in state.prs:
         if p.pr in pr_numbers:
             p.pending_remove = False
-    failed = []
+    failed: dict[int, str] = {}
     added: dict[int, dict] = {}
+
     for pr_number in pr_numbers:
-        if pr_number not in existing:
+        if pr_number in existing:
+            continue
+        try:
             info = await _get_pr_info_async(pr_number)
-            if info.get("error"):
-                # GitHub unreachable, rate-limited, or an invalid PR — never
-                # pretend the add landed. The error response lets the panel
-                # keep the input so the failure is visible.
-                failed.append(pr_number)
-                continue
-            state.prs.append(
-                TestingPR(
-                    pr=pr_number,
-                    commit=info["head_sha"],
-                    active=True,
-                    title=info["title"],
-                    added_at=datetime.datetime.now(datetime.UTC).isoformat(),
-                    added_by=username,
-                    author=info["author"],
-                    author_avatar=info["author_avatar"],
-                    assignee=info["assignee"],
-                    assignee_avatar=info["assignee_avatar"],
-                )
+        except PRNotFoundError:
+            failed[pr_number] = "not_found"
+            continue
+        except GitHubUnavailableError:
+            # GitHub unreachable or rate-limited — never pretend the add landed.
+            # Reporting the reason per PR lets the panel keep the input and say
+            # which number was rejected.
+            failed[pr_number] = "unavailable"
+            continue
+        state.prs.append(
+            TestingPR(
+                pr=pr_number,
+                commit=info["head_sha"],
+                active=True,
+                title=info["title"],
+                added_at=datetime.datetime.now(datetime.UTC).isoformat(),
+                added_by=username,
+                author=info["author"],
+                author_avatar=info["author_avatar"],
+                assignee=info["assignee"],
+                assignee_avatar=info["assignee_avatar"],
             )
-            existing.add(pr_number)
-            added[pr_number] = info
+        )
+        existing.add(pr_number)
+        added[pr_number] = info
     _save_testing_state(state)
     _extend_drift_cache(added)
     if failed:
-        return {"ok": False, "error": "add_failed"}
+        return {"ok": False, "error": "add_failed", "failed_prs": failed}
     return {"ok": True}
 
 
@@ -808,9 +832,9 @@ def _extend_drift_cache(new_prs: dict[int, dict]) -> None:
 async def _get_pr_info_async(pr_number: int) -> dict:
     """Fetch title, HEAD SHA, author, and assignee for a PR from GitHub.
 
-    On failure ``error`` says why — ``not_found`` for a 404, ``unavailable`` for
-    rate limits/network/parse errors — so callers can tell a bad PR number from
-    a GitHub outage instead of treating both as "no such PR".
+    Raises ``PRNotFoundError`` on a 404 and ``GitHubUnavailableError`` for rate
+    limits, network failures, or an unparsable body — so callers can tell a bad
+    PR number from a GitHub outage, and a returned dict is always real data.
     """
     try:
         pr = await _github_get_async(f"pulls/{pr_number}")
@@ -823,28 +847,13 @@ async def _get_pr_info_async(pr_number: int) -> dict:
             "author_avatar": user.get("avatar_url", ""),
             "assignee": assignee.get("login", ""),
             "assignee_avatar": assignee.get("avatar_url", ""),
-            "error": "",
         }
     except httpx.HTTPStatusError as e:
-        return {
-            "title": f"PR #{pr_number}",
-            "head_sha": "",
-            "author": "",
-            "author_avatar": "",
-            "assignee": "",
-            "assignee_avatar": "",
-            "error": "not_found" if e.response.status_code == 404 else "unavailable",
-        }
-    except httpx.HTTPError, KeyError, ValueError:
-        return {
-            "title": f"PR #{pr_number}",
-            "head_sha": "",
-            "author": "",
-            "author_avatar": "",
-            "assignee": "",
-            "assignee_avatar": "",
-            "error": "unavailable",
-        }
+        if e.response.status_code == 404:
+            raise PRNotFoundError(f"PR #{pr_number} not found") from e
+        raise GitHubUnavailableError(f"GitHub returned {e.response.status_code} for PR #{pr_number}") from e
+    except (httpx.HTTPError, KeyError, ValueError) as e:
+        raise GitHubUnavailableError(f"Could not fetch PR #{pr_number}") from e
 
 
 async def _get_pr_drift_async(pr: TestingPR) -> dict:
