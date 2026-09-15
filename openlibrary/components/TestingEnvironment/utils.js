@@ -89,6 +89,19 @@ export const ACTION_ERRORS = {
     deploy_unconfigured: 'deployUnconfigured'
 };
 
+export function parsePrNumbers(value) {
+    return String(value || '')
+        .trim()
+        .split(/[\s,]+/)
+        .filter(Boolean)
+        .flatMap((token) => {
+            if (token.includes('/issues/')) return [];
+            const match = token.match(/\/pull\/(\d+)/);
+            const number = match ? Number(match[1]) : Number(token.replace(/^#/, ''));
+            return Number.isInteger(number) && number > 0 ? [number] : [];
+        });
+}
+
 /**
  * The toast to show for a failed action.
  *

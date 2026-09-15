@@ -1,5 +1,5 @@
 import { shallowRef } from 'vue';
-import { actionErrorMessage, effectiveActive, postAction } from '../utils.js';
+import { actionErrorMessage, effectiveActive, parsePrNumbers, postAction } from '../utils.js';
 
 /**
  * PR toggle, update, remove, restore, deploy, refresh, and add actions.
@@ -118,9 +118,11 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (adding.value) return;
         const value = addInput.value.trim();
         if (!value) return;
+        const prs = parsePrNumbers(value);
+        if (!prs.length) return;
         adding.value = true;
         try {
-            const result = await enqueue('/status/add', { identifiers: value }, 'action', true);
+            const result = await enqueue('/status/add', { prs }, 'action', true);
             // A failed add keeps the input so it's obvious the PR didn't land.
             if (result && result.ok) {
                 addInput.value = '';

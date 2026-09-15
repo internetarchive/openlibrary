@@ -98,7 +98,14 @@ def _post_add(client, state, pr_value="12914", gh=None):
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
-        return client.post("/status/add", json={"identifiers": pr_value})
+        if isinstance(pr_value, list):
+            prs = pr_value
+        else:
+            try:
+                prs = [int(pr_value)]
+            except ValueError:
+                prs = []
+        return client.post("/status/add", json={"prs": prs})
 
 
 def test_build_testing_status_merges_drift_and_derived_fields():
@@ -745,29 +752,6 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
     assert state.deployed == {13269: "Test PR"}
 
 
-@pytest.mark.parametrize(
-    ("raw", "expected"),
-    [
-        ("12914", [12914]),
-        ("12914 13269", [12914, 13269]),
-        ("12914,13269", [12914, 13269]),
-        ("12914, 13269", [12914, 13269]),
-        ("posted by author (12914)", []),  # plain text has no PR number
-        ("#12914", [12914]),
-        ("https://github.com/internetarchive/openlibrary/pull/13269", [13269]),
-        ("https://github.com/internetarchive/openlibrary/issues/123", []),  # issue URLs are rejected
-        ("12914 not-a-number", [12914]),  # bad tokens are dropped, valid ones kept
-        ("", []),
-        ("   ", []),
-        ("\t12914\n13269\t", [12914, 13269]),
-        (["12914", "13269"], [12914, 13269]),  # FastAPI passes a list for repeated form fields
-    ],
-)
-def test_parse_pr_numbers(raw, expected):
-    """The input tokenizer accepts whitespace, commas, #numbers, and PR URLs."""
-    assert status_module.parse_pr_numbers(raw) == expected
-
-
 def test_get_pr_info_raises_not_found_on_404():
     """A 404 is its own failure mode, so callers can say "no such PR"."""
     request = httpx.Request("GET", "https://api.github.com/repos/internetarchive/openlibrary/pulls/12914")
@@ -983,9 +967,8 @@ def test_add_appends_pr_and_credits_the_maintainer(fastapi_client, mock_authenti
 @pytest.mark.parametrize(
     ("pr_value", "expected"),
     [
-        ("12914 https://github.com/internetarchive/openlibrary/pull/13269", [12914, 13269]),
-        ("12914,13269", [12914, 13269]),
-        ("12914 not-a-number", [12914]),  # bad tokens are dropped, valid ones kept
+        ([12914, 13269], [12914, 13269]),
+        ([12914], [12914]),
     ],
 )
 def test_add_accepts_several_prs_at_once(pr_value, expected, fastapi_client, mock_authenticated_user, mock_maintainer_user):
@@ -1042,7 +1025,7 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
-        response = fastapi_client.post("/status/add", json={"identifiers": "12914 9999"})
+        response = fastapi_client.post("/status/add", json={"prs": [12914, 9999]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": False, "error": "add_failed", "failed_prs": {"9999": "not_found"}}
@@ -1050,14 +1033,14 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
     assert [p.pr for p in state.prs] == [12914]
 
 
-@pytest.mark.parametrize("pr_value", ["", "   ", "not a number"])
-def test_add_rejects_input_without_a_pr(pr_value, fastapi_client, mock_authenticated_user, mock_maintainer_user):
+@pytest.mark.parametrize("prs", [[], [999]])
+def test_add_rejects_invalid_pr_numbers(prs, fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     state = _empty_state()
 
-    response = _post_add(fastapi_client, state, pr_value=pr_value)
+    response = fastapi_client.post("/status/add", json={"prs": prs})
 
-    assert response.status_code == 400
+    assert response.status_code == 422
     assert state.prs == []
 
 
@@ -1074,7 +1057,7 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
-        response = fastapi_client.post("/status/add", json={"identifiers": "13269"})
+        response = fastapi_client.post("/status/add", json={"prs": [13269]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
@@ -1097,7 +1080,7 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
-        response = fastapi_client.post("/status/add", json={"identifiers": "12914"})
+        response = fastapi_client.post("/status/add", json={"prs": [12914]})
 
     assert response.status_code == 200
     mock_save.assert_called_once_with(state)
@@ -1106,7 +1089,7 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
 
 
 def test_add_requires_auth(fastapi_client):
-    response = fastapi_client.post("/status/add", json={"identifiers": "12914"})
+    response = fastapi_client.post("/status/add", json={"prs": [12914]})
 
     assert response.status_code == 401
 

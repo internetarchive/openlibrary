@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
 from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
@@ -20,7 +20,6 @@ from openlibrary.plugins.openlibrary.status import (
     TestingStatus,
     add_prs,
     load_testing_status_async,
-    parse_pr_numbers,
     remove_testing_prs,
 )
 
@@ -28,12 +27,8 @@ SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 
 
-class RemovePRsRequest(BaseModel):
-    prs: list[int]
-
-
-class AddPRsRequest(BaseModel):
-    identifiers: str
+class PRsRequest(BaseModel):
+    prs: list[Annotated[int, Field(ge=1000)]] = Field(min_length=1)
 
 
 @router.get(
@@ -67,22 +62,16 @@ async def testing_status(_: MaintainerDep) -> TestingStatus:
 @router.post("/status/add")
 async def add_prs_endpoint(
     user: MaintainerDep,
-    data: AddPRsRequest,
+    data: PRsRequest,
 ) -> dict[str, Any]:
     """Add PRs to the testing set."""
-    pr_numbers = parse_pr_numbers(data.identifiers)
-    if not pr_numbers:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No valid PR numbers specified",
-        )
-    return await add_prs(pr_numbers, user.username)
+    return await add_prs(data.prs, user.username)
 
 
 @router.post("/status/remove")
 def remove_prs(
     _: MaintainerDep,
-    data: RemovePRsRequest,
+    data: PRsRequest,
 ) -> dict[str, Any]:
     """Remove PRs from the testing environment state."""
     return remove_testing_prs(data.prs)

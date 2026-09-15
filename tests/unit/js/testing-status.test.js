@@ -10,6 +10,7 @@ import {
     formatTime,
     getTestingStatus,
     postAction,
+    parsePrNumbers,
     sprintf,
     timeAgo
 } from '../../../openlibrary/components/TestingEnvironment/utils.js';
@@ -71,7 +72,7 @@ describe('Testing Environment utils', () => {
         const body = { ok: true };
         global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
 
-        await expect(postAction('/status/add', { identifiers: '12914 13269' }, true)).resolves.toBe(body);
+        await expect(postAction('/status/add', { prs: [12914, 13269] }, true)).resolves.toBe(body);
 
         expect(global.fetch).toHaveBeenCalledWith(
             '/status/add',
@@ -80,9 +81,18 @@ describe('Testing Environment utils', () => {
                     'Content-Type': 'application/json',
                     Accept: 'application/json'
                 },
-                body: JSON.stringify({ identifiers: '12914 13269' })
+                body: JSON.stringify({ prs: [12914, 13269] })
             })
         );
+    });
+
+    test('parses PR input before posting', () => {
+        expect(parsePrNumbers('12914, #13269 https://github.com/internetarchive/openlibrary/pull/13270')).toEqual([
+            12914,
+            13269,
+            13270
+        ]);
+        expect(parsePrNumbers('https://github.com/internetarchive/openlibrary/issues/123 bad')).toEqual([]);
     });
 
     test('resolves the JSON body of successful posts', async() => {
