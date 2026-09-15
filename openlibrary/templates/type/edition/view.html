@@ -118,6 +118,8 @@ $ reader_observations = get_observation_metrics(work['key']) if show_observation
 $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
 $ component_times['affiliate_links component'] = time()
+$# A work with no editions renders here with `edition` set to the work
+$# itself (see _select_edition), which has no ISBN to price by.
 $ prices = edition.key.startswith('/books/')
 
 $ isbn_13 = edition.get_isbn13() or None
