@@ -15,7 +15,6 @@ from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit 
 from urllib.parse import urlencode as real_urlencode
 
 import httpx
-from starlette.concurrency import run_in_threadpool
 
 from openlibrary.utils.async_utils import cache_per_event_loop
 
@@ -77,7 +76,7 @@ async def ol_things(key: str, value: str) -> list[str]:
     from openlibrary.coverstore import oldb
 
     if oldb.is_supported():
-        return await run_in_threadpool(oldb.query, key, value)
+        return oldb.query(key, value)
 
     query = {
         "type": "/type/edition",
@@ -102,7 +101,7 @@ async def ol_get(olkey: str) -> dict | None:
     from openlibrary.coverstore import oldb
 
     if oldb.is_supported():
-        return await run_in_threadpool(oldb.get, olkey)
+        return oldb.get(olkey)
 
     try:
         resp = await get_async_session().get(f"{get_ol_url()}/{olkey}.json")
