@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Annotated, Any
+from typing import Any
 
-from fastapi import APIRouter, Form, HTTPException, status
-from pydantic import BaseModel, BeforeValidator
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
 from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
@@ -30,6 +30,10 @@ router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 
 class RemovePRsRequest(BaseModel):
     prs: list[int]
+
+
+class AddPRsRequest(BaseModel):
+    identifiers: str
 
 
 @router.get(
@@ -60,15 +64,13 @@ async def testing_status(_: MaintainerDep) -> TestingStatus:
     return result
 
 
-PrNumbersDep = Annotated[list[int], BeforeValidator(parse_pr_numbers), Form(alias="pr")]
-
-
 @router.post("/status/add")
 async def add_prs_endpoint(
     user: MaintainerDep,
-    pr_numbers: PrNumbersDep = [],  # noqa: B006
+    data: AddPRsRequest,
 ) -> dict[str, Any]:
     """Add PRs to the testing set."""
+    pr_numbers = parse_pr_numbers(data.identifiers)
     if not pr_numbers:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

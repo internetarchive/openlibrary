@@ -120,7 +120,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (!value) return;
         adding.value = true;
         try {
-            const result = await enqueue('/status/add', { pr: value });
+            const result = await enqueue('/status/add', { identifiers: value }, 'action', true);
             // A failed add keeps the input so it's obvious the PR didn't land.
             if (result && result.ok) {
                 addInput.value = '';

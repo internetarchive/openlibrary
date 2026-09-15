@@ -67,6 +67,24 @@ describe('Testing Environment utils', () => {
         );
     });
 
+    test('posts add actions as JSON', async() => {
+        const body = { ok: true };
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
+
+        await expect(postAction('/status/add', { identifiers: '12914 13269' }, true)).resolves.toBe(body);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/status/add',
+            expect.objectContaining({
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({ identifiers: '12914 13269' })
+            })
+        );
+    });
+
     test('resolves the JSON body of successful posts', async() => {
         // Business failures still resolve: {"ok": false, "error": "<code>"} is
         // a completed request, and the component turns the code into a toast.

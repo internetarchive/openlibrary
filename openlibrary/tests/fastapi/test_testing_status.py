@@ -98,7 +98,7 @@ def _post_add(client, state, pr_value="12914", gh=None):
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
-        return client.post("/status/add", data={"pr": pr_value})
+        return client.post("/status/add", json={"identifiers": pr_value})
 
 
 def test_build_testing_status_merges_drift_and_derived_fields():
@@ -1042,7 +1042,7 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
-        response = fastapi_client.post("/status/add", data={"pr": "12914 9999"})
+        response = fastapi_client.post("/status/add", json={"identifiers": "12914 9999"})
 
     assert response.status_code == 200
     assert response.json() == {"ok": False, "error": "add_failed", "failed_prs": {"9999": "not_found"}}
@@ -1074,7 +1074,7 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
-        response = fastapi_client.post("/status/add", data={"pr": "13269"})
+        response = fastapi_client.post("/status/add", json={"identifiers": "13269"})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
@@ -1097,7 +1097,7 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
-        response = fastapi_client.post("/status/add", data={"pr": "12914"})
+        response = fastapi_client.post("/status/add", json={"identifiers": "12914"})
 
     assert response.status_code == 200
     mock_save.assert_called_once_with(state)
@@ -1106,7 +1106,7 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
 
 
 def test_add_requires_auth(fastapi_client):
-    response = fastapi_client.post("/status/add", data={"pr": "12914"})
+    response = fastapi_client.post("/status/add", json={"identifiers": "12914"})
 
     assert response.status_code == 401
 
