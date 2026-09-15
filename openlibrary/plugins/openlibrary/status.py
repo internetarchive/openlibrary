@@ -11,7 +11,6 @@ from typing import Any
 from urllib.parse import urlencode
 
 import httpx
-import web
 from pydantic import BaseModel, Field, field_serializer
 
 from infogami import config
@@ -103,22 +102,17 @@ def remove_testing_prs(prs: list[int]) -> dict[str, Any]:
     return {"ok": True, "staged_prs": staged_prs, "removed_prs": removed_prs}
 
 
-class status_restore(delegate.page):
-    path = "/status/restore"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_restore = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_restore:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_restore:
-                p.pending_remove = False
-        _save_testing_state(state)
-        return _json_ok()
+def restore_prs(prs: list[int]) -> dict[str, bool]:
+    """Clear staged removals for PRs in the testing set."""
+    state = _load_testing_state()
+    if not state:
+        return {"ok": True}
+    requested = set(prs)
+    for p in state.prs:
+        if p.pr in requested:
+            p.pending_remove = False
+    _save_testing_state(state)
+    return {"ok": True}
 
 
 def set_prs_active(prs: list[int], active: bool) -> dict[str, bool]:

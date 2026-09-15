@@ -98,7 +98,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     // Undo a staged removal: the server just clears the flag, so the row's
     // pinned commit and toggle state come back untouched.
     function restorePr(pr) {
-        enqueue('/status/restore', { prs: [pr.pr] });
+        enqueue('/status/restore', { prs: [pr.pr] }, 'action', true);
     }
 
     async function deploy() {

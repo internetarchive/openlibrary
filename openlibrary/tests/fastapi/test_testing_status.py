@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-import web
 
 import openlibrary.plugins.openlibrary.jenkins as jenkins_module
 import openlibrary.plugins.openlibrary.status as status_module
@@ -669,14 +668,12 @@ def test_restore_clears_a_staged_removal():
     state = _make_state(prs=[pr])
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        patch("web.input", return_value=web.storage(prs=["13269"])),
     ):
-        response = status_module.status_restore().POST()
+        response = status_module.restore_prs([13269])
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert response == {"ok": True}
     assert state.prs[0].pending_remove is False
     mock_save.assert_called_once_with(state)
 
@@ -1525,6 +1522,22 @@ def test_pull_latest_endpoint(fastapi_client, mock_authenticated_user, mock_main
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.pull_latest_prs", return_value={"ok": True}) as mock:
         response = fastapi_client.post("/status/pull-latest", json={"prs": [13269]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with([13269])
+
+
+def test_restore_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/restore", json={"prs": [13269]})
+
+    assert response.status_code == 401
+
+
+def test_restore_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.restore_prs", return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/restore", json={"prs": [13269]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
