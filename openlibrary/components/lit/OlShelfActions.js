@@ -1583,6 +1583,9 @@ export class OlShelfActions extends LitElement {
      */
     _removeFromShelf() {
         if (!this.shelf || this._held) return;
+        // The shelf change reports as RemoveFromShelf; a date going with it is
+        // what the old form's Delete button counted.
+        if (this.readDate) trackEvent('CheckInForm', 'DeleteCheckIn');
         this._backToMain();
         return this._postShelf(this.shelf);
     }
@@ -1638,6 +1641,9 @@ export class OlShelfActions extends LitElement {
     async _openCheckIn({ amending = false } = {}) {
         this._pane = 'checkIn';
         this._amending = amending;
+        // The same event the old prompt's "Edit" link sent, so the dashboards
+        // that counted date edits keep counting them.
+        if (amending && this.readDate) trackEvent('CheckInPrompt', 'EditDate');
         // A date the shortcuts cannot express would otherwise sit unseen
         // behind a collapsed row, so the pane opens on it. Focus still lands
         // on Today: the reader is being shown their answer, not asked to
@@ -1654,6 +1660,8 @@ export class OlShelfActions extends LitElement {
     /** Focus follows the disclosure: into the selects, and back to the row on collapse. */
     async _toggleDatePicker() {
         this._pickingDate = !this._pickingDate;
+        // Opening the fields is what the old prompt's "Other" link did.
+        if (this._pickingDate) trackEvent('CheckInPrompt', 'SetDateCustom');
         await this.updateComplete;
         const target = this._pickingDate ? '.select.year' : '.date-toggle';
         this.shadowRoot.querySelector(target)?.focus({ preventScroll: true });
@@ -1673,13 +1681,18 @@ export class OlShelfActions extends LitElement {
         return this._backToMain();
     }
 
+    // The analytics events are the ones the old check-in prompt and form sent
+    // for the same answers, so their dashboards carry on across the move into
+    // the popover: the two quick rows were the prompt's links, the fields
+    // were its form.
+
     _onToday() {
         const now = new Date();
-        return this._saveCheckIn({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() });
+        return this._saveCheckIn({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }, ['CheckInPrompt', 'SetDateToday']);
     }
 
     _onYear(year) {
-        return this._saveCheckIn({ year });
+        return this._saveCheckIn({ year }, ['CheckInPrompt', 'SetDateCurrentYear']);
     }
 
     _onSaveDate(e) {
@@ -1690,10 +1703,11 @@ export class OlShelfActions extends LitElement {
             year: Number(year),
             month: month ? Number(month) : null,
             day: day ? Number(day) : null,
-        });
+        }, ['CheckInForm', 'SubmitCheckIn']);
     }
 
-    async _saveCheckIn(date) {
+    /** @param {[string, string]} event - The analytics category and action for this answer. */
+    async _saveCheckIn(date, event) {
         if (this._dateBusy) return;
         this._dateBusy = true;
         try {
@@ -1702,7 +1716,7 @@ export class OlShelfActions extends LitElement {
             // date, and re-saving amends this event instead of adding one.
             this.readDate = partialDate(date);
             this.eventId = saved?.id ?? this.eventId ?? null;
-            trackEvent('CheckInPrompt', date.day ? 'SetDateDay' : date.month ? 'SetDateMonth' : 'SetDateYear');
+            trackEvent(...event);
             this.dispatchEvent(new CustomEvent('ol-book-check-in', {
                 bubbles: true,
                 composed: true,
