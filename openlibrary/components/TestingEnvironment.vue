@@ -40,9 +40,9 @@ try {
 }
 
 // ── Composables ─────────────────────────────────────────────────────
-const { toast, setToast } = useToast();
+const { setToast } = useToast();
 
-// busy is a shared re-entrancy guard between status fetching and actions.
+// busy marks the action queue as processing and pauses background refreshes.
 const busy = shallowRef(false);
 const { view, payload, now, loadStatus, retry } = useTestingStatus(busy);
 const { refreshing, adding, deploying, addInput, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
@@ -233,15 +233,6 @@ onBeforeUnmount(() => syncDeployFavicon(false));
         @deploy="deploy"
         @refresh="refresh"
       />
-    </div>
-
-    <div
-      v-if="toast"
-      class="testing-env__toast"
-      role="status"
-      aria-live="polite"
-    >
-      {{ toast }}
     </div>
   </section>
 </template>
