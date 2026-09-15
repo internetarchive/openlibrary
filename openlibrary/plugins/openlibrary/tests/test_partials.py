@@ -11,7 +11,7 @@ from openlibrary.plugins.openlibrary.partials import (
     AffiliateStoreBuildContext,
     BookPageListsPartial,
     _solr_query_to_subject_key,
-    build_primary_stores,
+    build_stores,
 )
 
 
@@ -109,10 +109,10 @@ class TestBookPageListsPartial:
 
 def _stores(bwb=None, amz=None) -> dict:
     ctx = AffiliateStoreBuildContext("A Title", "9780190906764", "0190906766", bwb, amz)
-    return {store.key: store for store in build_primary_stores(ctx)}
+    return {store.key: store for store in build_stores(ctx)}
 
 
-class TestBuildPrimaryStores:
+class TestBuildStores:
     def test_bwb_new_and_used(self):
         bwb = betterworldbooks_fmt("9780190906764", new_price="9.99", new_qty=3, used_price="4.28", used_qty=12) | {"market_price": "$12.49"}
         stores = _stores(bwb=bwb)
