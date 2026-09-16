@@ -481,14 +481,12 @@ $(function() {
             .then((module) => module.initHamburgerDrawer(hamburgerTrigger, hamburgerDrawer));
     }
 
-    // Browse menu: send one analytics event each time the popover opens
-    // (pointer or keyboard), so we can measure open-rate and click-through.
-    // Scoped to the browse popover on purpose rather than a global
-    // ol-popover-open listener — other popovers can opt into tracking with
-    // their own wiring once we know how we want to measure them. The
+    // Header nav menus (Browse, My Books): send one analytics event each time a
+    // popover opens (pointer or keyboard), to measure open-rate and click-through.
+    // Scoped to nav popovers rather than a global ol-popover-open listener. The
     // "category|action|label" string is set server-side per surface (desktop
-    // vs. mobile tray) in browse_popover.html.
-    document.querySelectorAll('.browse-popover[data-ol-open-track]').forEach((popover) => {
+    // vs. mobile tray) in browse_popover.html / mybooks_popover.html.
+    document.querySelectorAll('.nav-popover[data-ol-open-track]').forEach((popover) => {
         popover.addEventListener('ol-popover-open', () => {
             const ping = popover.getAttribute('data-ol-open-track').split('|');
             window.archive_analytics?.ol_send_event_ping?.({

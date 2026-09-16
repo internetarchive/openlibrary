@@ -4,11 +4,6 @@ $# Librarians reach /merges; only super librarians see the open-request count.
 $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
 <header id="header-bar" class="header-bar">
 
-
-  $ myBooksLinks = [
-  $     { "href": homepath() + "/account/books", "text": _("My Books"), "track": "MyBooks" },
-  $ ]
-
   $ ol_env = get_deployment_name()
   <div class="logo-component">
     <a href="/" title="$_('The Internet Archive\'s Open Library: One page for every book')">
@@ -28,15 +23,8 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
       >Page Status</a>
   </div>
 
-  $ myBooksProps = {
-  $   'name': 'mybooks',
-  $   'label': _('My Books'),
-  $   'icon': 'bookmark',
-  $   'links': myBooksLinks,
-  $   'link-class': 'ol-button-static ol-button-static--ghost'
-  $ }
   <ul class="navigation-component">
-    <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
+    <li>$:render_template("lib/mybooks_popover", track_prefix="MainNav")</li>
     <li>$:render_template("lib/browse_popover", track_prefix="MainNav")</li>
   </ul>
 
@@ -164,9 +152,9 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
 </ol-drawer>
 <header class="header-bar mobile">
   <ul class="navigation-component mobile">
-    <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
-    $# Distinct prefix so browse analytics separate the mobile tray from the
-    $# desktop popover (see the tracking note in browse_popover.html).
+    $# Distinct prefix so analytics separate the mobile tray from the desktop
+    $# popover (see the tracking note in browse_popover.html).
+    <li>$:render_template("lib/mybooks_popover", track_prefix="MainNavMobile")</li>
     <li>$:render_template("lib/browse_popover", track_prefix="MainNavMobile")</li>
   </ul>
 </header>

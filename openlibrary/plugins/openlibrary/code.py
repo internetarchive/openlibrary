@@ -54,7 +54,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
-from openlibrary.plugins.openlibrary.nav import BROWSE_FEATURED_COUNT, browse_links
+from openlibrary.plugins.openlibrary.nav import BROWSE_FEATURED_COUNT, browse_links, mybooks_links
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10
 from openlibrary.utils.sentry import get_sentry
@@ -1128,6 +1128,7 @@ def setup_template_globals():
             "get_deployment_name": get_deployment_name,
             "browse_links": browse_links,
             "BROWSE_FEATURED_COUNT": BROWSE_FEATURED_COUNT,
+            "mybooks_links": mybooks_links,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
