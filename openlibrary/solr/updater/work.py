@@ -102,11 +102,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 authors = [a for a in authors if a["type"]["key"] == "/type/author"]
 
                 # Fetch tags (genres, subgenres, audience)
-                tag_keys = [
-                    key
-                    for field in ("genres", "subgenres", "audience")
-                    for key in work.get(field, [])
-                ]
+                tag_keys = [key for field in ("genres", "subgenres", "audience") for key in work.get(field, [])]
                 tags = [await self.data_provider.get_document(key) for key in tag_keys]
                 tags = [t for t in tags if t["type"]["key"] == "/type/tag"]
 
@@ -264,7 +260,7 @@ def datetimestr_to_int(datestr):
     if datestr:
         try:
             t = h.parse_datetime(datestr)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             t = datetime.datetime.now()
     else:
         t = datetime.datetime.now()

@@ -73,9 +73,7 @@ class TestEditionSolrBuilder:
             tags=[genre],
         )
         edition = make_edition()
-        doc = EditionSolrBuilder(
-            edition, solr_work=work_builder, db_work=None, db_authors=[]
-        ).build()
+        doc = EditionSolrBuilder(edition, solr_work=work_builder, db_work=None, db_authors=[]).build()
         assert doc["genre_key"] == ["OL177T"]
         assert doc["genre_name"] == ["Romance"]
         assert "subgenre_key" not in doc
@@ -107,9 +105,7 @@ class TestEditionSolrBuilder:
 
     def test_missing_genre_fields_from_work_dict(self):
         edition = make_edition()
-        doc = EditionSolrBuilder(
-            edition, solr_work={"author_name": ["Foo"]}, db_work=None, db_authors=[]
-        ).build()
+        doc = EditionSolrBuilder(edition, solr_work={"author_name": ["Foo"]}, db_work=None, db_authors=[]).build()
         assert "genre_key" not in doc
         assert "genre_name" not in doc
         assert "subgenre_key" not in doc
