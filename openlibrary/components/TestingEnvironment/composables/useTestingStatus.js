@@ -1,24 +1,8 @@
 import { ref, shallowRef, onMounted, onBeforeUnmount } from 'vue';
 import { getTestingStatus } from '../utils.js';
+import { useLocalStorage } from '../../composables/useLocalStorage.js';
 
 const CACHE_KEY = 'openlibrary:testing-environment-status';
-
-function readStatusCache() {
-    try {
-        const item = localStorage.getItem(CACHE_KEY);
-        return item ? JSON.parse(item) : null;
-    } catch {
-        return null;
-    }
-}
-
-function writeStatusCache(data) {
-    try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    } catch {
-        // Ignore disabled storage and quota errors.
-    }
-}
 
 /**
  * Fetches, caches, and periodically refreshes the testing-environment
@@ -35,9 +19,9 @@ function writeStatusCache(data) {
  * }}
  */
 export function useTestingStatus(busy) {
-    const initialPayload = readStatusCache();
+    const { value: payload, setValue: setCachedPayload } = useLocalStorage(CACHE_KEY);
+    const initialPayload = payload.value;
     const view = ref(initialPayload ? 'ready' : 'loading'); // 'loading' | 'error' | 'ready'
-    const payload = shallowRef(initialPayload);
     const now = shallowRef(Date.now());
 
     let timer = null;
@@ -51,8 +35,7 @@ export function useTestingStatus(busy) {
             // Skip the assignment when nothing changed — a fresh object
             // identity would repaint the panel (the flash on tab return).
             if (!payload.value || JSON.stringify(newPayload) !== JSON.stringify(payload.value)) {
-                payload.value = newPayload;
-                writeStatusCache(newPayload);
+                setCachedPayload(newPayload);
             }
             view.value = 'ready';
             return true;

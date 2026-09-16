@@ -1,5 +1,5 @@
 <script setup>
-import { shallowRef, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { shallowRef, computed, watch, onBeforeUnmount } from 'vue';
 import TestingRow from './TestingEnvironment/TestingRow.vue';
 import DeploySection from './TestingEnvironment/DeploySection.vue';
 import { DEFAULT_STRINGS, applyDeployBadge, decodeAndParseJSON, faviconEnv } from './TestingEnvironment/utils.js';
@@ -82,18 +82,8 @@ watch(
     { immediate: true }
 );
 
-onMounted(() => {
-    if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'manual';
-    }
-    document.documentElement.style.overflowAnchor = 'none';
-    document.body.style.overflowAnchor = 'none';
-});
-
 onBeforeUnmount(() => {
     syncDeployFavicon(false);
-    document.documentElement.style.overflowAnchor = '';
-    document.body.style.overflowAnchor = '';
 });
 </script>
 
