@@ -210,6 +210,8 @@ class WorkSearchScheme(SearchScheme):
             "has_fulltext",
             "first_publish_year",
             "cover_i",
+            "cover_width",
+            "cover_height",
             "cover_edition_key",
             "public_scan_b",
             "lending_edition_s",
