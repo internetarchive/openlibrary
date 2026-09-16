@@ -6,9 +6,16 @@ environment (loaders, globals, filters, i18n) stays easy to reason about
 in isolation. Templates remain pure: Python prepares data, Jinja renders it.
 """
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
+
+from openlibrary.accounts import get_current_user
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import User
 
 T = TypeVar("T")
 
@@ -52,39 +59,37 @@ def _extract_stats_details() -> list[Any]:
         return []
 
 
-def _extract_body_class_and_attrs() -> tuple[str, str]:
+def can_show_librarian_tools(path: str, user: User) -> bool:
+    """Check whether librarian environment tools should be active for the current path and user."""
+    if not (path and any(path.startswith(prefix) for prefix in ("/works/OL", "/authors/OL", "/books/OL", "/search"))):
+        return False
+    if not user:
+        return False
+    return user.is_librarian_or_higher()
+
+
+def _extract_body_classes() -> list[str]:
     from infogami.utils.context import context as _ctx
 
     bodyclass = list(_ctx.get("bodyclass", [])) if isinstance(_ctx.get("bodyclass"), (list, tuple)) else []
-    bodyattrs = list(_ctx.get("bodyattrs", [])) if isinstance(_ctx.get("bodyattrs"), (list, tuple)) else []
     show_ol_shell = _ctx.get("show_ol_shell", True)
     path = getattr(_ctx, "path", "") or _ctx.get("path", "")
-    user = getattr(_ctx, "user", None) or _ctx.get("user")
 
-    if show_ol_shell and path and any(path.startswith(prefix) for prefix in ("/works/OL", "/authors/OL", "/books/OL", "/search")):
-        is_librarian = False
-        if user:
-            if hasattr(user, "is_librarian_or_higher"):
-                is_librarian = user.is_librarian_or_higher()
-            elif hasattr(user, "is_librarian") and hasattr(user, "is_admin"):
-                is_librarian = user.is_librarian() or user.is_admin()
-        if is_librarian:
-            bodyclass.append("show-librarian-tools")
-            key = getattr(user, "key", "") or (user.get("key", "") if isinstance(user, dict) else "")
-            if key:
-                username = key.split("/")[-1]
-                bodyattrs.append(f'data-username="{username}"')
+    if show_ol_shell and can_show_librarian_tools(path, get_current_user()):
+        bodyclass.append("show-librarian-tools")
 
-    return " ".join(bodyclass), " ".join(bodyattrs)
+    return bodyclass
 
 
-def _extract_active_ui_lang(lang: str, supported: dict[str, dict[str, str]]) -> dict[str, str]:
-    if active := supported.get(lang) or supported.get("en"):
-        return dict(active)
-    return {"code": "en", "localized": "English", "native": "English"}
+def _extract_body_attrs() -> list[str]:
+    """Extract body attributes from the request context."""
+    from infogami.utils.context import context as _ctx
+
+    bodyattrs = list(_ctx.get("bodyattrs", [])) if isinstance(_ctx.get("bodyattrs"), (list, tuple)) else []
+    return bodyattrs
 
 
-def _extract_donate_script_src() -> str:
+def _extract_donate_script_url() -> str:
     from openlibrary.plugins.upstream.utils import get_ia_host
 
     ia_host = get_ia_host(allow_dev=True)
@@ -109,22 +114,36 @@ def _extract_flash_messages() -> list[dict[str, str]]:
         return []
 
 
-def _extract_announcement_banner() -> tuple[bool, str, str, int]:
+@dataclass(frozen=True)
+class AnnouncementBanner:
+    """Configuration for a dismissible announcement banner."""
+
+    content: str
+    cookie_name: str
+    cookie_duration_days: int = 30
+
+
+def _extract_announcement_banner() -> AnnouncementBanner | None:
     announcement = ""
     cookie_name = ""
     cookie_duration_days = 30
     if not (announcement and cookie_name):
-        return False, "", "", cookie_duration_days
+        return None
 
     try:
         import web
 
         cookie_val = web.cookies().get(cookie_name)
-        show_banner = cookie_val != "1"
+        if cookie_val == "1":
+            return None
     except Exception:  # noqa: BLE001
-        show_banner = True
+        pass
 
-    return show_banner, announcement, cookie_name, cookie_duration_days
+    return AnnouncementBanner(
+        content=announcement,
+        cookie_name=cookie_name,
+        cookie_duration_days=cookie_duration_days,
+    )
 
 
 @dataclass(frozen=True)
@@ -146,15 +165,32 @@ class LayoutContext:
     lang: str
     stats_summary: dict[str, Any]
     stats_details: list[Any]
-    body_class: str
-    body_attrs: str
-    active_ui_lang: dict[str, str]
-    donate_script_src: str
+    body_classes: list[str]
+    body_attrs: list[str]
+    donate_script_url: str
     flash_messages: list[dict[str, str]]
-    show_announcement_banner: bool
-    announcement: str
-    announcement_cookie_name: str
-    announcement_cookie_duration_days: int
+    announcement_banner: AnnouncementBanner | None = None
+
+    @property
+    def donate_script_src(self) -> str:
+        """Backward-compatibility alias for donate_script_url."""
+        return self.donate_script_url
+
+    @property
+    def body_class(self) -> str:
+        """Backward-compatibility property returning joined body classes."""
+        return " ".join(self.body_classes)
+
+    @property
+    def active_ui_lang(self) -> dict[str, str]:
+        """Resolve active language metadata from request language and supported languages."""
+        for lang_info in self.supported_languages:
+            if lang_info.get("code") == self.lang:
+                return lang_info
+        for lang_info in self.supported_languages:
+            if lang_info.get("code") == "en":
+                return lang_info
+        return {"code": "en", "localized": "English", "native": "English"}
 
     @classmethod
     def build(cls) -> LayoutContext:
@@ -165,38 +201,21 @@ class LayoutContext:
         from openlibrary.plugins.openlibrary.status import get_git_revision_short_hash
         from openlibrary.utils.request_context import get_request_lang, req_context
 
-        body_class, body_attrs = _safe(_extract_body_class_and_attrs, ("", ""))
-        empty_supported_langs: dict[str, dict[str, str]] = {}
-        supported_langs_dict: dict[str, dict[str, str]] = _safe(get_supported_languages, empty_supported_langs)
-        lang = _safe(get_request_lang, "en")
-        active_ui_lang = _safe(
-            lambda: _extract_active_ui_lang(lang, supported_langs_dict),
-            {"code": "en", "localized": "English", "native": "English"},
-        )
-        donate_script_src = _safe(_extract_donate_script_src, "/cdn/archive.org/donate.js")
-        empty_flash_messages: list[dict[str, str]] = []
-        flash_messages: list[dict[str, str]] = _safe(_extract_flash_messages, empty_flash_messages)
-        show_banner, announcement, cookie_name, cookie_duration_days = _safe(_extract_announcement_banner, (False, "", "", 30))
-
         return cls(
             show_ol_shell=_safe(lambda: _infogami_context.get("show_ol_shell", True), True),
             is_debug=_safe(lambda: bool(query_param("debug")), False),
             is_bot=_safe(lambda: req_context.get().is_bot, False),
             total_time_ms=_safe(_extract_total_time_ms, 0.0),
-            supported_languages=list(supported_langs_dict.values()),
+            supported_languages=list(get_supported_languages().values()),
             git_rev_hash=_safe(get_git_revision_short_hash, ""),
-            lang=lang,
+            lang=_safe(get_request_lang, "en"),
             stats_summary=_safe(_extract_stats_summary, {}),
             stats_details=_safe(_extract_stats_details, []),
-            body_class=body_class,
-            body_attrs=body_attrs,
-            active_ui_lang=active_ui_lang,
-            donate_script_src=donate_script_src,
-            flash_messages=flash_messages,
-            show_announcement_banner=show_banner,
-            announcement=announcement,
-            announcement_cookie_name=cookie_name,
-            announcement_cookie_duration_days=cookie_duration_days,
+            body_classes=_extract_body_classes(),
+            body_attrs=_extract_body_attrs(),
+            donate_script_url=_safe(_extract_donate_script_url, "/cdn/archive.org/donate.js"),
+            flash_messages=_extract_flash_messages(),
+            announcement_banner=_safe(_extract_announcement_banner, None),
         )
 
     def to_dict(self) -> dict[str, Any]:

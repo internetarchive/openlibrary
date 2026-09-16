@@ -155,15 +155,13 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.lang, str)
         assert isinstance(layout.stats_summary, dict)
         assert isinstance(layout.stats_details, list)
+        assert isinstance(layout.body_classes, list)
+        assert isinstance(layout.body_attrs, list)
         assert isinstance(layout.body_class, str)
-        assert isinstance(layout.body_attrs, str)
         assert isinstance(layout.active_ui_lang, dict)
-        assert isinstance(layout.donate_script_src, str)
+        assert isinstance(layout.donate_script_url, str)
         assert isinstance(layout.flash_messages, list)
-        assert isinstance(layout.show_announcement_banner, bool)
-        assert isinstance(layout.announcement, str)
-        assert isinstance(layout.announcement_cookie_name, str)
-        assert isinstance(layout.announcement_cookie_duration_days, int)
+        assert layout.announcement_banner is None or hasattr(layout.announcement_banner, "content")
         # No flat layout keys should leak into root context
         for key in (
             "show_ol_shell",
@@ -175,15 +173,11 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
             "lang",
             "stats_summary",
             "stats_details",
-            "body_class",
+            "body_classes",
             "body_attrs",
-            "active_ui_lang",
-            "donate_script_src",
+            "donate_script_url",
             "flash_messages",
-            "show_announcement_banner",
-            "announcement",
-            "announcement_cookie_name",
-            "announcement_cookie_duration_days",
+            "announcement_banner",
         ):
             assert key not in kwargs
         return rendered

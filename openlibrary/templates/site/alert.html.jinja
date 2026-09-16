@@ -1,5 +1,6 @@
 {% if not layout.is_bot %}
-    {% include "site/donation_banner.html.jinja" %}
+    <div id="donato"></div>
+    <script src="{{ layout.donate_script_url }}" data-platform="ol"></script>
 {% endif %}
 <div id="topNotice">
     <div class="page-banner page-banner-black page-banner-center">

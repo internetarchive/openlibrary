@@ -7,13 +7,19 @@ import pytest
 
 import infogami.utils.flash as flash_module
 from infogami.utils.context import context as infogami_ctx
-from openlibrary.core.layout import LayoutContext
+from openlibrary.core.layout import AnnouncementBanner, LayoutContext, can_show_librarian_tools
+
+
+@pytest.fixture(autouse=True)
+def _patch_get_current_user(monkeypatch):
+    """Default get_current_user to None for layout tests so LayoutContext.build() is safe."""
+    monkeypatch.setattr("openlibrary.core.layout.get_current_user", lambda: None)
+
 
 TEMPLATES_DIR = pathlib.Path(__file__).resolve().parents[3] / "openlibrary" / "templates"
 LAYOUT_TEMPLATES = [
     TEMPLATES_DIR / "site.html.jinja",
     TEMPLATES_DIR / "site" / "alert.html.jinja",
-    TEMPLATES_DIR / "site" / "donation_banner.html.jinja",
     TEMPLATES_DIR / "site" / "banner.html.jinja",
     TEMPLATES_DIR / "lib" / "nav_foot.html.jinja",
     TEMPLATES_DIR / "languages" / "language_list.html.jinja",
@@ -73,22 +79,38 @@ def test_layout_context_is_frozen():
         lang="en",
         stats_summary={},
         stats_details=[],
-        body_class="",
-        body_attrs="",
-        active_ui_lang={},
-        donate_script_src="",
+        body_classes=[],
+        body_attrs=[],
+        donate_script_url="",
         flash_messages=[],
-        show_announcement_banner=False,
-        announcement="",
-        announcement_cookie_name="",
-        announcement_cookie_duration_days=30,
+        announcement_banner=None,
     )
     with pytest.raises((AttributeError, TypeError)):
         layout.lang = "fr"  # type: ignore[misc]
 
 
+def test_can_show_librarian_tools():
+    """Librarian tools should only activate for privileged users on specific catalog paths."""
+
+    class LibrarianUser:
+        def is_librarian_or_higher(self):
+            return True
+
+    class NormalUser:
+        def is_librarian_or_higher(self):
+            return False
+
+    assert can_show_librarian_tools("/works/OL12345W", LibrarianUser())
+    assert can_show_librarian_tools("/authors/OL12345A", LibrarianUser())
+    assert can_show_librarian_tools("/books/OL12345M", LibrarianUser())
+    assert can_show_librarian_tools("/search", LibrarianUser())
+    assert not can_show_librarian_tools("/about", LibrarianUser())
+    assert not can_show_librarian_tools("/works/OL12345W", NormalUser())
+    assert not can_show_librarian_tools("/works/OL12345W", None)
+
+
 def test_layout_build_body_classes_and_librarian_tools(monkeypatch, request_context_fixture):
-    """LayoutContext should include 'show-librarian-tools' and data-username for librarians on catalog paths."""
+    """LayoutContext should include 'show-librarian-tools' for librarians on catalog paths."""
     request_context_fixture(lang="en")
 
     class MockUser:
@@ -97,34 +119,38 @@ def test_layout_build_body_classes_and_librarian_tools(monkeypatch, request_cont
         def is_librarian_or_higher(self):
             return True
 
+    mock_user = MockUser()
     infogami_ctx["bodyclass"] = ["custom-class"]
     infogami_ctx["bodyattrs"] = ["itemscope"]
     infogami_ctx["show_ol_shell"] = True
     infogami_ctx["path"] = "/works/OL12345W"
-    infogami_ctx["user"] = MockUser()
+    infogami_ctx["user"] = mock_user
+    monkeypatch.setattr("openlibrary.core.layout.get_current_user", lambda: mock_user)
 
     layout = LayoutContext.build()
+    assert "custom-class" in layout.body_classes
+    assert "show-librarian-tools" in layout.body_classes
     assert "custom-class" in layout.body_class
     assert "show-librarian-tools" in layout.body_class
     assert "itemscope" in layout.body_attrs
-    assert 'data-username="librarian_bob"' in layout.body_attrs
 
     # Reset
     infogami_ctx.clear()
 
 
 def test_layout_build_active_ui_lang(request_context_fixture):
-    """LayoutContext should resolve active_ui_lang from request language."""
+    """LayoutContext should resolve active_ui_lang property from request language."""
     request_context_fixture(lang="es")
     layout = LayoutContext.build()
     assert layout.active_ui_lang["code"] == "es"
     assert layout.active_ui_lang["native"] == "Español"
 
 
-def test_layout_build_donate_script_src(monkeypatch, request_context_fixture):
-    """LayoutContext should set donate_script_src correctly."""
+def test_layout_build_donate_script_url(monkeypatch, request_context_fixture):
+    """LayoutContext should set donate_script_url and backward-compatible donate_script_src."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
+    assert layout.donate_script_url == "/cdn/archive.org/donate.js"
     assert layout.donate_script_src == "/cdn/archive.org/donate.js"
 
 
@@ -138,3 +164,13 @@ def test_layout_build_flash_messages(monkeypatch, request_context_fixture):
     )
     layout = LayoutContext.build()
     assert layout.flash_messages == [{"type": "error", "message": "Invalid password"}]
+
+
+def test_announcement_banner_structure():
+    """AnnouncementBanner should be a frozen data object."""
+    banner = AnnouncementBanner(content="Maintenance scheduled", cookie_name="maint_2026", cookie_duration_days=7)
+    assert banner.content == "Maintenance scheduled"
+    assert banner.cookie_name == "maint_2026"
+    assert banner.cookie_duration_days == 7
+    with pytest.raises((AttributeError, TypeError)):
+        banner.content = "New content"  # type: ignore[misc]
