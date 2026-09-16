@@ -11,7 +11,6 @@ from typing import Any
 from urllib.parse import urlencode
 
 import httpx
-import web
 from pydantic import BaseModel, Field, field_serializer
 
 from infogami import config
@@ -53,9 +52,6 @@ class status(delegate.page):
     def GET(self):
         is_maintainer_user = _is_maintainer()
         has_testing_state = _load_testing_state() is not None
-        # The panel reads its state from FastAPI in the browser. Keep only this
-        # lightweight existence/permission check so non-maintainers do not get
-        # a shell that would immediately produce a 403 from the JSON endpoint.
         show_testing = has_testing_state and is_maintainer_user
         return render_template(
             "status",
@@ -84,166 +80,119 @@ def _json_error(error: str) -> delegate.RawText:
     return delegate.RawText(json.dumps({"ok": False, "error": error}), content_type="application/json")
 
 
-class status_remove(delegate.page):
-    path = "/status/remove"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_remove = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_remove:
-            return _json_ok()
-        # Removing a live PR stages the removal — the deploy deletes the row —
-        # so restore is a true undo: the pin and toggle state survive. A PR
-        # that never reached the box has nothing to undo and drops outright.
-        kept = []
-        for p in state.prs:
-            if p.pr in to_remove:
-                if not _live_now(state, p):
-                    continue
-                p.pending_remove = True
-            kept.append(p)
-        state.prs = kept
-        _save_testing_state(state)
-        return _json_ok()
+def remove_testing_prs(prs: list[int]) -> dict[str, Any]:
+    """Remove PRs from the testing state."""
+    to_remove = {int(p) for p in prs}
+    state = _load_testing_state()
+    if not state or not to_remove:
+        return {"ok": True, "staged_prs": [], "removed_prs": []}
+    staged_prs = []
+    removed_prs = []
+    kept = []
+    for p in state.prs:
+        if p.pr in to_remove:
+            if not _live_now(state, p):
+                removed_prs.append(p.pr)
+                continue
+            p.pending_remove = True
+            staged_prs.append(p.pr)
+        kept.append(p)
+    state.prs = kept
+    _save_testing_state(state)
+    return {"ok": True, "staged_prs": staged_prs, "removed_prs": removed_prs}
 
 
-class status_restore(delegate.page):
-    path = "/status/restore"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_restore = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_restore:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_restore:
-                p.pending_remove = False
-        _save_testing_state(state)
-        return _json_ok()
+def restore_prs(prs: list[int]) -> dict[str, bool]:
+    """Clear staged removals for PRs in the testing set."""
+    state = _load_testing_state()
+    if not state:
+        return {"ok": True}
+    requested = set(prs)
+    for p in state.prs:
+        if p.pr in requested:
+            p.pending_remove = False
+    _save_testing_state(state)
+    return {"ok": True}
 
 
-class status_enable(delegate.page):
-    path = "/status/enable"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_enable = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_enable:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_enable:
-                p.pending_active = True
-        _save_testing_state(state)
-        return _json_ok()
+def set_prs_active(prs: list[int], active: bool) -> dict[str, bool]:
+    """Stage an active-state change for PRs in the testing set."""
+    state = _load_testing_state()
+    if not state:
+        return {"ok": True}
+    requested = set(prs)
+    for p in state.prs:
+        if p.pr in requested:
+            p.pending_active = active
+    _save_testing_state(state)
+    return {"ok": True}
 
 
-class status_disable(delegate.page):
-    path = "/status/disable"
+async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
+    """Stage the latest GitHub commit for PRs in the testing set."""
+    state = _load_testing_state()
+    if not state:
+        return {"ok": True}
+    requested = set(prs)
+    selected = [p for p in state.prs if p.pr in requested]
 
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_disable = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_disable:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_disable:
-                p.pending_active = False
-        _save_testing_state(state)
-        return _json_ok()
+    async def get_info(pr: TestingPR) -> tuple[TestingPR, GitHubPRInfo | None]:
+        try:
+            return pr, await _get_pr_info_async(pr.pr)
+        except GitHubAPIError:
+            return pr, None
 
-
-class status_pull_latest(delegate.page):
-    path = "/status/pull-latest"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        i = web.input(prs=[])
-        to_update = {int(p) for p in i.prs}
-        state = _load_testing_state()
-        if not state or not to_update:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_update:
-                try:
-                    info = _get_pr_info(p.pr)
-                except GitHubAPIError:
-                    # GitHub is down or the PR is gone. This endpoint has always
-                    # treated that as "nothing to update" and answered ok, so the
-                    # row is left alone rather than failing the whole request.
-                    continue
-                if info.head_sha and info.head_sha != p.commit:
-                    p.pull_latest_sha = info.head_sha
-        _save_testing_state(state)
-        return _json_ok()
+    for pr, info in await asyncio.gather(*(get_info(pr) for pr in selected)):
+        if info and info.head_sha and info.head_sha != pr.commit:
+            pr.pull_latest_sha = info.head_sha
+    _save_testing_state(state)
+    return {"ok": True}
 
 
-class status_deploy(delegate.page):
-    path = "/status/deploy"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        state = _load_testing_state()
-        if not state:
-            return _json_ok()
-        # Drop staged removals and merged/closed PRs on the *un-mutated* state;
-        # persist=False so the drift metadata refresh can never write staged
-        # changes before Jenkins accepts the build.
-        drift_info, _ = _get_drift_info(state, persist=False)
-        state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
-        # Apply all pending changes before deploying
-        for p in state.prs:
-            if p.pull_latest_sha:
-                p.commit = p.pull_latest_sha
-                p.pull_latest_sha = ""
-            if p.pending_active is not None:
-                p.active = p.pending_active
-                p.pending_active = None
-        # Nothing above is persisted until Jenkins accepts the build, so a failed
-        # trigger leaves every staged change intact and retryable.
-        outcome = trigger_rebuild(state.prs)
-        if outcome == "failed":
-            return _json_error("deploy_failed")
-        user = get_current_user()
-        state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
-        state.deployed_by = user.key.split("/")[-1] if user else ""
-        # What this build puts on the box: active PRs only, the same filter
-        # trigger_rebuild sends. Recorded so a later removal has a set to be
-        # missing from — nothing else survives one.
-        state.deployed = {p.pr: p.title for p in state.prs if p.active}
-        if outcome == "triggered":
-            state.deploy_started_at = state.last_deploy_at
-        _save_testing_state(state)
-        _evict_drift_cache()
-        # "unconfigured" (no Jenkins token, local dev) still advances state so
-        # the panel is exercisable, but the response says the box was never
-        # touched so the UI doesn't claim a real deploy happened.
-        if outcome == "triggered":
-            return _json_ok()
-        return _json_error("deploy_unconfigured")
+def deploy_testing_status() -> dict[str, bool | str]:
+    """Apply staged changes and trigger a testing deploy."""
+    state = _load_testing_state()
+    if not state:
+        return {"ok": True}
+    # Drop staged removals and merged/closed PRs on the unmutated state. The
+    # drift metadata refresh must not write staged changes before Jenkins
+    # accepts the build.
+    drift_info, _ = _get_drift_info(state, persist=False)
+    state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
+    # Apply all pending changes before deploying.
+    for p in state.prs:
+        if p.pull_latest_sha:
+            p.commit = p.pull_latest_sha
+            p.pull_latest_sha = ""
+        if p.pending_active is not None:
+            p.active = p.pending_active
+            p.pending_active = None
+    # Nothing above is persisted until Jenkins accepts the build, so a failed
+    # trigger leaves every staged change intact and retryable.
+    outcome = trigger_rebuild(state.prs)
+    if outcome == "failed":
+        return {"ok": False, "error": "deploy_failed"}
+    user = get_current_user()
+    state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
+    state.deployed_by = user.key.split("/")[-1] if user else ""
+    # Record only active PRs, matching the list sent to Jenkins. This lets a
+    # later removal tell which PRs actually reached the testing environment.
+    state.deployed = {p.pr: p.title for p in state.prs if p.active}
+    if outcome == "triggered":
+        state.deploy_started_at = state.last_deploy_at
+    _save_testing_state(state)
+    _evict_drift_cache()
+    if outcome == "triggered":
+        return {"ok": True}
+    # Local development and instances without Jenkins still advance state, but
+    # the response tells the UI that no real deploy happened.
+    return {"ok": False, "error": "deploy_unconfigured"}
 
 
-class status_refresh(delegate.page):
-    path = "/status/refresh"
-
-    def POST(self):
-        if not _is_maintainer():
-            raise web.unauthorized()
-        _evict_drift_cache()
-        return _json_ok()
+def refresh_testing_status() -> dict[str, bool]:
+    """Evict cached testing-environment drift data."""
+    _evict_drift_cache()
+    return {"ok": True}
 
 
 def _is_deploying(state: TestingState) -> bool:
