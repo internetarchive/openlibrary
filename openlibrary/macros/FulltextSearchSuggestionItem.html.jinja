@@ -1,0 +1,38 @@
+{% macro render(item, snippet=none) %}
+    <div class="fsi" itemscope itemtype="https://schema.org/Book">
+        <div class="fsi__main">
+            <span class="fsi__book-cover">
+                <a data-ol-link-track="SearchInsideSuggestion|BookClick"
+                   href="{{ item.work_edition_url }}">
+                    <img class="fsi__book-cover-img {{ item.blur_cover }}"
+                         itemprop="image"
+                         src="{{ item.cover }}"
+                         alt="{{ _('Cover of: %(title)s', title=item.full_title) }}"
+                         title="{{ _('Cover of: %(title)s', title=item.full_title) }}" />
+                </a>
+            </span>
+            <div class="fsi__book-details">
+                <div class="fsi__title-author">
+                    <h3 class="fsi__book-title" itemprop="name">
+                        <a itemprop="url"
+                           data-ol-link-track="SearchInsideSuggestion|BookClick"
+                           href="{{ item.work_edition_url }}">{{ item.full_title }}</a>
+                    </h3>
+                    <p class="fsi__book-author"
+                       itemprop="author"
+                       itemscope
+                       itemtype="https://schema.org/Organization">
+                        {% if not item.author_data %}
+                            <em>{{ _("Unknown author") }}</em>
+                        {% else %}
+                            {{ item.byline_html }}
+                        {% endif %}
+                    </p>
+                </div>
+                {% if snippet %}
+                    {{ snippet }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}

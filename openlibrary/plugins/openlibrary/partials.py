@@ -10,10 +10,11 @@ from markupsafe import Markup
 from pydantic import BaseModel
 
 from infogami.utils.view import public
+from openlibrary.book_providers import get_book_provider, get_cover_url
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.core.helpers import affiliate_id, datestr, datetimestr_utc
+from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
@@ -358,6 +359,11 @@ class CarouselCardPartial:
         return subject.get("works", [])
 
 
+# Temporarily disabled due to amazon request timing out. While off, pages skip
+# the client-side price lookup entirely.
+AFFILIATE_PRICES_ENABLED = False
+
+
 @dataclass(frozen=True, slots=True)
 class AffiliateStoreBuildContext:
     title: str
@@ -374,7 +380,6 @@ class AffiliateStore:
     name: str
     link: str
     price: str | None = None
-    price_note: str = ""
 
 
 def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
@@ -385,7 +390,7 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
         bwb_link = f"https://www.betterworldbooks.com/product/detail/{ctx.isbn}"
 
     bwb_market_price = ctx.bwb_metadata.get("market_price") if ctx.bwb_metadata else None
-    bwb_price = ctx.bwb_metadata.get("price") if ctx.bwb_metadata else None
+    bwb_price_amt = ctx.bwb_metadata.get("price_amt") if ctx.bwb_metadata else None
     amz_price = ctx.amz_metadata.get("price") if ctx.amz_metadata else None
 
     primary_stores: list[AffiliateStore] = [
@@ -394,8 +399,7 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
             analytics_key="BetterWorldBooks",
             name=_("Better World Books"),
             link=bwb_link,
-            price=bwb_price,
-            price_note=_(" - includes shipping"),
+            price=f"${bwb_price_amt}" if bwb_price_amt else None,
         )
     ]
 
@@ -442,7 +446,7 @@ class AffiliateLinksPartial:
     ) -> dict:
         bwb_metadata = None
         amz_metadata = None
-        should_fetch_prices = not is_bot() and prices
+        should_fetch_prices = AFFILIATE_PRICES_ENABLED and prices and not is_bot()
         if should_fetch_prices and isbn:
             bwb_metadata = await get_betterworldbooks_metadata(isbn)
             if not bwb_metadata or not bwb_metadata.get("market_price"):
@@ -452,14 +456,21 @@ class AffiliateLinksPartial:
             bwb_metadata = None
 
         ctx = AffiliateStoreBuildContext(title, isbn, asin, bwb_metadata, amz_metadata)
+        return {"partials": _render_affiliate_links(ctx)}
 
-        primary_stores = build_primary_stores(ctx)
-        more_stores = build_more_stores(ctx)
 
-        template = get_jinja_env().get_template("AffiliateLinks.html.jinja")
-        html = template.render(primary_stores=primary_stores, more_stores=more_stores)
+def _render_affiliate_links(ctx: AffiliateStoreBuildContext, price_lookup: dict | None = None) -> str:
+    template = get_jinja_env().get_template("AffiliateLinks.html.jinja")
+    return template.render(primary_stores=build_primary_stores(ctx), more_stores=build_more_stores(ctx), price_lookup=price_lookup)
 
-        return {"partials": html}
+
+@public
+def render_affiliate_links(title: str, isbn: str | None, asin: str | None, prices: bool) -> str:
+    """Render the Buy popover's store rows with the page. When prices apply,
+    the section carries a price lookup that affiliate-links.js fills in later."""
+    ctx = AffiliateStoreBuildContext(title, isbn, asin, None, None)
+    price_lookup = {"title": title, "isbn": isbn, "asin": asin or ""} if AFFILIATE_PRICES_ENABLED and prices and isbn else None
+    return _render_affiliate_links(ctx, price_lookup)
 
 
 class SearchFacetsPartial:
@@ -549,6 +560,94 @@ class FullTextSuggestionsPartialResult:
     has_error: bool = False
 
 
+def get_fulltext_suggestion_item_data(doc: Any) -> dict[str, Any]:
+    """Prepare display data for a full-text search suggestion item."""
+    doc_type = (
+        "infogami_work"
+        if doc.get("type", {}).get("key") == "/type/work"
+        else "infogami_edition"
+        if doc.get("type", {}).get("key") == "/type/edition"
+        else "solr_work"
+        if not doc.get("editions")
+        else "solr_edition"
+    )
+    selected_ed = doc.get("editions")[0] if doc_type == "solr_edition" else doc
+    book_url = doc.url() if doc_type.startswith("infogami_") else doc.key
+
+    if doc_type == "solr_edition":
+        work_edition_url = book_url + "?edition=" + quote("key:" + selected_ed.key)
+    elif (book_provider := get_book_provider(doc)) and doc_type.endswith("_work"):
+        work_edition_url = book_url + "?edition=" + quote(book_provider.get_best_identifier_slug(doc))
+    else:
+        work_edition_url = book_url
+
+    edition_work = doc["works"][0] if doc_type == "infogami_edition" and "works" in doc else None
+    full_title = selected_ed.get("title", "") + (": " + selected_ed.subtitle if selected_ed.get("subtitle") else "")
+
+    authors = None
+    if doc_type == "infogami_work":
+        authors = doc.get_authors()
+    elif doc_type == "infogami_edition":
+        authors = edition_work.get_authors() if edition_work else doc.get_authors()
+    elif "authors" in doc:
+        authors = doc["authors"]
+    elif "author_key" in doc:
+        authors = [{"key": "/authors/" + key, "name": name} for key, name in zip(doc["author_key"], doc["author_name"])]
+
+    author_data = (
+        [
+            {
+                "name": author.get("name") or author.get("author", {}).get("name"),
+                "url": author.get("url") or author.get("key") or author.get("author", {}).get("url") or author.get("author", {}).get("key"),
+            }
+            for author in authors
+        ]
+        if authors
+        else None
+    )
+    byline_html = (
+        Markup(
+            str(
+                render_macro(
+                    "BookByline",
+                    (author_data,),
+                    limit=9,
+                    overflow_url=work_edition_url,
+                    attrs='class="results"',
+                )["__body__"]
+            )
+        )
+        if author_data
+        else None
+    )
+    return {
+        "author_data": author_data,
+        # BookByline remains Templetor, so render the bridge while the web.py
+        # macro registry is available and hand trusted HTML to Jinja.
+        "byline_html": byline_html,
+        "blur_cover": "",
+        "cover": get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png",
+        "full_title": full_title,
+        "work_edition_url": work_edition_url,
+    }
+
+
+def get_fulltext_suggestion_snippet_data(doc: dict[str, Any]) -> dict[str, str | Markup]:
+    """Prepare snippet display data returned by the full-text search service."""
+    page_nums = doc.get("fields", {}).get("page_num", [])
+    if len(page_nums) == 1 and isinstance(page_nums[0], list):
+        page_nums = page_nums[0]
+    snippet = doc.get("highlight", {}).get("text", [""])[0]
+    snippet_html = Markup(
+        snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>")
+    )
+    return {
+        "ia": doc.get("fields", {}).get("identifier", [""])[0],
+        "page": ", ".join(str(num) for num in page_nums),
+        "snippet_html": snippet_html,
+    }
+
+
 class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
@@ -559,7 +658,23 @@ class FullTextSuggestionsPartial:
         if not hits.get("total"):
             macro = "<div></div>"
         else:
-            macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, data)
+            suggestions = [
+                {
+                    "item": get_fulltext_suggestion_item_data(hit["edition"]),
+                    "snippet": get_fulltext_suggestion_snippet_data(hit),
+                }
+                for hit in hits.get("hits", [])[:4]
+                if hit.get("edition")
+            ]
+            macro = render_jinja_template(
+                "FulltextSearchSuggestion.html.jinja",
+                # LoadingIndicator remains Templetor (10 other callers), so
+                # render the bridge before entering the Jinja environment.
+                loading_indicator_html=Markup(str(render_macro("LoadingIndicator", (_("Checking for Search Inside matches"),))["__body__"])),
+                num_found=commify(hits.get("total", 0)),
+                query_url="/search/inside?" + urlencode({"q": query}),
+                suggestions=suggestions,
+            )
         return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
 

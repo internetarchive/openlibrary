@@ -1,0 +1,137 @@
+/*
+ * Buy popover (work / edition sidebar)
+ * ====================================
+ * Imported by page-book.css ONLY -- deliberately NOT via legacy.css.
+ *
+ * These rules used to live in components/read-panel.css, which is imported by
+ * both page-book.css and legacy.css. legacy.css feeds page-form, page-edit,
+ * page-admin, page-user, page-list-edit and page-plain, so every one of those
+ * bundles carried the buy-dropdown CSS despite never rendering a buy button --
+ * which pushed page-book, page-edit and page-plain over their bundlesize caps.
+ * Keep this file out of legacy.css.
+ */
+
+/* Buy popover: full-width trigger button */
+.buy-popover {
+  display: block;
+  width: 100%;
+  margin-top: var(--spacing-stack-xs);
+}
+
+/* Buy options popover content. Rows follow the Browse popover's menu rows
+   (header-bar.css): a 4px panel gutter, pill hover fill, muted leading icon. */
+.buy-options {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--spacing-inset-sm) var(--menu-row-inset);
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius-overlay);
+  text-align: left;
+}
+
+@media only screen and (min-width: 768px) {
+  .buy-options {
+    width: 240px;
+  }
+}
+
+.buy-options .buy-option__link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  border-radius: var(--border-radius-button);
+  color: var(--color-text);
+  font-size: var(--font-size-body-medium);
+  text-decoration: none;
+}
+
+.buy-options .buy-option__link .ol-icon {
+  color: var(--color-icon-muted);
+}
+
+.buy-options .buy-option__link:focus-visible {
+  background-color: var(--color-hover-overlay);
+}
+
+/* Gated so a tapped row doesn't stay highlighted on touch screens */
+@media (hover: hover) and (pointer: fine) {
+  .buy-options .buy-option__link:hover {
+    background-color: var(--color-hover-overlay);
+  }
+}
+
+.buy-options .buy-option__price {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: var(--font-size-label-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+/* Disclaimer below a divider, text aligned with the row icons */
+.buy-options .buy-options__disclaimer {
+  display: block;
+  margin-top: var(--spacing-stack-xs);
+  padding: var(--spacing-inset-sm) var(--menu-row-padding-inline) 0;
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  line-height: 1.4;
+}
+
+/* Fine print: the link keeps the caption's color, and the underline marks it */
+.buy-options .buy-options__disclaimer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* Buy button custom styling (single button with left icon and right arrow) */
+.cta-btn--buy {
+  position: relative;
+  background-color: var(--grey-464646);
+  color: var(--white);
+  margin-top: 0;
+  height: 37px;
+  padding: 0 var(--spacing-inset-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-btn--buy:hover {
+  background-color: var(--dark-grey);
+}
+
+.cta-btn--buy .btn-icon.cart {
+  position: absolute;
+  left: 12px;
+}
+
+.cta-btn--buy .btn-label {
+  padding: 0;
+}
+
+.cta-btn--buy .arrow-down {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 32px;
+  height: 100%;
+  border-left: 1px solid var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-btn--buy .arrow-down::after {
+  content: "";
+  display: block;
+  width: 23px;
+  height: 23px;
+  background: url(/static/images/icons/icon_dropit.png) no-repeat center;
+  background-position: 0;
+  background-size: 45px;
+  filter: brightness(0) invert(1);
+}

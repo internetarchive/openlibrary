@@ -1342,7 +1342,7 @@ msgstr ""
 msgid "Import & Export Options"
 msgstr ""
 
-#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html account/notes.html account/observations.html
+#: BookByline.html FulltextSearchSuggestionItem.html.jinja SearchResultsWork.html account/notes.html account/observations.html
 msgid "Unknown author"
 msgstr ""
 
@@ -2790,6 +2790,10 @@ msgstr ""
 msgid "More at OpenStax"
 msgstr ""
 
+#: LoanStatus.html ReadButton.html book_providers/read_button.html my_books/dropper.html
+msgid "More reading options"
+msgstr ""
+
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
@@ -3286,7 +3290,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
+#: FulltextSearchSuggestionItem.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -3304,6 +3308,11 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
+msgstr ""
+
+#: books/edition-sort.html
+#, python-format
+msgid "translated by %(translator)s"
 msgstr ""
 
 #: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
@@ -3795,7 +3804,7 @@ msgstr ""
 msgid "Provider Name"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html databarWork.html
 msgid "Buy"
 msgstr ""
 
@@ -4122,7 +4131,7 @@ msgstr ""
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html.jinja
+#: home/about.html search/work_search_facets.html.jinja
 msgid "More"
 msgstr ""
 
@@ -5193,10 +5202,6 @@ msgstr ""
 msgid "More reading options for %(title)s"
 msgstr ""
 
-#: ReadButton.html my_books/dropper.html
-msgid "More reading options"
-msgstr ""
-
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
@@ -5645,7 +5650,7 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: FulltextSearchSuggestion.html SearchNavigation.html search/inside.html
+#: FulltextSearchSuggestion.html.jinja SearchNavigation.html search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -6281,10 +6286,6 @@ msgstr ""
 msgid "ISBNs"
 msgstr ""
 
-#: databarWork.html type/edition/view.html type/work/view.html
-msgid "Buy this book"
-msgstr ""
-
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
 msgstr ""
@@ -6913,10 +6914,6 @@ msgstr ""
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
 
-#: AffiliateLinksLoadingIndicator.html
-msgid "Fetching prices"
-msgstr ""
-
 #: BatchImportNavigation.html
 msgid "Pending Imports"
 msgstr ""
@@ -6995,29 +6992,25 @@ msgstr ""
 msgid "Expires"
 msgstr ""
 
-#: FulltextSearchSuggestion.html
-msgid "Checking for Search Inside matches"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
+#: FulltextSearchSuggestion.html.jinja
 #, python-format
 msgid "%(book_count)s books found with matching passages"
 msgstr ""
 
-#: FulltextSearchSuggestion.html
+#: FulltextSearchSuggestion.html.jinja
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
 msgstr ""
 
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html.jinja
 msgid "❝"
 msgstr ""
 
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html.jinja
 msgid "❞"
 msgstr ""
 
-#: FulltextSuggestionSnippet.html
+#: FulltextSuggestionSnippet.html.jinja
 #, python-format
 msgid "Page: %(page)s"
 msgstr ""
@@ -7054,6 +7047,10 @@ msgid "You'll be next in line."
 msgstr ""
 
 #: LoanStatus.html
+msgid "All copies are checked out."
+msgstr ""
+
+#: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
 msgstr ""
 
@@ -7066,7 +7063,7 @@ msgid "Only a preview is available."
 msgstr ""
 
 #: LocateButton.html
-msgid "Locate"
+msgid "Nearby Libraries"
 msgstr ""
 
 #: NotInLibrary.html
@@ -7392,6 +7389,21 @@ msgid "Could not complete that action."
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+#, python-format
+msgid "PR %(num)s does not exist."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Could not check PR %(num)s — GitHub is unavailable."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Could not add PR %(num)s."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "Testing Environment"
 msgstr ""
 
@@ -7606,18 +7618,6 @@ msgstr ""
 msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
 msgstr ""
 
-#: WorldcatLink.html
-msgid "Check nearby libraries"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "Check WorldCat for an edition near you"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "WorldCat"
-msgstr ""
-
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
 msgstr ""
@@ -7650,6 +7650,10 @@ msgstr ""
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
+msgstr ""
+
+#: databarWork.html
+msgid "Buy this book"
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8150,15 +8154,15 @@ msgid "Better World Books"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
-msgid " - includes shipping"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Checking for Search Inside matches"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
