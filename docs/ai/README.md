@@ -208,12 +208,12 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Browser Support
 
-We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 11.1, iOS ≥ 11.3, Android ≥ 5. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 15.4, iOS ≥ 15.4, Android ≥ 5. The Safari floor is set by the Lit components, which need `delegatesFocus` and `<dialog>.showModal()`. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
 
 What the toolchain guarantees:
 
-- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari11.1', 'ios11.3']` in `scripts/vite/build.mjs`, matching `browserslist`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/main.js`. `all.js` is a `<script type="module">`, so the floor is Safari/iOS 11.x plus evergreen Chrome/Edge/Firefox per `browserslist`.
-- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `scripts/vite/build.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari15.4', 'ios15.4']` in `scripts/vite/build.mjs`, matching `browserslist`). No built-ins are polyfilled — everything we use ships natively at Safari 15.4.
+- **Vue/Lit components** use the same `build.target` — syntax is transpiled, but **runtime APIs are not polyfilled**.
 - **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
 
 Rules for new code:
