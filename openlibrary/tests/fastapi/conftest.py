@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.auth import (
@@ -18,7 +19,13 @@ from openlibrary.plugins.worksearch.code import SearchResponse
 @pytest.fixture(scope="session")
 def fastapi_client():
     """Create a test client for the FastAPI app (session-scoped for speed)."""
-    with patch("openlibrary.asgi_app.set_context_from_fastapi", autospec=True):
+    with (
+        patch("openlibrary.asgi_app.set_context_from_fastapi", autospec=True),
+        patch(
+            "openlibrary.fastapi.proxy.proxy_to_webpy",
+            side_effect=HTTPException(status_code=404),
+        ),
+    ):
         from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
         app = create_app()
