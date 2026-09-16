@@ -1,5 +1,5 @@
 import { shallowRef } from 'vue';
-import { actionErrorMessage, effectiveActive, postAction } from '../utils.js';
+import { actionErrorMessage, effectiveActive, parsePrNumbers, postAction } from '../utils.js';
 
 /**
  * PR toggle, update, remove, restore, deploy, refresh, and add actions.
@@ -24,9 +24,9 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
     }
 
-    async function executeAction(action, fields) {
+    async function executeAction(action, fields, method = 'POST') {
         try {
-            const result = await postAction(action, fields);
+            const result = await postAction(action, fields, method);
             await loadStatus(false, false, false);
             // A business failure ({"ok": false, "error": "<code>"}) is a
             // completed request, not a thrown fetch — say why instead of
@@ -49,7 +49,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         try {
             while (queue.length) {
                 const item = queue.shift();
-                const result = await executeAction(item.action, item.fields);
+                const result = await executeAction(item.action, item.fields, item.method);
                 item.waiters.forEach(({ resolve }) => resolve(result));
             }
         } finally {
@@ -63,14 +63,14 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
      * pull-latest actions share one request; deploy and other actions remain
      * ordered queue barriers.
      */
-    function enqueue(action, fields, kind = 'action') {
+    function enqueue(action, fields, kind = 'action', method = 'POST') {
         const waiter = new Promise((resolve) => {
             const last = queue[queue.length - 1];
             if (kind === 'pull-latest' && last?.kind === kind) {
                 last.fields.prs.push(...fields.prs);
                 last.waiters.push({ resolve });
             } else {
-                queue.push({ action, fields, kind, waiters: [{ resolve }] });
+                queue.push({ action, fields, kind, method, waiters: [{ resolve }] });
             }
         });
         drainQueue();
@@ -78,8 +78,12 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     }
 
     function togglePr(pr) {
-        const action = effectiveActive(pr) ? '/status/disable' : '/status/enable';
-        enqueue(action, { prs: [pr.pr] });
+        enqueue(
+            '/status/testing/prs',
+            { prs: [pr.pr], active: !effectiveActive(pr) },
+            'action',
+            'PATCH'
+        );
     }
 
     function updatePr(pr) {
@@ -118,9 +122,11 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (adding.value) return;
         const value = addInput.value.trim();
         if (!value) return;
+        const prs = parsePrNumbers(value);
+        if (!prs.length) return;
         adding.value = true;
         try {
-            const result = await enqueue('/status/add', { pr: value });
+            const result = await enqueue('/status/add', { prs });
             // A failed add keeps the input so it's obvious the PR didn't land.
             if (result && result.ok) {
                 addInput.value = '';

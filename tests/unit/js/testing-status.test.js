@@ -10,6 +10,7 @@ import {
     formatTime,
     getTestingStatus,
     postAction,
+    parsePrNumbers,
     sprintf,
     timeAgo
 } from '../../../openlibrary/components/TestingEnvironment/utils.js';
@@ -47,7 +48,7 @@ describe('Testing Environment utils', () => {
         });
     });
 
-    test('posts actions form-encoded, repeating array fields', async() => {
+    test('posts remove actions as JSON', async() => {
         const body = { ok: true };
         global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
 
@@ -58,9 +59,52 @@ describe('Testing Environment utils', () => {
             expect.objectContaining({
                 method: 'POST',
                 credentials: 'same-origin',
-                body: new URLSearchParams([['prs', '13269'], ['prs', '13270']])
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({ prs: [13269, 13270] })
             })
         );
+    });
+
+    test('patches status activation as JSON', async() => {
+        const body = { ok: true };
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
+
+        await expect(postAction('/status/testing/prs', { prs: [13269], active: false }, 'PATCH')).resolves.toBe(body);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/status/testing/prs',
+            expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ prs: [13269], active: false }) })
+        );
+    });
+
+    test('posts add actions as JSON', async() => {
+        const body = { ok: true };
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
+
+        await expect(postAction('/status/add', { prs: [12914, 13269] })).resolves.toBe(body);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/status/add',
+            expect.objectContaining({
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({ prs: [12914, 13269] })
+            })
+        );
+    });
+
+    test('parses PR input before posting', () => {
+        expect(parsePrNumbers('12914, #13269 https://github.com/internetarchive/openlibrary/pull/13270')).toEqual([
+            12914,
+            13269,
+            13270
+        ]);
+        expect(parsePrNumbers('https://github.com/internetarchive/openlibrary/issues/123 bad')).toEqual([]);
     });
 
     test('resolves the JSON body of successful posts', async() => {
