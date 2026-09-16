@@ -7,7 +7,7 @@ import { afterEach, beforeAll, expect, test } from 'vitest';
 import { page, userEvent } from 'vitest/browser';
 import '../../openlibrary/components/lit/OLButton.js';
 import '../../openlibrary/components/lit/OlDialog.js';
-import { olAlert, olConfirm } from '../../openlibrary/components/lit/confirm.js';
+import { olAlert, olConfirm } from '../../openlibrary/components/lit/alert-dialog.js';
 
 beforeAll(() => {
     // Document styles beat :host, so this zeroes the open/close animation.

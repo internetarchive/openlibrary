@@ -22,7 +22,7 @@ import { slotHasContent } from './utils/slot-utils.js';
  *     button). The `header` slot still works.
  * @prop {Boolean} alert - Announce as `role="alertdialog"`, with the body as
  *     the accessible description. For confirmations and alerts that interrupt
- *     the reader; see `olConfirm()` in confirm.js.
+ *     the reader; see `olConfirm()` in alert-dialog.js.
  * @prop {String} labelClose - Translated accessible name for the default close
  *     button. Attribute: `label-close`. Default "Close dialog".
  * @prop {String} returnValue - Set by `close(returnValue)`; empty when closed by

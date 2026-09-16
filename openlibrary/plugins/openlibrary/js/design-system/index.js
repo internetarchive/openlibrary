@@ -2,7 +2,7 @@
  * Page behaviour for the design system docs at /developers/design.
  * All progressive: the page is fully readable with this bundle absent.
  */
-import { olAlert, olConfirm } from '../../../../components/lit/confirm.js';
+import { olAlert, olConfirm } from '../../../../components/lit/alert-dialog.js';
 import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from './contrast.js';
 
 const CODE_VISIBLE_KEY = 'ol-design-show-code';
