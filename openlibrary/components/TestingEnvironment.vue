@@ -82,9 +82,7 @@ watch(
     { immediate: true }
 );
 
-onBeforeUnmount(() => {
-    syncDeployFavicon(false);
-});
+onBeforeUnmount(() => syncDeployFavicon(false));
 </script>
 
 <template>
@@ -93,7 +91,20 @@ onBeforeUnmount(() => {
     :aria-busy="busy ? 'true' : 'false'"
   >
     <div
-      v-if="view === 'error' && !prs.length"
+      v-if="view === 'loading'"
+      class="testing-env__main"
+    >
+      <p
+        class="testing-env__blank"
+        role="status"
+        aria-live="polite"
+      >
+        {{ strings.loading }}
+      </p>
+    </div>
+
+    <div
+      v-else-if="view === 'error'"
       class="testing-env__main"
     >
       <div
@@ -111,7 +122,9 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-else>
+    <div
+      v-else
+    >
       <div class="testing-env__main">
         <header class="testing-env__bar">
           <h2 class="testing-env__title">
@@ -210,7 +223,7 @@ onBeforeUnmount(() => {
       </div>
 
       <DeploySection
-        :payload="payload || {}"
+        :payload="payload"
         :now="now"
         :maintainer="isMaintainer"
         :strings="strings"
