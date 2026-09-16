@@ -4,7 +4,7 @@ version = "1.0.0"
 requires-python = ">=3.14.5,<3.14.6"
 
 [tool.codespell]
-ignore-words-list = "beng,curren,datas,furst,lightening,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
+ignore-words-list = "beng,curren,datas,furst,lightening,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty,convertor,convertors"
 skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.mypy]
@@ -167,6 +167,7 @@ max-statements = 70
 "openlibrary/core/stats.py" = ["BLE001"]
 "openlibrary/core/vendors.py" = ["B009"]
 "openlibrary/coverstore/code.py" = ["E722"]
+"openlibrary/coverstore_fastapi/app.py" = ["BLE001"]
 "openlibrary/i18n/__init__.py" = ["BLE001", "PLC0415"]
 "openlibrary/plugins/admin/code.py" = ["E722"]
 "openlibrary/plugins/admin/services.py" = ["BLE001"]
