@@ -458,7 +458,7 @@
 }
 
 /* Leading glyphs only echo the label beside them, so they sit on the
-   decorative tier like the browse popover's link icons. */
+   decorative tier like the nav popovers' link icons. */
 .header-bar .ol-button-static__icon {
   flex: none;
   color: var(--color-icon-muted);
@@ -466,7 +466,7 @@
 
 /* A subtle darken of the canvas the header sits on, in place of the component's
  * neutral grey. (--beige is a near match for that canvas, so the default would
- * read as no hover at all.) The open Browse trigger holds the same fill. */
+ * read as no hover at all.) An open nav popover trigger holds the same fill. */
 @media (hover: hover) and (pointer: fine) {
   .header-bar .ol-button-static--ghost:hover {
     background-color: var(--beige-three);
@@ -474,36 +474,36 @@
 }
 
 .header-bar .ol-button-static--ghost:focus-visible,
-.browse-popover[open] .browse-popover__trigger {
+.nav-popover[open] .nav-popover__trigger {
   background-color: var(--beige-three);
 }
 
-/* ── Browse popover ──────────────────────────────────────────
- * The Browse nav item is an <ol-popover> (see lib/browse_popover.html), not a
- * <details> dropdown. ol-popover owns the panel chrome and the mobile tray;
- * these rules style the slotted trigger and content.
+/* ── Nav popovers (Browse, My Books) ─────────────────────────
+ * These nav items are <ol-popover>s (see lib/browse_popover.html and
+ * lib/mybooks_popover.html), not <details> dropdowns. ol-popover owns the panel
+ * chrome and the mobile tray; these rules style the slotted trigger and content.
  */
 
-.header-bar .browse-popover {
+.header-bar .nav-popover {
   display: inline-flex;
 }
 
 /* Stroked chevron matching the web-component popovers (OlSelectPopover etc.),
  * rotated when the popover opens. */
-.navigation-component .browse-popover__trigger .down-arrow {
+.navigation-component .nav-popover__trigger .down-arrow {
   width: 16px;
   height: 16px;
   transition: transform var(--duration-fast) var(--ease-enter);
 }
 
-.browse-popover[open] .down-arrow {
+.nav-popover[open] .down-arrow {
   transform: rotate(180deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .header-bar .nav-ghost-btn,
   .header-bar .nav-primary-btn,
-  .navigation-component .browse-popover__trigger .down-arrow {
+  .navigation-component .nav-popover__trigger .down-arrow {
     transition: none;
   }
 }
@@ -511,7 +511,7 @@
 /* The 4px side padding is the menu-row gutter: rows carry the rest of their
  * 16px label offset as their own padding, so the hover fill reads as a pill
  * inside the panel rather than a band running to its edges. */
-.header-bar .browse-popover__panel {
+.header-bar .nav-popover__panel {
   box-sizing: border-box;
   width: 240px;
   max-width: calc(100vw - 24px);
@@ -522,18 +522,18 @@
 /* In the mobile bottom-tray the popover spans the full viewport width, so let
  * the panel fill it instead of staying pinned to the 240px desktop width. */
 @media (max-width: 767px) /* --width-breakpoint-tablet - 1px; matches OlPopover.js _mobile */ {
-  .header-bar .browse-popover__panel {
+  .header-bar .nav-popover__panel {
     width: 100%;
     max-width: none;
   }
 }
 
-.header-bar .browse-popover__featured {
+.header-bar .nav-popover__featured {
   display: flex;
   flex-direction: column;
 }
 
-.header-bar .navigation-component .browse-feature {
+.header-bar .navigation-component .nav-feature {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-inline-md);
@@ -543,12 +543,12 @@
   text-decoration: none;
 }
 
-.navigation-component .browse-feature:hover,
-.navigation-component .browse-feature:focus-visible {
+.navigation-component .nav-feature:hover,
+.navigation-component .nav-feature:focus-visible {
   background-color: var(--color-hover-overlay);
 }
 
-.header-bar .browse-feature__icon {
+.header-bar .nav-feature__icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -562,50 +562,50 @@
 
 /* The hover fill darkens the panel under the tile too, so deepen the tile to
  * --beige to keep it reading as a tile rather than dissolving into the row. */
-.browse-feature:hover .browse-feature__icon,
-.browse-feature:focus-visible .browse-feature__icon {
+.nav-feature:hover .nav-feature__icon,
+.nav-feature:focus-visible .nav-feature__icon {
   background: var(--beige);
 }
 
-.header-bar .browse-feature__body {
+.header-bar .nav-feature__body {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.header-bar .browse-feature__title {
+.header-bar .nav-feature__title {
   font-size: var(--font-size-body-medium);
   font-weight: 600;
   line-height: var(--line-height-tight);
 }
 
-.header-bar .browse-feature__desc {
+.header-bar .nav-feature__desc {
   font-size: var(--font-size-label-medium);
   color: var(--mid-grey);
   line-height: var(--line-height-tight);
 }
 
-.header-bar .browse-popover__divider {
+.header-bar .nav-popover__divider {
   height: 1px;
   margin: var(--spacing-stack-xs) 0;
   border: 0;
   background: var(--lighter-grey);
 }
 
-.header-bar .browse-popover__links {
+.header-bar .nav-popover__links {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.header-bar .browse-popover__links li {
+.header-bar .nav-popover__links li {
   margin: 0;
 }
 
 /* min-height rather than `height`: these rows are the one place in the panel a
    label can wrap (the mobile tray narrows to the viewport), so the row grows
    with its text instead of clipping it. */
-.header-bar .navigation-component .browse-popover__link {
+.header-bar .navigation-component .nav-popover__link {
   display: flex;
   align-items: center;
   gap: var(--spacing-inline-md);
@@ -619,12 +619,12 @@
 
 /* These glyphs only echo the label they sit beside, so they stay on the
    decorative tier rather than competing with the text. */
-.header-bar .browse-popover__link .ol-icon {
+.header-bar .nav-popover__link .ol-icon {
   color: var(--color-icon-muted);
 }
 
-.header-bar .browse-popover__link:hover,
-.header-bar .browse-popover__link:focus-visible {
+.header-bar .nav-popover__link:hover,
+.header-bar .nav-popover__link:focus-visible {
   background-color: var(--color-hover-overlay);
 }
 
