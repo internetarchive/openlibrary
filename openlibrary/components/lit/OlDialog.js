@@ -20,6 +20,13 @@ import { slotHasContent } from './utils/slot-utils.js';
  *     accessible name when `withoutHeader` is true.
  * @prop {Boolean} withoutHeader - Hide the default header (title + close
  *     button). The `header` slot still works.
+ * @prop {Boolean} alert - Announce as `role="alertdialog"`, with the body as
+ *     the accessible description. For confirmations and alerts that interrupt
+ *     the reader; see `olConfirm()` in confirm.js.
+ * @prop {String} labelClose - Translated accessible name for the default close
+ *     button. Attribute: `label-close`. Default "Close dialog".
+ * @prop {String} returnValue - Set by `close(returnValue)`; empty when closed by
+ *     Escape, the backdrop, or the close button. Reset each time it opens.
  * @prop {'small' | 'medium' | 'large'} width - Width preset: `'small'` (400px),
  *     `'medium'` (550px, default), or `'large'` (800px). Override per-instance
  *     via `--ol-dialog-width-*` host CSS variables.
@@ -55,13 +62,23 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @fires ol-after-open - Fires after the open animation completes.
  * @fires ol-close - Fires when the dialog starts closing. Cancelable —
  *     calling `event.preventDefault()` keeps the dialog open.
- * @fires ol-after-close - Fires after the close animation completes.
+ *     `detail.returnValue` says how it was closed.
+ * @fires ol-after-close - Fires after the close animation completes, with the
+ *     same `detail.returnValue`.
  *
  * @example
  * <ol-dialog label="Edit profile" width="medium" open>
  *   <p>Form goes here.</p>
  *   <button slot="footer">Save</button>
  * </ol-dialog>
+ *
+ * @example
+ * <!-- Read which button closed it, like native <dialog> -->
+ * <ol-dialog label="Discard draft?" width="small" alert>
+ *   <p>Your changes will be lost.</p>
+ *   <ol-button slot="footer" onclick="this.closest('ol-dialog').close('discard')">Discard</ol-button>
+ * </ol-dialog>
+ * dialog.addEventListener('ol-after-close', (e) => e.detail.returnValue === 'discard');
  *
  * @example
  * <!-- Custom header (e.g. a search bar) with no body padding -->
@@ -76,6 +93,8 @@ export class OlDialog extends LitElement {
         open: { type: Boolean, reflect: true },
         label: { type: String },
         withoutHeader: { type: Boolean, attribute: 'without-header' },
+        alert: { type: Boolean, reflect: true },
+        labelClose: { type: String, attribute: 'label-close' },
         width: { type: String },
         closeOnBackdropClick: { type: Boolean, attribute: 'close-on-backdrop-click' },
         closeOnEscape: { type: Boolean, attribute: 'close-on-escape' },
@@ -296,6 +315,9 @@ export class OlDialog extends LitElement {
         this.open = false;
         this.label = '';
         this.withoutHeader = false;
+        this.alert = false;
+        this.labelClose = 'Close dialog';
+        this.returnValue = '';
         this.width = 'medium';
         this.closeOnBackdropClick = true;
         this.closeOnEscape = true;
@@ -326,9 +348,22 @@ export class OlDialog extends LitElement {
         return `${this.id || 'ol-dialog'}-title`;
     }
 
+    get _bodyId() {
+        return `${this.id || 'ol-dialog'}-body`;
+    }
+
     /** @returns {HTMLDialogElement} */
     get dialog() {
         return this.renderRoot?.querySelector('dialog');
+    }
+
+    /**
+     * Closes the dialog, recording why — mirrors native `HTMLDialogElement.close()`.
+     * @param {String} [returnValue]
+     */
+    close(returnValue) {
+        if (returnValue !== undefined) this.returnValue = String(returnValue);
+        this.open = false;
     }
 
     updated(changedProperties) {
@@ -344,6 +379,8 @@ export class OlDialog extends LitElement {
     _openDialog() {
         const dialog = this.dialog;
         if (!dialog || dialog.open) return;
+
+        this.returnValue = '';
 
         // document.activeElement doesn't pass into shadow DOM
         this._previouslyFocusedElement = getDeepActiveElement();
@@ -424,11 +461,13 @@ export class OlDialog extends LitElement {
             bubbles: true,
             composed: true,
             cancelable: true,
+            detail: { returnValue: this.returnValue },
         });
 
         this.dispatchEvent(closeEvent);
 
         if (closeEvent.defaultPrevented) {
+            this.returnValue = '';
             this.open = true;
             return;
         }
@@ -448,6 +487,7 @@ export class OlDialog extends LitElement {
             this.dispatchEvent(new CustomEvent('ol-after-close', {
                 bubbles: true,
                 composed: true,
+                detail: { returnValue: this.returnValue },
             }));
         });
     }
@@ -590,6 +630,24 @@ export class OlDialog extends LitElement {
     }
 
     /**
+     * Whether `el` sits inside a different open <ol-dialog>, climbing shadow
+     * boundaries. Nesting in the DOM counts too, so the innermost dialog wins.
+     * @param {Element|null} el
+     * @returns {Boolean}
+     */
+    _isInsideOtherDialog(el) {
+        let cur = el;
+        while (cur && cur !== this) {
+            if (cur.tagName === 'OL-DIALOG' && cur.open) return true;
+            const parent = cur.parentNode;
+            cur = (parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host)
+                ? parent.host
+                : cur.parentElement;
+        }
+        return false;
+    }
+
+    /**
      * Manual Tab focus trap. Needed because Safari doesn't trap focus across
      * shadow DOM boundaries for slotted content.
      */
@@ -603,6 +661,10 @@ export class OlDialog extends LitElement {
         // its own focus trap — don't intercept Tab or we'll yank focus back
         // out of the popover.
         if (this._isInsideOpenOverlay(activeElement)) return;
+
+        // A dialog stacked on top of this one (e.g. olConfirm() opened from it)
+        // traps its own focus; trapping here too would pull focus back beneath it.
+        if (this._isInsideOtherDialog(activeElement)) return;
 
         const focusable = this._getFocusableElements();
         if (focusable.length === 0) return;
@@ -717,10 +779,11 @@ export class OlDialog extends LitElement {
 
         return html`
             <dialog
-                role="dialog"
+                role=${this.alert ? 'alertdialog' : 'dialog'}
                 aria-modal="true"
                 aria-label=${ifDefined(ariaLabel)}
                 aria-labelledby=${ifDefined(ariaLabelledBy)}
+                aria-describedby=${ifDefined(this.alert ? this._bodyId : undefined)}
             >
                 <header class="header ${showDefaultHeader ? '' : 'hidden'}">
                     <h2 class="title" id=${this._titleId}>${this.label}</h2>
@@ -728,14 +791,14 @@ export class OlDialog extends LitElement {
                         class="close-button"
                         shape="icon"
                         variant="ghost"
-                        aria-label="Close dialog"
+                        aria-label=${this.labelClose}
                         @click=${this._handleCloseClick}
                     >
                         <ol-icon name="x"></ol-icon>
                     </ol-button>
                 </header>
                 <slot name="header" @slotchange=${this._handleHeaderSlotChange}></slot>
-                <div class="body">
+                <div class="body" id=${this._bodyId}>
                     <slot></slot>
                 </div>
                 <footer class="footer" ?hidden=${!this._hasFooterContent}>
