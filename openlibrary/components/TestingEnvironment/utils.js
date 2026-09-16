@@ -152,29 +152,17 @@ export async function getTestingStatus() {
 }
 
 /**
- * POST an action and resolve its JSON body. JSON is used by endpoints that
- * accept a request body; older actions continue to use form encoding.
+ * Send a JSON action request and resolve its JSON body.
  */
-export async function postAction(action, fields = {}, useJson = false, method = 'POST') {
-    const body = useJson ? JSON.stringify(fields) : new URLSearchParams();
-    if (!useJson) {
-        for (const [key, value] of Object.entries(fields)) {
-            if (Array.isArray(value)) {
-                value.forEach((item) => body.append(key, item));
-            } else {
-                body.append(key, value);
-            }
-        }
-    }
-
+export async function postAction(action, fields = {}, method = 'POST') {
     const response = await fetch(action, {
         method,
         headers: {
-            'Content-Type': useJson ? 'application/json' : 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
             Accept: 'application/json'
         },
         credentials: 'same-origin',
-        body
+        body: JSON.stringify(fields)
     });
     if (!response.ok) {
         throw new Error(`${action} failed: ${response.status}`);

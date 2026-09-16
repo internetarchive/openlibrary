@@ -24,9 +24,9 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
     }
 
-    async function executeAction(action, fields, useJson = false, method = 'POST') {
+    async function executeAction(action, fields, method = 'POST') {
         try {
-            const result = await postAction(action, fields, useJson, method);
+            const result = await postAction(action, fields, method);
             await loadStatus(false, false, false);
             // A business failure ({"ok": false, "error": "<code>"}) is a
             // completed request, not a thrown fetch — say why instead of
@@ -49,7 +49,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         try {
             while (queue.length) {
                 const item = queue.shift();
-                const result = await executeAction(item.action, item.fields, item.useJson, item.method);
+                const result = await executeAction(item.action, item.fields, item.method);
                 item.waiters.forEach(({ resolve }) => resolve(result));
             }
         } finally {
@@ -63,14 +63,14 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
      * pull-latest actions share one request; deploy and other actions remain
      * ordered queue barriers.
      */
-    function enqueue(action, fields, kind = 'action', useJson = false, method = 'POST') {
+    function enqueue(action, fields, kind = 'action', method = 'POST') {
         const waiter = new Promise((resolve) => {
             const last = queue[queue.length - 1];
             if (kind === 'pull-latest' && last?.kind === kind) {
                 last.fields.prs.push(...fields.prs);
                 last.waiters.push({ resolve });
             } else {
-                queue.push({ action, fields, kind, useJson, method, waiters: [{ resolve }] });
+                queue.push({ action, fields, kind, method, waiters: [{ resolve }] });
             }
         });
         drainQueue();
@@ -82,29 +82,28 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
             '/status/testing/prs',
             { prs: [pr.pr], active: !effectiveActive(pr) },
             'action',
-            true,
             'PATCH'
         );
     }
 
     function updatePr(pr) {
-        enqueue('/status/pull-latest', { prs: [pr.pr] }, 'pull-latest', true);
+        enqueue('/status/pull-latest', { prs: [pr.pr] }, 'pull-latest');
     }
 
     function removePr(pr) {
-        enqueue('/status/remove', { prs: [pr.pr] }, 'action', true);
+        enqueue('/status/remove', { prs: [pr.pr] });
     }
 
     // Undo a staged removal: the server just clears the flag, so the row's
     // pinned commit and toggle state come back untouched.
     function restorePr(pr) {
-        enqueue('/status/restore', { prs: [pr.pr] }, 'action', true);
+        enqueue('/status/restore', { prs: [pr.pr] });
     }
 
     async function deploy() {
         deploying.value = true;
         try {
-            await enqueue('/status/deploy', {}, 'action', true);
+            await enqueue('/status/deploy', {});
         } finally {
             deploying.value = false;
         }
@@ -113,7 +112,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     async function refresh() {
         refreshing.value = true;
         try {
-            await enqueue('/status/refresh', {}, 'action', true);
+            await enqueue('/status/refresh', {});
         } finally {
             refreshing.value = false;
         }
@@ -127,7 +126,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (!prs.length) return;
         adding.value = true;
         try {
-            const result = await enqueue('/status/add', { prs }, 'action', true);
+            const result = await enqueue('/status/add', { prs });
             // A failed add keeps the input so it's obvious the PR didn't land.
             if (result && result.ok) {
                 addInput.value = '';

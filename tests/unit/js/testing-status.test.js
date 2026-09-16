@@ -52,7 +52,7 @@ describe('Testing Environment utils', () => {
         const body = { ok: true };
         global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
 
-        await expect(postAction('/status/remove', { prs: [13269, 13270] }, true)).resolves.toBe(body);
+        await expect(postAction('/status/remove', { prs: [13269, 13270] })).resolves.toBe(body);
 
         expect(global.fetch).toHaveBeenCalledWith(
             '/status/remove',
@@ -72,7 +72,7 @@ describe('Testing Environment utils', () => {
         const body = { ok: true };
         global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
 
-        await expect(postAction('/status/testing/prs', { prs: [13269], active: false }, true, 'PATCH')).resolves.toBe(body);
+        await expect(postAction('/status/testing/prs', { prs: [13269], active: false }, 'PATCH')).resolves.toBe(body);
 
         expect(global.fetch).toHaveBeenCalledWith(
             '/status/testing/prs',
@@ -84,7 +84,7 @@ describe('Testing Environment utils', () => {
         const body = { ok: true };
         global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
 
-        await expect(postAction('/status/add', { prs: [12914, 13269] }, true)).resolves.toBe(body);
+        await expect(postAction('/status/add', { prs: [12914, 13269] })).resolves.toBe(body);
 
         expect(global.fetch).toHaveBeenCalledWith(
             '/status/add',

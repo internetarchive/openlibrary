@@ -116,11 +116,6 @@ onBeforeUnmount(() => {
         <header class="testing-env__bar">
           <h2 class="testing-env__title">
             {{ strings.title }}
-            <span
-              v-if="view === 'loading' || busy"
-              class="testing-env__spinner testing-env__spinner--small"
-              aria-hidden="true"
-            />
           </h2>
           <form
             v-if="isMaintainer"
@@ -206,14 +201,6 @@ onBeforeUnmount(() => {
             </tbody>
           </table>
         </div>
-        <p
-          v-else-if="view === 'loading'"
-          class="testing-env__blank"
-          role="status"
-          aria-live="polite"
-        >
-          {{ strings.loading }}
-        </p>
         <p
           v-else
           class="testing-env__blank"
