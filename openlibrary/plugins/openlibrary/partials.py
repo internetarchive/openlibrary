@@ -13,8 +13,8 @@ from pydantic import BaseModel
 from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
-from openlibrary.core.fulltext import exclude_ocaids, fulltext_page, fulltext_search_async
-from openlibrary.core.helpers import affiliate_id, datestr, datetimestr_utc
+from openlibrary.core.fulltext import FulltextRow, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
+from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
@@ -560,12 +560,29 @@ class FullTextSuggestionsPartialResult:
     has_error: bool = False
 
 
+def render_fulltext_suggestion_row(query: str, row: FulltextRow, seq_index: int) -> Markup:
+    """One band row. SearchResultsWork remains Templetor (8 other callers), so it renders here as a bridge."""
+    phrase = phrase_query(query)
+    if not row.edition:
+        return Markup(render_jinja_template("FulltextResultIA.html.jinja", row=row, phrase=phrase))
+    macro = render_macro(
+        "SearchResultsWork",
+        (row.edition,),
+        cta=False,
+        availability=row.availability,
+        extra_row=render_jinja_template("FulltextSnippet.html.jinja", row=row, phrase=phrase),
+        seq_index=seq_index,
+        show_title_year=True,
+    )
+    return Markup(str(macro["__body__"]))
+
+
 class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     @classmethod
     async def generate_async(cls, query: str, exclude: Iterable[str] = ()) -> FullTextSuggestionsPartialResult:
-        # The macro shows at most 3; a few spares cover excluded or unhydrated hits.
+        # The band shows at most 3; a few spares cover excluded or unhydrated hits.
         # Every fetched hit costs availability + Infobase hydration.
         data = await fulltext_search_async(query, limit=10)
         rows, total = fulltext_page(data)
@@ -573,7 +590,13 @@ class FullTextSuggestionsPartial:
         if not rows and not total:
             macro = "<div></div>"
         else:
-            macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, rows, total)
+            macro = render_jinja_template(
+                "FulltextSearchSuggestion.html.jinja",
+                num_found=commify(total),
+                results=[render_fulltext_suggestion_row(query, row, i) for i, row in enumerate(rows[:3])],
+                see_all_url="/search/inside?" + urlencode({"q": query}),
+                total=total,
+            )
         return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
 

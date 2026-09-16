@@ -1,4 +1,4 @@
-/* Search Inside band at the foot of /search (macros/FulltextSearchSuggestion.html). */
+/* Search Inside band at the foot of /search (macros/FulltextSearchSuggestion.html.jinja). */
 .fulltext-suggestions {
   margin: var(--spacing-stack-lg) 0;
 }

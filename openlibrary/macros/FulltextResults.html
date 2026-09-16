@@ -1,17 +1,14 @@
 $def with(query, rows, total, page=1, results_per_page=20)
 
-$def render_snippets(query, row):
-  <div class="serp-extra">
-    $:macros.FulltextSnippet(query, row=row)
-  </div>
+$ phrase = phrase_query(query)
 
 <div id="searchResults">
   <ul class="list-books list-books--fulltext">
     $for row in rows:
       $if row.edition:
-        $:macros.SearchResultsWork(row.edition, availability=row.availability, extra_row=render_snippets(query, row), include_dropper=True, seq_index=loop.index0, show_title_year=True)
+        $:macros.SearchResultsWork(row.edition, availability=row.availability, extra_row=render_jinja_template("FulltextSnippet.html.jinja", row=row, phrase=phrase), include_dropper=True, seq_index=loop.index0, show_title_year=True)
       $else:
-        $:macros.FulltextResultIA(query, row, extra_row=render_snippets(query, row))
+        $:render_jinja_template("FulltextResultIA.html.jinja", row=row, phrase=phrase)
   </ul>
   $:macros.OlPagination(page, ceil(total / results_per_page))
 </div>

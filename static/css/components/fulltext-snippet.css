@@ -1,4 +1,4 @@
-/* Search Inside quoted passages (macros/FulltextSnippet.html). A left rule rather
+/* Search Inside quoted passages (macros/FulltextSnippet.html.jinja). A left rule rather
    than a card, since the rows already sit on a tinted surface. */
 .fsi-quotes {
   display: grid;
