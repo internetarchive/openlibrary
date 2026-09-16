@@ -1,0 +1,30 @@
+{% from "FulltextSearchSuggestionItem.html.jinja" import render as render_item %}
+{% from "FulltextSuggestionSnippet.html.jinja" import render as render_snippet %}
+{% if suggestions is defined %}
+    {{ loading_indicator_html }}
+    <div id="fulltextSuggestions" class="fulltext-suggestions">
+        <div class="fulltext-suggestions__header">
+            {# The link is named by its icon; the heading beside it repeats the destination. #}
+            <a class="fulltext-suggestions__icon"
+               data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
+               href="{{ query_url }}">{{ icon("search-inside", size="lg", label=_("Search Inside")) }}</a>
+            <h3 class="fulltext-suggestions__title">
+                <a data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
+                   href="{{ query_url }}">{{ _("Search Inside") }}</a> — {{ _("%(book_count)s books found with matching passages", book_count=num_found) }}
+            </h3>
+        </div>
+        {% for suggestion in suggestions %}
+            {{ render_item(suggestion.item, snippet=render_snippet(suggestion.snippet)) }}
+        {% endfor %}
+        <h3 class="fulltext-suggestions__footer">
+            <a class="fulltext-suggestions__footer-link"
+               data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
+               href="{{ query_url }}">{{ _("See all %(results_count)s Search Inside Matches", results_count=num_found) }}
+                <span class="fulltext-suggestions__right-chevron">
+                    {# Decorative: the link text already says where it goes. #}
+                    {{ icon("chevron-right", size="sm") }}
+                </span>
+            </a>
+        </h3>
+    </div>
+{% endif %}
