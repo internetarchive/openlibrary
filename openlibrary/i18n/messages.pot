@@ -1561,7 +1561,7 @@ msgstr ""
 msgid "My %(shelf_name)s Stats"
 msgstr ""
 
-#: account/readinglog_stats.html lib/nav_head.html openlibrary/plugins/openlibrary/nav.py
+#: account/readinglog_stats.html lib/mybooks_popover.html lib/nav_head.html openlibrary/plugins/openlibrary/nav.py
 msgid "My Books"
 msgstr ""
 
@@ -4432,6 +4432,18 @@ msgstr ""
 #: lib/history.html
 #, python-format
 msgid "Edited by %(user)s"
+msgstr ""
+
+#: lib/mybooks_popover.html
+msgid "Your shelves at a glance"
+msgstr ""
+
+#: lib/mybooks_popover.html
+msgid "Borrowed books and history"
+msgstr ""
+
+#: lib/mybooks_popover.html
+msgid "Books you have collected"
 msgstr ""
 
 #: lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html
