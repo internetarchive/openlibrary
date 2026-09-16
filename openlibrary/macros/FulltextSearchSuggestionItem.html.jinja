@@ -1,8 +1,5 @@
-{% macro render(item, snippet=none, attrs=none) %}
-    <div class="fsi"
-         itemscope
-         itemtype="https://schema.org/Book"
-         {{ attrs | default("", true) | safe }}>
+{% macro render(item, snippet=none) %}
+    <div class="fsi" itemscope itemtype="https://schema.org/Book">
         <div class="fsi__main">
             <span class="fsi__book-cover">
                 <a data-ol-link-track="SearchInsideSuggestion|BookClick"
