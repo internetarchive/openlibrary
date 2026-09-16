@@ -3310,6 +3310,11 @@ msgstr ""
 msgid "in %(languagelist)s"
 msgstr ""
 
+#: books/edition-sort.html
+#, python-format
+msgid "translated by %(translator)s"
+msgstr ""
+
 #: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
 #, python-format
 msgid " by %(name)s"
