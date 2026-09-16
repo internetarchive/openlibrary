@@ -38,11 +38,10 @@ const liveNow = computed(() => props.pr.live_now === true);
 
 const mergeConflict = computed(() => props.pr.merge_conflict === true);
 
-// Red beats live-now: a conflicted PR never landed, so the dot says so
-// even if a stale live flag would still claim it.
 const dotLabel = computed(() => {
-    if (mergeConflict.value) return props.strings.mergeConflict;
-    return liveNow.value ? props.strings.liveNow : props.strings.notLive;
+    if (!mergeConflict.value) return liveNow.value ? props.strings.liveNow : props.strings.notLive;
+    const conflicts = (props.pr.conflict_with || []).map((value) => (typeof value === 'number' ? `#${value}` : value));
+    return text('mergeConflictWith', conflicts.join(', ') || 'master');
 });
 
 // The switch shows what the next deploy leaves the row as: the staged
