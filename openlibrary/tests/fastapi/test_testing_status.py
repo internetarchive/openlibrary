@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-import web
 
 import openlibrary.plugins.openlibrary.jenkins as jenkins_module
 import openlibrary.plugins.openlibrary.status as status_module
@@ -98,7 +97,14 @@ def _post_add(client, state, pr_value="12914", gh=None):
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
-        return client.post("/status/add", data={"pr": pr_value})
+        if isinstance(pr_value, list):
+            prs = pr_value
+        else:
+            try:
+                prs = [int(pr_value)]
+            except ValueError:
+                prs = []
+        return client.post("/status/add", json={"prs": prs})
 
 
 def test_build_testing_status_merges_drift_and_derived_fields():
@@ -389,7 +395,6 @@ def test_deploy_drops_closed_prs():
     state = _make_state(prs=[pr])
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
             "openlibrary.plugins.openlibrary.status._get_drift_info",
@@ -400,7 +405,7 @@ def test_deploy_drops_closed_prs():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        status_module.status_deploy().POST()
+        status_module.deploy_testing_status()
 
     assert state.prs == []
 
@@ -421,7 +426,7 @@ def test_deploy_drops_staged_removals():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        status_module.status_deploy().POST()
+        status_module.deploy_testing_status()
 
     assert [p.pr for p in state.prs] == [13238]
     assert state.deployed == {13238: survivor.title}
@@ -629,14 +634,12 @@ def test_remove_stages_a_removal_for_a_live_pr():
     state.deployed = {pr.pr: pr.title}
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        patch("web.input", return_value=web.storage(prs=["13269"])),
     ):
-        response = status_module.status_remove().POST()
+        result = status_module.remove_testing_prs([13269])
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert result == {"ok": True, "staged_prs": [13269], "removed_prs": []}
     assert [p.pr for p in state.prs] == [13269]
     assert state.prs[0].pending_remove is True
     assert state.prs[0].pull_latest_sha == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
@@ -650,13 +653,12 @@ def test_remove_deletes_a_never_deployed_pr_outright():
     state.deployed = {13238: "Other PR"}
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("web.input", return_value=web.storage(prs=["13269"])),
     ):
-        status_module.status_remove().POST()
+        result = status_module.remove_testing_prs([13269])
 
+    assert result == {"ok": True, "staged_prs": [], "removed_prs": [13269]}
     assert state.prs == []
 
 
@@ -666,19 +668,18 @@ def test_restore_clears_a_staged_removal():
     state = _make_state(prs=[pr])
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        patch("web.input", return_value=web.storage(prs=["13269"])),
     ):
-        response = status_module.status_restore().POST()
+        response = status_module.restore_prs([13269])
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert response == {"ok": True}
     assert state.prs[0].pending_remove is False
     mock_save.assert_called_once_with(state)
 
 
-def test_pull_latest_stages_the_new_head_sha():
+@pytest.mark.asyncio
+async def test_pull_latest_stages_the_new_head_sha():
     pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
     state = _make_state(prs=[pr])
     info = _gh_info(pr.pr).model_copy(update={"head_sha": "f" * 40})
@@ -686,13 +687,12 @@ def test_pull_latest_stages_the_new_head_sha():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=info),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        patch("web.input", return_value=web.storage(prs=[str(pr.pr)])),
     ):
-        response = status_module.status_pull_latest().POST()
+        response = await status_module.pull_latest_prs([pr.pr])
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert response == {"ok": True}
     assert pr.pull_latest_sha == "f" * 40
     mock_save.assert_called_once_with(state)
 
@@ -701,7 +701,8 @@ def test_pull_latest_stages_the_new_head_sha():
     "error",
     [status_module.PRNotFoundError("gone"), status_module.GitHubUnavailableError("rate limited")],
 )
-def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
+@pytest.mark.asyncio
+async def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
     """A GitHub failure leaves the row alone and still answers ok.
 
     Regression guard: ``_get_pr_info`` used to signal failure with an empty
@@ -713,15 +714,13 @@ def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
     state = _make_state(prs=[pr])
 
     with (
-        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", side_effect=error),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, side_effect=error),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("web.input", return_value=web.storage(prs=[str(pr.pr)])),
     ):
-        response = status_module.status_pull_latest().POST()
+        response = await status_module.pull_latest_prs([pr.pr])
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert response == {"ok": True}
     assert pr.pull_latest_sha == ""
 
 
@@ -739,36 +738,13 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        response = status_module.status_deploy().POST()
+        response = status_module.deploy_testing_status()
 
-    assert json.loads(response["rawtext"]) == {"ok": False, "error": "deploy_unconfigured"}
+    assert response == {"ok": False, "error": "deploy_unconfigured"}
     # No build was accepted, so no deploy window starts…
     assert state.deploy_started_at == ""
     # …but the record advances so a dev can exercise the rest of the panel.
     assert state.deployed == {13269: "Test PR"}
-
-
-@pytest.mark.parametrize(
-    ("raw", "expected"),
-    [
-        ("12914", [12914]),
-        ("12914 13269", [12914, 13269]),
-        ("12914,13269", [12914, 13269]),
-        ("12914, 13269", [12914, 13269]),
-        ("posted by author (12914)", []),  # plain text has no PR number
-        ("#12914", [12914]),
-        ("https://github.com/internetarchive/openlibrary/pull/13269", [13269]),
-        ("https://github.com/internetarchive/openlibrary/issues/123", []),  # issue URLs are rejected
-        ("12914 not-a-number", [12914]),  # bad tokens are dropped, valid ones kept
-        ("", []),
-        ("   ", []),
-        ("\t12914\n13269\t", [12914, 13269]),
-        (["12914", "13269"], [12914, 13269]),  # FastAPI passes a list for repeated form fields
-    ],
-)
-def test_parse_pr_numbers(raw, expected):
-    """The input tokenizer accepts whitespace, commas, #numbers, and PR URLs."""
-    assert status_module.parse_pr_numbers(raw) == expected
 
 
 def test_get_pr_info_raises_not_found_on_404():
@@ -888,9 +864,9 @@ def test_deploy_failure_never_persists_staged_changes():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="failed"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        response = status_module.status_deploy().POST()
+        response = status_module.deploy_testing_status()
 
-    assert json.loads(response["rawtext"]) == {"ok": False, "error": "deploy_failed"}
+    assert response == {"ok": False, "error": "deploy_failed"}
     # The drift read is a read, not a commit: it must not persist.
     mock_drift.assert_called_once_with(state, persist=False)
     mock_save.assert_not_called()
@@ -916,9 +892,9 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        response = status_module.status_deploy().POST()
+        response = status_module.deploy_testing_status()
 
-    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert response == {"ok": True}
     # Pin applied and consumed.
     assert pinned.commit == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
     assert pinned.pull_latest_sha == ""
@@ -947,7 +923,7 @@ def test_deploy_records_who_clicked_it():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=user),
     ):
-        status_module.status_deploy().POST()
+        status_module.deploy_testing_status()
 
     assert state.deployed_by == "mecha-kraken"
 
@@ -986,9 +962,8 @@ def test_add_appends_pr_and_credits_the_maintainer(fastapi_client, mock_authenti
 @pytest.mark.parametrize(
     ("pr_value", "expected"),
     [
-        ("12914 https://github.com/internetarchive/openlibrary/pull/13269", [12914, 13269]),
-        ("12914,13269", [12914, 13269]),
-        ("12914 not-a-number", [12914]),  # bad tokens are dropped, valid ones kept
+        ([12914, 13269], [12914, 13269]),
+        ([12914], [12914]),
     ],
 )
 def test_add_accepts_several_prs_at_once(pr_value, expected, fastapi_client, mock_authenticated_user, mock_maintainer_user):
@@ -1045,7 +1020,7 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
-        response = fastapi_client.post("/status/add", data={"pr": "12914 9999"})
+        response = fastapi_client.post("/status/add", json={"prs": [12914, 9999]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": False, "error": "add_failed", "failed_prs": {"9999": "not_found"}}
@@ -1053,14 +1028,14 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
     assert [p.pr for p in state.prs] == [12914]
 
 
-@pytest.mark.parametrize("pr_value", ["", "   ", "not a number"])
-def test_add_rejects_input_without_a_pr(pr_value, fastapi_client, mock_authenticated_user, mock_maintainer_user):
+@pytest.mark.parametrize("prs", [[], [999]])
+def test_add_rejects_invalid_pr_numbers(prs, fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     state = _empty_state()
 
-    response = _post_add(fastapi_client, state, pr_value=pr_value)
+    response = fastapi_client.post("/status/add", json={"prs": prs})
 
-    assert response.status_code == 400
+    assert response.status_code == 422
     assert state.prs == []
 
 
@@ -1077,7 +1052,7 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
-        response = fastapi_client.post("/status/add", data={"pr": "13269"})
+        response = fastapi_client.post("/status/add", json={"prs": [13269]})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
@@ -1100,7 +1075,7 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
-        response = fastapi_client.post("/status/add", data={"pr": "12914"})
+        response = fastapi_client.post("/status/add", json={"prs": [12914]})
 
     assert response.status_code == 200
     mock_save.assert_called_once_with(state)
@@ -1109,7 +1084,7 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
 
 
 def test_add_requires_auth(fastapi_client):
-    response = fastapi_client.post("/status/add", data={"pr": "12914"})
+    response = fastapi_client.post("/status/add", json={"prs": [12914]})
 
     assert response.status_code == 401
 
@@ -1460,3 +1435,160 @@ def test_testing_status_endpoint_forbidden_for_non_maintainer(fastapi_client, mo
     assert response.status_code == 403
     assert response.json()["detail"] == "Insufficient permissions"
     mock.assert_not_called()
+
+
+def test_remove_prs_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/remove")
+    assert response.status_code == 401
+
+
+def test_remove_prs_endpoint_forbidden_for_non_maintainer(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=False)
+    with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
+        response = fastapi_client.post("/status/remove")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Insufficient permissions"
+    mock.assert_not_called()
+
+
+def test_remove_prs_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
+        mock.return_value = {"ok": True, "staged_prs": [13269], "removed_prs": []}
+        response = fastapi_client.post("/status/remove", json={"prs": [13269]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": []}
+    mock.assert_called_once_with([13269])
+
+
+def test_set_prs_active_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.patch("/status/testing/prs", json={"prs": [13269], "active": True})
+
+    assert response.status_code == 401
+
+
+@pytest.mark.parametrize("active", [True, False])
+def test_set_prs_active_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user, active):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.set_prs_active", return_value={"ok": True}) as mock:
+        response = fastapi_client.patch("/status/testing/prs", json={"prs": [13269], "active": active})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with([13269], active)
+
+
+def test_refresh_status_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/refresh", json={})
+
+    assert response.status_code == 401
+
+
+def test_refresh_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.refresh_testing_status", return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/refresh", json={})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with()
+
+
+def test_deploy_status_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/deploy", json={})
+
+    assert response.status_code == 401
+
+
+def test_deploy_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.deploy_testing_status", return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/deploy", json={})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with()
+
+
+def test_pull_latest_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/pull-latest", json={"prs": [13269]})
+
+    assert response.status_code == 401
+
+
+def test_pull_latest_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.pull_latest_prs", return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/pull-latest", json={"prs": [13269]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with([13269])
+
+
+def test_restore_endpoint_requires_auth(fastapi_client):
+    response = fastapi_client.post("/status/restore", json={"prs": [13269]})
+
+    assert response.status_code == 401
+
+
+def test_restore_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.restore_prs", return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/restore", json={"prs": [13269]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock.assert_called_once_with([13269])
+
+
+def test_remove_prs_endpoint_accepts_multiple_prs(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
+        mock.return_value = {"ok": True, "staged_prs": [13269, 13270], "removed_prs": []}
+        response = fastapi_client.post("/status/remove", json={"prs": [13269, 13270]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True, "staged_prs": [13269, 13270], "removed_prs": []}
+    mock.assert_called_once_with([13269, 13270])
+
+
+def test_remove_prs_endpoint_e2e_stages_live_pr(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    state = _make_state(prs=[pr])
+    state.deployed = {pr.pr: pr.title}
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+    ):
+        response = fastapi_client.post("/status/remove", json={"prs": [13269]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": []}
+    assert [p.pr for p in state.prs] == [13269]
+    assert state.prs[0].pending_remove is True
+    assert state.prs[0].pull_latest_sha == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    mock_save.assert_called_once_with(state)
+
+
+def test_remove_prs_endpoint_e2e_deletes_never_deployed_pr(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    pr = _make_pr()
+    state = _make_state(prs=[pr])
+    state.deployed = {13238: "Other PR"}
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+    ):
+        response = fastapi_client.post("/status/remove", json={"prs": [13269]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True, "staged_prs": [], "removed_prs": [13269]}
+    assert state.prs == []
+    mock_save.assert_called_once_with(state)

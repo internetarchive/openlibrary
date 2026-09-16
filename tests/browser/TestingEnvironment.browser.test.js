@@ -106,12 +106,12 @@ test('queues and batches rapid updates before deploying', async() => {
 
     await expect.poll(() => calls.length).toBe(1);
     expect(calls[0].url).toBe('/status/pull-latest');
-    expect(new URLSearchParams(calls[0].options.body).getAll('prs')).toEqual(['13269']);
+    expect(JSON.parse(calls[0].options.body)).toEqual({ prs: [13269] });
 
     pendingPosts.shift().resolve();
     await expect.poll(() => calls.length).toBe(2);
     expect(calls[1].url).toBe('/status/pull-latest');
-    expect(new URLSearchParams(calls[1].options.body).getAll('prs')).toEqual(['13270', '13271']);
+    expect(JSON.parse(calls[1].options.body)).toEqual({ prs: [13270, 13271] });
 
     pendingPosts.shift().resolve();
     await expect.poll(() => calls.length).toBe(3);

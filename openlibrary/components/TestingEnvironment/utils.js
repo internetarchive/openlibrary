@@ -89,6 +89,19 @@ export const ACTION_ERRORS = {
     deploy_unconfigured: 'deployUnconfigured'
 };
 
+export function parsePrNumbers(value) {
+    return String(value || '')
+        .trim()
+        .split(/[\s,]+/)
+        .filter(Boolean)
+        .flatMap((token) => {
+            if (token.includes('/issues/')) return [];
+            const match = token.match(/\/pull\/(\d+)/);
+            const number = match ? Number(match[1]) : Number(token.replace(/^#/, ''));
+            return Number.isInteger(number) && number > 0 ? [number] : [];
+        });
+}
+
 /**
  * The toast to show for a failed action.
  *
@@ -139,30 +152,17 @@ export async function getTestingStatus() {
 }
 
 /**
- * POST an action and resolve its JSON body. The status handlers answer
- * {"ok": true} or {"ok": false, "error": "<code>"} directly — no redirect to
- * re-fetch — so callers toast on ok=false and then reload the panel state
- * from /status/testing.json. Array values are repeated so
- * web.input(prs=[]) sees multiple checkboxes.
+ * Send a JSON action request and resolve its JSON body.
  */
-export async function postAction(action, fields = {}) {
-    const body = new URLSearchParams();
-    for (const [key, value] of Object.entries(fields)) {
-        if (Array.isArray(value)) {
-            value.forEach((item) => body.append(key, item));
-        } else {
-            body.append(key, value);
-        }
-    }
-
+export async function postAction(action, fields = {}, method = 'POST') {
     const response = await fetch(action, {
-        method: 'POST',
+        method,
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
             Accept: 'application/json'
         },
         credentials: 'same-origin',
-        body
+        body: JSON.stringify(fields)
     });
     if (!response.ok) {
         throw new Error(`${action} failed: ${response.status}`);
