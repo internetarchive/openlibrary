@@ -20,16 +20,76 @@
 }
 
 .editionCover .cover-animation {
-  transition:
-    transform 0.8s,
-    opacity 0.8s;
+  --cover-tilt-duration: 0.8s;
+  /* 0 at rest, 1 while hovered. The tilt, the fade and the badge's sheen
+     all read it, so one hover rule drives the three. */
+  --cover-tilt: 0;
+
+  transition: transform var(--cover-tilt-duration);
   position: relative;
   z-index: var(--z-index-behind);
+  /* Shrink to the cover, so the tilt pivots on the cover's centre and the
+     badge's corner is the cover's corner. */
+  width: fit-content;
+  margin-inline: auto;
+  transform: perspective(465px) rotateX(0deg)
+    rotateY(calc(-10deg * var(--cover-tilt)));
 }
 
+/* The badge is inside, so hovering it keeps the cover tilted. */
 .editionCover .cover-animation:hover {
-  transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
-  opacity: 0.8;
+  --cover-tilt: 1;
+}
+
+/* The fade is on the artwork, not the animated element, so the badge that
+   tilts with it stays solid. */
+.editionCover .cover-animation > :where(.SRPCover, .SRPCoverBlank) {
+  transition: opacity var(--cover-tilt-duration);
+  opacity: calc(1 - 0.2 * var(--cover-tilt));
+}
+
+/* The shelf badge over the cover's top-right corner, scaled up from the
+   carousel's to suit the larger cover and dressed for it: the circle a shade
+   translucent so the scan tints it, the glyph in link blue and stamped into
+   the surface with a hairline of light below its edge and of shade above.
+   Inside .cover-animation, so it tilts with the artwork, and its sheen
+   crosses it as it does. */
+.editionCover .cover-animation > ol-shelf-button {
+  --ol-shelf-badge-size: 40px;
+  --ol-shelf-badge-glyph-size: 20px;
+  --ol-shelf-badge-surface: color-mix(in srgb, var(--white) 88%, transparent);
+  --ol-shelf-badge-glyph-color: var(--color-link);
+  --ol-shelf-badge-glyph-filter: drop-shadow(
+      0 1px 0 color-mix(in srgb, var(--white) 85%, transparent)
+    )
+    drop-shadow(0 -0.5px 0 color-mix(in srgb, var(--black) 25%, transparent));
+  --ol-shelf-badge-sheen-duration: var(--cover-tilt-duration);
+  --ol-shelf-badge-sheen-position: calc(100% - 100% * var(--cover-tilt));
+
+  position: absolute;
+  top: var(--spacing-2xs);
+  right: var(--spacing-2xs);
+}
+
+/* Unshelved, the badge (an outlined bookmark, the way on) waits for the
+   cover to be hovered, focused, or its popover open; shelved it stays, as
+   status. Touch has nothing to hover, so it is always shown. Same rule as
+   the carousel; :where() keeps it under the specificity cap. */
+@media (hover: hover) and (pointer: fine) {
+  .editionCover .cover-animation > ol-shelf-button {
+    transition: opacity var(--duration-base);
+  }
+
+  .editionCover .cover-animation > ol-shelf-button:where(:not([shelf])) {
+    opacity: 0;
+  }
+
+  .editionCover .cover-animation:where(:hover) > ol-shelf-button,
+  .editionCover
+    .cover-animation
+    > ol-shelf-button:where(:focus-within, [open]) {
+    opacity: 1;
+  }
 }
 
 /* Center (editionAbout) */
