@@ -14,7 +14,7 @@
         {% if layout.show_ol_shell %}
             {% include "site/alert.html.jinja" %}
             {{ render_templetor_template('lib/nav_head', None) }}
-            {{ render_templetor_template('my_books/shelf_button_i18n') }}
+            {{ render_templetor_template("my_books/shelf_button_i18n") }}
         {% endif %}
         <main{% if layout.show_ol_shell %} id="test-body-mobile"{% endif %}>
             {% if layout.show_ol_shell %}
