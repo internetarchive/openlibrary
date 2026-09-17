@@ -310,7 +310,7 @@ export class OlShelfActions extends LitElement {
         .row {
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-md);
+            gap: var(--spacing-icon-gap);
             box-sizing: border-box;
             /* One height for every row, so the panel never shifts as rows
                re-render (the rating caption swaps between a span and a button). */
@@ -671,7 +671,7 @@ export class OlShelfActions extends LitElement {
             position: relative;
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-md);
+            gap: var(--spacing-icon-gap);
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-sm);
             padding-inline: var(--menu-row-padding-inline);

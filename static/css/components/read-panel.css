@@ -14,7 +14,7 @@
 .read-options,
 .btn-notice {
   font-size: 1em;
-  padding: 15px;
+  padding: var(--spacing-md);
   margin-bottom: 10px;
   background-color: var(--white);
   border-radius: 5px;
