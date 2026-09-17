@@ -38,6 +38,7 @@ import time
 import pytest
 import requests
 
+from openlibrary.core import retention
 from openlibrary.core.matomo import MatomoClient
 
 MOCKSERVICES_MAIN = pathlib.Path(__file__).parents[1] / "main.py"
@@ -181,3 +182,56 @@ class TestWindowFiltering:
         # Halfway through the feed, so roughly half the visits are excluded.
         midpoint = datetime.datetime.fromtimestamp(epoch + (expected_visits // 2) * interval, datetime.UTC)
         assert 0 < len(client.get_visits_since(midpoint).visits) < expected_visits
+
+
+# The mock's feed sits a couple of days back (see MATOMO_MOCK_EPOCH), so a
+# scoring window has to be wide enough to reach it. The default 1h window
+# correctly returns nothing, which is the right behaviour but not what these
+# tests are exercising.
+FEED_WINDOW_HOURS = 72
+
+
+class TestScoringOverHttp:
+    """The scorer against the mock over real HTTP.
+
+    Unit tests stub the client out, so this is the only place the scorer sees
+    JSON that actually crossed a socket.
+    """
+
+    def test_the_score_is_reproducible_and_nonzero(self, client):
+        scores = retention.gather_retention_scores(client=client, hours=FEED_WINDOW_HOURS)
+        assert scores["visits"] == scores["total_patrons"] > 0
+        assert scores["r_total"] > 0
+        # Same input, same output.
+        assert retention.gather_retention_scores(client=client, hours=FEED_WINDOW_HOURS)["r_total"] == scores["r_total"]
+
+    def test_read_is_actually_scored(self, client):
+        """`read` silently scored zero for the prototype's whole life."""
+        events = retention.gather_retention_scores(client=client, hours=FEED_WINDOW_HOURS)["events"]
+        assert events["read"]["points"] == 100
+        assert events["read"]["count"] > 0
+
+    def test_only_schema_events_are_ever_reported(self, client):
+        events = retention.gather_retention_scores(client=client, hours=FEED_WINDOW_HOURS)["events"]
+        assert set(events) <= set(retention.EVENT_POINTS)
+
+    def test_unmapped_traffic_is_ignored_rather_than_fatal(self, client):
+        """The feed includes SearchModal|Open, which the schema has no row for."""
+        scores = retention.gather_retention_scores(client=client, hours=FEED_WINDOW_HOURS)
+        assert "SearchModal" not in str(scores["events"])
+        assert scores["r_total"] > 0
+
+    def test_every_cohort_contributes_to_some_class(self, client):
+        scores = retention.gather_retention_scores(client=client, hours=FEED_WINDOW_HOURS)
+        assert sum(c["patrons"] for c in scores["classes"].values()) == scores["total_patrons"]
+
+    def test_by_hour_scoring_works_over_the_wire(self, client):
+        hourly = retention.gather_retention_scores_by_hour(client=client, hours=2)
+        assert len(hourly) == 2
+        assert hourly[0]["partial"] is True
+        assert hourly[1]["partial"] is False
+
+    def test_gauges_are_emittable_from_a_wire_scored_result(self, client):
+        gauges = retention.retention_gauges(retention.gather_retention_scores(client=client, hours=FEED_WINDOW_HOURS))
+        assert gauges["stats.ol.retention.total_score.hourly"] > 0
+        assert not any("+" in key for key in gauges)
