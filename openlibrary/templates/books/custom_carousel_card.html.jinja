@@ -38,7 +38,7 @@
                         {% endif %}
                     </div>
                 {% endif %}
-            {% elif key == "loans" %}
+            {% elif key == "loans" and not is_read_history %}
                 <div class="loan-overlay-badge loan-overlay-badge--expired">
                     <span class="loan-overlay-badge__expired-label">{{ _("Loan Expired") }}</span>
                 </div>

@@ -1,6 +1,7 @@
 import json
 import logging
 import urllib.parse
+from collections.abc import Sequence
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
@@ -24,6 +25,7 @@ from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
+from openlibrary.core.read_history import ReadHistory
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -42,6 +44,25 @@ if TYPE_CHECKING:
 logger = logging.getLogger("openlibrary.mybooks")
 
 RESULTS_PER_PAGE: Final = 25
+
+
+def _get_work_key(book: Any) -> str:
+    works = getattr(book, "works", None)
+    if works and len(works) > 0:
+        first = works[0]
+        return first.key if hasattr(first, "key") else first.get("key", getattr(book, "key", ""))
+    return getattr(book, "key", "")
+
+
+def _parse_timestamp(val: Any) -> float:
+    if isinstance(val, datetime):
+        return val.timestamp()
+    if isinstance(val, str) and val:
+        try:
+            return datetime.fromisoformat(val.replace(" ", "T")).timestamp()
+        except ValueError:
+            return 0.0
+    return float(val or 0.0)
 
 
 class avatar(delegate.page):
@@ -67,96 +88,99 @@ class mybooks_home(delegate.page):
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
 
+    def _get_loan_books(self, myloans: Sequence[Any]) -> dict[str, tuple[Any, float, bool]]:
+        merged_books: dict[str, tuple[Any, float, bool]] = {}
+        book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
+        fetched_keys = set(book_keys)
+        book_map: dict[str, Any] = {}
+        if book_keys:
+            book_map.update({b.key: b for b in site.get().get_many(book_keys)})
+
+        for _attempt in range(5):
+            redirect_locations = {
+                book.location
+                for book in book_map.values()
+                if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
+            }
+            if not redirect_locations:
+                break
+            fetched_keys.update(redirect_locations)
+            book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
+
+        for loan in myloans:
+            book_key = loan.get("book")
+            if not book_key:
+                continue
+            book = book_map.get(book_key)
+            if not book:
+                continue
+            for _attempt in range(5):
+                if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                    book = book_map.get(book.location)
+                else:
+                    break
+            if book:
+                book.loan = loan
+                work_key = _get_work_key(book)
+                timestamp = _parse_timestamp(loan.get("loaned_at"))
+                merged_books[work_key] = (book, timestamp, True)
+        return merged_books
+
+    def _get_continue_reading_storage(self, mb: MyBooksTemplate) -> web.Storage | None:
+        if not mb.me:
+            return None
+        myloans = get_loans_of_user(mb.me.key)
+        merged_books = self._get_loan_books(myloans)
+
+        if mb.is_my_page:
+            try:
+                history_data = get_loan_history_data(mb.username, page=1)
+                for book in history_data.get("docs", []):
+                    if book.get("ia_only"):
+                        continue
+                    work_key = _get_work_key(book)
+                    timestamp = _parse_timestamp(book.get("last_loan_date"))
+                    if work_key not in merged_books:
+                        merged_books[work_key] = (book, timestamp, False)
+            except Exception:
+                logger.exception("Failed to fetch loan history for %s; rendering without it", mb.username)
+
+            try:
+                raw_history = ReadHistory.get_history(mb.username, limit=18)
+                read_history_items = [dict(r) for r in raw_history]
+                if read_history_items:
+                    Bookshelves.add_solr_works(read_history_items)
+                for item in read_history_items:
+                    work = item.get("work")
+                    if not work:
+                        continue
+                    if item.get("edition_id"):
+                        work.logged_edition = f"/books/OL{item['edition_id']}M"
+                    work.is_read_history = True
+                    work_key = _get_work_key(work)
+                    timestamp = _parse_timestamp(item.get("updated"))
+
+                    if work_key not in merged_books:
+                        merged_books[work_key] = (work, timestamp, False)
+                    else:
+                        _, existing_ts, existing_active = merged_books[work_key]
+                        if timestamp > existing_ts:
+                            merged_books[work_key] = (work, timestamp, existing_active)
+            except Exception:
+                logger.exception("Failed to fetch read history for %s; rendering without it", mb.username)
+
+        total_results = len(merged_books)
+        sorted_entries = sorted(merged_books.values(), key=lambda x: (x[2], x[1]), reverse=True)
+        final_books = [entry[0] for entry in sorted_entries[:18]]
+        return web.Storage({"docs": final_books, "total_results": total_results})
+
     def render_template(self, mb: MyBooksTemplate) -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
 
         docs: dict[str, Any] = {"loans": [], "want-to-read": [], "currently-reading": [], "already-read": [], "stopped-reading": []}
 
-        if mb.me:
-            myloans = get_loans_of_user(mb.me.key)
-
-            # Dictionary mapping dedup_key -> (book, timestamp, is_active)
-            merged_books: dict[str, tuple[Any, float, bool]] = {}
-
-            # Resolve books independently of loans: batch-fetch the unique loan
-            # book keys, then keep fetching /type/redirect targets in batches
-            # (up to 5 hops). Nothing is fetched inside the loan loop below.
-            book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
-            fetched_keys = set(book_keys)
-            book_map: dict[str, Any] = {}
-            if book_keys:
-                book_map.update({b.key: b for b in site.get().get_many(book_keys)})
-
-            for _ in range(5):
-                redirect_locations = {
-                    book.location
-                    for book in book_map.values()
-                    if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
-                }
-                if not redirect_locations:
-                    break
-                fetched_keys.update(redirect_locations)
-                book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
-
-            # Process loans in one loop, following redirect chains through book_map.
-            for loan in myloans:
-                book_key = loan.get("book")
-                if not book_key:
-                    continue
-                book = book_map.get(book_key)
-                if not book:
-                    continue
-                for _ in range(5):
-                    if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
-                        book = book_map.get(book.location)
-                    else:
-                        break
-                if book:
-                    book.loan = loan
-                    works = getattr(book, "works", None)
-                    work_key = works[0].key if works and len(works) > 0 else book.key
-                    loaned_at = loan.get("loaned_at") or 0.0
-                    merged_books[work_key] = (book, float(loaned_at), True)
-
-            # Ownership gate, not just "is logged in": mb.username comes from the
-            # URL, while mb.me is the session. get_loan_history_data() resolves S3
-            # credentials for whichever username it is handed, so this must run
-            # only on the patron's own page. The carousel is already rendered for
-            # owners only, but that guard lives in the template -- keep the fetch
-            # itself gated too rather than relying on the view layer.
-            history_books = []
-            if mb.is_my_page:
-                try:
-                    history_data = get_loan_history_data(mb.username, page=1)
-                    history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
-                except Exception:
-                    # Deliberately non-fatal: My Books must still render its
-                    # active loans and every other shelf if IA is unreachable.
-                    # But log it -- swallowing this silently makes a missing
-                    # history section indistinguishable from an empty one, with
-                    # nothing in the logs to tell them apart.
-                    logger.exception("Failed to fetch loan history for %s; rendering without it", mb.username)
-
-            for book in history_books:
-                works = getattr(book, "works", None)
-                work_key = works[0].key if works and len(works) > 0 else book.key
-                updatedate = book.get("last_loan_date") or ""
-                try:
-                    timestamp = datetime.fromisoformat(updatedate.replace(" ", "T")).timestamp()
-                except ValueError:
-                    timestamp = 0.0
-
-                # Add history record only if no active loan exists for this book
-                if work_key not in merged_books:
-                    merged_books[work_key] = (book, timestamp, False)
-
-            # Sort: active loans first (is_active=True > False), then by timestamp desc.
-            # This ensures a currently-borrowed book always ranks above a recently-returned one.
-            total_results = len(merged_books)
-            sorted_entries = sorted(merged_books.values(), key=lambda x: (x[2], x[1]), reverse=True)
-            final_books = [entry[0] for entry in sorted_entries[:18]]
-
-            docs["loans"] = web.Storage({"docs": final_books, "total_results": total_results})
+        if cont := self._get_continue_reading_storage(mb):
+            docs["continuereading"] = cont
 
         if mb.me or mb.is_public:
             want_to_read = mb.readlog.get_works("want-to-read", limit=6)

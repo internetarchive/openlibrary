@@ -150,6 +150,43 @@ class BorrowNotFound:
 BorrowOutcome = BorrowRedirect | BorrowNotFound | str  # str = rendered interstitial HTML
 
 
+def _record_read_history(user, edition):
+    if not user or not edition:
+        return
+    from openlibrary.core.read_history import ReadHistory
+    from openlibrary.utils import extract_numeric_id_from_olid
+
+    username = None
+    if hasattr(user, "key") and user.key:
+        username = user.key.split("/")[-1]
+    elif isinstance(user, dict) and "key" in user:
+        username = user["key"].split("/")[-1]
+
+    if not username:
+        return
+
+    work_key = None
+    if getattr(edition, "works", None):
+        first_work = edition.works[0]
+        work_key = getattr(first_work, "key", None) or (first_work.get("key") if isinstance(first_work, dict) else None)
+    elif getattr(edition, "get", None) and (works := edition.get("works")):
+        first_work = works[0]
+        work_key = getattr(first_work, "key", None) or (first_work.get("key") if isinstance(first_work, dict) else None)
+
+    work_id = extract_numeric_id_from_olid(work_key) if work_key else None
+    edition_id = extract_numeric_id_from_olid(getattr(edition, "key", None))
+
+    if work_id:
+        try:
+            ReadHistory.add(
+                username=username,
+                work_id=int(work_id),
+                edition_id=int(edition_id) if edition_id else None,
+            )
+        except Exception:
+            logger.exception("Failed to record read history for user %s", username)
+
+
 async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | None, fastapi: bool = False) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
     """Shared /borrow POST logic for both the web.py handler (via the
     handle_borrow sync bridge) and the FastAPI route (awaits directly).
@@ -183,6 +220,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and acquisitions[0].access == "open-access"
     ):
         stats.increment("ol.loans.webbook")
+        _record_read_history(accounts.get_current_user(), edition)
         raw_name = acquisitions[0].provider_name or ""
         book_provider = Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>") if raw_name else Markup("")
         return render_jinja_template(
@@ -210,6 +248,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
 
         if not is_bot():
             stats.increment("ol.loans.openaccess")
+            _record_read_history(accounts.get_current_user(), edition)
         return BorrowRedirect(archive_url)
 
     error_redirect = archive_url
@@ -292,6 +331,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         loans = lending.get_loans_of_user(user.key)
         for loan in loans:
             if loan["book"] == edition.key:
+                _record_read_history(user, edition)
                 return BorrowRedirect(
                     make_bookreader_auth_link(
                         loan["_key"],
