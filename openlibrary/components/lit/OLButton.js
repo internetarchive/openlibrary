@@ -159,7 +159,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: var(--spacing-inline-md);
+            gap: var(--spacing-icon-gap);
             box-sizing: border-box;
             /* Height is a custom property so the icon-only shapes can square up on it. */
             --ol-button-height: var(--control-height-medium);

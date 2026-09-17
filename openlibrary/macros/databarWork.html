@@ -19,7 +19,11 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
       <div class="btn-notice read-options" id="read-options">
 
         <div class="illustration edition-cover">
-          $:render_template('covers/book_cover', page, preload=True)
+          $# The reader's shelf as a badge over the cover, like a carousel card;
+          $# work.css hides it until the book is on one. book-state.js keeps it
+          $# in step with the split button below.
+          $ shelf_badge = shelf_button_for(page, variant='icon') if (page.type.key == '/type/work' or page.get('works')) else None
+          $:render_template('covers/book_cover', page, preload=True, overlay=shelf_badge)
           $# Don't display add/change cover link for /books/ia:foo00bar pages
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
