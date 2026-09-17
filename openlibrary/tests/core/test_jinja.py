@@ -85,13 +85,9 @@ def _create_validation_env() -> jinja2.Environment:
 
     # Stubbed: this env only validates template structure, without infogami's
     # runtime template disk-loading or template globals.
-    # For layouts/base.html.jinja the head/body fragments are rendered via
-    # render_templetor_template. Return minimal valid HTML so base's
-    # opening/closing tags stay balanced when rendered in isolation.
+    # For layouts/site.html.jinja the head and nav fragments are rendered via
+    # render_templetor_template.
     def _stub_render_templetor(name, *a, **kw):
-        if name == "site/body":
-            # base provides </body></html>, body fragment provides <body><main>
-            return "<body><main>stub</main>"
         return ""
 
     env.globals["render_templetor_template"] = _stub_render_templetor
@@ -159,6 +155,13 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.lang, str)
         assert isinstance(layout.stats_summary, dict)
         assert isinstance(layout.stats_details, list)
+        assert isinstance(layout.body_classes, list)
+        assert isinstance(layout.body_attrs, list)
+        assert isinstance(layout.body_class, str)
+        assert isinstance(layout.active_ui_lang, dict)
+        assert isinstance(layout.donate_script_url, str)
+        assert isinstance(layout.flash_messages, list)
+        assert layout.announcement_banner is None or hasattr(layout.announcement_banner, "content")
         # No flat layout keys should leak into root context
         for key in (
             "show_ol_shell",
@@ -170,6 +173,11 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
             "lang",
             "stats_summary",
             "stats_details",
+            "body_classes",
+            "body_attrs",
+            "donate_script_url",
+            "flash_messages",
+            "announcement_banner",
         ):
             assert key not in kwargs
         return rendered
