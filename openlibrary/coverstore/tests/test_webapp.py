@@ -144,6 +144,72 @@ class TestCoverRouting:
         assert client.served["default"] == "false"
 
 
+class TestHeadAndOptions:
+    """web.py's handle_class mapped HEAD onto GET, and CORSProcessor(cors_everything=True)
+    answered every OPTIONS and stamped every response. FastAPI does neither by default."""
+
+    @pytest.fixture
+    def client(self, monkeypatch):
+        from openlibrary.coverstore.asgi_app import create_app
+
+        async def fake_serve_cover(*a):
+            return Response(status_code=200, content=b"jpeg", media_type="image/jpeg")
+
+        monkeypatch.setattr(code, "_serve_cover", fake_serve_cover)
+        monkeypatch.setattr(code, "db", type("db", (), {"query": staticmethod(lambda *a, **kw: [])}))
+        return TestClient(create_app())
+
+    GET_ROUTES: ClassVar = ["/", "/b/id/1-M.jpg", "/b/id/1.jpg", "/b/query"]
+
+    @pytest.mark.parametrize("path", GET_ROUTES)
+    def test_head_matches_get_status(self, client, path):
+        assert client.head(path).status_code == client.get(path).status_code == 200
+
+    @pytest.mark.parametrize("path", GET_ROUTES)
+    def test_head_sends_no_body(self, client, path):
+        assert client.head(path).content == b""
+
+    def test_head_on_a_post_only_route_is_405(self, client):
+        assert client.head("/b/upload2").status_code == 405
+
+    @pytest.mark.parametrize("path", ["/", "/b/id/1-M.jpg", "/b/query", "/b/upload2"])
+    def test_bare_options_is_answered(self, client, path):
+        # no Origin, so CORSMiddleware ignores it; web.py answered these with a 200
+        r = client.options(path)
+        assert (r.status_code, r.headers.get("access-control-allow-origin")) == (200, "*")
+
+    def test_preflight_is_still_owned_by_cors_middleware(self, client):
+        """The cors_everything middleware must sit *inside* CORSMiddleware. Registered the
+        other way round it swallows every OPTIONS, and real preflights lose
+        Access-Control-Allow-Headers, which makes a browser reject them."""
+        r = client.options(
+            "/b/id/1-M.jpg",
+            headers={
+                "Origin": "https://example.com",
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+        assert "Content-Type" in r.headers.get("access-control-allow-headers", "")
+
+    def test_options_preflight(self, client):
+        r = client.options(
+            "/b/id/1-M.jpg",
+            headers={"Origin": "https://example.com", "Access-Control-Request-Method": "GET"},
+        )
+        assert r.status_code == 200
+        assert r.headers["access-control-allow-origin"] == "*"
+        assert "GET" in r.headers["access-control-allow-methods"]
+
+    @pytest.mark.parametrize("path", ["/", "/b/id/1-M.jpg", "/b/query"])
+    @pytest.mark.parametrize("origin", [None, "https://example.com"])
+    def test_acao_is_sent_whether_or_not_an_origin_is_present(self, client, path, origin):
+        # unconditional, so a cache can't store an Origin-less response and replay it
+        # to a cross-origin request without the header
+        r = client.get(path, headers={"Origin": origin} if origin else None)
+        assert r.headers.get("access-control-allow-origin") == "*"
+
+
 class TestCoverCategory:
     """Only books/authors/works exist as categories; anything else must not route."""
 

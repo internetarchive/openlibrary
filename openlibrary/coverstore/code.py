@@ -143,7 +143,7 @@ def is_cached_copy_fresh(request: Request, date: datetime.datetime, etag: str) -
     return False
 
 
-@router.get("/", include_in_schema=False)
+@router.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 def index() -> Response:
     return Response(
         content=(
@@ -378,7 +378,7 @@ async def _serve_cover(request: Request, category: CoverCategory, key: str, valu
         return Response(status_code=404)
 
 
-@router.get("/{category}/{key}/{value}-{size:cover_size}.jpg", include_in_schema=False)
+@router.api_route("/{category}/{key}/{value}-{size:cover_size}.jpg", methods=["GET", "HEAD"], include_in_schema=False)
 async def cover_sized(
     request: Request,
     category: CoverCategory,
@@ -390,7 +390,7 @@ async def cover_sized(
     return await _serve_cover(request, category, key, value, size, default)
 
 
-@router.get("/{category}/{key}/{value}.jpg", include_in_schema=False)
+@router.api_route("/{category}/{key}/{value}.jpg", methods=["GET", "HEAD"], include_in_schema=False)
 async def cover_unsized(
     request: Request,
     category: CoverCategory,
@@ -401,7 +401,7 @@ async def cover_unsized(
     return await _serve_cover(request, category, key, value, "", default)
 
 
-@router.get("/{category}/{key}/{value}.json", include_in_schema=False)
+@router.api_route("/{category}/{key}/{value}.json", methods=["GET", "HEAD"], include_in_schema=False)
 async def cover_details(category: CoverCategory, key: str, value: str) -> Response:
     if key == "id":
         d = db.details(safeint(value))
@@ -418,7 +418,7 @@ async def cover_details(category: CoverCategory, key: str, value: str) -> Respon
     return RedirectResponse(f"/{category}/id/{cover_id}.json", status_code=302)
 
 
-@router.get("/{category}/query", include_in_schema=False)
+@router.api_route("/{category}/query", methods=["GET", "HEAD"], include_in_schema=False)
 def query(
     category: CoverCategory,
     olid: Annotated[str | None, Query()] = None,
