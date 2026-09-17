@@ -639,12 +639,25 @@ class PatronBooknotes:
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
 
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
+        works = {w.key: w for w in site.get().get_many(work_keys)} if work_keys else {}
+
         for entry in notes:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
-            entry["work_details"] = self._get_work_details(entry["work"])
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            entry["editions"] = {k: site.get().get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+
+        all_edition_keys = {
+            f"/books/OL{edition_id}M": edition_id for entry in notes for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+        }
+        edition_keys = list(all_edition_keys)
+        editions = {edition.key: edition for edition in site.get().get_many(edition_keys)} if edition_keys else {}
+
+        for work_key, entry in zip(work_keys, notes):
+            entry["work_key"] = work_key
+            entry["work"] = works.get(work_key)
+            entry["work_details"] = self._get_work_details(entry["work"])
+            entry["editions"] = {
+                edition_id: editions.get(f"/books/OL{edition_id}M") for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+            }
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
