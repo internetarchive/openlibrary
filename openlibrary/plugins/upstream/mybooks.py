@@ -78,22 +78,45 @@ class mybooks_home(delegate.page):
             # Dictionary mapping dedup_key -> (book, timestamp, is_active)
             merged_books: dict[str, tuple[Any, float, bool]] = {}
 
-            # Process active loans first
+            # Resolve books independently of loans: batch-fetch the unique loan
+            # book keys, then keep fetching /type/redirect targets in batches
+            # (up to 5 hops). Nothing is fetched inside the loan loop below.
+            book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
+            fetched_keys = set(book_keys)
+            book_map: dict[str, Any] = {}
+            if book_keys:
+                book_map.update({b.key: b for b in site.get().get_many(book_keys)})
+
+            for _ in range(5):
+                redirect_locations = {
+                    book.location
+                    for book in book_map.values()
+                    if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
+                }
+                if not redirect_locations:
+                    break
+                fetched_keys.update(redirect_locations)
+                book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
+
+            # Process loans in one loop, following redirect chains through book_map.
             for loan in myloans:
-                book_key = loan["book"]
-                if book := site.get().get(book_key):
-                    for _ in range(5):
-                        if getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
-                            book_key = book.location
-                            book = site.get().get(book_key)
-                        else:
-                            break
-                    if book:
-                        book.loan = loan
-                        works = getattr(book, "works", None)
-                        work_key = works[0].key if works and len(works) > 0 else book.key
-                        loaned_at = loan.get("loaned_at") or 0.0
-                        merged_books[work_key] = (book, float(loaned_at), True)
+                book_key = loan.get("book")
+                if not book_key:
+                    continue
+                book = book_map.get(book_key)
+                if not book:
+                    continue
+                for _ in range(5):
+                    if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                        book = book_map.get(book.location)
+                    else:
+                        break
+                if book:
+                    book.loan = loan
+                    works = getattr(book, "works", None)
+                    work_key = works[0].key if works and len(works) > 0 else book.key
+                    loaned_at = loan.get("loaned_at") or 0.0
+                    merged_books[work_key] = (book, float(loaned_at), True)
 
             # Ownership gate, not just "is logged in": mb.username comes from the
             # URL, while mb.me is the session. get_loan_history_data() resolves S3
