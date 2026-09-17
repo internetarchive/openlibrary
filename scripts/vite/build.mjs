@@ -277,7 +277,15 @@ function getComponentsConfig() {
         // `/assets/...` and 404. renderBuiltUrl keeps /static/ public urls intact.
         base: "/static/build/components/production/",
         experimental: { renderBuiltUrl: renderBuiltAssetUrl },
-        plugins: [vue({ customElement: true }), virtualVuePlugin()],
+        plugins: [
+            vue({
+                // The site-wide Lit bundle already registers <ol-*> globally, so let Vue
+                // templates use those tags instead of treating them as Vue components.
+                customElement: true,
+                template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith("ol-") } },
+            }),
+            virtualVuePlugin(),
+        ],
         build: {
             target: ["es2019", "safari13"],
             outDir: outDirForJob("components", "production"),

@@ -75,6 +75,12 @@ $(function() {
 
     init($);
 
+    const siteHeader = document.getElementById('site-header-autohide');
+    if (siteHeader) {
+        import('./header-scroll')
+            .then(module => module.initHeaderAutoHide(siteHeader));
+    }
+
     const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const autocompleteSeries = document.querySelector('.multi-input-autocomplete--series');
