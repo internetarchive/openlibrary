@@ -29,18 +29,21 @@
   text-align: left;
 }
 
+/* Wide enough for "12 used from $4.28 · 3 new from $9.99" to wrap only once */
 @media only screen and (min-width: 768px) {
   .buy-options {
-    width: 240px;
+    width: 288px;
   }
 }
 
+/* Rows grow downward for offer details, so the icon pins to the first line */
 .buy-options .buy-option__link {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-inline-md);
+  box-sizing: border-box;
   min-height: var(--menu-row-height);
-  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  padding: var(--spacing-sm) var(--menu-row-padding-inline);
   border-radius: var(--border-radius-button);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
@@ -48,7 +51,18 @@
 }
 
 .buy-options .buy-option__link .ol-icon {
+  margin-top: var(--spacing-3xs);
   color: var(--color-icon-muted);
+}
+
+.buy-option__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.buy-option__header {
+  display: flex;
+  gap: var(--spacing-inline-md);
 }
 
 .buy-options .buy-option__link:focus-visible {
@@ -62,12 +76,34 @@
   }
 }
 
-.buy-options .buy-option__price {
+.buy-option__price {
   margin-left: auto;
   white-space: nowrap;
-  font-size: var(--font-size-label-medium);
   font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-medium);
+}
+
+.buy-option__list-price {
+  margin-right: var(--spacing-inline-sm);
   color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+}
+
+/* Offers and store notes as one muted run: "12 used from $4.28 · In Stock" */
+.buy-option__details {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-meta);
+}
+
+.buy-option__detail + .buy-option__detail::before {
+  content: "·";
+  margin-inline: var(--spacing-inline-sm);
+}
+
+.buy-option__detail--savings {
+  color: var(--color-success-fg);
 }
 
 /* Disclaimer below a divider, text aligned with the row icons */

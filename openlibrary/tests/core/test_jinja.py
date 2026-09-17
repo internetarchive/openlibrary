@@ -287,21 +287,15 @@ class TestGetJinjaEnv:
     def test_can_load_and_render_affiliate_links_template(self, request_context_fixture, monkeypatch):
         """Should be able to load the AffiliateLinks.html.jinja template
         from the macros/ directory and render it with store data."""
+        from openlibrary.plugins.openlibrary.partials import AffiliateStore  # noqa: PLC0415 partials imports code.py, which runs setup()
+
         request_context_fixture(lang="en")
         env = get_jinja_env()
         # The icon global calls a Templetor macro, which isn't loaded in tests.
         monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
         tpl = env.get_template("AffiliateLinks.html.jinja")
         output = tpl.render(
-            primary_stores=[
-                {
-                    "key": "teststore",
-                    "analytics_key": "TestStore",
-                    "name": "Test Store",
-                    "link": "https://example.com/book",
-                    "price": None,  # StrictUndefined - must include all accessed attrs
-                }
-            ],
+            primary_stores=[AffiliateStore(key="teststore", analytics_key="TestStore", name="Test Store", link="https://example.com/book")],
             more_stores=[],
             price_lookup=None,
         )
@@ -309,8 +303,39 @@ class TestGetJinjaEnv:
         assert "https://example.com/book" in output
         assert "Test Store" in output
         assert "affiliate-links-section" in output
+        # No offers, so no price or detail line
+        assert "buy-option__price" not in output
+        assert "buy-option__details" not in output
         # Should not have HTML injection from store name
         assert "&gt;" not in output  # no encoded angle brackets from simple names
+
+    def test_affiliate_links_template_renders_offer_details(self, request_context_fixture, monkeypatch):
+        """Prices, per-condition counts, and the store's own notes all render."""
+        from openlibrary.plugins.openlibrary.partials import AffiliateOffer, AffiliateStore  # noqa: PLC0415
+
+        request_context_fixture(lang="en")
+        env = get_jinja_env()
+        monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
+        store = AffiliateStore(
+            key="betterworldbooks",
+            analytics_key="BetterWorldBooks",
+            name="Better World Books",
+            link="https://example.com/book",
+            offers=(
+                AffiliateOffer(price="$9.99", amount=9.99, condition="new", quantity=3),
+                AffiliateOffer(price="$4.28", amount=4.28, condition="used", quantity=12),
+            ),
+            availability="In Stock",
+            seller="Example <Seller>",
+        )
+        output = env.get_template("AffiliateLinks.html.jinja").render(primary_stores=[store], more_stores=[], price_lookup=None)
+        text = " ".join(lxml_html.fromstring(output).text_content().split())
+        # Header shows the lowest price; details list cheapest first
+        assert "Better World Books $4.28" in text
+        assert text.index("12 used from $4.28") < text.index("3 new from $9.99")
+        assert "In Stock" in text
+        assert "Sold by Example <Seller>" in text
+        assert "Example &lt;Seller&gt;" in output
 
     def test_translations_via_gettext_callables(self, monkeypatch, request_context_fixture):
         """Should translate ``{% trans %}`` blocks and ``{{ gettext() }}`` / ``{{ ngettext() }}``
