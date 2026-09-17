@@ -650,6 +650,10 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
+#: site.html.jinja
+msgid "It looks like you're offline."
+msgstr ""
+
 #: status.html
 msgid "Open Library server status"
 msgstr ""
@@ -4470,7 +4474,7 @@ msgstr ""
 msgid "Terms of Service"
 msgstr ""
 
-#: lib/nav_foot.html.jinja site/alert.html
+#: lib/nav_foot.html.jinja site/alert.html.jinja
 msgid "Donate"
 msgstr ""
 
@@ -4610,7 +4614,7 @@ msgstr ""
 msgid "Open Library on GitHub"
 msgstr ""
 
-#: lib/nav_foot.html.jinja site/alert.html
+#: lib/nav_foot.html.jinja site/alert.html.jinja
 msgid "Change Website Language"
 msgstr ""
 
@@ -5930,12 +5934,8 @@ msgstr ""
 msgid "Less"
 msgstr ""
 
-#: site/alert.html
+#: site/alert.html.jinja
 msgid "Internet Archive logo"
-msgstr ""
-
-#: site/body.html
-msgid "It looks like you're offline."
 msgstr ""
 
 #: site/head.html
@@ -6906,8 +6906,83 @@ msgid "Add another edition?"
 msgstr ""
 
 #: AffiliateLinks.html.jinja
+msgid "New"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Used"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Collectible"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Refurbished"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Like New"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Very Good"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Good"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Acceptable"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "%(condition)s – %(sub_condition)s"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "%(num)d new from %(price)s"
+msgid_plural "%(num)d new from %(price)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "%(num)d used from %(price)s"
+msgid_plural "%(num)d used from %(price)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "%(condition)s from %(price)s"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "List price %(price)s"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "Save %(percent)d%%"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Out of stock"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "Sold by %(seller)s"
 msgstr ""
 
 #: AffiliateLinks.html.jinja

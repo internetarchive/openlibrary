@@ -2,7 +2,7 @@
  * Defines functionality related to the ILE's Bulk Tagger tool.
  * @module ile/BulkTagger
  */
-import debounce from 'lodash/debounce';
+import { debounce } from '../nonjquery_utils.js';
 
 import { MenuOption, MenuOptionState } from './BulkTagger/MenuOption';
 import { SortedMenuOptionContainer } from './BulkTagger/SortedMenuOptionContainer';
