@@ -1,5 +1,28 @@
 name: Code Review Action
 
+# Implements the Code Review Action from epic #13160:
+#   "an @openlibrary-bot-driven code review, triggered when staff request it as a PR reviewer
+#    or @-mention it directly in a PR comment (staff-only trigger, for security). Should post
+#    inline suggestion-style comments on specific code blocks/lines, similar to Copilot's
+#    review UX. On re-trigger, should review only the diff since its last pass."
+#
+# SECURITY -- the two-job split below is the whole design, read before editing.
+#
+# `analyze` reads untrusted PR content (diff, source) and holds NO write permission and NO PAT.
+# `post` holds the write permission and the scoped PAT, runs no model, and takes the analysis only as
+# a JSON artifact which it re-validates against the diff before posting. A prompt injection in
+# a PR can therefore change what the review *says* -- it is a public comment either way -- but
+# cannot reach a write API, because the process that read it has nothing to write with.
+#
+# Do not "simplify" this into one job. Do not add any PAT to `analyze`. Do not add write
+# scopes to `analyze`'s permissions block.
+#
+# Fork PRs: `pull_request` from a fork gets no secrets, so the review_requested path covers
+# same-repo PRs only. The `issue_comment` path runs in base-repo context WITH secrets and does
+# cover fork PRs -- which is why that path is staff-gated by an explicit allowlist below.
+# `analyze` never checks fork code into the working tree; it fetches the PR head into a ref and
+# reads it with `git show`, so nothing from a fork is ever on disk at an executable path.
+
 on:
   pull_request:
     types: [review_requested, opened, ready_for_review]
@@ -8,41 +31,27 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "Debug: manually run the code review trigger on a specific existing PR"
+        description: "Debug: manually run the code reviewer on a specific existing PR"
         required: true
         type: string
-
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
 
 concurrency:
   group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
   cancel-in-progress: false
 
 jobs:
-  respond:
+  analyze:
     runs-on: ubuntu-latest
-    # Placeholder scaffold for #13163 -- trigger wiring only, no review logic yet.
-    #
     # Three trigger paths:
-    #   1. review_requested with openlibrary-bot as the reviewer -- covers both a
-    #      human manually requesting it, and auto_assign_reviewer.yml's automated
-    #      request. No staff-login check here: requesting *any* reviewer already
-    #      requires write/triage access on GitHub's side, so this isn't an open door.
-    #   2. opened / ready_for_review where the PR's own author is openlibrary-bot --
-    #      GitHub rejects requesting a PR's own author as a reviewer (422), so a
-    #      self-authored PR can never reach this workflow via path 1. This is the
-    #      direct substitute for "add openlibrary-bot as a reviewer on its own PR",
-    #      which is not literally possible.
-    #   3. issue_comment @-mention on a PR -- open to any commenter, including
-    #      external contributors with only read access, so this path keeps an
-    #      explicit staff allowlist (mirrors pr_autoresponder.yml / issue_enrichment.md).
-    #
-    # Draft PRs never trigger a review, on any path -- enforced again defensively
-    # inside the job itself (see Step 1), since issue_comment's payload has no
-    # PR draft field to check at the `if:` level.
+    #   1. review_requested with openlibrary-bot as the reviewer -- covers both a human manually
+    #      requesting it, and auto_assign_reviewer.yml's automated request. No staff-login check:
+    #      requesting any reviewer already requires write/triage access on GitHub's side.
+    #   2. opened / ready_for_review where the PR's own author is openlibrary-bot -- GitHub
+    #      rejects requesting a PR's own author as a reviewer (422), so a self-authored PR can
+    #      never reach this workflow via path 1.
+    #   3. issue_comment @-mention on a PR -- open to any commenter including external
+    #      contributors, and it runs with secrets in scope, so this path keeps an explicit
+    #      staff allowlist.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
@@ -59,59 +68,245 @@ jobs:
         github.event.comment.user.login != 'openlibrary-bot' &&
         contains(fromJSON('["mekarpeles","cdrini","jimchamp","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
       )
+    permissions:
+      contents: read
+      pull-requests: read
+      # Required by claude-code-action's OIDC fetch. GitHub accepts only `write` or `none`
+      # here; `none` breaks the token exchange. This is NOT repository write access -- see
+      # #13604, where removing it silently broke the PR auto-responder.
+      id-token: write
+    outputs:
+      pr: ${{ steps.range.outputs.pr }}
+      head_sha: ${{ steps.range.outputs.head_sha }}
+      skip: ${{ steps.range.outputs.skip }}
     steps:
-      - name: Acknowledge trigger (placeholder -- no review logic yet)
+      # NO `ref:` -- the base commit, never the PR head. See the SECURITY note above.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Resolve review range (incremental since our last pass)
+        id: range
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+            const fs = require('fs');
+            const owner = context.repo.owner, repo = context.repo.repo;
             const prNumber = context.eventName === 'workflow_dispatch'
               ? Number(context.payload.inputs.pr_number)
               : (context.payload.pull_request
                   ? context.payload.pull_request.number
                   : context.payload.issue.number);
 
-            // Defensive draft check -- issue_comment's payload has no PR draft
-            // field, and this also re-confirms the pull_request-path checks
-            // above in case GitHub's payload state lagged the actual PR state.
-            const { data: pr } = await github.rest.pulls.get({
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            // Defensive draft check -- issue_comment's payload has no draft field.
+            if (pr.draft) { core.info(`PR #${prNumber} is a draft -- skipping.`); core.setOutput('skip','true'); return; }
+            if (pr.state !== 'open') { core.info(`PR #${prNumber} is ${pr.state} -- skipping.`); core.setOutput('skip','true'); return; }
+
+            const head = pr.head.sha;
+
+            // Incremental: find the newest review WE submitted and diff from its commit.
+            // Epic #13160's cross-cutting rule -- ignore our own bot -- is why we look for our
+            // own reviews here rather than any review.
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner, repo, pull_number: prNumber, per_page: 100,
+            });
+            const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id);
+            const prior = ours.length ? ours[ours.length - 1] : null;
+
+            let base = pr.base.sha, incremental = false;
+            if (prior && prior.commit_id !== head) {
+              // Only trust the prior SHA if it is still reachable AND an ancestor of head; a
+              // force-push can leave a commit_id that no longer describes this PR's history,
+              // and diffing from it would silently mis-scope the review.
+              try {
+                const cmp = await github.rest.repos.compareCommitsWithBasehead({
+                  owner, repo, basehead: `${prior.commit_id}...${head}`,
+                });
+                if (cmp.data.status === 'ahead' && cmp.data.files && cmp.data.files.length) {
+                  base = prior.commit_id; incremental = true;
+                } else {
+                  core.info(`Prior review commit is ${cmp.data.status} -- falling back to a full review.`);
+                }
+              } catch (e) {
+                core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
+              }
+            } else if (prior && prior.commit_id === head) {
+              core.info('Already reviewed this exact commit -- skipping.');
+              core.setOutput('skip','true'); return;
+            }
+
+            const { data: diff } = await github.rest.repos.compareCommitsWithBasehead({
+              owner, repo, basehead: `${base}...${head}`,
+              headers: { accept: 'application/vnd.github.v3.diff' },
+            });
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, diff);
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review-range.json`, JSON.stringify({
+              pr: prNumber, base_sha: base, head_sha: head,
+              incremental, prior_review_at: prior ? prior.submitted_at : null,
+            }, null, 2));
+
+            core.setOutput('pr', String(prNumber));
+            core.setOutput('head_sha', head);
+            core.setOutput('skip', 'false');
+            core.info(`PR #${prNumber}: ${incremental ? 'incremental' : 'full'} review, ${base.slice(0,8)}..${head.slice(0,8)}`);
+
+      - name: Fetch PR head into a ref (never into the working tree)
+        if: steps.range.outputs.skip == 'false'
+        env:
+          PR: ${{ steps.range.outputs.pr }}
+        run: |
+          git fetch --no-tags --depth=50 origin "pull/${PR}/head:refs/remotes/pr/head"
+          echo "PR head available as refs/remotes/pr/head -- read it with 'git show pr/head:<path>'."
+
+      - name: Review
+        if: steps.range.outputs.skip == 'false'
+        # Pinned deliberately -- do not restore the floating `@v1`. Same upstream regression as
+        # issue_enrichment.yml and pr_autoresponder.yml: from a later version every run reports
+        # success while producing nothing, in workflows that set `allowed_non_write_users`.
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
+        with:
+          prompt: |
+            @.github/workflows/code_review.md
+
+            Review PR #${{ steps.range.outputs.pr }}. Your range and diff are already on disk --
+            read `review-range.json` and `review.diff` rather than assuming anything from this line.
+          claude_args: >-
+            --max-turns 40
+            --allowedTools "Bash(cat:*) Bash(ls:*) Bash(grep:*) Bash(rg:*)
+            Bash(git show:*) Bash(git log:*) Bash(git diff:*) Bash(git grep:*)
+            Read Write Glob Grep"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Deliberately the job's own read-only GITHUB_TOKEN, NOT secrets.OL_BOT_PAT. This job
+          # reads untrusted PR content; it must not hold a credential that can write. The PAT
+          # lives in the `post` job below, which runs no model.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload analysis
+        if: steps.range.outputs.skip == 'false'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: code-review-${{ steps.range.outputs.pr }}
+          path: |
+            review.json
+            review.diff
+            review-range.json
+          if-no-files-found: error
+          retention-days: 7
+
+  post:
+    needs: analyze
+    if: needs.analyze.outputs.skip == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: code-review-${{ needs.analyze.outputs.pr }}
+
+      - name: Validate anchors and post one batched review
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ needs.analyze.outputs.pr }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+        with:
+          # Scoped fine-grained PAT (openlibrary-bot, org member): Issues + Pull requests
+          # read/write, Contents + Commit statuses read, on the Open Library repos only.
+          # Deliberately NOT the broad OL_BOT_PAT, and deliberately not present in `analyze`.
+          github-token: ${{ secrets.OL_BOT_ACTIONS_PAT }}
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const prNumber = Number(process.env.PR);
+            const headSha = process.env.HEAD_SHA;
+
+            let review;
+            try {
+              review = JSON.parse(fs.readFileSync('review.json', 'utf8'));
+            } catch (e) {
+              core.setFailed(`analyze produced no usable review.json: ${e.message}`);
+              return;
+            }
+            const range = JSON.parse(fs.readFileSync('review-range.json', 'utf8'));
+
+            // --- Anchorable lines: RIGHT-side (added + context) lines of the reviewed diff.
+            // GitHub documents no behaviour for an out-of-diff anchor, and this API surface is
+            // already known to no-op silently here, so we drop bad anchors rather than find out.
+            const anchorable = new Map();
+            {
+              let file = null, newLn = 0;
+              for (const raw of fs.readFileSync('review.diff', 'utf8').split('\n')) {
+                if (raw.startsWith('+++ ')) {
+                  const p = raw.slice(4).trim();
+                  file = p === '/dev/null' ? null : p.replace(/^b\//, '');
+                  if (file) anchorable.set(file, new Set());
+                  continue;
+                }
+                const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+                if (h) { newLn = Number(h[1]); continue; }
+                if (!file) continue;
+                if (raw.startsWith('+') || raw.startsWith(' ')) { anchorable.get(file).add(newLn++); }
+              }
+            }
+
+            const inline = [], orphaned = [];
+            for (const f of (review.findings || [])) {
+              const hasAnchor = f.path && f.line;
+              const start = f.start_line || f.line;
+              const ok = hasAnchor
+                && anchorable.has(f.path)
+                && anchorable.get(f.path).has(Number(f.line))
+                && anchorable.get(f.path).has(Number(start))
+                && Number(start) <= Number(f.line);
+              if (!ok) { orphaned.push(f); continue; }
+
+              let body = `**${(f.severity || 'note').toUpperCase()} — ${f.title}**\n\n${f.body}`;
+              if (f.suggestion != null) {
+                // A suggestion must replace exactly start..line or it cannot be applied.
+                const want = Number(f.line) - Number(start) + 1;
+                const got = String(f.suggestion).split('\n').length;
+                if (want === got) body += `\n\n\`\`\`suggestion\n${f.suggestion}\n\`\`\``;
+                else core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
+              }
+              const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
+              if (Number(start) !== Number(f.line)) { c.start_line = Number(start); c.start_side = 'RIGHT'; }
+              inline.push(c);
+            }
+
+            // --- Summary body. Findings with no honest in-diff anchor live here rather than
+            // being pinned to an approximate line: on a real review of #13548, 3 of 9 findings
+            // proved themselves in files the diff never touched.
+            let summary = review.summary || '';
+            if (range.incremental) {
+              summary = `*Reviewing only the ${range.base_sha.slice(0,8)}..${range.head_sha.slice(0,8)} range — the commits pushed since my last pass.*\n\n${summary}`;
+            }
+            if (orphaned.length) {
+              summary += `\n\n### Findings without an in-diff anchor\n\n` + orphaned.map(f =>
+                `- **${(f.severity || 'note').toUpperCase()} — ${f.title}**${f.path ? ` (\`${f.path}\`)` : ''}\n  ${f.body.replace(/\n/g, '\n  ')}`
+              ).join('\n\n');
+            }
+            summary += `\n\n---\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot -->`;
+
+            // --- One batched review. The per-comment endpoint (POST /pulls/{n}/comments) is
+            // documented but returns 422 `pull_request_review_thread.base` in practice
+            // (cli/cli#13358); the batched payload with identical anchors succeeds.
+            const { data: posted } = await github.rest.pulls.createReview({
               owner, repo, pull_number: prNumber,
+              commit_id: headSha,          // resolved at post time -- an older SHA silently outdates comments
+              event: 'COMMENT',            // never APPROVE or REQUEST_CHANGES
+              body: summary,
+              comments: inline,
             });
-            if (pr.draft) {
-              core.info(`PR #${prNumber} is a draft -- skipping.`);
+
+            // --- Verify. Step 4 of pr_autoresponder.md documents this API surface returning
+            // 2xx while changing nothing, so confirm rather than trusting the status code.
+            const after = await github.paginate(github.rest.pulls.listReviews, {
+              owner, repo, pull_number: prNumber, per_page: 100,
+            });
+            if (!after.some(r => r.id === posted.id)) {
+              core.setFailed(`createReview returned ${posted.id} but it is not present on the PR.`);
               return;
             }
-
-            // Idempotency: this workflow can be reached by multiple overlapping
-            // paths (e.g. opened -> auto-assign -> review_requested), so guard
-            // against posting more than one placeholder.
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner, repo, issue_number: prNumber, per_page: 100,
-            });
-            if (comments.some((c) => (c.body || '').includes('<!-- ol-pr-review-bot -->'))) {
-              core.info(`PR #${prNumber} already has a placeholder comment -- skipping.`);
-              return;
-            }
-
-            let trigger;
-            if (context.eventName === 'workflow_dispatch') {
-              trigger = 'a manual debug dispatch';
-            } else if (context.eventName === 'issue_comment') {
-              trigger = 'an @-mention';
-            } else if (pr.user.login === 'openlibrary-bot') {
-              trigger = 'its own PR being opened (self-authored, cannot request itself as reviewer)';
-            } else {
-              trigger = 'a reviewer request';
-            }
-
-            await github.rest.issues.createComment({
-              owner, repo, issue_number: prNumber,
-              body: [
-                `👀 Code review was requested via ${trigger}, but the automated reviewer isn't built yet — tracked in #13163.`,
-                '',
-                'This comment only confirms the trigger fired correctly. No review was performed.',
-                '',
-                '<!-- ol-pr-review-bot -->',
-              ].join('\n'),
-            });
+            core.info(`Posted review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
