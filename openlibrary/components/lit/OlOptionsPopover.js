@@ -127,7 +127,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-xs);
             padding-inline: var(--menu-row-padding-inline);
-            border-radius: var(--border-radius-button);
+            border-radius: var(--border-radius-menu-row);
             line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;

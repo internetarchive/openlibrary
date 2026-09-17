@@ -25,7 +25,11 @@
   --border-radius-thumbnail: var(--border-radius-md); /* small images */
   --border-radius-media: var(--border-radius-lg); /* large images, videos */
   --border-radius-card: var(--border-radius-lg); /* cards */
-  --border-radius-overlay: var(--border-radius-xl); /* dialogs, modals */
+  --border-radius-overlay: var(--border-radius-lg); /* dialogs, modals, popovers, toasts */
+  /* Rows inside an overlay. Derived, not chosen: a row inset `--menu-row-inset`
+     (4px) from a 12px panel is concentric at 12 - 4 = 8px. Change one and the
+     other has to move, or the two corners stop sharing a centre. */
+  --border-radius-menu-row: var(--border-radius-md); /* menu rows, option rows */
   --border-radius-tooltip: var(--border-radius-md); /* tooltips */
   --border-radius-chip: var(--border-radius-xl); /* chips, pills that may wrap */
   --border-radius-badge: var(--border-radius-sm); /* badges, tags */

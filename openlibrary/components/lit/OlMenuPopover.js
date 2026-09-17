@@ -108,7 +108,7 @@ export class OlMenuPopover extends LitElement {
             padding-block: var(--spacing-inset-xs);
             padding-inline: var(--menu-row-padding-inline);
             border: 0;
-            border-radius: var(--border-radius-button);
+            border-radius: var(--border-radius-menu-row);
             background: none;
             /* A real <button>, so the page ink has to be inherited explicitly. */
             color: inherit;

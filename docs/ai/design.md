@@ -135,7 +135,7 @@ Before writing new markup or CSS, check whether an existing component already do
 Rows inside a panel — the menu, options, and select popovers, the browse popover, the hamburger drawer, the design-site nav — are one shape, and share the tokens in `tokens/control-heights.css`:
 
 - **Height** is `--menu-row-height`, applied as `min-height` so a row with a description can grow. Keep the row's own vertical padding under it, or the padding sets the height and rows drift apart again. On hover-capable pointers the token drops to `--control-height-medium`, so a menu reads as a stack of medium controls.
-- **Inset as a pill.** A row sits `--menu-row-inset` in from the panel edge and takes `--border-radius-button`, so its hover fill reads as a pill inside the panel rather than a band running to the edges. It gives that inset back as `--menu-row-padding-inline`, which keeps the label at 16px from the panel. A light-DOM panel that can't put a margin on its rows (the browse popover, the drawer) puts the inset on the panel's side padding instead; the row padding is the same either way.
+- **Inset as a pill.** A row sits `--menu-row-inset` in from the panel edge and takes `--border-radius-menu-row`, so its hover fill reads as a pill inside the panel rather than a band running to the edges. It gives that inset back as `--menu-row-padding-inline`, which keeps the label at 16px from the panel. A light-DOM panel that can't put a margin on its rows (the browse popover, the drawer) puts the inset on the panel's padding instead — on all four sides, not just the sides, or the corner rows stop being concentric (see [Nested radii are computed](#nested-radii-are-computed-not-chosen)). The row padding is the same either way.
 - **Hover is `--color-hover-overlay`**, so it darkens whatever the panel is painted on. No press-scale — see [Press feedback](#press-feedback-self-contained-controls-squeeze-rows-and-surfaces-dont).
 - **Selected rows get no tint and no weight change.** The radio or checkbox already carries the state, and a tinted row looks hovered. Where there is no control (`ol-menu-popover`, the design nav) the label goes `--color-link` — color only, so nothing re-measures.
 
@@ -144,7 +144,7 @@ Rows inside a panel — the menu, options, and select popovers, the browse popov
   min-height: var(--menu-row-height);
   margin-inline: var(--menu-row-inset);
   padding-inline: var(--menu-row-padding-inline);
-  border-radius: var(--border-radius-button);
+  border-radius: var(--border-radius-menu-row);
 }
 ```
 
@@ -243,6 +243,33 @@ CSS custom properties inherit through the shadow boundary, so design tokens work
 ### Every floating surface shares one edge
 
 A popover panel, a dialog, a drawer, a toast, and the mobile tray are the same object — a surface floating over the page — and take the same three tokens from `tokens/borders.css`: `--border-overlay`, `--border-radius-overlay`, `--box-shadow-overlay`. The hairline border draws the edge, which is what lets the shadow stay light enough to read as depth rather than a smudge. Don't drop the border on one surface or hand-roll a heavier shadow on another; a toast with a different edge from the popover next to it reads as a third kind of thing.
+
+### Nested radii are computed, not chosen
+
+When a shape sits inside a rounded surface, its radius is not a taste call — it
+falls out of the surface it sits in:
+
+```
+inner radius = outer radius − inset
+```
+
+Two corners look right together when their arcs share a centre. Pick the inner
+radius independently and the arcs drift apart, which is what a menu row looks
+like when it turns its corner early and leaves a wedge of panel showing behind
+it. Apple ships this rule as an API (`ConcentricRectangle` in iOS 26); we spell
+it out in the tokens instead:
+
+| Outer | Inset | Inner | Token |
+|---|---|---|---|
+| `--border-radius-overlay` 12px | `--menu-row-inset` 4px | 8px | `--border-radius-menu-row` |
+
+Two things follow. **The inset has to be equal on all four sides** — a row inset
+4px at the side but 8px at the top has no single concentric radius, so a panel
+that puts the gutter on its own padding uses one value, not a two-value
+shorthand. And **the pair moves together**: change `--border-radius-overlay` and
+`--border-radius-menu-row` has to move with it, which is why the row has its own
+token rather than borrowing `--border-radius-button`. A button is a free-standing
+control and keeps its radius wherever it sits; a menu row does not.
 
 ### Blur follows modality, not viewport width
 
