@@ -32,7 +32,10 @@
 :root {
   --border-radius-button: var(--border-radius-md); /* buttons, tabs */
   --border-radius-input: var(--border-radius-md); /* inputs, textareas */
-  --border-radius-thumbnail: var(--border-radius-md); /* small images */
+  /* Book covers, author portraits, illustrations. A printed object has a
+     near-square corner — a cover rounded like a control reads as an app tile
+     rather than a book — and covers are the most-repeated shape on the site. */
+  --border-radius-thumbnail: var(--border-radius-sm); /* covers, small images */
   --border-radius-card: var(--border-radius-md); /* cards, page shell */
   --border-radius-notification: var(--border-radius-md); /* notifications, alerts, banners */
   --border-radius-overlay: var(--border-radius-lg); /* dialogs, modals, popovers, toasts */
