@@ -1927,7 +1927,7 @@ export function initSearchModal(trigger) {
     // from ctx.user.is_printdisabled()). Widens the "Readable" badge to
     // printdisabled scans for these patrons, matching the readable count.
     modal._printDisabled = trigger.dataset.printDisabled === 'true';
-    // For the rows' shelf buttons (site/body.html, my_books/shelf_button_i18n).
+    // For the rows' shelf buttons (site.html.jinja, my_books/shelf_button_i18n).
     modal._userKey = document.body.dataset.userKey || '';
     modal._shelfLabels = readLabels();
 

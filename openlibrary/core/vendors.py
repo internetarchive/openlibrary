@@ -457,6 +457,10 @@ class AmazonCreatorsAPI:
           availability    — 'IN_STOCK', 'AVAILABLE_DATE', etc.
           price_savings_pct — discount percentage off list price
           list_price      — original list price string, e.g. '$17.00'
+          availability_message — buy-box shipping/stock text, e.g. 'In Stock'
+          condition, sub_condition — e.g. 'Used', 'LikeNew'
+          merchant        — seller name, e.g. 'Amazon.com'
+          deal_badge      — deal label, e.g. 'Limited time deal'
           image_variants  — alternate cover image URLs (back cover, spine, etc.)
         """
         if not product:
@@ -533,6 +537,13 @@ class AmazonCreatorsAPI:
 
         # Availability from the buy-box listing
         availability = listing and getattr(listing, "availability", None) and getattr(listing.availability, "type", None)
+        # Human-readable, e.g. "In Stock" or "Usually ships within 2 to 3 days"
+        availability_message = listing and getattr(listing, "availability", None) and getattr(listing.availability, "message", None)
+        condition = listing and getattr(listing, "condition", None)
+        condition_value = condition and getattr(condition, "value", None)
+        sub_condition = condition and getattr(condition, "sub_condition", None)
+        merchant = listing and getattr(listing, "merchant_info", None) and getattr(listing.merchant_info, "name", None)
+        deal_badge = listing and getattr(listing, "deal_details", None) and getattr(listing.deal_details, "badge", None)
 
         # Savings: percentage off and original list price
         savings = price and getattr(price, "savings", None)
@@ -576,6 +587,11 @@ class AmazonCreatorsAPI:
             # --- Creators API additions ---
             **({"categories": categories} if categories else {}),
             **({"availability": availability} if availability else {}),
+            **({"availability_message": availability_message} if availability_message else {}),
+            **({"condition": condition_value} if condition_value else {}),
+            **({"sub_condition": sub_condition} if sub_condition else {}),
+            **({"merchant": merchant} if merchant else {}),
+            **({"deal_badge": deal_badge} if deal_badge else {}),
             **({"price_savings_pct": price_savings_pct} if price_savings_pct else {}),
             **({"list_price": list_price} if list_price else {}),
             **({"image_variants": image_variants} if image_variants else {}),
@@ -769,6 +785,11 @@ class BetterWorldBooksMetadata(TypedDict):
     price: str | None
     price_amt: str | None
     qlt: str | None
+    # Lowest price and copy count per condition; None when BWB didn't say
+    new_price: str | None
+    new_qty: int | None
+    used_price: str | None
+    used_qty: int | None
 
 
 class BetterWorldBooksMetadataError(TypedDict):
@@ -836,7 +857,16 @@ async def _get_betterworldbooks_metadata(
             qlt = "new"
 
     first_market_price = ("$" + market_price[0]) if market_price else None
-    return betterworldbooks_fmt(isbn, qlt, price, first_market_price)
+    return betterworldbooks_fmt(
+        isbn,
+        qlt,
+        price,
+        first_market_price,
+        new_price=new_price[0] if new_price else None,
+        new_qty=int(new_qty[0]) if new_qty else None,
+        used_price=used_price[0] if used_price else None,
+        used_qty=int(used_qty[0]) if used_qty else None,
+    )
 
 
 def betterworldbooks_fmt(
@@ -844,6 +874,10 @@ def betterworldbooks_fmt(
     qlt: str | None = None,
     price: str | None = None,
     market_price: str | None = None,
+    new_price: str | None = None,
+    new_qty: int | None = None,
+    used_price: str | None = None,
+    used_qty: int | None = None,
 ) -> BetterWorldBooksMetadata:
     """Defines a standard interface for returning bwb price info
 
@@ -858,4 +892,8 @@ def betterworldbooks_fmt(
         "price": price_fmt,
         "price_amt": price,
         "qlt": qlt,
+        "new_price": new_price,
+        "new_qty": new_qty,
+        "used_price": used_price,
+        "used_qty": used_qty,
     }

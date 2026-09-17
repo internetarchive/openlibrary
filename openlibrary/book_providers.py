@@ -13,6 +13,7 @@ from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
+from openlibrary.utils.request_context import get_provider_pref
 
 if typing.TYPE_CHECKING:
     from web.template import TemplateResult
@@ -759,13 +760,9 @@ def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
-    provider_overrides = None
-    # Need this to work in test environments
-    if "env" in web.ctx:
-        provider_overrides = web.input(providerPref=None, _method="GET").providerPref
-    if provider_overrides:
+    if provider_pref := get_provider_pref():
         new_order: list[AbstractBookProvider] = []
-        for name in provider_overrides.split(","):
+        for name in provider_pref.split(","):
             if name == "*":
                 new_order += default_order
             else:

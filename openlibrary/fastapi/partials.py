@@ -118,6 +118,7 @@ async def book_page_lists_partial(
 async def fulltext_search_suggestion_partial(
     response: Response,
     data: Annotated[str, Query(description="Search query string")],
+    provider_pref: Annotated[str | None, Query(alias="providerPref", description="Provider preference order")] = None,
 ) -> dict:
     """
     Get full-text search suggestions HTML.

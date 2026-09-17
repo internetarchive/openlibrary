@@ -9,7 +9,7 @@
  * It also fills in what the server could not. Carousel buttons arrive without
  * state (their HTML is cached across readers, or fetched lazily): they get the
  * reader's key from <body data-user-key>, labels from the hidden input in
- * site/body.html, and their state from one batched request, repeated for
+ * site.html.jinja, and their state from one batched request, repeated for
  * buttons that arrive later.
  *
  * On a page that lists one shelf (`[data-shelf]` on the list), a row whose
@@ -46,7 +46,7 @@ const seen = new WeakSet();
 const requested = new WeakSet();
 let scheduled = false;
 
-/** The labels site/body.html rendered, or null. */
+/** The labels site.html.jinja rendered, or null. */
 export function readLabels() {
     const input = document.querySelector(LABELS_INPUT);
     if (!input) return null;

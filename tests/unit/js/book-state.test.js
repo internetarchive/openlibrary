@@ -50,7 +50,7 @@ afterEach(() => {
 });
 
 describe('readLabels', () => {
-    test('parses the hidden input site/body.html renders', () => {
+    test('parses the hidden input site.html.jinja renders', () => {
         page();
         expect(readLabels()).toEqual(LABELS);
     });

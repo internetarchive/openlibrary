@@ -1,10 +1,42 @@
 /* eslint no-console: 0 */
-import _ from 'lodash';
 import { approveRequest, declineRequest, createRequest, REQUEST_TYPES } from '../../plugins/openlibrary/js/merge-request-table/MergeRequestService';
 import CONFIGS from '../configs.js';
 
 const collator = new Intl.Collator('en-US', {numeric: true});
 export const DEFAULT_EDITION_LIMIT = 200;
+
+/**
+ * Deep copy of a JSON record. Unlike structuredClone, this also accepts Vue reactive proxies.
+ * @template T
+ * @param {T} value
+ * @returns {T}
+ */
+export function cloneJSON(value) {
+    return JSON.parse(JSON.stringify(value));
+}
+
+/**
+ * Deep equality for JSON values; object key order is ignored.
+ * @param {unknown} a
+ * @param {unknown} b
+ * @returns {boolean}
+ */
+export function isEqualJSON(a, b) {
+    if (a === b) return true;
+    if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    const aKeys = Object.keys(a);
+    return aKeys.length === Object.keys(b).length && aKeys.every(key => Object.prototype.hasOwnProperty.call(b, key) && isEqualJSON(a[key], b[key]));
+}
+
+/**
+ * @template T
+ * @param {T[]} items
+ * @returns {T[]} items with deep-equal duplicates removed, keeping the first occurrence
+ */
+function uniqJSON(items) {
+    return items.filter((item, i) => items.findIndex(other => isEqualJSON(item, other)) === i);
+}
 
 /**
  * @param {string | URL | Request} input
@@ -68,7 +100,7 @@ function hash_subel(field, value) {
  * @param {Object} dupes
  */
 export function merge(master, dupes) {
-    const result = _.cloneDeep(master);
+    const result = cloneJSON(master);
     result.latest_revision++;
     result.revision = result.latest_revision;
     result.last_modified.value = (new Date()).toISOString().slice(0, -1);
@@ -105,11 +137,11 @@ export function merge(master, dupes) {
             continue;
         switch (key) {
         case 'authors':{
-            const authors = _.cloneDeep(result.authors);
+            const authors = cloneJSON(result.authors);
             authors
                 .filter(a => typeof a.type === 'string')
                 .forEach(a => a.type = { key: a.type });
-            result.authors = _.uniqWith(authors, _.isEqual);
+            result.authors = uniqJSON(authors);
             break;
         }
         case 'covers':
@@ -119,7 +151,7 @@ export function merge(master, dupes) {
         case 'subject_times':
         case 'excerpts':
         default:
-            result[key] = _.uniqWith(result[key], _.isEqual);
+            result[key] = uniqJSON(result[key]);
             break;
         }
     }
@@ -272,7 +304,7 @@ function save_many(items, comment, action, data) {
  * @returns {Promise<Record<string,object>} A response to the request
  */
 export async function get_author_names(works) {
-    const authorIds = _.uniq(works).flatMap(record =>
+    const authorIds = [...new Set(works)].flatMap(record =>
         (record.authors || [])
             .map(authorEntry => authorEntry.author?.key ?? authorEntry.key)
     );
