@@ -756,14 +756,11 @@ ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name("ia"))
 prefer_ia_provider_order = uniq([ia_provider, *PROVIDER_ORDER])
 
 
-def build_provider_order(
-    prefer_ia: bool,
-    provider_pref: str | None,
-) -> list[AbstractBookProvider]:
+def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
-    if provider_pref:
+    if provider_pref := get_provider_pref():
         new_order: list[AbstractBookProvider] = []
         for name in provider_pref.split(","):
             if name == "*":
@@ -779,10 +776,6 @@ def build_provider_order(
             provider_order = new_order
 
     return provider_order
-
-
-def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
-    return build_provider_order(prefer_ia, get_provider_pref())
 
 
 def get_book_providers(ed_or_solr: Edition | dict) -> Iterator[AbstractBookProvider]:
