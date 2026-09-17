@@ -1,11 +1,13 @@
 import {
     parseIsbn,
     parseLccn,
+    parseOclc,
     isChecksumValidIsbn10,
     isChecksumValidIsbn13,
     isFormatValidIsbn10,
     isFormatValidIsbn13,
-    isValidLccn
+    isValidLccn,
+    isValidOclc
 } from '../../../openlibrary/plugins/openlibrary/js/idValidation.js';
 
 describe('parseIsbn', () => {
@@ -153,5 +155,50 @@ describe('isValidLccn', () => {
     });
     it('returns false for LCCN of length 13', () => {
         expect(isValidLccn('1250000000003')).toBe(false);
+    });
+});
+
+describe('parseOclc', () => {
+    it('strips whitespace', () => {
+        expect(parseOclc(' 33294504 ')).toBe('33294504');
+    });
+    it('strips leading zeroes', () => {
+        expect(parseOclc('0000033294504')).toBe('33294504');
+    });
+    it('strips the (OCoLC) MARC prefix', () => {
+        expect(parseOclc('(OCoLC)33294504')).toBe('33294504');
+    });
+    it('strips the ocm MARC prefix', () => {
+        expect(parseOclc('ocm33294504')).toBe('33294504');
+    });
+    it('strips the ocn MARC prefix', () => {
+        expect(parseOclc('ocn1297036639')).toBe('1297036639');
+    });
+    it('strips the on MARC prefix', () => {
+        expect(parseOclc('on1297036639')).toBe('1297036639');
+    });
+});
+
+describe('isValidOclc', () => {
+    it('returns true for a typical OCLC number', () => {
+        expect(isValidOclc('33294504')).toBe(true);
+    });
+    it('returns true for a single-digit OCLC number', () => {
+        expect(isValidOclc('1')).toBe(true);
+    });
+    it('returns true for a 15-digit OCLC number', () => {
+        expect(isValidOclc('123456789012345')).toBe(true);
+    });
+    it('returns false for an empty string', () => {
+        expect(isValidOclc('')).toBe(false);
+    });
+    it('returns false for non-numeric input', () => {
+        expect(isValidOclc('abc12345')).toBe(false);
+    });
+    it('returns false for input with a leading zero', () => {
+        expect(isValidOclc('0123')).toBe(false);
+    });
+    it('returns false for an OCLC longer than 15 digits', () => {
+        expect(isValidOclc('1234567890123456')).toBe(false);
     });
 });
