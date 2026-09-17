@@ -96,7 +96,7 @@ services:
       context: ../..
       dockerfile: scripts/solr_builder/Dockerfile.olpython
       args:
-        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
+        - UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX:-}
         - HTTPS_PROXY=${HTTPS_PROXY:-}
         - NO_PROXY=${NO_PROXY:-}
     volumes:

@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Expose `OL_CONFIG` to cron
-if [ -n "${OL_CONFIG:-}" ]; then
-  touch /etc/environment
-  grep -q '^OL_CONFIG=' /etc/environment || echo "OL_CONFIG=$OL_CONFIG" >> /etc/environment
-fi
+# Expose environment variables to cron
+touch /etc/environment
+env >> /etc/environment
+
 crontab /etc/cron.d/openlibrary.ol_home0
 cron -f -L2
