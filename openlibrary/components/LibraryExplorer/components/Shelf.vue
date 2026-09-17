@@ -115,7 +115,7 @@ import FlatBookCover from './FlatBookCover.vue';
 import ShelfIndex from './ShelfIndex.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import IndexIcon from './icons/IndexIcon.vue';
-import maxBy from 'lodash/maxBy';
+import { maxBy } from '../../../plugins/openlibrary/js/nonjquery_utils.js';
 
 class FetchCoordinator {
     constructor() {

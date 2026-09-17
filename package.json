@@ -58,7 +58,6 @@
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
     "concurrently": "^10.0.0",
-    "core-js": "^3.37.1",
     "datatables.net-dt": "1.13.11",
     "diff": "^4.0.4",
     "eslint": "^9.39.4",
@@ -73,7 +72,6 @@
     "jquery-ui-touch-punch": "0.2.3",
     "jsdom": "^30.0.1",
     "lit": "^3.2.1",
-    "lodash": "4.18.1",
     "lucene-query-parser": "1.2.0",
     "postcss-lit": "^1.4.1",
     "prettier": "^3.5.3",
@@ -112,9 +110,8 @@
     "Chrome > 0 and last 3 years",
     "Edge > 0 and last 3 years",
     "Firefox > 0 and last 3 years",
-    "Safari >= 11.1",
-    "iOS >= 11.3",
-    "Android >= 5"
+    "Safari >= 15.4",
+    "iOS >= 15.4"
   ],
   "customElements": "openlibrary/components/lit/custom-elements.json"
 }

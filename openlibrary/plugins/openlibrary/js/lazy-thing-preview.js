@@ -1,7 +1,20 @@
 // @ts-check
 import $ from 'jquery';
-import debounce from 'lodash/debounce';
-import chunk from 'lodash/chunk';
+import { debounce } from './nonjquery_utils.js';
+
+/**
+ * @template T
+ * @param {T[]} items
+ * @param {number} size
+ * @returns {T[][]}
+ */
+function chunk(items, size) {
+    const chunks = [];
+    for (let i = 0; i < items.length; i += size) {
+        chunks.push(items.slice(i, i + size));
+    }
+    return chunks;
+}
 
 /**
  * Responds to HTML like:
