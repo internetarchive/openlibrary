@@ -191,8 +191,15 @@ Semantic tokens reference primitives and describe purpose, not appearance.
 --color-text: var(--neutral-800);
 --color-link: var(--blue-600);
 --color-surface: var(--white);
---border-radius-card: var(--border-radius-lg);
+--border-radius-card: var(--border-radius-md);
 ```
+
+The radius tokens carry one extra rule, because a shape says what kind of object
+it is: **12px floats** (dialog, popover, toast, tray), **8px sits in the page**
+(card, banner, button, input, menu row), **4px is a small object in its own
+right** (badge, tag). Reach for the token whose tier matches the thing, not the
+one whose number you like — a card at the overlay radius makes a search result
+and a modal the same shape, and the page loses a distinction it was using.
 
 The main semantic groups in `colors.css`: text (`--color-text`, `-heading`, `-secondary`, `-muted`, `-inverse`), icons (`--color-icon-muted`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`, `-inverse`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), destructive action (`--color-destructive`), borders (`--color-border`, `-muted`, `-subtle`, `-extra-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{info,success,error,warning}-{fg,bg,border}`, plus `--color-{success,error,warning,neutral}-object` for status *shapes* like badges and switch tracks).
 
