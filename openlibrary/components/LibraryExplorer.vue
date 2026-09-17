@@ -25,7 +25,7 @@ import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
 import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
-import maxBy from 'lodash/maxBy';
+import { maxBy } from '../plugins/openlibrary/js/nonjquery_utils.js';
 
 class FilterState {
     constructor() {
