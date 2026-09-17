@@ -58,7 +58,7 @@ def main(args):
     init(args.config)
 
     # Find min new_id (for upper limit)
-    max_upper_bound = find_upper_bound()
+    max_upper_bound = args.upper_bound or find_upper_bound()
 
     # Backfill new IDs in batches
     lower_bound = args.lower_bound
@@ -88,6 +88,7 @@ def _parse_args():
         type=float,
         help="If non-zero, the script will stop if the WAL directory grows beyond this many GB",
     )
+    p.add_argument("-u", "--upper-bound", default=0, type=int)
     p.set_defaults(func=main)
     return p.parse_args()
 
