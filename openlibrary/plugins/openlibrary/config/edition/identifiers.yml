@@ -35,7 +35,7 @@ identifiers:
     url: https://id.bnportugal.gov.pt/bib/catbnp/@@@
     website: https://www.bnportugal.gov.pt/
 -   label: Bibliothèque nationale de France (BnF)
-    name: bibliothèque_nationale_de_france
+    name: bnf
     notes: ''
     url: https://catalogue.bnf.fr/ark:/12148/@@@
     website: http://www.bnf.fr
