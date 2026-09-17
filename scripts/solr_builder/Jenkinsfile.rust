@@ -1,0 +1,363 @@
+// Rust solr pipeline: dump -> lake -> Rust gold -> loaded Solr.
+// Runs SIDE BY SIDE with the legacy postgres pipeline (Jenkinsfile); this job
+// never touches postgres or the dev Solr on :8983.
+//
+// Operator guide: scripts/solr_builder/RUST_PIPELINE.md
+//
+// Layout notes:
+// - The agent container runs with --network host so localhost:8985 reaches the
+//   isolated solr_rust_full container published by compose.rust_full.yaml.
+// - LAKE_HOST_DIR is a host-path bind shared 1:1 into the agent; every mvp_* script
+//   runs from a repo-root `lake` symlink pointing at it (scripts hardcode lake/...).
+// - Any `docker`/`docker compose` call must reference HOST-side paths (the daemon
+//   resolves binds on the host), hence HOST_WORKSPACE / HOST_LAKE below — same
+//   trick the legacy Jenkinsfile uses with jenkins-data.
+pipeline {
+    agent {
+        docker {
+            image 'openlibrary/solr-rust-agent:latest'
+            label ''
+            args """--network host \
+                -v /var/run/docker.sock:/var/run/docker.sock \
+                -v ${env.LAKE_HOST_DIR}:${env.LAKE_HOST_DIR} \
+                -v ${env.LAKE_HOST_DIR}/../solr_rust_full:${env.LAKE_HOST_DIR}/../solr_rust_full \
+                -v /var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data \
+                -v solr-rust-cargo:/opt/cargo-cache"""
+        }
+    }
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 24, unit: 'HOURS')
+        buildDiscarder(logRotator(numToKeepStr: '30'))
+    }
+    parameters {
+        string(name: 'DUMP_URL', defaultValue: 'https://openlibrary.org/data/ol_dump_latest.txt.gz',
+               description: 'Dump to download (redirects are chased to the dated file)')
+        string(name: 'LAKE_HOST_DIR', defaultValue: "/mnt/HC_Volume_106672133/openlibrary/lake_full",
+               description: 'Host dir holding dumps/lake/solr data; bind-mounted 1:1 into the agent')
+        booleanParam(name: 'RESUME', defaultValue: true,
+               description: 'Skip stages whose outputs already exist (chunk files, bronze, etc.)')
+        booleanParam(name: 'WIPE_SOLR', defaultValue: false,
+               description: 'Empty the isolated solr_rust_full data dir before loading')
+        booleanParam(name: 'FETCH_IA_METADATA', defaultValue: true,
+               description: 'Fetch IA lite metadata so ebook_access/has_fulltext are real (~30-90 min). If false, ocaids stay unclassified')
+        booleanParam(name: 'LOAD_SATELLITES', defaultValue: true,
+               description: 'Authors, lists, ratings/reading-log, osp, author aggregates')
+        booleanParam(name: 'SMOKE', defaultValue: false,
+               description: 'Tiny slice (3 chunks, sampled satellites) to prove the wiring end-to-end')
+        string(name: 'CHUNK_PARALLELISM', defaultValue: '3', description: 'Parallel gold-chunk transforms')
+        string(name: 'POST_CONCURRENCY', defaultValue: '8', description: 'Parallel Solr load streams')
+        booleanParam(name: 'OPTIMIZE', defaultValue: false,
+               description: 'Run optimize=true&maxSegments=1 at the end (hours; optional)')
+    }
+    environment {
+        SOLR = 'http://localhost:8985/solr/openlibrary'
+        // Groovy-interpolated: a single-quoted '${PARAM}' would export literally
+        // (shell never re-expands env values) — this exact bug cost a debug cycle.
+        LAKE_DIR = "${params.LAKE_HOST_DIR}"
+        // Host-side paths for anything handed to the docker daemon: swap the
+        // in-controller /var/jenkins_home prefix for the host jenkins-data
+        // volume mountpoint (same trick as the legacy Jenkinsfile).
+        JENKINS_DATA_HOST = sh(script: "docker volume inspect --format='{{.Mountpoint}}' jenkins-data", returnStdout: true).trim()
+        HOST_WORKSPACE = env.WORKSPACE.replaceFirst('/var/jenkins_home', JENKINS_DATA_HOST)
+        PY = 'python3'
+    }
+    stages {
+        stage('1: Pipeline agent image') {
+            steps {
+                dir('scripts/solr_builder') {
+                    sh label: 'build solr-rust-agent', script: '''#!/bin/bash
+                        # context = this dir only; the image needs no repo files
+                        docker build -f Dockerfile.rust-agent \
+                            -t openlibrary/solr-rust-agent:latest .
+                    '''
+                }
+            }
+        }
+        stage('2: Isolated Solr (:8985)') {
+            steps {
+                sh label: 'up (+ wipe?)', script: '''#!/bin/bash
+                    set -euo pipefail
+                    COMPOSE="$HOST_WORKSPACE/compose.rust_full.yaml"
+                    code=$(curl -s -o /dev/null -w '%{http_code}' "$SOLR/admin/ping" || true)
+                    if [ "$code" = "200" ] && [ "${WIPE_SOLR:-false}" != true ]; then
+                        echo "resume: reusing running solr_rust_full"
+                        exit 0
+                    fi
+                    # tear down ANY prior instance of this stack (port 8985 owner included)
+                    docker rm -f $(docker ps -aq --filter name=solr_rust_full) 2>/dev/null || true
+                    if [ "${WIPE_SOLR:-false}" = true ]; then
+                        rm -rf "${LAKE_HOST_DIR}/../solr_rust_full"
+                    fi
+                    mkdir -p "${LAKE_HOST_DIR}/../solr_rust_full"
+                    docker compose -p solr_rust_full -f "$COMPOSE" up -d solr_rust_full
+                    for i in $(seq 1 60); do
+                        code=$(curl -s -o /dev/null -w '%{http_code}' "$SOLR/admin/ping" || true)
+                        [ "$code" = "200" ] && break
+                        sleep 2
+                    done
+                    [ "$code" = "200" ] || { echo "solr never came up (last=$code)"; exit 1; }
+                    echo "solr ready"
+                '''
+            }
+        }
+        stage('3: Dump') {
+            steps {
+                sh label: 'resolve + fetch dump', script: '''#!/bin/bash
+                    set -euo pipefail
+                    DUMP_DIR="$LAKE_DIR/dumps"
+                    echo "stage3: LAKE_DIR=$LAKE_DIR DUMP_DIR=$DUMP_DIR RESUME=${RESUME:-unset}"
+                    mkdir -p "$DUMP_DIR"
+                    existing=$(ls -t $DUMP_DIR/ol_dump_*.txt.gz 2>/dev/null | head -1 || true)
+                    echo "stage3: existing=${existing:-none}"
+                    if [ "${RESUME:-true}" = true ] && [ -n "$existing" ] && [ -s "$existing" ]; then
+                        echo "resume: $(du -h "$existing" | cut -f1) ${existing##*/}"
+                        exit 0
+                    fi
+                    DUMP_FILE=$(curl --max-time 60 -s -L -I -o /dev/null -w '%{url_effective}' "${DUMP_URL}")
+                    DUMP_FILE=${DUMP_FILE##*/}
+                    DUMP="$DUMP_DIR/$DUMP_FILE"
+                    if [ "${RESUME:-true}" = true ] && [ -s "$DUMP" ]; then
+                        echo "resume: $(du -h "$DUMP" | cut -f1) $DUMP_FILE"
+                    else
+                        echo "downloading $DUMP_FILE ..."
+                        curl -sL -o "$DUMP" "${DUMP_URL}"
+                    fi
+                    size=$(stat -c%s "$DUMP")
+                    [ "$size" -gt 1000000000 ] || { echo "dump suspiciously small: $size bytes"; exit 1; }
+                    echo "dump ready: $(du -h "$DUMP" | cut -f1)"
+                '''
+            }
+        }
+        stage('4: Lake prep (bronze/silver/partitions/orphans)') {
+            steps {
+                sh label: 'bronze -> silver -> bucketing -> orphans', script: '''#!/bin/bash
+                    set -euo pipefail
+                    # newest local dump wins (stage 3 already ensured it exists)
+                    OL_DUMP=$(ls -t "$LAKE_DIR"/dumps/ol_dump_*.txt.gz | head -1)
+                    export OL_DUMP
+                    echo "using dump: $OL_DUMP"
+                    rm -rf lake && ln -sfn "$LAKE_DIR" lake
+                    if [ "${RESUME:-true}" = true ] && [ -s lake/bronze/_meta.json ]; then
+                        echo "resume: bronze exists"
+                    else
+                        $PY mvp_bronze.py
+                    fi
+                    if [ "${RESUME:-true}" = true ] && [ -s lake/silver/editions.parquet ]; then
+                        echo "resume: silver exists"
+                    else
+                        $PY mvp_silver_py.py
+                    fi
+                    if [ "${RESUME:-true}" = true ] && [ -d lake/silver/works_b ]; then
+                        echo "resume: partitions exist"
+                    else
+                        $PY mvp_partition_works.py
+                    fi
+                    if [ "${RESUME:-true}" = true ] && [ -d lake/silver/orphans_bucketed ]; then
+                        echo "resume: orphans exist"
+                    else
+                        $PY mvp_partition_orphans.py
+                    fi
+                '''
+            }
+        }
+        stage('5: IA lite metadata') {
+            when { expression { return params.FETCH_IA_METADATA } }
+            steps {
+                sh label: 'bulk-fetch collection/ari per ocaid', script: '''#!/bin/bash
+                    set -euo pipefail
+                    rm -rf lake && ln -sfn "$LAKE_DIR" lake
+                    if [ "${RESUME:-true}" = true ] && [ -s "$LAKE_DIR/ia/ia_lite.parquet" ]; then
+                        echo "resume: ia_lite.parquet exists"
+                    else
+                        $PY mvp_ia_fetch.py --out-dir "$LAKE_DIR/ia" --concurrency 8
+                    fi
+                '''
+            }
+        }
+        stage('6: Gold chunks (Rust)') {
+            environment {
+                IA_FLAG = sh(script: '''#!/bin/bash
+                    if [ "${FETCH_IA_METADATA:-true}" = true ] && [ -s "${LAKE_DIR}/ia/ia_lite.parquet" ]; then
+                        echo "--ia-metadata ${LAKE_DIR}/ia/ia_lite.parquet"
+                    fi
+                ''', returnStdout: true).trim()
+                CHUNK_COUNT = sh(script: '''#!/bin/bash
+                    cd "$WORKSPACE"
+                    N=$(python3 -c "import json;print(len(json.load(open('lake/silver/chunks_20000.json'))))")
+                    if [ "${SMOKE:-false}" = true ] && [ "$N" -gt 3 ]; then N=3; fi
+                    echo "$N"
+                ''', returnStdout: true).trim()
+            }
+            steps {
+                sh label: "transform ${env.CHUNK_COUNT} chunks (-P ${params.CHUNK_PARALLELISM})", script: '''#!/bin/bash
+                    set -euo pipefail
+                    rm -rf lake && ln -sfn "$LAKE_DIR" lake
+                    mkdir -p lake/gold/parts
+                    MANIFEST="$PWD/lake/silver/chunks_20000.json"
+                    run_chunk() {
+                        i=$1
+                        out="lake/gold/parts/chunk_$i.parquet"
+                        nd="lake/gold/parts/chunk_$i.ndjson"
+                        if [ "${RESUME:-true}" = true ] && [ -s "$out" ] && [ -s "$nd" ]; then
+                            echo "[chunk $i] resume"
+                            return 0
+                        fi
+                        # shellcheck disable=SC2086
+                        cargo run --release --manifest-path rust_solr/Cargo.toml -p rust_solr -- \
+                            --chunks "$MANIFEST" --chunk-index "$i" \
+                            --out "$out" $IA_FLAG
+                        # NDJSON twin for the parallel loader (columnar read, no giant-JSON pain)
+                        python3 - "$out" "$nd" <<'PY'
+import sys
+import duckdb
+src, dst = sys.argv[1], sys.argv[2]
+duckdb.sql(
+    f"COPY (SELECT doc_json FROM read_parquet('{src}')) "
+    f"TO '{dst}' (FORMAT CSV, HEADER false, QUOTE '', ESCAPE '')"
+)
+PY
+                        echo "[chunk $i] done"
+                    }
+                    export -f run_chunk
+                    export MANIFEST IA_FLAG RESUME
+                    seq 0 $((CHUNK_COUNT-1)) | xargs -P "${CHUNK_PARALLELISM:-3}" -I{} bash -c 'run_chunk {}'
+                '''
+            }
+        }
+        stage('7: Load works into Solr') {
+            steps {
+                sh label: 'parallel NDJSON ingest + commit + assert', script: '''#!/bin/bash
+                    set -euo pipefail
+                    URL='http://localhost:8985/solr/openlibrary/update/json/docs?commitWithin=60000'
+                    if [ "${SMOKE:-false}" = true ]; then
+                        cat $(ls lake/gold/parts/*.ndjson | head -3) > /tmp/load.ndjson
+                        curl -s --data-binary @/tmp/load.ndjson "$URL" >/dev/null
+                    else
+                        ls lake/gold/parts/*.ndjson | xargs -P "${POST_CONCURRENCY:-8}" -I{} \
+                            curl -sf --data-binary @{} "$URL" >/dev/null
+                    fi
+                    curl -sf -X POST 'http://localhost:8985/solr/openlibrary/update?commit=true' \
+                        -H 'Content-Type: application/json' -d '{}' >/dev/null
+                    python3 - <<'PYEOF'
+import json, os, urllib.request
+def num(q):
+    u = "http://localhost:8985/solr/openlibrary/select?rows=0&q=" + urllib.parse.quote(q)
+    return json.load(urllib.request.urlopen(u))["response"]["numFound"]
+works = num("type:work")
+smoke = os.environ.get("SMOKE") == "true"
+print(f"type:work numFound = {works:,}")
+if smoke:
+    assert works > 0, "no works loaded"
+else:
+    assert works > 40_000_000, f"expected >40M works incl fake works, got {works:,}"
+PYEOF
+                '''
+            }
+        }
+        stage('8: Satellites (authors/lists/ratings/osp/aggregates)') {
+            when { expression { return params.LOAD_SATELLITES } }
+            steps {
+                sh label: 'ghost-guarded satellite loaders', script: '''#!/bin/bash
+                    set -euo pipefail
+                    # DuckDB globs don't traverse symlinked dirs: pass REAL paths for every
+                    # parquet/duckdb argument (relative lake/ symlink is only for scripts'
+                    # internal stdlib file reads).
+                    GOLD="$LAKE_DIR/gold/parts/*.parquet"
+                    RATINGS="$LAKE_DIR/aux/ratings.parquet"
+                    READING_LOG="$LAKE_DIR/aux/reading_log.parquet"
+                    OSP_DB="$LAKE_DIR/osp/osp_totals.db"
+                    LIMIT=""; SAMPLE=""
+                    if [ "${SMOKE:-false}" = true ]; then
+                        LIMIT="--limit 20000"; SAMPLE="--limit 3000"
+                    fi
+                    $PY mvp_authors_to_solr.py --solr "$SOLR" --batch 10000 \
+                        --bronze "$LAKE_DIR/bronze/authors.parquet" $LIMIT
+                    $PY mvp_lists_to_solr.py    --solr "$SOLR" --batch 10000 \
+                        --bronze "$LAKE_DIR/bronze/lists.parquet" $LIMIT
+                    $PY mvp_ratings_to_solr.py  --solr "$SOLR" --batch 10000 \
+                        --ratings "$RATINGS" --reading-log "$READING_LOG" \
+                        --gold "$GOLD" $SAMPLE --concurrency "${POST_CONCURRENCY:-8}"
+                    $PY mvp_osp_to_solr.py      --solr "$SOLR" --batch 5000 \
+                        --osp-db "$OSP_DB" --gold "$GOLD" $SAMPLE --concurrency "${POST_CONCURRENCY:-8}"
+                '''
+            }
+        }
+        stage('9: Author aggregates') {
+            when { expression { return params.LOAD_SATELLITES } }
+            environment {
+                AGG_DUMP = '${LAKE_HOST_DIR}/author_aggs.parquet'
+            }
+            steps {
+                sh label: 'rollups + enriched author updates', script: '''#!/bin/bash
+                    set -euo pipefail
+                    if [ "${SMOKE:-false}" = true ]; then
+                        echo "smoke: skipping author aggregates (needs full corpus rollups)"
+                        exit 0
+                    fi
+                    export AGG_DUMP
+                    if [ "${RESUME:-true}" = true ] && [ -s "$AGG_DUMP" ]; then
+                        $PY mvp_author_aggregates.py --load-aggs \
+                            --gold-parts-glob "$LAKE_DIR/gold/parts/*.parquet" \
+                            --authors "$LAKE_DIR/bronze/authors.parquet" \
+                            --solr "$SOLR" --concurrency 8
+                    else
+                        $PY mvp_author_aggregates.py \
+                            --gold-parts-glob "$LAKE_DIR/gold/parts/*.parquet" \
+                            --authors "$LAKE_DIR/bronze/authors.parquet" \
+                            --solr "$SOLR" --concurrency 8
+                    fi
+                '''
+            }
+        }
+        stage('10: Verify gate') {
+            steps {
+                sh label: 'count + integrity assertions', script: '''#!/bin/bash
+                    set -euo pipefail
+                    python3 - <<'PYEOF'
+import json, os, urllib.request, urllib.parse
+
+def num(q):
+    u = "http://localhost:8985/solr/openlibrary/select?rows=0&q=" + urllib.parse.quote(q)
+    return json.load(urllib.request.urlopen(u))["response"]["numFound"]
+
+smoke = os.environ.get("SMOKE") == "true"
+titleless = num('type:work AND -title:[* TO *]')
+print(f"titleless works          : {titleless:,}")
+assert titleless == 0, f"{titleless:,} ghost/stub works remain"
+
+if not smoke:
+    checks = [
+        ("type:author",                          15_000_000),
+        ("type:list",                               250_000),
+        ("top_work:[* TO *]",                   14_000_000),
+        ("work_count:[1 TO *]",                 14_000_000),
+        ("ratings_average:[0.01 TO *]",             400_000),
+        ("readinglog_count:[1 TO *]",             3_000_000),
+        ("osp_count:[1 TO *]",                  1_200_000),
+    ]
+    for q, floor in checks:
+        n = num(q)
+        print(f"{q:38s}: {n:>12,}  (floor {floor:,})")
+        assert n >= floor, f"{q} = {n:,} below floor {floor:,}"
+print("VERIFY GATE PASSED")
+PYEOF
+                '''
+            }
+        }
+        stage('11: Optimize (optional)') {
+            when { expression { return params.OPTIMIZE } }
+            steps {
+                sh label: 'optimize=maxSegments=1 (hours)', script: '''#!/bin/bash
+                    curl -sf -X POST 'http://localhost:8985/solr/openlibrary/update?optimize=true&maxSegments=1' \
+                        -H 'Content-Type: application/json' -d '{}'
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            echo "Done. Solr: http://localhost:8985/solr/openlibrary/select?q=*:*&rows=0"
+        }
+    }
+}
