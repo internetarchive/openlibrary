@@ -27,7 +27,7 @@ DEPLOY_DIR="/tmp/openlibrary_deploy"
 
 mkdir -p $DEPLOY_DIR
 
-WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2 ol-web3"
+WEB_HOSTNAMES="ol-web0 ol-web2 ol-web3"
 # Note: ol-solr0 and ol-solr2 are currently excluded due to a version
 # upgrade pending full reindex
 ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
@@ -766,7 +766,7 @@ recreate_services() {
     echo "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
     echo "- Grafana: https://grafana.us.archive.org/d/000000176/open-library-dev?orgId=1&refresh=1m&from=now-6h&to=now"
-    time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/restart_servers.sh"
+    time SERVER_SUFFIX="$SERVER_SUFFIX" SERVERS="${SERVERS:-$ALL_HOSTNAMES}" "$SCRIPT_DIR/restart_servers.sh"
 }
 
 deploy_wizard() {
