@@ -122,6 +122,26 @@ def parse_s3_cookie(s3_cookie: str | None) -> dict | None:
         return None
 
 
+def encrypt_lenny_token(node: str, access_token: str, refresh_token: str = "") -> str:
+    """Encrypt a Lenny node's tokens into a Fernet token for cookie storage.
+
+    Same pattern and the same key as the S3 keys above: Open Library holds a
+    patron's Lenny credentials custodially, in the patron's own cookie, so
+    nothing has to be stored server-side. See :mod:`openlibrary.plugins.upstream.lenny`.
+    """
+    return _get_fernet().encrypt(f"{node}:{access_token}:{refresh_token}".encode()).decode()
+
+
+def decrypt_lenny_token(token: str) -> tuple[str, str, str]:
+    """Decrypt to ``(node, access_token, refresh_token)``.
+
+    Raises on invalid or tampered input, like :func:`decrypt_s3_keys`.
+    """
+    plaintext = _get_fernet().decrypt(token.encode()).decode()
+    node, access_token, refresh_token = plaintext.split(":", 2)
+    return node, access_token, refresh_token
+
+
 def create_verification_cookie_value() -> str:
     """Create a signed verification cookie value.
 
