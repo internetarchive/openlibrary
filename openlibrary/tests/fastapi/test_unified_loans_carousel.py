@@ -303,6 +303,7 @@ def test_unified_loans_carousel_includes_read_history_and_deduplicates():
 
 def test_carousel_card_data_includes_is_read_history():
     from openlibrary.plugins.openlibrary.partials import get_carousel_card_data
+
     book = MagicMock()
     book.key = "/works/OL1W"
     book.title = "Test Book"
@@ -311,5 +312,3 @@ def test_carousel_card_data_includes_is_read_history():
     with patch("openlibrary.plugins.openlibrary.partials._render_carousel_card_loan_status", return_value=""):
         data = get_carousel_card_data(book, lazy=False, layout="carousel", key="loans", full_path="/")
     assert data["is_read_history"] is True
-
-
