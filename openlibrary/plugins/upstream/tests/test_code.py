@@ -73,9 +73,19 @@ class TestPrepareBookPageEditionSelection:
         with patch("openlibrary.book_providers.get_best_edition", return_value=(ed2, None)) as mock_best:
             context = code.prepare_book_page(work, {}, user=None)
 
-        mock_best.assert_called_once_with([ed1, ed2])
+        mock_best.assert_called_once_with([ed1, ed2], user_lang="en")
         assert context.work is work
         assert context.edition is ed2
+
+    def test_work_without_edition_passes_user_lang(self):
+        ed1 = make_edition("/books/OL1M", ocaid="ia1", availability={"status": "open"})
+        ed2 = make_edition("/books/OL2M", ocaid="ia2", availability={"status": "open"})
+        work = make_work("/works/OL1W", [ed1, ed2])
+
+        with patch("openlibrary.book_providers.get_best_edition", return_value=(ed2, None)) as mock_best:
+            code.prepare_book_page(work, {}, user=None, user_lang="fr")
+
+        mock_best.assert_called_once_with([ed1, ed2], user_lang="fr")
 
     def test_explicit_edition_query_param(self):
         ed9 = make_edition("/books/OL9M", ocaid="ia9", availability={"status": "open"})
