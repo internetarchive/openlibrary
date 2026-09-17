@@ -21,14 +21,15 @@ export async function initAffiliateLinks(affiliateLinksSections) {
 
     const template = document.createElement('template');
     template.innerHTML = partials;
-    const prices = template.content.querySelectorAll('[data-store] .buy-option__price');
-    // Insert into the existing rows rather than swapping them, so focus and hover survive.
-    for (const price of prices) {
-        const store = price.closest('[data-store]').dataset.store;
+    const pricedLinks = template.content.querySelectorAll('[data-store] .buy-option__link');
+    // Refill the existing links rather than swapping them, so focus and hover survive.
+    for (const pricedLink of pricedLinks) {
+        if (!pricedLink.querySelector('.buy-option__price, .buy-option__details')) continue;
+        const store = pricedLink.closest('[data-store]').dataset.store;
         for (const section of affiliateLinksSections) {
             const link = section.querySelector(`[data-store="${store}"] .buy-option__link`);
-            if (link && !link.querySelector('.buy-option__price')) {
-                link.append(price.cloneNode(true));
+            if (link) {
+                link.replaceChildren(...[...pricedLink.childNodes].map(node => node.cloneNode(true)));
             }
         }
     }

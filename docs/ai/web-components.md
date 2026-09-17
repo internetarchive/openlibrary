@@ -342,7 +342,7 @@ If you need to drive a Lit component from the page-JS bundle (e.g., the search-m
 
 Shadow DOM breaks the assumptions most focus-management code makes. The helpers in `utils/focus-utils.js` and `utils/focusable-host-mixin.js` handle the cases below — reach for them rather than rolling your own. Their header docs are the manual.
 
-> The Lit layer relies on `delegatesFocus`, `<dialog>.showModal()` and `ElementInternals` (Safari 15.4–16.4+); `package.json`'s browserslist still claims Safari 11.1, stale for this layer. The focus backbone is pure-JS and works below that; modern APIs are enhancement, never load-bearing.
+> Browser floor for the Lit layer is **Safari 15.4+** (we rely on `delegatesFocus` and native `<dialog>.showModal()`; form-associated controls use `ElementInternals`, Safari 16.4+), matching `package.json`'s browserslist. The focus backbone is pure-JS and works below the floor; modern APIs are enhancement, never load-bearing.
 
 Two hard problems sit under everything here:
 

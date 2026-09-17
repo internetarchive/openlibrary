@@ -16,6 +16,8 @@
   display: block;
   width: 100%;
   margin-top: var(--spacing-stack-xs);
+  /* Same gap the panel's other buttons get from `.read-options .cta-btn`. */
+  margin-bottom: 10px;
 }
 
 /* Buy options popover content. Rows follow the Browse popover's menu rows
@@ -29,18 +31,21 @@
   text-align: left;
 }
 
+/* Wide enough for "12 used from $4.28 · 3 new from $9.99" to wrap only once */
 @media only screen and (min-width: 768px) {
   .buy-options {
-    width: 240px;
+    width: 288px;
   }
 }
 
+/* Rows grow downward for offer details, so the icon pins to the first line */
 .buy-options .buy-option__link {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-inline-md);
+  box-sizing: border-box;
   min-height: var(--menu-row-height);
-  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  padding: var(--spacing-sm) var(--menu-row-padding-inline);
   border-radius: var(--border-radius-button);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
@@ -48,7 +53,18 @@
 }
 
 .buy-options .buy-option__link .ol-icon {
+  margin-top: var(--spacing-3xs);
   color: var(--color-icon-muted);
+}
+
+.buy-option__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.buy-option__header {
+  display: flex;
+  gap: var(--spacing-inline-md);
 }
 
 .buy-options .buy-option__link:focus-visible {
@@ -62,12 +78,34 @@
   }
 }
 
-.buy-options .buy-option__price {
+.buy-option__price {
   margin-left: auto;
   white-space: nowrap;
-  font-size: var(--font-size-label-medium);
   font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-medium);
+}
+
+.buy-option__list-price {
+  margin-right: var(--spacing-inline-sm);
   color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+}
+
+/* Offers and store notes as one muted run: "12 used from $4.28 · In Stock" */
+.buy-option__details {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-meta);
+}
+
+.buy-option__detail + .buy-option__detail::before {
+  content: "·";
+  margin-inline: var(--spacing-inline-sm);
+}
+
+.buy-option__detail--savings {
+  color: var(--color-success-fg);
 }
 
 /* Disclaimer below a divider, text aligned with the row icons */
@@ -87,51 +125,31 @@
   text-decoration: underline;
 }
 
-/* Buy button custom styling (single button with left icon and right arrow) */
-.cta-btn--buy {
-  position: relative;
-  background-color: var(--grey-464646);
-  color: var(--white);
-  margin-top: 0;
-  height: 37px;
-  padding: 0 var(--spacing-inset-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Trigger: the secondary look comes from .ol-button-static (ol-button.css);
+   these are the full-width and disclosure deltas ol-button adds for itself. */
+.buy-popover__trigger {
+  width: 100%;
 }
 
-.cta-btn--buy:hover {
-  background-color: var(--dark-grey);
+/* Stretched buttons are wide enough that the default press reads as a lurch. */
+.buy-popover__trigger:active {
+  transform: scale(var(--press-scale-wide));
 }
 
-.cta-btn--buy .btn-icon.cart {
-  position: absolute;
-  left: 12px;
+/* Chevron tucks against the label and edge with negative margins, netting a
+   4px gap, so the button's own padding still applies. Rotates while open. */
+.buy-popover__chevron {
+  margin-left: calc(var(--spacing-2xs) * -1);
+  margin-right: calc(var(--spacing-2xs) * -1);
+  transition: transform var(--duration-fast) var(--ease-enter);
 }
 
-.cta-btn--buy .btn-label {
-  padding: 0;
+.buy-popover[open] .buy-popover__chevron {
+  transform: rotate(180deg);
 }
 
-.cta-btn--buy .arrow-down {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 32px;
-  height: 100%;
-  border-left: 1px solid var(--grey);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cta-btn--buy .arrow-down::after {
-  content: "";
-  display: block;
-  width: 23px;
-  height: 23px;
-  background: url(/static/images/icons/icon_dropit.png) no-repeat center;
-  background-position: 0;
-  background-size: 45px;
-  filter: brightness(0) invert(1);
+@media (prefers-reduced-motion: reduce) {
+  .buy-popover__chevron {
+    transition: none;
+  }
 }

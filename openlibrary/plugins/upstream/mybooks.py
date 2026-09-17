@@ -78,22 +78,45 @@ class mybooks_home(delegate.page):
             # Dictionary mapping dedup_key -> (book, timestamp, is_active)
             merged_books: dict[str, tuple[Any, float, bool]] = {}
 
-            # Process active loans first
+            # Resolve books independently of loans: batch-fetch the unique loan
+            # book keys, then keep fetching /type/redirect targets in batches
+            # (up to 5 hops). Nothing is fetched inside the loan loop below.
+            book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
+            fetched_keys = set(book_keys)
+            book_map: dict[str, Any] = {}
+            if book_keys:
+                book_map.update({b.key: b for b in site.get().get_many(book_keys)})
+
+            for _ in range(5):
+                redirect_locations = {
+                    book.location
+                    for book in book_map.values()
+                    if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
+                }
+                if not redirect_locations:
+                    break
+                fetched_keys.update(redirect_locations)
+                book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
+
+            # Process loans in one loop, following redirect chains through book_map.
             for loan in myloans:
-                book_key = loan["book"]
-                if book := site.get().get(book_key):
-                    for _ in range(5):
-                        if getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
-                            book_key = book.location
-                            book = site.get().get(book_key)
-                        else:
-                            break
-                    if book:
-                        book.loan = loan
-                        works = getattr(book, "works", None)
-                        work_key = works[0].key if works and len(works) > 0 else book.key
-                        loaned_at = loan.get("loaned_at") or 0.0
-                        merged_books[work_key] = (book, float(loaned_at), True)
+                book_key = loan.get("book")
+                if not book_key:
+                    continue
+                book = book_map.get(book_key)
+                if not book:
+                    continue
+                for _ in range(5):
+                    if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                        book = book_map.get(book.location)
+                    else:
+                        break
+                if book:
+                    book.loan = loan
+                    works = getattr(book, "works", None)
+                    work_key = works[0].key if works and len(works) > 0 else book.key
+                    loaned_at = loan.get("loaned_at") or 0.0
+                    merged_books[work_key] = (book, float(loaned_at), True)
 
             # Ownership gate, not just "is logged in": mb.username comes from the
             # URL, while mb.me is the session. get_loan_history_data() resolves S3
@@ -616,12 +639,25 @@ class PatronBooknotes:
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
 
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
+        works = {w.key: w for w in site.get().get_many(work_keys)} if work_keys else {}
+
         for entry in notes:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
-            entry["work_details"] = self._get_work_details(entry["work"])
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            entry["editions"] = {k: site.get().get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+
+        all_edition_keys = {
+            f"/books/OL{edition_id}M": edition_id for entry in notes for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+        }
+        edition_keys = list(all_edition_keys)
+        editions = {edition.key: edition for edition in site.get().get_many(edition_keys)} if edition_keys else {}
+
+        for work_key, entry in zip(work_keys, notes):
+            entry["work_key"] = work_key
+            entry["work"] = works.get(work_key)
+            entry["work_details"] = self._get_work_details(entry["work"])
+            entry["editions"] = {
+                edition_id: editions.get(f"/books/OL{edition_id}M") for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+            }
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
