@@ -8,7 +8,7 @@ from typing import Literal, Optional, TypedDict
 
 class SolrDocument(TypedDict):
     key: str
-    type: Literal['work', 'author', 'subject']
+    type: Literal['work', 'author', 'subject', 'edition']
     redirects: Optional[list[str]]
     has_fulltext: Optional[bool]
     title: Optional[str]
@@ -41,6 +41,9 @@ class SolrDocument(TypedDict):
     isbn: Optional[list[str]]
     ebook_access: Optional[Literal['no_ebook', 'unclassified', 'printdisabled', 'borrowable', 'public']]
     ebook_provider: Optional[list[str]]
+    ebook_availability: Optional[int]
+    ebook_becomes_available: Optional[int]
+    loan_uid: Optional[int]
     usefulness_score: Optional[int]
     usefulness_score_normalized: Optional[int]
     access_score: Optional[int]
