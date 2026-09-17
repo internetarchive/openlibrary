@@ -78,10 +78,7 @@
 {#- price_lookup marks a page-rendered section whose prices affiliate-links.js fills in later. -#}
 <div class="affiliate-links-section"
      {%- if price_lookup %} data-title="{{ price_lookup.title }}" data-isbn="{{ price_lookup.isbn }}" data-asin="{{ price_lookup.asin }}"{% endif %}>
-    <div class="buy-options__list">
-        {% for store in primary_stores %}{{ affiliate_link(store) | safe }}{% endfor %}
-        {% for store in more_stores %}{{ affiliate_link(store) | safe }}{% endfor %}
-    </div>
+    <div class="buy-options__list">{% for store in stores %}{{ affiliate_link(store) | safe }}{% endfor %}</div>
     <small class="buy-options__disclaimer">
         {{ _("When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>.") | safe }}
     </small>
