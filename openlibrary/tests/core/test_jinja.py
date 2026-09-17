@@ -295,8 +295,7 @@ class TestGetJinjaEnv:
         monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
         tpl = env.get_template("AffiliateLinks.html.jinja")
         output = tpl.render(
-            primary_stores=[AffiliateStore(key="teststore", analytics_key="TestStore", name="Test Store", link="https://example.com/book")],
-            more_stores=[],
+            stores=[AffiliateStore(key="teststore", analytics_key="TestStore", name="Test Store", link="https://example.com/book")],
             price_lookup=None,
         )
         # Should contain the store link
@@ -328,7 +327,7 @@ class TestGetJinjaEnv:
             availability="In Stock",
             seller="Example <Seller>",
         )
-        output = env.get_template("AffiliateLinks.html.jinja").render(primary_stores=[store], more_stores=[], price_lookup=None)
+        output = env.get_template("AffiliateLinks.html.jinja").render(stores=[store], price_lookup=None)
         text = " ".join(lxml_html.fromstring(output).text_content().split())
         # Header shows the lowest price; details list cheapest first
         assert "Better World Books $4.28" in text
