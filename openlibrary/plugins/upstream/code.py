@@ -365,16 +365,9 @@ def _fetch_editions(work, requested, provider, selected_id, mode):
 
     editions = []
     if ebooks_only:
-        editions = work.get_sorted_editions(
-            ebooks_only=ebooks_only,
-            limit=editions_limit,
-            keys=keys,
-        )
+        editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
     if not editions:
-        editions = work.get_sorted_editions(
-            limit=editions_limit,
-            keys=keys,
-        )
+        editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
     return editions, editions_limit
 
 
@@ -435,24 +428,12 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         work["title"] = "↪ " + redir.key
 
     requested, provider, selected_id = _resolve_edition_request(page, query_params)
-    editions, editions_limit = _fetch_editions(
-        work,
-        requested,
-        provider,
-        selected_id,
-        query_params.get("mode"),
-    )
+    editions, editions_limit = _fetch_editions(work, requested, provider, selected_id, query_params.get("mode"))
     availabilities = {e.availability.get("identifier"): e.availability for e in editions}
 
     previews = [e for e in editions if e.get("ocaid")]
 
-    edition, provider = _select_edition(
-        editions,
-        requested,
-        provider,
-        selected_id,
-        page,
-    )
+    edition, provider = _select_edition(editions, requested, provider, selected_id, page)
     _attach_availability(edition, availabilities)
 
     lending_state = lending.get_lending_state(

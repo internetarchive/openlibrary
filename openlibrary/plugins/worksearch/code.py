@@ -527,14 +527,7 @@ async def run_solr_query_async(
     end_time = time.time()
     duration = end_time - start_time
 
-    return _process_solr_response_and_enrich(
-        response,
-        scheme,
-        fields,
-        sort,
-        url,
-        duration,
-    )
+    return _process_solr_response_and_enrich(response, scheme, fields, sort, url, duration)
 
 
 run_solr_query = async_bridge.wrap(run_solr_query_async)

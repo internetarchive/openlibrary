@@ -137,9 +137,5 @@ class SearchScheme:
     ) -> list[tuple[str, str]]:
         return [("q", q)]
 
-    def add_non_solr_fields(
-        self,
-        solr_fields: set[str],
-        solr_result: dict,
-    ) -> None:
+    def add_non_solr_fields(self, solr_fields: set[str], solr_result: dict) -> None:
         raise NotImplementedError

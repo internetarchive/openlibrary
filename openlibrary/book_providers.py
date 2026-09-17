@@ -824,7 +824,9 @@ def get_acquisitions(solr_edition: dict, edition: Edition) -> list[Acquisition]:
     return acquisitions
 
 
-def get_best_edition(editions: list[Edition]) -> tuple[Edition | None, AbstractBookProvider | None]:
+def get_best_edition(
+    editions: list[Edition],
+) -> tuple[Edition | None, AbstractBookProvider | None]:
     provider_order = get_provider_order(True)
 
     # Map provider name to position/ranking
