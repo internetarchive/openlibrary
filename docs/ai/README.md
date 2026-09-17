@@ -208,7 +208,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Browser Support
 
-We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 15.4, iOS ≥ 15.4, Android ≥ 5. The Safari floor is set by the Lit components, which need `delegatesFocus` and `<dialog>.showModal()`. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 15.4, iOS ≥ 15.4. The Safari floor is set by the Lit components, which need `delegatesFocus` and `<dialog>.showModal()`. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
 
 What the toolchain guarantees:
 

@@ -111,8 +111,7 @@
     "Edge > 0 and last 3 years",
     "Firefox > 0 and last 3 years",
     "Safari >= 15.4",
-    "iOS >= 15.4",
-    "Android >= 5"
+    "iOS >= 15.4"
   ],
   "customElements": "openlibrary/components/lit/custom-elements.json"
 }
