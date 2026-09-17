@@ -74,4 +74,10 @@ describe('maxBy', () => {
     test('returns undefined for an empty array', () => {
         expect(maxBy([], x => x)).toBeUndefined();
     });
+
+    test('skips null, undefined and NaN keys', () => {
+        expect(maxBy([undefined, 2], x => x)).toBe(2);
+        expect(maxBy([NaN, 2, null], x => x)).toBe(2);
+        expect(maxBy([NaN, undefined], x => x)).toBeUndefined();
+    });
 });

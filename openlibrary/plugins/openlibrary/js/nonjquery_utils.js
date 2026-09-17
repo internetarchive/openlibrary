@@ -49,7 +49,8 @@ export function uniqBy(items, keyFn) {
 }
 
 /**
- * Returns the first item with the largest `keyFn` result, or undefined if empty.
+ * Returns the first item with the largest `keyFn` result, or undefined if none.
+ * Like lodash, items whose key is null, undefined or NaN are skipped.
  * @template T
  * @param {T[]} items
  * @param {(item: T) => number} keyFn
@@ -57,9 +58,10 @@ export function uniqBy(items, keyFn) {
  */
 export function maxBy(items, keyFn) {
     let best, bestKey;
-    items.forEach((item, i) => {
+    items.forEach(item => {
         const key = keyFn(item);
-        if (i === 0 || key > bestKey) {
+        if (key === null || key === undefined || Number.isNaN(key)) return;
+        if (bestKey === undefined || key > bestKey) {
             best = item;
             bestKey = key;
         }
