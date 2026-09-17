@@ -388,9 +388,8 @@ class CarouselCardPartial:
         return subject.get("works", [])
 
 
-# Temporarily disabled due to amazon request timing out. While off, pages skip
-# the client-side price lookup entirely.
-AFFILIATE_PRICES_ENABLED = False
+# Temporarily disabled; the Amazon price request times out.
+AMAZON_PRICE_FETCH_ENABLED = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -535,10 +534,10 @@ class AffiliateLinksPartial:
     ) -> dict:
         bwb_metadata = None
         amz_metadata = None
-        should_fetch_prices = AFFILIATE_PRICES_ENABLED and prices and not is_bot()
+        should_fetch_prices = prices and not is_bot()
         if should_fetch_prices and isbn:
             bwb_metadata = await get_betterworldbooks_metadata(isbn)
-            if not bwb_metadata or not bwb_metadata.get("market_price"):
+            if AMAZON_PRICE_FETCH_ENABLED and (not bwb_metadata or not bwb_metadata.get("market_price")):
                 amz_metadata = await get_amazon_metadata_async(isbn, resources="prices")
 
         if bwb_metadata and "error" in bwb_metadata:
@@ -558,7 +557,7 @@ def render_affiliate_links(title: str, isbn: str | None, asin: str | None, price
     """Render the Buy popover's store rows with the page. When prices apply,
     the section carries a price lookup that affiliate-links.js fills in later."""
     ctx = AffiliateStoreBuildContext(title, isbn, asin, None, None)
-    price_lookup = {"title": title, "isbn": isbn, "asin": asin or ""} if AFFILIATE_PRICES_ENABLED and prices and isbn else None
+    price_lookup = {"title": title, "isbn": isbn, "asin": asin or ""} if prices and isbn else None
     return _render_affiliate_links(ctx, price_lookup)
 
 
