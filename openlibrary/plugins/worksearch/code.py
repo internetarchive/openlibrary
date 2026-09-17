@@ -318,12 +318,19 @@ execute_solr_query = async_bridge.wrap(execute_solr_query_async)
 
 
 @public
-def get_remembered_layout(layout: str | None = None, cookie: str | None = None) -> str:
-    if layout is not None:
-        return layout
+def get_remembered_layout():
+    def read_query_string():
+        return web.input(layout=None).get("layout")
 
-    if cookie is not None:
-        return cookie
+    def read_cookie():
+        if "LBL" in web.ctx.env.get("HTTP_COOKIE", ""):
+            return web.cookies().get("LBL")
+
+    if (qs_value := read_query_string()) is not None:
+        return qs_value
+
+    if (cookie_value := read_cookie()) is not None:
+        return cookie_value
 
     return "details"
 
