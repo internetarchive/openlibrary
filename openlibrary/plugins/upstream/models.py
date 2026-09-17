@@ -693,7 +693,6 @@ class Work(models.Work):
         ebooks_only: bool = False,
         limit: int | None = None,
         keys: list[str] | None = None,
-        provider_pref: str | None = None,
     ) -> list[Edition]:
         """
         Get this work's editions sorted by publication year
@@ -711,7 +710,7 @@ class Work(models.Work):
                 # to determine which providers this book has
                 # We only make additional queries when a
                 # trusted book provider identifier is present
-                for provider in get_book_providers(self._solr_data, provider_pref=provider_pref):
+                for provider in get_book_providers(self._solr_data):
                     query = {**db_query, **provider.editions_query}
                     edition_keys += web.ctx.site.things(query)
             else:

@@ -141,6 +141,5 @@ class SearchScheme:
         self,
         solr_fields: set[str],
         solr_result: dict,
-        provider_pref: str | None = None,
     ) -> None:
         raise NotImplementedError

@@ -469,7 +469,6 @@ def _process_solr_response_and_enrich(
     sort: str | None,
     url: str,
     duration: float,
-    provider_pref: str | None = None,
 ) -> SearchResponse:
     """
     Processes the Solr response, enriches it, and returns a SearchResponse object.
@@ -479,10 +478,7 @@ def _process_solr_response_and_enrich(
     if safeget(lambda: solr_result["response"]["docs"]):
         non_solr_fields = set(fields) & scheme.non_solr_fields
         if non_solr_fields:
-            if provider_pref:
-                scheme.add_non_solr_fields(non_solr_fields, solr_result, provider_pref=provider_pref)
-            else:
-                scheme.add_non_solr_fields(non_solr_fields, solr_result)
+            scheme.add_non_solr_fields(non_solr_fields, solr_result)
 
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
@@ -504,8 +500,6 @@ async def run_solr_query_async(
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = "UNLABELLED",
     solr_internals_params: SolrInternalsParams | None = None,
-    *,
-    provider_pref: str | None = None,
 ) -> SearchResponse:
     """
     Builds and executes a synchronous Solr query.
@@ -540,7 +534,6 @@ async def run_solr_query_async(
         sort,
         url,
         duration,
-        provider_pref=provider_pref,
     )
 
 
@@ -887,7 +880,6 @@ class search(delegate.page):
                 highlight=True,
                 request_label="BOOK_SEARCH",
                 solr_internals_params=solr_internals_params,
-                provider_pref=web_input.get("providerPref"),
             )
         else:
             search_response = SearchResponse(facet_counts=None, sort="", docs=[], num_found=0, solr_select="")
