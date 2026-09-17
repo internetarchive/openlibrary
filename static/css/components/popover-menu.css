@@ -1,7 +1,7 @@
 /**
  * popover-menu.css — a list of link rows slotted into <ol-popover>.
  *
- * Shared by the Read/Borrow and Buy menus. Rows follow the menu-row contract
+ * Used by the Read/Borrow menu. Rows follow the menu-row contract
  * (tokens/control-heights.css): a 4px panel gutter, pill hover fill, muted icon.
  */
 

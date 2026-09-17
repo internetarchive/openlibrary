@@ -35,12 +35,11 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
         $if editions_page:
           <ol-popover class="buy-popover" placement="bottom-center" aria-label="$_('Buy this book')">
-            <button slot="trigger" type="button" class="cta-btn cta-btn--w-icon cta-btn--buy">
-              <svg class="btn-icon cart" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M213-117.21q-21-21.21-21-51T213.21-219q21.21-21 51-21T315-218.79q21 21.21 21 51T314.79-117q-21.21 21-51 21T213-117.21Zm432 0q-21-21.21-21-51T645.21-219q21.21-21 51-21T747-218.79q21 21.21 21 51T746.79-117q-21.21 21-51 21T645-117.21ZM253-696l83 192h301l82-192H253Zm-31-72h570q14 0 20.5 11t1.5 23L702.63-476.14Q694-456 676.5-444T637-432H317l-42 72h493v72H276q-43 0-63.5-36.15-20.5-36.16.5-71.85l52-90-131-306H48v-72h133l41 96Zm114 264h301-301Z"/></svg>
-              <span class="btn-label">$_("Buy")</span>
-              <span class="arrow-down">$:macros.icon("chevron-down", size="sm", extra_class="buy-popover__chevron")</span>
+            <button slot="trigger" type="button" class="ol-button-static buy-popover__trigger">
+              $_("Buy")
+              $:macros.icon("chevron-down", size="sm", extra_class="buy-popover__chevron")
             </button>
-            <div class="buy-options popover-menu">
+            <div class="buy-options">
               $:affiliate_links
             </div>
           </ol-popover>
