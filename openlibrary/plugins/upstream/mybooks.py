@@ -646,11 +646,12 @@ def edition_key_of(doc) -> str | None:
     key = doc.get("key") or ""
     if key.startswith("/books/"):
         return key
-    # Solr hands editions as a list, or as a dict holding `docs`.
+    # Solr hands editions as a list, or as a dict holding `docs`. On a work
+    # Thing it is a lazy backreference query, which is skipped.
     editions = doc.get("editions") or []
     if isinstance(editions, dict):
         editions = editions.get("docs") or []
-    if editions:
+    if isinstance(editions, list | tuple) and editions:
         return editions[0].get("key")
     if logged := doc.get("logged_edition"):
         return logged

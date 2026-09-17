@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import web
 
+from infogami.infobase.client import LazyObject
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.plugins.upstream.mybooks import PatronBooknotes, edition_key_of, reading_state_for, shelf_button_for, work_key_of
 
@@ -55,6 +56,7 @@ class TestEditionKeyOf:
 
     def test_none_without_one(self):
         assert edition_key_of({"key": "/works/OL1W"}) is None
+        assert edition_key_of({"key": "/works/OL1W", "editions": LazyObject(lambda: [Thing("/books/OL2M")])}) is None
         assert edition_key_of(Thing("/works/OL1W")) is None
 
 
