@@ -434,15 +434,16 @@ def _snake_case(value: str | None) -> str | None:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", value).lower() if value else None
 
 
-def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
-    """Build affiliate store data for rendering in AffiliateLinks.html."""
+def build_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
+    """Build affiliate store data, in display order, for rendering in
+    AffiliateLinks.html.jinja."""
 
     bwb_link = f"https://www.betterworldbooks.com/search/results?q={quote_plus(ctx.title)}"
     if ctx.isbn:
         bwb_link = f"https://www.betterworldbooks.com/product/detail/{ctx.isbn}"
 
     bwb, amz = ctx.bwb_metadata, ctx.amz_metadata
-    primary_stores: list[AffiliateStore] = [
+    stores: list[AffiliateStore] = [
         AffiliateStore(
             key="betterworldbooks",
             analytics_key="BetterWorldBooks",
@@ -463,7 +464,7 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
                 offer = AffiliateOffer(price=market_price, amount=float(market_price.lstrip("$")))
             else:
                 offer = _amazon_offer(amz) if amz else None
-            primary_stores.append(
+            stores.append(
                 AffiliateStore(
                     key="amazon",
                     analytics_key="Amazon",
@@ -476,22 +477,17 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
                 )
             )
 
-    return primary_stores
+    if ctx.isbn:
+        stores.append(
+            AffiliateStore(
+                key="bookshop-org",
+                analytics_key="BookshopOrg",
+                name=_("Bookshop.org"),
+                link=f"https://bookshop.org/a/{affiliate_id('bookshop-org')}/{ctx.isbn}",
+            )
+        )
 
-
-def build_more_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
-    """Build list of additional affiliate store data for rendering in AffiliateLinks.html."""
-    if not ctx.isbn:
-        return []
-
-    return [
-        AffiliateStore(
-            key="bookshop-org",
-            analytics_key="BookshopOrg",
-            name=_("Bookshop.org"),
-            link=f"https://bookshop.org/a/{affiliate_id('bookshop-org')}/{ctx.isbn}",
-        ),
-    ]
+    return stores
 
 
 class AffiliateLinksPartial:
@@ -521,7 +517,7 @@ class AffiliateLinksPartial:
 
 def _render_affiliate_links(ctx: AffiliateStoreBuildContext, price_lookup: dict | None = None) -> str:
     template = get_jinja_env().get_template("AffiliateLinks.html.jinja")
-    return template.render(primary_stores=build_primary_stores(ctx), more_stores=build_more_stores(ctx), price_lookup=price_lookup)
+    return template.render(stores=build_stores(ctx), price_lookup=price_lookup)
 
 
 @public
