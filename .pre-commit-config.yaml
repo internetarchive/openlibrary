@@ -106,14 +106,25 @@ repos:
     hooks:
       - id: stylelint
         files: \.css$
-        additional_dependencies:
-          - stylelint@16.22.0
+        additional_dependencies: &stylelint_deps
+          - stylelint@16.26.1
           - stylelint-declaration-strict-value@1.11.1
           - stylelint-prettier@5.0.3
+          - postcss-lit@1.4.1
         # --allow-empty-input: pre-commit passes the staged .css files, and
         # stylelint fails with AllFilesIgnoredError if .stylelintignore excludes
         # all of them (e.g. a commit only touching static/css/tokens/).
         args: [--fix, --allow-empty-input]
+      - id: stylelint
+        name: stylelint (lit)
+        # Same hook, but check-only. postcss-lit can't write Lit files back without
+        # shifting comment indentation, so --fix would rewrite files that had no errors.
+        # Matches all JS so a `css` literal is linted wherever it lands; files
+        # without one parse to an empty stylesheet and report nothing.
+        # Keep the file list in sync with lint:css in package.json.
+        files: ^openlibrary/.*\.js$
+        additional_dependencies: *stylelint_deps
+        args: [--allow-empty-input]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v10.8.0
