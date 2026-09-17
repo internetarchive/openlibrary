@@ -42,11 +42,15 @@
    *   Use for: row gaps, icon-to-label, toolbar items,
    *   pagination buttons, breadcrumb separators
    */
-  --spacing-inline-xs: var(--spacing-3xs);   /*  2px – icon-to-text (e.g. pagination arrows) */
+  --spacing-inline-xs: var(--spacing-3xs);   /*  2px – hairline glyph-to-text (e.g. pagination arrows) */
   --spacing-inline-sm: var(--spacing-2xs);   /*  4px – related controls (e.g. search bar elements) */
   --spacing-inline-md: var(--spacing-sm);    /*  8px – default inline gap (e.g. toolbar actions) */
   --spacing-inline-lg: var(--spacing-md);    /* 12px – between cards (e.g. carousel book covers) */
   --spacing-inline-xl: var(--spacing-lg);    /* 16px – between content groups (e.g. nav sections) */
+
+  /* One gap between an icon and the label it sits beside, so a button, a
+     menu row and a split button all read as the same control family. */
+  --spacing-icon-gap: var(--spacing-sm);     /*  8px – icon-to-label (e.g. buttons, menu rows) */
 
   /* ---- Stack: vertical gaps between sibling elements ----
    *
