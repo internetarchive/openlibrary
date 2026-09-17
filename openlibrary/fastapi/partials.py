@@ -114,6 +114,7 @@ async def fulltext_search_suggestion_partial(
     response: Response,
     data: Annotated[str, Query(description="Search query string")],
     exclude: Annotated[str, Query(description="Comma-separated IA identifiers already shown on the page; their hits are skipped")] = "",
+    provider_pref: Annotated[str | None, Query(alias="providerPref", description="Provider preference order")] = None,
 ) -> dict:
     """
     Get full-text search suggestions HTML.

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
@@ -374,12 +375,64 @@ class AffiliateStoreBuildContext:
 
 
 @dataclass(frozen=True, slots=True)
+class AffiliateOffer:
+    """One way to buy the book at a store, e.g. used copies from $4.28."""
+
+    price: str
+    amount: float
+    condition: str | None = None  # "new", "used", "collectible" or "refurbished"; None when unstated
+    sub_condition: str | None = None  # "like_new", "very_good", "good" or "acceptable"
+    quantity: int | None = None
+    list_price: str | None = None  # the pre-discount price, struck through
+    savings_pct: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class AffiliateStore:
     key: str
     analytics_key: str
     name: str
     link: str
-    price: str | None = None
+    offers: tuple[AffiliateOffer, ...] = ()
+    # The store's own words, shown as given: stock/shipping text, seller, deal label
+    availability: str | None = None
+    seller: str | None = None
+    deal: str | None = None
+    out_of_stock: bool = False
+
+    @property
+    def lowest_offer(self) -> AffiliateOffer | None:
+        return min(self.offers, key=lambda offer: offer.amount, default=None)
+
+
+def _bwb_offers(bwb: BetterWorldBooksMetadata) -> tuple[AffiliateOffer, ...]:
+    offers = []
+    for condition, price, quantity in (("new", bwb.get("new_price"), bwb.get("new_qty")), ("used", bwb.get("used_price"), bwb.get("used_qty"))):
+        if price and quantity != 0:
+            offers.append(AffiliateOffer(price=f"${price}", amount=float(price), condition=condition, quantity=quantity))
+    if not offers and (price := bwb.get("price_amt")):
+        # Cached metadata from before per-condition prices were recorded
+        offers.append(AffiliateOffer(price=f"${price}", amount=float(price), condition=bwb.get("qlt")))
+    return tuple(offers)
+
+
+def _amazon_offer(amz: dict) -> AffiliateOffer | None:
+    if not (price := amz.get("price")) or not (cents := amz.get("price_amt")):
+        return None
+    savings_pct = amz.get("price_savings_pct")
+    return AffiliateOffer(
+        price=price,
+        amount=cents / 100,
+        condition=(amz.get("condition") or "").lower() or None,
+        sub_condition=_snake_case(amz.get("sub_condition")),
+        list_price=amz.get("list_price"),
+        savings_pct=round(savings_pct) if savings_pct else None,
+    )
+
+
+def _snake_case(value: str | None) -> str | None:
+    """Amazon's "LikeNew" -> "like_new"."""
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", value).lower() if value else None
 
 
 def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
@@ -389,30 +442,38 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
     if ctx.isbn:
         bwb_link = f"https://www.betterworldbooks.com/product/detail/{ctx.isbn}"
 
-    bwb_market_price = ctx.bwb_metadata.get("market_price") if ctx.bwb_metadata else None
-    bwb_price_amt = ctx.bwb_metadata.get("price_amt") if ctx.bwb_metadata else None
-    amz_price = ctx.amz_metadata.get("price") if ctx.amz_metadata else None
-
+    bwb, amz = ctx.bwb_metadata, ctx.amz_metadata
     primary_stores: list[AffiliateStore] = [
         AffiliateStore(
             key="betterworldbooks",
             analytics_key="BetterWorldBooks",
             name=_("Better World Books"),
             link=bwb_link,
-            price=f"${bwb_price_amt}" if bwb_price_amt else None,
+            offers=_bwb_offers(bwb) if bwb else (),
+            # Only an explicit zero on both counts; a missing listing says nothing about stock
+            out_of_stock=bwb is not None and bwb.get("new_qty") == 0 and bwb.get("used_qty") == 0,
         )
     ]
 
     if ctx.asin or ctx.isbn:
         amazon_link = amazon_affiliate_url(ctx.isbn, ctx.asin, affiliate_id("amazon"))
         if amazon_link:
+            # BWB's lookup includes Amazon's lowest market price, so prefer it over a second request
+            offer: AffiliateOffer | None
+            if market_price := bwb.get("market_price") if bwb else None:
+                offer = AffiliateOffer(price=market_price, amount=float(market_price.lstrip("$")))
+            else:
+                offer = _amazon_offer(amz) if amz else None
             primary_stores.append(
                 AffiliateStore(
                     key="amazon",
                     analytics_key="Amazon",
                     name=_("Amazon"),
                     link=amazon_link,
-                    price=bwb_market_price or amz_price,
+                    offers=(offer,) if offer else (),
+                    availability=amz.get("availability_message") if amz else None,
+                    seller=amz.get("merchant") if amz else None,
+                    deal=amz.get("deal_badge") if amz else None,
                 )
             )
 

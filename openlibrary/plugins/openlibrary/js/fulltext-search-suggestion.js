@@ -20,6 +20,10 @@ function showLoadingIndicators(fulltextSearchSuggestion) {
 async function getPartials(fulltextSearchSuggestion, query, exclude = '') {
     const params = {data: query};
     if (exclude) params.exclude = exclude;
+    const providerPref = new URLSearchParams(window.location.search).get('providerPref');
+    if (providerPref) {
+        params.providerPref = providerPref;
+    }
     return fetch(buildPartialsUrl('FulltextSearchSuggestion', params))
         .then((resp) => {
             if (resp.status !== 200) {
