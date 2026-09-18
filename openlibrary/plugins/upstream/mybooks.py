@@ -164,6 +164,8 @@ class mybooks_home(delegate.page):
                         merged_books[work_key] = (work, timestamp, False)
                     else:
                         _, existing_ts, existing_active = merged_books[work_key]
+                        if existing_active:
+                            continue
                         if timestamp > existing_ts:
                             merged_books[work_key] = (work, timestamp, existing_active)
             except Exception:
@@ -177,8 +179,7 @@ class mybooks_home(delegate.page):
     def render_template(self, mb: MyBooksTemplate) -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
 
-        docs: dict[str, Any] = {"loans": [], "want-to-read": [], "currently-reading": [], "already-read": [], "stopped-reading": []}
-
+        docs: dict[str, Any] = {"want-to-read": [], "currently-reading": [], "already-read": [], "stopped-reading": []}
         if cont := self._get_continue_reading_storage(mb):
             docs["loans"] = cont
             docs["continuereading"] = cont
