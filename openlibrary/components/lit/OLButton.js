@@ -167,8 +167,10 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             white-space: nowrap;
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
-            background-color: var(--white);
+            background-color: var(--color-control-bg);
             color: var(--color-text);
+            /* Keep --control-surface on the fill so the specular edge tones to it. */
+            --control-surface: var(--color-control-bg);
             /* Strength of the specular top edge. Full on light fills (secondary); the
                dark-filled variants (primary/destructive) dial it down — see below. */
             --control-highlight-strength: 35%;
@@ -263,9 +265,10 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* Secondary is the default (already set above). Explicit selector for clarity. */
         :host([variant="secondary"]) .control {
-            background-color: var(--white);
+            background-color: var(--color-control-bg);
             border-color: var(--color-border-subtle);
             color: var(--color-text);
+            --control-surface: var(--color-control-bg);
         }
 
         /* Destructive — solid red fill, mirroring primary but in the danger hue. */

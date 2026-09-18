@@ -65,7 +65,7 @@ import './OlIcon.js';
  * @slot - Carousel items. Each direct child becomes one card; the component controls its width.
  *
  * @cssprop [--ol-carousel-arrow-color=var(--neutral-700)] - Colour of the arrow glyphs
- * @cssprop [--ol-carousel-arrow-icon-bg=var(--color-surface)] - Background of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-icon-bg=var(--color-control-bg)] - Background of the round arrow buttons
  * @cssprop [--ol-carousel-arrow-icon-border=var(--color-border-subtle)] - Border of the round arrow buttons
  * @cssprop [--ol-carousel-arrow-icon-size=36px] - Diameter of the round arrow buttons
  * @cssprop [--ol-carousel-indicator-color=var(--neutral-300)] - Colour of the inactive page indicators
@@ -109,7 +109,7 @@ export class OlCarousel extends LitElement {
                edge fades' and arrows' z-index compete with the whole page. */
             isolation: isolate;
             --_arrow-color: var(--ol-carousel-arrow-color, var(--neutral-700));
-            --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, var(--color-surface));
+            --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, var(--color-control-bg));
             --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, var(--color-border-subtle));
             --_arrow-icon-size: var(--ol-carousel-arrow-icon-size, 36px);
             --_indicator-color: var(--ol-carousel-indicator-color, var(--neutral-300));

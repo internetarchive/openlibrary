@@ -60,10 +60,10 @@ export class OLChip extends FocusableHostMixin(LitElement) {
 
             /* Color slots. Default = idle, unselected neutral chip; overridden
                below by [selected] and by each domain [variant]. */
-            --_chip-bg: var(--white);
+            --_chip-bg: var(--color-control-bg);
             --_chip-fg: var(--dark-grey);
             --_chip-border: var(--color-border-subtle);
-            --_chip-bg-hover: var(--lightest-grey);
+            --_chip-bg-hover: var(--color-control-hover);
             /* Border darkens in step with the fill on hover, matching
                ol-button[variant="secondary"]. Derived from the resting border
                so every variant tracks its own color: a ~8% mix toward black

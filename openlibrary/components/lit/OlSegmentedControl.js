@@ -106,7 +106,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             height: var(--control-height-medium);
             padding: var(--spacing-3xs);
             border-radius: var(--border-radius-button);
-            background-color: var(--lightest-grey);
+            background-color: var(--color-control-track);
         }
 
         :host([full-width]) .track {
@@ -168,9 +168,14 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             left: var(--spacing-3xs);
             /* width + translateX are set directly by _measure() (see above). */
             width: 0;
+            /* Border, fill and lift are ol-button[variant="secondary"]'s, so the
+               selected segment reads as the same control as the buttons beside
+               it. The track stays a step lighter than this border, so the pill
+               keeps a visible outline against it. */
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--pill-radius);
-            background-color: var(--white);
+            background-color: var(--color-control-bg);
+            --control-surface: var(--color-control-bg);
             box-shadow:
                 var(--box-shadow-raised),
                 inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
