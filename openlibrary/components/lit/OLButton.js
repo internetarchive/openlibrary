@@ -22,7 +22,11 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  * Links: set `href` and it renders an <a> instead, styled identically, so a
  * button-shaped navigation CTA ("Read", "Borrow") needs no separate recipe.
  * `disabled` on a link drops the href and sets aria-disabled. `loading` keeps
- * it, so a spinner set from the link's own click can't cancel the navigation.
+ * the href — consumers set it from the link's own click to show a spinner
+ * during navigation, and dropping it there would cancel the very navigation
+ * being spun for (the browser reads the href *after* listeners run, and it
+ * drains microtasks — a Lit re-render — between listeners of a user event).
+ * Re-activation while loading is blocked in the click listener instead.
  *
  * Forms: `type="submit"` / `type="reset"` behave like a native button. The
  * shadow-rendered control can't be a form's submit button (it has no form
@@ -271,11 +275,11 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* Destructive — solid red fill, mirroring primary but in the danger hue. */
         :host([variant="destructive"]) .control {
-            background-color: var(--red);
+            background-color: var(--color-destructive);
             border-color: var(--color-border-error);
             color: var(--white);
             /* Tone the specular highlight to the red fill and soften it, matching primary. */
-            --control-surface: var(--red);
+            --control-surface: var(--color-destructive);
             --control-highlight-strength: 18%;
         }
 
@@ -341,7 +345,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* Focus ring — delegatesFocus lands focus on the inner control. */
         .control:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: var(--spacing-3xs);
         }
 
@@ -372,9 +376,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             justify-content: center;
             gap: var(--spacing-2xs);
             transition:
-                opacity 0.24s ease,
-                transform 0.24s ease,
-                filter 0.24s ease;
+                opacity var(--duration-base) var(--ease-state),
+                transform var(--duration-base) var(--ease-state),
+                filter var(--duration-base) var(--ease-state);
         }
 
         /* Slotted icons take the size's icon dimension regardless of the SVG's own
@@ -415,9 +419,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             filter: blur(3px);
             pointer-events: none;
             transition:
-                opacity 0.24s ease,
-                transform 0.24s ease,
-                filter 0.24s ease;
+                opacity var(--duration-base) var(--ease-state),
+                transform var(--duration-base) var(--ease-state),
+                filter var(--duration-base) var(--ease-state);
         }
 
         .spinner::before {
@@ -438,7 +442,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         :host([loading]) .spinner::before {
-            animation: ol-button-spin 0.7s linear infinite;
+            animation: ol-button-spin var(--duration-spin) linear infinite;
         }
 
         @keyframes ol-button-spin {
@@ -471,7 +475,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             margin-left: calc(var(--spacing-2xs) * -1);
             margin-right: calc(var(--spacing-2xs) * -1);
             background: currentcolor;
-            transition: transform 150ms ease-out;
+            transition: transform var(--duration-fast) var(--ease-enter);
             -webkit-mask: var(--chevron) center / 16px no-repeat;
             mask: var(--chevron) center / 16px no-repeat;
         }
@@ -594,8 +598,10 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
      * Implicit submission (Enter in a text field) never comes through here —
      * the browser clicks the proxy directly.
      *
-     * Also on the link control, where it blocks keyboard re-activation while
-     * loading (a loading link keeps its href).
+     * Also attached to the link control: the loading/disabled guard is what
+     * blocks (keyboard) activation while loading, since a loading link keeps
+     * its href (see render). The click that *starts* loading passes through —
+     * `loading` is still false when this inner listener runs.
      *
      * @param {MouseEvent} e
      * @returns {void}
@@ -648,8 +654,12 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         if (this.href !== undefined && this.href !== null) {
             // A link can't be disabled natively: drop the href (no navigation,
-            // no tab stop) and say so via aria-disabled. `loading` keeps the
-            // href (see class doc); the host's pointer-events: none blocks clicks.
+            // no tab stop) and say so via aria-disabled. Only `disabled` drops
+            // it — `loading` must keep the href, or setting loading from the
+            // link's own click re-renders the href away before the browser's
+            // follow-the-hyperlink reads it, cancelling the navigation the
+            // spinner is for. While loading, _onControlClick blocks keyboard
+            // re-activation; the host's pointer-events: none blocks the mouse.
             return html`
                 <a
                     class="control"

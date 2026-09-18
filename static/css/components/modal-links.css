@@ -14,7 +14,6 @@
   cursor: pointer;
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   border-radius: 4px;
-  transition: background-color 0.2s;
   padding-bottom: var(--spacing-inset-sm);
 }
 
