@@ -165,7 +165,7 @@ export async function postAction(action, fields = {}, method = 'POST') {
         body: JSON.stringify(fields)
     });
     if (!response.ok) {
-        throw new Error(`${action} failed:${response.status}`);
+        throw new Error(`${action} failed: ${response.status}`);
     }
     return response.json();
 }
