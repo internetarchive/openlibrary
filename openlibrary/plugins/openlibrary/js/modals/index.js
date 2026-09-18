@@ -6,22 +6,82 @@ import '../../../../../static/css/components/metadata-form.css';
 
 
 /**
- * Initializes share modal.
+ * Initializes share popovers (replaces the old colorbox Share modal).
+ *
+ * The markup is an <ol-popover> per trigger (see macros/ShareModal.html).
+ * Colorbox is not used here; Notes/Observations still use it below.
+ *
+ * @param {JQuery} $modalLinks  Share trigger links (`.share-modal-link`);
+ *     kept for call-site compatibility with main.js. Listeners are delegated
+ *     from document so multiple Share triggers on one page all work.
  */
 export function initShareModal($modalLinks) {
-    addClickListeners($modalLinks, '400px');
-    addShareModalButtonListeners();
+    // $modalLinks signals that at least one Share control is on the page.
+    if ($modalLinks && $modalLinks.length) {
+        addSharePopoverListeners();
+    }
 }
+
 /**
- * Adds click listeners to buttons in all notes modals on a page.
+ * Delegated click handlers for Copy URL and Embed inside share popovers.
+ *
+ * Toast feedback uses the design-system <ol-toast> path documented as the
+ * plain-DOM equivalent of showToast() in OlToastRegion.js (main.js and the
+ * Lit components bundle are separate Vite entries, so we cannot import the
+ * helper without pulling Lit into the page JS bundle).
  */
-function addShareModalButtonListeners(){
-    $('#social-modal-content .copy-url-btn').on('click', function(event){
-        event.preventDefault();
-        navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard');
-        $.colorbox.close();
+function addSharePopoverListeners() {
+    if (document.body.dataset.sharePopoverBound) {
+        return;
+    }
+    document.body.dataset.sharePopoverBound = '1';
+
+    document.addEventListener('click', function(event) {
+        const copyBtn = event.target.closest?.('.share-popover .copy-url-btn');
+        if (copyBtn) {
+            event.preventDefault();
+            navigator.clipboard.writeText(window.location.href);
+            const message = copyBtn.getAttribute('data-copy-toast') || 'URL copied to clipboard';
+            showDesignSystemToast(message);
+            closeSharePopover(copyBtn);
+            return;
+        }
+
+        const embedBtn = event.target.closest?.('.share-popover .embed-work-btn');
+        if (embedBtn) {
+            event.preventDefault();
+            const code = embedBtn.getAttribute('data-embed-code') || '';
+            prompt('Copy embed code to clipboard:', code);
+            closeSharePopover(embedBtn);
+        }
     });
+}
+
+/**
+ * Closes the enclosing <ol-popover>, if any.
+ * @param {Element} el
+ */
+function closeSharePopover(el) {
+    const popover = el.closest('ol-popover');
+    if (popover) {
+        popover.open = false;
+    }
+}
+
+/**
+ * Show a design-system toast without importing the Lit components bundle.
+ * Mirrors showToast() in openlibrary/components/lit/OlToastRegion.js.
+ * @param {String} message Already-translated message text
+ */
+function showDesignSystemToast(message) {
+    let region = document.querySelector('ol-toast-region');
+    if (!region) {
+        region = document.createElement('ol-toast-region');
+        document.body.appendChild(region);
+    }
+    const toast = document.createElement('ol-toast');
+    toast.setAttribute('message', message);
+    region.appendChild(toast);
 }
 
 /**
