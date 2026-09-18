@@ -28,17 +28,9 @@ log_recent_bot_traffic() {
         echo $graphite_event | nc -q0 graphite.us.archive.org 2003
     done <<< "$BOT_TRAFFIC_COUNTS"
 
-    # Also log other bots as a single metric
-    OTHER_BOTS_COUNT=$(
-        obfi_in_docker obfi_previous_minute | \
-        grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
-        obfi_grep_bots -v | \
-        wc -l
-    )
-
-    graphite_event="$BUCKET.other $OTHER_BOTS_COUNT $(date +%s)"
-    echo $graphite_event
-    echo $graphite_event | nc -q0 graphite.us.archive.org 2003
+    # Bots that aren't in obfi_grep_bots' list are handled by monitor.py, which
+    # promotes the high-volume ones to their own series and sums the rest into
+    # `$BUCKET.other`. See list_unknown_bot_counts below.
 
     # And finally, also log non bot traffic
     NON_BOT_TRAFFIC_COUNT=$(
@@ -53,6 +45,30 @@ log_recent_bot_traffic() {
     echo $graphite_event | nc -q0 graphite.us.archive.org 2003
 }
 export -f log_recent_bot_traffic
+
+list_unknown_bot_counts() {
+    # Per-agent counts for traffic that self-identifies as a bot but is not in
+    # obfi_grep_bots' hardcoded list. Prints to stdout rather than submitting to
+    # graphite: monitor.py decides which of these names are high-volume enough
+    # to get their own series, and sums the remainder into `other`.
+
+    # Normalization matches obfi_top_bots, so a promoted name looks the same as
+    # a built-in one. Like obfi_top_bots this counts occurrences rather than
+    # lines, so a log entry naming the same bot twice counts twice.
+    obfi_in_docker obfi_previous_minute | \
+        grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
+        obfi_grep_bots -v | \
+        grep -oiE '\b[a-z_-]+(bot|spider|crawler)' | \
+        tr '[:upper:]' '[:lower:]' | \
+        sed 's/[^[:alnum:]\n]/_/g' | \
+        sort | uniq -c | sort -rn
+
+    # Output like this:
+    #     412 semrushbot
+    #     118 dataforseobot
+    #       3 somerandomcrawler
+}
+export -f list_unknown_bot_counts
 
 log_recent_http_statuses() {
     BUCKET="$1"

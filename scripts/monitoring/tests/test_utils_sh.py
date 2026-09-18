@@ -58,13 +58,42 @@ def test_log_recent_bot_traffic():
 
         with open(nc_fp.name) as f:
             # FIXME: eg gptbot is counted twice since it appears twice in each log entry
+            # `other` is no longer emitted here; monitor.py submits it alongside the
+            # unknown bots it promotes. See test_list_unknown_bot_counts.
             expected_output = """
 stats.ol-covers0.bot_traffic.gptbot 2 1741054377
 stats.ol-covers0.bot_traffic.meta_externalagent 1 1741054377
-stats.ol-covers0.bot_traffic.other 0 1741054377
 stats.ol-covers0.bot_traffic.non_bot 5 1741054377
             """.strip()
             assert f.read().strip() == expected_output
+
+
+def test_list_unknown_bot_counts():
+    with tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as aliases_fp:
+        aliases_fp.write("""
+                obfi_in_docker() {
+                    cat scripts/monitoring/tests/sample_unknown_bots_nginx_logs.log
+                }
+                export -f obfi_in_docker
+            """)
+        aliases_fp.close()
+
+        output = bash_run(
+            "list_unknown_bot_counts",
+            sources=["../obfi.sh", aliases_fp.name, "utils.sh"],
+            capture_output=True,
+        ).stdout
+
+        # GPTBot is in obfi_grep_bots' list so it is counted as its own series by
+        # log_recent_bot_traffic, and the plain browser UA is not a bot at all;
+        # neither should show up here. Hyphens are normalized to underscores, as
+        # obfi_top_bots does for the built-in names.
+        counts = [line.split() for line in output.strip().split("\n")]
+        assert counts == [
+            ["3", "somerandomcrawler"],
+            ["2", "evilspider"],
+            ["1", "data_harvester_bot"],
+        ]
 
 
 def test_log_recent_http_statuses():

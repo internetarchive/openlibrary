@@ -1,0 +1,8 @@
+0.10.10.131 covers.openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /b/id/6717440-M.jpg HTTP/2.0" 200 3484 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2)" 0.047
+0.11.11.11 covers.openlibrary.org - [04/Mar/2025:02:06:05 +0000] "GET /b/id/1111111-M.jpg HTTP/2.0" 200 100 "-" "SomeRandomCrawler/1.0 (contact: someone@example.com)" 0.011
+0.11.11.11 covers.openlibrary.org - [04/Mar/2025:02:06:06 +0000] "GET /b/id/2222222-M.jpg HTTP/2.0" 200 100 "-" "SomeRandomCrawler/1.0 (contact: someone@example.com)" 0.012
+0.11.11.11 covers.openlibrary.org - [04/Mar/2025:02:06:07 +0000] "GET /b/id/3333333-M.jpg HTTP/2.0" 200 100 "-" "SomeRandomCrawler/1.0 (contact: someone@example.com)" 0.013
+0.12.12.12 covers.openlibrary.org - [04/Mar/2025:02:06:08 +0000] "GET /b/id/4444444-M.jpg HTTP/2.0" 200 100 "-" "evilspider/2.0" 0.014
+0.12.12.12 covers.openlibrary.org - [04/Mar/2025:02:06:09 +0000] "GET /b/id/5555555-M.jpg HTTP/2.0" 200 100 "-" "evilspider/2.0" 0.015
+0.13.13.13 covers.openlibrary.org - [04/Mar/2025:02:06:10 +0000] "GET /b/id/6666666-M.jpg HTTP/2.0" 200 100 "-" "data-harvester-bot/1.0" 0.016
+0.14.14.14 covers.openlibrary.org - [04/Mar/2025:02:06:11 +0000] "GET /b/id/7777777-M.jpg HTTP/2.0" 302 9 "https://openlibrary.org/" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36" 0.005
