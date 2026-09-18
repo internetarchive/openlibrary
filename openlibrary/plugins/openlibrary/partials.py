@@ -193,6 +193,7 @@ class CarouselCardData(TypedDict):
     expiry_utc: str
     expiry_display: str
     is_bookreader: bool
+    is_read_history: NotRequired[bool]
     waitlist_size: int
     key: str
     lazy: bool
@@ -240,6 +241,7 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "expiry_utc": expiry_utc,
         "expiry_display": expiry_display,
         "is_bookreader": bool(loan and loan.get("resource_type") == "bookreader"),
+        "is_read_history": bool(getattr(book, "is_read_history", False) or (isinstance(book, dict) and book.get("is_read_history"))),
         "waitlist_size": waitlist_size,
         "key": key,
         "lazy": lazy,
@@ -961,11 +963,26 @@ def _carousel_card_book(book: Any) -> Any:
     """
     editions = book.get("editions") or {}
     docs = editions.get("docs") if isinstance(editions, dict) else editions
-    target = docs[0] if isinstance(docs, list) and docs else book
+    target = None
+    logged_edition = getattr(book, "logged_edition", None) or (book.get("logged_edition") if isinstance(book, dict) else None)
+    if logged_edition and isinstance(docs, list):
+        for d in docs:
+            d_key = getattr(d, "key", None) or (d.get("key") if isinstance(d, dict) else None)
+            if d_key == logged_edition:
+                target = d
+                break
+    if not target:
+        target = docs[0] if isinstance(docs, list) and docs else book
+
     card_book = target if hasattr(target, "key") else web.storage(target)
     card_book["authors"] = book.get("authors", [])
     if loan := book.get("loan"):
         card_book["loan"] = loan
+    if getattr(book, "is_read_history", False) or (isinstance(book, dict) and book.get("is_read_history")):
+        if hasattr(card_book, "is_read_history"):
+            card_book.is_read_history = True
+        else:
+            card_book["is_read_history"] = True
     return card_book
 
 

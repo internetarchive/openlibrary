@@ -55,6 +55,21 @@
   box-sizing: border-box;
 }
 
+.carousel .book,
+.carousel .carousel__item {
+  flex: 0 0 140px;
+  width: 140px;
+  max-width: 140px;
+  box-sizing: border-box;
+}
+
+.carousel--compact .book,
+.carousel--compact .carousel__item {
+  flex: 0 0 120px;
+  width: 120px;
+  max-width: 120px;
+}
+
 /* :focus state for when selected */
 /* e.g. "pick one of existing covers" on change cover. */
 /* Is .selected redundant? */
