@@ -81,6 +81,15 @@ ol-drawer:not(:defined) {
   display: none;
 }
 
+/* Same for ol-dialog, and load-bearing: until Lit upgrades it the slotted body
+   is ordinary page markup, so an `autofocus` field in there is a document-level
+   candidate — the browser focuses it at first paint and scrolls the page to a
+   dialog that is about to be hidden. The upgraded component reads [autofocus]
+   itself when it opens. */
+ol-dialog:not(:defined) {
+  display: none;
+}
+
 /* Before ol-carousel upgrades, its items would stack as full-width blocks —
    a tall flash and a large layout shift. Lay out one clipped row instead,
    with item widths approximating the measured layout: (1 - 2 * peek) / cols
