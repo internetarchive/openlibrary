@@ -321,7 +321,7 @@ Components that call `getBoundingClientRect()` for *relative* measurement (`ol-s
 For a dialog that collects input, the shape the notes dialog uses (`macros/NotesModalDialog.html` + `js/modals/index.js`) is the one to copy:
 
 - **Render the dialog once per page, behind `render_once`, even when the trigger repeats.** `databarWork` renders the sidebar twice (desktop and mobile), so the trigger link exists twice while `.js-notes-modal` exists once and every link opens the same element. Note that `render_once` only suppresses *output* — any lookup above the guard still runs on every call, so do the query in the caller and pass the result in.
-- **Put `autofocus` on the field the reader came to use.** `ol-dialog` gives `[autofocus]` top priority when it opens; its fallback is "first focusable in the body", which is easy to lose to a slotted control or to content that isn't focusable yet at open time. A dialog whose sole purpose is a textarea should not open with focus on the header's close button.
+- **Put `autofocus` on the field the reader came to use.** `ol-dialog` gives `[autofocus]` top priority when it opens; its fallback is "first focusable in the body", which is easy to lose to a slotted control or to content that isn't focusable yet at open time. A dialog whose sole purpose is a textarea should not open with focus on the header's close button. On a phone this places the caret without raising the keyboard — see [Autofocus and the mobile keyboard](#autofocus-and-the-mobile-keyboard).
 - **Slotted content needs a pre-upgrade rule in `ol-components.css`, and `autofocus` is why it is not optional.** Until Lit upgrades the host, everything slotted into it is ordinary markup in the page: it renders, it takes layout space, and it is focusable. `autofocus` is processed per *document* at the first render, so an un-upgraded dialog holding an `[autofocus]` field gets that field focused — and scrolled into view — leaving the reader part-way down a page with nothing to see there once the component upgrades and hides it. Whether it happens depends on whether first paint beats the deferred bundle, which is why it shows up on long pages and not short ones. `ol-dialog`, `ol-drawer`, and `ol-popover` are each hidden with `:not(:defined)`; a new component that slots light-DOM content needs the same.
 - **The dialog must not sit inside a `display: none` ancestor.** `showModal()` on a hidden `<dialog>` opens an invisible dialog that still makes the rest of the page inert — the page looks frozen with nothing on screen to dismiss. Keep the element outside containers that are hidden at some breakpoint (`.modal-links` is `display: none` on mobile).
 - **Keep the footer buttons in `slot="footer"`** and let the dialog own the padding (`--ol-dialog-padding`) rather than adding margins to the form inside it.
@@ -480,21 +480,27 @@ html`<div role="radiogroup" aria-label=${label}>
 
 Related: whitespace inside `<ul>` template literals creates real text nodes that accesslint flags as direct text content inside a list. Keep `<li>` flush against the opening `<ul>` tag — no leading newline.
 
-## Autofocus on mobile
+## Autofocus and the mobile keyboard
 
-Don't auto-focus a text input when a component opens on a mobile breakpoint — the soft keyboard pops up and shrinks the visible panel area to nothing. Gate the focus call:
+A soft keyboard only appears when focus lands **inside the user gesture that opened the surface**. That is the condition to reason about — not the breakpoint on its own:
 
-```js
-_onPopoverOpen() {
-    if (!window.matchMedia('(max-width: 767px)').matches) {
-        this.shadowRoot.querySelector('.filter-input')?.focus();
-    }
-}
-```
+- **Focus synchronously, off the trigger's own handler → the keyboard opens**, and it eats the panel the reader is looking at. `ol-select-popover` is this case: the filter input is focused as the popover opens, and on a phone the keyboard would swallow the list being filtered. So it gates the call:
 
-767px matches the breakpoint that `ol-popover` uses to switch into its mobile tray layout — stay consistent with that so behavior matches what the user sees.
+  ```js
+  _onPopoverOpen() {
+      if (!window.matchMedia('(max-width: 767px)').matches) {
+          this.shadowRoot.querySelector('.filter-input')?.focus();
+      }
+  }
+  ```
 
-(Inputs in this component should also use `font-size: 16px` to prevent iOS Safari's auto-zoom on focus — see [design.md](design.md#mobile).)
+  767px matches the breakpoint `ol-popover` uses to switch into its mobile tray layout — stay consistent with that so behavior matches what the reader sees.
+
+- **Focus a tick later → it does not.** `ol-dialog` focuses in a `requestAnimationFrame` after `showModal()`, two hops past the tap (Lit's update microtask, then the frame), so the transient activation is spent: `activeElement`, the caret, and the focus ring all land on the field while the keyboard stays down until the reader taps it. iOS Safari is the strict case; Chrome Android applies the same activation policy. **So a dialog needs no breakpoint gate** — the notes dialog opens fully visible, footer included, with the textarea already focused. Don't add one on the assumption that `[autofocus]` pops the keyboard.
+
+The corollary: whether a surface focuses synchronously or in a frame is observable behavior on mobile, not an implementation detail. `ol-drawer` focuses synchronously (so rAF being paused in a hidden or occluded tab can't strand focus); `ol-dialog` uses a frame. Changing either one changes whether the keyboard comes up on open, so change it deliberately.
+
+(Text-entry controls in the component should also use `font-size: 16px` to prevent iOS Safari's auto-zoom on focus — see [design.md](design.md#mobile).)
 
 ## Testing
 
