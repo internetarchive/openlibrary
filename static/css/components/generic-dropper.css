@@ -113,6 +113,9 @@
   align-items: stretch;
 }
 
+/* The caret is the other half of one control, so it carries the button's border,
+   raised shadow and specular edge (see .cta-btn--available in buttonCta.css) —
+   without them the two halves catch the light differently and the split shows. */
 .cta-dropper__menu > .cta-dropper__toggle {
   display: flex;
   align-items: center;
@@ -121,20 +124,33 @@
   width: 32px;
   margin: 0 0 0 1px;
   padding: 0;
-  border: 0;
+  border: 1px solid var(--grey);
   border-radius: 0 var(--border-radius-button) var(--border-radius-button) 0;
   background-color: var(--grey);
   color: var(--white);
+  --control-surface: var(--grey);
+  --control-highlight-strength: 18%;
+  box-shadow:
+    var(--box-shadow-raised),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
 .cta-dropper__menu > .cta-dropper__toggle--primary {
+  border-color: var(--color-primary);
   background-color: var(--color-primary);
+  --control-surface: var(--color-primary);
 }
 
-.cta-dropper__menu > .cta-dropper__toggle--primary:hover {
-  background-color: hsl(211, 92%, 17%);
+@media (hover: hover) and (pointer: fine) {
+  .cta-dropper__menu > .cta-dropper__toggle:hover {
+    filter: brightness(1.1);
+  }
 }
 
 .cta-dropper__menu > .cta-dropper__toggle:focus-visible {
