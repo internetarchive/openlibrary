@@ -32,7 +32,7 @@ export const DEFAULT_STRINGS = {
     next: 'Next deploy',
     liveNow: 'Live now',
     notLive: 'Not yet deployed',
-    mergeConflict: 'Deploy failed (merge conflict)',
+    mergeConflictDot: 'Merge conflict with %s',
     closed: 'This PR is already closed.',
     actions: 'Actions',
     ok: 'OK',
@@ -165,7 +165,7 @@ export async function postAction(action, fields = {}, method = 'POST') {
         body: JSON.stringify(fields)
     });
     if (!response.ok) {
-        throw new Error(`${action} failed: ${response.status}`);
+        throw new Error(`${action} failed:${response.status}`);
     }
     return response.json();
 }
