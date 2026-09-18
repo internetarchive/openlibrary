@@ -180,6 +180,7 @@ class mybooks_home(delegate.page):
         docs: dict[str, Any] = {"loans": [], "want-to-read": [], "currently-reading": [], "already-read": [], "stopped-reading": []}
 
         if cont := self._get_continue_reading_storage(mb):
+            docs["loans"] = cont
             docs["continuereading"] = cont
 
         if mb.me or mb.is_public:
