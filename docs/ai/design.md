@@ -506,6 +506,14 @@ If you need the control to look smaller, scale it visually rather than dropping 
 
 This fix relies on the page declaring `<meta name="viewport" content="width=device-width, initial-scale=1">` (set site-wide in the base layout). Do **not** suppress auto-zoom with `maximum-scale=1` or `user-scalable=no` on the viewport meta — that disables pinch-zoom entirely, which is an accessibility failure for low-vision users. The 16px rule is the correct fix.
 
+### Fullscreen on mobile is for scrolling content, not forms
+
+`ol-dialog`'s `fullscreen-on-mobile` renders the dialog edge-to-edge at ≤767px with `height: 100dvh`. **`dvh` tracks browser chrome, not the virtual keyboard** — and the site's viewport meta (`templates/site/head.html`) has no `interactive-widget=resizes-content`, so on iOS the keyboard doesn't resize the layout viewport at all. A full-height dialog therefore stays taller than the visible area while a field is focused: its footer is pinned to the bottom of a box that is now behind the keyboard, so the buttons the reader needs are unreachable. The taller-than-visible box also lets iOS pan the visual viewport and expose the page behind the dialog, which is why `ol-dialog` blurs the focused field on `touchmove` in fullscreen mode — a mitigation, not a fix.
+
+Reach for fullscreen when the content itself scrolls and the actions are in the header or inline: a search palette, a result list, a picker. A dialog that is a label, a field, and two buttons stays compact, and the footer sits directly under the field where the keyboard can't reach it. The notes dialog (`macros/NotesModalDialog.html`) measures 372×396 at phone width against roughly 508px of keyboard-free space.
+
+If a fullscreen dialog does contain a text field, its primary action has to be reachable without scrolling past the keyboard — put it in the header rather than a bottom footer.
+
 ### Gate hover styles to hover-capable pointers
 
 Touch devices fire `:hover` on tap and the style sticks until the next tap elsewhere. That makes plain `:hover` rules feel broken on phones — buttons stay highlighted, tooltips linger.
@@ -551,6 +559,7 @@ What checks each rule today. "Review" means only a human or the Copilot UI check
 | Motion via tokens, no raw curves or durations | Review |
 | Blur follows modality; shared scrim tokens | Review |
 | 16px text-entry controls | Review |
+| Fullscreen dialogs only for scrolling content, not forms | Review |
 | Hover gated to hover-capable pointers | Review |
 | Menu rows on the shared height/inset tokens; selected rows untinted | Review |
 | Overline via the typography role tokens, applied together | Review |

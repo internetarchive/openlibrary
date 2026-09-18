@@ -11,6 +11,8 @@ Derived from [`docs/ai/design.md`](../../docs/ai/design.md) and [`docs/ai/web-co
 - Changes `font-weight` on `:hover` or a selected state (layout shift).
 - Adds a `:hover` rule outside `@media (hover: hover) and (pointer: fine)`.
 - Sets `font-size` below 16px on a text-entry control (iOS Safari zooms on focus).
+- Sets `fullscreen-on-mobile` on an `ol-dialog` that contains a text field — `100dvh` does not shrink for the virtual keyboard, so the footer actions end up behind it.
+- Calls `window.confirm()` or `window.alert()`, or adds a second `<ol-dialog>` for a yes/no question, instead of `await olConfirm()` / `olAlert()` from `openlibrary/components/lit/alert-dialog.js`.
 - Writes a raw `cubic-bezier()` or a bare `ms` duration instead of the `--ease-*` / `--duration-*` tokens in `static/css/tokens/motion.css`.
 - Adds a `transition` or `animation` without a matching `@media (prefers-reduced-motion: reduce)` override.
 - Scales a menu row, drawer item, or surface on `:active`, or uses a press-scale literal instead of `--press-scale`, `-compact`, or `-wide`.
