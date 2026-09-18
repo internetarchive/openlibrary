@@ -13,15 +13,16 @@
 }
 
 /* Title and edition each get their own line so the label reads as a stacked
-   caption rather than one long wrapped sentence. */
+   caption rather than one long wrapped sentence. All three lines share the
+   label's size; weight and color carry the hierarchy instead. */
 .book-notes-form__title {
   display: block;
+  margin-top: var(--spacing-stack-xs);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
 }
 .book-notes-form__edition {
   display: block;
-  font-size: var(--font-size-body-small);
   color: var(--color-text-muted);
 }
 
@@ -31,7 +32,9 @@
 .notes-modal-textarea {
   box-sizing: border-box;
   width: 100%;
-  padding: var(--spacing-inset-sm);
+  /* A step up from the sm inset the single-line filter input uses: this is a
+     writing surface, so the text wants room off the edge. */
+  padding: var(--spacing-inset-md);
   background: var(--white);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-input);
