@@ -34,7 +34,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
 
         $if editions_page:
-          <ol-popover class="buy-popover" aria-label="$_('Buy this book')">
+          <ol-popover class="buy-popover" placement="bottom-center" aria-label="$_('Buy this book')">
             <button slot="trigger" type="button" class="ol-button-static buy-popover__trigger">
               $_("Buy")
               $:macros.icon("chevron-down", size="sm", extra_class="buy-popover__chevron")
