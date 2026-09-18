@@ -9,20 +9,21 @@
   display: block;
   margin-bottom: var(--spacing-stack-xs);
   font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
   color: var(--color-text-secondary);
 }
 
-/* Title and edition each get their own line so the label reads as a stacked
-   caption rather than one long wrapped sentence. All three lines share the
-   label's size; weight and color carry the hierarchy instead. */
+/* Title over edition, matching the search modal's result rows (result__title /
+   __author / __year): the name at full size and semibold, the metadata a step
+   down and muted. */
 .book-notes-form__title {
   display: block;
-  margin-top: var(--spacing-stack-xs);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text);
 }
 .book-notes-form__edition {
   display: block;
+  font-size: var(--font-size-body-small);
   color: var(--color-text-muted);
 }
 

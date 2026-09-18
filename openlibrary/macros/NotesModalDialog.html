@@ -14,8 +14,8 @@ $if notes and len(notes.notes) > 0:
 $else:
   $ display_delete_button = False
 
-$# The subtitle names the book the note is attached to, since notes are stored
-$# per edition and the dialog can be opened from anywhere on the page.
+$# The label names the book the note is attached to, since notes are stored per
+$# edition and the dialog can be opened from anywhere on the page.
 $code:
     book_title = edition.get('title') or (work and work.title) or ''
     edition_parts = [
@@ -30,7 +30,7 @@ $if render_once('notes-modal'):
              data-i18n="$:render_template('type/edition/notes_modal_i18n')">
     <form class="book-notes-form" action="$(work.key)/notes.json" method="POST">
       <label class="book-notes-form__label" for="notes-modal-textarea">
-        $:_('My notes about %(title)s', title='<span class="book-notes-form__title">%s</span>' % websafe(book_title))
+        <span class="book-notes-form__title">$book_title</span>
         $if edition_info:
           <span class="book-notes-form__edition">$edition_info</span>
       </label>
