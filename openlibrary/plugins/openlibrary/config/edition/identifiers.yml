@@ -38,7 +38,7 @@ identifiers:
     name: bnf
     notes: ''
     url: https://catalogue.bnf.fr/ark:/12148/@@@
-    website: http://www.bnf.fr
+    website: https://www.bnf.fr
 -   label: Bibsys ID
     name: bibsys
     notes: ''
