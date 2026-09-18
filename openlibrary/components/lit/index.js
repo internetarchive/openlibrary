@@ -12,6 +12,7 @@ export { OlPagination } from './OlPagination.js';
 export { OlTooltip } from './OlTooltip.js';
 export { OLMarkdownEditor } from './OLMarkdownEditor.js';
 export { OlDialog } from './OlDialog.js';
+export { olConfirm, olAlert } from './alert-dialog.js';
 export { OlPopover } from './OlPopover.js';
 export { OlSelectPopover } from './OlSelectPopover.js';
 export { OlOptionsPopover } from './OlOptionsPopover.js';

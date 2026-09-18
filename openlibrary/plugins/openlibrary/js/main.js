@@ -230,17 +230,17 @@ $(function() {
     }
 
     const $observationModalLinks = $('.observations-modal-link');
-    const $notesModalLinks = $('.notes-modal-link');
+    const notesModalLinks = document.querySelectorAll('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
+    if ($observationModalLinks.length || notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
         import('./modals')
             .then(module => {
                 if ($observationModalLinks.length) {
                     module.initObservationsModal($observationModalLinks);
                 }
-                if ($notesModalLinks.length) {
-                    module.initNotesModal($notesModalLinks);
+                if (notesModalLinks.length) {
+                    module.initNotesModal(notesModalLinks);
                 }
                 if ($notesPageButtons.length) {
                     module.addNotesPageButtonListeners();
