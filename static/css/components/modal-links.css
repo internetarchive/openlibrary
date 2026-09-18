@@ -26,18 +26,15 @@
   line-height: 12px;
 }
 
-/* A saved note marks its link with the selected treatment, so the sidebar says
-   the note is there before the dialog is opened. Its neighbours (the shelf
-   button, the star rating) already reflect their state this way. */
+/* A saved note marks its link, so the sidebar says the note is there before the
+   dialog is opened. Colour alone carries it: a filled pill would read as
+   "selected right now" next to two bare icons, and the hover fill still has to
+   land on this link like any other. */
 .modal-links .icon-link--has-note {
-  background-color: var(--color-primary-subtle);
   color: var(--color-primary);
 }
 .modal-links .icon-link--has-note .icon-link__text {
   font-weight: var(--font-weight-semibold);
-}
-.modal-links .icon-link--has-note:hover {
-  background-color: var(--color-primary-subtle-hover);
 }
 
 /* Sized by the icon system (size="lg"): the old 2em box reads oversized and thin

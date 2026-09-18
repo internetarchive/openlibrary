@@ -102,6 +102,39 @@ export function initNotesModal(modalLinks) {
     const deleteButton = dialog.querySelector('.js-notes-modal-delete');
     const saveButton = dialog.querySelector('.js-notes-modal-save');
 
+    /**
+     * The sidebar link is rendered with the note's state baked in (see
+     * databarWork.html), so a save or delete has to move it too or it stays
+     * stale until the next page load. Both the desktop and mobile links are
+     * updated; the icon is swapped by changing the sprite fragment.
+     */
+    function setNoteIndicator(hasNote) {
+        modalLinks.forEach((link) => {
+            link.classList.toggle('icon-link--has-note', hasNote);
+            const use = link.querySelector('svg use');
+            if (use) {
+                const [sprite] = use.getAttribute('href').split('#');
+                use.setAttribute('href', `${sprite}#icon-sticky-note${hasNote ? '-text' : ''}`);
+            }
+        });
+    }
+
+    // Which request is in flight, if any: 'save' | 'delete' | null.
+    let pending = null;
+
+    /**
+     * Save is only meaningful with text in the field, and neither button may
+     * fire while the other's request is in flight -- both post to the same
+     * endpoint, so overlapping them could land the delete before the save it
+     * was meant to follow. The acting button spins; the other one greys out.
+     */
+    function syncButtons() {
+        saveButton.loading = pending === 'save';
+        deleteButton.loading = pending === 'delete';
+        saveButton.disabled = pending === 'delete' || !textarea.value.trim();
+        deleteButton.disabled = pending === 'save';
+    }
+
     // work_id travels in the URL, not the body, so it is dropped from the form
     // data before posting.
     async function postNote(formData) {
@@ -117,24 +150,38 @@ export function initNotesModal(modalLinks) {
     }
 
     async function saveNote() {
-        if (!textarea.value) {
+        // Guards the function itself rather than trusting the button's state:
+        // ol-button blocks a real pointer while loading, but the listener is on
+        // the host, so a synthetic or keyboard-driven click still arrives here.
+        if (pending || !textarea.value.trim()) {
             return;
         }
+        pending = 'save';
+        syncButtons();
         try {
             await postNote(new FormData(form));
             dialog.open = false;
             deleteButton.classList.remove('hidden');
+            setNoteIndicator(true);
             showComponentToast(strings.saveSuccess, 'success');
         } catch {
             // Leave the dialog open so the patron does not lose the note.
             showComponentToast(strings.saveError, 'error');
+        } finally {
+            pending = null;
+            syncButtons();
         }
     }
 
     // The endpoint removes the note when no `notes` field is sent.
     async function deleteNote() {
+        if (pending) {
+            return;
+        }
         const formData = new FormData(form);
         formData.delete('notes');
+        pending = 'delete';
+        syncButtons();
         try {
             await postNote(formData);
             // Close on success like a save does: the note the dialog was opened
@@ -143,11 +190,20 @@ export function initNotesModal(modalLinks) {
             dialog.open = false;
             textarea.value = '';
             deleteButton.classList.add('hidden');
+            setNoteIndicator(false);
             showComponentToast(strings.deleteSuccess, 'success');
         } catch {
             showComponentToast(strings.deleteError, 'error');
+        } finally {
+            pending = null;
+            syncButtons();
         }
     }
+
+    // The dialog is rendered once and reused, so the button state is set now and
+    // kept in step with the field rather than assumed on each open.
+    textarea.addEventListener('input', syncButtons);
+    syncButtons();
 
     modalLinks.forEach((link) => {
         link.addEventListener('click', () => {

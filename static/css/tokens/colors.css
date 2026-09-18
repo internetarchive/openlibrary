@@ -130,9 +130,6 @@
   --color-primary-hover: var(--blue-600);
   --color-primary-active: var(--blue-700);
   --color-primary-subtle: var(--blue-50);
-  /* The subtle tint one step deeper, for hovering something already
-     carrying it (e.g. a sidebar action marked as having content). */
-  --color-primary-subtle-hover: var(--blue-100);
   --color-on-primary: var(--white);
   /* Destructive action fill (delete, remove). Pair with --color-on-primary. */
   --color-destructive: var(--red-500);
