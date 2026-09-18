@@ -148,10 +148,10 @@ ol-button[variant="ghost"][tone="danger"]:not(:defined) {
 }
 
 ol-button[variant="primary"][tone="danger"]:not(:defined) {
-  background-color: var(--red);
+  background-color: var(--color-destructive);
   border-color: var(--color-border-error);
   color: var(--white);
-  --control-surface: var(--red);
+  --control-surface: var(--color-destructive);
   --control-highlight-strength: 18%;
 }
 /* stylelint-enable selector-max-specificity */

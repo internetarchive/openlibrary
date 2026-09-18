@@ -82,7 +82,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .loading-placeholder {
-      color: var(--light-grey);
+      color: var(--color-text-muted);
       pointer-events: none;
     }
 
@@ -105,7 +105,7 @@ export class OLMarkdownEditor extends LitElement {
       padding: var(--spacing-inset-xs);
       border-bottom: var(--border-card);
       border-radius: var(--border-radius-card) var(--border-radius-card) 0 0;
-      background: var(--grey-f4f4f4);
+      background: var(--color-surface-header);
       align-items: center;
       position: sticky;
       top: 0;
@@ -165,7 +165,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .editor-input .tiptap img.ProseMirror-selectednode {
-      outline: 2px solid var(--link-blue);
+      outline: var(--focus-width) solid var(--color-border-focused);
     }
 
     .html-block {
@@ -178,12 +178,12 @@ export class OLMarkdownEditor extends LitElement {
     .html-block__label {
       display: block;
       padding: 4px 8px;
-      background: var(--grey-f4f4f4);
+      background: var(--color-surface-header);
       border-bottom: 1px dashed var(--color-border-muted);
       font-size: 0.7rem;
       font-family: monospace;
       font-weight: 600;
-      color: var(--darker-grey);
+      color: var(--color-text);
     }
 
     .html-block__source {
@@ -197,15 +197,15 @@ export class OLMarkdownEditor extends LitElement {
       min-height: 40px;
       box-sizing: border-box;
       outline: none;
-      background: var(--off-white);
+      background: var(--color-surface-sunken);
     }
 
     .editor-input .tiptap blockquote {
       margin-left: var(--spacing-lg);
       padding: var(--spacing-sm) var(--spacing-lg);
       border-left: var(--border-width-thick) solid var(--color-border-subtle);
-      color: var(--darker-grey);
-      background: var(--off-white);
+      color: var(--color-text);
+      background: var(--color-surface-sunken);
       font-style: italic;
       font-family: var(--font-family-body);
     }
@@ -215,7 +215,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .editor-input .tiptap code {
-      background: var(--grey-f4f4f4);
+      background: var(--color-surface-sunken);
       border: 1px solid var(--color-border-subtle);
       border-radius: var(--border-radius-input);
       padding: 0.1em 0.3em;
@@ -224,7 +224,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .editor-input .tiptap pre {
-      background: var(--grey-f4f4f4);
+      background: var(--color-surface-sunken);
       border: 1px solid var(--color-border-subtle);
       border-radius: var(--border-radius-card);
       padding: var(--spacing-inset-sm);
@@ -242,7 +242,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .tiptap p.is-editor-empty:first-child::before {
-      color: var(--light-grey);
+      color: var(--color-text-muted);
       content: attr(data-placeholder);
       float: left;
       height: 0;
@@ -255,8 +255,7 @@ export class OLMarkdownEditor extends LitElement {
       border-radius: var(--border-radius-button);
       padding: var(--spacing-inset-xs);
       cursor: pointer;
-      color: var(--darker-grey);
-      transition: background 0.15s ease, color 0.15s ease;
+      color: var(--color-text);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -270,9 +269,10 @@ export class OLMarkdownEditor extends LitElement {
 
     .toolbar-btn:active:not(:disabled) { transform: scale(var(--press-scale-compact)); }
 
+    /* Pressed toolbar button = a selected control; same fill as ol-button[selected]. */
     .toolbar-btn.is-active {
-      background: var(--light-grey);
-      color: var(--black);
+      background: var(--color-control-selected-bg);
+      color: var(--color-link);
     }
 
     .toolbar-btn:focus-visible {
@@ -287,10 +287,10 @@ export class OLMarkdownEditor extends LitElement {
     .link-popover {
       position: absolute;
       top: calc(100% + var(--spacing-xs));
-      border: var(--border-card);
+      border: var(--border-overlay);
       border-radius: var(--border-radius-overlay);
       padding: var(--spacing-inset-xs);
-      box-shadow: 0 4px 15px var(--boxshadow-black);
+      box-shadow: var(--box-shadow-overlay);
       background: var(--white);
       display: flex;
       gap: var(--spacing-inline-md);
@@ -313,8 +313,14 @@ export class OLMarkdownEditor extends LitElement {
       border-radius: var(--border-radius-input);
       padding: var(--spacing-xs) var(--spacing-md);
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color var(--duration-fast) var(--ease-state);
       font-family: var(--font-family-body);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .link-input {
+        transition: none;
+      }
     }
 
     .link-input:focus {
@@ -386,10 +392,10 @@ export class OLMarkdownEditor extends LitElement {
       position: absolute;
       top: calc(100% + var(--spacing-xs));
       right: 0;
-      border: var(--border-card);
+      border: var(--border-overlay);
       border-radius: var(--border-radius-overlay);
       padding: var(--spacing-inset-xs);
-      box-shadow: 0 4px 15px var(--boxshadow-black);
+      box-shadow: var(--box-shadow-overlay);
       background: var(--white);
       display: flex;
       gap: var(--spacing-inline-sm);
@@ -707,7 +713,7 @@ export class OLMarkdownEditor extends LitElement {
                 <div class="link-popover" @mousedown="${(e) => e.stopPropagation()}">
                   <input type="url" class="link-input" placeholder="https://..." .value="${this.linkInputValue}" @input="${this.handleLinkInput}" @keydown="${this.handleLinkKeydown}" />
                   ${this._renderButton({ title: 'Save Link', icon: ICONS.save, action: this.applyLink.bind(this) })}
-                  ${this._isActive('link') ? this._renderButton({ title: 'Remove Link', icon: ICONS.remove, action: this.removeLink.bind(this), customColor: 'var(--red)' }) : ''}
+                  ${this._isActive('link') ? this._renderButton({ title: 'Remove Link', icon: ICONS.remove, action: this.removeLink.bind(this), customColor: 'var(--color-destructive)' }) : ''}
                 </div>
               ` : ''}
             </div>
