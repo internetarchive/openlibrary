@@ -220,7 +220,8 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and acquisitions[0].access == "open-access"
     ):
         stats.increment("ol.loans.webbook")
-        _record_read_history(accounts.get_current_user(), edition)
+        if action == "read":
+            _record_read_history(accounts.get_current_user(), edition)
         raw_name = acquisitions[0].provider_name or ""
         book_provider = Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>") if raw_name else Markup("")
         return render_jinja_template(
@@ -246,7 +247,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
     if availability and availability["status"] == "open":
         from openlibrary.plugins.openlibrary.code import is_bot
 
-        if not is_bot():
+        if not is_bot() and action == "read":
             stats.increment("ol.loans.openaccess")
             _record_read_history(accounts.get_current_user(), edition)
         return BorrowRedirect(archive_url)
@@ -331,7 +332,8 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         loans = lending.get_loans_of_user(user.key)
         for loan in loans:
             if loan["book"] == edition.key:
-                _record_read_history(user, edition)
+                if action == "read":
+                    _record_read_history(user, edition)
                 return BorrowRedirect(
                     make_bookreader_auth_link(
                         loan["_key"],

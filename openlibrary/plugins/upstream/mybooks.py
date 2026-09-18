@@ -163,10 +163,11 @@ class mybooks_home(delegate.page):
                     if work_key not in merged_books:
                         merged_books[work_key] = (work, timestamp, False)
                     else:
-                        _, existing_ts, existing_active = merged_books[work_key]
+                        book, existing_ts, existing_active = merged_books[work_key]
+                        new_ts = max(existing_ts, timestamp)
                         if existing_active:
-                            continue
-                        if timestamp > existing_ts:
+                            merged_books[work_key] = (book, new_ts, True)
+                        elif timestamp > existing_ts:
                             merged_books[work_key] = (work, timestamp, existing_active)
             except Exception:
                 logger.exception("Failed to fetch read history for %s; rendering without it", mb.username)
