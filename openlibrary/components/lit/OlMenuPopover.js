@@ -87,10 +87,10 @@ export class OlMenuPopover extends LitElement {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
             color: var(--color-text-muted);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
         }
 
         /* Real <button>s so Enter/Space activate natively; the keydown handler
@@ -108,7 +108,7 @@ export class OlMenuPopover extends LitElement {
             padding-block: var(--spacing-inset-xs);
             padding-inline: var(--menu-row-padding-inline);
             border: 0;
-            border-radius: var(--border-radius-button);
+            border-radius: var(--border-radius-menu-row);
             background: none;
             /* A real <button>, so the page ink has to be inherited explicitly. */
             color: inherit;
