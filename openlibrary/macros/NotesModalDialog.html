@@ -15,16 +15,16 @@ $else:
   $ display_delete_button = False
 
 $if render_once('notes-modal'):
-  <ol-dialog id="$id" class="js-notes-modal" label="$_('My Book Notes')" width="medium" fullscreen-on-mobile
+  <ol-dialog id="$id" class="js-notes-modal" label="$_('My Book Notes')" width="medium"
              data-i18n="$:render_template('type/edition/notes_modal_i18n')">
     <form class="book-notes-form" action="$(work.key)/notes.json" method="POST">
       <label for="notes-modal-textarea">$_("My private notes about this edition:")</label>
-      <textarea id="notes-modal-textarea" class="notes-modal-textarea" name="notes" rows="10">$(notes.notes if notes else "")</textarea>
+      <textarea id="notes-modal-textarea" class="notes-modal-textarea" name="notes" rows="10" autofocus>$(notes.notes if notes else "")</textarea>
       <input type="hidden" name="work_id" value="$work.key.split('/')[-1]" />
       <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
     </form>
     <div slot="footer" class="notes-modal__actions">
-      <ol-button class="js-notes-modal-delete $('' if display_delete_button else 'hidden')" variant="destructive">$_("Delete Note")</ol-button>
+      <ol-button class="js-notes-modal-delete $('' if display_delete_button else 'hidden')" variant="ghost" tone="danger">$_("Delete Note")</ol-button>
       <ol-button class="js-notes-modal-save" variant="primary">$_("Save Note")</ol-button>
     </div>
   </ol-dialog>
@@ -33,6 +33,6 @@ $if render_once('notes-modal'):
     <p>$_("This cannot be undone.")</p>
     <div slot="footer">
       <ol-button data-action="cancel" variant="secondary">$_("Cancel")</ol-button>
-      <ol-button data-action="delete" variant="destructive">$_("Delete Note")</ol-button>
+      <ol-button data-action="delete" variant="primary" tone="danger">$_("Delete Note")</ol-button>
     </div>
   </ol-dialog>

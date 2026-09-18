@@ -32,8 +32,12 @@
   .notes-modal__actions {
     flex-direction: column-reverse;
   }
+  /* The host stretches, but the inner button only follows via ::part. */
   .notes-modal__actions ol-button {
     display: block;
+    width: 100%;
+  }
+  .notes-modal__actions ol-button::part(control) {
     width: 100%;
   }
 }
