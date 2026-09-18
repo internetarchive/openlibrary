@@ -18,8 +18,8 @@ $if render_once('notes-modal'):
   <ol-dialog id="$id" class="js-notes-modal" label="$_('My Book Notes')" width="medium" fullscreen-on-mobile
              data-i18n="$:render_template('type/edition/notes_modal_i18n')">
     <form class="book-notes-form" action="$(work.key)/notes.json" method="POST">
-      <p>$_("My private notes about this edition:")</p>
-      <textarea class="notes-modal-textarea" name="notes" rows="10">$(notes.notes if notes else "")</textarea>
+      <label for="notes-modal-textarea">$_("My private notes about this edition:")</label>
+      <textarea id="notes-modal-textarea" class="notes-modal-textarea" name="notes" rows="10">$(notes.notes if notes else "")</textarea>
       <input type="hidden" name="work_id" value="$work.key.split('/')[-1]" />
       <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
     </form>

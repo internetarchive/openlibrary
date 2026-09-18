@@ -5,7 +5,8 @@
 .book-notes-form {
   margin: 0;
 }
-.book-notes-form p {
+.book-notes-form label {
+  display: block;
   font-size: var(--font-size-title-medium);
 }
 .notes-modal-textarea {
