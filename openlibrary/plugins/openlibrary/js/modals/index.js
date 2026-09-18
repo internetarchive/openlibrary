@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import 'jquery-colorbox';
+import { olConfirm } from '../../../../components/lit/alert-dialog.js';
 import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.css';
 
@@ -24,72 +25,191 @@ function addShareModalButtonListeners(){
     });
 }
 
+/** English fallbacks. Must match type/edition/notes_modal_i18n.html. */
+export const DEFAULT_NOTES_MODAL_STRINGS = {
+    saveError: 'Could not save your note. Please try again.',
+    deleteError: 'Could not delete your note. Please try again.',
+    deleteTitle: 'Delete this note?',
+    deleteMessage: 'This cannot be undone.',
+    deleteConfirm: 'Delete Note',
+    cancel: 'Cancel',
+    close: 'Close',
+};
+
 /**
- * Initializes a collection of notes modals.
+ * Reads the server-rendered translations off the dialog's data-i18n attribute.
+ * Falls back to English if the attribute is missing or malformed.
  *
- * @param {JQuery} $modalLinks  A collection of notes modal links.
+ * @param {HTMLElement} el Element carrying the data-i18n attribute.
+ * @returns {Object} Translated strings merged over the English defaults.
  */
-export function initNotesModal($modalLinks) {
-    addClickListeners($modalLinks, '640px');
-    addNotesModalButtonListeners();
-    addNotesReloadListeners($('.notes-textarea'));
+export function notesModalStrings(el) {
+    try {
+        const raw = el?.dataset?.i18n;
+        if (raw) {
+            return { ...DEFAULT_NOTES_MODAL_STRINGS, ...JSON.parse(raw) };
+        }
+    } catch {
+        // Malformed attribute: fall through to the English defaults.
+    }
+    return DEFAULT_NOTES_MODAL_STRINGS;
 }
 
 /**
- * Adds click listeners to buttons in all notes modals on a page.
+ * Shows an <ol-toast>. Built by hand rather than through showToast(), whose
+ * import would re-run customElements.define() from a second bundle and pull Lit
+ * in — same workaround as templates/design/components/toast.html.jinja.
+ *
+ * @param {String} message Already-translated message text.
+ * @param {String} type 'success' or 'error'.
  */
-function addNotesModalButtonListeners() {
-    $('.update-note-button').on('click', function(event){
-        event.preventDefault();
-        // Get form data
-        const formData = new FormData($(this).closest('form')[0]);
-        if (formData.get('notes')) {
-            const $deleteButton = $($(this).siblings()[0]);
+function showComponentToast(message, type) {
+    let region = document.querySelector('ol-toast-region');
+    if (!region) {
+        region = document.createElement('ol-toast-region');
+        document.body.appendChild(region);
+    }
+    const toast = document.createElement('ol-toast');
+    toast.setAttribute('message', message);
+    toast.setAttribute('type', type);
+    region.appendChild(toast);
+}
 
-            // Post data
-            const workOlid = formData.get('work_id');
-            formData.delete('work_id');
+/**
+ * Wires up the book notes dialog. One dialog per page (NotesModalDialog.html),
+ * one trigger link per sidebar (desktop and mobile), so every link opens it.
+ *
+ * @param {NodeList} modalLinks Notes trigger links on the page.
+ */
+export function initNotesModal(modalLinks) {
+    const dialog = document.querySelector('.js-notes-modal');
+    if (!dialog) {
+        return;
+    }
 
-            $.ajax({
-                url: `/works/${workOlid}/notes.json`,
-                data: formData,
-                type: 'POST',
-                contentType: false,
-                processData: false,
-                success: function() {
-                    showToast('Update successful!');
-                    $.colorbox.close();
-                    $deleteButton.removeClass('hidden');
-                }
-            });
+    const strings = notesModalStrings(dialog);
+    const form = dialog.querySelector('.book-notes-form');
+    const textarea = form.querySelector('.notes-modal-textarea');
+    const deleteButton = dialog.querySelector('.js-notes-modal-delete');
+    const saveButton = dialog.querySelector('.js-notes-modal-save');
+
+    /**
+     * The sidebar link is rendered with the note's state baked in (see
+     * databarWork.html), so a save or delete has to move both copies of it --
+     * desktop and mobile -- or they stay stale until the next page load.
+     */
+    function setNoteIndicator(hasNote) {
+        modalLinks.forEach((link) => {
+            link.classList.toggle('icon-link--has-note', hasNote);
+            const use = link.querySelector('svg use');
+            if (use) {
+                const [sprite] = use.getAttribute('href').split('#');
+                use.setAttribute('href', `${sprite}#icon-sticky-note${hasNote ? '-text' : ''}`);
+            }
+        });
+    }
+
+    // Which request is in flight, if any: 'save' | 'delete' | null.
+    let pending = null;
+
+    /**
+     * Save needs text in the field, and neither button may fire while the
+     * other's request is in flight: both post to the same endpoint, so the
+     * delete could land before the save it was meant to follow.
+     */
+    function syncButtons() {
+        saveButton.loading = pending === 'save';
+        deleteButton.loading = pending === 'delete';
+        saveButton.disabled = pending === 'delete' || !textarea.value.trim();
+        deleteButton.disabled = pending === 'save';
+    }
+
+    // work_id travels in the URL, not the body, so it is dropped from the form
+    // data before posting.
+    async function postNote(formData) {
+        const workOlid = formData.get('work_id');
+        formData.delete('work_id');
+        const response = await fetch(`/works/${workOlid}/notes.json`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!response.ok) {
+            throw new Error(`Notes request failed: ${response.status}`);
         }
+    }
+
+    async function saveNote() {
+        // Guards the function itself rather than trusting the button's state:
+        // ol-button blocks a real pointer while loading, but the listener is on
+        // the host, so a synthetic or keyboard-driven click still arrives here.
+        if (pending || !textarea.value.trim()) {
+            return;
+        }
+        pending = 'save';
+        syncButtons();
+        try {
+            await postNote(new FormData(form));
+            dialog.open = false;
+            deleteButton.classList.remove('hidden');
+            setNoteIndicator(true);
+        } catch {
+            // Leave the dialog open so the patron does not lose the note.
+            showComponentToast(strings.saveError, 'error');
+        } finally {
+            pending = null;
+            syncButtons();
+        }
+    }
+
+    // The endpoint removes the note when no `notes` field is sent.
+    async function deleteNote() {
+        if (pending) {
+            return;
+        }
+        const formData = new FormData(form);
+        formData.delete('notes');
+        pending = 'delete';
+        syncButtons();
+        try {
+            await postNote(formData);
+            // Close like a save does: the note this was opened to edit is gone.
+            // The reset still happens, for the next time it opens.
+            dialog.open = false;
+            textarea.value = '';
+            deleteButton.classList.add('hidden');
+            setNoteIndicator(false);
+        } catch {
+            showComponentToast(strings.deleteError, 'error');
+        } finally {
+            pending = null;
+            syncButtons();
+        }
+    }
+
+    // The dialog is rendered once and reused, so the button state is set now and
+    // kept in step with the field rather than assumed on each open.
+    textarea.addEventListener('input', syncButtons);
+    syncButtons();
+
+    modalLinks.forEach((link) => {
+        link.addEventListener('click', () => {
+            dialog.open = true;
+        });
     });
 
-    $('.delete-note-button').on('click', function() {
-        if (confirm('Really delete this book note?')) {
-            const $button = $(this);
+    saveButton.addEventListener('click', saveNote);
 
-            // Get form data
-            const formData = new FormData($button.prop('form'));
-
-            // Post data
-            const workOlid = formData.get('work_id');
-            formData.delete('work_id');
-            formData.delete('notes');
-
-            $.ajax({
-                url: `/works/${workOlid}/notes.json`,
-                data: formData,
-                type: 'POST',
-                contentType: false,
-                processData: false,
-                success: function() {
-                    showToast('Note deleted.');
-                    $.colorbox.close();
-                    $button.toggleClass('hidden');
-                    $button.closest('form').find('textarea').val('');
-                }
-            });
+    deleteButton.addEventListener('click', async() => {
+        const confirmed = await olConfirm({
+            title: strings.deleteTitle,
+            message: strings.deleteMessage,
+            confirmLabel: strings.deleteConfirm,
+            cancelLabel: strings.cancel,
+            labelClose: strings.close,
+            destructive: true,
+        });
+        if (confirmed) {
+            await deleteNote();
         }
     });
 }
@@ -159,25 +279,6 @@ export function addNotesPageButtonListeners() {
                 }
             });
         }
-    });
-}
-
-/**
- * Adds listeners for content reload events on a page's notes textareas
- *
- * When a registered textarea receives a content reload event, it's text
- * is updated with the most recently submitted note.
- *
- * @param {JQuery} $notesTextareas  All notes text areas on a page.
- */
-function addNotesReloadListeners($notesTextareas) {
-    $notesTextareas.each(function(_i, textarea) {
-        const $textarea = $(textarea);
-
-        $textarea.on('contentReload', function() {
-            const newValue = $textarea.parent().find('.notes-modal-textarea')[0].value;
-            $textarea.val(newValue);
-        });
     });
 }
 
