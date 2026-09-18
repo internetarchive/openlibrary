@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from openlibrary.plugins.openlibrary.partials import get_carousel_card_data
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate, mybooks_home
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
@@ -302,8 +303,6 @@ def test_unified_loans_carousel_includes_read_history_and_deduplicates():
 
 
 def test_carousel_card_data_includes_is_read_history():
-    from openlibrary.plugins.openlibrary.partials import get_carousel_card_data
-
     book = MagicMock()
     book.key = "/works/OL1W"
     book.title = "Test Book"
