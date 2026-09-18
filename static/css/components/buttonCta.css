@@ -22,8 +22,6 @@ a.cta-btn {
   background-color: var(--grey);
   line-height: 1.5em;
   text-decoration: none;
-
-  transition: background-color 0.2s;
 }
 
 .cta-btn .btn-icon,
