@@ -142,6 +142,13 @@
      is the next step down the same ramp. */
   --color-control-bg: var(--neutral-50);
 
+  /* Edge of a raised neutral control. A half-step: --color-border-subtle reads
+     too faint now that the fill is no longer white, and --color-border-muted
+     (the hover edge below) reads as an outline rather than an edge. The ramp is
+     evenly spaced here, so this is one role wanting a half-step rather than a
+     missing rung, and it's a mix like the selected-state tokens above. */
+  --color-control-border: color-mix(in srgb, var(--neutral-200), var(--neutral-300));
+
   /* Hover for raised controls. One step down the ramp from --color-control-bg,
      which is what makes the hover register now that the resting fill is already
      off white. Opaque — see --color-control-selected-surface. */

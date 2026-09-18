@@ -172,7 +172,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* ── Button variant: bordered, raised container ─────────────────── */
         :host([variant="button"]) {
-            --_toggle-border: var(--color-border-subtle);
+            --_toggle-border: var(--color-control-border);
             --_toggle-bg: var(--color-control-bg);
 
             display: inline-block;

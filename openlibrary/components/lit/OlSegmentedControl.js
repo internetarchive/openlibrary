@@ -172,7 +172,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                selected segment reads as the same control as the buttons beside
                it. The track stays a step lighter than this border, so the pill
                keeps a visible outline against it. */
-            border: 1px solid var(--color-border-subtle);
+            border: 1px solid var(--color-control-border);
             border-radius: var(--pill-radius);
             background-color: var(--color-control-bg);
             --control-surface: var(--color-control-bg);

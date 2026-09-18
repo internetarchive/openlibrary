@@ -165,7 +165,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             line-height: var(--line-height-control);
             text-align: center;
             white-space: nowrap;
-            border: 1px solid var(--color-border-subtle);
+            border: 1px solid var(--color-control-border);
             border-radius: var(--border-radius-button);
             background-color: var(--color-control-bg);
             color: var(--color-text);
@@ -266,7 +266,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         /* Secondary is the default (already set above). Explicit selector for clarity. */
         :host([variant="secondary"]) .control {
             background-color: var(--color-control-bg);
-            border-color: var(--color-border-subtle);
+            border-color: var(--color-control-border);
             color: var(--color-text);
             --control-surface: var(--color-control-bg);
         }
@@ -311,9 +311,11 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         @media (hover: hover) and (pointer: fine) {
             :host([variant="secondary"]) .control:hover {
                 background-color: var(--color-control-hover);
-                /* Nudge the border a touch darker in step with the fill (both drop ~7%
-                   in lightness) so the whole button reads as one shape on hover, rather
-                   than the fill darkening inside a static outline. */
+                /* Nudge the border darker in step with the fill so the whole button
+                   reads as one shape on hover, rather than the fill darkening inside
+                   a static outline. Both now move about four points of lightness:
+                   --color-control-border sits between the two border tokens, so the
+                   step down to muted is the same small move the fill makes. */
                 border-color: var(--color-border-muted);
                 --control-surface: var(--color-control-hover);
             }

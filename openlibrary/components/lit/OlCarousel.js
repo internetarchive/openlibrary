@@ -66,7 +66,7 @@ import './OlIcon.js';
  *
  * @cssprop [--ol-carousel-arrow-color=var(--neutral-700)] - Colour of the arrow glyphs
  * @cssprop [--ol-carousel-arrow-icon-bg=var(--color-control-bg)] - Background of the round arrow buttons
- * @cssprop [--ol-carousel-arrow-icon-border=var(--color-border-subtle)] - Border of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-icon-border=var(--color-control-border)] - Border of the round arrow buttons
  * @cssprop [--ol-carousel-arrow-icon-size=36px] - Diameter of the round arrow buttons
  * @cssprop [--ol-carousel-indicator-color=var(--neutral-300)] - Colour of the inactive page indicators
  * @cssprop [--ol-carousel-indicator-active=var(--neutral-700)] - Colour of the active page indicator
@@ -110,7 +110,7 @@ export class OlCarousel extends LitElement {
             isolation: isolate;
             --_arrow-color: var(--ol-carousel-arrow-color, var(--neutral-700));
             --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, var(--color-control-bg));
-            --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, var(--color-border-subtle));
+            --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, var(--color-control-border));
             --_arrow-icon-size: var(--ol-carousel-arrow-icon-size, 36px);
             --_indicator-color: var(--ol-carousel-indicator-color, var(--neutral-300));
             --_indicator-active: var(--ol-carousel-indicator-active, var(--neutral-700));
