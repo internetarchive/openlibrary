@@ -1,20 +1,61 @@
 /* buttonBtn styles are loaded globally via page entry points */
 
-/* The notes dialog (macros/NotesModal.html) supplies its own padding through
-   --ol-dialog-padding, so the form adds none of its own. */
+/* The notes dialog (macros/NotesModalDialog.html) supplies its own padding
+   through --ol-dialog-padding, so the form adds none of its own. */
 .book-notes-form {
   margin: 0;
 }
-.book-notes-form label {
+.book-notes-form__label {
   display: block;
-  font-size: var(--font-size-title-medium);
+  margin-bottom: var(--spacing-stack-xs);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text-secondary);
 }
+
+/* Title and edition each get their own line so the label reads as a stacked
+   caption rather than one long wrapped sentence. */
+.book-notes-form__title {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+.book-notes-form__edition {
+  display: block;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-muted);
+}
+
+/* Same text-entry recipe as ol-select-popover's filter input: in-page radius,
+   subtle edge, and a focus ring on the focused-border token rather than the UA
+   outline. */
 .notes-modal-textarea {
+  box-sizing: border-box;
   width: 100%;
-  margin-top: var(--spacing-stack-sm);
-  padding: var(--spacing-inset-xs);
-  font-size: var(--font-size-title-medium);
-  resize: none;
+  padding: var(--spacing-inset-sm);
+  background: var(--white);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-input);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-body);
+  color: var(--color-text);
+  resize: vertical;
+}
+.notes-modal-textarea::placeholder {
+  color: var(--color-text-muted);
+}
+.notes-modal-textarea:focus {
+  outline: none;
+  border-color: var(--color-border-focused);
+  box-shadow: 0 0 0 1px var(--color-border-focused);
+}
+
+/* iOS zooms in on focus when the field's font is < 16px; bump it on mobile to
+   suppress that (docs/ai/design.md). */
+@media screen and (max-width: 767px) {
+  .notes-modal-textarea {
+    font-size: var(--font-size-body-large);
+  }
 }
 
 .notes-modal__actions {

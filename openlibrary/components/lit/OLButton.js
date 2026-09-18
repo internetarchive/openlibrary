@@ -383,6 +383,10 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
             :host([variant="secondary"][tone="danger"]) .control:hover {
                 background-color: var(--color-error-bg);
+                /* Border steps along the red ramp with the fill, the way the
+                   neutral secondary goes subtle -> muted, so the whole control
+                   reads as one shape rather than a tint inside a static edge. */
+                border-color: var(--color-border-error);
                 --control-surface: var(--color-error-bg);
             }
         }

@@ -3357,7 +3357,7 @@ msgstr ""
 msgid "Lists (%(count)d)"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
+#: NotesModalDialog.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
 msgid "Notes"
 msgstr ""
 
@@ -7162,11 +7162,8 @@ msgid "Not in Library"
 msgstr ""
 
 #: NotesModalDialog.html
-msgid "My Book Notes"
-msgstr ""
-
-#: NotesModalDialog.html
-msgid "My private notes about this edition:"
+#, python-format
+msgid "Private notes about %(title)s"
 msgstr ""
 
 #: NotesModalDialog.html
