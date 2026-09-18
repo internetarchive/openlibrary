@@ -79,10 +79,10 @@
   min-width: 130px;
 }
 
-/* JavaScript only block, but needed to avoid reflows */
-/* Without, on slower connections, there will be a flash when buttons */
-/* are added. */
-.carousel button {
+/* Slick's prev/next arrows, which it appends as direct children of the
+   carousel. Pre-styled here so they don't flash as ordinary buttons on slower
+   connections. Kept to `>` so it can't reach the buttons inside a card. */
+.carousel > button {
   border: 0;
   position: absolute;
   color: transparent;
@@ -288,6 +288,20 @@
 .ol-return-wrapper {
   flex: 0 0 39px;
 }
-.ol-return-wrapper .cta-btn {
-  height: 37px;
+
+/* Stretch the return button to whatever height the Read/Borrow button next to
+   it works out to, instead of pinning it to a number that drifts out of step
+   when the button's type or padding changes. */
+.ol-return-wrapper .return-form {
+  display: flex;
+  flex: 1;
+  margin-bottom: 0;
+}
+.ol-return-wrapper .return-form .cta-btn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0;
+  padding: 0;
 }
