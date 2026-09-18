@@ -7,7 +7,10 @@
 }
 .book-notes-form__label {
   display: block;
-  margin-bottom: var(--spacing-stack-xs);
+  /* The label-to-input step. The title and edition sit on consecutive lines
+     with only their leading between them, so the field needs the wider gap to
+     read as a separate thing rather than a third line of the caption. */
+  margin-bottom: var(--spacing-stack-sm);
   font-size: var(--font-size-body-medium);
   line-height: var(--line-height-meta);
   color: var(--color-text-secondary);
@@ -33,9 +36,7 @@
 .notes-modal-textarea {
   box-sizing: border-box;
   width: 100%;
-  /* A step up from the sm inset the single-line filter input uses: this is a
-     writing surface, so the text wants room off the edge. */
-  padding: var(--spacing-inset-md);
+  padding: var(--spacing-inset-sm);
   background: var(--white);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-input);

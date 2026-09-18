@@ -34,7 +34,7 @@ $if render_once('notes-modal'):
         $if edition_info:
           <span class="book-notes-form__edition">$edition_info</span>
       </label>
-      <textarea id="notes-modal-textarea" class="notes-modal-textarea" name="notes" rows="10" autofocus>$(notes.notes if notes else "")</textarea>
+      <textarea id="notes-modal-textarea" class="notes-modal-textarea" name="notes" rows="6" autofocus>$(notes.notes if notes else "")</textarea>
       $# Sits under the field, where the reassurance lands as the patron starts
       $# typing. The icon is decorative: the sentence already says it.
       <p class="book-notes-form__privacy">
