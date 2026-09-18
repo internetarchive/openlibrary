@@ -1,7 +1,7 @@
 {% import "design/_example.html.jinja" as ex %}
 {% macro demos() %}
     {% call ex.example("Confirmation", "Opening traps focus inside; closing restores focus to the trigger. The default header renders the title and a close button automatically.",
-        code='<ol-dialog label="Delete this list?" width="small">\n  <p>This can\'t be undone.</p>\n  <div slot="footer">\n    <ol-button variant="secondary" value="cancel">Cancel</ol-button>\n    <ol-button variant="destructive" value="delete">Delete list</ol-button>\n  </div>\n</ol-dialog>') %}
+        code='<ol-dialog label="Delete this list?" width="small">\n  <p>This can\'t be undone.</p>\n  <div slot="footer">\n    <ol-button variant="secondary" value="cancel">Cancel</ol-button>\n    <ol-button variant="primary" tone="danger" value="delete">Delete list</ol-button>\n  </div>\n</ol-dialog>') %}
         <ol-button id="demo-dialog-confirm-trigger" variant="secondary">
             Delete list…
         </ol-button>
@@ -13,7 +13,7 @@
                 <ol-button data-action="cancel" variant="secondary">
                     Cancel
                 </ol-button>
-                <ol-button data-action="delete" variant="destructive">
+                <ol-button data-action="delete" variant="primary" tone="danger">
                     Delete list
                 </ol-button>
             </div>

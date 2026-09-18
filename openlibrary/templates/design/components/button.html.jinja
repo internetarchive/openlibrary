@@ -1,16 +1,25 @@
 {% import "design/_example.html.jinja" as ex %}
 {% macro demos() %}
-    {% call ex.example("Variants", "Secondary is the default — a bare <ol-button> renders as secondary.") %}
-        <ol-button>
-            Secondary
-        </ol-button>
+    {% call ex.example("Variants", "Secondary is the default — a bare <ol-button> renders as secondary. Variant carries emphasis and nothing else; hue is a separate axis, tone, below.") %}
         <ol-button variant="primary">
             Primary
         </ol-button>
-        <ol-button variant="destructive">
-            Destructive
+        <ol-button>
+            Secondary
         </ol-button>
         <ol-button variant="ghost">
+            Ghost
+        </ol-button>
+    {% endcall %}
+    {% call ex.example("Danger tone", "tone=\"danger\" crosses the danger hue with the emphasis you picked, so a delete can be quiet without losing its warning. The quiet steps carry the red in the label and take the fill on hover. Pick the emphasis by what the action competes with: a Delete sitting next to the Save you actually want people pressing is ghost or secondary; the Delete in the confirmation that follows is the primary action of that dialog, so it gets the fill.",
+        code='<!-- in the form, beside Save -->\n<ol-button variant="ghost" tone="danger">Delete Note</ol-button>\n\n<!-- in the confirmation, where deleting is the point -->\n<ol-button variant="primary" tone="danger">Delete Note</ol-button>') %}
+        <ol-button variant="primary" tone="danger">
+            Primary
+        </ol-button>
+        <ol-button variant="secondary" tone="danger">
+            Secondary
+        </ol-button>
+        <ol-button variant="ghost" tone="danger">
             Ghost
         </ol-button>
     {% endcall %}
@@ -173,14 +182,14 @@
         </ol-button>
     {% endcall %}
     {% call ex.example("Disabled") %}
-        <ol-button disabled>
-            Secondary
-        </ol-button>
         <ol-button variant="primary" disabled>
             Primary
         </ol-button>
-        <ol-button variant="destructive" disabled>
-            Destructive
+        <ol-button disabled>
+            Secondary
+        </ol-button>
+        <ol-button variant="primary" tone="danger" disabled>
+            Delete
         </ol-button>
     {% endcall %}
     {% call ex.example("Loading", "Shows a spinner and blocks interaction. The label stays in the DOM so the button's width doesn't shift.") %}
@@ -190,7 +199,7 @@
         <ol-button loading>
             Cancel
         </ol-button>
-        <ol-button variant="destructive" loading>
+        <ol-button variant="primary" tone="danger" loading>
             Delete
         </ol-button>
     {% endcall %}

@@ -58,8 +58,15 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *
  * @element ol-button
  *
- * @prop {"primary" | "secondary" | "destructive" | "ghost"} variant - Default: "secondary".
- *   Ghost is transparent with no border or lift; it fills on hover.
+ * @prop {"primary" | "secondary" | "ghost"} variant - Emphasis only, never hue.
+ *   Default: "secondary". Ghost is transparent with no border or lift; it fills
+ *   on hover.
+ * @prop {"danger"} tone - Crosses the danger hue with the chosen emphasis, for
+ *   actions that destroy something. `secondary` and `ghost` carry the red in the
+ *   label and escalate to a fill on hover; `primary` is the solid red fill.
+ *   Reach for the quiet steps when the delete sits beside the action you
+ *   actually want people taking, and save the fill for the confirmation, where
+ *   deleting *is* the primary action.
  * @prop {"small" | "medium" | "large"}            size    - Default: "medium"
  * @prop {"icon" | "circle"} shape - Icon-only: width equals the size's height,
  *   no horizontal padding. "circle" additionally rounds it. Give it an aria-label.
@@ -92,7 +99,7 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  * @csspart label - The span wrapping the slotted label.
  *
  * @example
- *   <ol-button variant="destructive" size="medium">Delete</ol-button>
+ *   <ol-button variant="primary" tone="danger" size="medium">Delete</ol-button>
  *   <ol-button type="submit" loading>Saving…</ol-button>
  *   <ol-button variant="primary" href="/borrow/OL1M">Borrow</ol-button>
  *   <ol-button shape="circle" elevation="floating" aria-label="Save">+</ol-button>
@@ -100,6 +107,7 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
 export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
     static properties = {
         variant: { type: String, reflect: true },
+        tone: { type: String, reflect: true },
         size: { type: String, reflect: true },
         shape: { type: String, reflect: true },
         elevation: { type: String, reflect: true },
@@ -170,7 +178,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             background-color: var(--white);
             color: var(--color-text);
             /* Strength of the specular top edge. Full on light fills (secondary); the
-               dark-filled variants (primary/destructive) dial it down — see below. */
+               dark fills (primary, and primary + tone="danger") dial it down — see below. */
             --control-highlight-strength: 35%;
             box-shadow:
                 var(--box-shadow-raised),
@@ -268,8 +276,8 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             color: var(--color-text);
         }
 
-        /* Destructive — solid red fill, mirroring primary but in the danger hue. */
-        :host([variant="destructive"]) .control {
+        /* Primary in the danger hue — the same solid fill, swapped to red. */
+        :host([variant="primary"][tone="danger"]) .control {
             background-color: var(--red);
             border-color: var(--color-border-error);
             color: var(--white);
@@ -289,6 +297,28 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             box-shadow: none;
         }
 
+        /* Danger tone on the quiet variants. Emphasis stays with variant; tone only
+           swaps the hue, so these read as a secondary or ghost button that happens
+           to be dangerous, not as a separate family of delete styles. The red lives
+           in the label at rest and the fill arrives on hover (below), which keeps a
+           delete legible without it outshouting the action beside it.
+
+           Two attributes, so these outrank the single-attribute variant fills above
+           wherever they sit — and, unlike those, they also outrank [selected]. That
+           only matters for a selected danger button, which nothing builds: selected
+           marks a popover trigger carrying a choice, not a destructive action. */
+        :host([variant="secondary"][tone="danger"]) .control {
+            border-color: var(--color-error-border);
+            color: var(--color-error-fg);
+        }
+
+        :host([variant="ghost"][tone="danger"]) .control {
+            background-color: transparent;
+            border-color: transparent;
+            color: var(--color-error-fg);
+            box-shadow: none;
+        }
+
         /* Selected — a neutral button carrying a selection, e.g. ol-select-popover's
            trigger once a language is picked. Must stay after the variant fills, which
            it ties on specificity. */
@@ -303,7 +333,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         /* Hover (never fires while disabled/loading — pointer-events is none on
            the host). Hover changes the fill, so --control-surface moves with it —
            otherwise the specular highlight stays toned to the resting color (e.g. a
-           blown-out white edge once destructive fills red). Keep
+           blown-out white edge once a danger button fills red). Keep
            --control-surface == background-color. */
         @media (hover: hover) and (pointer: fine) {
             :host([variant="secondary"]) .control:hover {
@@ -332,9 +362,23 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                brightness() carries the fill, border, and inset specular edge together, so
                there's no per-property override or --control-surface retoning to keep in
                sync. The press-scale on :active still reads as the "down" step. */
-            :host([variant="primary"]) .control:hover,
-            :host([variant="destructive"]) .control:hover {
+            :host([variant="primary"]) .control:hover {
                 filter: brightness(1.1);
+            }
+
+            /* The quiet danger steps commit on hover instead of lightening: ghost
+               takes the solid fill it was standing in for, secondary warms to the
+               red tint. Ghost has no shadow to retone; secondary does, so its
+               --control-surface moves with the fill like the neutral one above. */
+            :host([variant="ghost"][tone="danger"]) .control:hover {
+                background-color: var(--red);
+                border-color: var(--red);
+                color: var(--white);
+            }
+
+            :host([variant="secondary"][tone="danger"]) .control:hover {
+                background-color: var(--color-error-bg);
+                --control-surface: var(--color-error-bg);
             }
         }
 
@@ -510,6 +554,8 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
     constructor() {
         super();
         this.variant = 'secondary';
+        // tone is left undefined on purpose, like shape/elevation: a reflected
+        // String property set to '' emits an empty tone="" on every button.
         this.size = 'medium';
         this.type = 'button';
         this.loading = false;
