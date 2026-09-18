@@ -116,20 +116,40 @@ ol-button[variant="primary"]:not(:defined),
   --control-highlight-strength: 18%;
 }
 
-ol-button[variant="destructive"]:not(:defined) {
-  background-color: var(--red);
-  border-color: var(--color-border-error);
-  color: var(--white);
-  --control-surface: var(--red);
-  --control-highlight-strength: 18%;
-}
-
 ol-button[variant="ghost"]:not(:defined),
 .ol-button-static--ghost {
   background-color: transparent;
   border-color: transparent;
   box-shadow: none;
 }
+
+/* Danger tone, resting paint only — hover lives in the shadow DOM. `variant`
+   reflects a default of "secondary", so before upgrade the attribute is absent
+   and bare `tone="danger"` needs a selector of its own. Pairing the two axes
+   puts these one step over the directory's 0,3,0 cap; collapsing them would
+   only make the sheet harder to read than the component it mirrors. */
+/* stylelint-disable selector-max-specificity -- two-axis API; see above */
+ol-button[tone="danger"]:not([variant]):not(:defined),
+ol-button[variant="secondary"][tone="danger"]:not(:defined) {
+  border-color: var(--color-error-border);
+  color: var(--color-error-fg);
+}
+
+ol-button[variant="ghost"][tone="danger"]:not(:defined) {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-error-fg);
+  box-shadow: none;
+}
+
+ol-button[variant="primary"][tone="danger"]:not(:defined) {
+  background-color: var(--color-destructive);
+  border-color: var(--color-border-error);
+  color: var(--white);
+  --control-surface: var(--color-destructive);
+  --control-highlight-strength: 18%;
+}
+/* stylelint-enable selector-max-specificity */
 
 /* Must stay after the variant fills, which it ties on specificity. */
 ol-button[selected]:not(:defined) {
