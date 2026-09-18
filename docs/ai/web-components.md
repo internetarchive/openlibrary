@@ -289,6 +289,44 @@ Composed components (`ol-menu-popover`, `ol-select-popover`, `ol-options-popover
 
 Components that call `getBoundingClientRect()` for *relative* measurement (`ol-segmented-control`'s pill offset, `OLReadMore`'s scroll check) are unaffected: a delta between two rects in the same coordinate space is transform-independent.
 
+## Dialogs and confirmations
+
+`ol-dialog` covers the modal mechanics — top layer, focus trap and restoration, scroll lock, backdrop and Escape dismissal. What varies is who builds the dialog. Pick by what it asks for:
+
+| The reader is asked to | Use | Notes |
+|---|---|---|
+| Answer yes or no | `await olConfirm({ title, message, confirmLabel, cancelLabel, destructive })` | Resolves `true` only on confirm; Escape, backdrop, and the close button all mean cancel |
+| Acknowledge something before continuing | `await olAlert({ title, message, okLabel })` | One button, resolves on close |
+| Nothing — it just happened | A toast | `showToast()` (`OlToastRegion.js`) inside the Lit bundle; page JS builds the `ol-toast` itself — see `showComponentToast()` in `js/modals/index.js` |
+| Fill something in | Compose `<ol-dialog>` yourself | `olConfirm()` only asks yes/no |
+
+**Never `window.confirm()`, `window.alert()`, or a jQuery UI confirmation, and never hand-roll a second `<ol-dialog>` for a yes/no question.** The native dialogs block the event loop (which freezes every animation and pending request on the page), can't be styled or translated, and on some browsers are suppressible. A hand-rolled confirmation means another dialog in the page's markup, another set of listeners, and another chance to get the focus and dismissal wiring subtly wrong. `olConfirm()`/`olAlert()` live in `components/lit/alert-dialog.js`; live examples and the full option list are on `/developers/design#dialog`.
+
+- **Import `alert-dialog.js` directly from page JS**, not through `components/lit/index.js` — that entry point re-exports every component and would pull Lit and a second `customElements.define()` into the page bundle (see [Registration](#registration)). The helper deliberately does `document.createElement('ol-dialog')` after `customElements.whenDefined('ol-dialog')` rather than importing the class, so it costs the page bundle nothing: `ol-components.js` has already registered the element site-wide.
+
+  ```js
+  import { olConfirm } from '../../../../components/lit/alert-dialog.js';
+
+  if (await olConfirm({ title: strings.deleteTitle, confirmLabel: strings.deleteConfirm, destructive: true })) {
+      await deleteNote();
+  }
+  ```
+
+- **Every label defaults to English, so always pass translated strings.** The helper is called from JS, where `$_()` doesn't exist — the strings come through the [`data-i18n` bridge](i18n.md#client-rendered-strings-the-data-i18n-bridge) alongside whatever else that feature already reads from the attribute, including `labelClose` for the close button. `openlibrary/templates/type/edition/notes_modal_i18n.html` and `js/modals/index.js` are the reference pair.
+- **`destructive: true` for anything that discards or deletes.** It gives the confirm button `tone="danger"` and puts initial focus on Cancel, so a stray Enter cancels rather than destroys. Name the action on the button (`"Delete Note"`), not `"OK"` — the button label is what a reader scanning the dialog reads, and it is the only text that says what pressing it does.
+- **Opening a confirmation from inside another dialog is supported.** The stacked dialog takes the focus trap and gives it back on close; the dialog underneath doesn't steal Tab while it's up. Deleting from inside the notes dialog is that case.
+
+### Composing a dialog in a page template
+
+For a dialog that collects input, the shape the notes dialog uses (`macros/NotesModalDialog.html` + `js/modals/index.js`) is the one to copy:
+
+- **Render the dialog once per page, behind `render_once`, even when the trigger repeats.** `databarWork` renders the sidebar twice (desktop and mobile), so the trigger link exists twice while `.js-notes-modal` exists once and every link opens the same element. Note that `render_once` only suppresses *output* — any lookup above the guard still runs on every call, so do the query in the caller and pass the result in.
+- **Put `autofocus` on the field the reader came to use.** `ol-dialog` gives `[autofocus]` top priority when it opens; its fallback is "first focusable in the body", which is easy to lose to a slotted control or to content that isn't focusable yet at open time. A dialog whose sole purpose is a textarea should not open with focus on the header's close button. On a phone this places the caret without raising the keyboard — see [Autofocus and the mobile keyboard](#autofocus-and-the-mobile-keyboard).
+- **Slotted content needs a pre-upgrade rule in `ol-components.css`, and `autofocus` is why it is not optional.** Until Lit upgrades the host, everything slotted into it is ordinary markup in the page: it renders, it takes layout space, and it is focusable. `autofocus` is processed per *document* at the first render, so an un-upgraded dialog holding an `[autofocus]` field gets that field focused — and scrolled into view — leaving the reader part-way down a page with nothing to see there once the component upgrades and hides it. Whether it happens depends on whether first paint beats the deferred bundle, which is why it shows up on long pages and not short ones. `ol-dialog`, `ol-drawer`, and `ol-popover` are each hidden with `:not(:defined)`; a new component that slots light-DOM content needs the same.
+- **The dialog must not sit inside a `display: none` ancestor.** `showModal()` on a hidden `<dialog>` opens an invisible dialog that still makes the rest of the page inert — the page looks frozen with nothing on screen to dismiss. Keep the element outside containers that are hidden at some breakpoint (`.modal-links` is `display: none` on mobile).
+- **Keep the footer buttons in `slot="footer"`** and let the dialog own the padding (`--ol-dialog-padding`) rather than adding margins to the form inside it.
+- **Don't reach for `fullscreen-on-mobile` for a form** — see [design.md](design.md#fullscreen-on-mobile-is-for-scrolling-content-not-forms).
+
 ## Lifecycle and Performance
 
 - Clean up listeners, observers, and timers in `disconnectedCallback`.
@@ -442,21 +480,27 @@ html`<div role="radiogroup" aria-label=${label}>
 
 Related: whitespace inside `<ul>` template literals creates real text nodes that accesslint flags as direct text content inside a list. Keep `<li>` flush against the opening `<ul>` tag — no leading newline.
 
-## Autofocus on mobile
+## Autofocus and the mobile keyboard
 
-Don't auto-focus a text input when a component opens on a mobile breakpoint — the soft keyboard pops up and shrinks the visible panel area to nothing. Gate the focus call:
+A soft keyboard only appears when focus lands **inside the user gesture that opened the surface**. That is the condition to reason about — not the breakpoint on its own:
 
-```js
-_onPopoverOpen() {
-    if (!window.matchMedia('(max-width: 767px)').matches) {
-        this.shadowRoot.querySelector('.filter-input')?.focus();
-    }
-}
-```
+- **Focus synchronously, off the trigger's own handler → the keyboard opens**, and it eats the panel the reader is looking at. `ol-select-popover` is this case: the filter input is focused as the popover opens, and on a phone the keyboard would swallow the list being filtered. So it gates the call:
 
-767px matches the breakpoint that `ol-popover` uses to switch into its mobile tray layout — stay consistent with that so behavior matches what the user sees.
+  ```js
+  _onPopoverOpen() {
+      if (!window.matchMedia('(max-width: 767px)').matches) {
+          this.shadowRoot.querySelector('.filter-input')?.focus();
+      }
+  }
+  ```
 
-(Inputs in this component should also use `font-size: 16px` to prevent iOS Safari's auto-zoom on focus — see [design.md](design.md#mobile).)
+  767px matches the breakpoint `ol-popover` uses to switch into its mobile tray layout — stay consistent with that so behavior matches what the reader sees.
+
+- **Focus a tick later → it does not.** `ol-dialog` focuses in a `requestAnimationFrame` after `showModal()`, two hops past the tap (Lit's update microtask, then the frame), so the transient activation is spent: `activeElement`, the caret, and the focus ring all land on the field while the keyboard stays down until the reader taps it. iOS Safari is the strict case; Chrome Android applies the same activation policy. **So a dialog needs no breakpoint gate** — the notes dialog opens fully visible, footer included, with the textarea already focused. Don't add one on the assumption that `[autofocus]` pops the keyboard.
+
+The corollary: whether a surface focuses synchronously or in a frame is observable behavior on mobile, not an implementation detail. `ol-drawer` focuses synchronously (so rAF being paused in a hidden or occluded tab can't strand focus); `ol-dialog` uses a frame. Changing either one changes whether the keyboard comes up on open, so change it deliberately.
+
+(Text-entry controls in the component should also use `font-size: 16px` to prevent iOS Safari's auto-zoom on focus — see [design.md](design.md#mobile).)
 
 ## Testing
 

@@ -396,9 +396,9 @@ lockstep with it.
 **2. Light fills darken; saturated/dark fills lighten.** Hover should always
 shift the fill toward *more* activation, and the visible direction of that shift
 depends on where the fill starts. A near-white control (secondary button,
-unchecked toggle, neutral chip) darkens. A solid, saturated fill (primary and
-destructive buttons, the selected chip) instead *lightens* — darkening an
-already-dark fill barely registers, and lightening reads as the control coming
+unchecked toggle, neutral chip) darkens. A solid, saturated fill (a primary button,
+with or without `tone="danger"`, or the selected chip) instead *lightens* —
+darkening an already-dark fill barely registers, and lightening reads as the control coming
 forward. For a saturated fill, `filter: brightness(1.1)` is the cleanest tool:
 it carries the fill, the border, and any inset specular highlight together in
 one declaration, so there's nothing to keep in sync.
@@ -411,8 +411,7 @@ one declaration, so there's nothing to keep in sync.
 }
 
 /* Saturated fill: lighten the whole thing at once */
-:host([variant="primary"]) .control:hover,
-:host([variant="destructive"]) .control:hover {
+:host([variant="primary"]) .control:hover {
   filter: brightness(1.1);
 }
 ```
@@ -507,6 +506,14 @@ If you need the control to look smaller, scale it visually rather than dropping 
 
 This fix relies on the page declaring `<meta name="viewport" content="width=device-width, initial-scale=1">` (set site-wide in the base layout). Do **not** suppress auto-zoom with `maximum-scale=1` or `user-scalable=no` on the viewport meta — that disables pinch-zoom entirely, which is an accessibility failure for low-vision users. The 16px rule is the correct fix.
 
+### Fullscreen on mobile is for scrolling content, not forms
+
+`ol-dialog`'s `fullscreen-on-mobile` renders the dialog edge-to-edge at ≤767px with `height: 100dvh`. **`dvh` tracks browser chrome, not the virtual keyboard** — and the site's viewport meta (`templates/site/head.html`) has no `interactive-widget=resizes-content`, so on iOS the keyboard doesn't resize the layout viewport at all. A full-height dialog therefore stays taller than the visible area while a field is focused: its footer is pinned to the bottom of a box that is now behind the keyboard, so the buttons the reader needs are unreachable. The taller-than-visible box also lets iOS pan the visual viewport and expose the page behind the dialog, which is why `ol-dialog` blurs the focused field on `touchmove` in fullscreen mode — a mitigation, not a fix.
+
+Reach for fullscreen when the content itself scrolls and the actions are in the header or inline: a search palette, a result list, a picker. A dialog that is a label, a field, and two buttons stays compact, and the footer sits directly under the field where the keyboard can't reach it. The notes dialog (`macros/NotesModalDialog.html`) measures 372×396 at phone width against roughly 508px of keyboard-free space.
+
+If a fullscreen dialog does contain a text field, its primary action has to be reachable without scrolling past the keyboard — put it in the header rather than a bottom footer.
+
 ### Gate hover styles to hover-capable pointers
 
 Touch devices fire `:hover` on tap and the style sticks until the next tap elsewhere. That makes plain `:hover` rules feel broken on phones — buttons stay highlighted, tooltips linger.
@@ -552,6 +559,7 @@ What checks each rule today. "Review" means only a human or the Copilot UI check
 | Motion via tokens, no raw curves or durations | Review |
 | Blur follows modality; shared scrim tokens | Review |
 | 16px text-entry controls | Review |
+| Fullscreen dialogs only for scrolling content, not forms | Review |
 | Hover gated to hover-capable pointers | Review |
 | Menu rows on the shared height/inset tokens; selected rows untinted | Review |
 | Overline via the typography role tokens, applied together | Review |
