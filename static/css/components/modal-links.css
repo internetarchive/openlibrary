@@ -26,6 +26,20 @@
   line-height: 12px;
 }
 
+/* A saved note marks its link with the selected treatment, so the sidebar says
+   the note is there before the dialog is opened. Its neighbours (the shelf
+   button, the star rating) already reflect their state this way. */
+.modal-links .icon-link--has-note {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+.modal-links .icon-link--has-note .icon-link__text {
+  font-weight: var(--font-weight-semibold);
+}
+.modal-links .icon-link--has-note:hover {
+  background-color: var(--color-primary-subtle-hover);
+}
+
 /* Sized by the icon system (size="lg"): the old 2em box reads oversized and thin
    as a stroke glyph, so only spacing is set here. */
 .modal-links .icon-link__image {

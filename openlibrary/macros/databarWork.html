@@ -28,6 +28,14 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
 
+        $# Looked up once here, not inside the notes macro: modal_links renders
+        $# twice (desktop + mobile) and the macro ran the query on each. Both the
+        $# sidebar link (which marks itself when a note exists) and the dialog
+        $# (which prefills the field) read it. None for logged-out patrons, who
+        $# never hit the table.
+        $ notes_username = ctx.user and ctx.user.key.split('/')[-1]
+        $ user_book_note = work.get_users_notes(notes_username, edition.key.split('/')[-1]) if (notes_username and work and edition) else None
+
 
         $ render_times['databarWork: LoanStatus'] = time()
         $:macros.LoanStatus(page, secondary_action=editions_page, check_loan_status=editions_page, lending_state=lending_state)
@@ -52,7 +60,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $ share_url = request.home + (edition or work).key
 
         $ render_times['databarWork: Modal Links - Desktop'] = time()
-        $:render_template("type/edition/modal_links", work, edition, share_url)
+        $:render_template("type/edition/modal_links", work, edition, share_url, user_note=user_book_note)
         $ render_times['databarWork: Modal Links - Desktop'] = time() - render_times['databarWork: Modal Links - Desktop']
 
         <div class="readers-stats__wrapper mobile">
@@ -60,7 +68,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
           <hr>
           $ render_times['databarWork: Modal Links - Mobile'] = time()
-          $:render_template("type/edition/modal_links", work, edition, share_url, mobile=True)
+          $:render_template("type/edition/modal_links", work, edition, share_url, mobile=True, user_note=user_book_note)
           $ render_times['databarWork: Modal Links - Mobile'] = time() - render_times['databarWork: Modal Links - Mobile']
         </div>
 

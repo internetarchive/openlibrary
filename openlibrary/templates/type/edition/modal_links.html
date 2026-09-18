@@ -1,4 +1,4 @@
-$def with (work, edition, page_url, mobile=False)
+$def with (work, edition, page_url, mobile=False, user_note=None)
 
 $def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=None, action_name=None):
   $ href = 'javascript:;'
@@ -28,7 +28,12 @@ $def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=No
     $if mobile:
       $:macros.StarRatings(work, edition, id="--mobile")
 
-    $ notes_content = icon_link("notes-modal-link", "sticky-note", _("Notes"), ga_data="ModalLinkClick|NoteIcon", action_name=_("adding notes to"))
+    $# A saved note marks its own link: the lined icon and the selected treatment
+    $# say the note is there without opening the dialog.
+    $ has_note = bool(user_note and user_note.notes)
+    $ notes_class = "notes-modal-link icon-link--has-note" if has_note else "notes-modal-link"
+    $ notes_icon = "sticky-note-text" if has_note else "sticky-note"
+    $ notes_content = icon_link(notes_class, notes_icon, _("Notes"), ga_data="ModalLinkClick|NoteIcon", action_name=_("adding notes to"))
     $:macros.NotesModal(notes_content)
 
   $if ctx.get('share_links'):
@@ -38,4 +43,4 @@ $def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=No
 </div>
 
 $if work and work.get('key', ''):
-  $:macros.NotesModalDialog(work, edition, 'sidebar-notes')
+  $:macros.NotesModalDialog(work, edition, 'sidebar-notes', user_note)
