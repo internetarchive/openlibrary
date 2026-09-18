@@ -45,7 +45,7 @@ $if render_once('notes-modal'):
       <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
     </form>
     <div slot="footer" class="notes-modal__actions">
-      <ol-button class="js-notes-modal-delete $('' if display_delete_button else 'hidden')" variant="secondary" tone="danger">$_("Delete Note")</ol-button>
+      <ol-button class="js-notes-modal-delete $('' if display_delete_button else 'hidden')" variant="ghost" tone="danger">$_("Delete Note")</ol-button>
       <ol-button class="js-notes-modal-save" variant="primary">$_("Save Note")</ol-button>
     </div>
   </ol-dialog>
