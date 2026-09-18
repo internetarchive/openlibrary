@@ -1,36 +1,25 @@
 /* buttonBtn styles are loaded globally via page entry points */
 
+/* The notes dialog (macros/NotesModal.html) supplies its own padding through
+   --ol-dialog-padding, so the form adds none of its own. */
 .book-notes-form {
-  margin: 1em auto;
-  padding: 0 20px;
+  margin: 0;
 }
 .book-notes-form p {
   font-size: var(--font-size-title-medium);
 }
-.book-notes-form div {
+.notes-modal-textarea {
   width: 100%;
-  margin-bottom: 1em;
-}
-.book-notes-form div textarea {
-  width: 100%;
+  margin-top: var(--spacing-stack-sm);
   padding: var(--spacing-inset-xs);
   font-size: var(--font-size-title-medium);
   resize: none;
 }
 
-.note-form-buttons {
+.notes-modal__actions {
   display: flex;
-  justify-content: space-between;
-}
-.note-form-buttons button {
-  font-size: 1.2em;
-  width: unset;
-}
-.note-form-buttons .update-note-button {
-  margin-left: auto;
-  margin-top: 5px;
-  font-size: 1.2em;
-  padding: var(--spacing-inset-sm);
+  justify-content: flex-end;
+  gap: var(--spacing-inline-md);
 }
 
 .observation-instructions {
@@ -39,14 +28,11 @@
 
 /* --width-breakpoint-tablet: 768px */
 @media screen and (max-width: 768px) {
-  .note-form-buttons {
+  .notes-modal__actions {
     flex-direction: column-reverse;
   }
-  .note-form-buttons .update-note-button {
-    margin-bottom: 1em;
-  }
-  .book-notes-form button {
+  .notes-modal__actions ol-button {
+    display: block;
     width: 100%;
-    line-height: 1.5em;
   }
 }

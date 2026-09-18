@@ -1,0 +1,13 @@
+$def with ()
+$# Translated strings for the notes modal (js/modals/index.js).
+$# Rendered into the dialog's `data-i18n` attribute and read client-side.
+$# The English source strings here must match DEFAULT_NOTES_MODAL_STRINGS
+$# in that same file.
+$ notes_modal_i18n = {
+$     "saveSuccess":   _("Note saved."),
+$     "saveError":     _("Could not save your note. Please try again."),
+$     "deleteSuccess": _("Note deleted."),
+$     "deleteError":   _("Could not delete your note. Please try again."),
+$ }
+$json_encode(notes_modal_i18n)
+

@@ -1,0 +1,38 @@
+$def with (work, edition, id)
+$# :param Work work: The work these notes belong to
+$# :param Edition edition: The edition these notes belong to
+$# :param str id: Base id for the dialogs
+$#
+$# databarWork.html renders the sidebar twice (desktop + mobile), so the dialogs
+$# are rendered once per page and shared by every trigger link.
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ notes = work.get_users_notes(username, edition.key.split('/')[-1])
+
+$if notes and len(notes.notes) > 0:
+  $ display_delete_button = True
+$else:
+  $ display_delete_button = False
+
+$if render_once('notes-modal'):
+  <ol-dialog id="$id" class="js-notes-modal" label="$_('My Book Notes')" width="medium" fullscreen-on-mobile
+             data-i18n="$:render_template('type/edition/notes_modal_i18n')">
+    <form class="book-notes-form" action="$(work.key)/notes.json" method="POST">
+      <p>$_("My private notes about this edition:")</p>
+      <textarea class="notes-modal-textarea" name="notes" rows="10">$(notes.notes if notes else "")</textarea>
+      <input type="hidden" name="work_id" value="$work.key.split('/')[-1]" />
+      <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
+    </form>
+    <div slot="footer" class="notes-modal__actions">
+      <ol-button class="js-notes-modal-delete $('' if display_delete_button else 'hidden')" variant="destructive">$_("Delete Note")</ol-button>
+      <ol-button class="js-notes-modal-save" variant="primary">$_("Save Note")</ol-button>
+    </div>
+  </ol-dialog>
+
+  <ol-dialog id="$id-confirm-delete" class="js-notes-modal-confirm" label="$_('Delete this note?')" width="small">
+    <p>$_("This cannot be undone.")</p>
+    <div slot="footer">
+      <ol-button data-action="cancel" variant="secondary">$_("Cancel")</ol-button>
+      <ol-button data-action="delete" variant="destructive">$_("Delete Note")</ol-button>
+    </div>
+  </ol-dialog>
