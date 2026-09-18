@@ -137,6 +137,10 @@ export function initNotesModal(modalLinks) {
         formData.delete('notes');
         try {
             await postNote(formData);
+            // Close on success like a save does: the note the dialog was opened
+            // to edit is gone, so leaving it open just shows an empty field.
+            // The reset still happens, for the next time it opens.
+            dialog.open = false;
             textarea.value = '';
             deleteButton.classList.add('hidden');
             showComponentToast(strings.deleteSuccess, 'success');
