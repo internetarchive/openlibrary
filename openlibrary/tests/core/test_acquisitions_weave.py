@@ -1,4 +1,15 @@
-import asyncio
+"""`editions.opds_acquisitions` — the one field, in one format (#12844).
+
+A caller used to have to read `providers` for the providers Open Library
+synthesizes and something else for the ones harvested from a registered feed,
+then reconcile two different shapes. This is both, as OPDS2 acquisition links,
+from one field.
+
+Weighted towards the rules that are invisible when they break: the precedence
+between a harvested row and a synthesized one, the provider-name mapping the
+dedupe depends on, and the failure paths.
+"""
+
 from typing import Final
 
 import pytest
@@ -9,13 +20,12 @@ from openlibrary.core.acquisitions import (
     MAX_ROWS_PER_QUERY,
     Acquisition,
     _row_budget,
-    add_acquisitions,
+    feed_provider_name,
+    opds_links_for_edition,
+    provider_acquisition_as_opds,
 )
 from openlibrary.core.db import _get_db, get_db
-from openlibrary.plugins.worksearch.code import (
-    SearchResponse,
-    _process_solr_search_response,
-)
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 ACQUISITIONS_DDL: Final = """
 CREATE TABLE acquisitions (
@@ -26,17 +36,13 @@ CREATE TABLE acquisitions (
 );
 """
 
+BORROW_REL: Final = "http://opds-spec.org/acquisition/borrow"
+BUY_REL: Final = "http://opds-spec.org/acquisition/buy"
+
 
 @pytest.fixture
 def acquisitions_db(tmp_path):
-    """A file-backed SQLite database, deliberately not ``:memory:``.
-
-    The search path now weaves on a worker thread (``asyncio.to_thread``), and
-    web.py holds its connection per thread, so each thread opens its own. A
-    ``:memory:`` database is private to one connection, which would make the
-    table invisible from that thread -- so an in-memory fixture cannot exercise
-    the path production takes.
-    """
+    """File-backed, not ``:memory:``, so the table survives a second connection."""
     web.config.db_parameters = {"dbn": "sqlite", "db": str(tmp_path / "acq.db")}
     _get_db.cache_clear()
     db = get_db()
@@ -47,453 +53,192 @@ def acquisitions_db(tmp_path):
     _get_db.cache_clear()
 
 
-def test_add_acquisitions_weaves_by_edition(acquisitions_db):
+def store(edition_id, provider_name, local_id, link, work_id=450063):
     Acquisition.upsert(
-        work_id=7,
-        edition_id=55,
-        provider_name="lenny",
-        local_id="37044775",
-        data={"acquisitions": [{"access": "open-access", "format": "text/html"}]},
+        work_id=work_id,
+        edition_id=edition_id,
+        provider_name=provider_name,
+        local_id=local_id,
+        data={"acquisitions": [{"access": "borrow", "url": link["href"], "link": link}]},
     )
-    Acquisition.upsert(
-        work_id=7,
-        edition_id=55,
-        provider_name="betterworldbooks",
-        local_id="urn:isbn:1",
-        data={"acquisitions": [{"access": "buy", "price": {"currency": "USD", "value": 1.25}}]},
-    )
-    docs = [
-        {"key": "/books/OL55M", "title": "Flatland"},
-        {"key": "/works/OL7W", "title": "a work doc"},
-        {"key": "/books/OL99M", "title": "edition with no acquisitions"},
-    ]
-    add_acquisitions(docs)
-
-    accesses = {a["provider_name"]: a["access"] for a in docs[0]["acquisitions"]}
-    assert accesses == {"lenny": "open-access", "betterworldbooks": "buy"}
-    # the price survives the flattening, which is the point of the whole feature
-    bwb = next(a for a in docs[0]["acquisitions"] if a["provider_name"] == "betterworldbooks")
-    assert bwb["price"] == {"currency": "USD", "value": 1.25}
-    # The work doc is woven too, matched on work_id. An earlier version skipped
-    # anything without a /books key, which meant the obvious query --
-    # /search.json?fields=key,title,acquisitions, which returns WORK docs and no
-    # edition sub-documents -- silently attached nothing at all. Verified
-    # against production: that query returns docs with only {key, title} and no
-    # "editions" member.
-    assert len(docs[1]["acquisitions"]) == 2
-    assert {a["edition_key"] for a in docs[1]["acquisitions"]} == {"/books/OL55M"}
-    assert "acquisitions" not in docs[2]  # edition without acquisitions untouched
 
 
-def test_add_acquisitions_no_edition_docs_is_noop(acquisitions_db):
-    docs = [{"key": "/works/OL7W"}]
-    add_acquisitions(docs)
-    assert "acquisitions" not in docs[0]
+class FakeProviderAcquisition:
+    """Stands in for ``book_providers.Acquisition``."""
 
-
-def test_get_by_editions_batches(acquisitions_db):
-    Acquisition.upsert(work_id=1, edition_id=10, provider_name="p", local_id="a", data={})
-    Acquisition.upsert(work_id=1, edition_id=20, provider_name="p", local_id="b", data={})
-    grouped = Acquisition.get_by_editions([10, 20, 30])
-    assert set(grouped) == {10, 20}
-    assert grouped[10][0].local_id == "a"
-
-
-def test_every_link_of_a_publication_is_woven(acquisitions_db):
-    """One row holds all of a publication's links, and search must expose all
-    of them -- a Gutenberg book's epub and html, not just one."""
-    Acquisition.upsert(
-        work_id=1,
-        edition_id=42,
-        provider_name="project_gutenberg",
-        local_id="1342",
-        data={
-            "acquisitions": [
-                {"access": "open-access", "format": "application/epub+zip", "url": "https://g/1342.epub"},
-                {"access": "open-access", "format": "text/html", "url": "https://g/1342.html"},
-            ]
-        },
-    )
-    docs = [{"key": "/books/OL42M"}]
-
-    add_acquisitions(docs)
-
-    formats = [a["format"] for a in docs[0]["acquisitions"]]
-    assert formats == ["application/epub+zip", "text/html"]
-    assert all(a["provider_name"] == "project_gutenberg" for a in docs[0]["acquisitions"])
-
-
-def test_a_row_with_an_empty_acquisition_list_attaches_nothing(acquisitions_db):
-    """A row can exist with no usable links; don't attach an empty key that a
-    consumer would have to special-case."""
-    Acquisition.upsert(work_id=1, edition_id=43, provider_name="lenny", local_id="x", data={"acquisitions": []})
-    docs = [{"key": "/books/OL43M"}]
-
-    add_acquisitions(docs)
-
-    assert "acquisitions" not in docs[0]
+    def __init__(self, access="buy", fmt="web", price=None, url="https://x/buy", provider_name="standard_ebooks"):
+        self.access, self.format, self.price, self.url, self.provider_name = access, fmt, price, url, provider_name
 
 
 # ---------------------------------------------------------------------------
-# Real search-response shapes.
-#
-# Captured from production openlibrary.org, because the two shapes are not
-# interchangeable and which one a client gets depends on the fields it asked
-# for. Reading the code was not enough to tell: the bug above survived unit
-# tests precisely because the fixtures used a shape no real query returns.
-# ---------------------------------------------------------------------------
-
-WORK_LEVEL_RESPONSE: Final = [
-    # /search.json?q=frankenstein&fields=key,title,acquisitions
-    {"key": "/works/OL450063W", "title": "Frankenstein"},
-    {"key": "/works/OL25595002W", "title": "Frankenstein"},
-]
-
-EDITIONS_REQUESTED_RESPONSE: Final = [
-    # /search.json?q=frankenstein&fields=key,title,editions,editions.key
-    {"key": "/books/OL36620178M", "title": "Frankenstein"},
-    {"key": "/books/OL25422618M", "title": "Frankenstein"},
-]
-
-
-def test_the_naive_query_shape_gets_acquisitions(acquisitions_db):
-    """A client asking only for `acquisitions` gets work docs. This is the query
-    people will actually write, and it has to work."""
-    Acquisition.upsert(
-        work_id=450063,
-        edition_id=36620178,
-        provider_name="betterworldbooks",
-        local_id="9781737408802",
-        data={"acquisitions": [{"access": "buy", "price": {"currency": "USD", "value": 1.25}}]},
-    )
-    docs = [dict(doc) for doc in WORK_LEVEL_RESPONSE]
-    add_acquisitions(docs)
-    assert docs[0]["acquisitions"][0]["price"]["value"] == 1.25
-    assert docs[0]["acquisitions"][0]["edition_key"] == "/books/OL36620178M"
-    assert "acquisitions" not in docs[1], "a work with no acquisitions gains no key"
-
-
-def test_the_editions_requested_shape_also_gets_acquisitions(acquisitions_db):
-    Acquisition.upsert(
-        work_id=450063,
-        edition_id=36620178,
-        provider_name="lenny",
-        local_id="36620178",
-        data={"acquisitions": [{"access": "open-access", "format": "text/html"}]},
-    )
-    docs = [dict(doc) for doc in EDITIONS_REQUESTED_RESPONSE]
-    add_acquisitions(docs)
-    assert docs[0]["acquisitions"][0]["access"] == "open-access"
-    assert "acquisitions" not in docs[1]
-
-
-def test_a_work_result_names_which_edition_each_price_belongs_to(acquisitions_db):
-    """At work level a price is meaningless without saying which edition it is
-    for -- a work can have thousands, at different prices."""
-    for edition_id, value in ((36620178, 1.25), (25422618, 9.99)):
-        Acquisition.upsert(
-            work_id=450063,
-            edition_id=edition_id,
-            provider_name="betterworldbooks",
-            local_id=f"isbn-{edition_id}",
-            data={"acquisitions": [{"access": "buy", "price": {"currency": "USD", "value": value}}]},
-        )
-    docs = [dict(WORK_LEVEL_RESPONSE[0])]
-    add_acquisitions(docs)
-    by_edition = {a["edition_key"]: a["price"]["value"] for a in docs[0]["acquisitions"]}
-    assert by_edition == {"/books/OL36620178M": 1.25, "/books/OL25422618M": 9.99}
-
-
-def test_mixed_work_and_edition_docs_in_one_page(acquisitions_db):
-    """Both shapes can appear together, and each must be matched on its own id."""
-    Acquisition.upsert(
-        work_id=450063,
-        edition_id=36620178,
-        provider_name="lenny",
-        local_id="a",
-        data={"acquisitions": [{"access": "open-access"}]},
-    )
-    docs = [{"key": "/works/OL450063W"}, {"key": "/books/OL36620178M"}, {"key": "/authors/OL1A"}]
-    add_acquisitions(docs)
-    assert docs[0]["acquisitions"][0]["access"] == "open-access"
-    assert docs[1]["acquisitions"][0]["access"] == "open-access"
-    assert "acquisitions" not in docs[2], "a non-book, non-work key is ignored"
-
-
-# ---------------------------------------------------------------------------
-# The wiring, not just the weaving.
-#
-# add_acquisitions being correct does not mean search.json calls it. This
-# exercises the real post-processing function with the real response object, so
-# the field check and the doc extraction are covered rather than assumed.
+# The provider-name mapping the dedupe depends on
 # ---------------------------------------------------------------------------
 
 
-def _solr_response(docs: list[dict]):
-    return SearchResponse(
-        facet_counts={},
-        sort="",
-        docs=docs,
-        num_found=len(docs),
-        solr_select="",
-        raw_resp={"response": {"docs": docs, "numFound": len(docs)}},
-    )
+class TestProviderNameMapping:
+    def test_gutenberg_is_mapped_to_the_registry_spelling(self):
+        """`book_providers` says `gutenberg`; the feed registry says
+        `project_gutenberg`, because a feed's provider_name is also its
+        `identifiers` key and the import validator requires them to agree.
+        Without the mapping the two look like different providers and an
+        edition gets both a harvested acquisition and a synthesized duplicate.
+        """
+        assert feed_provider_name("gutenberg") == "project_gutenberg"
 
+    def test_a_name_that_already_agrees_is_unchanged(self):
+        assert feed_provider_name("betterworldbooks") == "betterworldbooks"
 
-def _process(docs: list[dict], fields):
-    return asyncio.run(_process_solr_search_response(_solr_response(docs), fields))
+    def test_an_unknown_name_passes_through(self):
+        assert feed_provider_name("standard_ebooks") == "standard_ebooks"
 
-
-@pytest.fixture
-def one_acquisition(acquisitions_db):
-    Acquisition.upsert(
-        work_id=450063,
-        edition_id=36620178,
-        provider_name="betterworldbooks",
-        local_id="isbn-1",
-        data={"acquisitions": [{"access": "buy", "price": {"currency": "USD", "value": 1.25}}]},
-    )
-    return acquisitions_db
-
-
-def test_search_weaves_when_the_field_is_requested(one_acquisition):
-    """The field list arrives here already split into a list."""
-    out = _process([{"key": "/works/OL450063W"}], ["key", "title", "acquisitions"])
-    assert out["docs"][0]["acquisitions"][0]["price"]["value"] == 1.25
-
-
-def test_search_does_not_weave_when_the_field_is_not_requested(one_acquisition):
-    """Nobody pays for a database query they did not ask for."""
-    out = _process([{"key": "/works/OL450063W"}], ["key", "title"])
-    assert "acquisitions" not in out["docs"][0]
-
-
-def test_a_star_field_list_does_not_weave(one_acquisition):
-    """`fields=*` does NOT include acquisitions, and that is deliberate.
-
-    Verified against production: `?fields=*` does not include `availability`
-    either, because by this point the field list is `["*"]` and the `fields ==
-    "*"` comparison cannot match a list. Acquisitions follow availability
-    exactly -- ask for them by name. Pinned because the asymmetry is surprising
-    and would otherwise look like a bug worth "fixing" into a database query on
-    every wildcard search.
-    """
-    out = _process([{"key": "/works/OL450063W"}], ["*"])
-    assert "acquisitions" not in out["docs"][0]
-
-
-def test_edition_subdocs_are_woven_not_the_work_wrapper(one_acquisition):
-    """When editions are requested the acquisition belongs on the edition doc."""
-    docs = [{"key": "/works/OL450063W", "editions": {"docs": [{"key": "/books/OL36620178M"}]}}]
-    out = _process(docs, ["key", "editions", "acquisitions"])
-    edition = out["docs"][0]["editions"]["docs"][0]
-    assert edition["acquisitions"][0]["price"]["value"] == 1.25
-    assert "acquisitions" not in out["docs"][0], "the wrapper work doc is not the target"
-
-
-def test_a_database_failure_does_not_fail_the_search(monkeypatch, acquisitions_db):
-    """Acquisitions are additive, so Postgres being down must not fail the search.
-
-    Verified live before the guard existed: with Postgres stopped,
-    /search.json?fields=key,title,acquisitions returned HTTP 500 with a
-    traceback, while the same query without the field returned 200. The search
-    should degrade to results without prices, not to no results.
-    """
-
-    def boom(docs):
-        raise RuntimeError("server closed the connection unexpectedly")
-
-    monkeypatch.setattr("openlibrary.plugins.worksearch.code.add_acquisitions", boom)
-    out = _process([{"key": "/works/OL450063W", "title": "Frankenstein"}], ["key", "title", "acquisitions"])
-    assert out["docs"][0]["title"] == "Frankenstein"
-    assert "acquisitions" not in out["docs"][0]
+    def test_none_stays_none(self):
+        assert feed_provider_name(None) is None
 
 
 # ---------------------------------------------------------------------------
-# Defects found by adversarial review. Each of these failed before its fix.
+# Coercing a synthesized provider into OPDS2
 # ---------------------------------------------------------------------------
 
 
-class TestProviderCannotRelabelItself:
-    """`data` is written from an external provider feed, so it is untrusted.
+class TestProviderCoercion:
+    def test_becomes_an_opds2_acquisition_link(self):
+        link = provider_acquisition_as_opds(FakeProviderAcquisition(access="buy", fmt="epub", url="https://x/b"))
+        assert link["rel"] == BUY_REL
+        assert link["href"] == "https://x/b"
+        assert link["type"] == "application/epub+zip"
 
-    The injected labels must win over the blob. `edition_key` is the one a
-    client uses to decide which edition a price applies to, so a feed choosing
-    it would be worse than not having it at all.
-    """
+    def test_the_provider_name_is_mapped_not_copied(self):
+        link = provider_acquisition_as_opds(FakeProviderAcquisition(provider_name="gutenberg"))
+        assert link["provider_name"] == "project_gutenberg"
 
-    def test_a_feed_cannot_spoof_the_labels(self, acquisitions_db):
-        Acquisition.upsert(
-            work_id=450063,
-            edition_id=36620178,
-            provider_name="realprovider",
-            local_id="real-1",
-            data={
-                "acquisitions": [
-                    {
-                        "access": "buy",
-                        "provider_name": "SPOOFED",
-                        "local_id": "SPOOFED",
-                        "edition_key": "/books/OL666M",
-                    }
-                ]
-            },
-        )
-        docs = [{"key": "/books/OL36620178M"}]
-        add_acquisitions(docs)
-        entry = docs[0]["acquisitions"][0]
-        assert entry["provider_name"] == "realprovider"
-        assert entry["local_id"] == "real-1"
-        assert entry["edition_key"] == "/books/OL36620178M"
+    def test_an_access_kind_with_no_opds_equivalent_is_dropped(self):
+        """Better to omit than to invent a `rel` the spec does not define."""
+        assert provider_acquisition_as_opds(FakeProviderAcquisition(access="mystery")) is None
 
-    def test_the_promised_keys_are_actually_present(self, acquisitions_db):
-        """The docstring promises provider_name, local_id and edition_key."""
-        Acquisition.upsert(
-            work_id=1,
-            edition_id=2,
-            provider_name="lenny",
-            local_id="abc",
-            data={"acquisitions": [{"access": "open-access"}]},
-        )
-        docs = [{"key": "/books/OL2M"}]
-        add_acquisitions(docs)
-        assert docs[0]["acquisitions"][0]["local_id"] == "abc"
-        assert docs[0]["acquisitions"][0]["provider_name"] == "lenny"
-        assert docs[0]["acquisitions"][0]["edition_key"] == "/books/OL2M"
+    def test_an_acquisition_with_no_url_is_dropped(self):
+        assert provider_acquisition_as_opds(FakeProviderAcquisition(url=None)) is None
+
+    def test_a_string_price_is_not_passed_off_as_an_opds_price(self):
+        """`providers` carries "$4.99"; OPDS2 wants a currency and a number.
+        Parsing it would mean guessing, so it goes under a distinct key and
+        nothing downstream can read a fabricated amount as `price`."""
+        link = provider_acquisition_as_opds(FakeProviderAcquisition(price="$4.99"))
+        assert link["properties"] == {"price_display": "$4.99"}
+        assert "price" not in link["properties"]
 
 
-class TestOneBadRowDoesNotBlankThePage:
-    def test_a_non_object_data_blob_skips_only_its_own_row(self, acquisitions_db):
-        """jsonb's top level can be a list, so `.get` on it raises. The caller's
-        guard is page-wide, so an unhandled row would cost every doc its prices."""
+# ---------------------------------------------------------------------------
+# Reading the stored links
+# ---------------------------------------------------------------------------
+
+
+class TestStoredLinks:
+    def test_returns_the_stored_opds_link_itself(self, acquisitions_db):
+        """The blob keeps the provider's raw OPDS2 link as the source of truth,
+        so it is returned rather than rebuilt."""
+        store(36620178, "lenny", "36620178", {"rel": BORROW_REL, "href": "https://l/items/36620178/borrow", "type": "application/opds-publication+json"})
+        links = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert links[0]["rel"] == BORROW_REL
+        assert links[0]["type"] == "application/opds-publication+json"
+        assert links[0]["provider_name"] == "lenny"
+
+    def test_a_feed_cannot_relabel_itself(self, acquisitions_db):
+        """`data` is written from an external feed, so the row's own
+        provider_name is applied after the blob is spread."""
+        store(36620178, "realprovider", "r-1", {"rel": BORROW_REL, "href": "https://l/x", "provider_name": "SPOOFED"})
+        links = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert links[0]["provider_name"] == "realprovider"
+
+    def test_a_row_with_an_unusable_blob_is_skipped_not_raised(self, acquisitions_db):
+        """jsonb's top level can be a list; `.get` on it raises, and one bad
+        feed record must not cost the page its acquisitions."""
         acquisitions_db.query(
-            "INSERT INTO acquisitions (work_id, edition_id, provider_name, local_id, data) VALUES (450063, 36620178, 'broken', 'b-1', '[\"not an object\"]')"
+            "INSERT INTO acquisitions (work_id, edition_id, provider_name, local_id, data) VALUES (450063, 36620178, 'broken', 'b-1', '[\"nope\"]')"
         )
-        Acquisition.upsert(
-            work_id=450063,
-            edition_id=36620178,
-            provider_name="betterworldbooks",
-            local_id="good-1",
-            data={"acquisitions": [{"access": "buy", "price": {"currency": "USD", "value": 1.01}}]},
-        )
-        docs = [{"key": "/works/OL450063W"}]
-        add_acquisitions(docs)
-        providers = [a["provider_name"] for a in docs[0]["acquisitions"]]
-        assert providers == ["betterworldbooks"], "the good row survives the bad one"
+        store(36620178, "lenny", "36620178", {"rel": BORROW_REL, "href": "https://l/good"})
+        links = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert [link["provider_name"] for link in links] == ["lenny"]
 
-    def test_a_non_object_entry_is_skipped(self, acquisitions_db):
-        Acquisition.upsert(
-            work_id=1,
-            edition_id=2,
-            provider_name="lenny",
-            local_id="a",
-            data={"acquisitions": ["a bare string", {"access": "open-access"}]},
-        )
-        docs = [{"key": "/books/OL2M"}]
-        add_acquisitions(docs)
-        assert [a["access"] for a in docs[0]["acquisitions"]] == ["open-access"]
+    def test_an_entry_without_a_link_is_skipped(self, acquisitions_db):
+        Acquisition.upsert(work_id=1, edition_id=2, provider_name="lenny", local_id="a", data={"acquisitions": [{"access": "borrow", "url": "https://x"}]})
+        assert opds_links_for_edition(Acquisition.get_by_editions([2])[2]) == []
 
-
-class TestResponseSizeIsBounded:
-    def test_entries_per_doc_are_capped(self, acquisitions_db):
-        """A work can have thousands of editions with several links each, and
-        /search.json's `limit` has no upper bound -- so without a cap a single
-        page can render a multi-megabyte response from two cheap queries."""
-        for edition_id in range(1, 40):
-            Acquisition.upsert(
-                work_id=450063,
-                edition_id=edition_id,
-                provider_name="betterworldbooks",
-                local_id=f"isbn-{edition_id}",
-                data={"acquisitions": [{"access": "buy"}, {"access": "sample"}]},
-            )
-        docs = [{"key": "/works/OL450063W"}]
-        add_acquisitions(docs)
-        assert len(docs[0]["acquisitions"]) == MAX_ACQUISITIONS_PER_DOC
+    def test_links_per_edition_are_capped(self, acquisitions_db):
+        for i in range(MAX_ACQUISITIONS_PER_DOC + 10):
+            store(36620178, f"p{i}", f"l{i}", {"rel": BORROW_REL, "href": f"https://x/{i}"})
+        links = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
+        assert len(links) == MAX_ACQUISITIONS_PER_DOC
 
     def test_the_row_budget_is_absolutely_capped(self):
         assert _row_budget(1) == MAX_ACQUISITIONS_PER_DOC
-        assert _row_budget(10) == 10 * MAX_ACQUISITIONS_PER_DOC
         assert _row_budget(1_000_000) == MAX_ROWS_PER_QUERY
 
 
-class TestMalformedKeys:
-    @pytest.mark.parametrize(
-        "key",
-        [
-            "/books/OL",  # raises IndexError in extract_numeric_id_from_olid
-            "/works/OL",
-            "/books/OL" + "9" * 80 + "M",  # int too large for the database
-            "/books/OLM",
-            "/books/OL12.5M",
-        ],
-    )
-    def test_a_malformed_key_does_not_lose_the_page(self, acquisitions_db, key):
-        Acquisition.upsert(
-            work_id=1,
-            edition_id=2,
-            provider_name="lenny",
-            local_id="a",
-            data={"acquisitions": [{"access": "open-access"}]},
+# ---------------------------------------------------------------------------
+# Precedence: harvested wins, synthesized fills the gaps
+# ---------------------------------------------------------------------------
+
+
+class TestPrecedence:
+    def _stitch(self, monkeypatch, solr_doc, provider_acquisitions, stored):
+        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: provider_acquisitions)
+        return WorkSearchScheme._opds_acquisitions(solr_doc, object(), stored)
+
+    def test_a_harvested_row_wins_over_the_synthesized_one(self, acquisitions_db, monkeypatch):
+        """The feed is the provider's own statement of what it offers; the
+        synthesized version is our inference."""
+        store(
+            36620178, "betterworldbooks", "isbn-1", {"rel": BUY_REL, "href": "https://bwb/harvested", "properties": {"price": {"currency": "USD", "value": 1.01}}}
         )
-        docs = [{"key": key}, {"key": "/books/OL2M"}]
-        add_acquisitions(docs)
-        assert "acquisitions" not in docs[0]
-        assert docs[1]["acquisitions"][0]["access"] == "open-access", "the good doc is unaffected"
-
-
-class TestFieldMatching:
-    """`fields` is a list from /search.json but a STRING from internal callers,
-    and work_search_async's own default is the string "*"."""
-
-    def test_the_string_star_does_not_weave(self, one_acquisition, monkeypatch):
-        """Otherwise any internal caller omitting `fields` silently switches on
-        two Postgres queries per search.
-
-        `availability` is stubbed because the string "*" DOES satisfy its own
-        `fields == "*"` check, so it would try a real network call -- which is
-        incidentally why acquisitions should not copy that shape.
-        """
-
-        async def no_availability(docs, mode="identifier"):
-            return docs
-
-        monkeypatch.setattr("openlibrary.plugins.worksearch.code.add_availability_async", no_availability)
-        out = _process([{"key": "/works/OL450063W"}], "*")
-        assert "acquisitions" not in out["docs"][0]
-
-    @pytest.mark.parametrize("fields", ["key,title,acquisitions_count", "key,my_acquisitions_thing", "key,num_acquisitionsX"])
-    def test_a_field_merely_containing_the_word_does_not_weave(self, one_acquisition, fields):
-        """A substring test would fire for all of these."""
-        out = _process([{"key": "/works/OL450063W"}], fields)
-        assert "acquisitions" not in out["docs"][0]
-
-    def test_a_comma_separated_string_asking_for_it_does_weave(self, one_acquisition):
-        out = _process([{"key": "/works/OL450063W"}], "key,title,acquisitions")
-        assert out["docs"][0]["acquisitions"][0]["price"]["value"] == 1.25
-
-
-def test_two_rows_for_one_edition_and_provider_have_a_stable_order(acquisitions_db):
-    """(edition_id, provider_name) is NOT unique.
-
-    The table's UNIQUE is (local_id, provider_name), so one provider can hold
-    two rows for the same edition -- an ISBN-10 and an ISBN-13 for one book, say
-    -- and without local_id in the ORDER BY their order is whatever the database
-    feels like, so a client sees the two prices swap places between identical
-    requests.
-    """
-    for local_id, value in (("isbn13-978", 9.99), ("isbn10-048", 1.01)):
-        Acquisition.upsert(
-            work_id=450063,
-            edition_id=36620178,
-            provider_name="betterworldbooks",
-            local_id=local_id,
-            data={"acquisitions": [{"access": "buy", "price": {"currency": "USD", "value": value}}]},
+        stored = Acquisition.get_by_editions([36620178])
+        links = self._stitch(
+            monkeypatch, {"key": "/books/OL36620178M"}, [FakeProviderAcquisition(provider_name="betterworldbooks", url="https://bwb/synth")], stored
         )
-    seen = []
-    for _ in range(3):
-        docs = [{"key": "/books/OL36620178M"}]
-        add_acquisitions(docs)
-        seen.append([a["local_id"] for a in docs[0]["acquisitions"]])
-    assert seen[0] == ["isbn10-048", "isbn13-978"], "ordered by local_id, not by insertion"
-    assert seen[0] == seen[1] == seen[2]
+        assert [link["href"] for link in links] == ["https://bwb/harvested"]
+
+    def test_a_provider_with_no_harvested_row_is_appended(self, acquisitions_db, monkeypatch):
+        store(36620178, "lenny", "36620178", {"rel": BORROW_REL, "href": "https://l/borrow"})
+        stored = Acquisition.get_by_editions([36620178])
+        links = self._stitch(
+            monkeypatch, {"key": "/books/OL36620178M"}, [FakeProviderAcquisition(provider_name="standard_ebooks", url="https://se/read")], stored
+        )
+        assert sorted(link["provider_name"] for link in links) == ["lenny", "standard_ebooks"]
+
+    def test_gutenberg_is_not_duplicated_across_the_two_sources(self, acquisitions_db, monkeypatch):
+        """THE case the mapping exists for: the registry says
+        `project_gutenberg`, `book_providers` says `gutenberg`. Comparing the
+        raw names emits both."""
+        store(36620178, "project_gutenberg", "1342", {"rel": "http://opds-spec.org/acquisition/open-access", "href": "https://g/1342.epub"})
+        stored = Acquisition.get_by_editions([36620178])
+        links = self._stitch(
+            monkeypatch, {"key": "/books/OL36620178M"}, [FakeProviderAcquisition(access="open-access", provider_name="gutenberg", url="https://g/synth")], stored
+        )
+        assert [link["href"] for link in links] == ["https://g/1342.epub"]
+
+    def test_an_edition_with_no_rows_still_gets_its_providers(self, acquisitions_db, monkeypatch):
+        """The absence of a feed must be invisible to the caller."""
+        links = self._stitch(monkeypatch, {"key": "/books/OL999M"}, [FakeProviderAcquisition(provider_name="standard_ebooks")], {})
+        assert [link["provider_name"] for link in links] == ["standard_ebooks"]
+
+    def test_an_unparseable_key_does_not_raise(self, acquisitions_db, monkeypatch):
+        links = self._stitch(monkeypatch, {"key": "/books/OL"}, [FakeProviderAcquisition(provider_name="standard_ebooks")], {})
+        assert [link["provider_name"] for link in links] == ["standard_ebooks"]
+
+
+# ---------------------------------------------------------------------------
+# Registration
+# ---------------------------------------------------------------------------
+
+
+class TestFieldRegistration:
+    def test_registered_dotted_only_so_it_is_editions_only(self):
+        """A bare name is expanded into both `work.X` and `editions.X`, which
+        would call getattr(work, "opds_acquisitions"). A price belongs to a
+        printing, not to a work."""
+        assert "editions.opds_acquisitions" in WorkSearchScheme.non_solr_fields
+        assert "opds_acquisitions" not in WorkSearchScheme.non_solr_fields
+
+    def test_it_goes_through_the_repo_s_declared_mechanism(self):
+        """Not a second post-processing convention bolted onto the search
+        response -- the same `non_solr_fields` path `providers` uses."""
+        assert "editions.providers" in WorkSearchScheme.non_solr_fields
