@@ -1,0 +1,124 @@
+{# /librarians/batch/<id> (an applied batch, which is a changeset) and
+   /librarians/request/<id> (a batch waiting for a super-librarian). Both come
+   from openlibrary/core/librarian_batches.py in the same shape. #}
+{% set status = batch.status %}
+{% set is_request = batch.kind == "request" %}
+<div id="contentHead">
+    <h1>
+        {% if is_request %}
+            {{ _("Request #%(id)s", id=batch.id) }}
+        {% else %}
+            {{ _("Batch #%(id)s", id=batch.id) }}
+        {% endif %}
+    </h1>
+    <p class="librarian-batch__meta">
+        <strong>{{ (batch.action or "") | replace('_', ' ') }}</strong>
+        · {{ _("by %(username)s", username=batch.username) }}
+        · {{ batch.created[:16] | replace('T', ' ') }}
+        · <span class="librarian-batch__status librarian-batch__status--{{ status }}">{{ status | replace('_', ' ') }}</span>
+        {% if batch.mrid %}
+            · <a href="/merges?mrid={{ batch.mrid }}">{{ _("Merge queue #%(id)s", id=batch.mrid) }}</a>
+        {% endif %}
+        {% if is_request and batch.batch %}
+            · <a href="/librarians/batch/{{ batch.batch }}">{{ _("Applied as batch #%(id)s", id=batch.batch) }}</a>
+        {% elif not is_request and batch.request %}
+            · <a href="/librarians/request/{{ batch.request }}">{{ _("From request #%(id)s", id=batch.request) }}</a>
+        {% endif %}
+        {% if not is_request %}
+            · <a href="/recentchanges/goto/{{ batch.id }}">{{ _("Edit history") }}</a>
+        {% endif %}
+    </p>
+    {% if batch.summary %}<p class="librarian-batch__summary">{{ batch.summary }}</p>{% endif %}
+    {% if batch.comment %}<p>{{ batch.comment }}</p>{% endif %}
+</div>
+<div id="contentBody" class="librarian-batch" data-api="{{ batch.url }}">
+    {% if batch.warnings %}
+        <h2>{{ _("Warnings") }}</h2>
+        <ul class="librarian-batch__warnings">
+            {% for w in batch.warnings %}
+                <li class="librarian-batch__warning librarian-batch__warning--{{ w.level }}">
+                    <span class="librarian-batch__tag">{{ w.level }}</span>
+                    {% if w.key %}<a href="{{ w.key }}">{{ w.key.split("/") | last }}</a> ·{% endif %}
+                    {{ w.text }}
+                    {% if w.code in batch.overrides %}<em>({{ _("acknowledged") }})</em>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <h2>{{ _("Changes") }}</h2>
+    {% if batch.changes %}
+        <table class="librarian-batch__changes">
+            <thead>
+                <tr>
+                    <th>{{ _("Record") }}</th>
+                    <th>{{ _("Field") }}</th>
+                    <th>{{ _("From") }}</th>
+                    <th>{{ _("To") }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in batch.changes %}
+                    <tr>
+                        <td>
+                            <a href="{{ c.key }}">{{ c.key.split("/") | last }}</a>
+                        </td>
+                        <td>{{ c.field }}</td>
+                        <td>{{ c["from"] | string if c["from"] is not none else "—" }}</td>
+                        <td>{{ c.to | string if c.to is not none else "—" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if batch.changes_total > batch.changes | length %}
+            <p>{{ _("Showing the first %(shown)s of %(total)s changes.", shown=batch.changes | length, total=batch.changes_total) }}</p>
+        {% endif %}
+    {% else %}
+        <p>{{ _("This batch makes no record changes (a flag is a report).") }}</p>
+    {% endif %}
+    <h2>{{ _("Records") }}</h2>
+    <ul>
+        {% for it in batch["items"] %}
+            <li>
+                <a href="{{ it.key }}">{{ it.title or it.key }}</a>
+                {% if it.title %}<span class="librarian-batch__key">{{ it.key }}</span>{% endif %}
+                {% if it.before_revision %}· {{ _("revision %(n)s before", n=it.before_revision) }}{% endif %}
+                {% if it.after_revision %}→ {{ it.after_revision }}{% endif %}
+                {% if it.reverted %}· {{ _("reverted") }}{% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="librarian-batch__actions">
+        {% if is_request and status == "requested" and is_super %}
+            <ol-button variant="primary" data-action="/apply.json">
+                {{ _("Apply") }}
+            </ol-button>
+            <ol-button variant="secondary" data-action="/decline.json">
+                {{ _("Decline") }}
+            </ol-button>
+        {% elif not is_request and status in ("applied", "partially_reverted") and (is_super or username == batch.username) %}
+            <ol-button variant="secondary" data-action="/revert.json">
+                {{ _("Undo the whole batch") }}
+            </ol-button>
+        {% endif %}
+        <span class="librarian-batch__result" role="status"></span>
+    </div>
+    <script>
+        // Each button POSTs to the record's JSON endpoint; the page reloads to show the new status.
+        (function () {
+            var root = document.querySelector('.librarian-batch');
+            var out = root.querySelector('.librarian-batch__result');
+            root.querySelectorAll('[data-action]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    fetch(root.dataset.api + button.dataset.action, {
+                        method: 'POST', credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' }, body: '{}'
+                    }).then(function (r) {
+                        return r.json().then(function (j) {
+                            return r.ok ? location.reload() : (out.textContent = (j.detail && j.detail.error) || r.statusText);
+                        });
+                    });
+                });
+            });
+        })();
+    </script>
+</div>

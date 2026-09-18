@@ -1,0 +1,10 @@
+$def with (jinja_template, **kwargs)
+
+$# Thin Templetor host for the librarian tool pages (plugins/openlibrary/librarians.py).
+$# The content lives in the Jinja template named by `jinja_template`.
+$ _x = ctx.setdefault('cssfile', 'workbench')
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ _y = bodyclass.append('full-width')
+$ _z = bodyclass.append('librarians-page')
+
+$:render_jinja_template(jinja_template, **kwargs)

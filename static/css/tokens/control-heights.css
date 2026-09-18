@@ -12,6 +12,10 @@
  * `min-height` there instead, or a different scale (e.g. --line-height-chip).
  */
 :root {
+  /* x-small is for dense tool chrome (a tray row's icon buttons, a chip-height
+     action); it is too short for a primary action, so keep it to secondary and
+     ghost buttons. */
+  --control-height-x-small: 22px;
   --control-height-small: 26px;
   --control-height-medium: 32px;
   --control-height-large: 36px;

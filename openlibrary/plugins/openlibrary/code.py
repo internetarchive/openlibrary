@@ -1156,6 +1156,7 @@ def setup():
         design,
         events,
         home,
+        librarians,
         partials,
         sentry,
         stats,
@@ -1180,6 +1181,7 @@ def setup():
     authors.setup()
     partials.setup()
     import_ui.setup()
+    librarians.setup()
 
     from openlibrary.plugins.openlibrary import (
         api,  # noqa: F401 side effects may be needed
