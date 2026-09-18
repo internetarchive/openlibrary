@@ -95,7 +95,9 @@ export class OlDialog extends LitElement {
         withoutHeader: { type: Boolean, attribute: 'without-header' },
         alert: { type: Boolean, reflect: true },
         labelClose: { type: String, attribute: 'label-close' },
-        width: { type: String },
+        // Reflected: the width presets are :host([width=…]) rules, so setting the
+        // property in JS (as olConfirm() does) has to reach the attribute.
+        width: { type: String, reflect: true },
         closeOnBackdropClick: { type: Boolean, attribute: 'close-on-backdrop-click' },
         closeOnEscape: { type: Boolean, attribute: 'close-on-escape' },
         fullscreenOnMobile: { type: Boolean, attribute: 'fullscreen-on-mobile', reflect: true },

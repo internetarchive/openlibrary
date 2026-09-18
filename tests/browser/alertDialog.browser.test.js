@@ -201,6 +201,17 @@ test('<ol-dialog> close(returnValue) reports it on ol-close and ol-after-close, 
     expect(seen.slice(2)).toEqual([['close', ''], ['after-close', '']]);
 });
 
+test('the confirmation gets the small width preset', async() => {
+    // width drives :host([width=…]) rules, so the property has to reach the attribute.
+    olConfirm({ title: 'Delete?' });
+    const dialog = await openedDialog();
+
+    expect(dialog.getAttribute('width')).toBe('small');
+    expect(dialog.dialog.getBoundingClientRect().width).toBe(400);
+
+    await userEvent.keyboard('{Escape}');
+});
+
 test('<ol-dialog> keeps role="dialog" and no description unless alert is set', async() => {
     const dialog = document.createElement('ol-dialog');
     dialog.label = 'Edit profile';
