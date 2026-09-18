@@ -27,9 +27,7 @@ function addShareModalButtonListeners(){
 
 /** English fallbacks. Must match type/edition/notes_modal_i18n.html. */
 export const DEFAULT_NOTES_MODAL_STRINGS = {
-    saveSuccess: 'Note saved.',
     saveError: 'Could not save your note. Please try again.',
-    deleteSuccess: 'Note deleted.',
     deleteError: 'Could not delete your note. Please try again.',
     deleteTitle: 'Delete this note?',
     deleteMessage: 'This cannot be undone.',
@@ -65,6 +63,9 @@ export function notesModalStrings(el) {
  * OlToastRegion.js: that import would re-run customElements.define() from a
  * second bundle and pull Lit into the page bundle. Mirrors the same workaround
  * in templates/design/components/toast.html.jinja.
+ *
+ * Only failures toast: a save or delete that works is already reported by the
+ * dialog closing and by the sidebar link changing state.
  *
  * @param {String} message Already-translated message text.
  * @param {String} type 'success' or 'error'.
@@ -163,7 +164,6 @@ export function initNotesModal(modalLinks) {
             dialog.open = false;
             deleteButton.classList.remove('hidden');
             setNoteIndicator(true);
-            showComponentToast(strings.saveSuccess, 'success');
         } catch {
             // Leave the dialog open so the patron does not lose the note.
             showComponentToast(strings.saveError, 'error');
@@ -191,7 +191,6 @@ export function initNotesModal(modalLinks) {
             textarea.value = '';
             deleteButton.classList.add('hidden');
             setNoteIndicator(false);
-            showComponentToast(strings.deleteSuccess, 'success');
         } catch {
             showComponentToast(strings.deleteError, 'error');
         } finally {

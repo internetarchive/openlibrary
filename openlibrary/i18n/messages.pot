@@ -6238,15 +6238,7 @@ msgid "adding notes to"
 msgstr ""
 
 #: type/edition/notes_modal_i18n.html
-msgid "Note saved."
-msgstr ""
-
-#: type/edition/notes_modal_i18n.html
 msgid "Could not save your note. Please try again."
-msgstr ""
-
-#: type/edition/notes_modal_i18n.html
-msgid "Note deleted."
 msgstr ""
 
 #: type/edition/notes_modal_i18n.html

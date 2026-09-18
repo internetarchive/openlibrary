@@ -26,17 +26,17 @@ describe('notesModalStrings', () => {
 
     test('uses the translated strings when the attribute is valid', () => {
         const el = elementWith(JSON.stringify({
-            saveSuccess: 'Note enregistrée.',
-            deleteSuccess: 'Note supprimée.',
+            saveError: 'Impossible d\u2019enregistrer votre note.',
+            deleteError: 'Impossible de supprimer votre note.',
         }));
-        expect(notesModalStrings(el).saveSuccess).toBe('Note enregistrée.');
-        expect(notesModalStrings(el).deleteSuccess).toBe('Note supprimée.');
+        expect(notesModalStrings(el).saveError).toBe('Impossible d\u2019enregistrer votre note.');
+        expect(notesModalStrings(el).deleteError).toBe('Impossible de supprimer votre note.');
     });
 
     test('keeps the English text for keys a locale has not translated', () => {
-        const el = elementWith(JSON.stringify({ saveSuccess: 'Note enregistrée.' }));
+        const el = elementWith(JSON.stringify({ saveError: 'Impossible d\u2019enregistrer votre note.' }));
         const strings = notesModalStrings(el);
-        expect(strings.saveSuccess).toBe('Note enregistrée.');
+        expect(strings.saveError).toBe('Impossible d\u2019enregistrer votre note.');
         expect(strings.deleteError).toBe(DEFAULT_NOTES_MODAL_STRINGS.deleteError);
     });
 
