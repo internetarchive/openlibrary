@@ -1,13 +1,8 @@
 /**
- * Browser-mode tests for the :not(:defined) guards in ol-components.css. Real
- * Chromium: the rules turn on a custom element's definedness, and jsdom
+ * Browser-mode tests for the :not(:defined) guards in ol-components.css — jsdom
  * resolves neither :defined nor computed styles from an imported stylesheet.
- *
- * The dialog guard is load-bearing rather than cosmetic. Its slotted content is
- * ordinary page markup until Lit upgrades the host, so an [autofocus] field in
- * there is a document-level autofocus candidate: the browser focuses it at the
- * page's first render and scrolls to it, and the upgrade then hides it, leaving
- * a page scrolled to nothing. Regression guard for that bug.
+ * The dialog guard is the load-bearing one: without it an [autofocus] field in
+ * the un-upgraded body scrolls the page to a dialog about to be hidden.
  */
 import { expect, test } from 'vitest';
 import '../../static/css/ol-components.css';

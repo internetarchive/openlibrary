@@ -68,10 +68,8 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *   on hover.
  * @prop {"danger"} tone - Crosses the danger hue with the chosen emphasis, for
  *   actions that destroy something. `secondary` and `ghost` carry the red in the
- *   label and escalate to a fill on hover; `primary` is the solid red fill.
- *   Reach for the quiet steps when the delete sits beside the action you
- *   actually want people taking, and save the fill for the confirmation, where
- *   deleting *is* the primary action.
+ *   label and fill on hover; `primary` is the solid red fill. Save the fill for
+ *   the confirmation, where deleting *is* the primary action.
  * @prop {"small" | "medium" | "large"}            size    - Default: "medium"
  * @prop {"icon" | "circle"} shape - Icon-only: width equals the size's height,
  *   no horizontal padding. "circle" additionally rounds it. Give it an aria-label.

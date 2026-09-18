@@ -1,7 +1,7 @@
 /**
  * Browser-mode tests for olConfirm() / olAlert() and the <ol-dialog> API they
- * rest on: alert role, close(returnValue), and label-close. Real <dialog> top
- * layer, real focus, real keyboard — jsdom implements none of them.
+ * rest on: alert role, close(returnValue), label-close. Real top layer, focus
+ * and keyboard — jsdom implements none of them.
  */
 import { afterEach, beforeAll, expect, test } from 'vitest';
 import { page, userEvent } from 'vitest/browser';

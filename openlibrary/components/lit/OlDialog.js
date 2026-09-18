@@ -427,10 +427,9 @@ export class OlDialog extends LitElement {
      * Sets initial focus when dialog opens.
      * Priority: [autofocus] > first focusable in body > close button > dialog
      *
-     * The frame is observable on mobile, not a detail: focusing this late spends
-     * the tap's transient activation, so the field takes the caret without the
-     * soft keyboard covering the dialog. Going synchronous (as ol-drawer does,
-     * to survive a tab where rAF never runs) would bring the keyboard up on open.
+     * Deferred a frame on purpose: focusing this late spends the tap's transient
+     * activation, so on mobile the field takes the caret without the soft
+     * keyboard coming up over the dialog.
      */
     _setInitialFocus() {
         requestAnimationFrame(() => {

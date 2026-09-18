@@ -81,14 +81,11 @@ ol-drawer:not(:defined) {
   display: none;
 }
 
-/* Same for ol-dialog: until Lit upgrades it, the slotted body and footer are
-   just markup in the page — the notes form and the preview iframe render inline
-   in the sidebar. Beyond the flash, `autofocus` inside that markup is a
-   document-level attribute: the browser focuses the first candidate at its first
-   render and scrolls it into view, so on a long page (one whose first paint
-   beats the deferred component bundle) the page lands at the dialog instead of
-   the top. Hidden pre-upgrade there is no candidate to focus; the upgraded
-   component reads [autofocus] itself when it opens. */
+/* Same for ol-dialog, and load-bearing: until Lit upgrades it the slotted body
+   is ordinary page markup, so an `autofocus` field in there is a document-level
+   candidate — the browser focuses it at first paint and scrolls the page to a
+   dialog that is about to be hidden. The upgraded component reads [autofocus]
+   itself when it opens. */
 ol-dialog:not(:defined) {
   display: none;
 }

@@ -5,8 +5,8 @@ $# :param str id: Id for the dialog
 $# :param notes: The patron's saved note for this edition, or None. Looked up by
 $#     databarWork so the sidebar link and this dialog share one query.
 $#
-$# databarWork.html renders the sidebar twice (desktop + mobile), so the dialog
-$# is rendered once per page and shared by every trigger link.
+$# The sidebar is rendered twice (desktop + mobile), so this dialog is rendered
+$# once per page and shared by every trigger link.
 
 $if notes and len(notes.notes) > 0:
   $ display_delete_button = True

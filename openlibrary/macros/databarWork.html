@@ -30,9 +30,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
         $# Looked up once here, not inside the notes macro: modal_links renders
         $# twice (desktop + mobile) and the macro ran the query on each. Both the
-        $# sidebar link (which marks itself when a note exists) and the dialog
-        $# (which prefills the field) read it. None for logged-out patrons, who
-        $# never hit the table.
+        $# sidebar link and the dialog read it; None for logged-out patrons.
         $ notes_username = ctx.user and ctx.user.key.split('/')[-1]
         $ user_book_note = work.get_users_notes(notes_username, edition.key.split('/')[-1]) if (notes_username and work and edition) else None
 

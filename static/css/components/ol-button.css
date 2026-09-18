@@ -122,17 +122,11 @@ ol-button[variant="ghost"]:not(:defined),
   box-shadow: none;
 }
 
-/* Danger tone. Hover lives in the shadow DOM only — these rules just have to
-   get the resting paint right before upgrade. `variant` reflects a default of
-   "secondary", so the attribute is absent until then and the bare
-   `tone="danger"` case has to be matched on its own.
-
-   These pair the two axes, so they land one step over this directory's 0,3,0
-   specificity cap: a type selector, two attributes, and the `:not(:defined)`
-   every rule in this file carries. Collapsing them (dropping `ol-button`, or
-   leaning on source order against the single-attribute variant rules above)
-   buys the budget back only by making the sheet harder to read than the
-   component it mirrors. */
+/* Danger tone, resting paint only — hover lives in the shadow DOM. `variant`
+   reflects a default of "secondary", so before upgrade the attribute is absent
+   and bare `tone="danger"` needs a selector of its own. Pairing the two axes
+   puts these one step over the directory's 0,3,0 cap; collapsing them would
+   only make the sheet harder to read than the component it mirrors. */
 /* stylelint-disable selector-max-specificity -- two-axis API; see above */
 ol-button[tone="danger"]:not([variant]):not(:defined),
 ol-button[variant="secondary"][tone="danger"]:not(:defined) {

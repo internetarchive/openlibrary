@@ -289,9 +289,8 @@
   flex: 0 0 39px;
 }
 
-/* Stretch the return button to whatever height the Read/Borrow button next to
-   it works out to, instead of pinning it to a number that drifts out of step
-   when the button's type or padding changes. */
+/* Stretch the return button to whatever height the Read/Borrow button beside it
+   works out to, rather than pinning a number that drifts out of step with it. */
 .ol-return-wrapper .return-form {
   display: flex;
   flex: 1;

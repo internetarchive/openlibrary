@@ -1,15 +1,12 @@
 /**
- * Promise-based confirmation and alert dialogs on top of <ol-dialog>: the
- * async replacement for `window.confirm()` / `window.alert()`.
+ * Promise-based confirm and alert dialogs on top of <ol-dialog>, replacing
+ * `window.confirm()` / `window.alert()`. A dialog that collects input composes
+ * <ol-dialog> directly instead.
  *
  *     if (await olConfirm({ title, message, confirmLabel, destructive: true })) { ... }
  *
- * Only for a yes/no question or an acknowledgement. A dialog that collects
- * input composes <ol-dialog> directly and reads its fields before closing.
- *
- * This module creates the element rather than importing OlDialog, so page
- * scripts can import it without bundling a second copy of the component;
- * ol-components.js registers <ol-dialog> on every page.
+ * Creates the element rather than importing OlDialog, so page scripts don't
+ * bundle a second copy; ol-components.js registers <ol-dialog> on every page.
  */
 
 /**

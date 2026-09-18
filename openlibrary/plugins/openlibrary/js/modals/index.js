@@ -56,16 +56,9 @@ export function notesModalStrings(el) {
 }
 
 /**
- * Shows an <ol-toast>.
- *
- * ol-components.js registers <ol-toast-region> and <ol-toast> site-wide, so we
- * create the elements directly rather than importing showToast() from
- * OlToastRegion.js: that import would re-run customElements.define() from a
- * second bundle and pull Lit into the page bundle. Mirrors the same workaround
- * in templates/design/components/toast.html.jinja.
- *
- * Only failures toast: a save or delete that works is already reported by the
- * dialog closing and by the sidebar link changing state.
+ * Shows an <ol-toast>. Built by hand rather than through showToast(), whose
+ * import would re-run customElements.define() from a second bundle and pull Lit
+ * in — same workaround as templates/design/components/toast.html.jinja.
  *
  * @param {String} message Already-translated message text.
  * @param {String} type 'success' or 'error'.
@@ -83,11 +76,8 @@ function showComponentToast(message, type) {
 }
 
 /**
- * Wires up the book notes dialog.
- *
- * The dialog is rendered once per page (macros/NotesModalDialog.html) while the
- * trigger link is rendered per sidebar (desktop and mobile), so every link
- * opens the same dialog.
+ * Wires up the book notes dialog. One dialog per page (NotesModalDialog.html),
+ * one trigger link per sidebar (desktop and mobile), so every link opens it.
  *
  * @param {NodeList} modalLinks Notes trigger links on the page.
  */
@@ -105,9 +95,8 @@ export function initNotesModal(modalLinks) {
 
     /**
      * The sidebar link is rendered with the note's state baked in (see
-     * databarWork.html), so a save or delete has to move it too or it stays
-     * stale until the next page load. Both the desktop and mobile links are
-     * updated; the icon is swapped by changing the sprite fragment.
+     * databarWork.html), so a save or delete has to move both copies of it --
+     * desktop and mobile -- or they stay stale until the next page load.
      */
     function setNoteIndicator(hasNote) {
         modalLinks.forEach((link) => {
@@ -124,10 +113,9 @@ export function initNotesModal(modalLinks) {
     let pending = null;
 
     /**
-     * Save is only meaningful with text in the field, and neither button may
-     * fire while the other's request is in flight -- both post to the same
-     * endpoint, so overlapping them could land the delete before the save it
-     * was meant to follow. The acting button spins; the other one greys out.
+     * Save needs text in the field, and neither button may fire while the
+     * other's request is in flight: both post to the same endpoint, so the
+     * delete could land before the save it was meant to follow.
      */
     function syncButtons() {
         saveButton.loading = pending === 'save';
@@ -184,8 +172,7 @@ export function initNotesModal(modalLinks) {
         syncButtons();
         try {
             await postNote(formData);
-            // Close on success like a save does: the note the dialog was opened
-            // to edit is gone, so leaving it open just shows an empty field.
+            // Close like a save does: the note this was opened to edit is gone.
             // The reset still happens, for the next time it opens.
             dialog.open = false;
             textarea.value = '';
