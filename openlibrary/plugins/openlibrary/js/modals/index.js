@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import 'jquery-colorbox';
+import { olConfirm } from '../../../../components/lit/alert-dialog.js';
 import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.css';
 
@@ -30,6 +31,11 @@ export const DEFAULT_NOTES_MODAL_STRINGS = {
     saveError: 'Could not save your note. Please try again.',
     deleteSuccess: 'Note deleted.',
     deleteError: 'Could not delete your note. Please try again.',
+    deleteTitle: 'Delete this note?',
+    deleteMessage: 'This cannot be undone.',
+    deleteConfirm: 'Delete Note',
+    cancel: 'Cancel',
+    close: 'Close',
 };
 
 /**
@@ -78,7 +84,7 @@ function showComponentToast(message, type) {
 /**
  * Wires up the book notes dialog.
  *
- * The dialogs are rendered once per page (macros/NotesModal.html) while the
+ * The dialog is rendered once per page (macros/NotesModalDialog.html) while the
  * trigger link is rendered per sidebar (desktop and mobile), so every link
  * opens the same dialog.
  *
@@ -86,8 +92,7 @@ function showComponentToast(message, type) {
  */
 export function initNotesModal(modalLinks) {
     const dialog = document.querySelector('.js-notes-modal');
-    const confirmDialog = document.querySelector('.js-notes-modal-confirm');
-    if (!dialog || !confirmDialog) {
+    if (!dialog) {
         return;
     }
 
@@ -148,17 +153,18 @@ export function initNotesModal(modalLinks) {
 
     saveButton.addEventListener('click', saveNote);
 
-    deleteButton.addEventListener('click', () => {
-        confirmDialog.open = true;
-    });
-
-    confirmDialog.querySelectorAll('[data-action]').forEach((button) => {
-        button.addEventListener('click', () => {
-            confirmDialog.open = false;
-            if (button.dataset.action === 'delete') {
-                deleteNote();
-            }
+    deleteButton.addEventListener('click', async() => {
+        const confirmed = await olConfirm({
+            title: strings.deleteTitle,
+            message: strings.deleteMessage,
+            confirmLabel: strings.deleteConfirm,
+            cancelLabel: strings.cancel,
+            labelClose: strings.close,
+            destructive: true,
         });
+        if (confirmed) {
+            await deleteNote();
+        }
     });
 }
 

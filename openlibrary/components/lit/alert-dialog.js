@@ -27,7 +27,7 @@ function toNodes(content) {
  * @param {Object} options
  * @param {String} options.title
  * @param {String|HTMLTemplateElement|Node|Array<Node|String>} options.message
- * @param {Array<{label: String, value: String, variant: String}>} options.actions - In display order.
+ * @param {Array<{label: String, value: String, variant: String, tone: String}>} options.actions - In display order.
  * @param {String} options.focusValue - Action that receives initial focus.
  * @param {String} [options.labelClose]
  * @returns {Promise<String>} The chosen action's value, or '' when dismissed.
@@ -47,9 +47,10 @@ async function showAlertDialog({ title, message, actions, focusValue, labelClose
     const footer = document.createElement('div');
     footer.slot = 'footer';
     footer.style.cssText = 'display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--spacing-inline-md);';
-    for (const { label, value, variant } of actions) {
+    for (const { label, value, variant, tone } of actions) {
         const button = document.createElement('ol-button');
         button.variant = variant;
+        if (tone) button.tone = tone;
         button.textContent = label;
         if (value === focusValue) button.setAttribute('autofocus', '');
         button.addEventListener('click', () => dialog.close(value));
@@ -81,8 +82,8 @@ async function showAlertDialog({ title, message, actions, focusValue, labelClose
  * @param {String} [options.confirmLabel] - Translated; name the action ("Delete list"), not "OK".
  * @param {String} [options.cancelLabel] - Translated.
  * @param {String} [options.labelClose] - Translated name for the close button.
- * @param {Boolean} [options.destructive] - Red confirm button, and initial focus
- *     on Cancel so a stray Enter doesn't destroy anything.
+ * @param {Boolean} [options.destructive] - Gives the confirm button tone="danger",
+ *     and puts initial focus on Cancel so a stray Enter doesn't destroy anything.
  * @returns {Promise<Boolean>} true only when the confirm button was pressed.
  */
 export async function olConfirm({
@@ -99,7 +100,7 @@ export async function olConfirm({
         labelClose,
         actions: [
             { label: cancelLabel, value: 'cancel', variant: 'secondary' },
-            { label: confirmLabel, value: 'confirm', variant: destructive ? 'destructive' : 'primary' },
+            { label: confirmLabel, value: 'confirm', variant: 'primary', tone: destructive ? 'danger' : undefined },
         ],
         focusValue: destructive ? 'cancel' : 'confirm',
     });

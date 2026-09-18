@@ -74,7 +74,8 @@ test('destructive confirmations focus Cancel; others focus the confirm button', 
     olConfirm({ title: 'Delete?', confirmLabel: 'Delete', destructive: true });
     let dialog = await openedDialog();
     expect(document.activeElement).toBe(button(dialog, 'Cancel'));
-    expect(button(dialog, 'Delete').variant).toBe('destructive');
+    expect(button(dialog, 'Delete').variant).toBe('primary');
+    expect(button(dialog, 'Delete').tone).toBe('danger');
     await userEvent.keyboard('{Escape}');
     await expect.poll(() => document.querySelector('ol-dialog')).toBeNull();
 
@@ -82,6 +83,7 @@ test('destructive confirmations focus Cancel; others focus the confirm button', 
     dialog = await openedDialog();
     expect(document.activeElement).toBe(button(dialog, 'Return'));
     expect(button(dialog, 'Return').variant).toBe('primary');
+    expect(button(dialog, 'Return').tone).toBeUndefined();
     await userEvent.keyboard('{Escape}');
 });
 

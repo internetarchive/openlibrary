@@ -1,10 +1,10 @@
 $def with (work, edition, id)
 $# :param Work work: The work these notes belong to
 $# :param Edition edition: The edition these notes belong to
-$# :param str id: Base id for the dialogs
+$# :param str id: Id for the dialog
 $#
-$# databarWork.html renders the sidebar twice (desktop + mobile), so the dialogs
-$# are rendered once per page and shared by every trigger link.
+$# databarWork.html renders the sidebar twice (desktop + mobile), so the dialog
+$# is rendered once per page and shared by every trigger link.
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ notes = work.get_users_notes(username, edition.key.split('/')[-1])
@@ -30,7 +30,7 @@ $if render_once('notes-modal'):
              data-i18n="$:render_template('type/edition/notes_modal_i18n')">
     <form class="book-notes-form" action="$(work.key)/notes.json" method="POST">
       <label class="book-notes-form__label" for="notes-modal-textarea">
-        $:_('Private notes about %(title)s', title='<span class="book-notes-form__title">%s</span>' % websafe(book_title))
+        $:_('My private notes about %(title)s', title='<span class="book-notes-form__title">%s</span>' % websafe(book_title))
         $if edition_info:
           <span class="book-notes-form__edition">$edition_info</span>
       </label>
@@ -41,13 +41,5 @@ $if render_once('notes-modal'):
     <div slot="footer" class="notes-modal__actions">
       <ol-button class="js-notes-modal-delete $('' if display_delete_button else 'hidden')" variant="secondary" tone="danger">$_("Delete Note")</ol-button>
       <ol-button class="js-notes-modal-save" variant="primary">$_("Save Note")</ol-button>
-    </div>
-  </ol-dialog>
-
-  <ol-dialog id="$id-confirm-delete" class="js-notes-modal-confirm" label="$_('Delete this note?')" width="small">
-    <p>$_("This cannot be undone.")</p>
-    <div slot="footer">
-      <ol-button data-action="cancel" variant="secondary">$_("Cancel")</ol-button>
-      <ol-button data-action="delete" variant="primary" tone="danger">$_("Delete Note")</ol-button>
     </div>
   </ol-dialog>
