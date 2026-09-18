@@ -11,8 +11,7 @@
             Ghost
         </ol-button>
     {% endcall %}
-    {% call ex.example("Danger tone", "tone=\"danger\" crosses the danger hue with the emphasis you picked, so a delete can be quiet without losing its warning. The quiet steps carry the red in the label and take the fill on hover. Pick the emphasis by what the action competes with: a Delete sitting next to the Save you actually want people pressing is ghost or secondary; the Delete in the confirmation that follows is the primary action of that dialog, so it gets the fill. You rarely write that second one yourself — olConfirm() builds it from destructive: true.",
-        code='<!-- in the form, beside Save -->\n<ol-button variant="secondary" tone="danger">Delete Note</ol-button>\n\n<!-- in the confirmation, where deleting is the point — olConfirm() builds this one -->\n<ol-button variant="primary" tone="danger">Delete Note</ol-button>') %}
+    {% call ex.example("Danger tone", "tone=\"danger\" crosses the danger hue with the emphasis you picked, so a delete can be quiet without losing its warning. The quiet steps carry the red in the label and take the fill on hover. Pick the emphasis by what the action competes with: a Delete sitting next to the Save you actually want people pressing is ghost or secondary; the Delete in the confirmation that follows is the primary action of that dialog, so it gets the fill.") %}
         <ol-button variant="primary" tone="danger">
             Primary
         </ol-button>
