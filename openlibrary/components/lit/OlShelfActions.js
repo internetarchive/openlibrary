@@ -319,7 +319,7 @@ export class OlShelfActions extends LitElement {
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-sm);
             padding-inline: var(--menu-row-padding-inline);
-            border-radius: var(--border-radius-button);
+            border-radius: var(--border-radius-menu-row);
             border: 0;
             background: none;
             color: inherit;
@@ -675,7 +675,7 @@ export class OlShelfActions extends LitElement {
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-sm);
             padding-inline: var(--menu-row-padding-inline);
-            border-radius: var(--border-radius-button);
+            border-radius: var(--border-radius-menu-row);
             cursor: pointer;
         }
 

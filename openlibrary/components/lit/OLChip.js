@@ -61,16 +61,16 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             /* Color slots. Default = idle, unselected neutral chip; overridden
                below by [selected] and by each domain [variant]. */
             --_chip-bg: var(--white);
-            --_chip-fg: var(--dark-grey);
+            --_chip-fg: var(--color-text);
             --_chip-border: var(--color-border-subtle);
-            --_chip-bg-hover: var(--lightest-grey);
+            --_chip-bg-hover: var(--color-control-hover);
             /* Border darkens in step with the fill on hover, matching
                ol-button[variant="secondary"]. Derived from the resting border
                so every variant tracks its own color: a ~8% mix toward black
                lands the neutral chip exactly on --light-grey (87% → 80%) and
                nudges each domain tint's border down by a proportional amount. */
             --_chip-border-hover: color-mix(in srgb, var(--_chip-border) 92%, black);
-            --_chip-count-fg: #777;
+            --_chip-count-fg: var(--color-text-muted);
             /* Specular top edge, on ol-button's scale: full on the light tints,
                dialed down on the solid blue fill below. */
             --control-highlight-strength: 35%;
@@ -136,10 +136,10 @@ export class OLChip extends FocusableHostMixin(LitElement) {
 
         /* Default selected (no domain variant): solid primary-blue fill. */
         :host([selected]:not([variant])) {
-            --_chip-bg: var(--primary-blue);
+            --_chip-bg: var(--color-primary);
             --_chip-fg: var(--white);
-            --_chip-border: var(--primary-blue);
-            --_chip-bg-hover: var(--primary-blue);
+            --_chip-border: var(--color-primary);
+            --_chip-bg-hover: var(--color-primary);
             /* This chip lightens on hover via a brightness() filter (below)
                rather than darkening its fill, so keep the border color put — the
                filter carries the whole pill, edge included. */
@@ -205,7 +205,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-fg: var(--color-chip-neutral-fg);
             --_chip-border: var(--color-chip-neutral-border);
             --_chip-bg-hover: var(--color-chip-neutral-bg-hover);
-            --_chip-count-fg: var(--accessible-grey);
+            --_chip-count-fg: var(--color-text-muted);
         }
 
         /* Small size */

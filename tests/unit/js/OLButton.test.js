@@ -117,12 +117,37 @@ describe('OLButton', () => {
         expect(a.getAttribute('aria-disabled')).toBe('true');
     });
 
-    test('a loading link is also inert and reports aria-busy', async() => {
+    test('a loading link keeps its href but blocks activation, and reports aria-busy', async() => {
         const el = await mount({ href: '/x', loading: '' });
         const a = control(el);
-        expect(a.hasAttribute('href')).toBe(false);
+        // Unlike disabled, loading keeps the href: consumers set loading from
+        // the link's own click, and dropping the href mid-dispatch would cancel
+        // the navigation the spinner is shown for.
+        expect(a.getAttribute('href')).toBe('/x');
         expect(a.getAttribute('aria-disabled')).toBe('true');
         expect(a.getAttribute('aria-busy')).toBe('true');
+        // Activation while already loading is cancelled by the click listener.
+        const e = new MouseEvent('click', { bubbles: true, cancelable: true, composed: true });
+        a.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(true);
+    });
+
+    test('a click on a live link passes through, and loading set by it keeps the href', async() => {
+        const el = await mount({ href: '/x' });
+        const a = control(el);
+        // Record whether the component prevented the click before our own
+        // guard does (the guard only stops jsdom from attempting navigation).
+        let preventedByComponent = null;
+        const guard = (e) => { preventedByComponent = e.defaultPrevented; e.preventDefault(); };
+        document.addEventListener('click', guard);
+        a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true }));
+        document.removeEventListener('click', guard);
+        expect(preventedByComponent).toBe(false);
+        // A consumer setting loading from that click re-renders before the
+        // browser follows the hyperlink — the href must survive it.
+        el.loading = true;
+        await el.updateComplete;
+        expect(control(el).getAttribute('href')).toBe('/x');
     });
 
     test('toggling href swaps between <a> and <button>', async() => {
