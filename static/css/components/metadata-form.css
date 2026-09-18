@@ -53,6 +53,21 @@
   box-shadow: 0 0 0 1px var(--color-border-focused);
 }
 
+/* Privacy note under the field. Muted and small: it reassures without
+   competing with the label or the note being written. */
+.book-notes-form__privacy {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin: var(--spacing-stack-xs) 0 0;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-muted);
+}
+.book-notes-form__privacy-icon {
+  flex-shrink: 0;
+  color: var(--color-icon-muted);
+}
+
 /* iOS zooms in on focus when the field's font is < 16px; bump it on mobile to
    suppress that (docs/ai/design.md). */
 @media screen and (max-width: 767px) {

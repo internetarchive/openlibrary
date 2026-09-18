@@ -7171,7 +7171,11 @@ msgstr ""
 
 #: NotesModalDialog.html
 #, python-format
-msgid "My private notes about %(title)s"
+msgid "My notes about %(title)s"
+msgstr ""
+
+#: NotesModalDialog.html
+msgid "Only you can see this"
 msgstr ""
 
 #: OLID.html

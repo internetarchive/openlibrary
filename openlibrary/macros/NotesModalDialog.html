@@ -30,11 +30,17 @@ $if render_once('notes-modal'):
              data-i18n="$:render_template('type/edition/notes_modal_i18n')">
     <form class="book-notes-form" action="$(work.key)/notes.json" method="POST">
       <label class="book-notes-form__label" for="notes-modal-textarea">
-        $:_('My private notes about %(title)s', title='<span class="book-notes-form__title">%s</span>' % websafe(book_title))
+        $:_('My notes about %(title)s', title='<span class="book-notes-form__title">%s</span>' % websafe(book_title))
         $if edition_info:
           <span class="book-notes-form__edition">$edition_info</span>
       </label>
       <textarea id="notes-modal-textarea" class="notes-modal-textarea" name="notes" rows="10" autofocus>$(notes.notes if notes else "")</textarea>
+      $# Sits under the field, where the reassurance lands as the patron starts
+      $# typing. The icon is decorative: the sentence already says it.
+      <p class="book-notes-form__privacy">
+        $:macros.icon('eye-off', size='sm', extra_class='book-notes-form__privacy-icon')
+        $_("Only you can see this")
+      </p>
       <input type="hidden" name="work_id" value="$work.key.split('/')[-1]" />
       <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
     </form>
