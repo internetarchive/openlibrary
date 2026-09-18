@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 // Registers <ol-button> for the header close control.
 import './OLButton.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
@@ -18,6 +18,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @prop {Boolean} open - Whether the dialog is open.
  * @prop {String} label - Title shown in the default header. Also used as the
  *     accessible name when `withoutHeader` is true.
+ * @prop {String} icon - Name of an `ol-icon` to show before the title in the
+ *     default header. Decorative: the title already names the dialog.
  * @prop {Boolean} withoutHeader - Hide the default header (title + close
  *     button). The `header` slot still works.
  * @prop {Boolean} alert - Announce as `role="alertdialog"`, with the body as
@@ -92,6 +94,7 @@ export class OlDialog extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
         label: { type: String },
+        icon: { type: String },
         withoutHeader: { type: Boolean, attribute: 'without-header' },
         alert: { type: Boolean, reflect: true },
         labelClose: { type: String, attribute: 'label-close' },
@@ -291,6 +294,9 @@ export class OlDialog extends LitElement {
         }
 
         h2.title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
             margin: 0;
             padding: 0;
             font-size: 1.25rem;
@@ -316,6 +322,7 @@ export class OlDialog extends LitElement {
         super();
         this.open = false;
         this.label = '';
+        this.icon = '';
         this.withoutHeader = false;
         this.alert = false;
         this.labelClose = 'Close dialog';
@@ -788,7 +795,10 @@ export class OlDialog extends LitElement {
                 aria-describedby=${ifDefined(this.alert ? this._bodyId : undefined)}
             >
                 <header class="header ${showDefaultHeader ? '' : 'hidden'}">
-                    <h2 class="title" id=${this._titleId}>${this.label}</h2>
+                    <h2 class="title" id=${this._titleId}>
+                        ${this.icon ? html`<ol-icon name=${this.icon}></ol-icon>` : nothing}
+                        ${this.label}
+                    </h2>
                     <ol-button
                         class="close-button"
                         shape="icon"

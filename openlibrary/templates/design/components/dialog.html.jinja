@@ -53,12 +53,12 @@
             })();
         </script>
     {% endcall %}
-    {% call ex.example("Form dialog", "Once a dialog collects input, compose <ol-dialog> yourself — olConfirm() only asks yes/no. close(value) records which button closed it, like native <dialog>; read it from detail.returnValue on ol-close (cancelable, so you can validate and keep the dialog open) or ol-after-close. Escape and the backdrop close with an empty returnValue.",
-        code='<ol-dialog label="Add a note" width="medium">\n  <textarea>…</textarea>\n  <div slot="footer">\n    <ol-button onclick="dialog.close(\'cancel\')">Cancel</ol-button>\n    <ol-button variant="primary" onclick="dialog.close(\'save\')">Save note</ol-button>\n  </div>\n</ol-dialog>\n\ndialog.addEventListener(\'ol-close\', (event) => {\n  if (event.detail.returnValue === \'save\' && !textarea.value.trim()) event.preventDefault();\n});') %}
+    {% call ex.example("Form dialog", "Once a dialog collects input, compose <ol-dialog> yourself — olConfirm() only asks yes/no. icon puts a decorative glyph before the title, matching the control the dialog was opened from. close(value) records which button closed it, like native <dialog>; read it from detail.returnValue on ol-close (cancelable, so you can validate and keep the dialog open) or ol-after-close. Escape and the backdrop close with an empty returnValue.",
+        code='<ol-dialog label="Add a note" icon="sticky-note" width="medium">\n  <textarea>…</textarea>\n  <div slot="footer">\n    <ol-button onclick="dialog.close(\'cancel\')">Cancel</ol-button>\n    <ol-button variant="primary" onclick="dialog.close(\'save\')">Save note</ol-button>\n  </div>\n</ol-dialog>\n\ndialog.addEventListener(\'ol-close\', (event) => {\n  if (event.detail.returnValue === \'save\' && !textarea.value.trim()) event.preventDefault();\n});') %}
         <ol-button id="demo-dialog-form-trigger" variant="secondary">
             Add a note…
         </ol-button>
-        <ol-dialog id="demo-dialog-form" label="Add a note" width="medium">
+        <ol-dialog id="demo-dialog-form" label="Add a note" icon="sticky-note" width="medium">
             <label for="demo-dialog-note" class="ds-demo-label">Your note</label>
             <textarea id="demo-dialog-note"
                       rows="3"
