@@ -24,6 +24,11 @@
 
 @import "legacy-jquery-ui.css";
 
+/* openlibrary/plugins/openlibrary/js/graphs/plot.js */
+.chart-tooltip {
+  z-index: var(--z-index-dropdown);
+}
+
 /* openlibrary/plugins/openlibrary/js/subjects.js */
 .coverEbook {
   cursor: pointer;

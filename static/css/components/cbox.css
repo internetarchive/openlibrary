@@ -1,3 +1,5 @@
+/* Legacy page-level overlay: keep its z-index band as is and add no new consumers.
+   New overlays use ol-popover / ol-dialog, which live in the top layer (#12363). */
 /* For changes in this file to take effect you must run make js instead of the usual make css because this is imported by main.js (via js-all.css) */
 /* stylelint-disable selector-max-specificity */
 
@@ -8,7 +10,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: var(--z-index-level-17);
+  z-index: var(--z-index-toast);
 }
 
 #colorbox {
@@ -120,7 +122,7 @@
   /* but avoid modifying the UI */
   display: inline-block;
   position: relative;
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-base);
   padding: 11px 17px;
   margin: -11px -17px;
 }
