@@ -6429,6 +6429,10 @@ msgstr ""
 msgid "Loading Lists"
 msgstr ""
 
+#: type/edition/view.html type/work/view.html
+msgid "Nearby Books"
+msgstr ""
+
 #: type/language/view.html
 #, python-format
 msgid "%(language)s [deprecated]"
