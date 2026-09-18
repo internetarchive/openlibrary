@@ -36,7 +36,7 @@ identifiers:
     website: https://www.bnportugal.gov.pt/
 -   label: Bibliothèque nationale de France (BnF)
     name: bnf
-    notes: ''
+    notes: 'Should be an id like cb37469945w. Do not include the ark: prefix. Do not use the FRBNF37469945 form'
     url: https://catalogue.bnf.fr/ark:/12148/@@@
     website: https://www.bnf.fr
 -   label: Bibsys ID
@@ -352,10 +352,10 @@ identifiers:
     name: infosoup
     notes: e.g. https://infosoup.bibliocommons.com/v2/record/
     url: https://infosoup.bibliocommons.com/v2/record/@@@
--   label: "National Library of Norway (URN:NBN)"
-    name: "urn_nbn"
-    url: "https://urn.nb.no/URN:NBN:@@@"
-    notes: ""
+-   label: National Library of Norway (URN:NBN)
+    name: urn_nbn
+    url: https://urn.nb.no/URN:NBN:@@@
+    notes: ''
 -   label: ITAN Book ID
     name: itan_technologies
     notes: "Unique book identifier assigned by ITAN Global Publishing, an African literature digital marketplace"
