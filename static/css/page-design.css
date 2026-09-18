@@ -192,7 +192,7 @@ html:has(.ds) {
      height, so the block padding stays under it. */
   min-height: var(--menu-row-height);
   padding: var(--spacing-2xs) var(--spacing-inset-sm);
-  border-radius: var(--border-radius-button);
+  border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   font-size: var(--font-size-label-large);
   text-decoration: none;
@@ -1203,7 +1203,7 @@ html:has(.ds) {
   min-height: var(--menu-row-height);
   margin-inline: var(--menu-row-inset);
   padding: var(--spacing-inset-xs) var(--menu-row-padding-inline);
-  border-radius: var(--border-radius-button);
+  border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
   text-decoration: none;
