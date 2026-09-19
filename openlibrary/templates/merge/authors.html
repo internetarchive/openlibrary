@@ -31,14 +31,17 @@ $if formdata:
     </li>
 </ol>
 
-<div id="noMaster" title="$_('No primary record')" style="text-align:left;">
-    <p>$_('You must select a primary record to point the duplicates toward.')</p>
-</div>
+$# Dialog strings for merge.js; see confirm-template.js
+<template id="noMaster"
+          data-i18n="$json_encode({'title': _('No primary record'), 'ok': _('OK'), 'close': _('Close')})">
+    $_('You must select a primary record to point the duplicates toward.')
+</template>
 
 $if can_merge:
-    <div id="confirmMerge" title="$_('Please Be Careful...')" style="text-align:left;">
-        <p class="merge">$:_('<b>Are you sure</b> you want to merge these records?')</p>
-    </div>
+    <template id="confirmMerge"
+              data-i18n="$json_encode({'title': _('Merge these authors?'), 'confirm': _('Merge authors'), 'cancel': _('Cancel'), 'close': _('Close')})">
+        $_('The duplicate records will be redirected to the primary record.')
+    </template>
 
 <form method="POST" id="mergeForm" name="mergeForm" action="/authors/merge" method="POST">
     <input type="hidden" name="merge" value="true"/>
