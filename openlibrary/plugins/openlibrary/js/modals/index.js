@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import 'jquery-colorbox';
 import { olConfirm } from '../../../../components/lit/alert-dialog.js';
+import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.css';
 
 
@@ -10,11 +11,33 @@ import '../../../../../static/css/components/metadata-form.css';
  *
  * <ol-popover> manages its own open/close lifecycle on trigger click, so
  * Colorbox wiring is no longer needed.
- *
- * @param {JQuery} [_modalLinks] Optional legacy parameter passed by callers.
  */
-export function initShareModal(_modalLinks) {
+export function initShareModal() {
     addShareModalButtonListeners();
+    syncSharePopoverTriggerAria();
+}
+
+/**
+ * Ensures interactive triggers inside share popovers have proper ARIA attributes,
+ * forwarding state if a non-interactive wrapper was slotted.
+ */
+function syncSharePopoverTriggerAria() {
+    $('ol-popover.share-popover').each(function() {
+        const popover = this;
+        const trigger = popover.querySelector('[slot="trigger"]');
+        if (trigger && !trigger.matches('a, button, [tabindex]')) {
+            const interactive = trigger.querySelector('a, button, [tabindex]');
+            if (interactive) {
+                const updateAria = () => {
+                    interactive.setAttribute('aria-haspopup', 'dialog');
+                    interactive.setAttribute('aria-expanded', String(popover.open));
+                };
+                updateAria();
+                popover.addEventListener('ol-popover-open', updateAria);
+                popover.addEventListener('ol-popover-close', updateAria);
+            }
+        }
+    });
 }
 
 /**

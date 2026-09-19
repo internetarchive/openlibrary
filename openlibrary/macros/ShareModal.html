@@ -25,9 +25,24 @@ $def brand_icon(text):
 
 <div class="share-popover-component $classes">
   <ol-popover class="share-popover" placement="bottom-start" aria-label="$_('Share')">
-    <div slot="trigger" class="share-popover__trigger">
-      $:link_markup
-    </div>
+    $# Slot the actual interactive control directly so OlPopover forwards ARIA state
+    $# (aria-haspopup, aria-expanded) directly to the focusable element.
+    $ slotted_markup = link_markup
+    $ slotted_directly = False
+    $if 'slot=' not in slotted_markup:
+      $for tag in ('<a ', '<button '):
+        $if tag in slotted_markup:
+          $ slotted_markup = slotted_markup.replace(tag, tag.rstrip() + ' slot="trigger" ', 1)
+          $ slotted_directly = True
+          $break
+    $else:
+      $ slotted_directly = True
+    $if slotted_directly:
+      $:slotted_markup
+    $else:
+      <div slot="trigger" class="share-popover__trigger">
+        $:slotted_markup
+      </div>
     <div class="share-popover__panel">
       <ul class="share-popover__links">
         $for share_link in share_links:
