@@ -1,83 +1,84 @@
 $def with (share_links, page_url, link_markup, classes='', show_embed=True)
-$# :param list[dict] share_links:
-$# :param str page_url: absolute url excluding params
-$# :param str link_markup: Markup for element that triggers share modal
-$# :param str classes: HTML classes for this component
-
+$# Share menu as an <ol-popover> (see openlibrary/components/lit/OlPopover.js),
+$# matching the Browse popover's icon + label rows. Replaces the old colorbox
+$# modal of large share images.
+$#
+$# :param list[dict] share_links: Facebook / Twitter / Pinterest entries from set_share_links()
+$# :param str page_url: absolute url excluding params (used for Embed iframe src)
+$# :param str link_markup: Markup for the element that opens the popover
+$# :param str classes: Extra HTML classes on the host wrapper
+$# :param bool show_embed: When False (e.g. My Books), hide the Embed row
 
 $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="//$request.domain$page_url/widget"></iframe>
 
-<div class="$classes">
-  $:link_markup
+$def brand_icon(text):
+  $ key = text.lower()
+  $if key == 'facebook':
+    $:macros.icon('brand-facebook', size='sm')
+  $elif key == 'twitter' or key == 'x':
+    $:macros.icon('brand-x', size='sm')
+  $elif key == 'pinterest':
+    $:macros.icon('brand-pinterest', size='sm')
+  $else:
+    $:macros.icon('share-2', size='sm')
 
-  <div class="hidden">
-    <div id="social-modal-content" class="floaterAdd">
-      <div class="content">
-        <div class="floaterHead right-justify">
-          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-        </div>
-        <div class="shareLinks cta-section">
-          <ul class="shareLinks-list">
-              $for share_link in share_links:
-              $ track_tag = share_link['text'].replace(' ', '-')
-              <li>
-                <a href="$share_link['url']" class="sansserif large" target="_blank" rel="noopener noreferrer"
-                  data-ol-link-track="Share|$track_tag">
-                  <img
-                    title="$_('Share on %(share_link)s', share_link=share_link['text'])"
-                    alt="$(share_link['text'])" class="share-link"
-                    src="$static_url('images/%s.svg' % share_link['text'].lower())"
-                    loading="lazy"
-                  >
-                </a>
-                <div class="share-source">$share_link['text']</div>
-              </li>
-
-            $if show_embed:
-              <li>
-                $# rm special characters from url such as single quote which break js prompt/iframe
-                $ clean_url = page_url.replace("'", "\\'")
-                $ iframe_html = str(embed_iframe(clean_url)).strip()
-                <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
-                  onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
-                  <img
-                    alt="$_('Embed icon')"
-                    class="share-link"
-                    src="$static_url('images/embed.png')"
-                    loading="lazy"
-                  >
-                </a>
-                <div class="share-source">$_("Embed")</div>
-              </li>
-
-            <li>
-              <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL">
-                  <img
-                      alt="$_('Copy URL icon')"
-                      class="share-link"
-                      src="$static_url('images/copy_url.png')"
-                      loading="lazy"
-                  >
-              </a>
-              <div class="share-source">$_("Copy URL")</div>
-            </li>
-
-            <li>
-              <a href="/qrcode?path=$(ctx.path)" target="_blank" rel="noopener noreferrer" class="qr-code-btn" title="$_('Open QR code')" data-ol-link-track="Share|QRCode">
-                  <img
-                      alt="$_('QR code icon')"
-                      class="share-link"
-                      src="$static_url('images/qr_code.png')"
-                      loading="lazy"
-                  >
-              </a>
-              <div class="share-source">$_("QR Code")</div>
-            </li>
-
-          </ul>
-        </div>
+<div class="share-popover-component $classes">
+  <ol-popover class="share-popover" placement="bottom-start" aria-label="$_('Share')">
+    $# Slot the actual interactive control directly so OlPopover forwards ARIA state
+    $# (aria-haspopup, aria-expanded) directly to the focusable element.
+    $ slotted_markup = link_markup
+    $ slotted_directly = False
+    $if 'slot=' not in slotted_markup:
+      $for tag in ('<a ', '<button '):
+        $if tag in slotted_markup:
+          $ slotted_markup = slotted_markup.replace(tag, tag.rstrip() + ' slot="trigger" ', 1)
+          $ slotted_directly = True
+          $break
+    $else:
+      $ slotted_directly = True
+    $if slotted_directly:
+      $:slotted_markup
+    $else:
+      <div slot="trigger" class="share-popover__trigger">
+        $:slotted_markup
       </div>
+    <div class="share-popover__panel">
+      <ul class="share-popover__links">
+        $for share_link in share_links:
+          $ track_tag = share_link['text'].replace(' ', '-')
+          <li>
+            <a href="$share_link['url']" class="share-popover__link" target="_blank" rel="noopener noreferrer" data-ol-link-track="Share|$track_tag">
+              $:brand_icon(share_link['text'])
+              $share_link['text']
+            </a>
+          </li>
+
+        $if show_embed:
+          $# Escape single quotes so the iframe snippet is safe in a data attribute
+          $ clean_url = page_url.replace("'", "\\'")
+          $ iframe_html = str(embed_iframe(clean_url)).strip()
+          <li>
+            <a href="javascript:;" class="share-popover__link embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed" data-embed-code="$iframe_html" data-embed-prompt="$_('Copy embed code to clipboard:')">
+              $:macros.icon('code', size='sm')
+              $_("Embed")
+            </a>
+          </li>
+
+        <li>
+          <a href="javascript:;" class="share-popover__link copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL" data-copy-toast="$_('URL copied to clipboard')">
+            $:macros.icon('link', size='sm')
+            $_("Copy URL")
+          </a>
+        </li>
+
+        <li>
+          <a href="/qrcode?path=$(ctx.path)" target="_blank" rel="noopener noreferrer" class="share-popover__link qr-code-btn" title="$_('Open QR code')" data-ol-link-track="Share|QRCode">
+            $:macros.icon('qr-code', size='sm')
+            $_("QR Code")
+          </a>
+        </li>
+      </ul>
     </div>
-  </div>
+  </ol-popover>
 </div>

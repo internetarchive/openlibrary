@@ -7,23 +7,79 @@ import '../../../../../static/css/components/metadata-form.css';
 
 
 /**
- * Initializes share modal.
+ * Initializes share popover button listeners.
+ *
+ * <ol-popover> manages its own open/close lifecycle on trigger click, so
+ * Colorbox wiring is no longer needed.
  */
-export function initShareModal($modalLinks) {
-    addClickListeners($modalLinks, '400px');
+export function initShareModal() {
     addShareModalButtonListeners();
+    syncSharePopoverTriggerAria();
 }
+
 /**
- * Adds click listeners to buttons in all notes modals on a page.
+ * Ensures interactive triggers inside share popovers have proper ARIA attributes,
+ * forwarding state if a non-interactive wrapper was slotted.
  */
-function addShareModalButtonListeners(){
-    $('#social-modal-content .copy-url-btn').on('click', function(event){
-        event.preventDefault();
-        navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard');
-        $.colorbox.close();
+function syncSharePopoverTriggerAria() {
+    $('ol-popover.share-popover').each(function() {
+        const popover = this;
+        const trigger = popover.querySelector('[slot="trigger"]');
+        if (trigger && !trigger.matches('a, button, [tabindex]')) {
+            const interactive = trigger.querySelector('a, button, [tabindex]');
+            if (interactive) {
+                const updateAria = () => {
+                    interactive.setAttribute('aria-haspopup', 'dialog');
+                    interactive.setAttribute('aria-expanded', String(popover.open));
+                };
+                updateAria();
+                popover.addEventListener('ol-popover-open', updateAria);
+                popover.addEventListener('ol-popover-close', updateAria);
+            }
+        }
     });
 }
+
+/**
+ * Adds click listeners to action buttons inside share popovers.
+ */
+function addShareModalButtonListeners() {
+    $(document).on('click', '.share-popover .copy-url-btn', async function(event) {
+        event.preventDefault();
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            const msg = this.dataset.copyToast || 'URL copied to clipboard';
+            showComponentToast(msg, 'success');
+        } catch {
+            // Fallback for non-secure contexts or permission denied
+        }
+        const popover = this.closest('ol-popover');
+        if (popover) {
+            popover.open = false;
+        }
+    });
+
+    $(document).on('click', '.share-popover .embed-work-btn', function(event) {
+        event.preventDefault();
+        const embedCode = this.dataset.embedCode;
+        if (embedCode) {
+            const promptMsg = this.dataset.embedPrompt || 'Copy embed code to clipboard:';
+            prompt(promptMsg, embedCode);
+        }
+        const popover = this.closest('ol-popover');
+        if (popover) {
+            popover.open = false;
+        }
+    });
+
+    $(document).on('click', '.share-popover .share-popover__link:not(.embed-work-btn):not(.copy-url-btn)', function() {
+        const popover = this.closest('ol-popover');
+        if (popover) {
+            popover.open = false;
+        }
+    });
+}
+
 
 /** English fallbacks. Must match type/edition/notes_modal_i18n.html. */
 export const DEFAULT_NOTES_MODAL_STRINGS = {
