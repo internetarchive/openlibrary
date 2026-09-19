@@ -1227,7 +1227,7 @@ msgstr ""
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
 msgstr ""
 
-#: account/loans.html authors/index.html.jinja lists/list_follow.html.jinja publishers/view.html search/authors.html search/publishers.html search/subjects.html
+#: account/loans.html authors/index.html.jinja lists/list_follow.html.jinja lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -4712,7 +4712,7 @@ msgstr ""
 msgid "Quality Criteria"
 msgstr ""
 
-#: lists/carousel.html.jinja lists/home.html
+#: lists/carousel.html.jinja lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
@@ -4908,6 +4908,15 @@ msgstr ""
 #: lists/preview.html
 #, python-format
 msgid "by <a href=\"%s\">You</a>"
+msgstr ""
+
+#: lists/showcase.html
+#, python-format
+msgid "My Lists (%(count)d)"
+msgstr ""
+
+#: lists/showcase.html
+msgid "You have no lists."
 msgstr ""
 
 #: lists/widget.html my_books/dropdown_content.html
