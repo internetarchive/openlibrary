@@ -309,7 +309,7 @@ def is_dvd(book) -> bool:
     return "dvd" in [product_group, physical_format]
 
 
-def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str) -> str | None:
+def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str, query: str | None = None) -> str | None:
     """Return an Amazon affiliate URL for a book, handling 979-prefix ISBNs.
 
     Amazon's /dp/<ASIN>/ route only accepts ISBN-10 or a real ASIN.
@@ -325,15 +325,17 @@ def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str) -> str | 
         asin: Pre-resolved ASIN (e.g. from edition identifiers or ISBN-10),
               or None.  Takes priority over isbn conversion.
         tag:  Amazon affiliate tag.
+        query: Keywords (e.g. title and author) to search for when the book has
+              no isbn or asin to link to directly.
 
     Returns:
-        A fully-formed Amazon URL, or None if neither isbn nor asin provided.
+        A fully-formed Amazon URL, or None if there is nothing to link or search by.
     """
     effective_asin = asin or (isbn and isbn_13_to_isbn_10(isbn))
     if effective_asin:
         return f"https://www.amazon.com/dp/{quote(effective_asin)}/?tag={tag}"
-    if isbn:
-        return f"https://www.amazon.com/s?k={quote(isbn)}&i=stripbooks&tag={tag}"
+    if keywords := isbn or query:
+        return f"https://www.amazon.com/s?k={quote(keywords)}&i=stripbooks&tag={tag}"
     return None
 
 

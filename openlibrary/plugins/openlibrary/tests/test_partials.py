@@ -107,8 +107,8 @@ class TestBookPageListsPartial:
         assert result["partials"] == [BookPageListsPartial.RENDER_FALLBACK]
 
 
-def _stores(bwb=None, amz=None) -> dict:
-    ctx = AffiliateStoreBuildContext("A Title", "9780190906764", "0190906766", bwb, amz)
+def _stores(bwb=None, amz=None, title="A Title", isbn="9780190906764", asin="0190906766", author=None) -> dict:
+    ctx = AffiliateStoreBuildContext(title, isbn, asin, bwb, amz, author)
     return {store.key: store for store in build_stores(ctx)}
 
 
@@ -154,3 +154,24 @@ class TestBuildStores:
 
     def test_no_metadata_has_no_offers(self):
         assert all(not store.offers for store in _stores().values())
+
+
+class TestStoreLinks:
+    def test_isbn_links_to_each_store_product_page(self):
+        stores = _stores()
+        assert stores["betterworldbooks"].link == "https://www.betterworldbooks.com/product/detail/9780190906764"
+        assert "/dp/0190906766/" in stores["amazon"].link
+        assert stores["bookshop-org"].link.endswith("/9780190906764")
+
+    def test_no_isbn_searches_every_store_by_title_and_author(self):
+        stores = _stores(isbn=None, asin=None, author="An Author")
+        assert list(stores) == ["betterworldbooks", "amazon", "bookshop-org"]
+        assert stores["betterworldbooks"].link.endswith("/search/results?q=A+Title+An+Author")
+        assert "/s?k=A%20Title%20An%20Author&i=stripbooks" in stores["amazon"].link
+        assert stores["bookshop-org"].link.startswith("https://bookshop.org/beta-search?keywords=A+Title+An+Author")
+
+    def test_searches_by_title_alone_when_the_author_is_unknown(self):
+        assert _stores(isbn=None, asin=None)["betterworldbooks"].link.endswith("?q=A+Title")
+
+    def test_nothing_to_search_by_leaves_only_the_bwb_row(self):
+        assert list(_stores(title="", isbn=None, asin=None)) == ["betterworldbooks"]
