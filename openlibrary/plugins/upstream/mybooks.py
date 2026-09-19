@@ -20,6 +20,7 @@ from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
@@ -30,6 +31,7 @@ from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.avatar import read_local_avatar
 from openlibrary.utils.dateutil import current_year
 from openlibrary.utils.request_context import caching_prethread, site
 
@@ -48,6 +50,12 @@ class avatar(delegate.page):
     path = "/people/([^/]+)/avatar"
 
     def GET(self, username: str):
+        # In local dev the upload endpoint stores avatars locally (see
+        # openlibrary/utils/avatar.py) since archive.org isn't writable, so
+        # serve that file directly; otherwise redirect to the derived image.
+        if get_ol_env().LOCAL_DEV and (avatar := read_local_avatar(username)) is not None:
+            web.header("Cache-Control", "no-cache")
+            return delegate.RawText(avatar, content_type="image/jpeg")
         url = User.get_avatar_url(username)
         raise web.seeother(url)
 
