@@ -327,7 +327,7 @@ class Account(web.storage):
         return getattr(self, "status", "") == "blocked"
 
     def login(self, password):
-       
+
         if self.is_blocked():
             return "account_blocked"
         try:
