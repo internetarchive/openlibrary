@@ -481,3 +481,26 @@ class TestIntegratedBookPageRendering:
 
         assert groundtruth_calls == []
         assert 'data-lending-state="open"' in html
+
+
+class TestGetNearbyBooks:
+    def test_get_nearby_books_returns_empty_when_no_ddc(self):
+        work = web.storage(key="/works/OL1W")
+        assert code.get_nearby_books(work) == []
+
+    def test_get_nearby_books_queries_solr_with_strict_bounds(self):
+        work = web.storage(key="/works/OL1W", ddc_sort="813.54")
+        mock_solr = Mock()
+        mock_solr.select.return_value = web.storage(docs=[web.storage(key="/works/OL2W")])
+
+        with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=mock_solr):
+            docs = code.get_nearby_books(work)
+
+        assert len(docs) == 1
+        assert docs[0].key == "/works/OL2W"
+        assert mock_solr.select.call_count == 3
+        # Check strict bounds queries
+        calls = [c.args[0] for c in mock_solr.select.call_args_list]
+        assert 'ddc_sort:"813.54"' in calls[0]
+        assert 'ddc_sort:[* TO "813.5399999"]' in calls[1]
+        assert 'ddc_sort:("813.54" TO *]' in calls[2]

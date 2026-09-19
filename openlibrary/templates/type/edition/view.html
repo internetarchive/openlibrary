@@ -482,6 +482,11 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
   $:render_template("books/RelatedWorksCarousel", work)
   $ component_times['RelatedWorksCarousel'] = time() - component_times['RelatedWorksCarousel']
 
+  $if book_page_context and book_page_context.nearby_books:
+    $ component_times['NearbyBooksCarousel'] = time()
+    $:macros.RawQueryCarousel("", title=_("Nearby Books"), key="nearby-books", limit=20, books_data=book_page_context.nearby_books)
+    $ component_times['NearbyBooksCarousel'] = time() - component_times['NearbyBooksCarousel']
+
   $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 
