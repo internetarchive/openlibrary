@@ -1,0 +1,76 @@
+/**
+ * Share popover
+ * =============
+ * Compact share menu rendered by openlibrary/macros/ShareModal.html via
+ * <ol-popover>. Rows follow the Browse / Buy popover menu pattern: muted
+ * leading icon + label, pill hover fill.
+ *
+ * Imported by page-book.css and legacy.css (so My Books / page-user get it).
+ */
+
+.share-popover {
+  display: inline-flex;
+  align-items: center;
+}
+
+.share-popover__trigger {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The padding is the menu-row gutter: rows carry the rest of their label offset
+ * as their own padding, so the hover fill reads as a pill inside the panel.
+ * All four sides are equal for concentric corner radii. */
+.share-popover__panel {
+  box-sizing: border-box;
+  width: 200px;
+  max-width: calc(100vw - 24px);
+  padding: var(--menu-row-inset);
+  text-align: start;
+}
+
+@media (max-width: 767px) /* --width-breakpoint-tablet - 1px; matches OlPopover.js _mobile */ {
+  .share-popover__panel {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.share-popover__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.share-popover__links li {
+  margin: 0;
+}
+
+.share-popover__link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  border-radius: var(--border-radius-menu-row);
+  color: var(--color-text);
+  font-size: var(--font-size-body-medium);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Decorative tier: the label carries the meaning. */
+.share-popover__link .ol-icon {
+  color: var(--color-icon-muted);
+  flex-shrink: 0;
+}
+
+.share-popover__link:focus-visible {
+  background-color: var(--color-hover-overlay);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .share-popover__link:hover {
+    background-color: var(--color-hover-overlay);
+  }
+}
