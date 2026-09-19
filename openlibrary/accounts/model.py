@@ -327,18 +327,7 @@ class Account(web.storage):
         return getattr(self, "status", "") == "blocked"
 
     def login(self, password):
-        """Tries to login with the given password and returns the status.
-
-        The return value can be one of the following:
-
-            * ok
-            * account_not_verified
-            * account_not_found
-            * account_incorrect_password
-            * account_blocked
-
-        If the login is successful, the `last_login` time is updated.
-        """
+       
         if self.is_blocked():
             return "account_blocked"
         try:
