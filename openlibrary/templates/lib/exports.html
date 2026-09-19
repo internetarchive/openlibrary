@@ -17,20 +17,43 @@ $if page.key.startswith("/works") or page.key.startswith("/books") or page.key.s
             /
             <a rel="nofollow" href="$opds">$_("OPDS")</a>
         $if show_wikipedia_citation_link:
-            | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="$_('Cite this on Wikipedia')" href="javascript:;">$_('Wikipedia citation')</a>
-    </span>
+            |
+            <ol-popover
+                class="wikipedia-citation-popover"
+                placement="bottom-start"
+                aria-label="$_('Wikipedia citation')"
+            >
+                <a
+                    slot="trigger"
+                    id="wikilink"
+                    class="wikipedia-citation-popover__trigger"
+                    href="#"
+                    role="button"
+                    title="$_('Cite this on Wikipedia')"
+                >$_('Wikipedia citation')</a>
 
-    $if show_wikipedia_citation_link:
-        <div class="hidden">
-            <div class="coverFloat" id="wikicode">
-                <div class="coverFloatHead">
-                    <h2>$_("Wikipedia citation")</h2>
-                    <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-                </div>
-                <p>$_("Copy and paste this code into your Wikipedia page.") <a href="https://en.wikipedia.org/wiki/Template:Cite_book" target="_blank" rel="noopener noreferrer" title="$_('Get instructions at Wikipedia in a new window')">$_('Need help?')</a></p>
-                <form method="get">
+                <div class="wikipedia-citation-popover__content">
+                    <p>
+                        $_("Copy and paste this code into your Wikipedia page.")
+                        <a
+                            href="https://en.wikipedia.org/wiki/Template:Cite_book"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="$_('Get instructions at Wikipedia in a new window')"
+                        >$_('Need help?')</a>
+                    </p>
+
                     $ cite = " |".join([k + '=' + v for k, v in page.wp_citation_fields.items() if v])
-                    <textarea cols="70" rows="10" readonly="readonly" id="wikiselect">{{cite book|$cite}}</textarea>
-                </form>
-            </div>
-        </div>
+                    <button
+                        type="button"
+                        class="copy-button wikipedia-citation-popover__copy"
+                        data-wikipedia-citation-copy
+                        aria-label="$_('Copy Wikipedia citation')"
+                    >
+                        <code>{{cite book|$cite}}</code>
+                        $:macros.icon("copy", size="sm", extra_class="copy-button__glyph--copy")
+                        $:macros.icon("check", size="sm", extra_class="copy-button__glyph--check")
+                    </button>
+                </div>
+            </ol-popover>
+    </span>
