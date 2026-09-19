@@ -22,7 +22,7 @@ the long tail it reaches.
 from collections import deque
 from collections.abc import Callable, Iterable, Mapping
 
-from scripts.monitoring.utils import graphite_safe
+from scripts.monitoring.utils import GraphiteEvent, graphite_safe
 
 # User-Agent is attacker-controlled and a promoted agent mints a Graphite path.
 # graphite_safe() bounds the character set but not the length, so bound it here.
@@ -129,3 +129,19 @@ class RollingPromoter:
             else:
                 labelled[OTHER_LABEL] += count
         return labelled
+
+
+def promoted_events(
+    counts: Mapping[str, int],
+    promoter: RollingPromoter,
+    prefix: str,
+    timestamp: int,
+    pinned: Iterable[str] = (),
+) -> list[GraphiteEvent]:
+    """Label one tick's counts and build the Graphite events for them.
+
+    Kept separate from submission so the metric paths can be asserted without a
+    socket: ``<prefix>.other`` is part of the contract with the dashboards, not
+    an implementation detail.
+    """
+    return [GraphiteEvent(path=f"{prefix}.{label}", value=float(count), timestamp=timestamp) for label, count in promoter.split(counts, pinned=pinned).items()]

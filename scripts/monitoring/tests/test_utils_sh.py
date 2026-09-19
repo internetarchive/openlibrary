@@ -1,6 +1,31 @@
 import tempfile
 
+from scripts.monitoring.promotion import (
+    RollingPromoter,
+    parse_uniq_c,
+    promoted_events,
+    safe_label,
+    tally,
+)
 from scripts.monitoring.utils import bash_run
+
+
+def _unknown_bot_counts(fixture: str) -> str:
+    """Run list_unknown_bot_counts against a log fixture."""
+    with tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as aliases_fp:
+        aliases_fp.write(f"""
+                obfi_in_docker() {{
+                    cat {fixture}
+                }}
+                export -f obfi_in_docker
+            """)
+        aliases_fp.close()
+
+        return bash_run(
+            "list_unknown_bot_counts",
+            sources=["../obfi.sh", aliases_fp.name, "utils.sh"],
+            capture_output=True,
+        ).stdout
 
 
 def test_bash_run():
@@ -69,31 +94,57 @@ stats.ol-covers0.bot_traffic.non_bot 5 1741054377
 
 
 def test_list_unknown_bot_counts():
-    with tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as aliases_fp:
-        aliases_fp.write("""
-                obfi_in_docker() {
-                    cat scripts/monitoring/tests/sample_unknown_bots_nginx_logs.log
-                }
-                export -f obfi_in_docker
-            """)
-        aliases_fp.close()
+    output = _unknown_bot_counts("scripts/monitoring/tests/sample_unknown_bots_nginx_logs.log")
 
-        output = bash_run(
-            "list_unknown_bot_counts",
-            sources=["../obfi.sh", aliases_fp.name, "utils.sh"],
-            capture_output=True,
-        ).stdout
+    # GPTBot is in obfi_grep_bots' list so it is counted as its own series by
+    # log_recent_bot_traffic, and the plain browser UA is not a bot at all;
+    # neither should show up here. Hyphens are normalized to underscores, as
+    # obfi_top_bots does for the built-in names.
+    counts = [line.split() for line in output.strip().split("\n")]
+    assert counts == [
+        ["3", "somerandomcrawler"],
+        ["2", "evilspider"],
+        ["1", "data_harvester_bot"],
+    ]
 
-        # GPTBot is in obfi_grep_bots' list so it is counted as its own series by
-        # log_recent_bot_traffic, and the plain browser UA is not a bot at all;
-        # neither should show up here. Hyphens are normalized to underscores, as
-        # obfi_top_bots does for the built-in names.
-        counts = [line.split() for line in output.strip().split("\n")]
-        assert counts == [
-            ["3", "somerandomcrawler"],
-            ["2", "evilspider"],
-            ["1", "data_harvester_bot"],
-        ]
+
+def test_unknown_bots_still_produce_an_other_metric():
+    """End-to-end cover for the `<bucket>.other` line log_recent_bot_traffic used to emit.
+
+    The bash side now only reports names; monitor.py turns them into metrics. This
+    walks that whole path so the metric cannot silently stop being submitted.
+    """
+    promoter = RollingPromoter(min_count=75, max_labels=25)
+
+    output = _unknown_bot_counts("scripts/monitoring/tests/sample_unknown_bots_nginx_logs.log")
+    events = promoted_events(
+        tally(parse_uniq_c(output), key=safe_label),
+        promoter,
+        "stats.ol-covers0.bot_traffic",
+        timestamp=1741054377,
+    )
+
+    # None of the fixture's bots are anywhere near the threshold, so they all
+    # aggregate: 3 + 2 + 1.
+    assert [e.serialize_str() for e in events] == ["stats.ol-covers0.bot_traffic.other 6.0 1741054377"]
+
+
+def test_a_log_with_no_unknown_bots_still_produces_an_other_metric():
+    # The original fixture has no unknown bots, which is why the old test asserted
+    # `...bot_traffic.other 0`. bash_run uses `set -e`, so an empty pipeline here
+    # would also take down the whole job on any quiet minute.
+    promoter = RollingPromoter(min_count=75, max_labels=25)
+
+    output = _unknown_bot_counts("scripts/monitoring/tests/sample_covers_nginx_logs.log")
+    events = promoted_events(
+        tally(parse_uniq_c(output), key=safe_label),
+        promoter,
+        "stats.ol-covers0.bot_traffic",
+        timestamp=1741054377,
+    )
+
+    assert output.strip() == ""
+    assert [e.serialize_str() for e in events] == ["stats.ol-covers0.bot_traffic.other 0.0 1741054377"]
 
 
 def test_log_recent_http_statuses():

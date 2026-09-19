@@ -14,6 +14,7 @@ from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts, get_jail_li
 from scripts.monitoring.promotion import (
     RollingPromoter,
     parse_uniq_c,
+    promoted_events,
     safe_label,
     tally,
 )
@@ -58,8 +59,7 @@ def submit_promoted_counts(
     pinned: Iterable[str] = (),
 ) -> None:
     """Label one tick's counts via ``promoter`` and submit them under ``prefix``."""
-    ts = int(time.time())
-    events = [GraphiteEvent(path=f"{prefix}.{label}", value=float(count), timestamp=ts) for label, count in promoter.split(counts, pinned=pinned).items()]
+    events = promoted_events(counts, promoter, prefix, timestamp=int(time.time()), pinned=pinned)
     GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 

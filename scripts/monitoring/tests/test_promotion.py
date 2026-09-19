@@ -2,9 +2,12 @@ from scripts.monitoring.promotion import (
     MAX_LABEL_LENGTH,
     RollingPromoter,
     parse_uniq_c,
+    promoted_events,
     safe_label,
     tally,
 )
+
+BUCKET = "stats.ol-covers0.bot_traffic"
 
 
 def test_safe_label_sanitizes_and_bounds():
@@ -113,6 +116,38 @@ def test_counts_are_conserved_across_the_split():
     promoter = RollingPromoter(min_count=20, max_labels=2)
     counts = {"a": 100, "b": 50, "c": 7, "d": 3}
     assert sum(promoter.split(counts).values()) == sum(counts.values())
+
+
+def test_other_metric_is_emitted_even_when_nothing_is_promoted():
+    # log_recent_bot_traffic used to emit `<bucket>.other` itself, and its test
+    # asserted the exact line. That emission moved here when the promotion
+    # decision did, so the metric path is asserted here instead.
+    promoter = RollingPromoter(min_count=75, max_labels=10)
+
+    events = promoted_events({"smallbot": 3, "tinybot": 2}, promoter, BUCKET, timestamp=1741054377)
+
+    assert [e.serialize_str() for e in events] == ["stats.ol-covers0.bot_traffic.other 5.0 1741054377"]
+
+
+def test_other_metric_is_emitted_alongside_promoted_agents():
+    promoter = RollingPromoter(min_count=75, max_labels=10)
+
+    events = promoted_events({"bigbot": 90, "smallbot": 4}, promoter, BUCKET, timestamp=1741054377)
+
+    assert sorted(e.serialize_str() for e in events) == [
+        "stats.ol-covers0.bot_traffic.bigbot 90.0 1741054377",
+        "stats.ol-covers0.bot_traffic.other 4.0 1741054377",
+    ]
+
+
+def test_other_metric_is_emitted_on_a_completely_quiet_tick():
+    promoter = RollingPromoter(min_count=75, max_labels=10)
+
+    events = promoted_events({}, promoter, BUCKET, timestamp=1741054377)
+
+    # A quiet minute must still report zero, exactly as the old `wc -l` did, or
+    # the series goes stale and the dashboard shows a gap instead of a zero.
+    assert [e.serialize_str() for e in events] == ["stats.ol-covers0.bot_traffic.other 0.0 1741054377"]
 
 
 def test_window_holds_only_the_configured_number_of_ticks():
