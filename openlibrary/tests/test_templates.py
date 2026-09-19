@@ -59,13 +59,21 @@ def test_login_template_does_not_bind_password_value():
 def test_advanced_search_preserves_search_state():
     nav = Path("openlibrary/macros/SearchNavigation.html").read_text(encoding="utf-8")
     advanced = Path("openlibrary/templates/search/advancedsearch.html").read_text(encoding="utf-8")
+    work_search = Path("openlibrary/templates/work_search.html").read_text(encoding="utf-8")
 
     assert "href=\"$changequery(_path='/advancedsearch', page=None)\"" in nav
     assert "value=\"$query_param('q', '')\"" in advanced
     assert "value=\"$query_param('title', '')\"" in advanced
-    assert "value=\"$query_param('author', '')\"" in advanced
+    assert "query_param('author', query_param('author_facet', ''))" in advanced
+    assert "query_param('subject', query_param('subject_facet', ''))" in advanced
+    assert "query_param('place', query_param('place_facet', ''))" in advanced
+    assert "query_param('person', query_param('person_facet', ''))" in advanced
+    assert "query_param('publisher', query_param('publisher_facet', ''))" in advanced
+    assert "visible_facet_fields" in advanced
     assert "$for k, values in param.items():" in advanced
     assert '<input type="hidden" name="$k"' in advanced
+    assert ".replace('\"', '&quot;')" not in advanced
+    assert ".replace('\"', '&quot;')" not in work_search
 
 
 def test_no_role_trio_in_source():

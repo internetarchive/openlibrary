@@ -6,6 +6,7 @@ $def with (param={})
 
 <div id="contentBody">
   $ advanced_fields = set(['q', 'title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'])
+  $ visible_facet_fields = set(['author_facet', 'subject_facet', 'place_facet', 'person_facet', 'publisher_facet'])
   $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet', 'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b', 'has_fulltext', 'public_scan', 'print_disabled'])
   $:macros.SearchNavigation()
   <form method="get" action="/search" class="siteSearch olform siteSearch--advanced">
@@ -18,7 +19,7 @@ $def with (param={})
       </div>
       <div class="formElement">
         <label for="qtop-author">$_('Author')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="author" id="qtop-author" placeholder="" size="35" value="$query_param('author', '')">
+        <input type="text" class="siteSearch--advanced-input" name="author" id="qtop-author" placeholder="" size="35" value="$query_param('author', query_param('author_facet', ''))">
       </div>
       <div class="formElement">
         <label for="qtop-isbn">$_('ISBN')</label><br>
@@ -26,25 +27,25 @@ $def with (param={})
       </div>
       <div class="formElement">
         <label for="qtop-subject">$_('Subject')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="subject" id="qtop-subject" placeholder="" size="35" value="$query_param('subject', '')">
+        <input type="text" class="siteSearch--advanced-input" name="subject" id="qtop-subject" placeholder="" size="35" value="$query_param('subject', query_param('subject_facet', ''))">
       </div>
       <div class="formElement">
         <label for="qtop-place">$_('Place')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="place" id="qtop-place" placeholder="" size="35" value="$query_param('place', '')">
+        <input type="text" class="siteSearch--advanced-input" name="place" id="qtop-place" placeholder="" size="35" value="$query_param('place', query_param('place_facet', ''))">
       </div>
       <div class="formElement">
         <label for="qtop-person">$_('Person')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="person" id="qtop-person" placeholder="" size="35" value="$query_param('person', '')">
+        <input type="text" class="siteSearch--advanced-input" name="person" id="qtop-person" placeholder="" size="35" value="$query_param('person', query_param('person_facet', ''))">
       </div>
       <div class="formElement">
         <label for="qtop-publisher">$_('Publisher')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="publisher" id="qtop-publisher" placeholder="" size="35" value="$query_param('publisher', '')">
+        <input type="text" class="siteSearch--advanced-input" name="publisher" id="qtop-publisher" placeholder="" size="35" value="$query_param('publisher', query_param('publisher_facet', ''))">
       </div>
       $for k, values in param.items():
-        $if k in advanced_fields or k not in sticky:
+        $if k in advanced_fields or k in visible_facet_fields or k not in sticky:
           $continue
         $for v in values if isinstance(values, list) else [values]:
-          <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
+          <input type="hidden" name="$k" value="$v" />
     </fieldset>
     <button type="submit" class="cta-btn cta-btn--search">$_('Search')</button>
     <div class="searchPlus">

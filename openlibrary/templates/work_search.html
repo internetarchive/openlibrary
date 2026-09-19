@@ -36,7 +36,7 @@ $ bodyclass.append('search-page')
         $if k not in sticky:
           $continue
         $for v in values if isinstance(values, list) else [values]:
-          <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
+          <input type="hidden" name="$k" value="$v" />
     </form>
 
         $# Current selections are wired client-side by SearchFilterBar.js, which
