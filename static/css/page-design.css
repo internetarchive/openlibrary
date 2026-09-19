@@ -794,7 +794,7 @@ html:has(.ds) {
 .ds-icon-popover__label {
   font-size: var(--font-size-label-small);
   color: var(--color-text-muted);
-};
+}
 
 /* -------------------------------------------------------------- API tables */
 
