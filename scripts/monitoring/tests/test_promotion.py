@@ -121,17 +121,31 @@ def test_a_loud_pinned_agent_does_not_eat_a_promotion_slot():
     assert labelled["other"] == 0
 
 
-def test_kept_labels_report_zero_rather_than_a_gap_when_quiet():
+def test_promoted_labels_report_zero_rather_than_a_gap_when_quiet():
     # An agent at the floor sends nothing in most individual minutes. Emitting
     # no datapoint renders a stacked graph as a broken sawtooth.
     promoter = RollingPromoter(min_count=75, max_labels=10)
     promoter.split({"burstybot": 600})
 
-    assert promoter.split({}, pinned={"QuietPartner"}) == {
-        "burstybot": 0,
-        "QuietPartner": 0,
-        "other": 0,
-    }
+    assert promoter.split({}) == {"burstybot": 0, "other": 0}
+
+
+def test_pinned_labels_stay_sparse_when_quiet():
+    # Pinned partners have always been emitted only in minutes they were seen.
+    # Zero-filling them would change what every mean/avg panel over those 89
+    # existing series reads, with no traffic change behind it.
+    promoter = RollingPromoter(min_count=75, max_labels=10)
+
+    assert promoter.split({}, pinned={"QuietPartner"}) == {"other": 0}
+    assert promoter.split({"QuietPartner": 3}, pinned={"QuietPartner"}) == {"QuietPartner": 3, "other": 0}
+
+
+def test_pinned_given_as_a_generator_is_not_silently_dropped():
+    # promoted() materialises `pinned`; if split() then re-consumed the same
+    # one-shot iterable every pin would vanish into `other` with no error.
+    promoter = RollingPromoter(min_count=75, max_labels=10)
+
+    assert promoter.split({"QuietPartner": 1}, pinned=(n for n in ["QuietPartner"])) == {"QuietPartner": 1, "other": 0}
 
 
 def test_reserved_labels_cannot_be_minted_by_an_agent():

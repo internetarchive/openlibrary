@@ -84,9 +84,9 @@ def test_monitor_partner_useragents_promotes_a_new_partner_past_the_pinned_list(
     assert by_path["stats.ol.partners.NewHotPartner"] == 120.0
     # Pinned partners keep their series however quiet they are...
     assert by_path["stats.ol.partners.Gleeph"] == 2.0
-    # ...including ones that sent nothing at all this minute, which report 0
-    # rather than leaving a gap in the graph.
-    assert by_path["stats.ol.partners.Bontent"] == 0.0
+    # ...but a pinned partner that sent nothing this minute is left out entirely,
+    # exactly as before this change, so its existing series is sampled the same way.
+    assert "stats.ol.partners.Bontent" not in by_path
     # Genuinely unknown low-volume traffic is what `other` is for.
     assert by_path["stats.ol.partners.other"] == 1.0
 

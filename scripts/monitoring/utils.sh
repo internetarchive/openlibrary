@@ -32,9 +32,13 @@ log_recent_bot_traffic() {
     # promotes the high-volume ones to their own series and sums the rest into
     # `$BUCKET.other`. See list_unknown_bot_counts below.
 
-    # And finally, also log non bot traffic
+    # And finally, also log non bot traffic. Scoped to the User-Agent field, to
+    # match list_unknown_bot_counts: excluding on the whole line here while the
+    # bot path matches only the UA would leave a browser request for /robots.txt
+    # counted in neither, so the two would stop adding up to the total.
     NON_BOT_TRAFFIC_COUNT=$(
         obfi_in_docker obfi_previous_minute | \
+        awk -F'"' '{print $6}' | \
         grep -viE '\b[a-z_-]+(bot|spider|crawler)' | \
         obfi_grep_bots -v | \
         wc -l
@@ -57,16 +61,24 @@ list_unknown_bot_counts() {
     # request for /robots.txt becomes "robot", /works/OL1W/I-Robot becomes
     # "i_robot", and any visitor could name a metric by requesting a URL.
 
-    # Normalization matches obfi_top_bots, so a promoted name looks the same as
-    # a built-in one. Like obfi_top_bots this counts occurrences rather than
-    # lines, so a UA naming the same bot twice counts twice.
+    # Take only the FIRST match in each UA, unlike obfi_top_bots. Polite crawlers
+    # name themselves a second time in a self-documenting URL -- eg
+    # "OAI-SearchBot/1.0; +https://openai.com/searchbot" -- and counting every
+    # match gives that one agent two series ("oai_searchbot" and a phantom
+    # "searchbot"), doubles its volume, and spends two promotion slots on it.
+
+    # Separators become "-" first so obfi_grep_bots, whose patterns contain
+    # literal hyphens, also rejects a UA that spells a known bot with
+    # underscores ("Aranet_SearchBot") and would otherwise mint -- and overwrite
+    # -- that bot's real series. Then "-" becomes "_" for the metric path.
     obfi_in_docker obfi_previous_minute | \
         awk -F'"' '{print $6}' | \
-        grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
-        obfi_grep_bots -v | \
-        grep -oiE '\b[a-z_-]+(bot|spider|crawler)' | \
         tr '[:upper:]' '[:lower:]' | \
-        sed 's/[^[:alnum:]\n]/_/g' | \
+        obfi_grep_bots -v | \
+        awk 'match($0, /[a-z_-]+(bot|spider|crawler)/) { print substr($0, RSTART, RLENGTH) }' | \
+        sed 's/[^[:alnum:]\n]/-/g' | \
+        obfi_grep_bots -v | \
+        sed 's/-/_/g' | \
         sort | uniq -c | sort -rn
 
     # Output like this:

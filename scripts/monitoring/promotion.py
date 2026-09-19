@@ -13,10 +13,10 @@ decision and the metric emission are separated here. Emission is unchanged --
 each tick still reports that tick's counts. Only the choice of *which names get
 their own label* is made over an accumulated window.
 
-Cardinality is bounded by ``max_labels`` rather than by ``min_count``, which
-keeps the mechanism working even if the threshold is mistuned: the ranking
-picks the right agents either way, and the threshold only decides how far down
-the long tail it reaches.
+``max_labels`` caps how many agents hold a label at once, so the ranking keeps
+picking the right agents even if ``min_count`` is mistuned. It bounds concurrent
+series, not the graphite tree: a name promoted once leaves its whisper file
+behind when it drops out again.
 """
 
 from collections import deque
@@ -60,8 +60,10 @@ def safe_label(name: str) -> str:
 def parse_uniq_c(output: str) -> list[tuple[int, str]]:
     """Parse ``uniq -c`` style ``<count> <value>`` lines, skipping malformed ones."""
     rows = []
-    # Deliberately not splitlines(): it also breaks on \v, \f and \x1c-\x1e, which
-    # would let one crafted User-Agent forge a second row with a count of its choice.
+    # split("\n"), not splitlines(): splitlines() also breaks on \v, \f and
+    # \x1c-\x1e. nginx escapes those to literal \xNN before they reach the log,
+    # so this is belt-and-braces rather than a live hole -- but the narrower
+    # split is what this format actually means.
     for line in output.split("\n"):
         count, _, value = line.strip().partition(" ")
         if not (value := value.strip()):
@@ -129,15 +131,22 @@ class RollingPromoter:
         """Observe a tick's counts and label them for submission.
 
         Promoted and pinned names keep their own key; everything else sums into
-        ``other``. Every kept label is reported every tick, at zero if it sent
-        nothing: an agent near the floor sends nothing in most individual
-        minutes, and emitting gaps instead of zeros renders those series as
-        broken sawtooths on a stacked graph. Pinned names bypass the floor and
-        do not compete for slots, so they never lose their series.
+        ``other``.
+
+        Promoted labels are reported every tick, at zero if they sent nothing:
+        an agent near the floor sends nothing in most individual minutes, and
+        gaps render those series as broken sawtooths on a stacked graph. Pinned
+        names are deliberately left sparse, which is how they have always been
+        emitted -- zero-filling them would change what every mean/average panel
+        over those 89 series reads, with no traffic change behind it.
         """
         self.observe(counts)
-        keep = self.promoted(pinned) | set(pinned)
-        labelled = dict.fromkeys(keep, 0)
+        # Materialise once: promoted() consumes this, and a generator would
+        # arrive here exhausted, silently dropping every pin.
+        pinned = set(pinned)
+        promoted = self.promoted(pinned)
+        keep = promoted | pinned
+        labelled = dict.fromkeys(promoted, 0)
         labelled[OTHER_LABEL] = 0
         for label, count in counts.items():
             if label in keep:
