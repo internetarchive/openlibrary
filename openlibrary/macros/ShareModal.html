@@ -44,7 +44,7 @@ $def brand_icon(text):
           $ clean_url = page_url.replace("'", "\\'")
           $ iframe_html = str(embed_iframe(clean_url)).strip()
           <li>
-            <a href="javascript:;" class="share-popover__link embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed" data-embed-code="$iframe_html">
+            <a href="javascript:;" class="share-popover__link embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed" data-embed-code="$iframe_html" data-embed-prompt="$_('Copy embed code to clipboard:')">
               $:macros.icon('code', size='sm')
               $_("Embed")
             </a>

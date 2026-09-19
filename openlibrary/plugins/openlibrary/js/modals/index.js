@@ -40,7 +40,8 @@ function addShareModalButtonListeners() {
         event.preventDefault();
         const embedCode = this.dataset.embedCode;
         if (embedCode) {
-            prompt('Copy embed code to clipboard:', embedCode);
+            const promptMsg = this.dataset.embedPrompt || 'Copy embed code to clipboard:';
+            prompt(promptMsg, embedCode);
         }
         const popover = this.closest('ol-popover');
         if (popover) {
