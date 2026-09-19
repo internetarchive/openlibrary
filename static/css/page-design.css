@@ -24,6 +24,7 @@
    CSS component without loading its stylesheet renders unstyled markup, which
    is worse than not documenting it at all. */
 @import "components/ol-message.css";
+@import "components/copy-button.css";
 
 /* Page and component titles set in the serif; import the face so it loads. */
 @import "fonts/literata.css";
@@ -793,57 +794,6 @@ html:has(.ds) {
 .ds-icon-popover__label {
   font-size: var(--font-size-label-small);
   color: var(--color-text-muted);
-}
-
-/* The whole well copies: code text, glyph, and the space between. */
-.ds-icon-popover__snippet {
-  display: flex;
-  gap: var(--spacing-inline-sm);
-  align-items: center;
-  min-width: 0;
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-  border: 0;
-  border-radius: var(--border-radius-button);
-  background: var(--color-surface-sunken);
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.ds-icon-popover__snippet:hover {
-  /* The overlay token composes over the sunken fill via a gradient layer. */
-  background: linear-gradient(
-      var(--color-hover-overlay),
-      var(--color-hover-overlay)
-    )
-    var(--color-surface-sunken);
-}
-
-.ds-icon-popover__code {
-  flex: 1;
-  overflow-x: auto;
-  font-family: var(--font-family-code);
-  font-size: var(--font-size-label-medium);
-  white-space: nowrap;
-}
-
-.ds-icon-popover__snippet .ol-icon {
-  flex-shrink: 0;
-  color: var(--color-text-muted);
-}
-
-/* Copied feedback: the copy glyph swaps for a green check. */
-.ds-icon-popover__glyph--check {
-  display: none;
-}
-
-.ds-icon-popover__snippet.is-copied .ds-icon-popover__glyph--copy {
-  display: none;
-}
-
-.ds-icon-popover__snippet.is-copied .ds-icon-popover__glyph--check {
-  display: block;
-  color: var(--color-success-fg);
 }
 
 /* -------------------------------------------------------------- API tables */

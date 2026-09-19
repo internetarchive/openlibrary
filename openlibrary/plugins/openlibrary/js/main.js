@@ -425,6 +425,12 @@ $(function() {
             .then(module => module.initDialogs());
     }
 
+    const wikipediaCitation = document.querySelector('[data-wikipedia-citation-copy]');
+    if (wikipediaCitation) {
+        import('./wikipedia-citation')
+            .then(module => module.initWikipediaCitation());
+    }
+
     const nativeDialogs = document.querySelectorAll('.native-dialog');
     if (nativeDialogs.length) {
         import('./native-dialog')

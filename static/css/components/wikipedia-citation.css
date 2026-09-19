@@ -1,0 +1,28 @@
+.wikipedia-citation-popover__trigger {
+  cursor: pointer;
+}
+
+.wikipedia-citation-popover__content {
+  width: min(560px, calc(100vw - 32px));
+  max-width: 100%;
+}
+
+.wikipedia-citation-popover__content p {
+  margin: 0 0 var(--spacing-stack-sm);
+  color: var(--color-text);
+}
+
+.wikipedia-citation-popover__copy {
+  width: 100%;
+}
+
+.wikipedia-citation-popover__copy code {
+  flex: 1;
+  min-width: 0;
+  max-height: 200px;
+  overflow: auto;
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-medium);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
