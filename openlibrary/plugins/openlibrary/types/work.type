@@ -245,7 +245,7 @@
             "type": {
                 "key": "/type/property"
             },
-            "name": "audiences"
+            "name": "audience"
         }
     ],
     "revision": 14
