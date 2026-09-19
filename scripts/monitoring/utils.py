@@ -53,6 +53,10 @@ class GraphiteEvent:
         message = header + payload
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            # Jobs run on a 60s interval with max_instances=1, so a blackholed
+            # graphite port would otherwise wedge the job permanently and take
+            # every other metric it submits down with it.
+            sock.settimeout(10)
             sock.connect(graphite_address_tuple)
             sock.sendall(message)
 

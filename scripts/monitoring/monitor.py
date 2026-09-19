@@ -39,15 +39,17 @@ scheduler = OlAsyncIOScheduler("OL-MONITOR")
 # Agents big enough to be worth their own grafana series get promoted out of the
 # `other` bucket automatically, so neither list below has to be edited to keep up.
 #
-# The jobs tick once a minute, so the default 60-tick window is one hour and
-# min_count is a per-hour floor: 75/hour is 1.25 req/min sustained, 50/hour is
-# 0.83. max_labels is what actually bounds cardinality -- an agent has to out-rank
-# everything else in the window to hold a slot, so a mistuned floor changes how
-# far down the long tail we reach but not which agents get picked.
+# The jobs tick once a minute, so a 60-tick window is roughly an hour and
+# min_count is roughly a per-hour floor: 75/hour is 1.25 req/min. Roughly,
+# because a tick that overruns 60s is skipped rather than queued, which
+# stretches the window in wall-clock terms.
 #
-# Note this state lives in the process. The monitoring container restarts on
-# deploy, which empties the window; the promoted set then rebuilds over the
-# following hour.
+# max_labels caps how many agents hold their own series at once. It does not
+# bound the graphite tree over time: a name that is promoted and later drops
+# out leaves its whisper file behind. Pinned names do not count against it.
+#
+# This state lives in the process. The monitoring container restarts on deploy,
+# which empties the window; the promoted set rebuilds over the following hour.
 CRAWLER_PROMOTER = RollingPromoter(min_count=75, max_labels=25)
 PARTNER_PROMOTER = RollingPromoter(min_count=50, max_labels=50)
 
@@ -247,6 +249,12 @@ PINNED_PARTNER_UAS = """
     """
 
 
+# Read the User-Agent field specifically (the 6th "-delimited field). Matching `@`
+# anywhere in the line also picks up request paths and referrers, which would turn
+# `GET /search?q=a@b.com` into a partner called "GET".
+PARTNER_UA_COMMAND = """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | awk -F'"' '{print $6}' | grep -E '@' | sort | uniq -c | sort -rn"""
+
+
 def partner_label(user_agent: str) -> str:
     """Label a partner by the first token of its UA, eg `Bontent/1.0 (...)` -> `Bontent`."""
     return safe_label(user_agent.split(maxsplit=1)[0].split("/", maxsplit=1)[0])
@@ -259,7 +267,7 @@ PINNED_PARTNER_NAMES = set(tally(parse_uniq_c(PINNED_PARTNER_UAS), key=partner_l
 @scheduler.scheduled_job("interval", seconds=60)
 async def monitor_partner_useragents():
     recent_uas = bash_run(
-        """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | grep -Eo '[^"]+@[^"]+' | sort | uniq -c | sort -rn""",
+        PARTNER_UA_COMMAND,
         sources=["../obfi.sh"],
         capture_output=True,
     ).stdout

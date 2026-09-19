@@ -52,10 +52,16 @@ list_unknown_bot_counts() {
     # graphite: monitor.py decides which of these names are high-volume enough
     # to get their own series, and sums the remainder into `other`.
 
+    # Only look at the User-Agent (the 6th "-delimited field), not the whole log
+    # line. Matching the whole line invents agents out of ordinary traffic: a
+    # request for /robots.txt becomes "robot", /works/OL1W/I-Robot becomes
+    # "i_robot", and any visitor could name a metric by requesting a URL.
+
     # Normalization matches obfi_top_bots, so a promoted name looks the same as
     # a built-in one. Like obfi_top_bots this counts occurrences rather than
-    # lines, so a log entry naming the same bot twice counts twice.
+    # lines, so a UA naming the same bot twice counts twice.
     obfi_in_docker obfi_previous_minute | \
+        awk -F'"' '{print $6}' | \
         grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
         obfi_grep_bots -v | \
         grep -oiE '\b[a-z_-]+(bot|spider|crawler)' | \

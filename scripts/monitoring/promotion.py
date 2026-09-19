@@ -32,6 +32,11 @@ MAX_LABEL_LENGTH = 48
 
 OTHER_LABEL = "other"
 
+# Labels log_recent_bot_traffic already emits into the same bucket from bash.
+# A promoted agent must never mint one of these: monitor.py submits after the
+# bash half has run, so it would silently overwrite the real value.
+RESERVED_LABELS = frozenset({OTHER_LABEL, "non_bot"})
+
 # 60 one-minute ticks == 1 hour.
 DEFAULT_WINDOW_TICKS = 60
 
@@ -40,21 +45,24 @@ def safe_label(name: str) -> str:
     """Turn an agent name into a bounded, Graphite-safe metric path segment.
 
     Truncation can collide two long names that share a prefix; they then share
-    a series, which is preferable to an unbounded path. ``other`` is reserved so
-    that an agent cannot pollute the long-tail bucket by naming itself after it.
+    a series, which is preferable to an unbounded path. Labels that bash already
+    emits into the same bucket are reserved, so an agent cannot overwrite them by
+    naming itself after one.
     """
     label = graphite_safe(name)[:MAX_LABEL_LENGTH].strip("._-")
     if not label:
         return "unknown"
-    if label == OTHER_LABEL:
-        return f"{OTHER_LABEL}_agent"
+    if label in RESERVED_LABELS:
+        return f"{label}_agent"
     return label
 
 
 def parse_uniq_c(output: str) -> list[tuple[int, str]]:
     """Parse ``uniq -c`` style ``<count> <value>`` lines, skipping malformed ones."""
     rows = []
-    for line in output.splitlines():
+    # Deliberately not splitlines(): it also breaks on \v, \f and \x1c-\x1e, which
+    # would let one crafted User-Agent forge a second row with a count of its choice.
+    for line in output.split("\n"):
         count, _, value = line.strip().partition(" ")
         if not (value := value.strip()):
             continue
@@ -104,9 +112,15 @@ class RollingPromoter:
                 totals[label] = totals.get(label, 0) + count
         return totals
 
-    def promoted(self) -> set[str]:
-        """The labels that have earned their own series in the current window."""
-        eligible = [(count, label) for label, count in self.totals().items() if count >= self.min_count]
+    def promoted(self, pinned: Iterable[str] = ()) -> set[str]:
+        """The labels that have earned their own series in the current window.
+
+        Pinned names are excluded from the ranking. They already have a
+        guaranteed series, so letting them compete would spend slots on agents
+        that do not need them and starve the new agents this exists to find.
+        """
+        pinned = set(pinned)
+        eligible = [(count, label) for label, count in self.totals().items() if count >= self.min_count and label not in pinned]
         # Rank by windowed volume; the name breaks ties so the set is deterministic.
         eligible.sort(key=lambda row: (-row[0], row[1]))
         return {label for _, label in eligible[: self.max_labels]}
@@ -115,14 +129,16 @@ class RollingPromoter:
         """Observe a tick's counts and label them for submission.
 
         Promoted and pinned names keep their own key; everything else sums into
-        ``other``, which is always present so the series does not go stale when
-        the long tail happens to be empty. Pinned names bypass both the floor
-        and the cap: they are a curated set, so they neither compete for slots
-        nor lose their series when they go quiet.
+        ``other``. Every kept label is reported every tick, at zero if it sent
+        nothing: an agent near the floor sends nothing in most individual
+        minutes, and emitting gaps instead of zeros renders those series as
+        broken sawtooths on a stacked graph. Pinned names bypass the floor and
+        do not compete for slots, so they never lose their series.
         """
         self.observe(counts)
-        keep = self.promoted() | set(pinned)
-        labelled = {OTHER_LABEL: 0}
+        keep = self.promoted(pinned) | set(pinned)
+        labelled = dict.fromkeys(keep, 0)
+        labelled[OTHER_LABEL] = 0
         for label, count in counts.items():
             if label in keep:
                 labelled[label] = labelled.get(label, 0) + count

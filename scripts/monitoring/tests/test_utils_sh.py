@@ -77,7 +77,7 @@ def test_log_recent_bot_traffic():
         nc_fp.close()
 
         bash_run(
-            "log_recent_bot_traffic stats.ol-covers0.bot_traffic openlibrary-covers_nginx-1",
+            "log_recent_bot_traffic stats.ol-covers.bot_traffic openlibrary-covers_nginx-1",
             sources=["../obfi.sh", aliases_fp.name, "utils.sh"],
         )
 
@@ -86,9 +86,9 @@ def test_log_recent_bot_traffic():
             # `other` is no longer emitted here; monitor.py submits it alongside the
             # unknown bots it promotes. See test_list_unknown_bot_counts.
             expected_output = """
-stats.ol-covers0.bot_traffic.gptbot 2 1741054377
-stats.ol-covers0.bot_traffic.meta_externalagent 1 1741054377
-stats.ol-covers0.bot_traffic.non_bot 5 1741054377
+stats.ol-covers.bot_traffic.gptbot 2 1741054377
+stats.ol-covers.bot_traffic.meta_externalagent 1 1741054377
+stats.ol-covers.bot_traffic.non_bot 5 1741054377
             """.strip()
             assert f.read().strip() == expected_output
 
@@ -120,13 +120,13 @@ def test_unknown_bots_still_produce_an_other_metric():
     events = promoted_events(
         tally(parse_uniq_c(output), key=safe_label),
         promoter,
-        "stats.ol-covers0.bot_traffic",
+        "stats.ol-covers.bot_traffic",
         timestamp=1741054377,
     )
 
     # None of the fixture's bots are anywhere near the threshold, so they all
     # aggregate: 3 + 2 + 1.
-    assert [e.serialize_str() for e in events] == ["stats.ol-covers0.bot_traffic.other 6.0 1741054377"]
+    assert [e.serialize_str() for e in events] == ["stats.ol-covers.bot_traffic.other 6.0 1741054377"]
 
 
 def test_a_log_with_no_unknown_bots_still_produces_an_other_metric():
@@ -139,12 +139,12 @@ def test_a_log_with_no_unknown_bots_still_produces_an_other_metric():
     events = promoted_events(
         tally(parse_uniq_c(output), key=safe_label),
         promoter,
-        "stats.ol-covers0.bot_traffic",
+        "stats.ol-covers.bot_traffic",
         timestamp=1741054377,
     )
 
     assert output.strip() == ""
-    assert [e.serialize_str() for e in events] == ["stats.ol-covers0.bot_traffic.other 0.0 1741054377"]
+    assert [e.serialize_str() for e in events] == ["stats.ol-covers.bot_traffic.other 0.0 1741054377"]
 
 
 def test_log_recent_http_statuses():

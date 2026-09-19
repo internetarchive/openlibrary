@@ -7,7 +7,7 @@ from scripts.monitoring.promotion import (
     tally,
 )
 
-BUCKET = "stats.ol-covers0.bot_traffic"
+BUCKET = "stats.ol-covers.bot_traffic"
 
 
 def test_safe_label_sanitizes_and_bounds():
@@ -106,6 +106,50 @@ def test_pinned_agents_bypass_the_floor_and_the_cap():
     assert labelled["other"] == 400
 
 
+def test_a_loud_pinned_agent_does_not_eat_a_promotion_slot():
+    # A pinned name already has a guaranteed series. If it also competes in the
+    # ranking it spends a slot it does not need, and the new agents this exists
+    # to find are starved -- which is the whole feature failing quietly.
+    promoter = RollingPromoter(min_count=50, max_labels=2)
+    counts = {"BigPinnedPartner": 1000, "NewPartnerA": 500, "NewPartnerB": 400}
+
+    labelled = promoter.split(counts, pinned={"BigPinnedPartner"})
+
+    assert labelled["BigPinnedPartner"] == 1000
+    assert labelled["NewPartnerA"] == 500
+    assert labelled["NewPartnerB"] == 400
+    assert labelled["other"] == 0
+
+
+def test_kept_labels_report_zero_rather_than_a_gap_when_quiet():
+    # An agent at the floor sends nothing in most individual minutes. Emitting
+    # no datapoint renders a stacked graph as a broken sawtooth.
+    promoter = RollingPromoter(min_count=75, max_labels=10)
+    promoter.split({"burstybot": 600})
+
+    assert promoter.split({}, pinned={"QuietPartner"}) == {
+        "burstybot": 0,
+        "QuietPartner": 0,
+        "other": 0,
+    }
+
+
+def test_reserved_labels_cannot_be_minted_by_an_agent():
+    # utils.sh emits <bucket>.non_bot from bash; a promoted agent that minted the
+    # same label would overwrite the real human-traffic count. list_unknown_bot_counts
+    # already sed's non-alphanumerics to underscores, so `non-bot/1.0` arrives here
+    # as `non_bot` -- that is the form the reservation has to catch.
+    assert safe_label("non_bot") == "non_bot_agent"
+    assert safe_label("other") == "other_agent"
+    # And the reservation survives into the emitted metric path.
+    promoter = RollingPromoter(min_count=1, max_labels=10)
+    events = promoted_events({safe_label("non_bot"): 500}, promoter, BUCKET, timestamp=1)
+    assert sorted(e.path for e in events) == [
+        "stats.ol-covers.bot_traffic.non_bot_agent",
+        "stats.ol-covers.bot_traffic.other",
+    ]
+
+
 def test_other_is_always_emitted_so_the_series_does_not_go_stale():
     promoter = RollingPromoter(min_count=1, max_labels=10)
     assert promoter.split({}) == {"other": 0}
@@ -126,7 +170,7 @@ def test_other_metric_is_emitted_even_when_nothing_is_promoted():
 
     events = promoted_events({"smallbot": 3, "tinybot": 2}, promoter, BUCKET, timestamp=1741054377)
 
-    assert [e.serialize_str() for e in events] == ["stats.ol-covers0.bot_traffic.other 5.0 1741054377"]
+    assert [e.serialize_str() for e in events] == ["stats.ol-covers.bot_traffic.other 5.0 1741054377"]
 
 
 def test_other_metric_is_emitted_alongside_promoted_agents():
@@ -135,8 +179,8 @@ def test_other_metric_is_emitted_alongside_promoted_agents():
     events = promoted_events({"bigbot": 90, "smallbot": 4}, promoter, BUCKET, timestamp=1741054377)
 
     assert sorted(e.serialize_str() for e in events) == [
-        "stats.ol-covers0.bot_traffic.bigbot 90.0 1741054377",
-        "stats.ol-covers0.bot_traffic.other 4.0 1741054377",
+        "stats.ol-covers.bot_traffic.bigbot 90.0 1741054377",
+        "stats.ol-covers.bot_traffic.other 4.0 1741054377",
     ]
 
 
@@ -147,7 +191,7 @@ def test_other_metric_is_emitted_on_a_completely_quiet_tick():
 
     # A quiet minute must still report zero, exactly as the old `wc -l` did, or
     # the series goes stale and the dashboard shows a gap instead of a zero.
-    assert [e.serialize_str() for e in events] == ["stats.ol-covers0.bot_traffic.other 0.0 1741054377"]
+    assert [e.serialize_str() for e in events] == ["stats.ol-covers.bot_traffic.other 0.0 1741054377"]
 
 
 def test_window_holds_only_the_configured_number_of_ticks():

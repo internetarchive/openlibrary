@@ -6,3 +6,7 @@
 0.12.12.12 covers.openlibrary.org - [04/Mar/2025:02:06:09 +0000] "GET /b/id/5555555-M.jpg HTTP/2.0" 200 100 "-" "evilspider/2.0" 0.015
 0.13.13.13 covers.openlibrary.org - [04/Mar/2025:02:06:10 +0000] "GET /b/id/6666666-M.jpg HTTP/2.0" 200 100 "-" "data-harvester-bot/1.0" 0.016
 0.14.14.14 covers.openlibrary.org - [04/Mar/2025:02:06:11 +0000] "GET /b/id/7777777-M.jpg HTTP/2.0" 302 9 "https://openlibrary.org/" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36" 0.005
+0.15.15.15 openlibrary.org - [04/Mar/2025:02:06:12 +0000] "GET /robots.txt HTTP/2.0" 200 200 "-" "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" 0.004
+0.16.16.16 openlibrary.org - [04/Mar/2025:02:06:13 +0000] "GET /works/OL1W/I-Robot HTTP/2.0" 200 5000 "-" "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" 0.021
+0.17.17.17 openlibrary.org - [04/Mar/2025:02:06:14 +0000] "GET /search?q=my-evil-crawler HTTP/2.0" 200 3000 "https://ref.example/?u=a@b.com" "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" 0.033
+0.18.18.18 openlibrary.org - [04/Mar/2025:02:06:15 +0000] "GET /non-bot HTTP/2.0" 200 100 "-" "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" 0.009
