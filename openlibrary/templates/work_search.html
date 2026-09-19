@@ -152,13 +152,14 @@ $ bodyclass.append('search-page')
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)
+            $ reading_state = reading_state_for(works)
             $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 
             $# Subject key list will only be included in each doc if the patron has a sfw cookie
             $ subject_keys = [d.get('subject', []) for d in search_response.docs]
             $for work, subjects in zip(works, subject_keys):
                 $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
-                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning, highlighting=(search_response.highlighting or {}).get(work.key), seq_index=loop.index0)
+                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, reading_state=reading_state, layout=layout, blur=content_warning, highlighting=(search_response.highlighting or {}).get(work.key), seq_index=loop.index0)
           </ul>
           $:macros.OlPagination(page, ceil(search_response.num_found / rows))
         </div>

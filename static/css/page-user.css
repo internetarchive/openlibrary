@@ -59,7 +59,6 @@
 /* Import styles for want-to-read buttons */
 @import "legacy-tools.css";
 @import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
 /* Import styles for search box */
 @import "components/searchbox.css";
 /* Import styles for sort options */

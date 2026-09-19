@@ -10,9 +10,10 @@ $if results and results.get('hits'):
   $ num_found = results['hits'].get('total', 0)
   <div id="searchResults">
     <ul class="list-books">
-      $ docs = (doc for doc in hits if doc.get('edition'))
+      $ docs = [doc for doc in hits if doc.get('edition')]
+      $ reading_state = reading_state_for([doc['edition'] for doc in docs])
       $for doc in docs:
-        $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, seq_index=loop.index0)
+        $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, reading_state=reading_state, seq_index=loop.index0)
     </ul>
     $:macros.OlPagination(page, ceil(num_found / 20))
   </div>

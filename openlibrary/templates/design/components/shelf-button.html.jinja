@@ -4,7 +4,7 @@
        to the reader's actual reading log, so they open on what's there. #}
     {% set garden = reading_state.get('OL69612W') or {} %}
     <p class="ds-lead">
-        The control that puts a book on a reading-log shelf, in the two shapes the site needs. Both open the same <a href="#shelf-actions">Shelf Actions</a> popover; the split variant adds a main half that toggles Want to Read without opening anything. Signed out, either shape sends the visitor to log in with the intent remembered.
+        The control that puts a book on a reading-log shelf, in the three shapes the site needs. All open the same <a href="#shelf-actions">Shelf Actions</a> popover; the split variant adds a main half that toggles Want to Read without opening anything. Signed out, every shape sends the visitor to log in with the intent remembered.
     </p>
     {% call ex.example("Split", "For a row, where there is width for a label. The main half toggles the shown shelf; the chevron opens the popover. Signed in, this demo opens on your real state for The Secret Garden and saves every change to your account.",
         code="<ol-shelf-button\n  user-key=\"/people/you\"\n  work-key=\"/works/OL69612W\"\n  book-title=\"The Secret Garden\">\n</ol-shelf-button>",
@@ -19,6 +19,12 @@
             <ol-shelf-button class="demo-secret-garden" slot="overlay" variant="icon" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden" {% if garden.get('shelf') %}shelf="{{ garden['shelf'] }}"{% endif %} {% if garden.get('rating') %}rating="{{ garden['rating'] }}"{% endif %}>
             </ol-shelf-button>
         </ol-book-cover>
+    {% endcall %}
+    {% call ex.example("Outline", "The icon shape's glyph in the split button's bordered square, for a row with room for a button but not a label — the search modal's results. Same book again.",
+        code="<ol-shelf-button variant=\"outline\"\n  user-key=\"/people/you\"\n  work-key=\"/works/OL69612W\"\n  book-title=\"The Secret Garden\">\n</ol-shelf-button>",
+        output_style="display: flex; gap: 16px;") %}
+        <ol-shelf-button class="demo-secret-garden" variant="outline" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden" {% if garden.get('shelf') %}shelf="{{ garden['shelf'] }}"{% endif %} {% if garden.get('rating') %}rating="{{ garden['rating'] }}"{% endif %}>
+        </ol-shelf-button>
     {% endcall %}
     <script>
         (function () {
@@ -38,6 +44,12 @@
     <div class="ds-notes">
         <p>
             <b>Signed in only for the popover.</b> Without <code>user-key</code> no popover is built at all; the trigger stands alone and its click goes to login. The demos above pass your key when you are signed in, so they write to your real reading log.
+        </p>
+        <p>
+            <b>On the site.</b> Every button comes from one server helper, <code>shelf_button_for(doc, variant, reading_state, cached)</code>, which finds the work, edition and title in a Solr or Infogami doc and renders <code>my_books/shelf_button.html.jinja</code>. Rows and the book page get the split shape with the reader's state from <code>reading_state_for()</code> already on it. Carousel cards ask for <code>cached</code> and get the icon shape with no state at all, because their HTML is cached across readers or fetched lazily. An author, or an edition with no work, gets the same control with <code>lists-only</code>. <code>book-state.js</code> is the surface behind every button on a page: it hands out the translated labels and the reader's key, fetches the missing state in one batch from <code>/partials/ReadingState.json</code>, and writes every <code>ol-book-state-change</code> onto each button for that work — so the same book in a carousel and in a search row stay in step.
+        </p>
+        <p>
+            <b>Unknown state.</b> A surface that fetches state on demand rather than with its rows — the search modal, which asks only once the reader reaches for a button — sets <code>pending</code> until it knows. The button looks unshelved, and the popover holds its shelf and rating rows: posting the shelf a book is already on removes it, so acting on a guess could undo a save.
         </p>
     </div>
 {% endmacro %}
