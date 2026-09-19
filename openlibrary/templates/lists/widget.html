@@ -16,7 +16,7 @@ $:render_template('my_books/dropper', page, async_load=async_load)
 $if ctx.user:
   <ul class="listLists already-lists">
     $if async_load:
-      <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
+      <li class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</li>
     $else:
       $# Never get here?
   </ul>
