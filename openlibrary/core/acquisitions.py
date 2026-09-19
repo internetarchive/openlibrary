@@ -16,7 +16,7 @@ from __future__ import annotations
 import datetime
 import json
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import web
 
@@ -95,6 +95,33 @@ class Acquisition(web.storage, CommonExtras):
         return {row.local_id: Acquisition._from_row(row) for row in rows}
 
     @staticmethod
+    def get_by_editions(edition_ids: list[int]) -> dict[int, list[Acquisition]]:
+        """Batch-fetch acquisitions for many editions, grouped by ``edition_id``.
+
+        Used to weave acquisitions into a page of search results without N+1
+        queries.
+        """
+        if not edition_ids:
+            # `IN ()` is a syntax error on Postgres. SQLite accepts it, so a
+            # test suite running on SQLite cannot catch a missing guard here.
+            return {}
+        rows: ResultSet = db.query(
+            "SELECT * FROM acquisitions WHERE edition_id IN $edition_ids"
+            # local_id breaks the tie: (edition_id, provider_name) is NOT
+            # unique -- the table's UNIQUE is (local_id, provider_name) -- so
+            # one provider can hold two rows for one edition (an ISBN-10 and an
+            # ISBN-13, say) and without this their order is arbitrary.
+            " ORDER BY edition_id, provider_name, local_id"
+            " LIMIT $limit",
+            vars={"edition_ids": edition_ids, "limit": _row_budget(len(edition_ids))},
+        )
+        grouped: dict[int, list[Acquisition]] = {}
+        for row in rows:
+            acquisition = Acquisition._from_row(row)
+            grouped.setdefault(acquisition.edition_id, []).append(acquisition)
+        return grouped
+
+    @staticmethod
     def get_by_work(work_id: int) -> list[Acquisition]:
         rows: ResultSet = db.query(
             "SELECT * FROM acquisitions WHERE work_id=$work_id ORDER BY edition_id, provider_name",
@@ -140,3 +167,115 @@ class Acquisition(web.storage, CommonExtras):
                 )
             )
         return Acquisition._from_row(result[0]) if result else None
+
+
+_MAX_DB_INT = 2**31 - 1
+"""Largest value the ``integer`` columns can hold."""
+
+MAX_ACQUISITIONS_PER_DOC = 24
+"""Cap on OPDS2 links returned for one edition.
+
+Bounds a `/search.json` response: `limit` has no upper bound (unlike list
+search, which clamps to 1000), so neither the id list nor the row count can be
+assumed small.
+"""
+
+MAX_ROWS_PER_QUERY = 2000
+"""Absolute ceiling on rows fetched for one page, whatever its size."""
+
+
+def _row_budget(id_count: int) -> int:
+    return min(MAX_ROWS_PER_QUERY, max(1, id_count) * MAX_ACQUISITIONS_PER_DOC)
+
+
+#: ``book_providers`` identifies a provider by ``short_name``; the feed registry
+#: identifies one by ``provider_name``, and the two disagree. They cannot simply
+#: be renamed to match: a feed's ``provider_name`` is also its ``source_records``
+#: prefix and its ``identifiers`` key, and the import validator's feed-source
+#: exemption only accepts a record when those agree -- so Gutenberg has to stay
+#: ``project_gutenberg`` on our side and ``gutenberg`` on theirs.
+#:
+#: Without this mapping the two sources look like different providers and an
+#: edition ends up with both a harvested acquisition and a synthesized one for
+#: the same provider, silently duplicated.
+PROVIDER_SHORT_NAMES = {
+    "gutenberg": "project_gutenberg",
+}
+
+#: OPDS2 `rel` for each of ``book_providers``'s access literals, so a
+#: synthesized acquisition is the same shape as a harvested one.
+OPDS_REL_FOR_ACCESS = {
+    "buy": "http://opds-spec.org/acquisition/buy",
+    "open-access": "http://opds-spec.org/acquisition/open-access",
+    "borrow": "http://opds-spec.org/acquisition/borrow",
+    "sample": "http://opds-spec.org/acquisition/sample",
+    "subscribe": "http://opds-spec.org/acquisition/subscribe",
+}
+
+#: Media type for each of ``book_providers``'s coarse format names.
+OPDS_TYPE_FOR_FORMAT = {
+    "web": "text/html",
+    "pdf": "application/pdf",
+    "epub": "application/epub+zip",
+    "audio": "audio/*",
+}
+
+
+def feed_provider_name(short_name: str | None) -> str | None:
+    """A ``book_providers`` short name as the feed registry would spell it."""
+    return PROVIDER_SHORT_NAMES.get(short_name or "", short_name or None)
+
+
+def opds_links_for_edition(rows: list[Acquisition]) -> list[dict]:
+    """The stored OPDS2 acquisition links for one edition.
+
+    Each row's ``data`` blob keeps the provider's raw OPDS2 ``link`` as the
+    source of truth, so this returns those directly rather than rebuilding
+    them -- they are already the format the field promises. ``provider_name``
+    is injected so a consumer can tell the links apart, and is applied after
+    the blob so a provider feed cannot relabel itself.
+
+    A row whose blob is unusable is skipped rather than raising: ``data`` is
+    jsonb written from an external feed, its top level can be any JSON type,
+    and one bad row must not cost the whole page its acquisitions.
+    """
+    links: list[dict] = []
+    for row in rows:
+        data = row.data if isinstance(row.data, dict) else {}
+        entries = data.get("acquisitions")
+        if not isinstance(entries, list):
+            logger.warning("acquisitions row %s/%s has an unusable data blob; skipping it", row.provider_name, row.local_id)
+            continue
+        for acquisition in entries:
+            if not isinstance(acquisition, dict):
+                continue
+            link = acquisition.get("link")
+            if not isinstance(link, dict) or not link.get("href"):
+                continue
+            links.append({**link, "provider_name": row.provider_name})
+            if len(links) >= MAX_ACQUISITIONS_PER_DOC:
+                logger.info("truncating acquisitions for edition %s at %d links", row.edition_id, MAX_ACQUISITIONS_PER_DOC)
+                return links
+    return links
+
+
+def provider_acquisition_as_opds(acquisition: Any) -> dict | None:
+    """A ``book_providers.Acquisition`` coerced into an OPDS2 acquisition link.
+
+    So a caller reads one field in one format rather than reconciling
+    ``providers`` against ``opds_acquisitions`` itself. Returns None when the
+    access kind has no OPDS2 equivalent, rather than inventing a ``rel``.
+    """
+    rel = OPDS_REL_FOR_ACCESS.get(getattr(acquisition, "access", "") or "")
+    href = getattr(acquisition, "url", None)
+    if not rel or not href:
+        return None
+    link: dict[str, Any] = {"rel": rel, "href": href, "provider_name": feed_provider_name(getattr(acquisition, "provider_name", None))}
+    if media_type := OPDS_TYPE_FOR_FORMAT.get(getattr(acquisition, "format", "") or ""):
+        link["type"] = media_type
+    # `providers` carries price as an opaque string ("$4.99"); OPDS2 wants a
+    # currency and a number. Passed through under a distinct key rather than
+    # guessed at, so nothing downstream reads a fabricated amount.
+    if price := getattr(acquisition, "price", None):
+        link["properties"] = {"price_display": price}
+    return link
