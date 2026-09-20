@@ -292,3 +292,26 @@ def test_q_to_solr_params_no_mlt_clause_when_no_like():
 
     assert not any(k.startswith("mltSeed") for k, _ in params)
     assert "{!mlt" not in params_d["q"]
+
+
+def test_q_to_solr_params_mlt_params_overridable():
+    """MLT tuning comes from the request so it can be A/B'd without a deploy."""
+    from openlibrary.fastapi.models import SolrInternalsParams
+
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(
+            s.process_user_query("like:OL123W"),
+            {"editions:[subquery]"},
+            [],
+            solr_internals_params=SolrInternalsParams(mlt_mintf="7", mlt_qf="subject"),
+        )
+    q = dict(params)["q"]
+
+    assert "mintf=7" in q
+    assert "qf=subject " in q
+    # Unmentioned params keep their defaults
+    assert "maxqt=50" in q

@@ -378,7 +378,11 @@ class WorkSearchScheme(SearchScheme):
         if mlt_seed_keys:
             seed_params = [f"mltSeed{i}" for i in range(len(mlt_seed_keys))]
             new_params += list(zip(seed_params, mlt_seed_keys))
-            mlt_query = build_mlt_query(seed_params, mlt_seed_keys)
+            mlt_query = build_mlt_query(
+                seed_params,
+                mlt_seed_keys,
+                solr_internals_params.mlt_overrides() if solr_internals_params else None,
+            )
         elif saw_like:
             # `like:` named no work, so nothing can be similar to it. Spelled
             # out as a positive/negative pair rather than a bare `-*:*`, which
@@ -942,7 +946,11 @@ def pop_mlt_seed_keys(
     return q_tree, seed_keys, saw_like
 
 
-def build_mlt_query(seed_key_params: list[str], seed_keys: list[str]) -> str:
+def build_mlt_query(
+    seed_key_params: list[str],
+    seed_keys: list[str],
+    overrides: dict[str, str] | None = None,
+) -> str:
     """
     Build the solr clause that finds works similar to one or more seed works.
 
@@ -950,12 +958,18 @@ def build_mlt_query(seed_key_params: list[str], seed_keys: list[str]) -> str:
     keys, so that the more-like-this queries themselves don't have to escape the
     keys into their nested query.
 
+    `overrides` replaces individual MLT_LOCAL_PARAMS entries, so the tuning can
+    be driven from the request (see SolrInternalsParams.mlt_overrides).
+
     >>> print(build_mlt_query(['mltSeed0'], ['/works/OL1W']))
     (_query_:"{!mlt boost=true maxdf=500000 maxqt=50 mindf=3 mintf=1 qf='subject^4 person^2 place^2 time^2 title author_name' v=$mltSeed0}" -key:("/works/OL1W"))
+    >>> print(build_mlt_query(['mltSeed0'], ['/works/OL1W'], {'mintf': '4', 'qf': 'subject'}))
+    (_query_:"{!mlt boost=true maxdf=500000 maxqt=50 mindf=3 mintf=4 qf=subject v=$mltSeed0}" -key:("/works/OL1W"))
     >>> print(build_mlt_query(['mltSeed0', 'mltSeed1'], ['/works/OL1W', '/works/OL2W'])[-53:])
     v=$mltSeed1}") -key:("/works/OL1W" OR "/works/OL2W"))
     """
-    local_params = " ".join(f"{k}='{v}'" if " " in v else f"{k}={v}" for k, v in sorted(MLT_LOCAL_PARAMS.items()))
+    params = {**MLT_LOCAL_PARAMS, **(overrides or {})}
+    local_params = " ".join(f"{k}='{v}'" if " " in v else f"{k}={v}" for k, v in sorted(params.items()))
     clauses = [f'_query_:"{{!mlt {local_params} v=${param}}}"' for param in seed_key_params]
     # Multiple seeds are a union: a work similar to any of them matches, and one
     # similar to several of them scores higher.

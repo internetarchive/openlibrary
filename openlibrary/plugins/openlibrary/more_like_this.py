@@ -13,20 +13,31 @@ real `get_related_books_subjects()` to be a fair comparison. They are *run* from
 the browser: a sample of ten books is twenty solr queries, and issuing those
 serially while the page waits would make it unusable. The template fetches each
 from /search.json and reports its own timing.
+
+Two things make a comparison repeatable. The more-like-this tuning is read from
+`mlt_*` url params, which are ordinary `SolrInternalsParams` and so reach solr
+through the same gated path as the edismax A/B knobs — meaning a tuning tried
+here can be reproduced against /search.json with curl. And `works=OL1W,OL2W`
+pins the comparison set instead of sampling, which is what the share link
+builds, so two people can argue about the same books.
 """
 
 import logging
 import random
+import re
 from dataclasses import dataclass, field
+from urllib.parse import urlencode
 
 import web
+from pydantic import ValidationError
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.plugins.worksearch.code import run_solr_query
-from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.plugins.worksearch.schemes.works import MLT_LOCAL_PARAMS, WorkSearchScheme
 
 logger = logging.getLogger("openlibrary.more_like_this")
 
@@ -43,6 +54,12 @@ ALREADY_READ = Bookshelves.PRESET_BOOKSHELVES["Already Read"]
 # under solr's boolean-clause limit, and a reader with more read books than this
 # loses nothing that matters — it is still a sample either way.
 MAX_READ_SEEDS = 300
+
+# Ceiling on a shared comparison set, so a hand-edited `works=` can't turn one
+# page load into an unbounded pile of queries.
+MAX_PINNED_WORKS = 50
+
+re_work_olid = re.compile(r"OL\d+W")
 
 
 @dataclass(frozen=True)
@@ -97,6 +114,23 @@ class Row:
     subjects: list[str] = field(default_factory=list)
 
 
+@dataclass(frozen=True)
+class MltControl:
+    """One more-like-this tuning knob, as the page renders it."""
+
+    # The url param, e.g. "mlt_mintf".
+    param: str
+    # The solr local param it becomes, e.g. "mintf".
+    name: str
+    value: str
+    default: str
+    help: str
+
+    @property
+    def is_default(self) -> bool:
+        return self.value == self.default
+
+
 @dataclass
 class Context:
     """Everything the template needs."""
@@ -108,6 +142,11 @@ class Context:
     counts: tuple[int, ...] = COUNT_CHOICES
     methods: tuple[Choice, ...] = METHODS
     pools: tuple[Choice, ...] = POOLS
+    mlt_controls: list[MltControl] = field(default_factory=list)
+    # A link that reproduces this exact comparison — same books, same tuning.
+    share_url: str = ""
+    # True when the books came from a `works=` param rather than a fresh sample.
+    pinned: bool = False
     # Set when the sample came back empty, so the page can say why rather than
     # rendering nothing. Local dev indexes are small and often lack the
     # trending/readinglog data the non-default methods sort on.
@@ -116,6 +155,29 @@ class Context:
 
 def _label(choices: tuple[Choice, ...], choice_id: str) -> str:
     return next(choice.label for choice in choices if choice.id == choice_id)
+
+
+def _mlt_controls(supplied: dict[str, str]) -> list[MltControl]:
+    """The tuning knobs, each carrying its current value and its explanation.
+
+    Both come from elsewhere on purpose: the defaults are whatever the `like:`
+    field actually uses, and the help text is the pydantic field description, so
+    neither can drift from the behaviour the page is demonstrating.
+    """
+    controls = []
+    for param in SolrInternalsParams.mlt_fields():
+        name = param[len("mlt_") :]
+        default = MLT_LOCAL_PARAMS.get(name, "")
+        controls.append(
+            MltControl(
+                param=param,
+                name=name,
+                value=supplied.get(param, default),
+                default=default,
+                help=SolrInternalsParams.model_fields[param].description or "",
+            )
+        )
+    return controls
 
 
 def _sample_sort(method: str) -> str:
@@ -195,27 +257,33 @@ def _pool_query(pool: str) -> tuple[str, str]:
     return f"key:({keys_clause})", ""
 
 
-def _sample(count: int, method: str, pool_query: str) -> list[Row]:
+SEED_FIELDS = [
+    "key",
+    "title",
+    "author_name",
+    "first_publish_year",
+    "cover_i",
+    "subject",
+]
+
+
+def _seed_docs(query: str, rows: int, sort: str | None) -> list:
     response = run_solr_query(
         WorkSearchScheme(),
-        {"q": pool_query},
-        rows=count,
-        sort=_sample_sort(method),
-        fields=[
-            "key",
-            "title",
-            "author_name",
-            "first_publish_year",
-            "cover_i",
-            "subject",
-        ],
+        {"q": query},
+        rows=rows,
+        sort=sort,
+        fields=SEED_FIELDS,
         facet=False,
         spellcheck_count=0,
         request_label="MORE_LIKE_THIS_SAMPLE",
     )
+    return response.docs
 
+
+def _build_rows(docs: list) -> list[Row]:
     rows = []
-    for doc in response.docs:
+    for doc in docs:
         work_key = doc["key"]
         # The baseline's subject list comes from the work record rather than
         # solr, so that it matches what the work page itself would build.
@@ -237,8 +305,40 @@ def _sample(count: int, method: str, pool_query: str) -> list[Row]:
     return rows
 
 
+def _sample(count: int, method: str, pool_query: str) -> list[Row]:
+    return _build_rows(_seed_docs(pool_query, count, _sample_sort(method)))
+
+
+def _pinned_works(olids: list[str]) -> list[Row]:
+    """The named works, in the order given, so a shared link is stable."""
+    keys = [f"/works/{olid}" for olid in olids]
+    keys_clause = " OR ".join(f'"{key}"' for key in keys)
+    docs_by_key = {doc["key"]: doc for doc in _seed_docs(f"key:({keys_clause})", len(keys), None)}
+    return _build_rows([docs_by_key[key] for key in keys if key in docs_by_key])
+
+
+def _parse_works(raw: str) -> list[str]:
+    """Work OLIDs out of a `works=` param, accepting keys or bare OLIDs."""
+    found = []
+    for part in raw.split(","):
+        if match := re_work_olid.search(part.strip().upper()):
+            found.append(match.group(0))
+    # dict.fromkeys rather than set(): a shared link's order is meaningful.
+    return list(dict.fromkeys(found))[:MAX_PINNED_WORKS]
+
+
+def _share_url(rows: list[Row], supplied_mlt: dict[str, str]) -> str:
+    """A link that reproduces this comparison for someone else.
+
+    Carries the books rather than the sampling that found them, so the link
+    keeps working (and keeps showing the same books) however the index changes.
+    """
+    params = {"works": ",".join(row.key.removeprefix("/works/") for row in rows), **supplied_mlt, "go": "1"}
+    return "/developers/more-like-this?" + urlencode(params)
+
+
 def build_context() -> Context:
-    params = web.input(count=str(DEFAULT_COUNT), method="random", pool="all", go="")
+    params = web.input(count=str(DEFAULT_COUNT), method="random", pool="all", works="", go="")
 
     try:
         count = int(params.count)
@@ -249,7 +349,38 @@ def build_context() -> Context:
     method = params.method if params.method in {choice.id for choice in METHODS} else "random"
     pool = params.pool if params.pool in {choice.id for choice in POOLS} else "all"
 
-    context = Context(count=count, method=method, pool=pool)
+    # Only the knobs actually named in the url, so the share link and the
+    # /search.json calls carry a tuning rather than a restatement of defaults.
+    supplied_mlt = {param: value for param in SolrInternalsParams.mlt_fields() if (value := web.input(**{param: ""}).get(param))}
+
+    context = Context(count=count, method=method, pool=pool, mlt_controls=_mlt_controls(supplied_mlt))
+
+    # Report a bad knob once, here, rather than as an identical failed fetch in
+    # every carousel on the page.
+    try:
+        SolrInternalsParams.model_validate(supplied_mlt)
+    except ValidationError as e:
+        error = e.errors()[0]
+        context.message = f"Invalid tuning value for {error['loc'][0]}: {error['msg']}"
+        return context
+
+    if params.works:
+        olids = _parse_works(params.works)
+        if not olids:
+            context.message = f"No work ids found in works={params.works!r}. Expected something like 'OL1W,OL2W'."
+            return context
+        context.pinned = True
+        context.rows = _pinned_works(olids)
+        missing = len(olids) - len(context.rows)
+        if not context.rows:
+            context.message = "None of the shared works are in this search index."
+        elif missing:
+            # Say so: otherwise a shared link quietly compares fewer books than
+            # the person who sent it was looking at.
+            context.message = f"{missing} of the {len(olids)} shared works {'is' if missing == 1 else 'are'} not in this search index."
+        context.share_url = _share_url(context.rows, supplied_mlt)
+        return context
+
     # Nothing is sampled until Go is pressed, so arriving at the page doesn't
     # fire a solr query plus a db read per book.
     if not params.go:
@@ -267,6 +398,7 @@ def build_context() -> Context:
         context.message = (
             f"No books matched the {pool_label!r} pool sorted by {method_label!r}. A small dev index often has no trending or readinglog data to sort on."
         )
+    context.share_url = _share_url(context.rows, supplied_mlt) if context.rows else ""
     return context
 
 

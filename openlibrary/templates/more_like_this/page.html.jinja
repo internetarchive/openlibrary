@@ -8,7 +8,7 @@
   /search.json in the browser: a ten-book sample is twenty solr queries, and
   waiting on them serially server-side would make the page unusable.
 #}
-{% set data = data or {"count": 10, "method": "random", "pool": "all", "rows": [], "counts": [10], "methods": [], "pools": [], "message": ""} %}
+{% set data = data or {"count": 10, "method": "random", "pool": "all", "rows": [], "counts": [10], "methods": [], "pools": [], "mlt_controls": [], "share_url": "", "pinned": false, "message": ""} %}
 <div class="mlt">
     <header class="mlt__masthead">
         <h1 class="mlt__title">More Like This</h1>
@@ -21,6 +21,7 @@
         </p>
     </header>
     <form class="mlt__controls"
+          id="mlt-controls"
           method="get"
           action="/developers/more-like-this">
         <label class="mlt__control">
@@ -51,7 +52,45 @@
         {# The route samples only when `go` is present, so landing on the page
            costs no solr queries. #}
         <button class="mlt__go" type="submit" name="go" value="1">Go</button>
+        {% if data.pinned %}
+            <span class="mlt__pinned-note">Showing a shared set of books — press Go to sample fresh ones instead.</span>
+        {% endif %}
     </form>
+    {# Same form as the sampling controls, so changing a knob and pressing Go
+       re-runs with both. Empty inputs are dropped by `_mlt_controls`, so only
+       edited knobs end up in the url and in the share link. #}
+    <details class="mlt__tuning"
+             {% if data.mlt_controls | selectattr("is_default", "false") | list %}open{% endif %}>
+        <summary class="mlt__tuning-summary">
+            More-like-this tuning
+            <span class="mlt__tuning-hint">what solr uses to decide two works are alike</span>
+        </summary>
+        <div class="mlt__knobs">
+            {% for control in data.mlt_controls %}
+                <div class="mlt__knob {% if control.name == 'qf' %}mlt__knob--wide{% endif %}">
+                    <label class="mlt__knob-label" for="{{ control.param }}">
+                        <code>{{ control.name }}</code>
+                        {% if not control.is_default %}<span class="mlt__knob-changed">changed</span>{% endif %}
+                    </label>
+                    <input class="mlt__knob-input"
+                           id="{{ control.param }}"
+                           name="{{ control.param }}"
+                           form="mlt-controls"
+                           value="{{ control.value }}"
+                           placeholder="{{ control.default }}"
+                           autocomplete="off">
+                    <p class="mlt__knob-help">{{ control.help }}</p>
+                    <p class="mlt__knob-default">default <code>{{ control.default }}</code></p>
+                </div>
+            {% endfor %}
+        </div>
+    </details>
+    {% if data.share_url %}
+        <p class="mlt__share">
+            <a href="{{ data.share_url }}">Share this comparison</a>
+            <span class="mlt__share-hint">— pins these {{ data.rows | length }} books and the tuning above, so someone else sees the same thing</span>
+        </p>
+    {% endif %}
     {% if data.message %}
         <p class="mlt__empty">{{ data.message }}</p>
     {% elif not data.rows %}
@@ -60,7 +99,7 @@
     {% for row in data.rows %}
         <section class="mlt__row">
             <div class="mlt__seed">
-                <ol-book-cover class="mlt__seed-cover" size="small" src="{% if row.cover_id %}//covers.openlibrary.org/b/id/{{ row.cover_id }}-M.jpg{% endif %}" book-title="{{ row.title }}" authors="{{ row.authors }}" year="{{ row.year }}" href="{{ row.key }}">
+                <ol-book-cover class="mlt__seed-cover" size="small" src="{%- if row.cover_id -%}//covers.openlibrary.org/b/id/{{ row.cover_id }}-M.jpg{%- endif -%}" book-title="{{ row.title }}" authors="{{ row.authors }}" year="{{ row.year }}" href="{{ row.key }}">
                 </ol-book-cover>
                 <div class="mlt__seed-meta">
                     <h2 class="mlt__seed-title"><a href="{{ row.key }}">{{ row.title }}</a></h2>
@@ -78,6 +117,7 @@
                    as a stated reason rather than an empty rail. #}
                 <div class="mlt__pane"
                      data-mlt-pane
+                     data-mlt-kind="current"
                      data-mlt-query="{{ row.baseline_query }}">
                     <h3 class="mlt__pane-title">Current <span class="mlt__timing" data-mlt-timing></span></h3>
                     <div class="mlt__rail" data-mlt-rail>
@@ -91,7 +131,10 @@
                         <code class="mlt__query">{{ row.baseline_query }}</code>
                     {% endif %}
                 </div>
-                <div class="mlt__pane" data-mlt-pane data-mlt-query="{{ row.mlt_query }}">
+                <div class="mlt__pane"
+                     data-mlt-pane
+                     data-mlt-kind="like"
+                     data-mlt-query="{{ row.mlt_query }}">
                     <h3 class="mlt__pane-title">
                         <code>like:</code>
                         <span class="mlt__timing" data-mlt-timing></span>
@@ -204,6 +247,51 @@
         color: var(--color-text-secondary);
         overflow-wrap: anywhere;
     }
+    .mlt__pinned-note,
+    .mlt__share-hint,
+    .mlt__tuning-hint { color: var(--color-text-secondary); font-size: 0.85rem; }
+
+    .mlt__tuning {
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        background: var(--color-surface-raised);
+        border: 1px solid var(--color-border-subdued);
+        border-radius: var(--border-radius-medium, 6px);
+    }
+    .mlt__tuning-summary { cursor: pointer; font-weight: 600; }
+    .mlt__knobs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+        margin-top: 12px;
+    }
+    /* qf holds a field list, which is far longer than the numeric knobs. */
+    .mlt__knob--wide { grid-column: span 2; }
+    .mlt__knob-label { display: flex; align-items: baseline; gap: 6px; font-size: 0.9rem; }
+    .mlt__knob-changed {
+        padding: 0 6px;
+        background: var(--color-surface-sunken);
+        border-radius: 999px;
+        font-size: 0.7rem;
+        color: var(--color-text-secondary);
+    }
+    .mlt__knob-input {
+        width: 100%;
+        margin-top: 4px;
+        padding: 5px 6px;
+        font: inherit;
+        font-size: 0.85rem;
+        box-sizing: border-box;
+    }
+    .mlt__knob-help {
+        margin: 5px 0 0;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        color: var(--color-text-secondary);
+    }
+    .mlt__knob-default { margin: 3px 0 0; font-size: 0.72rem; color: var(--color-text-secondary); }
+    .mlt__share { margin: 0 0 12px; }
+
     .mlt__card { display: block; }
     .mlt__card-title {
         margin: 4px 0 0;
@@ -243,13 +331,22 @@
             return wrapper;
         }
 
+        // Read the tuning straight off the page's own url, so what the carousels
+        // request is always what the address bar (and the share link) says.
+        const mltParams = new URLSearchParams();
+        for (const [key, value] of new URLSearchParams(location.search)) {
+            if (key.startsWith('mlt_') && value) mltParams.set(key, value);
+        }
+
         async function fill(pane) {
             const query = pane.dataset.mltQuery;
             const rail = pane.querySelector('[data-mlt-rail]');
             const timing = pane.querySelector('[data-mlt-timing]');
             if (!query) return;
 
-            const url = `/search.json?q=${encodeURIComponent(query)}&fields=${FIELDS}&limit=${LIMIT}`;
+            // Only the more-like-this side has a {!mlt} clause for them to affect.
+            const tuning = pane.dataset.mltKind === 'like' && mltParams.size ? `&${mltParams}` : '';
+            const url = `/search.json?q=${encodeURIComponent(query)}&fields=${FIELDS}&limit=${LIMIT}${tuning}`;
             const started = performance.now();
             let payload;
             try {
