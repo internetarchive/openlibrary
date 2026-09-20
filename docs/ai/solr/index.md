@@ -289,6 +289,38 @@ Editions are nested documents; access them via:
 - `q=edition.isbn:1234567890` — the `edition.` prefix is stripped by `WorkSearchScheme.q_to_solr_params()` and passed as a block-join subquery filter
 - Direct Solr: `{!child of=type:work}isbn:1234567890`
 
+### `like:` — more like this
+
+`q=like:OL123W` returns works similar to a given work, via Solr's [more-like-this query
+parser](https://solr.apache.org/guide/solr/latest/query-guide/other-parsers.html#more-like-this-query-parser).
+Both `like:OL123W` and `like:/works/OL123W` work, and several seeds can be combined
+(`like:(OL1W OR OL2W)`) to mean "similar to any of these".
+
+`like` is not a Solr field; it's listed in `WorkSearchScheme.query_only_fields` so the query parser
+won't escape it, and `pop_mlt_seed_keys()` lifts it out of the parse tree in `q_to_solr_params()`
+before the work and edition queries are built. It has to be lifted out because the `{!mlt ...}`
+local-params syntax can't be nested inside the edismax query the rest of the tree becomes. It
+returns as its own mandatory clause in `q`, so its similarity score adds to the usual edismax
+boosts and it composes with other fields and facets (`like:OL123W language:eng`).
+
+Similarity is measured over the fields in `MLT_LOCAL_PARAMS['qf']`. Two things constrain that list:
+
+- **The fields must be `stored`.** Lucene's `MoreLikeThis` reads the seed document's terms from term
+  vectors when they exist and otherwise re-analyzes the stored value. The schema sets
+  `termVectors` on nothing, so it always takes the stored-value path — which is why this feature
+  needs **no reindex**, but also means the `*_facet`/`*_key` variants (`stored="false"`) can't be used.
+- **`mintf` must be 1.** The parser's default of 2 discards almost every useful term, since a
+  subject/person/place is typically listed once per work, giving it a term frequency of 1.
+
+Two behaviours worth knowing:
+
+- The parser excludes its own seed from the results, but only its own, so with several seeds each
+  would still match via the others' clauses. `build_mlt_query()` adds an explicit `-key:(...)` for
+  every seed.
+- A seed key that isn't in the index makes Solr reject the whole query with a 400 (`Could not fetch
+  document with id [...]`); there is no tolerant mode. A `like:` value that doesn't name a work at
+  all is turned into a match-nothing clause rather than an error.
+
 ### SearchScheme pattern
 
 Each document type has a `SearchScheme` subclass in `openlibrary/plugins/worksearch/schemes/`:
