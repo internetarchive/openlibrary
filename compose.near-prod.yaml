@@ -65,6 +65,7 @@ services:
       - ol-build:/openlibrary/static/build
       - ol-nodemodules:/openlibrary/node_modules
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+      - ol-pycache:/pycache
     networks:
       - webnet
       - dbnet
