@@ -715,7 +715,15 @@ class WorkSearchScheme(SearchScheme):
             try:
                 stored_by_edition = StoredAcquisition.get_by_editions(edition_ids)
             except Exception:
-                logger.exception("failed to read acquisitions; returning results without them")
+                # Same rule as the oversized page above, and it has to be the
+                # same rule: leaving the field in place here would give every
+                # document a list built from the synthesized half alone, which
+                # reads as complete while omitting every harvested price. A
+                # caller cannot tell that from a book with no harvested
+                # acquisitions. Absent is the only honest answer when the
+                # harvested half could not be read.
+                prefixed_fields.discard("editions.opds_acquisitions")
+                logger.exception("failed to read acquisitions; returning results without the field")
 
         for doc in solr_result["response"]["docs"]:
             for field in prefixed_fields:

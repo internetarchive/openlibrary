@@ -21,6 +21,9 @@ from openlibrary.core import acquisitions as acquisitions_module
 from openlibrary.core.acquisitions import (
     MAX_ACQUISITIONS_PER_DOC,
     MAX_EDITIONS_PER_QUERY,
+    SOURCE_HARVESTED,
+    SOURCE_KEY,
+    SOURCE_SYNTHESIZED,
     Acquisition,
     _squash,
     opds_links_for_edition,
@@ -148,6 +151,15 @@ class TestProviderCoercion:
         """Better to omit than to invent a `rel` the spec does not define."""
         assert provider_acquisition_as_opds(provider_acquisition(access="mystery")) is None
 
+    def test_a_synthesized_link_says_it_is_synthesized(self):
+        """Without this a consumer cannot tell a link the ingest gate checked
+        against the feed registry from one built out of `Edition.providers`,
+        which any logged-in patron can edit -- including typing a registry
+        identifier verbatim. Serving the raw name stops us minting one; only
+        this marker says which half of the field a link came from."""
+        link = provider_acquisition_as_opds(provider_acquisition(provider_name="project_gutenberg", url="https://evil.test/x.epub"))
+        assert link["properties"][SOURCE_KEY] == SOURCE_SYNTHESIZED
+
     def test_an_acquisition_with_no_url_is_dropped(self):
         assert provider_acquisition_as_opds(provider_acquisition(url=None)) is None
 
@@ -156,8 +168,25 @@ class TestProviderCoercion:
         Parsing it would mean guessing, so it goes under a distinct key and
         nothing downstream can read a fabricated amount as `price`."""
         link = provider_acquisition_as_opds(provider_acquisition(price="$4.99"))
-        assert link["properties"] == {"price_display": "$4.99"}
+        assert link["properties"]["price_display"] == "$4.99"
         assert "price" not in link["properties"]
+
+    @pytest.mark.parametrize("hostile", [{"value": 1.01, "currency": "USD"}, 4.99, ["$4.99"]])
+    def test_a_non_string_price_is_not_served_under_the_display_key(self, hostile):
+        """`price_display` names a display string. `providers` is unvalidated,
+        so without this a dict reaches a consumer under a key promising text."""
+        link = provider_acquisition_as_opds(provider_acquisition(price=hostile))
+        assert "price_display" not in link["properties"]
+
+    @pytest.mark.parametrize("hostile", [["epub"], {"a": 1}, 7])
+    def test_an_unhashable_format_does_not_crash_the_search(self, hostile):
+        """`format` reaches this from the edit-book form through
+        from_json_safe, which catches only ValueError. An unhashable value
+        raised TypeError out of the dict lookup and 500ed every search page
+        that edition appeared on."""
+        link = provider_acquisition_as_opds(provider_acquisition(fmt=hostile))
+        assert link is not None
+        assert "type" not in link
 
 
 # ---------------------------------------------------------------------------
@@ -319,6 +348,12 @@ def test_a_registered_feed_name_is_never_rewritten_into_another_provider(feed_na
     """
     link = provider_acquisition_as_opds(provider_acquisition(provider_name=feed_name, url="https://x/y"))
     assert link["provider_name"] == feed_name
+    # And the property the published name alone cannot pin: the registry must
+    # still resolve this name to ITSELF for the dedupe. A lookup that mapped
+    # every spelling somewhere else would leave the assertion above passing --
+    # it only copies a string -- while collapsing the dedupe so that any one
+    # harvested row suppressed every synthesized acquisition on the edition.
+    assert provider_dedupe_key(feed_name) in {_squash(feed_name), feed_name}
 
 
 # ---------------------------------------------------------------------------
@@ -332,6 +367,21 @@ def test_a_registered_feed_name_is_never_rewritten_into_another_provider(feed_na
 
 
 class TestHostileFeedContent:
+    def test_a_feed_cannot_claim_its_links_are_synthesized(self, acquisitions_db):
+        """The source marker is the only thing telling a consumer whether a
+        link was vetted by the ingest gate or typed into the edit-book form.
+        A feed controls `properties`, so it must be written AFTER the blob --
+        spreading it after instead lets the feed choose its own provenance."""
+        store(
+            77,
+            "lenny",
+            "spoof-1",
+            {"rel": BORROW_REL, "href": "https://x/y", "properties": {SOURCE_KEY: SOURCE_SYNTHESIZED, "price_display": "free"}},
+        )
+        (link,) = opds_links_for_edition(Acquisition.get_by_editions([77])[77])
+        assert link["properties"][SOURCE_KEY] == SOURCE_HARVESTED
+        assert link["properties"]["price_display"] == "free", "the feed's own properties still pass through"
+
     @pytest.mark.parametrize(
         "href",
         [
@@ -419,6 +469,38 @@ class TestPageSizeCannotChooseTheQuerySize:
         WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
         woven = [ed for doc in page["response"]["docs"] for ed in doc["editions"]["docs"] if "opds_acquisitions" in ed]
         assert woven == [], "the field must be absent everywhere, not empty on the tail"
+
+    def test_a_database_failure_also_removes_the_field(self, acquisitions_db, monkeypatch, mock_site):
+        """The oversized-page branch and this one must obey the same rule.
+
+        They did not: the fix was applied to the cap and not to the adjacent
+        `except`, so with Postgres failing over every document still got a
+        list -- built from the synthesized half alone, omitting every
+        harvested price, and indistinguishable from a book that has none."""
+        site_var.set(mock_site)
+        mock_site.save({"key": "/books/OL5M", "type": {"key": "/type/edition"}, "title": "t"})
+        page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL5M"}]}}]}}
+
+        def boom(ids):
+            raise RuntimeError("server closed the connection unexpectedly")
+
+        monkeypatch.setattr("openlibrary.core.acquisitions.Acquisition.get_by_editions", staticmethod(boom))
+        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [provider_acquisition(url="https://synth")])
+        WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
+        ed_doc = page["response"]["docs"][0]["editions"]["docs"][0]
+        assert "opds_acquisitions" not in ed_doc
+
+    def test_skipping_this_field_does_not_take_the_others_with_it(self, acquisitions_db, monkeypatch, mock_site):
+        """`prefixed_fields.clear()` is a plausible way to write the skip and
+        passes every other test here. It would drop `editions.providers` --
+        which the site itself uses -- from every page over the cap."""
+        site_var.set(mock_site)
+        page = self._page(MAX_EDITIONS_PER_QUERY + 50, works=250, site=mock_site)
+        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+        WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions", "editions.providers"}, page)
+        ed_docs = [ed for doc in page["response"]["docs"] for ed in doc["editions"]["docs"]]
+        assert all("opds_acquisitions" not in ed for ed in ed_docs)
+        assert all("providers" in ed for ed in ed_docs), "the other non-solr fields must survive the skip"
 
     def test_an_ordinary_page_is_not_affected(self, acquisitions_db, monkeypatch, mock_site):
         site_var.set(mock_site)

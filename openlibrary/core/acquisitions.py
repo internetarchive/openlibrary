@@ -131,11 +131,19 @@ class Acquisition(web.storage, CommonExtras):
         # nothing at all while the first ones get everything. Callers cannot
         # see the difference between "no acquisitions" and "budget exhausted".
         grouped: dict[int, list[Acquisition]] = {}
+        dropped: dict[int, int] = {}
         for row in rows:
             acquisition = Acquisition._from_row(row)
             bucket = grouped.setdefault(acquisition.edition_id, [])
             if len(bucket) < MAX_ACQUISITIONS_PER_DOC:
                 bucket.append(acquisition)
+            else:
+                # Logged, because the caller cannot see it. A short list that
+                # looks complete is the failure mode this whole field keeps
+                # running into; at least leave a trace on our side.
+                dropped[acquisition.edition_id] = dropped.get(acquisition.edition_id, 0) + 1
+        for edition_id, count in dropped.items():
+            logger.info("edition %s has more than %d acquisition rows; dropped %d", edition_id, MAX_ACQUISITIONS_PER_DOC, count)
         return grouped
 
     @staticmethod
@@ -198,8 +206,29 @@ version of this docstring claimed it failed at the driver and cost the
 whole page; that was asserted, not measured, and it is wrong.
 """
 
+SOURCE_KEY = "openlibrary_source"
+"""Where an acquisition came from, inside the OPDS2 ``properties`` object.
+
+Namespaced because ``properties`` is an extension point a feed also writes
+into, and this value must mean what Open Library says it means.
+"""
+
+SOURCE_HARVESTED = "harvested"
+"""Ingested from a registered feed, which the import gate checks against the
+feed registry."""
+
+SOURCE_SYNTHESIZED = "synthesized"
+"""Derived from ``Edition.providers``, which is user-editable. Not evidence
+that the named provider offers this book."""
+
 MAX_ACQUISITIONS_PER_DOC = 24
-"""Cap on OPDS2 links returned for one edition.
+"""Cap on the HARVESTED links returned for one edition, and separately on the
+rows read to produce them.
+
+Not a cap on the field: synthesized acquisitions are appended afterwards, so
+an edition at the cap can publish more than this many links in total. Measured
+at 29 for one edition. Said plainly because the docstring used to claim it
+bounded the whole list, which it never did.
 
 Bounds a `/search.json` response: `limit` has no upper bound (unlike list
 search, which clamps to 1000), so neither the id list nor the row count can be
@@ -334,7 +363,17 @@ def opds_links_for_edition(rows: list[Acquisition]) -> list[dict]:
                     row.local_id,
                 )
                 continue
-            links.append({**link, "provider_name": row.provider_name})
+            # `provider_name` and the source marker are applied AFTER the
+            # blob, so a feed can neither relabel itself nor claim to be
+            # something other than harvested.
+            feed_properties = link.get("properties")
+            links.append(
+                {
+                    **link,
+                    "provider_name": row.provider_name,
+                    "properties": {**(feed_properties if isinstance(feed_properties, dict) else {}), SOURCE_KEY: SOURCE_HARVESTED},
+                }
+            )
             if len(links) >= MAX_ACQUISITIONS_PER_DOC:
                 logger.info("truncating acquisitions for edition %s at %d links", row.edition_id, MAX_ACQUISITIONS_PER_DOC)
                 return links
@@ -356,20 +395,53 @@ def provider_acquisition_as_opds(acquisition: Any) -> dict | None:
     # the edit-book form, so canonicalizing it here would turn user-typed text
     # into `project_gutenberg` -- the registry identifier that `identifiers.*`
     # and the ingest gate key on -- and publish it as though Open Library had
-    # verified the provider. It also matches the harvested side, which serves
-    # `row.provider_name` verbatim, so one provider cannot appear under two
-    # spellings in one response. Canonicalization is for comparison only; see
+    # verified the provider. Canonicalization is for comparison only; see
     # `provider_dedupe_key`.
+    #
+    # Measured consequence, stated because an earlier version of this comment
+    # claimed the opposite: this does NOT make the two sides agree. Concrete
+    # providers build their acquisitions with `self.short_name`, while a
+    # harvested row carries `identifier_key or short_name` because the import
+    # validator requires a feed's provider_name to equal the `identifiers.*`
+    # key. Those differ for Gutenberg and Runeberg, so one response can carry
+    # `gutenberg` on a synthesized link and `project_gutenberg` on a harvested
+    # one. Per-edition dedupe is unaffected -- it compares squashed keys -- and
+    # the fix belongs in `book_providers`, not here.
+    #
     # Still type-checked: `providers` reaches this through from_json_safe,
     # which does not validate, so the raw value can be a dict or an int and
     # would otherwise be serialized into the response as-is.
     raw_name = getattr(acquisition, "provider_name", None)
-    link: dict[str, Any] = {"rel": rel, "href": href, "provider_name": raw_name if isinstance(raw_name, str) and raw_name else None}
-    if media_type := OPDS_TYPE_FOR_FORMAT.get(getattr(acquisition, "format", "") or ""):
+    link: dict[str, Any] = {
+        "rel": rel,
+        "href": href,
+        "provider_name": raw_name if isinstance(raw_name, str) and raw_name else None,
+        # Says where this came from, and it is the whole point of the field
+        # being safe to publish. A harvested link passed the ingest gate,
+        # which drops any provider not in the feed registry. A synthesized
+        # one was built from `Edition.providers`, which is written straight
+        # from the edit-book form -- so a patron can type `project_gutenberg`
+        # and have it served verbatim beside a URL they chose. Serving the
+        # raw name stops us MINTING a registry identifier from typed text,
+        # but it cannot stop someone typing one; without this marker the
+        # vetted and unvetted links are the same JSON object and a consumer
+        # reading `provider_name` has no way to tell them apart.
+        "properties": {SOURCE_KEY: SOURCE_SYNTHESIZED},
+    }
+    # `format` and `price` reach this from the same unvalidated blob as
+    # `provider_name`, via from_json_safe, which catches only ValueError. An
+    # unhashable `format` (a patron saving a list) raised TypeError straight
+    # out of the dict lookup and 500ed every search page that edition
+    # appeared on.
+    raw_format = getattr(acquisition, "format", None)
+    if media_type := OPDS_TYPE_FOR_FORMAT.get(raw_format if isinstance(raw_format, str) else ""):
         link["type"] = media_type
     # `providers` carries price as an opaque string ("$4.99"); OPDS2 wants a
     # currency and a number. Passed through under a distinct key rather than
-    # guessed at, so nothing downstream reads a fabricated amount.
-    if price := getattr(acquisition, "price", None):
-        link["properties"] = {"price_display": price}
+    # guessed at, so nothing downstream reads a fabricated amount -- and only
+    # when it really is a string, so a dict cannot be served under a key
+    # whose name promises a display string.
+    raw_price = getattr(acquisition, "price", None)
+    if isinstance(raw_price, str) and raw_price:
+        link["properties"]["price_display"] = raw_price
     return link
