@@ -20,8 +20,9 @@
             differ only in how similarity is decided.
         </p>
     </header>
-
-    <form class="mlt__controls" method="get" action="/developers/more-like-this">
+    <form class="mlt__controls"
+          method="get"
+          action="/developers/more-like-this">
         <label class="mlt__control">
             <span>Choose</span>
             <select name="count">
@@ -33,7 +34,8 @@
         <label class="mlt__control">
             <select name="method">
                 {% for choice in data.methods %}
-                    <option value="{{ choice.id }}" {% if choice.id == data.method %}selected{% endif %}>{{ choice.label }}</option>
+                    <option value="{{ choice.id }}"
+                            {% if choice.id == data.method %}selected{% endif %}>{{ choice.label }}</option>
                 {% endfor %}
             </select>
         </label>
@@ -41,7 +43,8 @@
             <span>from</span>
             <select name="pool">
                 {% for choice in data.pools %}
-                    <option value="{{ choice.id }}" {% if choice.id == data.pool %}selected{% endif %}>{{ choice.label }}</option>
+                    <option value="{{ choice.id }}"
+                            {% if choice.id == data.pool %}selected{% endif %}>{{ choice.label }}</option>
                 {% endfor %}
             </select>
         </label>
@@ -49,24 +52,16 @@
            costs no solr queries. #}
         <button class="mlt__go" type="submit" name="go" value="1">Go</button>
     </form>
-
     {% if data.message %}
         <p class="mlt__empty">{{ data.message }}</p>
     {% elif not data.rows %}
         <p class="mlt__empty">Pick a sample and press Go.</p>
     {% endif %}
-
     {% for row in data.rows %}
         <section class="mlt__row">
             <div class="mlt__seed">
-                <ol-book-cover
-                    class="mlt__seed-cover"
-                    size="small"
-                    src="{% if row.cover_id %}//covers.openlibrary.org/b/id/{{ row.cover_id }}-M.jpg{% endif %}"
-                    book-title="{{ row.title }}"
-                    authors="{{ row.authors }}"
-                    year="{{ row.year }}"
-                    href="{{ row.key }}"></ol-book-cover>
+                <ol-book-cover class="mlt__seed-cover" size="small" src="{% if row.cover_id %}//covers.openlibrary.org/b/id/{{ row.cover_id }}-M.jpg{% endif %}" book-title="{{ row.title }}" authors="{{ row.authors }}" year="{{ row.year }}" href="{{ row.key }}">
+                </ol-book-cover>
                 <div class="mlt__seed-meta">
                     <h2 class="mlt__seed-title"><a href="{{ row.key }}">{{ row.title }}</a></h2>
                     {% if row.authors %}<p class="mlt__seed-authors">{{ row.authors }}</p>{% endif %}
@@ -78,11 +73,12 @@
                     {% endif %}
                 </div>
             </div>
-
             <div class="mlt__panes">
                 {# `data-mlt-query` is what the script fetches; an empty one renders
                    as a stated reason rather than an empty rail. #}
-                <div class="mlt__pane" data-mlt-pane data-mlt-query="{{ row.baseline_query }}">
+                <div class="mlt__pane"
+                     data-mlt-pane
+                     data-mlt-query="{{ row.baseline_query }}">
                     <h3 class="mlt__pane-title">Current <span class="mlt__timing" data-mlt-timing></span></h3>
                     <div class="mlt__rail" data-mlt-rail>
                         {% if row.baseline_query %}
@@ -95,7 +91,6 @@
                         <code class="mlt__query">{{ row.baseline_query }}</code>
                     {% endif %}
                 </div>
-
                 <div class="mlt__pane" data-mlt-pane data-mlt-query="{{ row.mlt_query }}">
                     <h3 class="mlt__pane-title">
                         <code>like:</code>
@@ -110,7 +105,6 @@
         </section>
     {% endfor %}
 </div>
-
 <style>
     .mlt {
         max-width: 1600px;
@@ -223,7 +217,6 @@
         overflow: hidden;
     }
 </style>
-
 <script>
     (function () {
         const LIMIT = 12;
