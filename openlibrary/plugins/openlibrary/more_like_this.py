@@ -23,6 +23,8 @@ import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from openlibrary import accounts
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.plugins.worksearch.code import run_solr_query
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
@@ -34,6 +36,13 @@ AVAILABILITY_FILTER = "ebook_access:[borrowable TO *]"
 
 COUNT_CHOICES = (5, 10, 20)
 DEFAULT_COUNT = 10
+
+ALREADY_READ = Bookshelves.PRESET_BOOKSHELVES["Already Read"]
+
+# Ceiling on the reading-log pool, which becomes one `key:(...)` clause. Well
+# under solr's boolean-clause limit, and a reader with more read books than this
+# loses nothing that matters — it is still a sample either way.
+MAX_READ_SEEDS = 300
 
 
 @dataclass(frozen=True)
@@ -57,9 +66,10 @@ METHODS = (
 POOLS = (
     Choice("all", "All books"),
     Choice("popular", "Popular books"),
+    Choice("read", "Books I've read"),
 )
 
-POOL_QUERIES = {
+STATIC_POOL_QUERIES = {
     # Every work that could plausibly be recommended. Restricted to books with
     # subjects, since the baseline query has nothing to work with otherwise and
     # the row would compare against an empty carousel.
@@ -149,10 +159,46 @@ def _mlt_query(work, work_key: str) -> str:
     return query
 
 
-def _sample(count: int, method: str, pool: str) -> list[Row]:
+def _read_work_keys(username: str) -> list[str]:
+    """Work keys on the reader's "Already Read" shelf, newest first.
+
+    Filtered out of the shared iterator rather than queried directly: it pages
+    in blocks and this stops at the cap, so a heavy reading log costs a couple
+    of queries instead of a full scan.
+    """
+    keys = []
+    for row in Bookshelves.iterate_users_logged_books(username):
+        if row["bookshelf_id"] != ALREADY_READ:
+            continue
+        keys.append(f"/works/OL{row['work_id']}W")
+        if len(keys) >= MAX_READ_SEEDS:
+            break
+    return keys
+
+
+def _pool_query(pool: str) -> tuple[str, str]:
+    """The solr `q` to draw seeds from, or ``("", reason)`` if the pool is unusable."""
+    if pool != "read":
+        return STATIC_POOL_QUERIES[pool], ""
+
+    if not (user := accounts.get_current_user()):
+        return "", "Log in to sample from the books you've read."
+    if not (keys := _read_work_keys(user.key.split("/")[-1])):
+        return "", "Nothing on your “Already Read” shelf yet, so there would be no results you could judge."
+
+    # Deliberately unfiltered, unlike the other pools: a reader's own judgement
+    # is the scarce thing here, so don't drop their read books for being
+    # unborrowable or subject-less. A subject-less row is worth keeping rather
+    # than hiding — the baseline can offer nothing at all for one, so the row
+    # shows whether `like:` does any better from title and author alone.
+    keys_clause = " OR ".join(f'"{key}"' for key in keys)
+    return f"key:({keys_clause})", ""
+
+
+def _sample(count: int, method: str, pool_query: str) -> list[Row]:
     response = run_solr_query(
         WorkSearchScheme(),
-        {"q": POOL_QUERIES[pool]},
+        {"q": pool_query},
         rows=count,
         sort=_sample_sort(method),
         fields=[
@@ -173,8 +219,7 @@ def _sample(count: int, method: str, pool: str) -> list[Row]:
         work_key = doc["key"]
         # The baseline's subject list comes from the work record rather than
         # solr, so that it matches what the work page itself would build.
-        work = web.ctx.site.get(work_key)
-        if work is None:
+        if (work := web.ctx.site.get(work_key)) is None:
             logger.warning("Sampled work %s is in solr but not the db; skipping", work_key)
             continue
         rows.append(
@@ -202,7 +247,7 @@ def build_context() -> Context:
     count = count if count in COUNT_CHOICES else DEFAULT_COUNT
 
     method = params.method if params.method in {choice.id for choice in METHODS} else "random"
-    pool = params.pool if params.pool in POOL_QUERIES else "all"
+    pool = params.pool if params.pool in {choice.id for choice in POOLS} else "all"
 
     context = Context(count=count, method=method, pool=pool)
     # Nothing is sampled until Go is pressed, so arriving at the page doesn't
@@ -210,7 +255,12 @@ def build_context() -> Context:
     if not params.go:
         return context
 
-    context.rows = _sample(count, method, pool)
+    pool_query, unusable = _pool_query(pool)
+    if unusable:
+        context.message = unusable
+        return context
+
+    context.rows = _sample(count, method, pool_query)
     if not context.rows:
         pool_label = _label(POOLS, pool)
         method_label = _label(METHODS, method)
