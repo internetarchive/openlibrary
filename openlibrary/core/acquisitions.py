@@ -176,8 +176,14 @@ class Acquisition(web.storage, CommonExtras):
         return Acquisition._from_row(result[0]) if result else None
 
 
-_MAX_DB_INT = 2**31 - 1
-"""Largest value the ``integer`` columns can hold."""
+MAX_DB_INT = 2**31 - 1
+"""Largest value the ``integer`` columns can hold.
+
+A key like ``/books/OL<80 digits>M`` parses fine -- Python ints are arbitrary
+precision -- and only fails at the driver, inside the caller's page-wide
+guard, costing every document on the page its acquisitions. Rejected before
+the query so it costs only that key.
+"""
 
 MAX_ACQUISITIONS_PER_DOC = 24
 """Cap on OPDS2 links returned for one edition.
@@ -186,9 +192,6 @@ Bounds a `/search.json` response: `limit` has no upper bound (unlike list
 search, which clamps to 1000), so neither the id list nor the row count can be
 assumed small.
 """
-
-MAX_ROWS_PER_QUERY = 2000
-"""Absolute ceiling on rows fetched for one page, whatever its size."""
 
 MAX_EDITIONS_PER_QUERY = 200
 """Ceiling on how many editions one page may look up, independent of page size.
@@ -207,10 +210,6 @@ the work per request is now capped by a constant rather than by the caller.
 
 Twice the default page size, so it is invisible to real use and a hard stop
 for abuse. Editions past it simply do not get the field."""
-
-
-def _row_budget(id_count: int) -> int:
-    return min(MAX_ROWS_PER_QUERY, max(1, id_count) * MAX_ACQUISITIONS_PER_DOC)
 
 
 #: OPDS2 `rel` for each of ``book_providers``'s access literals, so a

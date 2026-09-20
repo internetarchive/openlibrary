@@ -17,12 +17,11 @@ import web
 
 from openlibrary.book_providers import PROVIDER_ORDER
 from openlibrary.book_providers import Acquisition as ProviderAcquisition
+from openlibrary.core import acquisitions as acquisitions_module
 from openlibrary.core.acquisitions import (
     MAX_ACQUISITIONS_PER_DOC,
     MAX_EDITIONS_PER_QUERY,
-    MAX_ROWS_PER_QUERY,
     Acquisition,
-    _row_budget,
     _squash,
     feed_provider_name,
     opds_links_for_edition,
@@ -199,10 +198,6 @@ class TestStoredLinks:
         links = opds_links_for_edition(Acquisition.get_by_editions([36620178])[36620178])
         assert len(links) == MAX_ACQUISITIONS_PER_DOC
 
-    def test_the_row_budget_is_absolutely_capped(self):
-        assert _row_budget(1) == MAX_ACQUISITIONS_PER_DOC
-        assert _row_budget(1_000_000) == MAX_ROWS_PER_QUERY
-
 
 # ---------------------------------------------------------------------------
 # Precedence: harvested wins, synthesized fills the gaps
@@ -367,42 +362,143 @@ class TestHostileFeedContent:
 class TestPageSizeCannotChooseTheQuerySize:
     """`/search.json`'s `limit` has no upper bound — `Pagination.limit` is
     `ge=0` with no `le=`, and `limit=1200` really returns 1200 documents
-    (verified against a live deployment). Without a cap here, an
-    unauthenticated caller chooses the size of an `IN` query on the single
-    connection every coroutine in the worker shares.
+    (verified against a live deployment). So page size is attacker-chosen.
+
+    Note the honest scope: this bounds THIS query only. `get_many()` in the
+    same method is uncapped and runs for `providers` too, so the method is
+    not page-size-bounded and this must not be described as making it so.
     """
 
-    def test_the_lookup_is_capped_independent_of_page_size(self, acquisitions_db, monkeypatch, mock_site):
-        site_var.set(mock_site)
-        asked: dict = {}
+    @staticmethod
+    def _page(edition_count, works=1):
+        """The production shape: `editions.rows` is pinned to 1, so a page is
+        many works with one edition each — not one work with many editions."""
+        per_work = max(1, edition_count // works)
+        return {
+            "response": {
+                "docs": [
+                    {"key": f"/works/OL{w}W", "editions": {"docs": [{"key": f"/books/OL{w * 1000 + e}M"} for e in range(per_work)]}} for w in range(1, works + 1)
+                ]
+            }
+        }
 
-        def capture(edition_ids):
-            asked["n"] = len(edition_ids)
-            return {}
-
+    def _asked(self, monkeypatch, solr_result):
+        seen: dict = {}
         monkeypatch.setattr(
             "openlibrary.core.acquisitions.Acquisition.get_by_editions",
-            staticmethod(capture),
+            staticmethod(lambda ids: (seen.setdefault("n", len(ids)) and {}) or {}),
         )
-        huge = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": f"/books/OL{i}M"} for i in range(1, 5001)]}}]}}
-        WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, huge)
-        assert asked["n"] == MAX_EDITIONS_PER_QUERY
+        WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, solr_result)
+        return seen.get("n", 0)
 
-    def test_an_ordinary_page_is_not_truncated(self, acquisitions_db, monkeypatch, mock_site):
+    def test_an_oversized_page_is_skipped_entirely_not_truncated(self, acquisitions_db, monkeypatch, mock_site):
+        """Truncating the lookup left every document past the cap holding an
+        empty list indistinguishable from "this book has no acquisitions" --
+        a wrong price answer rather than a missing one. Uniform absence is
+        detectable; a silently short prefix is not."""
         site_var.set(mock_site)
-        asked: dict = {}
+        assert self._asked(monkeypatch, self._page(MAX_EDITIONS_PER_QUERY + 50, works=250)) == 0
 
-        def capture(edition_ids):
-            asked["n"] = len(edition_ids)
-            return {}
+    def test_no_document_is_left_holding_a_misleading_empty_list(self, acquisitions_db, monkeypatch, mock_site):
+        site_var.set(mock_site)
+        page = self._page(MAX_EDITIONS_PER_QUERY + 50, works=250)
+        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+        WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
+        woven = [ed for doc in page["response"]["docs"] for ed in doc["editions"]["docs"] if "opds_acquisitions" in ed]
+        assert woven == [], "the field must be absent everywhere, not empty on the tail"
 
+    def test_an_ordinary_page_is_not_affected(self, acquisitions_db, monkeypatch, mock_site):
+        site_var.set(mock_site)
+        assert self._asked(monkeypatch, self._page(100, works=100)) == 100
+
+    def test_an_id_too_large_for_the_column_is_dropped_not_fatal(self, acquisitions_db, monkeypatch, mock_site):
+        """It parses fine -- Python ints are arbitrary precision -- and fails
+        at the driver inside the page-wide guard, costing every document on
+        the page its acquisitions."""
+        site_var.set(mock_site)
+        page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL" + "9" * 40 + "M"}, {"key": "/books/OL5M"}]}}]}}
+        seen: dict = {}
         monkeypatch.setattr(
             "openlibrary.core.acquisitions.Acquisition.get_by_editions",
-            staticmethod(capture),
+            staticmethod(lambda ids: (seen.setdefault("ids", list(ids)) and {}) or {}),
         )
-        normal = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": f"/books/OL{i}M"} for i in range(1, 101)]}}]}}
-        WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, normal)
-        assert asked["n"] == 100, "a default-sized page must be unaffected"
+        WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
+        assert seen["ids"] == [5]
+
+
+class TestBehavioursThatSurvivedMutation:
+    """Each of these passed against deliberately broken source until now."""
+
+    def test_no_query_is_issued_when_the_field_is_not_requested(self, acquisitions_db, monkeypatch, mock_site):
+        """The incident shape: losing the field gate in a refactor would put a
+        Postgres round trip on the event loop for every /search.json asking
+        for any non-solr field -- including `editions.providers`, which the
+        site itself uses."""
+        site_var.set(mock_site)
+        called: dict = {"n": 0}
+
+        def counted(ids):
+            called["n"] += 1
+            return {}
+
+        monkeypatch.setattr("openlibrary.core.acquisitions.Acquisition.get_by_editions", staticmethod(counted))
+        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+        mock_site.save({"key": "/books/OL5M", "type": {"key": "/type/edition"}, "title": "t"})
+        page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL5M"}]}}]}}
+        WorkSearchScheme().add_non_solr_fields({"editions.providers"}, page)
+        assert called["n"] == 0, "asking for providers must not read the acquisitions table"
+
+    def test_a_database_failure_leaves_the_results_intact(self, acquisitions_db, monkeypatch, mock_site):
+        """The headline safety claim, which had no test at all."""
+        site_var.set(mock_site)
+        mock_site.save({"key": "/books/OL5M", "type": {"key": "/type/edition"}, "title": "t"})
+
+        def boom(ids):
+            raise RuntimeError("server closed the connection unexpectedly")
+
+        monkeypatch.setattr("openlibrary.core.acquisitions.Acquisition.get_by_editions", staticmethod(boom))
+        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+        page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL5M", "title": "kept"}]}}]}}
+        WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
+        assert page["response"]["docs"][0]["editions"]["docs"][0]["title"] == "kept"
+
+    def test_one_row_holding_many_links_is_capped(self, acquisitions_db):
+        """The operative output bound. The previous test of this passed for
+        the wrong reason: 34 rows of one link each meant the 24 came from the
+        row fetch, never from the function under test."""
+        Acquisition.upsert(
+            work_id=1,
+            edition_id=9,
+            provider_name="lenny",
+            local_id="many",
+            data={"acquisitions": [{"access": "borrow", "url": f"https://x/{n}", "link": {"rel": BORROW_REL, "href": f"https://x/{n}"}} for n in range(100)]},
+        )
+        rows = Acquisition.get_by_editions([9])[9]
+        assert len(rows) == 1, "a single row, so any cap must come from the flattening"
+        assert len(opds_links_for_edition(rows)) == MAX_ACQUISITIONS_PER_DOC
+
+    def test_an_empty_edition_list_issues_no_query(self, acquisitions_db, monkeypatch):
+        """Asserts the query is never ISSUED, not what it returns.
+
+        `IN ()` is a Postgres syntax error that SQLite accepts, so running the
+        query proves nothing here -- a missing guard passes on SQLite and
+        fails in production. Spying on the call is the only way this suite can
+        see the difference."""
+        issued: list = []
+        real = acquisitions_module.db.query
+        monkeypatch.setattr(acquisitions_module.db, "query", lambda *a, **k: (issued.append(a), real(*a, **k))[1])
+        assert Acquisition.get_by_editions([]) == {}
+        assert issued == [], "no SQL may be issued for an empty id list"
+
+    def test_rows_for_one_edition_and_provider_have_a_stable_order(self, acquisitions_db):
+        """(edition_id, provider_name) is not unique — the table's UNIQUE is
+        (local_id, provider_name) — so without local_id in the ORDER BY two
+        prices swap places between identical requests."""
+        for local_id in ("b-second", "a-first"):
+            store(9, "lenny", local_id, {"rel": BORROW_REL, "href": f"https://x/{local_id}"})
+        seen = [[r.local_id for r in Acquisition.get_by_editions([9])[9]] for _ in range(3)]
+        assert seen[0] == ["a-first", "b-second"]
+        assert seen[0] == seen[1] == seen[2]
 
 
 def test_the_field_is_actually_wired_into_add_non_solr_fields(acquisitions_db, mock_site, monkeypatch):

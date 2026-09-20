@@ -655,7 +655,7 @@ class WorkSearchScheme(SearchScheme):
         key_to_thing = {t.key: t for t in things if t.key in keys}
 
         from openlibrary.book_providers import get_acquisitions
-        from openlibrary.core.acquisitions import MAX_EDITIONS_PER_QUERY
+        from openlibrary.core.acquisitions import MAX_DB_INT, MAX_EDITIONS_PER_QUERY
         from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
         from openlibrary.utils import extract_numeric_id_from_olid
 
@@ -667,30 +667,43 @@ class WorkSearchScheme(SearchScheme):
         # that is down or slow costs a caller its prices, never its results.
         #
         # Runs ON the event loop by maintainer decision (#13395): this method
-        # already blocks it with a synchronous Infobase call for `providers`,
-        # and asyncio.to_thread would open a Postgres connection per pool
-        # thread, since web.py holds them per thread. Safe only because the
-        # work is bounded -- see MAX_EDITIONS_PER_QUERY. Becomes a real await
-        # with the async driver migration.
+        # already blocks it with `site.get().get_many()` below, and
+        # asyncio.to_thread would open a Postgres connection per pool thread,
+        # since web.py holds them per thread. Becomes a real await with the
+        # async driver migration.
+        #
+        # Note what is NOT true: this method is not bounded by page size.
+        # `get_many()` above fetches every work key plus every edition key the
+        # caller asked for, uncapped, and does so for `providers` too. The cap
+        # below bounds THIS query only; it does not make the method safe at a
+        # large `limit`, and claiming otherwise would be worse than not
+        # capping. That belongs at the endpoint (`Pagination.limit` has no
+        # `le=`), which is pre-existing and not changed here.
         stored_by_edition: dict[int, list] = {}
         if "editions.opds_acquisitions" in prefixed_fields:
             edition_ids = []
             for doc in solr_result["response"]["docs"]:
                 for ed_doc in doc.get("editions", {}).get("docs", []):
                     try:
-                        edition_ids.append(int(extract_numeric_id_from_olid(ed_doc["key"])))
+                        numeric_id = int(extract_numeric_id_from_olid(ed_doc["key"]))
                     except ValueError, TypeError, IndexError, OverflowError:
                         continue
+                    if 0 < numeric_id <= MAX_DB_INT:
+                        edition_ids.append(numeric_id)
             if len(edition_ids) > MAX_EDITIONS_PER_QUERY:
-                # `limit` is unbounded on /search.json, so page size is
-                # attacker-chosen. Capping here keeps the query a constant
-                # amount of work rather than a caller-chosen one.
+                # All or nothing, never the first N. Truncating the lookup
+                # leaves every later document with an empty list that is
+                # indistinguishable from "this book has no acquisitions" --
+                # a wrong price answer rather than a missing one, and only a
+                # server-side log to say so. Skipping the whole page instead
+                # means the field is uniformly absent, which a caller can
+                # actually detect and retry with a smaller `limit`.
                 logger.warning(
-                    "capping acquisitions lookup at %d editions (page asked for %d)",
-                    MAX_EDITIONS_PER_QUERY,
+                    "skipping acquisitions for a page of %d editions (cap %d); ask for a smaller limit",
                     len(edition_ids),
+                    MAX_EDITIONS_PER_QUERY,
                 )
-                edition_ids = edition_ids[:MAX_EDITIONS_PER_QUERY]
+                edition_ids = []
             try:
                 stored_by_edition = StoredAcquisition.get_by_editions(edition_ids)
             except Exception:
