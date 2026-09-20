@@ -135,6 +135,12 @@ class Acquisition(web.storage, CommonExtras):
         for row in rows:
             acquisition = Acquisition._from_row(row)
             bucket = grouped.setdefault(acquisition.edition_id, [])
+            # A row whose `acquisitions` array is empty publishes nothing, so
+            # spending budget on it is how the starvation worked: raising the
+            # cap moved the threshold without changing the shape. Rows that
+            # cannot contribute a link do not consume the allowance.
+            if not _row_can_publish(acquisition):
+                continue
             if len(bucket) < MAX_ROWS_PER_EDITION:
                 bucket.append(acquisition)
             else:
@@ -206,6 +212,20 @@ version of this docstring claimed it failed at the driver and cost the
 whole page; that was asserted, not measured, and it is wrong.
 """
 
+
+def _row_can_publish(acquisition: Acquisition) -> bool:
+    """Whether this row could contribute at least one link.
+
+    Deliberately cheap and deliberately not the same check as
+    :func:`opds_links_for_edition`, which also validates each href. This only
+    asks whether the row carries any candidate at all, because its job is to
+    stop empty rows consuming an edition's budget.
+    """
+    data = acquisition.data if isinstance(acquisition.data, dict) else {}
+    entries = data.get("acquisitions")
+    return bool(isinstance(entries, list) and entries)
+
+
 SOURCE_KEY = "openlibrary_source"
 """Where an acquisition came from, inside the OPDS2 ``properties`` object.
 
@@ -218,8 +238,22 @@ SOURCE_HARVESTED = "harvested"
 feed registry."""
 
 SOURCE_SYNTHESIZED = "synthesized"
-"""Derived from ``Edition.providers``, which is user-editable. Not evidence
-that the named provider offers this book."""
+"""Built by a provider in ``book_providers`` from the edition's
+``identifiers.*``, so the URL's host is ours and the name is the registry's.
+The identifier itself is still wiki-editable: this says Open Library
+constructed the link, not that it verified the book is there."""
+
+SOURCE_EDITION_PROVIDERS = "edition_providers"
+"""Copied out of ``Edition.providers``, where a patron controls the URL AND
+the provider name, both verbatim.
+
+Distinct from ``synthesized`` because without it the two collide. A patron
+who sets `identifiers.project_gutenberg` and also adds a `providers` entry
+naming `project_gutenberg` with a URL of their choosing produces two links
+that agree in every published field -- and theirs sorts first, because
+``DirectProvider`` heads ``PROVIDER_ORDER``. A consumer keying on
+``provider_name`` would then read an arbitrary host as Project Gutenberg.
+Naming the two sources apart is what keeps that distinguishable."""
 
 MAX_ACQUISITIONS_PER_DOC = 24
 """Cap on the HARVESTED links published for one edition.
@@ -241,8 +275,16 @@ One number served as both, and rows and links are not interchangeable: a row
 holds a whole `acquisitions` array, and that array can be empty. So an edition
 with 30 rows whose first 24 by sort order carried nothing returned 24 rows and
 zero links, with six real acquisitions unreachable -- the field reporting that
-a book has no acquisitions when it has six. Higher than the link cap because
-its job is to bound work, not output; the link cap decides what is published.
+a book has no acquisitions when it has six. Rows that carry no acquisitions
+at all no longer consume the allowance, which is what actually closes that
+class -- raising the number alone just moves the threshold.
+
+It does NOT bound the work, and an earlier version of this docstring said it
+did. There is no SQL ``LIMIT``: every matching row crosses the connection and
+is built into an ``Acquisition`` before this is consulted. Measured, 10,000
+rows for one edition takes 33 ms to fetch and construct, then keeps 200.
+Bounding the fetch needs a per-edition window function, filed as a follow-up
+and deliberately not a global ``LIMIT``, which starves the tail of the page.
 """
 
 MAX_EDITIONS_PER_QUERY = 200
@@ -257,8 +299,10 @@ coroutine in the worker shares -- so an unauthenticated request could make an
 arbitrarily large query and block every other database user behind it.
 
 Bounding the input here is much cheaper than moving off the shared
-connection, and it is what makes keeping this on the event loop defensible:
-the work per request is now capped by a constant rather than by the caller.
+connection. It caps how many editions a caller can ask about; it does not cap
+the work, because the rows those editions hold are unbounded and unlimited in
+SQL. With the row cap at 200 the retained product is 200 x 200, and the
+fetched product has no ceiling at all.
 
 Twice the default page size, so it is invisible to real use and a hard stop
 for abuse. Editions past it simply do not get the field."""
@@ -468,7 +512,12 @@ def provider_acquisition_as_opds(acquisition: Any, trusted_provider_name: str | 
         # but it cannot stop someone typing one; without this marker the
         # vetted and unvetted links are the same JSON object and a consumer
         # reading `provider_name` has no way to tell them apart.
-        "properties": {SOURCE_KEY: SOURCE_SYNTHESIZED},
+        # The trusted name and the source marker come from the same fact --
+        # which producer made this acquisition -- so they must not be
+        # decided separately. A provider that derived it from `identifiers.*`
+        # supplies a name; the base path, reading `Edition.providers`, does
+        # not, and its links say so.
+        "properties": {SOURCE_KEY: SOURCE_SYNTHESIZED if trusted_provider_name else SOURCE_EDITION_PROVIDERS},
     }
     # `format` and `price` reach this from the same unvalidated blob as
     # `provider_name`, via from_json_safe, which catches only ValueError. An

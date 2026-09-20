@@ -753,7 +753,14 @@ class WorkSearchScheme(SearchScheme):
 
     @staticmethod
     def _opds_acquisitions(solr_doc: dict, edition: Edition, stored_by_edition: dict[int, list]) -> list[dict]:
-        """Every way this edition can be acquired, as OPDS2 acquisition links.
+        """How this edition can be acquired, as OPDS2 acquisition links.
+
+        Not "every way", which an earlier version of this docstring claimed.
+        The Internet Archive synthesizes nothing unless the caller also
+        requested `editions.ebook_access`, because IA reads it off the SOLR
+        document and `editions.fl` carries only the solr fields asked for.
+        That is a documented requirement of this field rather than a bug
+        here, and it is pinned by a test.
 
         One field, one format, one call. Previously a caller had to read
         `providers` for the providers Open Library synthesizes and a second

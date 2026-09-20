@@ -22,6 +22,7 @@ from openlibrary.core.acquisitions import (
     MAX_ACQUISITIONS_PER_DOC,
     MAX_EDITIONS_PER_QUERY,
     MAX_ROWS_PER_EDITION,
+    SOURCE_EDITION_PROVIDERS,
     SOURCE_HARVESTED,
     SOURCE_KEY,
     SOURCE_SYNTHESIZED,
@@ -161,13 +162,20 @@ class TestProviderCoercion:
         """Better to omit than to invent a `rel` the spec does not define."""
         assert provider_acquisition_as_opds(provider_acquisition(access="mystery")) is None
 
-    def test_a_synthesized_link_says_it_is_synthesized(self):
-        """Without this a consumer cannot tell a link the ingest gate checked
-        against the feed registry from one built out of `Edition.providers`,
-        which any logged-in patron can edit -- including typing a registry
-        identifier verbatim. Serving the raw name stops us minting one; only
-        this marker says which half of the field a link came from."""
+    def test_a_patron_sourced_link_is_not_labelled_synthesized(self):
+        """The collision this exists to prevent, measured end to end below in
+        `TestPatronAndDerivedLinksStayDistinguishable`: a patron who sets
+        `identifiers.project_gutenberg` AND adds a `providers` entry naming
+        `project_gutenberg` gets two links that agree in every other
+        published field -- and theirs sorts first."""
         link = provider_acquisition_as_opds(provider_acquisition(provider_name="project_gutenberg", url="https://evil.test/x.epub"))
+        assert link["properties"][SOURCE_KEY] == SOURCE_EDITION_PROVIDERS
+
+    def test_a_derived_link_says_it_was_synthesized(self):
+        """A trusted name means a provider built this from `identifiers.*`,
+        so the host is ours. Name and marker come from the one fact and must
+        not be settled separately."""
+        link = provider_acquisition_as_opds(provider_acquisition(provider_name="gutenberg"), "project_gutenberg")
         assert link["properties"][SOURCE_KEY] == SOURCE_SYNTHESIZED
 
     def test_an_acquisition_with_no_url_is_dropped(self):
@@ -384,12 +392,23 @@ class TestOneProviderHasOneSpellingInOneResponse:
     provider twice. Concrete providers build acquisitions with `short_name`;
     a harvested row carries `identifier_key or short_name`, because the import
     validator requires a feed's provider_name to equal the `identifiers.*`
-    key. They differ for exactly Gutenberg and Runeberg.
+    key. Among providers that build from `identifiers.*` those differ for
+    Gutenberg and Runeberg. Not "exactly": `BetterWorldBooksProvider`
+    overwrites `provider_name` with the display string "Better World Books",
+    which differs from both -- latent only because its config key is unset in
+    production, and untested here for that reason.
     """
 
     @pytest.mark.parametrize(
         ("identifier_key", "expected"),
-        [("project_gutenberg", "project_gutenberg"), ("project_runeberg", "project_runeberg"), ("standard_ebooks", "standard_ebooks")],
+        [
+            ("project_gutenberg", "project_gutenberg"),
+            ("project_runeberg", "project_runeberg"),
+            # Cannot discriminate -- short_name and provider_name already
+            # agree here, so it passes with the fix reverted. Kept as a guard
+            # against over-canonicalizing a name that was already right.
+            ("standard_ebooks", "standard_ebooks"),
+        ],
     )
     def test_a_synthesized_link_uses_the_name_harvest_would_write(self, identifier_key, expected):
         edition = {"key": "/books/OL1M", "identifiers": {identifier_key: ["12345"]}}
@@ -421,19 +440,69 @@ class TestOneProviderHasOneSpellingInOneResponse:
         assert [provider_acquisition_as_opds(a, t)["provider_name"] for t, a in pairs] == ["Project-Gutenberg"]
 
 
+class TestPatronAndDerivedLinksStayDistinguishable:
+    """The whole synthesized half through the REAL provider stack.
+
+    Every other test of the weave monkeypatches `synthesized_acquisitions`
+    away, so the function that decides provenance was never exercised
+    through the code that publishes it.
+    """
+
+    def test_a_patron_cannot_make_their_link_look_like_gutenberg_s(self):
+        """Both are wiki-editable and both publish `project_gutenberg`, so
+        the name alone cannot separate them -- and the patron's sorts first,
+        because DirectProvider heads PROVIDER_ORDER. The source marker is the
+        only field that distinguishes them."""
+        edition = {
+            "key": "/books/OL1M",
+            "identifiers": {"project_gutenberg": ["1342"]},
+            "providers": [{"url": "https://attacker.test/free.epub", "access": "open-access", "provider_name": "project_gutenberg"}],
+        }
+        links = WorkSearchScheme._opds_acquisitions({"key": "/books/OL1M"}, edition, {})
+        by_href = {link["href"]: link for link in links}
+        assert by_href["https://attacker.test/free.epub"]["properties"][SOURCE_KEY] == SOURCE_EDITION_PROVIDERS
+        assert by_href["https://www.gutenberg.org/ebooks/1342"]["properties"][SOURCE_KEY] == SOURCE_SYNTHESIZED
+
+    def test_the_internet_archive_branch_is_actually_reached(self):
+        """`synthesized_acquisitions` calls IA with a different signature to
+        every other provider. Deleting that branch entirely left the whole
+        suite green -- an untested branch for Open Library's largest
+        provider. It needs `ebook_access` off the SOLR doc, which is a
+        documented requirement of the field, so this also pins that
+        dependency rather than leaving it to a comment."""
+        edition = {"key": "/books/OL2M", "ocaid": "somebook00auth"}
+        solr_doc = {"key": "/books/OL2M", "ebook_access": "borrowable"}
+        pairs = synthesized_acquisitions(solr_doc, edition)
+        assert [trusted for trusted, _ in pairs] == ["ia"]
+        assert next(a.url for _, a in pairs).startswith("https://archive.org/details/somebook00auth")
+
+    def test_the_internet_archive_needs_ebook_access_on_the_solr_doc(self):
+        """Measured, and a real gap in the field: with `editions.fl` carrying
+        only `key`, IA synthesizes nothing and a borrowable book returns an
+        empty list a caller cannot tell from "no acquisitions". Requesting
+        `editions.ebook_access` is what makes it appear."""
+        edition = {"key": "/books/OL2M", "ocaid": "somebook00auth"}
+        assert synthesized_acquisitions({"key": "/books/OL2M"}, edition) == []
+
+
 class TestTheTwoUnitsAreNotOneNumber:
     """Rows and links were capped by the same constant. They are different
     things: a row holds an `acquisitions` array, and that array can be empty."""
 
     def test_empty_rows_do_not_starve_the_real_links(self, acquisitions_db):
-        """Executed case: 30 rows, the first 24 by sort order carrying nothing.
-        Under one shared cap the row budget filled with empties and the six
-        real acquisitions were unreachable -- the field saying a book has none
-        when it has six."""
-        for n in range(24):
-            store(500, "lenny", f"empty-{n:03d}", None, acquisitions=[])
+        """Probed AT the cap, which is the only place it can fail.
+
+        The first fix for this raised the number, and a bigger number is not
+        a different shape: fill the budget with empty rows and the real ones
+        behind them are still unreachable, the field saying a book has no
+        acquisitions when it has six. Sized at `MAX_ROWS_PER_EDITION`
+        deliberately -- a test comfortably under the cap passes whether or
+        not the fix is present, which is how the previous version of this
+        test passed against unfixed source."""
+        for n in range(MAX_ROWS_PER_EDITION):
+            store(500, "lenny", f"empty-{n:04d}", None, acquisitions=[])
         for n in range(6):
-            store(500, "lenny", f"real-{n:03d}", {"rel": BORROW_REL, "href": f"https://real/{n}"})
+            store(500, "lenny", f"real-{n:04d}", {"rel": BORROW_REL, "href": f"https://real/{n}"})
         links = opds_links_for_edition(Acquisition.get_by_editions([500])[500])
         assert [link["href"] for link in links] == [f"https://real/{n}" for n in range(6)]
 
@@ -615,7 +684,9 @@ class TestBehavioursThatSurvivedMutation:
             return {}
 
         monkeypatch.setattr("openlibrary.core.acquisitions.Acquisition.get_by_editions", staticmethod(counted))
-        monkeypatch.setattr("openlibrary.core.acquisitions.synthesized_acquisitions", lambda d, e: [])
+        # No patch on `synthesized_acquisitions`: this drives `providers`
+        # only, which goes through `book_providers.get_acquisitions`, so a
+        # patch here would describe something the test never reaches.
         mock_site.save({"key": "/books/OL5M", "type": {"key": "/type/edition"}, "title": "t"})
         page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL5M"}]}}]}}
         WorkSearchScheme().add_non_solr_fields({"editions.providers"}, page)
