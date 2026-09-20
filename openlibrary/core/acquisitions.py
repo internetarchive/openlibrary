@@ -205,11 +205,9 @@ MAX_DB_INT = 2**31 - 1
 
 A key like ``/books/OL<80 digits>M`` parses fine -- Python ints are arbitrary
 precision -- so it reaches the query as an id no row can match. Measured
-against this Postgres, it does NOT raise: an 80-digit value in the ``IN``
-list returns the rows for the valid ids and no error, so this guard is
-defence in depth rather than a fix for an observed failure. An earlier
-version of this docstring claimed it failed at the driver and cost the
-whole page; that was asserted, not measured, and it is wrong.
+against Postgres it does not raise: an 80-digit value in the ``IN`` list
+returns the rows for the valid ids and no error. Defence in depth, not a fix
+for an observed failure.
 """
 
 
@@ -241,11 +239,10 @@ SOURCE_SYNTHESIZED = "synthesized"
 """Built by a provider in ``book_providers``, which hard-codes the host and
 appends an identifier to a path.
 
-What this is NOT evidence of, spelled out because the previous wording said
-only that the host is ours and that reads as an assurance. The identifier is
-``identifiers.*``, a wiki field any logged-in patron can set, so this says
-Open Library constructed the URL -- not that the provider offers this book,
-and not that the edition is what the identifier claims.
+What it is NOT evidence of: the identifier is ``identifiers.*``, a wiki field
+any logged-in patron can set. This says Open Library constructed the URL --
+not that the provider offers this book, nor that the edition is what the
+identifier claims.
 
 It carries no weight at all without :data:`SOURCE_EDITION_PROVIDERS` being
 applied correctly next to it: the two are told apart only by which producer
@@ -271,9 +268,7 @@ MAX_ACQUISITIONS_PER_DOC = 24
 """Cap on the HARVESTED links published for one edition.
 
 Not a cap on the field: synthesized acquisitions are appended afterwards, so
-an edition at the cap can publish more than this many links in total. Measured
-at 29 for one edition. Said plainly because the docstring used to claim it
-bounded the whole list, which it never did.
+an edition at the cap can publish more in total -- measured at 29.
 
 Bounds a `/search.json` response: `limit` has no upper bound (unlike list
 search, which clamps to 1000), so neither the id list nor the row count can be
@@ -291,12 +286,11 @@ a book has no acquisitions when it has six. Rows that carry no acquisitions
 at all no longer consume the allowance, which is what actually closes that
 class -- raising the number alone just moves the threshold.
 
-It does NOT bound the work, and an earlier version of this docstring said it
-did. There is no SQL ``LIMIT``: every matching row crosses the connection and
-is built into an ``Acquisition`` before this is consulted. Measured, 10,000
-rows for one edition takes 33 ms to fetch and construct, then keeps 200.
-Bounding the fetch needs a per-edition window function, filed as a follow-up
-and deliberately not a global ``LIMIT``, which starves the tail of the page.
+It does not bound the work. There is no SQL ``LIMIT``: every matching row
+crosses the connection and is built into an ``Acquisition`` before this is
+consulted -- 10,000 rows for one edition takes 33 ms, then keeps 200.
+Bounding the fetch needs a per-edition window function, filed as a follow-up;
+a global ``LIMIT`` would starve the tail of the page.
 """
 
 MAX_EDITIONS_PER_QUERY = 200
@@ -377,12 +371,10 @@ def _provider_name_lookup() -> dict[str, str]:
 def provider_dedupe_key(name: object) -> str | None:
     """What both sides of the dedupe compare on -- and nothing else.
 
-    Never published. An earlier revision also used a resolved name as the
-    ``provider_name`` it served, which turned user-typed text from the
-    edit-book form into ``project_gutenberg``, the registry identifier the
-    ingest gate and ``identifiers.*`` key on. Resolution is a comparison
-    detail; both sides of the response now carry the name their own source
-    gave them.
+    Never published. Serving a resolved name would turn user-typed text from
+    the edit-book form into ``project_gutenberg``, the registry identifier
+    the ingest gate and ``identifiers.*`` key on. Resolution is a comparison
+    detail; each side of the response carries the name its own source gave.
 
     Falls back to the squashed form rather than leaving an unknown name
     alone, because a feed-only provider (``lenny``) has no ``book_providers``
@@ -490,60 +482,29 @@ def provider_acquisition_as_opds(acquisition: Any, trusted_provider_name: str | 
     href = getattr(acquisition, "url", None)
     if not rel or not _is_safe_url(href):
         return None
-    # The RAW name, deliberately. `Edition.providers` is written straight from
-    # the edit-book form, so canonicalizing it here would turn user-typed text
-    # into `project_gutenberg` -- the registry identifier that `identifiers.*`
-    # and the ingest gate key on -- and publish it as though Open Library had
-    # verified the provider. Canonicalization is for comparison only; see
-    # `provider_dedupe_key`.
-    #
-    # `trusted_provider_name` is the exception, and only the caller can supply
-    # it: a concrete provider derives its acquisition from `identifiers.*`, so
-    # the registry spelling is ours to publish. Without it the two sides
-    # disagreed -- concrete providers build acquisitions with `short_name`
-    # while a harvested row carries `identifier_key or short_name`, because
-    # the import validator requires a feed's provider_name to equal the
-    # `identifiers.*` key -- so one response carried `gutenberg` on a
-    # synthesized link and `project_gutenberg` on a harvested one.
-    #
-    # Still type-checked: `providers` reaches this through from_json_safe,
-    # which does not validate, so the raw value can be a dict or an int and
-    # would otherwise be serialized into the response as-is.
+    # Name and source marker are decided from one fact -- which producer made
+    # this acquisition -- so they cannot drift apart. Only a provider that
+    # built the URL from `identifiers.*` supplies a trusted name; anything
+    # else is patron text from the edit-book form and is served verbatim,
+    # because canonicalizing it would mint a registry identifier we have not
+    # verified. See the SOURCE_* constants for what each value promises.
     raw_name = trusted_provider_name or getattr(acquisition, "provider_name", None)
     link: dict[str, Any] = {
         "rel": rel,
         "href": href,
+        # isinstance, not truthiness: `providers` arrives via from_json_safe,
+        # which does not validate, so this can be a dict or an int.
         "provider_name": raw_name if isinstance(raw_name, str) and raw_name else None,
-        # Says where this came from, and it is the whole point of the field
-        # being safe to publish. A harvested link passed the ingest gate,
-        # which drops any provider not in the feed registry. A synthesized
-        # one was built from `Edition.providers`, which is written straight
-        # from the edit-book form -- so a patron can type `project_gutenberg`
-        # and have it served verbatim beside a URL they chose. Serving the
-        # raw name stops us MINTING a registry identifier from typed text,
-        # but it cannot stop someone typing one; without this marker the
-        # vetted and unvetted links are the same JSON object and a consumer
-        # reading `provider_name` has no way to tell them apart.
-        # The trusted name and the source marker come from the same fact --
-        # which producer made this acquisition -- so they must not be
-        # decided separately. A provider that derived it from `identifiers.*`
-        # supplies a name; the base path, reading `Edition.providers`, does
-        # not, and its links say so.
         "properties": {SOURCE_KEY: SOURCE_SYNTHESIZED if trusted_provider_name else SOURCE_EDITION_PROVIDERS},
     }
-    # `format` and `price` reach this from the same unvalidated blob as
-    # `provider_name`, via from_json_safe, which catches only ValueError. An
-    # unhashable `format` (a patron saving a list) raised TypeError straight
-    # out of the dict lookup and 500ed every search page that edition
-    # appeared on.
+    # Unhashable `format` (a patron saving a list) raised TypeError out of the
+    # dict lookup and 500ed every search page that edition appeared on.
     raw_format = getattr(acquisition, "format", None)
     if media_type := OPDS_TYPE_FOR_FORMAT.get(raw_format if isinstance(raw_format, str) else ""):
         link["type"] = media_type
-    # `providers` carries price as an opaque string ("$4.99"); OPDS2 wants a
-    # currency and a number. Passed through under a distinct key rather than
-    # guessed at, so nothing downstream reads a fabricated amount -- and only
-    # when it really is a string, so a dict cannot be served under a key
-    # whose name promises a display string.
+    # `providers` carries price as an opaque string ("$4.99") where OPDS2 wants
+    # a currency and a number, so it goes under a key that promises neither --
+    # and only when it really is a string.
     raw_price = getattr(acquisition, "price", None)
     if isinstance(raw_price, str) and raw_price:
         link["properties"]["price_display"] = raw_price

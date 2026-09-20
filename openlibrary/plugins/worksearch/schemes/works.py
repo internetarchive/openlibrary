@@ -659,26 +659,17 @@ class WorkSearchScheme(SearchScheme):
         from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
         from openlibrary.utils import extract_numeric_id_from_olid
 
-        # One batched read for every edition on the page, when asked for.
-        # Read from Postgres at request time rather than indexed into Solr
-        # because prices change far more often than bibliographic data, and
-        # re-indexing an edition per price change is not viable. Failing here
-        # must not fail the search: acquisitions are additive, so a database
-        # that is down or slow costs a caller its prices, never its results.
+        # One batched read for every edition on the page. Prices change far
+        # more often than bibliographic data, so this is read at request time
+        # rather than indexed into Solr.
         #
-        # Runs ON the event loop by maintainer decision (#13395): this method
-        # already blocks it with `site.get().get_many()` below, and
-        # asyncio.to_thread would open a Postgres connection per pool thread,
-        # since web.py holds them per thread. Becomes a real await with the
-        # async driver migration.
+        # Deliberately synchronous, on the event loop: `asyncio.to_thread`
+        # would open a Postgres connection per pool thread, since web.py
+        # holds them per thread. Becomes a real await with the async driver.
         #
-        # Note what is NOT true: this method is not bounded by page size.
-        # `get_many()` above fetches every work key plus every edition key the
-        # caller asked for, uncapped, and does so for `providers` too. The cap
-        # below bounds THIS query only; it does not make the method safe at a
-        # large `limit`, and claiming otherwise would be worse than not
-        # capping. That belongs at the endpoint (`Pagination.limit` has no
-        # `le=`), which is pre-existing and not changed here.
+        # This does not bound the method by page size. `get_many()` above is
+        # uncapped for `providers` too; the endpoint's `limit` has no `le=`,
+        # which is where that belongs and is not changed here.
         stored_by_edition: dict[int, list] = {}
         if "editions.opds_acquisitions" in prefixed_fields:
             edition_ids = []
@@ -691,37 +682,25 @@ class WorkSearchScheme(SearchScheme):
                     if 0 < numeric_id <= MAX_DB_INT:
                         edition_ids.append(numeric_id)
             if len(edition_ids) > MAX_EDITIONS_PER_QUERY:
-                # All or nothing, never the first N. Truncating the lookup
-                # leaves every later document with an empty list that is
-                # indistinguishable from "this book has no acquisitions" --
-                # a wrong price answer rather than a missing one, and only a
-                # server-side log to say so. Skipping the whole page instead
-                # means the field is uniformly absent, which a caller can
-                # actually detect and retry with a smaller `limit`.
                 logger.warning(
                     "skipping acquisitions for a page of %d editions (cap %d); ask for a smaller limit",
                     len(edition_ids),
                     MAX_EDITIONS_PER_QUERY,
                 )
-                # Drop the field from the weave, not just the lookup. The
-                # loop below iterates `prefixed_fields`, not `edition_ids`,
-                # so clearing the ids alone still assigns every document a
-                # list -- one missing its harvested links but carrying the
-                # synthesized ones, which reads as authoritative. That is
-                # less detectable than the truncation this replaced, not
-                # more. Absent is a signal; plausible-and-short is not.
+                # Remove the field, all or nothing. It must come out of
+                # `prefixed_fields`, which drives the weave below -- clearing
+                # the ids alone still gives every document a list, built from
+                # the synthesized half and missing every harvested price,
+                # which a caller cannot tell from a book that has none.
+                # Absent they can detect, and retry with a smaller `limit`.
                 prefixed_fields.discard("editions.opds_acquisitions")
                 edition_ids = []
             try:
                 stored_by_edition = StoredAcquisition.get_by_editions(edition_ids)
             except Exception:
-                # Same rule as the oversized page above, and it has to be the
-                # same rule: leaving the field in place here would give every
-                # document a list built from the synthesized half alone, which
-                # reads as complete while omitting every harvested price. A
-                # caller cannot tell that from a book with no harvested
-                # acquisitions. Absent is the only honest answer when the
-                # harvested half could not be read.
+                # Same rule as the oversized page above, for the same
+                # reason: a list without the harvested half reads as
+                # complete.
                 prefixed_fields.discard("editions.opds_acquisitions")
                 logger.exception("failed to read acquisitions; returning results without the field")
 
@@ -755,12 +734,10 @@ class WorkSearchScheme(SearchScheme):
     def _opds_acquisitions(solr_doc: dict, edition: Edition, stored_by_edition: dict[int, list]) -> list[dict]:
         """How this edition can be acquired, as OPDS2 acquisition links.
 
-        Not "every way", which an earlier version of this docstring claimed.
-        The Internet Archive synthesizes nothing unless the caller also
-        requested `editions.ebook_access`, because IA reads it off the SOLR
-        document and `editions.fl` carries only the solr fields asked for.
-        That is a documented requirement of this field rather than a bug
-        here, and it is pinned by a test.
+        Not every way: the Internet Archive synthesizes nothing unless the
+        caller also requested `editions.ebook_access`, because IA reads it
+        off the Solr document and `editions.fl` carries only the solr fields
+        asked for. A documented requirement of the field, pinned by a test.
 
         One field, one format, one call. Previously a caller had to read
         `providers` for the providers Open Library synthesizes and a second
