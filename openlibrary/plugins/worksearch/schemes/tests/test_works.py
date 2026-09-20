@@ -315,3 +315,40 @@ def test_q_to_solr_params_mlt_params_overridable():
     assert "qf=subject " in q
     # Unmentioned params keep their defaults
     assert "maxqt=50" in q
+
+
+def test_q_to_solr_params_no_popularity_boost_for_mlt():
+    """OL's popularity prior is additive with the more-like-this score and of
+    comparable size, so leaving it on ranks by fame instead of likeness."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        mlt = dict(s.q_to_solr_params(s.process_user_query("like:OL123W"), {"editions:[subquery]"}, []))
+        plain = dict(s.q_to_solr_params(s.process_user_query("dune"), {"editions:[subquery]"}, []))
+
+    # Match the popularity function itself: the mlt clause has a `boost` local
+    # param of its own, and the parent clause mentions edition_count.
+    assert 'boost="sum(' not in mlt["q"]
+    # Ordinary searches keep it
+    assert 'boost="sum(' in plain["q"]
+
+
+def test_q_to_solr_params_popularity_boost_still_overridable_for_mlt():
+    """The A/B knob wins over our default, so a prior can be tried on top."""
+    from openlibrary.fastapi.models import SolrInternalsParams
+
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(
+            s.process_user_query("like:OL123W"),
+            {"editions:[subquery]"},
+            [],
+            solr_internals_params=SolrInternalsParams(solr_boost="log(readinglog_count)"),
+        )
+
+    assert 'boost="log(readinglog_count)"' in dict(params)["q"]

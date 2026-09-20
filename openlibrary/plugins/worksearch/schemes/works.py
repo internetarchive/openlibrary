@@ -46,27 +46,37 @@ re_work_key = re.compile(r"(OL\d+W)")
 # Local params for solr's "more like this" query parser, used by the `like:`
 # search field. See
 # https://solr.apache.org/guide/solr/latest/query-guide/other-parsers.html#more-like-this-query-parser
+# Calibrated against the production index (~44M works) via
+# /developers/more-like-this; the thresholds are absolute document counts, so
+# they do not transfer to a small index. On a local dev index nothing clears
+# `mindf`, and `like:` returns nothing until you lower it (the dev page exposes
+# every value below as an `mlt_*` url param).
 MLT_LOCAL_PARAMS = MappingProxyType(
     {
         # Fields whose terms describe what a work "is about". The parser rebuilds
         # the seed work's terms from the *stored* values of these fields, so each
         # one must have stored="true" in the solr schema (note the `*_facet`
-        # variants do not).
+        # variants do not). `title` earns its place: without it a seed's own
+        # sequels and series stop matching at all.
         "qf": "subject^4 person^2 place^2 time^2 title author_name",
         # Default is 2, which throws away nearly every term we care about: a
         # subject/person/place is usually listed once per work, so its term
         # frequency is 1.
         "mintf": "1",
-        # Ignore terms so rare they're more likely typos or cataloguing noise
-        # than a shared topic.
-        "mindf": "3",
-        # Ignore terms so common they say nothing about the subject matter (also
-        # keeps the generated query cheap).
-        "maxdf": "500000",
+        # Terms rarer than this are mostly cataloguing noise, and being rare they
+        # score high enough to drag a whole result set off-topic.
+        "mindf": "2000",
+        # Terms more common than this (~5% of works) say nothing about subject
+        # matter. Not lower: genre-level terms like "Science fiction" land in the
+        # high hundreds of thousands and are exactly what relates a series.
+        "maxdf": "2000000",
         "maxqt": "50",
-        # Weight the generated terms by how distinctive they are, rather than
-        # treating every extracted term as equally meaningful.
-        "boost": "true",
+        # False on purpose. Weighting each term by how distinctive it is sounds
+        # right, but it makes one idiosyncratic subject heading outweigh broad
+        # agreement and surfaces obscure books over a seed's own sequels.
+        # Unweighted, a work matching many of the seed's terms wins, which is
+        # the behaviour we want.
+        "boost": "false",
     }
 )
 
@@ -423,7 +433,16 @@ class WorkSearchScheme(SearchScheme):
             # match the query terms in close proximity to each other.
             solr_pf="alternative_title^50 author_name^50 series_name^5",
             solr_pf2="alternative_title^20 author_name^20 series_name^5 chapter^5",
-            solr_boost="sum(mul(20,log(sum(3,edition_count))),min(50,def(already_read_count,0)),mul(35,log(div(sum(4,def(readinglog_count,0)), 4))))",
+            # OL's popularity prior. Dropped for more-like-this queries: it is
+            # *additive* with the similarity score and of comparable magnitude,
+            # so it reorders by fame rather than likeness — measured on
+            # production, it made a linear algebra textbook recommend "Eat That
+            # Frog" and returned the same few bestsellers for every seed.
+            solr_boost=(
+                None
+                if mlt_query
+                else "sum(mul(20,log(sum(3,edition_count))),min(50,def(already_read_count,0)),mul(35,log(div(sum(4,def(readinglog_count,0)), 4))))"
+            ),
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called userWorkQuery.
@@ -961,10 +980,11 @@ def build_mlt_query(
     `overrides` replaces individual MLT_LOCAL_PARAMS entries, so the tuning can
     be driven from the request (see SolrInternalsParams.mlt_overrides).
 
-    >>> print(build_mlt_query(['mltSeed0'], ['/works/OL1W']))
-    (_query_:"{!mlt boost=true maxdf=500000 maxqt=50 mindf=3 mintf=1 qf='subject^4 person^2 place^2 time^2 title author_name' v=$mltSeed0}" -key:("/works/OL1W"))
+    >>> q = build_mlt_query(['mltSeed0'], ['/works/OL1W'])
+    >>> print(q.replace(MLT_LOCAL_PARAMS['qf'], '<QF>'))
+    (_query_:"{!mlt boost=false maxdf=2000000 maxqt=50 mindf=2000 mintf=1 qf='<QF>' v=$mltSeed0}" -key:("/works/OL1W"))
     >>> print(build_mlt_query(['mltSeed0'], ['/works/OL1W'], {'mintf': '4', 'qf': 'subject'}))
-    (_query_:"{!mlt boost=true maxdf=500000 maxqt=50 mindf=3 mintf=4 qf=subject v=$mltSeed0}" -key:("/works/OL1W"))
+    (_query_:"{!mlt boost=false maxdf=2000000 maxqt=50 mindf=2000 mintf=4 qf=subject v=$mltSeed0}" -key:("/works/OL1W"))
     >>> print(build_mlt_query(['mltSeed0', 'mltSeed1'], ['/works/OL1W', '/works/OL2W'])[-53:])
     v=$mltSeed1}") -key:("/works/OL1W" OR "/works/OL2W"))
     """

@@ -303,6 +303,21 @@ local-params syntax can't be nested inside the edismax query the rest of the tre
 returns as its own mandatory clause in `q`, so its similarity score adds to the usual edismax
 boosts and it composes with other fields and facets (`like:OL123W language:eng`).
 
+**The popularity prior is deliberately off for these queries.** `q_to_solr_params()` sets the edismax
+`boost` (OL's edition-count/readinglog popularity function) to `None` whenever a `like:` clause is
+present. That function is *additive* with the more-like-this score and of comparable magnitude, so
+leaving it on ranks by fame rather than likeness. Measured on production before the fix: a linear
+algebra textbook recommended *Eat That Frog!* and *Getting Things Done*, *Clean Code* recommended
+*Harry Potter* and *The 48 Laws of Power*, and most seeds returned the same handful of bestsellers
+whatever their subject. The `solr_boost` url param still overrides this, so a prior can be A/B'd —
+but note a prior only a fifth of the original strength was already enough to push *Eat That Frog!*
+back into a linear algebra result set.
+
+**The tuning values in `MLT_LOCAL_PARAMS` are calibrated for the ~44M-work production index**, and
+`mindf`/`maxdf` are absolute document counts, so they do not transfer to a smaller one. On a local
+dev index no term clears `mindf=2000` and `like:` quietly returns nothing — pass `mlt_mindf=1` (the
+`mlt_*` params, or the controls on /developers/more-like-this) while working locally.
+
 Similarity is measured over the fields in `MLT_LOCAL_PARAMS['qf']`. Two things constrain that list:
 
 - **The fields must be `stored`.** Lucene's `MoreLikeThis` reads the seed document's terms from term
@@ -311,6 +326,12 @@ Similarity is measured over the fields in `MLT_LOCAL_PARAMS['qf']`. Two things c
   needs **no reindex**, but also means the `*_facet`/`*_key` variants (`stored="false"`) can't be used.
 - **`mintf` must be 1.** The parser's default of 2 discards almost every useful term, since a
   subject/person/place is typically listed once per work, giving it a term frequency of 1.
+- **`title` must stay in `qf`.** It looks like noise next to `subject`, but dropping it stops a
+  seed's own sequels and series from matching: without it *Dune* no longer finds *Dune Messiah*, and
+  a linear algebra text returns *Kidney pathology*.
+- **`boost=false`.** Weighting each extracted term by how distinctive it is lets one idiosyncratic
+  subject heading outweigh broad agreement; unweighted, a work sharing many of the seed's terms
+  wins. This is what turns *Dune* into the Dune series rather than assorted obscure SF.
 
 Two behaviours worth knowing:
 
