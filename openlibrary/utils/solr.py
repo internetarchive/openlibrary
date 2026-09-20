@@ -50,6 +50,8 @@ SolrRequestLabel = Literal[
     "SUBJECT_SEARCH_API",
     "AUTHOR_SEARCH",
     "AUTHOR_SEARCH_API",
+    # /developers/more-like-this sampling its comparison set
+    "MORE_LIKE_THIS_SAMPLE",
 ]
 
 
