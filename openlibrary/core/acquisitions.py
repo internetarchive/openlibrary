@@ -60,7 +60,17 @@ class Acquisition(web.storage, CommonExtras):
         acquisition = Acquisition(row)
         # jsonb comes back as a dict from Postgres but as a string from SQLite.
         if isinstance(data := acquisition.get("data"), str):
-            acquisition.data = json.loads(data)
+            try:
+                acquisition.data = json.loads(data)
+            except ValueError:
+                # A jsonb value whose TOP LEVEL is a JSON string arrives from
+                # Postgres already decoded, so re-parsing it raises and, from
+                # `get_by_editions`, costs the whole page its acquisitions --
+                # the opposite of the documented "one bad row" behaviour.
+                # Leave the value as it is: the reader requires a dict and
+                # skips the row with a warning. Unreachable on SQLite, where
+                # every blob is a string and this parse always succeeds.
+                logger.warning("acquisitions row %s/%s has an unparsable data blob; leaving it", acquisition.get("provider_name"), acquisition.get("local_id"))
         return acquisition
 
     @staticmethod
@@ -180,9 +190,12 @@ MAX_DB_INT = 2**31 - 1
 """Largest value the ``integer`` columns can hold.
 
 A key like ``/books/OL<80 digits>M`` parses fine -- Python ints are arbitrary
-precision -- and only fails at the driver, inside the caller's page-wide
-guard, costing every document on the page its acquisitions. Rejected before
-the query so it costs only that key.
+precision -- so it reaches the query as an id no row can match. Measured
+against this Postgres, it does NOT raise: an 80-digit value in the ``IN``
+list returns the rows for the valid ids and no error, so this guard is
+defence in depth rather than a fix for an observed failure. An earlier
+version of this docstring claimed it failed at the driver and cost the
+whole page; that was asserted, not measured, and it is wrong.
 """
 
 MAX_ACQUISITIONS_PER_DOC = 24
@@ -266,27 +279,21 @@ def _provider_name_lookup() -> dict[str, str]:
     return lookup
 
 
-def feed_provider_name(name: str | None) -> str | None:
-    """A provider's name as the feed registry spells it, for display.
-
-    Unknown names pass through unchanged, because a feed-only provider
-    (``lenny``) has no ``book_providers`` entry and its own spelling is the
-    right one to publish.
-    """
-    if not isinstance(name, str) or not name:
-        return None
-    return _provider_name_lookup().get(_squash(name), name)
-
-
 def provider_dedupe_key(name: object) -> str | None:
-    """What both sides of the dedupe compare on.
+    """What both sides of the dedupe compare on -- and nothing else.
 
-    Deliberately not :func:`feed_provider_name`. That resolves a name for
-    *display* and leaves an unknown one alone -- which makes it a no-op for
-    exactly the providers that have harvested rows today, so ``"Lenny"`` and
-    ``"lenny"`` compared unequal and the edition showed the same acquisition
-    twice. Comparison falls back to the squashed form, so spelling differences
-    that do not change which provider is meant cannot produce a duplicate.
+    Never published. An earlier revision also used a resolved name as the
+    ``provider_name`` it served, which turned user-typed text from the
+    edit-book form into ``project_gutenberg``, the registry identifier the
+    ingest gate and ``identifiers.*`` key on. Resolution is a comparison
+    detail; both sides of the response now carry the name their own source
+    gave them.
+
+    Falls back to the squashed form rather than leaving an unknown name
+    alone, because a feed-only provider (``lenny``) has no ``book_providers``
+    entry -- so resolving alone was a no-op for exactly the providers that
+    have harvested rows today, and ``"Lenny"`` compared unequal to ``"lenny"``
+    while both meant one provider.
     """
     if not isinstance(name, str) or not name:
         return None
@@ -345,7 +352,19 @@ def provider_acquisition_as_opds(acquisition: Any) -> dict | None:
     href = getattr(acquisition, "url", None)
     if not rel or not _is_safe_url(href):
         return None
-    link: dict[str, Any] = {"rel": rel, "href": href, "provider_name": feed_provider_name(getattr(acquisition, "provider_name", None))}
+    # The RAW name, deliberately. `Edition.providers` is written straight from
+    # the edit-book form, so canonicalizing it here would turn user-typed text
+    # into `project_gutenberg` -- the registry identifier that `identifiers.*`
+    # and the ingest gate key on -- and publish it as though Open Library had
+    # verified the provider. It also matches the harvested side, which serves
+    # `row.provider_name` verbatim, so one provider cannot appear under two
+    # spellings in one response. Canonicalization is for comparison only; see
+    # `provider_dedupe_key`.
+    # Still type-checked: `providers` reaches this through from_json_safe,
+    # which does not validate, so the raw value can be a dict or an int and
+    # would otherwise be serialized into the response as-is.
+    raw_name = getattr(acquisition, "provider_name", None)
+    link: dict[str, Any] = {"rel": rel, "href": href, "provider_name": raw_name if isinstance(raw_name, str) and raw_name else None}
     if media_type := OPDS_TYPE_FOR_FORMAT.get(getattr(acquisition, "format", "") or ""):
         link["type"] = media_type
     # `providers` carries price as an opaque string ("$4.99"); OPDS2 wants a

@@ -703,6 +703,14 @@ class WorkSearchScheme(SearchScheme):
                     len(edition_ids),
                     MAX_EDITIONS_PER_QUERY,
                 )
+                # Drop the field from the weave, not just the lookup. The
+                # loop below iterates `prefixed_fields`, not `edition_ids`,
+                # so clearing the ids alone still assigns every document a
+                # list -- one missing its harvested links but carrying the
+                # synthesized ones, which reads as authoritative. That is
+                # less detectable than the truncation this replaced, not
+                # more. Absent is a signal; plausible-and-short is not.
+                prefixed_fields.discard("editions.opds_acquisitions")
                 edition_ids = []
             try:
                 stored_by_edition = StoredAcquisition.get_by_editions(edition_ids)

@@ -23,7 +23,6 @@ from openlibrary.core.acquisitions import (
     MAX_EDITIONS_PER_QUERY,
     Acquisition,
     _squash,
-    feed_provider_name,
     opds_links_for_edition,
     provider_acquisition_as_opds,
     provider_dedupe_key,
@@ -97,11 +96,11 @@ class TestProviderNameMapping:
     """
 
     def test_a_short_name_resolves_to_the_registry_spelling(self):
-        assert feed_provider_name("gutenberg") == "project_gutenberg"
+        assert provider_dedupe_key("gutenberg") == "project_gutenberg"
 
     def test_every_provider_with_a_differing_key_resolves(self):
         """The hand-written dict knew about Gutenberg and missed Runeberg."""
-        assert feed_provider_name("runeberg") == "project_runeberg"
+        assert provider_dedupe_key("runeberg") == "project_runeberg"
 
     def test_a_display_name_resolves(self):
         """`BetterWorldBooksProvider.bwb_acquisitions` overwrites
@@ -109,19 +108,19 @@ class TestProviderNameMapping:
         `get_book_provider_by_name` does not resolve -- so matching on the
         registry alone still emitted a harvested AND a synthesized BWB
         acquisition for one edition."""
-        assert feed_provider_name("Better World Books") == "betterworldbooks"
-        assert feed_provider_name("Project Gutenberg") == "project_gutenberg"
+        assert provider_dedupe_key("Better World Books") == "betterworldbooks"
+        assert provider_dedupe_key("Project Gutenberg") == "project_gutenberg"
 
     def test_a_name_that_already_agrees_is_unchanged(self):
-        assert feed_provider_name("betterworldbooks") == "betterworldbooks"
-        assert feed_provider_name("standard_ebooks") == "standard_ebooks"
+        assert provider_dedupe_key("betterworldbooks") == "betterworldbooks"
+        assert provider_dedupe_key("standard_ebooks") == "standard_ebooks"
 
-    def test_a_provider_we_do_not_know_passes_through(self):
+    def test_a_provider_we_do_not_know_falls_back_to_its_squashed_form(self):
         """Feed-only providers (lenny) have no book_providers entry."""
-        assert feed_provider_name("lenny") == "lenny"
+        assert provider_dedupe_key("lenny") == "lenny"
 
     def test_none_stays_none(self):
-        assert feed_provider_name(None) is None
+        assert provider_dedupe_key(None) is None
 
 
 # ---------------------------------------------------------------------------
@@ -136,9 +135,14 @@ class TestProviderCoercion:
         assert link["href"] == "https://x/b"
         assert link["type"] == "application/epub+zip"
 
-    def test_the_provider_name_is_mapped_not_copied(self):
+    def test_the_provider_name_is_copied_not_mapped(self):
+        """It used to be mapped, and that was the defect. `Edition.providers`
+        is written straight from the edit-book form POST, so resolving here
+        published `project_gutenberg` -- the registry identifier the ingest
+        gate and `identifiers.*` key on -- for whatever a patron typed. The
+        dedupe still resolves; see `provider_dedupe_key`."""
         link = provider_acquisition_as_opds(provider_acquisition(provider_name="gutenberg"))
-        assert link["provider_name"] == "project_gutenberg"
+        assert link["provider_name"] == "gutenberg"
 
     def test_an_access_kind_with_no_opds_equivalent_is_dropped(self):
         """Better to omit than to invent a `rel` the spec does not define."""
@@ -305,13 +309,16 @@ def test_no_two_providers_squash_to_the_same_key():
 
 @pytest.mark.parametrize("feed_name", ["lenny", "project_gutenberg", "betterworldbooks", "lenny_lennyforlibraries_org"])
 def test_a_registered_feed_name_is_never_rewritten_into_another_provider(feed_name):
-    """Resolution must be idempotent for names the feed registry actually uses.
-
-    A feed's provider_name is also its `identifiers` key and its
+    """A feed's provider_name is also its `identifiers` key and its
     `source_records` prefix, so rewriting one would not merely mislabel an
     acquisition -- it would break the dedupe in the other direction.
+
+    Asserted on what is SERVED, not on a resolver, because serving a resolved
+    name is the thing that went wrong: it published a registry identifier
+    derived from whatever text a patron typed into the edit-book form.
     """
-    assert feed_provider_name(feed_name) == feed_name
+    link = provider_acquisition_as_opds(provider_acquisition(provider_name=feed_name, url="https://x/y"))
+    assert link["provider_name"] == feed_name
 
 
 # ---------------------------------------------------------------------------
@@ -370,17 +377,23 @@ class TestPageSizeCannotChooseTheQuerySize:
     """
 
     @staticmethod
-    def _page(edition_count, works=1):
+    def _page(edition_count, works=1, site=None):
         """The production shape: `editions.rows` is pinned to 1, so a page is
-        many works with one edition each — not one work with many editions."""
+        many works with one edition each — not one work with many editions.
+
+        `site` is not optional in spirit. `add_non_solr_fields` skips any
+        document whose key is absent from the site (`if not db_thing:
+        continue`), so a page whose editions were never saved never reaches
+        the code that writes the field, and an assertion about what was
+        written passes against source with no cap at all. Every test here
+        that asserts on woven output must pass a site."""
         per_work = max(1, edition_count // works)
-        return {
-            "response": {
-                "docs": [
-                    {"key": f"/works/OL{w}W", "editions": {"docs": [{"key": f"/books/OL{w * 1000 + e}M"} for e in range(per_work)]}} for w in range(1, works + 1)
-                ]
-            }
-        }
+        docs = [{"key": f"/works/OL{w}W", "editions": {"docs": [{"key": f"/books/OL{w * 1000 + e}M"} for e in range(per_work)]}} for w in range(1, works + 1)]
+        if site is not None:
+            for doc in docs:
+                for ed_doc in doc["editions"]["docs"]:
+                    site.save({"key": ed_doc["key"], "type": {"key": "/type/edition"}, "title": "t"})
+        return {"response": {"docs": docs}}
 
     def _asked(self, monkeypatch, solr_result):
         seen: dict = {}
@@ -401,7 +414,7 @@ class TestPageSizeCannotChooseTheQuerySize:
 
     def test_no_document_is_left_holding_a_misleading_empty_list(self, acquisitions_db, monkeypatch, mock_site):
         site_var.set(mock_site)
-        page = self._page(MAX_EDITIONS_PER_QUERY + 50, works=250)
+        page = self._page(MAX_EDITIONS_PER_QUERY + 50, works=250, site=mock_site)
         monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
         WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
         woven = [ed for doc in page["response"]["docs"] for ed in doc["editions"]["docs"] if "opds_acquisitions" in ed]
@@ -412,9 +425,11 @@ class TestPageSizeCannotChooseTheQuerySize:
         assert self._asked(monkeypatch, self._page(100, works=100)) == 100
 
     def test_an_id_too_large_for_the_column_is_dropped_not_fatal(self, acquisitions_db, monkeypatch, mock_site):
-        """It parses fine -- Python ints are arbitrary precision -- and fails
-        at the driver inside the page-wide guard, costing every document on
-        the page its acquisitions."""
+        """It parses fine -- Python ints are arbitrary precision -- and would
+        otherwise reach the query as an id no row can match. Measured against
+        real Postgres this does not raise, so the guard is defence in depth;
+        what this test pins is that the oversized key is dropped and the
+        valid one beside it still gets looked up."""
         site_var.set(mock_site)
         page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL" + "9" * 40 + "M"}, {"key": "/books/OL5M"}]}}]}}
         seen: dict = {}
@@ -490,6 +505,32 @@ class TestBehavioursThatSurvivedMutation:
         assert Acquisition.get_by_editions([]) == {}
         assert issued == [], "no SQL may be issued for an empty id list"
 
+    def test_the_field_is_not_written_when_it_was_not_requested(self, acquisitions_db, mock_site):
+        """The gate was only ever asserted on the QUERY. Nothing asserted the
+        field is absent from the response, which is the hole the oversized-page
+        bug fell through: suppressing the lookup while the weave loop still ran
+        gave every document a list built from the synthesized half alone."""
+        site_var.set(mock_site)
+        mock_site.save({"key": "/books/OL5M", "type": {"key": "/type/edition"}, "title": "t"})
+        page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL5M"}]}}]}}
+        WorkSearchScheme().add_non_solr_fields({"editions.providers"}, page)
+        ed_doc = page["response"]["docs"][0]["editions"]["docs"][0]
+        assert "opds_acquisitions" not in ed_doc
+
+    def test_a_jsonb_top_level_string_does_not_cost_the_page_its_acquisitions(self):
+        """Postgres-only, and structurally invisible to this suite otherwise.
+
+        psycopg decodes jsonb before `_from_row` sees it, so a blob whose top
+        level is a JSON string arrives as an already-decoded `str` and the
+        re-parse raises -- from `get_by_editions`, killing every edition on
+        the page rather than skipping one row. On SQLite every blob is a
+        string and the parse always succeeds, so only a direct call reaches
+        it."""
+        row = web.storage(data="just a string", provider_name="p", local_id="l", edition_id=1)
+        acquisition = Acquisition._from_row(row)
+        assert acquisition.data == "just a string"
+        assert opds_links_for_edition([acquisition]) == []
+
     def test_rows_for_one_edition_and_provider_have_a_stable_order(self, acquisitions_db):
         """(edition_id, provider_name) is not unique — the table's UNIQUE is
         (local_id, provider_name) — so without local_id in the ORDER BY two
@@ -551,20 +592,26 @@ class TestDefectsFoundByIndependentReview:
         links = WorkSearchScheme._opds_acquisitions({"key": "/books/OL36620178M"}, object(), stored)
         assert [link["href"] for link in links] == ["https://harvested"]
 
-    def test_the_dedupe_key_is_not_the_display_name(self):
-        """A feed-only provider has no book_providers entry, so resolving for
-        display leaves it alone -- which made the dedupe a case-sensitive exact
-        match for exactly the providers that have harvested rows today."""
-        assert feed_provider_name("Lenny") == "Lenny", "display keeps the feed's own spelling"
+    def test_the_dedupe_key_is_never_the_published_name(self):
+        """Canonicalization is a comparison detail. Publishing it turned
+        free text from the edit-book form into the registry identifier that
+        `identifiers.*` and the ingest gate key on, which reads as though
+        Open Library had verified the provider."""
         assert provider_dedupe_key("Lenny") == provider_dedupe_key("lenny") == "lenny"
+        typed_by_a_patron = provider_acquisition(provider_name="Project-Gutenberg", url="https://attacker.test/x.epub")
+        assert provider_acquisition_as_opds(typed_by_a_patron)["provider_name"] == "Project-Gutenberg"
 
     @pytest.mark.parametrize("hostile", [{"a": 1}, 42, ["x"], None])
     def test_a_non_string_provider_name_does_not_crash_the_search(self, hostile):
         """`provider_name` reaches this from an edition's `providers` blob via
         from_json_safe, which does not validate types. An AttributeError here
         escaped as a 500 on every search page that edition appeared on."""
-        assert feed_provider_name(hostile) is None
-        assert provider_acquisition_as_opds(provider_acquisition(provider_name=hostile)) is not None
+        assert provider_dedupe_key(hostile) is None
+        coerced = provider_acquisition_as_opds(provider_acquisition(provider_name=hostile))
+        assert coerced is not None
+        # Serving the raw name must not mean serving a raw dict: the published
+        # value is a string or null, never whatever was in the blob.
+        assert coerced["provider_name"] is None
 
     def test_every_edition_on_a_page_gets_its_own_budget(self, acquisitions_db):
         """The cap used to be one global SQL LIMIT applied after ORDER BY, so
