@@ -135,7 +135,7 @@ class Acquisition(web.storage, CommonExtras):
         for row in rows:
             acquisition = Acquisition._from_row(row)
             bucket = grouped.setdefault(acquisition.edition_id, [])
-            if len(bucket) < MAX_ACQUISITIONS_PER_DOC:
+            if len(bucket) < MAX_ROWS_PER_EDITION:
                 bucket.append(acquisition)
             else:
                 # Logged, because the caller cannot see it. A short list that
@@ -143,7 +143,7 @@ class Acquisition(web.storage, CommonExtras):
                 # running into; at least leave a trace on our side.
                 dropped[acquisition.edition_id] = dropped.get(acquisition.edition_id, 0) + 1
         for edition_id, count in dropped.items():
-            logger.info("edition %s has more than %d acquisition rows; dropped %d", edition_id, MAX_ACQUISITIONS_PER_DOC, count)
+            logger.info("edition %s has more than %d acquisition rows; dropped %d", edition_id, MAX_ROWS_PER_EDITION, count)
         return grouped
 
     @staticmethod
@@ -222,8 +222,7 @@ SOURCE_SYNTHESIZED = "synthesized"
 that the named provider offers this book."""
 
 MAX_ACQUISITIONS_PER_DOC = 24
-"""Cap on the HARVESTED links returned for one edition, and separately on the
-rows read to produce them.
+"""Cap on the HARVESTED links published for one edition.
 
 Not a cap on the field: synthesized acquisitions are appended afterwards, so
 an edition at the cap can publish more than this many links in total. Measured
@@ -233,6 +232,17 @@ bounded the whole list, which it never did.
 Bounds a `/search.json` response: `limit` has no upper bound (unlike list
 search, which clamps to 1000), so neither the id list nor the row count can be
 assumed small.
+"""
+
+MAX_ROWS_PER_EDITION = 200
+"""Cap on the DATABASE ROWS read for one edition, which is a different unit.
+
+One number served as both, and rows and links are not interchangeable: a row
+holds a whole `acquisitions` array, and that array can be empty. So an edition
+with 30 rows whose first 24 by sort order carried nothing returned 24 rows and
+zero links, with six real acquisitions unreachable -- the field reporting that
+a book has no acquisitions when it has six. Higher than the link cap because
+its job is to bound work, not output; the link cap decides what is published.
 """
 
 MAX_EDITIONS_PER_QUERY = 200
@@ -380,7 +390,40 @@ def opds_links_for_edition(rows: list[Acquisition]) -> list[dict]:
     return links
 
 
-def provider_acquisition_as_opds(acquisition: Any) -> dict | None:
+def synthesized_acquisitions(solr_doc: dict, edition: Any) -> list[tuple[str | None, Any]]:
+    """Every synthesized acquisition, paired with a trusted provider name.
+
+    `get_acquisitions` flattens two different things into one list. A concrete
+    provider derives its acquisition from the edition's `identifiers.*` -- so
+    Open Library knows which provider that is, and the registry spelling is
+    the right one to publish. A provider with no override falls through to
+    `AbstractBookProvider.get_acquisitions`, which reads `Edition.providers`:
+    the edit-book form, where the name is whatever a patron typed.
+
+    The pair says which is which. `None` means "no trusted name, serve what
+    the blob says", which is the only safe answer for patron text -- resolving
+    it would publish a registry identifier Open Library has not verified.
+
+    The distinction exists here rather than in `provider_acquisition_as_opds`
+    because a bare `Acquisition` carries no provenance; by the time the
+    coercion sees one, which of the two produced it is unrecoverable.
+    """
+    from openlibrary.book_providers import AbstractBookProvider, InternetArchiveProvider, get_book_providers
+
+    paired: list[tuple[str | None, Any]] = []
+    for provider in get_book_providers(edition):
+        if isinstance(provider, InternetArchiveProvider):
+            acquisitions = provider.get_acquisitions(solr_doc, db_edition=edition)
+        else:
+            acquisitions = provider.get_acquisitions(edition)
+        # Identity check on the function, not `hasattr`: every provider has
+        # the attribute, and only an override means the name is ours.
+        trusted = provider.provider_name if type(provider).get_acquisitions is not AbstractBookProvider.get_acquisitions else None
+        paired.extend((trusted, acquisition) for acquisition in acquisitions)
+    return paired
+
+
+def provider_acquisition_as_opds(acquisition: Any, trusted_provider_name: str | None = None) -> dict | None:
     """A ``book_providers.Acquisition`` coerced into an OPDS2 acquisition link.
 
     So a caller reads one field in one format rather than reconciling
@@ -398,20 +441,19 @@ def provider_acquisition_as_opds(acquisition: Any) -> dict | None:
     # verified the provider. Canonicalization is for comparison only; see
     # `provider_dedupe_key`.
     #
-    # Measured consequence, stated because an earlier version of this comment
-    # claimed the opposite: this does NOT make the two sides agree. Concrete
-    # providers build their acquisitions with `self.short_name`, while a
-    # harvested row carries `identifier_key or short_name` because the import
-    # validator requires a feed's provider_name to equal the `identifiers.*`
-    # key. Those differ for Gutenberg and Runeberg, so one response can carry
-    # `gutenberg` on a synthesized link and `project_gutenberg` on a harvested
-    # one. Per-edition dedupe is unaffected -- it compares squashed keys -- and
-    # the fix belongs in `book_providers`, not here.
+    # `trusted_provider_name` is the exception, and only the caller can supply
+    # it: a concrete provider derives its acquisition from `identifiers.*`, so
+    # the registry spelling is ours to publish. Without it the two sides
+    # disagreed -- concrete providers build acquisitions with `short_name`
+    # while a harvested row carries `identifier_key or short_name`, because
+    # the import validator requires a feed's provider_name to equal the
+    # `identifiers.*` key -- so one response carried `gutenberg` on a
+    # synthesized link and `project_gutenberg` on a harvested one.
     #
     # Still type-checked: `providers` reaches this through from_json_safe,
     # which does not validate, so the raw value can be a dict or an int and
     # would otherwise be serialized into the response as-is.
-    raw_name = getattr(acquisition, "provider_name", None)
+    raw_name = trusted_provider_name or getattr(acquisition, "provider_name", None)
     link: dict[str, Any] = {
         "rel": rel,
         "href": href,

@@ -21,6 +21,7 @@ from openlibrary.core import acquisitions as acquisitions_module
 from openlibrary.core.acquisitions import (
     MAX_ACQUISITIONS_PER_DOC,
     MAX_EDITIONS_PER_QUERY,
+    MAX_ROWS_PER_EDITION,
     SOURCE_HARVESTED,
     SOURCE_KEY,
     SOURCE_SYNTHESIZED,
@@ -29,6 +30,7 @@ from openlibrary.core.acquisitions import (
     opds_links_for_edition,
     provider_acquisition_as_opds,
     provider_dedupe_key,
+    synthesized_acquisitions,
 )
 from openlibrary.core.db import _get_db, get_db
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
@@ -60,13 +62,21 @@ def acquisitions_db(tmp_path):
     _get_db.cache_clear()
 
 
-def store(edition_id, provider_name, local_id, link, work_id=450063):
+def store(edition_id, provider_name, local_id, link, work_id=450063, acquisitions=None):
+    """`acquisitions` overrides the array, including with `[]`.
+
+    A row carrying an empty array is not a hypothetical: it is what a feed
+    publication with no acquisition links harvests to, and it is why the row
+    cap and the link cap cannot be the same number.
+    """
+    if acquisitions is None:
+        acquisitions = [{"access": "borrow", "url": link["href"], "link": link}]
     Acquisition.upsert(
         work_id=work_id,
         edition_id=edition_id,
         provider_name=provider_name,
         local_id=local_id,
-        data={"acquisitions": [{"access": "borrow", "url": link["href"], "link": link}]},
+        data={"acquisitions": acquisitions},
     )
 
 
@@ -239,7 +249,7 @@ class TestStoredLinks:
 
 class TestPrecedence:
     def _stitch(self, monkeypatch, solr_doc, provider_acquisitions, stored):
-        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: provider_acquisitions)
+        monkeypatch.setattr("openlibrary.core.acquisitions.synthesized_acquisitions", lambda d, e: [(None, a) for a in provider_acquisitions])
         return WorkSearchScheme._opds_acquisitions(solr_doc, object(), stored)
 
     def test_a_harvested_row_wins_over_the_synthesized_one(self, acquisitions_db, monkeypatch):
@@ -366,6 +376,72 @@ def test_a_registered_feed_name_is_never_rewritten_into_another_provider(feed_na
 # ---------------------------------------------------------------------------
 
 
+class TestOneProviderHasOneSpellingInOneResponse:
+    """Run against the REAL provider registry, no monkeypatching.
+
+    A synthesized link used to carry `gutenberg` while a harvested row for the
+    same provider carried `project_gutenberg`, so one response named one
+    provider twice. Concrete providers build acquisitions with `short_name`;
+    a harvested row carries `identifier_key or short_name`, because the import
+    validator requires a feed's provider_name to equal the `identifiers.*`
+    key. They differ for exactly Gutenberg and Runeberg.
+    """
+
+    @pytest.mark.parametrize(
+        ("identifier_key", "expected"),
+        [("project_gutenberg", "project_gutenberg"), ("project_runeberg", "project_runeberg"), ("standard_ebooks", "standard_ebooks")],
+    )
+    def test_a_synthesized_link_uses_the_name_harvest_would_write(self, identifier_key, expected):
+        edition = {"key": "/books/OL1M", "identifiers": {identifier_key: ["12345"]}}
+        published = [provider_acquisition_as_opds(acq, trusted) for trusted, acq in synthesized_acquisitions(edition, edition)]
+        names = [link["provider_name"] for link in published if link]
+        assert names, "the provider must synthesize at least one acquisition"
+        # Set, not list: Standard Ebooks synthesizes a web link and an epub.
+        # What matters is that one provider yields exactly one spelling.
+        assert set(names) == {expected}
+
+    def test_the_weave_actually_passes_the_trusted_name_through(self, acquisitions_db):
+        """End to end, because the two halves can each be right separately.
+
+        Pairing the name and then dropping it at the call site leaves every
+        unit test above passing while the response still says `gutenberg`.
+        This is the assertion that a caller of /search.json would notice."""
+        edition = {"key": "/books/OL1M", "identifiers": {"project_gutenberg": ["12345"]}}
+        links = WorkSearchScheme._opds_acquisitions({"key": "/books/OL1M"}, edition, {})
+        assert [link["provider_name"] for link in links] == ["project_gutenberg"]
+
+    def test_a_patron_typed_name_is_still_never_upgraded(self):
+        """The trusted name comes from the provider that produced the
+        acquisition, not from the string on it. `DirectProvider` has no
+        override, so it reads `Edition.providers` -- the edit-book form -- and
+        those names must stay exactly as typed."""
+        edition = {"key": "/books/OL1M", "providers": [{"url": "https://attacker.test/x.epub", "access": "open-access", "provider_name": "Project-Gutenberg"}]}
+        pairs = synthesized_acquisitions(edition, edition)
+        assert [trusted for trusted, _ in pairs] == [None], "a patron-sourced acquisition has no trusted name"
+        assert [provider_acquisition_as_opds(a, t)["provider_name"] for t, a in pairs] == ["Project-Gutenberg"]
+
+
+class TestTheTwoUnitsAreNotOneNumber:
+    """Rows and links were capped by the same constant. They are different
+    things: a row holds an `acquisitions` array, and that array can be empty."""
+
+    def test_empty_rows_do_not_starve_the_real_links(self, acquisitions_db):
+        """Executed case: 30 rows, the first 24 by sort order carrying nothing.
+        Under one shared cap the row budget filled with empties and the six
+        real acquisitions were unreachable -- the field saying a book has none
+        when it has six."""
+        for n in range(24):
+            store(500, "lenny", f"empty-{n:03d}", None, acquisitions=[])
+        for n in range(6):
+            store(500, "lenny", f"real-{n:03d}", {"rel": BORROW_REL, "href": f"https://real/{n}"})
+        links = opds_links_for_edition(Acquisition.get_by_editions([500])[500])
+        assert [link["href"] for link in links] == [f"https://real/{n}" for n in range(6)]
+
+    def test_the_row_cap_is_higher_than_the_link_cap(self):
+        """If they are equal the starvation above comes straight back."""
+        assert MAX_ROWS_PER_EDITION > MAX_ACQUISITIONS_PER_DOC
+
+
 class TestHostileFeedContent:
     def test_a_feed_cannot_claim_its_links_are_synthesized(self, acquisitions_db):
         """The source marker is the only thing telling a consumer whether a
@@ -465,7 +541,7 @@ class TestPageSizeCannotChooseTheQuerySize:
     def test_no_document_is_left_holding_a_misleading_empty_list(self, acquisitions_db, monkeypatch, mock_site):
         site_var.set(mock_site)
         page = self._page(MAX_EDITIONS_PER_QUERY + 50, works=250, site=mock_site)
-        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+        monkeypatch.setattr("openlibrary.core.acquisitions.synthesized_acquisitions", lambda d, e: [])
         WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
         woven = [ed for doc in page["response"]["docs"] for ed in doc["editions"]["docs"] if "opds_acquisitions" in ed]
         assert woven == [], "the field must be absent everywhere, not empty on the tail"
@@ -485,7 +561,7 @@ class TestPageSizeCannotChooseTheQuerySize:
             raise RuntimeError("server closed the connection unexpectedly")
 
         monkeypatch.setattr("openlibrary.core.acquisitions.Acquisition.get_by_editions", staticmethod(boom))
-        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [provider_acquisition(url="https://synth")])
+        monkeypatch.setattr("openlibrary.core.acquisitions.synthesized_acquisitions", lambda d, e: [(None, provider_acquisition(url="https://synth"))])
         WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
         ed_doc = page["response"]["docs"][0]["editions"]["docs"][0]
         assert "opds_acquisitions" not in ed_doc
@@ -496,7 +572,7 @@ class TestPageSizeCannotChooseTheQuerySize:
         which the site itself uses -- from every page over the cap."""
         site_var.set(mock_site)
         page = self._page(MAX_EDITIONS_PER_QUERY + 50, works=250, site=mock_site)
-        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+        monkeypatch.setattr("openlibrary.core.acquisitions.synthesized_acquisitions", lambda d, e: [])
         WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions", "editions.providers"}, page)
         ed_docs = [ed for doc in page["response"]["docs"] for ed in doc["editions"]["docs"]]
         assert all("opds_acquisitions" not in ed for ed in ed_docs)
@@ -539,7 +615,7 @@ class TestBehavioursThatSurvivedMutation:
             return {}
 
         monkeypatch.setattr("openlibrary.core.acquisitions.Acquisition.get_by_editions", staticmethod(counted))
-        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+        monkeypatch.setattr("openlibrary.core.acquisitions.synthesized_acquisitions", lambda d, e: [])
         mock_site.save({"key": "/books/OL5M", "type": {"key": "/type/edition"}, "title": "t"})
         page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL5M"}]}}]}}
         WorkSearchScheme().add_non_solr_fields({"editions.providers"}, page)
@@ -554,7 +630,7 @@ class TestBehavioursThatSurvivedMutation:
             raise RuntimeError("server closed the connection unexpectedly")
 
         monkeypatch.setattr("openlibrary.core.acquisitions.Acquisition.get_by_editions", staticmethod(boom))
-        monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+        monkeypatch.setattr("openlibrary.core.acquisitions.synthesized_acquisitions", lambda d, e: [])
         page = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL5M", "title": "kept"}]}}]}}
         WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, page)
         assert page["response"]["docs"][0]["editions"]["docs"][0]["title"] == "kept"
@@ -638,7 +714,7 @@ def test_the_field_is_actually_wired_into_add_non_solr_fields(acquisitions_db, m
     site_var.set(mock_site)
     mock_site.save({"key": "/books/OL77M", "type": {"key": "/type/edition"}, "title": "t"})
     store(77, "lenny", "l-77", {"rel": BORROW_REL, "href": "https://lenny/items/77/borrow"})
-    monkeypatch.setattr("openlibrary.book_providers.get_acquisitions", lambda d, e: [])
+    monkeypatch.setattr("openlibrary.core.acquisitions.synthesized_acquisitions", lambda d, e: [])
 
     solr_result = {"response": {"docs": [{"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL77M"}]}}]}}
     WorkSearchScheme().add_non_solr_fields({"editions.opds_acquisitions"}, solr_result)
@@ -669,7 +745,8 @@ class TestDefectsFoundByIndependentReview:
         store(36620178, harvested_name, "h-1", {"rel": BUY_REL, "href": "https://harvested"})
         stored = Acquisition.get_by_editions([36620178])
         monkeypatch.setattr(
-            "openlibrary.book_providers.get_acquisitions", lambda d, e: [provider_acquisition(provider_name=synthesized_name, url="https://synth")]
+            "openlibrary.core.acquisitions.synthesized_acquisitions",
+            lambda d, e: [(None, provider_acquisition(provider_name=synthesized_name, url="https://synth"))],
         )
         links = WorkSearchScheme._opds_acquisitions({"key": "/books/OL36620178M"}, object(), stored)
         assert [link["href"] for link in links] == ["https://harvested"]
@@ -710,10 +787,13 @@ class TestDefectsFoundByIndependentReview:
 def test_one_greedy_edition_does_not_consume_another_edition_s_budget(acquisitions_db):
     """The cap is per edition. A single edition with more rows than the cap is
     truncated to it, and every other edition on the page still gets its own —
-    the starvation the global SQL LIMIT used to cause."""
-    for n in range(MAX_ACQUISITIONS_PER_DOC + 15):
+    the starvation the global SQL LIMIT used to cause.
+
+    Bounded by the ROW cap, which is the unit this function deals in; the link
+    cap applies later, to what is published."""
+    for n in range(MAX_ROWS_PER_EDITION + 15):
         store(1, f"p{n:03d}", f"greedy-{n}", {"rel": BUY_REL, "href": f"https://x/1/{n}"})
     store(2, "lenny", "modest", {"rel": BORROW_REL, "href": "https://x/2"})
     grouped = Acquisition.get_by_editions([1, 2])
-    assert len(grouped[1]) == MAX_ACQUISITIONS_PER_DOC
+    assert len(grouped[1]) == MAX_ROWS_PER_EDITION
     assert len(grouped[2]) == 1, "the modest edition is unaffected by the greedy one"

@@ -771,8 +771,7 @@ class WorkSearchScheme(SearchScheme):
         `project_gutenberg`, and comparing the raw names would treat them as
         two providers and emit both.
         """
-        from openlibrary.book_providers import get_acquisitions
-        from openlibrary.core.acquisitions import opds_links_for_edition, provider_acquisition_as_opds, provider_dedupe_key
+        from openlibrary.core.acquisitions import opds_links_for_edition, provider_acquisition_as_opds, provider_dedupe_key, synthesized_acquisitions
         from openlibrary.utils import extract_numeric_id_from_olid
 
         try:
@@ -787,10 +786,10 @@ class WorkSearchScheme(SearchScheme):
         # against nothing and the edition showed the same acquisition twice.
         harvested = {provider_dedupe_key(link.get("provider_name")) for link in links}
 
-        for acquisition in get_acquisitions(solr_doc, edition):
-            if provider_dedupe_key(acquisition.provider_name) in harvested:
+        for trusted_name, acquisition in synthesized_acquisitions(solr_doc, edition):
+            if provider_dedupe_key(trusted_name or acquisition.provider_name) in harvested:
                 continue
-            if coerced := provider_acquisition_as_opds(acquisition):
+            if coerced := provider_acquisition_as_opds(acquisition, trusted_name):
                 links.append(coerced)
         return links
 
