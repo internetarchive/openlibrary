@@ -15,7 +15,7 @@ from typing import Final
 import pytest
 import web
 
-from openlibrary.book_providers import PROVIDER_ORDER
+from openlibrary.book_providers import PROVIDER_ORDER, AbstractBookProvider
 from openlibrary.book_providers import Acquisition as ProviderAcquisition
 from openlibrary.core import acquisitions as acquisitions_module
 from openlibrary.core.acquisitions import (
@@ -438,6 +438,40 @@ class TestOneProviderHasOneSpellingInOneResponse:
         pairs = synthesized_acquisitions(edition, edition)
         assert [trusted for trusted, _ in pairs] == [None], "a patron-sourced acquisition has no trusted name"
         assert [provider_acquisition_as_opds(a, t)["provider_name"] for t, a in pairs] == ["Project-Gutenberg"]
+
+
+@pytest.mark.parametrize(
+    "provider", [p for p in PROVIDER_ORDER if type(p).get_acquisitions is not AbstractBookProvider.get_acquisitions], ids=lambda p: p.short_name
+)
+def test_no_override_delegates_to_the_patron_path(provider):
+    """The invariant the whole provenance split rests on, pinned directly.
+
+    `synthesized_acquisitions` decides a link is Open Library's by one test:
+    the provider overrides `get_acquisitions`. That is only sound while an
+    override never returns what the base returns -- `Edition.providers`,
+    where a patron controls URL and name. If one ever delegated, its
+    patron-supplied URLs would be published as `synthesized`, under a
+    registry `provider_name`, and the host would not be ours.
+
+    Parametrized over every override-bearing provider because the Gutenberg
+    case was previously caught only INCIDENTALLY: those tests assert a
+    gutenberg.org URL and fail because the derived link disappears, not
+    because anything pins this. `librivox`, `openstax`, `cita_press`,
+    `wikisource`, `ia` and `betterworldbooks` were covered by nothing. A
+    test that passes for a reason other than the one it names is the defect
+    class this PR keeps rediscovering, so this closes it rather than adding
+    coverage.
+    """
+    patron_url = "https://attacker.test/free.epub"
+    edition = {
+        "key": "/books/OL1M",
+        "ocaid": "somebook00auth",
+        "ebook_access": "borrowable",
+        "identifiers": {provider.identifier_key: ["1342"]} if provider.identifier_key else {},
+        "providers": [{"url": patron_url, "access": "open-access", "provider_name": provider.provider_name}],
+    }
+    acquisitions = provider.get_acquisitions(edition, db_edition=edition) if provider.short_name == "ia" else provider.get_acquisitions(edition)
+    assert all(a.url != patron_url for a in acquisitions), f"{provider.short_name} delegates to the base and would publish a patron URL as `synthesized`"
 
 
 class TestPatronAndDerivedLinksStayDistinguishable:

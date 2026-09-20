@@ -238,10 +238,22 @@ SOURCE_HARVESTED = "harvested"
 feed registry."""
 
 SOURCE_SYNTHESIZED = "synthesized"
-"""Built by a provider in ``book_providers`` from the edition's
-``identifiers.*``, so the URL's host is ours and the name is the registry's.
-The identifier itself is still wiki-editable: this says Open Library
-constructed the link, not that it verified the book is there."""
+"""Built by a provider in ``book_providers``, which hard-codes the host and
+appends an identifier to a path.
+
+What this is NOT evidence of, spelled out because the previous wording said
+only that the host is ours and that reads as an assurance. The identifier is
+``identifiers.*``, a wiki field any logged-in patron can set, so this says
+Open Library constructed the URL -- not that the provider offers this book,
+and not that the edition is what the identifier claims.
+
+It carries no weight at all without :data:`SOURCE_EDITION_PROVIDERS` being
+applied correctly next to it: the two are told apart only by which producer
+made the acquisition, and a ``provider_name`` of ``project_gutenberg``
+appears on both. That is pinned by
+``test_no_override_delegates_to_the_patron_path`` -- if any provider's
+``get_acquisitions`` ever delegated to the base, its patron-supplied URLs
+would arrive here wearing this marker and the host would not be ours."""
 
 SOURCE_EDITION_PROVIDERS = "edition_providers"
 """Copied out of ``Edition.providers``, where a patron controls the URL AND
