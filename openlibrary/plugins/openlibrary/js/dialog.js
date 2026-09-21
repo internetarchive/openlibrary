@@ -1,55 +1,7 @@
 import $ from 'jquery';
-import './jquery-ui-dialog';
 // For dialog boxes (e.g. add to list)
 import 'jquery-colorbox';
 import { trackEvent } from './ol.analytics.js';
-
-/**
- * Wires up confirmation prompts.
- * In future this will be generalised.
- * @return {Function} for creating a confirm dialog
- */
-function initConfirmationDialogs() {
-    const CONFIRMATION_PROMPT_DEFAULTS = { autoOpen: false, modal: true };
-    $('#noMaster').dialog(CONFIRMATION_PROMPT_DEFAULTS);
-
-    const $confirmMerge = $('#confirmMerge');
-    if ($confirmMerge.length) {
-        $confirmMerge.dialog(
-            $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
-                buttons: {
-                    'Yes, Merge': function() {
-                        const commentInput = document.querySelector('#author-merge-comment');
-                        if (commentInput.value) {
-                            document.querySelector('#hidden-comment-input').value = commentInput.value;
-                        }
-                        $('#mergeForm').trigger('submit');
-                        $(this).parents().find('button').attr('disabled', 'disabled');
-                    },
-                    'No, Cancel': function() {
-                        $(this).dialog('close');
-                    }
-                }
-            })
-        );
-    }
-    $('#leave-waitinglist-dialog').dialog(
-        $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
-            width: 450,
-            resizable: false,
-            buttons: {
-                'Yes, I\'m sure': function() {
-                    $(this).dialog('close');
-                    $(this).data('origin').closest('td').find('form').trigger('submit');
-                },
-                'No, cancel': function() {
-                    $(this).dialog('close');
-                }
-            }
-        })
-    );
-}
-
 
 /**
  * Collapses the search-inside form back to the button state.
@@ -156,7 +108,6 @@ export function initDialogs() {
             maxWidth: '640px', width: '100%' });
     });
 
-    initConfirmationDialogs();
     initPreviewDialogs();
 
     // This will close the dialog in the current page.
