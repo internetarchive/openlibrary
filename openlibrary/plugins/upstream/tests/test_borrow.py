@@ -4,8 +4,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import web
+from markupsafe import Markup
 
 from openlibrary.book_providers import Acquisition, AcquisitionAccessLiteral
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.plugins.upstream import borrow
 
 
@@ -119,6 +121,125 @@ class TestProviderBorrow:
         url = "https://lennyforlibraries.org/v1/api/items/37044817/read"
         mock_render = self._handle(self._lenny("open-access", url), action="read")
         assert mock_render.call_args.kwargs["url"] == url
+
+
+class TestMediatedProviderBorrow:
+    """A borrow Open Library runs itself rather than handing off (#13688).
+
+    The difference is one kwarg to one template, and it is the difference
+    between the patron finishing on the book page they started on and
+    finishing on another library's website.
+    """
+
+    BORROW_URL = "https://lennyforlibraries.org/v1/api/items/46539165/borrow"
+    MEDIATED_URL = "/borrow/lenny/OL46539165M"
+
+    @staticmethod
+    def _provider(access: AcquisitionAccessLiteral = "borrow"):
+        provider = MagicMock()
+        provider.short_name = "lenny"
+        provider.get_acquisitions.return_value = [
+            Acquisition(
+                access=access,
+                format="web",
+                price=None,
+                url=TestMediatedProviderBorrow.BORROW_URL,
+                provider_name="lenny",
+            )
+        ]
+        return provider
+
+    def _handle(self, provider, mediated, action="borrow"):
+        edition = _mock_edition(ocaid=None, key="/books/OL46539165M")
+        with (
+            patch("openlibrary.plugins.upstream.borrow.site") as mock_site,
+            patch("openlibrary.book_providers.get_book_provider", return_value=provider),
+            patch("openlibrary.plugins.upstream.borrow.render_jinja_template") as mock_render,
+            patch("openlibrary.plugins.upstream.lenny.mediated_borrow", return_value=mediated) as mock_mediated,
+        ):
+            mock_site.get.return_value.get.return_value = edition
+            borrow.handle_borrow("/books/OL46539165M", borrow.BorrowParams(action=action), s3_cookie=None)
+        return mock_render, mock_mediated
+
+    def test_a_configured_node_sends_the_patron_through_open_library(self):
+        mock_render, _ = self._handle(self._provider(), (self.MEDIATED_URL, "Archive Labs Lenny"))
+        assert mock_render.call_args.kwargs["url"] == self.MEDIATED_URL
+        assert mock_render.call_args.kwargs["borrowing"] is True
+
+    def test_the_library_is_named_from_the_node_not_the_feed_provider(self):
+        """ "Lenny" is the software. The sentence the patron reads names the
+        library, and only the node's own config knows what that is."""
+        mock_render, _ = self._handle(self._provider(), (self.MEDIATED_URL, "Archive Labs Lenny"))
+        assert "Archive Labs Lenny" in str(mock_render.call_args.kwargs["book_provider"])
+
+    def test_an_unconfigured_node_still_reaches_its_own_sign_in(self):
+        """#13686's behaviour, unchanged: no credentials means the node's own
+        sign-in, which completes a loan with nothing built on this side."""
+        mock_render, _ = self._handle(self._provider(), None)
+        assert mock_render.call_args.kwargs["url"] == self.BORROW_URL
+        assert mock_render.call_args.kwargs["borrowing"] is False
+
+    def test_an_open_access_title_is_never_routed_through_the_handshake(self):
+        """There is no loan to create, so there is nothing to authorize. Asking
+        at all would be a database read on every Read button."""
+        mock_render, mock_mediated = self._handle(
+            self._provider("open-access"),
+            (self.MEDIATED_URL, "Archive Labs Lenny"),
+            action="read",
+        )
+        mock_mediated.assert_not_called()
+        assert mock_render.call_args.kwargs["borrowing"] is False
+
+
+class TestInterstitialWording:
+    """The one screen that explains the relationship, so it has to be right.
+
+    The two wordings say opposite things -- "a third party we are handing you
+    to" against "a trusted provider, and you are not going anywhere" -- and
+    which one renders is decided by a single boolean. Nothing else in the
+    request distinguishes them.
+    """
+
+    LIBRARY = Markup("<strong>Archive Labs Lenny</strong>")
+
+    def _render(self, borrowing, url="/borrow/lenny/OL46539165M"):
+        return render_jinja_template(
+            "interstitial.html.jinja",
+            url=url,
+            book_provider=self.LIBRARY,
+            wait=5,
+            fastapi=False,
+            borrowing=borrowing,
+        )
+
+    @pytest.fixture(autouse=True)
+    def context(self, request_context_fixture):
+        request_context_fixture(lang="en")
+
+    def test_a_mediated_borrow_names_the_library_as_a_trusted_provider(self):
+        html = self._render(borrowing=True)
+        assert "borrowable for free from <strong>Archive Labs Lenny</strong>" in html
+        assert "trusted Open Library book provider" in html
+
+    def test_a_mediated_borrow_does_not_call_the_library_a_third_party(self):
+        assert "third-party" not in self._render(borrowing=True)
+
+    def test_a_mediated_borrow_shows_no_destination(self):
+        """The destination is an openlibrary.org path. Printing it invites the
+        question the whole screen exists to answer.
+
+        Shown, not absent: it stays in `data-url` and in the Continue link's
+        `href`, which is how the patron gets there at all.
+        """
+        html = self._render(borrowing=True)
+        assert ">/borrow/lenny/OL46539165M<" not in html
+        assert 'data-url="/borrow/lenny/OL46539165M"' in html
+
+    def test_a_hand_off_still_warns_that_the_book_is_elsewhere(self):
+        """#13690's path, and every other Trusted Book Provider: unchanged."""
+        html = self._render(borrowing=False, url="https://standardebooks.org/x")
+        assert "third-party Open Library Trusted Book Provider" in html
+        assert 'href="https://standardebooks.org/x"' in html
 
 
 class TestBorrowPostAdapter:

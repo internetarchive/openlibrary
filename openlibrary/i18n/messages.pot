@@ -418,6 +418,28 @@ msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous pa
 msgstr ""
 
 #: interstitial.html.jinja
+msgid "Getting your book"
+msgstr ""
+
+#: interstitial.html.jinja
+#, python-format
+msgid "This book is borrowable for free from %(book_provider)s, a trusted Open Library book provider"
+msgstr ""
+
+#: interstitial.html.jinja
+#, python-format
+msgid "In %(time)s seconds, that library will ask you to sign in. Open Library finishes the loan for you."
+msgstr ""
+
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html my_books/dropdown_content.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+msgid "Cancel"
+msgstr ""
+
+#: interstitial.html.jinja
+msgid "Continue without waiting"
+msgstr ""
+
+#: interstitial.html.jinja
 msgid "You are being redirected to your book"
 msgstr ""
 
@@ -429,14 +451,6 @@ msgstr ""
 #: interstitial.html.jinja
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
-msgstr ""
-
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html my_books/dropdown_content.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
-msgid "Cancel"
-msgstr ""
-
-#: interstitial.html.jinja
-msgid "Continue without waiting"
 msgstr ""
 
 #: library_explorer.html openlibrary/plugins/openlibrary/nav.py
@@ -826,7 +840,7 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: ReadButton.html book_providers/read_button.html books/edit/edition.html type/list/embed.html widget.html
+#: ReadButton.html book_providers/read_button.html books/edit/edition.html borrow/provider_popup_result.html.jinja type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -3959,6 +3973,31 @@ msgstr ""
 msgid "\"Good\" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
 msgstr ""
 
+#: borrow/provider_popup_result.html.jinja
+msgid "Borrowed"
+msgstr ""
+
+#: borrow/provider_popup_result.html.jinja lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html
+msgid "Open Library"
+msgstr ""
+
+#: borrow/provider_popup_result.html.jinja
+#, python-format
+msgid "Your loan is due %(due)s."
+msgstr ""
+
+#: borrow/provider_popup_result.html.jinja
+msgid "Your loan has been created."
+msgstr ""
+
+#: borrow/provider_popup_result.html.jinja
+msgid "Read it now"
+msgstr ""
+
+#: borrow/provider_popup_result.html.jinja
+msgid "Back to Open Library"
+msgstr ""
+
 #: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
 msgstr ""
@@ -4463,10 +4502,6 @@ msgstr ""
 #: lib/history.html
 #, python-format
 msgid "Edited by %(user)s"
-msgstr ""
-
-#: lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html
-msgid "Open Library"
 msgstr ""
 
 #: lib/nav_foot.html.jinja
@@ -8436,6 +8471,16 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+#, python-format
+msgid "Borrowed from %(library)s. Your loan is due %(due)s."
+msgstr ""
+
+#: openlibrary/plugins/upstream/lenny.py
+#, python-format
+msgid "Borrowed from %(library)s."
 msgstr ""
 
 #: openlibrary/plugins/upstream/models.py
