@@ -25,6 +25,6 @@ $ q = query_param("q", "")
   </li>
   <li class="$('selected' if ctx.path=='/advancedsearch' else '')">
     <a data-ol-link-track="SearchNav|SearchAdvanced"
-       href="/advancedsearch">$_("Advanced Search")</a>
+       href="$changequery(_path='/advancedsearch', page=None)">$_("Advanced Search")</a>
   </li>
 </ul>
