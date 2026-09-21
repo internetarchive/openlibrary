@@ -638,6 +638,120 @@ class WikisourceProvider(AbstractBookProvider):
         ]
 
 
+def _harvested_lenny_entries(local_id: str) -> list[dict]:
+    """The acquisition entries the harvester stored for one Lenny id.
+
+    Read from the Trusted Book Provider ``acquisitions`` table, not from the
+    edition's ``providers`` field. The two are different stores that share a
+    class name, and the import pipeline writes only the first --
+    ``add_book._save_acquisitions`` calls ``Acquisition.upsert`` and nothing in
+    ``catalog/add_book`` or ``bookworm`` assigns ``providers`` at all. So on a
+    Lenny edition ``providers`` holds whatever a patron typed into the
+    edit-book form, or nothing: of the 50 Lenny editions in the live feed,
+    checked on production 2026-09-20, exactly one had the field and it pointed
+    at a GitHub URL unrelated to Lenny.
+
+    One indexed single-row read per call. Do not memoize this on ``web.ctx``:
+    only web.py clears it per request (``web/application.py:427``), so under
+    FastAPI, in a script, or in the test suite the entry outlives its request
+    and an edition with no row starts answering with another edition's -- a
+    stale access kind puts a patron on ``/read`` for a book they must borrow.
+    Batching belongs at the call site, where
+    ``WorkSearchScheme.add_non_solr_fields`` already holds every row for the
+    page; that needs a channel ``get_acquisitions`` does not have. Until then
+    the cost is bounded by how many editions carry ``identifiers.lenny`` at
+    all -- 94 works on production, 2026-09-20.
+
+    Returns ``[]`` on any database failure, because both callers are places an
+    exception cannot go: page rendering, where it would 500 a book page, and
+    the Solr indexer, which need not have this database configured at all.
+    """
+    entries: list[dict] = []
+    try:
+        from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
+
+        row = StoredAcquisition.find_many(LennyProvider.short_name, [local_id]).get(local_id)
+    except Exception:
+        logger.exception("failed to read Lenny acquisitions for %s; rendering none", local_id)
+        row = None
+    if row is not None:
+        # `data` is jsonb written from an external feed: its top level can be
+        # any JSON type, and `_from_row` leaves an unparsable blob as a string.
+        data = row.data if isinstance(row.data, dict) else {}
+        stored = data.get("acquisitions")
+        if isinstance(stored, list):
+            entries = [entry for entry in stored if isinstance(entry, dict)]
+    return entries
+
+
+class LennyProvider(AbstractBookProvider):
+    """A Lenny node -- a library running its own lending server.
+
+    Alone among the providers here, the access kind varies from book to book:
+    25 of the 50 publications in https://lennyforlibraries.org/v1/api/opds are
+    ``open-access`` and 25 are ``borrow`` (counted 2026-09-20). ``identifiers.lenny``
+    cannot tell the two apart, which is why this reads the harvested row rather
+    than synthesizing a URL from the identifier the way its neighbours do.
+
+    The distinction is not cosmetic, because the endpoints are not
+    interchangeable. Against the live node on 2026-09-20:
+
+    - ``/v1/api/items/46539165/read`` (borrowable) -> ``401`` with an OPDS
+      Authentication Document, for ``Accept: text/html`` as well as ``*/*``.
+      A "Read" link on a borrowable title is a dead end in a browser.
+    - ``/v1/api/items/46539165/borrow`` -> ``303`` to the node's own sign-in
+      for ``Accept: text/html``, which is what a browser sends. So the borrow
+      CTA works with nothing built on this side; the OAuth handshake that
+      keeps the patron on Open Library is #13688.
+    """
+
+    short_name = "lenny"
+    long_name = "Lenny"
+    identifier_key = "lenny"
+
+    @override
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        # A node holds its own files; none of its content is archived under an
+        # IA identifier.
+        return False
+
+    @override
+    def get_acquisitions(self, ed_or_solr: Edition | dict) -> list[Acquisition]:
+        acquisitions = []
+        for entry in _harvested_lenny_entries(self.get_best_identifier(ed_or_solr)):
+            access = entry.get("access")
+            url = entry.get("url")
+            if access not in typing.get_args(AcquisitionAccessLiteral):
+                continue
+            if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
+                # The feed authored this and a template renders it as an href.
+                continue
+            acquisitions.append(
+                Acquisition(
+                    access=cast(AcquisitionAccessLiteral, access),
+                    # Always `web`, not the stored mimetype: both Lenny URLs are
+                    # the node's HTML entry points -- `/read` redirects into its
+                    # reader, `/borrow` into its sign-in. The epub behind a
+                    # borrow link is fulfilled inside Lenny, after the loan, and
+                    # is not what this URL points at.
+                    format="web",
+                    price=None,
+                    url=url,
+                    provider_name=self.short_name,
+                )
+            )
+        return acquisitions
+
+    @override
+    def get_access(self, edition: dict, metadata: TProviderMetadata | None = None) -> EbookAccess:
+        # Not the base class's unconditional PUBLIC: half this catalogue needs a
+        # loan, and this value becomes Solr's `ebook_access`, which drives
+        # `public_scan_b` and `has_fulltext`. NO_EBOOK when nothing is stored --
+        # including when the database read above failed -- so an unknown reads
+        # as a claim not made rather than as a free book.
+        return max((acquisition.ebook_access for acquisition in self.get_acquisitions(edition)), default=EbookAccess.NO_EBOOK)
+
+
 class BetterWorldBooksProvider(AbstractBookProvider):
     short_name = "betterworldbooks"
     long_name = "Better World Books"
@@ -689,6 +803,11 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     WikisourceProvider(),
     # Then link to IA
     InternetArchiveProvider(),
+    # Then to a library lending node. Below IA deliberately: an edition that
+    # already renders an IA button keeps rendering it, so adding this provider
+    # changes no button that exists today and only fills in where nothing else
+    # offers the book.
+    LennyProvider(),
     # Then link to purchase options
     BetterWorldBooksProvider(),
 ]
