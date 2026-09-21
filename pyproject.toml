@@ -1,7 +1,7 @@
 [project]
 name = "openlibrary"
 version = "1.0.0"
-requires-python = ">=3.15.0,<3.15.1"
+requires-python = ">=3.15.0rc2,<3.15.1"
 
 [tool.codespell]
 ignore-words-list = "beng,curren,datas,furst,lightening,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
