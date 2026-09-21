@@ -59,14 +59,17 @@ this module -- whatever it waits for, the row waits for too.
 should not require an Open Library deploy.
 """
 
+import asyncio
 import base64
 import datetime
 import hashlib
 import logging
 import secrets
-from typing import Any
+import time
+from typing import Any, NamedTuple
 from urllib.parse import urlencode
 
+import httpx
 import requests
 import web
 
@@ -82,6 +85,7 @@ from openlibrary.core.provider_tokens import (
     TokenRefreshFailed,
 )
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 
 logger = logging.getLogger("openlibrary.lenny")
 
@@ -116,6 +120,74 @@ UPDATE`` held on the patron's row, so this bounds how long that row -- and every
 other flight for the same patron and node -- is blocked. The worst case is two
 of these back to back, discovery then the token endpoint, so ten seconds.
 """
+
+LOANS_PATH = "/v1/api/oauth2/loans"
+"""Built from the issuer rather than read from discovery, and that is not a
+shortcut taken for convenience.
+
+RFC 8414 registers no metadata field for a resource endpoint, and no node
+advertises one: ``lennyforlibraries.org`` publishes ``authorization_endpoint``,
+``token_endpoint`` and ``revocation_endpoint`` and nothing else (checked
+2026-09-20, command below). #13687 asked for this path to come from discovery;
+there is nowhere in the document for it to come from. :func:`borrow` builds its
+own path the same way, for the same reason.
+
+Discovery still decides the *origin*, which is the part a node can move. The
+path is Lenny's own API surface and carries its version in itself.
+
+    curl -s https://lennyforlibraries.org/.well-known/oauth-authorization-server
+"""
+
+LOANS_TIMEOUT_SECONDS = 4
+"""Per node, and it bounds the page.
+
+The nodes are queried concurrently, so the wall time a patron waits for the
+loans of N libraries is one of these and not N of them. That is the whole
+reason this is not a sequential loop: four providers behind four dead nodes
+would otherwise be four timeouts end to end on a page the patron asked for.
+"""
+
+LOANS_DEADLINE_SECONDS = 12
+"""A ceiling over the *token* phase, which is the part concurrency cannot fix.
+
+:func:`access_token_for` is synchronous and may refresh, which costs up to two
+``REFRESH_TIMEOUT_SECONDS`` calls with the patron's row locked. Those cannot be
+run on worker threads: ``web.db.DB`` keeps its connection in a ``threadeddict``
+and ``oldev:latest`` has no ``dbutils``, so ``has_pooling`` is false and every
+new thread that touches :func:`openlibrary.core.db.get_db` opens a Postgres
+connection that is never released (``_unload_context`` only runs when pooling
+is on). So the token phase stays sequential in the request thread, and this
+deadline stops it after the grants it has managed to resolve rather than
+letting N expired grants at N hanging nodes add up.
+"""
+
+PROVIDER_RESOURCE_TYPE = "provider"
+"""``resource_type`` on a merged provider loan.
+
+Deliberately not ``bookreader`` and deliberately not absent. ``bookreader`` is
+what ``templates/account/loans.html`` keys its Internet Archive branch on, and
+anything falling past that branch reaches an ``else`` that offers a
+``loan['loan_link']`` download and an Adobe Digital Editions return -- a
+``KeyError`` on this loan shape, and wrong advice if it were not. The template
+tests ``loan.get('provider')`` before either branch; this value exists so that
+the loan is never *silently* IA-shaped if some other consumer keys on the type.
+"""
+
+
+class ProviderLoans(NamedTuple):
+    """What a merged loan lookup could and could not find out.
+
+    ``unreachable`` and ``unauthorized`` are kept apart because they ask the
+    patron to do different things -- wait, or reconnect the library -- the same
+    reason :data:`BORROW_ERRORS` does not collapse "all copies are out" into
+    "you have too many books out". Both are provider names, not counts, so a
+    caller can name the library.
+    """
+
+    loans: list[dict[str, Any]]
+    unreachable: list[str]
+    unauthorized: list[str]
+
 
 PROVIDER_PREFIX = "lenny"
 """Feed provider names are per node (``lenny``, ``lenny_<host>``), because a
@@ -331,6 +403,207 @@ def access_token_for(username: str, provider_name: str) -> str | None:
     return grant.access_token if grant else None
 
 
+_loans_client = cache_per_event_loop(httpx.AsyncClient)
+"""One client per event loop, never one per process.
+
+``async_bridge`` runs its own loop on its own thread, so a process-wide
+``AsyncClient`` would eventually have a pooled connection created on one loop
+reused from another and raise ``RuntimeError: ... bound to a different event
+loop``. See :func:`openlibrary.utils.async_utils.cache_per_event_loop`.
+"""
+
+
+async def fetch_node_loans(issuer: str, token: str, timeout_seconds: float) -> list[dict[str, Any]]:
+    """The ``{"loans": [...]}`` payload from one node, as a list.
+
+    Returns the node's own dicts -- ``edition_id``, ``borrowed_at``, ``due_at``
+    -- and does not translate them. Raises on anything that is not a 2xx with a
+    JSON body, which the caller turns into "that library did not answer"
+    rather than into a broken page.
+
+    The bound is handed to httpx rather than wrapped in ``asyncio.timeout``
+    (which is what ruff's ASYNC109 asks for, hence the parameter's name): httpx
+    applies it separately to connect, read, write and pool, and a node that
+    accepts the connection and then dribbles bytes is the failure this has to
+    survive. An outer ``asyncio.timeout`` would be a second, blunter bound over
+    the top of that one.
+    """
+    resp = await _loans_client().get(
+        issuer.rstrip("/") + LOANS_PATH,
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=timeout_seconds,
+    )
+    resp.raise_for_status()
+    return (resp.json() or {}).get("loans") or []
+
+
+def _epoch(value: Any) -> float:
+    """An ISO 8601 instant as a POSIX timestamp, or ``0.0``.
+
+    ``0.0`` rather than ``None`` because the loans template feeds this straight
+    to ``datetime_from_utc_timestamp``. ``borrowed_at`` is documented nullable,
+    and the template skips its "Borrowed ..." line on a falsy value rather than
+    telling the patron they borrowed the book in 1970.
+    """
+    if not value:
+        return 0.0
+    try:
+        parsed = datetime.datetime.fromisoformat(str(value))
+    except ValueError:
+        logger.info("lenny loan carried an unparsable timestamp: %r", value)
+        return 0.0
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=datetime.UTC)
+    return parsed.timestamp()
+
+
+def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+    """One node loan in the shape ``templates/account/loans.html`` consumes.
+
+    Returns None when ``edition_id`` is missing or not an integer: there is
+    then no edition key to render and nothing useful to say about it.
+
+    ``edition_id`` is the **bare integer** -- ``37044497`` means
+    ``OL37044497M`` -- so it maps onto an edition key directly rather than
+    through a lookup.
+
+    The failure log names the payload's *keys*, never its values. What it is
+    diagnosing is a shape mismatch, which the keys answer completely, and the
+    values are a record of which books a named patron has borrowed from a
+    library -- circulation records, which is not a thing to leave in
+    application logs in exchange for nothing.
+    """
+    try:
+        edition_id = int(payload["edition_id"])
+    except KeyError, TypeError, ValueError:
+        logger.info("lenny loan from %s had no usable edition_id; keys were %s", provider_name, sorted(payload))
+        return None
+    return {
+        "book": f"/books/OL{edition_id}M",
+        "loaned_at": _epoch(payload.get("borrowed_at")),
+        "expiry": payload.get("due_at"),
+        "userid": f"ol:{username}",
+        "provider": provider_name,
+        "resource_type": PROVIDER_RESOURCE_TYPE,
+        "read_url": item_read_url(issuer, edition_id),
+    }
+
+
+def _patron_tokens(username: str, deadline: float) -> tuple[list[tuple[str, str]], list[str], list[str]]:
+    """Access tokens for every configured node this patron holds a grant at.
+
+    Sequential and synchronous on purpose -- see :data:`LOANS_DEADLINE_SECONDS`
+    for why it cannot be moved onto worker threads. In the ordinary case it
+    does no network at all: an unexpired grant is one locked indexed read,
+    measured at 0.446 ms, of which the lock is 0.023 ms. Cheap enough at
+    page-render frequency that the unconditional ``FOR UPDATE`` in
+    ``get_fresh`` is not worth avoiding -- the read-then-lock variant was
+    built and measured, and is slower under contention because the row it
+    reads unlocked is expired precisely when a refresh is already in flight.
+
+    Returns ``(holdings, unreachable, unauthorized)``.
+    """
+    configured = nodes()
+    holdings: list[tuple[str, str]] = []
+    unreachable: list[str] = []
+    unauthorized: list[str] = []
+
+    try:
+        providers = ProviderToken.get_providers(username)
+    except Exception:
+        # The patron's own loans page must still render. This reports nothing
+        # rather than guessing: with the store unreadable there is no list of
+        # libraries to name, and naming none is more honest than naming all.
+        logger.exception("could not list provider grants for %s", username)
+        return [], [], []
+
+    for provider_name in providers:
+        if provider_name not in configured:
+            # A grant at a node this deploy no longer configures -- not the
+            # patron's problem, and not something they can act on.
+            continue
+        if time.monotonic() >= deadline:
+            logger.warning("lenny token phase hit its deadline; %s not resolved", provider_name)
+            unreachable.append(provider_name)
+            continue
+        try:
+            token = access_token_for(username, provider_name)
+        except Exception:
+            # access_token_for already absorbs TokenRefreshFailed, so anything
+            # arriving here is the store or the node misbehaving rather than
+            # the patron needing to reconnect.
+            logger.exception("could not resolve a lenny token for %s at %s", username, provider_name)
+            unreachable.append(provider_name)
+            continue
+        if token:
+            holdings.append((provider_name, token))
+        else:
+            unauthorized.append(provider_name)
+
+    return holdings, unreachable, unauthorized
+
+
+async def _gather_node_loans(
+    holdings: list[tuple[str, str]],
+    issuers: dict[str, str],
+    budget: float,
+) -> list[list[dict[str, Any]] | BaseException]:
+    """Every node at once, each with its own timeout.
+
+    ``return_exceptions`` so one dead node costs its own loans rather than the
+    page. No aggregate timeout wrapping the gather: one that fired would throw
+    away the answers the healthy nodes had already given, which is the opposite
+    of degrading gracefully. Concurrency is what bounds the total.
+    """
+    per_call = max(0.1, min(LOANS_TIMEOUT_SECONDS, budget))
+    return await asyncio.gather(
+        *(fetch_node_loans(issuers[provider_name], token, per_call) for provider_name, token in holdings),
+        return_exceptions=True,
+    )
+
+
+def provider_loans(username: str) -> ProviderLoans:
+    """Every loan this patron holds at a configured Lenny node.
+
+    The merge side of #13687. Two phases, because they fail differently:
+    resolve the patron's tokens (sequential, synchronous, usually no network),
+    then ask every node for its loans at once.
+
+    **It does not raise.** A node that is slow, down, or answering nonsense
+    costs its own entry in ``unreachable`` and nothing more. The Internet
+    Archive loans this is merged alongside come from a different call that this
+    one cannot fail.
+    """
+    deadline = time.monotonic() + LOANS_DEADLINE_SECONDS
+    holdings, unreachable, unauthorized = _patron_tokens(username, deadline)
+    if not holdings:
+        return ProviderLoans([], unreachable, unauthorized)
+
+    configured = nodes()
+    issuers = {provider_name: configured[provider_name]["issuer"] for provider_name, _ in holdings}
+    budget = deadline - time.monotonic()
+    if budget <= 0:
+        logger.warning("lenny loans deadline spent before any node was asked")
+        return ProviderLoans([], unreachable + [p for p, _ in holdings], unauthorized)
+
+    results = async_bridge.run(_gather_node_loans(holdings, issuers, budget))
+
+    loans: list[dict[str, Any]] = []
+    for (provider_name, _), result in zip(holdings, results, strict=True):
+        if isinstance(result, BaseException):
+            logger.warning("lenny loans lookup failed for %s: %r", provider_name, result)
+            unreachable.append(provider_name)
+            continue
+        for payload in result:
+            if not isinstance(payload, dict):
+                logger.info("lenny loans from %s contained a %s where an object was promised", provider_name, type(payload).__name__)
+                continue
+            if loan := loan_from_node(provider_name, issuers[provider_name], username, payload):
+                loans.append(loan)
+
+    return ProviderLoans(loans, unreachable, unauthorized)
+
+
 BORROW_ERRORS = {
     "not_found": "This book is not in that library's collection.",
     "unavailable": "Every copy is currently on loan. Please try again later.",
@@ -525,9 +798,13 @@ def read_url(pending: dict[str, Any], loan: dict[str, Any]) -> str:
     that node's session -- which is what its reader requires, and what an API
     token could not have given them.
     """
-    issuer = pending["issuer"].rstrip("/")
     edition_id = loan.get("edition_id") or extract_numeric_id_from_olid(pending["edition_key"])
-    return f"{issuer}/v1/api/items/{edition_id}/read"
+    return item_read_url(pending["issuer"], edition_id)
+
+
+def item_read_url(issuer: str, edition_id: Any) -> str:
+    """A node's reader URL for one item."""
+    return f"{issuer.rstrip('/')}/v1/api/items/{edition_id}/read"
 
 
 def render_error(message: str) -> str:
