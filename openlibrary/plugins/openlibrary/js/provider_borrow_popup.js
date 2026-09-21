@@ -24,13 +24,24 @@
  *    browser, not only Safari's ITP -- and that cookie is the one thing the
  *    node's reader accepts, so losing it means a loan the patron cannot open.
  *
- * The converse is what makes the popup work and is worth stating because it is
- * a property of a header nobody has set: neither openlibrary.org nor the node
- * sends `Cross-Origin-Opener-Policy` (checked live 2026-09-20; nothing in
- * `docker/*.conf`, nothing in the node's repo). `same-origin` on either side
- * would swap the browsing context group when the popup navigates to the node,
- * and `window.opener` below would be null on the way back. If this stops
- * working, check for that header first.
+ * ## This module depends on a header nobody has set, on a server we do not own
+ *
+ * Stated as a dependency and not as a curiosity, because it is the kind that
+ * breaks silently and gets attributed to something else. Neither
+ * openlibrary.org nor the lending node sends `Cross-Origin-Opener-Policy`
+ * (checked live 2026-09-20; nothing in `docker/*.conf`, nothing in the node's
+ * repo). `same-origin` on either side would swap the browsing context group
+ * when the popup navigates to the node, so `window.opener` would be null on
+ * the way back -- and `window.opener` is the whole channel this file uses to
+ * tell the book page a loan exists.
+ *
+ * What that failure looks like: the loan is created, the popup closes, and the
+ * page behind it never refreshes. Nothing errors. A node operator could cause
+ * it tomorrow by hardening their own server for reasons unrelated to Open
+ * Library, and nobody would connect the two. **So check for that header before
+ * anything else**, and if it ever appears, this needs a channel that does not
+ * depend on the opener -- a `BroadcastChannel` between same-origin Open
+ * Library pages would survive it.
  *
  * See `ol-kb/wiki/lenny-oauth.md`.
  */

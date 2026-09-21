@@ -655,7 +655,8 @@ def render_borrowed(edition_key: str, loan: dict[str, Any], read: str, library: 
     route yet. It renders from the harvested ``acquisitions`` row and a loan
     does not touch that row, so the refreshed book page still says "Borrow".
     Closing that gap needs per-patron loan state on the book page and is not
-    this module's to fix; see the PR for #13688.
+    this module's to fix: **#13694**. Delete this link when that lands, because
+    ``read`` stops being the only route to the book at that point.
     """
     if due := loan.get("due_at"):
         add_flash_message("info", _("Borrowed from %(library)s. Your loan is due %(due)s.", library=library, due=due))
