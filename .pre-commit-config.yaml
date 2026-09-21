@@ -4,7 +4,7 @@
 
 # Learn more about this config here: https://pre-commit.com/
 default_language_version:
-  python: python3.15
+  python: python3.14
 
 ci:
   submodules: true
