@@ -22,6 +22,11 @@ LAYOUT_TEMPLATES = [
     TEMPLATES_DIR / "site" / "alert.html.jinja",
     TEMPLATES_DIR / "site" / "banner.html.jinja",
     TEMPLATES_DIR / "lib" / "nav_foot.html.jinja",
+    TEMPLATES_DIR / "lib" / "nav_head.html.jinja",
+    TEMPLATES_DIR / "lib" / "browse_popover.html.jinja",
+    TEMPLATES_DIR / "lib" / "header_dropdown.html.jinja",
+    TEMPLATES_DIR / "search" / "availability_i18n.html.jinja",
+    TEMPLATES_DIR / "search" / "search_modal_i18n.html.jinja",
     TEMPLATES_DIR / "languages" / "language_list.html.jinja",
     TEMPLATES_DIR / "site" / "stats.html.jinja",
 ]
@@ -83,6 +88,16 @@ def test_layout_context_is_frozen():
         body_attrs=[],
         donate_script_url="",
         flash_messages=[],
+        user=None,
+        ol_env="production",
+        page_status_url="",
+        is_recognized_bot=False,
+        is_print_disabled=False,
+        homepath="",
+        my_books_props={},
+        browse_links=[],
+        featured_browse_links=[],
+        simple_browse_links=[],
         announcement_banner=None,
     )
     with pytest.raises((AttributeError, TypeError)):
@@ -174,3 +189,53 @@ def test_announcement_banner_structure():
     assert banner.cookie_duration_days == 7
     with pytest.raises((AttributeError, TypeError)):
         banner.content = "New content"  # type: ignore[misc]
+
+
+def test_layout_build_header_user_logged_out(request_context_fixture):
+    """LayoutContext should have user=None when no user is logged in."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    assert layout.user is None
+
+
+def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture):
+    """LayoutContext should build HeaderUser when a user is logged in."""
+    request_context_fixture(lang="en")
+
+    class MockUser:
+        key = "/people/super_librarian"
+        created = "2020-01-01"
+
+        def is_librarian_or_higher(self):
+            return True
+
+        def is_super_librarian_or_higher(self):
+            return True
+
+    monkeypatch.setattr("openlibrary.core.layout.get_current_user", MockUser)
+    monkeypatch.setattr("openlibrary.core.layout.get_internet_archive_id", lambda key: "ia_bob")
+    monkeypatch.setattr("openlibrary.core.layout.cached_get_counts_by_mode", lambda mode="open": 42)
+
+    layout = LayoutContext.build()
+    assert layout.user is not None
+    assert layout.user.key == "/people/super_librarian"
+    assert layout.user.username == "super_librarian"
+    assert layout.user.ia_id == "ia_bob"
+    assert "super_librarian" in layout.user.account_title
+    assert layout.user.is_privileged_user is True
+    assert layout.user.shows_merge_count is True
+    assert layout.user.open_merges_count == 42
+
+
+def test_layout_build_header_navigation(request_context_fixture):
+    """LayoutContext should build header navigation props and browse links."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    assert layout.my_books_props["name"] == "mybooks"
+    assert layout.my_books_props["label"] == "My Books"
+    assert len(layout.my_books_props["links"]) == 1
+    assert layout.my_books_props["links"][0]["track"] == "MyBooks"
+    assert len(layout.browse_links) > 0
+    assert len(layout.featured_browse_links) == 4
+    assert len(layout.simple_browse_links) == len(layout.browse_links) - 4
+    assert layout.ol_env in ("production", "development", "testing")

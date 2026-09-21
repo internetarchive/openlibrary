@@ -1,0 +1,68 @@
+{# djlint:off J004 #}
+{#
+Dropdown menu or singleton link component.
+#}
+{% set singleton = props and props.links and (props.links | length == 1) %}
+<div class="{{ props.name if props else '' }}-component header-dropdown">
+    {% if singleton %}
+        {% set link = props.links[0] %}
+        {% set tracker_value = (track_prefix ~ '|' ~ link.track) if (track_prefix and link.get('track')) else '' %}
+        <a href="{{ link.href }}"
+           {% if props.get('link-class') %}class="{{ props.get('link-class') }}"{% endif %}
+           {% if tracker_value %}data-ol-link-track="{{ tracker_value }}"{% endif %}>
+            {% if props.get('icon') %}
+                {{ icon(props.icon, size="sm", extra_class="ol-button-static__icon") }}
+            {% endif %}
+            {{ props.label }}
+        </a>
+    {% else %}
+        <details>
+            <summary>
+                {% if props and 'icon' in props %}
+                    {{ icon(props.icon, size="lg", label=props.label, extra_class=props.get('image-class', '')) }}
+                {% elif props and 'label' in props %}
+                    {{ props.label }}
+                    <span class="shift">{{ _("Menu") }}</span>
+                {% endif %}
+                <img class="down-arrow"
+                     aria-hidden="true"
+                     src="/static/images/down-arrow.png"
+                     alt=""
+                     role="presentation"
+                     width="7"
+                     height="4">
+            </summary>
+            <div {% if not singleton and props %}class="{{ props.name }}-dropdown-component navigation-dropdown-component"{% endif %}>
+                <ul class="dropdown-menu {{ props.name if props else '' }}-dropdown-menu">
+                    {% if props and props.links %}
+                        {% for link in props.links %}
+                            {% set tracker_value = (track_prefix ~ '|' ~ link.track) if (track_prefix and link.get('track')) else '' %}
+                            {% if 'subsection' in link %}
+                                <li class="subsection">{{ link.subsection }}</li>
+                            {% else %}
+                                <li>
+                                    {% if 'post' in link %}
+                                        <form {% if 'name' in link %}name="{{ link.name }}"{% endif %}
+                                              action="{{ link.post }}"
+                                              method="post">
+                                            <button {% if tracker_value %}data-ol-link-track="{{ tracker_value }}"{% endif %}>{{ link.text }}</button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{{ link.href }}"
+                                           {% if tracker_value %}data-ol-link-track="{{ tracker_value }}"{% endif %}>
+                                            {{ link.text }}
+                                            {% if 'subheading' in link %}
+                                                <br>
+                                                <i class="subheading">{{ link.subheading }}</i>
+                                            {% endif %}
+                                        </a>
+                                    {% endif %}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+        </details>
+    {% endif %}
+</div>

@@ -13,6 +13,10 @@ from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from openlibrary.accounts import get_current_user
+from openlibrary.accounts.model import get_internet_archive_id
+from openlibrary.core.edits import cached_get_counts_by_mode
+from openlibrary.core.helpers import datestr
+from openlibrary.plugins.openlibrary.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links
 
 if TYPE_CHECKING:
     from openlibrary.core.models import User
@@ -59,7 +63,7 @@ def _extract_stats_details() -> list[Any]:
         return []
 
 
-def can_show_librarian_tools(path: str, user: User) -> bool:
+def can_show_librarian_tools(path: str, user: User | None) -> bool:
     """Check whether librarian environment tools should be active for the current path and user."""
     if not (path and any(path.startswith(prefix) for prefix in ("/works/OL", "/authors/OL", "/books/OL", "/search"))):
         return False
@@ -75,7 +79,7 @@ def _extract_body_classes() -> list[str]:
     show_ol_shell = _ctx.get("show_ol_shell", True)
     path = getattr(_ctx, "path", "") or _ctx.get("path", "")
 
-    if show_ol_shell and can_show_librarian_tools(path, get_current_user()):
+    if show_ol_shell and can_show_librarian_tools(path, _safe(get_current_user, None)):
         bodyclass.append("show-librarian-tools")
 
     return bodyclass
@@ -147,6 +151,123 @@ def _extract_announcement_banner() -> AnnouncementBanner | None:
 
 
 @dataclass(frozen=True)
+class HeaderUser:
+    """Precomputed user and role information for the site header."""
+
+    key: str
+    username: str
+    ia_id: str | None
+    account_title: str
+    is_privileged_user: bool
+    shows_merge_count: bool
+    open_merges_count: int
+
+
+def _extract_header_user() -> HeaderUser | None:
+    user = _safe(get_current_user, None)
+    if not user:
+        return None
+
+    key = str(getattr(user, "key", "") or "")
+    if not key:
+        return None
+    username = key.rsplit("/", maxsplit=1)[-1]
+    ia_id = _safe(lambda: get_internet_archive_id(key), None)
+    created = getattr(user, "created", None)
+    joined_date = _safe(lambda: datestr(created), "") if created else ""
+    from openlibrary.i18n import gettext as _
+
+    account_title = f"{username}\n{_('Joined %(date)s', date=joined_date)}" if joined_date else username
+    is_privileged = _safe(lambda: bool(user.is_librarian_or_higher()), False)
+    shows_merges = _safe(lambda: bool(user.is_super_librarian_or_higher()), False)
+    merge_count = 0
+    if shows_merges:
+        merge_count = _safe(lambda: int(cached_get_counts_by_mode(mode="open") or 0), 0)
+
+    return HeaderUser(
+        key=key,
+        username=username,
+        ia_id=ia_id,
+        account_title=account_title,
+        is_privileged_user=is_privileged,
+        shows_merge_count=shows_merges,
+        open_merges_count=merge_count,
+    )
+
+
+def _extract_ol_env() -> str:
+    from openlibrary.core.env import get_deployment_name
+
+    return _safe(get_deployment_name, "production")
+
+
+def _extract_is_recognized_bot() -> bool:
+    from openlibrary.utils.request_context import req_context
+
+    return _safe(lambda: req_context.get().is_recognized_bot, False)
+
+
+def _extract_page_status_url() -> str:
+    try:
+        import web
+
+        return web.changequery(show_page_status=1)
+    except Exception:  # noqa: BLE001
+        return "?show_page_status=1"
+
+
+def _extract_is_print_disabled() -> bool:
+    try:
+        import web
+
+        if web.cookies().get("pd"):
+            return True
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from openlibrary.utils.request_context import req_context
+
+        return bool(req_context.get().print_disabled)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _extract_homepath() -> str:
+    try:
+        import web
+
+        return getattr(web.ctx, "homepath", "") or ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _extract_my_books_props(homepath: str) -> dict[str, Any]:
+    from openlibrary.i18n import gettext as _
+
+    return {
+        "name": "mybooks",
+        "label": _("My Books"),
+        "icon": "bookmark",
+        "links": [
+            {
+                "href": f"{homepath}/account/books",
+                "text": _("My Books"),
+                "track": "MyBooks",
+            }
+        ],
+        "link-class": "ol-button-static ol-button-static--ghost",
+    }
+
+
+def _extract_browse_links() -> tuple[list[NavLink], list[NavLink], list[NavLink]]:
+    empty_links: list[NavLink] = []
+    links = _safe(browse_links, empty_links)
+    featured = links[:BROWSE_FEATURED_COUNT]
+    simple = links[BROWSE_FEATURED_COUNT:]
+    return links, featured, simple
+
+
+@dataclass(frozen=True)
 class LayoutContext:
     """Precomputed data for the site layout. Strictly data, immutable.
 
@@ -169,6 +290,16 @@ class LayoutContext:
     body_attrs: list[str]
     donate_script_url: str
     flash_messages: list[dict[str, str]]
+    user: HeaderUser | None
+    ol_env: str
+    page_status_url: str
+    is_recognized_bot: bool
+    is_print_disabled: bool
+    homepath: str
+    my_books_props: dict[str, Any]
+    browse_links: list[NavLink]
+    featured_browse_links: list[NavLink]
+    simple_browse_links: list[NavLink]
     announcement_banner: AnnouncementBanner | None = None
 
     @property
@@ -201,6 +332,9 @@ class LayoutContext:
         from openlibrary.plugins.openlibrary.status import get_git_revision_short_hash
         from openlibrary.utils.request_context import get_request_lang, req_context
 
+        homepath = _extract_homepath()
+        all_browse, featured_browse, simple_browse = _extract_browse_links()
+
         return cls(
             show_ol_shell=_safe(lambda: _infogami_context.get("show_ol_shell", True), True),
             is_debug=_safe(lambda: bool(query_param("debug")), False),
@@ -215,6 +349,16 @@ class LayoutContext:
             body_attrs=_extract_body_attrs(),
             donate_script_url=_safe(_extract_donate_script_url, "/cdn/archive.org/donate.js"),
             flash_messages=_extract_flash_messages(),
+            user=_extract_header_user(),
+            ol_env=_extract_ol_env(),
+            page_status_url=_extract_page_status_url(),
+            is_recognized_bot=_extract_is_recognized_bot(),
+            is_print_disabled=_extract_is_print_disabled(),
+            homepath=homepath,
+            my_books_props=_extract_my_books_props(homepath),
+            browse_links=all_browse,
+            featured_browse_links=featured_browse,
+            simple_browse_links=simple_browse,
             announcement_banner=_safe(_extract_announcement_banner, None),
         )
 

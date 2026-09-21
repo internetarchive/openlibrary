@@ -12,6 +12,7 @@ import pytest
 import web
 from lxml import html as lxml_html
 from lxml.etree import ParseError as LxmlParseError
+from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
 
 from openlibrary import i18n as i18n_module
@@ -81,6 +82,30 @@ def _create_validation_env() -> jinja2.Environment:
         extensions=["jinja2.ext.i18n"],
     )
     env.install_gettext_callables(_gettext, _ngettext, newstyle=True)
+    original_gettext = env.globals["gettext"]
+    original_ngettext = env.globals["ngettext"]
+
+    @jinja2.pass_context
+    def _safe_gettext(context: Any, string: str, **variables: Any) -> str:
+        if not variables:
+            rv = context.call(_gettext, string)
+            if "%%" in rv:
+                rv = rv.replace("%%", "%")
+            return Markup(rv) if context.eval_ctx.autoescape else rv
+        return original_gettext(context, string, **variables)
+
+    @jinja2.pass_context
+    def _safe_ngettext(context: Any, singular: str, plural: str, n: int, **variables: Any) -> str:
+        if not variables:
+            rv = context.call(_ngettext, singular, plural, n)
+            if "%%" in rv:
+                rv = rv.replace("%%", "%")
+            return Markup(rv) if context.eval_ctx.autoescape else rv
+        return original_ngettext(context, singular, plural, n, **variables)
+
+    env.globals["gettext"] = _safe_gettext
+    env.globals["_"] = _safe_gettext
+    env.globals["ngettext"] = _safe_ngettext
     env.policies["ext.i18n.trimmed"] = True
 
     # Stubbed: this env only validates template structure, without infogami's
@@ -160,8 +185,18 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.body_class, str)
         assert isinstance(layout.active_ui_lang, dict)
         assert isinstance(layout.donate_script_url, str)
-        assert isinstance(layout.flash_messages, list)
+        assert layout.flash_messages == [] or isinstance(layout.flash_messages, list)
         assert layout.announcement_banner is None or hasattr(layout.announcement_banner, "content")
+        assert layout.user is None or hasattr(layout.user, "key")
+        assert isinstance(layout.ol_env, str)
+        assert isinstance(layout.page_status_url, str)
+        assert isinstance(layout.is_recognized_bot, bool)
+        assert isinstance(layout.is_print_disabled, bool)
+        assert isinstance(layout.homepath, str)
+        assert isinstance(layout.my_books_props, dict)
+        assert isinstance(layout.browse_links, list)
+        assert isinstance(layout.featured_browse_links, list)
+        assert isinstance(layout.simple_browse_links, list)
         # No flat layout keys should leak into root context
         for key in (
             "show_ol_shell",
@@ -178,6 +213,16 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
             "donate_script_url",
             "flash_messages",
             "announcement_banner",
+            "user",
+            "ol_env",
+            "page_status_url",
+            "is_recognized_bot",
+            "is_print_disabled",
+            "homepath",
+            "my_books_props",
+            "browse_links",
+            "featured_browse_links",
+            "simple_browse_links",
         ):
             assert key not in kwargs
         return rendered

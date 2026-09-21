@@ -1,0 +1,202 @@
+{# djlint:off H021 #}
+<header id="header-bar" class="header-bar">
+    <div class="logo-component">
+        <a href="/"
+           title="{{ _('The Internet Archive\'s Open Library: One page for every book') }}">
+            <div class="logo-txt{% if layout.ol_env != 'production' %} logo-txt--env-{{ layout.ol_env }}{% endif %}">
+                <img class="logo-icon"
+                     src="{{ static_url('images/openlibrary-logo-tighter.svg') }}"
+                     width="189"
+                     height="47"
+                     alt="{{ _('Open Library logo') }}">
+            </div>
+        </a>
+        {% if not layout.is_recognized_bot %}
+            {# detect-missing-i18n-skip-line #}
+            <a href="{{ layout.page_status_url }}"
+               style="color:transparent;
+                      position:absolute;
+                      pointer-events:none"
+               tabindex="-1"
+               aria-hidden="true">Page Status</a>
+        {% endif %}
+    </div>
+    <ul class="navigation-component">
+        <li>
+            {% with props=layout.my_books_props, track_prefix="MainNav" %}
+                {% include "lib/header_dropdown.html.jinja" %}
+            {% endwith %}
+        </li>
+        <li>
+            {% with track_prefix="MainNav" %}
+                {% include "lib/browse_popover.html.jinja" %}
+            {% endwith %}
+        </li>
+    </ul>
+    <div class="search-component">
+        <div class="search-bar-component">
+            {# data-i18n carries the translated availability labels (for the "Readable
+            Only" toggle) and data-i18n-ui the modal's chrome strings; SearchModal.js reads both from
+            this trigger element. The visual "Search" label is hidden on
+            mobile/touch widths (the trigger renders as a compact icon-only
+            pill there) and shown at desktop to give the full wide search bar.
+            `aria-label` keeps the accessible name in both modes.
+            data-search-lang is the patron's site language (2-letter UI code, e.g.
+            'fr'); the modal maps it to a MARC code (siteLanguageToMarc) to flag a
+            readable result whose only readable copy isn't in their language.
+            data-print-disabled is whether the patron is verified for print-disabled
+            access; the modal widens the "Readable" badge to printdisabled scans for
+            them, matching the server's per-patron readable count (get_fulltext_min).
+            Read straight from the `pd` cookie — the same (login-independent) signal
+            request_context derives print_disabled from, so badge and count agree. #}
+            <button type="button"
+                    class="search-bar-trigger"
+                    aria-haspopup="dialog"
+                    aria-label="{{ _('Search') }}"
+                    data-i18n="{% include 'search/availability_i18n.html.jinja' %}"
+                    data-i18n-ui="{% include 'search/search_modal_i18n.html.jinja' %}"
+                    data-search-lang="{{ layout.lang or 'en' }}"
+                    data-print-disabled="{{ 'true' if layout.is_print_disabled else 'false' }}">
+                <span class="search-bar-trigger__label">{{ _("Search") }}</span>
+                {# Decorative: the button carries the accessible name. #}
+                {{ icon("search", size="md", extra_class="search-bar-trigger__icon") }}
+            </button>
+        </div>
+        {# Barcode scan needs a camera, so it's only surfaced on touch devices
+        (hidden on hover-capable pointers via CSS). #}
+        <a id="barcode_scanner_link"
+           class="search-by-barcode"
+           aria-label="{{ _('Search by barcode') }}"
+           title="{{ _('Search by barcode') }}"
+           href="/barcodescanner?returnTo=/isbn/$$$">
+            {# Decorative: the link is already named by aria-label. #}
+            {{ icon("scan-barcode", size="lg") }}
+        </a>
+    </div>
+    {% if not layout.user %}
+        <ul class="auth-component">
+            <li class="hide-me">
+                <a class="ol-button-static ol-button-static--ghost"
+                   href="/account/login">{{ _("Log In") }}</a>
+            </li>
+            <li>
+                <a class="ol-button-static ol-button-static--primary"
+                   href="/account/create">{{ _("Sign Up") }}</a>
+            </li>
+        </ul>
+    {% endif %}
+    <div class="hamburger-component" data-ol-link-track="HeaderBar|Hamburger">
+        <button class="hamburger-trigger"
+                aria-label="{{ _('Menu') }}"
+                aria-expanded="false">
+            {% if layout.user %}
+                {# No linked archive.org account means no avatar to fetch (that URL 403s), so
+                use the glyph instead. A linked account with no picture still 200s --
+                archive.org serves its own silhouette there. #}
+                {% if layout.user.ia_id %}
+                    <img class="account__icon"
+                         src="https://archive.org/services/img/{{ layout.user.ia_id }}"
+                         alt="{{ _('My account') }}"
+                         title="{{ layout.user.account_title }}">
+                {% else %}
+                    {{ icon("circle-user-round", size="lg", label=_("My account"), extra_class="account__icon-glyph") }}
+                {% endif %}
+                {% if layout.user.shows_merge_count and layout.user.open_merges_count > 0 %}
+                    <span class="mr-notifications">{{ layout.user.open_merges_count }}</span>
+                {% endif %}
+            {% endif %}
+            {# Decorative — the button carries the accessible name. #}
+            {{ icon('menu', size="lg", extra_class='hamburger__icon') }}
+        </button>
+    </div>
+</header>
+<ol-drawer id="hamburger-drawer" label="{{ _('Menu') }}">
+    <ul class="drawer-menu hamburger-drawer-menu">
+        {# ── My Open Library ── #}
+        <li class="drawer-menu__subsection">{{ _("My Open Library") }}</li>
+        {% if layout.user %}
+            <li class="drawer-menu__item">
+                {# Two spans, not a <br>: the row is a column flex container, where a
+                line break is an empty flex item rather than a break. #}
+                <a href="/account/books" data-ol-link-track="Hamburger|MyBooks">
+                    <span>{{ _("My Books") }}</span>
+                    <span class="drawer-menu__subheading">{{ _("Loans, Reading Log, Lists, Stats") }}</span>
+                </a>
+            </li>
+            <li class="drawer-menu__item">
+                <a href="{{ layout.user.key }}" data-ol-link-track="Hamburger|MyProfile">{{ _("My Profile") }}</a>
+            </li>
+            {% if layout.user.is_privileged_user %}
+                <li class="drawer-menu__item">
+                    {% if layout.user.shows_merge_count and layout.user.open_merges_count > 0 %}
+                        <div class="drawer-menu__badge">{{ layout.user.open_merges_count }}</div>
+                    {% endif %}
+                    <a href="{{ layout.homepath }}/merges"
+                       data-ol-link-track="Hamburger|MyRequests">{{ _("Pending Merge Requests") }}</a>
+                </li>
+            {% endif %}
+            <li class="drawer-menu__item">
+                <a href="{{ layout.homepath }}/account"
+                   data-ol-link-track="Hamburger|MySettings">{{ _("Settings") }}</a>
+            </li>
+            <li class="drawer-menu__item">
+                <form name="hamburger-logout" action="/account/logout" method="post">
+                    <button data-ol-link-track="Hamburger|Logout">{{ _("Log out") }}</button>
+                </form>
+            </li>
+        {% else %}
+            <li class="drawer-menu__login-links">
+                <a class="drawer-menu__login-secondary" href="/account/login">{{ _("Log In") }}</a>
+                <a class="drawer-menu__login-primary" href="/account/create">{{ _("Sign Up") }}</a>
+            </li>
+        {% endif %}
+        {# ── Browse ── #}
+        {# Destinations come from openlibrary/plugins/openlibrary/nav.py, shared with
+        the Browse popover so the two can't drift. The drawer lists all of them
+        flat; the popover features the first few. #}
+        <li class="drawer-menu__subsection">{{ _("Browse") }}</li>
+        {# Two-part track values, matching the drawer's other rows — the popover's
+        positional rank is its own thing and mixing formats muddies the data. #}
+        {% for link in layout.browse_links %}
+            <li class="drawer-menu__item">
+                <a href="{{ link.href }}"
+                   data-ol-link-track="Hamburger|{{ link.track }}">{{ link.text }}</a>
+            </li>
+        {% endfor %}
+        {# ── Contribute ── #}
+        <li class="drawer-menu__subsection">{{ _("Contribute") }}</li>
+        <li class="drawer-menu__item">
+            <a href="/books/add" data-ol-link-track="Hamburger|AddBook">{{ _("Add a Book") }}</a>
+        </li>
+        <li class="drawer-menu__item">
+            <a href="/recentchanges" data-ol-link-track="Hamburger|RecentEdits">{{ _("Recent Community Edits") }}</a>
+        </li>
+        {# ── Resources ── #}
+        <li class="drawer-menu__subsection">{{ _("Resources") }}</li>
+        <li class="drawer-menu__item">
+            <a href="/help" data-ol-link-track="Hamburger|Help">{{ _("Help & Support") }}</a>
+        </li>
+        <li class="drawer-menu__item">
+            <a href="/developers" data-ol-link-track="Hamburger|DevelopersHelp">{{ _("Developer Center") }}</a>
+        </li>
+        <li class="drawer-menu__item">
+            <a href="/librarians" data-ol-link-track="Hamburger|LibrariansHelp">{{ _("Librarians Portal") }}</a>
+        </li>
+    </ul>
+</ol-drawer>
+<header class="header-bar mobile">
+    <ul class="navigation-component mobile">
+        <li>
+            {% with props=layout.my_books_props, track_prefix="MainNav" %}
+                {% include "lib/header_dropdown.html.jinja" %}
+            {% endwith %}
+        </li>
+        {# Distinct prefix so browse analytics separate the mobile tray from the
+        desktop popover (see the tracking note in browse_popover.html). #}
+        <li>
+            {% with track_prefix="MainNavMobile" %}
+                {% include "lib/browse_popover.html.jinja" %}
+            {% endwith %}
+        </li>
+    </ul>
+</header>
