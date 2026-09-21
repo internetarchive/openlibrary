@@ -645,10 +645,19 @@ def provider_loans(username: str) -> ProviderLoans:
     resolve the patron's tokens (sequential, synchronous, usually no network),
     then ask every node for its loans at once.
 
-    **It does not raise.** A node that is slow, down, or answering nonsense
-    costs its own entry in ``unreachable`` and nothing more. The Internet
-    Archive loans this is merged alongside come from a different call that this
-    one cannot fail.
+    **It does not raise, and it does not return anything that makes the page
+    raise later.** A node that is slow, down, or answering nonsense costs its
+    own entry in ``unreachable`` and nothing more. The Internet Archive loans
+    this is merged alongside come from a different call that this one cannot
+    fail.
+
+    The second half of that sentence is there because the first half on its own
+    was true while the page was broken: this function never raised on a
+    timezone-aware ``due_at``, it just passed the node's string through to a
+    renderer that could not parse it, and the patron lost every loan they had
+    including the Internet Archive ones. Not raising is not the property worth
+    promising -- every value handed out of here being one the loans page can
+    render is. See :func:`_expiry`.
     """
     deadline = time.monotonic() + LOANS_DEADLINE_SECONDS
     holdings, unreachable, unauthorized = _patron_tokens(username, deadline)
