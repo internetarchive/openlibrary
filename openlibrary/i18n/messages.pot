@@ -3205,7 +3205,7 @@ msgstr ""
 msgid "Looking for a specific title? The best way to find it is to<a href=\"/search\"> search for it</a>."
 msgstr ""
 
-#: books/daisy.html lib/exports.html
+#: books/daisy.html
 msgid "Need help?"
 msgstr ""
 
@@ -4403,10 +4403,6 @@ msgstr ""
 
 #: lib/exports.html
 msgid "Copy and paste this code into your Wikipedia page."
-msgstr ""
-
-#: lib/exports.html
-msgid "Get instructions at Wikipedia in a new window"
 msgstr ""
 
 #: lib/exports.html
