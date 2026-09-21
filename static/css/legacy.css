@@ -39,7 +39,7 @@
 @import "components/mybooks.css";
 @import "components/readinglog-stats.css";
 @import "components/tagging-menu.css";
-@import "components/shareLinks.css";
+@import "components/share-popover.css";
 @import "components/generic-dropper.css";
 @import "components/subNav.css";
 @import "components/book.css";
@@ -1555,28 +1555,6 @@ div.popAlert {
   font-size: 1.25em;
   color: var(--red);
   text-align: center;
-}
-
-/* openlibrary/templates/type/edition/view.html */
-#wikicode textarea {
-  width: 400px;
-  height: 200px;
-  padding: var(--spacing-inset-sm);
-  margin: 10px;
-  font-family: var(--font-family-body);
-  font-size: 0.75em;
-  overflow: auto;
-  outline: none;
-  white-space: pre-line;
-  word-break: break-all;
-  word-wrap: break-word;
-}
-
-#wikicode p {
-  margin: 10px 10px 0;
-  padding: 0;
-  font-family: var(--font-family-body);
-  font-size: 0.75em;
 }
 
 /* PAGE HISTORY */
