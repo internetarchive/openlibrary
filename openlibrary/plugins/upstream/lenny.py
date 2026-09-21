@@ -72,15 +72,18 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
+from infogami.utils.view import add_flash_message
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.acquisitions import Acquisition
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.provider_tokens import (
     Grant,
     ProviderToken,
     Refresher,
     TokenRefreshFailed,
 )
+from openlibrary.i18n import gettext as _
 from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("openlibrary.lenny")
@@ -197,6 +200,53 @@ def node_for_edition(edition_key: str) -> tuple[str, dict[str, str]] | None:
 
 def _redirect_uri() -> str:
     return config.get("lenny_redirect_uri") or f"https://openlibrary.org{REDIRECT_PATH}"
+
+
+def node_display_name(provider_name: str, node: dict[str, str]) -> str:
+    """What to call this node to a patron.
+
+    From the node's own config, because a node *is* a library: "Archive Labs
+    Lenny" names one operator, not the software, and a second node will want
+    its own name in the same sentence. Falls back to the feed's provider name,
+    so an operator who set no ``name`` gets "Lenny" rather than a sentence with
+    a hole in it.
+    """
+    return node.get("name") or provider_name.replace("_", " ").title()
+
+
+def borrow_path(edition_olid: str) -> str:
+    """Where a borrow of this edition starts, as one definition.
+
+    :class:`lenny_borrow` serves it, :func:`mediated_borrow` hands it to the
+    interstitial, and the handler hands it back to itself through the sign-in
+    redirect. Three spellings of one path is how one of them ends up wrong.
+    """
+    return f"/borrow/lenny/{edition_olid}"
+
+
+def mediated_borrow(edition_key: str) -> tuple[str, str] | None:
+    """``(url, library_name)`` for a borrow Open Library runs itself, else None.
+
+    ``url`` is an Open Library path -- :class:`lenny_borrow`, which turns a
+    click into an authorization request -- so the patron's browser only ever
+    navigates to Open Library and to the node holding the book.
+
+    None means no *configured* node lends this edition. A harvested row can
+    name a Lenny node Open Library holds no credentials for, and then there is
+    no handshake to run: the caller falls back to the feed's own URL, which is
+    the node's sign-in and completes a loan with nothing built on this side
+    (#13686).
+    """
+    if not nodes():
+        # Checked before `node_for_edition`, which reads the acquisitions
+        # table whether or not any node is configured. Every borrow click on
+        # every provider reaches this function, and on an Open Library with no
+        # Lenny node that query cannot return a usable answer.
+        return None
+    if not (found := node_for_edition(edition_key)):
+        return None
+    provider_name, node = found
+    return borrow_path(edition_key.rsplit("/", maxsplit=1)[-1]), node_display_name(provider_name, node)
 
 
 def _state_key(state: str) -> str:
@@ -430,7 +480,12 @@ class lenny_borrow(delegate.page):
     def GET(self, edition_olid: str):
         edition_key = f"/books/{edition_olid}"
         if not (user := get_current_user()):
-            raise web.seeother(f"/account/login?redirect={edition_key}")
+            # Back here, not to the book: returning them to the book page drops
+            # the thing they asked for and they have to find the button again.
+            # It matters more inside the popup (#13688), where finishing on the
+            # book page means finishing in a 520px window -- but it was already
+            # a lost click in a tab.
+            raise web.seeother(f"/account/login?redirect={borrow_path(edition_olid)}")
         if not (found := node_for_edition(edition_key)):
             raise web.notfound()
         provider_name, node = found
@@ -476,22 +531,22 @@ class lenny_callback(delegate.page):
 
         if i.error:
             logger.info("lenny authorization declined for %s: %s", pending["provider_name"], i.error)
-            return render_error("The library did not authorize this loan.")
+            return render_error("The library did not authorize this loan.", pending["edition_key"])
 
         try:
             check_issuer(pending, i.iss)
         except ValueError:
             logger.exception("lenny callback failed the issuer check")
-            return render_error("That borrow request could not be verified. Please try again.")
+            return render_error("That borrow request could not be verified. Please try again.", pending["edition_key"])
 
         if not i.code:
-            return render_error("That borrow request expired. Please try borrowing again.")
+            return render_error("That borrow request expired. Please try borrowing again.", pending["edition_key"])
 
         try:
             grant = exchange_code(pending, i.code)
         except Exception:
             logger.exception("lenny token exchange failed for %s", pending["provider_name"])
-            return render_error("That library could not complete the loan. Please try again later.")
+            return render_error("That library could not complete the loan. Please try again later.", pending["edition_key"])
 
         # Stored before the loan is created, not after. A loan made with a grant
         # Open Library failed to keep is a live credential at a third-party
@@ -502,20 +557,24 @@ class lenny_callback(delegate.page):
             ProviderToken.upsert(pending["username"], pending["provider_name"], grant)
         except Exception:
             logger.exception("lenny grant could not be stored for %s", pending["provider_name"])
-            return render_error("That library could not complete the loan. Please try again later.")
+            return render_error("That library could not complete the loan. Please try again later.", pending["edition_key"])
 
         edition_id = int(extract_numeric_id_from_olid(pending["edition_key"]))
         try:
             loan = borrow(pending, grant.access_token, edition_id)
         except LennyBorrowError as e:
             logger.info("lenny borrow refused (%s/%s)", e.status, e.error)
-            return render_error(e.message)
+            return render_error(e.message, pending["edition_key"])
         except Exception:
             logger.exception("lenny borrow failed for %s", pending["provider_name"])
-            return render_error("That library could not complete the loan. Please try again later.")
+            return render_error("That library could not complete the loan. Please try again later.", pending["edition_key"])
 
         logger.info("lenny loan created on %s for %s", pending["provider_name"], pending["edition_key"])
-        return render_borrowed(pending["edition_key"], loan, read_url(pending, loan))
+        # The node's config, not `pending`: `state` is a ten-minute-old
+        # snapshot of the credentials this flow needed, and a display name is
+        # the one thing here that an operator may have corrected since.
+        library = node_display_name(pending["provider_name"], nodes().get(pending["provider_name"], {}))
+        return render_borrowed(pending["edition_key"], loan, read_url(pending, loan), library)
 
 
 def read_url(pending: dict[str, Any], loan: dict[str, Any]) -> str:
@@ -530,16 +589,83 @@ def read_url(pending: dict[str, Any], loan: dict[str, Any]) -> str:
     return f"{issuer}/v1/api/items/{edition_id}/read"
 
 
-def render_error(message: str) -> str:
-    return f"<html><body><h1>Borrow</h1><p>{web.websafe(message)}</p></body></html>"
+POPUP_MESSAGE_TYPE = "ol-provider-borrow"
+"""The ``postMessage`` type the callback sends to the page that opened the popup.
+
+Shared with ``openlibrary/plugins/openlibrary/js/provider_borrow_popup.js``,
+which drops any message whose ``type`` is not this string. Renaming it on one
+side only leaves the loan created and the book page never refreshed, which is
+the failure the patron sees as "nothing happened".
+"""
 
 
-def render_borrowed(edition_key: str, loan: dict[str, Any], read: str) -> str:
-    due = web.websafe(str(loan.get("due_at") or "unknown"))
-    return (
-        "<html><body><h1>Borrowed</h1>"
-        f"<p>The loan was created, due {due}.</p>"
-        f'<p><a href="{web.websafe(read)}">Read it now</a></p>'
-        f'<p><a href="{web.websafe(edition_key)}">Back to the book</a></p>'
-        "</body></html>"
+def _popup_page(**kwargs: Any) -> delegate.RawText:
+    """One of the popup's two endings, as a page with no site layout.
+
+    ``RawText`` rather than a returned string, and the reason is not weight:
+    it is the only way the flash message survives the popup.
+
+    ``flash_processor`` writes the flash cookie only when ``web.ctx.flash``
+    differs from what arrived in the request, and ``get_flash_messages()``
+    *drains* ``web.ctx.flash`` as a side effect of reading it
+    (``vendor/infogami/infogami/utils/flash.py:18-21, 42-50``). The site layout
+    calls it on every render (``openlibrary/core/layout.py:101-112``). So a
+    page that renders the layout shows the message here -- inside a window that
+    is about to close -- and leaves ``web.ctx.flash`` empty, matching the empty
+    request value, so no cookie is written and the page that opened the popup
+    never hears about the loan. Skipping ``render_site`` is what keeps the
+    message for the opener (``utils/delegate.py:89-92``).
+
+    The popup is also the one place in Open Library where dropping the layout
+    costs nothing: it is 520px wide, it closes on its own, and the patron is
+    looking at the real Open Library page behind it the whole time.
+    """
+    return delegate.RawText(render_jinja_template("borrow/provider_popup_result.html.jinja", **kwargs))
+
+
+def render_error(message: str, return_url: str = "/") -> delegate.RawText:
+    """The popup's failure page. See the template for why it is not a bare 303.
+
+    No flash, unlike :func:`render_borrowed`, and the asymmetry is the point:
+    this page stays on screen to be read, so flashing the same sentence onto
+    the page behind it would show the patron one failure twice.
+    """
+    return _popup_page(
+        ok=False,
+        message=message,
+        return_url=return_url,
+        read_url=None,
+        due=None,
+        message_type=POPUP_MESSAGE_TYPE,
+    )
+
+
+def render_borrowed(edition_key: str, loan: dict[str, Any], read: str, library: str) -> delegate.RawText:
+    """The popup's success page: it closes itself and refreshes the book page.
+
+    The flash is the confirmation the patron actually reads, because the popup
+    closes before it can be read there. It is plain text on purpose -- the
+    layout renders it escaped (``site.html.jinja``), so it cannot carry the
+    "Read it now" link.
+
+    Which is why ``read`` is kept on this page rather than dropped: it is the
+    only route to the book on the paths where there is no opener to refresh --
+    no JavaScript, or the CTA's ``target="_blank"`` fallback, which has no
+    opener by construction. Open Library's own button cannot serve as that
+    route yet. It renders from the harvested ``acquisitions`` row and a loan
+    does not touch that row, so the refreshed book page still says "Borrow".
+    Closing that gap needs per-patron loan state on the book page and is not
+    this module's to fix; see the PR for #13688.
+    """
+    if due := loan.get("due_at"):
+        add_flash_message("info", _("Borrowed from %(library)s. Your loan is due %(due)s.", library=library, due=due))
+    else:
+        add_flash_message("info", _("Borrowed from %(library)s.", library=library))
+    return _popup_page(
+        ok=True,
+        message=None,
+        return_url=edition_key,
+        read_url=read,
+        due=due,
+        message_type=POPUP_MESSAGE_TYPE,
     )

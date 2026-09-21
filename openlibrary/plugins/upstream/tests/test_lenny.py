@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import datetime
 import hashlib
+import pathlib
 import urllib.parse
 from typing import ClassVar
 
@@ -443,6 +444,23 @@ class TestAuthorizeLeg:
         params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(url).query))
         assert lenny._state_key(params["state"]) in leg.store
 
+    def test_a_signed_out_patron_comes_back_to_the_borrow_they_asked_for(self, leg, monkeypatch):
+        """Not to the book page. Sending them there loses the click -- they
+        arrive signed in, looking at the same Borrow button -- and inside the
+        popup (#13688) it also leaves them on a book page 520px wide.
+        """
+        monkeypatch.setattr(lenny, "get_current_user", lambda: None)
+        with pytest.raises(Redirected) as excinfo:
+            lenny.lenny_borrow().GET("OL51008637M")
+        assert excinfo.value.url == "/account/login?redirect=/borrow/lenny/OL51008637M"
+
+    def test_a_signed_out_patron_starts_no_authorization(self, leg, monkeypatch):
+        """Nothing is in flight until there is a patron to key the grant on."""
+        monkeypatch.setattr(lenny, "get_current_user", lambda: None)
+        with pytest.raises(Redirected):
+            lenny.lenny_borrow().GET("OL51008637M")
+        assert leg.store == {}
+
 
 class TestGrantFromPayload:
     def test_expires_is_derived_from_expires_in(self):
@@ -587,8 +605,14 @@ class TestCallback:
     callback actually calls it, and calls it before spending the code."""
 
     @pytest.fixture
-    def flow(self, memcache, monkeypatch):
-        """A pending authorization, with every side effect recorded."""
+    def flow(self, memcache, monkeypatch, request_context_fixture):
+        """A pending authorization, with every side effect recorded.
+
+        ``request_context_fixture`` because both endings are now rendered
+        templates, and Jinja's gettext reads the request's language.
+        """
+        request_context_fixture(lang="en")
+        web.ctx.flash = []
         recorded: dict = {"order": [], "cookies": [], "stored": []}
         memcache.set(
             lenny._state_key("st"),
@@ -634,12 +658,12 @@ class TestCallback:
         """The mix-up defence only works if it fires before the exchange: a
         code redeemed at the wrong node is already the damage."""
         body = self._call(monkeypatch, iss=OTHER_NODE_ISS)
-        assert "could not be verified" in body
+        assert "could not be verified" in body.rawtext
         assert flow["order"] == []
 
     def test_a_missing_iss_aborts_before_the_code_is_spent(self, flow, monkeypatch):
         body = self._call(monkeypatch, iss=None)
-        assert "could not be verified" in body
+        assert "could not be verified" in body.rawtext
         assert flow["order"] == []
 
     def test_a_mismatched_iss_leaves_no_grant_stored(self, flow, monkeypatch):
@@ -660,7 +684,7 @@ class TestCallback:
 
         monkeypatch.setattr(lenny.ProviderToken, "upsert", staticmethod(boom))
         body = self._call(monkeypatch)
-        assert "could not complete the loan" in body
+        assert "could not complete the loan" in body.rawtext
         assert "borrow" not in flow["order"]
 
     def test_no_credential_reaches_the_browser(self, flow, monkeypatch):
@@ -677,5 +701,157 @@ class TestCallback:
         self._call(monkeypatch)
         flow["order"].clear()
         body = self._call(monkeypatch)
-        assert "expired" in body
+        assert "expired" in body.rawtext
         assert flow["order"] == []
+
+    def test_the_library_named_to_the_patron_comes_from_current_config(self, flow, monkeypatch):
+        """Not from `state`, which is a ten-minute-old snapshot of the
+        credentials the flow needed. A display name is the one field in there
+        an operator may have corrected since."""
+        monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": {**NODE, "name": "Archive Labs Lenny"}})
+        self._call(monkeypatch)
+        assert [m.message for m in web.ctx.flash] == ["Borrowed from Archive Labs Lenny. Your loan is due 2026-09-24."]
+
+    def test_an_unconfigured_node_still_confirms_the_loan(self, flow, monkeypatch):
+        """A node dropped from config between the click and the callback: the
+        loan is real, so the patron must still be told about it."""
+        monkeypatch.setattr(lenny, "nodes", dict)
+        self._call(monkeypatch)
+        assert [m.message for m in web.ctx.flash] == ["Borrowed from Lenny. Your loan is due 2026-09-24."]
+
+
+class TestNodeDisplayName:
+    def test_prefers_the_name_the_operator_configured(self):
+        assert lenny.node_display_name("lenny", {**NODE, "name": "Archive Labs Lenny"}) == "Archive Labs Lenny"
+
+    def test_falls_back_to_the_provider_name(self):
+        """An operator who set no name should still get a whole sentence."""
+        assert lenny.node_display_name("lenny_example_org", NODE) == "Lenny Example Org"
+
+
+class TestMediatedBorrow:
+    """Whether a borrow runs through Open Library or is handed to the node.
+
+    `handle_borrow_async` asks this. Getting it wrong in either direction is
+    invisible from inside the handler: a false positive sends the patron into a
+    handshake Open Library has no credentials for, and a false negative quietly
+    reverts #13688 to #13686's hand-off.
+    """
+
+    @pytest.fixture
+    def lends(self, monkeypatch):
+        def configure(nodes, rows=("lenny",)):
+            monkeypatch.setattr(lenny, "nodes", lambda: nodes)
+            monkeypatch.setattr(
+                lenny.Acquisition,
+                "get_by_edition",
+                staticmethod(lambda edition_id, provider_name=None: [lenny.Acquisition(provider_name=r) for r in rows]),
+            )
+
+        return configure
+
+    def test_a_configured_node_borrows_through_open_library(self, lends):
+        lends({"lenny": {**NODE, "name": "Archive Labs Lenny"}})
+        assert lenny.mediated_borrow("/books/OL51008637M") == ("/borrow/lenny/OL51008637M", "Archive Labs Lenny")
+
+    def test_the_url_is_an_open_library_path(self, lends):
+        """Relative on purpose: the patron's address bar must not change host,
+        which is the whole requirement behind #13688."""
+        lends({"lenny": NODE})
+        url, _name = lenny.mediated_borrow("/books/OL51008637M")
+        assert url.startswith("/borrow/")
+        assert "://" not in url
+
+    def test_an_unconfigured_node_is_left_to_its_own_sign_in(self, lends):
+        """No credentials means no handshake to run. The caller falls back to
+        the URL the feed gave it, which still completes a loan."""
+        lends({}, rows=("lenny",))
+        assert lenny.mediated_borrow("/books/OL51008637M") is None
+
+
+class TestPopupEndings:
+    """The two pages the popup can end on.
+
+    Both are `RawText`, which looks like a styling choice and is not: the site
+    layout calls `get_flash_messages()`, which *drains* `web.ctx.flash`, and
+    `flash_processor` then writes no cookie because the drained value matches
+    the empty one that arrived. The message would be shown inside a window
+    about to close and never reach the page that opened it.
+    """
+
+    @pytest.fixture(autouse=True)
+    def context(self, request_context_fixture):
+        request_context_fixture(lang="en")
+        web.ctx.flash = []
+
+    LOAN: ClassVar[dict] = {"edition_id": 51008637, "due_at": "2026-10-04"}
+    READ = "https://lennyforlibraries.org/v1/api/items/51008637/read"
+
+    def _flash(self):
+        return [(m.type, m.message) for m in web.ctx.flash]
+
+    def _borrowed(self):
+        return lenny.render_borrowed("/books/OL51008637M", self.LOAN, self.READ, "Archive Labs Lenny")
+
+    def test_success_is_not_rendered_through_the_site_layout(self):
+        assert isinstance(self._borrowed(), lenny.delegate.RawText)
+
+    def test_failure_is_not_rendered_through_the_site_layout(self):
+        assert isinstance(lenny.render_error("Nope.", "/books/OL51008637M"), lenny.delegate.RawText)
+
+    def test_the_confirmation_the_patron_reads_is_a_flash_on_the_page_behind(self):
+        """The popup closes before anything on it can be read, so the success
+        page is not where the patron is told the loan exists."""
+        self._borrowed()
+        assert self._flash() == [("info", "Borrowed from Archive Labs Lenny. Your loan is due 2026-10-04.")]
+
+    def test_a_loan_with_no_due_date_still_confirms(self):
+        lenny.render_borrowed("/books/OL51008637M", {"edition_id": 1}, self.READ, "Archive Labs Lenny")
+        assert self._flash() == [("info", "Borrowed from Archive Labs Lenny.")]
+
+    def test_a_failure_is_shown_here_and_not_also_flashed(self):
+        """The failure page stays on screen to be read, so a flash onto the
+        page behind it would show the patron the same sentence twice."""
+        page = lenny.render_error("Every copy is currently on loan.", "/books/OL51008637M")
+        assert "Every copy is currently on loan." in page.rawtext
+        assert self._flash() == []
+
+    def test_the_success_page_keeps_a_route_to_the_book(self):
+        """The only route, on the paths with no opener to refresh: Open
+        Library's own button still says "Borrow" after a loan."""
+        assert self.READ in self._borrowed().rawtext
+
+    def test_the_success_page_carries_the_type_the_opener_listens_for(self):
+        """A mismatch here is the loan created and the page never refreshed."""
+        assert f'data-message-type="{lenny.POPUP_MESSAGE_TYPE}"' in self._borrowed().rawtext
+
+    def test_the_result_is_posted_to_this_origin_only(self):
+        """A `*` target origin would hand the result to whatever page happens
+        to be the opener."""
+        rawtext = self._borrowed().rawtext
+        assert "postMessage(" in rawtext
+        assert "window.location.origin" in rawtext
+        assert "'*'" not in rawtext
+
+    def test_a_failure_shows_the_reason_rather_than_closing(self):
+        page = lenny.render_error("Every copy is currently on loan.", "/books/OL51008637M")
+        assert "Every copy is currently on loan." in page.rawtext
+        assert 'data-ok="0"' in page.rawtext
+
+    def test_an_expired_request_with_no_book_to_return_to_still_renders(self):
+        """`render_error`'s one caller without a pending state: a callback whose
+        state has expired knows no edition."""
+        assert 'data-return-url="/"' in lenny.render_error("That borrow request expired.").rawtext
+
+    def test_the_listener_in_the_bundle_agrees_on_the_message_type(self):
+        """The one contract in this feature that spans two languages, so the
+        only thing that can hold it is a test that reads both sides.
+
+        Renaming the constant here and not in the module the book page loads
+        is silent: the loan is created, the message is posted, nothing is
+        listening for that type, and the page never refreshes. Neither a Python
+        test of the callback nor a JavaScript test of the listener sees it,
+        because each is internally consistent.
+        """
+        module = pathlib.Path(lenny.__file__).resolve().parents[2] / "plugins/openlibrary/js/provider_borrow_popup.js"
+        assert f"const MESSAGE_TYPE = '{lenny.POPUP_MESSAGE_TYPE}';" in module.read_text()

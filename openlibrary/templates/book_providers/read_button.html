@@ -46,13 +46,22 @@ $elif acquisition.access == 'borrow':
   $#
   $# `/-/borrow` is the href, the same as the open-access branch above, so the
   $# OAuth handshake that keeps the patron on Open Library (#13688) has one
-  $# place to land; until then handle_borrow_async forwards to the provider,
-  $# whose own sign-in takes it from there.
+  $# place to land; where no node is configured, handle_borrow_async forwards
+  $# to the provider and its own sign-in takes it from there.
+  $#
+  $# `data-ol-provider` is which provider this offer came from and nothing
+  $# more — no claim about how to open it. provider_borrow_popup.js keeps the
+  $# list of providers Open Library borrows on behalf of, so the decision sits
+  $# in one named place instead of being spelled out in markup that also
+  $# serves DirectProvider. `target="_blank"` stays as the fallback for a
+  $# blocked or scriptless popup: that path borrows too, it just cannot
+  $# refresh the page behind it.
   <div class="$group_class">
     <a href="/books/${edition_key}/-/borrow?action=borrow"
         title="$_('Borrow ebook from %s', provider_name)"
         class="cta-btn cta-btn--available cta-btn--borrow cta-btn--external"
         target="_blank" rel="noopener noreferrer"
+        data-ol-provider="${acquisition.provider_name or ''}"
         $:analytics_attr('Borrow')
     >$_('Borrow')</a>
     $:locate_menu()
