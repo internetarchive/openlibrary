@@ -620,7 +620,7 @@ def read_url(rec: MarcBase) -> list:
         parts = contents.get("y") or contents.get("3") or contents.get("z") or contents.get("x", ["External source"])
         if parts:
             title = parts[0].strip()
-            found += [{"url": u.strip(), "title": title} for u in contents["u"]]
+            found += [{"url": u.strip(), "title": title} for u in contents["u"] if "http" in u]
     return found
 
 
