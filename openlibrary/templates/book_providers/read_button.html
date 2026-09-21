@@ -39,11 +39,15 @@ $if acquisition.access == 'open-access':
     $:locate_menu()
   </div>
 $elif acquisition.access == 'borrow':
-  $# A loan the provider grants, not one Open Library tracks. `/-/borrow` is
-  $# still the href, the same as the open-access branch above, so the OAuth
-  $# handshake that keeps the patron on Open Library (#13688) has one place to
-  $# land; until then handle_borrow_async forwards to the provider, whose own
-  $# sign-in takes it from there.
+  $# A loan the provider grants, not one Open Library tracks. Not Lenny-only:
+  $# DirectProvider reaches here too, since `access` in the edit-book form's
+  $# `providers` field may be `borrow`. Before this branch existed both fell
+  $# off the end of the chain and rendered the empty string.
+  $#
+  $# `/-/borrow` is the href, the same as the open-access branch above, so the
+  $# OAuth handshake that keeps the patron on Open Library (#13688) has one
+  $# place to land; until then handle_borrow_async forwards to the provider,
+  $# whose own sign-in takes it from there.
   <div class="$group_class">
     <a href="/books/${edition_key}/-/borrow?action=borrow"
         title="$_('Borrow ebook from %s', provider_name)"

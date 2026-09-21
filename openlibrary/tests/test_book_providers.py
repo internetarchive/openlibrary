@@ -233,9 +233,13 @@ class TestReadButtonTemplate:
         """`/-/borrow` is the href so #13688 has one place to land, and so the
         node URL is resolved server-side rather than published in the page.
 
-        Asserts the button exists first. Without that the absence of the node
-        URL is also true of the empty string this branch used to render, and
-        the test would pass against the defect it is here to pin.
+        Asserts the button exists first, and that ordering is the point. The
+        absence of the node URL is also true of the empty string this branch
+        used to render, so without the first assertion this test passes against
+        the exact defect it is here to pin -- observed, not hypothesised:
+        written without it, it stayed green against the unfixed template while
+        every other test in this class went red. An assertion satisfied by
+        absence needs a companion that fails when nothing is rendered at all.
         """
         html = self.render("borrow", BORROW_URL)
         assert 'href="/books/OL46539165M/-/borrow?action=borrow"' in html
