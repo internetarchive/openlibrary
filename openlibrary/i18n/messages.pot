@@ -532,7 +532,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: ObservationsModal.html ShareModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html lists/lists.html merge/authors.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html ShareModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html lists/lists.html merge/authors.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -3205,7 +3205,7 @@ msgstr ""
 msgid "Looking for a specific title? The best way to find it is to<a href=\"/search\"> search for it</a>."
 msgstr ""
 
-#: books/daisy.html lib/exports.html
+#: books/daisy.html
 msgid "Need help?"
 msgstr ""
 
@@ -4394,11 +4394,11 @@ msgid "OPDS"
 msgstr ""
 
 #: lib/exports.html
-msgid "Cite this on Wikipedia"
+msgid "Wikipedia citation"
 msgstr ""
 
 #: lib/exports.html
-msgid "Wikipedia citation"
+msgid "Cite this on Wikipedia"
 msgstr ""
 
 #: lib/exports.html
@@ -4406,7 +4406,7 @@ msgid "Copy and paste this code into your Wikipedia page."
 msgstr ""
 
 #: lib/exports.html
-msgid "Get instructions at Wikipedia in a new window"
+msgid "Copy Wikipedia citation"
 msgstr ""
 
 #: lib/header_dropdown.html lib/nav_head.html

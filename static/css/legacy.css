@@ -1561,28 +1561,6 @@ div.popAlert {
   text-align: center;
 }
 
-/* openlibrary/templates/type/edition/view.html */
-#wikicode textarea {
-  width: 400px;
-  height: 200px;
-  padding: var(--spacing-inset-sm);
-  margin: 10px;
-  font-family: var(--font-family-body);
-  font-size: 0.75em;
-  overflow: auto;
-  outline: none;
-  white-space: pre-line;
-  word-break: break-all;
-  word-wrap: break-word;
-}
-
-#wikicode p {
-  margin: 10px 10px 0;
-  padding: 0;
-  font-family: var(--font-family-body);
-  font-size: 0.75em;
-}
-
 /* PAGE HISTORY */
 /* Desktop: @width-breakpoint-desktop = 960px */
 @media screen and (max-width: 960px) {
