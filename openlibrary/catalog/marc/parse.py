@@ -614,6 +614,9 @@ def read_url(rec: MarcBase) -> list:
         contents = f.get_contents("uy3zx")
         if not contents.get("u"):
             continue
+        if f.ind1() in "0123":
+            # Exclude 0:Email, 1:FTP, 2:Telnet, 3:Dial-up as External links
+            continue
         parts = contents.get("y") or contents.get("3") or contents.get("z") or contents.get("x", ["External source"])
         if parts:
             title = parts[0].strip()
