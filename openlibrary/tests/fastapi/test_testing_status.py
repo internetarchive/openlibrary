@@ -51,7 +51,7 @@ def _empty_state():
     return status_module.TestingState(last_deploy_at="", prs=[])
 
 
-def _gh_info(pr_number: int = 12914) -> status_module.GitHubPRInfo:
+def _gh_info(pr_number: int = 12914, draft: bool = False) -> status_module.GitHubPRInfo:
     """A successful GitHub PR lookup result."""
     return status_module.GitHubPRInfo(
         pr=pr_number,
@@ -59,7 +59,24 @@ def _gh_info(pr_number: int = 12914) -> status_module.GitHubPRInfo:
         head_sha="abc1234def5678901234567890123456789012345",
         author="author",
         assignee="assignee",
+        draft=draft,
     )
+
+
+_HEAD_SHA = "abc1234def5678901234567890123456789012345"
+
+
+def _graphql_pr(pr_number: int, head_sha: str = _HEAD_SHA, state: str = "OPEN", draft: bool = False, commits: list[str] | None = None) -> dict:
+    return {
+        "title": f"Test PR {pr_number}",
+        "state": state,
+        "isDraft": draft,
+        "mergedAt": "2026-08-01T00:00:00Z" if state == "MERGED" else None,
+        "headRefOid": head_sha,
+        "author": {"login": "author", "avatarUrl": "https://example.com/author.png"},
+        "assignees": {"nodes": [{"login": "assignee", "avatarUrl": "https://example.com/assignee.png"}]},
+        "commits": {"nodes": [{"commit": {"oid": oid}} for oid in (commits or [head_sha])]},
+    }
 
 
 async def _gh_lookup(pr_number: int) -> status_module.GitHubPRInfo:
@@ -149,42 +166,28 @@ def test_build_testing_status_has_pending(pr_kwargs, drift, last_deploy_at, expe
 
 
 @pytest.mark.asyncio
-async def test_get_drift_info_fetches_prs_concurrently():
-    """Per-PR GitHub fetches overlap (gather), not one-after-another."""
+async def test_get_drift_info_fetches_all_prs_in_one_graphql_request():
+    """A cache miss makes one GraphQL request for every tracked PR."""
     state = _make_state(prs=[_make_pr(pr_number=n) for n in (13269, 13238, 13240)])
-    info = {
-        "head_sha": "abc1234",
-        "drift": 0,
-        "merged": False,
-        "closed": False,
-        "title": "Test PR",
-        "author": "author",
-        "author_avatar": "",
-        "assignee": "assignee",
-        "assignee_avatar": "",
-    }
-    active = 0
-    peak = 0
+    calls = []
 
-    async def fake_drift(_pr):
-        nonlocal active, peak
-        active += 1
-        peak = max(peak, active)
-        await asyncio.sleep(0.01)  # yield so siblings can start
-        active -= 1
-        return info
+    async def fake_graphql(query):
+        calls.append(query)
+        return {"repository": {f"pr_{p.pr}": _graphql_pr(p.pr, head_sha=p.commit, commits=[p.commit]) for p in state.prs}}
 
     mc = MagicMock()
     mc.get.return_value = None
     with (
         patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_drift_async", side_effect=fake_drift),
+        patch("openlibrary.plugins.openlibrary.status._github_graphql_async", side_effect=fake_graphql),
     ):
         drift, from_cache = await status_module._get_drift_info_async(state, persist=False)
 
     assert from_cache is False
-    assert peak > 1  # sequential awaits would never see overlap
-    assert drift == {p.pr: {"head_sha": "abc1234", "drift": 0, "merged": False, "closed": False} for p in state.prs}
+    assert len(calls) == 1
+    assert all(f"pr_{p.pr}: pullRequest(number: {p.pr})" in calls[0] for p in state.prs)
+    assert "isDraft" in calls[0]
+    assert drift == {p.pr: {"head_sha": p.commit[:7], "drift": 0, "merged": False, "closed": False} for p in state.prs}
 
 
 def test_build_testing_status_marks_merge_conflicts():
@@ -366,25 +369,11 @@ def test_build_testing_status_marks_closed_prs():
     assert result.has_pending is True
 
 
-@pytest.mark.asyncio
-async def test_pr_drift_distinguishes_closed_from_merged():
+def test_pr_drift_distinguishes_closed_from_merged():
     """Merging closes a PR too; only a close without a merge counts as closed."""
 
-    async def fake_get(path):
-        if path.startswith("pulls/"):
-            return {"state": "closed", "merged": False, "merged_at": None, "head": {"sha": "abc1234"}, "user": {}, "assignee": {}, "title": "Closed PR"}
-        return {}  # compare response; no ahead_by → drift unknown
-
-    with patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=fake_get):
-        assert (await status_module._get_pr_drift_async(_make_pr()))["closed"] is True
-
-    async def fake_get_merged(path):
-        if path.startswith("pulls/"):
-            return {"state": "closed", "merged": True, "merged_at": "2026-08-01", "head": {"sha": "abc1234"}, "user": {}, "assignee": {}, "title": "Merged PR"}
-        return {}
-
-    with patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=fake_get_merged):
-        info = await status_module._get_pr_drift_async(_make_pr())
+    assert status_module._parse_pr_drift(_make_pr(), _graphql_pr(13269, state="CLOSED"))["closed"] is True
+    info = status_module._parse_pr_drift(_make_pr(), _graphql_pr(13269, state="MERGED"))
     assert info["closed"] is False
     assert info["merged"] is True
 
@@ -747,77 +736,56 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
     assert state.deployed == {13269: "Test PR"}
 
 
-def test_get_pr_info_raises_not_found_on_404():
-    """A 404 is its own failure mode, so callers can say "no such PR"."""
-    request = httpx.Request("GET", "https://api.github.com/repos/internetarchive/openlibrary/pulls/12914")
+def test_get_pr_info_raises_not_found_when_github_reports_no_such_pr():
+    """A null GraphQL node is a missing PR, not an outage."""
     with (
-        patch(
-            "openlibrary.plugins.openlibrary.status._github_get_async",
-            side_effect=httpx.HTTPStatusError("Not Found", request=request, response=httpx.Response(404, request=request)),
-        ),
+        patch("openlibrary.plugins.openlibrary.status._github_graphql_async", return_value={"repository": {"pr_12914": None}}),
         pytest.raises(status_module.PRNotFoundError),
     ):
         status_module._get_pr_info(12914)
 
 
-def test_get_pr_info_raises_unavailable_on_rate_limit():
-    """Anything that isn't a 404 is an outage, not a missing PR."""
-    request = httpx.Request("GET", "https://api.github.com/repos/internetarchive/openlibrary/pulls/12914")
+def test_get_pr_info_raises_unavailable_when_github_cannot_answer():
+    """A GraphQL failure stays distinguishable from a missing PR."""
     with (
-        patch(
-            "openlibrary.plugins.openlibrary.status._github_get_async",
-            side_effect=httpx.HTTPStatusError("rate limit exceeded", request=request, response=httpx.Response(403, request=request)),
-        ),
+        patch("openlibrary.plugins.openlibrary.status._github_graphql_async", side_effect=status_module.GitHubUnavailableError("rate limited")),
         pytest.raises(status_module.GitHubUnavailableError),
     ):
         status_module._get_pr_info(12914)
 
 
-def test_get_pr_info_raises_unavailable_on_network_error_and_bad_body():
-    """A network failure and a malformed payload are both outages, not absences."""
+def test_get_pr_info_raises_unavailable_on_bad_graphql_body():
+    """A malformed GraphQL PR node is an outage, not an absence."""
     with (
-        patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=httpx.ConnectError("no route")),
-        pytest.raises(status_module.GitHubUnavailableError),
-    ):
-        status_module._get_pr_info(12914)
-
-    # A 200 whose body is missing "head" — the KeyError path.
-    with (
-        patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value={"title": "no head key"}),
+        patch("openlibrary.plugins.openlibrary.status._github_graphql_async", return_value={"repository": {"pr_12914": {"title": "no headRefOid"}}}),
         pytest.raises(status_module.GitHubUnavailableError),
     ):
         status_module._get_pr_info(12914)
 
 
 def test_get_pr_info_returns_only_valid_data_on_success():
-    """A returned payload always carries real values — no error sentinel to check."""
-    body = {
-        "title": "A PR",
-        "head": {"sha": "abc1234def5678901234567890123456789012345"},
-        "user": {"login": "author", "avatar_url": "https://example.com/a.png"},
-        "assignee": None,
-    }
-    with patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value=body):
+    """GraphQL fields map to the existing metadata DTO, including draft."""
+    body = _graphql_pr(12914, draft=True)
+    body["assignees"] = {"nodes": []}
+    with patch("openlibrary.plugins.openlibrary.status._github_graphql_async", return_value={"repository": {"pr_12914": body}}):
         info = status_module._get_pr_info(12914)
 
     assert info == status_module.GitHubPRInfo(
         pr=12914,
-        title="A PR",
+        title="Test PR 12914",
         head_sha="abc1234def5678901234567890123456789012345",
         author="author",
-        author_avatar="https://example.com/a.png",
+        author_avatar="https://example.com/author.png",
+        draft=True,
     )
 
 
 def test_get_pr_info_falls_back_when_the_title_is_empty():
     """GitHub always sends a title, but an empty one shouldn't render a blank row."""
-    body = {
-        "title": "",
-        "head": {"sha": "abc1234def5678901234567890123456789012345"},
-        "user": {},
-        "assignee": None,
-    }
-    with patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value=body):
+    body = _graphql_pr(12914)
+    body["title"] = ""
+    body["author"] = None
+    with patch("openlibrary.plugins.openlibrary.status._github_graphql_async", return_value={"repository": {"pr_12914": body}}):
         info = status_module._get_pr_info(12914)
 
     assert info.title == "PR #12914"
@@ -825,7 +793,7 @@ def test_get_pr_info_falls_back_when_the_title_is_empty():
 
 def test_from_github_builds_a_row_from_the_lookup():
     """The DTO converts to a persisted row, stamped and credited."""
-    pr = status_module.TestingPR.from_github(_gh_info(13269), "mecha-kraken")
+    pr = status_module.TestingPR.from_github(_gh_info(13269, draft=True), "mecha-kraken")
 
     assert pr.pr == 13269
     assert pr.commit == "abc1234def5678901234567890123456789012345"
@@ -833,6 +801,7 @@ def test_from_github_builds_a_row_from_the_lookup():
     assert pr.added_by == "mecha-kraken"
     assert pr.author == "author"
     assert pr.assignee == "assignee"
+    assert pr.draft is True
     assert pr.active is True
     # Stamped with a real time, not the "" that legacy state files carry.
     assert pr.added_at
@@ -1180,7 +1149,7 @@ async def test_adding_a_pr_leaves_the_next_read_a_cache_hit():
         assert await status_module.add_prs([12914], "testuser") == {"ok": True}
 
         with patch(
-            "openlibrary.plugins.openlibrary.status._github_get_async",
+            "openlibrary.plugins.openlibrary.status._github_graphql_async",
             side_effect=AssertionError("the read refetched from GitHub"),
         ):
             drift, from_cache = await status_module._get_drift_info_async(state, persist=False)
@@ -1227,6 +1196,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
                 "author_avatar": "",
                 "assignee": "assignee",
                 "assignee_avatar": "",
+                "draft": False,
                 "head_sha": "abc1234",
                 "drift": 2,
                 "merged": False,
