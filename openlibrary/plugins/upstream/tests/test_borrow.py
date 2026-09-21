@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import web
 
+from openlibrary.book_providers import Acquisition, AcquisitionAccessLiteral
 from openlibrary.plugins.upstream import borrow
 
 
@@ -78,6 +79,46 @@ class TestBorrowPostCore:
         assert result.url == "/books/OL1M"
         assert result.flash is not None
         assert result.flash[0] == "error"
+
+
+class TestProviderBorrow:
+    """A provider that lends its own copies (Lenny, #13686).
+
+    `handle_borrow` forwarded only `open-access` acquisitions to their
+    provider. A `borrow` one fell through to the Internet Archive branch, which
+    has no identifier to work with on a non-IA edition -- so the patron reached
+    a bare `archive.org/stream/` instead of the library holding the book.
+    """
+
+    @staticmethod
+    def _lenny(access: AcquisitionAccessLiteral, url: str):
+        provider = MagicMock()
+        provider.short_name = "lenny"
+        provider.get_acquisitions.return_value = [Acquisition(access=access, format="web", price=None, url=url, provider_name="lenny")]
+        return provider
+
+    BORROW_URL = "https://lennyforlibraries.org/v1/api/items/46539165/borrow"
+
+    def _handle(self, provider, action="borrow"):
+        edition = _mock_edition(ocaid=None, key="/books/OL46539165M")
+        with (
+            patch("openlibrary.plugins.upstream.borrow.site") as mock_site,
+            patch("openlibrary.book_providers.get_book_provider", return_value=provider),
+            patch("openlibrary.plugins.upstream.borrow.render_jinja_template") as mock_render,
+        ):
+            mock_site.get.return_value.get.return_value = edition
+            borrow.handle_borrow("/books/OL46539165M", borrow.BorrowParams(action=action), s3_cookie=None)
+        return mock_render
+
+    def test_a_borrow_acquisition_is_forwarded_to_the_provider(self):
+        mock_render = self._handle(self._lenny("borrow", self.BORROW_URL))
+        mock_render.assert_called_once()
+        assert mock_render.call_args.kwargs["url"] == self.BORROW_URL
+
+    def test_an_open_access_acquisition_is_still_forwarded(self):
+        url = "https://lennyforlibraries.org/v1/api/items/37044817/read"
+        mock_render = self._handle(self._lenny("open-access", url), action="read")
+        assert mock_render.call_args.kwargs["url"] == url
 
 
 class TestBorrowPostAdapter:
