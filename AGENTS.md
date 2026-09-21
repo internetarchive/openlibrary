@@ -4,7 +4,7 @@
 
 ## Quick Reference
 
-**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · Vite · Solr 10
+**Stack:** Python 3.15 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · Vite · Solr 10
 
 > 📖 **Guides:** [`docs/ai/i18n.md`](/docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/design.md`](/docs/ai/design.md) — read before touching `static/css/`, templates, macros, or `openlibrary/components/`; [`docs/ai/web-components.md`](/docs/ai/web-components.md) — also read before touching `openlibrary/components/lit/`. [`docs/ai/README.md`](/docs/ai/README.md) — full architecture and data-model. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
 
@@ -20,7 +20,7 @@
 
 ### Key Commands
 
-**Before committing**, run pre-commit on your changed files (requires Python 3.14 on host — `brew install python@3.14`):
+**Before committing**, run pre-commit on your changed files (requires Python 3.15 on host — `brew install python@3.15`):
 
 ```bash
 pre-commit run --files <file1> <file2> ...
