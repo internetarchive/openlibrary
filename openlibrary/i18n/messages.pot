@@ -765,7 +765,7 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html trending.html type/list/embed.html widget.html
+#: LoanReadForm.html ReadButton.html account/loan_actions.html admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html trending.html type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
@@ -1173,10 +1173,39 @@ msgstr ""
 msgid "No ISBN"
 msgstr ""
 
+#: account/loan_actions.html
+#, python-format
+msgid "Borrowed from %(library)s"
+msgstr ""
+
+#: account/loan_actions.html books/custom_carousel_card.html.jinja
+msgid "Not yet downloaded."
+msgstr ""
+
+#: account/loan_actions.html books/custom_carousel_card.html.jinja
+msgid "Download Now"
+msgstr ""
+
+#: account/loan_actions.html
+msgid "Return via<br/>Adobe Digital Editions"
+msgstr ""
+
 #: account/loans.html
 #, python-format
 msgid "Active Loan (%(count)d)"
 msgid_plural "Active Loans (%(count)d)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: account/loans.html
+msgid "One of your libraries could not be reached, so any loans there are not shown."
+msgid_plural "Some of your libraries could not be reached, so any loans there are not shown."
+msgstr[0] ""
+msgstr[1] ""
+
+#: account/loans.html
+msgid "One of your libraries needs reconnecting before its loans can be shown."
+msgid_plural "Some of your libraries need reconnecting before their loans can be shown."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1198,18 +1227,6 @@ msgid "There is %(count)d person waiting for this book."
 msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
 msgstr[1] ""
-
-#: account/loans.html books/custom_carousel_card.html.jinja
-msgid "Not yet downloaded."
-msgstr ""
-
-#: account/loans.html books/custom_carousel_card.html.jinja
-msgid "Download Now"
-msgstr ""
-
-#: account/loans.html
-msgid "Return via<br/>Adobe Digital Editions"
-msgstr ""
 
 #: account/loans.html
 msgid "Books You're Waiting For"

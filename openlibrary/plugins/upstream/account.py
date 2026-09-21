@@ -1266,6 +1266,7 @@ class account_loans(delegate.page):
     def GET(self):
         from openlibrary.core.lending import get_loans_of_user
         from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
+        from openlibrary.plugins.upstream import lenny
 
         i = web.input(page=1)
         try:
@@ -1277,6 +1278,18 @@ class account_loans(delegate.page):
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
         docs = get_loans_of_user(user.key)
+
+        # Provider loans are merged here rather than inside get_loans_of_user,
+        # and that placement is the point (#13687). That function is not a
+        # display lookup: User.update_loan_status() feeds every element to
+        # lending.sync_loan(loan["ocaid"]) -- called on the line above -- and
+        # borrow.py mints an Internet Archive bookreader link from loan["_key"]
+        # for whichever loan matches the edition. A loan with no ocaid reaching
+        # either of those is a 500 on this page, or an IA reader link for a loan
+        # the Internet Archive has never heard of.
+        provider = lenny.provider_loans(username)
+        docs = list(docs) + provider.loans
+
         loan_history_data = get_loan_history_data(username, page=page)
         featured_subjects = get_cached_featured_subjects()
 
@@ -1291,6 +1304,8 @@ class account_loans(delegate.page):
             ia_base_url=CONFIG_IA_DOMAIN,
             featured_subjects=featured_subjects,
             carousel=staff_picks,
+            provider_unreachable=provider.unreachable,
+            provider_unauthorized=provider.unauthorized,
         )
         return mb.render(header_title=_("Loans & History"), template=template)
 
