@@ -1,6 +1,10 @@
 $def with ()
 
 $ q = query_param("q", "")
+$ subject_facet = query_param("subject_facet", "")
+$ publisher_facet = query_param("publisher_facet", "")
+$ person_facet = query_param("person_facet", "")
+$ place_facet = query_param("place_facet", "")
 
 <ul class="nav-bar">
   <li class="$('selected' if ctx.path=='/search' else '')">
@@ -25,6 +29,6 @@ $ q = query_param("q", "")
   </li>
   <li class="$('selected' if ctx.path=='/advancedsearch' else '')">
     <a data-ol-link-track="SearchNav|SearchAdvanced"
-       href="/advancedsearch">$_("Advanced Search")</a>
+       href="/advancedsearch?$urlencode(dict(q=q, subject_facet=subject_facet, publisher_facet=publisher_facet, person_facet=person_facet, place_facet=place_facet))">$_("Advanced Search")</a>
   </li>
 </ul>
