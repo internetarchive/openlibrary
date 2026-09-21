@@ -30,6 +30,15 @@ PROVIDER_LOAN = {
     "resource_type": "provider",
     "read_url": "https://lennyforlibraries.org/v1/api/items/37044497/read",
 }
+"""Note `expiry` is naive, and that is load-bearing rather than incidental.
+
+The node sends an offset; `lenny._expiry` strips it precisely because this
+template's parser cannot read one. An earlier version of this fixture was
+naive because that is the value that happens to parse, so the fixture agreed
+with the code instead of testing it -- which is why
+`TestTheExpiryTheNodeActuallySends` below feeds the raw node shape through
+`loan_from_node` rather than hand-writing the normalised result.
+"""
 
 
 @pytest.fixture
@@ -85,6 +94,45 @@ class TestAProviderLoanIsNotAnInternetArchiveLoan:
     def test_a_provider_loan_with_no_due_date_still_renders(self, render_actions):
         """`due_at` is documented nullable."""
         out = render_actions({**PROVIDER_LOAN, "expiry": None})
+        assert "/v1/api/items/37044497/read" in out
+
+
+class TestTheExpiryTheNodeActuallySends:
+    """The raw node payload through both halves, which is the gap the unit
+    tests left.
+
+    `test_lenny.py` proved `loan_from_node` normalises the offset, and the
+    tests above proved the template renders a loan whose expiry is already
+    normalised. Neither noticed that nothing connected them, because both
+    sides were handed the value that happens to parse. Rendering what
+    `loan_from_node` actually returns from what the node actually sends is the
+    only arrangement in which the defect is visible.
+    """
+
+    @staticmethod
+    def _from_node(due_at):
+        from openlibrary.plugins.upstream import lenny
+
+        loan = lenny.loan_from_node("lenny", "https://lennyforlibraries.org", "patron", {"edition_id": 37044497, "due_at": due_at})
+        assert loan is not None
+        return loan
+
+    @pytest.mark.parametrize(
+        "due_at",
+        [
+            "2026-10-01T00:00:00+00:00",
+            "2026-10-01T00:00:00Z",
+            "2026-09-30T17:00:00-07:00",
+            "2026-10-01T00:00:00+05:30",
+            None,
+        ],
+    )
+    def test_the_page_renders_for_every_offset_a_node_can_send(self, render_actions, due_at):
+        out = render_actions(self._from_node(due_at))
+        assert "/v1/api/items/37044497/read" in out
+
+    def test_an_unparsable_due_at_drops_the_expiry_rather_than_the_page(self, render_actions):
+        out = render_actions(self._from_node("whenever"))
         assert "/v1/api/items/37044497/read" in out
 
 

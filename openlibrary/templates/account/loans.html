@@ -57,13 +57,17 @@ $# absent. "No loans" and "we could not ask" look identical to a patron, and the
 $# second one is the state where they are about to borrow a book they already
 $# hold. The two notes are separate because the remedies differ: wait, or
 $# reconnect. See lenny.ProviderLoans (#13687).
+$# These arrive as provider names rather than counts so the patron can be told
+$# which library is affected. Rendering only len() would have made the lists
+$# pointless -- and "one of your libraries" is not something a patron can act on
+$# when they have several.
 $if provider_unreachable:
     <div class="note" role="status">
-        <em>$ungettext("One of your libraries could not be reached, so any loans there are not shown.", "Some of your libraries could not be reached, so any loans there are not shown.", len(provider_unreachable))</em>
+        <em>$ungettext("%(libraries)s could not be reached, so any loans there are not shown.", "These libraries could not be reached, so any loans there are not shown: %(libraries)s.", len(provider_unreachable), libraries=", ".join(provider_unreachable))</em>
     </div>
 $if provider_unauthorized:
     <div class="note" role="status">
-        <em>$ungettext("One of your libraries needs reconnecting before its loans can be shown.", "Some of your libraries need reconnecting before their loans can be shown.", len(provider_unauthorized))</em>
+        <em>$ungettext("%(libraries)s needs reconnecting before its loans can be shown. Borrowing a book from it again will restore the connection.", "These libraries need reconnecting before their loans can be shown: %(libraries)s. Borrowing a book from one again will restore the connection.", len(provider_unauthorized), libraries=", ".join(provider_unauthorized))</em>
     </div>
 
 <div>
