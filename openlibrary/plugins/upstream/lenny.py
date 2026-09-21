@@ -33,7 +33,8 @@ its own login -- would save them that sign-in, but it would not make the book
 open, and it needs a pairwise pseudonymous subject and a published signing key
 that do not exist. This does not attempt it. It does send ``login_hint``, which
 is a suggestion the node is free to ignore and not an assertion of anything;
-see :func:`authorize_url` for what that currently buys, which is nothing.
+see :func:`authorize_url` for what it costs and for why no node in service
+reads it yet.
 
 **The grant is stored server-side**, one row per ``(patron, node)``, by
 :mod:`openlibrary.core.provider_tokens` (#13685). A cookie cannot do this job,
@@ -395,21 +396,30 @@ def authorize_url(
         # signed in as, so a node need not ask for one they just proved on
         # Open Library.
         #
-        # **Inert against every node today, and sending it has a cost.**
-        # ArchiveLabs/lenny at origin/main 75b0906 drops it three times over:
+        # **A node running ArchiveLabs/lenny origin/main ignores this**, which
+        # as of 75b0906 is every node in service. Three places drop it:
         # ``authorize`` does not declare the parameter
         # (``lenny/routes/oauth2.py:203-212``); ``_echo``'s allow-list excludes
         # it, so it never reaches the login page (``oauth2.py:294-299``); and
         # the OTP form's email box is filled only from a POST body
-        # (``lenny/routes/oauth.py:110-117``, ``post_email``). Unknown
-        # parameters are ignored rather than refused, verified live --
-        # ``/v1/api/oauth2/authorize?client_id=nope`` answers identically with
-        # and without it.
+        # (``lenny/routes/oauth.py:110-117``, ``post_email``). Sending it is
+        # safe regardless: unknown parameters are ignored rather than refused,
+        # verified live -- ``/v1/api/oauth2/authorize?client_id=nope`` answers
+        # identically with and without it.
         #
-        # The cost is that this hands the node the patron's email before they
-        # consent, including when they abandon the flow. A patron who finishes
-        # discloses it anyway, because the node's read gate keys on
-        # ``sha256(lowercased email)``, so the delta is the abandoned case.
+        # Node-side support is written and not yet released, so this is
+        # unshipped rather than unsupported. Do not describe it as pre-filling
+        # anything until a node in service reads it; and even then it pre-fills
+        # only. It deliberately does not let the patron skip the email step,
+        # because ``/oauth2/authorize`` is an unauthenticated GET and mailing a
+        # one-time code on arrival would let a link or a prefetch send one to
+        # any address a caller chose.
+        #
+        # **The cost, which is the part worth a human decision:** this hands
+        # the node the patron's email before they consent, including when they
+        # abandon the flow. A patron who finishes discloses it anyway, because
+        # the node's read gate keys on ``sha256(lowercased email)``, so the
+        # delta is the abandoned case -- small, real, and not ours to settle.
         params["login_hint"] = email
     return f"{metadata['authorization_endpoint']}?{urlencode(params)}"
 
