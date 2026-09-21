@@ -715,8 +715,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
 
     responses = get_availability("identifier", [identifier])
     response = responses[identifier] if responses else {}
-    if response:
-        num_waiting = int(response.get("num_waitlist", 0) or 0)
+    num_waiting = int(response.get("num_waitlist", 0) or 0)
 
     ebook = EBookRecord.find(identifier)
 
@@ -733,7 +732,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         "type": "ebook",
         "identifier": identifier,
         "loan": ebook_loan_data,
-        "borrowed": str(response["status"] not in ["open", "borrow_available"]).lower(),
+        "borrowed": str(response.get("status") not in ["open", "borrow_available"]).lower(),
         "wl_size": num_waiting,
     }
     try:
