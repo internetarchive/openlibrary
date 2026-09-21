@@ -8,12 +8,15 @@ not offer S256 -- and a check nothing proves is a check that does not work.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import datetime
 import hashlib
+import time
 import urllib.parse
 from typing import ClassVar
 
+import httpx
 import pytest
 import web
 
@@ -180,7 +183,7 @@ class TestBorrowErrors:
 
 
 class TestNodeForEdition:
-    def test_returns_none_for_an_unparseable_key(self, monkeypatch):
+    def test_returns_none_for_an_unparsable_key(self, monkeypatch):
         monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": NODE})
         assert lenny.node_for_edition("/books/not-an-olid") is None
 
@@ -462,7 +465,7 @@ class TestGrantFromPayload:
     def test_a_missing_expires_in_leaves_the_expiry_unset(self):
         assert lenny._grant_from_payload({"access_token": "at"}).expires is None
 
-    def test_an_unparseable_expires_in_raises(self):
+    def test_an_unparsable_expires_in_raises(self):
         """Not tolerated, because `Grant.is_expired` reads a missing expiry as
         "still live": swallowing this buys one borrow and pays for it later
         with a grant that is never refreshed and a logout nobody can explain."""
@@ -679,3 +682,243 @@ class TestCallback:
         body = self._call(monkeypatch)
         assert "expired" in body
         assert flow["order"] == []
+
+
+NODE_B = {
+    "issuer": "https://lenny-b.example.org",
+    "client_id": "ol-client",
+    "client_secret": "s3cret",
+}
+
+
+@pytest.fixture
+def two_nodes(monkeypatch):
+    monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": NODE, "lenny_b": NODE_B})
+    monkeypatch.setattr(
+        lenny.ProviderToken,
+        "get_providers",
+        staticmethod(lambda username: ["lenny", "lenny_b"]),
+    )
+    monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: f"at-{provider_name}")
+
+
+class TestLoanFromNode:
+    """The node speaks in bare edition integers; the page needs OL keys."""
+
+    def test_the_bare_integer_becomes_an_edition_key(self):
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 37044497})
+        assert loan is not None
+        assert loan["book"] == "/books/OL37044497M"
+
+    def test_a_string_edition_id_is_accepted(self):
+        """Nothing in the contract promises JSON numbers rather than strings,
+        and a loan dropped over that is a book the patron cannot find."""
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": "37044497"})
+        assert loan is not None
+        assert loan["book"] == "/books/OL37044497M"
+
+    def test_a_missing_edition_id_is_dropped_not_raised(self):
+        assert lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"due_at": None}) is None
+
+    def test_a_nonsense_edition_id_is_dropped_not_raised(self):
+        assert lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": "OL5M"}) is None
+
+    def test_the_read_url_points_at_the_node(self):
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 46539165})
+        assert loan is not None
+        assert loan["read_url"] == "https://lennyforlibraries.org/v1/api/items/46539165/read"
+
+    def test_borrowed_at_becomes_a_posix_timestamp(self):
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00Z"})
+        assert loan is not None
+        assert loan["loaned_at"] == datetime.datetime(2026, 9, 20, 12, 0, tzinfo=datetime.UTC).timestamp()
+
+    def test_a_naive_timestamp_is_read_as_utc(self, monkeypatch):
+        """The node's rows are UTC. Reading them as the web server's local time
+        would move every "Borrowed" date by the deploy's offset.
+
+        The TZ is forced away from UTC deliberately. Without it this test
+        passes against source that does no tagging at all -- the test
+        container runs UTC, where a naive `.timestamp()` happens to agree, so
+        the assertion never reaches the behaviour it names. Checked by
+        mutation: with the `tzinfo` tagging removed, the UTC-container version
+        of this test stayed green.
+        """
+        monkeypatch.setenv("TZ", "America/Los_Angeles")
+        time.tzset()
+        try:
+            loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "2026-09-20T12:00:00"})
+        finally:
+            monkeypatch.undo()
+            time.tzset()
+        assert loan is not None
+        assert loan["loaned_at"] == datetime.datetime(2026, 9, 20, 12, 0, tzinfo=datetime.UTC).timestamp()
+
+    def test_a_null_borrowed_at_is_zero_not_none(self):
+        """`borrowed_at` is documented nullable. The loans template feeds
+        `loaned_at` to `datetime_from_utc_timestamp`, which has no answer for
+        None."""
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": None})
+        assert loan is not None
+        assert loan["loaned_at"] == 0.0
+
+    def test_an_unparsable_borrowed_at_is_zero_not_a_crash(self):
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "borrowed_at": "last tuesday"})
+        assert loan is not None
+        assert loan["loaned_at"] == 0.0
+
+    def test_a_provider_loan_is_marked_as_one(self):
+        """`templates/account/loans.html` branches on this. Without it the loan
+        reaches the Internet Archive branches, which read `ocaid` and
+        `loan_link`."""
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1})
+        assert loan is not None
+        assert loan["provider"] == "lenny"
+        assert loan["resource_type"] != "bookreader"
+
+
+class TestProviderLoansMerge:
+    @staticmethod
+    def _fetch(responses):
+        """Stand in for the HTTP leg, keyed by issuer."""
+
+        async def fetch(issuer, token, timeout_seconds):
+            outcome = responses[issuer]
+            if isinstance(outcome, Exception):
+                raise outcome
+            return outcome
+
+        return fetch
+
+    def test_loans_from_every_node_are_merged(self, two_nodes, monkeypatch):
+        monkeypatch.setattr(
+            lenny,
+            "fetch_node_loans",
+            self._fetch({NODE["issuer"]: [{"edition_id": 1}], NODE_B["issuer"]: [{"edition_id": 2}]}),
+        )
+        result = lenny.provider_loans("patron")
+        assert [loan["book"] for loan in result.loans] == ["/books/OL1M", "/books/OL2M"]
+        assert result.unreachable == []
+        assert result.unauthorized == []
+
+    def test_a_dead_node_costs_its_own_loans_and_nothing_else(self, two_nodes, monkeypatch):
+        """The requirement this feature turns on: one node down must not take
+        the patron's loans page with it."""
+        monkeypatch.setattr(
+            lenny,
+            "fetch_node_loans",
+            self._fetch({NODE["issuer"]: httpx.ConnectError("refused"), NODE_B["issuer"]: [{"edition_id": 2}]}),
+        )
+        result = lenny.provider_loans("patron")
+        assert [loan["book"] for loan in result.loans] == ["/books/OL2M"]
+        assert result.unreachable == ["lenny"]
+
+    def test_every_node_down_is_still_not_an_exception(self, two_nodes, monkeypatch):
+        monkeypatch.setattr(
+            lenny,
+            "fetch_node_loans",
+            self._fetch({NODE["issuer"]: httpx.ReadTimeout("slow"), NODE_B["issuer"]: httpx.ConnectError("refused")}),
+        )
+        result = lenny.provider_loans("patron")
+        assert result.loans == []
+        assert sorted(result.unreachable) == ["lenny", "lenny_b"]
+
+    def test_a_node_returning_junk_entries_drops_only_those(self, two_nodes, monkeypatch):
+        """A list of strings where objects were promised is a node bug, not a
+        reason for a 500 on the patron's loans page."""
+        monkeypatch.setattr(
+            lenny,
+            "fetch_node_loans",
+            self._fetch({NODE["issuer"]: ["not-an-object", {"edition_id": 3}], NODE_B["issuer"]: []}),
+        )
+        result = lenny.provider_loans("patron")
+        assert [loan["book"] for loan in result.loans] == ["/books/OL3M"]
+        assert result.unreachable == []
+
+    def test_a_cleared_grant_is_unauthorized_not_unreachable(self, two_nodes, monkeypatch):
+        """Different remedies -- wait, versus reconnect the library. Collapsing
+        them tells the patron to do the wrong thing."""
+        monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: None if provider_name == "lenny" else "at-b")
+        monkeypatch.setattr(lenny, "fetch_node_loans", self._fetch({NODE_B["issuer"]: [{"edition_id": 2}]}))
+        result = lenny.provider_loans("patron")
+        assert result.unauthorized == ["lenny"]
+        assert result.unreachable == []
+        assert [loan["book"] for loan in result.loans] == ["/books/OL2M"]
+
+    def test_a_grant_at_an_unconfigured_node_is_skipped_silently(self, monkeypatch):
+        """Nothing the patron can act on, so no note about it."""
+        monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": NODE})
+        monkeypatch.setattr(lenny.ProviderToken, "get_providers", staticmethod(lambda username: ["lenny_retired"]))
+        assert lenny.provider_loans("patron") == lenny.ProviderLoans([], [], [])
+
+    def test_an_unreadable_token_store_renders_an_empty_merge(self, monkeypatch):
+        def boom(username):
+            raise RuntimeError("no database")
+
+        monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": NODE})
+        monkeypatch.setattr(lenny.ProviderToken, "get_providers", staticmethod(boom))
+        assert lenny.provider_loans("patron") == lenny.ProviderLoans([], [], [])
+
+    def test_a_token_lookup_that_raises_is_unreachable_not_a_500(self, two_nodes, monkeypatch):
+        def boom(username, provider_name):
+            raise RuntimeError("store exploded")
+
+        monkeypatch.setattr(lenny, "access_token_for", boom)
+        result = lenny.provider_loans("patron")
+        assert sorted(result.unreachable) == ["lenny", "lenny_b"]
+        assert result.loans == []
+
+    def test_each_node_is_presented_its_own_token(self, two_nodes, monkeypatch):
+        seen = {}
+
+        async def fetch(issuer, token, timeout_seconds):
+            seen[issuer] = token
+            return []
+
+        monkeypatch.setattr(lenny, "fetch_node_loans", fetch)
+        lenny.provider_loans("patron")
+        assert seen == {NODE["issuer"]: "at-lenny", NODE_B["issuer"]: "at-lenny_b"}
+
+
+class TestTheNodesAreQueriedConcurrently:
+    """A patron with four providers must not wait for four timeouts.
+
+    This is the one property a sequential loop would satisfy every other test
+    in this file while failing, so it is measured in wall time rather than
+    inferred from the shape of the code.
+    """
+
+    def test_four_slow_nodes_cost_one_delay_not_four(self, monkeypatch):
+        delay = 0.4
+        node_names = [f"lenny_{n}" for n in range(4)]
+        monkeypatch.setattr(
+            lenny,
+            "nodes",
+            lambda: {name: {**NODE, "issuer": f"https://{name}.example.org"} for name in node_names},
+        )
+        monkeypatch.setattr(lenny.ProviderToken, "get_providers", staticmethod(lambda username: node_names))
+        monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: "at")
+
+        async def slow(issuer, token, timeout_seconds):
+            await asyncio.sleep(delay)
+            return [{"edition_id": 1}]
+
+        monkeypatch.setattr(lenny, "fetch_node_loans", slow)
+
+        started = time.monotonic()
+        result = lenny.provider_loans("patron")
+        elapsed = time.monotonic() - started
+
+        assert len(result.loans) == 4
+        assert elapsed < delay * 2, f"four nodes took {elapsed:.2f}s; sequential would be ~{delay * 4:.2f}s"
+
+
+class TestTheTokenPhaseIsBounded:
+    def test_a_spent_deadline_stops_resolving_further_grants(self, two_nodes, monkeypatch):
+        """The token phase is sequential and synchronous -- see
+        LOANS_DEADLINE_SECONDS -- so it needs a ceiling of its own rather than
+        letting N expired grants at N hanging nodes add up."""
+        monkeypatch.setattr(lenny, "LOANS_DEADLINE_SECONDS", 0)
+        result = lenny.provider_loans("patron")
+        assert sorted(result.unreachable) == ["lenny", "lenny_b"]
+        assert result.loans == []
