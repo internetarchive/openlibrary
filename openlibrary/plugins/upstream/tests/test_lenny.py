@@ -12,8 +12,8 @@ import asyncio
 import base64
 import datetime
 import hashlib
-import time
 import pathlib
+import time
 import urllib.parse
 from typing import ClassVar
 
@@ -707,6 +707,21 @@ class TestCallback:
         assert "expired" in body.rawtext
         assert flow["order"] == []
 
+    def test_the_library_named_to_the_patron_comes_from_current_config(self, flow, monkeypatch):
+        """Not from `state`, which is a ten-minute-old snapshot of the
+        credentials the flow needed. A display name is the one field in there
+        an operator may have corrected since."""
+        monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": {**NODE, "name": "Archive Labs Lenny"}})
+        self._call(monkeypatch)
+        assert [m.message for m in web.ctx.flash] == ["Borrowed from Archive Labs Lenny. Your loan is due 2026-09-24."]
+
+    def test_an_unconfigured_node_still_confirms_the_loan(self, flow, monkeypatch):
+        """A node dropped from config between the click and the callback: the
+        loan is real, so the patron must still be told about it."""
+        monkeypatch.setattr(lenny, "nodes", dict)
+        self._call(monkeypatch)
+        assert [m.message for m in web.ctx.flash] == ["Borrowed from Lenny. Your loan is due 2026-09-24."]
+
 
 NODE_B = {
     "issuer": "https://lenny-b.example.org",
@@ -725,21 +740,6 @@ def two_nodes(monkeypatch):
     )
     monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: f"at-{provider_name}")
 
-
-    def test_the_library_named_to_the_patron_comes_from_current_config(self, flow, monkeypatch):
-        """Not from `state`, which is a ten-minute-old snapshot of the
-        credentials the flow needed. A display name is the one field in there
-        an operator may have corrected since."""
-        monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": {**NODE, "name": "Archive Labs Lenny"}})
-        self._call(monkeypatch)
-        assert [m.message for m in web.ctx.flash] == ["Borrowed from Archive Labs Lenny. Your loan is due 2026-09-24."]
-
-    def test_an_unconfigured_node_still_confirms_the_loan(self, flow, monkeypatch):
-        """A node dropped from config between the click and the callback: the
-        loan is real, so the patron must still be told about it."""
-        monkeypatch.setattr(lenny, "nodes", dict)
-        self._call(monkeypatch)
-        assert [m.message for m in web.ctx.flash] == ["Borrowed from Lenny. Your loan is due 2026-09-24."]
 
 class TestLoanFromNode:
     """The node speaks in bare edition integers; the page needs OL keys."""
@@ -961,6 +961,8 @@ class TestTheTokenPhaseIsBounded:
         result = lenny.provider_loans("patron")
         assert sorted(result.unreachable) == ["lenny", "lenny_b"]
         assert result.loans == []
+
+
 class TestNodeDisplayName:
     def test_prefers_the_name_the_operator_configured(self):
         assert lenny.node_display_name("lenny", {**NODE, "name": "Archive Labs Lenny"}) == "Archive Labs Lenny"
