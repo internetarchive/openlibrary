@@ -3,53 +3,24 @@ $# Share menu as an <ol-popover> (see openlibrary/components/lit/OlPopover.js),
 $# matching the Browse popover's icon + label rows. Replaces the old colorbox
 $# modal of large share images.
 $#
-$# :param list[dict] share_links: Facebook / Twitter / Pinterest entries from set_share_links()
+$# :param list[dict] share_links: Facebook / X / Pinterest entries from set_share_links()
 $# :param str page_url: absolute url excluding params (used for Embed iframe src)
-$# :param str link_markup: Markup for the element that opens the popover
+$# :param str link_markup: Markup for the element that opens the popover; must carry slot="trigger"
 $# :param str classes: Extra HTML classes on the host wrapper
 $# :param bool show_embed: When False (e.g. My Books), hide the Embed row
 
 $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="//$request.domain$page_url/widget"></iframe>
 
-$def brand_icon(text):
-  $ key = text.lower()
-  $if key == 'facebook':
-    $:macros.icon('brand-facebook', size='sm')
-  $elif key == 'twitter' or key == 'x':
-    $:macros.icon('brand-x', size='sm')
-  $elif key == 'pinterest':
-    $:macros.icon('brand-pinterest', size='sm')
-  $else:
-    $:macros.icon('share-2', size='sm')
-
 <div class="share-popover-component $classes">
   <ol-popover class="share-popover" placement="bottom-start" aria-label="$_('Share')">
-    $# Slot the actual interactive control directly so OlPopover forwards ARIA state
-    $# (aria-haspopup, aria-expanded) directly to the focusable element.
-    $ slotted_markup = link_markup
-    $ slotted_directly = False
-    $if 'slot=' not in slotted_markup:
-      $for tag in ('<a ', '<button '):
-        $if tag in slotted_markup:
-          $ slotted_markup = slotted_markup.replace(tag, tag.rstrip() + ' slot="trigger" ', 1)
-          $ slotted_directly = True
-          $break
-    $else:
-      $ slotted_directly = True
-    $if slotted_directly:
-      $:slotted_markup
-    $else:
-      <div slot="trigger" class="share-popover__trigger">
-        $:slotted_markup
-      </div>
+    $:link_markup
     <div class="share-popover__panel">
       <ul class="share-popover__links">
         $for share_link in share_links:
-          $ track_tag = share_link['text'].replace(' ', '-')
           <li>
-            <a href="$share_link['url']" class="share-popover__link" target="_blank" rel="noopener noreferrer" data-ol-link-track="Share|$track_tag">
-              $:brand_icon(share_link['text'])
+            <a href="$share_link['url']" class="share-popover__link" target="_blank" rel="noopener noreferrer" data-ol-link-track="Share|$share_link['track']">
+              $:macros.icon(share_link['icon'], size='sm')
               $share_link['text']
             </a>
           </li>
@@ -59,17 +30,17 @@ $def brand_icon(text):
           $ clean_url = page_url.replace("'", "\\'")
           $ iframe_html = str(embed_iframe(clean_url)).strip()
           <li>
-            <a href="javascript:;" class="share-popover__link embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed" data-embed-code="$iframe_html" data-embed-prompt="$_('Copy embed code to clipboard:')">
+            <button type="button" class="share-popover__link embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed" data-embed-code="$iframe_html" data-embed-prompt="$_('Copy embed code to clipboard:')">
               $:macros.icon('code', size='sm')
               $_("Embed")
-            </a>
+            </button>
           </li>
 
         <li>
-          <a href="javascript:;" class="share-popover__link copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL" data-copy-toast="$_('URL copied to clipboard')">
+          <button type="button" class="share-popover__link copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL" data-copy-toast="$_('URL copied to clipboard')">
             $:macros.icon('link', size='sm')
             $_("Copy URL")
-          </a>
+          </button>
         </li>
 
         <li>

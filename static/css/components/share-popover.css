@@ -13,12 +13,6 @@
   align-items: center;
 }
 
-.share-popover [slot="trigger"],
-.share-popover__trigger {
-  display: inline-flex;
-  align-items: center;
-}
-
 /* The padding is the menu-row gutter: rows carry the rest of their label offset
  * as their own padding, so the hover fill reads as a pill inside the panel.
  * All four sides are equal for concentric corner radii. */
@@ -47,31 +41,35 @@
   margin: 0;
 }
 
-.share-popover__link {
+/* Scoped one level so the rows beat the global `a:link` color and underline.
+ * Buttons (Embed, Copy URL) share the row styles, so reset their chrome too. */
+.share-popover__links .share-popover__link {
   display: flex;
   align-items: center;
   gap: var(--spacing-inline-md);
+  box-sizing: border-box;
+  width: 100%;
   min-height: var(--menu-row-height);
+  margin: 0;
   padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  border: 0;
   border-radius: var(--border-radius-menu-row);
+  background: none;
   color: var(--color-text);
+  font: inherit;
   font-size: var(--font-size-body-medium);
+  text-align: start;
   text-decoration: none;
   cursor: pointer;
 }
 
 /* Decorative tier: the label carries the meaning. */
-.share-popover__link .ol-icon {
+.share-popover__links .share-popover__link .ol-icon {
   color: var(--color-icon-muted);
   flex-shrink: 0;
 }
 
-.share-popover__link:focus-visible {
+.share-popover__links .share-popover__link:hover,
+.share-popover__links .share-popover__link:focus-visible {
   background-color: var(--color-hover-overlay);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .share-popover__link:hover {
-    background-color: var(--color-hover-overlay);
-  }
 }
