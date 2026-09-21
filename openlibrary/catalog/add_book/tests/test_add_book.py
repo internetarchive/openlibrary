@@ -1056,6 +1056,201 @@ def test_existing_work(mock_site, add_languages):
     assert e.works[0]["key"] == "/works/OL16W"
 
 
+def test_work_identifiers_match_existing_work(mock_site, add_languages):
+    """
+    work_identifiers in the import record match an existing OL work by its
+    stored identifiers (e.g. a Goodreads work ID the work already has).
+    The edition should be linked to that work and the identifier enriched.
+
+    Freso's use case: importing from Goodreads where you have the Goodreads
+    work ID alongside the edition ID.
+    """
+    author = {
+        "type": {"key": "/type/author"},
+        "name": "Charles Dickens",
+        "key": "/authors/OL1A",
+    }
+    existing_work = {
+        "authors": [{"author": "/authors/OL1A", "type": {"key": "/type/author_role"}}],
+        "key": "/works/OL1W",
+        "title": "A Christmas Carol",
+        "type": {"key": "/type/work"},
+        "identifiers": {"goodreads": ["5326"]},
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+
+    rec = {
+        "source_records": ["goodreads:5326-edition"],
+        "title": "A Christmas Carol",  # title also matches, but identifiers win
+        "authors": [{"name": "Charles Dickens"}],
+        "publishers": ["Chapman & Hall"],
+        "publish_date": "1843",
+        "work_identifiers": {"goodreads": ["5326"]},
+    }
+
+    reply = load(rec)
+    assert reply["success"] is True
+    assert reply["work"]["status"] == "matched"
+    assert reply["work"]["key"] == "/works/OL1W"
+
+
+def test_work_identifiers_match_wins_over_title(mock_site, add_languages):
+    """
+    When work_identifiers match a work with a slightly different title,
+    the identifier match takes priority over title matching.
+
+    This is the core value of the feature: identifier lookup is more precise
+    than fuzzy title normalization.
+    """
+    author = {
+        "type": {"key": "/type/author"},
+        "name": "Charles Dickens",
+        "key": "/authors/OL1A",
+    }
+    # Work whose title would NOT match the import rec's title via mk_norm
+    work_with_id = {
+        "authors": [{"author": "/authors/OL1A", "type": {"key": "/type/author_role"}}],
+        "key": "/works/OL1W",
+        "title": "A Christmas Carol: A Ghost Story of Christmas",
+        "type": {"key": "/type/work"},
+        "identifiers": {"goodreads": ["5326"]},
+    }
+    # Work whose title WOULD match — but no matching identifier
+    work_title_match = {
+        "authors": [{"author": "/authors/OL1A", "type": {"key": "/type/author_role"}}],
+        "key": "/works/OL2W",
+        "title": "A Christmas Carol",
+        "type": {"key": "/type/work"},
+    }
+    mock_site.save(author)
+    mock_site.save(work_with_id)
+    mock_site.save(work_title_match)
+
+    rec = {
+        "source_records": ["goodreads:5326-edition"],
+        "title": "A Christmas Carol",
+        "authors": [{"name": "Charles Dickens"}],
+        "publishers": ["Chapman & Hall"],
+        "publish_date": "1843",
+        "work_identifiers": {"goodreads": ["5326"]},
+    }
+
+    reply = load(rec)
+    assert reply["success"] is True
+    assert reply["work"]["status"] == "matched"
+    assert reply["work"]["key"] == "/works/OL1W"  # identifier match, not title match
+
+
+def test_work_identifiers_enriched_onto_matched_work(mock_site, add_languages):
+    """
+    When a work is matched via identifiers, a new identifier from the import
+    record that isn't already on the work gets written back to the work.
+
+    E.g. a LibriVox import that matches via Goodreads ID can simultaneously
+    add a librivox identifier to the work.
+    """
+    author = {
+        "type": {"key": "/type/author"},
+        "name": "Charles Dickens",
+        "key": "/authors/OL1A",
+    }
+    existing_work = {
+        "authors": [{"author": "/authors/OL1A", "type": {"key": "/type/author_role"}}],
+        "key": "/works/OL1W",
+        "title": "A Christmas Carol",
+        "type": {"key": "/type/work"},
+        "identifiers": {"goodreads": ["5326"]},
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+
+    rec = {
+        "source_records": ["librivox:843"],
+        "title": "A Christmas Carol",
+        "authors": [{"name": "Charles Dickens"}],
+        "publishers": ["LibriVox"],
+        "publish_date": "2006",
+        "work_identifiers": {"goodreads": ["5326"], "librivox": ["843"]},
+    }
+
+    reply = load(rec)
+    assert reply["success"] is True
+    assert reply["work"]["key"] == "/works/OL1W"
+    work = mock_site.get("/works/OL1W")
+    assert "librivox" in work.get("identifiers", {})
+    assert "843" in work["identifiers"]["librivox"]
+    # Original identifier preserved
+    assert "5326" in work["identifiers"]["goodreads"]
+
+
+def test_work_identifiers_no_match_falls_back_to_title(mock_site, add_languages):
+    """
+    When work_identifiers are provided but no existing work has them,
+    matching falls back to title normalization as before.
+    """
+    author = {
+        "type": {"key": "/type/author"},
+        "name": "Charles Dickens",
+        "key": "/authors/OL1A",
+    }
+    existing_work = {
+        "authors": [{"author": "/authors/OL1A", "type": {"key": "/type/author_role"}}],
+        "key": "/works/OL1W",
+        "title": "A Christmas Carol",
+        "type": {"key": "/type/work"},
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+
+    rec = {
+        "source_records": ["goodreads:unknown-edition"],
+        "title": "A Christmas Carol",
+        "authors": [{"name": "Charles Dickens"}],
+        "publishers": ["Chapman & Hall"],
+        "publish_date": "1843",
+        "work_identifiers": {"goodreads": ["99999"]},  # unknown ID
+    }
+
+    reply = load(rec)
+    assert reply["success"] is True
+    assert reply["work"]["status"] == "matched"
+    assert reply["work"]["key"] == "/works/OL1W"  # fell back to title match
+
+
+def test_work_identifiers_absent_preserves_existing_behaviour(mock_site, add_languages):
+    """
+    Records with no work_identifiers field work exactly as before — title matching only.
+    """
+    author = {
+        "type": {"key": "/type/author"},
+        "name": "John Smith",
+        "key": "/authors/OL20A",
+    }
+    existing_work = {
+        "authors": [{"author": "/authors/OL20A", "type": {"key": "/type/author_role"}}],
+        "key": "/works/OL16W",
+        "title": "Finding existing works",
+        "type": {"key": "/type/work"},
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+
+    rec = {
+        "source_records": "non-marc:test",
+        "title": "Finding Existing Works",
+        "authors": [{"name": "John Smith"}],
+        "publishers": ["Black Spot"],
+        "publish_date": "Jan 09, 2011",
+        "isbn_10": ["1250144051"],
+    }
+
+    reply = load(rec)
+    assert reply["success"] is True
+    assert reply["work"]["status"] == "matched"
+    assert reply["work"]["key"] == "/works/OL16W"
+
+
 def test_existing_work_with_subtitle(mock_site, add_languages):
     author = {
         "type": {"key": "/type/author"},
