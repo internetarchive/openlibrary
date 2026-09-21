@@ -246,7 +246,7 @@ $(function() {
                     module.addNotesPageButtonListeners();
                 }
                 if ($shareModalLinks.length) {
-                    module.initShareModal($shareModalLinks);
+                    module.initShareModal();
                 }
             });
     }

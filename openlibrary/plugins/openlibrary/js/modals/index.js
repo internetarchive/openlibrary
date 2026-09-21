@@ -7,23 +7,55 @@ import '../../../../../static/css/components/metadata-form.css';
 
 
 /**
- * Initializes share modal.
+ * Initializes share popover button listeners.
+ *
+ * <ol-popover> manages its own open/close lifecycle on trigger click, so
+ * Colorbox wiring is no longer needed.
  */
-export function initShareModal($modalLinks) {
-    addClickListeners($modalLinks, '400px');
+export function initShareModal() {
     addShareModalButtonListeners();
 }
+
 /**
- * Adds click listeners to buttons in all notes modals on a page.
+ * Adds click listeners to action buttons inside share popovers.
  */
-function addShareModalButtonListeners(){
-    $('#social-modal-content .copy-url-btn').on('click', function(event){
+function addShareModalButtonListeners() {
+    $(document).on('click', '.share-popover .copy-url-btn', async function(event) {
         event.preventDefault();
-        navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard');
-        $.colorbox.close();
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            const msg = this.dataset.copyToast || 'URL copied to clipboard';
+            showComponentToast(msg, 'success');
+        } catch {
+            // Fallback for non-secure contexts or permission denied
+        }
+        const popover = this.closest('ol-popover');
+        if (popover) {
+            popover.open = false;
+        }
+    });
+
+    $(document).on('click', '.share-popover .embed-work-btn', function(event) {
+        event.preventDefault();
+        const embedCode = this.dataset.embedCode;
+        if (embedCode) {
+            const promptMsg = this.dataset.embedPrompt || 'Copy embed code to clipboard:';
+            prompt(promptMsg, embedCode);
+        }
+        const popover = this.closest('ol-popover');
+        if (popover) {
+            popover.open = false;
+        }
+    });
+
+    $(document).on('click', '.share-popover .share-popover__link:not(.embed-work-btn):not(.copy-url-btn)', function() {
+        const popover = this.closest('ol-popover');
+        if (popover) {
+            popover.open = false;
+        }
     });
 }
+
 
 /** English fallbacks. Must match type/edition/notes_modal_i18n.html. */
 export const DEFAULT_NOTES_MODAL_STRINGS = {

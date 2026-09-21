@@ -103,13 +103,13 @@
   .work-title-and-author .share-modal-link {
     display: block;
     margin: 8px 0 0 16px;
+    color: var(--color-text);
     text-align: center;
     text-decoration: none;
     width: 40px;
   }
 
   .work-title-and-author .share-modal-link .icon-link__text {
-    color: var(--color-text);
     font-size: 0.675em;
   }
 
