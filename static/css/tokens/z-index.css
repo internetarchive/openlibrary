@@ -43,7 +43,7 @@
  *
  *   toast      --z-index-toast      999999  ← legacy: .toast-container, colorbox
  *   overlay    --z-index-overlay    99999   ← legacy: jQuery autocomplete, manage-covers
- *   modal      --z-index-modal      9999    ← legacy: jQuery UI overlay scrim
+ *   modal      --z-index-modal      9999    ← legacy: OTP overlay scrim
  *   dropdown   --z-index-dropdown   999     ← legacy: language selector, nav-bar, compact-title;
  *                                             popover/tooltip fallback without the Popover API
  *   fixed      --z-index-fixed      10      ← toolbars over content
@@ -62,8 +62,8 @@
   --z-index-sticky:   var(--z-index-level-3);        /*  3      – #header-bar at ≤960px */
   --z-index-fixed:    var(--z-index-level-4);        /* 10      – e.g. ILE toolbar, LibraryToolbar, dropper-menu */
   --z-index-dropdown: var(--z-index-level-5);        /* 999     – legacy floating panels */
-  --z-index-modal:    var(--z-index-level-13);       /* 9999    – legacy jQuery UI scrim */
-  --z-index-overlay:  var(--z-index-level-16);       /* 99999   – legacy: above jQuery UI dialogs */
+  --z-index-modal:    var(--z-index-level-13);       /* 9999    – legacy: OTP overlay scrim */
+  --z-index-overlay:  var(--z-index-level-16);       /* 99999   – legacy: autocomplete, manage-covers */
   --z-index-toast:    var(--z-index-level-17);       /* 999999  – legacy toasts, colorbox */
 }
 

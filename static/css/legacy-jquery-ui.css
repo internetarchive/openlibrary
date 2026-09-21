@@ -8,20 +8,7 @@
  * - removing redundant CSS in favor of common reusable styles
  *
  * DO NOT ADD NEW CSS HERE
- *
- * Legacy page-level overlay: keep its z-index band as is (#12363).
  */
-.ui-widget-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--black);
-  opacity: 0.5;
-  filter: alpha(opacity=50);
-  z-index: var(--z-index-modal) !important;
-}
 .ui-sortable-placeholder {
   border: 1px dotted var(--mid-grey);
   visibility: visible !important;

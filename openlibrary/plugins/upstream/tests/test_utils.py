@@ -56,14 +56,20 @@ def test_set_share_links():
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.com",
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+            "text": "X (Twitter)",
+            "url": "https://x.com/intent/post?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.com&description=Check+this+out%3A+bar",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
 
@@ -80,14 +86,20 @@ def test_set_share_links_unicode():
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.%C3%A9",
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81",
+            "text": "X (Twitter)",
+            "url": "https://x.com/intent/post?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.%C3%A9&description=Check+this+out%3A+b%C4%81",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
 

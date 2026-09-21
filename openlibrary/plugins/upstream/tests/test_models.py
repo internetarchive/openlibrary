@@ -100,6 +100,31 @@ class TestModels:
         user.save_preferences({"safe_mode": "yes"})
         assert user.get_safe_mode() == "yes"
 
+    def test_save_preferences_ignores_unknown_keys(self, mock_site):
+        user = models.User(mock_site, "user")
+        user.save_preferences(
+            {
+                "public_readlog": "yes",
+                "save": "Save",
+                "debug": "true",
+                "has_fulltext": "true",
+            }
+        )
+        prefs = user.preferences()
+        assert prefs.get("public_readlog") == "yes"
+        assert "save" not in prefs
+        assert "debug" not in prefs
+        assert "has_fulltext" not in prefs
+
+    def test_save_preferences_keeps_known_keys(self, mock_site):
+        user = models.User(mock_site, "user")
+        user.save_preferences({"updates": "yes", "pda": "pda", "rpd": "1", "yrg_banner_pref": "yrg26"})
+        prefs = user.preferences()
+        assert prefs["updates"] == "yes"
+        assert prefs["pda"] == "pda"
+        assert prefs["rpd"] == "1"
+        assert prefs["yrg_banner_pref"] == "yrg26"
+
 
 class TestGetAvatarUrl:
     def setup_method(self, method):

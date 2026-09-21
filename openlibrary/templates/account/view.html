@@ -71,7 +71,7 @@ $var title: $header_title
             $if ctx.get('share_links'):
               $ share_str = _('Share')
               $ share_glyph = macros.icon("share-2", extra_class="icon-link__image")
-              $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon">%s %s</a>' % (share_glyph, share_str)
+              $ share_content = '<a slot="trigger" class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon">%s %s</a>' % (share_glyph, share_str)
               $ page_url = request.home
               $ share_links = ctx.get('share_links')
               $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)

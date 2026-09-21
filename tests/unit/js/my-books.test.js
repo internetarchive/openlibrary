@@ -3,7 +3,6 @@ import { checkInForm, checkInContainer, checkInFormModal } from './sample-html/c
 import { CreateListForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/CreateListForm';
 import { CheckInComponents, CheckInForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/CheckInComponents';
 
-vi.mock('jquery-ui/ui/widgets/dialog', () => ({}));
 vi.mock('../../../openlibrary/plugins/openlibrary/js/dialog', () => ({
     initDialogClosers: vi.fn(),
 }));
