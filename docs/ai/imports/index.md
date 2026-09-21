@@ -82,13 +82,13 @@ get_from_archive_bulk() → MarcBinary → read_edition() → add_book.load()
 | PR / Issue | Status | What |
 |------------|--------|------|
 | [#13017](https://github.com/internetarchive/openlibrary/pull/13017) | Open, CI green | NFC normalization in `marc_binary.py` `BinaryDataField.translate()` |
-| [#12947](https://github.com/internetarchive/openlibrary/pull/12947) | Ready to merge | `itan_technologies` identifier |
+| [#12947](https://github.com/internetarchive/openlibrary/pull/12947) | Merged | `itan_technologies` identifier |
 | [#447 (bots)](https://github.com/internetarchive/openlibrary-bots/pull/447) | CI infra failures (not our code) | ITAN source adapter |
 | [#12657](https://github.com/internetarchive/openlibrary/pull/12657) | Open | `batchName` param for `/import/batch/new` |
-| [#12953](https://github.com/internetarchive/openlibrary/pull/12953) | Ready to merge | HTML numeric entity unescape in `normalize_import_record` |
+| [#12953](https://github.com/internetarchive/openlibrary/pull/12953) | Merged | HTML numeric entity unescape in `normalize_import_record` |
 | [#12945](https://github.com/internetarchive/openlibrary/pull/12945) | Draft | `work_identifiers` support for work-level matching |
-| [#12091](https://github.com/internetarchive/openlibrary/issues/12091) | Open | ITAN import request |
-| [#12655](https://github.com/internetarchive/openlibrary/issues/12655) | Open, not ready for action | Epic: BookWorm — modernize import pipeline |
+| [#12091](https://github.com/internetarchive/openlibrary/issues/12091) | Closed | ITAN import request |
+| [#12655](https://github.com/internetarchive/openlibrary/issues/12655) | Open, actionable | Epic: BookWorm — modernize import pipeline |
 | [#10756](https://github.com/internetarchive/openlibrary/issues/10756) | Open, proposal posted | `not-differentiable` for pre-ISBN IA items; proposed `IABook` validator |
 | [#7236](https://github.com/internetarchive/openlibrary/issues/7236) | Fixed in PR #12999 | Local dev ImportBot now runnable via `compose.near-prod.yaml` |
 | [#8542](https://github.com/internetarchive/openlibrary/issues/8542) | Open | Batch import documentation gap |
