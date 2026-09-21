@@ -352,14 +352,14 @@
                data-ds-code makes it a copy target for the shared handler. #}
             <div class="ds-icon-popover__row">
                 <span class="ds-icon-popover__label">{{ label }}</span>
-                <button class="ds-icon-popover__snippet"
+                <button class="copy-button"
                         type="button"
                         data-ds-code
                         data-ds-copy
                         aria-label="Copy {{ label }} snippet">
-                    <code class="ds-icon-popover__code" data-ds-snippet="{{ key }}"></code>
-                    {{ icon("copy", size="sm", extra_class="ds-icon-popover__glyph--copy") }}
-                    {{ icon("check", size="sm", extra_class="ds-icon-popover__glyph--check") }}
+                    <code class="copy-code" data-ds-snippet="{{ key }}"></code>
+                    {{ icon("copy", size="sm", extra_class="copy-button__glyph--copy") }}
+                    {{ icon("check", size="sm", extra_class="copy-button__glyph--check") }}
                 </button>
             </div>
         {% endfor %}
