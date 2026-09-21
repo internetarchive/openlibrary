@@ -419,7 +419,7 @@ $(function() {
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
+    const $dialogs = $('.dialog--open,.dialog--close,#bookPreview');
     if ($dialogs.length) {
         import('./dialog')
             .then(module => module.initDialogs());
