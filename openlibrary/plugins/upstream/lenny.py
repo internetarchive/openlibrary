@@ -437,6 +437,29 @@ async def fetch_node_loans(issuer: str, token: str, timeout_seconds: float) -> l
     return (resp.json() or {}).get("loans") or []
 
 
+def _parse_iso(value: Any) -> datetime.datetime | None:
+    """One of the node's ISO 8601 instants, as an aware datetime, or None.
+
+    Both of the node's timestamps are **offset-bearing**: `created_at` and
+    `due_date` are `DateTime(timezone=True)` (`lenny/core/models.py:317,319`)
+    and the loans serialiser emits them with a bare `.isoformat()`
+    (`lenny/routes/oauth2.py:543-544`), which on Postgres carries the offset.
+    Checked against `ArchiveLabs/lenny` `main` through the GitHub API rather
+    than a local checkout.
+
+    A naive value is read as UTC. See the test for why that is forced away from
+    UTC to mean anything.
+    """
+    if not value:
+        return None
+    try:
+        parsed = datetime.datetime.fromisoformat(str(value))
+    except ValueError:
+        logger.info("lenny loan carried an unparsable timestamp: %r", value)
+        return None
+    return parsed.replace(tzinfo=datetime.UTC) if parsed.tzinfo is None else parsed
+
+
 def _epoch(value: Any) -> float:
     """An ISO 8601 instant as a POSIX timestamp, or ``0.0``.
 
@@ -445,16 +468,41 @@ def _epoch(value: Any) -> float:
     and the template skips its "Borrowed ..." line on a falsy value rather than
     telling the patron they borrowed the book in 1970.
     """
-    if not value:
-        return 0.0
-    try:
-        parsed = datetime.datetime.fromisoformat(str(value))
-    except ValueError:
-        logger.info("lenny loan carried an unparsable timestamp: %r", value)
-        return 0.0
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=datetime.UTC)
-    return parsed.timestamp()
+    parsed = _parse_iso(value)
+    return parsed.timestamp() if parsed else 0.0
+
+
+def _expiry(value: Any) -> str | None:
+    """``due_at`` as an ISO string Open Library's own parser can actually read.
+
+    **This is not cosmetic: handing the node's raw value through took the whole
+    loans page down, the patron's Internet Archive loans included.** The
+    template renders an expiry through ``datetime_from_isoformat`` ->
+    ``parse_datetime`` (``openlibrary/api.py:291``), which is
+    ``re.split(r'-|T|:|\\.| ', value)`` followed by ``int()`` on every token. An
+    offset is not a token it can parse, and the node always sends one:
+
+        '2026-10-01T00:00:00+00:00' -> ValueError: invalid literal for int()
+        '2026-10-01T00:00:00Z'      -> ValueError: invalid literal for int()
+        '2026-10-01T00:00:00-07:00' -> TypeError: tzinfo argument must be None
+
+    The third one is why this is normalised here rather than guarded at the
+    template: a **negative** offset splits into eight tokens and lands in
+    ``tzinfo``, so it raises ``TypeError`` and not ``ValueError``. Anything
+    downstream catching the obvious exception would still be taken down by a
+    patron borrowing from a node west of UTC.
+
+    So the instant is converted to UTC and returned naive, which is the shape
+    Internet Archive expiries already have in this template, and unparsable
+    input becomes None -- the template omits the expiry line rather than
+    raising. ``borrowed_at`` was guarded from the start and ``due_at`` was not,
+    because it was the one field that bypassed this module and reached the
+    template raw.
+    """
+    parsed = _parse_iso(value)
+    if parsed is None:
+        return None
+    return parsed.astimezone(datetime.UTC).replace(tzinfo=None).isoformat()
 
 
 def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict[str, Any]) -> dict[str, Any] | None:
@@ -481,12 +529,30 @@ def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict
     return {
         "book": f"/books/OL{edition_id}M",
         "loaned_at": _epoch(payload.get("borrowed_at")),
-        "expiry": payload.get("due_at"),
+        "expiry": _expiry(payload.get("due_at")),
         "userid": f"ol:{username}",
         "provider": provider_name,
         "resource_type": PROVIDER_RESOURCE_TYPE,
         "read_url": item_read_url(issuer, edition_id),
     }
+
+
+REJECTED_TOKEN_STATUSES = frozenset({401, 403})
+"""Node responses that mean "reconnect", not "try later".
+
+401 is the token being rejected. 403 is the grant lacking ``loans:read`` --
+also only fixable by authorizing again, since scopes are fixed at consent.
+"""
+
+
+def _is_rejected_token(exc: BaseException) -> bool:
+    """Whether a failed loans call means the patron must authorize again.
+
+    Keyed on the status rather than on the exception type because every other
+    ``HTTPStatusError`` -- a node's 500, a proxy's 502 -- is a genuine outage
+    and should read as one.
+    """
+    return isinstance(exc, httpx.HTTPStatusError) and exc.response is not None and exc.response.status_code in REJECTED_TOKEN_STATUSES
 
 
 def _patron_tokens(username: str, deadline: float) -> tuple[list[tuple[str, str]], list[str], list[str]]:
@@ -507,6 +573,16 @@ def _patron_tokens(username: str, deadline: float) -> tuple[list[tuple[str, str]
     holdings: list[tuple[str, str]] = []
     unreachable: list[str] = []
     unauthorized: list[str] = []
+
+    if not configured:
+        # No configured nodes means nothing below can match, so the query is
+        # pure cost -- and on a deploy without #13689's migration it is a
+        # query against a table that does not exist, once per loans-page load.
+        # This is the only Lenny path that runs whether or not the patron has
+        # anything to do with Lenny -- it is reached by every load of
+        # /account/loans -- so it is the one place where that query is paid
+        # for by everybody.
+        return [], [], []
 
     try:
         providers = ProviderToken.get_providers(username)
@@ -591,8 +667,20 @@ def provider_loans(username: str) -> ProviderLoans:
     loans: list[dict[str, Any]] = []
     for (provider_name, _), result in zip(holdings, results, strict=True):
         if isinstance(result, BaseException):
-            logger.warning("lenny loans lookup failed for %s: %r", provider_name, result)
-            unreachable.append(provider_name)
+            # A node rejecting the token is the patron needing to reconnect,
+            # not the node being down, and the difference is not cosmetic: a
+            # grant that is locally unexpired but rejected at the node stays
+            # locally unexpired forever, so bucketing this as "unreachable"
+            # told the patron to wait out a temporary outage that would never
+            # end and never offered them the one action that fixes it.
+            # `access_token_for` cannot see this -- it only knows what the
+            # store knows -- so this is the only place the distinction exists.
+            if _is_rejected_token(result):
+                logger.info("lenny rejected the stored token for %s at %s", username, provider_name)
+                unauthorized.append(provider_name)
+            else:
+                logger.warning("lenny loans lookup failed for %s: %r", provider_name, result)
+                unreachable.append(provider_name)
             continue
         for payload in result:
             if not isinstance(payload, dict):

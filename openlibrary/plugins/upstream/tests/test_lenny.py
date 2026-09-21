@@ -767,6 +767,50 @@ class TestLoanFromNode:
         assert loan is not None
         assert loan["loaned_at"] == 0.0
 
+    def test_an_offset_bearing_due_at_is_normalised_for_ols_own_parser(self):
+        """The node always sends an offset, and Open Library's expiry parser
+        cannot read one -- see `_expiry`. Handing it through took the whole
+        loans page down, the patron's Internet Archive loans included."""
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": "2026-10-01T00:00:00+00:00"})
+        assert loan is not None
+        assert loan["expiry"] == "2026-10-01T00:00:00"
+
+    def test_a_z_suffixed_due_at_is_normalised(self):
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": "2026-10-01T00:00:00Z"})
+        assert loan is not None
+        assert loan["expiry"] == "2026-10-01T00:00:00"
+
+    def test_a_negative_offset_due_at_is_converted_to_utc(self):
+        """A node west of UTC. This offset is the one that raises `TypeError`
+        rather than `ValueError` downstream, so it would survive a guard that
+        caught only the obvious exception."""
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": "2026-09-30T17:00:00-07:00"})
+        assert loan is not None
+        assert loan["expiry"] == "2026-10-01T00:00:00"
+
+    def test_an_unparsable_due_at_becomes_none_not_a_crash(self):
+        loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": "whenever"})
+        assert loan is not None
+        assert loan["expiry"] is None
+
+    def test_every_normalised_due_at_survives_ols_own_expiry_parser(self):
+        """The assertions above pin a string. This one runs the real parser the
+        template reaches, so the test cannot drift from the thing it protects.
+        """
+        from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
+
+        for due_at in (
+            "2026-10-01T00:00:00+00:00",
+            "2026-10-01T00:00:00Z",
+            "2026-09-30T17:00:00-07:00",
+            "2026-10-01T00:00:00+05:30",
+            "2026-10-01T00:00:00",
+            None,
+        ):
+            loan = lenny.loan_from_node("lenny", NODE["issuer"], "patron", {"edition_id": 1, "due_at": due_at})
+            assert loan is not None
+            datetime_from_isoformat(loan["expiry"])
+
     def test_a_provider_loan_is_marked_as_one(self):
         """`templates/account/loans.html` branches on this. Without it the loan
         reaches the Internet Archive branches, which read `ocaid` and
@@ -844,6 +888,75 @@ class TestProviderLoansMerge:
         assert result.unauthorized == ["lenny"]
         assert result.unreachable == []
         assert [loan["book"] for loan in result.loans] == ["/books/OL2M"]
+
+    @staticmethod
+    def _status_error(code):
+        request = httpx.Request("GET", NODE["issuer"] + lenny.LOANS_PATH)
+        response = httpx.Response(code, request=request)
+        return httpx.HTTPStatusError(f"{code}", request=request, response=response)
+
+    def test_a_node_rejecting_the_token_is_unauthorized_not_unreachable(self, two_nodes, monkeypatch):
+        """A grant that is locally unexpired but rejected at the node stays
+        locally unexpired forever, so calling this "could not be reached"
+        showed the patron a temporary outage that never ended and never
+        offered the one action that fixes it. `access_token_for` cannot see
+        this -- it only knows what the store knows."""
+        monkeypatch.setattr(
+            lenny,
+            "fetch_node_loans",
+            self._fetch({NODE["issuer"]: self._status_error(401), NODE_B["issuer"]: [{"edition_id": 2}]}),
+        )
+        result = lenny.provider_loans("patron")
+        assert result.unauthorized == ["lenny"]
+        assert result.unreachable == []
+        assert [loan["book"] for loan in result.loans] == ["/books/OL2M"]
+
+    def test_a_missing_scope_is_also_unauthorized(self, two_nodes, monkeypatch):
+        """403 means the grant lacks `loans:read`, and scopes are fixed at
+        consent -- so it is only fixable by authorizing again."""
+        monkeypatch.setattr(
+            lenny,
+            "fetch_node_loans",
+            self._fetch({NODE["issuer"]: self._status_error(403), NODE_B["issuer"]: []}),
+        )
+        result = lenny.provider_loans("patron")
+        assert result.unauthorized == ["lenny"]
+        assert result.unreachable == []
+
+    def test_a_node_server_error_is_still_unreachable(self, two_nodes, monkeypatch):
+        """The counterpart that keeps the 401 branch honest: a node's own 500
+        is a genuine outage and must still read as one."""
+        monkeypatch.setattr(
+            lenny,
+            "fetch_node_loans",
+            self._fetch({NODE["issuer"]: self._status_error(500), NODE_B["issuer"]: []}),
+        )
+        result = lenny.provider_loans("patron")
+        assert result.unreachable == ["lenny"]
+        assert result.unauthorized == []
+
+    def test_a_timeout_is_unreachable_not_unauthorized(self, two_nodes, monkeypatch):
+        monkeypatch.setattr(
+            lenny,
+            "fetch_node_loans",
+            self._fetch({NODE["issuer"]: httpx.ReadTimeout("slow"), NODE_B["issuer"]: []}),
+        )
+        result = lenny.provider_loans("patron")
+        assert result.unreachable == ["lenny"]
+        assert result.unauthorized == []
+
+    def test_no_configured_nodes_never_touches_the_token_store(self, monkeypatch):
+        """/account/loans loads this on every view, Lenny patron or not, and
+        without #13689's migration the table does not exist."""
+        asked = []
+        monkeypatch.setattr(lenny, "nodes", dict)
+        monkeypatch.setattr(
+            lenny.ProviderToken,
+            "get_providers",
+            staticmethod(lambda username: asked.append(username) or []),
+        )
+        assert lenny.provider_loans("patron") == lenny.ProviderLoans([], [], [])
+        assert asked == [], "queried provider_tokens with no node configured"
 
     def test_a_grant_at_an_unconfigured_node_is_skipped_silently(self, monkeypatch):
         """Nothing the patron can act on, so no note about it."""

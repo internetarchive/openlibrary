@@ -1198,14 +1198,16 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: account/loans.html
-msgid "One of your libraries could not be reached, so any loans there are not shown."
-msgid_plural "Some of your libraries could not be reached, so any loans there are not shown."
+#, python-format
+msgid "%(libraries)s could not be reached, so any loans there are not shown."
+msgid_plural "These libraries could not be reached, so any loans there are not shown: %(libraries)s."
 msgstr[0] ""
 msgstr[1] ""
 
 #: account/loans.html
-msgid "One of your libraries needs reconnecting before its loans can be shown."
-msgid_plural "Some of your libraries need reconnecting before their loans can be shown."
+#, python-format
+msgid "%(libraries)s needs reconnecting before its loans can be shown. Borrowing a book from it again will restore the connection."
+msgid_plural "These libraries need reconnecting before their loans can be shown: %(libraries)s. Borrowing a book from one again will restore the connection."
 msgstr[0] ""
 msgstr[1] ""
 
