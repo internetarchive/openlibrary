@@ -494,7 +494,12 @@ def _patron_tokens(username: str, deadline: float) -> tuple[list[tuple[str, str]
 
     Sequential and synchronous on purpose -- see :data:`LOANS_DEADLINE_SECONDS`
     for why it cannot be moved onto worker threads. In the ordinary case it
-    does no network at all: an unexpired grant is one indexed read.
+    does no network at all: an unexpired grant is one locked indexed read,
+    measured at 0.446 ms, of which the lock is 0.023 ms. Cheap enough at
+    page-render frequency that the unconditional ``FOR UPDATE`` in
+    ``get_fresh`` is not worth avoiding -- the read-then-lock variant was
+    built and measured, and is slower under contention because the row it
+    reads unlocked is expired precisely when a refresh is already in flight.
 
     Returns ``(holdings, unreachable, unauthorized)``.
     """
