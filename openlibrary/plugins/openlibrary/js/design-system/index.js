@@ -3,6 +3,7 @@
  * All progressive: the page is fully readable with this bundle absent.
  */
 import { olAlert, olConfirm } from '../../../../components/lit/alert-dialog.js';
+import { copyText } from '../copy-text.js';
 import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from './contrast.js';
 
 const CODE_VISIBLE_KEY = 'ol-design-show-code';
@@ -125,17 +126,6 @@ function initCodeToggle(root) {
         writeStored(CODE_VISIBLE_KEY, String(event.detail.checked));
         if (event.detail.checked) highlightCode(root);
     });
-}
-
-async function copyText(trigger, text) {
-    try {
-        await navigator.clipboard.writeText(text);
-    } catch {
-        return; // No clipboard permission — silently leave the page as it was.
-    }
-
-    trigger.classList.add('is-copied');
-    setTimeout(() => trigger.classList.remove('is-copied'), 1200);
 }
 
 /** Click-to-copy. `data-ds-copy-text`, else the nearest code block. */

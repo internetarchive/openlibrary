@@ -902,6 +902,21 @@ class Author(Thing):
 
 
 class User(Thing):
+    #: Preference keys that may be written via :meth:`save_preferences`.
+    #: ``type`` is managed internally and always forced to ``preferences``.
+    PREFERENCE_KEYS = frozenset(
+        {
+            "notify",
+            "pda",
+            "public_readlog",
+            "rpd",
+            "safe_mode",
+            "update",
+            "updates",
+            "yrg_banner_pref",
+        }
+    )
+
     def get_default_preferences(self) -> dict[str, str]:
         return {"update": "no", "public_readlog": "no", "type": "preferences"}
         # New users are now public by default for new patrons
@@ -938,7 +953,7 @@ class User(Thing):
     def save_preferences(self, new_prefs) -> None:
         key = f"{self.key}/preferences"
         prefs = self.preferences()
-        prefs.update(new_prefs)
+        prefs.update({k: v for k, v in new_prefs.items() if k in self.PREFERENCE_KEYS})
         prefs["_rev"] = None
         prefs["type"] = "preferences"
         site.get().store[key] = prefs

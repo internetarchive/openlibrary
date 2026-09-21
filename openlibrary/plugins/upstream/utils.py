@@ -602,18 +602,25 @@ def set_share_links(url: str = "#", title: str = "", view_context: InfogamiConte
     """
     encoded_url = url_quote(url)
     text = url_quote("Check this out: " + entity_decode(title))
+    # `track` stays stable across renames so the Share|<track> analytics series doesn't split.
     links = [
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=" + encoded_url,
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": f"https://twitter.com/intent/tweet?url={encoded_url}&via=openlibrary&text={text}",
+            "text": "X (Twitter)",
+            "url": f"https://x.com/intent/post?url={encoded_url}&via=openlibrary&text={text}",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": f"https://pinterest.com/pin/create/link/?url={encoded_url}&description={text}",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
     if view_context is not None:
