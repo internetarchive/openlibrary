@@ -9,16 +9,17 @@ borrow links already exist as rows; this is the flow behind them.
                                                               |
                                             POST {node}/v1/api/oauth2/borrow
 
-**This is a demo, and it deliberately stops one step short of reading the
-book.** A Lenny access token authorizes creating a loan; it does NOT get the
-patron through Lenny's read gate, which accepts a session cookie only and keys
-the patron on ``sha256(lowercased email)`` (``lenny/core/api.py`` ``auth_check``).
-So a loan created here is invisible to a patron who later signs in to Lenny
-directly, and the reader will still ask them for an OTP. Closing that needs a
-single-use token-to-session exchange on the Lenny side (ArchiveLabs/lenny#211)
-plus a decision about how the two identities reconcile. Until then, showing a
-"read now" link here would strand the patron *after* they had borrowed, which is
-worse than not offering it.
+Lenny's read gate accepts a session cookie only -- there is no bearer path --
+and keys the patron on ``sha256(lowercased email)`` (``lenny/core/api.py``
+``auth_check``). That is not a gap this flow has to close. The node's
+``/v1/api/oauth2/authorize`` refuses to issue a code without a node session and
+bounces a patron who has none to Lenny's own OTP login
+(``lenny/routes/oauth2.py:241``), so by the time Open Library holds a token the
+patron's browser already holds the session the reader asks for. An earlier
+version of this docstring said the opposite and recommended a token-to-session
+exchange (ArchiveLabs/lenny#211); that conclusion came from checking the read
+gate in isolation without tracing the flow that feeds it. See
+``ol-kb/wiki/lenny-oauth.md``.
 
 Deliberate design choices, and the reasons, because each looks like an omission:
 
@@ -27,21 +28,30 @@ An OAuth access token authorizes Open Library's *backend* to call a node's API.
 It does nothing for the patron's browser -- no cookie, no session, no reader. So
 the node's own login is not an obstacle to route around here: it is the step
 that gives the patron the session their reader needs. Open Library asserting an
-already-authenticated patron would save them that sign-in, but it would not make
-the book open, which is why this does not attempt it.
+already-authenticated patron -- a signed assertion the node trusts in place of
+its own login -- would save them that sign-in, but it would not make the book
+open, and it needs a pairwise pseudonymous subject and a published signing key
+that do not exist. This does not attempt it. It does send ``login_hint``, which
+is a suggestion the node is free to ignore and not an assertion of anything;
+see :func:`authorize_url` for what that currently buys, which is nothing.
 
-**The token is held custodially in the patron's own cookie**, Fernet-encrypted
-with the same key and the same pattern as the S3 keys
-(``accounts.model.encrypt_lenny_token``). Nothing is stored server-side, so
-there is no table and no row to expire; a patron clearing cookies simply signs
-in again.
+**The grant is stored server-side**, one row per ``(patron, node)``, by
+:mod:`openlibrary.core.provider_tokens` (#13685). A cookie cannot do this job,
+and the reason is not a preference: Lenny rotates refresh tokens and revokes the
+whole family when a spent one is presented again, so the storage has to
+single-flight the refresh. Two tabs send the same cookie, so both hold the same
+``R0``. A lock can make the loser wait, but when it wakes the only refresh token
+it has is the ``R0`` from its own request headers -- ``R1`` exists solely in the
+winner's HTTP response to the *other* tab, with nowhere server-side to read it
+back from. The loser then either presents ``R0``, which is the reuse that
+destroys the grant, or abandons a grant that is alive.
+:meth:`~openlibrary.core.provider_tokens.ProviderToken.get_fresh` re-reads under
+the lock, which is the step a cookie has no way to perform.
 
-One hazard comes with that, and it is inherent rather than a bug: the cookie is
-the single copy of a rotating refresh token. Lenny revokes the whole family when
-a rotated refresh token is reused, so two tabs refreshing at once would destroy
-the grant. Refresh is therefore attempted once, on demand, and any failure
-clears the cookie and sends the patron back through the flow -- a second sign-in
-rather than a silent dead end.
+**This module holds no storage of its own.** It supplies the HTTP half:
+:func:`node_refresher` is the ``Refresher`` that ``get_fresh`` calls with the
+patron's row locked, which is why it carries a tighter timeout than the rest of
+this module -- whatever it waits for, the row waits for too.
 
 **Endpoints come from discovery, not constants.** Every node publishes
 ``/.well-known/oauth-authorization-server``; a node that moves an endpoint
@@ -49,6 +59,7 @@ should not require an Open Library deploy.
 """
 
 import base64
+import datetime
 import hashlib
 import logging
 import secrets
@@ -57,22 +68,37 @@ from urllib.parse import urlencode
 
 import requests
 import web
-from cryptography.fernet import InvalidToken
 
 from infogami import config
 from infogami.utils import delegate
 from openlibrary.accounts import get_current_user
-from openlibrary.accounts.model import decrypt_lenny_token, encrypt_lenny_token
 from openlibrary.core import cache
 from openlibrary.core.acquisitions import Acquisition
+from openlibrary.core.provider_tokens import (
+    Grant,
+    ProviderToken,
+    Refresher,
+    TokenRefreshFailed,
+)
 from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("openlibrary.lenny")
 
 DISCOVERY_PATH = "/.well-known/oauth-authorization-server"
 REQUIRED_CODE_CHALLENGE_METHOD = "S256"
-BORROW_SCOPE = "borrow"
 REDIRECT_PATH = "/borrow/lenny/callback"
+
+SCOPES = "loans:read borrow"
+"""Requested together, in one consent.
+
+``borrow`` alone is enough to create the loan, but the merged loan lookup
+(#13687) needs ``loans:read``, and asking for it later means a second trip
+through the node's login for a patron who already agreed once. Both are in the
+node's ``scopes_supported`` (verified against ``lennyforlibraries.org``
+discovery, 2026-09-20), and an unregistered scope is a hard error at the node
+rather than a silent narrowing -- so a node that does not offer one of these
+fails visibly here rather than handing back a grant that cannot read loans.
+"""
 
 STATE_TTL_SECONDS = 600
 """How long a patron has to complete the node's login. Ten minutes is generous
@@ -80,6 +106,15 @@ for an OTP round trip and short enough that an abandoned attempt expires."""
 
 DISCOVERY_TTL_SECONDS = 3600
 HTTP_TIMEOUT_SECONDS = 10
+
+REFRESH_TIMEOUT_SECONDS = 5
+"""Every network call a refresh makes, and deliberately shorter than the rest.
+
+``ProviderToken.get_fresh`` calls :func:`node_refresher` with ``SELECT ... FOR
+UPDATE`` held on the patron's row, so this bounds how long that row -- and every
+other flight for the same patron and node -- is blocked. The worst case is two
+of these back to back, discovery then the token endpoint, so ten seconds.
+"""
 
 PROVIDER_PREFIX = "lenny"
 """Feed provider names are per node (``lenny``, ``lenny_<host>``), because a
@@ -101,19 +136,23 @@ def nodes() -> dict[str, dict[str, str]]:
     return config.get("lenny_nodes") or {}
 
 
-def discover(issuer: str) -> dict[str, Any]:
+def discover(issuer: str, timeout: int = HTTP_TIMEOUT_SECONDS) -> dict[str, Any]:
     """A node's OAuth metadata, cached.
 
     Raises ``ValueError`` if the node does not offer S256. Checked by
     membership rather than by taking the first entry: ``plain`` is refused by
     every node today, and a node advertising something weaker should fail
     closed rather than be accommodated.
+
+    ``timeout`` is a parameter because a cache miss inside a refresh happens
+    with the patron's row locked, and the caller there needs a tighter bound
+    than a patron-facing request does.
     """
     key = f"lenny-oauth-metadata/{issuer}"
     if metadata := cache.get_memcache().get(key):
         return metadata
 
-    resp = requests.get(issuer.rstrip("/") + DISCOVERY_PATH, timeout=HTTP_TIMEOUT_SECONDS)
+    resp = requests.get(issuer.rstrip("/") + DISCOVERY_PATH, timeout=timeout)
     resp.raise_for_status()
     metadata = resp.json()
 
@@ -195,8 +234,33 @@ def check_issuer(pending: dict[str, Any], iss: str | None) -> None:
         raise ValueError(f"callback iss {iss!r} does not match {expected!r}")
 
 
-def exchange_code(pending: dict[str, Any], code: str) -> tuple[str, str]:
-    """Trade the authorization code for tokens. Returns ``(access, refresh)``.
+def _grant_from_payload(payload: dict[str, Any]) -> Grant:
+    """A token endpoint response as a :class:`Grant`.
+
+    ``expires`` is naive UTC to match the table's ``timestamp`` columns; see
+    ``provider_tokens._utcnow``.
+
+    An ``expires_in`` that is present but not an integer raises rather than
+    being dropped. A grant whose lifetime cannot be read is never refreshed --
+    ``Grant.is_expired`` reads a missing expiry as "still live" -- so tolerating
+    the garbage buys one working borrow and pays for it with an unexplained
+    logout later.
+    """
+    if not (token := payload.get("access_token")):
+        raise ValueError("token endpoint returned no access_token")
+    expires = None
+    if (expires_in := payload.get("expires_in")) is not None:
+        expires = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) + datetime.timedelta(seconds=int(expires_in))
+    return Grant(
+        access_token=token,
+        refresh_token=payload.get("refresh_token") or None,
+        expires=expires,
+        scope=payload.get("scope") or "",
+    )
+
+
+def exchange_code(pending: dict[str, Any], code: str) -> Grant:
+    """Trade the authorization code for the patron's grant at the node.
 
     The refresh token may be absent; a node is not obliged to issue one.
     """
@@ -214,10 +278,56 @@ def exchange_code(pending: dict[str, Any], code: str) -> tuple[str, str]:
         timeout=HTTP_TIMEOUT_SECONDS,
     )
     resp.raise_for_status()
-    payload = resp.json() or {}
-    if not (token := payload.get("access_token")):
-        raise ValueError("token endpoint returned no access_token")
-    return token, payload.get("refresh_token") or ""
+    return _grant_from_payload(resp.json() or {})
+
+
+def node_refresher(node: dict[str, str]) -> Refresher:
+    """A ``Refresher`` for ``ProviderToken.get_fresh``, bound to one node.
+
+    Called with the patron's row locked, so both of its network calls carry
+    :data:`REFRESH_TIMEOUT_SECONDS` rather than the module's ordinary timeout.
+
+    It does not catch anything. ``get_fresh`` treats every exception the same
+    way -- delete the grant, do not retry -- because a timeout and a rejection
+    are indistinguishable from this side, and the node may have rotated the
+    token and lost the response on the way back. Presenting it again is the
+    precise act that revokes the whole family.
+    """
+
+    def refresh(refresh_token: str) -> Grant:
+        metadata = discover(node["issuer"], timeout=REFRESH_TIMEOUT_SECONDS)
+        resp = requests.post(
+            metadata["token_endpoint"],
+            data={
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": node["client_id"],
+                "client_secret": node["client_secret"],
+            },
+            timeout=REFRESH_TIMEOUT_SECONDS,
+        )
+        resp.raise_for_status()
+        return _grant_from_payload(resp.json() or {})
+
+    return refresh
+
+
+def access_token_for(username: str, provider_name: str) -> str | None:
+    """A usable access token for this patron at this node, or None.
+
+    The one entry point for anything that presents a token to a node -- the
+    merged loan lookup (#13687) included. Returns None when the patron has to
+    authorize again, which is what a missing grant, an expired one with no
+    refresh token, and a failed refresh all mean.
+    """
+    if not (node := nodes().get(provider_name)):
+        return None
+    try:
+        grant = ProviderToken.get_fresh(username, provider_name, node_refresher(node))
+    except TokenRefreshFailed:
+        logger.info("lenny grant cleared for %s at %s", username, provider_name)
+        return None
+    return grant.access_token if grant else None
 
 
 BORROW_ERRORS = {
@@ -257,6 +367,53 @@ class LennyBorrowError(Exception):
         return BORROW_ERRORS.get(self.error, "That library could not lend this book right now.")
 
 
+def authorize_url(
+    metadata: dict[str, Any],
+    node: dict[str, str],
+    state: str,
+    challenge: str,
+    email: str | None = None,
+) -> str:
+    """Where to send the patron to authorize a borrow.
+
+    Split out from the handler because these parameters are the whole security
+    surface of this leg -- the scopes asked for, the challenge method, and what
+    the node is told about the patron -- and a web request is a poor place to
+    assert on them.
+    """
+    params = {
+        "response_type": "code",
+        "client_id": node["client_id"],
+        "redirect_uri": _redirect_uri(),
+        "scope": SCOPES,
+        "state": state,
+        "code_challenge": challenge,
+        "code_challenge_method": REQUIRED_CODE_CHALLENGE_METHOD,
+    }
+    if email:
+        # RFC 6749 s3.1 extension parameter: the address the patron should be
+        # signed in as, so a node need not ask for one they just proved on
+        # Open Library.
+        #
+        # **Inert against every node today, and sending it has a cost.**
+        # ArchiveLabs/lenny at origin/main 75b0906 drops it three times over:
+        # ``authorize`` does not declare the parameter
+        # (``lenny/routes/oauth2.py:203-212``); ``_echo``'s allow-list excludes
+        # it, so it never reaches the login page (``oauth2.py:294-299``); and
+        # the OTP form's email box is filled only from a POST body
+        # (``lenny/routes/oauth.py:110-117``, ``post_email``). Unknown
+        # parameters are ignored rather than refused, verified live --
+        # ``/v1/api/oauth2/authorize?client_id=nope`` answers identically with
+        # and without it.
+        #
+        # The cost is that this hands the node the patron's email before they
+        # consent, including when they abandon the flow. A patron who finishes
+        # discloses it anyway, because the node's read gate keys on
+        # ``sha256(lowercased email)``, so the delta is the abandoned case.
+        params["login_hint"] = email
+    return f"{metadata['authorization_endpoint']}?{urlencode(params)}"
+
+
 class lenny_borrow(delegate.page):
     path = r"/borrow/lenny/(OL\d+M)"
 
@@ -286,21 +443,14 @@ class lenny_borrow(delegate.page):
                 "redirect_uri": _redirect_uri(),
                 "edition_key": edition_key,
                 "provider_name": provider_name,
-                "username": user.key,
+                # The bare username, not ``user.key``: it is the key the
+                # ``provider_tokens`` row and ``anonymize`` both use.
+                "username": user.get_username(),
             },
             expires=STATE_TTL_SECONDS,
         )
 
-        params = {
-            "response_type": "code",
-            "client_id": node["client_id"],
-            "redirect_uri": _redirect_uri(),
-            "scope": BORROW_SCOPE,
-            "state": state,
-            "code_challenge": challenge,
-            "code_challenge_method": REQUIRED_CODE_CHALLENGE_METHOD,
-        }
-        raise web.seeother(f"{metadata['authorization_endpoint']}?{urlencode(params)}")
+        raise web.seeother(authorize_url(metadata, node, state, challenge, user.get_email()))
 
 
 class lenny_callback(delegate.page):
@@ -328,14 +478,25 @@ class lenny_callback(delegate.page):
             return render_error("That borrow request expired. Please try borrowing again.")
 
         try:
-            token, refresh_token = exchange_code(pending, i.code)
+            grant = exchange_code(pending, i.code)
         except Exception:
             logger.exception("lenny token exchange failed for %s", pending["provider_name"])
             return render_error("That library could not complete the loan. Please try again later.")
 
+        # Stored before the loan is created, not after. A loan made with a grant
+        # Open Library failed to keep is a live credential at a third-party
+        # library that Open Library holds no record of -- it cannot be
+        # refreshed, revoked, or shown to the patron. Failing here costs one
+        # borrow, which is recoverable; the other order is not.
+        try:
+            ProviderToken.upsert(pending["username"], pending["provider_name"], grant)
+        except Exception:
+            logger.exception("lenny grant could not be stored for %s", pending["provider_name"])
+            return render_error("That library could not complete the loan. Please try again later.")
+
         edition_id = int(extract_numeric_id_from_olid(pending["edition_key"]))
         try:
-            loan = borrow(pending, token, edition_id)
+            loan = borrow(pending, grant.access_token, edition_id)
         except LennyBorrowError as e:
             logger.info("lenny borrow refused (%s/%s)", e.status, e.error)
             return render_error(e.message)
@@ -343,59 +504,8 @@ class lenny_callback(delegate.page):
             logger.exception("lenny borrow failed for %s", pending["provider_name"])
             return render_error("That library could not complete the loan. Please try again later.")
 
-        set_custodial_token(pending["provider_name"], token, refresh_token)
         logger.info("lenny loan created on %s for %s", pending["provider_name"], pending["edition_key"])
         return render_borrowed(pending["edition_key"], loan, read_url(pending, loan))
-
-
-COOKIE_NAME = "lenny"
-COOKIE_MAX_AGE = 3600 * 24 * 30
-"""Thirty days. A node's refresh token lasts ninety, but a custodial credential
-in a cookie should not outlive the patron's interest in it by two months."""
-
-
-def set_custodial_token(node: str, access_token: str, refresh_token: str) -> None:
-    """Hold the patron's node tokens in their own cookie.
-
-    ``secure`` and ``httponly`` for the same reasons as the S3 cookie: this is a
-    credential, script has no business reading it, and it must not travel over
-    plain HTTP. ``samesite="Lax"`` so it survives the return redirect from the
-    node.
-    """
-    web.setcookie(
-        COOKIE_NAME,
-        encrypt_lenny_token(node, access_token, refresh_token),
-        expires=COOKIE_MAX_AGE,
-        secure=True,
-        httponly=True,
-        samesite="Lax",
-    )
-
-
-def clear_custodial_token() -> None:
-    web.setcookie(COOKIE_NAME, "", expires=1)
-
-
-def get_custodial_token(node: str) -> tuple[str, str] | None:
-    """The patron's held tokens for a node, or None.
-
-    Returns None for a missing, tampered, stale or other-node cookie rather
-    than raising: every one of them means "this patron has no usable credential
-    for this node", and the caller's response to all of them is the same.
-    """
-    if not (cookie := web.cookies().get(COOKIE_NAME)):
-        return None
-    try:
-        stored_node, access_token, refresh_token = decrypt_lenny_token(cookie)
-    except InvalidToken, ValueError:
-        # InvalidToken: tampered, or encrypted under a rotated key. ValueError:
-        # a well-formed token whose plaintext is not the three fields this
-        # version writes. Both mean the same thing to every caller -- no usable
-        # credential -- and neither is worth an exception for.
-        return None
-    if stored_node != node:
-        return None
-    return access_token, refresh_token
 
 
 def read_url(pending: dict[str, Any], loan: dict[str, Any]) -> str:
