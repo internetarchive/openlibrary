@@ -1,0 +1,68 @@
+{#
+Browse menu rendered with the <ol-popover> web component (see
+openlibrary/components/lit/OlPopover.js) instead of a native <details>
+dropdown.
+#}
+{% set pfx = track_prefix or "MainNav" %}
+{% set featured_detail = {
+    'Subjects': _('Browse books by topic'),
+    'Trending': _('Most popular right now'),
+    'Explore': _('Browse the virtual shelves'),
+    'Lists': _('Reader-curated collections'),
+} %}
+{% set nav_icons = {
+    "Subjects": "wand",
+    "Trending": "trending-up",
+    "Explore": "compass",
+    "Lists": "list",
+    "Collections": "library-big",
+    "K12Library": "graduation-cap",
+    "BookTalks": "mic",
+    "RandomBook": "dices",
+    "AdvancedSearch": "search"
+} %}
+<div class="browse-component header-dropdown">
+    <ol-popover class="browse-popover" placement="bottom-center" aria-label="{{ _('Browse') }}" data-ol-open-track="{{ pfx }}|BrowseOpen">
+        <button type="button"
+                slot="trigger"
+                class="ol-button-static ol-button-static--ghost browse-popover__trigger">
+            {{ icon("book-open-text", size="sm", extra_class="ol-button-static__icon") }}
+            {{ _("Browse") }}
+            {{ icon("chevron-down", size="sm", extra_class="down-arrow") }}
+        </button>
+        <div class="browse-popover__panel">
+            <div class="browse-popover__featured">
+                {% if layout and layout.featured_browse_links %}
+                    {% for link in layout.featured_browse_links %}
+                        <a class="browse-feature"
+                           href="{{ link.href }}"
+                           data-ol-link-track="{{ pfx }}|{{ link.track }}|{{ loop.index }}">
+                            <span class="browse-feature__icon">{{ icon(nav_icons.get(link.track, 'link')) }}</span>
+                            <span class="browse-feature__body">
+                                <span class="browse-feature__title">{{ link.text }}</span>
+                                {% if link.track in featured_detail %}
+                                    <span class="browse-feature__desc">{{ featured_detail[link.track] }}</span>
+                                {% endif %}
+                            </span>
+                        </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <hr class="browse-popover__divider">
+            <ul class="browse-popover__links">
+                {% if layout and layout.simple_browse_links %}
+                    {% for link in layout.simple_browse_links %}
+                        <li>
+                            <a class="browse-popover__link"
+                               href="{{ link.href }}"
+                               data-ol-link-track="{{ pfx }}|{{ link.track }}|{{ 4 + loop.index }}">
+                                {{- icon(nav_icons.get(link.track, 'link'), size="sm") -}}
+                                {{ link.text }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </div>
+    </ol-popover>
+</div>
