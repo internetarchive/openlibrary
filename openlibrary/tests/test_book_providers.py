@@ -17,6 +17,8 @@ from web.template import Template
 
 from openlibrary.book_providers import (
     PROVIDER_ORDER,
+    Acquisition,
+    AcquisitionAccessLiteral,
     EbookAccess,
     LennyProvider,
     get_book_provider,
@@ -214,14 +216,18 @@ class TestReadButtonTemplate:
     string -- a provider registered and a patron shown nothing."""
 
     @staticmethod
-    def render(access: str, url: str) -> str:
+    def render(access: AcquisitionAccessLiteral, url: str, provider_name: str | None = "lenny") -> str:
         path = Path("openlibrary/templates/book_providers/read_button.html")
         template = Template(
             path.read_text(encoding="utf-8"),
             str(path),
             globals={"_": lambda text, *args: text % args if args else text},
         )
-        acquisition = web.storage(access=access, url=url, format="web")
+        # The real dataclass, not a `web.storage` of the fields this template
+        # happens to read today. A stub silently omitting one raises
+        # `AttributeError` the moment the template reads it, which reports as
+        # the template being broken.
+        acquisition = Acquisition(access=access, format="web", price=None, url=url, provider_name=provider_name)
         return str(template("OL46539165M", acquisition, "Lenny", lambda action: f'data-ol-link-track="CTAClick|{action}"'))
 
     def test_a_borrow_acquisition_renders_a_button(self):
@@ -249,3 +255,21 @@ class TestReadButtonTemplate:
         html = self.render("open-access", READ_URL)
         assert ">Read</a>" in html
         assert 'href="/books/OL46539165M/-/borrow?action=read"' in html
+
+    def test_the_borrow_button_says_which_provider_the_offer_came_from(self):
+        """`provider_borrow_popup.js` selects on this to decide whether the
+        borrow opens in a popup (#13688). Without the attribute the popup
+        never opens and the patron leaves Open Library instead -- a silent
+        regression, because the anchor still works."""
+        html = self.render("borrow", BORROW_URL)
+        assert ">Borrow</a>" in html
+        assert 'data-ol-provider="lenny"' in html
+
+    def test_a_borrow_button_with_no_provider_name_still_renders(self):
+        """`Acquisition.provider_name` is optional, and an edit-book
+        `providers` entry need not carry one. An empty attribute matches no
+        entry in the module's allow-list, so the button keeps its plain
+        behaviour rather than raising here."""
+        html = self.render("borrow", BORROW_URL, provider_name=None)
+        assert ">Borrow</a>" in html
+        assert 'data-ol-provider=""' in html

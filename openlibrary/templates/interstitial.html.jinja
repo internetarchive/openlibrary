@@ -5,6 +5,11 @@
      wait          (int)      — seconds before auto-redirect (default 5)
      fastapi       (bool)     — True when rendered by FastAPI (adds inline style/script)
      book_provider (Markup)   — pre-escaped "<strong>Provider Name</strong>" HTML fragment
+     borrowing     (bool)     — True when `url` is an Open Library path that borrows on the
+                                patron's behalf, rather than a third party we are handing
+                                them off to. Required: the Jinja env is StrictUndefined,
+                                so a second caller that omits it raises rather than
+                                silently choosing the handoff wording.
 
    The doctype is required for the standalone FastAPI page (standards mode);
    when this fragment is embedded in the web.py site layout, browsers ignore
@@ -15,13 +20,28 @@
      class="interstitial"
      data-url="{{ url }}"
      data-wait="{{ wait }}">
-    <h1>{{ _("You are being redirected to your book") }}</h1>
-    <p id="countdown">{{ _("This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider", book_provider=book_provider) | safe }}</p>
-    <p>{{ _("In %(time)s seconds, you will be automatically redirected to: %(url)s", time=('<span id=\"timer\">' ~ wait ~ '</span>') | safe, url=('<a href=\"' ~ url ~ '\">' ~ url ~ '</a>') | safe) | safe }}</p>
-    <p>
-        <a href="#" class="close-window">{{ _("Cancel") }}</a>
-        <a href="{{ url }}">{{ _("Continue without waiting") }}</a>
-    </p>
+    {% if borrowing %}
+        {# The two wordings say opposite things on purpose, and this one is the
+           whole point of #13688: the patron is not being handed to a third
+           party, they are getting to their book. So no destination URL is
+           shown either — it is an openlibrary.org path, and printing it would
+           raise a question ("where am I going?") whose answer is "nowhere". #}
+        <h1>{{ _("Getting your book") }}</h1>
+        <p id="countdown">{{ _("This book is borrowable for free from %(book_provider)s, a trusted Open Library book provider", book_provider=book_provider) | safe }}</p>
+        <p>{{ _("In %(time)s seconds, that library will ask you to sign in. Open Library finishes the loan for you.", time=('<span id=\"timer\">' ~ wait ~ '</span>') | safe) | safe }}</p>
+        <p>
+            <a href="#" class="close-window">{{ _("Cancel") }}</a>
+            <a href="{{ url }}">{{ _("Continue without waiting") }}</a>
+        </p>
+    {% else %}
+        <h1>{{ _("You are being redirected to your book") }}</h1>
+        <p id="countdown">{{ _("This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider", book_provider=book_provider) | safe }}</p>
+        <p>{{ _("In %(time)s seconds, you will be automatically redirected to: %(url)s", time=('<span id=\"timer\">' ~ wait ~ '</span>') | safe, url=('<a href=\"' ~ url ~ '\">' ~ url ~ '</a>') | safe) | safe }}</p>
+        <p>
+            <a href="#" class="close-window">{{ _("Cancel") }}</a>
+            <a href="{{ url }}">{{ _("Continue without waiting") }}</a>
+        </p>
+    {% endif %}
 </div>
 {% if fastapi %}
     <style>
