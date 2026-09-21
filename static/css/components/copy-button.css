@@ -8,19 +8,23 @@
   border-radius: var(--border-radius-button);
   background: var(--color-surface-sunken);
   color: var(--color-text);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
 
-.copy-button:hover {
-  background: linear-gradient(
-      var(--color-hover-overlay),
-      var(--color-hover-overlay)
-    )
-    var(--color-surface-sunken);
+@media (hover: hover) and (pointer: fine) {
+  .copy-button:hover {
+    background: linear-gradient(
+        var(--color-hover-overlay),
+        var(--color-hover-overlay)
+      )
+      var(--color-surface-sunken);
+  }
 }
 
-.copy-button__code {
+/* Monospace snippet text; standalone so a selectable snippet beside an
+   icon-only copy button can share it. */
+.copy-code {
   flex: 1;
   min-width: 0;
   overflow-x: auto;

@@ -425,8 +425,8 @@ $(function() {
             .then(module => module.initDialogs());
     }
 
-    const wikipediaCitation = document.querySelector('[data-wikipedia-citation-copy]');
-    if (wikipediaCitation) {
+    const citationCopyButton = document.querySelector('[data-wikipedia-citation-copy]');
+    if (citationCopyButton) {
         import('./wikipedia-citation')
             .then(module => module.initWikipediaCitation());
     }
@@ -463,8 +463,6 @@ $(function() {
     $(document).on('click', '.slide-toggle', function() {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
-
-    $('#wikiselect').on('focus', function(){$(this).trigger('select');});
 
     $('.header-dropdown').on('keydown', function(event) {
         if (event.key === 'Escape') {
