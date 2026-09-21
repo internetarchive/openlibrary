@@ -1063,6 +1063,7 @@ class memory(delegate.page):
 def get_supported_languages() -> dict[str, dict[str, str]]:
     return {
         "ar": {"code": "ar", "localized": _("Arabic"), "native": "العربية"},
+        "az": {"code": "az", "localized": _("Azerbaijani"), "native": "Azərbaycanca"},
         "cs": {"code": "cs", "localized": _("Czech"), "native": "Čeština"},
         "de": {"code": "de", "localized": _("German"), "native": "Deutsch"},
         "en": {"code": "en", "localized": _("English"), "native": "English"},
