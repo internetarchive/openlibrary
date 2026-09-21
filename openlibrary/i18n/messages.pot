@@ -33,7 +33,7 @@ msgstr ""
 msgid "or"
 msgstr ""
 
-#: account.html databarHistory.html databarTemplate.html databarView.html my_books/check_ins/check_in_prompt.html reading_goals/reading_goal_progress.html subjects.html type/edition/compact_title.html type/user/view.html
+#: account.html databarHistory.html databarTemplate.html databarView.html my_books/check_ins/check_in_prompt.html reading_goals/reading_goal_progress.html.jinja subjects.html type/edition/compact_title.html type/user/view.html
 msgid "Edit"
 msgstr ""
 
@@ -431,7 +431,7 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja merge/authors.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html my_books/dropdown_content.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -443,7 +443,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: RelatedSubjects.html.jinja account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html.jinja
+#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html openlibrary/plugins/openlibrary/partials.py search/work_search_facets.html.jinja
 msgid "Loading..."
 msgstr ""
 
@@ -532,7 +532,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: NotesModal.html ObservationsModal.html ShareModal.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html
+#: ObservationsModal.html ShareModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html lists/lists.html merge/authors.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -648,6 +648,10 @@ msgstr ""
 
 #: showmarc.html type/tag/index.html
 msgid "Next"
+msgstr ""
+
+#: site.html.jinja
+msgid "It looks like you're offline."
 msgstr ""
 
 #: status.html
@@ -840,7 +844,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html widget.html
+#: reading_goals/reading_goal_form.html.jinja widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -1195,11 +1199,11 @@ msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
 msgstr[1] ""
 
-#: account/loans.html books/custom_carousel_card.html
+#: account/loans.html books/custom_carousel_card.html.jinja
 msgid "Not yet downloaded."
 msgstr ""
 
-#: account/loans.html books/custom_carousel_card.html
+#: account/loans.html books/custom_carousel_card.html.jinja
 msgid "Download Now"
 msgstr ""
 
@@ -1216,14 +1220,19 @@ msgid "You are not waiting for any books at this moment."
 msgstr ""
 
 #: account/loans.html
-msgid "Leave the Waiting List"
+msgid "Leave the waiting list?"
+msgstr ""
+
+#: LoanStatus.html account/loans.html
+msgid "Leave waiting list"
 msgstr ""
 
 #: account/loans.html
-msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
+#, python-format
+msgid "You will lose your place in line for <strong>%(title)s</strong>."
 msgstr ""
 
-#: account/loans.html authors/index.html.jinja lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
+#: account/loans.html authors/index.html.jinja lists/list_follow.html.jinja lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -1265,10 +1274,6 @@ msgstr[1] ""
 
 #: account/loans.html
 msgid "Borrow Now"
-msgstr ""
-
-#: account/loans.html
-msgid "Leave the waiting list?"
 msgstr ""
 
 #: account/loans.html
@@ -1342,7 +1347,7 @@ msgstr ""
 msgid "Import & Export Options"
 msgstr ""
 
-#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html account/notes.html account/observations.html
+#: BookByline.html FulltextSearchSuggestionItem.html.jinja SearchResultsWork.html account/notes.html account/observations.html
 msgid "Unknown author"
 msgstr ""
 
@@ -1367,11 +1372,11 @@ msgstr ""
 msgid "in %(language)s"
 msgstr ""
 
-#: NotesModal.html account/notes.html
+#: NotesModalDialog.html account/notes.html type/edition/notes_modal_i18n.html
 msgid "Delete Note"
 msgstr ""
 
-#: NotesModal.html account/notes.html
+#: NotesModalDialog.html account/notes.html
 msgid "Save Note"
 msgstr ""
 
@@ -1695,10 +1700,6 @@ msgstr ""
 msgid "Then, come back to Open Library and find some great books!"
 msgstr ""
 
-#: account/view.html
-msgid "Yearly Reading Goal"
-msgstr ""
-
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
 msgstr ""
@@ -1861,7 +1862,7 @@ msgstr ""
 msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
-#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
+#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html.jinja
 msgid "Submit"
 msgstr ""
 
@@ -2794,6 +2795,10 @@ msgstr ""
 msgid "More at OpenStax"
 msgstr ""
 
+#: LoanStatus.html ReadButton.html book_providers/read_button.html my_books/dropper.html
+msgid "More reading options"
+msgstr ""
+
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
@@ -3112,35 +3117,22 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: books/custom_carousel_card.html type/author/view.html
-msgid "name missing"
-msgstr ""
-
-#: books/custom_carousel_card.html books/mobile_carousel.html
-#, python-format
-msgid " by %(name)s"
-msgstr ""
-
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
 msgid_plural "%(count)d people waiting"
 msgstr[0] ""
 msgstr[1] ""
 
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 msgid "Return via ADE"
 msgstr ""
 
-#: books/custom_carousel_card.html
+#: books/custom_carousel_card.html.jinja
 msgid "Loan Expired"
 msgstr ""
 
-#: ReturnForm.html books/custom_carousel_card.html
-msgid "Really return this book?"
-msgstr ""
-
-#: ReturnForm.html books/custom_carousel_card.html
+#: ReturnForm.html books/custom_carousel_card.html.jinja
 msgid "Return book"
 msgstr ""
 
@@ -3303,7 +3295,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
+#: FulltextSearchSuggestionItem.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -3321,6 +3313,16 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
+msgstr ""
+
+#: books/edition-sort.html
+#, python-format
+msgid "translated by %(translator)s"
+msgstr ""
+
+#: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid " by %(name)s"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
@@ -3356,7 +3358,7 @@ msgstr ""
 msgid "Lists (%(count)d)"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
+#: NotesModalDialog.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
 msgid "Notes"
 msgstr ""
 
@@ -3807,7 +3809,7 @@ msgstr ""
 msgid "Provider Name"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html databarWork.html
 msgid "Buy"
 msgstr ""
 
@@ -4110,7 +4112,7 @@ msgstr ""
 msgid "Qualifying for Print Disability Special Access"
 msgstr ""
 
-#: follow/follow.html lists/list_follow.html
+#: follow/follow.html lists/list_follow.html.jinja
 msgid "Follow"
 msgstr ""
 
@@ -4134,7 +4136,7 @@ msgstr ""
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html.jinja
+#: home/about.html search/work_search_facets.html.jinja
 msgid "More"
 msgstr ""
 
@@ -4473,7 +4475,7 @@ msgstr ""
 msgid "Terms of Service"
 msgstr ""
 
-#: lib/nav_foot.html.jinja site/alert.html
+#: lib/nav_foot.html.jinja site/alert.html.jinja
 msgid "Donate"
 msgstr ""
 
@@ -4613,7 +4615,7 @@ msgstr ""
 msgid "Open Library on GitHub"
 msgstr ""
 
-#: lib/nav_foot.html.jinja site/alert.html
+#: lib/nav_foot.html.jinja site/alert.html.jinja
 msgid "Change Website Language"
 msgstr ""
 
@@ -4707,7 +4709,7 @@ msgstr ""
 msgid "Quality Criteria"
 msgstr ""
 
-#: lists/carousel.html lists/home.html lists/showcase.html
+#: lists/carousel.html.jinja lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
@@ -4822,31 +4824,31 @@ msgstr ""
 msgid "Recent Activity"
 msgstr ""
 
-#: lists/list_follow.html
+#: lists/list_follow.html.jinja
 msgid "Cover of book"
 msgstr ""
 
-#: lists/list_follow.html
+#: lists/list_follow.html.jinja
 msgid "Avatar of the owner of the list"
 msgstr ""
 
-#: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
+#: lists/list_follow.html.jinja lists/widget.html my_books/dropdown_content.html
 msgid "You"
 msgstr ""
 
-#: lists/list_follow.html
+#: lists/list_follow.html.jinja
 msgid "This patron has not enabled following"
 msgstr ""
 
-#: lists/list_follow.html
+#: lists/list_follow.html.jinja
 msgid "🔒︎"
 msgstr ""
 
-#: lists/list_follow.html
+#: lists/list_follow.html.jinja
 msgid "OpenLibrary Logo"
 msgstr ""
 
-#: lists/list_follow.html
+#: lists/list_follow.html.jinja
 msgid "Community List"
 msgstr ""
 
@@ -4855,37 +4857,37 @@ msgstr ""
 msgid "%(owner)s / Lists"
 msgstr ""
 
-#: lists/lists.html type/list/view_body.html
-msgid "Yes, I'm sure"
-msgstr ""
-
-#: lists/lists.html type/list/view_body.html
-msgid "No, cancel"
-msgstr ""
-
 #: lists/lists.html
 msgid "Delete this list"
 msgstr ""
 
-#: lists/lists.html
+#: lists/lists.html type/list/view_body.html
+msgid "Delete this list?"
+msgstr ""
+
+#: lists/lists.html type/list/view_body.html
 msgid "Delete list"
 msgstr ""
 
-#: lists/lists.html
-msgid "Are you sure you want to delete this list?"
+#: lists/lists.html type/edition/notes_modal_i18n.html
+msgid "This cannot be undone."
 msgstr ""
 
 #: lists/lists.html
 msgid "Remove this seed?"
 msgstr ""
 
-#: TestingEnvironment.html.jinja lists/lists.html type/list/edit.html type/series/edit.html
+#: lists/lists.html type/list/view_body.html
+msgid "Remove from this list?"
+msgstr ""
+
+#: TestingEnvironment.html.jinja lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
 msgid "Remove"
 msgstr ""
 
 #: lists/lists.html
 #, python-format
-msgid "Are you sure you want to remove <strong>%(title)s</strong> from this list?"
+msgid "<strong>%(title)s</strong> will be removed from this list."
 msgstr ""
 
 #: lists/lists.html
@@ -4962,16 +4964,24 @@ msgstr ""
 msgid "No primary record"
 msgstr ""
 
+#: TestingEnvironment.html.jinja merge/authors.html
+msgid "OK"
+msgstr ""
+
 #: merge/authors.html
 msgid "You must select a primary record to point the duplicates toward."
 msgstr ""
 
 #: merge/authors.html
-msgid "Please Be Careful..."
+msgid "Merge these authors?"
+msgstr ""
+
+#: merge/authors.html search/authors.html
+msgid "Merge authors"
 msgstr ""
 
 #: merge/authors.html
-msgid "<b>Are you sure</b> you want to merge these records?"
+msgid "The duplicate records will be redirected to the primary record."
 msgstr ""
 
 #: merge/authors.html recentchanges/merge/view.html
@@ -5205,10 +5215,6 @@ msgstr ""
 msgid "More reading options for %(title)s"
 msgstr ""
 
-#: ReadButton.html my_books/dropper.html
-msgid "More reading options"
-msgstr ""
-
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
@@ -5428,22 +5434,26 @@ msgstr ""
 msgid "published most by this publisher"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html
+#: reading_goals/reading_goal_form.html.jinja
 msgid "How many books would you like to read this year?"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html
+#: reading_goals/reading_goal_form.html.jinja
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
 msgstr ""
 
-#: reading_goals/reading_goal_progress.html
+#: reading_goals/reading_goal_progress.html.jinja
 #, python-format
 msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
 msgstr ""
 
-#: reading_goals/reading_goal_progress.html
+#: reading_goals/reading_goal_progress.html.jinja
 #, python-format
 msgid "Edit %(year)d Reading Goal"
+msgstr ""
+
+#: reading_goals/yearly_goal_dialog.html.jinja
+msgid "Yearly Reading Goal"
 msgstr ""
 
 #: recentchanges/header.html
@@ -5629,10 +5639,6 @@ msgid "Is the same author listed twice?"
 msgstr ""
 
 #: search/authors.html
-msgid "Merge authors"
-msgstr ""
-
-#: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
@@ -5653,7 +5659,7 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: FulltextSearchSuggestion.html SearchNavigation.html search/inside.html
+#: FulltextSearchSuggestion.html.jinja SearchNavigation.html search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -5933,12 +5939,8 @@ msgstr ""
 msgid "Less"
 msgstr ""
 
-#: site/alert.html
+#: site/alert.html.jinja
 msgid "Internet Archive logo"
-msgstr ""
-
-#: site/body.html
-msgid "It looks like you're offline."
 msgstr ""
 
 #: site/head.html
@@ -6105,6 +6107,10 @@ msgstr ""
 msgid "Author Identifiers Purpose"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/partials.py type/author/view.html
+msgid "name missing"
+msgstr ""
+
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
@@ -6236,6 +6242,18 @@ msgstr ""
 msgid "adding notes to"
 msgstr ""
 
+#: type/edition/notes_modal_i18n.html
+msgid "Could not save your note. Please try again."
+msgstr ""
+
+#: type/edition/notes_modal_i18n.html
+msgid "Could not delete your note. Please try again."
+msgstr ""
+
+#: type/edition/notes_modal_i18n.html
+msgid "Delete this note?"
+msgstr ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -6283,10 +6301,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
-
-#: databarWork.html type/edition/view.html type/work/view.html
-msgid "Buy this book"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6564,19 +6578,11 @@ msgid "Last modified <span>%(date)s</span>"
 msgstr ""
 
 #: type/list/view_body.html
-msgid "Remove seed"
+msgid "This item will be removed from the list."
 msgstr ""
 
 #: type/list/view_body.html
-msgid "Are you sure you want to remove this item from the list?"
-msgstr ""
-
-#: type/list/view_body.html
-msgid "Remove Seed"
-msgstr ""
-
-#: type/list/view_body.html
-msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
+msgid "This is the last item in the list. Removing it will delete the whole list."
 msgstr ""
 
 #: type/list/view_body.html
@@ -6909,16 +6915,87 @@ msgid "Add another edition?"
 msgstr ""
 
 #: AffiliateLinks.html.jinja
+msgid "New"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Used"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Collectible"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Refurbished"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Like New"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Very Good"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Good"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Acceptable"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "%(condition)s – %(sub_condition)s"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "%(num)d new from %(price)s"
+msgid_plural "%(num)d new from %(price)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "%(num)d used from %(price)s"
+msgid_plural "%(num)d used from %(price)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "%(condition)s from %(price)s"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
 #: AffiliateLinks.html.jinja
-msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+#, python-format
+msgid "List price %(price)s"
 msgstr ""
 
-#: AffiliateLinksLoadingIndicator.html
-msgid "Fetching prices"
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "Save %(percent)d%%"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "Out of stock"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "Sold by %(seller)s"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
 
 #: BatchImportNavigation.html
@@ -6995,33 +7072,29 @@ msgstr ""
 msgid "Go to next section"
 msgstr ""
 
-#: FormatExpiry.html
+#: FormatExpiry.html.jinja
 msgid "Expires"
 msgstr ""
 
-#: FulltextSearchSuggestion.html
-msgid "Checking for Search Inside matches"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
+#: FulltextSearchSuggestion.html.jinja
 #, python-format
 msgid "%(book_count)s books found with matching passages"
 msgstr ""
 
-#: FulltextSearchSuggestion.html
+#: FulltextSearchSuggestion.html.jinja
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
 msgstr ""
 
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html.jinja
 msgid "❝"
 msgstr ""
 
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
+#: FulltextSnippet.html FulltextSuggestionSnippet.html.jinja
 msgid "❞"
 msgstr ""
 
-#: FulltextSuggestionSnippet.html
+#: FulltextSuggestionSnippet.html.jinja
 #, python-format
 msgid "Page: %(page)s"
 msgstr ""
@@ -7045,16 +7118,16 @@ msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
 msgstr ""
 
 #: LoanStatus.html
-msgid "Leave waiting list"
-msgstr ""
-
-#: LoanStatus.html
 #, python-format
 msgid "Readers in line: %(count)s"
 msgstr ""
 
 #: LoanStatus.html
 msgid "You'll be next in line."
+msgstr ""
+
+#: LoanStatus.html
+msgid "All copies are checked out."
 msgstr ""
 
 #: LoanStatus.html
@@ -7070,19 +7143,15 @@ msgid "Only a preview is available."
 msgstr ""
 
 #: LocateButton.html
-msgid "Locate"
+msgid "Nearby Libraries"
 msgstr ""
 
 #: NotInLibrary.html
 msgid "Not in Library"
 msgstr ""
 
-#: NotesModal.html
-msgid "My Book Notes"
-msgstr ""
-
-#: NotesModal.html
-msgid "My private notes about this edition:"
+#: NotesModalDialog.html
+msgid "Only you can see this"
 msgstr ""
 
 #: OLID.html
@@ -7122,28 +7191,24 @@ msgstr ""
 msgid "Retry"
 msgstr ""
 
-#: RawQueryCarousel.html
-msgid "Loading carousel"
+#: RawQueryCarousel.html.jinja
+msgid "Search collection"
 msgstr ""
 
-#: RawQueryCarousel.html
+#: RawQueryCarouselPlaceholder.html.jinja
 msgid "Failed to fetch carousel."
 msgstr ""
 
-#: RawQueryCarousel.html
+#: RawQueryCarouselPlaceholder.html.jinja
 msgid "Retry?"
 msgstr ""
 
-#: RawQueryCarousel.html
+#: RawQueryCarouselPlaceholder.html.jinja
 msgid "No books match the current filters."
 msgstr ""
 
-#: RawQueryCarousel.html
+#: RawQueryCarouselPlaceholder.html.jinja
 msgid "Retry without filters?"
-msgstr ""
-
-#: RawQueryCarousel.html
-msgid "Search collection"
 msgstr ""
 
 #: ReadButton.html
@@ -7172,6 +7237,10 @@ msgstr ""
 
 #: RelatedSubjects.html.jinja
 msgid "Related..."
+msgstr ""
+
+#: ReturnForm.html openlibrary/plugins/openlibrary/partials.py
+msgid "Really return this book?"
 msgstr ""
 
 #: SearchResultsWork.html
@@ -7396,6 +7465,21 @@ msgid "Could not complete that action."
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+#, python-format
+msgid "PR %(num)s does not exist."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Could not check PR %(num)s — GitHub is unavailable."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Could not add PR %(num)s."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "Testing Environment"
 msgstr ""
 
@@ -7437,10 +7521,6 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "This PR is already closed."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "OK"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7610,18 +7690,6 @@ msgstr ""
 msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
 msgstr ""
 
-#: WorldcatLink.html
-msgid "Check nearby libraries"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "Check WorldCat for an edition near you"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "WorldCat"
-msgstr ""
-
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
 msgstr ""
@@ -7654,6 +7722,10 @@ msgstr ""
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
+msgstr ""
+
+#: databarWork.html
+msgid "Buy this book"
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8154,10 +8226,6 @@ msgid "Better World Books"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
-msgid " - includes shipping"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
 msgstr ""
 
@@ -8166,7 +8234,15 @@ msgid "Bookshop.org"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
+msgid "Checking for Search Inside matches"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Loading carousel"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py

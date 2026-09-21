@@ -1,17 +1,17 @@
 {% import "design/_example.html.jinja" as ex %}
 {% macro menu(min_width="180px") %}
-    <ul class="ds-demo-menu" style="min-width: {{ min_width }};">
-        <li>Edit</li>
-        <li>Duplicate</li>
-        <li class="ds-demo-menu__divided">Archive</li>
-        <li>Move</li>
-        <li>Share</li>
-        <li class="ds-demo-menu__divided">Delete</li>
-    </ul>
+    <nav class="ds-demo-menu"
+         style="min-width: {{ min_width }}"
+         aria-label="Book">
+        <a class="ds-demo-menu__link" href="#">Edit</a>
+        <a class="ds-demo-menu__link" href="#">History</a>
+        <hr class="ds-demo-menu__divider">
+        <a class="ds-demo-menu__link" href="#">Share</a>
+    </nav>
 {% endmacro %}
 {% macro demos() %}
-    {% call ex.example("Menu popover", "Popovers animate from the trigger using transform-origin. Click to see the scale + fade entrance.",
-        code='<ol-popover>\n  <ol-button slot="trigger">Options</ol-button>\n  <ul>...</ul>\n</ol-popover>') %}
+    {% call ex.example("Custom panel content", "A bare ol-popover holds whatever you slot in — here a short list of links. Rows follow the menu-row contract in tokens/control-heights.css (--menu-row-height, --menu-row-inset, --menu-row-padding-inline), so they sit inset from the panel and hover as a rounded pill, never as a band running edge to edge. For a list of actions, reach for Menu Popover instead; it does this for you.",
+        code='<ol-popover aria-label="Book">\n  <ol-button slot="trigger">Options</ol-button>\n  <nav>\n    <a href="…">Edit</a>\n    <a href="…">History</a>\n    <hr>\n    <a href="…">Share</a>\n  </nav>\n</ol-popover>') %}
         <ol-popover aria-label="Options menu">
             <ol-button slot="trigger">
                 Options

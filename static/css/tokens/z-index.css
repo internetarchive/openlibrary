@@ -56,7 +56,7 @@
   --z-index-sticky:   var(--z-index-level-3);        /*  3      – mobile sticky site header (#header-bar at ≤960px) */
   --z-index-fixed:    var(--z-index-level-4);        /* 10      – fixed chrome above sticky header (e.g. compact-title, nav-bar-wrapper) */
   --z-index-dropdown: var(--z-index-level-5);        /* 999     – floating menus above all chrome (e.g. language selector, coverEbook) */
-  --z-index-modal:    var(--z-index-level-13);       /* 9999    – dialogs and backdrop scrims (e.g. jQuery UI dialog, ui-widget-overlay) */
+  --z-index-modal:    var(--z-index-level-13);       /* 9999    – dialogs and backdrop scrims (e.g. colorbox overlay) */
   --z-index-overlay:  var(--z-index-level-16);       /* 99999   – above modals (e.g. autocomplete triggered inside a dialog) */
   --z-index-toast:    var(--z-index-level-17);       /* 999999  – always on top (e.g. toast-container, colorbox lightbox) */
 }

@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from infogami import config
-from openlibrary.fastapi.utils import set_flash_cookie
+from openlibrary.fastapi.shared.utils import set_flash_cookie
 from openlibrary.plugins.upstream.borrow import (
     BorrowNotFound,
     BorrowParams,

@@ -278,7 +278,7 @@ export class OlShelfActions extends LitElement {
             margin-inline: var(--spacing-inset-xs);
             padding-block: var(--spacing-inset-sm);
             padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
-            border-radius: var(--border-radius-button);
+            border-radius: var(--border-radius-menu-row);
             border: 0;
             background: none;
             color: inherit;
@@ -357,7 +357,10 @@ export class OlShelfActions extends LitElement {
             align-items: center;
             gap: var(--spacing-inline-md);
             box-sizing: border-box;
-            height: var(--menu-row-height);
+            /* min-height, not height: the 24px star targets and the caption
+               have to fit whatever the row height is, and the row has to stay
+               level with the shelf rows above it. */
+            min-height: var(--menu-row-height);
             padding: 0 var(--spacing-inset-md);
         }
 
@@ -602,7 +605,7 @@ export class OlShelfActions extends LitElement {
             margin-inline: var(--spacing-inset-xs);
             padding-block: var(--spacing-inset-sm);
             padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
-            border-radius: var(--border-radius-button);
+            border-radius: var(--border-radius-menu-row);
             cursor: pointer;
         }
 

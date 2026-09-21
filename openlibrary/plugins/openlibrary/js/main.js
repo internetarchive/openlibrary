@@ -1,11 +1,4 @@
 import $ from 'jquery';
-// API polyfills for the ESM browser floor (~Chrome 61 / Safari 11.1). Vite lowers
-// syntax only (Oxc); these replace babel `preset-env` `useBuiltIns: 'usage'` for
-// the ES2018+ APIs used in this codebase.
-import 'core-js/es/array/flat-map';
-import 'core-js/es/object/from-entries';
-import 'core-js/es/promise/finally';
-import 'core-js/es/symbol/async-iterator';
 import initSentry from './sentry';
 import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
@@ -237,17 +230,17 @@ $(function() {
     }
 
     const $observationModalLinks = $('.observations-modal-link');
-    const $notesModalLinks = $('.notes-modal-link');
+    const notesModalLinks = document.querySelectorAll('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
+    if ($observationModalLinks.length || notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
         import('./modals')
             .then(module => {
                 if ($observationModalLinks.length) {
                     module.initObservationsModal($observationModalLinks);
                 }
-                if ($notesModalLinks.length) {
-                    module.initNotesModal($notesModalLinks);
+                if (notesModalLinks.length) {
+                    module.initNotesModal(notesModalLinks);
                 }
                 if ($notesPageButtons.length) {
                     module.addNotesPageButtonListeners();
@@ -426,7 +419,7 @@ $(function() {
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
+    const $dialogs = $('.dialog--open,.dialog--close,#bookPreview');
     if ($dialogs.length) {
         import('./dialog')
             .then(module => module.initDialogs());
@@ -615,8 +608,8 @@ $(function() {
             .then(module => module.initPasswordToggling(passwordVisibilityToggle));
     }
 
-    // Affiliate links:
-    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section');
+    // Affiliate link prices:
+    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section[data-isbn]');
     if (affiliateLinksSection.length) {
         import('./affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection));

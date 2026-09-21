@@ -6,7 +6,8 @@
 {% macro nav() %}
     {% for group, members in groups %}
         <div class="ds__nav-group">
-            <div class="ds__nav-group-title">{{ group }}</div>
+            <a class="ds__nav-group-title"
+               href="#{{ group | lower | replace(' ', '-') }}">{{ group }}</a>
             <ul class="ds__nav-list">
                 {% for component in members %}
                     <li>
@@ -19,8 +20,8 @@
 {% endmacro %}
 {% macro body() %}
     {% for group, members in groups %}
-        <section class="ds-section">
-            <h2 class="ds-section__title ds-section__title--eyebrow">{{ group }}</h2>
+        <section class="ds-section" id="{{ group | lower | replace(' ', '-') }}">
+            <h2 class="ds-section__title ds-section__title--group">{{ group }}</h2>
             {% for component in members %}
                 {% import component.partial as partial with context %}
                 {% call ex.component_article(component, api.get(component.tag) if component.tag and component.api_table else none) %}

@@ -4,7 +4,7 @@
  *
  * Problem
  * =======
- * The JS configs set `publicDir: '.'` (see vite-css.config.mjs). So Vite
+ * The JS builds set `publicDir: '.'` (see scripts/vite/build.mjs). So Vite
  * sees each root-absolute url() that points to an existing file as a
  * public asset. Vite does not inline this asset and does not copy it.
  *
@@ -25,7 +25,7 @@
  * Vite gives the `experimental.renderBuiltUrl` option for this case. Vite
  * calls this function before it applies `base`. For public urls, the type
  * is "public". This function returns these urls unchanged. So the urls
- * stay root-absolute. vite-css.config.mjs gives the same result.
+ * stay root-absolute. scripts/vite/build.mjs gives the same result.
  *
  * For other asset urls, this function returns undefined. Vite then applies
  * `base` as usual. Code-split chunk urls need this.

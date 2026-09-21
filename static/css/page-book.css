@@ -40,6 +40,7 @@
 @import "components/readerStats.css";
 @import "components/link-box.css";
 @import "components/read-panel.css";
+@import "components/buy-popover.css";
 @import "components/work.css";
 @import "components/book.css";
 @import "components/carousel.css";
@@ -63,13 +64,9 @@
 @import "components/shareLinks.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
-@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
 @import "components/page-banner--tablet.css" only screen and (min-width: 768px);
 @import "components/work--tablet.css" only screen and (min-width: 768px);
 @import "components/edit-toolbar--tablet.css" only screen and (min-width: 768px);
-
-/* Desktop: @width-breakpoint-desktop = 960px */
-@import "components/header-bar--desktop.css" all and (min-width: 960px);
 
 /* Mobile: Take into account the header bar + tab bar */
 html {

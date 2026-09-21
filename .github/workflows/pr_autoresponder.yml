@@ -39,7 +39,9 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
-  id-token: read
+  # Must be `write`: GitHub accepts only `write` or `none` here, so `read` made the whole
+  # file unparseable, and `none` would break the OIDC fetch described above.
+  id-token: write
 
 concurrency:
   # `github.event.pull_request.number` is empty on workflow_dispatch, which collapsed

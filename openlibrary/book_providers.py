@@ -13,6 +13,7 @@ from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
+from openlibrary.utils.request_context import get_provider_pref
 
 if typing.TYPE_CHECKING:
     from web.template import TemplateResult
@@ -225,6 +226,7 @@ class AbstractBookProvider[TProviderMetadata]:
         edition_key: str,
         ed_or_solr: Edition | dict,
         analytics_attr: Callable[[str], str],
+        show_locate: bool = False,
     ) -> TemplateResult | str:
         acq_sorted = sorted(
             (p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED),
@@ -245,6 +247,7 @@ class AbstractBookProvider[TProviderMetadata]:
             acquisition,
             self.long_name or domain,
             analytics_attr,
+            show_locate=show_locate,
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None) -> TemplateResult:
@@ -757,13 +760,9 @@ def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
-    provider_overrides = None
-    # Need this to work in test environments
-    if "env" in web.ctx:
-        provider_overrides = web.input(providerPref=None, _method="GET").providerPref
-    if provider_overrides:
+    if provider_pref := get_provider_pref():
         new_order: list[AbstractBookProvider] = []
-        for name in provider_overrides.split(","):
+        for name in provider_pref.split(","):
             if name == "*":
                 new_order += default_order
             else:

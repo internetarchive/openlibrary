@@ -1,12 +1,15 @@
-import { shallowRef, onMounted, onBeforeUnmount } from 'vue';
+import { ref, shallowRef, onMounted, onBeforeUnmount } from 'vue';
 import { getTestingStatus } from '../utils.js';
+import { useLocalStorage } from '../../composables/useLocalStorage.js';
+
+const CACHE_KEY = 'openlibrary:testing-environment-status';
 
 /**
  * Fetches, caches, and periodically refreshes the testing-environment
  * state from the server.  The 1 s interval bumps `now` every tick (so
  * relative labels advance) and only hits the network every 5th tick.
  *
- * @param {import('vue').ShallowRef<boolean>} busy — re-entrancy guard shared with useActions
+ * @param {import('vue').ShallowRef<boolean>} busy — action queue state shared with useActions
  * @returns {{
  *   view:   import('vue').ShallowRef<string>,
  *   payload: import('vue').ShallowRef<object|null>,
@@ -16,8 +19,9 @@ import { getTestingStatus } from '../utils.js';
  * }}
  */
 export function useTestingStatus(busy) {
-    const view = shallowRef('loading'); // 'loading' | 'error' | 'ready'
-    const payload = shallowRef(null);
+    const { value: payload, setValue: setCachedPayload } = useLocalStorage(CACHE_KEY);
+    const initialPayload = payload.value;
+    const view = ref(initialPayload ? 'ready' : 'loading'); // 'loading' | 'error' | 'ready'
     const now = shallowRef(Date.now());
 
     let timer = null;
@@ -25,18 +29,18 @@ export function useTestingStatus(busy) {
     // ── Core fetch ───────────────────────────────────────────────────
     async function loadStatus(showLoading = false, renderError = true, manageBusy = true) {
         if (manageBusy) busy.value = true;
-        if (showLoading) view.value = 'loading';
+        if (showLoading && !payload.value) view.value = 'loading';
         try {
             const newPayload = await getTestingStatus();
             // Skip the assignment when nothing changed — a fresh object
             // identity would repaint the panel (the flash on tab return).
             if (!payload.value || JSON.stringify(newPayload) !== JSON.stringify(payload.value)) {
-                payload.value = newPayload;
+                setCachedPayload(newPayload);
             }
             view.value = 'ready';
             return true;
         } catch {
-            if (renderError) view.value = 'error';
+            if (renderError && !payload.value) view.value = 'error';
             return false;
         } finally {
             if (manageBusy) busy.value = false;

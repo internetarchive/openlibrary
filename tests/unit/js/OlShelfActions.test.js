@@ -22,7 +22,7 @@ function stubFetch({ failWith } = {}) {
         '/people/tester/lists/OL1L': { listName: 'Summer 2026', members: ['/works/OL7W'] },
         '/people/tester/lists/OL2L': { listName: 'Sci-fi to reread', members: ['/works/OL1W'] },
     };
-    global.fetch = jest.fn(async(url, init) => {
+    global.fetch = vi.fn(async(url, init) => {
         calls.push({ url, init });
         if (failWith) return { ok: false, status: failWith, json: async() => ({}) };
         let body = {};
@@ -508,7 +508,7 @@ describe('ol-shelf-actions recent lists', () => {
     test('the shortcut renders from the remembered name, so the panel never grows a row mid-open', async() => {
         noteListUsed('/people/tester', '/people/tester/lists/OL1L', 'Summer 2026');
         stubFetch();
-        global.fetch = jest.fn(() => new Promise(() => {})); // lists never arrive
+        global.fetch = vi.fn(() => new Promise(() => {})); // lists never arrive
         const el = await mount();
         expect(getLists()).toBeNull();
         expect(q(el, '.row.shortcut .label').textContent).toBe('Summer 2026');
@@ -630,7 +630,7 @@ describe('ol-shelf-actions rejected writes', () => {
     // so a status-only check would let the optimistic update stand.
     test('a 200 carrying `error` rolls the shelf back', async() => {
         stubFetch();
-        global.fetch = jest.fn(async(url, init) => {
+        global.fetch = vi.fn(async(url, init) => {
             calls.push({ url, init });
             return { ok: true, status: 200, json: async() => ({ error: 'Invalid bookshelf' }) };
         });
@@ -655,7 +655,7 @@ describe('ol-shelf-actions rejected writes', () => {
     test('a second write while one is in flight is dropped', async() => {
         stubFetch();
         let land;
-        global.fetch = jest.fn((url, init) => {
+        global.fetch = vi.fn((url, init) => {
             calls.push({ url, init });
             return new Promise(resolve => { land = () => resolve({ ok: true, status: 200, json: async() => ({}) }); });
         });

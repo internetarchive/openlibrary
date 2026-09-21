@@ -220,6 +220,8 @@ services:
       dockerfile: docker/mockservices/Dockerfile
     networks:
       - webnet
+    volumes:
+      - ./docker/mockservices:/app
     ports:
       # mailpit web UI — browse captured email at http://localhost:8025
       - ${MOCKSERVICES_PORT:-8025}:8025

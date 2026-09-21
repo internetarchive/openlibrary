@@ -1,8 +1,18 @@
 """Tests for partials.py functionality."""
 
-import pytest
+from unittest.mock import AsyncMock, patch
 
-from openlibrary.plugins.openlibrary.partials import _solr_query_to_subject_key
+import pytest
+import web
+
+from openlibrary.core.vendors import betterworldbooks_fmt
+from openlibrary.plugins.openlibrary.partials import (
+    AffiliateOffer,
+    AffiliateStoreBuildContext,
+    BookPageListsPartial,
+    _solr_query_to_subject_key,
+    build_stores,
+)
 
 
 class TestSolrQueryToSubjectKey:
@@ -36,3 +46,111 @@ class TestSolrQueryToSubjectKey:
         """Test invalid format raises ValueError."""
         with pytest.raises(ValueError, match="Unable to convert query to subject key"):
             _solr_query_to_subject_key("invalid:format")
+
+
+def _community_card(title: str) -> dict:
+    """A card for a list with no owner, so the template needs no follow-button bridge."""
+    return {
+        "url": "/lists/OL1L",
+        "showcase": {"title": title, "count": 2, "covers": [False], "last_mod": ""},
+        "owner": None,
+        "own_list": False,
+        "is_public": False,
+        "is_subscribed": 0,
+    }
+
+
+LISTS = [web.storage(key=f"/people/u/lists/OL{n}L", owner=None) for n in (1, 2, 3)]
+
+
+class TestBookPageListsPartial:
+    """The Jinja render must degrade the way the Templetor render did, not 500."""
+
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        # Set in the sync fixture, not inside the async test: pytest-asyncio runs
+        # the coroutine in a copied context, so a token created there cannot be
+        # reset by the fixture's teardown.
+        request_context_fixture(lang="en")
+
+    @pytest.mark.asyncio
+    async def test_broken_card_is_skipped(self):
+        good = _community_card("Fine list")
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
+            patch.object(
+                BookPageListsPartial,
+                "get_list_card",
+                side_effect=[good, AttributeError("'Thing' object has no attribute 'get_users_settings'"), good],
+            ),
+        ):
+            result = await BookPageListsPartial.generate_async(workId="/works/OL1W", editionId="", user=None)
+
+        assert result["hasLists"] is True
+        html = result["partials"][0]
+        assert html.count('class="list-follow-card"') == 2
+        assert "Unable to render" not in html
+
+    @pytest.mark.asyncio
+    async def test_render_failure_keeps_old_fallback(self):
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
+            patch.object(BookPageListsPartial, "get_list_card", return_value=_community_card("Fine list")),
+            patch(
+                "openlibrary.plugins.openlibrary.partials.render_jinja_template",
+                side_effect=RuntimeError("boom"),
+            ),
+        ):
+            result = await BookPageListsPartial.generate_async(workId="/works/OL1W", editionId="", user=None)
+
+        assert result["hasLists"] is True
+        assert result["partials"] == [BookPageListsPartial.RENDER_FALLBACK]
+
+
+def _stores(bwb=None, amz=None) -> dict:
+    ctx = AffiliateStoreBuildContext("A Title", "9780190906764", "0190906766", bwb, amz)
+    return {store.key: store for store in build_stores(ctx)}
+
+
+class TestBuildStores:
+    def test_bwb_new_and_used(self):
+        bwb = betterworldbooks_fmt("9780190906764", new_price="9.99", new_qty=3, used_price="4.28", used_qty=12) | {"market_price": "$12.49"}
+        stores = _stores(bwb=bwb)
+        assert stores["betterworldbooks"].offers == (
+            AffiliateOffer(price="$9.99", amount=9.99, condition="new", quantity=3),
+            AffiliateOffer(price="$4.28", amount=4.28, condition="used", quantity=12),
+        )
+        assert stores["betterworldbooks"].lowest_offer.price == "$4.28"
+        assert stores["amazon"].offers == (AffiliateOffer(price="$12.49", amount=12.49),)
+
+    def test_bwb_skips_condition_with_no_copies(self):
+        bwb = betterworldbooks_fmt("9780190906764", new_price="9.99", new_qty=0, used_price="4.28", used_qty=1)
+        assert [offer.condition for offer in _stores(bwb=bwb)["betterworldbooks"].offers] == ["used"]
+
+    def test_bwb_legacy_metadata_falls_back_to_single_price(self):
+        bwb = betterworldbooks_fmt("9780190906764", qlt="used", price="5.99") | {"new_price": None, "used_price": None}
+        assert _stores(bwb=bwb)["betterworldbooks"].offers == (AffiliateOffer(price="$5.99", amount=5.99, condition="used"),)
+
+    def test_out_of_stock_needs_explicit_zero_counts(self):
+        assert _stores(bwb=betterworldbooks_fmt("9780190906764", new_qty=0, used_qty=0))["betterworldbooks"].out_of_stock
+        assert not _stores(bwb=betterworldbooks_fmt("9780190906764"))["betterworldbooks"].out_of_stock
+        assert not _stores()["betterworldbooks"].out_of_stock
+
+    def test_amazon_offer_details(self):
+        amz = {
+            "price": "$6.12",
+            "price_amt": 612,
+            "list_price": "$17.00",
+            "price_savings_pct": 64.4,
+            "condition": "Used",
+            "sub_condition": "LikeNew",
+            "availability_message": "Usually ships within 2 to 3 days",
+            "merchant": "Amazon.com",
+            "deal_badge": "Limited time deal",
+        }
+        amazon = _stores(amz=amz)["amazon"]
+        assert amazon.offers == (AffiliateOffer(price="$6.12", amount=6.12, condition="used", sub_condition="like_new", list_price="$17.00", savings_pct=64),)
+        assert (amazon.availability, amazon.seller, amazon.deal) == ("Usually ships within 2 to 3 days", "Amazon.com", "Limited time deal")
+
+    def test_no_metadata_has_no_offers(self):
+        assert all(not store.offers for store in _stores().values())

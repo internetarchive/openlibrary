@@ -10,6 +10,6 @@
  * side effects (e.g. `customElements.define()` → "ol-search-modal has already
  * been used"). Keeping the entry side-effect-free avoids that entirely.
  *
- * See vite-js.config.mjs.
+ * See scripts/vite/build.mjs.
  */
 import('./main.js');

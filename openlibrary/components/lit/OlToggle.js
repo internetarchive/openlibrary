@@ -70,13 +70,17 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             --toggle-knob-inset: 2px;
             --toggle-gap: 10px;
 
+            /* The knob rests at the inline start and travels toward the inline
+               end, so the sign flips under RTL. */
+            --_toggle-knob-travel: calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset));
+
             /* Color slots. Default = plain, unchecked toggle; overridden below
                by [checked] and by the [variant="button"] container states. */
             --_toggle-bg: transparent;
-            --_toggle-fg: var(--dark-grey);
-            --_toggle-sublabel-fg: var(--accessible-grey);
+            --_toggle-fg: var(--color-text);
+            --_toggle-sublabel-fg: var(--color-text-muted);
             --_toggle-border: transparent;
-            --_toggle-track: var(--lighter-grey);
+            --_toggle-track: var(--color-neutral-object);
             --_toggle-knob: var(--white);
 
             display: inline-block;
@@ -117,7 +121,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             height: var(--toggle-track-height);
             border-radius: var(--border-radius-pill);
             background: var(--_toggle-track);
-            transition: background-color 150ms ease;
+            transition: background-color var(--duration-fast) var(--ease-state);
         }
 
         .toggle__knob {
@@ -128,17 +132,30 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             height: var(--toggle-knob-size);
             border-radius: var(--border-radius-circle);
             background: var(--_toggle-knob);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-            transition: transform 150ms ease;
+            box-shadow: var(--box-shadow-floating);
+            transition: transform var(--duration-fast) var(--ease-state);
+        }
+
+        /* The knob rests at the inline start and travels toward the inline end,
+           so the sign flips under RTL. */
+        :host {
+            --_toggle-knob-travel: calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset));
+        }
+
+        :host(:dir(rtl)) {
+            --_toggle-knob-travel: calc(-1 * (var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset)));
+        }
+
+        :host(:dir(rtl)) {
+            --_toggle-knob-travel: calc(-1 * (var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset)));
         }
 
         :host([checked]) .toggle__knob {
-            transform: translateX(
-                calc(var(--toggle-track-width) - var(--toggle-knob-size) - 2 * var(--toggle-knob-inset))
-            );
+            transform: translateX(var(--_toggle-knob-travel));
         }
 
         @media (prefers-reduced-motion: reduce) {
+            .toggle,
             .toggle__switch,
             .toggle__knob {
                 transition: none;
@@ -160,7 +177,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* ── Checked (plain): just the track turns blue ─────────────────── */
         :host([checked]) {
-            --_toggle-track: var(--primary-blue);
+            --_toggle-track: var(--color-primary);
         }
 
         /* ── Button variant: bordered, raised container ─────────────────── */
@@ -193,6 +210,15 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 var(--box-shadow-raised),
                 inset 0 1px 0 var(--_toggle-inset-highlight);
             box-shadow: var(--_toggle-raised-shadow);
+            /* Hover colors snap in; only the press-scale animates. */
+            transition: transform var(--duration-press);
+        }
+
+        /* Press feedback — the button variant is a self-contained control (its
+           own border, fill, and raised shadow), so it squeezes on press like
+           ol-button. Its text-control width puts it in the default tier. */
+        :host([variant="button"]) .toggle:active {
+            transform: scale(var(--press-scale));
         }
 
         /* The base .toggle:focus-visible ring is a single box-shadow, but the
@@ -211,33 +237,26 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            on-state remains obvious against the pale surface. */
         :host([variant="button"][checked]) {
             --_toggle-bg: var(--color-control-selected-bg);
-            --_toggle-fg: var(--link-blue);
-            --_toggle-sublabel-fg: var(--primary-blue);
+            --_toggle-fg: var(--color-link);
+            --_toggle-sublabel-fg: var(--color-primary);
             --_toggle-border: var(--color-control-selected-border);
-            --_toggle-track: var(--primary-blue);
+            --_toggle-track: var(--color-primary);
             --_toggle-knob: var(--white);
         }
 
         /* Hover for the button variant: the neutral button fills with
-           --lightest-grey, and the checked button deepens its blue tint and
+           --color-control-hover, and the checked button deepens its blue tint and
            border (matching the selected-row hover in ol-select-popover). Both
            states also light up the inset specular top edge — toned to the hover
            fill, the same color-mix ol-button uses for its highlight. */
         @media (hover: hover) and (pointer: fine) {
             :host([variant="button"]:not(:disabled)) .toggle:hover {
-                --_toggle-bg: var(--lightest-grey);
+                --_toggle-bg: var(--color-control-hover);
                 /* Nudge the border a touch darker in step with the fill (both
                    drop ~7% in lightness), matching ol-button[variant="secondary"]
                    so the whole control reads as one shape on hover. */
                 --_toggle-border: var(--color-border-muted);
-                --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--lightest-grey));
-            }
-
-            /* The off-state track sits only 6% below the hover fill, so it
-               washes out into the button. Drop it to --light-grey to restore
-               roughly the same separation it has against the resting white. */
-            :host([variant="button"]:not([checked]):not(:disabled)) .toggle:hover {
-                --_toggle-track: var(--light-grey);
+                --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--color-control-hover));
             }
 
             :host([variant="button"][checked]:not(:disabled)) .toggle:hover {

@@ -22,7 +22,7 @@ Shared values (colors, spacing, font sizes, breakpoints) are defined as CSS cust
 
 ## Build
 
-CSS is compiled via Vite (`vite-css.config.mjs`). Run:
+CSS is compiled via Vite (`scripts/vite/build.mjs`). Run:
 
     make css
 

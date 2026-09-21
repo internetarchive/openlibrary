@@ -1,6 +1,6 @@
 # CSS
 
-Conventions and workflow for writing CSS in Open Library. CSS source lives in `static/css/`, compiled via Vite (`vite-css.config.mjs`) to `static/build/css/`.
+Conventions and workflow for writing CSS in Open Library. CSS source lives in `static/css/`, compiled via Vite (`scripts/vite/build.mjs --only css`) to `static/build/css/`.
 
 ## Naming: BEM
 
@@ -54,6 +54,10 @@ Use only bottom margins for vertical spacing, never top margins. One-directional
 
 Always use semantic tokens instead of hardcoded values. Stylelint will reject raw hex colors, named colors, and hardcoded values for `font-family`, `background-color`, `z-index`, and `color`.
 
+Stylelint runs on plain CSS and on every Lit `css\`\`` literal in JS under `openlibrary/` (`postcss-lit`) — the components in `openlibrary/components/lit/` plus one-offs like `SearchModal.js`. A file with no `css\`\`` literal parses to an empty stylesheet and reports nothing, so the glob stays broad and new literals are covered wherever they land. Lit is held to the z-index rules only for now — the color, specificity and duplicate-declaration rules are switched off for it in `.stylelintrc.json` until the existing violations are cleaned up. Do not add new ones. Never run `stylelint --fix` on files with `css\`\`` literals: `postcss-lit` re-indents multi-line comments on the way back out, so `lint-fix:css` and the pre-commit hook only check them.
+
+For `z-index` specifically: never reference a `--z-index-level-*` primitive outside `static/css/tokens/z-index.css`. Use a semantic band (`--z-index-sticky`, `--z-index-fixed`, …) for page chrome, or `--z-index-local-*` inside an `isolation: isolate` root for component-internal layering. Stylelint warns on primitive use today and will error once the legacy consumers are retargeted (#12363).
+
 ```css
 /* Good — semantic token */
 .my-card { border-radius: var(--border-radius-card); }
@@ -65,7 +69,7 @@ Always use semantic tokens instead of hardcoded values. Stylelint will reject ra
 .my-card { border-radius: 8px; }
 ```
 
-If no semantic token exists for your use case, create one in the appropriate file under `static/css/tokens/` rather than reaching for a primitive or hardcoded value. See the [Design Token Guide](design.md#design-tokens) for the two-tier system.
+If no semantic token exists for your use case, create one in the appropriate file under `static/css/tokens/` rather than reaching for a primitive or hardcoded value. See the [Design Token Guide](design.md#design-tokens) for the two-tier system. This applies to every declaration you write or modify, legacy files included — see [Scope](design.md#scope) for how far to go when editing a file that predates the tokens.
 
 ## Connecting CSS to Templates
 

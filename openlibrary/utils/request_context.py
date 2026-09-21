@@ -40,6 +40,7 @@ class RequestContextVars:
     sfw: bool = False
     is_recognized_bot: bool = False
     is_bot: bool = False
+    provider_pref: str | None = None
 
 
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
@@ -181,6 +182,7 @@ def set_context_from_legacy_web_py() -> None:
     Extracts context from the global web.ctx and populates ContextVars.
     """
     solr_editions = _parse_solr_editions_from_web()
+    provider_pref = web.input(providerPref=None, _method="GET").get("providerPref")
     print_disabled = bool(web.cookies().get("pd", False))
     sfw = bool(web.cookies().get("sfw", ""))
 
@@ -202,6 +204,7 @@ def set_context_from_legacy_web_py() -> None:
             sfw=sfw,
             is_recognized_bot=is_recognized_bot,
             is_bot=is_bot,
+            provider_pref=provider_pref,
         )
     )
 
@@ -243,6 +246,7 @@ def set_context_from_fastapi(request: Request) -> None:
     # NOTE: Avoid adding new fields here if they can be passed as function arguments instead.
 
     solr_editions = _parse_solr_editions_from_fastapi(request)
+    provider_pref = request.query_params.get("providerPref")
 
     # Compute is_bot once during request setup
     is_bot = _compute_is_bot(
@@ -265,6 +269,7 @@ def set_context_from_fastapi(request: Request) -> None:
             print_disabled=bool(request.cookies.get("pd", False)),
             sfw=bool(request.cookies.get("sfw", "")),
             is_bot=is_bot,
+            provider_pref=provider_pref,
         )
     )
 
@@ -285,6 +290,7 @@ def create_context_for_script() -> RequestContextVars:
         print_disabled=False,
         sfw=False,
         is_bot=False,
+        provider_pref=None,
     )
 
 
@@ -309,6 +315,14 @@ def web_ctx_ip(ip: str = "127.0.0.1"):
         yield
     finally:
         web.ctx.ip = original_ip
+
+
+def get_provider_pref() -> str | None:
+    """Return the request provider preference, defaulting safely outside requests."""
+    try:
+        return req_context.get().provider_pref
+    except LookupError:
+        return None
 
 
 def get_request_lang() -> str:
