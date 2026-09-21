@@ -466,11 +466,17 @@ def loan_from_node(provider_name: str, issuer: str, username: str, payload: dict
     ``edition_id`` is the **bare integer** -- ``37044497`` means
     ``OL37044497M`` -- so it maps onto an edition key directly rather than
     through a lookup.
+
+    The failure log names the payload's *keys*, never its values. What it is
+    diagnosing is a shape mismatch, which the keys answer completely, and the
+    values are a record of which books a named patron has borrowed from a
+    library -- circulation records, which is not a thing to leave in
+    application logs in exchange for nothing.
     """
     try:
         edition_id = int(payload["edition_id"])
     except KeyError, TypeError, ValueError:
-        logger.info("lenny loan from %s had no usable edition_id: %r", provider_name, payload)
+        logger.info("lenny loan from %s had no usable edition_id; keys were %s", provider_name, sorted(payload))
         return None
     return {
         "book": f"/books/OL{edition_id}M",
@@ -585,7 +591,7 @@ def provider_loans(username: str) -> ProviderLoans:
             continue
         for payload in result:
             if not isinstance(payload, dict):
-                logger.info("lenny loans from %s contained a non-object entry: %r", provider_name, payload)
+                logger.info("lenny loans from %s contained a %s where an object was promised", provider_name, type(payload).__name__)
                 continue
             if loan := loan_from_node(provider_name, issuers[provider_name], username, payload):
                 loans.append(loan)
