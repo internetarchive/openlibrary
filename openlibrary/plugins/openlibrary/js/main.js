@@ -419,10 +419,16 @@ $(function() {
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
+    const $dialogs = $('.dialog--open,.dialog--close,#bookPreview');
     if ($dialogs.length) {
         import('./dialog')
             .then(module => module.initDialogs());
+    }
+
+    const citationCopyButton = document.querySelector('[data-wikipedia-citation-copy]');
+    if (citationCopyButton) {
+        import('./wikipedia-citation')
+            .then(module => module.initWikipediaCitation());
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog');
@@ -457,8 +463,6 @@ $(function() {
     $(document).on('click', '.slide-toggle', function() {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
-
-    $('#wikiselect').on('focus', function(){$(this).trigger('select');});
 
     $('.header-dropdown').on('keydown', function(event) {
         if (event.key === 'Escape') {
