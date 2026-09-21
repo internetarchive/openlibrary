@@ -558,6 +558,19 @@ def _patron_tokens(username: str, deadline: float) -> tuple[list[tuple[str, str]
     unreachable: list[str] = []
     unauthorized: list[str] = []
 
+    # No configured node means no grant can exist, so skip the query entirely.
+    # Without this, every logged-in /account/loans visit hits `provider_tokens`
+    # — which is not in schema.sql, its migration being deferred — and writes a
+    # ProgrammingError traceback per page load on any deploy lacking it. The
+    # page still renders, because web.py rolls back with no open transaction,
+    # so nothing surfaces except the log.
+    #
+    # `mediated_borrow` already guards exactly this (see above). This path is
+    # the hot one and was missing it: the two halves came from different PRs
+    # and the asymmetry is only visible reading the merged module.
+    if not configured:
+        return [], [], []
+
     try:
         providers = ProviderToken.get_providers(username)
     except Exception:
@@ -639,7 +652,10 @@ def provider_loans(username: str) -> ProviderLoans:
     results = async_bridge.run(_gather_node_loans(holdings, issuers, budget))
 
     loans: list[dict[str, Any]] = []
-    for (provider_name, _), result in zip(holdings, results, strict=True):
+    # Not `_` for the unused token: that name is `gettext` at module scope
+    # (F402). The import and this loop arrived from different PRs, so
+    # neither parent tripped it and only the merge does.
+    for (provider_name, _token), result in zip(holdings, results, strict=True):
         if isinstance(result, BaseException):
             logger.warning("lenny loans lookup failed for %s: %r", provider_name, result)
             unreachable.append(provider_name)
