@@ -2,7 +2,7 @@
 
 Three surfaces render the same set of Browse destinations, each with its own
 markup: the desktop Browse popover, the mobile Browse tray (both
-``lib/browse_popover.html``) and the hamburger drawer (``lib/nav_head.html``).
+``lib/browse_popover.html.jinja``) and the hamburger drawer (``lib/nav_head.html.jinja``).
 
 Only the destination *table* is shared — what exists, where it points, and its
 analytics slug. How a surface presents a destination stays in that surface's
@@ -12,7 +12,7 @@ icons and layout into this file and buy nothing, since the surfaces genuinely
 differ.
 
 Adding a destination is one edit here — the surfaces pick it up on their own.
-Give it an icon in ``browse_popover.html``'s ``navIcons`` too, or the popover
+Give it an icon in ``browse_popover.html.jinja``'s ``navIcons`` too, or the popover
 falls back to a generic one. Before this table existed the list was duplicated
 across the templates and had already drifted — Advanced Search was missing from
 the Browse popover.

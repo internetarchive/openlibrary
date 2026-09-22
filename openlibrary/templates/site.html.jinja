@@ -13,7 +13,7 @@
         <div id="offline-info">{{ _("It looks like you're offline.") }}</div>
         {% if layout.show_ol_shell %}
             {% include "site/alert.html.jinja" %}
-            {{ render_templetor_template('lib/nav_head', None) }}
+            {% include "lib/nav_head.html.jinja" %}
         {% endif %}
         <main{% if layout.show_ol_shell %} id="test-body-mobile"{% endif %}>
             {% if layout.show_ol_shell %}
