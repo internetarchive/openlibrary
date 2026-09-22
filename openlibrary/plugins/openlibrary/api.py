@@ -314,11 +314,11 @@ class patrons_observations(delegate.page):
 
     def DELETE(self, work_id):
         user = accounts.get_current_user()
-        username = user.key.split("/")[2]
 
         if not user:
             raise web.seeother("/account/login")
 
+        username = user.key.split("/")[2]
         Observations.remove_observations(username, work_id)
 
         def response(msg, status="success"):
