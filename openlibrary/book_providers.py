@@ -227,6 +227,7 @@ class AbstractBookProvider[TProviderMetadata]:
         ed_or_solr: Edition | dict,
         analytics_attr: Callable[[str], str],
         show_locate: bool = False,
+        provider_loan: dict | None = None,
     ) -> TemplateResult | str:
         acq_sorted = sorted(
             (p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED),
@@ -248,6 +249,7 @@ class AbstractBookProvider[TProviderMetadata]:
             self.long_name or domain,
             analytics_attr,
             show_locate=show_locate,
+            provider_loan=provider_loan,
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None) -> TemplateResult:
