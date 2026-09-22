@@ -371,6 +371,12 @@ class AffiliateStoreBuildContext:
     asin: str | None
     bwb_metadata: BetterWorldBooksMetadata | None
     amz_metadata: dict | None
+    author: str | None = None
+
+    @property
+    def search_terms(self) -> str:
+        """What to search a store's catalogue for when there is no isbn to link to."""
+        return " ".join(filter(None, (self.title, self.author)))
 
 
 @dataclass(frozen=True, slots=True)
@@ -434,11 +440,22 @@ def _snake_case(value: str | None) -> str | None:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", value).lower() if value else None
 
 
+def _bookshop_link(ctx: AffiliateStoreBuildContext) -> str | None:
+    affiliate = affiliate_id("bookshop-org")
+    if ctx.isbn:
+        return f"https://bookshop.org/a/{affiliate}/{ctx.isbn}"
+    if not ctx.search_terms:
+        return None
+    # Unverified: whether Bookshop credits the affiliate on a search page, and under this param
+    return f"https://bookshop.org/beta-search?keywords={quote_plus(ctx.search_terms)}&affiliate={affiliate}"
+
+
 def build_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
     """Build affiliate store data, in display order, for rendering in
-    AffiliateLinks.html.jinja."""
+    AffiliateLinks.html.jinja. A book with no isbn links to each store's
+    search results instead of to a product page."""
 
-    bwb_link = f"https://www.betterworldbooks.com/search/results?q={quote_plus(ctx.title)}"
+    bwb_link = f"https://www.betterworldbooks.com/search/results?q={quote_plus(ctx.search_terms)}"
     if ctx.isbn:
         bwb_link = f"https://www.betterworldbooks.com/product/detail/{ctx.isbn}"
 
@@ -455,35 +472,33 @@ def build_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
         )
     ]
 
-    if ctx.asin or ctx.isbn:
-        amazon_link = amazon_affiliate_url(ctx.isbn, ctx.asin, affiliate_id("amazon"))
-        if amazon_link:
-            # BWB's lookup includes Amazon's lowest market price, so prefer it over a second request
-            offer: AffiliateOffer | None
-            if market_price := bwb.get("market_price") if bwb else None:
-                offer = AffiliateOffer(price=market_price, amount=float(market_price.lstrip("$")))
-            else:
-                offer = _amazon_offer(amz) if amz else None
-            stores.append(
-                AffiliateStore(
-                    key="amazon",
-                    analytics_key="Amazon",
-                    name=_("Amazon"),
-                    link=amazon_link,
-                    offers=(offer,) if offer else (),
-                    availability=amz.get("availability_message") if amz else None,
-                    seller=amz.get("merchant") if amz else None,
-                    deal=amz.get("deal_badge") if amz else None,
-                )
+    if amazon_link := amazon_affiliate_url(ctx.isbn, ctx.asin, affiliate_id("amazon"), query=ctx.search_terms):
+        # BWB's lookup includes Amazon's lowest market price, so prefer it over a second request
+        offer: AffiliateOffer | None
+        if market_price := bwb.get("market_price") if bwb else None:
+            offer = AffiliateOffer(price=market_price, amount=float(market_price.lstrip("$")))
+        else:
+            offer = _amazon_offer(amz) if amz else None
+        stores.append(
+            AffiliateStore(
+                key="amazon",
+                analytics_key="Amazon",
+                name=_("Amazon"),
+                link=amazon_link,
+                offers=(offer,) if offer else (),
+                availability=amz.get("availability_message") if amz else None,
+                seller=amz.get("merchant") if amz else None,
+                deal=amz.get("deal_badge") if amz else None,
             )
+        )
 
-    if ctx.isbn:
+    if bookshop_link := _bookshop_link(ctx):
         stores.append(
             AffiliateStore(
                 key="bookshop-org",
                 analytics_key="BookshopOrg",
                 name=_("Bookshop.org"),
-                link=f"https://bookshop.org/a/{affiliate_id('bookshop-org')}/{ctx.isbn}",
+                link=bookshop_link,
             )
         )
 
@@ -521,10 +536,10 @@ def _render_affiliate_links(ctx: AffiliateStoreBuildContext, price_lookup: dict 
 
 
 @public
-def render_affiliate_links(title: str, isbn: str | None, asin: str | None, prices: bool) -> str:
+def render_affiliate_links(title: str, isbn: str | None, asin: str | None, prices: bool, author: str | None = None) -> str:
     """Render the Buy popover's store rows with the page. When prices apply,
     the section carries a price lookup that affiliate-links.js fills in later."""
-    ctx = AffiliateStoreBuildContext(title, isbn, asin, None, None)
+    ctx = AffiliateStoreBuildContext(title, isbn, asin, None, None, author)
     price_lookup = {"title": title, "isbn": isbn, "asin": asin or ""} if prices and isbn else None
     return _render_affiliate_links(ctx, price_lookup)
 
