@@ -263,7 +263,11 @@ function virtualVuePlugin() {
 }
 
 function getComponentsConfig() {
-    const input = { "ol-components": resolve(root, "openlibrary/components/lit/index.js") };
+    const input = {
+        "ol-components": resolve(root, "openlibrary/components/lit/index.js"),
+        // Librarian-only tool, loaded by templates/librarians/* rather than site-wide.
+        "ol-workbench": resolve(root, "openlibrary/components/lit/workbench/index.js"),
+    };
     for (const name of getVueNames()) {
         // `[name].js` emits Vue as `ol-<Name>.js` and Lit as `ol-components.js`.
         // Pages load those filenames directly, so keep this pattern.

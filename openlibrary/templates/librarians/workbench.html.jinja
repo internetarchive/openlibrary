@@ -1,7 +1,10 @@
 {# /librarians/workbench — the librarian workbench. The page is one component;
    this template mounts it with the viewer's role and the translated strings.
-   Label keys mirror DEFAULT_LABELS in components/lit/workbench-labels.js; the
-   %(x)s placeholders are kept for the client, which interpolates them. #}
+   Label keys mirror DEFAULT_LABELS in components/lit/workbench/labels.js; the
+   %(x)s placeholders are kept for the client, which interpolates them.
+   The workbench is its own bundle, not part of the site-wide ol-components.js,
+   so this page loads it itself. #}
+{% include "librarians/_workbench_bundle.html.jinja" %}
 {% set labels = {
     "workbench": _("Librarian workbench"),
     "records": _("Records"),

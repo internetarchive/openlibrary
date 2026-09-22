@@ -1,0 +1,12 @@
+{# Loads the workbench bundle (ol-workbench.js) on a librarian page.
+   The bundle imports "./ol-components.js" by plain path, while site.html.jinja
+   loads that file with static_url's ?v= hash. A module's identity is its full
+   URL, so without the map the site bundle would evaluate twice on this page and
+   its customElements.define() calls would throw. The map resolves the plain
+   path to the same versioned URL the site tag uses. It must come before any
+   module script; the site's own module scripts are at the end of the body. #}
+<script type="importmap">
+{{ {"imports": {"/static/build/components/production/ol-components.js": static_url("build/components/production/ol-components.js")}} | tojson }}
+</script>
+<script type="module"
+        src="{{ static_url('build/components/production/ol-workbench.js') }}"></script>

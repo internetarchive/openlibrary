@@ -1,11 +1,11 @@
 import { LitElement, html, css, nothing } from 'lit';
-import { translate } from './utils/labels.js';
-import { DEFAULT_LABELS } from './workbench-labels.js';
-import { api, olid } from '../../plugins/openlibrary/js/librarians/api.js';
-import './OlDialog.js';
-import './OLButton.js';
-import './OlIcon.js';
-import './OlBookCover.js';
+import { translate } from '../utils/labels.js';
+import { DEFAULT_LABELS } from './labels.js';
+import { api, olid } from '../../../plugins/openlibrary/js/librarians/api.js';
+import '../OlDialog.js';
+import '../OLButton.js';
+import '../OlIcon.js';
+import '../OlBookCover.js';
 
 const LEVEL_ORDER = { block: 0, warn: 1, info: 2, ok: 3 };
 const LEVEL_ICON = { block: 'octagon-alert', warn: 'triangle-alert', info: 'info' };

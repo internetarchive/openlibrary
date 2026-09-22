@@ -1,15 +1,15 @@
 import { LitElement, html, css, nothing } from 'lit';
-import { translate } from './utils/labels.js';
-import { DEFAULT_LABELS, labelsFromElement } from './workbench-labels.js';
-import { api, olid, normalizeKey, keyType } from '../../plugins/openlibrary/js/librarians/api.js';
-import { groupPending, countPending, withoutApplied } from './utils/workbench-pending.js';
-import './OLButton.js';
-import './OlIcon.js';
+import { translate } from '../utils/labels.js';
+import { DEFAULT_LABELS, labelsFromElement } from './labels.js';
+import { api, olid, normalizeKey, keyType } from '../../../plugins/openlibrary/js/librarians/api.js';
+import { groupPending, countPending, withoutApplied } from './pending.js';
+import '../OLButton.js';
+import '../OlIcon.js';
 import './OlWorkbenchGrid.js';
 import './OlRecordPanel.js';
 import './OlWorkbenchActionForm.js';
 import './OlBatchPreview.js';
-import { showToast } from './OlToastRegion.js';
+import { showToast } from '../OlToastRegion.js';
 
 const TYPES = ['edition', 'work', 'author'];
 const TYPE_LABEL = { edition: 'editions', work: 'works', author: 'authors' };

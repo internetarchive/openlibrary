@@ -17,6 +17,7 @@ export default {
     // None of them define a public custom element.
     exclude: [
         'openlibrary/components/lit/index.js',
+        'openlibrary/components/lit/workbench/index.js',
         'openlibrary/components/lit/icons.generated.js',
         'openlibrary/components/lit/editor-core.js',
         'openlibrary/components/lit/html-block.js',

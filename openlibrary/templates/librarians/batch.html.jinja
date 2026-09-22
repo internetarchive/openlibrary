@@ -112,7 +112,9 @@
         <span class="librarian-batch__result" role="status"></span>
     </div>
     {% if reviewable and not is_flag %}
-        {# The reviewer applies through the same preview dialog the workbench uses, against the records as they are now. #}
+        {# The reviewer applies through the same preview dialog the workbench uses, against the records as they are now.
+           The dialog ships in the workbench bundle, not the site-wide one. #}
+        {% include "librarians/_workbench_bundle.html.jinja" %}
         <ol-batch-preview can-apply data-request-id="{{ batch.id }}" data-title="{{ _('Request #%(id)s', id=batch.id) }}" data-records='{{ batch['items'] | tojson }}'>
         </ol-batch-preview>
     {% endif %}

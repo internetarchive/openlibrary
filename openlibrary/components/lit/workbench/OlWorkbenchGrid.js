@@ -1,9 +1,9 @@
 import { LitElement, html, css, nothing } from 'lit';
-import { translate } from './utils/labels.js';
-import { DEFAULT_LABELS } from './workbench-labels.js';
-import { olid } from '../../plugins/openlibrary/js/librarians/api.js';
-import './OLChip.js';
-import './OlIcon.js';
+import { translate } from '../utils/labels.js';
+import { DEFAULT_LABELS } from './labels.js';
+import { olid } from '../../../plugins/openlibrary/js/librarians/api.js';
+import '../OLChip.js';
+import '../OlIcon.js';
 
 /**
  * The workbench grid: one row per record, columns per record type, a

@@ -354,6 +354,10 @@ customElements.define('ol-my-widget', OlMyWidget);
 
 If you need to drive a Lit component from the page-JS bundle (e.g., the search-modal entrypoint), import the component's exported class only if you need the class identifier — and never as a bare side-effect import. Re-running `customElements.define()` from a second bundle throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause. The component will already be registered by `ol-components.js` before any page-JS handler (jQuery `DOMContentLoaded`) runs.
 
+### Feature bundles
+
+A component that only one tool page uses does not belong in the site-wide bundle, where every visitor downloads it. The librarian workbench is the pattern: its components live in `openlibrary/components/lit/workbench/`, `workbench/index.js` is a second entry in `scripts/vite/build.mjs` emitting `ol-workbench.js`, and only the librarian templates load it with their own `<script type="module">`. Both entries come out of one Vite build, so a shared primitive such as `ol-button` lands in a shared chunk and its `define()` runs once no matter which bundles a page loads. A feature entry may therefore import shared components freely; the "never side-effect import" rule above is about the separate page-JS build.
+
 ## Focus and Shadow DOM
 
 Shadow DOM breaks the assumptions most focus-management code makes. The helpers in `openlibrary/components/lit/utils/focus-utils.js` and `FocusableHostMixin` exist to handle the cases below — reach for them rather than rolling your own.
@@ -568,7 +572,7 @@ A harness that spends more lines faking the browser than asserting the component
 ## New Component Checklist
 
 1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).
-2. Register the component by adding an export to `openlibrary/components/lit/index.js`.
+2. Register the component by adding an export to `openlibrary/components/lit/index.js`, or to a feature entry if it belongs to one tool page (see [Feature bundles](#feature-bundles)).
 3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables. Type any closed set of values as a union, not `{String}` — see [Type the enum, don't describe it](#type-the-enum-dont-describe-it).
 4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) so the API table renders locally; the JSON is gitignored and rebuilt by `make components` in CI/deploy.
 5. Add a demo partial at `openlibrary/templates/design/components/<id>.html.jinja` defining a `{% macro demos() %}` of `ex.example(...)` calls, and register a `Component(...)` row in `COMPONENTS` in `openlibrary/plugins/openlibrary/design.py`. The row drives the sidebar, section order, and the *Avoid* line; the API table renders from the manifest. Nothing on the page is hand-listed — `openlibrary/templates/design.html` is only a shim into `design/layout.html.jinja`, so there is no section markup to add there.

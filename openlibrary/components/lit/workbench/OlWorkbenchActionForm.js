@@ -1,10 +1,10 @@
 import { LitElement, html, css, nothing } from 'lit';
-import { translate } from './utils/labels.js';
-import { DEFAULT_LABELS } from './workbench-labels.js';
-import { api, olid } from '../../plugins/openlibrary/js/librarians/api.js';
-import './OlDialog.js';
-import './OLButton.js';
-import './OlAutocomplete.js';
+import { translate } from '../utils/labels.js';
+import { DEFAULT_LABELS } from './labels.js';
+import { api, olid } from '../../../plugins/openlibrary/js/librarians/api.js';
+import '../OlDialog.js';
+import '../OLButton.js';
+import '../OlAutocomplete.js';
 
 const SUBJECT_TYPES = [['subjects', 'subjects'], ['subject_people', 'subjectPeople'], ['subject_places', 'subjectPlaces'], ['subject_times', 'subjectTimes']];
 const REASONS = [['review', 'review'], ['duplicate', 'duplicate'], ['spam', 'spam'], ['non_book', 'nonBook'], ['delete', 'toDelete']];

@@ -32,8 +32,5 @@ export { OlBookCover } from './OlBookCover.js';
 export { OlShelfActions } from './OlShelfActions.js';
 export { OlShelfButton } from './OlShelfButton.js';
 export { OlAutocomplete } from './OlAutocomplete.js';
-export { OlBatchPreview } from './OlBatchPreview.js';
-export { OlWorkbenchGrid } from './OlWorkbenchGrid.js';
-export { OlRecordPanel } from './OlRecordPanel.js';
-export { OlWorkbenchActionForm } from './OlWorkbenchActionForm.js';
-export { OlWorkbench } from './OlWorkbench.js';
+// The librarian workbench (workbench/) is its own bundle, ol-workbench.js,
+// loaded only by the librarian pages: see workbench/index.js.

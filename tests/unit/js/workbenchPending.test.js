@@ -3,7 +3,7 @@
  * only the field a batch actually wrote is cleared afterwards, so a second
  * staged field on the same record is not lost when the first is applied.
  */
-import { groupPending, countPending, withoutApplied } from '../../../openlibrary/components/lit/utils/workbench-pending.js';
+import { groupPending, countPending, withoutApplied } from '../../../openlibrary/components/lit/workbench/pending.js';
 
 const pending = {
     '/books/OL1M': { publishers: ['Penguin'], publish_date: '1999' },
