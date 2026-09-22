@@ -131,6 +131,7 @@ class TestGatherNearbyBooksAsync:
         assert all('-key:"/works/OL1W"' in q for q in queries)
         assert all('language:"eng"' in q for q in queries)
         assert all("content_warning:cover" in q for q in queries)
+        assert all(" AND ebook_access:[borrowable TO *]" in q for q in queries)
         assert all("type:work" in q for q in queries)
 
     @pytest.mark.asyncio

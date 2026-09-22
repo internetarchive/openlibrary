@@ -1164,6 +1164,11 @@ _EXACT_MATCH_ROWS = 4
 _RANGE_ROWS = 8
 _MAX_NEARBY_BOOKS = _EXACT_MATCH_ROWS + 2 * _RANGE_ROWS
 
+# Same readability cut the sibling carousels on the book page use: borrowable
+# or public ebooks only. The range queries are open-ended and distance-sorted,
+# so Solr just walks further along the shelf to fill the rows.
+_READABLE_FILTER = "ebook_access:[borrowable TO *]"
+
 
 class NearbyBooksParams(BaseModel):
     """Parameters for the book page's "Nearby Books" (DDC shelf-adjacency) carousel."""
@@ -1213,7 +1218,9 @@ async def gather_nearby_books_async(
     bounds so a popular ddc_sort value can't fill both ranges with ties on
     itself. Both ranges are capped to numeric ddc_sort values only, since
     non-numeric values (e.g. "[Fic]", "[E]") sort lexically after every
-    number and would otherwise show up as false neighbours.
+    number and would otherwise show up as false neighbours. Only readable
+    (borrowable or public) works count as neighbours, matching the other
+    book-page carousels.
 
     Returns None (not cached) when Solr fails.
     """
@@ -1237,7 +1244,9 @@ async def gather_nearby_books_async(
 
     lang_clause = f' AND language:"{solr.escape(language)}"' if language else ""
     work_filter = f' -key:"{safe_work_key}"'
-    common = f"{lang_clause}{work_filter} {_SAFE_MODE_FILTER}"
+    # Joined with AND on purpose: a bare clause after an AND chain is only a
+    # SHOULD for Solr's classic parser, which would boost rather than filter.
+    common = f" AND {_READABLE_FILTER}{lang_clause}{work_filter} {_SAFE_MODE_FILTER}"
 
     try:
         exact_res, before_res, after_res = await asyncio.gather(
