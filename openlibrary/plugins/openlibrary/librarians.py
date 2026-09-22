@@ -1,7 +1,8 @@
 """Librarian tool pages: the workbench and its help page, an applied batch, and
 the review page a queued request links to. JSON lives in openlibrary/fastapi/librarians.py.
 
-Any librarian may use these pages; the JSON endpoints enforce that only a
+The workbench is opt-in while it is vetted: these pages are for librarians in
+/usergroup/workbench (and admins). The JSON endpoints enforce that only a
 super-librarian applies, declines or resolves a request.
 """
 
@@ -10,19 +11,21 @@ from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core import librarian_batches
 
+DENIED = "Workbench testers only"
 
-def _librarian():
+
+def _workbench_user():
     user = accounts.get_current_user()
-    return user if (user and user.is_librarian_or_higher()) else None
+    return user if (user and user.can_use_workbench()) else None
 
 
 class librarians_workbench(delegate.page):
     path = "/librarians/workbench"
 
     def GET(self):
-        user = _librarian()
+        user = _workbench_user()
         if not user:
-            return render_template("permission_denied", "/librarians/workbench", "Librarians only")
+            return render_template("permission_denied", "/librarians/workbench", DENIED)
         return render_template(
             "librarians/page",
             "librarians/workbench.html.jinja",
@@ -35,15 +38,15 @@ class librarians_workbench_help(delegate.page):
     path = "/librarians/workbench/help"
 
     def GET(self):
-        if not _librarian():
-            return render_template("permission_denied", "/librarians/workbench/help", "Librarians only")
+        if not _workbench_user():
+            return render_template("permission_denied", "/librarians/workbench/help", DENIED)
         return render_template("librarians/page", "librarians/help.html.jinja")
 
 
 def _record_page(kind, record_id, loader):
-    user = _librarian()
+    user = _workbench_user()
     if not user:
-        return render_template("permission_denied", f"/librarians/{kind}", "Librarians only")
+        return render_template("permission_denied", f"/librarians/{kind}", DENIED)
     record = loader(int(record_id))
     if not record:
         raise delegate.notfound()

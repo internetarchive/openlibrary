@@ -221,3 +221,23 @@ async def require_maintainer(
 
 
 MaintainerDep = Annotated[AuthenticatedUser, Depends(require_maintainer)]
+
+
+async def require_workbench(
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> AuthenticatedUser:
+    """FastAPI dependency for the librarian workbench, which is opt-in while it is vetted.
+
+    Requires a librarian in /usergroup/workbench, or an admin. Returns 403 otherwise.
+    """
+    user = get_current_user()
+    if not (user and user.can_use_workbench()):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
+
+    return _
+
+
+WorkbenchDep = Annotated[AuthenticatedUser, Depends(require_workbench)]

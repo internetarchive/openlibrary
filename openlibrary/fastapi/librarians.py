@@ -1,8 +1,9 @@
 """JSON behind the librarian workbench (/librarians/workbench): the grid query,
 worklists, record detail for the panel, and the batch operations every edit
 goes through. Logic lives in openlibrary/core/{workbench,batch_ops,record_context}.py;
-this file is routing, validation and the role split: any librarian may use the
-workbench; only a super-librarian applies, declines or resolves a request.
+this file is routing, validation and the role split: the workbench is opt-in
+(/usergroup/workbench, plus admins) while it is vetted; inside it only a
+super-librarian applies, declines or resolves a request.
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ from pydantic import BaseModel, Field
 
 from openlibrary.accounts import get_current_user
 from openlibrary.core import batch_ops, librarian_batches, record_context, workbench
-from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
+from openlibrary.fastapi.auth import WorkbenchDep  # noqa: TC001
 from openlibrary.utils.request_context import req_context, web_ctx_ip
 
 router = APIRouter(tags=["librarians"])
@@ -57,7 +58,7 @@ class QueryBody(BaseModel):
 
 
 @router.post("/librarians/workbench/query.json")
-def workbench_query(_: LibrarianDep, body: QueryBody) -> dict[str, Any]:
+def workbench_query(_: WorkbenchDep, body: QueryBody) -> dict[str, Any]:
     try:
         return workbench.run_query(body.type, body.q, [f.model_dump() for f in body.filters], body.sort, body.page, body.rows)
     except workbench.WorkbenchError as e:
@@ -65,14 +66,14 @@ def workbench_query(_: LibrarianDep, body: QueryBody) -> dict[str, Any]:
 
 
 @router.get("/librarians/workbench/keys.json")
-def workbench_keys(_: LibrarianDep, keys: Annotated[str, Query(max_length=20000)]) -> dict[str, Any]:
+def workbench_keys(_: WorkbenchDep, keys: Annotated[str, Query(max_length=20000)]) -> dict[str, Any]:
     """Pasted OLIDs or URLs, one grid per record type."""
     wanted = [k for k in (s.strip() for s in keys.replace("\n", ",").split(",")) if k]
     return {"groups": workbench.hydrate_keys(wanted[: workbench.MAX_ROWS * 3])}
 
 
 @router.get("/librarians/workbench/config.json")
-def workbench_config(auth: LibrarianDep) -> dict[str, Any]:
+def workbench_config(auth: WorkbenchDep) -> dict[str, Any]:
     user = _user()
     return {
         "username": auth.username,
@@ -91,7 +92,7 @@ def workbench_config(auth: LibrarianDep) -> dict[str, Any]:
 
 
 @router.get("/librarians/workbench/worklists.json")
-def worklists(_: LibrarianDep, counts: bool = True) -> dict[str, Any]:
+def worklists(_: WorkbenchDep, counts: bool = True) -> dict[str, Any]:
     return {"worklists": workbench.list_worklists(with_counts=counts)}
 
 
@@ -104,7 +105,7 @@ class WorklistBody(BaseModel):
 
 
 @router.post("/librarians/workbench/worklists.json")
-def create_worklist(auth: LibrarianDep, body: WorklistBody) -> dict[str, Any]:
+def create_worklist(auth: WorkbenchDep, body: WorklistBody) -> dict[str, Any]:
     user = _user()
     try:
         return workbench.save_worklist(
@@ -115,7 +116,7 @@ def create_worklist(auth: LibrarianDep, body: WorklistBody) -> dict[str, Any]:
 
 
 @router.put("/librarians/workbench/worklists/{wid}.json")
-def update_worklist(auth: LibrarianDep, wid: str, body: WorklistBody) -> dict[str, Any]:
+def update_worklist(auth: WorkbenchDep, wid: str, body: WorklistBody) -> dict[str, Any]:
     user = _user()
     try:
         return workbench.save_worklist(
@@ -126,7 +127,7 @@ def update_worklist(auth: LibrarianDep, wid: str, body: WorklistBody) -> dict[st
 
 
 @router.delete("/librarians/workbench/worklists/{wid}.json")
-def delete_worklist(auth: LibrarianDep, wid: str) -> dict[str, Any]:
+def delete_worklist(auth: WorkbenchDep, wid: str) -> dict[str, Any]:
     user = _user()
     try:
         workbench.delete_worklist(auth.username, wid, is_super=bool(user.is_super_librarian_or_higher()))
@@ -136,7 +137,7 @@ def delete_worklist(auth: LibrarianDep, wid: str) -> dict[str, Any]:
 
 
 @router.get("/librarians/workbench/record.json")
-def workbench_record(_: LibrarianDep, key: str) -> dict[str, Any]:
+def workbench_record(_: WorkbenchDep, key: str) -> dict[str, Any]:
     """Everything the record panel shows: the hydrated row, the editable fields, and the full health strip."""
     nk = record_context.normalize_key(key)
     if not nk:
@@ -175,7 +176,7 @@ class BatchBody(BaseModel):
 
 
 @router.post("/librarians/batch.json")
-def batch(_: LibrarianDep, body: BatchBody) -> dict[str, Any]:
+def batch(_: WorkbenchDep, body: BatchBody) -> dict[str, Any]:
     if body.action not in batch_ops.ENABLED_ACTIONS:
         raise HTTPException(status_code=400, detail={"error": f"Action {body.action!r} is not enabled."})
     user = _user()
@@ -195,7 +196,7 @@ def batch(_: LibrarianDep, body: BatchBody) -> dict[str, Any]:
 
 
 @router.get("/librarians/batches.json")
-def batches(auth: LibrarianDep, mine: bool = True, limit: int = 30) -> dict[str, Any]:
+def batches(auth: WorkbenchDep, mine: bool = True, limit: int = 30) -> dict[str, Any]:
     """Applied batches (changesets) and requests (store documents), newest first."""
     user = _user()
     username = auth.username if (mine or not user.is_super_librarian_or_higher()) else None
@@ -206,7 +207,7 @@ def batches(auth: LibrarianDep, mine: bool = True, limit: int = 30) -> dict[str,
 
 
 @router.get("/librarians/batch/{batch_id}.json")
-def batch_detail(_: LibrarianDep, batch_id: int) -> dict[str, Any]:
+def batch_detail(_: WorkbenchDep, batch_id: int) -> dict[str, Any]:
     if not (row := librarian_batches.get_batch(batch_id)):
         raise HTTPException(status_code=404, detail={"error": "Batch not found"})
     return row
@@ -218,7 +219,7 @@ class RevertBody(BaseModel):
 
 
 @router.post("/librarians/batch/{batch_id}/revert.json")
-def batch_revert(_: LibrarianDep, batch_id: int, body: RevertBody | None = None) -> dict[str, Any]:
+def batch_revert(_: WorkbenchDep, batch_id: int, body: RevertBody | None = None) -> dict[str, Any]:
     user = _user()
     with web_ctx_ip(_client_ip()):
         try:
@@ -228,14 +229,14 @@ def batch_revert(_: LibrarianDep, batch_id: int, body: RevertBody | None = None)
 
 
 @router.get("/librarians/request/{request_id}.json")
-def request_detail(_: LibrarianDep, request_id: int) -> dict[str, Any]:
+def request_detail(_: WorkbenchDep, request_id: int) -> dict[str, Any]:
     if not (row := librarian_batches.get_request(request_id)):
         raise HTTPException(status_code=404, detail={"error": "Request not found"})
     return row
 
 
 @router.get("/librarians/request/{request_id}/preview.json")
-def request_preview(_: LibrarianDep, request_id: int) -> dict[str, Any]:
+def request_preview(_: WorkbenchDep, request_id: int) -> dict[str, Any]:
     """The request's plan against the records as they are now, for the reviewer to see before applying."""
     user = _user()
     try:
@@ -252,7 +253,7 @@ class DecisionBody(BaseModel):
 
 
 @router.post("/librarians/request/{request_id}/apply.json")
-def request_apply(_: LibrarianDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
+def request_apply(_: WorkbenchDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
     user = _user()
     with web_ctx_ip(_client_ip()):
         try:
@@ -268,7 +269,7 @@ def request_apply(_: LibrarianDep, request_id: int, body: DecisionBody | None = 
 
 
 @router.post("/librarians/request/{request_id}/decline.json")
-def request_decline(_: LibrarianDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
+def request_decline(_: WorkbenchDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
     user = _user()
     try:
         return batch_ops.decline_requested(user, request_id, comment=body.comment if body else None)
@@ -277,7 +278,7 @@ def request_decline(_: LibrarianDep, request_id: int, body: DecisionBody | None 
 
 
 @router.post("/librarians/request/{request_id}/resolve.json")
-def request_resolve(_: LibrarianDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
+def request_resolve(_: WorkbenchDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
     """Close a flag as acted on."""
     user = _user()
     try:
@@ -290,7 +291,7 @@ def request_resolve(_: LibrarianDep, request_id: int, body: DecisionBody | None 
 
 
 @router.get("/librarians/context.json")
-def context(_: LibrarianDep, key: str) -> dict[str, Any]:
+def context(_: WorkbenchDep, key: str) -> dict[str, Any]:
     nk = record_context.normalize_key(key)
     if not nk:
         raise HTTPException(status_code=400, detail={"error": "Not a record key"})
@@ -298,7 +299,7 @@ def context(_: LibrarianDep, key: str) -> dict[str, Any]:
 
 
 @router.get("/librarians/checks.json")
-def checks(_: LibrarianDep, action: str, keys: str) -> dict[str, Any]:
+def checks(_: WorkbenchDep, action: str, keys: str) -> dict[str, Any]:
     """Pre-flight checks for the merge pages, which do their own writing."""
     if action not in ("merge_works", "merge_authors"):
         raise HTTPException(status_code=400, detail={"error": "Unknown check"})

@@ -91,6 +91,24 @@ class TestUserGroupMembership:
         )
         assert user.is_librarian_or_higher() is False
 
+    @pytest.mark.parametrize(
+        ("groups", "expected"),
+        [
+            (["/usergroup/librarians", "/usergroup/workbench"], True),
+            (["/usergroup/super-librarians", "/usergroup/workbench"], True),
+            (["/usergroup/admin"], True),
+            (["/usergroup/librarians"], False),
+            (["/usergroup/super-librarians"], False),
+            (["/usergroup/workbench"], False),
+            ([], False),
+        ],
+    )
+    def test_can_use_workbench(self, monkeypatch, groups, expected):
+        """Opt-in on top of the librarian tiers: the workbench group alone is not enough, and admins are always in."""
+        user = models.User(MockSite(), "/people/test", data={})
+        monkeypatch.setattr(models.User, "usergroups", PropertyMock(return_value=[_FakeGroup(g) for g in groups]))
+        assert user.can_use_workbench() is expected
+
     def test_is_super_librarian_or_higher(self, monkeypatch):
         user = models.User(MockSite(), "/people/test", data={})
 

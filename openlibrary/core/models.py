@@ -997,6 +997,10 @@ class User(Thing):
     def is_beta_tester(self) -> bool:
         return self.is_usergroup_member("/usergroup/beta-testers")
 
+    def can_use_workbench(self) -> bool:
+        """The librarian workbench is opt-in while it is vetted: librarians in /usergroup/workbench, plus admins."""
+        return self.is_librarian_or_higher() and self.is_member_of_any(["/usergroup/workbench", "/usergroup/admin"])
+
     def is_read_only(self) -> bool:
         return self.is_usergroup_member("/usergroup/read-only")
 

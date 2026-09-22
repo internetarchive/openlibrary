@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 from unittest.mock import MagicMock, patch
 
+import pytest
 from fastapi import Depends, FastAPI
 from fastapi.security import APIKeyCookie
 from fastapi.testclient import TestClient
@@ -13,6 +14,7 @@ from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     LibrarianDep,
     MaintainerDep,
+    WorkbenchDep,
     authenticate_user_from_cookie,
     get_authenticated_user,
     require_authenticated_user,
@@ -299,5 +301,44 @@ def test_require_maintainer_returns_403_when_user_is_none():
         response = client.get("/maintainer-only")
         assert response.status_code == 403
         assert response.json()["detail"] == "Insufficient permissions"
+
+    app.dependency_overrides.clear()
+
+
+# ---------------------------------------------------------------------------
+# require_workbench tests
+# ---------------------------------------------------------------------------
+
+
+def _build_workbench_app():
+    """Create a minimal FastAPI app with one route protected by require_workbench."""
+    app = FastAPI()
+
+    @app.get("/workbench-only")
+    async def workbench_route(_: WorkbenchDep):
+        return {"message": "access granted"}
+
+    return app
+
+
+def test_require_workbench_returns_401_with_no_cookie():
+    app = _build_workbench_app()
+    client = TestClient(app, raise_server_exceptions=False)
+    assert client.get("/workbench-only").status_code == 401
+
+
+@pytest.mark.parametrize(("opted_in", "expected"), [(False, 403), (True, 200)])
+def test_require_workbench_asks_the_user_model(opted_in, expected):
+    """A librarian outside /usergroup/workbench is refused; the model decides who is in."""
+    app = _build_workbench_app()
+    app.dependency_overrides[require_authenticated_user] = lambda: FAKE_AUTH_USER
+
+    with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
+        user = MagicMock()
+        user.can_use_workbench.return_value = opted_in
+        mock_get_user.return_value = user
+
+        client = TestClient(app, raise_server_exceptions=False)
+        assert client.get("/workbench-only").status_code == expected
 
     app.dependency_overrides.clear()

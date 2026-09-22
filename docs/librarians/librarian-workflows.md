@@ -27,7 +27,7 @@
 
 ## 2. Who librarians are
 
-**Four tiers**, all implemented as membership of an Infogami usergroup (`openlibrary/core/models.py`): patron, `/usergroup/librarians`, `/usergroup/super-librarians`, `/usergroup/admin`. Two helpers gate almost everything: `is_librarian_or_higher()` and `is_super_librarian_or_higher()`. Bots have their own group and must apply for accounts (#13191, #12887).
+**Four tiers**, all implemented as membership of an Infogami usergroup (`openlibrary/core/models.py`): patron, `/usergroup/librarians`, `/usergroup/super-librarians`, `/usergroup/admin`. Two helpers gate almost everything: `is_librarian_or_higher()` and `is_super_librarian_or_higher()`. Bots have their own group and must apply for accounts (#13191, #12887). The librarian workbench adds an opt-in group on top of the tiers, `/usergroup/workbench`, checked by `can_use_workbench()`.
 
 **How someone becomes a librarian.** Anyone with an account can edit any record. To merge or delete, they apply at `/volunteer#librarian`, are reviewed roughly weekly, join the Slack channel `#open-librarians-g` as a LIT, and work through named mentors until promoted. Promotion is done by a staff administrator or the Lead Community Librarian (`/librarians`, `docs/wiki/projects/lead-community-librarian.md`). Staff want to promote conscientious volunteers because merge requests overwhelm the few reviewers (#5721).
 

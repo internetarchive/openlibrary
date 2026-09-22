@@ -1,4 +1,4 @@
-"""Tests for the /librarians workbench and batch routes: the librarian gate,
+"""Tests for the /librarians workbench and batch routes: the workbench gate,
 the action gate, request validation, and that route bodies reach the core
 modules in the expected shape."""
 
@@ -8,7 +8,7 @@ import pytest
 
 from openlibrary.core import batch_ops, librarian_batches, workbench
 from openlibrary.fastapi import librarians
-from openlibrary.fastapi.auth import AuthenticatedUser, require_librarian
+from openlibrary.fastapi.auth import AuthenticatedUser, require_workbench
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 
@@ -20,9 +20,9 @@ def _request_context():
 
 @pytest.fixture
 def librarian(fastapi_client, monkeypatch):
-    """Sign in a (super-)librarian through the dependency override, and a matching site user."""
+    """Sign in an opted-in (super-)librarian through the dependency override, and a matching site user."""
     auth = AuthenticatedUser(username="libby", user_key="/people/libby", timestamp="2026-01-01T00:00:00")
-    fastapi_client.app.dependency_overrides[require_librarian] = lambda: auth
+    fastapi_client.app.dependency_overrides[require_workbench] = lambda: auth
     user = MagicMock()
     user.key = "/people/libby"
     user.is_super_librarian_or_higher.return_value = True

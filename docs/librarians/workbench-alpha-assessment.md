@@ -2,7 +2,7 @@
 
 *Assessed 2026-09-21 on branch `librarian-workbench` (PR #13612, draft), three commits on top of master: `96b8325e7`, `e29eea1af`, `d762dc473`.*
 
-> **Status, 2026-09-21 (same day, later):** everything in section 6 has been implemented on the branch and is uncommitted at the time of writing, with one change of plan: there is **no usergroup gate**. The workbench is open to every librarian, and the alpha is a soft launch by word of mouth. A librarian who stumbles on it can only do what the edit form already lets them request, and nothing applies without a super-librarian. All six must-fixes, the should-fixes (dangling-record warnings, author roles kept, placeholder key dropped, reading-log counts batched, help page, integration and JS tests) and phase A of the action set are in. Sections 2 to 5 describe the branch *before* those changes and are kept as the record of what was found.
+> **Status, 2026-09-21 (same day, later):** everything in section 6 has been implemented on the branch and is uncommitted at the time of writing, with one change of plan, since reversed on 2026-09-22: the workbench is gated by **`/usergroup/workbench`** (see section 6), so only opted-in librarians and admins can open it. Inside it, a librarian can only do what the edit form already lets them request, and nothing applies without a super-librarian. All six must-fixes, the should-fixes (dangling-record warnings, author roles kept, placeholder key dropped, reading-log counts batched, help page, integration and JS tests) and phase A of the action set are in. Sections 2 to 5 describe the branch *before* those changes and are kept as the record of what was found.
 
 This document is written for someone who is not a librarian. The first section explains what the workbench is and how librarians would use it. The rest is the honest state of the code, the bugs and risks found, and a step-by-step plan to put it in front of a handful of librarians safely.
 
@@ -118,7 +118,7 @@ Ranked by how much they matter for an alpha. "Confirmed" means reproduced, eithe
 
 ### Access
 
-*Decided 2026-09-21: no separate usergroup.* The workbench is open to every librarian, and the alpha is a soft launch: tell a handful of people, and do not announce it. This is safe because a librarian who finds it on their own cannot do anything they could not already request through the edit forms and the merge queue, nothing applies without a super-librarian, and every batch is a revertible changeset. `ENABLED_ACTIONS` in `batch_ops.py` stays the kill switch for an individual action, and the whole page can be turned off by removing the router if needed.
+*Decided 2026-09-21: no separate usergroup. Reversed 2026-09-22: opt-in by usergroup.* The workbench, its help page, and the batch and request pages are open only to members of `/usergroup/workbench` who are also librarians, plus admins (`User.can_use_workbench()` in `openlibrary/core/models.py`; `require_workbench` in `openlibrary/fastapi/auth.py`). Anyone else gets the permission-denied page and a 403 from the JSON routes, and the hamburger link is hidden. An admin opts someone in by editing `/usergroup/workbench`. Super-librarians who will review workbench requests need to be in the group too, since the request page is behind the same gate. `ENABLED_ACTIONS` in `batch_ops.py` stays the kill switch for an individual action, and the whole page can be turned off by removing the router if needed.
 
 ### Must fix before anyone outside the team uses it
 

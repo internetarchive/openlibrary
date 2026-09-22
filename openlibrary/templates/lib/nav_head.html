@@ -121,9 +121,10 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
         <a href="$(ctx.user.key)" data-ol-link-track="Hamburger|MyProfile">$_("My Profile")</a>
       </li>
       $if is_privileged_user:
-        <li class="drawer-menu__item">
-          <a href="$(homepath())/librarians/workbench" data-ol-link-track="Hamburger|Workbench">$_("Librarian workbench")</a>
-        </li>
+        $if ctx.user.can_use_workbench():
+          <li class="drawer-menu__item">
+            <a href="$(homepath())/librarians/workbench" data-ol-link-track="Hamburger|Workbench">$_("Librarian workbench")</a>
+          </li>
         <li class="drawer-menu__item">
           $if shows_merge_count and cached_get_counts_by_mode(mode='open') > 0:
             <div class="drawer-menu__badge">$(cached_get_counts_by_mode(mode='open'))</div>
