@@ -708,7 +708,7 @@
 
 @media (hover: hover) {
   .search-by-barcode:hover {
-    background-color: var(--lightest-grey);
+    background-color: var(--color-control-hover);
   }
 }
 
@@ -1041,7 +1041,7 @@
        the faux input lines up exactly with the nav and account buttons. */
     height: var(--header-control-height);
     box-sizing: border-box;
-    background-color: var(--grey-fafafa);
+    background-color: var(--color-control-bg);
     border: 1px solid var(--color-border-muted);
     border-radius: var(--border-radius-input);
   }

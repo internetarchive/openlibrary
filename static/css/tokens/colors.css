@@ -142,9 +142,28 @@
      it darkens whatever surface the row sits on rather than forcing one grey. */
   --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 8%, transparent);
 
-  /* Hover for raised controls. Opaque — see --color-control-selected-surface. */
+  /* Resting fill for raised neutral controls — the secondary button and its
+     static twins. The first step off white on the warm ramp, so a control reads
+     as a distinct surface on a white card without going grey; --color-control-hover
+     is the next step down the same ramp. */
+  --color-control-bg: var(--neutral-50);
+
+  /* Edge of a raised neutral control. A half-step: --color-border-subtle reads
+     too faint now that the fill is no longer white, and --color-border-muted
+     (the hover edge below) reads as an outline rather than an edge. The ramp is
+     evenly spaced here, so this is one role wanting a half-step rather than a
+     missing rung, and it's a mix like the selected-state tokens above. */
+  --color-control-border: color-mix(in srgb, var(--neutral-200), var(--neutral-300));
+
+  /* Hover for raised controls. One step down the ramp from --color-control-bg,
+     which is what makes the hover register now that the resting fill is already
+     off white. Opaque — see --color-control-selected-surface. */
   --color-control-hover: var(--neutral-100);
-  /* The well a control's thumb moves in — the segmented control's track. */
+
+  /* Inset track that a selected pill floats in — ol-segmented-control. One step
+     below --color-control-bg: enough for the pill to sit proud of it, while
+     staying lighter than --color-border-subtle so the pill keeps a visible
+     outline against the track. */
   --color-control-track: var(--neutral-100);
   /* Drag handle on a sheet or tray — see-through ink, like --color-hover-overlay. */
   --color-drag-handle: color-mix(in srgb, var(--ink-overlay) 20%, transparent);
