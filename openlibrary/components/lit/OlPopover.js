@@ -64,6 +64,9 @@ function _removeFromOverlayStack(el) {
  *     "start", "center", or "end". Default: "bottom-start" — a panel is
  *     usually wider than the control that opens it, and aligning their leading
  *     edges keeps it under the trigger instead of straddling it.
+ * @prop {String} anchor - Selector for an ancestor to position against instead
+ *     of the trigger, e.g. the whole split button when only its caret opens the
+ *     popover. Falls back to the trigger when nothing matches.
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
@@ -102,6 +105,7 @@ export class OlPopover extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
         placement: { type: String },
+        anchor: { type: String },
         offset: { type: Number },
         autoClose: { type: Boolean, attribute: 'auto-close' },
         blockOutsideClicks: { type: Boolean, attribute: 'block-outside-clicks' },
@@ -342,6 +346,7 @@ export class OlPopover extends LitElement {
         super();
         this.open = false;
         this.placement = 'bottom-start';
+        this.anchor = '';
         this.offset = 4;
         this.autoClose = true;
         this.blockOutsideClicks = false;
@@ -665,10 +670,10 @@ export class OlPopover extends LitElement {
      * as needed to keep it within the viewport.
      */
     _computePosition(panelW, panelH) {
-        const trigger = this._triggerEl;
-        if (!trigger) return;
+        const anchorEl = this._anchorEl;
+        if (!anchorEl) return;
 
-        const anchor = trigger.getBoundingClientRect();
+        const anchor = anchorEl.getBoundingClientRect();
         const gap = this.offset;
         const viewW = window.innerWidth;
         const viewH = window.innerHeight;
@@ -753,6 +758,11 @@ export class OlPopover extends LitElement {
         // flatten:true unwraps nested <slot>s (ol-select-popover) so we anchor
         // to the real trigger element, not a layout-less slot node.
         return slot?.assignedElements({ flatten: true })[0] ?? null;
+    }
+
+    /** The element the panel is positioned against: the `anchor` ancestor, else the trigger. */
+    get _anchorEl() {
+        return (this.anchor && this.closest(this.anchor)) || this._triggerEl;
     }
 
     // ── Scroll / resize repositioning ───────────────────────────

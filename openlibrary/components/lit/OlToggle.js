@@ -182,8 +182,8 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* ── Button variant: bordered, raised container ─────────────────── */
         :host([variant="button"]) {
-            --_toggle-border: var(--color-border-subtle);
-            --_toggle-bg: var(--white);
+            --_toggle-border: var(--color-control-border);
+            --_toggle-bg: var(--color-control-bg);
 
             display: inline-block;
         }
@@ -252,9 +252,9 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         @media (hover: hover) and (pointer: fine) {
             :host([variant="button"]:not(:disabled)) .toggle:hover {
                 --_toggle-bg: var(--color-control-hover);
-                /* Nudge the border a touch darker in step with the fill (both
-                   drop ~7% in lightness), matching ol-button[variant="secondary"]
-                   so the whole control reads as one shape on hover. */
+                /* Nudge the border darker in step with the fill, matching
+                   ol-button[variant="secondary"] so the whole control reads as
+                   one shape on hover. */
                 --_toggle-border: var(--color-border-muted);
                 --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--color-control-hover));
             }

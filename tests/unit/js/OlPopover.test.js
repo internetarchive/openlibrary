@@ -333,3 +333,44 @@ describe('ol-popover block-outside-clicks', () => {
         expect(backdrop.classList.contains('guard')).toBe(false);
     });
 });
+
+/**
+ * `anchor` positions the panel against an ancestor instead of the trigger, so a
+ * split button's caret can center its menu under the whole button.
+ */
+describe('ol-popover anchor', () => {
+    beforeEach(() => {
+        installMatchMediaStub();
+        document.body.innerHTML = '';
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    const rect = (left, width) => ({ left, right: left + width, width, top: 100, bottom: 136, height: 36 });
+
+    it('centers the panel on the matching ancestor', async() => {
+        const el = await mountPopover();
+        const group = document.createElement('div');
+        group.className = 'split';
+        document.body.appendChild(group);
+        group.appendChild(el);
+        el.placement = 'bottom-center';
+        el.anchor = '.split';
+        group.getBoundingClientRect = () => rect(100, 200);
+        el.querySelector('[slot="trigger"]').getBoundingClientRect = () => rect(268, 32);
+
+        el._computePosition(240, 80);
+
+        // Group center is 200, so a 240px panel starts at 80.
+        expect(el._position.left).toBe(80);
+    });
+
+    it('falls back to the trigger when the selector matches nothing', async() => {
+        const el = await mountPopover();
+        el.anchor = '.missing';
+
+        expect(el._anchorEl).toBe(el.querySelector('[slot="trigger"]'));
+    });
+});
