@@ -111,10 +111,11 @@ export class OlShelfButton extends LitElement {
            and the press-scale (:active propagates up from either half). */
         .split {
             display: flex;
-            border: 1px solid var(--color-border-subtle);
+            border: 1px solid var(--color-control-border);
             border-radius: var(--border-radius-button);
             overflow: hidden;
-            background: var(--white);
+            background: var(--color-control-bg);
+            --control-surface: var(--color-control-bg);
             --control-highlight-strength: 35%;
             box-shadow:
                 var(--box-shadow-raised),
@@ -176,7 +177,7 @@ export class OlShelfButton extends LitElement {
 
         .more {
             width: 40px;
-            border-left: 1px solid var(--color-border-subtle);
+            border-left: 1px solid var(--color-control-border);
         }
 
         .split--on .more {
@@ -230,7 +231,8 @@ export class OlShelfButton extends LitElement {
             position: absolute;
             inset: 4px;
             border-radius: var(--border-radius-circle);
-            background: var(--white);
+            background: var(--color-control-bg);
+            --control-surface: var(--color-control-bg);
             box-shadow:
                 0 1px 4px var(--boxshadow-black),
                 inset 0 1px 0
