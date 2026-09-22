@@ -19,7 +19,7 @@ from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
-from openlibrary.core.lending import compose_ia_url, get_available_async
+from openlibrary.core.lending import add_availability_async, compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
@@ -1299,6 +1299,12 @@ class NearbyBooksPartial:
         )
         if not books:
             return {"partials": ""}
+
+        # The docs come straight from Solr, so attach archive.org availability
+        # here the way work_search_async does for the other carousels; the
+        # card's Read/Borrow badge reads it. Kept outside the memoized fetch
+        # so lending state is never pinned for five minutes.
+        await add_availability_async(books)
 
         # No query backs this carousel, so no title link and no load-more.
         data = get_book_carousel_data(

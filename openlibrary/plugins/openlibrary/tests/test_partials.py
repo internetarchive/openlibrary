@@ -178,6 +178,22 @@ class TestNearbyBooksPartial:
 
         assert result == {"partials": ""}
 
+    @pytest.mark.asyncio
+    async def test_generate_async_attaches_availability_to_the_solr_docs(self):
+        """Raw Solr docs carry no lending state; the card badge needs it."""
+        docs = [{"key": "/works/OL2W", "title": "Neighbour", "ia": ["neighbour"]}]
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.gather_nearby_books_async", AsyncMock(return_value=docs)),
+            patch("openlibrary.plugins.openlibrary.partials.add_availability_async", AsyncMock()) as add_availability,
+            patch("openlibrary.plugins.openlibrary.partials.get_book_carousel_data", return_value={}),
+            patch("openlibrary.plugins.openlibrary.partials.render_jinja_template", return_value="<div/>"),
+        ):
+            params = Mock(work_key="/works/OL1W", language=None, limit=20)
+            result = await NearbyBooksPartial.generate_async(params)
+
+        add_availability.assert_awaited_once_with(docs)
+        assert result == {"partials": "<div/>"}
+
 
 def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial():
     with patch("openlibrary.plugins.openlibrary.partials.render_macro", return_value={"__body__": "<div>loading</div>"}):
