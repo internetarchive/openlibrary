@@ -163,7 +163,8 @@ def test_pools_are_cached_per_event_loop():
             loop_2.close()
 
     # A second, independent loop gets a different pool...
-    assert loop_1_pool_1 is not None and loop_2_pool is not None
+    assert loop_1_pool_1 is not None
+    assert loop_2_pool is not None
     assert loop_1_pool_1 is not loop_2_pool
     # ...reused for later connections on that same loop.
     assert loop_1_pool_2 is loop_1_pool_1
