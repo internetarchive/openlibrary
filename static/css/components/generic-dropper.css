@@ -97,122 +97,77 @@
   opacity: 1; /* For the disabled state to avoid flickering. */
 }
 
-/* Unified Read Button Styling */
+/* Split CTA: a Read/Borrow/Waitlist button fused with a caret that opens the
+   reading options popover (macros/ReadingOptionsMenu.html) */
 .cta-dropper {
   display: flex;
 }
 
-/* dropdown button */
-.cta-dropper details.cta-btn {
-  padding: 0;
+/* stylelint-disable-next-line selector-max-specificity */
+.cta-dropper.cta-button-group > .cta-btn:first-child:not(:last-child) {
+  border-radius: var(--border-radius-button) 0 0 var(--border-radius-button);
+}
+
+.cta-dropper > .cta-dropper__menu {
+  flex: none;
+  align-items: stretch;
+}
+
+/* The caret is the other half of one control, so it carries the button's border,
+   raised shadow and specular edge (see .cta-btn--available in buttonCta.css) —
+   without them the two halves catch the light differently and the split shows. */
+.cta-dropper__menu > .cta-dropper__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   width: 32px;
-  flex-shrink: 0;
-}
-
-.cta-dropper summary {
-  height: 100%;
-  margin: auto;
-  width: 24px;
-  /* style for animated arrow on dropdown button. Copied from "Want to Read" dropper above */
-  content: "";
-  background: url(/static/images/icons/icon_dropit.png) no-repeat center;
-  background-position: 0;
-  background-size: 45px;
-  /* whiten arrow png */
-  filter: brightness(0) invert(1);
-}
-
-/* hide extra arrow on iOS */
-.cta-dropper summary::marker {
-  content: "";
-  font-size: 0;
-}
-
-.cta-dropper summary::-webkit-details-marker {
-  display: none;
-}
-
-.cta-dropper details[open] summary {
-  background-position: -22px 48%;
-}
-
-/* dropdown containing Listen/Search/Download/Locate buttons */
-.dropper-menu {
-  z-index: var(--z-index-level-4);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 5px;
-  background-color: var(--white);
-  position: absolute;
-  /* align dropper menu with buttons */
-  right: 0;
-  margin-top: var(--spacing-stack-xs);
-  width: 100%;
-  max-width: 200px;
-}
-
-.dropper-menu .cta-btn.cta-btn--w-icon,
-.dropper-menu .cta-btn:link,
-.dropper-menu .cta-btn:visited {
-  background: var(--white);
-  color: var(--black);
-  text-align: left;
-  text-decoration: none;
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-  border-radius: 0;
-  margin: 0;
-}
-
-.dropper-menu .cta-btn .btn-label {
+  margin: 0 0 0 1px;
   padding: 0;
-  flex: 1;
+  border: 1px solid var(--grey);
+  border-radius: 0 var(--border-radius-button) var(--border-radius-button) 0;
+  background-color: var(--grey);
+  color: var(--white);
+  --control-surface: var(--grey);
+  --control-highlight-strength: 18%;
+  box-shadow:
+    var(--box-shadow-raised),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
+  cursor: pointer;
 }
 
-.dropper-menu .cta-btn:hover {
-  background-color: var(--lighter-grey);
+.cta-dropper__menu > .cta-dropper__toggle--primary {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  --control-surface: var(--color-primary);
 }
 
-.dropper-menu li {
-  list-style: none;
-  margin: 0;
+@media (hover: hover) and (pointer: fine) {
+  .cta-dropper__menu > .cta-dropper__toggle:hover {
+    filter: brightness(1.1);
+  }
 }
 
-.dropper-menu li + li {
-  border-top: 1px solid var(--color-border-subtle);
+.cta-dropper__menu > .cta-dropper__toggle:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
-.dropper-menu li:first-child,
-.dropper-menu li:last-child {
-  overflow: clip;
+.cta-dropper__chevron {
+  transition: transform 0.2s;
 }
 
-.dropper-menu li:first-child {
-  border-radius: 5px 5px 0 0;
+.cta-dropper__menu[open] .cta-dropper__chevron {
+  transform: rotate(180deg);
 }
 
-.dropper-menu li:last-child {
-  border-radius: 0 0 5px 5px;
-}
-
-.dropper-menu .btn-icon {
-  display: inline-block;
-  filter: invert(1);
-  margin-right: var(--spacing-inline-sm);
-  width: 1.25em;
-  height: 1.25em;
-}
-
-/* icons */
-.dropper-menu .listen {
-  background-image: url(/static/images/icons/icon_listen.png);
-}
-
-.dropper-menu .map {
-  background-image: url(/static/images/icons/icon_map.png);
-}
-
-.dropper-menu .listen,
-.dropper-menu .map {
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
+@media (prefers-reduced-motion: reduce) {
+  .cta-dropper__chevron {
+    transition: none;
+  }
 }
