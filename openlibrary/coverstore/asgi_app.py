@@ -69,8 +69,10 @@ def create_app(configfile: str | None = None) -> FastAPI:
         max_age=3600 * 24,
     )
 
-    # Needed so request.url.scheme reflects the nginx X-Forwarded-Proto, which the
-    # archive.org redirect URLs are built from.
+    # nginx terminates TLS and proxies to us over plain http, so without this
+    # request.url.scheme is http and the archive.org redirects go out as http://
+    # links that a browser on an https page blocks. Requires covers_nginx.conf to
+    # send X-Forwarded-Proto.
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
     Instrumentator(

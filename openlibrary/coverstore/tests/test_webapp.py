@@ -144,6 +144,38 @@ class TestCoverRouting:
         assert client.served["default"] == "false"
 
 
+class TestProxyScheme:
+    """nginx terminates TLS and proxies to us over plain http. The archive.org
+    redirects are built from request.url.scheme, so if the scheme doesn't survive the
+    proxy hop we hand browsers an http:// URL from an https page and they block it as
+    mixed content. This is why covers_nginx.conf must send X-Forwarded-Proto."""
+
+    @pytest.fixture
+    def client(self, monkeypatch):
+        from openlibrary.coverstore import config
+        from openlibrary.coverstore.asgi_app import create_app
+
+        monkeypatch.setattr(config, "max_coveritem_index", 100, raising=False)
+        monkeypatch.setattr(code.db, "details", lambda i: None)
+        return TestClient(create_app())
+
+    @pytest.mark.parametrize(
+        ("headers", "expected"),
+        [
+            ({"X-Forwarded-Proto": "https"}, "https://"),
+            ({"X-Forwarded-Proto": "http"}, "http://"),
+            ({}, "http://"),
+            # X-Scheme was web.py's spelling and is no longer honoured; covers_nginx.conf
+            # still sends it alongside X-Forwarded-Proto so a rollback to web.py works.
+            ({"X-Scheme": "https"}, "http://"),
+        ],
+    )
+    def test_cluster_redirect_scheme(self, client, headers, expected):
+        r = client.get("/b/id/240727-L.jpg", headers=headers, follow_redirects=False)
+        assert r.status_code == 302
+        assert r.headers["location"].startswith(expected), r.headers["location"]
+
+
 class TestHeadAndOptions:
     """web.py's handle_class mapped HEAD onto GET, and CORSProcessor(cors_everything=True)
     answered every OPTIONS and stamped every response. FastAPI does neither by default."""
