@@ -23,7 +23,6 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from infogami.utils.view import public
-
 from openlibrary.core import cache
 from openlibrary.utils import dateutil
 
