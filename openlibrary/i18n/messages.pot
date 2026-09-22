@@ -4780,11 +4780,15 @@ msgid "reverted"
 msgstr ""
 
 #: librarians/batch.html.jinja librarians/workbench.html.jinja
-msgid "Apply"
+msgid "Resolve"
 msgstr ""
 
 #: librarians/batch.html.jinja librarians/workbench.html.jinja
 msgid "Decline"
+msgstr ""
+
+#: librarians/batch.html.jinja
+msgid "Review and apply…"
 msgstr ""
 
 #: librarians/batch.html.jinja
@@ -5036,6 +5040,16 @@ msgid "Nothing is written until you preview and apply."
 msgstr ""
 
 #: librarians/workbench.html.jinja
+#, python-format
+msgid "Each field is its own batch: %(count)s to preview."
+msgstr ""
+
+#: librarians/workbench.html.jinja
+#, python-format
+msgid "%(n)s of %(total)s"
+msgstr ""
+
+#: librarians/workbench.html.jinja
 msgid "Discard"
 msgstr ""
 
@@ -5078,6 +5092,10 @@ msgstr ""
 #: librarians/workbench.html.jinja
 #, python-format
 msgid "revision %(n)s"
+msgstr ""
+
+#: librarians/workbench.html.jinja
+msgid "Apply"
 msgstr ""
 
 #: librarians/workbench.html.jinja
@@ -5329,6 +5347,10 @@ msgstr ""
 
 #: librarians/workbench.html.jinja
 msgid "Revert anyway"
+msgstr ""
+
+#: librarians/workbench.html.jinja
+msgid "Review…"
 msgstr ""
 
 #: librarians/workbench.html.jinja

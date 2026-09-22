@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { translate } from './utils/labels.js';
 import { DEFAULT_LABELS, labelsFromElement } from './workbench-labels.js';
 import { api, olid, normalizeKey, keyType } from '../../plugins/openlibrary/js/librarians/api.js';
+import { groupPending, countPending, withoutApplied } from './utils/workbench-pending.js';
 import './OLButton.js';
 import './OlIcon.js';
 import './OlWorkbenchGrid.js';
@@ -13,6 +14,8 @@ import { showToast } from './OlToastRegion.js';
 const TYPES = ['edition', 'work', 'author'];
 const TYPE_LABEL = { edition: 'editions', work: 'works', author: 'authors' };
 const MAX_OPEN = 20;
+// Actions that go through /librarians/batch.json; the server says which are enabled.
+const BATCH_ACTIONS = new Set(['set_author', 'move_editions', 'tag', 'set_field', 'merge_editions', 'flag', 'delete']);
 
 /**
  * The librarian workbench: worklists on the left, a query bar and a dense
@@ -119,7 +122,7 @@ export class OlWorkbench extends LitElement {
         table.batches th, table.batches td { text-align: left; padding: var(--spacing-xs) var(--spacing-md); border-bottom: var(--border-width) solid var(--color-border-subtle); vertical-align: top; }
         table.batches th { font-size: var(--font-size-label-small); text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-secondary); }
         .status { display: inline-block; padding: 0 var(--spacing-xs); border-radius: var(--border-radius-sm); background: var(--color-surface-sunken); font-size: var(--font-size-label-small); font-weight: var(--font-weight-semibold); text-transform: capitalize; }
-        .status[data-s="applied"] { background: var(--color-success-bg); color: var(--color-success-fg); }
+        .status[data-s="applied"], .status[data-s="resolved"] { background: var(--color-success-bg); color: var(--color-success-fg); }
         .status[data-s="requested"] { background: var(--color-info-bg); color: var(--color-info-fg); }
         .status[data-s="declined"], .status[data-s="failed"] { background: var(--color-error-bg); color: var(--color-error-fg); }
         .bacts { display: flex; gap: var(--spacing-2xs); }
@@ -463,6 +466,7 @@ export class OlWorkbench extends LitElement {
         const max = this._config?.max_batch || 200;
         const tooMany = n > max;
         const gate = (ok, reason) => (tooMany ? this.t('tooMany', { max }) : ok ? '' : reason);
+        const enabled = new Set((this._config?.actions || []).map((a) => a.name));
         const list = [
             { id: 'set_author', label: 'setAuthor', reason: gate(n > 0 && !types.has('author'), this.t('needsWorks')) },
             { id: 'move_editions', label: 'moveEditions', reason: gate(only('edition'), this.t('needsEditions')) },
@@ -475,7 +479,7 @@ export class OlWorkbench extends LitElement {
             { id: 'flag', label: 'flag', reason: gate(n > 0, '') },
             { id: 'delete', label: 'deleteRecords', reason: this.canApply ? gate(n > 0, '') : this.t('superOnly') },
         ];
-        return list;
+        return list.filter((a) => !BATCH_ACTIONS.has(a.id) || enabled.has(a.id));
     }
 
     async openAction(id) {
@@ -533,8 +537,10 @@ export class OlWorkbench extends LitElement {
         if (this._result) {
             this._result = { ...this._result, records: this._result.records.map((r) => (keys.has(r.key) ? { ...r, touched: true } : r)) };
         }
-        for (const k of keys) delete this._pending[k];
-        this._pending = { ...this._pending };
+        // Only the field this batch wrote is done; other staged edits wait for their own preview.
+        this._pending = withoutApplied(this._pending, [...keys], e.detail.action, e.detail.params);
+        this._pendingAdvance = this._pendingFlow && countPending(this._pending) > 0;
+        this._pendingFlow = false;
         if (e.detail.status === 'applied') {
             this.clearSelection();
             this.renderRoot.querySelector('ol-record-panel')?.refresh();
@@ -542,6 +548,14 @@ export class OlWorkbench extends LitElement {
             setTimeout(() => this.run(), 800);
         }
         if (this._tab === 'batches') this.loadBatches();
+    }
+
+    onBatchClosed() {
+        // The next staged field gets its own preview once this one's dialog is gone.
+        const next = this._pendingAdvance;
+        this._pendingAdvance = false;
+        this._pendingFlow = false;
+        if (next) this.previewPending();
     }
 
     // ── Pending field edits ──────────────────────────────────────
@@ -556,36 +570,29 @@ export class OlWorkbench extends LitElement {
     }
 
     get pendingCount() {
-        return Object.values(this._pending).reduce((n, f) => n + Object.keys(f).length, 0);
+        return countPending(this._pending);
     }
 
-    /** Group staged edits by (field, value) so each becomes one set_field batch. */
+    /** Staged edits grouped by (field, value); each group is one set_field batch. */
     get pendingGroups() {
-        const groups = new Map();
-        for (const [key, fields] of Object.entries(this._pending)) {
-            for (const [field, value] of Object.entries(fields)) {
-                const id = `${field}\u0000${JSON.stringify(value)}`;
-                if (!groups.has(id)) groups.set(id, { field, value, keys: [] });
-                groups.get(id).keys.push(key);
-            }
-        }
-        return [...groups.values()];
+        return groupPending(this._pending);
     }
 
+    /** Preview the first staged group; the rest follow one by one as each dialog closes. */
     previewPending() {
         const groups = this.pendingGroups;
         if (!groups.length) return;
-        const [g, ...rest] = groups;
+        const g = groups[0];
         const records = g.keys.map((k) => this.records.find((r) => r.key === k) || { key: k, type: this._type, title: olid(k) });
         const kind = this._config?.settable_fields?.[this._type]?.[g.field];
+        this._pendingFlow = true;
         this.preview.show({
             action: 'set_field',
             items: records.map((r) => ({ key: r.key, expected_revision: r.revision ?? null })),
             params: { field: g.field, value: kind === 'int' ? Number(g.value) : g.value, mode: 'set' },
             records,
-            title: `${this.t('setField').replace(/…$/, '')}: ${g.field.replace(/_/g, ' ')}`,
+            title: `${this.t('setField').replace(/…$/, '')}: ${g.field.replace(/_/g, ' ')}${groups.length > 1 ? ` · ${this.t('groupOf', { n: 1, total: groups.length })}` : ''}`,
         });
-        this._pendingQueue = rest.length;
     }
 
     discardPending() {
@@ -609,28 +616,23 @@ export class OlWorkbench extends LitElement {
         if (tab === 'batches') this.loadBatches();
     }
 
+    /** A request is applied through the preview dialog, so the reviewer sees the plan as it is now. */
+    reviewRequest(b) {
+        this.preview.show({ mode: 'review', requestId: b.id, title: `${this.t('requestNumber', { id: b.id })} · ${b.summary || b.action}`, records: [] });
+    }
+
     async batchDo(b, what, force = false) {
         try {
-            if (what === 'apply') await api.requestApply(b.id, null, []);
-            else if (what === 'decline') await api.requestDecline(b.id, null);
+            if (what === 'decline') await api.requestDecline(b.id, null);
+            else if (what === 'resolve') await api.requestResolve(b.id, null);
             else if (what === 'revert') await api.batchRevert(b.id, null, force);
             await this.loadBatches();
         } catch (e) {
-            if (what === 'revert' && e.status === 409 && e.detail?.moved && window.confirm(`${this.t('revertMoved')} ${this.t('forceRevert')}?`)) {
-                return this.batchDo(b, 'revert', true);
-            }
-            if (what === 'apply' && e.status === 409 && e.detail?.warnings) {
-                const blocks = e.detail.warnings.filter((w) => w.level === 'block');
-                if (blocks.length && window.confirm(`${blocks.map((w) => w.text).join('\n')}\n\n${this.t('override')}?`)) {
-                    try {
-                        await api.requestApply(b.id, null, blocks.map((w) => w.code));
-                        await this.loadBatches();
-                        return;
-                    } catch (err) {
-                        showToast(this.t('error', { error: err.message }), { variant: 'error' });
-                        return;
-                    }
-                }
+            if (what === 'revert' && e.status === 409 && e.detail?.moved) {
+                // Only a super-librarian may revert over later edits, and only on purpose.
+                if (this.canApply && window.confirm(`${this.t('revertMoved')} ${this.t('forceRevert')}?`)) return this.batchDo(b, 'revert', true);
+                showToast(this.t('revertMoved'), { variant: 'error' });
+                return;
             }
             showToast(this.t('error', { error: e.message }), { variant: 'error' });
         }
@@ -716,7 +718,7 @@ export class OlWorkbench extends LitElement {
                 <div class="bar pending">
                     <ol-icon name="pencil" size="sm"></ol-icon>
                     <b>${this.t('pendingChanges', { count: pending })}</b>
-                    <span class="hint">${this.t('pendingNote')}</span>
+                    <span class="hint">${this.t('pendingNote')} ${this.t('pendingGroups', { count: this.pendingGroups.length })}</span>
                     <span class="sp"></span>
                     <ol-button size="small" variant="ghost" @click=${this.discardPending}>${this.t('discard')}</ol-button>
                     <ol-button size="small" variant="primary" @click=${this.previewPending}>${this.t('previewChanges')}</ol-button>
@@ -772,7 +774,11 @@ export class OlWorkbench extends LitElement {
                             <td>${b.summary || b.action}<div class="muted">${this.t('by', { username: b.username })} · ${(b.created || '').slice(0, 16).replace('T', ' ')}${b.comment ? html` · ${b.comment}` : nothing}</div></td>
                             <td class="muted">${b.item_count ?? ''}</td>
                             <td><div class="bacts">
-                                ${b.kind === 'request' && b.status === 'requested' && this.canApply ? html`<ol-button size="x-small" variant="primary" @click=${() => this.batchDo(b, 'apply')}>${this.t('applyBatch')}</ol-button><ol-button size="x-small" variant="ghost" @click=${() => this.batchDo(b, 'decline')}>${this.t('decline')}</ol-button>` : nothing}
+                                ${b.kind === 'request' && b.status === 'requested' && this.canApply ? html`
+                                    ${b.action === 'flag'
+        ? html`<ol-button size="x-small" variant="primary" @click=${() => this.batchDo(b, 'resolve')}>${this.t('resolve')}</ol-button>`
+        : html`<ol-button size="x-small" variant="primary" @click=${() => this.reviewRequest(b)}>${this.t('reviewRequest')}</ol-button>`}
+                                    <ol-button size="x-small" variant="ghost" @click=${() => this.batchDo(b, 'decline')}>${this.t('decline')}</ol-button>` : nothing}
                                 ${b.kind === 'batch' && (b.status === 'applied' || b.status === 'partially_reverted') && (this.canApply || b.username === this.username) ? html`<ol-button size="x-small" variant="secondary" @click=${() => this.batchDo(b, 'revert')}>${this.t('revert')}</ol-button>` : nothing}
                             </div></td>
                         </tr>`)}</tbody>
@@ -790,6 +796,7 @@ export class OlWorkbench extends LitElement {
                         <button class="tab" role="tab" aria-selected=${this._tab === 'records' ? 'true' : 'false'} @click=${() => this.setTab('records')}>${this.t('records')}</button>
                         <button class="tab" role="tab" aria-selected=${this._tab === 'batches' ? 'true' : 'false'} @click=${() => this.setTab('batches')}>${this.t('batches')}${pendingQueue ? html` <span class="badge">${pendingQueue}</span>` : nothing}</button>
                         <a class="tab" href="/merges">${this.t('queue')}</a>
+                        <a class="tab" href="/librarians/workbench/help">${this.t('help')}</a>
                     </div>
                 </div>
                 <div class="r"></div>
@@ -806,7 +813,7 @@ export class OlWorkbench extends LitElement {
                         @ol-panel-close=${() => { this._panelKey = ''; }}></ol-record-panel>` : nothing}
             </div>
             <ol-workbench-action-form .config=${this._config || {}} username=${this.username} .labels=${this.labels} @ol-action-submit=${this.onActionSubmit} @ol-action-list=${this.onActionList}></ol-workbench-action-form>
-            <ol-batch-preview ?can-apply=${this.canApply} .labels=${this.labels} @ol-batch-applied=${this.onBatchApplied}></ol-batch-preview>`;
+            <ol-batch-preview ?can-apply=${this.canApply} .labels=${this.labels} @ol-batch-applied=${this.onBatchApplied} @ol-batch-closed=${this.onBatchClosed}></ol-batch-preview>`;
     }
 }
 

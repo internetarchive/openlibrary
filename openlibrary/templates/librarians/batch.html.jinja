@@ -87,10 +87,19 @@
             </li>
         {% endfor %}
     </ul>
+    {% set is_flag = batch.action == "flag" %}
+    {% set reviewable = is_request and status == "requested" and is_super %}
     <div class="librarian-batch__actions">
-        {% if is_request and status == "requested" and is_super %}
-            <ol-button variant="primary" data-action="/apply.json">
-                {{ _("Apply") }}
+        {% if reviewable and is_flag %}
+            <ol-button variant="primary" data-action="/resolve.json">
+                {{ _("Resolve") }}
+            </ol-button>
+            <ol-button variant="secondary" data-action="/decline.json">
+                {{ _("Decline") }}
+            </ol-button>
+        {% elif reviewable %}
+            <ol-button variant="primary" data-review>
+                {{ _("Review and apply…") }}
             </ol-button>
             <ol-button variant="secondary" data-action="/decline.json">
                 {{ _("Decline") }}
@@ -102,8 +111,14 @@
         {% endif %}
         <span class="librarian-batch__result" role="status"></span>
     </div>
+    {% if reviewable and not is_flag %}
+        {# The reviewer applies through the same preview dialog the workbench uses, against the records as they are now. #}
+        <ol-batch-preview can-apply data-request-id="{{ batch.id }}" data-title="{{ _('Request #%(id)s', id=batch.id) }}" data-records='{{ batch['items'] | tojson }}'>
+        </ol-batch-preview>
+    {% endif %}
     <script>
-        // Each button POSTs to the record's JSON endpoint; the page reloads to show the new status.
+        // Decision buttons POST to the record's JSON endpoint; "Review and apply" opens the
+        // preview dialog instead. Either way the page reloads to show the new status.
         (function () {
             var root = document.querySelector('.librarian-batch');
             var out = root.querySelector('.librarian-batch__result');
@@ -119,6 +134,20 @@
                     });
                 });
             });
+            var review = root.querySelector('[data-review]');
+            var preview = root.querySelector('ol-batch-preview');
+            if (review && preview) {
+                var types = { works: 'work', books: 'edition', authors: 'author' };
+                var records = JSON.parse(preview.dataset.records || '[]').map(function (it) {
+                    return { key: it.key, title: it.title, type: types[it.key.split('/')[1]] || 'work' };
+                });
+                review.addEventListener('click', function () {
+                    preview.show({ mode: 'review', requestId: Number(preview.dataset.requestId), title: preview.dataset.title, records: records });
+                });
+                preview.addEventListener('ol-batch-closed', function (e) {
+                    if (e.detail && e.detail.applied) location.reload();
+                });
+            }
         })();
     </script>
 </div>

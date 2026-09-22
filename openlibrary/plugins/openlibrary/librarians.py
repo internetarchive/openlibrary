@@ -1,5 +1,8 @@
-"""Librarian tool pages: the workbench, an applied batch, and the review page a
-queued request links to. JSON lives in openlibrary/fastapi/librarians.py.
+"""Librarian tool pages: the workbench and its help page, an applied batch, and
+the review page a queued request links to. JSON lives in openlibrary/fastapi/librarians.py.
+
+Any librarian may use these pages; the JSON endpoints enforce that only a
+super-librarian applies, declines or resolves a request.
 """
 
 from infogami.utils import delegate
@@ -26,6 +29,15 @@ class librarians_workbench(delegate.page):
             username=user.key.split("/")[-1],
             is_super=bool(user.is_super_librarian_or_higher()),
         )
+
+
+class librarians_workbench_help(delegate.page):
+    path = "/librarians/workbench/help"
+
+    def GET(self):
+        if not _librarian():
+            return render_template("permission_denied", "/librarians/workbench/help", "Librarians only")
+        return render_template("librarians/page", "librarians/help.html.jinja")
 
 
 def _record_page(kind, record_id, loader):

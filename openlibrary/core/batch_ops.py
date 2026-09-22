@@ -115,6 +115,24 @@ def _title(doc: dict[str, Any]) -> str:
     return doc.get("title") or doc.get("name") or olid(doc["key"])
 
 
+def _work_author_entries(doc: dict[str, Any], after: list[str], replaced: str | None = None, replacement: str | None = None) -> list[dict[str, Any]]:
+    """Author entries for a work in the order of ``after``. An author already on
+    the work keeps its entry (role, ``as``…); a replacement inherits the entry of
+    the author it replaces; anyone new gets a plain author-role entry."""
+    existing: dict[str, dict[str, Any]] = {}
+    for entry in doc.get("authors") or []:
+        if isinstance(entry, dict):
+            for k in ref_keys([entry]):
+                existing.setdefault(k, entry)
+    out = []
+    for k in after:
+        src = existing.get(k)
+        if src is None and replaced and k == replacement:
+            src = existing.get(replaced)
+        out.append({**src, "author": {"key": k}} if src else {"author": {"key": k}, "type": AUTHOR_ROLE})
+    return out
+
+
 def _load_target(value: str | None, want: str, label: str) -> dict[str, Any]:
     key = normalize_key(value or "")
     if not key:
@@ -257,7 +275,7 @@ class SetAuthorAction(Action):
                 continue
             new_doc = dict(doc)
             if rtype == "work":
-                new_doc["authors"] = [{"author": {"key": k}, "type": AUTHOR_ROLE} for k in after]
+                new_doc["authors"] = _work_author_entries(doc, after, replaced=replace if mode == "replace" else None, replacement=akey)
                 works += 1
             else:
                 new_doc["authors"] = [{"key": k} for k in after]
@@ -409,22 +427,42 @@ class SetFieldAction(Action):
         value = params.get("value")
         mode = params.get("mode") or "set"
         plan = Plan()
-        for key, doc in docs.items():
+        kind = "str"
+        for key in docs:
             rtype = key_type(key)
             kinds = SETTABLE_FIELDS.get(rtype or "work", {})
             if fld not in kinds:
                 raise BatchError(f"Field {fld!r} cannot be set on {rtype}s.")
             kind = kinds[fld]
+        # Validate the value once, at preview time, so a bad one is a readable 400
+        # rather than a stack trace or a save-time "notfound".
+        label = fld.replace("_", " ")
+        vals = [str(v).strip() for v in (value if isinstance(value, list) else [value]) if v is not None and str(v).strip()]
+        number = 0
+        refs: list[dict[str, str]] = []
+        if kind in ("list", "keys") and not vals:
+            raise BatchError(f"A value for {label} is required.")
+        if kind == "int":
+            try:
+                number = int(str(value).strip())
+            except TypeError, ValueError:
+                raise BatchError(f"{label} must be a whole number, not {value!r}.") from None
+            if number < 0:
+                raise BatchError(f"{label} cannot be negative.")
+        if kind == "keys":
+            refs = [{"key": v if v.startswith("/") else f"/languages/{v}"} for v in vals]
+            _found, _resolved, missing = load_docs([r["key"] for r in refs])
+            if missing:
+                codes = ", ".join(olid(m) for m in missing)
+                raise BatchError(f"Unknown language code{'s' if len(missing) > 1 else ''}: {codes}. Use a MARC code such as eng, fre or spa.")
+        for key, doc in docs.items():
             before = doc.get(fld)
             if kind == "list":
-                vals = value if isinstance(value, list) else [value]
                 after = uniq(list(before or []) + vals) if mode == "append" else uniq(vals)
             elif kind == "keys":
-                vals = value if isinstance(value, list) else [value]
-                refs = [{"key": v if str(v).startswith("/") else f"/languages/{v}"} for v in vals]
                 after = uniq(list(before or []) + refs, key=lambda r: r["key"]) if mode == "append" else refs
             elif kind == "int":
-                after = int(value)
+                after = number
             else:
                 after = str(value or "").strip()
             if after == before:
@@ -509,7 +547,10 @@ ACTIONS: dict[str, Action] = {
 }
 
 # The endpoint refuses anything not listed here; the workbench offers the same set.
-ENABLED_ACTIONS: frozenset[str] = frozenset(ACTIONS)
+# Alpha phase A leaves out the two actions with no precedent on the site (merging
+# editions) or the widest blast radius (delete); phase B adds them back.
+PHASE_B_ACTIONS: frozenset[str] = frozenset({"merge_editions", "delete"})
+ENABLED_ACTIONS: frozenset[str] = frozenset(ACTIONS) - PHASE_B_ACTIONS
 
 
 # ── Orchestration ────────────────────────────────────────────────────
@@ -570,7 +611,8 @@ def _public_plan(plan: Plan) -> dict[str, Any]:
 def _stored_items(docs: dict[str, dict[str, Any]], creates: list[str]) -> list[dict[str, Any]]:
     """What a request remembers per record: key, pre-batch revision, and a title for listings."""
     items = [{"key": k, "before_revision": d.get("revision"), "title": _title(d)} for k, d in docs.items()]
-    return items + [{"key": k, "before_revision": 0} for k in creates]
+    # A request's "new work" is still the placeholder key; it gets a real key on apply.
+    return items + [{"key": k, "before_revision": 0} for k in creates if k != NEW_WORK_KEY]
 
 
 def run(
@@ -584,11 +626,14 @@ def run(
 ) -> dict[str, Any]:
     params = params or {}
     overrides = list(overrides or [])
-    ctx = Ctx(username=user.key.split("/")[-1], is_super=bool(user.is_super_librarian_or_higher()), dry_run=dry_run)
+    is_super = bool(user.is_super_librarian_or_higher())
+    mode = "request" if (action == "flag" or not is_super) else "apply"
+    # A request writes nothing, so it plans like a dry run: no key is minted for a
+    # "new work" until a super-librarian applies it.
+    ctx = Ctx(username=user.key.split("/")[-1], is_super=is_super, dry_run=dry_run or mode == "request")
     act, docs, plan, warnings, resolved = _prepare(action, items, params, ctx)
 
     blocks = [w for w in warnings if w["level"] == "block" and w["code"] not in overrides]
-    mode = "request" if (act.name == "flag" or not ctx.is_super) else "apply"
     # A request may carry unacknowledged blocks: the super-librarian who applies
     # it sees them again and must acknowledge them then.
     can_apply = mode == "request" or not blocks
@@ -702,21 +747,70 @@ def _requested(request_id: int) -> dict[str, Any]:
     return req
 
 
+CHANGED_SINCE = "changed_since_request"
+
+
+def _request_plan(req: dict[str, Any], ctx: Ctx) -> tuple[Action, dict[str, dict[str, Any]], Plan, list[dict[str, Any]]]:
+    """Rebuild a request's plan against the records as they are now. A record
+    edited since the request was filed is a block, so the reviewer acknowledges
+    that the plan they see is not the one the requester saw."""
+    expected = {it["key"]: it["before_revision"] for it in req["items"] if it.get("before_revision")}
+    act, docs, plan, warnings, resolved = _prepare(req["action"], [{"key": k} for k in expected], req["params"], ctx)
+    for key, rev in expected.items():
+        rk = resolved.get(key, key)
+        now = (docs.get(rk) or {}).get("revision")
+        if now is not None and now != rev:
+            warnings.append(
+                _warn("block", CHANGED_SINCE, f"{olid(rk)} was edited after this request (revision {rev} → {now}); check the changes still make sense.", key=rk)
+            )
+    return act, docs, plan, warnings
+
+
+def _reviewer(user: Any, dry_run: bool) -> Ctx:
+    ctx = Ctx(username=user.key.split("/")[-1], is_super=bool(user.is_super_librarian_or_higher()), dry_run=dry_run)
+    if not ctx.is_super:
+        raise BatchError("Only super-librarians can review requested batches.", 403)
+    return ctx
+
+
+def preview_requested(user: Any, request_id: int) -> dict[str, Any]:
+    """What applying the request would do *now*, in the shape of a dry run, so the
+    reviewer sees the current plan rather than the one stored at request time."""
+    req = _requested(request_id)
+    ctx = _reviewer(user, dry_run=True)
+    if req["action"] == "flag":
+        raise BatchError("A flag is a report, not an edit; resolve or decline it.", 400)
+    act, docs, plan, warnings = _request_plan(req, ctx)
+    overrides = list(req["overrides"])
+    blocks = [w for w in warnings if w["level"] == "block" and w["code"] not in overrides]
+    return {
+        "action": req["action"],
+        "label": act.label,
+        "mode": "apply",
+        "request_id": request_id,
+        "can_apply": not blocks and bool(plan.docs),
+        "overrides": overrides,
+        "revisions": {k: d.get("revision") for k, d in docs.items()},
+        "warnings": warnings,
+        **_public_plan(plan),
+    }
+
+
 def apply_requested(user: Any, request_id: int, comment: str | None = None, overrides: list[str] | None = None) -> dict[str, Any]:
     """A super-librarian applies a librarian's request. The plan is rebuilt
-    against current records, and blocks must be acknowledged by the applier."""
+    against current records, and blocks (including records edited since the
+    request) must be acknowledged by the applier."""
     req = _requested(request_id)
-    ctx = Ctx(username=user.key.split("/")[-1], is_super=bool(user.is_super_librarian_or_higher()), dry_run=False)
-    if not ctx.is_super:
-        raise BatchError("Only super-librarians can apply requested batches.", 403)
+    ctx = _reviewer(user, dry_run=False)
     if req["action"] == "flag":
-        raise BatchError("A flag is a report, not an edit; act on it with delete or merge.", 400)
-    items = [{"key": it["key"]} for it in req["items"] if it.get("before_revision")]
-    act, docs, plan, warnings, _resolved = _prepare(req["action"], items, req["params"], ctx)
+        raise BatchError("A flag is a report, not an edit; resolve or decline it.", 400)
+    act, docs, plan, warnings = _request_plan(req, ctx)
     overrides = uniq(list(req["overrides"]) + list(overrides or []))
     blocks = [w for w in warnings if w["level"] == "block" and w["code"] not in overrides]
     if blocks:
         raise BatchError("The batch has blocking warnings; acknowledge them to apply.", 409, warnings=warnings)
+    if not plan.docs:
+        raise BatchError("Nothing would change any more; the records may already have been fixed. Decline the request instead.", 409, warnings=warnings)
     return _apply(
         ctx,
         act,
@@ -733,20 +827,34 @@ def apply_requested(user: Any, request_id: int, comment: str | None = None, over
 
 
 def decline_requested(user: Any, request_id: int, comment: str | None = None) -> dict[str, Any]:
-    if not user.is_super_librarian_or_higher():
-        raise BatchError("Only super-librarians can decline requested batches.", 403)
+    ctx = _reviewer(user, dry_run=False)
     req = _requested(request_id)
     librarian_batches.update_request(request_id, status="declined", decline_comment=comment)
     if req["mrid"]:
-        CommunityEditsQueue.update_request_status(req["mrid"], CommunityEditsQueue.STATUS["DECLINED"], user.key.split("/")[-1], comment=comment)
+        CommunityEditsQueue.update_request_status(req["mrid"], CommunityEditsQueue.STATUS["DECLINED"], ctx.username, comment=comment)
     return {"status": "declined", "request_id": request_id}
+
+
+def resolve_requested(user: Any, request_id: int, comment: str | None = None) -> dict[str, Any]:
+    """Close a flag as acted on. A flag writes nothing, so "resolved" (not
+    "applied") is its good outcome; "declined" stays for reports that were wrong."""
+    ctx = _reviewer(user, dry_run=False)
+    req = _requested(request_id)
+    if req["action"] != "flag":
+        raise BatchError("Only a flag can be resolved; apply or decline an edit request.", 400)
+    librarian_batches.update_request(request_id, status="resolved", resolve_comment=comment)
+    if req["mrid"]:
+        CommunityEditsQueue.update_request_status(req["mrid"], CommunityEditsQueue.STATUS["MERGED"], ctx.username, comment=comment)
+    stats.increment("ol.librarians.batch.flag.resolved")
+    return {"status": "resolved", "request_id": request_id}
 
 
 def revert(user: Any, batch_id: int, key: str | None = None, force: bool = False) -> dict[str, Any]:
     """Restore every record the batch touched (or one of them) to its pre-batch revision.
 
     A record edited again since the batch is left alone (409 with ``moved``)
-    unless ``force`` is set, so an undo never silently discards someone's later work.
+    unless a super-librarian sets ``force``, so an undo never silently discards
+    someone's later work.
     The revert is its own changeset, linked to the batch through ``parent_changeset``."""
     batch = librarian_batches.get_batch(batch_id)
     if not batch:
@@ -755,6 +863,8 @@ def revert(user: Any, batch_id: int, key: str | None = None, force: bool = False
         raise BatchError(f"Batch is {batch['status']}; only applied batches can be reverted.", 409)
     if not (user.is_super_librarian_or_higher() or user.key.split("/")[-1] == batch["username"]):
         raise BatchError("Only the batch's author or a super-librarian can revert it.", 403)
+    if force and not user.is_super_librarian_or_higher():
+        raise BatchError("Only a super-librarian can revert over edits made since the batch.", 403)
     items = [it for it in batch["items"] if not it["reverted"]]
     if key:
         nk = normalize_key(key)

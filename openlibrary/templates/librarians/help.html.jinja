@@ -1,0 +1,63 @@
+{# /librarians/workbench/help — what the workbench does, what it does not, and how to undo. Plain language for the alpha. #}
+<div id="contentHead">
+    <h1>{{ _("Librarian workbench: how it works") }}</h1>
+    <p class="librarian-batch__meta">
+        <a href="/librarians/workbench">{{ _("Open the workbench") }}</a>
+        · {{ _("The workbench is new and being tried by a few librarians first; please report anything odd.") }}
+    </p>
+</div>
+<div id="contentBody" class="librarian-help">
+    <h2>{{ _("The loop") }}</h2>
+    <ol>
+        <li>{{ _("Find: pick a worklist such as “Editions without a language”, or write a search. Each row flags what looks wrong.") }}</li>
+        <li>{{ _("Select: tick boxes, shift-click a range, or use the keyboard (j/k move, x select, a whole page, Enter opens the panel).") }}</li>
+        <li>{{ _("Preview: choose an action. The dialog lists every change on every record, plus what the checks found. Nothing is written yet.") }}</li>
+        <li>{{ _("Apply or request: super-librarians apply. Librarians request, and the batch waits in the merge queue for a super-librarian.") }}</li>
+        <li>{{ _("Undo: every applied batch has its own page and can be reverted as a whole or one record at a time, from the Batches tab.") }}</li>
+    </ol>
+    <h2>{{ _("Things to know") }}</h2>
+    <ul>
+        <li>{{ _("It is a desktop tool. Use a wide window.") }}</li>
+        <li>{{ _("A batch is at most 200 records.") }}</li>
+        <li>{{ _("Filters marked “on this page” only look at the rows you fetched, so a count of zero does not mean there are none. Page through a broader worklist to find them all.") }}</li>
+        <li>{{ _("Blocked warnings must be ticked “I’ve checked this” before a batch can go ahead. Take them seriously: they mean the records may not be what they look like.") }}</li>
+        <li>{{ _("Field edits in the side panel are staged, not saved. Each field is previewed and applied as its own batch.") }}</li>
+        <li>{{ _("A flag files a report for a super-librarian. It changes nothing by itself.") }}</li>
+        <li>{{ _("Search may lag a few minutes after an apply. Rows you touched stay tinted until you reload.") }}</li>
+        <li>{{ _("A revert refuses to overwrite a record someone edited after the batch. Only a super-librarian can force it.") }}</li>
+        <li>{{ _("If something looks wrong, revert first and report second. Every batch has a page you can link to.") }}</li>
+    </ul>
+    <h2>{{ _("Actions") }}</h2>
+    <dl>
+        <dt>{{ _("Set a field") }}</dt>
+        <dd>
+            {{ _("One field (publisher, date, places, language, format, page count, edition name, series) on each selected edition, or original language on works. Titles and author links have their own actions.") }}
+        </dd>
+        <dt>{{ _("Manage subjects") }}</dt>
+        <dd>
+            {{ _("Add or remove subjects, people, places and times on works. Selected editions count as their work.") }}
+        </dd>
+        <dt>{{ _("Set author") }}</dt>
+        <dd>
+            {{ _("Add an author, replace one author with another, or make one the only author. “Also update the editions’ authors” keeps edition records in step.") }}
+        </dd>
+        <dt>{{ _("Move editions") }}</dt>
+        <dd>
+            {{ _("Point editions at another work, or at a new work made from the first edition’s title, authors and cover. You are warned if the old work would be left empty.") }}
+        </dd>
+        <dt>{{ _("Flag for review") }}</dt>
+        <dd>
+            {{ _("Report records as spam, not a book, duplicates, or needing deletion or review. A super-librarian resolves or declines the report.") }}
+        </dd>
+        <dt>{{ _("Merge works, Merge authors") }}</dt>
+        <dd>
+            {{ _("The workbench runs the checks and then opens the existing merge page; the merge itself happens there.") }}
+        </dd>
+        <dt>{{ _("Merge editions, Delete") }}</dt>
+        <dd>
+            {{ _("Not enabled in this phase of the alpha.") }}
+        </dd>
+    </dl>
+    <h2>{{ _("Reporting problems") }}</h2>
+    <p>{{ _("Post in #open-librarians-g on Slack or comment on the workbench issue on GitHub, with the batch or request link.") }}</p>
+</div>

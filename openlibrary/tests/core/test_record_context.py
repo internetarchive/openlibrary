@@ -67,6 +67,8 @@ def fake_site(monkeypatch):
     monkeypatch.setattr(rc, "_solr_doc", lambda key, fields: {})
     monkeypatch.setattr(rc, "_lists_count", lambda key: 0)
     monkeypatch.setattr(rc, "_readinglog_count", lambda key: 0)
+    monkeypatch.setattr(rc, "_readinglog_counts", lambda keys: {})
+    monkeypatch.setattr(rc, "_editions_of", lambda key: [])
     return s
 
 
@@ -144,3 +146,37 @@ def test_parse_source():
     assert rc.parse_source("bwb:9780000000000") == ("bwb", "Better World Books")
     assert rc.parse_source("marc:marc_loc_2016/BooksAll.2016.part01.utf8:1234") == ("marc", "MARC record")
     assert rc.parse_source("ia:shiloh00nayl") == ("ia", "Internet Archive")
+
+
+def test_delete_checks_what_would_be_left_dangling(monkeypatch):
+    counts = {"/authors/OL1A": {"work_count": 3}, "/works/OL1W": {"edition_count": 2}}
+    monkeypatch.setattr(rc, "_solr_doc", lambda key, fields: counts.get(key, {}))
+    docs = {AUTHOR1["key"]: AUTHOR1, WORK["key"]: WORK}
+    by_code = {w["code"]: w for w in rc.checks_for("delete", docs, {})}
+    assert by_code["author_has_works"]["level"] == "block"
+    assert "3 works" in by_code["author_has_works"]["text"]
+    assert by_code["orphans_editions"]["level"] == "warn"
+    assert "2 editions" in by_code["orphans_editions"]["text"]
+    # Deleting the editions along with the work leaves nothing orphaned.
+    assert "orphans_editions" not in {w["code"] for w in rc.checks_for("delete", docs, {"include_editions": True})}
+    # A flag is a report: nothing dangles.
+    assert not {"author_has_works", "orphans_editions"} & {w["code"] for w in rc.checks_for("flag", docs, {})}
+
+
+def test_reading_log_counts_are_fetched_once_for_the_batch(monkeypatch):
+    seen = []
+    monkeypatch.setattr(rc, "_readinglog_counts", lambda keys: seen.append(sorted(keys)) or {"/works/OL1W": 30, "/works/OL2W": 2})
+    by_key = {(w["key"], w["code"]): w for w in rc.check_flag_or_delete({WORK["key"]: WORK, WORK2["key"]: WORK2}, "flag")}
+    assert seen == [["/works/OL1W", "/works/OL2W"]]
+    assert by_key[("/works/OL1W", "in_reading_logs")]["level"] == "block"
+    assert by_key[("/works/OL2W", "in_reading_logs")]["level"] == "warn"
+
+
+def test_move_editions_warns_when_the_source_work_would_be_emptied(monkeypatch):
+    monkeypatch.setattr(rc, "_editions_of", lambda key: ["/books/OL1M"])
+    codes = [w["code"] for w in rc.check_move_editions({EDITION["key"]: EDITION}, WORK2)]
+    assert "empties_work" in codes
+    monkeypatch.setattr(rc, "_editions_of", lambda key: ["/books/OL1M", "/books/OL3M"])
+    assert "empties_work" not in [w["code"] for w in rc.check_move_editions({EDITION["key"]: EDITION}, WORK2)]
+    # Moving onto its own work is not a move away.
+    assert "empties_work" not in [w["code"] for w in rc.check_move_editions({EDITION["key"]: EDITION}, WORK)]

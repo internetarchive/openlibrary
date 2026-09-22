@@ -172,6 +172,7 @@ ED2 = {
 }
 AUTHOR = {"key": "/authors/OL1A", "type": {"key": "/type/author"}, "name": "Phyllis Reynolds Naylor", "revision": 1}
 AUTHOR2 = {"key": "/authors/OL2A", "type": {"key": "/type/author"}, "name": "P. R. Naylor", "revision": 1}
+ENGLISH = {"key": "/languages/eng", "type": {"key": "/type/language"}, "name": "English", "revision": 1}
 
 
 def user(is_super=True):
@@ -183,12 +184,13 @@ def user(is_super=True):
 
 @pytest.fixture(autouse=True)
 def fakes(monkeypatch):
-    s = FakeSite([WORK, WORK2, ED1, ED2, AUTHOR, AUTHOR2])
+    s = FakeSite([WORK, WORK2, ED1, ED2, AUTHOR, AUTHOR2, ENGLISH])
     site.set(s)
     monkeypatch.setattr(rc, "wikidata_for", lambda doc: None)
     monkeypatch.setattr(rc, "_solr_doc", lambda key, fields: {})
     monkeypatch.setattr(rc, "_lists_count", lambda key: 0)
     monkeypatch.setattr(rc, "_readinglog_count", lambda key: 0)
+    monkeypatch.setattr(rc, "_readinglog_counts", lambda keys: {})
     monkeypatch.setattr(batch_ops.stats, "increment", lambda *a, **k: None)
     queue = MagicMock()
     queue.TYPE = {"BATCH": 3, "WORK_MERGE": 1, "AUTHOR_MERGE": 2}
@@ -436,3 +438,120 @@ def test_unknown_batch_and_request_ids():
     with pytest.raises(batch_ops.BatchError) as e:
         batch_ops.apply_requested(user(), 999)
     assert e.value.status == 404
+
+
+# ── Alpha hardening ──────────────────────────────────────────────────
+
+
+def test_phase_a_leaves_out_merge_editions_and_delete():
+    assert {"merge_editions", "delete"} == batch_ops.PHASE_B_ACTIONS
+    assert not (batch_ops.ENABLED_ACTIONS & batch_ops.PHASE_B_ACTIONS)
+    assert {"set_field", "tag", "set_author", "move_editions", "flag"} <= batch_ops.ENABLED_ACTIONS
+
+
+def test_set_field_validates_the_value_at_preview():
+    for bad, message in ((("number_of_pages", "abc"), "whole number"), (("number_of_pages", -3), "negative"), (("languages", ["zzq"]), "zzq")):
+        with pytest.raises(batch_ops.BatchError) as e:
+            batch_ops.run(user(), "set_field", [{"key": "OL1M"}], {"field": bad[0], "value": bad[1]}, dry_run=True)
+        assert e.value.status == 400
+        assert message in e.value.message
+    with pytest.raises(batch_ops.BatchError):
+        batch_ops.run(user(), "set_field", [{"key": "OL1M"}], {"field": "publishers", "value": ""}, dry_run=True)
+    ok = batch_ops.run(user(), "set_field", [{"key": "OL1M"}], {"field": "languages", "value": ["eng"]}, dry_run=True)
+    assert ok["changes"][0]["to"] == [{"key": "/languages/eng"}]
+    pages = batch_ops.run(user(), "set_field", [{"key": "OL1M"}], {"field": "number_of_pages", "value": " 144 "}, dry_run=True)
+    assert pages["changes"][0]["to"] == 144
+
+
+def test_set_author_keeps_existing_entries_and_their_roles(fakes):
+    fakes["site"].docs["/works/OL1W"]["authors"] = [{"author": {"key": "/authors/OL1A"}, "type": {"key": "/type/author_role"}, "role": "Editor"}]
+    added = batch_ops.run(user(), "set_author", [{"key": "OL1W"}], {"author": "OL2A", "mode": "add"}, dry_run=True)
+    assert added["changes"][0]["to"] == ["/authors/OL1A", "/authors/OL2A"]
+    saved = batch_ops.run(user(), "set_author", [{"key": "OL1W"}], {"author": "OL2A", "mode": "add"}, dry_run=False)
+    entries = fakes["site"].docs["/works/OL1W"]["authors"]
+    assert entries[0] == {"author": {"key": "/authors/OL1A"}, "type": {"key": "/type/author_role"}, "role": "Editor"}, "the existing entry is kept whole"
+    assert entries[1] == {"author": {"key": "/authors/OL2A"}, "type": batch_ops.AUTHOR_ROLE}
+    batch_ops.revert(user(), saved["batch_id"])
+    # A replacement inherits the entry of the author it replaces.
+    batch_ops.run(user(), "set_author", [{"key": "OL1W"}], {"author": "OL2A", "mode": "replace", "replace": "OL1A"}, dry_run=False)
+    assert fakes["site"].docs["/works/OL1W"]["authors"] == [{"author": {"key": "/authors/OL2A"}, "type": {"key": "/type/author_role"}, "role": "Editor"}]
+
+
+def test_request_to_a_new_work_does_not_store_the_placeholder(fakes):
+    req = batch_ops.run(user(is_super=False), "move_editions", [{"key": "OL1M"}], {"target": "new"}, dry_run=False)
+    stored = librarian_batches.get_request(req["request_id"])
+    assert [it["key"] for it in stored["items"]] == ["/books/OL1M"]
+    assert librarian_batches.open_requests_for_key("/works/new") == []
+    # Applying still mints the real key.
+    out = batch_ops.apply_requested(user(), req["request_id"])
+    assert out["creates"]
+    assert out["creates"][0] != batch_ops.NEW_WORK_KEY
+
+
+def test_force_revert_is_super_librarian_only(fakes):
+    author = user(is_super=False)
+    applied = batch_ops.run(user(), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    fakes["site"].save_many([{**fakes["site"].docs["/works/OL1W"], "title": "Shiloh!"}])
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.revert(author, applied["batch_id"])
+    assert e.value.status == 409
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.revert(author, applied["batch_id"], force=True)
+    assert e.value.status == 403
+    assert batch_ops.revert(user(), applied["batch_id"], force=True)["status"] == "reverted"
+
+
+def test_reviewer_sees_the_current_plan_and_must_acknowledge_edits_since(fakes):
+    req = batch_ops.run(user(is_super=False), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.preview_requested(user(is_super=False), req["request_id"])
+    assert e.value.status == 403
+    fresh = batch_ops.preview_requested(user(), req["request_id"])
+    assert fresh["can_apply"] is True
+    assert fresh["changes"][0]["to"] == ["Dogs", "Virginia"]
+    # Someone edits the work after the request was filed.
+    fakes["site"].save_many([{**fakes["site"].docs["/works/OL1W"], "subjects": ["Dogs", "West Virginia"]}])
+    stale = batch_ops.preview_requested(user(), req["request_id"])
+    block = next(w for w in stale["warnings"] if w["code"] == batch_ops.CHANGED_SINCE)
+    assert block["level"] == "block"
+    assert "revision 2 → 3" in block["text"]
+    assert stale["can_apply"] is False
+    assert stale["changes"][0]["to"] == ["Dogs", "West Virginia", "Virginia"], "the plan is the one against the current record"
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.apply_requested(user(), req["request_id"])
+    assert e.value.status == 409
+    out = batch_ops.apply_requested(user(), req["request_id"], overrides=[batch_ops.CHANGED_SINCE])
+    assert out["status"] == "applied"
+    assert fakes["site"].docs["/works/OL1W"]["subjects"] == ["Dogs", "West Virginia", "Virginia"]
+
+
+def test_apply_requested_refuses_when_nothing_would_change(fakes):
+    req = batch_ops.run(user(is_super=False), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    # The fix lands by hand before the reviewer gets to it.
+    fakes["site"].save_many([{**fakes["site"].docs["/works/OL1W"], "subjects": ["Dogs", "Virginia"]}])
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.apply_requested(user(), req["request_id"], overrides=[batch_ops.CHANGED_SINCE])
+    assert e.value.status == 409
+    assert "Nothing would change" in e.value.message
+    assert librarian_batches.get_request(req["request_id"])["status"] == "requested"
+
+
+def test_a_flag_is_resolved_not_applied(fakes):
+    flag = batch_ops.run(user(is_super=False), "flag", [{"key": "OL1W"}], {"reason": "duplicate"}, dry_run=False)
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.preview_requested(user(), flag["request_id"])
+    assert e.value.status == 400
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.resolve_requested(user(is_super=False), flag["request_id"])
+    assert e.value.status == 403
+    out = batch_ops.resolve_requested(user(), flag["request_id"], comment="merged by hand")
+    assert out["status"] == "resolved"
+    assert librarian_batches.get_request(flag["request_id"])["status"] == "resolved"
+    assert librarian_batches.open_requests_for_key("/works/OL1W") == []
+    assert fakes["queue"].update_request_status.call_args.args[1] == 2, "resolved closes the queue row as merged"
+    assert fakes["site"].saved == [], "a flag never writes"
+    # An edit request cannot be resolved away; it is applied or declined.
+    edit = batch_ops.run(user(is_super=False), "tag", [{"key": "OL2W"}], {"add": {"subjects": ["x"]}}, dry_run=False)
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.resolve_requested(user(), edit["request_id"])
+    assert e.value.status == 400

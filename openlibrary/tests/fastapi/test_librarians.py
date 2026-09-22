@@ -191,3 +191,20 @@ def test_worklist_create_and_delete(fastapi_client, librarian, monkeypatch):
 def test_record_rejects_non_keys(fastapi_client, librarian):
     r = fastapi_client.get("/librarians/workbench/record.json?key=nonsense")
     assert r.status_code == 400
+
+
+def test_config_hides_phase_b_actions(fastapi_client, librarian):
+    names = {a["name"] for a in fastapi_client.get("/librarians/workbench/config.json").json()["actions"]}
+    assert not (names & batch_ops.PHASE_B_ACTIONS)
+    assert fastapi_client.post("/librarians/batch.json", json={"action": "delete", "items": [{"key": "OL1W"}]}).status_code == 400
+
+
+def test_request_preview_and_resolve_routes(fastapi_client, librarian, monkeypatch):
+    seen = {}
+    monkeypatch.setattr(batch_ops, "preview_requested", lambda user, rid: seen.update(preview=rid) or {"action": "tag", "changes": []})
+    monkeypatch.setattr(batch_ops, "resolve_requested", lambda user, rid, comment=None: seen.update(resolve=(rid, comment)) or {"status": "resolved"})
+    assert fastapi_client.get("/librarians/request/4/preview.json").json() == {"action": "tag", "changes": []}
+    assert fastapi_client.post("/librarians/request/4/resolve.json", json={"comment": "done"}).status_code == 200
+    assert seen == {"preview": 4, "resolve": (4, "done")}
+    monkeypatch.setattr(batch_ops, "preview_requested", MagicMock(side_effect=batch_ops.BatchError("A flag is a report", 400)))
+    assert fastapi_client.get("/librarians/request/4/preview.json").status_code == 400

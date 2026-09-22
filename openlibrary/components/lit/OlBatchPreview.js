@@ -23,13 +23,19 @@ const LEVEL_ICON = { block: 'octagon-alert', warn: 'triangle-alert', info: 'info
  * `show({ mode: 'checks', action, items, href })` is the lighter form for the
  * merge pages, which happen elsewhere: it shows the checks and a Continue link.
  *
+ * `show({ mode: 'review', requestId, title, records })` is how a super-librarian
+ * applies a librarian's request: the plan is rebuilt against the records as they
+ * are now (GET /librarians/request/<id>/preview.json), a record edited since the
+ * request is a block to acknowledge, and Apply posts to .../apply.json.
+ *
  * @element ol-batch-preview
  *
  * @prop {Boolean} canApply - Whether the viewer is a super-librarian
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
- * @fires ol-batch-applied - detail: { batch_id, action, status, keys }
+ * @fires ol-batch-applied - detail: { batch_id, action, params, status, keys }
  * @fires ol-batch-reverted - detail: { batch_id }
+ * @fires ol-batch-closed - detail: { applied } after the dialog closes, however it closed
  */
 export class OlBatchPreview extends LitElement {
     static properties = {
@@ -145,6 +151,10 @@ export class OlBatchPreview extends LitElement {
             if (r.mode === 'checks') {
                 const c = await api.checks(r.action, r.items.map((it) => it.key));
                 this._preview = { warnings: c.warnings, changes: [], summary: r.summary || '', mode: 'checks', can_apply: true, label: r.label || r.action };
+            } else if (r.mode === 'review') {
+                this._preview = await api.requestPreview(r.requestId);
+                // What the requester already acknowledged stays acknowledged; new blocks do not.
+                this._overrides = new Set(this._preview.overrides || []);
             } else {
                 this._preview = await api.batch({ action: r.action, items: r.items, params: r.params || {}, dry_run: true });
             }
@@ -164,38 +174,53 @@ export class OlBatchPreview extends LitElement {
         if (this._preview.mode === 'checks') return true;
         const unacknowledged = this.blocks.some((w) => !this._overrides.has(w.code));
         if (unacknowledged) return false;
-        return this._preview.docs_touched > 0 || this._request.action === 'flag';
+        return this._preview.docs_touched > 0 || (this._request.action || this._preview.action) === 'flag';
     }
 
     async apply() {
         const r = this._request;
-        const revisions = this._preview.revisions || {};
-        const items = r.items.map((it) => {
-            const key = this._preview.resolved?.[it.key] || it.key;
-            return { key: it.key, expected_revision: revisions[key] ?? it.expected_revision ?? null };
-        });
         this._busy = true;
         this._error = null;
         try {
-            this._result = await api.batch({
-                action: r.action,
-                items,
-                params: r.params || {},
-                dry_run: false,
-                overrides: [...this._overrides],
-                comment: this._comment || null,
-            });
+            if (r.mode === 'review') {
+                this._result = await api.requestApply(r.requestId, this._comment || null, [...this._overrides]);
+            } else {
+                const revisions = this._preview.revisions || {};
+                const items = r.items.map((it) => {
+                    const key = this._preview.resolved?.[it.key] || it.key;
+                    return { key: it.key, expected_revision: revisions[key] ?? it.expected_revision ?? null };
+                });
+                this._result = await api.batch({
+                    action: r.action,
+                    items,
+                    params: r.params || {},
+                    dry_run: false,
+                    overrides: [...this._overrides],
+                    comment: this._comment || null,
+                });
+            }
             const keys = Object.keys(this._result.revisions || {}).concat(this._result.creates || []);
             this.dispatchEvent(new CustomEvent('ol-batch-applied', {
                 bubbles: true,
                 composed: true,
-                detail: { batch_id: this._result.batch_id, action: r.action, status: this._result.status, keys },
+                detail: { batch_id: this._result.batch_id, action: r.action || this._preview?.action, params: r.params || null, status: this._result.status, keys },
             }));
         } catch (e) {
-            this._error = e.status === 409 && e.detail?.stale ? this.t('conflict') : this.t('failed', { error: e.message });
+            if (e.status === 409 && e.detail?.stale) this._error = this.t('conflict');
+            else if (e.status === 409 && e.detail?.warnings) {
+                // The server saw a block we had not; show it so it can be acknowledged.
+                this._preview = { ...this._preview, warnings: e.detail.warnings };
+                this._error = e.message;
+            } else this._error = this.t('failed', { error: e.message });
         } finally {
             this._busy = false;
         }
+    }
+
+    onAfterClose() {
+        const applied = !!this._result && !this._reverted && this._result.status === 'applied';
+        this._open = false;
+        this.dispatchEvent(new CustomEvent('ol-batch-closed', { bubbles: true, composed: true, detail: { applied } }));
     }
 
     async revert() {
@@ -339,7 +364,7 @@ export class OlBatchPreview extends LitElement {
         const isChecks = p?.mode === 'checks';
         const proceedLabel = isChecks ? this.t('open') : (p?.mode === 'request' ? this.t('request') : this.t('apply'));
         return html`
-            <ol-dialog label=${r.title || p?.label || this.t('preview')} width="large" fullscreen-on-mobile @ol-after-close=${() => { this._open = false; }}>
+            <ol-dialog label=${r.title || p?.label || this.t('preview')} width="large" fullscreen-on-mobile @ol-after-close=${this.onAfterClose}>
                 <div class="body" aria-busy=${this._busy ? 'true' : 'false'}>
                     ${this.renderRecords()}
                     ${p && !isChecks && p.mode === 'request' ? html`<span class="mode">${this.t('reviewNote')}</span>` : nothing}

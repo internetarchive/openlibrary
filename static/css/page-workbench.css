@@ -73,7 +73,8 @@ body.librarians-page #contentHead {
   text-transform: capitalize;
 }
 
-.librarian-batch__status--applied {
+.librarian-batch__status--applied,
+.librarian-batch__status--resolved {
   background: var(--color-success-bg);
   color: var(--color-success-fg);
 }
@@ -145,6 +146,21 @@ body.librarians-page #contentHead {
   font-family: var(--font-family-mono);
   font-size: var(--font-size-label-medium);
   color: var(--color-text-muted);
+}
+
+.librarian-help {
+  max-width: 72ch;
+  padding: var(--spacing-md) var(--spacing-2xl) var(--spacing-3xl);
+}
+
+.librarian-help dt {
+  margin-top: var(--spacing-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.librarian-help dd {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text-secondary);
 }
 
 .librarian-batch__actions {

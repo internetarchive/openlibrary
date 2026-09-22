@@ -684,6 +684,16 @@ class Bookshelves(db.CommonExtras):
         return {i["bookshelf_id"]: i["user_count"] for i in result} if result else {}
 
     @classmethod
+    def count_readers_by_works(cls, work_ids: Iterable[str]) -> dict[str, int]:
+        """Reading-log entries per work in one query: {work_id: count}. Works with no entries are absent."""
+        ids = [int(w) for w in work_ids]
+        if not ids:
+            return {}
+        oldb = db.get_db()
+        rows = oldb.query("SELECT work_id, count(*) AS n FROM bookshelves_books WHERE work_id IN $ids GROUP BY work_id", vars={"ids": ids})
+        return {str(r["work_id"]): int(r["n"]) for r in rows}
+
+    @classmethod
     def get_work_summary(cls, work_id: str) -> WorkReadingLogSummary:
         shelf_id_to_count = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
 

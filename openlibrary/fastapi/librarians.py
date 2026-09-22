@@ -1,7 +1,8 @@
 """JSON behind the librarian workbench (/librarians/workbench): the grid query,
 worklists, record detail for the panel, and the batch operations every edit
 goes through. Logic lives in openlibrary/core/{workbench,batch_ops,record_context}.py;
-this file is routing, validation and the role split.
+this file is routing, validation and the role split: any librarian may use the
+workbench; only a super-librarian applies, declines or resolves a request.
 """
 
 from __future__ import annotations
@@ -233,6 +234,16 @@ def request_detail(_: LibrarianDep, request_id: int) -> dict[str, Any]:
     return row
 
 
+@router.get("/librarians/request/{request_id}/preview.json")
+def request_preview(_: LibrarianDep, request_id: int) -> dict[str, Any]:
+    """The request's plan against the records as they are now, for the reviewer to see before applying."""
+    user = _user()
+    try:
+        return batch_ops.preview_requested(user, request_id)
+    except batch_ops.BatchError as e:
+        raise _batch_error(e) from e
+
+
 class DecisionBody(BaseModel):
     comment: str | None = Field(default=None, max_length=500)
     overrides: list[str] = Field(default_factory=list)
@@ -253,6 +264,16 @@ def request_decline(_: LibrarianDep, request_id: int, body: DecisionBody | None 
     user = _user()
     try:
         return batch_ops.decline_requested(user, request_id, comment=body.comment if body else None)
+    except batch_ops.BatchError as e:
+        raise _batch_error(e) from e
+
+
+@router.post("/librarians/request/{request_id}/resolve.json")
+def request_resolve(_: LibrarianDep, request_id: int, body: DecisionBody | None = None) -> dict[str, Any]:
+    """Close a flag as acted on."""
+    user = _user()
+    try:
+        return batch_ops.resolve_requested(user, request_id, comment=body.comment if body else None)
     except batch_ops.BatchError as e:
         raise _batch_error(e) from e
 

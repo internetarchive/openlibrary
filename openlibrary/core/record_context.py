@@ -252,6 +252,26 @@ def _readinglog_count(work_key: str) -> int:
         return 0
 
 
+def _readinglog_counts(work_keys: list[str]) -> dict[str, int]:
+    """{work key: reading-log entries}, one query for the whole batch."""
+    if not work_keys:
+        return {}
+    try:
+        by_id = Bookshelves.count_readers_by_works([olid(k)[2:-1] for k in work_keys])
+    except Exception:
+        logger.warning("reading log counts failed", exc_info=True)
+        return {}
+    return {k: by_id.get(olid(k)[2:-1], 0) for k in work_keys}
+
+
+def _editions_of(work_key: str, limit: int = 1000) -> list[str]:
+    try:
+        return list(site.get().things({"type": "/type/edition", "works": work_key, "limit": limit}))
+    except Exception:
+        logger.warning("editions lookup failed for %s", work_key, exc_info=True)
+        return []
+
+
 def pending_for(key: str) -> list[dict[str, Any]]:
     """Open merge requests and requested batches that touch this record."""
     out: list[dict[str, Any]] = []
@@ -552,6 +572,25 @@ def check_move_editions(docs: dict[str, dict[str, Any]], target: dict[str, Any] 
         et = norm_title(d.get("title"))
         if et and t_title and et[:12] != t_title[:12]:
             out.append(_w("warn", "title_mismatch", f"{olid(d['key'])} “{d.get('title')}” vs work “{target.get('title')}”.", key=d["key"]))
+    # A work whose every edition is moving away is left empty (#8637).
+    sources: dict[str, set[str]] = {}
+    for d in docs.values():
+        if doc_type(d) == "/type/edition":
+            for wk in ref_keys(d.get("works"))[:1]:
+                if wk != target["key"]:
+                    sources.setdefault(wk, set()).add(d["key"])
+    for wk, moving in sources.items():
+        known = _editions_of(wk)
+        if known and not (set(known) - moving):
+            out.append(
+                _w(
+                    "warn",
+                    "empties_work",
+                    f"{olid(wk)} would be left with no editions; if it is the same book, merge it into {olid(target['key'])} instead.",
+                    key=wk,
+                    evidence=[wk],
+                )
+            )
     return out
 
 
@@ -586,18 +625,43 @@ def check_tag(docs: dict[str, dict[str, Any]], adds: dict[str, list[str]]) -> li
     return out
 
 
-def check_flag_or_delete(docs: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+def check_flag_or_delete(docs: dict[str, dict[str, Any]], action: str = "delete", include_editions: bool = False) -> list[dict[str, Any]]:
+    """Flag and delete share the "is this record loved?" checks; delete adds
+    what would dangle afterwards (editions without a work, works without an author)."""
     out: list[dict[str, Any]] = []
+    deleting = action == "delete"
+    readers = _readinglog_counts([d["key"] for d in docs.values() if TYPE_BY_TYPEKEY.get(doc_type(d) or "") == "work"])
     for d in docs.values():
         rtype = TYPE_BY_TYPEKEY.get(doc_type(d) or "")
+        key = d["key"]
         if rtype == "edition" and d.get("ocaid"):
-            out.append(_w("block", "has_scan", f"{olid(d['key'])} has a scan on archive.org; a scanned book is rarely spam.", key=d["key"]))
+            out.append(_w("block", "has_scan", f"{olid(key)} has a scan on archive.org; a scanned book is rarely spam.", key=key))
         if rtype == "work":
-            rl = _readinglog_count(d["key"])
+            rl = readers.get(key, 0)
             if rl >= 25:
-                out.append(_w("block", "in_reading_logs", f"{olid(d['key'])} is in {rl} reading logs.", key=d["key"]))
+                out.append(_w("block", "in_reading_logs", f"{olid(key)} is in {rl} reading logs.", key=key))
             elif rl:
-                out.append(_w("warn", "in_reading_logs", f"{olid(d['key'])} is in {rl} reading log{'s' if rl != 1 else ''}.", key=d["key"]))
+                out.append(_w("warn", "in_reading_logs", f"{olid(key)} is in {rl} reading log{'s' if rl != 1 else ''}.", key=key))
+            if deleting and not include_editions and (n_ed := _solr_doc(key, ["edition_count"]).get("edition_count")):
+                out.append(
+                    _w(
+                        "warn",
+                        "orphans_editions",
+                        f"{olid(key)} has {n_ed} edition{'s' if n_ed != 1 else ''} that would be left without a work; "
+                        "turn on “include editions” to delete them too.",
+                        key=key,
+                    )
+                )
+        if rtype == "author" and deleting and (n_w := _solr_doc(key, ["work_count"]).get("work_count")):
+            out.append(
+                _w(
+                    "block",
+                    "author_has_works",
+                    f"{olid(key)} is the author of {n_w} work{'s' if n_w != 1 else ''}; they would point at a deleted author. Re-attribute or merge first.",
+                    key=key,
+                    evidence=[f"{key}"],
+                )
+            )
         n = _lists_count(d["key"])
         if n:
             out.append(_w("warn", "on_lists", f"{olid(d['key'])} is on {n} list{'s' if n != 1 else ''}.", key=d["key"]))
@@ -640,7 +704,7 @@ def checks_for(action: str, docs: dict[str, dict[str, Any]], params: dict[str, A
         if action == "tag":
             return check_tag(docs, params.get("add") or {})
         if action in ("flag", "delete"):
-            return check_flag_or_delete(docs)
+            return check_flag_or_delete(docs, action, bool(params.get("include_editions")))
         if action == "merge_editions":
             return check_merge_editions(docs)
     except Exception:
