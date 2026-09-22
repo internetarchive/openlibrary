@@ -58,7 +58,7 @@
      specular highlight as above; see ol-button[elevation="floating"]. */
   --box-shadow-floating: 0 1px 4px hsla(44, 60%, 18%, 0.15);
 
-  /* Overlay surface — the floating panel behind popovers, menus, and dialogs.
+  /* Overlay surface — the floating panel behind popovers, menus, dialogs, and toasts.
      The hairline border draws the edge that a soft shadow alone loses against
      a white page; because the border carries the definition, the shadow can
      stay light and read as depth rather than as a smudge. Shares the divider
@@ -66,9 +66,11 @@
   --border-overlay: 1px solid var(--color-border-subtle);
   --box-shadow-overlay: 0 1px 2px hsla(44, 60%, 18%, 0.04), 0 8px 24px hsla(44, 60%, 18%, 0.09);
 
-  /* The scrim behind a modal overlay — the dialog's ::backdrop and the
-     popover's mobile tray, which should read as the same gesture. The blur is
-     what pushes the page back; the dim is what makes it inert. */
+  /* The scrim behind a modal overlay — the dialog's ::backdrop, the drawer's
+     scrim, the popover's mobile tray, which should all read as the same
+     gesture. The blur is what pushes the page back; the dim is what makes it
+     inert. Blur follows modality, never a breakpoint; a non-modal overlay gets
+     neither. See docs/ai/design.md#blur-follows-modality-not-viewport-width. */
   --overlay-backdrop-color: hsla(0, 0%, 0%, 0.32);
   --overlay-backdrop-blur: 3px;
 }

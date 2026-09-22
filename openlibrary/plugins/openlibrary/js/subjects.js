@@ -16,7 +16,7 @@ import { fetchAndSwap } from './utils';
  */
 export async function initPublishingHistory(elem) {
     await fetchAndSwap(elem, 'SubjectPublishingHistory', async() => {
-        const graphs = await import(/* webpackChunkName: "graphs" */ './graphs');
+        const graphs = await import('./graphs');
         graphs.initPublishersGraph();
     });
 }

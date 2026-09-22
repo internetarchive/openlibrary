@@ -19,6 +19,7 @@
 @import "components/ol-button.css";
 @import "components/ol-banner.css";
 @import "components/ol-icon.css";
+@import "components/popover-menu.css";
 
 /* Pre-hydration sizing for shadow-DOM web components. These rules apply
    only until the component upgrades and renders its own shadow root. */
@@ -78,6 +79,15 @@ ol-popover:not(:defined) > :not([slot="trigger"]) {
 /* Hide ol-drawer's slotted menu content before the component upgrades; the
    drawer shell renders in its shadow root once Lit defines it. */
 ol-drawer:not(:defined) {
+  display: none;
+}
+
+/* Same for ol-dialog, and load-bearing: until Lit upgrades it the slotted body
+   is ordinary page markup, so an `autofocus` field in there is a document-level
+   candidate — the browser focuses it at first paint and scrolls the page to a
+   dialog that is about to be hidden. The upgraded component reads [autofocus]
+   itself when it opens. */
+ol-dialog:not(:defined) {
   display: none;
 }
 

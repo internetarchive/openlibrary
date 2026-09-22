@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
 * OpenLibrary-specific convenience functions for use with Archive.org athena.js
 *
@@ -75,8 +76,14 @@ export default function initAnalytics() {
     }
     window.vs = vs;
 
-    // NOTE: This might cause issues if this script is made async #4474
-    window.addEventListener('DOMContentLoaded', function send_analytics_pageview() {
+    // The bundle loads asynchronously, so DOMContentLoaded may already have fired (#4474)
+    function sendPageview() {
+        if (!window.archive_analytics) return;
         window.archive_analytics.send_pageview({});
-    });
+    }
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', sendPageview);
+    } else {
+        sendPageview();
+    }
 }

@@ -1,4 +1,4 @@
-$def with (page, worldcat_links, affiliate_links, editions_page=False, render_times={}, lending_state=None)
+$def with (page, affiliate_links, editions_page=False, render_times={}, lending_state=None)
 
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
@@ -28,19 +28,37 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
 
-        $ render_times['databarWork: List widget'] = time()
-        $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, async_load=True)
-        $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
+        $# Looked up once here, not inside the notes macro: modal_links renders
+        $# twice (desktop + mobile) and the macro ran the query on each. Both the
+        $# sidebar link and the dialog read it; None for logged-out patrons.
+        $ notes_username = ctx.user and ctx.user.key.split('/')[-1]
+        $ user_book_note = work.get_users_notes(notes_username, edition.key.split('/')[-1]) if (notes_username and work and edition) else None
+
 
         $ render_times['databarWork: LoanStatus'] = time()
-        $:macros.LoanStatus(page, secondary_action=editions_page, check_loan_status=editions_page, post=lists_widget, lending_state=lending_state)
+        $:macros.LoanStatus(page, secondary_action=editions_page, check_loan_status=editions_page, lending_state=lending_state)
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
+
+        $if editions_page:
+          <ol-popover class="buy-popover" placement="bottom-center" aria-label="$_('Buy this book')">
+            <button slot="trigger" type="button" class="ol-button-static buy-popover__trigger">
+              $_("Buy")
+              $:macros.icon("chevron-down", size="sm", extra_class="buy-popover__chevron")
+            </button>
+            <div class="buy-options">
+              $:affiliate_links
+            </div>
+          </ol-popover>
+
+        $ render_times['databarWork: List widget'] = time()
+        $:render_template('lists/widget', edition or work, include_rating=True, async_load=True)
+        $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
 
         <hr>
         $ share_url = request.home + (edition or work).key
 
         $ render_times['databarWork: Modal Links - Desktop'] = time()
-        $:render_template("type/edition/modal_links", work, edition, share_url)
+        $:render_template("type/edition/modal_links", work, edition, share_url, user_note=user_book_note)
         $ render_times['databarWork: Modal Links - Desktop'] = time() - render_times['databarWork: Modal Links - Desktop']
 
         <div class="readers-stats__wrapper mobile">
@@ -48,7 +66,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
           <hr>
           $ render_times['databarWork: Modal Links - Mobile'] = time()
-          $:render_template("type/edition/modal_links", work, edition, share_url, mobile=True)
+          $:render_template("type/edition/modal_links", work, edition, share_url, mobile=True, user_note=user_book_note)
           $ render_times['databarWork: Modal Links - Mobile'] = time() - render_times['databarWork: Modal Links - Mobile']
         </div>
 
@@ -59,17 +77,6 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
           $if book_provider and ((availability.get('is_readable') or availability.get('status') == 'open') or book_provider.get_access(page).to_solr_str() == "public"):
             $:book_provider.render_download_options(page)
           $ render_times['databarWork: Book provider'] = time() - render_times['databarWork: Book provider']
-      </div>
-    </div>
-
-    <div class="panel desktop-vendor">
-      <div class="btn-notice">
-        $:worldcat_links
-
-        <div class="cta-section">
-          <p class="cta-section-title">$_('Buy this book')</p>
-          $:affiliate_links
-        </div>
       </div>
     </div>
   </div>

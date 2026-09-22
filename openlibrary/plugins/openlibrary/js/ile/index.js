@@ -1,4 +1,5 @@
 // @ts-check
+import $ from 'jquery';
 import SelectionManager from './utils/SelectionManager/SelectionManager.js';
 import { renderBulkTagger } from '../bulk-tagger/index.js';
 import { BulkTagger } from '../bulk-tagger/BulkTagger.js';

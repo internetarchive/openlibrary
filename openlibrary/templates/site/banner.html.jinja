@@ -1,0 +1,8 @@
+{% if layout.announcement_banner %}
+    <div data-cookie-name="{{ layout.announcement_banner.cookie_name }}"
+         data-cookie-duration-days="{{ layout.announcement_banner.cookie_duration_days }}"
+         class="page-banner--dismissable">
+        <span class="page-banner--dismissable-content">{{ layout.announcement_banner.content | safe }}</span>
+        <div class="page-banner--dismissable-close"></div>
+    </div>
+{% endif %}

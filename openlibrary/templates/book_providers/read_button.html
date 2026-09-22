@@ -1,11 +1,19 @@
-$def with(edition_key, acquisition, provider_name, analytics_attr)
+$def with(edition_key, acquisition, provider_name, analytics_attr, show_locate=False)
 $# :param edition_key str:
 $# :param Acquisition acquisition:
 $# :param provider_name str:
 $# :param analytics_attr Callable[[str], str]:
+$# :param show_locate bool: add a menu with a library lookup (book page only)
+
+$ show_locate = show_locate and edition_key
+$ group_class = "cta-button-group cta-dropper" if show_locate else "cta-button-group"
+
+$def locate_menu():
+  $if show_locate:
+    $:macros.ReadingOptionsMenu(edition_key)
 
 $if acquisition.access == 'open-access':
-  <div class="cta-button-group">
+  <div class="$group_class">
     $if acquisition.format == 'audio':
       <a href="/books/${edition_key}/-/borrow?action=read"
           title="$_('Listen to a reading from %s', provider_name)"
@@ -23,13 +31,15 @@ $if acquisition.access == 'open-access':
           target="_blank" rel="noopener noreferrer"
           $:analytics_attr('Read')
       >$_('Read')</a>
+    $:locate_menu()
   </div>
 $elif acquisition.access == 'sample':
-  <div class="cta-button-group">
+  <div class="$group_class">
     <a href="/books/${edition_key}/-/borrow?action=read"
       class="cta-btn cta-btn--shell cta-btn--external"
       data-ol-link-track="CTAClick|Preview"
       target="_blank" rel="noopener noreferrer"
       $:analytics_attr('Preview')
     >$_('Preview')</a>
+    $:locate_menu()
   </div>

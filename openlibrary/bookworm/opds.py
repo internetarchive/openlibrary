@@ -8,8 +8,11 @@ Built on pydantic models so heterogeneous feeds validate and map uniformly:
 - **Better World Books** — ISBN identifier, ``acquisition/buy`` links with a price.
 - **Project Gutenberg** — identifier is a ``gutenberg.org/ebooks/<id>`` URL,
   ``acquisition/open-access`` (free) links.
-- **Lenny** — no ``metadata.identifier``; the id comes from the ``self`` link,
-  ``acquisition/open-access`` links.
+- **Lenny** — no ``metadata.identifier``; the id comes from the ``self`` link.
+  Open-access titles carry ``acquisition/open-access``; borrowable ones carry
+  ``acquisition/borrow`` with ``properties.availability`` and an
+  ``properties.authenticate`` pointer to the provider's OPDS Authentication
+  Document. Most of a Lenny catalogue is the latter.
 
 Feeds also vary in shape (``author`` may be a dict or a list; ``language`` a str
 or a list), which the models normalize. Extends the OPDS types drafted in #12852.
@@ -26,8 +29,13 @@ from openlibrary.plugins.upstream.utils import get_marc21_language
 
 BUY_REL = "http://opds-spec.org/acquisition/buy"
 OPEN_ACCESS_REL = "http://opds-spec.org/acquisition/open-access"
+BORROW_REL = "http://opds-spec.org/acquisition/borrow"
 # rel -> the access value we store on the acquisition
-ACQUISITION_ACCESS = {BUY_REL: "buy", OPEN_ACCESS_REL: "open-access"}
+ACQUISITION_ACCESS = {
+    BUY_REL: "buy",
+    OPEN_ACCESS_REL: "open-access",
+    BORROW_REL: "borrow",
+}
 
 
 def _as_list(value: Any) -> list:
@@ -42,9 +50,15 @@ class Price(BaseModel):
     value: float
 
 
+class Availability(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    state: str | None = None
+
+
 class LinkProperties(BaseModel):
     model_config = ConfigDict(extra="allow")
     price: Price | None = None
+    availability: Availability | None = None
 
 
 class Link(BaseModel):
@@ -109,10 +123,16 @@ class Feed(BaseModel):
     ``isbn`` (from ``urn:isbn:`` in ``metadata.identifier``), ``gutenberg`` (the
     numeric id in the ``gutenberg.org/ebooks/<id>`` identifier URL), or
     ``self_link`` (the last path segment of the ``self`` link — Lenny).
+
+    ``local_id_is_ol_edition`` says the extracted id is itself an Open Library
+    edition number, so a record can name its edition outright instead of leaving
+    the catalog to infer it from the title. Separate from ``id_strategy`` because
+    how an id is extracted and what that id means are different questions.
     """
 
     provider_name: str
     id_strategy: str  # "isbn" | "gutenberg" | "self_link"
+    local_id_is_ol_edition: bool = False
 
 
 ISBN_URN_PREFIX = "urn:isbn:"
@@ -154,6 +174,11 @@ def build_acquisitions(pub: Publication, feed: Feed, local_id: str) -> list[dict
             data["title"] = link.title
         if link.properties and link.properties.price:
             data["price"] = link.properties.price.model_dump()
+        # Whether the copy can be borrowed right now. Without it a borrow CTA
+        # cannot tell "available" from "all copies out", and the flat fields
+        # would be the only thing a consumer reads.
+        if link.properties and (avail := link.properties.availability) and avail.state:
+            data["availability"] = avail.state
         data["link"] = link.model_dump(mode="json", exclude_none=True)
         items.append({"provider_name": feed.provider_name, "local_id": local_id, "data": data})
     return items
@@ -191,6 +216,15 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         record["identifiers"] = {"project_gutenberg": [local_id]}
     elif feed.id_strategy == "self_link":
         record["identifiers"] = {feed.provider_name: [local_id]}
+    if feed.local_id_is_ol_edition and local_id.isdigit():
+        # This feed's local id IS an OL edition number, so say which edition the
+        # record is, rather than letting build_pool guess from the title. That
+        # guess is at its worst here: build_pool ignores ``identifiers.*``, so a
+        # feed like this one is pooled on title alone -- against the thousands of
+        # same-title editions that public-domain classics accumulate. The catalog
+        # verifies the id resolves before trusting it (resolve_edition_ref), which
+        # matters because providers do not always validate the id they were given.
+        record["openlibrary"] = f"OL{local_id}M"
     # A ``cover`` URL is intentionally NOT emitted. OL's server-side cover fetch
     # is gated by two host allowlists (none of these feed hosts satisfy), and on
     # the match/merge path — which feed re-imports hit constantly — add_cover()

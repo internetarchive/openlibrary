@@ -3,11 +3,12 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 from fastapi import FastAPI, Request, Response
 from fastapi.testclient import TestClient
 
-from openlibrary.fastapi.proxy import _rebase_redirect, proxy_to_webpy
+from openlibrary.fastapi.proxy import StatelessCookieJar, _rebase_redirect, proxy_to_webpy
 
 
 def _make_app():
@@ -231,3 +232,46 @@ def test_upstream_failure_propagates():
 
     assert response.status_code == 500
     assert fake_client.closed is False
+
+
+def test_multiple_set_cookie_headers_are_forwarded():
+    """All upstream Set-Cookie headers must reach the client, not only the last one."""
+
+    upstream_headers = httpx.Headers(
+        [
+            ("content-type", "text/plain"),
+            ("set-cookie", "session=abc; Path=/"),
+            ("set-cookie", "pd=; expires=Fri, 04 Sep 2026 23:22:48 GMT; Path=/"),
+            ("set-cookie", "s3=xyz; Expires=Wed, 21 Oct 2026 07:28:00 GMT; Path=/; Secure"),
+        ]
+    )
+    fake_client = FakeClient(FakeResponse([b"ok"], headers=upstream_headers))
+
+    with _proxy_client(fake_client) as client:
+        response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.headers.get_list("set-cookie") == upstream_headers.get_list("set-cookie")
+
+
+def test_stateless_cookie_jar_does_not_store_cookies():
+    """The shared client must not save upstream cookies for the next request."""
+
+    jar = StatelessCookieJar()
+    jar.set_cookie("anything")
+    assert len(list(jar)) == 0
+    jar.extract_cookies("response", "request")
+    assert len(list(jar)) == 0
+
+
+def test_cookie_header_is_forwarded_without_cookies_param():
+    """The raw Cookie header must pass through headers, not a separate cookies arg."""
+    fake_client = FakeClient(FakeResponse([b"ok"]))
+
+    with _proxy_client(fake_client) as client:
+        response = client.get("/", headers={"Cookie": "session=abc; s3=xyz"})
+
+    assert response.status_code == 200
+    assert "cookies" not in fake_client.build_kwargs
+    sent_headers = {k.lower(): v for k, v in fake_client.build_kwargs["headers"].items()}
+    assert sent_headers["cookie"] == "session=abc; s3=xyz"
