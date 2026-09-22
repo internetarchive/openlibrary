@@ -220,30 +220,6 @@
   padding: var(--spacing-inset-lg);
 }
 
-/* Styles for the "Nearby Books" carousel's lazy-loading placeholder element */
-.nearby-books-section {
-  /* Same height as the loaded carousel to avoid layout shift */
-  height: 278.6px;
-  background: var(--book-cover-carousel-background);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.nearby-books-section .loadingIndicator {
-  border: 1px var(--grey) solid;
-  background: var(--lightest-grey);
-  margin: 0 auto;
-  padding: var(--spacing-inset-lg);
-}
-
-.nearby-books-retry {
-  border: 1px var(--grey) solid;
-  background: var(--lightest-grey);
-  margin: 0 auto;
-  padding: var(--spacing-inset-lg);
-}
-
 .loan-overlay-badge {
   position: absolute;
   bottom: 0;

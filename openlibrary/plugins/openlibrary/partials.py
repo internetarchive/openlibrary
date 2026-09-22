@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, quote, quote_plus
 
 import web
 from markupsafe import Markup
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from infogami.utils.view import public
 from openlibrary.book_providers import get_book_provider, get_cover_url
@@ -1155,15 +1155,6 @@ _NUMERIC_DDC_RE = re.compile(r"^\d{1,3}(\.\d+)?$")
 # the "after" range so it can't run into non-numeric ddc_sort values.
 _MAX_NUMERIC_DDC = "999.99999"
 
-
-class NearbyBooksParams(BaseModel):
-    """Parameters for the book page's "Nearby Books" (DDC shelf-adjacency) carousel."""
-
-    work_key: str
-    language: str | None = None
-    limit: int = 20
-
-
 # Number of results to pull from the "exact same ddc_sort" bucket, vs. from
 # each of the strict before/after ranges. A common ddc_sort value (e.g.
 # "813.54") can have tens of thousands of works, all tied on sort order, so
@@ -1171,13 +1162,44 @@ class NearbyBooksParams(BaseModel):
 # real neighbours below/above it.
 _EXACT_MATCH_ROWS = 4
 _RANGE_ROWS = 8
+_MAX_NEARBY_BOOKS = _EXACT_MATCH_ROWS + 2 * _RANGE_ROWS
 
 
+class NearbyBooksParams(BaseModel):
+    """Parameters for the book page's "Nearby Books" (DDC shelf-adjacency) carousel."""
+
+    work_key: str = Field(pattern=r"^/works/OL\d+W$")
+    language: str | None = Field(None, pattern=r"^[a-z]{3}$")
+    limit: int = Field(_MAX_NEARBY_BOOKS, ge=1, le=_MAX_NEARBY_BOOKS)
+
+
+@public
+def build_nearby_books_placeholder_config(work_key: str, language: str | None = None) -> CarouselPlaceholderData:
+    """Build config for the Nearby Books placeholder (macros/RawQueryCarouselPlaceholder.html.jinja).
+
+    The ``partial`` key tells lazy-carousel.js to fetch from /partials/NearbyBooks.json
+    instead of the default LazyCarousel endpoint.
+    """
+    config = {"partial": "NearbyBooks", "work_key": work_key, **({"language": language} if language else {})}
+    return CarouselPlaceholderData(
+        lazy_config_json=json_encode(config),
+        loading_indicator_html=str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
+        fallback=None,
+    )
+
+
+@cache.memoize(
+    engine="memcache",
+    key=lambda work_key, language, limit: "NearbyBooks-" + md5(f"{work_key}-{language}-{limit}".encode()).hexdigest(),
+    expires=300,
+    # None means Solr failed; don't pin that for five minutes.
+    cacheable=lambda key, value: value is not None,
+)
 async def gather_nearby_books_async(
     work_key: str,
     language: str | None,
     limit: int,
-) -> list[dict]:
+) -> list[dict] | None:
     """Fetch works with numerically adjacent ddc_sort values from Solr.
 
     Anchors on the *work's* indexed ddc_sort (the longest ddc string across
@@ -1192,22 +1214,29 @@ async def gather_nearby_books_async(
     itself. Both ranges are capped to numeric ddc_sort values only, since
     non-numeric values (e.g. "[Fic]", "[E]") sort lexically after every
     number and would otherwise show up as false neighbours.
+
+    Returns None (not cached) when Solr fails.
     """
     from openlibrary.plugins.worksearch.search import get_solr
 
     solr = get_solr()
+    safe_work_key = solr.escape(work_key)
+
+    # ddc_sort is stored=false, so read it through /select (docValues are
+    # returned there) rather than /get, which may serve from the update log.
     try:
-        work_doc = await solr.get_async(work_key, fields=["ddc_sort"])
+        anchor_res = await solr.select_async(f'key:"{safe_work_key}"', fields=["ddc_sort"], rows=1)
     except Exception:
         logger.exception("gather_nearby_books_async failed to fetch ddc_sort for %r", work_key)
-        return []
+        return None
 
-    ddc = work_doc.get("ddc_sort") if work_doc else None
+    anchor_docs = anchor_res.docs if anchor_res and anchor_res.docs else []
+    ddc = anchor_docs[0].get("ddc_sort") if anchor_docs else None
     if not ddc or not _NUMERIC_DDC_RE.match(ddc):
         return []
 
-    lang_clause = f' AND language:"{language}"' if language else ""
-    work_filter = f' -key:"{work_key}"'
+    lang_clause = f' AND language:"{solr.escape(language)}"' if language else ""
+    work_filter = f' -key:"{safe_work_key}"'
     common = f"{lang_clause}{work_filter} {_SAFE_MODE_FILTER}"
 
     try:
@@ -1232,7 +1261,7 @@ async def gather_nearby_books_async(
         )
     except Exception:
         logger.exception("gather_nearby_books_async failed for %r (ddc_sort=%r)", work_key, ddc)
-        return []
+        return None
 
     before_docs = list(reversed(before_res.docs)) if before_res and before_res.docs else []
     exact_docs = exact_res.docs if exact_res and exact_res.docs else []

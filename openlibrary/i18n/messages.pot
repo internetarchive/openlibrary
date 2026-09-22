@@ -7146,18 +7146,6 @@ msgstr ""
 msgid "Nearby Libraries"
 msgstr ""
 
-#: NearbyBooksLoadingIndicator.html openlibrary/plugins/openlibrary/partials.py
-msgid "Loading carousel"
-msgstr ""
-
-#: NearbyBooksLoadingIndicator.html RawQueryCarouselPlaceholder.html.jinja
-msgid "Failed to fetch carousel."
-msgstr ""
-
-#: NearbyBooksLoadingIndicator.html RawQueryCarouselPlaceholder.html.jinja
-msgid "Retry?"
-msgstr ""
-
 #: NotInLibrary.html
 msgid "Not in Library"
 msgstr ""
@@ -7205,6 +7193,14 @@ msgstr ""
 
 #: RawQueryCarousel.html.jinja
 msgid "Search collection"
+msgstr ""
+
+#: RawQueryCarouselPlaceholder.html.jinja
+msgid "Failed to fetch carousel."
+msgstr ""
+
+#: RawQueryCarouselPlaceholder.html.jinja
+msgid "Retry?"
 msgstr ""
 
 #: RawQueryCarouselPlaceholder.html.jinja
@@ -8234,6 +8230,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Loading carousel"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
