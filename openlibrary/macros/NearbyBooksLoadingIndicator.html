@@ -1,0 +1,13 @@
+$def with (work_key, language=None)
+
+$# Placeholder for the book page's "Nearby Books" (DDC shelf-adjacency) carousel.
+$# JS fetches the real carousel HTML from /partials/NearbyBooks.json once this
+$# element scrolls into view. The endpoint looks up the work's indexed
+$# ddc_sort itself, so no Solr lookup is needed to render this placeholder.
+
+<div class="nearby-books-section" data-work-key="$work_key" data-language="$(language or '')">
+  $:macros.LoadingIndicator(_("Loading carousel"), hidden=False)
+  <div class="nearby-books-retry hidden">
+      $_("Failed to fetch carousel.") <a href="#" class="retry-btn">$_("Retry?")</a>
+  </div>
+</div>

@@ -11,6 +11,12 @@ $# * layout (str) -- layout type, default 'carousel', currently also supports 'g
 $# * lazy (bool) -- When True, lazy-load this carousel
 $# * safe_mode (bool) -- When True, blurs covers of books that have a `content_warning` tag
 
+$# Whether there's a real query behind this carousel's books, as opposed to
+$# e.g. Nearby Books, which passes pre-fetched books_data with no query of
+$# its own -- captured before safe_mode below turns "" into a non-empty
+$# (but still meaningless) filter-only string.
+$ has_query = bool(query)
+
 $if safe_mode:
     $ query = '%s %s' % (query, '-subject:"content_warning:cover"')
 
@@ -52,8 +58,13 @@ $else:
       </form>
 
     $code:
-      # Don't need fields in the search UI url, since they don't do anything there
-      url = url or "/search?" + urlencode({'q': query, 'sort': sort})
+      # Don't need fields in the search UI url, since they don't do anything there.
+      # With no real query behind the carousel (e.g. Nearby Books, which passes
+      # pre-fetched books_data only), there's nothing meaningful to link/page through.
+      if has_query:
+        url = url or "/search?" + urlencode({'q': query, 'sort': sort})
+      else:
+        url = None
 
       if books_data is not None:
         # Data was pre-fetched by LazyCarouselPartial in Python — skip Solr.
@@ -71,6 +82,6 @@ $else:
         "limit": limit,
         "sorts": sort,
         "hasFulltextOnly": has_fulltext_only
-      }
+      } if has_query else None
 
     $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout)

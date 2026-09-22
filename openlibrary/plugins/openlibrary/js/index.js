@@ -650,6 +650,13 @@ jQuery(function() {
             .then(module => module.initLazyCarousel(lazyCarousels));
     }
 
+    // Nearby Books (DDC shelf-adjacency) carousel
+    const nearbyBooksSections = document.querySelectorAll('.nearby-books-section');
+    if (nearbyBooksSections.length) {
+        import(/* webpackChunkName: "nearby-books" */ './nearby-books')
+            .then(module => module.initNearbyBooks(nearbyBooksSections));
+    }
+
     // Librarian Dashboard
     const librarianDashboard = document.querySelector('.librarian-dashboard');
     if (librarianDashboard) {

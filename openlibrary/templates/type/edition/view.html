@@ -496,9 +496,20 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
   $:render_template("books/RelatedWorksCarousel", work)
   $ component_times['RelatedWorksCarousel'] = time() - component_times['RelatedWorksCarousel']
 
-  $if book_page_context and book_page_context.nearby_books:
+  $# Only a language filter is computed here -- it's a facet on the edition
+  $# being viewed, not a shelf position. The actual DDC anchor comes from
+  $# the *work's* indexed ddc_sort, fetched by the partial endpoint below
+  $# (see gather_nearby_books_async in openlibrary/plugins/openlibrary/partials.py).
+  $code:
+    nearby_books_lang = None
+    if edition and edition.get("languages"):
+        lang_obj = edition.languages[0]
+        lang_key = (lang_obj.key if hasattr(lang_obj, "key") else str(lang_obj)).split("/")[-1]
+        nearby_books_lang = convert_iso_to_marc(lang_key) or lang_key
+
+  $if work and work.key:
     $ component_times['NearbyBooksCarousel'] = time()
-    $:macros.RawQueryCarousel("", title=_("Nearby Books"), key="nearby-books", limit=20, books_data=book_page_context.nearby_books)
+    $:macros.NearbyBooksLoadingIndicator(work.key, language=nearby_books_lang)
     $ component_times['NearbyBooksCarousel'] = time() - component_times['NearbyBooksCarousel']
 
   $:render_template("lib/exports", page)

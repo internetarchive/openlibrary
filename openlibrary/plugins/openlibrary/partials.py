@@ -1,3 +1,6 @@
+import asyncio
+import logging
+import re
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
@@ -36,6 +39,8 @@ from openlibrary.plugins.worksearch.subjects import (
 )
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
+
+logger = logging.getLogger("openlibrary.plugins.openlibrary.partials")
 
 
 def _solr_query_to_subject_key(query: str) -> str:
@@ -594,6 +599,134 @@ gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async, "
 
 # Expose this publicly for the template
 public(gather_lazy_carousel_data)
+
+
+# A ddc_sort value like "813.54" or "813" (no decimal). Non-numeric ddc_sort
+# values (e.g. "[Fic]", "[E]") are rejected, since they sort lexically after
+# every number and would otherwise show up as false shelf-neighbours.
+_NUMERIC_DDC_RE = re.compile(r"^\d{1,3}(\.\d+)?$")
+
+# Solr's ddc_sort field never goes above this; used to cap the upper end of
+# the "after" range so it can't run into non-numeric ddc_sort values.
+_MAX_NUMERIC_DDC = "999.99999"
+
+
+class NearbyBooksParams(BaseModel):
+    """Parameters for the book page's "Nearby Books" (DDC shelf-adjacency) carousel."""
+
+    work_key: str
+    language: str | None = None
+    limit: int = 20
+
+
+# Number of results to pull from the "exact same ddc_sort" bucket, vs. from
+# each of the strict before/after ranges. A common ddc_sort value (e.g.
+# "813.54") can have tens of thousands of works, all tied on sort order, so
+# these are kept small and deliberate rather than let one bucket crowd out
+# real neighbours below/above it.
+_EXACT_MATCH_ROWS = 4
+_RANGE_ROWS = 8
+
+
+async def gather_nearby_books_async(
+    work_key: str,
+    language: str | None,
+    limit: int,
+) -> list[dict]:
+    """Fetch works with numerically adjacent ddc_sort values from Solr.
+
+    Anchors on the *work's* indexed ddc_sort (the longest ddc string across
+    all of the work's editions, per work.py) rather than recomputing a ddc
+    from whichever single edition is being viewed -- otherwise the "shelf
+    position" being browsed wouldn't match the axis the shelf is actually
+    sorted on.
+
+    Finds a few exact matches at that ddc_sort, plus strict (exclusive)
+    neighbours below and above it, using Solr's `{`/`}` exclusive range
+    bounds so a popular ddc_sort value can't fill both ranges with ties on
+    itself. Both ranges are capped to numeric ddc_sort values only, since
+    non-numeric values (e.g. "[Fic]", "[E]") sort lexically after every
+    number and would otherwise show up as false neighbours.
+    """
+    from openlibrary.plugins.worksearch.search import get_solr
+
+    solr = get_solr()
+    try:
+        work_doc = await solr.get_async(work_key, fields=["ddc_sort"])
+    except Exception:
+        logger.exception("gather_nearby_books_async failed to fetch ddc_sort for %r", work_key)
+        return []
+
+    ddc = work_doc.get("ddc_sort") if work_doc else None
+    if not ddc or not _NUMERIC_DDC_RE.match(ddc):
+        return []
+
+    lang_clause = f' AND language:"{language}"' if language else ""
+    work_filter = f' -key:"{work_key}"'
+    common = f"{lang_clause}{work_filter} {_SAFE_MODE_FILTER}"
+
+    try:
+        exact_res, before_res, after_res = await asyncio.gather(
+            solr.select_async(
+                f'type:work AND ddc_sort:"{ddc}"{common}',
+                fields=_CAROUSEL_FIELDS,
+                rows=_EXACT_MATCH_ROWS,
+            ),
+            solr.select_async(
+                f'type:work AND ddc_sort:["000" TO "{ddc}"}}{common}',
+                fields=_CAROUSEL_FIELDS,
+                rows=_RANGE_ROWS,
+                sort="ddc_sort desc",
+            ),
+            solr.select_async(
+                f'type:work AND ddc_sort:{{"{ddc}" TO "{_MAX_NUMERIC_DDC}"]{common}',
+                fields=_CAROUSEL_FIELDS,
+                rows=_RANGE_ROWS,
+                sort="ddc_sort asc",
+            ),
+        )
+    except Exception:
+        logger.exception("gather_nearby_books_async failed for %r (ddc_sort=%r)", work_key, ddc)
+        return []
+
+    before_docs = list(reversed(before_res.docs)) if before_res and before_res.docs else []
+    exact_docs = exact_res.docs if exact_res and exact_res.docs else []
+    after_docs = after_res.docs if after_res and after_res.docs else []
+
+    seen: set[str] = set()
+    unique_docs: list[dict] = []
+    for doc in before_docs + exact_docs + after_docs:
+        key = doc.get("key")
+        if key and key not in seen:
+            seen.add(key)
+            unique_docs.append(doc)
+
+    return unique_docs[:limit]
+
+
+class NearbyBooksPartial:
+    """Handler for the book page's "Nearby Books" (DDC shelf-adjacency) carousel."""
+
+    @classmethod
+    async def generate_async(cls, params: NearbyBooksParams) -> dict:
+        books = await gather_nearby_books_async(
+            work_key=params.work_key,
+            language=params.language,
+            limit=params.limit,
+        )
+        if not books:
+            return {"partials": ""}
+
+        macro = render_macro(
+            "RawQueryCarousel",
+            ("",),  # query is unused; books_data below takes precedence
+            lazy=False,
+            title=_("Nearby Books"),
+            key="nearby-books",
+            limit=params.limit,
+            books_data=books,
+        )
+        return {"partials": str(macro["__body__"])}
 
 
 def setup():

@@ -170,25 +170,3 @@ def choose_sorting_ddc(normalized_ddcs: Iterable[str]) -> str:
     preferred_ddcs = [ddc for ddc in normalized_ddcs if ddc[0] in "0123456789"]
     # Choose longest; theoretically most precise?
     return max(preferred_ddcs or normalized_ddcs, key=len)
-
-
-def decrement_string_solr(string: str, case_sensitive: bool = True, numeric: bool = False) -> str:
-    """Returns the string immediately before the given string lexicographically,
-    while keeping it solr-query safe.
-    """
-    if not string:
-        return string
-    last_char = string[-1] if case_sensitive else string[-1].upper()
-    max_tail = ("9" if numeric else "z") * 5
-    if last_char == ".":
-        new_last_char = ""
-    elif last_char == "0":
-        new_last_char = f".{max_tail}"
-    elif last_char == "A":
-        new_last_char = f"9{max_tail}"
-    elif last_char == "a":
-        new_last_char = f"Z{max_tail}"
-    else:
-        new_last_char = f"{chr(ord(last_char) - 1)}{max_tail}"
-
-    return string[:-1] + new_last_char

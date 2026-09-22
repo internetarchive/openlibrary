@@ -2,7 +2,6 @@ import pytest
 
 from openlibrary.utils.ddc import (
     choose_sorting_ddc,
-    decrement_string_solr,
     normalize_ddc,
     normalize_ddc_prefix,
     normalize_ddc_range,
@@ -152,10 +151,3 @@ SORTING_DDC_TEST = [
 @pytest.mark.parametrize(("ddcs", "outpt", "name"), SORTING_DDC_TEST, ids=[t[-1] for t in SORTING_DDC_TEST])
 def test_choose_sorting_ddc(ddcs, outpt, name):
     assert choose_sorting_ddc(ddcs) == outpt
-
-
-def test_decrement_string_solr():
-    assert decrement_string_solr("813.54", numeric=True) == "813.5399999"
-    assert decrement_string_solr("813.0", numeric=True) == "813..99999"
-    assert decrement_string_solr("813.", numeric=True) == "813"
-    assert decrement_string_solr("813", numeric=True) == "81299999"

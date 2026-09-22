@@ -306,7 +306,6 @@ class BookPageContext:
     previews: list
     show_observations: bool
     lending_state: str
-    nearby_books: list | None = None
 
 
 def _resolve_work(page):
@@ -443,8 +442,6 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         check_loan_status=bool(user),
     )
 
-    nearby_books = get_nearby_books(work, edition)
-
     return BookPageContext(
         work=work,
         edition=edition,
@@ -453,80 +450,7 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         previews=previews,
         show_observations=show_observations,
         lending_state=lending_state,
-        nearby_books=nearby_books,
     )
-
-
-def get_nearby_books(work, edition=None, limit=20):
-    """Fetch works with numerically/lexically close ddc_sort values from Solr.
-
-    Uses strict bounds for lower/upper ranges along with exact ddc_sort matches,
-    anchored on the work's ddc_sort.
-    """
-    if not work or not work.key:
-        return []
-
-    ddc_sort = getattr(work, "ddc_sort", None)
-    if not ddc_sort:
-        try:
-            from openlibrary.plugins.worksearch.search import get_solr
-
-            solr_doc = get_solr().get(work.key, fields=["ddc_sort"])
-            if solr_doc:
-                ddc_sort = solr_doc.get("ddc_sort")
-        except Exception:
-            logger.exception("Failed to fetch ddc_sort from Solr for %r", work.key)
-
-    if not ddc_sort:
-        return []
-
-    from openlibrary.plugins.upstream.utils import convert_iso_to_marc
-    from openlibrary.plugins.worksearch.search import get_solr
-    from openlibrary.utils.ddc import decrement_string_solr
-
-    ed_lang = None
-    if edition and edition.get("languages"):
-        lang_obj = edition.languages[0]
-        lang_key = (lang_obj.key if hasattr(lang_obj, "key") else str(lang_obj)).split("/")[-1]
-        ed_lang = convert_iso_to_marc(lang_key) or lang_key
-
-    lang_clause = f' AND language:"{ed_lang}"' if ed_lang else ""
-    work_key = work.key.split("/")[-1] if work.key.startswith("/") else work.key
-    work_filter = f' -key:"/works/{work_key}" -key:"{work_key}"'
-
-    dec_ddc = decrement_string_solr(ddc_sort, numeric=True)
-    solr = get_solr()
-
-    try:
-        # 1. Exact matches at same ddc_sort
-        q_exact = f'ddc_sort:"{ddc_sort}"{lang_clause}{work_filter}'
-        exact_res = solr.select(q_exact, rows=4)
-
-        # 2. Strict lower bound (< ddc_sort) sorted descending
-        q_before = f'ddc_sort:[* TO "{dec_ddc}"]{lang_clause}{work_filter}'
-        before_res = solr.select(q_before, rows=8, sort="ddc_sort desc")
-
-        # 3. Strict upper bound (> ddc_sort) sorted ascending
-        q_after = f'ddc_sort:("{ddc_sort}" TO *]{lang_clause}{work_filter}'
-        after_res = solr.select(q_after, rows=8, sort="ddc_sort asc")
-
-        before_docs = list(reversed(before_res.docs)) if before_res and before_res.docs else []
-        exact_docs = exact_res.docs if exact_res and exact_res.docs else []
-        after_docs = after_res.docs if after_res and after_res.docs else []
-
-        combined = before_docs + exact_docs + after_docs
-        seen = set()
-        unique_docs = []
-        for doc in combined:
-            key = doc.get("key")
-            if key and key not in seen:
-                seen.add(key)
-                unique_docs.append(doc)
-
-        return unique_docs[:limit]
-    except Exception:
-        logger.exception("get_nearby_books failed for %r", work.key)
-        return []
 
 
 class revert(delegate.mode):
