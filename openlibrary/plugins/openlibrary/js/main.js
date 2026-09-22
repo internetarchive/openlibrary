@@ -593,6 +593,12 @@ $(function() {
             .then(module => module.initInterstitial(interstitial));
     }
 
+    const providerBorrowLinks = document.querySelectorAll('a.cta-btn--borrow[data-ol-provider]');
+    if (providerBorrowLinks.length) {
+        import('./provider_borrow_popup')
+            .then(module => module.initProviderBorrowPopup(providerBorrowLinks));
+    }
+
     const leaveWaitlistLinks = document.querySelectorAll('a.leave');
     if (leaveWaitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
         import('./waitlist')

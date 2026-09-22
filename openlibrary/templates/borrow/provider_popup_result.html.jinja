@@ -1,0 +1,115 @@
+{# The last page in the borrow popup: it tells the page that opened it and gets out of the way.
+   Rendered by lenny_callback in openlibrary/plugins/upstream/lenny.py (#13688).
+   Arguments:
+     ok           (bool)      — the loan exists
+     message      (str|None)  — what went wrong, for the patron; None when ok
+     return_url   (str)       — the Open Library page the patron came from
+     read_url     (str|None)  — the node's reader; None when not ok
+     due          (str|None)  — the due date as the node reported it, if it gave one
+     message_type (str)       — must equal lenny.POPUP_MESSAGE_TYPE
+
+   Not a 303 back to the book, which would be shorter: a redirect cannot close
+   the window it is in, and the popup has to close for the patron to end up
+   looking at the page they started on. The script below is what closes it.
+
+   The content is rendered rather than hidden-until-needed, because it is what
+   the patron reads on every path where there is no opener to talk to: no
+   JavaScript, or the CTA's target="_blank" fallback, which has no opener by
+   construction. On those paths `read_url` is the only route to the book —
+   Open Library's own button still says "Borrow" after a loan, because it
+   renders from the harvested acquisitions row and a loan does not touch it
+   (#13694).
+
+   Standalone rather than wrapped in the site layout, and the reason is in
+   lenny._popup_page: the layout drains the flash message this page is trying
+   to hand to the window behind it. So it carries its own doctype and style,
+   the way interstitial.html.jinja does for its own layout-less caller.
+#}
+<!DOCTYPE html>
+{# The site layout would have supplied one. Without it the window is titled
+   with its URL, which on the no-opener paths is a page the patron reads. #}
+<title>{{ _("Borrowed") if ok else _("Borrow") }} — {{ _("Open Library") }}</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    color: hsl(41, 14%, 21%);
+    background: hsl(48, 32%, 94%);
+    margin: 0;
+    padding: 2em 1.5em;
+  }
+  .provider-borrow-result h1 {
+    font-size: 1.4em;
+    margin-top: 0;
+  }
+  .provider-borrow-result a {
+    color: hsl(210, 84%, 31%);
+  }
+</style>
+<div id="provider-borrow-result"
+     class="provider-borrow-result"
+     data-ok="{{ '1' if ok else '0' }}"
+     data-return-url="{{ return_url }}"
+     data-message-type="{{ message_type }}">
+    {% if ok %}
+        <h1>{{ _("Borrowed") }}</h1>
+        {% if due %}
+            <p>{{ _("Your loan is due %(due)s.", due=due) }}</p>
+        {% else %}
+            <p>{{ _("Your loan has been created.") }}</p>
+        {% endif %}
+        {% if read_url %}
+            <p><a href="{{ read_url }}">{{ _("Read it now") }}</a></p>
+        {% endif %}
+    {% else %}
+        <h1>{{ _("Borrow") }}</h1>
+        <p>{{ message }}</p>
+    {% endif %}
+    <p><a class="js-provider-borrow-return" href="{{ return_url }}">{{ _("Back to Open Library") }}</a></p>
+</div>
+<script>
+  (() => {
+      const result = document.getElementById('provider-borrow-result');
+      if (!result) return;
+
+      // Same-origin by the time we are back on an Open Library path, so this
+      // read is allowed -- but a popup the patron reused, or one whose opener
+      // navigated away, can still throw or be closed.
+      let opener = null;
+      try {
+          opener = window.opener && !window.opener.closed ? window.opener : null;
+      } catch {
+          opener = null;
+      }
+      if (!opener) return;
+
+      opener.postMessage(
+          {type: result.dataset.messageType, ok: result.dataset.ok === '1'},
+          window.location.origin
+      );
+
+      if (result.dataset.ok === '1') {
+          // provider_borrow_popup.js refreshes the opener when it gets that
+          // message. Closing here as well as there means the window goes away
+          // even if the opener has since stopped listening.
+          window.close();
+          return;
+      }
+
+      // A failure stays on screen to be read. Its link then acts on the page
+      // the patron actually came from, rather than loading a full book page
+      // into a 520px window.
+      const back = result.querySelector('.js-provider-borrow-return');
+      if (back) {
+          back.addEventListener('click', (event) => {
+              try {
+                  opener.location.assign(back.href);
+                  opener.focus();
+              } catch {
+                  return;  // preventDefault not yet called, so the link still navigates
+              }
+              event.preventDefault();
+              window.close();
+          });
+      }
+  })();
+</script>
