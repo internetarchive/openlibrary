@@ -2795,10 +2795,6 @@ msgstr ""
 msgid "More at OpenStax"
 msgstr ""
 
-#: LoanStatus.html ReadButton.html book_providers/read_button.html my_books/dropper.html
-msgid "More reading options"
-msgstr ""
-
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
@@ -5215,6 +5211,10 @@ msgstr ""
 msgid "More reading options for %(title)s"
 msgstr ""
 
+#: ReadingOptionsMenu.html my_books/dropper.html
+msgid "More reading options"
+msgstr ""
+
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
@@ -7142,7 +7142,7 @@ msgstr ""
 msgid "Only a preview is available."
 msgstr ""
 
-#: LocateButton.html
+#: LocateButton.html ReadingOptionsMenu.html
 msgid "Nearby Libraries"
 msgstr ""
 
@@ -7227,7 +7227,7 @@ msgstr ""
 msgid "Read ebook from Internet Archive"
 msgstr ""
 
-#: ReadButton.html
+#: ReadingOptionsMenu.html
 msgid "Listen"
 msgstr ""
 
