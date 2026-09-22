@@ -123,18 +123,21 @@ describe('IntegratedLibrarianEnvironment.reset', () => {
         expect(link.draggable).toBe(false);
     });
 
-    test('unbinds the drag listeners', () => {
+    test('unbinds both drag listeners', () => {
         const ile = new IntegratedLibrarianEnvironment();
         const link = createAuthorLink();
-        // Swapped in before selecting, so this is the reference that gets bound
-        // -- and the one reset() must pass to removeEventListener.
+        // Swapped in before selecting, so these are the references that get
+        // bound -- and the ones reset() must pass to removeEventListener.
         ile.selectionManager.dragStart = vi.fn();
+        ile.selectionManager.dragEnd = vi.fn();
 
         ile.selectionManager.setElementSelectionAttributes(link, true);
         ile.reset();
         link.dispatchEvent(new Event('dragstart'));
+        link.dispatchEvent(new Event('dragend'));
 
         expect(ile.selectionManager.dragStart).not.toHaveBeenCalled();
+        expect(ile.selectionManager.dragEnd).not.toHaveBeenCalled();
     });
 
     test('"Clear Selections" clears the drag state of every selected element', () => {
