@@ -752,17 +752,22 @@ CHANGED_SINCE = "changed_since_request"
 
 def _request_plan(req: dict[str, Any], ctx: Ctx) -> tuple[Action, dict[str, dict[str, Any]], Plan, list[dict[str, Any]]]:
     """Rebuild a request's plan against the records as they are now. A record
-    edited since the request was filed is a block, so the reviewer acknowledges
-    that the plan they see is not the one the requester saw."""
+    edited, deleted or merged away since the request was filed is a block, so the
+    reviewer acknowledges that the plan they see is not the one the requester saw."""
     expected = {it["key"]: it["before_revision"] for it in req["items"] if it.get("before_revision")}
     act, docs, plan, warnings, resolved = _prepare(req["action"], [{"key": k} for k in expected], req["params"], ctx)
     for key, rev in expected.items():
         rk = resolved.get(key, key)
         now = (docs.get(rk) or {}).get("revision")
-        if now is not None and now != rev:
-            warnings.append(
-                _warn("block", CHANGED_SINCE, f"{olid(rk)} was edited after this request (revision {rev} → {now}); check the changes still make sense.", key=rk)
-            )
+        if rk != key:
+            text = f"{olid(key)} was merged into {olid(rk)} after this request; check the changes still make sense."
+        elif now is None:
+            text = f"{olid(key)} no longer exists; the rest of the batch would still apply."
+        elif now != rev:
+            text = f"{olid(rk)} was edited after this request (revision {rev} → {now}); check the changes still make sense."
+        else:
+            continue
+        warnings.append(_warn("block", CHANGED_SINCE, text, key=rk))
     return act, docs, plan, warnings
 
 
@@ -796,15 +801,25 @@ def preview_requested(user: Any, request_id: int) -> dict[str, Any]:
     }
 
 
-def apply_requested(user: Any, request_id: int, comment: str | None = None, overrides: list[str] | None = None) -> dict[str, Any]:
+def apply_requested(
+    user: Any, request_id: int, comment: str | None = None, overrides: list[str] | None = None, revisions: dict[str, int] | None = None
+) -> dict[str, Any]:
     """A super-librarian applies a librarian's request. The plan is rebuilt
     against current records, and blocks (including records edited since the
-    request) must be acknowledged by the applier."""
+    request) must be acknowledged by the applier. ``revisions`` is what the
+    reviewer's preview showed; if a record has moved on since, the plan they
+    acknowledged is not the one that would be written, so the apply is refused."""
     req = _requested(request_id)
     ctx = _reviewer(user, dry_run=False)
     if req["action"] == "flag":
         raise BatchError("A flag is a report, not an edit; resolve or decline it.", 400)
     act, docs, plan, warnings = _request_plan(req, ctx)
+    if revisions is not None:
+        current = {k: d.get("revision") for k, d in docs.items()}
+        stale = {k: now for k, now in current.items() if revisions.get(k) != now}
+        stale.update({k: None for k in revisions if k not in current})
+        if stale:
+            raise BatchError("Some records changed since the preview; reload and try again.", 409, stale=stale, revisions=current)
     overrides = uniq(list(req["overrides"]) + list(overrides or []))
     blocks = [w for w in warnings if w["level"] == "block" and w["code"] not in overrides]
     if blocks:

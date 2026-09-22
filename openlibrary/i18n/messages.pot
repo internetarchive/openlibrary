@@ -1230,7 +1230,7 @@ msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html
+#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html librarians/help.html.jinja
 msgid "Actions"
 msgstr ""
 
@@ -4793,6 +4793,146 @@ msgstr ""
 
 #: librarians/batch.html.jinja
 msgid "Undo the whole batch"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Librarian workbench: how it works"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Open the workbench"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "The workbench is new and being tried by a few librarians first; please report anything odd."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "The loop"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Find: pick a worklist such as “Editions without a language”, or write a search. Each row flags what looks wrong."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Select: tick boxes, shift-click a range, or use the keyboard (j/k move, x select, a whole page, Enter opens the panel)."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Preview: choose an action. The dialog lists every change on every record, plus what the checks found. Nothing is written yet."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Apply or request: super-librarians apply. Librarians request, and the batch waits in the merge queue for a super-librarian."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Undo: every applied batch has its own page and can be reverted as a whole or one record at a time, from the Batches tab."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Things to know"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "It is a desktop tool. Use a wide window."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "A batch is at most 200 records."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Filters marked “on this page” only look at the rows you fetched, so a count of zero does not mean there are none. Page through a broader worklist to find them all."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Blocked warnings must be ticked “I’ve checked this” before a batch can go ahead. Take them seriously: they mean the records may not be what they look like."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Field edits in the side panel are staged, not saved. Each field is previewed and applied as its own batch."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "A flag files a report for a super-librarian. It changes nothing by itself."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Search may lag a few minutes after an apply. Rows you touched stay tinted until you reload."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "A revert refuses to overwrite a record someone edited after the batch. Only a super-librarian can force it."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "If something looks wrong, revert first and report second. Every batch has a page you can link to."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Set a field"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "One field (publisher, date, places, language, format, page count, edition name, series) on each selected edition, or original language on works. Titles and author links have their own actions."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Manage subjects"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Add or remove subjects, people, places and times on works. Selected editions count as their work."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Set author"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Add an author, replace one author with another, or make one the only author. “Also update the editions’ authors” keeps edition records in step."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Move editions"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Point editions at another work, or at a new work made from the first edition’s title, authors and cover. You are warned if the old work would be left empty."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Flag for review"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Report records as spam, not a book, duplicates, or needing deletion or review. A super-librarian resolves or declines the report."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Merge works, Merge authors"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "The workbench runs the checks and then opens the existing merge page; the merge itself happens there."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Merge editions, Delete"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Not enabled in this phase of the alpha."
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Reporting problems"
+msgstr ""
+
+#: librarians/help.html.jinja
+msgid "Post in #open-librarians-g on Slack or comment on the workbench issue on GitHub, with the batch or request link."
 msgstr ""
 
 #: librarians/workbench.html.jinja

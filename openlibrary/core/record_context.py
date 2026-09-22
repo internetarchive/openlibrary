@@ -124,7 +124,8 @@ def load_docs(keys: list[str]) -> tuple[dict[str, dict[str, Any]], dict[str, str
     by_key = {t.key: t.dict() for t in things}
     for key in keys:
         doc = by_key.get(key)
-        if doc is None:
+        # A deleted record still comes back from infobase, as /type/delete.
+        if doc is None or doc_type(doc) == "/type/delete":
             missing.append(key)
             continue
         if doc_type(doc) == "/type/redirect":

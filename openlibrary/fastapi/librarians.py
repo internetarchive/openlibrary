@@ -247,6 +247,8 @@ def request_preview(_: LibrarianDep, request_id: int) -> dict[str, Any]:
 class DecisionBody(BaseModel):
     comment: str | None = Field(default=None, max_length=500)
     overrides: list[str] = Field(default_factory=list)
+    # The revisions the reviewer's preview showed; apply refuses if any moved on.
+    revisions: dict[str, int] | None = None
 
 
 @router.post("/librarians/request/{request_id}/apply.json")
@@ -254,7 +256,13 @@ def request_apply(_: LibrarianDep, request_id: int, body: DecisionBody | None = 
     user = _user()
     with web_ctx_ip(_client_ip()):
         try:
-            return batch_ops.apply_requested(user, request_id, comment=body.comment if body else None, overrides=body.overrides if body else None)
+            return batch_ops.apply_requested(
+                user,
+                request_id,
+                comment=body.comment if body else None,
+                overrides=body.overrides if body else None,
+                revisions=body.revisions if body else None,
+            )
         except batch_ops.BatchError as e:
             raise _batch_error(e) from e
 

@@ -525,6 +525,55 @@ def test_reviewer_sees_the_current_plan_and_must_acknowledge_edits_since(fakes):
     assert fakes["site"].docs["/works/OL1W"]["subjects"] == ["Dogs", "West Virginia", "Virginia"]
 
 
+def test_apply_requested_refuses_records_that_moved_on_since_the_preview(fakes):
+    """The plan the reviewer acknowledged must be the plan that is written."""
+    req = batch_ops.run(user(is_super=False), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    seen = batch_ops.preview_requested(user(), req["request_id"])["revisions"]
+    assert seen == {"/works/OL1W": 2}
+    # Someone edits the work between the reviewer's preview and their click on Apply.
+    fakes["site"].save_many([{**fakes["site"].docs["/works/OL1W"], "subjects": ["Cats"]}])
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.apply_requested(user(), req["request_id"], overrides=[batch_ops.CHANGED_SINCE], revisions=seen)
+    assert e.value.status == 409
+    assert e.value.extra["stale"] == {"/works/OL1W": 3}
+    assert fakes["site"].docs["/works/OL1W"]["subjects"] == ["Cats"], "nothing was written"
+    # A fresh preview carries the current revisions, and applying against them works.
+    fresh = batch_ops.preview_requested(user(), req["request_id"])["revisions"]
+    out = batch_ops.apply_requested(user(), req["request_id"], overrides=[batch_ops.CHANGED_SINCE], revisions=fresh)
+    assert out["status"] == "applied"
+    assert fakes["site"].docs["/works/OL1W"]["subjects"] == ["Cats", "Virginia"]
+
+
+def test_a_record_deleted_since_the_request_is_a_block(fakes):
+    req = batch_ops.run(user(is_super=False), "tag", [{"key": "OL1W"}, {"key": "OL2W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    fakes["site"].save_many([{"key": "/works/OL2W", "type": {"key": "/type/delete"}}])
+    preview = batch_ops.preview_requested(user(), req["request_id"])
+    block = next(w for w in preview["warnings"] if w["code"] == batch_ops.CHANGED_SINCE)
+    assert block["level"] == "block"
+    assert "OL2W no longer exists" in block["text"]
+    assert preview["can_apply"] is False
+    assert preview["docs_touched"] == 1, "the surviving record still plans"
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.apply_requested(user(), req["request_id"])
+    assert e.value.status == 409
+    out = batch_ops.apply_requested(user(), req["request_id"], overrides=[batch_ops.CHANGED_SINCE])
+    assert out["applied"] == 1
+
+
+def test_a_record_merged_away_since_the_request_is_a_block(fakes):
+    req = batch_ops.run(user(is_super=False), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
+    fakes["site"].save_many([{"key": "/works/OL1W", "type": {"key": "/type/redirect"}, "location": "/works/OL2W"}])
+    preview = batch_ops.preview_requested(user(), req["request_id"])
+    block = next(w for w in preview["warnings"] if w["code"] == batch_ops.CHANGED_SINCE)
+    assert "OL1W was merged into OL2W" in block["text"]
+    assert block["key"] == "/works/OL2W"
+    assert preview["can_apply"] is False
+    assert preview["changes"][0]["key"] == "/works/OL2W", "the plan follows the redirect"
+    with pytest.raises(batch_ops.BatchError) as e:
+        batch_ops.apply_requested(user(), req["request_id"])
+    assert e.value.status == 409
+
+
 def test_apply_requested_refuses_when_nothing_would_change(fakes):
     req = batch_ops.run(user(is_super=False), "tag", [{"key": "OL1W"}], {"add": {"subjects": ["Virginia"]}}, dry_run=False)
     # The fix lands by hand before the reviewer gets to it.

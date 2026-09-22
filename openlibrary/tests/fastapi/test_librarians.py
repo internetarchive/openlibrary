@@ -160,12 +160,14 @@ def test_unknown_batch_and_request_are_404(fastapi_client, librarian, monkeypatc
 def test_request_apply_and_decline_route_to_the_request(fastapi_client, librarian, monkeypatch):
     seen = {}
     monkeypatch.setattr(
-        batch_ops, "apply_requested", lambda user, rid, comment=None, overrides=None: seen.update(apply=(rid, overrides)) or {"status": "applied"}
+        batch_ops,
+        "apply_requested",
+        lambda user, rid, comment=None, overrides=None, revisions=None: seen.update(apply=(rid, overrides, revisions)) or {"status": "applied"},
     )
     monkeypatch.setattr(batch_ops, "decline_requested", lambda user, rid, comment=None: seen.update(decline=(rid, comment)) or {"status": "declined"})
-    assert fastapi_client.post("/librarians/request/4/apply.json", json={"overrides": ["has_scan"]}).status_code == 200
+    assert fastapi_client.post("/librarians/request/4/apply.json", json={"overrides": ["has_scan"], "revisions": {"/works/OL1W": 3}}).status_code == 200
     assert fastapi_client.post("/librarians/request/4/decline.json", json={"comment": "not a dupe"}).status_code == 200
-    assert seen == {"apply": (4, ["has_scan"]), "decline": (4, "not a dupe")}
+    assert seen == {"apply": (4, ["has_scan"], {"/works/OL1W": 3}), "decline": (4, "not a dupe")}
 
 
 def test_revert_forwards_key_and_force(fastapi_client, librarian, monkeypatch):

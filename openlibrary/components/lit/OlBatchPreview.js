@@ -183,7 +183,8 @@ export class OlBatchPreview extends LitElement {
         this._error = null;
         try {
             if (r.mode === 'review') {
-                this._result = await api.requestApply(r.requestId, this._comment || null, [...this._overrides]);
+                // The revisions the preview showed: the server refuses if any moved on since.
+                this._result = await api.requestApply(r.requestId, this._comment || null, [...this._overrides], this._preview.revisions || null);
             } else {
                 const revisions = this._preview.revisions || {};
                 const items = r.items.map((it) => {
