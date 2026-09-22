@@ -7,7 +7,6 @@ from openlibrary.core.db import get_db
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 READING_LOG_DDL = """
 CREATE TABLE bookshelves_books (
@@ -68,15 +67,6 @@ CREATE TABLE bookshelves_events (
     edition_id integer not null,
     event_type integer not null,
     event_date text not null,
-    updated timestamp
-);
-"""
-
-YEARLY_READING_GOALS_DDL = """
-CREATE TABLE yearly_reading_goals (
-    username text not null,
-    year integer not null,
-    target integer not null,
     updated timestamp
 );
 """
@@ -425,80 +415,3 @@ class TestCheckIns:
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 3)["event_date"] == "2019-10"
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 3)["id"] == 6
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 1) is None
-
-
-SETUP_ROWS = [
-    {
-        "username": "@billy_pilgrim",
-        "year": 2022,
-        "target": 5,
-    },
-    {
-        "username": "@billy_pilgrim",
-        "year": 2023,
-        "target": 7,
-    },
-    {
-        "username": "@kilgore_trout",
-        "year": 2022,
-        "target": 4,
-    },
-]
-
-
-class TestYearlyReadingGoals:
-    TABLENAME = YearlyReadingGoals.TABLENAME
-
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-        db = get_db()
-        db.query(YEARLY_READING_GOALS_DDL)
-
-    def setup_method(self):
-        self.db = get_db()
-        self.db.multiple_insert(self.TABLENAME, SETUP_ROWS)
-
-    def teardown_method(self):
-        self.db.query("delete from yearly_reading_goals")
-
-    def test_create(self):
-        assert len(list(self.db.select(self.TABLENAME))) == 3
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 1
-        YearlyReadingGoals.create("@kilgore_trout", 2023, 5)
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 2
-        new_row = list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout", "year": 2023}))
-        assert len(new_row) == 1
-
-    def test_select_by_username_and_year(self):
-        assert len(YearlyReadingGoals.select_by_username_and_year("@billy_pilgrim", 2022)) == 1
-
-    def test_update_target(self):
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={"username": "@billy_pilgrim", "year": 2023},
-                    )
-                )
-            )["target"]
-            == 7
-        )
-        YearlyReadingGoals.update_target("@billy_pilgrim", 2023, 14)
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={"username": "@billy_pilgrim", "year": 2023},
-                    )
-                )
-            )["target"]
-            == 14
-        )
-
-    def test_delete_by_username(self):
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 2
-        YearlyReadingGoals.delete_by_username("@billy_pilgrim")
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 0

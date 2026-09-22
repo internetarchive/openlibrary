@@ -90,13 +90,13 @@ async def get_reading_goals_endpoint(
 ) -> ReadingGoalsResponse:
     """Get reading goals for the authenticated user."""
     if year:
-        records = YearlyReadingGoals.select_by_username_and_year(user.username, year)
+        records = await YearlyReadingGoals.select_by_username_and_year_async(user.username, year)
     else:
-        records = YearlyReadingGoals.select_by_username(user.username)
+        records = await YearlyReadingGoals.select_by_username_async(user.username)
     goals = [
         ReadingGoalItem(
-            year=getattr(record, "year", 0),
-            goal=getattr(record, "target", 0),
+            year=record.get("year") or 0,
+            goal=record.get("target") or 0,
         )
         for record in records
     ]
@@ -115,10 +115,10 @@ async def update_reading_goal_endpoint(
         # year is guaranteed to be not None here due to model_validator
         assert form.year is not None
         if form.goal == 0:
-            YearlyReadingGoals.delete_by_username_and_year(user.username, form.year)
+            await YearlyReadingGoals.delete_by_username_and_year_async(user.username, form.year)
         else:
-            YearlyReadingGoals.update_target(user.username, form.year, form.goal)
+            await YearlyReadingGoals.update_target_async(user.username, form.year, form.goal)
     else:
-        YearlyReadingGoals.create(user.username, current_year, form.goal)
+        await YearlyReadingGoals.create_async(user.username, current_year, form.goal)
 
     return ReadingGoalUpdateResponse(status="ok")

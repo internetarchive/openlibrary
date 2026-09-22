@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from typing import ClassVar
 
+from openlibrary.core.async_db import connection
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -19,48 +21,6 @@ class YearlyReadingGoals:
             },
         }
 
-    # Create methods:
-    @classmethod
-    def create(cls, username: str, year: int, target: int) -> None:
-        oldb = db.get_db()
-        oldb.insert(cls.TABLENAME, username=username, year=year, target=target)
-
-    # Read methods:
-    # web.db's `order=` kwarg is interpolated raw into the SQL string -- only
-    # `vars=` substitutions are parameterized -- so any caller passing a
-    # user-controlled `order` would have a SQLi sink in the same shape as the
-    # /merges bug fixed in PR #12460. Restrict callers to a known set.
-    _ALLOWED_ORDERS: ClassVar[dict[str, str]] = {
-        "year ASC": "year ASC",
-        "year DESC": "year DESC",
-    }
-
-    @classmethod
-    def select_by_username(cls, username: str, order: str = "year ASC") -> list[dict]:
-        oldb = db.get_db()
-
-        if order not in cls._ALLOWED_ORDERS:
-            raise ValueError(f"Invalid order: {order!r}. Must be one of {list(cls._ALLOWED_ORDERS)}.")
-
-        where = "username=$username"
-        data = {
-            "username": username,
-        }
-
-        return list(oldb.select(cls.TABLENAME, where=where, order=cls._ALLOWED_ORDERS[order], vars=data))
-
-    @classmethod
-    def select_by_username_and_year(cls, username: str, year: int) -> list[dict]:
-        oldb = db.get_db()
-
-        where = "username=$username AND year=$year"
-        data = {
-            "username": username,
-            "year": year,
-        }
-
-        return list(oldb.select(cls.TABLENAME, where=where, vars=data))
-
     @classmethod
     def total_yearly_reading_goals(cls, since: date | None = None) -> int:
         """Returns the number reading goals that were set. `since` may be used
@@ -77,43 +37,73 @@ class YearlyReadingGoals:
         results = oldb.query(query, vars={"since": since})
         return results[0]["count"] if results else 0
 
+    # Create methods:
+    @classmethod
+    async def create_async(cls, username: str, year: int, target: int) -> None:
+        async with connection() as conn:
+            await conn.execute(
+                f"INSERT INTO {cls.TABLENAME} (username, year, target) VALUES (%(username)s, %(year)s, %(target)s)",
+                {"username": username, "year": year, "target": target},
+            )
+            await conn.commit()
+
+    # Read methods:
+    # web.db's `order=` kwarg is interpolated raw into the SQL string -- only
+    # `vars=` substitutions are parameterized -- so any caller passing a
+    # user-controlled `order` would have a SQLi sink in the same shape as the
+    # /merges bug fixed in PR #12460. Restrict callers to a known set.
+    _ALLOWED_ORDERS: ClassVar[dict[str, str]] = {
+        "year ASC": "year ASC",
+        "year DESC": "year DESC",
+    }
+
+    @classmethod
+    async def select_by_username_async(cls, username: str, order: str = "year ASC") -> list[dict]:
+        if order not in cls._ALLOWED_ORDERS:
+            raise ValueError(f"Invalid order: {order!r}. Must be one of {list(cls._ALLOWED_ORDERS)}.")
+
+        query = f"SELECT * FROM {cls.TABLENAME} WHERE username = %(username)s ORDER BY {cls._ALLOWED_ORDERS[order]}"
+        async with connection() as conn:
+            cursor = await conn.execute(query, {"username": username})
+            return await cursor.fetchall()
+
+    @classmethod
+    async def select_by_username_and_year_async(cls, username: str, year: int) -> list[dict]:
+        query = f"SELECT * FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
+        async with connection() as conn:
+            cursor = await conn.execute(query, {"username": username, "year": year})
+            return await cursor.fetchall()
+
     # Update methods:
     @classmethod
-    def update_target(cls, username: str, year: int, new_target: int) -> None:
-        oldb = db.get_db()
-
-        where = "username=$username AND year=$year"
-        data = {
-            "username": username,
-            "year": year,
-        }
-
-        oldb.update(
-            cls.TABLENAME,
-            where=where,
-            vars=data,
-            target=new_target,
-            updated=datetime.now(),
-        )
+    async def update_target_async(cls, username: str, year: int, new_target: int) -> None:
+        query = f"UPDATE {cls.TABLENAME} SET target = %(target)s, updated = %(updated)s WHERE username = %(username)s AND year = %(year)s"
+        async with connection() as conn:
+            await conn.execute(
+                query,
+                {
+                    "username": username,
+                    "year": year,
+                    "target": new_target,
+                    "updated": datetime.now(),
+                },
+            )
+            await conn.commit()
 
     # Delete methods:
     @classmethod
-    def delete_by_username(cls, username: str) -> None:
-        oldb = db.get_db()
+    async def delete_by_username_and_year_async(cls, username: str, year: int) -> None:
+        query = f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
+        async with connection() as conn:
+            await conn.execute(query, {"username": username, "year": year})
+            await conn.commit()
 
-        where = "username=$username"
-        data = {"username": username}
-
-        oldb.delete(cls.TABLENAME, where=where, vars=data)
-
+    # Bridge (synchronous) API:
+    # The legacy web.py template helper get_reading_goals still calls the
+    # synchronous select_by_username_and_year. Rather than keeping a parallel
+    # web.db implementation, we bridge the async method over async_bridge's
+    # persistent loop. The pool is created lazily per event loop (see
+    # openlibrary/core/async_db.py), so this works in the web.py process too.
     @classmethod
-    def delete_by_username_and_year(cls, username: str, year: int) -> None:
-        oldb = db.get_db()
-
-        data = {
-            "username": username,
-            "year": year,
-        }
-        where = "username=$username AND year=$year"
-
-        oldb.delete(cls.TABLENAME, where=where, vars=data)
+    def select_by_username_and_year(cls, username: str, year: int) -> list[dict]:
+        return async_bridge.run(cls.select_by_username_and_year_async(username, year))
