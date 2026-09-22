@@ -2,14 +2,21 @@
 
 ``lenny.provider_loans`` is built for the loans page, where spending its whole
 ``LOANS_DEADLINE_SECONDS`` budget is acceptable. The book page cannot afford
-that: it is a hot render path, and one slow node must not delay it. So this
-module puts memcache in front of that call -- which serves the previous answer
-while a new one is fetched on another thread -- and swallows every failure.
+that: it is a hot render path, and one slow node must not delay it.
 
-Failing open leaves the CTA saying Borrow for a book the patron already holds.
-That is wrong but harmless: Lenny's borrow is idempotent for an existing loan,
-so the patron just gets that loan back. Blocking or raising on the book page
-would not be harmless, which is why nothing here propagates.
+So the book page never fetches inline. It reads memcache, and when there is
+nothing cached -- or what is cached has gone stale -- it starts the fetch on
+another thread and answers with what it has. Note that calling the memoized
+function itself would *not* be enough:
+:meth:`cache.memcache_memoize.__call__` fetches synchronously on a miss and
+only refreshes in the background for a value that is already cached, so a cold
+cache would put the provider's full deadline in front of the render.
+
+Answering "no loans" leaves the CTA saying Borrow for a book the patron already
+holds. That is wrong but harmless: Lenny's borrow is idempotent for an existing
+loan, so the patron just gets that loan back. Blocking or raising on the book
+page would not be harmless, which is why nothing here propagates and nothing
+here waits.
 
 This deliberately does not go through ``AbstractBookProvider.get_acquisitions``.
 That call feeds Solr's ``ebook_access``, so making it per-patron would bake loan
@@ -20,9 +27,9 @@ from __future__ import annotations
 
 import importlib
 import logging
+import time
 from typing import TYPE_CHECKING, Any
 
-from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.utils import dateutil
 
@@ -31,10 +38,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("openlibrary.provider_loans")
 
-# Long enough that the book page nearly always answers from cache, short enough
-# that a returned loan stops being served soon after it expires. Refreshes run
-# on another thread and the stale answer is served meanwhile, so this is the
-# staleness bound, not a render cost.
+# How long a cached answer is served before a refresh is started behind it.
+# Short, because a loan that has expired should stop being offered soon; the
+# refresh costs the render nothing, so this is a staleness bound, not a budget.
 PROVIDER_LOANS_TTL = dateutil.MINUTE_SECS
 
 # A node supplies ``read_url``, so it is never interpolated into a link without
@@ -74,6 +80,45 @@ get_cached_provider_loans = cache.memcache_memoize(
 )
 
 
+def _refresh_in_background(username: str) -> None:
+    """Start a fetch on another thread, and never make the caller wait for it."""
+    try:
+        get_cached_provider_loans.update_async(username)
+    except Exception:
+        logger.exception("could not start a provider loan refresh for %s", username)
+
+
+def _cached_loans(username: str) -> list[dict[str, Any]]:
+    """This patron's loans as memcache currently has them -- no inline fetch."""
+    try:
+        cached = get_cached_provider_loans.memcache_get((username,), {})
+    except Exception:
+        logger.exception("provider loan cache read failed for %s; treating it as no loans", username)
+        return []
+
+    if cached is None:
+        _refresh_in_background(username)
+        return []
+
+    loans, fetched_at = cached
+    if fetched_at + get_cached_provider_loans.timeout < time.time():
+        _refresh_in_background(username)
+    return loans or []
+
+
+def invalidate_provider_loans(username: str) -> None:
+    """Forget this patron's cached loans, so the next page asks the node again.
+
+    The borrow flow should call this once a borrow succeeds. Without it the CTA
+    can keep offering Borrow for up to :data:`PROVIDER_LOANS_TTL` seconds on the
+    very page the patron just borrowed from.
+    """
+    try:
+        get_cached_provider_loans.memcache_delete_by_args(username)
+    except Exception:
+        logger.exception("could not invalidate cached provider loans for %s", username)
+
+
 def _is_readable_loan(loan: object, edition_key: str) -> bool:
     """Is this a loan on ``edition_key`` that we can actually offer a link to?
 
@@ -87,15 +132,14 @@ def _is_readable_loan(loan: object, edition_key: str) -> bool:
     return isinstance(read_url, str) and read_url.lower().startswith(SAFE_URL_SCHEMES)
 
 
-@public
 def get_provider_loan(edition_key: str | None, user: User | None = None) -> dict[str, Any] | None:
     """The patron's live provider loan on ``edition_key``, or None.
 
     ``edition_key`` is a full Open Library key (``/books/OL1M``), which is what
     ``lenny.provider_loans`` puts on each loan's ``book`` field.
 
-    Never raises: every caller is a render path that must survive a provider
-    being slow, broken, or absent.
+    Never raises and never blocks: every caller is a render path that must
+    survive a provider being slow, broken, or absent.
     """
     if not edition_key:
         return None
@@ -115,5 +159,4 @@ def get_provider_loan(edition_key: str | None, user: User | None = None) -> dict
     if not username:
         return None
 
-    loans = get_cached_provider_loans(username)
-    return next((loan for loan in loans if _is_readable_loan(loan, edition_key)), None)
+    return next((loan for loan in _cached_loans(username) if _is_readable_loan(loan, edition_key)), None)

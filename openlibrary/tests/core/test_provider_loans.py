@@ -1,3 +1,4 @@
+import time
 from types import SimpleNamespace
 from typing import Any
 
@@ -31,46 +32,119 @@ class FakeUser:
         return self._username
 
 
+class FakeMemo:
+    """Stands in for the memoized lookup, recording what the page asked of it."""
+
+    timeout = 60
+
+    def __init__(self, cached=None, raises=False):
+        self.cached = cached
+        self.raises = raises
+        self.refreshes: list[str] = []
+        self.deletes: list[str] = []
+        self.inline_calls = 0
+
+    def __call__(self, username):
+        # Calling the memoized function is what blocks on a cache miss.
+        self.inline_calls += 1
+        return []
+
+    def memcache_get(self, args, kw):
+        if self.raises:
+            raise RuntimeError("memcache down")
+        return self.cached
+
+    def update_async(self, username):
+        self.refreshes.append(username)
+
+    def memcache_delete_by_args(self, username):
+        self.deletes.append(username)
+
+
 @pytest.fixture
-def loans(monkeypatch):
-    """Control what the cached lookup returns, without touching memcache."""
-    holder: list[dict[str, Any]] = []
-    monkeypatch.setattr(provider_loans, "get_cached_provider_loans", lambda username: holder)
-    return holder
+def memo(monkeypatch):
+    def install(cached=None, raises=False):
+        fake = FakeMemo(cached=cached, raises=raises)
+        monkeypatch.setattr(provider_loans, "get_cached_provider_loans", fake)
+        return fake
+
+    return install
 
 
-def test_returns_the_loan_the_patron_holds_on_this_edition(loans):
-    loans.append(make_loan())
+def fresh(loans):
+    return (loans, time.time())
+
+
+def stale(loans):
+    return (loans, time.time() - FakeMemo.timeout - 1)
+
+
+def test_returns_the_loan_the_patron_holds_on_this_edition(memo):
+    memo(cached=fresh([make_loan()]))
     loan = provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser())
     assert loan is not None
     assert loan["read_url"] == "https://lenny.example/read/1"
 
 
-def test_a_loan_on_another_edition_is_not_this_edition_s_loan(loans):
-    loans.append(make_loan(book="/books/OL999M"))
+def test_a_loan_on_another_edition_is_not_this_edition_s_loan(memo):
+    memo(cached=fresh([make_loan(book="/books/OL999M")]))
     assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is None
 
 
-def test_no_loans_means_no_loan(loans):
+def test_no_loans_means_no_loan(memo):
+    memo(cached=fresh([]))
     assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is None
 
 
-def test_no_edition_key_is_not_looked_up(monkeypatch):
-    def fail(username):
-        raise AssertionError("no lookup should happen without an edition key")
+def test_a_cold_cache_never_fetches_inline(memo):
+    """The book page must not wait on a provider. A miss answers now and fills later.
 
-    monkeypatch.setattr(provider_loans, "get_cached_provider_loans", fail)
+    memcache_memoize fetches synchronously on a miss, so calling it directly
+    would put the node's full deadline in front of the render.
+    """
+    fake = memo(cached=None)
+    assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is None
+    assert fake.inline_calls == 0
+    assert fake.refreshes == ["patron"]
+
+
+def test_a_stale_entry_is_served_while_a_refresh_runs_behind_it(memo):
+    fake = memo(cached=stale([make_loan()]))
+    assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
+    assert fake.inline_calls == 0
+    assert fake.refreshes == ["patron"]
+
+
+def test_a_fresh_entry_starts_no_refresh(memo):
+    fake = memo(cached=fresh([make_loan()]))
+    provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser())
+    assert fake.refreshes == []
+
+
+def test_a_broken_cache_reads_as_no_loans(memo):
+    fake = memo(raises=True)
+    assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is None
+    assert fake.inline_calls == 0
+
+
+def test_invalidation_drops_the_patron_s_entry(memo):
+    fake = memo(cached=fresh([make_loan()]))
+    provider_loans.invalidate_provider_loans("patron")
+    assert fake.deletes == ["patron"]
+
+
+def test_no_edition_key_is_not_looked_up(memo):
+    fake = memo(cached=fresh([make_loan()]))
     assert provider_loans.get_provider_loan(None, user=FakeUser()) is None
     assert provider_loans.get_provider_loan("", user=FakeUser()) is None
+    assert fake.refreshes == []
 
 
-def test_logged_out_patrons_are_not_looked_up(monkeypatch):
-    def fail(username):
-        raise AssertionError("no lookup should happen for a logged-out patron")
-
-    monkeypatch.setattr(provider_loans, "get_cached_provider_loans", fail)
+def test_logged_out_patrons_are_not_looked_up(memo, monkeypatch):
+    fake = memo(cached=fresh([make_loan()]))
     monkeypatch.setattr("openlibrary.accounts.get_current_user", lambda: None)
     assert provider_loans.get_provider_loan(EDITION_KEY) is None
+    assert fake.refreshes == []
 
 
 @pytest.mark.parametrize(
@@ -84,23 +158,19 @@ def test_logged_out_patrons_are_not_looked_up(monkeypatch):
         123,
     ],
 )
-def test_a_loan_whose_read_url_is_unusable_is_ignored(loans, read_url):
+def test_a_loan_whose_read_url_is_unusable_is_ignored(memo, read_url):
     """Read with nowhere safe to send the patron is worse than Borrow, which works."""
-    loans.append(make_loan(read_url=read_url))
+    memo(cached=fresh([make_loan(read_url=read_url)]))
     assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is None
 
 
-def test_a_junk_row_does_not_break_the_page(loans):
-    loans.extend(["not a dict", None, make_loan()])
+def test_a_junk_row_does_not_break_the_page(memo):
+    memo(cached=fresh(["not a dict", None, make_loan()]))
     assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
 
 
 def test_lookup_failure_reads_as_no_loans(monkeypatch):
-    """A node that is slow, broken or unauthorized must cost the book page nothing.
-
-    Degrading to Borrow is harmless: Lenny's borrow is idempotent for a loan the
-    patron already holds, so a second attempt just returns that loan.
-    """
+    """A node that is slow, broken or unauthorized must cost the book page nothing."""
 
     class Boom:
         @staticmethod

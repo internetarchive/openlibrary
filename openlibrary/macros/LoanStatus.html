@@ -65,11 +65,10 @@ $elif lending_state == 'partner':
   $# Partner Trusted Book Provider Read Buttons
   $# get_lending_state() answers "partner" for every non-IA provider without
   $# consulting loans -- its loan checks sit below that branch and are
-  $# ocaid-keyed besides -- so the loan is looked up here instead.
+  $# ocaid-keyed besides -- so the button asks about the loan itself.
   $# Only on an edition page: a loan is per-patron and per-edition, and
   $# check_loan_status keeps this off carousels, lists and search results.
-  $ provider_loan = get_provider_loan(doc['key'], user=user) if (check_loan_status and is_edition) else None
-  $:book_provider.render_read_button(edition_key, doc, analytics_attr, show_locate=secondary_action, provider_loan=provider_loan)
+  $:book_provider.render_read_button(edition_key, doc, analytics_attr, show_locate=secondary_action, check_loan_status=check_loan_status and is_edition)
 
 $elif lending_state == 'open':
   $# Open / Publicly Readable (Unrestricted)
