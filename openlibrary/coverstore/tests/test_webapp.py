@@ -1,3 +1,4 @@
+import datetime
 import json
 import urllib
 from os import system
@@ -142,6 +143,39 @@ class TestCoverRouting:
     def test_default_param(self, client):
         client.get("/b/id/1-M.jpg?default=false")
         assert client.served["default"] == "false"
+
+
+class TestUploadedCoverRedirect:
+    """Covers past 8M that have been uploaded to archive.org are served as a redirect.
+
+    web.py set the cache headers before returning it, making the redirect itself
+    cacheable; a 302 is not cacheable by default, so dropping them would send every
+    view of a recent cover back to the origin.
+    """
+
+    @pytest.fixture
+    def client(self, monkeypatch):
+        details = web.storage(
+            id=12_000_000,
+            uploaded=True,
+            created=datetime.datetime(2021, 9, 26, 0, 45, 9),
+            filename="x.jpg",
+        )
+        monkeypatch.setattr(code, "get_details", lambda coverid, size="": details)
+        return TestClient(make_app())
+
+    def test_redirect_keeps_the_cache_headers(self, client):
+        r = client.get("/b/id/12000000-M.jpg", follow_redirects=False)
+        assert r.status_code == 302
+        assert "archive.org" in r.headers["location"]
+        assert r.headers["cache-control"] == "public"
+        assert r.headers["etag"] == '"12000000-m"'
+        assert r.headers["last-modified"] == "Sun, 26 Sep 2021 00:45:09 GMT"
+        assert r.headers["expires"]
+
+    def test_redirect_still_honours_conditional_requests(self, client):
+        r = client.get("/b/id/12000000-M.jpg", headers={"If-None-Match": '"12000000-m"'}, follow_redirects=False)
+        assert r.status_code == 304
 
 
 class TestProxyScheme:

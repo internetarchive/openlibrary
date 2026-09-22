@@ -35,6 +35,8 @@ records them without asserting -- expect exactly these in the diff:
     than 200. web.py answered 200 but never sent Access-Control-Allow-Headers and
     advertised only its misspelled methods header, so a browser rejected the request
     either way -- only the status code moves.
+  * bodiless responses (302s, 404s) drop their `Content-Type`, 405 bodies become JSON,
+    and a preflight gains a two-byte "OK" body
 
 `ETag`, `Last-Modified`, `Cache-Control` and `Expires` on cover responses are
 unchanged, so caches stay valid across the deploy.
@@ -211,6 +213,17 @@ class TestCoverServing:
         assert r.status_code in (200, 302), r.status_code
         if r.status_code == 302:
             assert "archive.org" in r.headers["location"]
+
+    def test_an_archived_cover_redirect_stays_cacheable(self, http):
+        """Covers past 8M uploaded to archive.org are served as a redirect. A 302 is not
+        cacheable unless it says so, so without these headers every view of a recent
+        cover comes back to the origin instead of being served from a cached redirect."""
+        r = fetch(http, f"/b/id/{COVER_ID_LARGE}-M.jpg", label="GET archived cover (cacheability)")
+        if r.status_code != 302:
+            pytest.skip(f"cover {COVER_ID_LARGE} is not served as a redirect here")
+        assert r.headers.get("cache-control") == "public"
+        assert r.headers.get("etag")
+        assert r.headers.get("expires")
 
 
 class TestLookupKeys:

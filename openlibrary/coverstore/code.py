@@ -372,7 +372,8 @@ async def _serve_cover(request: Request, category: CoverCategory, key: str, valu
 
         if d.id >= 8_000_000 and d.uploaded:
             url = archive.Cover.get_cover_url(d.id, size=size, protocol=request.url.scheme)
-            return RedirectResponse(url, status_code=302)
+            # A 302 isn't cacheable unless it says so, and this one never changes.
+            return RedirectResponse(url, status_code=302, headers=headers)
         return Response(content=read_image(d, size), media_type="image/jpeg", headers=headers)
     except OSError:
         return Response(status_code=404)
