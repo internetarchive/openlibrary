@@ -12,9 +12,14 @@
 .home-h2 {
   font-size: var(--font-size-title-medium);
   font-weight: normal;
-  color: var(--color-link);
+  color: var(--color-text-heading);
   margin-bottom: 0.5em;
   margin-top: 1.75em;
+}
+
+/* Only headings that link somewhere read as links. */
+.home-h2 a {
+  color: var(--color-link);
 }
 
 .carousel-container,
