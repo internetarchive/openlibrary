@@ -3,17 +3,17 @@
 
 Usage:
 
-start coverstore using dev webserver:
+start coverstore using uvicorn (development, with autoreload):
 
-    ./scripts/coverstore-server coverstore.yml 8080
+    ./scripts/coverstore-server coverstore.yml --uvicorn --reload --port 7075
 
-start coverstore as fastcgi:
+start coverstore using gunicorn with uvicorn workers (production):
 
-    ./scripts/coverstore-server coverstore.yml fastcgi 7070
+    ./scripts/coverstore-server coverstore.yml --gunicorn -b 0.0.0.0:7075
 
-start coverstore using gunicorn webserver:
+run the archiver instead of serving:
 
-    ./scripts/coverstore-server coverstore.yml --gunicorn -b 0.0.0.0:8080
+    ./scripts/coverstore-server coverstore.yml --archive
 
 """
 
@@ -21,69 +21,54 @@ import os
 import sys
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-import web
-
-web.config.debug = False
 
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
     os.environ["PYTHON_EGG_CACHE"] = "/tmp/.python-eggs"
 
-    # required when run as fastcgi
-    os.environ["REAL_SCRIPT_NAME"] = ""
+
+def start_uvicorn_server(configfile: str) -> None:
+    import uvicorn
+
+    os.environ["COVERSTORE_CONFIG"] = configfile
+    # --factory keeps the reloader parent light (https://uvicorn.dev/#application-factories)
+    sys.argv = [sys.argv[0], "--factory", *sys.argv[1:], "openlibrary.coverstore.asgi_app:create_app"]
+    uvicorn.main()
 
 
-def start_server():
-    from openlibrary.coverstore import server
-
-    server.main(*sys.argv[1:])
-
-
-def start_gunicorn_server():
-    """Starts the coverstore server using gunicorn server."""
+def start_gunicorn_server(configfile: str) -> None:
+    """Starts the coverstore server using gunicorn with uvicorn workers."""
     from gunicorn.app.base import Application
 
-    configfile = sys.argv.pop(1)
-
-    class WSGIServer(Application):
+    class ASGIServer(Application):
         def init(self, parser, opts, args):
-            pass
+            return {"worker_class": "uvicorn.workers.UvicornWorker"}
 
         def load(self):
-            from openlibrary.coverstore import code, server
+            from openlibrary.coverstore.asgi_app import create_app
 
-            server.setup(configfile)
-            return code.app.wsgifunc(https_middleware)
+            return create_app(configfile)
 
-    WSGIServer("%prog coverstore.yml --gunicorn [options]").run()
+    ASGIServer("%prog coverstore.yml --gunicorn [options]").run()
 
 
-def https_middleware(app):
-    """Hack to support https even when the app server http only.
+def run_archiver(configfile: str) -> None:
+    from openlibrary.coverstore import server
 
-    The nginx configuration has changed to add the following setting:
-
-        proxy_set_header X-Scheme $scheme;
-
-    Using that value to overwrite wsgi.url_scheme in the WSGI environ,
-    which is used by all redirects and other utilities.
-    """
-    print("** https_middleware")
-
-    def wrapper(environ, start_response):
-        print("HTTP_X_SCHEME", environ.get("HTTP_X_SCHEME"))
-        if environ.get("HTTP_X_SCHEME") == "https":
-            environ["wsgi.url_scheme"] = "https"
-        return app(environ, start_response)
-
-    return wrapper
+    server.main(configfile, "--archive")
 
 
 if __name__ == "__main__":
     setup_env()
-    if "--gunicorn" in sys.argv:
+    config_file = sys.argv.pop(1)
+
+    if "--archive" in sys.argv:
+        run_archiver(config_file)
+    elif "--gunicorn" in sys.argv:
         sys.argv.pop(sys.argv.index("--gunicorn"))
-        start_gunicorn_server()
+        start_gunicorn_server(config_file)
     else:
-        start_server()
+        if "--uvicorn" in sys.argv:
+            sys.argv.pop(sys.argv.index("--uvicorn"))
+        start_uvicorn_server(config_file)

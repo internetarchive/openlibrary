@@ -35,16 +35,18 @@ olspy_head() {
 
     local process_pattern=""
     if [[ "$1" == "webpy" ]]; then
-        process_pattern='openlibrary-server|coverstore-server'
+        process_pattern='openlibrary-server'
     elif [[ "$1" == "fastapi" ]]; then
-        process_pattern='uvicorn'
+        # coverstore-server runs uvicorn workers, but builds gunicorn programmatically,
+        # so unlike the main app its command line never mentions uvicorn.
+        process_pattern='uvicorn|coverstore-server'
     elif [[ -z "$1" || "$1" == "--help" ]]; then
         echo "Usage: $0 <webpy|fastapi>"
         echo "Print the top stack frame(s) for each worker process using py-spy."
         echo ""
         echo "Arguments:"
-        echo "  webpy    Inspect web.py worker processes (openlibrary-server, coverstore-server)"
-        echo "  fastapi  Inspect FastAPI worker processes (uvicorn workers)"
+        echo "  webpy    Inspect web.py worker processes (openlibrary-server)"
+        echo "  fastapi  Inspect FastAPI worker processes (uvicorn workers, coverstore-server)"
         echo ""
         echo "Environment variables:"
         echo "  COUNT=<n>               Number of stack frames to print per worker (default: 5)"
