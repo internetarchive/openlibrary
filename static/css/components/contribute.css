@@ -537,7 +537,7 @@
 /* A divider, not a card: only the task links inside are clickable. */
 .fe-row {
   border-block-end: 1px solid var(--color-border-subtle);
-  padding-block: var(--spacing-inset-md);
+  padding-block: var(--spacing-inset-sm);
   display: grid;
   gap: var(--spacing-stack-sm);
 }
@@ -558,13 +558,13 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-inline-md);
-  padding: var(--spacing-inset-sm);
+  padding-inline: var(--spacing-inset-sm);
   margin-inline: calc(-1 * var(--spacing-inset-sm));
   border-radius: var(--border-radius-sm);
   text-decoration: none;
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
-  min-height: 40px;
+  min-height: 32px;
 }
 
 @media (hover: hover) {

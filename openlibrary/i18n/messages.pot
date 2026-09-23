@@ -3982,10 +3982,6 @@ msgstr ""
 msgid "Pick a different book"
 msgstr ""
 
-#: contribute/index.html.jinja contribute/start.html.jinja
-msgid "First edits"
-msgstr ""
-
 #: contribute/index.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Books that need a hand"
 msgstr ""
@@ -4009,6 +4005,10 @@ msgstr ""
 
 #: contribute/nothing.html.jinja
 msgid "Back to the list"
+msgstr ""
+
+#: contribute/start.html.jinja
+msgid "First edits"
 msgstr ""
 
 #: contribute/start.html.jinja openlibrary/plugins/openlibrary/contribute.py
@@ -7866,7 +7866,7 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 #, python-format
-msgid "Why this book: read by about %(count)s people this year."
+msgid "Why this book: on about %(count)s readers' shelves."
 msgstr ""
 
 #: contribute/parts.html.jinja

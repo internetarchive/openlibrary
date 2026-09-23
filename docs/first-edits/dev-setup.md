@@ -8,9 +8,12 @@ evidence and the demo set are fixtures, and nothing is saved.
 ## 1. Seed the demo editions
 
 The demo set is `openlibrary/first_edits/fixtures/demo_books.json`. Each entry is
-resolved at request time by ISBN against the local database, so the list shows
-whichever demo editions exist locally. Import them through the site's import API
-as the dev user:
+resolved at request time by its production edition key, falling back to ISBN when
+that key is missing or is a different book locally, so the list shows whichever
+demo editions exist. Most entries are real production editions with real gaps, so
+a production-data server needs no seeding. Locally, the first eight entries are
+the scripted walkthrough; import them through the site's import API as the dev
+user:
 
 ```bash
 curl -s -c /tmp/cookies.txt -X POST "http://localhost:8080/account/login.json" \

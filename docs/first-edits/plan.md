@@ -25,7 +25,7 @@ Goal: a person with a beta-tester account can click from `/contribute/start` thr
 |---|---|
 | Book title, cover, authors, edition line, edition count | Live, local Open Library database |
 | Sibling editions and their value counts per field | Live, `work.get_sorted_editions()` counted in Python |
-| The list | Fixture: a demo set of about twelve well-known editions with a "readers" number copied from production reading-log counts |
+| The list | Fixture: a demo set of about fifty popular production editions with real gaps, each with a "readers" number copied from its work's production reading-log count |
 | External evidence (what Google Books and the Library of Congress say) | Fixture: JSON per demo edition, converted once from Bookie's golden snapshots into the two-source shape. Optional flag to call Google Books live for editions without a fixture |
 | Answers, skips, progress | Not saved. A `sessionStorage` list of task keys makes chaining and "already done" work within one browser session |
 | Receipt | Rendered from the posted values |
@@ -36,7 +36,7 @@ Goal: a person with a beta-tester account can click from `/contribute/start` thr
 2. **No store documents, no memcache.** Evidence and demo data are JSON files in `openlibrary/first_edits/fixtures/`. Progress is client-side session storage.
 3. **Publisher suggestions come from siblings only.** The "Something else" field suggests spellings used by other editions of the work, with counts, from the live sibling scan. The Solr facet merge waits for phase 2.
 4. **Three fields, three playbooks:** language, page count, publisher. Subtitle waits.
-5. **The list is the demo set.** The demo set is resolved at runtime by ISBN against the local database, so it shows whichever demo editions exist locally. Seed them with shelfie by ISBN query. The Solr popularity sort is a one-line swap in phase 2.
+5. **The list is the demo set.** The demo set is resolved at runtime by production edition key (ISBN fallback), so it shows whichever demo editions exist. On production data it needs no seeding; locally, seed the scripted eight by ISBN. The Solr popularity sort is a one-line swap in phase 2.
 6. **Gate on `/usergroup/beta-testers`,** which already exists with a model check; no new group.
 7. **Two modes only: fill and check.** A field the catalogs already agree with is not a task, and a field where the catalogs disagree with each other is left for a librarian.
 8. **One list, one next step.** No tabs, no filters, no step indicator; the receipt offers the other open fields on the same book.

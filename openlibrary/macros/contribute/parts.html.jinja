@@ -25,7 +25,7 @@
                 {% endif %}
             </div>
             {% if book.readers and not compact %}
-                <div class="fe-book__why">{{ _("Why this book: read by about %(count)s people this year.", count="{:,}".format(book.readers)) }}</div>
+                <div class="fe-book__why">{{ _("Why this book: on about %(count)s readers' shelves.", count="{:,}".format(book.readers)) }}</div>
             {% endif %}
         </div>
     </div>
