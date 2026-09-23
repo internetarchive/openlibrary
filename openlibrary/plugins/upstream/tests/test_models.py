@@ -207,3 +207,49 @@ class TestEdition:
             meta = ed.get_ia_meta_fields()
         assert "external-identifier" not in meta
         assert "collection" in meta
+
+
+class TestEditionFilterableIsbns:
+    """What the editions table filters on.
+
+    ``get_isbn10``/``get_isbn13`` answer with one canonical ISBN each and
+    derive it from the other type when their own is missing, which is right for
+    a link but loses everything else the record lists.
+    """
+
+    def setup_method(self, method):
+        web.ctx.site = MockSite()
+
+    def _make_edition(self, **fields):
+        data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, **fields}
+        web.ctx.site.save(data)
+        return web.ctx.site.get("/books/OL1M")
+
+    def test_lists_both_isbn_types(self):
+        ed = self._make_edition(isbn_10=["0307474887"], isbn_13=["9780307474889"])
+        assert ed.get_filterable_isbns() == ["0307474887", "9780307474889"]
+
+    def test_keeps_an_isbn_10_that_the_isbn_13_does_not_encode(self):
+        """The reported bug: the two need not correspond.
+
+        The editions table derived its ISBN-10 from the ISBN-13, so on a record
+        like this one the ISBN-10 the edition actually lists was never offered
+        to the filter and searching for it found nothing.
+        """
+        ed = self._make_edition(isbn_10=["0143038257"], isbn_13=["9780306406157"])
+        assert ed.get_filterable_isbns() == ["0143038257", "9780306406157"]
+
+    def test_lists_every_isbn_not_only_the_first_of_each_type(self):
+        ed = self._make_edition(isbn_10=["0307474887", "0306406152"], isbn_13=["9780307474889"])
+        assert ed.get_filterable_isbns() == ["0307474887", "0306406152", "9780307474889"]
+
+    def test_keeps_isbns_as_recorded(self):
+        """Hyphenated as printed on the book, so filtering for that form matches too."""
+        ed = self._make_edition(isbn_10=["0-670-03482-7"])
+        assert ed.get_filterable_isbns() == ["0-670-03482-7"]
+
+    def test_an_edition_with_only_one_type(self):
+        assert self._make_edition(isbn_13=["9780307474889"]).get_filterable_isbns() == ["9780307474889"]
+
+    def test_an_edition_with_no_isbns(self):
+        assert self._make_edition().get_filterable_isbns() == []
