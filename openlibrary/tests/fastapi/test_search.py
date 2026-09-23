@@ -497,3 +497,29 @@ class TestSearchFacetsEndpoint:
         fails so the endpoint doesn't silently 422 on (or miss) it.
         """
         assert set(get_args(FacetField)) == WorkSearchScheme.facet_fields
+
+
+class TestSearchInsideEndpoint:
+    @pytest.fixture
+    def languages(self, monkeypatch):
+        # resolve_language needs a site context these tests lack.
+        monkeypatch.setattr(
+            "openlibrary.fastapi.search.resolve_language",
+            lambda values: ("ger", "German") if values else None,
+        )
+
+    def test_defaults(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=hello")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=False, language=None)
+
+    def test_facets_can_be_disabled(self, fastapi_client, mock_fulltext_search_async, languages):
+        response = fastapi_client.get("/search/inside.json?q=hello&facets=false&limit=3")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=3, js=True, facets=False, readable=False, language=None)
+
+    def test_filters_reach_the_search_not_the_query(self, fastapi_client, mock_fulltext_search_async, languages):
+        """Language goes out as the FTS name ("German"), not the URL's MARC code."""
+        response = fastapi_client.get("/search/inside.json?q=hello&readable=true&language=ger")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, language="German")
