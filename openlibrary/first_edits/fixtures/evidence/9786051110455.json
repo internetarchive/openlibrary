@@ -1,0 +1,17 @@
+{
+  "isbn13": "9786051110455",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Percy_Jackson_1_Simsek_Hirsizi.html?hl=&id=pKKDvgEACAAJ",
+      "fields": {
+        "publish_date": "2013-07",
+        "number_of_pages": 364,
+        "languages": [
+          "tur"
+        ]
+      }
+    }
+  ]
+}

@@ -1,50 +1,373 @@
 [
   {
     "isbn13": "9780743273565",
-    "readers": 25400,
+    "key": "/books/OL23109860M",
+    "readers": 3340,
     "note": "Gatsby: language missing (strong fill); publishers conflict between sources.",
     "cover_id": 13028546
   },
   {
     "isbn13": "9780060935467",
-    "readers": 21300,
+    "key": "/books/OL37027463M",
+    "readers": 6364,
     "note": "Mockingbird: one source, publisher differs (fair check).",
     "cover_id": 15153357
   },
   {
     "isbn13": "9780385474542",
-    "readers": 12400,
+    "key": "/books/OL51242967M",
+    "readers": 1997,
     "note": "Things Fall Apart: language missing (strong fill); publisher conflict is the imprint case.",
     "cover_id": 14595726
   },
   {
     "isbn13": "9780394535975",
-    "readers": 9800,
+    "key": "/books/OL37067491M",
+    "readers": 1708,
     "note": "Beloved: publisher agrees (strong confirm).",
     "cover_id": 12638483
   },
   {
     "isbn13": "9780140186390",
-    "readers": 8700,
+    "key": "/books/OL1710270M",
+    "readers": 1299,
     "note": "East of Eden: publisher from one source, agrees (fair confirm).",
     "cover_id": 12449298
   },
   {
     "isbn13": "9780140328721",
-    "readers": 3100,
+    "key": "/books/OL7353617M",
+    "readers": 1499,
     "note": "Fantastic Mr Fox: page count missing, one source (fair fill).",
     "cover_id": 15152634
   },
   {
     "isbn13": "9780226458083",
-    "readers": 2900,
+    "key": "/books/OL976099M",
+    "readers": 300,
     "note": "Structure of Scientific Revolutions: publisher from one source, agrees (fair confirm).",
     "cover_id": 6773735
   },
   {
     "isbn13": "9780674024700",
-    "readers": 40,
+    "key": "/books/OL17986974M",
+    "readers": 0,
     "note": "Ruptured Histories: publisher missing, both sources agree (strong fill).",
     "cover_id": 5396475
+  },
+  {
+    "isbn13": "9781847941831",
+    "key": "/books/OL57360656M",
+    "readers": 63234,
+    "note": "Atomic Habits: number_of_pages:fill/fair.",
+    "cover_id": 15247577
+  },
+  {
+    "isbn13": "9788375541038",
+    "key": "/books/OL40282595M",
+    "readers": 51342,
+    "note": "48 praw władzy Jak wykorzystać manipulację do osiągnięcia przewagi: languages:fill/fair.",
+    "cover_id": 13330825
+  },
+  {
+    "isbn13": "9781668055960",
+    "key": "/books/OL51108597M",
+    "readers": 44420,
+    "note": "It Ends with Us: number_of_pages:fill/fair, publishers:check/fair.",
+    "cover_id": 14652503
+  },
+  {
+    "isbn13": "9786073156738",
+    "key": "/books/OL35622580M",
+    "readers": 37034,
+    "note": "Padre Rico, Padre Pobre: number_of_pages:fill/fair.",
+    "cover_id": 12329704
+  },
+  {
+    "isbn13": "9788551002490",
+    "key": "/books/OL26948417M",
+    "readers": 34626,
+    "note": "A Sutil Arte de Ligar o F*da-se: number_of_pages:fill/fair.",
+    "cover_id": 15074622
+  },
+  {
+    "isbn13": "9788204086600",
+    "key": "/books/OL60413146M",
+    "readers": 23885,
+    "note": "Harry Potter og De vises stein: number_of_pages:fill/fair.",
+    "cover_id": 15160588
+  },
+  {
+    "isbn13": "9798885792202",
+    "key": "/books/OL49140417M",
+    "readers": 19508,
+    "note": "It Starts with Us: publishers:check/fair.",
+    "cover_id": 14416611
+  },
+  {
+    "isbn13": "9788497778213",
+    "key": "/books/OL61521466M",
+    "readers": 18125,
+    "note": "Piense y hágase rico: languages:fill/fair.",
+    "cover_id": 15207560
+  },
+  {
+    "isbn13": "9788836005185",
+    "key": "/books/OL58188398M",
+    "readers": 15105,
+    "note": "La psicologia dei soldi: languages:fill/fair, number_of_pages:fill/fair.",
+    "cover_id": 14852774
+  },
+  {
+    "isbn13": "9781957464039",
+    "key": "/books/OL43974295M",
+    "readers": 14739,
+    "note": "Twisted Love: languages:fill/fair.",
+    "cover_id": 13179890
+  },
+  {
+    "isbn13": "9782764023068",
+    "key": "/books/OL38563878M",
+    "readers": 14651,
+    "note": "Comment se faire des amis et influencer les autres: number_of_pages:fill/fair.",
+    "cover_id": 13314878
+  },
+  {
+    "isbn13": "9788496208919",
+    "key": "/books/OL35631511M",
+    "readers": 13461,
+    "note": "Juego de tronos: languages:fill/fair.",
+    "cover_id": 12338481
+  },
+  {
+    "isbn13": "9798455344251",
+    "key": "/books/OL62256097M",
+    "readers": 12106,
+    "note": "Haunting Adeline: languages:fill/fair.",
+    "cover_id": 15236109
+  },
+  {
+    "isbn13": "9781444707861",
+    "key": "/books/OL62580344M",
+    "readers": 11922,
+    "note": "It: languages:fill/fair.",
+    "cover_id": 15255912
+  },
+  {
+    "isbn13": "9781014083814",
+    "key": "/books/OL46211202M",
+    "readers": 10262,
+    "note": "Power of Your Subconscious Mind: number_of_pages:fill/fair, publishers:check/fair.",
+    "cover_id": 14696683
+  },
+  {
+    "isbn13": "9781668026151",
+    "key": "/books/OL43783832M",
+    "readers": 9946,
+    "note": "Icebreaker: languages:fill/fair.",
+    "cover_id": 13180728
+  },
+  {
+    "isbn13": "9788845269110",
+    "key": "/books/OL61278269M",
+    "readers": 9614,
+    "note": "L'alchimista: number_of_pages:fill/fair.",
+    "cover_id": 15168571
+  },
+  {
+    "isbn13": "9781638082156",
+    "key": "/books/OL35469268M",
+    "readers": 9061,
+    "note": "The Love Hypothesis: languages:fill/fair.",
+    "cover_id": 12625291
+  },
+  {
+    "isbn13": "9781761066733",
+    "key": "/books/OL42512520M",
+    "readers": 9047,
+    "note": "Shatter Me: number_of_pages:fill/fair.",
+    "cover_id": 15150315
+  },
+  {
+    "isbn13": "9788374953986",
+    "key": "/books/OL53452623M",
+    "readers": 8583,
+    "note": "Rok 1984: number_of_pages:fill/fair.",
+    "cover_id": 15256088
+  },
+  {
+    "isbn13": "9781544529127",
+    "key": "/books/OL39178054M",
+    "readers": 8062,
+    "note": "No Me Puedes Lastimar: number_of_pages:fill/fair.",
+    "cover_id": 14847897
+  },
+  {
+    "isbn13": "9781471195709",
+    "key": "/books/OL32180246M",
+    "readers": 7728,
+    "note": "The 7 Habits of Highly Effective People: languages:fill/fair.",
+    "cover_id": 10836458
+  },
+  {
+    "isbn13": "9789750708619",
+    "key": "/books/OL35566499M",
+    "readers": 7704,
+    "note": "Ask ve Gurur: languages:fill/fair, number_of_pages:fill/fair.",
+    "cover_id": 12295509
+  },
+  {
+    "isbn13": "9786074003345",
+    "key": "/books/OL51155966M",
+    "readers": 7682,
+    "note": "Diario De Greg - Un Renacuajo: languages:fill/fair, number_of_pages:fill/fair.",
+    "cover_id": 14812950
+  },
+  {
+    "isbn13": "9780439023481",
+    "key": "/books/OL61249009M",
+    "readers": 7420,
+    "note": "The Hunger Games: number_of_pages:fill/fair.",
+    "cover_id": 15167646
+  },
+  {
+    "isbn13": "9781460756126",
+    "key": "/books/OL51323929M",
+    "readers": 7128,
+    "note": "Girl in Pieces: languages:fill/fair.",
+    "cover_id": 14597967
+  },
+  {
+    "isbn13": "9781476753188",
+    "key": "/books/OL35710552M",
+    "readers": 7071,
+    "note": "Ugly Love: languages:fill/strong.",
+    "cover_id": 12856728
+  },
+  {
+    "isbn13": "9786051110455",
+    "key": "/books/OL35301129M",
+    "readers": 7057,
+    "note": "Percy Jackson ve Olimposlular - Simsek Hirsizi: languages:fill/fair.",
+    "cover_id": 12112283
+  },
+  {
+    "isbn13": "9782709642521",
+    "key": "/books/OL61146967M",
+    "readers": 7006,
+    "note": "Cinquante nuances de Grey: number_of_pages:fill/fair, publishers:check/fair.",
+    "cover_id": 15163072
+  },
+  {
+    "isbn13": "9789188877673",
+    "key": "/books/OL47682305M",
+    "readers": 6719,
+    "note": "Harry Potter och hemligheternas kammare: number_of_pages:fill/fair.",
+    "cover_id": 15157479
+  },
+  {
+    "isbn13": "9781417795123",
+    "key": "/books/OL45621089M",
+    "readers": 6380,
+    "note": "Crepusculo: languages:fill/fair.",
+    "cover_id": 13283435
+  },
+  {
+    "isbn13": "9780593340479",
+    "key": "/books/OL28273643M",
+    "readers": 6327,
+    "note": "A Good Girl's Guide to Murder: languages:fill/fair.",
+    "cover_id": 10201105
+  },
+  {
+    "isbn13": "9788467037593",
+    "key": "/books/OL25638131M",
+    "readers": 6123,
+    "note": "El arte de la seducción: number_of_pages:fill/fair.",
+    "cover_id": 7311115
+  },
+  {
+    "isbn13": "9788804671954",
+    "key": "/books/OL27962257M",
+    "readers": 6091,
+    "note": "Pensieri lenti e veloci: languages:fill/fair, publishers:check/fair.",
+    "cover_id": 9350643
+  },
+  {
+    "isbn13": "9780771038747",
+    "key": "/books/OL47310904M",
+    "readers": 5988,
+    "note": "SAPIENS : A GRAPHIC HISTORY: languages:fill/fair.",
+    "cover_id": 13775631
+  },
+  {
+    "isbn13": "9788380082236",
+    "key": "/books/OL51155207M",
+    "readers": 5974,
+    "note": "Harry Potter i insygnia śmierci: number_of_pages:fill/fair.",
+    "cover_id": 15158694
+  },
+  {
+    "isbn13": "9780349434285",
+    "key": "/books/OL38010863M",
+    "readers": 5811,
+    "note": "Twisted Lies: publishers:check/fair.",
+    "cover_id": 15170007
+  },
+  {
+    "isbn13": "9788466367332",
+    "key": "/books/OL47152224M",
+    "readers": 5711,
+    "note": "La paciente silenciosa: languages:fill/fair.",
+    "cover_id": 13556029
+  },
+  {
+    "isbn13": "9788475967233",
+    "key": "/books/OL47682140M",
+    "readers": 5707,
+    "note": "Harry Potter i el pres d'Azkaban: number_of_pages:fill/fair.",
+    "cover_id": 15157562
+  },
+  {
+    "isbn13": "9781536450286",
+    "key": "/books/OL39633592M",
+    "readers": 5675,
+    "note": "Cruel Prince: number_of_pages:fill/fair.",
+    "cover_id": 14618030
+  },
+  {
+    "isbn13": "9783959722308",
+    "key": "/books/OL39819222M",
+    "readers": 5597,
+    "note": "Die Gesetze der menschlichen Natur - The Laws of Human Nature: languages:fill/fair, number_of_pages:fill/fair.",
+    "cover_id": 13253777
+  },
+  {
+    "isbn13": "9788584391509",
+    "key": "/books/OL35723842M",
+    "readers": 5359,
+    "note": "Os Sete Maridos de Evelyn Hugo: number_of_pages:fill/fair.",
+    "cover_id": 12460361
+  },
+  {
+    "isbn13": "9780547370224",
+    "key": "/books/OL62207750M",
+    "readers": 5317,
+    "note": "Animal Farm: languages:fill/fair, number_of_pages:fill/fair, publishers:check/fair.",
+    "cover_id": 15233817
+  },
+  {
+    "isbn13": "9786176642145",
+    "key": "/books/OL62190138M",
+    "readers": 5134,
+    "note": "Гобіт, або туди і звідти: number_of_pages:fill/fair.",
+    "cover_id": 15231842
+  },
+  {
+    "isbn13": "9781786330895",
+    "key": "/books/OL27306019M",
+    "readers": 5129,
+    "note": "Ikigai: languages:fill/fair, publishers:check/fair.",
+    "cover_id": 8779011
   }
 ]

@@ -1,0 +1,16 @@
+{
+  "isbn13": "9780771038747",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Sapiens_A_Graphic_History_Volume_1.html?hl=&id=1_uOEAAAQBAJ",
+      "fields": {
+        "publish_date": "2020-10-27",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "isbn13": "9781444707861",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/It.html?hl=&id=wvc6YgEACAAJ",
+      "fields": {
+        "publishers": [
+          "Hodder & Stoughton Limited"
+        ],
+        "publish_date": "2011",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

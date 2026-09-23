@@ -1,0 +1,14 @@
+{
+  "isbn13": "9788584391509",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Os_sete_maridos_de_Evelyn_Hugo.html?hl=&id=WgMvzwEACAAJ",
+      "fields": {
+        "publish_date": "2021",
+        "number_of_pages": 354
+      }
+    }
+  ]
+}

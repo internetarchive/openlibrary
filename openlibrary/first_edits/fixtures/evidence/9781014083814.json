@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781014083814",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/The_Power_of_Your_Subconscious_Mind.html?hl=&id=NoS0zgEACAAJ",
+      "fields": {
+        "publishers": [
+          "Hassell Street Press"
+        ],
+        "publish_date": "2021-09-09",
+        "number_of_pages": 232,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

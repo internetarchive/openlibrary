@@ -1,0 +1,17 @@
+{
+  "isbn13": "9788836005185",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/La_psicologia_dei_soldi_Lezioni_senza_te.html?hl=&id=6HlzzgEACAAJ",
+      "fields": {
+        "publish_date": "2021",
+        "number_of_pages": 250,
+        "languages": [
+          "ita"
+        ]
+      }
+    }
+  ]
+}

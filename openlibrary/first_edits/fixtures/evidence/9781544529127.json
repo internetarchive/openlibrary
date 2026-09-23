@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781544529127",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/No_Me_Puedes_Lastimar.html?hl=&id=h_oJzwEACAAJ",
+      "fields": {
+        "publishers": [
+          "Lioncrest Publishing"
+        ],
+        "publish_date": "2022-04",
+        "number_of_pages": 412,
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}

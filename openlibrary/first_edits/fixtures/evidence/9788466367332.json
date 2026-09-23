@@ -1,0 +1,16 @@
+{
+  "isbn13": "9788466367332",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/La_paciente_silenciosa.html?hl=&id=WSBw0AEACAAJ",
+      "fields": {
+        "publish_date": "2023",
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}

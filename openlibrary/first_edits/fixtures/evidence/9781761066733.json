@@ -1,0 +1,17 @@
+{
+  "isbn13": "9781761066733",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Shatter_Me_Shatter_Me_Series_1.html?hl=&id=rm-ZzgEACAAJ",
+      "fields": {
+        "publish_date": "2021-11-30",
+        "number_of_pages": 352,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

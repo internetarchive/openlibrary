@@ -1,0 +1,17 @@
+{
+  "isbn13": "9788380082236",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Harry_Potter_i_Insygnia_Smierci.html?hl=&id=FYL5vQAACAAJ",
+      "fields": {
+        "publish_date": "2016-01",
+        "number_of_pages": 782,
+        "languages": [
+          "pol"
+        ]
+      }
+    }
+  ]
+}

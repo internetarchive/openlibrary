@@ -1,0 +1,17 @@
+{
+  "isbn13": "9786074003345",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Diario_de_Greg.html?hl=&id=emjzZwEACAAJ",
+      "fields": {
+        "publish_date": "2010",
+        "number_of_pages": 217,
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}

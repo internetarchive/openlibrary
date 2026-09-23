@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781668055960",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/It_Ends_with_Us.html?hl=&id=UnIQEQAAQBAJ",
+      "fields": {
+        "publishers": [
+          "Simon and Schuster"
+        ],
+        "publish_date": "2024-07-23",
+        "number_of_pages": 384,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

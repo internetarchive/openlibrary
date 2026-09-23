@@ -1,0 +1,17 @@
+{
+  "isbn13": "9788467037593",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/El_arte_de_la_seducci%C3%B3n.html?hl=&id=CX_8pwAACAAJ",
+      "fields": {
+        "publish_date": "2011-09",
+        "number_of_pages": 512,
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}
