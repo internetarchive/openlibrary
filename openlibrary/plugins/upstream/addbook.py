@@ -559,16 +559,22 @@ class SaveBookHelper:
         delete = user and user.is_super_librarian_or_higher() and formdata.pop("_delete", "")
 
         formdata = utils.unflatten(formdata)
-        work_data, edition_data = self.process_input(formdata)
 
-        if edition_data and not (user and user.is_super_librarian_or_higher()):
+        if not (user and user.is_super_librarian_or_higher()):
             # Which work an edition belongs to is restricted to super librarians
             # and admins: the field was routinely used in place of reporting a
             # duplicate, or to repurpose a work record, which leaves works with
             # common titles impossible to tell apart once their editions are
             # gone. The edit form hides it for everyone else; pinning the value
             # here means a hand-crafted POST cannot do what the form will not.
-            self.keep_current_work(edition_data)
+            #
+            # This runs before process_input() on purpose: use_work_edits()
+            # reads formdata.edition.works, so pinning afterwards would leave it
+            # comparing a work key the patron does not get to choose, and an
+            # orphan would lose the branch that gives it a freshly created work.
+            self.keep_current_work(formdata)
+
+        work_data, edition_data = self.process_input(formdata)
 
         saveutil = DocSaveHelper()
 
@@ -665,18 +671,22 @@ class SaveBookHelper:
 
         saveutil.commit(comment=comment, action="edit-book")
 
-    def keep_current_work(self, edition_data: web.Storage) -> None:
-        """Drop any attempt in ``edition_data`` to move the edition to another work.
+    def keep_current_work(self, formdata: web.Storage) -> None:
+        """Drop any attempt in ``formdata`` to move the edition to another work.
 
-        The edition keeps whichever work it already has. An edition that has
-        none keeps none, so the orphan handling in :func:`save` still gives it
-        a freshly created work rather than one the form named.
+        Only an edition that already belongs to a work is pinned. An orphan has
+        no work to be moved away from, so giving it one is not the misuse this
+        guards against -- and leaving its form data alone keeps
+        :func:`use_work_edits` answering as it always has.
         """
-        current = [{"key": work.key} for work in (self.edition.works or [])] if self.edition else []
-        if current:
-            edition_data.works = current
-        else:
-            edition_data.pop("works", None)
+        if "edition" not in formdata:
+            return
+
+        current = [work.key for work in (self.edition.works or [])] if self.edition else []
+        if not current:
+            return
+
+        formdata.edition.works = [web.storage(key=key) for key in current]
 
     @staticmethod
     def new_work(edition: Edition) -> Work:

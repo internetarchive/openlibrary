@@ -123,7 +123,7 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
 
     def test_moving_orphan(self, monkeypatch):
-        monkeypatch.setattr(accounts, "get_current_user", mock_super_librarian)
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many(
             [
@@ -332,7 +332,7 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL2W"
 
     def test_moving_edition_ignores_changes_to_work(self, monkeypatch):
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_super_librarian)
 
         web.ctx.site.save_many(
             [
@@ -506,19 +506,25 @@ class TestSaveBookHelper:
         assert not new_work.subjects
 
     def _work_and_edition(self):
+        """Seed high work OLIDs on purpose.
+
+        A freshly created work takes the next key MockSite has free, which is
+        /works/OL1W -- so seeding low numbers lets a wrongly created work land
+        on top of a seeded one and read as "nothing happened".
+        """
         web.ctx.site.save_many(
             [
-                {"type": {"key": "/type/work"}, "key": "/works/OL1W", "title": "Original Work Title"},
-                {"type": {"key": "/type/work"}, "key": "/works/OL2W", "title": "Another Work"},
+                {"type": {"key": "/type/work"}, "key": "/works/OL100W", "title": "Original Work Title"},
+                {"type": {"key": "/type/work"}, "key": "/works/OL200W", "title": "Another Work"},
                 {
                     "type": {"key": "/type/edition"},
                     "key": "/books/OL1M",
                     "title": "Original Edition Title",
-                    "works": [{"key": "/works/OL1W"}],
+                    "works": [{"key": "/works/OL100W"}],
                 },
             ]
         )
-        return web.ctx.site.get("/works/OL1W"), web.ctx.site.get("/books/OL1M")
+        return web.ctx.site.get("/works/OL100W"), web.ctx.site.get("/books/OL1M")
 
     def test_unprivileged_user_cannot_move_an_edition(self, monkeypatch):
         """The form hides the field, so a POST naming another work is hand-crafted."""
@@ -527,15 +533,15 @@ class TestSaveBookHelper:
 
         formdata = web.storage(
             {
-                "work--key": "/works/OL1W",
+                "work--key": "/works/OL100W",
                 "work--title": "Original Work Title",
                 "edition--title": "Original Edition Title",
-                "edition--works--0--key": "/works/OL2W",
+                "edition--works--0--key": "/works/OL200W",
             }
         )
         addbook.SaveBookHelper(work, edition).save(formdata)
 
-        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
+        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL100W"
 
     def test_unprivileged_user_cannot_move_an_edition_to_a_new_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
@@ -544,7 +550,7 @@ class TestSaveBookHelper:
 
         formdata = web.storage(
             {
-                "work--key": "/works/OL1W",
+                "work--key": "/works/OL100W",
                 "work--title": "Original Work Title",
                 "edition--title": "Original Edition Title",
                 "edition--works--0--key": "__new__",
@@ -552,7 +558,7 @@ class TestSaveBookHelper:
         )
         addbook.SaveBookHelper(work, edition).save(formdata)
 
-        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
+        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL100W"
         assert len(web.ctx.site.docs) == doc_count
 
     def test_unprivileged_user_can_still_edit_the_rest_of_the_edition(self, monkeypatch):
@@ -562,26 +568,28 @@ class TestSaveBookHelper:
 
         formdata = web.storage(
             {
-                "work--key": "/works/OL1W",
+                "work--key": "/works/OL100W",
                 "work--title": "Original Work Title",
                 "edition--title": "Corrected Edition Title",
-                "edition--works--0--key": "/works/OL2W",
+                "edition--works--0--key": "/works/OL200W",
             }
         )
         addbook.SaveBookHelper(work, edition).save(formdata)
 
         saved = web.ctx.site.get("/books/OL1M")
         assert saved.title == "Corrected Edition Title"
-        assert saved.works[0].key == "/works/OL1W"
+        assert saved.works[0].key == "/works/OL100W"
 
-    def test_unprivileged_user_editing_an_orphan_still_gets_a_work(self, monkeypatch):
-        """An orphan has no work to keep, so it gets a fresh one -- not the one named."""
+    def test_unprivileged_user_can_still_give_an_orphan_a_work(self, monkeypatch):
+        """An orphan has no work to be moved away from, so it is out of scope.
+
+        Asserted as an equality on purpose: `.works` is infogami's Nothing when
+        unset, and Nothing indexes and attribute-accesses without raising, so a
+        `!=` here would pass even if the edition were left orphaned.
+        """
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
         web.ctx.site.save_many(
-            [
-                {"type": {"key": "/type/work"}, "key": "/works/OL1W", "title": "Someone Else's Work"},
-                {"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Orphan Edition"},
-            ]
+            [{"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Orphan Edition"}]
         )
         edition = web.ctx.site.get("/books/OL1M")
 
@@ -595,7 +603,7 @@ class TestSaveBookHelper:
         )
         addbook.SaveBookHelper(None, edition).save(formdata)
 
-        assert web.ctx.site.get("/books/OL1M").works[0].key != "/works/OL1W"
+        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
 
 
 class TestDaisyPage:
