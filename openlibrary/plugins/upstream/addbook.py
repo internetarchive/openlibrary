@@ -569,9 +569,8 @@ class SaveBookHelper:
             # here means a hand-crafted POST cannot do what the form will not.
             #
             # This runs before process_input() on purpose: use_work_edits()
-            # reads formdata.edition.works, so pinning afterwards would leave it
-            # comparing a work key the patron does not get to choose, and an
-            # orphan would lose the branch that gives it a freshly created work.
+            # reads formdata.edition.works, so pinning afterwards would leave
+            # that check comparing a work key the patron does not get to pick.
             self.keep_current_work(formdata)
 
         work_data, edition_data = self.process_input(formdata)
