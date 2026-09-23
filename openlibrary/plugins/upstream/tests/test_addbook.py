@@ -588,9 +588,7 @@ class TestSaveBookHelper:
         `!=` here would pass even if the edition were left orphaned.
         """
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
-        web.ctx.site.save_many(
-            [{"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Orphan Edition"}]
-        )
+        web.ctx.site.save_many([{"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Orphan Edition"}])
         edition = web.ctx.site.get("/books/OL1M")
 
         formdata = web.storage(
