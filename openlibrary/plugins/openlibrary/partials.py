@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
@@ -11,10 +12,9 @@ from markupsafe import Markup
 from pydantic import BaseModel
 
 from infogami.utils.view import public
-from openlibrary.book_providers import get_book_provider, get_cover_url
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
-from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.fulltext import FulltextRow, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
 from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
@@ -631,120 +631,42 @@ class FullTextSuggestionsPartialResult:
     has_error: bool = False
 
 
-def get_fulltext_suggestion_item_data(doc: Any) -> dict[str, Any]:
-    """Prepare display data for a full-text search suggestion item."""
-    doc_type = (
-        "infogami_work"
-        if doc.get("type", {}).get("key") == "/type/work"
-        else "infogami_edition"
-        if doc.get("type", {}).get("key") == "/type/edition"
-        else "solr_work"
-        if not doc.get("editions")
-        else "solr_edition"
+def render_fulltext_suggestion_row(query: str, row: FulltextRow, seq_index: int) -> Markup:
+    """One band row. SearchResultsWork remains Templetor (8 other callers), so it renders here as a bridge."""
+    phrase = phrase_query(query)
+    if not row.edition:
+        return Markup(render_jinja_template("FulltextResultIA.html.jinja", row=row, phrase=phrase))
+    macro = render_macro(
+        "SearchResultsWork",
+        (row.edition,),
+        cta=False,
+        availability=row.availability,
+        extra_row=render_jinja_template("FulltextSnippet.html.jinja", row=row, phrase=phrase),
+        seq_index=seq_index,
+        show_title_year=True,
     )
-    selected_ed = doc.get("editions")[0] if doc_type == "solr_edition" else doc
-    book_url = doc.url() if doc_type.startswith("infogami_") else doc.key
-
-    if doc_type == "solr_edition":
-        work_edition_url = book_url + "?edition=" + quote("key:" + selected_ed.key)
-    elif (book_provider := get_book_provider(doc)) and doc_type.endswith("_work"):
-        work_edition_url = book_url + "?edition=" + quote(book_provider.get_best_identifier_slug(doc))
-    else:
-        work_edition_url = book_url
-
-    edition_work = doc["works"][0] if doc_type == "infogami_edition" and "works" in doc else None
-    full_title = selected_ed.get("title", "") + (": " + selected_ed.subtitle if selected_ed.get("subtitle") else "")
-
-    authors = None
-    if doc_type == "infogami_work":
-        authors = doc.get_authors()
-    elif doc_type == "infogami_edition":
-        authors = edition_work.get_authors() if edition_work else doc.get_authors()
-    elif "authors" in doc:
-        authors = doc["authors"]
-    elif "author_key" in doc:
-        authors = [{"key": "/authors/" + key, "name": name} for key, name in zip(doc["author_key"], doc["author_name"])]
-
-    author_data = (
-        [
-            {
-                "name": author.get("name") or author.get("author", {}).get("name"),
-                "url": author.get("url") or author.get("key") or author.get("author", {}).get("url") or author.get("author", {}).get("key"),
-            }
-            for author in authors
-        ]
-        if authors
-        else None
-    )
-    byline_html = (
-        Markup(
-            str(
-                render_macro(
-                    "BookByline",
-                    (author_data,),
-                    limit=9,
-                    overflow_url=work_edition_url,
-                    attrs='class="results"',
-                )["__body__"]
-            )
-        )
-        if author_data
-        else None
-    )
-    return {
-        "author_data": author_data,
-        # BookByline remains Templetor, so render the bridge while the web.py
-        # macro registry is available and hand trusted HTML to Jinja.
-        "byline_html": byline_html,
-        "blur_cover": "",
-        "cover": get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png",
-        "full_title": full_title,
-        "work_edition_url": work_edition_url,
-    }
-
-
-def get_fulltext_suggestion_snippet_data(doc: dict[str, Any]) -> dict[str, str | Markup]:
-    """Prepare snippet display data returned by the full-text search service."""
-    page_nums = doc.get("fields", {}).get("page_num", [])
-    if len(page_nums) == 1 and isinstance(page_nums[0], list):
-        page_nums = page_nums[0]
-    snippet = doc.get("highlight", {}).get("text", [""])[0]
-    snippet_html = Markup(
-        snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>")
-    )
-    return {
-        "ia": doc.get("fields", {}).get("identifier", [""])[0],
-        "page": ", ".join(str(num) for num in page_nums),
-        "snippet_html": snippet_html,
-    }
+    return Markup(str(macro["__body__"]))
 
 
 class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     @classmethod
-    async def generate_async(cls, query: str) -> FullTextSuggestionsPartialResult:
-        data = await fulltext_search_async(query)
-        hits = data.get("hits", {})
-        if not hits.get("total"):
+    async def generate_async(cls, query: str, exclude: Iterable[str] = ()) -> FullTextSuggestionsPartialResult:
+        # The band shows at most 3; a few spares cover excluded or unhydrated hits.
+        # Every fetched hit costs availability + Infobase hydration.
+        data = await fulltext_search_async(query, limit=10)
+        rows, total = fulltext_page(data)
+        rows = exclude_ocaids(rows, exclude)
+        if not rows and not total:
             macro = "<div></div>"
         else:
-            suggestions = [
-                {
-                    "item": get_fulltext_suggestion_item_data(hit["edition"]),
-                    "snippet": get_fulltext_suggestion_snippet_data(hit),
-                }
-                for hit in hits.get("hits", [])[:4]
-                if hit.get("edition")
-            ]
             macro = render_jinja_template(
                 "FulltextSearchSuggestion.html.jinja",
-                # LoadingIndicator remains Templetor (10 other callers), so
-                # render the bridge before entering the Jinja environment.
-                loading_indicator_html=Markup(str(render_macro("LoadingIndicator", (_("Checking for Search Inside matches"),))["__body__"])),
-                num_found=commify(hits.get("total", 0)),
-                query_url="/search/inside?" + urlencode({"q": query}),
-                suggestions=suggestions,
+                num_found=commify(total),
+                results=[render_fulltext_suggestion_row(query, row, i) for i, row in enumerate(rows[:3])],
+                see_all_url="/search/inside?" + urlencode({"q": query}),
+                total=total,
             )
         return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 

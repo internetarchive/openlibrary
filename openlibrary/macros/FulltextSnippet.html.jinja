@@ -1,0 +1,15 @@
+{# The FTS index has no page numbers, so quotes open BookReader's in-book search instead. #}
+{# `phrase` is phrase_query(q), so BookReader searches for the passage, not each word. #}
+{% set href = "https://archive.org/details/" ~ row.ocaid ~ "?" ~ ({"ref": "ol", "q": phrase} | urlencode) %}
+<div class="serp-extra">
+    <ul class="fsi-quotes">
+        {% for snippet in row.snippets[:2] %}
+            <li>
+                {# snippet.html is pre-escaped (core/fulltext.py). Never output snippet text directly. #}
+                <a class="fsi-quote"
+                   href="{{ href }}"
+                   data-ol-link-track="SearchInsideCard|QuoteClick">…{{ snippet.html | safe }}…</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
