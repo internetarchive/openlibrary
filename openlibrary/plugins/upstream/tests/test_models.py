@@ -220,6 +220,7 @@ class TestEditionFilterableIsbns:
     def setup_method(self, method):
         web.ctx.site = MockSite()
         models.setup()
+
     def _make_edition(self, **fields):
         data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, **fields}
         web.ctx.site.save(data)
