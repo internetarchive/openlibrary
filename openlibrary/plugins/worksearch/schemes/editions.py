@@ -11,7 +11,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 # directly, but it's still useful for somethings (eg editions have a custom
 # sort logic).
 class EditionSearchScheme(SearchScheme):
-    universe = frozenset(["type:work"])
+    universe = frozenset(["type:edition"])
     all_fields = frozenset(
         {
             "key",
@@ -81,7 +81,23 @@ class EditionSearchScheme(SearchScheme):
             "random.daily": lambda: f"random_{datetime.now():%Y%m%d} asc",
         }
     )
-    default_fetched_fields = frozenset()
+    default_fetched_fields = frozenset(
+        {
+            "key",
+            "title",
+            "subtitle",
+            "publish_date",
+            "publisher",
+            "language",
+            "isbn",
+            "cover_i",
+            "ebook_access",
+            "physical_format",
+            "work_key",
+            "edition_name",
+            "oclc_number",
+        }
+    )
     facet_rewrites = MappingProxyType({})
 
     def is_search_field(self, field: str):
