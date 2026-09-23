@@ -64,23 +64,7 @@
   clip: rect(0 0 0 0);
 }
 
-/* Page header with a side link */
-.fe-pagehead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-stack-sm) var(--spacing-inline-xl);
-}
-
-.fe-pagehead__side {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-  font-size: var(--font-size-body-medium);
-}
-
-/* Hero (start page) */
+/* Hero (start and list pages) */
 .fe-hero {
   display: grid;
   gap: var(--spacing-stack-sm);
@@ -125,44 +109,6 @@
   background: var(--color-info-bg);
   padding: var(--spacing-inset-sm) var(--spacing-inset-md);
   border-radius: var(--border-radius-sm);
-}
-
-/* Steps */
-.fe-steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-md);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: var(--font-size-label-medium);
-  color: var(--color-text-muted);
-}
-
-.fe-steps li {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-}
-
-.fe-steps li::before {
-  content: "";
-  width: 18px;
-  height: 1px;
-  background: var(--color-border-muted);
-}
-
-.fe-steps li:first-child::before {
-  display: none;
-}
-
-.fe-steps li.is-done {
-  color: var(--color-text-secondary);
-}
-
-.fe-steps li.is-current {
-  color: var(--color-text);
-  font-weight: var(--font-weight-semibold);
 }
 
 /* Book header */
@@ -279,20 +225,9 @@
   color: var(--color-warning-fg);
 }
 
-.fe-pill--confirm,
 .fe-pill--rec {
   background: var(--color-success-bg);
   color: var(--color-success-fg);
-}
-
-.fe-pill--quick {
-  background: var(--color-surface-sunken);
-  color: var(--color-text-secondary);
-}
-
-.fe-pill--declined {
-  background: var(--color-error-bg);
-  color: var(--color-error-fg);
 }
 
 /* Evidence */
@@ -461,19 +396,6 @@
   }
 }
 
-.fe-chip--small {
-  padding: 2px 10px;
-  font-size: var(--font-size-body-small);
-}
-
-.fe-chip--static {
-  cursor: default;
-}
-
-.fe-chip--differs {
-  color: var(--color-error-fg);
-}
-
 .fe-chip__count {
   color: var(--color-text-secondary);
   font-size: var(--font-size-label-small);
@@ -565,15 +487,6 @@
   display: none;
 }
 
-.fe-other__hint {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-  font-size: var(--font-size-body-small);
-  color: var(--color-text-secondary);
-}
-
 .fe-input {
   width: 100%;
   box-sizing: border-box;
@@ -614,63 +527,23 @@
 }
 
 /* List */
-.fe-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-xl);
-  border-bottom: 1px solid var(--color-border-subtle);
-  font-weight: var(--font-weight-semibold);
-}
-
-.fe-tabs a,
-.fe-tabs span {
-  padding-block-end: var(--spacing-inset-sm);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-  margin-block-end: -1px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.fe-tabs .is-on {
-  color: var(--color-text);
-  border-bottom-color: var(--color-text);
-}
-
-.fe-tabs__locked {
-  color: var(--color-text-muted);
-  font-weight: var(--font-weight-regular);
-}
-
-.fe-tabs--small {
-  font-size: var(--font-size-body-medium);
-}
-
-.fe-filter__toggle {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-  cursor: pointer;
-}
-
 .fe-rows {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--spacing-inline-lg);
 }
 
+/* A divider, not a card: only the task links inside are clickable. */
 .fe-row {
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius-card);
-  padding: var(--spacing-inset-md);
+  border-block-end: 1px solid var(--color-border-subtle);
+  padding-block: var(--spacing-inset-md);
   display: grid;
   gap: var(--spacing-stack-sm);
-  background: var(--color-surface);
+}
+
+.fe-row:last-child {
+  border-block-end: 0;
 }
 
 .fe-row__tasks {
@@ -690,7 +563,8 @@
   border-radius: var(--border-radius-sm);
   text-decoration: none;
   color: var(--color-text);
-  min-height: 44px;
+  font-size: var(--font-size-body-medium);
+  min-height: 40px;
 }
 
 @media (hover: hover) {
@@ -700,11 +574,12 @@
 }
 
 .fe-row__label {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
 }
 
 .fe-row__level {
   margin-inline-start: auto;
+  font-size: inherit;
 }
 
 .fe-empty {
@@ -713,68 +588,6 @@
   padding: var(--spacing-inset-lg);
   text-align: center;
   color: var(--color-text-secondary);
-}
-
-/* Practice */
-.fe-practice-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-  font-size: var(--font-size-body-medium);
-  color: var(--color-text-secondary);
-}
-
-.fe-verdict {
-  display: flex;
-  gap: var(--spacing-inline-lg);
-  align-items: flex-start;
-  border-radius: var(--border-radius-card);
-  padding: var(--spacing-inset-md);
-  border: 1px solid var(--color-border-subtle);
-}
-
-.fe-verdict > div {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-.fe-verdict--correct {
-  background: var(--color-success-bg);
-  border-color: var(--color-success-border);
-}
-
-.fe-verdict--correct .fe-verdict__icon {
-  color: var(--color-success-fg);
-}
-
-.fe-verdict--unsure {
-  background: var(--color-info-bg);
-  border-color: var(--color-info-border);
-}
-
-.fe-verdict--unsure .fe-verdict__icon {
-  color: var(--color-info-fg);
-}
-
-.fe-verdict--wrong {
-  background: var(--color-warning-bg);
-  border-color: var(--color-warning-border);
-}
-
-.fe-verdict--wrong .fe-verdict__icon {
-  color: var(--color-warning-fg);
-}
-
-.fe-verdict__title {
-  font-family: var(--font-family-title);
-  font-size: var(--font-size-title-large);
-  font-weight: var(--font-weight-semibold);
-}
-
-.fe-verdict__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-md);
 }
 
 /* Receipt */
@@ -809,126 +622,7 @@
   font-style: italic;
 }
 
-/* Timeline (status page) */
-.fe-timeline {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-}
-
-.fe-timeline__item {
-  display: grid;
-  grid-template-columns: 14px 1fr;
-  gap: var(--spacing-inline-lg);
-  padding-block-end: var(--spacing-stack-lg);
-  position: relative;
-}
-
-.fe-timeline__item::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 6px;
-  top: 16px;
-  bottom: 0;
-  width: 1px;
-  background: var(--color-border-subtle);
-}
-
-.fe-timeline__item:last-child::before {
-  display: none;
-}
-
-.fe-timeline__dot {
-  width: 13px;
-  height: 13px;
-  border-radius: var(--border-radius-circle);
-  border: 2px solid var(--color-border-muted);
-  background: var(--color-surface);
-  margin-block-start: 4px;
-  z-index: var(--z-index-base);
-}
-
-.fe-timeline__item--accepted .fe-timeline__dot {
-  background: var(--color-success-object);
-  border-color: var(--color-success-object);
-}
-
-.fe-timeline__item--pending .fe-timeline__dot {
-  background: var(--color-warning-object);
-  border-color: var(--color-warning-object);
-}
-
-.fe-timeline__item--declined .fe-timeline__dot {
-  background: var(--color-error-object);
-  border-color: var(--color-error-object);
-}
-
-.fe-timeline__body {
-  display: grid;
-  gap: var(--spacing-stack-xs);
-  min-width: 0;
-}
-
-.fe-timeline__head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-md);
-  align-items: center;
-}
-
-.fe-decline {
-  margin: 0;
-  border-inline-start: 3px solid var(--color-error-border);
-  background: var(--color-error-bg);
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-body-medium);
-}
-
-.fe-decline footer {
-  margin-block-start: var(--spacing-stack-xs);
-  color: var(--color-text-secondary);
-}
-
-/* Review preview */
-.fe-review {
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius-card);
-  padding: var(--spacing-inset-md);
-  display: grid;
-  gap: var(--spacing-stack-md);
-  background: var(--color-surface);
-}
-
-.fe-review__bar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--spacing-inline-md);
-}
-
-.fe-review__row {
-  border: 1px solid var(--color-border-focused);
-  border-radius: var(--border-radius-card);
-  padding: var(--spacing-inset-md);
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-.fe-review__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-inline-md);
-}
-
-.fe-review__reasons ul {
-  margin: 0;
-  padding-inline-start: 20px;
-  font-size: var(--font-size-body-medium);
-}
-
+/* Next task on the receipt */
 .fe-next {
   gap: var(--spacing-stack-sm);
 }

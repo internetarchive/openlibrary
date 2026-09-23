@@ -49,13 +49,12 @@ def get_playbooks() -> dict[str, Playbook]:
             questions={
                 "fill": _("What language is this edition written in?"),
                 "check": _("Is the language on this edition right?"),
-                "confirm": _("Does this edition's language look right?"),
             },
             why=_("Language decides which readers find this edition in search and which editions get grouped together."),
             notes=[
                 Note(
                     _("Record the language of the text, not the language of the title page. A translation is in the language it was translated into."),
-                    f"{HELP_BASE}#languages",
+                    f"{HELP_BASE}#edit-metadata-language",
                 ),
             ],
             keep_label=_("Keep what Open Library has"),
@@ -68,7 +67,6 @@ def get_playbooks() -> dict[str, Playbook]:
             questions={
                 "fill": _("How many pages does this edition have?"),
                 "check": _("Is the page count on this edition right?"),
-                "confirm": _("Does this edition's page count look right?"),
             },
             why=_("Page count helps readers tell editions apart and helps librarians spot duplicates."),
             notes=[
@@ -91,7 +89,6 @@ def get_playbooks() -> dict[str, Playbook]:
             questions={
                 "fill": _("Who published this edition?"),
                 "check": _("Is the publisher on this edition right?"),
-                "confirm": _("Does this edition's publisher look right?"),
             },
             why=_("The publisher is how readers and booksellers tell one edition from another, and it is where many imported records go wrong."),
             notes=[
@@ -111,7 +108,6 @@ def get_playbooks() -> dict[str, Playbook]:
             questions={
                 "fill": _("Does this edition have a subtitle?"),
                 "check": _("Is the subtitle on this edition right?"),
-                "confirm": _("Does this edition's subtitle look right?"),
             },
             why=_("Subtitles are often on the cover but missing from imported records."),
             notes=[
@@ -130,7 +126,6 @@ def get_playbooks() -> dict[str, Playbook]:
             questions={
                 "fill": _("When was this edition published?"),
                 "check": _("Is the publish date on this edition right?"),
-                "confirm": _("Does this edition's publish date look right?"),
             },
             why=_("The date tells editions apart and orders them on the work page."),
             notes=[

@@ -1184,7 +1184,7 @@ msgstr[1] ""
 msgid "You've not checked out any books at this moment."
 msgstr ""
 
-#: account/loans.html contribute/parts.html.jinja
+#: account/loans.html
 msgid "Book"
 msgstr ""
 
@@ -3950,12 +3950,12 @@ msgstr ""
 msgid "%(field)s for %(title)s: you asked a librarian to look"
 msgstr ""
 
-#: contribute/done.html.jinja contribute/mine.html.jinja
+#: contribute/done.html.jinja
 #, python-format
 msgid "%(field)s for %(title)s: %(old)s → %(new)s"
 msgstr ""
 
-#: contribute/done.html.jinja contribute/mine.html.jinja
+#: contribute/done.html.jinja
 #, python-format
 msgid "%(field)s for %(title)s: %(new)s"
 msgstr ""
@@ -3971,11 +3971,7 @@ msgstr ""
 
 #: contribute/done.html.jinja
 #, python-format
-msgid "A volunteer librarian will look at it, usually within %(days)s days. You'll see the result on your suggestions page. You can withdraw it until someone starts reviewing."
-msgstr ""
-
-#: contribute/done.html.jinja
-msgid "See your suggestions"
+msgid "A volunteer librarian will look at it, usually within %(days)s days."
 msgstr ""
 
 #: contribute/done.html.jinja
@@ -3983,63 +3979,15 @@ msgid "While you're on this book"
 msgstr ""
 
 #: contribute/done.html.jinja
-msgid "Next book"
-msgstr ""
-
-#: contribute/done.html.jinja
 msgid "Pick a different book"
 msgstr ""
 
-#: contribute/index.html.jinja contribute/mine.html.jinja contribute/start.html.jinja
+#: contribute/index.html.jinja contribute/start.html.jinja
 msgid "First edits"
 msgstr ""
 
 #: contribute/index.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Books that need a hand"
-msgstr ""
-
-#: contribute/index.html.jinja contribute/mine.html.jinja openlibrary/plugins/openlibrary/contribute.py
-msgid "Your suggestions"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "pending"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "accepted"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "Sets"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "Popular books"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "Your shelves"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "Unlocks after a few accepted suggestions"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "Second opinions"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "Only sure things"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "empty fields where the catalogs already agree"
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "Nothing to check on your shelves right now. Add a few books to your reading log, or try the popular books."
 msgstr ""
 
 #: contribute/index.html.jinja
@@ -4048,58 +3996,6 @@ msgstr ""
 
 #: contribute/index.html.jinja
 msgid "Books are sorted by how many readers a fix would help. Skip any you're unsure about."
-msgstr ""
-
-#: contribute/mine.html.jinja
-msgid "Find another book"
-msgstr ""
-
-#: contribute/mine.html.jinja
-#, python-format
-msgid "%(pending)s waiting for review, %(accepted)s accepted, %(declined)s declined with a note. Volunteer librarians review suggestions in the order they arrive, usually within %(days)s days."
-msgstr ""
-
-#: contribute/mine.html.jinja
-msgid "Accepted"
-msgstr ""
-
-#: contribute/mine.html.jinja
-msgid "Waiting for review"
-msgstr ""
-
-#: contribute/mine.html.jinja
-msgid "Declined, with a note"
-msgstr ""
-
-#: contribute/mine.html.jinja
-#, python-format
-msgid "Reviewed by librarian %(reviewer)s %(when)s. It's live on the book page and seen by about %(readers)s readers a year."
-msgstr ""
-
-#: contribute/mine.html.jinja
-msgid "See the book"
-msgstr ""
-
-#: contribute/mine.html.jinja
-#, python-format
-msgid "Sent %(when)s. %(ahead)s suggestions ahead of yours. Usual wait %(days)s days."
-msgstr ""
-
-#: contribute/mine.html.jinja
-msgid "Withdraw"
-msgstr ""
-
-#: contribute/mine.html.jinja
-#, python-format
-msgid "librarian %(reviewer)s"
-msgstr ""
-
-#: contribute/mine.html.jinja
-msgid "The guideline"
-msgstr ""
-
-#: contribute/mine.html.jinja
-msgid "This is a walkthrough. These three are sample suggestions so you can see how each outcome looks. Nothing you send is stored yet."
 msgstr ""
 
 #: contribute/nothing.html.jinja
@@ -4115,153 +4011,6 @@ msgstr ""
 msgid "Back to the list"
 msgstr ""
 
-#: contribute/practice.html.jinja
-#, python-format
-msgid "Practice book %(n)s of %(total)s. Nothing you do here is sent anywhere."
-msgstr ""
-
-#: contribute/practice.html.jinja
-msgid "That's how a librarian would decide too"
-msgstr ""
-
-#: contribute/practice.html.jinja
-msgid "Not sure is always allowed"
-msgstr ""
-
-#: contribute/practice.html.jinja
-msgid "Close, but not quite"
-msgstr ""
-
-#: contribute/practice.html.jinja
-msgid "The lesson:"
-msgstr ""
-
-#: contribute/practice.html.jinja
-#, python-format
-msgid "Try another: %(title)s"
-msgstr ""
-
-#: contribute/practice.html.jinja
-msgid "Start a real one"
-msgstr ""
-
-#: contribute/practice.html.jinja
-msgid "Practice again"
-msgstr ""
-
-#: contribute/parts.html.jinja contribute/practice.html.jinja contribute/task.html.jinja
-msgid "The question"
-msgstr ""
-
-#: contribute/practice.html.jinja contribute/task.html.jinja
-#, python-format
-msgid "Open Library currently says %(value)s. The catalogs disagree with each other, so this one takes some judgment."
-msgstr ""
-
-#: contribute/practice.html.jinja contribute/task.html.jinja
-msgid "Open Library has nothing recorded for this yet, and the catalogs disagree with each other, so this one takes some judgment."
-msgstr ""
-
-#: contribute/practice.html.jinja contribute/task.html.jinja
-msgid "Open Library has nothing recorded for this yet. Other catalogs do."
-msgstr ""
-
-#: contribute/practice.html.jinja contribute/task.html.jinja
-#, python-format
-msgid "Open Library currently says %(value)s. A catalog that found this exact ISBN says something different."
-msgstr ""
-
-#: contribute/practice.html.jinja contribute/task.html.jinja
-#, python-format
-msgid "Open Library currently says %(value)s. Other catalogs agree. A quick confirmation helps librarians trust this record."
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "First edits · preview"
-msgstr ""
-
-#: contribute/review.html.jinja openlibrary/plugins/openlibrary/contribute.py
-msgid "What a librarian sees"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Back to start"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Every suggestion arrives with its evidence attached, so a review takes seconds. Reviewers work the sure things first and spend their judgment on the rest."
-msgstr ""
-
-#: contribute/review.html.jinja
-#, python-format
-msgid "Field suggestions · %(count)s open"
-msgstr ""
-
-#: contribute/review.html.jinja
-#, python-format
-msgid "Median wait %(days)s days"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Groups"
-msgstr ""
-
-#: contribute/review.html.jinja openlibrary/plugins/openlibrary/contribute.py
-msgid "Strong evidence"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Needs judgment"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Not sure"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "first edit"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Accept"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Accept with edit"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Decline…"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Preview only. Accepting writes the field and tells the person who suggested it."
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Decline reasons a reviewer can pick"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Imprint, not parent company"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "That's a tagline or series name, not a subtitle"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "ISBN reused across printings; needs the physical book"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Catalogs disagree; leaving as is"
-msgstr ""
-
-#: contribute/review.html.jinja
-msgid "Each reason links to a guideline, so a decline reads as coaching rather than a rejection."
-msgstr ""
-
 #: contribute/start.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Make your first edit"
 msgstr ""
@@ -4275,7 +4024,7 @@ msgid "What you'll do"
 msgstr ""
 
 #: contribute/start.html.jinja
-msgid "Pick a book. We show one fact that is missing or in doubt, next to what other library catalogs say. You confirm it, fill it in, or say you're not sure."
+msgid "Pick a book. We show one fact that is missing or in doubt, next to what other library catalogs say. You fill it in, correct it, or say you're not sure."
 msgstr ""
 
 #: contribute/start.html.jinja
@@ -4284,11 +4033,7 @@ msgstr ""
 
 #: contribute/start.html.jinja
 #, python-format
-msgid "A volunteer librarian reviews every suggestion, usually within %(days)s days. You'll see the result on your suggestions page."
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "See what a librarian sees"
+msgid "A volunteer librarian reviews every suggestion, usually within %(days)s days."
 msgstr ""
 
 #: contribute/start.html.jinja
@@ -4300,15 +4045,7 @@ msgid "Nothing. Suggestions don't change the book until a librarian accepts them
 msgstr ""
 
 #: contribute/start.html.jinja
-msgid "Start with a practice book"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "Skip practice, show me a real one"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "Practice takes one minute and tells you right away whether you got it right."
+msgid "Show me a book"
 msgstr ""
 
 #: contribute/start.html.jinja
@@ -4325,6 +4062,19 @@ msgstr ""
 
 #: contribute/start.html.jinja
 msgid "This is a walkthrough. Outside catalog data is from a saved sample, and nothing you send is stored yet."
+msgstr ""
+
+#: contribute/task.html.jinja
+msgid "The question"
+msgstr ""
+
+#: contribute/task.html.jinja
+msgid "Open Library has nothing recorded for this yet. Other catalogs do."
+msgstr ""
+
+#: contribute/task.html.jinja
+#, python-format
+msgid "Open Library currently says %(value)s. A catalog that found this exact ISBN says something different."
 msgstr ""
 
 #: covers/add.html
@@ -8128,14 +7878,6 @@ msgid "Check"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Confirm"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Sure thing"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "View the record"
 msgstr ""
 
@@ -8162,6 +7904,10 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "Use this value"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Tap a language to pick it. Other editions are extra evidence; a translation can rightly differ."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8193,20 +7939,7 @@ msgid "Your answer"
 msgstr ""
 
 #: contribute/parts.html.jinja
-#, python-format
-msgid "Yes, %(value)s is right"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "recommended"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Matches what the catalogs say."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "No, it should be something else"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8216,20 +7949,11 @@ msgstr ""
 
 #: contribute/parts.html.jinja
 #, python-format
-msgid "What %(source)s says."
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
 msgid "Keep “%(value)s”"
 msgstr ""
 
 #: contribute/parts.html.jinja
 msgid "Choose this if the book in your hands says so."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Spellings other editions use:"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8245,10 +7969,6 @@ msgid "Note for the reviewer (optional)"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Check my answer"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "Send to a librarian"
 msgstr ""
 
@@ -8259,18 +7979,6 @@ msgstr ""
 #: contribute/parts.html.jinja
 #, python-format
 msgid "Goes into the review queue. Usually looked at within %(days)s days."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Evidence"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Send"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Steps"
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8628,10 +8336,6 @@ msgid "Is the language on this edition right?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Does this edition's language look right?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
 msgid "Language decides which readers find this edition in search and which editions get grouped together."
 msgstr ""
 
@@ -8664,10 +8368,6 @@ msgid "Is the page count on this edition right?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Does this edition's page count look right?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
 msgid "Page count helps readers tell editions apart and helps librarians spot duplicates."
 msgstr ""
 
@@ -8685,10 +8385,6 @@ msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
 msgid "Is the publisher on this edition right?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Does this edition's publisher look right?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8720,10 +8416,6 @@ msgid "Is the subtitle on this edition right?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Does this edition's subtitle look right?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
 msgid "Subtitles are often on the cover but missing from imported records."
 msgstr ""
 
@@ -8749,10 +8441,6 @@ msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
 msgid "Is the publish date on this edition right?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Does this edition's publish date look right?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8892,6 +8580,10 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "Strong evidence"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Fair evidence"
 msgstr ""
 
@@ -8921,6 +8613,10 @@ msgid "Matched %(sources)s by ISBN."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "Other editions of this work say the same."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Other editions of this work use the same spelling."
 msgstr ""
 
@@ -8930,10 +8626,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Sent to a librarian"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Practice book"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py

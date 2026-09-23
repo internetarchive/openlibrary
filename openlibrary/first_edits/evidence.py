@@ -16,7 +16,8 @@ from openlibrary.first_edits.sources import get_sources
 from openlibrary.i18n import gettext as _
 
 VERDICTS = ("missing", "differs", "agrees", "conflict", "unverifiable")
-VERDICT_TO_MODE = {"missing": "fill", "differs": "check", "agrees": "confirm"}
+# An "agrees" verdict has no mode: confirming a value the catalogs already agree on is left for later.
+VERDICT_TO_MODE = {"missing": "fill", "differs": "check"}
 
 
 @dataclass(frozen=True)

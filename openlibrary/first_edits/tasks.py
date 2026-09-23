@@ -10,8 +10,6 @@ from openlibrary.first_edits import fixtures
 from openlibrary.first_edits.evidence import FieldEvidence, build_field_evidence
 from openlibrary.first_edits.scope import Scope, load_scope
 
-QUICK_WIN_LEVEL = "strong"
-
 
 @dataclass(frozen=True)
 class Task:
@@ -24,10 +22,6 @@ class Task:
     @property
     def key(self) -> str:
         return f"{self.olid}/{self.field}"
-
-    @property
-    def quick_win(self) -> bool:
-        return self.mode == "fill" and self.evidence.level == QUICK_WIN_LEVEL
 
 
 def edition_values(edition) -> dict:
@@ -61,8 +55,8 @@ def tasks_for_edition(edition, scope: Scope | None = None, language_names: dict[
         mode = ev.mode
         if mode and scope.fields[fld].allows(mode, ev.level):
             out.append(Task(edition.key, olid, fld, mode, ev))
-    # Fills first, then checks, then confirmations; strongest evidence first within each.
-    order = {"fill": 0, "check": 1, "confirm": 2}
+    # Fills first, then checks; strongest evidence first within each.
+    order = {"fill": 0, "check": 1}
     out.sort(key=lambda t: (order[t.mode], -t.evidence.level_index))
     return out
 

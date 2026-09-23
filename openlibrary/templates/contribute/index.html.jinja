@@ -1,37 +1,10 @@
 {#- /contribute — the list of books with something to check. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="fe-page" data-contribute-list>
-    <header class="fe-pagehead">
-        <div>
-            <p class="fe-overline">{{ _("First edits") }}</p>
-            <h1 class="fe-title">{{ _("Books that need a hand") }}</h1>
-        </div>
-        <a class="fe-pagehead__side" href="/contribute/mine">{{ _("Your suggestions") }}
-            <span class="fe-pill fe-pill--check">{{ data.status_counts.pending }} {{ _("pending") }}</span>
-            <span class="fe-pill fe-pill--confirm">{{ data.status_counts.accepted }} {{ _("accepted") }}</span>
-        </a>
+    <header class="fe-hero">
+        <p class="fe-overline">{{ _("First edits") }}</p>
+        <h1 class="fe-title">{{ _("Books that need a hand") }}</h1>
     </header>
-    <nav class="fe-tabs" aria-label="{{ _('Sets') }}">
-        {% set quick_param = "&amp;quick=1" if data.quick else "" %}
-        <a href="/contribute?view=popular{{ quick_param | safe }}"
-           class="{{ 'is-on' if data.view != 'shelves' else '' }}">{{ _("Popular books") }}</a>
-        <a href="/contribute?view=shelves{{ quick_param | safe }}"
-           class="{{ 'is-on' if data.view == 'shelves' else '' }}">{{ _("Your shelves") }}</a>
-        <span class="fe-tabs__locked"
-              title="{{ _('Unlocks after a few accepted suggestions') }}">{{ _("Second opinions") }} {{ icon("clock", size="sm") }}</span>
-    </nav>
-    <form method="get" action="/contribute" class="fe-filter">
-        <input type="hidden" name="view" value="{{ data.view }}" />
-        <label class="fe-filter__toggle">
-            <input type="checkbox"
-                   name="quick"
-                   value="1"
-                   {% if data.quick %}checked{% endif %}
-                   onchange="this.form.submit()" />
-            <span>{{ _("Only sure things") }}</span>
-            <span class="fe-muted">{{ _("empty fields where the catalogs already agree") }}</span>
-        </label>
-    </form>
     <ol class="fe-rows">
         {% for row in data.rows %}
             <li class="fe-row" data-book-row>
@@ -40,7 +13,7 @@
                     {% for task in row.tasks %}
                         <li class="fe-row__task" data-task-key="{{ task.key }}">
                             <a href="{{ task.url }}">
-                                {{ parts.mode_pill(task.mode, task.quick_win) }}
+                                {{ parts.mode_pill(task.mode) }}
                                 <span class="fe-row__label">{{ task.label }}</span>
                                 <span class="fe-muted fe-row__level">{{ task.level_label }}</span>
                                 {{ icon("arrow-right", size="sm") }}
@@ -52,11 +25,7 @@
         {% endfor %}
     </ol>
     <p class="fe-empty" data-list-empty {% if data.rows %}hidden{% endif %}>
-        {% if data.view == "shelves" %}
-            {{ _("Nothing to check on your shelves right now. Add a few books to your reading log, or try the popular books.") }}
-        {% else %}
-            {{ _("You've been through everything here. Thank you.") }}
-        {% endif %}
+        {{ _("You've been through everything here. Thank you.") }}
     </p>
     <p class="fe-muted">{{ _("Books are sorted by how many readers a fix would help. Skip any you're unsure about.") }}</p>
 </div>

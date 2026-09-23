@@ -9,13 +9,12 @@
         <section class="fe-card">
             <span class="fe-card__icon">{{ icon("book-open-text", size="lg") }}</span>
             <h2 class="fe-card__title">{{ _("What you'll do") }}</h2>
-            <p>{{ _("Pick a book. We show one fact that is missing or in doubt, next to what other library catalogs say. You confirm it, fill it in, or say you're not sure.") }}</p>
+            <p>{{ _("Pick a book. We show one fact that is missing or in doubt, next to what other library catalogs say. You fill it in, correct it, or say you're not sure.") }}</p>
         </section>
         <section class="fe-card">
             <span class="fe-card__icon">{{ icon("circle-user-round", size="lg") }}</span>
             <h2 class="fe-card__title">{{ _("Who checks it") }}</h2>
-            <p>{{ _("A volunteer librarian reviews every suggestion, usually within %(days)s days. You'll see the result on your suggestions page.", days=data.wait_days) }}</p>
-            {% if data.allowed %}<a href="/contribute/review-preview">{{ _("See what a librarian sees") }}</a>{% endif %}
+            <p>{{ _("A volunteer librarian reviews every suggestion, usually within %(days)s days.", days=data.wait_days) }}</p>
         </section>
         <section class="fe-card">
             <span class="fe-card__icon">{{ icon("circle-check", size="lg") }}</span>
@@ -25,13 +24,9 @@
     </div>
     <div class="fe-hero__actions">
         {% if data.allowed %}
-            <ol-button variant="primary" href="/contribute/practice">
-                {{ _("Start with a practice book") }}
+            <ol-button variant="primary" href="/contribute">
+                {{ _("Show me a book") }}
             </ol-button>
-            <ol-button href="/contribute">
-                {{ _("Skip practice, show me a real one") }}
-            </ol-button>
-            <p class="fe-muted">{{ _("Practice takes one minute and tells you right away whether you got it right.") }}</p>
         {% elif data.logged_in %}
             <p class="fe-callout">{{ _("First edits is being tried out with a small group. Ask in the volunteers channel to be added, and this page will open up.") }}</p>
         {% else %}

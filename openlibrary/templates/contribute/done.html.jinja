@@ -3,7 +3,6 @@
 <div class="fe-page"
      data-contribute-done
      data-task-key="{{ data.task_key }}">
-    {{ parts.steps(5) }}
     <section class="fe-receipt">
         <span class="fe-receipt__icon">{{ icon("circle-check", size="lg") }}</span>
         <div>
@@ -20,8 +19,7 @@
                 {% endif %}
             </h1>
             {% if data.note %}<p class="fe-receipt__note">{{ _("Your note:") }} {{ data.note }}</p>{% endif %}
-            <p>{{ _("A volunteer librarian will look at it, usually within %(days)s days. You'll see the result on your suggestions page. You can withdraw it until someone starts reviewing.", days=data.wait_days) }}</p>
-            <p><a href="/contribute/mine">{{ _("See your suggestions") }}</a></p>
+            <p>{{ _("A volunteer librarian will look at it, usually within %(days)s days.", days=data.wait_days) }}</p>
         </div>
     </section>
     {% if data.same_book %}
@@ -32,29 +30,13 @@
                 {% for task in data.same_book %}
                     <li class="fe-row__task" data-task-key="{{ task.key }}">
                         <a href="{{ task.url }}">
-                            {{ parts.mode_pill(task.mode, task.quick_win) }}
+                            {{ parts.mode_pill(task.mode) }}
                             <span class="fe-row__label">{{ task.label }}</span>
                             <span class="fe-muted fe-row__level">{{ task.level_label }}</span>
                             {{ icon("arrow-right", size="sm") }}
                         </a>
                     </li>
                 {% endfor %}
-            </ul>
-        </section>
-    {% endif %}
-    {% if data.next_book %}
-        <section class="fe-section fe-next">
-            <span class="fe-h">{{ _("Next book") }}</span>
-            {{ parts.book_header(data.next_book.book, compact=True) }}
-            <ul class="fe-row__tasks">
-                <li class="fe-row__task" data-task-key="{{ data.next_book.task.key }}">
-                    <a href="{{ data.next_book.task.url }}">
-                        {{ parts.mode_pill(data.next_book.task.mode, data.next_book.task.quick_win) }}
-                        <span class="fe-row__label">{{ data.next_book.task.label }}</span>
-                        <span class="fe-muted fe-row__level">{{ data.next_book.task.level_label }}</span>
-                        {{ icon("arrow-right", size="sm") }}
-                    </a>
-                </li>
             </ul>
         </section>
     {% endif %}

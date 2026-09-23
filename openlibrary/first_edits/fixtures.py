@@ -1,6 +1,6 @@
 """Fixture loaders for the phase 1 walkthrough.
 
-Outside evidence, the demo set, practice tasks and status states are JSON in
+Outside evidence and the demo set are JSON in
 ``fixtures/``. Live lookups replace the evidence and demo loaders in phase 2;
 the callers do not change.
 """
@@ -19,7 +19,7 @@ def _load(path: Path):
 
 @cache
 def load_demo_books() -> list[dict]:
-    """The demo set, most readers first. Readers counts are illustrative."""
+    """The demo set, most readers first. Readers is the work's production reading-log count."""
     books = _load(FIXTURES / "demo_books.json")
     return sorted(books, key=lambda b: -b.get("readers", 0))
 
@@ -28,20 +28,6 @@ def load_demo_books() -> list[dict]:
 def load_evidence(isbn13: str) -> dict | None:
     path = FIXTURES / "evidence" / f"{isbn13}.json"
     return _load(path) if path.exists() else None
-
-
-@cache
-def load_practice() -> list[dict]:
-    return [_load(p) for p in sorted((FIXTURES / "practice").glob("*.json"))]
-
-
-def get_practice(key: str) -> dict | None:
-    return next((p for p in load_practice() if p["key"] == key), None)
-
-
-@cache
-def load_status() -> list[dict]:
-    return _load(FIXTURES / "status.json")
 
 
 def _demo_entry(isbn13: str | None) -> dict | None:

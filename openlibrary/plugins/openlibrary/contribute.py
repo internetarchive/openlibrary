@@ -1,13 +1,12 @@
 """First Edits pages at /contribute: a guided first contribution.
 
 Phase 1 is a click-through walkthrough. Book records and sibling editions
-are live; outside evidence, practice and status states come from fixtures in
+are live; outside evidence and the demo set come from fixtures in
 openlibrary/first_edits/fixtures; nothing is saved. Every page except the
 start page is for beta testers and admins while it is tried out.
 """
 
 from dataclasses import dataclass, field
-from typing import Literal
 from urllib.parse import urlencode
 
 import web
@@ -16,16 +15,14 @@ from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
 from openlibrary.first_edits import fixtures, tasks
-from openlibrary.first_edits import practice as practice_mod
 from openlibrary.first_edits.playbooks import get_playbooks, link_outs
 from openlibrary.first_edits.scope import load_scope
 from openlibrary.first_edits.siblings import SiblingValue, sibling_counts_for_edition
 from openlibrary.first_edits.sources import get_sources
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.mybooks import ReadingLog
+from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
 DENIED = "First Edits is being tried out with a small group"
-SHELVES: tuple[Literal["want-to-read", "currently-reading", "already-read"], ...] = ("want-to-read", "currently-reading", "already-read")
 
 # The Jinja page for each handler. Listed in full so template usage is greppable.
 PAGES = {
@@ -34,9 +31,6 @@ PAGES = {
     "task": "contribute/task.html.jinja",
     "nothing": "contribute/nothing.html.jinja",
     "done": "contribute/done.html.jinja",
-    "practice": "contribute/practice.html.jinja",
-    "mine": "contribute/mine.html.jinja",
-    "review": "contribute/review.html.jinja",
 }
 
 
@@ -82,6 +76,21 @@ def _language_names_for(edition, evidence_doc: dict | None) -> dict[str, str]:
     return _language_names(codes)
 
 
+def _sibling_view(fld: str, siblings: list[SiblingValue], ev) -> list[dict]:
+    """Chips for the templates. Languages show names; a chip matching an answer on screen picks that answer."""
+    names = _language_names({s.display for s in siblings}) if fld == "languages" else {}
+    view = []
+    for s in siblings:
+        display = names.get(s.display, s.display)
+        choices = []
+        if ev.suggestion_display and display == ev.suggestion_display:
+            choices.append("suggestion")
+        if ev.ol_display and display == ev.ol_display:
+            choices.append("keep")
+        view.append({"value": s.display, "display": display, "count": s.count, "choices": " ".join(choices)})
+    return view
+
+
 def _cover_url(edition, isbn: str | None) -> str | None:
     """Prefer the production cover for a demo book: dev cover ids point at the wrong images."""
     if isbn and (cover_id := fixtures.demo_cover_id(isbn)):
@@ -116,38 +125,23 @@ def _book(edition, readers: int | None = None) -> dict:
 
 
 def _edition_by_isbn(isbn13: str):
-    keys = web.ctx.site.things({"type": "/type/edition", "isbn_13": isbn13, "limit": 1})
-    return web.ctx.site.get(keys[0]) if keys else None
+    for fld, value in (("isbn_13", isbn13), ("isbn_10", isbn_13_to_isbn_10(isbn13))):
+        if value and (keys := web.ctx.site.things({"type": "/type/edition", fld: value, "limit": 1})):
+            return web.ctx.site.get(keys[0])
+    return None
 
 
 def _demo_editions() -> list:
+    """Resolve by the production key in one batch; fall back to ISBN where the key is absent or another book (dev)."""
+    entries = fixtures.load_demo_books()
+    by_key = {ed.key: ed for ed in web.ctx.site.get_many([e["key"] for e in entries if e.get("key")])}
     out = []
-    for entry in fixtures.load_demo_books():
-        if ed := _edition_by_isbn(entry["isbn13"]):
+    for entry in entries:
+        ed = by_key.get(entry.get("key"))
+        if not ed or ed.get_isbn13() != entry["isbn13"]:
+            ed = _edition_by_isbn(entry["isbn13"])
+        if ed:
             out.append((ed, entry.get("readers", 0)))
-    return out
-
-
-def _shelf_editions(user) -> list:
-    """The user's logged works, each reduced to one edition worth checking."""
-    out = []
-    seen = set()
-    log = ReadingLog(user=user)
-    for shelf in SHELVES:
-        data = log.get_works(shelf, limit=50)
-        for doc in data.docs:
-            work_key = doc.get("key")
-            if not work_key or work_key in seen:
-                continue
-            seen.add(work_key)
-            work = web.ctx.site.get(work_key)
-            if not work:
-                continue
-            editions = work.get_sorted_editions()
-            with_evidence = [e for e in editions if e.get_isbn13() and fixtures.load_evidence(e.get_isbn13())]
-            pick = with_evidence[0] if with_evidence else next((e for e in editions if e.get_isbn13()), None)
-            if pick:
-                out.append((pick, None))
     return out
 
 
@@ -204,20 +198,17 @@ def _task_summary(task: tasks.Task, playbooks) -> dict:
         "mode": task.mode,
         "level": task.evidence.level,
         "level_label": _level_label(task.evidence.level),
-        "quick_win": task.quick_win,
         "url": f"/contribute/task/{task.olid}/{task.field}",
     }
 
 
-def _rows(editions: list, quick: bool) -> list[dict]:
+def _rows(editions: list) -> list[dict]:
     playbooks = get_playbooks()
     scope = load_scope()
     rows = []
     for edition, readers in editions:
         names = _language_names_for(edition, tasks.evidence_for_edition(edition))
         ts = tasks.tasks_for_edition(edition, scope, names)
-        if quick:
-            ts = [t for t in ts if t.quick_win]
         if not ts:
             continue
         rows.append({"book": _book(edition, readers), "tasks": [_task_summary(t, playbooks) for t in ts]})
@@ -235,7 +226,6 @@ class contribute_start(delegate.page):
             wait_days=load_scope().review_wait_days,
             allowed=_allowed(user),
             logged_in=bool(user),
-            came_from=query_param("from", ""),
         )
 
 
@@ -246,17 +236,7 @@ class contribute_index(delegate.page):
         user = _user()
         if not _allowed(user):
             return _denied(self.path)
-        view = query_param("view", "popular")
-        quick = query_param("quick", "") == "1"
-        editions = _shelf_editions(user) if view == "shelves" else _demo_editions()
-        return _render(
-            "index",
-            _("Books that need a hand"),
-            view=view,
-            quick=quick,
-            rows=_rows(editions, quick),
-            status_counts={"pending": 1, "accepted": 1},
-        )
+        return _render("index", _("Books that need a hand"), rows=_rows(_demo_editions()))
 
 
 def _task_context(edition, task: tasks.Task, names: dict[str, str]) -> dict:
@@ -266,29 +246,32 @@ def _task_context(edition, task: tasks.Task, names: dict[str, str]) -> dict:
     book = _book(edition)
     ev = task.evidence
     sources = get_sources()
-    note = _prefilled_note(ev, sources, siblings)
+    chips = _sibling_view(task.field, siblings, ev)
+    note = _prefilled_note(ev, sources, chips)
     return {
         "book": book,
-        "task": {"key": task.key, "field": task.field, "mode": task.mode, "quick_win": task.quick_win, "url": f"/contribute/task/{task.olid}/{task.field}"},
+        "task": {"key": task.key, "field": task.field, "mode": task.mode, "url": f"/contribute/task/{task.olid}/{task.field}"},
         "playbook": playbook,
         "question": playbook.question(task.mode),
         "evidence": _evidence_view(ev, sources),
-        "siblings": siblings,
+        "siblings": chips,
         "sibling_total": sibling_total,
-        "sibling_suggestions": [s.display for s in siblings],
         "link_outs": link_outs(book["isbn13"], book["title"]),
         "note": note,
         "wait_days": load_scope().review_wait_days,
     }
 
 
-def _prefilled_note(ev, sources, siblings: list[SiblingValue]) -> str:
+def _prefilled_note(ev, sources, chips: list[dict]) -> str:
     names = [sources[v.source].name for v in ev.values if v.source in sources]
     if not names or not ev.suggestion_display:
         return ""
     parts = [_("Matched %(sources)s by ISBN.", sources=_(" and ").join(names))]
-    if siblings and siblings[0].display == ev.suggestion_display:
-        parts.append(_("Other editions of this work use the same spelling."))
+    if chips and chips[0]["display"] == ev.suggestion_display:
+        if ev.field == "languages":
+            parts.append(_("Other editions of this work say the same."))
+        else:
+            parts.append(_("Other editions of this work use the same spelling."))
     return " ".join(parts)
 
 
@@ -343,14 +326,6 @@ class contribute_done(delegate.page):
         else:
             new_value = value
         same_book = [_task_summary(t, playbooks) for t in tasks.tasks_for_edition(edition, language_names=names) if t.field != fld]
-        next_book = None
-        for other, _readers in _demo_editions():
-            if other.key == edition.key:
-                continue
-            other_names = _language_names_for(other, tasks.evidence_for_edition(other))
-            if other_tasks := tasks.tasks_for_edition(other, language_names=other_names):
-                next_book = {"book": _book(other), "task": _task_summary(other_tasks[0], playbooks)}
-                break
         return _render(
             "done",
             _("Sent to a librarian"),
@@ -361,122 +336,6 @@ class contribute_done(delegate.page):
             new_value=new_value,
             note=query_param("note", ""),
             same_book=same_book,
-            next_book=next_book,
             wait_days=load_scope().review_wait_days,
             task_key=f"{olid}/{fld}",
-        )
-
-
-class contribute_practice(delegate.page):
-    path = "/contribute/practice"
-
-    def _context(self, practice: dict) -> dict:
-        playbooks = get_playbooks()
-        names = _language_names(
-            {c for src in practice["evidence"]["sources"] for c in src["fields"].get("languages", [])} | set(practice["ol_values"].get("languages", []))
-        )
-        ev = practice_mod.practice_evidence(practice, names)
-        # A conflict has no mode of its own; ask as a fill when the field is empty, else as a check.
-        mode = ev.mode or ("fill" if not ev.ol_display else "check")
-        playbook = playbooks[practice["field"]]
-        cover_id = practice.get("cover_id")
-        book = {
-            "key": None,
-            "olid": None,
-            "title": practice["title"],
-            "authors": practice["authors"],
-            "cover_url": f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg" if cover_id else None,
-            "edition_line": practice["edition_line"],
-            "isbn13": practice["isbn13"],
-            "edition_count": practice.get("sibling_total", 0) + 1,
-            "readers": practice.get("readers", 0),
-        }
-        siblings = [SiblingValue(s["display"], s["count"]) for s in practice.get("siblings", [])]
-        sources = get_sources()
-        return {
-            "practice": {"key": practice["key"], "order": practice.get("order", 1), "total": len(fixtures.load_practice())},
-            "book": book,
-            "task": {
-                "key": f"practice/{practice['key']}",
-                "field": practice["field"],
-                "mode": mode,
-                "quick_win": False,
-                "url": f"/contribute/practice?key={practice['key']}",
-            },
-            "playbook": playbook,
-            "question": playbook.question(mode),
-            "evidence": _evidence_view(ev, sources),
-            "siblings": siblings,
-            "sibling_total": practice.get("sibling_total", 0),
-            "sibling_suggestions": [s.display for s in siblings],
-            "link_outs": link_outs(practice["isbn13"], practice["title"]),
-            "note": _prefilled_note(ev, sources, siblings),
-            "wait_days": load_scope().review_wait_days,
-        }
-
-    def GET(self):
-        user = _user()
-        if not _allowed(user):
-            return _denied(self.path)
-        key = query_param("key", "")
-        practice = fixtures.get_practice(key) or (fixtures.load_practice() or [None])[0]
-        if not practice:
-            raise web.notfound()
-        return _render("practice", _("Practice book"), **self._context(practice), verdict=None, next_practice=None)
-
-    def POST(self):
-        user = _user()
-        if not _allowed(user):
-            return _denied(self.path)
-        i = web.input(key="", choice="", value="", note="")
-        practice = fixtures.get_practice(i.key)
-        if not practice:
-            raise web.notfound()
-        verdict = practice_mod.judge(practice, i.choice, i.value)
-        nxt = practice_mod.next_practice(practice["key"])
-        return _render(
-            "practice",
-            _("Practice book"),
-            **self._context(practice),
-            verdict=verdict,
-            next_practice={"key": nxt["key"], "title": nxt["title"]} if nxt else None,
-        )
-
-
-class contribute_mine(delegate.page):
-    path = "/contribute/mine"
-
-    def GET(self):
-        user = _user()
-        if not _allowed(user):
-            return _denied(self.path)
-        items = fixtures.load_status()
-        return _render(
-            "mine",
-            _("Your suggestions"),
-            suggestions=items,
-            counts={s: sum(1 for it in items if it["state"] == s) for s in ("pending", "accepted", "declined")},
-            wait_days=load_scope().review_wait_days,
-        )
-
-
-class contribute_review_preview(delegate.page):
-    path = "/contribute/review-preview"
-
-    def GET(self):
-        user = _user()
-        if not _allowed(user):
-            return _denied(self.path)
-        pending = next((it for it in fixtures.load_status() if it["state"] == "pending"), None)
-        evidence = None
-        if pending and (edition := web.ctx.site.get(pending["book_key"])):
-            names = _language_names_for(edition, tasks.evidence_for_edition(edition))
-            evidence = tasks.field_evidence(edition, pending["field"], names)
-        return _render(
-            "review",
-            _("What a librarian sees"),
-            item=pending,
-            evidence=_evidence_view(evidence, get_sources()) if evidence else None,
-            open_count=214,
-            median_days=2.1,
         )

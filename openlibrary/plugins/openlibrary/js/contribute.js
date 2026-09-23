@@ -56,6 +56,16 @@ function initChooser(root) {
 
     root.querySelectorAll('[data-fill-value]').forEach((chip) => {
         chip.addEventListener('click', () => {
+            // A chip that matches an answer already on screen picks that answer.
+            const match = (chip.dataset.fillChoices || '').split(' ').filter(Boolean)
+                .map((c) => root.querySelector(`input[name="choice"][value="${c}"]`))
+                .find(Boolean);
+            if (match) {
+                match.checked = true;
+                sync();
+                match.focus();
+                return;
+            }
             const otherRadio = root.querySelector('input[name="choice"][value="other"]');
             const input = other?.querySelector('input');
             if (otherRadio) otherRadio.checked = true;

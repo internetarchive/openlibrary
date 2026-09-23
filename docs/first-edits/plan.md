@@ -17,7 +17,7 @@
 
 ## 2. Phase 1: the walkthrough
 
-Goal: a person with a beta-tester account can click from `/contribute/start` through orientation, practice, the list, three real books, the wizard, the receipt, and a mocked status page, on the dev site, inside the real site shell, on a phone. Nothing is written anywhere.
+Goal: a person with a beta-tester account can click from `/contribute/start` through orientation, the list, three real books, the wizard and the receipt, on the dev site, inside the real site shell, on a phone. Nothing is written anywhere.
 
 ### What is live and what is fixture
 
@@ -25,12 +25,10 @@ Goal: a person with a beta-tester account can click from `/contribute/start` thr
 |---|---|
 | Book title, cover, authors, edition line, edition count | Live, local Open Library database |
 | Sibling editions and their value counts per field | Live, `work.get_sorted_editions()` counted in Python |
-| Your shelves list | Live, the user's reading log |
-| Popular list | Fixture: a demo set of about twelve well-known editions with a "readers" number copied from production reading-log counts |
+| The list | Fixture: a demo set of about twelve well-known editions with a "readers" number copied from production reading-log counts |
 | External evidence (what Google Books and the Library of Congress say) | Fixture: JSON per demo edition, converted once from Bookie's golden snapshots into the two-source shape. Optional flag to call Google Books live for editions without a fixture |
-| Practice tasks and verdicts | Fixture, three books |
 | Answers, skips, progress | Not saved. A `sessionStorage` list of task keys makes chaining and "already done" work within one browser session |
-| Receipt and status page | Rendered from posted values plus fixture states (pending, accepted, declined with note) |
+| Receipt | Rendered from the posted values |
 
 ### Simplifications this phase takes
 
@@ -38,11 +36,23 @@ Goal: a person with a beta-tester account can click from `/contribute/start` thr
 2. **No store documents, no memcache.** Evidence and demo data are JSON files in `openlibrary/first_edits/fixtures/`. Progress is client-side session storage.
 3. **Publisher suggestions come from siblings only.** The "Something else" field suggests spellings used by other editions of the work, with counts, from the live sibling scan. The Solr facet merge waits for phase 2.
 4. **Three fields, three playbooks:** language, page count, publisher. Subtitle waits.
-5. **Popular is the demo set.** The demo set is resolved at runtime by ISBN against the local database, so it shows whichever demo editions exist locally. Seed them with shelfie by ISBN query. The Solr popularity sort is a one-line swap in phase 2.
-6. **Practice reuses the task template** with a verdict step appended, not its own screens.
-7. **The gate becomes fixture-backed pages, not a separate wireframe document.** The receipt, the "Your suggestions" status page with its three states, and one librarian review row are built as real Jinja templates fed by fixture data. They are the wireframes, they are part of the click-through, and phase 3 reuses them. Nothing in them can be clicked into an action.
-8. **Gate on `/usergroup/beta-testers`,** which already exists with a model check; no new group.
-9. **Quick wins is a checkbox** on the list ("only sure things"), filtering on the fixture verdicts.
+5. **The list is the demo set.** The demo set is resolved at runtime by ISBN against the local database, so it shows whichever demo editions exist locally. Seed them with shelfie by ISBN query. The Solr popularity sort is a one-line swap in phase 2.
+6. **Gate on `/usergroup/beta-testers`,** which already exists with a model check; no new group.
+7. **Two modes only: fill and check.** A field the catalogs already agree with is not a task, and a field where the catalogs disagree with each other is left for a librarian.
+8. **One list, one next step.** No tabs, no filters, no step indicator; the receipt offers the other open fields on the same book.
+
+### Deferred from phase 1
+
+Cut on 2026-09-23 to keep the first version small. Each was built once and can be recovered from commit `e2af8001e`.
+
+- **Practice mode** (`/contribute/practice`): three fixture books and a verdict after answering.
+- **Your suggestions** (`/contribute/mine`): the status page with pending, accepted and declined-with-note states.
+- **Librarian preview** (`/contribute/review-preview`): one review row, linked from the start page.
+- **Your shelves and Second opinions** list tabs.
+- **Only sure things** filter and the "Sure thing" pill: strong-evidence fills only.
+- **Confirm mode**: asking people to confirm a value the catalogs already agree with.
+- **Conflict answers**: one radio per disagreeing source.
+- **Step indicator**, the list header's status counts, a "Next book" suggestion on the receipt, and the duplicate sibling chips under the "Something else" input.
 
 ### What gets built
 
@@ -50,12 +60,12 @@ Goal: a person with a beta-tester account can click from `/contribute/start` thr
   - `scope.json`, `scope.py`: per field enabled, modes, minimum evidence level, playbook id. A JSON file from day one so the librarian conversation can change it without code.
   - `playbooks.py`: per field, the question per mode, convention notes with guideline links, link-out templates keyed by ISBN, answer labels, traps.
   - `sources.py`: explainer copy for Google Books, Library of Congress, and "other editions on Open Library".
-  - `compare.py`: five comparators ported from Bookie (year, pages with tolerance, publisher token overlap, language exact, subtitle similarity). Used in phase 1 for sibling counts and the practice verdict; used in phase 2 on live sources.
+  - `compare.py`: five comparators ported from Bookie (year, pages with tolerance, publisher token overlap, language exact, subtitle similarity). Used in phase 1 for evidence and sibling counts; used in phase 2 on live sources.
   - `evidence.py`: builds the per-field evidence view (OL value, source values with match method and URL, verdict, suggestion, meter sentence) from a normalized input. In phase 1 the input is a fixture; in phase 2 it is live sources. Same function.
   - `siblings.py`: live sibling scan and value counts.
-  - `fixtures/demo_books.json`, `fixtures/evidence/<isbn>.json`, `fixtures/practice/*.json`, `fixtures/status.json`.
-- `openlibrary/plugins/openlibrary/contribute.py`: page handlers copied from `design.py`. Routes: `/contribute/start`, `/contribute/practice` (GET and POST), `/contribute` (with `view=popular|shelves` and `quick=1`), `/contribute/task/OL…M/<field>` (GET and POST), `/contribute/task/OL…M/<field>/done`, `/contribute/mine` (fixture status page), `/contribute/review-preview` (one fixture librarian row, linked from the start page's "who checks it" card).
-- `openlibrary/templates/contribute/*.html.jinja` and `openlibrary/macros/contribute/*.html.jinja`: start, practice, index, task, done, mine, review, and macros for the book header, evidence table, sibling chips, meter, link-outs, answer chooser. Each renders with no arguments. Gettext with named placeholders; regenerate the POT.
+  - `fixtures/demo_books.json`, `fixtures/evidence/<isbn>.json`.
+- `openlibrary/plugins/openlibrary/contribute.py`: page handlers copied from `design.py`. Routes: `/contribute/start`, `/contribute`, `/contribute/task/OL…M/<field>` (GET and POST), `/contribute/task/OL…M/<field>/done`.
+- `openlibrary/templates/contribute/*.html.jinja` and `openlibrary/macros/contribute/*.html.jinja`: start, index, task, done, nothing, and macros for the book header, evidence table, sibling chips, meter, link-outs, answer chooser. Each renders with no arguments. Gettext with named placeholders; regenerate the POT.
 - `static/css/page-contribute.css`: mobile-first, single column, sticky answer block, evidence rows stacked under the small breakpoint, two columns above the large one.
 - A few lines of JS: reveal the free-text field on "Something else", sibling-count suggestions under it, session-storage progress, `ol-popover` for explainers.
 - Tests: scope validation, comparators, evidence sentences, template compile.
@@ -66,11 +76,11 @@ Goal: a person with a beta-tester account can click from `/contribute/start` thr
 |---|---|
 | 1 | Package, scope, playbooks for three fields, evidence builder on fixtures, demo set seeded locally. Start page and list page render inside the site shell. |
 | 2 | Wizard for all three fields with live book data and sibling counts, link-outs, pre-filled note, receipt, chaining via session storage. |
-| 3 | Practice with verdicts, status page and review row from fixtures, mobile pass, deep link on the volunteer page. Walk three Slack volunteers through it and take notes. |
+| 3 | Mobile pass, deep link on the volunteer page. Walk three Slack volunteers through it and take notes. |
 
 ### Exit test
 
-Log in as the dev user in the beta-testers group on a phone, open the start link, do the practice task, open a demo book from Popular, answer publisher with the sibling suggestion, land on the receipt, take the next field on the same book, then open "Your suggestions" and see the three fixture states. No request writes to the database.
+Log in as the dev user in the beta-testers group on a phone, open the start link, open a demo book from the list, answer publisher with the sibling suggestion, land on the receipt, then take the next field on the same book. No request writes to the database.
 
 ## 3. Phase 2: live evidence and saved answers
 
@@ -81,7 +91,7 @@ Same pages, real data underneath. Nothing new in the UI beyond a "couldn't check
 - `evidence.get_evidence(edition_key)`: live sources through the same builder, wrapped in `memcache_memoize` with a seven-day timeout. Two-source rules: both agree by ISBN is Strong, one source is Fair, disagreement is Needs judgment and no task.
 - Popular from Solr with the existing `readinglog` sort, `trending` as fallback. Demo set retired.
 - FastAPI, `openlibrary/fastapi/contribute.py`: `GET /contribute/evidence/OL…M.json` so list rows load progressively; `GET /contribute/publishers.json` from a `facet.prefix` query on `publisher_facet` (not a stored field, so it mirrors `openlibrary/plugins/worksearch/publishers.py`), merged with sibling counts.
-- Answers become site store documents (type `first_edits_answer`, key from edition, field and username, indexed properties for edition, field, username, status), the way the workbench branch stores requests. Progress becomes a per-user store document like `User.save_preferences`. The status page reads real documents and drops the fixtures.
+- Answers become site store documents (type `first_edits_answer`, key from edition, field and username, indexed properties for edition, field, username, status), the way the workbench branch stores requests. Progress becomes a per-user store document like `User.save_preferences`. A status page for the user's own suggestions comes back reading those documents.
 - Optional `scripts/first_edits/warm_cache.py` to prefill memcache before an alpha session.
 - Subtitle playbook, if librarians want it.
 

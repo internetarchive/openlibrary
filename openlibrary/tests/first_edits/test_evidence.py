@@ -51,10 +51,10 @@ def test_single_source_is_fair():
     assert ev.values[0].agrees_with_ol is False
 
 
-def test_agreeing_ol_value_is_confirm():
+def test_agreeing_ol_value_is_not_a_task():
     ev = build_field_evidence("publishers", {"publishers": ["Harvard Univ. Press"]}, {"sources": [GB, LOC]})
     assert ev.verdict == "agrees"
-    assert ev.mode == "confirm"
+    assert ev.mode is None
 
 
 def test_no_sources_is_unverifiable():
@@ -79,10 +79,7 @@ def test_scope_file_parses_and_rejects_unknowns():
         parse_scope({"fields": {"publishers": {"enabled": True, "modes": ["merge"]}}})
 
 
-def test_fixtures_load_and_practice_has_truth():
+def test_every_demo_book_has_evidence():
     assert fixtures.load_demo_books()
     for book in fixtures.load_demo_books():
         assert fixtures.load_evidence(book["isbn13"]) is not None
-    for practice in fixtures.load_practice():
-        assert practice["truth"]
-        assert set(practice["verdicts"]) == {"correct", "unsure", "wrong"}

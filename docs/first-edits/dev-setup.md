@@ -3,7 +3,7 @@
 The phase 1 walkthrough at `/contribute` needs a few real editions in the local
 database whose ISBNs match the evidence fixtures in
 `openlibrary/first_edits/fixtures/evidence/`. Nothing else is required: outside
-evidence, practice and status states are fixtures, and nothing is saved.
+evidence and the demo set are fixtures, and nothing is saved.
 
 ## 1. Seed the demo editions
 
@@ -38,18 +38,12 @@ real editions of each work from production the same way; the importer attaches
 them to the existing local work by title and author. Skip editions whose
 publisher is "Independently Published": the importer rejects them.
 
-## 3. Reading log
-
-The "Your shelves" view reads the dev user's reading log. Add a couple of the
-demo works to Want to Read from their work pages, or run shelfie's
-`seed-reading-log --username openlibrary`.
-
-## 4. Gate
+## 3. Gate
 
 Every page except `/contribute/start` requires a beta tester or admin. The dev
 user `openlibrary` is an admin, so it is already allowed.
 
-## 5. Assets
+## 4. Assets
 
 No asset watcher runs in the dev container. After changing the stylesheet or the
 script, rebuild inside the web container and reload:
@@ -63,6 +57,6 @@ A new Templetor template or plugin module needs `docker compose restart web`.
 
 ## Covers
 
-Local cover ids point at the wrong images in dev, so demo and practice books
+Local cover ids point at the wrong images in dev, so demo books
 carry a production `cover_id` in their fixture and load covers from the
 production cover CDN.
