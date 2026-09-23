@@ -2,7 +2,7 @@ $def with ()
 
 $ q = query_param("q", "")
 
-<ul class="nav-bar">
+<ul class="nav-bar search-nav">
   <li class="$('selected' if ctx.path=='/search' else '')">
     <a data-ol-link-track="SearchNav|SearchBooks"
        href="/search?$urlencode(dict(q=q))">$_("Books")</a>
