@@ -305,7 +305,7 @@ class patrons_observations(delegate.page):
 
         data = json.loads(web.data())
 
-        Observations.persist_observation(data["username"], work_id, data["observation"], data["action"])
+        Observations.persist_observation(user.key.split("/")[-1], work_id, data["observation"], data["action"])
 
         def response(msg, status="success"):
             return delegate.RawText(json.dumps({status: msg}), content_type="application/json")

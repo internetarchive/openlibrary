@@ -111,7 +111,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 30 --max-requests 500
+      - GUNICORN_OPTS= --workers 10 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
     volumes:
       - ../olsystem:/olsystem
