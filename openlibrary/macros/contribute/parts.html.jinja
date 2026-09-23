@@ -30,82 +30,71 @@
         </div>
     </div>
 {% endmacro %}
-{% macro mode_pill(mode) %}
-    {% if mode == "fill" %}
-        <span class="fe-pill fe-pill--fill">{{ _("Fill in") }}</span>
-    {% elif mode == "check" %}
-        <span class="fe-pill fe-pill--check">{{ _("Check") }}</span>
-    {% endif %}
-{% endmacro %}
-{% macro meter(evidence) %}
-    <div class="fe-meter" role="img" aria-label="{{ evidence.level_label }}">
-        <span class="fe-meter__bars fe-meter__bars--{{ evidence.level }}">
-            {# djlint:off H020 #}<i></i><i></i><i></i>{# djlint:on H020 #}
-        </span>
-        <span class="fe-meter__text">{{ evidence.sentence }}</span>
-    </div>
+{% macro task_row(task) %}
+    {#- One to-do per field, styled as a menu item: an icon and the action it leads to. -#}
+    <li class="fe-row__task fe-row__task--{{ task.mode }}"
+        data-task-key="{{ task.key }}">
+        <a href="{{ task.url }}">
+            <span class="fe-row__badge">{{ icon("search" if task.mode == "check" else "plus", size="sm") }}</span>
+            <span>{{ task.action_label }}</span>
+        </a>
+    </li>
 {% endmacro %}
 {% macro source_name(row) %}
-    <ol-popover aria-label="{{ row.name }}">
-        <button type="button" slot="trigger" class="fe-source">{{ row.name }}{{ icon("chevron-down", size="sm") }}</button>
-        <div class="fe-source__explainer">
-            <strong>{{ row.name }}</strong>
-            <p>{{ row.blurb }}</p>
-            <p>{{ row.why }}</p>
-            {% if row.url %}<a href="{{ row.url }}" target="_blank" rel="noopener noreferrer">{{ _("View the record") }} {{ icon("link", size="sm") }}</a>{% endif %}
-        </div>
-    </ol-popover>
+    {% if row.url %}
+        <a href="{{ row.url }}" target="_blank" rel="noopener noreferrer">{{ row.name }}</a>
+    {% else %}
+        {{ row.name }}
+    {% endif %}
 {% endmacro %}
 {% macro evidence_table(evidence, field_label) %}
     <div class="fe-evidence">
-        <div class="fe-evidence__head">
-            <span class="fe-h">{{ _("What other catalogs say") }}</span>
-            {{ meter(evidence) }}
-        </div>
+        <h2 class="fe-subhead">{{ _("What other catalogs say") }}</h2>
+        {% if evidence.verdict == "conflict" %}<p class="fe-muted">{{ evidence.sentence }}</p>{% endif %}
         <ul class="fe-evidence__rows">
             {% for row in evidence.rows %}
                 <li class="fe-evidence__row{% if row.agrees is true %} fe-evidence__row--agrees{% elif row.agrees is false %} fe-evidence__row--differs{% endif %}">
-                    <span class="fe-evidence__source">{{ source_name(row) }}</span>
                     <span class="fe-evidence__value">{{ row.display }}</span>
-                    <span class="fe-evidence__how">{{ row.match_label }}</span>
+                    <span class="fe-evidence__source">
+                        {{ source_name(row) }}
+                        {% if row.match_label %}<span class="fe-evidence__match">{{ row.match_label }}</span>{% endif %}
+                    </span>
                 </li>
             {% endfor %}
-            <li class="fe-evidence__row fe-evidence__row--ol">
-                <span class="fe-evidence__source">{{ _("Open Library (now)") }}</span>
-                <span class="fe-evidence__value">
-                    {% if evidence.ol_display %}{{ evidence.ol_display }}{% else %}<em>{{ _("empty") }}</em>{% endif %}
-                </span>
-                <span class="fe-evidence__how"></span>
-            </li>
+            {% if evidence.ol_display %}
+                <li class="fe-evidence__row">
+                    <span class="fe-evidence__value">{{ evidence.ol_display }}</span>
+                    <span class="fe-evidence__source">{{ _("Open Library (now)") }}</span>
+                </li>
+            {% endif %}
         </ul>
     </div>
 {% endmacro %}
-{% macro sibling_chips(siblings, total, field_label, field=None) %}
+{% macro sibling_list(siblings, total) %}
     <div class="fe-siblings">
         {% if total %}
-            <span class="fe-h">{{ _("How the other %(count)s editions of this work fill this in", count=total) }}</span>
+            <h2 class="fe-subhead">{{ _("How the other %(count)s editions of this work fill this in", count=total) }}</h2>
         {% else %}
-            <span class="fe-h">{{ _("Other editions of this work") }}</span>
+            <h2 class="fe-subhead">{{ _("Other editions of this work") }}</h2>
         {% endif %}
         {% if siblings %}
-            <div class="fe-chips">
+            <ul class="fe-siblings__list">
                 {% for s in siblings %}
-                    <button type="button"
-                            class="fe-chip"
-                            data-fill-value="{{ s.value }}"
-                            data-fill-choices="{{ s.choices }}"
-                            title="{{ _('Use this value') }}">
-                        <span>{{ s.display }}</span><span class="fe-chip__count">{{ s.count }}</span>
-                    </button>
+                    <li>
+                        {% if s.value %}
+                            {{ s.value }}
+                        {% else %}
+                            <span class="fe-muted">{{ _("Not filled in") }}</span>
+                        {% endif %}
+                        {% if s.about %}
+                            <span class="fe-muted">·</span> <a href="{{ s.url }}">{{ s.about }}</a>
+                        {% endif %}
+                    </li>
                 {% endfor %}
-            </div>
-            {% if field == "languages" %}
-                <p class="fe-muted">{{ _("Tap a language to pick it. Other editions are extra evidence; a translation can rightly differ.") }}</p>
-            {% else %}
-                <p class="fe-muted">{{ _("Tap a spelling to use it. Matching what other editions use keeps the catalog in one piece.") }}</p>
+            </ul>
+            {% if total > siblings|length %}
+                <p class="fe-muted">{{ _("And %(count)s more.", count=total - siblings|length) }}</p>
             {% endif %}
-        {% elif total %}
-            <p class="fe-muted">{{ _("None of the other editions have this field yet. Yours would be the first.") }}</p>
         {% else %}
             <p class="fe-muted">{{ _("This is the only edition of this work catalogued so far, so there is nothing to compare against yet.") }}</p>
         {% endif %}
@@ -114,25 +103,23 @@
 {% macro link_outs(links) %}
     {% if links %}
         <div class="fe-linkouts">
-            <span class="fe-h">{{ _("Want to double-check outside Open Library?") }}</span>
-            <div class="fe-linkouts__row">
+            <h2 class="fe-subhead">{{ _("Want to double-check outside Open Library?") }}</h2>
+            <ul class="fe-linkouts__list">
                 {% for link in links %}
-                    <a class="fe-linkout"
-                       href="{{ link.url }}"
-                       target="_blank"
-                       rel="noopener noreferrer">{{ link.label }} {{ icon("link", size="sm") }}</a>
+                    <li>
+                        <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+                    </li>
                 {% endfor %}
-            </div>
-            <p class="fe-muted">{{ _("Each opens with this ISBN already filled in. The book's own copyright page is the final word.") }}</p>
+            </ul>
         </div>
     {% endif %}
 {% endmacro %}
 {% macro notes(playbook) %}
     {% for note in playbook.notes %}
-        <div class="fe-note">
-            {{ icon("sticky-note-text", size="sm") }}
-            <span>{{ note.text }}{% if note.href %} <a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}</span>
-        </div>
+        <p class="fe-note">
+            {{ note.text }}
+            {% if note.href %}<a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}
+        </p>
     {% endfor %}
 {% endmacro %}
 {% macro answer_form(task, evidence, playbook, note, wait_days) %}
@@ -142,13 +129,12 @@
           data-task-form
           data-task-key="{{ task.key }}">
         <fieldset class="fe-answer__options">
-            <legend class="fe-h">{{ _("Your answer") }}</legend>
+            <legend class="fe-label">{{ _("Your answer") }}</legend>
             {% if evidence.suggestion_display %}
                 <label class="fe-choice">
                     <input type="radio" name="choice" value="suggestion" checked />
                     <span class="fe-choice__body">
                         <strong>{{ evidence.suggestion_display }}</strong>
-                        <span class="fe-pill fe-pill--rec">{{ _("recommended") }}</span>
                         <span class="fe-muted">{{ _("What %(sources)s say.", sources=evidence.suggestion_sources_label) }}</span>
                     </span>
                 </label>
@@ -187,15 +173,167 @@
             </label>
         </fieldset>
         <label class="fe-answer__note">
-            <span class="fe-h">{{ _("Note for the reviewer (optional)") }}</span>
+            <span class="fe-label">{{ _("Note for the reviewer (optional)") }}</span>
             <textarea name="note" rows="2" class="fe-input">{{ note }}</textarea>
         </label>
         <div class="fe-answer__actions">
             <ol-button variant="primary" type="submit">
                 {{ _("Send to a librarian") }}
             </ol-button>
-            <a class="fe-answer__skip" href="/contribute" data-skip>{{ _("Skip this book") }}</a>
+            <ol-button variant="ghost" href="/contribute" data-skip>
+                {{ _("Skip this book") }}
+            </ol-button>
             <span class="fe-muted fe-answer__promise">{{ _("Goes into the review queue. Usually looked at within %(days)s days.", days=wait_days) }}</span>
+        </div>
+    </form>
+{% endmacro %}
+{% macro id_record(ident) %}
+    {#- An identifier is right only when the record it points at is this edition,
+        so the record is the evidence, not the number. -#}
+    <div class="fe-idrec">
+        <h2 class="fe-subhead">{{ _("The record this number points at") }}</h2>
+        <p class="fe-idrec__number">
+            <span class="fe-muted">{{ ident.label }}</span>
+            <a href="{{ ident.record_url }}"
+               target="_blank"
+               rel="noopener noreferrer"><strong>{{ ident.value }}</strong></a>
+            <span class="fe-muted">{{ _("from %(source)s", source=ident.source_name) }}</span>
+        </p>
+        <table class="fe-idrec__table">
+            <thead>
+                <tr>
+                    <th scope="col">{{ _("Detail") }}</th>
+                    <th scope="col">{{ _("This Open Library edition") }}</th>
+                    <th scope="col">{{ _("That record") }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in ident.match_rows %}
+                    <tr class="fe-idrec__row fe-idrec__row--{{ 'agrees' if row.agrees else ('differs' if row.agrees is false else 'unknown') }}">
+                        <th scope="row">{{ row.label }}</th>
+                        <td data-label="{{ _('Open Library') }}">{{ row.ours or "—" }}</td>
+                        <td data-label="{{ _('That record') }}">
+                            {{ row.theirs or "—" }}
+                            {% if row.agrees is true %}
+                                {{ icon("circle-check", size="sm", label=_("matches")) }}
+                            {% elif row.agrees is false %}
+                                {{ icon("circle-alert", size="sm", label=_("does not match")) }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}
+{% macro id_checks(checks) %}
+    <div class="fe-checks">
+        <h2 class="fe-subhead">{{ _("What we checked for you") }}</h2>
+        <ul class="fe-checks__list">
+            {% for check in checks %}
+                <li class="fe-checks__item{% if check.tone %} ol-message ol-message--{{ check.tone }}{% endif %} fe-check--{{ check.state }}">
+                    {{ icon(check.icon, size="sm") }}
+                    <span>{{ check.message }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endmacro %}
+{% macro id_traps(traps) %}
+    <div class="fe-traps">
+        <h2 class="fe-subhead">{{ _("How this edit goes wrong") }}</h2>
+        <ul class="fe-traps__list">
+            {% for trap in traps %}
+                <li class="fe-trap{% if not trap.checked %} fe-trap--unchecked{% endif %}">
+                    {{ icon("circle-check" if trap.checked else "triangle-alert", size="sm") }}
+                    <span>
+                        {{ trap.text }}
+                        <span class="fe-muted fe-trap__who">
+                            {%- if trap.checked %}
+                                {{ _("Checked above.") }}
+                            {%- else %}
+                                {{ _("Only you can check this one.") }}
+                            {%- endif -%}
+                        </span>
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endmacro %}
+{% macro id_answer_form(task, ident, playbook, note, wait_days) %}
+    <form method="post"
+          action="{{ task.url }}"
+          class="fe-answer"
+          data-task-form
+          data-id-form
+          data-task-key="{{ task.key }}">
+        <fieldset class="fe-answer__options">
+            <legend class="fe-label">{{ _("Your answer") }}</legend>
+            <label class="fe-choice">
+                <input type="radio" name="choice" value="suggestion" data-gated checked />
+                <span class="fe-choice__body">
+                    <strong>{{ _("Yes — that record is this edition") }}</strong>
+                    <span class="fe-muted">{{ _("Adds %(value)s to this record.", value=ident.value) }}</span>
+                </span>
+            </label>
+            <label class="fe-choice">
+                <input type="radio" name="choice" value="nomatch" />
+                <span class="fe-choice__body">
+                    <strong>{{ _("No — that record is a different edition") }}</strong>
+                    <span class="fe-muted">{{ _("Nothing is added. This is a useful answer, not a failure.") }}</span>
+                </span>
+            </label>
+            <label class="fe-choice">
+                <input type="radio" name="choice" value="other" data-gated />
+                <span class="fe-choice__body"><strong>{{ playbook.other_label }}</strong></span>
+            </label>
+            <div class="fe-other" data-other-input hidden>
+                <label class="fe-visually-hidden" for="fe-other-value">{{ playbook.other_label }}</label>
+                <input id="fe-other-value"
+                       type="text"
+                       name="value"
+                       class="fe-input"
+                       placeholder="{{ playbook.other_placeholder }}"
+                       inputmode="numeric"
+                       autocomplete="off"
+                       data-id-input
+                       data-id-field="{{ task.field }}"
+                       data-msg-ok="{{ _('That looks like a valid number.') }}"
+                       data-msg-tidied="{{ _('Will be stored as %(value)s.', value='__VALUE__') }}"
+                       data-msg-url="{{ _('Paste only the number, not the web address.') }}"
+                       data-msg-bad="{{ _('That is not a valid number for this catalog.') }}" />
+                <p class="fe-other__verdict" data-id-verdict role="status"></p>
+                {% if ident.search_url %}
+                    <a href="{{ ident.search_url }}"
+                       target="_blank"
+                       rel="noopener noreferrer">{{ _("Search that catalog for this ISBN") }}</a>
+                {% endif %}
+            </div>
+            <label class="fe-choice fe-choice--unsure">
+                <input type="radio" name="choice" value="unsure" />
+                <span class="fe-choice__body">
+                    <strong>{{ _("I'm not sure") }}</strong>
+                    <span class="fe-muted">{{ _("Sends it to a librarian with a note. Never counts against you.") }}</span>
+                </span>
+            </label>
+        </fieldset>
+        <label class="fe-confirm" data-id-confirm>
+            <input type="checkbox" name="confirmed" value="1" required />
+            <span>{{ _("I opened the record and the year and publisher match this edition.") }}</span>
+        </label>
+        <label class="fe-answer__note">
+            <span class="fe-label">{{ _("Note for the reviewer (optional)") }}</span>
+            <textarea name="note" rows="2" class="fe-input">{{ note }}</textarea>
+        </label>
+        <div class="fe-answer__actions">
+            <ol-button variant="primary" type="submit">
+                {{ _("Send to a librarian") }}
+            </ol-button>
+            <ol-button variant="ghost" href="/contribute" data-skip>
+                {{ _("Skip this book") }}
+            </ol-button>
+            <span class="fe-muted fe-answer__promise">{{ _("A wrong number is worse than none, so a librarian checks every one.") }}</span>
         </div>
     </form>
 {% endmacro %}

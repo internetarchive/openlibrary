@@ -14,10 +14,10 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.first_edits import fixtures, tasks
+from openlibrary.first_edits import fixtures, identifiers, tasks
 from openlibrary.first_edits.playbooks import get_playbooks, link_outs
 from openlibrary.first_edits.scope import load_scope
-from openlibrary.first_edits.siblings import SiblingValue, sibling_counts_for_edition
+from openlibrary.first_edits.siblings import edition_field_values, sibling_counts
 from openlibrary.first_edits.sources import get_sources
 from openlibrary.i18n import gettext as _
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
@@ -77,19 +77,27 @@ def _language_names_for(edition, evidence_doc: dict | None) -> dict[str, str]:
     return _language_names(codes)
 
 
-def _sibling_view(fld: str, siblings: list[SiblingValue], ev) -> list[dict]:
-    """Chips for the templates. Languages show names; a chip matching an answer on screen picks that answer."""
-    names = _language_names({s.display for s in siblings}) if fld == "languages" else {}
-    view = []
-    for s in siblings:
-        display = names.get(s.display, s.display)
-        choices = []
-        if ev.suggestion_display and display == ev.suggestion_display:
-            choices.append("suggestion")
-        if ev.ol_display and display == ev.ol_display:
-            choices.append("keep")
-        view.append({"value": s.display, "display": display, "count": s.count, "choices": " ".join(choices)})
-    return view
+def _sibling_list(fld: str, others: list, limit: int = 10) -> list[dict]:
+    """One line per other edition: its value for this field, plus enough to tell the editions apart."""
+    values = {e.key: edition_field_values(e, fld) for e in others}
+    names = _language_names({str(v) for vs in values.values() for v in vs}) if fld == "languages" else {}
+    rows = []
+    for e in sorted(others, key=lambda e: not values[e.key])[:limit]:
+        year = e.get_publish_year()
+        about = [
+            ", ".join(e.get("publishers") or []) if fld != "publishers" else "",
+            str(year) if year and fld != "publish_date" else "",
+            (e.get("physical_format") or "") if fld != "physical_format" else "",
+        ]
+        rows.append({"url": e.key, "value": ", ".join(names.get(str(v), str(v)) for v in values[e.key]), "about": ", ".join(p for p in about if p)})
+    return rows
+
+
+def _sibling_top(fld: str, others: list) -> str:
+    """The most common value among the other editions, as the answers on screen display it."""
+    if not (top := sibling_counts(others, fld, limit=1)):
+        return ""
+    return _language_names({top[0].display}).get(top[0].display, top[0].display) if fld == "languages" else top[0].display
 
 
 def _cover_url(edition, isbn: str | None) -> str | None:
@@ -169,8 +177,6 @@ def _evidence_view(ev, sources) -> dict:
                 "id": v.source,
                 "name": src.name if src else v.source,
                 "kind": src.kind if src else "",
-                "blurb": src.blurb if src else "",
-                "why": src.why_trusted if src else "",
                 "display": v.display,
                 "match_label": _match_label(v.match),
                 "url": v.url,
@@ -196,6 +202,7 @@ def _task_summary(task: tasks.Task, playbooks) -> dict:
         "key": task.key,
         "field": task.field,
         "label": playbooks[task.field].label,
+        "action_label": playbooks[task.field].action(task.mode),
         "mode": task.mode,
         "level": task.evidence.level,
         "level_label": _level_label(task.evidence.level),
@@ -240,35 +247,93 @@ class contribute_index(delegate.page):
         return _render("index", _("Books that need a hand"), rows=_rows(_demo_editions()))
 
 
+# A passing check is reassurance, not an alert: it stays a quiet line. Only a
+# warning or a failure earns the ol-message treatment, so attention goes to problems.
+CHECK_TONES = {"pass": ("", "circle-check"), "warn": ("warning", "triangle-alert"), "fail": ("error", "circle-alert")}
+
+
+def _sibling_editions(edition) -> list:
+    work = edition.works[0] if edition.works else None
+    if not work:
+        return []
+    return [e for e in work.get_sorted_editions(keys=[edition.key]) if e.key != edition.key]
+
+
+def _identifier_context(edition, task: tasks.Task, names: dict[str, str]) -> dict:
+    """The record an identifier points at, the checks run against it, and the traps nobody can check.
+
+    The number itself is not evidence: the Library of Congress record of course
+    carries its own LCCN. What a newcomer can judge is whether that record
+    describes the book on this page, so that comparison is the page.
+    """
+    spec = identifiers.get_specs()[task.field]
+    values = tasks.edition_values(edition)
+    doc = tasks.evidence_for_edition(edition) or {"sources": []}
+    src, rows, match_check = tasks.corroboration(task.field, values, doc, names)
+    value = ((src or {}).get("fields", {}).get(task.field) or [""])[0]
+    sources = get_sources()
+    source = sources.get((src or {}).get("id", ""))
+
+    value, format_check = identifiers.check_format(spec, value)
+    checks = [format_check, identifiers.check_collision(spec, value, _sibling_editions(edition)) if value else None, match_check]
+    checks = [c for c in checks if c]
+    caught = {c.id for c in checks if c.state == "pass"}
+    playbook = get_playbooks()[task.field]
+    return {
+        "value": value or "",
+        "label": playbook.label,
+        "source_name": source.name if source else _("the source catalog"),
+        "record_url": spec.record_url(value) if value else "",
+        "search_url": spec.search_url(edition.get_isbn13() or ""),
+        "match_rows": [{"label": r.label, "ours": r.ol_display, "theirs": r.target_display, "agrees": r.agrees} for r in rows],
+        "checks": [{"id": c.id, "state": c.state, "tone": CHECK_TONES[c.state][0], "icon": CHECK_TONES[c.state][1], "message": c.message} for c in checks],
+        "gate": identifiers.worst_state(checks),
+        "traps": [{"text": t.text, "checked_by": t.checked_by, "checked": bool(t.checked_by and t.checked_by in caught)} for t in playbook.traps],
+    }
+
+
 def _task_context(edition, task: tasks.Task, names: dict[str, str]) -> dict:
     playbooks = get_playbooks()
     playbook = playbooks[task.field]
-    siblings, sibling_total = sibling_counts_for_edition(edition, task.field)
+    others = _sibling_editions(edition)
     book = _book(edition)
     ev = task.evidence
     sources = get_sources()
-    chips = _sibling_view(task.field, siblings, ev)
-    note = _prefilled_note(ev, sources, chips)
+    note = _prefilled_note(ev, sources, _sibling_top(task.field, others))
+    ident = _identifier_context(edition, task, names) if identifiers.is_identifier_field(task.field) else None
+    if ident:
+        note = _prefilled_id_note(ident)
     return {
+        "identifier": ident,
         "book": book,
         "task": {"key": task.key, "field": task.field, "mode": task.mode, "url": f"/contribute/task/{task.olid}/{task.field}"},
         "playbook": playbook,
         "question": playbook.question(task.mode),
         "evidence": _evidence_view(ev, sources),
-        "siblings": chips,
-        "sibling_total": sibling_total,
+        "siblings": _sibling_list(task.field, others),
+        "sibling_total": len(others),
         "link_outs": link_outs(book["isbn13"], book["title"]),
         "note": note,
         "wait_days": load_scope().review_wait_days,
     }
 
 
-def _prefilled_note(ev, sources, chips: list[dict]) -> str:
+def _prefilled_id_note(ident: dict) -> str:
+    """The reviewer should not have to redo the lookup, so the receipt carries what was compared."""
+    agreed = [r["label"] for r in ident["match_rows"] if r["agrees"] is True]
+    if not agreed:
+        return ""
+    names = [str(a).lower() for a in agreed]
+    joined = names[0] if len(names) == 1 else _("%(first)s and %(last)s", first=", ".join(names[:-1]), last=names[-1])
+    return _("Checked against %(source)s: %(fields)s match.", source=ident["source_name"], fields=joined)
+
+
+def _prefilled_note(ev, sources, sibling_top: str) -> str:
     names = [sources[v.source].name for v in ev.values if v.source in sources]
     if not names or not ev.suggestion_display:
         return ""
     parts = [_("Matched %(sources)s by ISBN.", sources=_(" and ").join(names))]
-    if chips and chips[0]["display"] == ev.suggestion_display:
+    if sibling_top and sibling_top == ev.suggestion_display:
         if ev.field == "languages":
             parts.append(_("Other editions of this work say the same."))
         else:
@@ -277,7 +342,7 @@ def _prefilled_note(ev, sources, chips: list[dict]) -> str:
 
 
 class contribute_task(delegate.page):
-    path = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|subtitle|publish_date)"
+    path = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|subtitle|publish_date|lccn|oclc_numbers)"
 
     def GET(self, olid, fld):
         user = _user()
@@ -303,7 +368,7 @@ class contribute_task(delegate.page):
 
 
 class contribute_done(delegate.page):
-    path = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|subtitle|publish_date)/done"
+    path = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|subtitle|publish_date|lccn|oclc_numbers)/done"
 
     def GET(self, olid, fld):
         user = _user()

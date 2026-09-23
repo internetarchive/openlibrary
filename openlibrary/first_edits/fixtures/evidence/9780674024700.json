@@ -15,7 +15,7 @@
         "languages": [
           "eng"
         ],
-        "subtitle": "War, Memory, and the Post–Cold War in Asia"
+        "subtitle": "War, Memory, and the Post\u2013Cold War in Asia"
       }
     },
     {
@@ -31,7 +31,13 @@
         "languages": [
           "eng"
         ],
-        "subtitle": "war, memory, and the post-Cold War in Asia"
+        "subtitle": "war, memory, and the post-Cold War in Asia",
+        "lccn": [
+          "2006049772"
+        ],
+        "oclc_numbers": [
+          "71369523"
+        ]
       }
     }
   ]

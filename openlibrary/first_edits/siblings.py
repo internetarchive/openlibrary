@@ -1,8 +1,7 @@
-"""How the other editions of a work fill a field, as spelling counts.
+"""How the other editions of a work fill a field.
 
 Live against the local database. The counts answer the normalization
-question ("which spelling does this catalog already use?") and feed the
-suggestions under the free-text answer.
+question ("which spelling does this catalog already use?").
 """
 
 from collections import Counter
@@ -25,7 +24,7 @@ def _norm_key(fld: str, value) -> str:
     return norm_text(str(value))
 
 
-def _edition_field_values(edition, fld: str) -> list:
+def edition_field_values(edition, fld: str) -> list:
     raw = edition.get(fld)
     if raw in (None, "", []):
         return []
@@ -46,18 +45,8 @@ def sibling_counts(editions, fld: str, exclude_key: str | None = None, limit: in
     for ed in editions:
         if exclude_key and ed.key == exclude_key:
             continue
-        for value in _edition_field_values(ed, fld):
+        for value in edition_field_values(ed, fld):
             groups.setdefault(_norm_key(fld, value), Counter())[str(value)] += 1
     out = [SiblingValue(spellings.most_common(1)[0][0], sum(spellings.values())) for spellings in groups.values()]
     out.sort(key=lambda s: (-s.count, s.display))
     return out[:limit]
-
-
-def sibling_counts_for_edition(edition, fld: str, limit: int = 8) -> tuple[list[SiblingValue], int]:
-    """Counts across the edition's work siblings, plus how many siblings there are."""
-    work = edition.works[0] if edition.works else None
-    if not work:
-        return [], 0
-    editions = work.get_sorted_editions(keys=[edition.key])
-    others = [e for e in editions if e.key != edition.key]
-    return sibling_counts(others, fld, limit=limit), len(others)

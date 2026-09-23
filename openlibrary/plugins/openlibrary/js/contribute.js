@@ -6,7 +6,15 @@
  * of the list and the receipt can offer the next open one.
  */
 
+import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
+
 const STORAGE_KEY = 'ol-first-edits-done';
+
+// Same normalization the server applies, so the verdict on screen matches what is stored.
+const ID_RULES = {
+    lccn: { parse: parseLccn, isValid: isValidLccn },
+    oclc_numbers: { parse: parseOclc, isValid: isValidOclc },
+};
 
 function readDone() {
     try {
@@ -54,29 +62,6 @@ function initChooser(root) {
     radios.forEach((r) => r.addEventListener('change', sync));
     sync();
 
-    root.querySelectorAll('[data-fill-value]').forEach((chip) => {
-        chip.addEventListener('click', () => {
-            // A chip that matches an answer already on screen picks that answer.
-            const match = (chip.dataset.fillChoices || '').split(' ').filter(Boolean)
-                .map((c) => root.querySelector(`input[name="choice"][value="${c}"]`))
-                .find(Boolean);
-            if (match) {
-                match.checked = true;
-                sync();
-                match.focus();
-                return;
-            }
-            const otherRadio = root.querySelector('input[name="choice"][value="other"]');
-            const input = other?.querySelector('input');
-            if (otherRadio) otherRadio.checked = true;
-            sync();
-            if (input) {
-                input.value = chip.dataset.fillValue;
-                input.focus();
-            }
-        });
-    });
-
     const form = root.querySelector('form[data-task-form]');
     if (form) {
         form.addEventListener('submit', () => markDone(form.dataset.taskKey));
@@ -85,6 +70,56 @@ function initChooser(root) {
             skip.addEventListener('click', () => markDone(form.dataset.taskKey));
         }
     }
+}
+
+/**
+ * Identifier tasks carry a confirmation the other fields don't need: a wrong
+ * identifier corrupts record matching silently, so answers that add one are
+ * gated behind an explicit "I opened the record" tick. Answers that add
+ * nothing ("different edition", "not sure") are not gated -- saying no has to
+ * stay the cheapest thing on the page.
+ */
+function initIdForm(form) {
+    const confirm = form.querySelector('[data-id-confirm]');
+    const box = confirm && confirm.querySelector('input[type="checkbox"]');
+    const radios = form.querySelectorAll('input[name="choice"]');
+    if (!box) return;
+
+    const syncGate = () => {
+        const checked = form.querySelector('input[name="choice"]:checked');
+        const gated = Boolean(checked && checked.hasAttribute('data-gated'));
+        confirm.hidden = !gated;
+        box.required = gated;
+        if (!gated) box.checked = false;
+    };
+    radios.forEach((r) => r.addEventListener('change', syncGate));
+    syncGate();
+
+    const input = form.querySelector('[data-id-input]');
+    const verdict = form.querySelector('[data-id-verdict]');
+    if (!input || !verdict) return;
+    const rule = ID_RULES[input.dataset.idField];
+    if (!rule) return;
+
+    input.addEventListener('input', () => {
+        const raw = input.value.trim();
+        if (!raw) {
+            verdict.textContent = '';
+            verdict.dataset.state = '';
+            return;
+        }
+        const parsed = rule.parse(raw);
+        const msg = input.dataset;
+        if (rule.isValid(parsed)) {
+            verdict.dataset.state = 'ok';
+            verdict.textContent = parsed === raw
+                ? msg.msgOk
+                : msg.msgTidied.replace('__VALUE__', parsed);
+        } else {
+            verdict.dataset.state = 'bad';
+            verdict.textContent = /https?:|\//.test(raw) ? msg.msgUrl : msg.msgBad;
+        }
+    });
 }
 
 function initDone(root) {
@@ -100,5 +135,6 @@ function initDone(root) {
 export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach(initList);
     document.querySelectorAll('[data-contribute-task]').forEach(initChooser);
+    document.querySelectorAll('form[data-id-form]').forEach(initIdForm);
     document.querySelectorAll('[data-contribute-done]').forEach(initDone);
 }

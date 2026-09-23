@@ -12,7 +12,7 @@ SCOPE_PATH = Path(__file__).parent / "scope.json"
 
 MODES = ("fill", "check")
 LEVELS = ("none", "weak", "fair", "strong")
-FIELDS = ("languages", "number_of_pages", "publishers", "subtitle", "publish_date")
+FIELDS = ("languages", "number_of_pages", "publishers", "subtitle", "publish_date", "lccn", "oclc_numbers")
 
 
 @dataclass(frozen=True)

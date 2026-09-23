@@ -31,7 +31,10 @@
         "languages": [
           "eng"
         ],
-        "subtitle": "a novel"
+        "subtitle": "a novel",
+        "lccn": [
+          "86046157"
+        ]
       }
     }
   ]

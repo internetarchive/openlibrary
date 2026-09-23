@@ -1,30 +1,51 @@
 {#- /contribute/task/OL…M/<field> — one book, one field, one decision. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="fe-page fe-page--task" data-contribute-task>
-    {{ parts.book_header(data.book) }}
-    <section class="fe-section fe-question">
-        <span class="fe-h">{{ _("The question") }}</span>
-        <h1 class="fe-question__text">{{ data.question }}</h1>
-        <p>
-            {% if data.task.mode == "fill" %}
-                {{ _("Open Library has nothing recorded for this yet. Other catalogs do.") }}
-            {% else %}
-                {{ _("Open Library currently says %(value)s. A catalog that found this exact ISBN says something different.", value=data.evidence.ol_display) }}
+    <header class="fe-task__head">
+        <a class="fe-back" href="/contribute">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
+        <div class="fe-block fe-question">
+            <h1 class="fe-question__text">{{ data.question }}</h1>
+            {% if data.identifier %}
+                <p>{{ _("Open Library has no %(label)s for this edition. One catalog has a record that may be it.", label=data.playbook.label) }}</p>
+            {% elif data.task.mode != "fill" %}
+                <p>
+                    {{ _("Open Library currently says %(value)s. A catalog that found this exact ISBN says something different.", value=data.evidence.ol_display) }}
+                </p>
             {% endif %}
-        </p>
-        <p class="fe-muted">{{ data.playbook.why }}</p>
-    </section>
-    <section class="fe-section">
-        {{ parts.evidence_table(data.evidence, data.playbook.label) }}
-        {{ parts.notes(data.playbook) }}
-    </section>
-    <section class="fe-section">
-        {{ parts.sibling_chips(data.siblings, data.sibling_total, data.playbook.label, data.task.field) }}
-    </section>
-    <section class="fe-section">
-        {{ parts.link_outs(data.link_outs) }}
-    </section>
-    <section class="fe-section fe-section--answer">
-        {{ parts.answer_form(data.task, data.evidence, data.playbook, data.note, data.wait_days) }}
+            {% if data.playbook.why %}<p class="fe-muted">{{ data.playbook.why }}</p>{% endif %}
+        </div>
+        <div class="fe-bookcard">{{ parts.book_header(data.book) }}</div>
+    </header>
+    <div class="fe-task__evidence">
+        {% if data.identifier %}
+            <section class="fe-block">
+                {{ parts.id_record(data.identifier) }}
+            </section>
+            <section class="fe-block">
+                {{ parts.id_checks(data.identifier.checks) }}
+                {{ parts.notes(data.playbook) }}
+            </section>
+            <section class="fe-block">
+                {{ parts.id_traps(data.identifier.traps) }}
+            </section>
+        {% else %}
+            <section class="fe-block">
+                {{ parts.evidence_table(data.evidence, data.playbook.label) }}
+                {{ parts.notes(data.playbook) }}
+            </section>
+            <section class="fe-block">
+                {{ parts.sibling_list(data.siblings, data.sibling_total) }}
+            </section>
+            <section class="fe-block">
+                {{ parts.link_outs(data.link_outs) }}
+            </section>
+        {% endif %}
+    </div>
+    <section class="fe-section fe-section--answer fe-task__answer">
+        {% if data.identifier %}
+            {{ parts.id_answer_form(data.task, data.identifier, data.playbook, data.note, data.wait_days) }}
+        {% else %}
+            {{ parts.answer_form(data.task, data.evidence, data.playbook, data.note, data.wait_days) }}
+        {% endif %}
     </section>
 </div>

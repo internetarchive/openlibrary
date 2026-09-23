@@ -4,6 +4,8 @@
 
 **Status (2026-09-22):** phase 1 is built and walkable on the dev site. Package `openlibrary/first_edits/`, pages in `openlibrary/plugins/openlibrary/contribute.py`, templates under `contribute/`, stylesheet `page-contribute.css`. Dev seeding recipe in `dev-setup.md`. Open items from the walkthrough: a `/volunteer` page link still needs adding on the site (it is a wiki page, not a template), and the three-week sequence below is now the checklist for polish rather than a build order.
 
+**Identifiers (2026-09-23):** `lccn` and `oclc_numbers` are now in scope as a walkable first pass, in answer to Lisa's "non-ia identifiers". They do not fit the evidence model the other fields use, and the measured supply is thin. Both are written up in [`identifiers.md`](identifiers.md), which is the document to bring to librarians.
+
 ## 1. Constraints this plan honors
 
 | Constraint | How |
@@ -35,7 +37,7 @@ Goal: a person with a beta-tester account can click from `/contribute/start` thr
 1. **No FastAPI in phase 1.** With fixture evidence there is nothing slow to load progressively, so the list page is fully server-rendered by web.py page handlers. The row-evidence and publisher-facet endpoints move to phase 2. (Section 5 explains why pages are web.py regardless.)
 2. **No store documents, no memcache.** Evidence and demo data are JSON files in `openlibrary/first_edits/fixtures/`. Progress is client-side session storage.
 3. **Publisher suggestions come from siblings only.** The "Something else" field suggests spellings used by other editions of the work, with counts, from the live sibling scan. The Solr facet merge waits for phase 2.
-4. **Three fields, three playbooks:** language, page count, publisher. Subtitle waits.
+4. **Three fields, three playbooks:** language, page count, publisher. Subtitle waits. Two identifier fields joined them on 2026-09-23 with a wizard of their own shape — see [`identifiers.md`](identifiers.md).
 5. **The list is the demo set.** The demo set is resolved at runtime by production edition key (ISBN fallback), so it shows whichever demo editions exist. On production data it needs no seeding; locally, seed the scripted eight by ISBN. The Solr popularity sort is a one-line swap in phase 2.
 6. **Gate on `/usergroup/beta-testers`,** which already exists with a model check; no new group.
 7. **Two modes only: fill and check.** A field the catalogs already agree with is not a task, and a field where the catalogs disagree with each other is left for a librarian.
@@ -59,7 +61,7 @@ Cut on 2026-09-23 to keep the first version small. Each was built once and can b
 - `openlibrary/first_edits/`
   - `scope.json`, `scope.py`: per field enabled, modes, minimum evidence level, playbook id. A JSON file from day one so the librarian conversation can change it without code.
   - `playbooks.py`: per field, the question per mode, convention notes with guideline links, link-out templates keyed by ISBN, answer labels, traps.
-  - `sources.py`: explainer copy for Google Books, Library of Congress, and "other editions on Open Library".
+  - `sources.py`: display names and lineage for Google Books, Library of Congress, and "other editions on Open Library".
   - `compare.py`: five comparators ported from Bookie (year, pages with tolerance, publisher token overlap, language exact, subtitle similarity). Used in phase 1 for evidence and sibling counts; used in phase 2 on live sources.
   - `evidence.py`: builds the per-field evidence view (OL value, source values with match method and URL, verdict, suggestion, meter sentence) from a normalized input. In phase 1 the input is a fixture; in phase 2 it is live sources. Same function.
   - `siblings.py`: live sibling scan and value counts.
@@ -67,7 +69,7 @@ Cut on 2026-09-23 to keep the first version small. Each was built once and can b
 - `openlibrary/plugins/openlibrary/contribute.py`: page handlers copied from `design.py`. Routes: `/contribute/start`, `/contribute`, `/contribute/task/OL…M/<field>` (GET and POST), `/contribute/task/OL…M/<field>/done`.
 - `openlibrary/templates/contribute/*.html.jinja` and `openlibrary/macros/contribute/*.html.jinja`: start, index, task, done, nothing, and macros for the book header, evidence table, sibling chips, meter, link-outs, answer chooser. Each renders with no arguments. Gettext with named placeholders; regenerate the POT.
 - `static/css/page-contribute.css`: mobile-first, single column, sticky answer block, evidence rows stacked under the small breakpoint, two columns above the large one.
-- A few lines of JS: reveal the free-text field on "Something else", sibling-count suggestions under it, session-storage progress, `ol-popover` for explainers.
+- A few lines of JS: reveal the free-text field on "Something else", sibling-count suggestions under it, session-storage progress.
 - Tests: scope validation, comparators, evidence sentences, template compile.
 
 ### Sequence, three weeks

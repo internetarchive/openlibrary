@@ -10,14 +10,7 @@
                 {{ parts.book_header(row.book, compact=True) }}
                 <ul class="fe-row__tasks">
                     {% for task in row.tasks %}
-                        <li class="fe-row__task" data-task-key="{{ task.key }}">
-                            <a href="{{ task.url }}">
-                                {{ parts.mode_pill(task.mode) }}
-                                <span class="fe-row__label">{{ task.label }}</span>
-                                <span class="fe-muted fe-row__level">{{ task.level_label }}</span>
-                                {{ icon("arrow-right", size="sm") }}
-                            </a>
-                        </li>
+                        {{ parts.task_row(task) }}
                     {% endfor %}
                 </ul>
             </li>

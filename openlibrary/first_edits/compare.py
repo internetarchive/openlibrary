@@ -77,6 +77,11 @@ def languages_agree(a: list[str] | None, b: list[str] | None) -> bool:
     return bool(set(a or []) & set(b or []))
 
 
+def ids_agree(a: list[str] | None, b: list[str] | None) -> bool:
+    """Identifiers are equal or they are not. Both sides arrive already normalized."""
+    return bool({str(x) for x in a or []} & {str(y) for y in b or []})
+
+
 def subtitles_agree(a: str | None, b: str | None) -> bool:
     na, nb = norm_text(a or ""), norm_text(b or "")
     return bool(na and nb) and SequenceMatcher(None, na, nb).ratio() >= SUBTITLE_THRESHOLD
@@ -88,6 +93,8 @@ COMPARATORS: dict[str, Callable[[Any, Any], bool]] = {
     "number_of_pages": pages_agree,
     "languages": languages_agree,
     "subtitle": subtitles_agree,
+    "lccn": ids_agree,
+    "oclc_numbers": ids_agree,
 }
 
 

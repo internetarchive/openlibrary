@@ -14,6 +14,7 @@
 @import "components/header.css";
 @import "components/footer.css";
 @import "components/language.css";
+@import "components/ol-message.css";
 @import "components/contribute.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
