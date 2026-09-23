@@ -27,6 +27,21 @@ def mock_user():
     )()
 
 
+def mock_super_librarian():
+    """Moving an edition between works is restricted to this level and above."""
+    return type(
+        "MockSuperLibrarian",
+        (object,),
+        {
+            "is_admin": lambda slf: False,
+            "is_super_librarian": lambda slf: True,
+            "is_super_librarian_or_higher": lambda slf: slf.is_admin() or slf.is_super_librarian(),
+            "is_librarian": lambda slf: True,
+            "is_usergroup_member": lambda slf, grp: False,
+        },
+    )()
+
+
 class TestSaveBookHelper:
     def setup_method(self, method):
         web.ctx.site = MockSite()
@@ -108,7 +123,7 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
 
     def test_moving_orphan(self, monkeypatch):
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_super_librarian)
 
         web.ctx.site.save_many(
             [
@@ -281,7 +296,7 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").title == "Modified Edition Title"
 
     def test_moving_edition(self, monkeypatch):
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_super_librarian)
 
         web.ctx.site.save_many(
             [
@@ -353,7 +368,7 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/works/OL1W").title == "Original Work Title"
 
     def test_moving_edition_to_new_work(self, monkeypatch):
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_super_librarian)
 
         web.ctx.site.save_many(
             [
@@ -401,7 +416,7 @@ class TestSaveBookHelper:
         assert not new_work.subjects
 
     def test_moving_edition_to_new_work_can_copy_data(self, monkeypatch):
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_super_librarian)
 
         web.ctx.site.save_many(
             [
@@ -447,7 +462,7 @@ class TestSaveBookHelper:
         assert new_work.subjects == old_work.subjects
 
     def test_moving_edition_to_new_work_copy_when_none(self, monkeypatch):
-        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        monkeypatch.setattr(accounts, "get_current_user", mock_super_librarian)
 
         web.ctx.site.save_many(
             [
@@ -489,6 +504,98 @@ class TestSaveBookHelper:
         # Should ignore authors/subjects by default
         assert not new_work.authors
         assert not new_work.subjects
+
+    def _work_and_edition(self):
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/work"}, "key": "/works/OL1W", "title": "Original Work Title"},
+                {"type": {"key": "/type/work"}, "key": "/works/OL2W", "title": "Another Work"},
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
+        return web.ctx.site.get("/works/OL1W"), web.ctx.site.get("/books/OL1M")
+
+    def test_unprivileged_user_cannot_move_an_edition(self, monkeypatch):
+        """The form hides the field, so a POST naming another work is hand-crafted."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        work, edition = self._work_and_edition()
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL2W",
+            }
+        )
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
+
+    def test_unprivileged_user_cannot_move_an_edition_to_a_new_work(self, monkeypatch):
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        work, edition = self._work_and_edition()
+        doc_count = len(web.ctx.site.docs)
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "__new__",
+            }
+        )
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
+        assert len(web.ctx.site.docs) == doc_count
+
+    def test_unprivileged_user_can_still_edit_the_rest_of_the_edition(self, monkeypatch):
+        """Only the work field is pinned; the edit itself must still go through."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        work, edition = self._work_and_edition()
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Corrected Edition Title",
+                "edition--works--0--key": "/works/OL2W",
+            }
+        )
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        saved = web.ctx.site.get("/books/OL1M")
+        assert saved.title == "Corrected Edition Title"
+        assert saved.works[0].key == "/works/OL1W"
+
+    def test_unprivileged_user_editing_an_orphan_still_gets_a_work(self, monkeypatch):
+        """An orphan has no work to keep, so it gets a fresh one -- not the one named."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/work"}, "key": "/works/OL1W", "title": "Someone Else's Work"},
+                {"type": {"key": "/type/edition"}, "key": "/books/OL1M", "title": "Orphan Edition"},
+            ]
+        )
+        edition = web.ctx.site.get("/books/OL1M")
+
+        formdata = web.storage(
+            {
+                "work--key": "",
+                "work--title": "Orphan Edition",
+                "edition--title": "Orphan Edition",
+                "edition--works--0--key": "/works/OL1W",
+            }
+        )
+        addbook.SaveBookHelper(None, edition).save(formdata)
+
+        assert web.ctx.site.get("/books/OL1M").works[0].key != "/works/OL1W"
 
 
 class TestDaisyPage:

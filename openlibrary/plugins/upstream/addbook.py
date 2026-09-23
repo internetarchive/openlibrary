@@ -561,6 +561,15 @@ class SaveBookHelper:
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
 
+        if edition_data and not (user and user.is_super_librarian_or_higher()):
+            # Which work an edition belongs to is restricted to super librarians
+            # and admins: the field was routinely used in place of reporting a
+            # duplicate, or to repurpose a work record, which leaves works with
+            # common titles impossible to tell apart once their editions are
+            # gone. The edit form hides it for everyone else; pinning the value
+            # here means a hand-crafted POST cannot do what the form will not.
+            self.keep_current_work(edition_data)
+
         saveutil = DocSaveHelper()
 
         if delete:
@@ -655,6 +664,19 @@ class SaveBookHelper:
             saveutil.save(self.edition)
 
         saveutil.commit(comment=comment, action="edit-book")
+
+    def keep_current_work(self, edition_data: web.Storage) -> None:
+        """Drop any attempt in ``edition_data`` to move the edition to another work.
+
+        The edition keeps whichever work it already has. An edition that has
+        none keeps none, so the orphan handling in :func:`save` still gives it
+        a freshly created work rather than one the form named.
+        """
+        current = [{"key": work.key} for work in (self.edition.works or [])] if self.edition else []
+        if current:
+            edition_data.works = current
+        else:
+            edition_data.pop("works", None)
 
     @staticmethod
     def new_work(edition: Edition) -> Work:
