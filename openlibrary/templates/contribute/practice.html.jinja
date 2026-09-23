@@ -1,0 +1,73 @@
+{#- /contribute/practice — a real-looking task with a known answer. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="fe-page fe-page--task" data-contribute-task>
+    <div class="fe-practice-bar">
+        {{ icon("graduation-cap", size="sm") }}
+        <span>{{ _("Practice book %(n)s of %(total)s. Nothing you do here is sent anywhere.", n=data.practice.order, total=data.practice.total) }}</span>
+    </div>
+    {% if data.verdict %}
+        <section class="fe-verdict fe-verdict--{{ data.verdict.outcome }}">
+            <span class="fe-verdict__icon">
+                {% if data.verdict.outcome == "correct" %}{{ icon("circle-check", size="lg") }}{% elif data.verdict.outcome == "unsure" %}{{ icon("circle-pause", size="lg") }}{% else %}{{ icon("undo-2", size="lg") }}{% endif %}
+            </span>
+            <div>
+                <h2 class="fe-verdict__title">
+                    {% if data.verdict.outcome == "correct" %}{{ _("That's how a librarian would decide too") }}{% elif data.verdict.outcome == "unsure" %}{{ _("Not sure is always allowed") }}{% else %}{{ _("Close, but not quite") }}{% endif %}
+                </h2>
+                <p>{{ data.verdict.message }}</p>
+                <p class="fe-verdict__lesson"><strong>{{ _("The lesson:") }}</strong> {{ data.verdict.lesson }}</p>
+                <div class="fe-verdict__actions">
+                    {% if data.next_practice %}
+                        <ol-button variant="primary" href="/contribute/practice?key={{ data.next_practice.key }}">
+                            {{ _("Try another: %(title)s", title=data.next_practice.title) }}
+                        </ol-button>
+                        <ol-button href="/contribute">
+                            {{ _("Start a real one") }}
+                        </ol-button>
+                    {% else %}
+                        <ol-button variant="primary" href="/contribute">
+                            {{ _("Start a real one") }}
+                        </ol-button>
+                        <ol-button href="/contribute/practice">
+                            {{ _("Practice again") }}
+                        </ol-button>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
+    {{ parts.book_header(data.book) }}
+    <section class="fe-section fe-question">
+        <span class="fe-h">{{ _("The question") }}</span>
+        <h1 class="fe-question__text">{{ data.question }}</h1>
+        <p>
+            {% if data.evidence.verdict == "conflict" and data.evidence.ol_display %}
+                {{ _("Open Library currently says %(value)s. The catalogs disagree with each other, so this one takes some judgment.", value=data.evidence.ol_display) }}
+            {% elif data.evidence.verdict == "conflict" %}
+                {{ _("Open Library has nothing recorded for this yet, and the catalogs disagree with each other, so this one takes some judgment.") }}
+            {% elif data.task.mode == "fill" %}
+                {{ _("Open Library has nothing recorded for this yet. Other catalogs do.") }}
+            {% elif data.task.mode == "check" %}
+                {{ _("Open Library currently says %(value)s. A catalog that found this exact ISBN says something different.", value=data.evidence.ol_display) }}
+            {% else %}
+                {{ _("Open Library currently says %(value)s. Other catalogs agree. A quick confirmation helps librarians trust this record.", value=data.evidence.ol_display) }}
+            {% endif %}
+        </p>
+        <p class="fe-muted">{{ data.playbook.why }}</p>
+    </section>
+    <section class="fe-section">
+        {{ parts.evidence_table(data.evidence, data.playbook.label) }}
+        {{ parts.notes(data.playbook) }}
+    </section>
+    <section class="fe-section">
+        {{ parts.sibling_chips(data.siblings, data.sibling_total, data.playbook.label) }}
+    </section>
+    <section class="fe-section">
+        {{ parts.link_outs(data.link_outs) }}
+    </section>
+    {% if not data.verdict %}
+        <section class="fe-section fe-section--answer">
+            {{ parts.answer_form(data.task, data.evidence, data.playbook, data.note, data.sibling_suggestions, data.wait_days, practice=data.practice) }}
+        </section>
+    {% endif %}
+</div>

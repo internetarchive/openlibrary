@@ -1,0 +1,82 @@
+{
+  "key": "gatsby-publisher",
+  "order": 3,
+  "title": "The Great Gatsby",
+  "authors": "F. Scott Fitzgerald",
+  "edition_line": "2004 · paperback",
+  "isbn13": "9780743273565",
+  "cover_id": 13028546,
+  "readers": 25400,
+  "field": "publishers",
+  "ol_values": {
+    "publishers": [],
+    "publish_date": "2004",
+    "number_of_pages": 180,
+    "languages": [
+      "eng"
+    ]
+  },
+  "evidence": {
+    "isbn13": "9780743273565",
+    "sources": [
+      {
+        "id": "googlebooks",
+        "match": "isbn13",
+        "url": "https://books.google.com/books?vid=ISBN9780743273565",
+        "fields": {
+          "publishers": [
+            "Simon and Schuster"
+          ],
+          "publish_date": "2004-09-30",
+          "number_of_pages": 208,
+          "languages": [
+            "eng"
+          ]
+        }
+      },
+      {
+        "id": "loc",
+        "match": "isbn13",
+        "url": "https://lccn.loc.gov/2003065587",
+        "fields": {
+          "publishers": [
+            "Scribner"
+          ],
+          "publish_date": "2018.",
+          "number_of_pages": 184,
+          "languages": [
+            "eng"
+          ]
+        }
+      }
+    ]
+  },
+  "siblings": [
+    {
+      "display": "Scribner",
+      "count": 14
+    },
+    {
+      "display": "Charles Scribner's Sons",
+      "count": 9
+    },
+    {
+      "display": "Penguin",
+      "count": 6
+    },
+    {
+      "display": "Simon & Schuster",
+      "count": 1
+    }
+  ],
+  "sibling_total": 212,
+  "truth": [
+    "Scribner"
+  ],
+  "lesson": "Imprint on the book, not the parent company. When sources disagree, siblings and the library catalog usually settle it.",
+  "verdicts": {
+    "correct": "Right. Scribner is the imprint printed on the book; Simon & Schuster is the company that owns it. The Library of Congress catalogued from the book, and fourteen other editions here say Scribner.",
+    "unsure": "A fair call, and a librarian would settle it: Scribner is the imprint printed on the book, and Simon & Schuster is the parent company. When the sources disagree, the library catalog and the other editions here usually point the way.",
+    "wrong": "Not quite. Simon & Schuster owns Scribner, but Open Library records the imprint printed on the book, which is Scribner. The Library of Congress catalogued from the book, and fourteen other editions here say Scribner."
+  }
+}

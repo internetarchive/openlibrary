@@ -1,0 +1,37 @@
+{#- /contribute/task/OL…M/<field> — one book, one field, one decision. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="fe-page fe-page--task" data-contribute-task>
+    {{ parts.steps(4) }}
+    {{ parts.book_header(data.book) }}
+    <section class="fe-section fe-question">
+        <span class="fe-h">{{ _("The question") }}</span>
+        <h1 class="fe-question__text">{{ data.question }}</h1>
+        <p>
+            {% if data.evidence.verdict == "conflict" and data.evidence.ol_display %}
+                {{ _("Open Library currently says %(value)s. The catalogs disagree with each other, so this one takes some judgment.", value=data.evidence.ol_display) }}
+            {% elif data.evidence.verdict == "conflict" %}
+                {{ _("Open Library has nothing recorded for this yet, and the catalogs disagree with each other, so this one takes some judgment.") }}
+            {% elif data.task.mode == "fill" %}
+                {{ _("Open Library has nothing recorded for this yet. Other catalogs do.") }}
+            {% elif data.task.mode == "check" %}
+                {{ _("Open Library currently says %(value)s. A catalog that found this exact ISBN says something different.", value=data.evidence.ol_display) }}
+            {% else %}
+                {{ _("Open Library currently says %(value)s. Other catalogs agree. A quick confirmation helps librarians trust this record.", value=data.evidence.ol_display) }}
+            {% endif %}
+        </p>
+        <p class="fe-muted">{{ data.playbook.why }}</p>
+    </section>
+    <section class="fe-section">
+        {{ parts.evidence_table(data.evidence, data.playbook.label) }}
+        {{ parts.notes(data.playbook) }}
+    </section>
+    <section class="fe-section">
+        {{ parts.sibling_chips(data.siblings, data.sibling_total, data.playbook.label) }}
+    </section>
+    <section class="fe-section">
+        {{ parts.link_outs(data.link_outs) }}
+    </section>
+    <section class="fe-section fe-section--answer">
+        {{ parts.answer_form(data.task, data.evidence, data.playbook, data.note, data.sibling_suggestions, data.wait_days) }}
+    </section>
+</div>

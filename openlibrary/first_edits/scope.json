@@ -1,0 +1,10 @@
+{
+  "review_wait_days": 3,
+  "fields": {
+    "languages": {"enabled": true, "modes": ["fill", "confirm"], "min_level": "fair"},
+    "number_of_pages": {"enabled": true, "modes": ["fill", "confirm"], "min_level": "fair"},
+    "publishers": {"enabled": true, "modes": ["fill", "check", "confirm"], "min_level": "fair"},
+    "subtitle": {"enabled": false, "modes": ["fill"], "min_level": "strong"},
+    "publish_date": {"enabled": false, "modes": ["fill"], "min_level": "strong"}
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "key": "beloved-publisher",
+  "order": 1,
+  "title": "Beloved",
+  "authors": "Toni Morrison",
+  "edition_line": "1987 · hardcover",
+  "isbn13": "9780394535975",
+  "cover_id": 8261367,
+  "readers": 9800,
+  "field": "publishers",
+  "ol_values": {
+    "publishers": [
+      "Alfred A. Knopf"
+    ],
+    "publish_date": "1987",
+    "number_of_pages": 275,
+    "languages": [
+      "eng"
+    ]
+  },
+  "evidence": {
+    "isbn13": "9780394535975",
+    "sources": [
+      {
+        "id": "googlebooks",
+        "match": "isbn13",
+        "url": "https://books.google.com/books?vid=ISBN9780394535975",
+        "fields": {
+          "publishers": [
+            "Knopf"
+          ],
+          "publish_date": "1987-08-12",
+          "number_of_pages": 289,
+          "languages": [
+            "eng"
+          ]
+        }
+      },
+      {
+        "id": "loc",
+        "match": "isbn13",
+        "url": "https://lccn.loc.gov/86046157",
+        "fields": {
+          "publishers": [
+            "Knopf",
+            "Distributed by Random House"
+          ],
+          "publish_date": "1987.",
+          "number_of_pages": 275,
+          "languages": [
+            "eng"
+          ]
+        }
+      }
+    ]
+  },
+  "siblings": [
+    {
+      "display": "Alfred A. Knopf",
+      "count": 4
+    },
+    {
+      "display": "Knopf",
+      "count": 3
+    },
+    {
+      "display": "Vintage",
+      "count": 6
+    },
+    {
+      "display": "Plume",
+      "count": 2
+    }
+  ],
+  "sibling_total": 31,
+  "truth": [
+    "Alfred A. Knopf"
+  ],
+  "lesson": "Spelling variants of one publisher count as agreement.",
+  "verdicts": {
+    "correct": "Right. “Knopf” and “Alfred A. Knopf” are the same publisher, so the catalogs agree with Open Library and keeping the value is the call a librarian would make.",
+    "unsure": "That is a fine answer too, and it costs nothing. A librarian would confirm the value: “Knopf” and “Alfred A. Knopf” are one publisher.",
+    "wrong": "Not quite. “Knopf” and “Alfred A. Knopf” are the same publisher, so there was nothing to change here. When the catalogs and Open Library agree, confirming is the right move."
+  }
+}

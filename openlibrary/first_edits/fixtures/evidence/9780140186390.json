@@ -1,0 +1,33 @@
+{
+  "isbn13": "9780140186390",
+  "golden_key": "east-of-eden-penguin",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/East_of_Eden.html?hl=&id=jHUGAQAAIAAJ",
+      "fields": {
+        "publish_date": "1952",
+        "number_of_pages": 638,
+        "languages": [
+          "eng"
+        ]
+      }
+    },
+    {
+      "id": "loc",
+      "match": "isbn13",
+      "url": "https://lccn.loc.gov/92012135",
+      "fields": {
+        "publishers": [
+          "Penguin Books"
+        ],
+        "publish_date": "1992.",
+        "number_of_pages": 602,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

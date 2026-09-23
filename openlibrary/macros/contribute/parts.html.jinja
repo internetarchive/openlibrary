@@ -1,0 +1,248 @@
+{#- Shared pieces of the First Edits pages. Data arrives precomputed from
+    openlibrary/plugins/openlibrary/contribute.py; nothing here calls functions on it. -#}
+{% macro book_header(book, compact=False) %}
+    <div class="fe-book{% if compact %} fe-book--compact{% endif %}">
+        {% if book.cover_url %}
+            <img class="fe-book__cover"
+                 src="{{ book.cover_url }}"
+                 alt=""
+                 width="60"
+                 height="90"
+                 loading="lazy" />
+        {% else %}
+            <div class="fe-book__cover fe-book__cover--empty" aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+        {% endif %}
+        <div class="fe-book__meta">
+            <div class="fe-book__title">
+                {% if book.key %}<a href="{{ book.key }}">{{ book.title }}</a>{% else %}{{ book.title }}{% endif %}
+            </div>
+            {% if book.authors %}<div class="fe-book__authors">{{ book.authors }}</div>{% endif %}
+            <div class="fe-book__line">
+                {% if book.edition_line %}<span>{{ book.edition_line }}</span>{% endif %}
+                {% if book.isbn13 %}<span>ISBN {{ book.isbn13 }}</span>{% endif %}
+                {% if book.edition_count and book.edition_count > 1 %}
+                    <span>{{ _("one of %(count)s editions of this work", count=book.edition_count) }}</span>
+                {% endif %}
+            </div>
+            {% if book.readers and not compact %}
+                <div class="fe-book__why">{{ _("Why this book: read by about %(count)s people this year.", count="{:,}".format(book.readers)) }}</div>
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}
+{% macro mode_pill(mode, quick_win=False) %}
+    {% if mode == "fill" %}
+        <span class="fe-pill fe-pill--fill">{{ _("Fill in") }}</span>
+    {% elif mode == "check" %}
+        <span class="fe-pill fe-pill--check">{{ _("Check") }}</span>
+    {% elif mode == "confirm" %}
+        <span class="fe-pill fe-pill--confirm">{{ _("Confirm") }}</span>
+    {% endif %}
+    {% if quick_win %}<span class="fe-pill fe-pill--quick">{{ _("Sure thing") }}</span>{% endif %}
+{% endmacro %}
+{% macro meter(evidence) %}
+    <div class="fe-meter" role="img" aria-label="{{ evidence.level_label }}">
+        <span class="fe-meter__bars fe-meter__bars--{{ evidence.level }}">
+            {# djlint:off H020 #}<i></i><i></i><i></i>{# djlint:on H020 #}
+        </span>
+        <span class="fe-meter__text">{{ evidence.sentence }}</span>
+    </div>
+{% endmacro %}
+{% macro source_name(row) %}
+    <ol-popover aria-label="{{ row.name }}">
+        <button type="button" slot="trigger" class="fe-source">{{ row.name }}{{ icon("chevron-down", size="sm") }}</button>
+        <div class="fe-source__explainer">
+            <strong>{{ row.name }}</strong>
+            <p>{{ row.blurb }}</p>
+            <p>{{ row.why }}</p>
+            {% if row.url %}<a href="{{ row.url }}" target="_blank" rel="noopener noreferrer">{{ _("View the record") }} {{ icon("link", size="sm") }}</a>{% endif %}
+        </div>
+    </ol-popover>
+{% endmacro %}
+{% macro evidence_table(evidence, field_label) %}
+    <div class="fe-evidence">
+        <div class="fe-evidence__head">
+            <span class="fe-h">{{ _("What other catalogs say") }}</span>
+            {{ meter(evidence) }}
+        </div>
+        <ul class="fe-evidence__rows">
+            {% for row in evidence.rows %}
+                <li class="fe-evidence__row{% if row.agrees is true %} fe-evidence__row--agrees{% elif row.agrees is false %} fe-evidence__row--differs{% endif %}">
+                    <span class="fe-evidence__source">{{ source_name(row) }}</span>
+                    <span class="fe-evidence__value">{{ row.display }}</span>
+                    <span class="fe-evidence__how">{{ row.match_label }}</span>
+                </li>
+            {% endfor %}
+            <li class="fe-evidence__row fe-evidence__row--ol">
+                <span class="fe-evidence__source">{{ _("Open Library (now)") }}</span>
+                <span class="fe-evidence__value">
+                    {% if evidence.ol_display %}{{ evidence.ol_display }}{% else %}<em>{{ _("empty") }}</em>{% endif %}
+                </span>
+                <span class="fe-evidence__how"></span>
+            </li>
+        </ul>
+    </div>
+{% endmacro %}
+{% macro sibling_chips(siblings, total, field_label) %}
+    <div class="fe-siblings">
+        {% if total %}
+            <span class="fe-h">{{ _("How the other %(count)s editions of this work fill this in", count=total) }}</span>
+        {% else %}
+            <span class="fe-h">{{ _("Other editions of this work") }}</span>
+        {% endif %}
+        {% if siblings %}
+            <div class="fe-chips">
+                {% for s in siblings %}
+                    <button type="button"
+                            class="fe-chip"
+                            data-fill-value="{{ s.display }}"
+                            title="{{ _('Use this value') }}">
+                        <span>{{ s.display }}</span><span class="fe-chip__count">{{ s.count }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+            <p class="fe-muted">{{ _("Tap a spelling to use it. Matching what other editions use keeps the catalog in one piece.") }}</p>
+        {% elif total %}
+            <p class="fe-muted">{{ _("None of the other editions have this field yet. Yours would be the first.") }}</p>
+        {% else %}
+            <p class="fe-muted">{{ _("This is the only edition of this work catalogued so far, so there is nothing to compare against yet.") }}</p>
+        {% endif %}
+    </div>
+{% endmacro %}
+{% macro link_outs(links) %}
+    {% if links %}
+        <div class="fe-linkouts">
+            <span class="fe-h">{{ _("Want to double-check outside Open Library?") }}</span>
+            <div class="fe-linkouts__row">
+                {% for link in links %}
+                    <a class="fe-linkout"
+                       href="{{ link.url }}"
+                       target="_blank"
+                       rel="noopener noreferrer">{{ link.label }} {{ icon("link", size="sm") }}</a>
+                {% endfor %}
+            </div>
+            <p class="fe-muted">{{ _("Each opens with this ISBN already filled in. The book's own copyright page is the final word.") }}</p>
+        </div>
+    {% endif %}
+{% endmacro %}
+{% macro notes(playbook) %}
+    {% for note in playbook.notes %}
+        <div class="fe-note">
+            {{ icon("sticky-note-text", size="sm") }}
+            <span>{{ note.text }}{% if note.href %} <a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}</span>
+        </div>
+    {% endfor %}
+{% endmacro %}
+{% macro answer_form(task, evidence, playbook, note, sibling_suggestions, wait_days, practice=None) %}
+    <form method="post"
+          action="{{ task.url }}"
+          class="fe-answer"
+          data-task-form
+          data-task-key="{{ task.key }}">
+        {% if practice %}<input type="hidden" name="key" value="{{ practice.key }}" />{% endif %}
+        <fieldset class="fe-answer__options">
+            <legend class="fe-h">{{ _("Your answer") }}</legend>
+            {% set ns = namespace(first=true) %}
+            {% if task.mode == "confirm" %}
+                <label class="fe-choice">
+                    <input type="radio" name="choice" value="keep" checked />
+                    <span class="fe-choice__body">
+                        <strong>{{ _("Yes, %(value)s is right", value=evidence.ol_display) }}</strong>
+                        <span class="fe-pill fe-pill--rec">{{ _("recommended") }}</span>
+                        <span class="fe-muted">{{ _("Matches what the catalogs say.") }}</span>
+                    </span>
+                </label>
+                <label class="fe-choice">
+                    <input type="radio" name="choice" value="other" />
+                    <span class="fe-choice__body"><strong>{{ _("No, it should be something else") }}</strong></span>
+                </label>
+            {% else %}
+                {% if evidence.suggestion_display %}
+                    <label class="fe-choice">
+                        <input type="radio" name="choice" value="suggestion" checked />
+                        <span class="fe-choice__body">
+                            <strong>{{ evidence.suggestion_display }}</strong>
+                            <span class="fe-pill fe-pill--rec">{{ _("recommended") }}</span>
+                            <span class="fe-muted">{{ _("What %(sources)s say.", sources=evidence.suggestion_sources_label) }}</span>
+                        </span>
+                    </label>
+                    {% set ns.first = false %}
+                {% endif %}
+                {% if evidence.verdict == "conflict" %}
+                    {% for row in evidence.rows %}
+                        <label class="fe-choice">
+                            <input type="radio"
+                                   name="choice"
+                                   value="source:{{ row.id }}"
+                                   {% if ns.first %} checked{% endif %} />
+                            <span class="fe-choice__body">
+                                <strong>{{ row.display }}</strong>
+                                <span class="fe-muted">{{ _("What %(source)s says.", source=row.name) }}</span>
+                            </span>
+                        </label>
+                        {% set ns.first = false %}
+                    {% endfor %}
+                {% endif %}
+                {% if evidence.ol_display %}
+                    <label class="fe-choice">
+                        <input type="radio" name="choice" value="keep" />
+                        <span class="fe-choice__body">
+                            <strong>{{ _("Keep “%(value)s”", value=evidence.ol_display) }}</strong>
+                            <span class="fe-muted">{{ _("Choose this if the book in your hands says so.") }}</span>
+                        </span>
+                    </label>
+                {% endif %}
+                <label class="fe-choice">
+                    <input type="radio"
+                           name="choice"
+                           value="other"
+                           {% if ns.first %} checked{% endif %} />
+                    <span class="fe-choice__body"><strong>{{ playbook.other_label }}</strong></span>
+                </label>
+            {% endif %}
+            <div class="fe-other" data-other-input hidden>
+                <label class="fe-visually-hidden" for="fe-other-value">{{ playbook.other_label }}</label>
+                <input id="fe-other-value"
+                       type="{{ playbook.input_type }}"
+                       name="value"
+                       class="fe-input"
+                       placeholder="{{ playbook.other_placeholder }}"
+                       autocomplete="off" />
+                {% if sibling_suggestions %}
+                    <div class="fe-other__hint">
+                        {{ _("Spellings other editions use:") }}
+                        {% for s in sibling_suggestions %}<button type="button"
+        class="fe-chip fe-chip--small"
+        data-fill-value="{{ s }}">{{ s }}</button>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <label class="fe-choice fe-choice--unsure">
+                <input type="radio" name="choice" value="unsure" />
+                <span class="fe-choice__body">
+                    <strong>{{ _("I'm not sure") }}</strong>
+                    <span class="fe-muted">{{ _("Sends it to a librarian with a note. Never counts against you.") }}</span>
+                </span>
+            </label>
+        </fieldset>
+        <label class="fe-answer__note">
+            <span class="fe-h">{{ _("Note for the reviewer (optional)") }}</span>
+            <textarea name="note" rows="2" class="fe-input">{{ note }}</textarea>
+        </label>
+        <div class="fe-answer__actions">
+            <ol-button variant="primary" type="submit">{% if practice %}{{ _("Check my answer") }}{% else %}{{ _("Send to a librarian") }}{% endif %}</ol-button>
+                {% if not practice %}
+                    <a class="fe-answer__skip" href="/contribute" data-skip>{{ _("Skip this book") }}</a>
+                    <span class="fe-muted fe-answer__promise">{{ _("Goes into the review queue. Usually looked at within %(days)s days.", days=wait_days) }}</span>
+                {% endif %}
+            </div>
+        </form>
+{% endmacro %}
+{% macro steps(current) %}
+    {% set labels = [_("Book"), _("The question"), _("Evidence"), _("Your answer"), _("Send")] %}
+    <ol class="fe-steps" aria-label="{{ _('Steps') }}">
+        {% for label in labels %}
+            <li class="{% if loop.index < current %}is-done{% elif loop.index == current %}is-current{% endif %}">{{ label }}</li>
+        {% endfor %}
+    </ol>
+{% endmacro %}

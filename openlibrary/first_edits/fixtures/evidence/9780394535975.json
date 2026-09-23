@@ -1,0 +1,38 @@
+{
+  "isbn13": "9780394535975",
+  "golden_key": "beloved-knopf-1987",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Beloved.html?hl=&id=AvAgEAAAQBAJ",
+      "fields": {
+        "publishers": [
+          "Knopf"
+        ],
+        "publish_date": "1987-08-12",
+        "number_of_pages": 289,
+        "languages": [
+          "eng"
+        ]
+      }
+    },
+    {
+      "id": "loc",
+      "match": "isbn13",
+      "url": "https://lccn.loc.gov/86046157",
+      "fields": {
+        "publishers": [
+          "Knopf",
+          "Distributed by Random House"
+        ],
+        "publish_date": "1987.",
+        "number_of_pages": 275,
+        "languages": [
+          "eng"
+        ],
+        "subtitle": "a novel"
+      }
+    }
+  ]
+}

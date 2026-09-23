@@ -1,0 +1,50 @@
+[
+  {
+    "isbn13": "9780743273565",
+    "readers": 25400,
+    "note": "Gatsby: language missing (strong fill); publishers conflict between sources.",
+    "cover_id": 13028546
+  },
+  {
+    "isbn13": "9780060935467",
+    "readers": 21300,
+    "note": "Mockingbird: one source, publisher differs (fair check).",
+    "cover_id": 15153357
+  },
+  {
+    "isbn13": "9780385474542",
+    "readers": 12400,
+    "note": "Things Fall Apart: language missing (strong fill); publisher conflict is the imprint case.",
+    "cover_id": 14595726
+  },
+  {
+    "isbn13": "9780394535975",
+    "readers": 9800,
+    "note": "Beloved: publisher agrees (strong confirm).",
+    "cover_id": 12638483
+  },
+  {
+    "isbn13": "9780140186390",
+    "readers": 8700,
+    "note": "East of Eden: publisher from one source, agrees (fair confirm).",
+    "cover_id": 12449298
+  },
+  {
+    "isbn13": "9780140328721",
+    "readers": 3100,
+    "note": "Fantastic Mr Fox: page count missing, one source (fair fill).",
+    "cover_id": 15152634
+  },
+  {
+    "isbn13": "9780226458083",
+    "readers": 2900,
+    "note": "Structure of Scientific Revolutions: publisher from one source, agrees (fair confirm).",
+    "cover_id": 6773735
+  },
+  {
+    "isbn13": "9780674024700",
+    "readers": 40,
+    "note": "Ruptured Histories: publisher missing, both sources agree (strong fill).",
+    "cover_id": 5396475
+  }
+]
