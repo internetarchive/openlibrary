@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -9,7 +11,7 @@ from urllib.parse import parse_qs, quote, quote_plus
 
 import web
 from markupsafe import Markup
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from infogami.utils.view import public
 from openlibrary.core import cache
@@ -17,7 +19,7 @@ from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import FulltextRow, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
 from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
-from openlibrary.core.lending import compose_ia_url, get_available_async
+from openlibrary.core.lending import add_availability_async, compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
@@ -57,6 +59,8 @@ from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
     from openlibrary.fastapi.auth import AuthenticatedUser
+
+logger = logging.getLogger("openlibrary.plugins.openlibrary.partials")
 
 
 def _solr_query_to_subject_key(query: str) -> str:
@@ -1062,6 +1066,177 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         loading_indicator_html=str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
         fallback=params.get("fallback"),
     )
+
+
+# A ddc_sort value like "813.54" or "813" (no decimal). Non-numeric ddc_sort
+# values (e.g. "[Fic]", "[E]") are rejected, since they sort lexically after
+# every number and would otherwise show up as false shelf-neighbours.
+_NUMERIC_DDC_RE = re.compile(r"^\d{1,3}(\.\d+)?$")
+
+# Solr's ddc_sort field never goes above this; used to cap the upper end of
+# the "after" range so it can't run into non-numeric ddc_sort values.
+_MAX_NUMERIC_DDC = "999.99999"
+
+# Number of results to pull from the "exact same ddc_sort" bucket, vs. from
+# each of the strict before/after ranges. A common ddc_sort value (e.g.
+# "813.54") can have tens of thousands of works, all tied on sort order, so
+# these are kept small and deliberate rather than let one bucket crowd out
+# real neighbours below/above it.
+_EXACT_MATCH_ROWS = 4
+_RANGE_ROWS = 8
+_MAX_NEARBY_BOOKS = _EXACT_MATCH_ROWS + 2 * _RANGE_ROWS
+
+# Same readability cut the sibling carousels on the book page use: borrowable
+# or public ebooks only. The range queries are open-ended and distance-sorted,
+# so Solr just walks further along the shelf to fill the rows.
+_READABLE_FILTER = "ebook_access:[borrowable TO *]"
+
+
+class NearbyBooksParams(BaseModel):
+    """Parameters for the book page's "Nearby Books" (DDC shelf-adjacency) carousel."""
+
+    work_key: str = Field(pattern=r"^/works/OL\d+W$")
+    language: str | None = Field(None, pattern=r"^[a-z]{3}$")
+    limit: int = Field(_MAX_NEARBY_BOOKS, ge=1, le=_MAX_NEARBY_BOOKS)
+
+
+@public
+def build_nearby_books_placeholder_config(work_key: str, language: str | None = None) -> CarouselPlaceholderData:
+    """Build config for the Nearby Books placeholder (macros/RawQueryCarouselPlaceholder.html.jinja).
+
+    The ``partial`` key tells lazy-carousel.js to fetch from /partials/NearbyBooks.json
+    instead of the default LazyCarousel endpoint.
+    """
+    config = {"partial": "NearbyBooks", "work_key": work_key, **({"language": language} if language else {})}
+    return CarouselPlaceholderData(
+        lazy_config_json=json_encode(config),
+        loading_indicator_html=str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
+        fallback=None,
+    )
+
+
+@cache.memoize(
+    engine="memcache",
+    key=lambda work_key, language, limit: "NearbyBooks-" + md5(f"{work_key}-{language}-{limit}".encode()).hexdigest(),
+    expires=300,
+    # None means Solr failed; don't pin that for five minutes.
+    cacheable=lambda key, value: value is not None,
+)
+async def gather_nearby_books_async(
+    work_key: str,
+    language: str | None,
+    limit: int,
+) -> list[dict] | None:
+    """Fetch works with numerically adjacent ddc_sort values from Solr.
+
+    Anchors on the *work's* indexed ddc_sort (the longest ddc string across
+    all of the work's editions, per work.py) rather than recomputing a ddc
+    from whichever single edition is being viewed -- otherwise the "shelf
+    position" being browsed wouldn't match the axis the shelf is actually
+    sorted on.
+
+    Finds a few exact matches at that ddc_sort, plus strict (exclusive)
+    neighbours below and above it, using Solr's `{`/`}` exclusive range
+    bounds so a popular ddc_sort value can't fill both ranges with ties on
+    itself. Both ranges are capped to numeric ddc_sort values only, since
+    non-numeric values (e.g. "[Fic]", "[E]") sort lexically after every
+    number and would otherwise show up as false neighbours. Only readable
+    (borrowable or public) works count as neighbours, matching the other
+    book-page carousels.
+
+    Returns None (not cached) when Solr fails.
+    """
+    from openlibrary.plugins.worksearch.search import get_solr
+
+    solr = get_solr()
+    safe_work_key = solr.escape(work_key)
+
+    # ddc_sort is stored=false, so read it through /select (docValues are
+    # returned there) rather than /get, which may serve from the update log.
+    try:
+        anchor_res = await solr.select_async(f'key:"{safe_work_key}"', fields=["ddc_sort"], rows=1)
+    except Exception:
+        logger.exception("gather_nearby_books_async failed to fetch ddc_sort for %r", work_key)
+        return None
+
+    anchor_docs = anchor_res.docs if anchor_res and anchor_res.docs else []
+    ddc = anchor_docs[0].get("ddc_sort") if anchor_docs else None
+    if not ddc or not _NUMERIC_DDC_RE.match(ddc):
+        return []
+
+    lang_clause = f' AND language:"{solr.escape(language)}"' if language else ""
+    work_filter = f' -key:"{safe_work_key}"'
+    # Joined with AND on purpose: a bare clause after an AND chain is only a
+    # SHOULD for Solr's classic parser, which would boost rather than filter.
+    common = f" AND {_READABLE_FILTER}{lang_clause}{work_filter} {_SAFE_MODE_FILTER}"
+
+    try:
+        exact_res, before_res, after_res = await asyncio.gather(
+            solr.select_async(
+                f'type:work AND ddc_sort:"{ddc}"{common}',
+                fields=_CAROUSEL_FIELDS,
+                rows=_EXACT_MATCH_ROWS,
+            ),
+            solr.select_async(
+                f'type:work AND ddc_sort:["000" TO "{ddc}"}}{common}',
+                fields=_CAROUSEL_FIELDS,
+                rows=_RANGE_ROWS,
+                sort="ddc_sort desc",
+            ),
+            solr.select_async(
+                f'type:work AND ddc_sort:{{"{ddc}" TO "{_MAX_NUMERIC_DDC}"]{common}',
+                fields=_CAROUSEL_FIELDS,
+                rows=_RANGE_ROWS,
+                sort="ddc_sort asc",
+            ),
+        )
+    except Exception:
+        logger.exception("gather_nearby_books_async failed for %r (ddc_sort=%r)", work_key, ddc)
+        return None
+
+    before_docs = list(reversed(before_res.docs)) if before_res and before_res.docs else []
+    exact_docs = exact_res.docs if exact_res and exact_res.docs else []
+    after_docs = after_res.docs if after_res and after_res.docs else []
+
+    seen: set[str] = set()
+    unique_docs: list[dict] = []
+    for doc in before_docs + exact_docs + after_docs:
+        key = doc.get("key")
+        if key and key not in seen:
+            seen.add(key)
+            unique_docs.append(doc)
+
+    return unique_docs[:limit]
+
+
+class NearbyBooksPartial:
+    """Handler for the book page's "Nearby Books" (DDC shelf-adjacency) carousel."""
+
+    @classmethod
+    async def generate_async(cls, params: NearbyBooksParams, full_path: str = "/") -> dict:
+        books = await gather_nearby_books_async(
+            work_key=params.work_key,
+            language=params.language,
+            limit=params.limit,
+        )
+        if not books:
+            return {"partials": ""}
+
+        # The docs come straight from Solr, so attach archive.org availability
+        # here the way work_search_async does for the other carousels; the
+        # card's Read/Borrow badge reads it. Kept outside the memoized fetch
+        # so lending state is never pinned for five minutes.
+        await add_availability_async(books)
+
+        # No query backs this carousel, so no title link and no load-more.
+        data = get_book_carousel_data(
+            books=[web.storage(b) for b in books],
+            title=_("Nearby Books"),
+            url=None,
+            key="nearby-books",
+            full_path=full_path,
+        )
+        return {"partials": render_jinja_template("books/custom_carousel.html.jinja", **data)}
 
 
 def setup():
