@@ -1,0 +1,17 @@
+{
+  "isbn13": "9788845269110",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/L_alchimista.html?hl=&id=f03KtwAACAAJ",
+      "fields": {
+        "publish_date": "2012",
+        "number_of_pages": 184,
+        "languages": [
+          "ita"
+        ]
+      }
+    }
+  ]
+}

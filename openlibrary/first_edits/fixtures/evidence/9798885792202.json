@@ -1,0 +1,19 @@
+{
+  "isbn13": "9798885792202",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/It_Starts_with_Us.html?hl=&id=hfkI0AEACAAJ",
+      "fields": {
+        "publishers": [
+          "Large Print Press"
+        ],
+        "publish_date": "2023-10-04",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

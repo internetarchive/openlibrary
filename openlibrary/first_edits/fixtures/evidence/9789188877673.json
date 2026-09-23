@@ -1,0 +1,17 @@
+{
+  "isbn13": "9789188877673",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Harry_Potter_och_Hemligheternas_kammare.html?hl=&id=Y1HrAAAACAAJ",
+      "fields": {
+        "publish_date": "2001",
+        "number_of_pages": 427,
+        "languages": [
+          "swe"
+        ]
+      }
+    }
+  ]
+}

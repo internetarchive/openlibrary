@@ -1,0 +1,20 @@
+{
+  "isbn13": "9788475967233",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Harry_Potter_i_el_pres_d_Azkaban.html?hl=&id=RbbAAAAACAAJ",
+      "fields": {
+        "publishers": [
+          "Editorial Empúries"
+        ],
+        "publish_date": "2000",
+        "number_of_pages": 375,
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}

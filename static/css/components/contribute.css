@@ -1,0 +1,895 @@
+/**
+ * First Edits (/contribute). `fe-` namespaces everything.
+ * Mobile-first: one column, the answer block sticks to the bottom on phones.
+ */
+
+.fe-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-inline: var(--spacing-page-gutter);
+  padding-block: var(--spacing-stack-lg) var(--spacing-section-gap-desktop);
+  display: grid;
+  font-family: var(--font-family-body);
+  /* Dense librarian UI: 14px body, so the page reads as a workbench. */
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+}
+
+/* Sections are spaced by bottom margins; gap is for tightly related items within one. */
+.fe-page > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.fe-page :is(h1, h2) {
+  margin: 0;
+}
+
+.fe-page p {
+  margin: 0;
+  line-height: var(--line-height-body);
+}
+
+.fe-overline,
+.fe-h {
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-secondary);
+}
+
+.fe-title {
+  font-size: var(--font-size-headline-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+.fe-lede {
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
+
+.fe-h {
+  display: block;
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.fe-muted {
+  color: var(--color-text-secondary);
+}
+
+/* Form field labels: sentence case, so they read as questions rather than section headings. */
+.fe-label {
+  display: block;
+  padding: 0;
+  margin-block-end: var(--spacing-stack-sm);
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.fe-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Hero (start and list pages) */
+.fe-hero {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.fe-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+.fe-hero__actions .fe-muted {
+  flex-basis: 100%;
+}
+
+.fe-cards {
+  display: grid;
+  gap: var(--spacing-inline-lg);
+}
+
+.fe-card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-md);
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  background: var(--color-surface);
+}
+
+.fe-card__icon {
+  color: var(--color-link);
+}
+
+.fe-card__title {
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+}
+
+.fe-callout {
+  border-inline-start: 3px solid var(--color-info-border);
+  background: var(--color-info-bg);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border-radius: var(--border-radius-sm);
+}
+
+/* Book header */
+.fe-bookcard {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-md);
+  background: var(--color-surface);
+}
+
+.fe-book {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  align-items: flex-start;
+}
+
+.fe-book__cover {
+  flex: none;
+  width: 60px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--shadow-card, 0 1px 2px rgb(0 0 0 / 12%));
+}
+
+.fe-book--compact .fe-book__cover {
+  width: 40px;
+  height: 60px;
+}
+
+.fe-book__cover--empty {
+  display: grid;
+  place-items: center;
+  color: var(--color-icon-muted);
+}
+
+.fe-book__meta {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+}
+
+.fe-book__title {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.fe-book--compact .fe-book__title {
+  font-size: var(--font-size-title-medium);
+}
+
+.fe-book__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .fe-book__title a:hover {
+    text-decoration: underline;
+  }
+}
+
+.fe-book__authors {
+  font-size: var(--font-size-body-medium);
+}
+
+.fe-book__line,
+.fe-book__why {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--spacing-inline-md);
+}
+
+.fe-book__line span + span::before {
+  content: "·";
+  margin-inline-end: var(--spacing-inline-md);
+}
+
+/* Sections */
+.fe-section {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-md);
+  background: var(--color-surface);
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+/* Unboxed task-page blocks; only the answer keeps its card. */
+.fe-block {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.fe-subhead {
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.fe-question {
+  gap: var(--spacing-stack-xs);
+}
+
+/* The way back up to the list. */
+.fe-back {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  color: var(--color-link);
+}
+
+@media (hover: hover) {
+  .fe-back:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* It points back along the reading direction, so it mirrors. */
+.fe-back:dir(rtl) .ol-icon {
+  transform: scaleX(-1);
+}
+
+/* Task layout: one column here; evidence beside a sticky answer on desktop. */
+.fe-task__head,
+.fe-task__evidence {
+  min-width: 0;
+}
+
+/* Back link, question and book card read as one unit, so tighter than the blocks below. */
+.fe-task__head > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.fe-task__evidence > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.fe-question__text {
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+/* Evidence */
+.fe-evidence {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.fe-meter__bars {
+  display: inline-flex;
+  gap: 3px;
+  flex: none;
+}
+
+.fe-meter__bars i {
+  width: 18px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border-subtle);
+}
+
+.fe-meter__bars--strong i,
+.fe-meter__bars--fair i:nth-child(-n + 2) {
+  background: var(--color-success-object);
+}
+
+.fe-meter__bars--weak i:nth-child(1) {
+  background: var(--color-warning-object);
+}
+
+/* Ruled top and bottom so several catalogs read as one bounded table rather
+   than loose lines drifting into the prose around them. */
+.fe-evidence__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-block: 1px solid var(--color-border-muted);
+}
+
+.fe-evidence__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px var(--spacing-inline-lg);
+  padding-block: var(--spacing-inset-sm);
+}
+
+/* Lighter between rows than at the edges, so the block keeps its outline. */
+.fe-evidence__row + .fe-evidence__row {
+  border-block-start: 1px solid var(--color-border-extra-subtle);
+}
+
+.fe-evidence__source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--spacing-inline-md);
+}
+
+.fe-evidence__match {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.fe-evidence__value {
+  font-weight: var(--font-weight-semibold);
+}
+
+.fe-evidence__row--agrees .fe-evidence__value {
+  color: var(--color-success-fg);
+}
+
+.fe-evidence__row--differs .fe-evidence__value {
+  color: var(--color-error-fg);
+}
+
+/* Notes */
+.fe-note {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text-secondary);
+}
+
+.fe-note--walkthrough {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: flex-start;
+  color: inherit;
+  border-inline-start: 3px solid var(--color-warning-border);
+  background: var(--color-warning-bg);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border-radius: var(--border-radius-sm);
+}
+
+.fe-note--walkthrough ol-icon {
+  flex: none;
+  margin-block-start: 2px;
+  color: var(--color-warning-fg);
+}
+
+.fe-siblings,
+.fe-linkouts {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.fe-siblings__list,
+.fe-linkouts__list {
+  margin: 0;
+  padding-inline-start: 1.25em;
+}
+
+/* base/common.css strips every li marker site-wide, so ask for the bullet back. */
+:is(.fe-siblings__list, .fe-linkouts__list) li {
+  list-style: disc;
+}
+
+:is(.fe-siblings__list, .fe-linkouts__list) li + li {
+  margin-block-start: var(--spacing-stack-sm);
+}
+
+/* Answer: on phones only the action bar sticks, so the evidence stays readable above it. */
+.fe-answer {
+  display: grid;
+  gap: var(--spacing-stack-lg);
+}
+
+.fe-answer__options {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+/* Answer choices are bare at rest so the picked one is the only thing wearing a box. */
+.fe-choice {
+  --_choice-bg: transparent;
+  --_choice-border: transparent;
+  --_choice-fg: var(--color-text);
+  --_choice-sublabel-fg: var(--color-text-secondary);
+  --_choice-label-weight: var(--font-weight-medium);
+
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: flex-start;
+  border: var(--border-width) solid var(--_choice-border);
+  border-radius: var(--border-radius-card);
+  background: var(--_choice-bg);
+  color: var(--_choice-fg);
+  padding: var(--spacing-sm) var(--spacing-inset-sm);
+  cursor: pointer;
+}
+
+.fe-choice:has(input:checked) {
+  --_choice-bg: var(--color-control-selected-bg);
+  --_choice-border: var(--color-control-selected-border);
+  --_choice-fg: var(--color-link);
+  --_choice-sublabel-fg: var(--color-primary);
+  --_choice-label-weight: var(--font-weight-semibold);
+}
+
+.fe-choice .fe-muted {
+  color: var(--_choice-sublabel-fg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fe-choice:hover {
+    --_choice-bg: var(--color-control-hover);
+  }
+
+  .fe-choice:has(:checked):hover {
+    --_choice-bg: var(--color-control-selected-bg-hover);
+    --_choice-border: var(--color-control-selected-border-hover);
+  }
+}
+
+.fe-choice input {
+  margin-block-start: 4px;
+  flex: none;
+  accent-color: var(--color-primary);
+}
+
+.fe-choice__body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--spacing-inline-md);
+  align-items: center;
+  align-self: center;
+  line-height: var(--line-height-body);
+}
+
+.fe-choice__body strong {
+  font-weight: var(--_choice-label-weight);
+}
+
+.fe-choice__body .fe-muted {
+  flex-basis: 100%;
+  font-size: var(--font-size-body-medium);
+}
+
+.fe-other {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  padding-inline-start: var(--spacing-inset-md);
+}
+
+.fe-other[hidden],
+.fe-page [hidden] {
+  display: none;
+}
+
+.fe-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: var(--font-size-body-medium);
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.fe-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* iOS zooms in on focus when the field's font is < 16px. */
+@media screen and (max-width: 767px) {
+  .fe-input {
+    font-size: var(--font-size-body-large);
+  }
+}
+
+.fe-answer__note {
+  display: grid;
+}
+
+.fe-answer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-stack-sm) var(--spacing-inline-md);
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-index-sticky);
+  background: var(--color-surface);
+  padding-block: var(--spacing-inset-sm) var(--spacing-inset-md);
+  margin-block-end: calc(-1 * var(--spacing-inset-md));
+}
+
+.fe-answer__promise {
+  flex-basis: 100%;
+  font-size: var(--font-size-body-small);
+  text-wrap: pretty;
+}
+
+/* List */
+.fe-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+/* A card per book; its tasks stack under it as menu-style rows. */
+.fe-row {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  padding: var(--spacing-inset-md);
+}
+
+.fe-row__tasks {
+  list-style: none;
+  margin: var(--spacing-stack-sm) 0 0;
+  padding: 0;
+  display: grid;
+  justify-items: start;
+}
+
+/* Indent past the compact cover so the actions line up with the title. */
+.fe-book--compact + .fe-row__tasks {
+  padding-inline-start: calc(40px + var(--spacing-inline-lg));
+}
+
+/* Rows follow the menu-row contract (see popover-menu.css); the negative inset
+   lines the icon up with the book text while the hover fill bleeds past it. */
+.fe-row__task a {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  margin-inline-start: calc(-1 * var(--menu-row-padding-inline));
+  border-radius: var(--border-radius-button);
+  color: var(--color-link);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+/* The badge says which kind of task this is before the label is read: blue for
+   a gap to fill in, amber for a value the catalogs dispute. Same amber as the
+   task page, where it already means "needs your eye". */
+.fe-row__badge {
+  display: grid;
+  place-items: center;
+  flex: none;
+  padding: var(--spacing-inset-xs);
+  border-radius: var(--border-radius-badge);
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+
+.fe-row__task--check .fe-row__badge {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.fe-row__task a:focus-visible,
+.fe-row__task a:active {
+  background-color: var(--color-hover-overlay);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fe-row__task a:hover {
+    background-color: var(--color-hover-overlay);
+  }
+}
+
+.fe-empty {
+  border: 1px dashed var(--color-border-muted);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-lg);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+/* Receipt */
+.fe-receipt {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  align-items: flex-start;
+  border: 1px solid var(--color-success-border);
+  background: var(--color-success-bg);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-md);
+}
+
+.fe-receipt > div {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.fe-receipt__icon {
+  color: var(--color-success-fg);
+  flex: none;
+}
+
+.fe-receipt__title {
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.fe-receipt__note {
+  font-style: italic;
+}
+
+/* Next task on the receipt */
+.fe-next {
+  gap: var(--spacing-stack-sm);
+}
+
+/* Tablet: @width-breakpoint-tablet = 768px */
+@media (min-width: 768px) {
+  .fe-page {
+    padding-inline: var(--spacing-page-gutter-desktop);
+  }
+
+  .fe-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* One grid across every row, so the value column is only as wide as the
+     widest value and the rows still line up. A fixed width here instead would
+     strand a short page count far from its catalog. */
+  .fe-evidence__rows {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--spacing-inline-lg);
+  }
+
+  .fe-evidence__row {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: baseline;
+  }
+
+  .fe-answer__actions {
+    position: static;
+    padding-block: 0;
+    margin-block-end: 0;
+  }
+
+  .fe-answer__promise {
+    flex-basis: auto;
+  }
+}
+
+/* Desktop: @width-breakpoint-desktop = 960px. The evidence table needs ~500px, so no split at tablet width. */
+@media (min-width: 960px) {
+  .fe-page--task {
+    max-width: 1080px;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-areas:
+      "head head"
+      "evidence answer";
+    column-gap: var(--spacing-section-gap);
+  }
+
+  .fe-task__head {
+    grid-area: head;
+  }
+
+  .fe-task__evidence {
+    grid-area: evidence;
+  }
+
+  /* Shares its row with the answer, so nothing follows it. */
+  .fe-page > .fe-task__evidence {
+    margin-block-end: 0;
+  }
+
+  /* Scrolls itself if "something else" and the note make it taller than the viewport. */
+  .fe-task__answer {
+    grid-area: answer;
+    align-self: start;
+    position: sticky;
+    top: var(--spacing-stack-md);
+    max-height: calc(100vh - 2 * var(--spacing-stack-md));
+    overflow-y: auto;
+  }
+
+  .fe-task__answer .fe-answer__promise {
+    flex-basis: 100%;
+  }
+}
+
+/* --- Identifier tasks -----------------------------------------------------
+   An identifier is a pointer into another catalog, so the page argues about
+   the record it points at rather than about the number. */
+
+.fe-idrec,
+.fe-checks,
+.fe-traps {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.fe-idrec__number {
+  margin: 0;
+}
+
+.fe-idrec__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-body-medium);
+}
+
+.fe-idrec__table th,
+.fe-idrec__table td {
+  text-align: start;
+  vertical-align: top;
+  padding-block: var(--spacing-inset-sm);
+  padding-inline-end: var(--spacing-inline-md);
+  border-bottom: 1px solid var(--color-border-extra-subtle);
+}
+
+.fe-idrec__table thead th {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.fe-idrec__table tbody th {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-regular);
+}
+
+.fe-idrec__table td:last-child {
+  padding-inline-end: 0;
+}
+
+.fe-idrec__row--agrees td:last-child {
+  color: var(--color-success-fg);
+}
+
+.fe-idrec__row--differs td:last-child {
+  color: var(--color-error-fg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.fe-idrec__table ol-icon {
+  vertical-align: text-bottom;
+}
+
+.fe-checks__list,
+.fe-traps__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.fe-checks__item {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: flex-start;
+}
+
+.fe-checks__item ol-icon {
+  flex: none;
+  margin-block-start: 2px;
+}
+
+.fe-trap {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: flex-start;
+  font-size: var(--font-size-body-medium);
+}
+
+.fe-trap ol-icon {
+  flex: none;
+  margin-block-start: 2px;
+  color: var(--color-success-fg);
+}
+
+/* The traps nothing can check for you are the ones to actually read. */
+.fe-trap--unchecked ol-icon {
+  color: var(--color-warning-fg);
+}
+
+/* Reads as a quiet annotation at the end of the sentence, not a second line. */
+.fe-trap__who {
+  margin-inline-start: var(--spacing-inline-sm);
+}
+
+.fe-confirm {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: flex-start;
+  font-size: var(--font-size-body-medium);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  margin-block-start: var(--spacing-stack-sm);
+}
+
+.fe-confirm input {
+  flex: none;
+  margin-block-start: 2px;
+}
+
+.fe-other__verdict {
+  margin-block: var(--spacing-stack-xs) 0;
+  font-size: var(--font-size-body-medium);
+  min-height: 1lh; /* reserve the line so the form doesn't jump as you type */
+}
+
+.fe-other__verdict[data-state="ok"] {
+  color: var(--color-success-fg);
+}
+
+.fe-other__verdict[data-state="bad"] {
+  color: var(--color-error-fg);
+}
+
+/* Below --width-breakpoint-tablet the three columns stop fitting, so each
+   detail becomes its own labelled block. */
+@media (max-width: 767px) {
+  .fe-idrec__table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .fe-idrec__table,
+  .fe-idrec__table tbody,
+  .fe-idrec__row {
+    display: block;
+  }
+
+  .fe-idrec__row {
+    padding-block: var(--spacing-inset-sm);
+    border-bottom: 1px solid var(--color-border-extra-subtle);
+  }
+
+  .fe-idrec__table th,
+  .fe-idrec__table td {
+    display: block;
+    border-bottom: 0;
+    padding-block: 0;
+  }
+
+  .fe-idrec__table td::before {
+    content: attr(data-label);
+    color: var(--color-text-secondary);
+    margin-inline-end: var(--spacing-inline-sm);
+  }
+}
+
+.fe-check--pass ol-icon {
+  color: var(--color-success-fg);
+}

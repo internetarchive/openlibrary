@@ -1,0 +1,17 @@
+{
+  "isbn13": "9788375541038",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/48_praw_w%C5%82adzy.html?hl=&id=2pm2PwAACAAJ",
+      "fields": {
+        "publish_date": "2009",
+        "number_of_pages": 153,
+        "languages": [
+          "pol"
+        ]
+      }
+    }
+  ]
+}

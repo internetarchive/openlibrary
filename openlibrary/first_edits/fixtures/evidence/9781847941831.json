@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781847941831",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Atomic_Habits.html?hl=&id=GuAUMQAACAAJ",
+      "fields": {
+        "publishers": [
+          "Random House Business Books"
+        ],
+        "publish_date": "2018-10",
+        "number_of_pages": 320,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

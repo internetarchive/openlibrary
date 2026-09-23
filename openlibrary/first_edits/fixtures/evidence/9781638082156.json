@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781638082156",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/The_Love_Hypothesis.html?hl=&id=B761zgEACAAJ",
+      "fields": {
+        "publishers": [
+          "Center Point"
+        ],
+        "publish_date": "2022-02",
+        "number_of_pages": 500,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

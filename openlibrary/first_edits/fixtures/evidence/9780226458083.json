@@ -1,0 +1,36 @@
+{
+  "isbn13": "9780226458083",
+  "golden_key": "structure-sci-rev-3rd",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/The_Structure_of_Scientific_Revolutions.html?hl=&id=q5DuAAAAMAAJ",
+      "fields": {
+        "publish_date": "1996",
+        "number_of_pages": 232,
+        "languages": [
+          "eng"
+        ]
+      }
+    },
+    {
+      "id": "loc",
+      "match": "isbn13",
+      "url": "https://lccn.loc.gov/96013195",
+      "fields": {
+        "publishers": [
+          "University of Chicago Press"
+        ],
+        "publish_date": "1996.",
+        "number_of_pages": 212,
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "96013195"
+        ]
+      }
+    }
+  ]
+}

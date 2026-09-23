@@ -1,0 +1,17 @@
+{
+  "isbn13": "9786176642145",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://play.google.com/store/books/details?id=K-lnEAAAQBAJ",
+      "fields": {
+        "publishers": [
+          "Видавництво Астролябія / Astrolabe Publishing"
+        ],
+        "publish_date": "2022-04-05",
+        "number_of_pages": 386
+      }
+    }
+  ]
+}

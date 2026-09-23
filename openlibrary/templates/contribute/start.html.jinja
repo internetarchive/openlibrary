@@ -1,0 +1,43 @@
+{#- /contribute/start — orientation in sixty seconds. -#}
+<div class="fe-page fe-page--start">
+    <header class="fe-hero">
+        <p class="fe-overline">{{ _("First edits") }}</p>
+        <h1 class="fe-title">{{ _("Make your first edit") }}</h1>
+        <p class="fe-lede">{{ _("Most people finish their first one in about five minutes. You will check one fact about one book, with the evidence laid out beside it.") }}</p>
+    </header>
+    <div class="fe-cards">
+        <section class="fe-card">
+            <span class="fe-card__icon">{{ icon("book-open-text", size="lg") }}</span>
+            <h2 class="fe-card__title">{{ _("What you'll do") }}</h2>
+            <p>{{ _("Pick a book. We show one fact that is missing or in doubt, next to what other library catalogs say. You fill it in, correct it, or say you're not sure.") }}</p>
+        </section>
+        <section class="fe-card">
+            <span class="fe-card__icon">{{ icon("circle-user-round", size="lg") }}</span>
+            <h2 class="fe-card__title">{{ _("Who checks it") }}</h2>
+            <p>{{ _("A volunteer librarian reviews every suggestion, usually within %(days)s days.", days=data.wait_days) }}</p>
+        </section>
+        <section class="fe-card">
+            <span class="fe-card__icon">{{ icon("circle-check", size="lg") }}</span>
+            <h2 class="fe-card__title">{{ _("What you can't break") }}</h2>
+            <p>{{ _("Nothing. Suggestions don't change the book until a librarian accepts them, and every change on Open Library can be undone.") }}</p>
+        </section>
+    </div>
+    <div class="fe-hero__actions">
+        {% if data.allowed %}
+            <ol-button variant="primary" href="/contribute">
+                {{ _("Show me a book") }}
+            </ol-button>
+        {% elif data.logged_in %}
+            <p class="fe-callout">{{ _("First edits is being tried out with a small group. Ask in the volunteers channel to be added, and this page will open up.") }}</p>
+        {% else %}
+            <ol-button variant="primary" href="/account/login?redirect=/contribute/start">
+                {{ _("Log in to start") }}
+            </ol-button>
+            <p class="fe-muted">{{ _("You need an Open Library account so your suggestions have a name on them.") }}</p>
+        {% endif %}
+    </div>
+    <p class="fe-note fe-note--walkthrough">
+        {{ icon("wand", size="sm") }}
+        <span>{{ _("This is a walkthrough. Outside catalog data is from a saved sample, and nothing you send is stored yet.") }}</span>
+    </p>
+</div>

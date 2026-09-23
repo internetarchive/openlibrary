@@ -1,0 +1,41 @@
+{#- /contribute/task/OL…M/<field>/done — the receipt, and what happens next. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="fe-page"
+     data-contribute-done
+     data-task-key="{{ data.task_key }}">
+    <section class="fe-receipt">
+        <span class="fe-receipt__icon">{{ icon("circle-check", size="lg") }}</span>
+        <div>
+            <p class="fe-overline">{% if data.choice == "unsure" %}{{ _("Sent as a question") }}{% else %}{{ _("Sent") }}{% endif %}</p>
+            <h1 class="fe-receipt__title">
+                {% if data.choice == "unsure" %}
+                    {{ _("%(field)s for %(title)s: you asked a librarian to look", field=data.field_label, title=data.book.title) }}
+                {% elif data.old_value and data.new_value and data.old_value != data.new_value %}
+                    {{ _("%(field)s for %(title)s: %(old)s → %(new)s", field=data.field_label, title=data.book.title, old=data.old_value, new=data.new_value) }}
+                {% elif data.new_value %}
+                    {{ _("%(field)s for %(title)s: %(new)s", field=data.field_label, title=data.book.title, new=data.new_value) }}
+                {% else %}
+                    {{ _("%(field)s for %(title)s", field=data.field_label, title=data.book.title) }}
+                {% endif %}
+            </h1>
+            {% if data.note %}<p class="fe-receipt__note">{{ _("Your note:") }} {{ data.note }}</p>{% endif %}
+            <p>{{ _("A volunteer librarian will look at it, usually within %(days)s days.", days=data.wait_days) }}</p>
+        </div>
+    </section>
+    {% if data.same_book %}
+        <section class="fe-section fe-next" data-same-book>
+            <span class="fe-h">{{ _("While you're on this book") }}</span>
+            {{ parts.book_header(data.book, compact=True) }}
+            <ul class="fe-row__tasks">
+                {% for task in data.same_book %}
+                    {{ parts.task_row(task) }}
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+    <div class="fe-hero__actions">
+        <ol-button href="/contribute">
+            {{ _("Pick a different book") }}
+        </ol-button>
+    </div>
+</div>

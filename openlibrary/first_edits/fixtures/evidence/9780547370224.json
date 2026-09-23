@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780547370224",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://play.google.com/store/books/details?id=nkalO3OsoeMC",
+      "fields": {
+        "publishers": [
+          "HarperCollins"
+        ],
+        "publish_date": "2009-07-01",
+        "number_of_pages": 241,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

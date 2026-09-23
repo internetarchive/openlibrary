@@ -1,0 +1,17 @@
+{
+  "isbn13": "9783959722308",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Die_Gesetze_der_menschlichen_Natur_The_L.html?hl=&id=5TGBxQEACAAJ",
+      "fields": {
+        "publish_date": "2019-07-17",
+        "number_of_pages": 700,
+        "languages": [
+          "ger"
+        ]
+      }
+    }
+  ]
+}

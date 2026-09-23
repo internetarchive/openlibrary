@@ -1,0 +1,42 @@
+{
+  "isbn13": "9780743273565",
+  "golden_key": "gatsby-scribner-2004",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/The_Great_Gatsby.html?hl=&id=fIlQDwAAQBAJ",
+      "fields": {
+        "publishers": [
+          "Simon and Schuster"
+        ],
+        "publish_date": "2004-09-30",
+        "number_of_pages": 208,
+        "languages": [
+          "eng"
+        ]
+      }
+    },
+    {
+      "id": "loc",
+      "match": "isbn13",
+      "url": "https://lccn.loc.gov/2018297691",
+      "fields": {
+        "publishers": [
+          "Scribner"
+        ],
+        "publish_date": "2018.",
+        "number_of_pages": 184,
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "2018297691"
+        ],
+        "oclc_numbers": [
+          "1052587398"
+        ]
+      }
+    }
+  ]
+}

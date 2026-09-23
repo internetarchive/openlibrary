@@ -1,0 +1,20 @@
+{
+  "isbn13": "9788804671954",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Pensieri_lenti_e_veloci.html?hl=&id=JMZMMQAACAAJ",
+      "fields": {
+        "publishers": [
+          "Oscar saggi"
+        ],
+        "publish_date": "2017",
+        "number_of_pages": 666,
+        "languages": [
+          "ita"
+        ]
+      }
+    }
+  ]
+}

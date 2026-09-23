@@ -1,0 +1,16 @@
+{
+  "isbn13": "9781957464039",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Twisted_Love.html?hl=&id=RSr3zgEACAAJ",
+      "fields": {
+        "publish_date": "2021-04-29",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}
