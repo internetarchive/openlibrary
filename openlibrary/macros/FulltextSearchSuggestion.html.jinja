@@ -1,30 +1,33 @@
-{% from "FulltextSearchSuggestionItem.html.jinja" import render as render_item %}
-{% from "FulltextSuggestionSnippet.html.jinja" import render as render_snippet %}
-{% if suggestions is defined %}
-    {{ loading_indicator_html }}
-    <div id="fulltextSuggestions" class="fulltext-suggestions">
-        <div class="fulltext-suggestions__header">
-            {# The link is named by its icon; the heading beside it repeats the destination. #}
-            <a class="fulltext-suggestions__icon"
-               data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
-               href="{{ query_url }}">{{ icon("search-inside", size="lg", label=_("Search Inside")) }}</a>
-            <h3 class="fulltext-suggestions__title">
-                <a data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
-                   href="{{ query_url }}">{{ _("Search Inside") }}</a> — {{ _("%(book_count)s books found with matching passages", book_count=num_found) }}
-            </h3>
-        </div>
-        {% for suggestion in suggestions %}
-            {{ render_item(suggestion.item, snippet=render_snippet(suggestion.snippet)) }}
-        {% endfor %}
-        <h3 class="fulltext-suggestions__footer">
-            <a class="fulltext-suggestions__footer-link"
-               data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
-               href="{{ query_url }}">{{ _("See all %(results_count)s Search Inside Matches", results_count=num_found) }}
-                <span class="fulltext-suggestions__right-chevron">
-                    {# Decorative: the link text already says where it goes. #}
-                    {{ icon("chevron-right", size="sm") }}
-                </span>
-            </a>
-        </h3>
-    </div>
+{# Search Inside preview band at the foot of /search. #}
+{% macro header() %}
+    <h2 id="fulltext-suggestions-heading"
+        class="search-results-section-label fulltext-suggestions__header">
+        {# Decorative: flags these as matches from inside the scans, not catalogue records. #}
+        {{ icon("text-search", size="sm") }}
+        <span>{{ _("Search inside books") }}</span>
+    </h2>
+{% endmacro %}
+{% macro see_all_button() %}
+    {# No aria-label: the visible text is the accessible name, so voice-control users can say it. #}
+    <ol-button variant="primary" href="{{ see_all_url }}" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
+        {{ ngettext("Search Inside %(count)s book", "Search Inside %(count)s books", total, count=num_found) }}
+        {{ icon("arrow-right", size="sm", slot="icon-end") }}
+    </ol-button>
+{% endmacro %}
+{% if results %}
+    <section class="fulltext-suggestions"
+             aria-labelledby="fulltext-suggestions-heading">
+        {{ header() }}
+        <ul class="list-books list-books--fulltext">
+            {% for result in results %}{{ result }}{% endfor %}
+        </ul>
+        <div class="fulltext-suggestions__footer">{{ see_all_button() }}</div>
+    </section>
+{% elif total %}
+    {# Every hit is already listed on the page (see `exclude`), so just link through. #}
+    <section class="fulltext-suggestions fulltext-suggestions--compact"
+             aria-labelledby="fulltext-suggestions-heading">
+        {{ header() }}
+        {{ see_all_button() }}
+    </section>
 {% endif %}
