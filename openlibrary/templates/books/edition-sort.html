@@ -1,4 +1,4 @@
-$def with (book, edition_sort_key, render_first=False, lending_state=None)
+$def with (book, edition_sort_key, render_first=False, lending_state=None, work=None)
 $# :param Edition book:
 $# :param str edition_sort_key:
 
@@ -27,6 +27,17 @@ $ asin = isbn_10 or None
 
 $ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
 
+$# An edition's title only earns its space here when it differs from the work's;
+$# otherwise every row in the table repeats the same words. When it doesn't
+$# differ -- or when the edition has no title at all, which used to render no
+$# link whatever -- lead with whatever actually tells this edition apart.
+$ work_title = (work and work.title) or ''
+$ titles_match = bool(book.title and work_title and book.title.strip().lower() == work_title.strip().lower())
+$ lead_with_title = bool(book.title) and not titles_match
+$ standin = book.subtitle or book.edition_name
+$# Promoted to the label, so don't also list it beside the format below.
+$ standin_is_edition_name = bool(not lead_with_title and not book.subtitle and book.edition_name)
+
     <td class="book">
       <span class="hidden sort-key">$edition_sort_key</span>
       <div class="cover">
@@ -39,13 +50,16 @@ $ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
       </div>
 
       <div class="title">
-        $if book.title:
-          <a href="$book.url()">
+        <a href="$book.url()">
+          $if lead_with_title:
+            <span class="edition-title">$book.title</span>
             $if book.subtitle:
-              $_('%(title)s: %(subtitle)s', title=book.title, subtitle=book.subtitle)
-            $else:
-              $book.title
-          </a>
+              <span class="edition-subtitle">$book.subtitle</span>
+          $elif standin:
+            <span class="edition-title">$standin</span>
+          $else:
+            <span class="edition-title">$(book.title or _('Untitled edition'))</span>
+        </a>
 
 
         <div class="published">
@@ -71,7 +85,7 @@ $ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
             $if book.languages:
               •
             $:_('translated by %(translator)s', translator=commify_list(websafe(t) for t in translators))
-          $if book.edition_name:
+          $if book.edition_name and not standin_is_edition_name:
             - $book.edition_name
         </div>
 

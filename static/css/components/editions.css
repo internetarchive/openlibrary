@@ -123,6 +123,21 @@ table#editions div.title,
   overflow-wrap: break-word;
 }
 
+/* An edition whose title differs from the work's leads with that title and
+   carries its subtitle underneath, the way the edition page shows them, rather
+   than the `Title: Subtitle` run-on that used to crowd the row. */
+table#editions .edition-title,
+.editions-table .edition-title {
+  display: block;
+}
+
+table#editions .edition-subtitle,
+.editions-table .edition-subtitle {
+  display: block;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
 table#editions div.links,
 .editions-table div.links {
   font-size: var(--font-size-label-medium);
