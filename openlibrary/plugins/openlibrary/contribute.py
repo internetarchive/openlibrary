@@ -3,7 +3,7 @@
 Phase 1 is a click-through walkthrough. Book records and sibling editions
 are live; outside evidence and the demo set come from fixtures in
 openlibrary/first_edits/fixtures; nothing is saved. Every page except the
-start page is for beta testers and admins while it is tried out.
+start page is for beta testers and librarians while it is tried out.
 """
 
 from dataclasses import dataclass, field
@@ -54,7 +54,8 @@ def _user():
 
 
 def _allowed(user) -> bool:
-    return bool(user and (user.is_beta_tester() or user.is_admin()))
+    """Beta testers, plus the groups that already try out new UI: librarians, maintainers, admins."""
+    return bool(user and (user.is_beta_tester() or user.is_librarian_or_higher() or user.is_maintainer()))
 
 
 def _denied(path: str):
