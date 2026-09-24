@@ -334,6 +334,16 @@ class TestGroundtruthAvailability:
             assert bulk == groundtruth, f"{item_id}: bulk={bulk} groundtruth={groundtruth}"
 
 
+def test_availability_get_answers_the_verb_ol_actually_uses():
+    """lending.get_availability_async() issues a GET; the endpoint used to be
+    POST-only, so dev silently resolved every book to status="error"."""
+    resp = _get("/services/availability/", params={"identifier": "mockbook_0,mockbook_1"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    assert set(body["responses"]) == {"mockbook_0", "mockbook_1"}
+
+
 def test_borrow_status():
     resp = _get("/services/borrow/someocaid")
     body = resp.json()
