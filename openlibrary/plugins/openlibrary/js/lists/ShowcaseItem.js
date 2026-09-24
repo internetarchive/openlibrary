@@ -2,6 +2,7 @@
  * @module lists/ShowcaseItem.js
  */
 import { removeItem } from './ListService';
+import { getLists, toggleListSeed } from '../../../../components/lit/utils/lists-store.js';
 
 /** Every ShowcaseItem on the page, so a removal can take its twins with it. */
 const showcases = [];
@@ -21,7 +22,7 @@ export function getShowcases() {
  *
  * The active showcase is the strip of lists under a book's or
  * author's shelf button (`.already-lists`), kept current by
- * lists/active-showcase.js as the popover adds and removes.
+ * lists/list-showcase.js as the popover adds and removes.
  * @class
  */
 export class ShowcaseItem {
@@ -108,20 +109,27 @@ export class ShowcaseItem {
     /**
      * Sends request to remove an item from a list, then updates the view.
      *
-     * Removes any affiliated showcase items from the DOM.
+     * Removes any affiliated showcase items from the DOM. When the page's
+     * lists store knows the list, the write goes through it so every popover
+     * and the active strip stay in step.
      */
     async removeShowcaseItem() {
-        await removeItem(this.listKey, this.seed)
-            .then(response => response.json())
-            .then(() => {
-                this.removeSelf();
-                // Remove other showcase items that are associated with the list and seed key:
-                for (const showcase of [...showcases]) {
-                    if (showcase.isShowcaseForListAndSeed(this.listKey, this.seedKey)) {
-                        showcase.removeSelf();
-                    }
-                }
-            });
+        try {
+            if (!this.isSubject && getLists()?.[this.listKey]) {
+                await toggleListSeed(this.listKey, this.seedKey, false);
+            } else {
+                await removeItem(this.listKey, this.seed).then(response => response.json());
+            }
+        } catch {
+            return;
+        }
+        this.removeSelf();
+        // Remove other showcase items that are associated with the list and seed key:
+        for (const showcase of [...showcases]) {
+            if (showcase.isShowcaseForListAndSeed(this.listKey, this.seedKey)) {
+                showcase.removeSelf();
+            }
+        }
     }
 
     /**

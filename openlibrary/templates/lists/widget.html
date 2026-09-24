@@ -19,7 +19,7 @@ $# orphaned edition gets the same control in its lists-only form.
 $:shelf_button_for(page)
 
 $if ctx.user:
-  $# lists/active-showcase.js fills this with the lists the seeds are on.
+  $# lists/list-showcase.js fills this with the lists the seeds are on.
   $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key] or [page.key]
   <ul class="listLists already-lists" data-seed-keys="$json_encode(seed_keys)">
     <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>

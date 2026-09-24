@@ -1,11 +1,12 @@
 /**
  * The "lists this book is on" strip under the shelf button on a book or
- * author page. Fed from the lists partial and kept current by the popover's
- * events; removal from the strip itself still goes through ShowcaseItem.
+ * author page. Rendered from the page's shared lists store, so it costs no
+ * request of its own and follows every change a popover makes; removal from
+ * the strip itself still goes through ShowcaseItem.
  *
- * @module lists/active-showcase
+ * @module lists/list-showcase
  */
-import { getListPartials } from './ListService';
+import { getLists, loadLists, subscribeToLists } from '../../../../components/lit/utils/lists-store.js';
 import { ShowcaseItem, createActiveShowcaseItem, getShowcases } from './ShowcaseItem';
 import { removeChildren } from '../utils';
 
@@ -20,40 +21,41 @@ function coverFor(list) {
  * @param {HTMLElement} container The `.already-lists` element, carrying the
  *     seed keys (work and edition, or author) in `data-seed-keys`.
  */
-export async function initActiveListsShowcase(container) {
+export async function initListShowcase(container) {
     const seedKeys = new Set(JSON.parse(container.dataset.seedKeys));
 
-    const has = (listKey, seedKey) => getShowcases().some(item => item.isShowcaseForListAndSeed(listKey, seedKey));
+    const mine = () => getShowcases().filter(item => container.contains(item.showcaseElem));
 
     const add = (listKey, seedKey, listName, cover) => {
-        if (has(listKey, seedKey)) return;
+        if (mine().some(item => item.isShowcaseForListAndSeed(listKey, seedKey))) return;
         const li = createActiveShowcaseItem(listKey, seedKey, listName, cover);
         container.appendChild(li);
         new ShowcaseItem(li).initialize();
     };
 
-    const remove = (listKey, seedKey) => {
-        for (const item of getShowcases().filter(item => item.isShowcaseForListAndSeed(listKey, seedKey))) {
-            item.removeSelf();
+    // Reconcile the strip with the store: add what is missing, drop what is gone.
+    const render = () => {
+        const lists = getLists();
+        if (!lists) return;
+        const wanted = new Set();
+        for (const [listKey, list] of Object.entries(lists)) {
+            for (const seedKey of list.members) {
+                if (!seedKeys.has(seedKey)) continue;
+                wanted.add(`${listKey} ${seedKey}`);
+                add(listKey, seedKey, list.listName, coverFor(list));
+            }
+        }
+        for (const item of mine()) {
+            if (!wanted.has(`${item.listKey} ${item.seedKey}`)) item.removeSelf();
         }
     };
 
-    document.addEventListener('ol-list-created', (e) => {
-        const { key, name, seedKey } = e.detail;
-        if (seedKeys.has(seedKey)) add(key, seedKey, name);
-    });
-    document.addEventListener('ol-list-change', (e) => {
-        const { key, name, seedKey, member } = e.detail;
-        if (!seedKeys.has(seedKey)) return;
-        if (member) add(key, seedKey, name);
-        else remove(key, seedKey);
-    });
-
-    const { listData } = await getListPartials().then(response => response.json());
-    removeChildren(container);
-    for (const [listKey, list] of Object.entries(listData)) {
-        for (const seedKey of list.members) {
-            if (seedKeys.has(seedKey)) add(listKey, seedKey, list.listName, coverFor(list));
-        }
+    try {
+        await loadLists();
+    } catch {
+        return; // the loading indicator stays; the popover reports the failure
     }
+    removeChildren(container);
+    render();
+    subscribeToLists(render);
 }
