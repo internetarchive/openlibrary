@@ -271,8 +271,8 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, secondary_action=(secondary_action and not loan), key=key),
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
-        # Cached across readers, so no user or state: book-state.js fills both in.
-        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", cached=True)),
+        # No reader or state in the HTML: book-state.js fills both in.
+        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True)),
     }
 
 

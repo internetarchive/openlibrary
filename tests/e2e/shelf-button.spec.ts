@@ -101,7 +101,7 @@ test.describe('ol-shelf-button', () => {
     });
 
     test.describe('carousel hydration', () => {
-        // Home-page carousel cards are cached across readers, so they arrive without
+        // Home-page carousel cards are cached, so they arrive without
         // a user key or state. Solr has to be up for a carousel to have cards at all.
         const CAROUSEL_BUTTON = '.book-cover-wrapper > ol-shelf-button[variant="icon"]';
 

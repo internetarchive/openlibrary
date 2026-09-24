@@ -1,4 +1,7 @@
-{# Shows one book carousel. A shelf carousel's count is its own element so book-state.js can keep it current. #}
+{#
+  Shows one book carousel. `count` and `shelf` are optional: see carousel_count.html.jinja.
+#}
+{% from "books/carousel_count.html.jinja" import carousel_count %}
 {% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none) %}
     {% if show %}
         <div class="carousel-section">
@@ -6,7 +9,7 @@
                 <div class="carousel-section-header">
                     <h2 class="home-h2">
                         <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
-                           href="{{ url }}">{{ title }}{% if count is not none %} ({% if shelf %}<span data-shelf-count="{{ shelf }}">{{ count }}</span>{% else %}{{ count }}{% endif %}){% endif %}</a>
+                           href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
                     </h2>
                 </div>
             {% endif %}

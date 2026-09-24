@@ -6,7 +6,7 @@ import web
 
 from infogami.infobase.client import LazyObject
 from openlibrary.core.booknotes import Booknotes
-from openlibrary.plugins.upstream.mybooks import PatronBooknotes, edition_key_of, reading_state_for, shelf_button_for, work_key_of
+from openlibrary.plugins.upstream.mybooks import PatronBooknotes, edition_key_of, get_reading_states, shelf_button_for, work_key_of
 
 
 class Thing:
@@ -91,7 +91,7 @@ class TestShelfButtonFor:
         assert 'read-date="2026-08" event-id="7"' in html
 
     def test_the_page_state_is_used_when_given(self):
-        html, get_state = self.render(web.storage(key="/works/OL1W", title="Dune"), reading_state={"/works/OL1W": {"shelf": 1}})
+        html, get_state = self.render(web.storage(key="/works/OL1W", title="Dune"), reading_states={"/works/OL1W": {"shelf": 1}})
         assert 'shelf="1"' in html
         get_state.assert_not_called()
 
@@ -101,8 +101,8 @@ class TestShelfButtonFor:
         assert 'edition-key="OL2M"' in html
         assert 'book-title="Dune"' in html
 
-    def test_a_cached_card_carries_no_reader(self):
-        html, get_state = self.render({"key": "/books/OL2M", "work_key": "/works/OL1W", "title": "Dune"}, variant="icon", cached=True)
+    def test_an_async_load_card_carries_no_reader(self):
+        html, get_state = self.render({"key": "/books/OL2M", "work_key": "/works/OL1W", "title": "Dune"}, variant="icon", async_load=True)
         assert 'variant="icon"' in html
         assert 'edition-key="OL2M"' in html
         assert "user-key" not in html
@@ -132,13 +132,10 @@ class TestShelfButtonFor:
         assert "edition-key" not in html
 
 
-class TestReadingStateFor:
+class TestGetReadingStates:
     def test_signed_out_is_empty_without_querying(self):
-        with (
-            patch("openlibrary.plugins.upstream.mybooks.accounts.get_current_user", return_value=None),
-            patch("openlibrary.plugins.upstream.mybooks.get_reading_state") as get_state,
-        ):
-            assert reading_state_for([{"key": "/works/OL1W"}]) == {}
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state") as get_state:
+            assert get_reading_states(None, [{"key": "/works/OL1W"}]) == {}
         get_state.assert_not_called()
 
     def test_keys_the_result_by_work_key(self):
@@ -152,11 +149,8 @@ class TestReadingStateFor:
             1: {"shelf": 1, "rating": None, "read_date": None, "event_id": None},
             2: {"shelf": None, "rating": 3, "read_date": None, "event_id": None},
         }
-        with (
-            patch("openlibrary.plugins.upstream.mybooks.accounts.get_current_user", return_value=web.storage(key="/people/tester")),
-            patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value=states) as get_state,
-        ):
-            result = reading_state_for(docs)
+        with patch("openlibrary.plugins.upstream.mybooks.get_reading_state", return_value=states) as get_state:
+            result = get_reading_states(web.storage(key="/people/tester"), docs)
 
         assert result == {"/works/OL1W": states[1], "/works/OL2W": states[2]}
         username, work_ids = get_state.call_args.args

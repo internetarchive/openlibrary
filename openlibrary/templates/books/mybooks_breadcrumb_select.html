@@ -24,6 +24,6 @@ $if mb.is_my_page:
   $   (_("Imports and Exports"), "/account/import")
   $ ]
 $# book-state.js keeps the count in the heading current as books move between shelves.
-$ shelf_ids = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3, 'stopped-reading': 4}
-$ heading_attrs = 'data-shelf-count="%d"' % shelf_ids[mb.key] if mb.key in shelf_ids else ''
+$ shelf_id = shelf_ids().get(mb.key)
+$ heading_attrs = 'data-shelf-count-for="%d"' % shelf_id if shelf_id else ''
 $:render_template("books/breadcrumb_select", selected, options, heading_attrs)

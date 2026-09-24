@@ -1,6 +1,6 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, extra_row=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, show_title_year=False, reading_state=None, layout=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, extra_row=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, show_title_year=False, reading_states=None, layout=None)
 
-$# reading_state: reading_state_for() for the whole page, keyed by work key,
+$# reading_states: get_reading_states() for the whole page, keyed by work key,
 $# so one page is one round of queries. Left out, the row looks its own up.
 
 $code:
@@ -68,7 +68,7 @@ $code:
 $# layout: 'grid' puts the shelf button on the cover as a badge, like a carousel
 $# card; anything else keeps the labelled split in the CTA column. list_books.js
 $# moves it between the two slots when the reader flips the layout.
-$ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 'split'), reading_state=reading_state) if include_dropper else None
+$ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 'split'), reading_states=reading_states) if include_dropper else None
 
 <li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""

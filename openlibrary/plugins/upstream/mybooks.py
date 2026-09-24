@@ -678,25 +678,29 @@ def _shelf_title_of(doc) -> str:
 
 
 @public
-def shelf_button_for(doc, variant: str = "split", reading_state: dict[str, ReadingState] | None = None, cached: bool = False) -> str:
+def shelf_ids() -> dict[str, int]:
+    """The preset shelves' ids keyed by URL slug: `{"want-to-read": 1, "currently-reading": 2, ...}`."""
+    return {name.replace("_", "-"): shelf_id for name, shelf_id in Bookshelves.PRESET_BOOKSHELVES_JSON.items()}
+
+
+@public
+def shelf_button_for(doc, variant: str = "split", reading_states: dict[str, ReadingState] | None = None, async_load: bool = False) -> str:
     """The `<ol-shelf-button>` for a doc, Solr or Infogami: a work or an edition to shelve, or an
     author or orphaned edition that can only join a list (`lists-only`). Empty for anything else.
 
-    `reading_state` is the page's `reading_state_for()`; left out, the button looks its own up.
-    `cached` leaves off the reader's key and state, for HTML shared across readers (carousel
-    cards); book-state.js fills both in.
+    `reading_states` is the page's `get_reading_states()`; left out, the button looks its own up.
+    `async_load` renders the button without the reader's key and state, for HTML that is not
+    per-reader (carousel cards, which are cached or fetched lazily); book-state.js fills both in.
     """
     work_key = work_key_of(doc)
     seed_key = work_key or list_seed_of(doc)
     if not seed_key:
         return ""
-    user_key = ""
+    user = None if async_load else accounts.get_current_user()
+    user_key = user.key if user else ""
     state: ReadingState | dict[str, Any] = {}
-    if not cached:
-        user = accounts.get_current_user()
-        user_key = user.key if user else ""
-    if work_key and not cached:
-        states = reading_state if reading_state is not None else reading_state_for([doc])
+    if work_key and not async_load:
+        states = reading_states if reading_states is not None else get_reading_states(user, [doc])
         state = states.get(work_key) or {}
     return render_jinja_template(
         "my_books/shelf_button.html.jinja",
@@ -706,18 +710,17 @@ def shelf_button_for(doc, variant: str = "split", reading_state: dict[str, Readi
         edition_key=edition_key_of(doc) if work_key else None,
         user_key=user_key,
         state=state,
-        hydrated=not cached,
+        hydrated=not async_load,
         lists_only=not work_key,
     )
 
 
 @public
-def reading_state_for(docs) -> dict[str, ReadingState]:
-    """The signed-in reader's shelf, rating and last finish date for the works in `docs`, keyed by work key.
+def get_reading_states(user: User | None, docs) -> dict[str, ReadingState]:
+    """`user`'s shelf, rating and last finish date for the works in `docs`, keyed by work key.
 
-    Empty when signed out. Call once per page of rows and pass the result down.
+    Empty when `user` is None (signed out). Call once per page of rows and pass the result down.
     """
-    user = accounts.get_current_user()
     if not user:
         return {}
     keys = {key for doc in docs if (key := work_key_of(doc))}
