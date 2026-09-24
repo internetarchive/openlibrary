@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin, fetchWorkEditions } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -30,6 +30,7 @@ export const DEFAULT_LABELS = {
     rated: 'Rated %(rating)s of 5',
     ratingCleared: 'Rating cleared',
     dateSaved: 'Finished %(date)s',
+    dateRemoved: 'Date removed',
     addDate: 'Add date',
     rateThisBook: 'Rate this book',
     rateStar: 'Rate %(rating)s of 5',
@@ -66,6 +67,7 @@ export const DEFAULT_LABELS = {
     month: 'Month',
     day: 'Day',
     saveDate: 'Save',
+    removeDate: 'Remove date',
     didNotRead: 'I didn’t read this',
 };
 
@@ -135,11 +137,12 @@ export function resetWorkEditionsCache() {
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
- * @fires ol-book-check-in - After a finish date is saved. The component keeps
- *     its own copy (`readDate`/`eventId`); the event is for the surface to
- *     persist it across renders. detail: { key, date, eventId } — `date` is
- *     whole or partial, as stored. A date is only ever removed by the book
- *     coming off its shelf, which the surface hears as ol-book-state-change.
+ * @fires ol-book-check-in - After a finish date is saved or removed. The
+ *     component keeps its own copy (`readDate`/`eventId`); the event is for
+ *     the surface to persist it across renders. detail: { key, date, eventId }
+ *     — `date` is whole or partial, as stored, and both are null on removal.
+ *     A book coming off its shelf drops its date too, which the surface hears
+ *     as ol-book-state-change instead.
  * @fires ol-list-created - After the inline form creates a list. Sibling
  *     popovers share the lists store and need no event; this is for surfaces
  *     outside the components. detail: { key, name, seedKey }
@@ -236,7 +239,7 @@ export class OlShelfActions extends LitElement {
         .pane-header::after,
         .group.rating::before,
         .group.lists-entry::before,
-        .group.not-read::before {
+        .group.retract::before {
             content: "";
             position: absolute;
             inset-inline: var(--spacing-inset-md);
@@ -294,13 +297,13 @@ export class OlShelfActions extends LitElement {
 
         .group.rating,
         .group.lists-entry,
-        .group.not-read {
+        .group.retract {
             position: relative;
         }
 
         .group.rating::before,
         .group.lists-entry::before,
-        .group.not-read::before {
+        .group.retract::before {
             top: 0;
         }
 
@@ -484,9 +487,9 @@ export class OlShelfActions extends LitElement {
 
         /* Check-in pane */
 
-        /* Muted like the question above it: this row undoes an answer rather
-           than giving one, so it must not read as a fifth date to pick. */
-        .not-read .row {
+        /* Muted like the question above it: these rows undo an answer rather
+           than giving one, so they must not read as more dates to pick. */
+        .retract .row {
             color: var(--color-text-secondary);
             font-size: var(--font-size-label-medium);
         }
@@ -899,7 +902,7 @@ export class OlShelfActions extends LitElement {
 
     /**
      * The key a list records: the edition when the surface knows one, else the
-     * work. A list is a shelf of copies, so which copy the reader was looking
+     * work. A list is a shelf of editions, so which edition the reader was looking
      * at is worth keeping — that was the old dropper's default too. A
      * `lists-only` seed (an author, an edition with no work) carries its own
      * key in `book.key` and is never rewritten.
@@ -926,7 +929,7 @@ export class OlShelfActions extends LitElement {
     }
 
     /**
-     * Whether the list holds this exact seed — the copy in front of the reader.
+     * Whether the list holds this exact seed — the edition in front of the reader.
      * This is what the checkbox says, and all it ever adds or removes.
      */
     _holdsSeed(list) {
@@ -934,12 +937,12 @@ export class OlShelfActions extends LitElement {
     }
 
     /**
-     * What else of this book the list holds, beside the copy this row is for:
+     * What else of this book the list holds, beside the edition this row is for:
      * `{ kind: 'edition', count }` for other editions of it, `{ kind: 'work' }`
      * for the book with no edition named, or null. Ticking the row adds this
      * edition alongside — some lists collect editions on purpose — so this
      * stands whether the row is ticked or not: before, it is the warning that
-     * the book is already here; after, it is the count of copies on the list.
+     * the book is already here; after, it is the count of editions on the list.
      */
     _otherForm(list) {
         if (!list) return null;
@@ -1238,14 +1241,20 @@ export class OlShelfActions extends LitElement {
                 </button>
                 ${this._pickingDate ? this._renderDateFields() : nothing}
             </div>
-            <!-- Taking back the answer rather than giving another one, so it
-                 stands outside the group the question names. Also the only way
-                 off Already Read: that shelf's row leads here instead of
-                 toggling off, and coming off it deletes the check-in too.
-                 Only when amending: someone who just chose the shelf is here
-                 to date the read, not to undo it. -->
-            ${this._amending ? html`<div class="group not-read">
-                <button type="button" class="row" @click=${this._removeFromShelf}>
+            <!-- Taking back an answer rather than giving another one, so these
+                 stand outside the group the question names. Remove date keeps
+                 the shelf; "I didn't read this" is the only way off Already
+                 Read, since that shelf's row leads here instead of toggling
+                 off. Only when amending: someone who just chose the shelf is
+                 here to date the read, not to undo it. -->
+            ${this._amending ? html`<div class="group retract">
+                ${this.eventId ? html`
+                    <button type="button" class="row remove-date" @click=${this._onRemoveDate}>
+                        <ol-icon class="obd-icon" name="x"></ol-icon>
+                        <span class="label">${this.t('removeDate')}</span>
+                    </button>
+                ` : nothing}
+                <button type="button" class="row did-not-read" @click=${this._removeFromShelf}>
                     <ol-icon class="obd-icon" name="ban"></ol-icon>
                     <span class="label">${this.t('didNotRead')}</span>
                 </button>
@@ -1564,9 +1573,6 @@ export class OlShelfActions extends LitElement {
      */
     _removeFromShelf() {
         if (!this.shelf || this._held) return;
-        // The shelf change reports as RemoveFromShelf; a date going with it is
-        // what the old form's Delete button counted.
-        if (this.readDate) trackEvent('CheckInForm', 'DeleteCheckIn');
         this._backToMain();
         return this._postShelf(this.shelf);
     }
@@ -1687,6 +1693,29 @@ export class OlShelfActions extends LitElement {
             month: month ? Number(month) : null,
             day: day ? Number(day) : null,
         }, ['CheckInForm', 'SubmitCheckIn']);
+    }
+
+    /** Drops the date but keeps the shelf, as the old form's Delete Event did, under its event name. */
+    async _onRemoveDate() {
+        if (this._dateBusy || !this.eventId) return;
+        this._dateBusy = true;
+        try {
+            await deleteCheckIn(this.eventId);
+            this.readDate = null;
+            this.eventId = null;
+            trackEvent('CheckInForm', 'DeleteCheckIn');
+            this.dispatchEvent(new CustomEvent('ol-book-check-in', {
+                bubbles: true,
+                composed: true,
+                detail: { key: this.book.key, date: null, eventId: null },
+            }));
+            this._say(this.t('dateRemoved'));
+            this._backToMain();
+        } catch (error) {
+            this._fail(error);
+        } finally {
+            this._dateBusy = false;
+        }
     }
 
     /** @param {[string, string]} event - The analytics category and action for this answer. */

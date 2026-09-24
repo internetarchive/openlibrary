@@ -976,7 +976,8 @@ const checkInPane = el => el.shadowRoot.querySelectorAll('.pane')[2];
 const paneRows = el => [...checkInPane(el).querySelectorAll('.dates .row')];
 const yearRows = el => [...checkInPane(el).querySelectorAll('.row.year')];
 const otherDateRow = el => checkInPane(el).querySelector('.row.date-toggle');
-const notReadLink = el => checkInPane(el).querySelector('.not-read .row');
+const notReadLink = el => checkInPane(el).querySelector('.row.did-not-read');
+const removeDateRow = el => checkInPane(el).querySelector('.row.remove-date');
 const todayRow = el => checkInPane(el).querySelector('.row.today');
 const skipRow = el => checkInPane(el).querySelector('.row.skip');
 
@@ -1385,6 +1386,62 @@ describe('ol-shelf-actions check-in pane', () => {
         });
     });
 
+    describe('Remove date', () => {
+        const openPane = async(props = {}) => {
+            const el = await mount({ shelf: SHELF.ALREADY_READ, ...props });
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            return el;
+        };
+
+        test('is offered only when there is a date to remove', async() => {
+            stubFetch();
+            expect(removeDateRow(await openPane())).toBeNull();
+            expect(removeDateRow(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
+        });
+
+        test('deletes the check-in, keeps the shelf and slides back', async() => {
+            stubFetch();
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            const events = [];
+            el.addEventListener('ol-book-check-in', e => events.push(e.detail));
+            removeDateRow(el).click();
+            await tick(el);
+
+            expect(checkInWrites()).toHaveLength(1);
+            expect(checkInWrites()[0].url).toBe('/check-ins/12');
+            expect(checkInWrites()[0].init.method).toBe('DELETE');
+            expect(calls.find(c => c.url === '/works/OL1W/bookshelves.json')).toBeUndefined();
+            expect(el.shelf).toBe(SHELF.ALREADY_READ);
+            expect(el.readDate).toBeNull();
+            expect(el.eventId).toBeNull();
+            expect(el._pane).toBe('main');
+            expect(events).toEqual([{ key: '/works/OL1W', date: null, eventId: null }]);
+        });
+
+        test('so the next check-in adds an event instead of amending the deleted one', async() => {
+            stubFetch();
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            removeDateRow(el).click();
+            await tick(el);
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            yearRows(el)[0].click();
+            await tick(el);
+            expect(JSON.parse(checkInWrites()[1].init.body).event_id).toBeNull();
+        });
+
+        test('a failed delete keeps the date', async() => {
+            stubFetch({ failWith: 500 });
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            removeDateRow(el).click();
+            await tick(el);
+            expect(el.readDate).toBe('2025');
+            expect(el.eventId).toBe(12);
+            expect(el._pane).toBe('checkIn');
+        });
+    });
+
     test('a removal made outside the popover drops it too', async() => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
@@ -1474,14 +1531,22 @@ describe('ol-shelf-actions check-in pane', () => {
             expect(events()).toEqual([]);
         });
 
-        test('"I didn\'t read this" with a date recorded is the form\'s DeleteCheckIn', async() => {
+        test('Remove date is the form\'s DeleteCheckIn', async() => {
             const el = await openPane({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
-            notReadLink(el).click();
+            removeDateRow(el).click();
             await tick(el);
             expect(events()).toEqual([['CheckInPrompt', 'EditDate'], ['CheckInForm', 'DeleteCheckIn']]);
         });
 
-        test('and with none, only the shelf change reports', async() => {
+        // The shelf change reports as RemoveFromShelf; DeleteCheckIn keeps its old meaning.
+        test('"I didn\'t read this" is not, even with a date recorded', async() => {
+            const el = await openPane({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
+            notReadLink(el).click();
+            await tick(el);
+            expect(events()).toEqual([['CheckInPrompt', 'EditDate']]);
+        });
+
+        test('and with no date, nothing check-in reports', async() => {
             const el = await openPane({ shelf: SHELF.ALREADY_READ });
             notReadLink(el).click();
             await tick(el);

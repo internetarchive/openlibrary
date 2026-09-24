@@ -5218,6 +5218,10 @@ msgid "Finished %(date)s"
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
+msgid "Date removed"
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
 msgid "Rate this book"
 msgstr ""
 
@@ -5344,6 +5348,10 @@ msgstr ""
 
 #: my_books/shelf_button_i18n.html
 msgid "Day"
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
+msgid "Remove date"
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
