@@ -134,6 +134,7 @@ export class SearchModal extends LitElement {
         _ftHits: { state: true },
         _ftTotal: { state: true },
         _ftSearchKey: { state: true },
+        _ftQuery: { state: true },
         _ftLoading: { state: true },
     };
 
@@ -1000,13 +1001,15 @@ export class SearchModal extends LitElement {
         this._ftHits  = [];
         this._ftTotal = null;
         this._ftSearchKey = null;
+        this._ftQuery = '';
         this._ftLoading = false;
         this._ftBand  = new FulltextBand({
             getFilters: () => this._fulltextFilters(),
-            onChange: ({ hits, total, searchKey, loading }) => {
+            onChange: ({ hits, total, searchKey, query, loading }) => {
                 this._ftHits      = hits;
                 this._ftTotal     = total;
                 this._ftSearchKey = searchKey;
+                this._ftQuery     = query;
                 this._ftLoading   = loading;
             },
             onAttempt: (status) => this._scheduleBandOutcome(status),
@@ -1446,8 +1449,12 @@ export class SearchModal extends LitElement {
         }
 
         if (this._results.length === 0 && this._hasSearched) {
-            // The band doubles as a no-results rescue; with hits, scope the message to the catalog.
-            const emptyLabel = this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
+            // The band doubles as a no-results rescue; with hits, scope the
+            // message to the catalog. Only hits fetched for *this* query earn
+            // that narrowing — lingering ones say nothing about it.
+            const emptyLabel = this._ftIsCurrent() && this._visibleFtHits().length
+                ? this._i18n.noCatalogResults
+                : this._i18n.noResults;
             return html`<div class="results" @keydown=${this._onResultsKeydown}>
                 <div class="empty">${emptyLabel}</div>
                 ${this._renderFulltextBand()}
@@ -1485,11 +1492,10 @@ export class SearchModal extends LitElement {
         if (this._ftHits.length === 0) {
             return html`<div class="results"><div class="empty">${this._i18n.noInsideResults}</div></div>`;
         }
-        const q = this._query.trim();
         return html`
             <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
                 <ul class="results-list">
-                    ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
+                    ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
                 </ul>
             </div>
         `;
@@ -1515,7 +1521,6 @@ export class SearchModal extends LitElement {
     _renderFulltextBand() {
         const hits = this._visibleFtHits();
         if (hits.length === 0) return nothing;
-        const q = this._query.trim();
         return html`
             <div class="ft-band">
                 <h3 class="results-heading results-heading--icon">
@@ -1527,7 +1532,7 @@ export class SearchModal extends LitElement {
                     >${this._i18n.viewAllInside}${SearchModal._arrowRightIcon}</button>
                 </h3>
                 <ul class="results-list">
-                    ${hits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
+                    ${hits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
                 </ul>
             </div>
         `;
@@ -1551,17 +1556,25 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // Hits linger across edits, but the total belongs to one query + filters.
-    _ftTotalIsCurrent() {
-        if (typeof this._ftTotal !== 'number') return false;
+    // Whether the hits on screen were fetched for the query + filters in force
+    // now. They linger across edits, so anything that speaks for the current
+    // query — the total, the empty-state wording — has to check this first.
+    _ftIsCurrent() {
         return this._ftSearchKey === fulltextSearchParams(this._query.trim(), this._fulltextFilters()).toString();
+    }
+
+    _ftTotalIsCurrent() {
+        return typeof this._ftTotal === 'number' && this._ftIsCurrent();
     }
 
     _seeAllInsideLabel() {
         return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
     }
 
-    // Opens BookReader with the phrase-quoted query; its in-book search finds the passage.
+    // Opens BookReader with the phrase-quoted query; its in-book search finds
+    // the passage. `q` is the query the hit answers, not what's in the input:
+    // hits linger across edits, and quoting the new phrase would send the
+    // patron into a scan that never matched it.
     _renderFulltextHit(hit, q, index = 0) {
         const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
         const segments = parseSnippet(hit.snippet);

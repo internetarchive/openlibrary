@@ -7,7 +7,7 @@ import {
     phraseQuery,
     solrLooksWeak,
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltext';
-import { fulltextSearchParams } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltextBand';
+import { FulltextBand, fulltextSearchParams } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltextBand';
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal';
 
 describe('parseSnippet', () => {
@@ -370,6 +370,88 @@ describe('fulltext see-all freshness', () => {
     // _renderFulltextSeeAll is what drops the redundant number.
     test('a fully-shown total is still current', () => {
         expect(modalFor('white whale', 'q=white+whale', 2)._ftTotalIsCurrent()).toBe(true);
+    });
+});
+
+describe('the query a lingering hit answers', () => {
+    const HIT = {
+        fields: { identifier: ['mobydick00melv'], meta_title: ['Moby Dick'] },
+        highlight: { text: ['the {{{white whale}}} sounded'] },
+    };
+
+    const bandThatAnswers = async(query) => {
+        const onChange = vi.fn();
+        const band = new FulltextBand({
+            getFilters: () => ({ readable: false, languages: [] }),
+            onChange,
+        });
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ hits: { hits: [HIT], total: 12 } }),
+        });
+        band._fetch(query);
+        await vi.waitFor(() => expect(band.hits.length).toBe(1));
+        return { band, onChange };
+    };
+
+    test('the band reports the query its hits were fetched for', async() => {
+        const { band, onChange } = await bandThatAnswers('  white whale  ');
+
+        expect(band.query).toBe('white whale');
+        expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ query: 'white whale' }));
+    });
+
+    test('clearing forgets it, so no row can quote a dead query', () => {
+        const band = new FulltextBand({ getFilters: () => ({ readable: false, languages: [] }), onChange: vi.fn() });
+        band.hits = [{ ia: 'mobydick00melv' }];
+        band.query = 'white whale';
+
+        band.clear();
+
+        expect(band.query).toBe('');
+    });
+
+    // The bug this guards: the row links into BookReader, and quoting what's in
+    // the input would search a phrase the lingering scan never matched.
+    test('the row links to the phrase it shows, not the phrase being typed', async() => {
+        const { band } = await bandThatAnswers('white whale');
+        const modal = new SearchModal();
+        modal._query = 'white whales of the pacific';
+        modal._ftQuery = band.query;
+
+        const href = hrefOf(modal._renderFulltextHit(fulltextHitDisplay(HIT), modal._ftQuery));
+
+        expect(href).toContain(encodeURIComponent('"white whale"'));
+        expect(href).not.toContain('pacific');
+    });
+});
+
+// The BookReader link, picked out of the row template's interpolated values.
+// Matched on /details/ so the cover's /download/ URL can't stand in for it.
+function hrefOf(template) {
+    return template.values.find(v => typeof v === 'string' && v.startsWith('https://archive.org/details/'));
+}
+
+describe('the empty catalog message', () => {
+    const modalWithBand = (query, searchKey) => {
+        const modal = new SearchModal();
+        modal._query = query;
+        modal._languages = [];
+        modal._results = [];
+        modal._hasSearched = true;
+        modal._ftHits = [{ ia: 'mobydick00melv' }];
+        modal._ftSearchKey = searchKey;
+        return modal;
+    };
+
+    test('narrows to the catalog when the band answered this query', () => {
+        expect(modalWithBand('white whale', 'q=white+whale')._ftIsCurrent()).toBe(true);
+    });
+
+    // Otherwise "no catalog results" implies the rows below answer what was
+    // typed, and they don't — they're the previous query's.
+    test('stays general while the band is still catching up', () => {
+        expect(modalWithBand('white whales', 'q=white+whale')._ftIsCurrent()).toBe(false);
     });
 });
 

@@ -59,6 +59,11 @@ export class FulltextBand {
         // Params these hits were fetched for, so the modal can tell a total
         // still matches its "see all" link.
         this.searchKey = null;
+        // The query the hits on screen answer. Hits linger across edits, so the
+        // rows' BookReader links have to quote this rather than what's typed now
+        // — otherwise a lingering row searches the new phrase in a scan that
+        // matched the old one.
+        this.query = '';
         // Set while the Inside books tab is showing: every query fetches, and
         // the gates below step aside.
         this.explicit = false;
@@ -128,11 +133,17 @@ export class FulltextBand {
     /** Empty the band and invalidate any in-flight fetch. */
     clear() {
         this._fetchKey = null;
-        this._set([], null, null);
+        this._set([], null, null, '');
     }
 
     _notify() {
-        this._onChange({ hits: this.hits, total: this.total, searchKey: this.searchKey, loading: this.loading });
+        this._onChange({
+            hits: this.hits,
+            total: this.total,
+            searchKey: this.searchKey,
+            query: this.query,
+            loading: this.loading,
+        });
     }
 
     _setLoading(loading) {
@@ -142,11 +153,12 @@ export class FulltextBand {
     }
 
     /** Skips no-op notifies; clear() runs on most keystrokes. */
-    _set(hits, total, searchKey) {
+    _set(hits, total, searchKey, query) {
         const unchanged = this.hits.length === 0 && hits.length === 0 && this.total === total && !this.loading;
         this.hits = hits;
         this.total = total;
         this.searchKey = searchKey;
+        this.query = query;
         this.loading = false;
         if (!unchanged) this._notify();
     }
@@ -178,6 +190,7 @@ export class FulltextBand {
                     hits.map(fulltextHitDisplay).filter(Boolean),
                     typeof data?.hits?.total === 'number' ? data.hits.total : null,
                     searchKey,
+                    trimmed,
                 );
                 this._onAttempt('resolved');
             })
