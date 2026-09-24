@@ -4,7 +4,7 @@
  * toggle, create, and the recently-used lists it leans on). Network is stubbed
  * at `fetch`.
  */
-import { OlShelfActions } from '../../../openlibrary/components/lit/OlShelfActions.js';
+import { DEFAULT_LABELS, OlShelfActions, resetWorkEditionsCache } from '../../../openlibrary/components/lit/OlShelfActions.js';
 import { fmt, plural, translate } from '../../../openlibrary/components/lit/utils/labels.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
@@ -15,9 +15,18 @@ const BOOK = { key: '/works/OL1W', title: 'Project Hail Mary', firstPublishYear:
 
 let calls;
 let listData;
+/** Editions of BOOK's work, as the WorkEditions partial would answer. */
+let workEditions;
+/** Set to a promise to hold that answer back and watch what the pane does meanwhile. */
+let heldEditions;
+/** Make the editions request fail, to check the pane still works without it. */
+let failEditions;
 
 function stubFetch({ failWith } = {}) {
     calls = [];
+    workEditions = [];
+    heldEditions = null;
+    failEditions = false;
     listData = {
         '/people/tester/lists/OL1L': { listName: 'Summer 2026', members: ['/works/OL7W'] },
         '/people/tester/lists/OL2L': { listName: 'Sci-fi to reread', members: ['/works/OL1W'] },
@@ -26,6 +35,10 @@ function stubFetch({ failWith } = {}) {
         calls.push({ url, init });
         if (failWith) return { ok: false, status: failWith, json: async() => ({}) };
         let body = {};
+        if (String(url).includes('/partials/WorkEditions.json')) {
+            if (failEditions) return { ok: false, status: 500, json: async() => ({}) };
+            return { ok: true, status: 200, json: async() => ({ editions: heldEditions ? await heldEditions : workEditions }) };
+        }
         if (url.endsWith('/partials/MyBooksDropperLists.json')) body = { dropper: '', listData };
         if (url.endsWith('/lists.json') && init?.method === 'POST') body = { key: '/people/tester/lists/OL3L', revision: 1 };
         if (url.includes('/check-ins')) body = { status: 'ok', id: 42 };
@@ -47,6 +60,7 @@ beforeAll(() => {
 
 beforeEach(() => {
     resetListsStore();
+    resetWorkEditionsCache();
     clearRecentLists();
 });
 
@@ -101,6 +115,8 @@ describe('plural labels', () => {
     test('translate resolves a plural set and interpolates it', () => {
         expect(translate({}, { itemsInList: FORMS }, 'itemsInList', { count: 1 })).toBe('1 item');
         expect(translate({}, { itemsInList: FORMS }, 'itemsInList', { count: 2 })).toBe('2 items');
+        expect(translate({}, DEFAULT_LABELS, 'onLists', { count: 1 })).toBe('On 1 list');
+        expect(translate({}, DEFAULT_LABELS, 'onLists', { count: 3 })).toBe('On 3 lists');
     });
 
     test('uses the page language\'s rules, and falls back to other', () => {
@@ -220,7 +236,7 @@ describe('ol-shelf-actions lists pane', () => {
         await tick(el);
         expect(calls.some(c => c.url.endsWith('/partials/MyBooksDropperLists.json'))).toBe(true);
         // The stub puts OL1W in one of the two lists.
-        expect(q(el, '.group:last-child .count').textContent).toBe('1');
+        expect(q(el, '.group:last-child .count').textContent).toBe('On 1 list');
     });
 
     test('a failed prefetch stays silent and lets the pane retry', async() => {
@@ -243,7 +259,10 @@ describe('ol-shelf-actions lists pane', () => {
         expect(calls.some(c => c.url.endsWith('/partials/MyBooksDropperLists.json'))).toBe(true);
         const rows = qa(el, '.list-row');
         expect(rows.map(r => r.querySelector('.name').textContent)).toEqual(['Summer 2026', 'Sci-fi to reread']);
-        expect(rows.map(r => r.querySelector('input').checked)).toEqual([false, true]);
+        // Neither row is ticked: OL2L holds the book with no edition named, so
+        // it carries the label instead of the tick.
+        expect(rows.map(r => r.querySelector('input').checked)).toEqual([false, false]);
+        expect(rows.map(r => r.querySelector('.other-form')?.textContent ?? null)).toEqual([null, 'Any edition']);
         expect(rows.map(r => r.querySelector('.count').textContent)).toEqual(['1', '1']);
     });
 
@@ -266,6 +285,8 @@ describe('ol-shelf-actions lists pane', () => {
 
     test('toggling a checkbox adds/removes the seed', async() => {
         stubFetch();
+        // OL2L holds the edition this button writes, so its row is the ticked one.
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL9M'];
         const el = await mount();
         q(el, '.group:last-child .row').click();
         await tick(el);
@@ -277,9 +298,163 @@ describe('ol-shelf-actions lists pane', () => {
         await tick(el);
         const add = calls.find(c => c.url === '/people/tester/lists/OL1L/seeds.json');
         const remove = calls.find(c => c.url === '/people/tester/lists/OL2L/seeds.json');
-        expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
-        expect(JSON.parse(remove.init.body)).toEqual({ remove: [{ key: '/works/OL1W' }] });
+        expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/books/OL9M' }] });
+        expect(JSON.parse(remove.init.body)).toEqual({ remove: [{ key: '/books/OL9M' }] });
         expect(qa(el, '.list-row .count').map(c => c.textContent)).toEqual(['2', '0']);
+    });
+
+    test('toggling a checkbox announces it with ol-list-change', async() => {
+        stubFetch();
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL9M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const seen = [];
+        el.addEventListener('ol-list-change', e => seen.push(e.detail));
+        const [first, second] = qa(el, '.list-row input');
+        first.checked = true;
+        first.dispatchEvent(new Event('change'));
+        await tick(el);
+        second.checked = false;
+        second.dispatchEvent(new Event('change'));
+        await tick(el);
+        expect(seen).toEqual([
+            { key: '/people/tester/lists/OL1L', name: 'Summer 2026', seedKey: '/books/OL9M', member: true },
+            { key: '/people/tester/lists/OL2L', name: 'Sci-fi to reread', seedKey: '/books/OL9M', member: false },
+        ]);
+    });
+
+    test('a list holding another edition says so, and takes this one too', async() => {
+        stubFetch();
+        // OL2L holds /books/OL8M — another edition of the same work, filed from
+        // some other surface. Nothing on this button names that key.
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL8M'];
+        workEditions = ['OL9M', 'OL8M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const [, second] = qa(el, '.list-row');
+        // Unticked, because this edition is not on it — but the row says the
+        // book is, so adding is a choice rather than an accident.
+        expect(second.querySelector('input').checked).toBe(false);
+        expect(second.querySelector('.other-form').textContent).toBe('1 other edition');
+        const input = second.querySelector('input');
+        input.checked = true;
+        input.dispatchEvent(new Event('change'));
+        await tick(el);
+        const add = calls.find(c => c.url === '/people/tester/lists/OL2L/seeds.json');
+        expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/books/OL9M' }] });
+        // Both editions now, which is the whole point of allowing it.
+        expect(getLists()['/people/tester/lists/OL2L'].members).toEqual(['/books/OL8M', '/books/OL9M']);
+        // And the label stands: ticked, it is the count of copies on the list.
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('1 other edition');
+    });
+
+    test('the label counts every other edition the list holds', async() => {
+        stubFetch();
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL8M', '/books/OL7M'];
+        workEditions = ['OL9M', 'OL8M', 'OL7M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('2 other editions');
+    });
+
+    test('unticking takes only this edition, never the one already there', async() => {
+        stubFetch();
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL8M', '/books/OL9M'];
+        workEditions = ['OL9M', 'OL8M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const [, second] = qa(el, '.list-row input');
+        expect(second.checked).toBe(true);
+        second.checked = false;
+        second.dispatchEvent(new Event('change'));
+        await tick(el);
+        const remove = calls.find(c => c.url === '/people/tester/lists/OL2L/seeds.json');
+        expect(JSON.parse(remove.init.body)).toEqual({ remove: [{ key: '/books/OL9M' }] });
+        expect(getLists()['/people/tester/lists/OL2L'].members).toEqual(['/books/OL8M']);
+    });
+
+    test('the lists pane waits rather than show a list the book is on as bare', async() => {
+        stubFetch();
+        let release;
+        heldEditions = new Promise(resolve => { release = resolve; });
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL8M'];
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        // Editions still in flight: the spinner stands in, so no row can claim
+        // the book is absent when another edition of it is already there.
+        expect(q(el, '.loading')).not.toBeNull();
+        expect(qa(el, '.list-row input')).toHaveLength(0);
+        release(['OL9M', 'OL8M']);
+        await tick(el);
+        expect(q(el, '.loading')).toBeNull();
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('1 other edition');
+    });
+
+    test('the editions are fetched once for a book, however many popovers ask', async() => {
+        stubFetch();
+        workEditions = ['OL9M'];
+        const el = await mount();
+        const sibling = await mount();
+        await tick(el);
+        await tick(sibling);
+        const fetches = calls.filter(c => String(c.url).includes('WorkEditions'));
+        expect(fetches).toHaveLength(1);
+    });
+
+    test('a book whose editions cannot be fetched still matches on what it knows', async() => {
+        stubFetch();
+        failEditions = true;
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        // OL2L holds the work, which this button names itself, so the pane is
+        // usable and correct without the fetch.
+        expect(q(el, '.loading')).toBeNull();
+        // OL2L holds the work, which this button names itself, so that much is
+        // still known without the fetch — only sibling editions go unseen.
+        expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('Any edition');
+    });
+
+    test('a list holding the book with no edition named says so', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        // OL2L holds /works/OL1W: the book, no edition named. This button
+        // writes an edition, so the row is unticked and labelled.
+        const [, second] = qa(el, '.list-row');
+        expect(second.querySelector('input').checked).toBe(false);
+        expect(second.querySelector('.other-form').textContent).toBe('Any edition');
+        // It still counts as the book being on a list.
+        expect(el._listCount).toBe(1);
+    });
+
+    test('a list with neither the book nor any edition of it is bare', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const [first] = qa(el, '.list-row');
+        expect(first.querySelector('input').checked).toBe(false);
+        expect(first.querySelector('.other-form')).toBeNull();
+    });
+
+    test('with no edition in view the work is what gets filed', async() => {
+        stubFetch();
+        const el = await mount({ book: { key: '/works/OL1W', title: 'Project Hail Mary' } });
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const [first] = qa(el, '.list-row input');
+        first.checked = true;
+        first.dispatchEvent(new Event('change'));
+        await tick(el);
+        const add = calls.find(c => c.url === '/people/tester/lists/OL1L/seeds.json');
+        expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
     });
 
     test('create list inlines an input, posts, and prepends the new list', async() => {
@@ -287,7 +462,7 @@ describe('ol-shelf-actions lists pane', () => {
         const el = await mount();
         q(el, '.group:last-child .row').click();
         await tick(el);
-        q(el, '.lists-header ol-button').click();
+        q(el, '.lists-header ol-button:not(.back)').click();
         await el.updateComplete;
         const form = q(el, 'form.field');
         expect(form).not.toBeNull();
@@ -295,11 +470,21 @@ describe('ol-shelf-actions lists pane', () => {
         form.dispatchEvent(new Event('submit', { cancelable: true }));
         await tick(el);
         const post = calls.find(c => c.url === '/people/tester/lists.json');
-        expect(JSON.parse(post.init.body)).toEqual({ name: 'Gothic autumn', description: '', seeds: [{ key: '/works/OL1W' }] });
+        expect(JSON.parse(post.init.body)).toEqual({ name: 'Gothic autumn', description: '', seeds: [{ key: '/books/OL9M' }] });
         expect(el._creating).toBe(false);
         const rows = qa(el, '.list-row');
         expect(rows[0].querySelector('.name').textContent).toBe('Gothic autumn');
         expect(rows[0].querySelector('input').checked).toBe(true);
+    });
+
+    test('links to the reader\'s lists below the rows', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const link = q(el, '.lists-footer ol-button');
+        expect(link.getAttribute('href')).toBe('/people/tester/lists');
+        expect(link.textContent.trim()).toBe('Manage lists');
     });
 
     test('Escape in the lists pane goes back instead of closing', async() => {
@@ -355,7 +540,8 @@ describe('ol-shelf-actions lists pane, sized to the reader', () => {
         expect(el.shadowRoot.activeElement).toBe(form.querySelector('.input'));
         // Nothing else competing: no filter, no rows, and no second way in.
         expect(qa(el, '.list-row')).toHaveLength(0);
-        expect(q(el, '.lists-header ol-button')).toBeNull();
+        expect(q(el, '.lists-header ol-button:not(.back)')).toBeNull();
+        expect(q(el, '.lists-footer')).toBeNull();
     });
 
     test('the first list drops the create form and leaves a row', async() => {
@@ -370,6 +556,9 @@ describe('ol-shelf-actions lists pane, sized to the reader', () => {
         expect(q(el, '.pane:nth-child(2) .caption')).toBeNull();
         expect(q(el, 'form.field')).toBeNull();
         expect(qa(el, '.list-row .name').map(n => n.textContent)).toEqual(['Gothic autumn']);
+        // A list to go and see now, so the way to the lists appears, quietly.
+        expect(q(el, '.lists-footer ol-button').getAttribute('href')).toBe('/people/tester/lists');
+        expect(document.querySelector('ol-toast')).toBeNull();
     });
 
     test('Escape out of that form leaves the pane, not the form', async() => {
@@ -388,7 +577,7 @@ describe('ol-shelf-actions shared lists', () => {
     async function createList(el, name) {
         q(el, '.group:last-child .row').click();
         await tick(el);
-        q(el, '.lists-header ol-button').click();
+        q(el, '.lists-header ol-button:not(.back)').click();
         await el.updateComplete;
         const form = q(el, 'form.field');
         form.querySelector('input').value = name;
@@ -403,13 +592,13 @@ describe('ol-shelf-actions shared lists', () => {
         document.addEventListener('ol-list-created', e => seen.push(e), { once: true });
         await createList(el, 'Gothic autumn');
         expect(seen).toHaveLength(1);
-        expect(seen[0].detail).toEqual({ key: '/people/tester/lists/OL3L', name: 'Gothic autumn', seedKey: '/works/OL1W' });
+        expect(seen[0].detail).toEqual({ key: '/people/tester/lists/OL3L', name: 'Gothic autumn', seedKey: '/books/OL9M' });
     });
 
     test('a sibling popover picks up the new list without refetching', async() => {
         stubFetch();
         const el = await mount();
-        const sibling = await mount({ book: { ...BOOK, key: '/works/OL2W' } });
+        const sibling = await mount({ book: { ...BOOK, key: '/works/OL2W', editionKey: 'OL8M' } });
         await tick(sibling);
         const fetches = () => calls.filter(c => c.url.endsWith('/partials/MyBooksDropperLists.json')).length;
         const before = fetches();
@@ -492,7 +681,7 @@ describe('ol-shelf-actions recent lists', () => {
         await openPane(el);
         await toggle(el, 0, true);
 
-        const next = await mount({ book: { ...BOOK, key: '/works/OL2W' } });
+        const next = await mount({ book: { ...BOOK, key: '/works/OL2W', editionKey: 'OL8M' } });
         await tick(next);
         const shortcut = q(next, '.row.shortcut');
         expect(shortcut.querySelector('.label').textContent).toBe('Summer 2026');
@@ -501,7 +690,7 @@ describe('ol-shelf-actions recent lists', () => {
         shortcut.click();
         await tick(next);
         const post = calls.filter(c => c.url === '/people/tester/lists/OL1L/seeds.json').pop();
-        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/works/OL2W' }] });
+        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/books/OL8M' }] });
         expect(q(next, '.row.shortcut').getAttribute('aria-pressed')).toBe('true');
     });
 
@@ -514,12 +703,51 @@ describe('ol-shelf-actions recent lists', () => {
         expect(q(el, '.row.shortcut .label').textContent).toBe('Summer 2026');
     });
 
+    // No visible heading: the icon says what a tap does, and the group's name
+    // is for screen readers, who don't see the rows sit under Add to list.
+    test('the shortcuts lead with plus or check and are named for screen readers', async() => {
+        noteListUsed('/people/tester', '/people/tester/lists/OL1L', 'Summer 2026');
+        noteListUsed('/people/tester', '/people/tester/lists/OL2L', 'Sci-fi to reread');
+        stubFetch();
+        listData['/people/tester/lists/OL2L'].members = ['/books/OL9M'];
+        const el = await mount();
+        await tick(el);
+        expect(q(el, '.shortcuts').getAttribute('aria-label')).toBe('Recently used');
+        expect(qa(el, '.row.shortcut .label').map(n => n.textContent)).toEqual(['Sci-fi to reread', 'Summer 2026']);
+        expect(qa(el, '.row.shortcut').map(r => [r.getAttribute('aria-pressed'), r.querySelector('ol-icon').getAttribute('name')])).toEqual([
+            ['true', 'check'],
+            ['false', 'plus'],
+        ]);
+    });
+
+    test('offers two recent lists at most, the store keeping a third for the pane', async() => {
+        stubFetch();
+        listData['/people/tester/lists/OL3L'] = { listName: 'List 3', members: [] };
+        ['OL1L', 'OL2L', 'OL3L'].forEach(id => noteListUsed('/people/tester', `/people/tester/lists/${id}`, id));
+        const el = await mount();
+        await tick(el);
+        expect(qa(el, '.row.shortcut .label').map(n => n.textContent)).toEqual(['List 3', 'Sci-fi to reread']);
+    });
+
+    test('no recent lists, no shortcuts group', async() => {
+        stubFetch();
+        const el = await mount();
+        await tick(el);
+        expect(q(el, '.shortcuts')).toBeNull();
+    });
+
     test('a remembered list that has since gone takes its row with it', async() => {
         noteListUsed('/people/tester', '/people/tester/lists/OL9L', 'Deleted');
         stubFetch();
         const el = await mount();
         await tick(el);
-        expect(q(el, '.row.shortcut')).toBeNull();
+        expect(q(el, '.shortcuts')).toBeNull();
+
+        // With a live one beside it, only the gone row is dropped.
+        noteListUsed('/people/tester', '/people/tester/lists/OL1L', 'Summer 2026');
+        const next = await mount();
+        await tick(next);
+        expect(qa(next, '.row.shortcut .label').map(n => n.textContent)).toEqual(['Summer 2026']);
     });
 
     test('pins the recent lists above the rest once there are enough to scroll', async() => {
@@ -602,7 +830,7 @@ describe('ol-shelf-actions recent lists', () => {
         input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }));
         await tick(el);
         const post = calls.find(c => c.url === '/people/tester/lists/OL1L/seeds.json');
-        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
+        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/books/OL9M' }] });
         expect(q(el, '.sr-only').textContent).toBe('Added to Summer 2026');
         // The filter stays put: the row it matched is right there, now checked.
         expect(input.value).toBe('summer');
@@ -622,6 +850,76 @@ describe('ol-shelf-actions hide-rating', () => {
         stubFetch();
         const el = await mount();
         expect(q(el, '.group.rating')).not.toBeNull();
+    });
+});
+
+describe('ol-shelf-actions stars elsewhere', () => {
+    // jsdom does no layout, so the form says whether it is visible.
+    function starForm(workKey, visible) {
+        const form = document.createElement('form');
+        form.className = 'star-rating-form';
+        form.dataset.workKey = workKey;
+        form.checkVisibility = () => visible;
+        document.body.appendChild(form);
+        return form;
+    }
+
+    test('drops the stars while a visible star form for the book is on the page', async() => {
+        stubFetch();
+        starForm(BOOK.key, true);
+        const el = await mount();
+        expect(q(el, '.group.rating')).toBeNull();
+        expect(qa(el, '.group.shelves .row')).toHaveLength(4);
+    });
+
+    test('keeps the stars when that form is hidden, or is for another book', async() => {
+        stubFetch();
+        starForm(BOOK.key, false);
+        starForm('/works/OL2W', true);
+        const el = await mount();
+        expect(q(el, '.group.rating')).not.toBeNull();
+    });
+
+    test('checks again on the next open, so a layout toggle is honoured', async() => {
+        stubFetch();
+        const form = starForm(BOOK.key, true);
+        const el = await mount();
+        expect(q(el, '.group.rating')).toBeNull();
+        form.checkVisibility = () => false;
+        el.open();
+        await tick(el);
+        expect(q(el, '.group.rating')).not.toBeNull();
+    });
+});
+
+describe('ol-shelf-actions pending', () => {
+    // Posting the shelf a book is already on removes it, so a click before the
+    // state is known could undo a save. Held, not disabled: disabling the
+    // focused row would drop focus.
+    test('marks the shelf and rating groups busy and ignores their clicks', async() => {
+        stubFetch();
+        const el = await mount({ pending: true });
+        expect(q(el, '.group.shelves').getAttribute('aria-busy')).toBe('true');
+        expect(q(el, '.group.rating').getAttribute('aria-busy')).toBe('true');
+        qa(el, '.group.shelves .row')[0].click();
+        qa(el, '.star')[3].click();
+        await tick(el);
+        expect(el.shelf).toBeNull();
+        expect(el.rating).toBeNull();
+        expect(calls.filter(c => c.url.startsWith('/works/'))).toHaveLength(0);
+    });
+
+    test('lets go once the state arrives', async() => {
+        stubFetch();
+        const el = await mount({ pending: true });
+        el.pending = false;
+        el.shelf = SHELF.CURRENTLY_READING;
+        await el.updateComplete;
+        expect(q(el, '.group.shelves').getAttribute('aria-busy')).toBe('false');
+        expect(qa(el, '.group.shelves .row')[1].getAttribute('aria-pressed')).toBe('true');
+        qa(el, '.group.shelves .row')[0].click();
+        await tick(el);
+        expect(el.shelf).toBe(SHELF.WANT_TO_READ);
     });
 });
 
@@ -678,7 +976,10 @@ const checkInPane = el => el.shadowRoot.querySelectorAll('.pane')[2];
 const paneRows = el => [...checkInPane(el).querySelectorAll('.dates .row')];
 const yearRows = el => [...checkInPane(el).querySelectorAll('.row.year')];
 const otherDateRow = el => checkInPane(el).querySelector('.row.date-toggle');
-const notReadLink = el => checkInPane(el).querySelector('.not-read .row');
+const notReadLink = el => checkInPane(el).querySelector('.row.did-not-read');
+const removeDateRow = el => checkInPane(el).querySelector('.row.remove-date');
+const todayRow = el => checkInPane(el).querySelector('.row.today');
+const skipRow = el => checkInPane(el).querySelector('.row.skip');
 
 describe('quickYears', () => {
     test('one year once the new year has bedded in', () => {
@@ -703,8 +1004,33 @@ describe('ol-shelf-actions check-in pane', () => {
         await tick(el);
         expect(el._pane).toBe('checkIn');
         expect(paneRows(el).map(r => r.textContent.trim())).toEqual([
-            'Today', ...quickYears().map(y => `In ${y}`), 'Other date',
+            'Skip', 'Today', ...quickYears().map(y => `In ${y}`), 'Other date',
         ]);
+    });
+
+    test('Skip keeps the shelf, writes no date, and slides back', async() => {
+        stubFetch();
+        const el = await mount();
+        const alreadyRead = qa(el, '.group.shelves .row')[2];
+        alreadyRead.click();
+        await tick(el);
+        // Focus lands on an answer, not on declining one.
+        expect(el.shadowRoot.activeElement).toBe(todayRow(el));
+        skipRow(el).click();
+        await tick(el);
+        expect(el._pane).toBe('main');
+        expect(el.shelf).toBe(SHELF.ALREADY_READ);
+        expect(checkInWrites()).toHaveLength(0);
+        expect(el.shadowRoot.activeElement).toBe(alreadyRead);
+    });
+
+    // With a date, Skip would read as clearing it; Back keeps it.
+    test('Skip is not offered once a date is recorded', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025' });
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        expect(skipRow(el)).toBeNull();
     });
 
     test('the other three shelves do not', async() => {
@@ -752,6 +1078,14 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(row.querySelector('.trail').getAttribute('name')).toBe('chevron-right');
     });
 
+    test('with no date yet, the Already Read row hints at adding one', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ });
+        const row = qa(el, '.group.shelves .row')[2];
+        expect(row.querySelector('.count.hint').textContent).toBe('Add date');
+        expect(row.querySelector('.trail').getAttribute('name')).toBe('chevron-right');
+    });
+
     test('a partial date shows only what is known', async() => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2026-08' });
@@ -764,6 +1098,7 @@ describe('ol-shelf-actions check-in pane', () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.CURRENTLY_READING, readDate: '2026' });
         const row = qa(el, '.group.shelves .row')[2];
+        // Nor the hint: off the shelf, there is no read to date.
         expect(row.querySelector('.count')).toBeNull();
         // Still a way through to the date, which the popover has not forgotten.
         expect(row.querySelector('.trail').getAttribute('name')).toBe('chevron-right');
@@ -789,7 +1124,7 @@ describe('ol-shelf-actions check-in pane', () => {
         const el = await mount();
         qa(el, '.group.shelves .row')[2].click();
         await tick(el);
-        paneRows(el)[0].click();
+        todayRow(el).click();
         await tick(el);
         const now = new Date();
         expect(JSON.parse(checkInWrites()[0].init.body)).toEqual({
@@ -828,7 +1163,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(selects()).toHaveLength(3);
         // Disclosed under the row, not in place of it: the one-tap answers
         // stay on screen.
-        expect(paneRows(el)).toHaveLength(2 + yearRows(el).length);
+        expect(paneRows(el)).toHaveLength(3 + yearRows(el).length);
         expect(selects()[1].disabled).toBe(true);
         expect(selects()[2].disabled).toBe(true);
 
@@ -939,7 +1274,7 @@ describe('ol-shelf-actions check-in pane', () => {
         await tick(el);
         otherDateRow(el).click();
         await tick(el);
-        paneRows(el)[0].click();
+        todayRow(el).click();
         await tick(el);
         expect(JSON.parse(checkInWrites()[0].init.body).day).toBe(new Date().getDate());
     });
@@ -988,6 +1323,27 @@ describe('ol-shelf-actions check-in pane', () => {
             expect(notReadLink(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
         });
 
+        // Someone who just tapped Already Read is here to date the read, not to undo it.
+        test('is not offered right after shelving the book', async() => {
+            stubFetch();
+            const el = await mount();
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            expect(el._pane).toBe('checkIn');
+            expect(notReadLink(el)).toBeNull();
+        });
+
+        test('appears once the book is on the shelf and its row is pressed again', async() => {
+            stubFetch();
+            const el = await mount();
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            await el._backToMain();
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            expect(notReadLink(el)).not.toBeNull();
+        });
+
         test('takes the book off the shelf and slides back', async() => {
             stubFetch();
             const el = await openPane({ readDate: '2025', eventId: 12 });
@@ -1030,6 +1386,62 @@ describe('ol-shelf-actions check-in pane', () => {
         });
     });
 
+    describe('Remove date', () => {
+        const openPane = async(props = {}) => {
+            const el = await mount({ shelf: SHELF.ALREADY_READ, ...props });
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            return el;
+        };
+
+        test('is offered only when there is a date to remove', async() => {
+            stubFetch();
+            expect(removeDateRow(await openPane())).toBeNull();
+            expect(removeDateRow(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
+        });
+
+        test('deletes the check-in, keeps the shelf and slides back', async() => {
+            stubFetch();
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            const events = [];
+            el.addEventListener('ol-book-check-in', e => events.push(e.detail));
+            removeDateRow(el).click();
+            await tick(el);
+
+            expect(checkInWrites()).toHaveLength(1);
+            expect(checkInWrites()[0].url).toBe('/check-ins/12');
+            expect(checkInWrites()[0].init.method).toBe('DELETE');
+            expect(calls.find(c => c.url === '/works/OL1W/bookshelves.json')).toBeUndefined();
+            expect(el.shelf).toBe(SHELF.ALREADY_READ);
+            expect(el.readDate).toBeNull();
+            expect(el.eventId).toBeNull();
+            expect(el._pane).toBe('main');
+            expect(events).toEqual([{ key: '/works/OL1W', date: null, eventId: null }]);
+        });
+
+        test('so the next check-in adds an event instead of amending the deleted one', async() => {
+            stubFetch();
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            removeDateRow(el).click();
+            await tick(el);
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            yearRows(el)[0].click();
+            await tick(el);
+            expect(JSON.parse(checkInWrites()[1].init.body).event_id).toBeNull();
+        });
+
+        test('a failed delete keeps the date', async() => {
+            stubFetch({ failWith: 500 });
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            removeDateRow(el).click();
+            await tick(el);
+            expect(el.readDate).toBe('2025');
+            expect(el.eventId).toBe(12);
+            expect(el._pane).toBe('checkIn');
+        });
+    });
+
     test('a removal made outside the popover drops it too', async() => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
@@ -1050,6 +1462,96 @@ describe('ol-shelf-actions check-in pane', () => {
         await tick(el);
         expect(event.defaultPrevented).toBe(true);
         expect(el._pane).toBe('main');
+    });
+
+    // The old prompt and form reported under these names; the dashboards
+    // built on them must keep counting when the same answers move in here.
+    describe('analytics', () => {
+        const events = () => window._paq.filter(e => e[0] === 'trackEvent' && /^CheckIn/.test(e[1])).map(e => e.slice(1));
+
+        beforeEach(() => { window._paq = []; });
+        afterEach(() => { delete window._paq; });
+
+        const openPane = async(props) => {
+            stubFetch();
+            const el = await mount(props);
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            return el;
+        };
+
+        // Marking a book read asks the question unbidden: that is the
+        // impression the answers below are measured against.
+        test('the prompt reports itself shown when it follows a shelf change', async() => {
+            await openPane();
+            expect(events()).toEqual([['CheckInPrompt', 'Shown']]);
+        });
+
+        test('Today is the prompt\'s SetDateToday', async() => {
+            const el = await openPane();
+            todayRow(el).click();
+            await tick(el);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateToday']]);
+        });
+
+        test('a quick year is the prompt\'s SetDateCurrentYear', async() => {
+            const el = await openPane();
+            yearRows(el)[0].click();
+            await tick(el);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCurrentYear']]);
+        });
+
+        test('opening the fields is the prompt\'s Other; saving them is the form\'s submit', async() => {
+            const el = await openPane();
+            otherDateRow(el).click();
+            await tick(el);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCustom']]);
+            el._setDatePart('year', '2024');
+            await tick(el);
+            checkInPane(el).querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+            await tick(el);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCustom'], ['CheckInForm', 'SubmitCheckIn']]);
+        });
+
+        test('Skip is its own event', async() => {
+            const el = await openPane();
+            skipRow(el).click();
+            await tick(el);
+            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'Skip']]);
+        });
+
+        test('reopening the pane on a recorded date is the prompt\'s EditDate', async() => {
+            await openPane({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
+            expect(events()).toEqual([['CheckInPrompt', 'EditDate']]);
+        });
+
+        // Asked for by the reader, not put to them: neither shown nor an edit.
+        test('reopening it with no date yet is not an edit', async() => {
+            await openPane({ shelf: SHELF.ALREADY_READ });
+            expect(events()).toEqual([]);
+        });
+
+        test('Remove date is the form\'s DeleteCheckIn', async() => {
+            const el = await openPane({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
+            removeDateRow(el).click();
+            await tick(el);
+            expect(events()).toEqual([['CheckInPrompt', 'EditDate'], ['CheckInForm', 'DeleteCheckIn']]);
+        });
+
+        // The shelf change reports as RemoveFromShelf; DeleteCheckIn keeps its old meaning.
+        test('"I didn\'t read this" is not, even with a date recorded', async() => {
+            const el = await openPane({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
+            notReadLink(el).click();
+            await tick(el);
+            expect(events()).toEqual([['CheckInPrompt', 'EditDate']]);
+        });
+
+        test('and with no date, nothing check-in reports', async() => {
+            const el = await openPane({ shelf: SHELF.ALREADY_READ });
+            notReadLink(el).click();
+            await tick(el);
+            expect(events()).toEqual([]);
+        });
     });
 });
 
@@ -1187,9 +1689,11 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         const question = pane.querySelector('#check-in-question');
         expect(question.textContent).toBe('When did you finish this book?');
         expect(group.getAttribute('aria-labelledby')).toBe('check-in-question');
-        const rows = [...group.querySelectorAll('.row')];
+        // Skip declines rather than answers, so it holds no pressed state.
+        const rows = [...group.querySelectorAll('.row:not(.skip)')];
         expect(rows.every(r => r.hasAttribute('aria-pressed'))).toBe(true);
         expect(rows.every(r => r.getAttribute('aria-current') === null)).toBe(true);
+        expect(group.querySelector('.row.skip').hasAttribute('aria-pressed')).toBe(false);
     });
 
     test('Other date only claims aria-controls once the fields exist', async() => {
@@ -1211,7 +1715,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         const alreadyRead = qa(el, '.group.shelves .row')[2];
         alreadyRead.click();
         await tick(el);
-        q(el, '.pane:nth-child(3) .row').click(); // Today
+        todayRow(el).click();
         await tick(el);
         await tick(el);
         expect(el._pane).toBe('main');
@@ -1244,7 +1748,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         const el = await mount();
         q(el, '.group.lists-entry .row').click();
         await tick(el);
-        q(el, '.lists-header ol-button').click();
+        q(el, '.lists-header ol-button:not(.back)').click();
         await tick(el);
         const input = q(el, 'form.field .input');
         expect(input.disabled).toBe(false);
@@ -1253,6 +1757,50 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         await tick(el);
         await tick(el);
         expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .list-row input'));
+    });
+
+    test('opening the create form lands on the name field', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group.lists-entry .row').click();
+        await tick(el);
+        q(el, '.lists-header ol-button:not(.back)').click();
+        await tick(el);
+        expect(el.shadowRoot.activeElement).toBe(q(el, 'form.field .input'));
+    });
+
+    describe('on mobile', () => {
+        // ol-popover's tray breakpoint; the soft keyboard would cover the pane.
+        const mobile = query => ({
+            matches: query === '(max-width: 767px)', media: query,
+            addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
+        });
+        let desktop;
+        beforeEach(() => { desktop = window.matchMedia; window.matchMedia = mobile; });
+        afterEach(() => { window.matchMedia = desktop; });
+        // The tray's scroll lock restores the page position on close; jsdom has no scrollTo.
+        beforeAll(() => { window.scrollTo = () => {}; });
+
+        test('the lists pane opens on Back, not the filter', async() => {
+            stubFetch();
+            padLists();
+            const el = await mount();
+            q(el, '.group.lists-entry .row').click();
+            await tick(el);
+            expect(q(el, '.pane:nth-child(2) .input')).not.toBeNull();
+            expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .back'));
+        });
+
+        test('the create form does not raise the keyboard', async() => {
+            stubFetch();
+            const el = await mount();
+            q(el, '.group.lists-entry .row').click();
+            await tick(el);
+            q(el, '.lists-header ol-button:not(.back)').click();
+            await tick(el);
+            expect(q(el, 'form.field .input')).not.toBeNull();
+            expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .back'));
+        });
     });
 
     test('list item counts are pluralised', async() => {
@@ -1267,5 +1815,50 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         q(next, '.group.lists-entry .row').click();
         await tick(next);
         expect(qa(next, '.list-row .count')[0].getAttribute('aria-label')).toBe('2 items');
+    });
+});
+
+describe('ol-shelf-actions lists-only', () => {
+    const AUTHOR = { key: '/authors/OL3A', title: 'Ursula K. Le Guin' };
+
+    test('opens on the lists pane with the seed as heading, no shelves, stars or back', async() => {
+        stubFetch();
+        listData['/people/tester/lists/OL1L'].members.push('/authors/OL3A');
+        const el = await mount({ book: AUTHOR, listsOnly: true });
+        await tick(el);
+        expect(el._pane).toBe('lists');
+        expect(q(el, '.lists-title').textContent).toBe('Ursula K. Le Guin');
+        expect(q(el, '.back')).toBeNull();
+        expect(q(el, '.group.shelves')).toBeNull();
+        expect(q(el, '.group.rating')).toBeNull();
+        // The rows are the reader's lists, checked where the author is a member.
+        const rows = qa(el, '.list-row input');
+        expect(rows).toHaveLength(2);
+        expect(rows.filter(r => r.checked)).toHaveLength(1);
+    });
+
+    test('toggling a list posts the seed and reports the change', async() => {
+        stubFetch();
+        const el = await mount({ book: AUTHOR, listsOnly: true });
+        await tick(el);
+        const events = [];
+        el.addEventListener('ol-list-change', e => events.push(e.detail));
+        const row = qa(el, '.list-row input').find(r => !r.checked);
+        row.click();
+        await tick(el);
+        const post = calls.find(c => c.url.endsWith('/seeds.json'));
+        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/authors/OL3A' }] });
+        expect(events[0]).toMatchObject({ seedKey: '/authors/OL3A', member: true });
+    });
+
+    test('escape closes instead of stepping back to a main pane it does not have', async() => {
+        stubFetch();
+        const el = await mount({ book: AUTHOR, listsOnly: true });
+        await tick(el);
+        const popover = q(el, 'ol-popover');
+        const close = new CustomEvent('ol-popover-close', { cancelable: true, detail: { reason: 'escape' } });
+        popover.dispatchEvent(close);
+        expect(close.defaultPrevented).toBe(false);
+        expect(el._pane).toBe('lists');
     });
 });
