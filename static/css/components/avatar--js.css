@@ -1,0 +1,86 @@
+/**
+ * Avatar (Profile Picture) component styles.
+ * Loaded dynamically via avatar.js off the critical CSS rendering path.
+ */
+
+.avatar-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-stack-md);
+}
+
+.avatar-preview-container {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--border-radius-avatar);
+  overflow: hidden;
+  border: 2px solid var(--color-border-subtle);
+  background-color: var(--color-surface);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-preview-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+}
+
+.avatar-controls input[type="file"] {
+  font-size: 0.9em;
+}
+
+.avatar-button-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-stack-xs);
+  flex-wrap: wrap;
+}
+
+.avatar-btn {
+  display: inline-block;
+  width: auto;
+  padding: 5px 12px;
+  font-size: var(--font-size-label-small, 13px);
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+}
+
+.avatar-btn--upload {
+  color: var(--color-text);
+  background-color: var(--neutral-100);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.avatar-btn--remove {
+  color: var(--color-danger-fg);
+  background-color: var(--white);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.avatar-upload-status {
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.avatar-upload-status--success {
+  color: var(--color-success-fg);
+}
+
+.avatar-upload-status--error {
+  color: var(--color-danger-fg);
+}
+
+.avatar-upload-status--info {
+  color: var(--color-text);
+}

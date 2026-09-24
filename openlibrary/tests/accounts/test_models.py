@@ -3,6 +3,7 @@ from unittest import mock
 from requests.models import Response
 
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, model
+from openlibrary.utils.request_context import site
 
 
 def get_username(account):
@@ -30,6 +31,24 @@ def test_parse_s3_cookie_returns_none_when_absent():
 @mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
 def test_parse_s3_cookie_returns_none_for_tampered_token(mock_secret_key):
     assert model.parse_s3_cookie("not-a-real-token") is None
+
+
+def test_get_s3_keys_reads_store_via_site_contextvar(monkeypatch):
+    """The store fallback must work without web.ctx (the FastAPI request path)."""
+    account = mock.MagicMock()
+    account._key = "account/testuser"
+    mock_site = mock.MagicMock()
+    mock_site.store.get.return_value = {"s3_keys": {"access": "AKIA", "secret": "sec"}}
+    site.set(mock_site)
+
+    assert model.get_s3_keys(account) == {"access": "AKIA", "secret": "sec"}
+    mock_site.store.get.assert_called_once_with("account/testuser", {})
+
+
+@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
+def test_get_s3_keys_prefers_the_s3_cookie(mock_secret_key):
+    keys = {"access": "AKIA-cookie", "secret": "cookie-secret"}
+    assert model.get_s3_keys({}, s3_cookie=model.encrypt_s3_keys(keys["access"], keys["secret"])) == keys
 
 
 def test_xauth_http_error_without_json(monkeypatch):
