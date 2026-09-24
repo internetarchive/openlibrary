@@ -113,6 +113,15 @@ QUERY_PARSER_TESTS = {
         'lcc:"NC-0760.00000000.B2813"',
     ),
     # TODO Add tests for DDC
+    # more-like-this
+    "like: is a search field, not escaped text": (
+        "like:OL123W",
+        "like:OL123W",
+    ),
+    "like: keeps a full work key (with / escaped)": (
+        "like:/works/OL123W",
+        "like:\\/works\\/OL123W",
+    ),
 }
 
 
@@ -178,3 +187,168 @@ def test_q_to_solr_params_local_params_fq_not_rewritten_for_editions():
         )
     editions_fq_values = [v for k, v in params if k == "editions.fq"]
     assert not any("OL192489W" in v for v in editions_fq_values)
+
+
+MLT_SEED_TESTS = {
+    "Bare OLID": ("like:OL123W", ["/works/OL123W"]),
+    "Full work key": ("like:/works/OL123W", ["/works/OL123W"]),
+    "Quoted work key": ('like:"/works/OL123W"', ["/works/OL123W"]),
+    "Lowercase OLID": ("like:ol123w", ["/works/OL123W"]),
+    "Alongside another field": ("like:OL123W language:eng", ["/works/OL123W"]),
+    "Several seeds": ("like:(OL1W OR OL2W)", ["/works/OL1W", "/works/OL2W"]),
+    "Value naming no work": ("like:nonsense", []),
+    "No like clause": ("language:eng", []),
+}
+
+
+@pytest.mark.parametrize(
+    ("query", "seed_keys"),
+    MLT_SEED_TESTS.values(),
+    ids=MLT_SEED_TESTS.keys(),
+)
+def test_q_to_solr_params_mlt_seeds(query, seed_keys):
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(s.process_user_query(query), {"editions:[subquery]"}, [])
+
+    assert [v for k, v in params if k.startswith("mltSeed")] == seed_keys
+
+
+def test_q_to_solr_params_mlt_query_shape():
+    """A `like:` clause becomes a separate mandatory more-like-this clause, and
+    drops out of the work/edition queries, which can't express local params."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(s.process_user_query("like:OL123W subject:Zen"), {"editions:[subquery]"}, [])
+    params_d = dict(params)
+
+    assert params_d["mltSeed0"] == "/works/OL123W"
+    assert "like" not in params_d["userWorkQuery"]
+    assert params_d["userWorkQuery"] == "subject:Zen"
+    assert "like" not in params_d["userEdQuery"]
+    assert "{!mlt" in params_d["q"]
+    # Solr's mlt parser only drops its own seed, so the seed is excluded explicitly
+    assert '-key:("/works/OL123W")' in params_d["q"]
+
+
+def test_q_to_solr_params_mlt_excludes_every_seed():
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(s.process_user_query("like:(OL1W OR OL2W)"), {"editions:[subquery]"}, [])
+    params_d = dict(params)
+
+    assert '-key:("/works/OL1W" OR "/works/OL2W")' in params_d["q"]
+
+
+def test_q_to_solr_params_mlt_only_query_matches_all_works():
+    """`like:X` on its own leaves no user query, so the work query must not be
+    left empty; the more-like-this clause does the filtering."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(s.process_user_query("like:OL123W"), {"editions:[subquery]"}, [])
+    params_d = dict(params)
+
+    assert params_d["userWorkQuery"] == "*:*"
+    assert "{!mlt" in params_d["q"]
+
+
+def test_q_to_solr_params_invalid_like_matches_nothing():
+    """`like:` is reachable from any search box, so a value that names no work
+    has to produce no results rather than an error."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(s.process_user_query("like:nonsense"), {"editions:[subquery]"}, [])
+    params_d = dict(params)
+
+    assert not any(k.startswith("mltSeed") for k, _ in params)
+    assert "{!mlt" not in params_d["q"]
+    assert "(*:* -*:*)" in params_d["q"]
+
+
+def test_q_to_solr_params_no_mlt_clause_when_no_like():
+    """Queries without `like:` must be untouched by the more-like-this handling."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(s.process_user_query("subject:Zen"), {"editions:[subquery]"}, [])
+    params_d = dict(params)
+
+    assert not any(k.startswith("mltSeed") for k, _ in params)
+    assert "{!mlt" not in params_d["q"]
+
+
+def test_q_to_solr_params_mlt_params_overridable():
+    """MLT tuning comes from the request so it can be A/B'd without a deploy."""
+    from openlibrary.fastapi.models import SolrInternalsParams
+
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(
+            s.process_user_query("like:OL123W"),
+            {"editions:[subquery]"},
+            [],
+            solr_internals_params=SolrInternalsParams(mlt_mintf="7", mlt_qf="subject"),
+        )
+    q = dict(params)["q"]
+
+    assert "mintf=7" in q
+    assert "qf=subject " in q
+    # Unmentioned params keep their defaults
+    assert "maxqt=50" in q
+
+
+def test_q_to_solr_params_no_popularity_boost_for_mlt():
+    """OL's popularity prior is additive with the more-like-this score and of
+    comparable size, so leaving it on ranks by fame instead of likeness."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        mlt = dict(s.q_to_solr_params(s.process_user_query("like:OL123W"), {"editions:[subquery]"}, []))
+        plain = dict(s.q_to_solr_params(s.process_user_query("dune"), {"editions:[subquery]"}, []))
+
+    # Match the popularity function itself: the mlt clause has a `boost` local
+    # param of its own, and the parent clause mentions edition_count.
+    assert 'boost="sum(' not in mlt["q"]
+    # Ordinary searches keep it
+    assert 'boost="sum(' in plain["q"]
+
+
+def test_q_to_solr_params_popularity_boost_still_overridable_for_mlt():
+    """The A/B knob wins over our default, so a prior can be tried on top."""
+    from openlibrary.fastapi.models import SolrInternalsParams
+
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(
+            s.process_user_query("like:OL123W"),
+            {"editions:[subquery]"},
+            [],
+            solr_internals_params=SolrInternalsParams(solr_boost="log(readinglog_count)"),
+        )
+
+    assert 'boost="log(readinglog_count)"' in dict(params)["q"]

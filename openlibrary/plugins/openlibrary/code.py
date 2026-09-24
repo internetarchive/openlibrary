@@ -1156,6 +1156,7 @@ def setup():
         design,
         events,
         home,
+        more_like_this,
         partials,
         sentry,
         stats,
@@ -1173,6 +1174,7 @@ def setup():
     sentry.setup()
     home.setup()
     design.setup()
+    more_like_this.setup()
     borrow_home.setup()
     stats.setup()
     events.setup()

@@ -41,6 +41,44 @@ from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger("openlibrary.worksearch")
 re_author_key = re.compile(r"(OL\d+A)")
+re_work_key = re.compile(r"(OL\d+W)")
+
+# Local params for solr's "more like this" query parser, used by the `like:`
+# search field. See
+# https://solr.apache.org/guide/solr/latest/query-guide/other-parsers.html#more-like-this-query-parser
+# Calibrated against the production index (~44M works) via
+# /developers/more-like-this; the thresholds are absolute document counts, so
+# they do not transfer to a small index. On a local dev index nothing clears
+# `mindf`, and `like:` returns nothing until you lower it (the dev page exposes
+# every value below as an `mlt_*` url param).
+MLT_LOCAL_PARAMS = MappingProxyType(
+    {
+        # Fields whose terms describe what a work "is about". The parser rebuilds
+        # the seed work's terms from the *stored* values of these fields, so each
+        # one must have stored="true" in the solr schema (note the `*_facet`
+        # variants do not). `title` earns its place: without it a seed's own
+        # sequels and series stop matching at all.
+        "qf": "subject^4 person^2 place^2 time^2 title author_name",
+        # Default is 2, which throws away nearly every term we care about: a
+        # subject/person/place is usually listed once per work, so its term
+        # frequency is 1.
+        "mintf": "1",
+        # Terms rarer than this are mostly cataloguing noise, and being rare they
+        # score high enough to drag a whole result set off-topic.
+        "mindf": "2000",
+        # Terms more common than this (~5% of works) say nothing about subject
+        # matter. Not lower: genre-level terms like "Science fiction" land in the
+        # high hundreds of thousands and are exactly what relates a series.
+        "maxdf": "2000000",
+        "maxqt": "50",
+        # False on purpose. Weighting each term by how distinctive it is sounds
+        # right, but it makes one idiosyncratic subject heading outweigh broad
+        # agreement and surfaces obscure books over a seed's own sequels.
+        # Unweighted, a work matching many of the seed's terms wins, which is
+        # the behaviour we want.
+        "boost": "false",
+    }
+)
 
 
 class WorkSearchScheme(SearchScheme):
@@ -124,6 +162,9 @@ class WorkSearchScheme(SearchScheme):
             "editions.opds_acquisitions",
         }
     )
+    # Fields that aren't solr fields at all, but which the scheme rewrites into
+    # solr query syntax in q_to_solr_params.
+    query_only_fields = frozenset({"like"})
     facet_fields = frozenset(
         {
             "has_fulltext",
@@ -279,7 +320,7 @@ class WorkSearchScheme(SearchScheme):
         # New variable introduced to prevent rewriting the input.
         if field.startswith(("work.", "edition.")):
             return self.is_search_field(field.partition(".")[2])
-        return super().is_search_field(field) or field.startswith("id_")
+        return super().is_search_field(field) or field in self.query_only_fields or field.startswith("id_")
 
     def transform_user_query(self, user_query: str, q_tree: luqum.tree.Item) -> luqum.tree.Item:
         has_search_fields = False
@@ -339,6 +380,25 @@ class WorkSearchScheme(SearchScheme):
         # See luqum_parser for details.
         work_q_tree = luqum_parser(q)
 
+        # `like:` clauses become a more-like-this query, which can't live inside
+        # the edismax/parent queries the rest of the tree becomes, so lift them
+        # out before anything else looks at the tree.
+        work_q_tree, mlt_seed_keys, saw_like = pop_mlt_seed_keys(work_q_tree)
+        mlt_query = None
+        if mlt_seed_keys:
+            seed_params = [f"mltSeed{i}" for i in range(len(mlt_seed_keys))]
+            new_params += list(zip(seed_params, mlt_seed_keys))
+            mlt_query = build_mlt_query(
+                seed_params,
+                mlt_seed_keys,
+                solr_internals_params.mlt_overrides() if solr_internals_params else None,
+            )
+        elif saw_like:
+            # `like:` named no work, so nothing can be similar to it. Spelled
+            # out as a positive/negative pair rather than a bare `-*:*`, which
+            # only matches nothing by way of solr's pure-negative rewriting.
+            mlt_query = "(*:* -*:*)"
+
         # Removes the work prefix from fields; used as the callable argument for 'luqum_replace_field'
         def remove_work_prefix(field: str) -> str:
             return field.partition(".")[2] if field.startswith("work.") else field
@@ -373,7 +433,16 @@ class WorkSearchScheme(SearchScheme):
             # match the query terms in close proximity to each other.
             solr_pf="alternative_title^50 author_name^50 series_name^5",
             solr_pf2="alternative_title^20 author_name^20 series_name^5 chapter^5",
-            solr_boost="sum(mul(20,log(sum(3,edition_count))),min(50,def(already_read_count,0)),mul(35,log(div(sum(4,def(readinglog_count,0)), 4))))",
+            # OL's popularity prior. Dropped for more-like-this queries: it is
+            # *additive* with the similarity score and of comparable magnitude,
+            # so it reorders by fame rather than likeness — measured on
+            # production, it made a linear algebra textbook recommend "Eat That
+            # Frog" and returned the same few bestsellers for every seed.
+            solr_boost=(
+                None
+                if mlt_query
+                else "sum(mul(20,log(sum(3,edition_count))),min(50,def(already_read_count,0)),mul(35,log(div(sum(4,def(readinglog_count,0)), 4))))"
+            ),
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called userWorkQuery.
@@ -564,24 +633,26 @@ class WorkSearchScheme(SearchScheme):
                 ),
             )
 
+        q_clauses = [full_work_query]
+        if mlt_query:
+            q_clauses.append(mlt_query)
         if ed_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
             new_params.append(("fullEdQuery", cast(str, full_ed_query) if ed_q else "*:*"))
-            q = (
-                f"+{full_work_query} "
+            q_clauses.append(
                 # This is using the special parent query syntax to, on top of
                 # the user's `full_work_query`, also only find works which have
                 # editions matching the edition query.
                 # Also include edition-less works (i.e. edition_count:0)
-                "+("
-                '_query_:"{!parent which=type:work v=$fullEdQuery filters=$editions.fq}" '
-                "OR edition_count:0"
-                ")"
+                '(_query_:"{!parent which=type:work v=$fullEdQuery filters=$editions.fq}" OR edition_count:0)'
             )
-            new_params.append(("q", q))
-        else:
+        if len(q_clauses) == 1:
             new_params.append(("q", full_work_query))
+        else:
+            # All clauses are mandatory; scores still sum, so relevance from each
+            # (edismax boosts, more-like-this similarity) contributes.
+            new_params.append(("q", " ".join(f"+{clause}" for clause in q_clauses)))
 
         if highlight:
             highlight_fields = ("subject", "chapter")
@@ -838,6 +909,95 @@ def isbn_transform(sf: luqum.tree.SearchField):
             field_val.value = isbn
     else:
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
+
+
+def pop_mlt_seed_keys(
+    q_tree: luqum.tree.Item,
+) -> tuple[luqum.tree.Item, list[str], bool]:
+    """
+    Strip any `like:<work>` clauses out of a work query, returning what's left of
+    the tree, the work keys those clauses named, and whether there was a `like:`
+    clause at all (which the caller needs in order to tell "no `like:` clause"
+    apart from "a `like:` clause that named no valid work").
+
+    `like:` isn't a solr field; it becomes a more-like-this query, whose
+    local-params syntax can't be nested inside the edismax query the rest of the
+    tree turns into, so it has to be lifted out and applied as its own clause.
+
+    >>> pop_mlt_seed_keys(luqum_parser('like:OL123W'))[1:]
+    (['/works/OL123W'], True)
+    >>> str(pop_mlt_seed_keys(luqum_parser('like:OL123W'))[0])
+    '*:*'
+    >>> pop_mlt_seed_keys(luqum_parser(r'like:\\/works\\/OL123W'))[1]
+    ['/works/OL123W']
+    >>> tree, seeds, saw = pop_mlt_seed_keys(luqum_parser('like:(OL1W OR OL2W) language:eng'))
+    >>> str(tree), seeds
+    ('language:eng', ['/works/OL1W', '/works/OL2W'])
+    >>> pop_mlt_seed_keys(luqum_parser('language:eng'))[1:]
+    ([], False)
+    >>> pop_mlt_seed_keys(luqum_parser('like:nonsense'))[1:]
+    ([], True)
+    """
+    seed_keys: list[str] = []
+    saw_like = False
+    for node, parents in luqum_traverse(q_tree):
+        if not isinstance(node, luqum.tree.SearchField) or node.name != "like":
+            continue
+        saw_like = True
+        for val_node, _ in luqum_traverse(node.expr):
+            if isinstance(val_node, (luqum.tree.Word, luqum.tree.Phrase)):
+                # The value arrives escaped by process_user_query (`/` -> `\/`)
+                # and possibly quoted, and may be either a full work key or a
+                # bare OLID.
+                raw = str(val_node.value).strip('"').replace("\\", "")
+                if m := re_work_key.search(raw.upper()):
+                    seed_keys.append(f"/works/{m.group(1)}")
+                else:
+                    # Don't raise: `like:` is user input reachable from any
+                    # search box, and the caller renders this as "no results".
+                    logger.warning("Ignoring like: value naming no work: %r", raw)
+        try:
+            luqum_remove_child(node, parents)
+        except EmptyTreeError:
+            # `like:` was the entire query; match everything and let the
+            # more-like-this clause do the filtering.
+            q_tree = luqum_parser("*:*")
+    return q_tree, seed_keys, saw_like
+
+
+def build_mlt_query(
+    seed_key_params: list[str],
+    seed_keys: list[str],
+    overrides: dict[str, str] | None = None,
+) -> str:
+    """
+    Build the solr clause that finds works similar to one or more seed works.
+
+    Takes the names of the solr params holding the seed work keys, as well as the
+    keys, so that the more-like-this queries themselves don't have to escape the
+    keys into their nested query.
+
+    `overrides` replaces individual MLT_LOCAL_PARAMS entries, so the tuning can
+    be driven from the request (see SolrInternalsParams.mlt_overrides).
+
+    >>> q = build_mlt_query(['mltSeed0'], ['/works/OL1W'])
+    >>> print(q.replace(MLT_LOCAL_PARAMS['qf'], '<QF>'))
+    (_query_:"{!mlt boost=false maxdf=2000000 maxqt=50 mindf=2000 mintf=1 qf='<QF>' v=$mltSeed0}" -key:("/works/OL1W"))
+    >>> print(build_mlt_query(['mltSeed0'], ['/works/OL1W'], {'mintf': '4', 'qf': 'subject'}))
+    (_query_:"{!mlt boost=false maxdf=2000000 maxqt=50 mindf=2000 mintf=4 qf=subject v=$mltSeed0}" -key:("/works/OL1W"))
+    >>> print(build_mlt_query(['mltSeed0', 'mltSeed1'], ['/works/OL1W', '/works/OL2W'])[-53:])
+    v=$mltSeed1}") -key:("/works/OL1W" OR "/works/OL2W"))
+    """
+    params = {**MLT_LOCAL_PARAMS, **(overrides or {})}
+    local_params = " ".join(f"{k}='{v}'" if " " in v else f"{k}={v}" for k, v in sorted(params.items()))
+    clauses = [f'_query_:"{{!mlt {local_params} v=${param}}}"' for param in seed_key_params]
+    # Multiple seeds are a union: a work similar to any of them matches, and one
+    # similar to several of them scores higher.
+    similar = clauses[0] if len(clauses) == 1 else "(" + " OR ".join(clauses) + ")"
+    # Each more-like-this query only drops its own seed, so with several seeds
+    # every seed still matches via the other seeds' clauses. Exclude them all.
+    excluded = " OR ".join(f'"{key}"' for key in seed_keys)
+    return f"({similar} -key:({excluded}))"
 
 
 def get_fulltext_min():

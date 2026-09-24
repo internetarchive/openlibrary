@@ -1,0 +1,10 @@
+$def with (data)
+
+$# /developers/more-like-this — a thin shim into the Jinja template, mirroring
+$# how /developers/design is served. `data` is the Context built in
+$# openlibrary/plugins/openlibrary/more_like_this.py.
+$# This page is developer-facing and intentionally English-only — no i18n.
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('full-width')
+
+$:render_jinja_template("more_like_this/page.html.jinja", data=data)
