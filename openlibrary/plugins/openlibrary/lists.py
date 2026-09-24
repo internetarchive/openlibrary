@@ -246,14 +246,21 @@ def get_list_data(list, seed, include_cover_url=True):
     return d
 
 
+def evict_user_lists(user_key: str) -> None:
+    """Drop the memoised list keys of a user, so the next read sees a list just made or deleted.
+
+    The infobase edit hook evicts the same entry, but not reliably in every environment.
+    """
+    cache.memcache_cache.delete("d" + user_key)
+
+
 @public
 def get_user_lists(seed_info):
     user = get_current_user()
     if not user:
         return []
-    # An explicit limit bypasses the memcache memo, which only infobase evicts; the
-    # popover reads this, so a just-created list has to show. Same limit as My Books.
-    user_lists = user.get_lists(limit=1000, sort=True)
+    # The default limit is the memcached path; the list write paths below evict it.
+    user_lists = user.get_lists(sort=True)
     seed = seed_info["seed"] if seed_info else None
     return [get_list_data(user_list, seed, include_cover_url=False) for user_list in user_lists]
 
@@ -466,6 +473,8 @@ class lists_delete:
 
         delete_doc = {"key": key, "type": {"key": "/type/delete"}}
         site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
+        if key.startswith("/people/"):
+            evict_user_lists(key.rsplit("/lists/", 1)[0])
 
 
 def build_pagination_links(
@@ -561,12 +570,14 @@ class lists_json:
         if spamcheck.is_spam(lst):
             raise SpamListError
 
-        return site.save(
+        result = site.save(
             lst.dict(),
             comment="Created new list.",
             action="create-list",
             data={"list": {"key": lst.key}, "seeds": seeds},
         )
+        evict_user_lists(user.key)
+        return result
 
     @staticmethod
     def process_seeds(

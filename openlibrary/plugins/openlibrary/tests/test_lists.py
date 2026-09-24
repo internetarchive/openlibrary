@@ -533,3 +533,36 @@ class TestListViewGet:
             legacy_lists.list_view().GET("/lists/OL1L")
 
         lst.get_seeds.assert_called_once_with(sort=True, resolve_redirects=True)
+
+
+class TestUserListsEviction:
+    def test_get_user_lists_uses_the_cached_default_limit(self):
+        user = Mock()
+        user.get_lists.return_value = []
+        with patch.object(legacy_lists, "get_current_user", return_value=user):
+            assert legacy_lists.get_user_lists(None) == []
+        user.get_lists.assert_called_once_with(sort=True)
+
+    def test_process_new_list_evicts_the_users_memoised_lists(self):
+        user = Mock(key="/people/alice")
+        user.new_list.return_value = Mock(key="/people/alice/lists/OL1L", dict=Mock(return_value={}))
+        site = Mock()
+        with (
+            patch.object(legacy_lists.spamcheck, "is_spam", return_value=False),
+            patch.object(legacy_lists.cache.memcache_cache, "delete") as delete,
+        ):
+            legacy_lists.lists_json.process_new_list(user, {"name": "x", "seeds": []}, site)
+        site.save.assert_called_once()
+        delete.assert_called_once_with("d/people/alice")
+
+    def test_process_delete_evicts_the_owners_memoised_lists(self):
+        doc = Mock(key="/people/alice/lists/OL1L")
+        fake_site = Mock()
+        token = legacy_lists.site.set(fake_site)
+        try:
+            with patch.object(legacy_lists.cache.memcache_cache, "delete") as delete:
+                legacy_lists.lists_delete.process_delete(doc, doc.key)
+        finally:
+            legacy_lists.site.reset(token)
+        fake_site.save.assert_called_once()
+        delete.assert_any_call("d/people/alice")
