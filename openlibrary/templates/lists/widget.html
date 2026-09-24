@@ -22,7 +22,7 @@ $if ctx.user:
   $# lists/list-showcase.js fills this with the lists the seeds are on.
   $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key] or [page.key]
   <ul class="listLists already-lists" data-seed-keys="$json_encode(seed_keys)">
-    <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
+    <li class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</li>
   </ul>
 
 $if work and include_rating:
