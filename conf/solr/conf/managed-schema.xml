@@ -165,6 +165,27 @@
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
+    <!-- Near-realtime loan availability, written to EDITION docs by loan_availability_updater. -->
+    <!-- These record EXCEPTIONS to a default, not availability itself: an ebook_access:borrowable -->
+    <!-- edition is assumed AVAILABLE unless ebook_unavailable=1 says otherwise. Absent and 0 both -->
+    <!-- mean available, so consumers must query ebook_access:borrowable AND -ebook_unavailable:1 -->
+    <!-- rather than treating a missing value as unknown. -->
+    <!-- stored="false" + indexed="false": required for update.partial.requireInPlace to work. -->
+    <!-- Solr in-place updates additionally require the field to be numeric: string and pdate -->
+    <!-- fields return HTTP 400 on requireInPlace regardless of docValues/stored/indexed. -->
+    <!-- CAVEAT, indexed="false": these are cheap to RETRIEVE for docs a query already matched -->
+    <!-- (docValues lookup over the result page), but filtering or faceting on them is a -->
+    <!-- docValues scan proportional to the number of editions, not to the number of matches. -->
+    <!-- Suitable for hydrating search results; NOT yet suitable as a search filter. Making it -->
+    <!-- one means indexed="true", which forfeits in-place updates, and a non-in-place atomic -->
+    <!-- update to a nested child reindexes the parent work and all its editions. Unresolved. -->
+    <!-- requireInPlace also rejects "set": null (can't clear in-place, even from no value), so -->
+    <!-- ebook_becomes_available is left stale rather than cleared when a book frees up; it is -->
+    <!-- advisory display data ("available in N days") and is meaningful ONLY when -->
+    <!-- ebook_unavailable=1. See loan_availability_updater.py. -->
+    <field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <field name="ebook_becomes_available" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <field name="loan_uid" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 
     <!-- Usefulness scores -->
     <field name="usefulness_score" type="pint" multiValued="false"/>
