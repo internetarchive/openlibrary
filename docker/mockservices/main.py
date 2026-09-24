@@ -7,7 +7,7 @@ provides mocks for external services that do not have dev interceptors:
   - IA S3 auth (was /internal/fake/s3auth)
   - IA loans   (was /internal/fake/loans)
   - IA loans "changes" feed (needed by the near-realtime loan availability updater)
-  - IA availability v2 (was not mocked — pointed at real archive.org)
+  - IA availability v2 (derived from the loans "changes" window)
   - IA borrow status (was hardcoded in lending.py)
   - reCAPTCHA siteverify
   - be-api full-text search
@@ -38,6 +38,7 @@ import json as jsonlib
 import logging
 import random
 import time
+import zlib
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
@@ -52,6 +53,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    await _ensure_solr_editions()
     await _seed_loan_changes()
     task = asyncio.create_task(_loan_changes_ongoing_loop())
     yield
@@ -296,7 +298,7 @@ AVAILABILITY_VARIANTS = [
         "available_to_borrow": False,
         "available_to_browse": False,
         "available_to_waitlist": True,
-        "num_waitlist": 3,
+        "num_waitlist": "3",
         "is_previewable": True,
     },
     # 4. "Checked Out" (All copies on loan, waitlist closed)
@@ -334,9 +336,36 @@ AVAILABILITY_VARIANTS = [
 ]
 
 
+# Every field OL reads off an availability response. The variants above are
+# deliberately sparse -- each names only what distinguishes it -- so they are
+# overlaid onto this. Without it a variant silently omits fields the site
+# reads: `is_printdisabled` gates the print-disabled path, `last_loan_date`
+# and `last_waitlist_date` render in the admin loans table, and
+# `num_waitlist` is typed `str | None` in lending.py (it was emitted as an
+# int here, which the tolerant `int(... or 0)` at lending.py:719 absorbed
+# rather than surfaced).
+_AVAILABILITY_DEFAULTS: dict[str, Any] = {
+    "status": "error",
+    "available_to_browse": False,
+    "available_to_borrow": False,
+    "available_to_waitlist": False,
+    "is_printdisabled": False,
+    "is_readable": False,
+    "is_lendable": False,
+    "is_previewable": False,
+    "isbn": None,
+    "oclc": None,
+    "openlibrary_work": None,
+    "openlibrary_edition": None,
+    "last_loan_date": None,
+    "num_waitlist": "0",
+    "last_waitlist_date": None,
+}
+
+
 def _deterministic_availability(item_id: str) -> dict[str, Any]:
     idx = int(hashlib.md5(item_id.encode("utf-8")).hexdigest(), 16) % len(AVAILABILITY_VARIANTS)
-    res = AVAILABILITY_VARIANTS[idx].copy()
+    res = _AVAILABILITY_DEFAULTS | AVAILABILITY_VARIANTS[idx]
     res["identifier"] = item_id
     return res
 
@@ -497,6 +526,26 @@ def _make_loan_event(identifier: str, when: datetime, event_type: str) -> dict:
     }
 
 
+async def _ensure_solr_editions() -> None:
+    """Dev bootstrap: on an empty Solr, seed the fallback ocaids as nested edition docs
+    so the loan-availability updater has real editions to resolve. No-op when Solr already
+    has ia-bearing editions (real data present). Fail-soft."""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(_SOLR_URL, params={"q": "ia:*", "rows": 0, "wt": "json"})
+            resp.raise_for_status()
+            if resp.json()["response"]["numFound"]:
+                return  # real editions already present; don't pollute the index
+            docs = [
+                {"key": f"/works/OL_MOCK{i}W", "type": "work", "editions": [{"key": f"/books/OL_MOCK{i}M", "type": "edition", "ia": [ocaid]}]}
+                for i, ocaid in enumerate(_FALLBACK_IA_IDS)
+            ]
+            await client.post(_SOLR_URL.replace("/select", "/update"), params={"commit": "true"}, json=docs)
+            logger.info("loan changes: seeded %d dev editions into empty Solr for loan-availability testing", len(docs))
+    except (httpx.HTTPError, KeyError, ValueError):  # fmt: skip
+        logger.warning("loan changes: could not seed dev editions into Solr; loop may resolve nothing")
+
+
 async def _seed_loan_changes() -> None:
     ids = await _fetch_real_ia_ids()
     now = datetime.now(UTC)
@@ -539,8 +588,84 @@ async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JS
 
 # ---------------------------------------------------------------------------
 # IA Availability API v2
-# GET/POST /services/availability/
+# GET/POST /services/availability/?identifier=a,b,c
+#
+# Two answer sources, and which one applies depends on the identifier.
+#
+# An identifier the loan-changes window knows about gets an EVENT-DERIVED
+# answer, so /services/availability/ and the changes feed agree about it. The
+# loan availability updater is tested against exactly that agreement.
+#
+# Any other identifier falls through to the variant matrix
+# (_deterministic_availability), which sweeps the full CTA state space so every
+# state stays previewable in dev. That is what test_every_variant_is_reachable
+# pins, and an event-derived answer cannot satisfy it -- it only ever produces
+# three shapes.
+#
+# Within the event-derived path two buckets diverge from the events on purpose,
+# because they are the states an event stream cannot predict:
+#
+#   - MULTI-COPY ids report available even while a borrow is active (the item
+#     owns several copies, so one loan does not exhaust it).
+#   - WAITLISTED ids report unavailable even after a return, and carry a
+#     non-zero num_waitlist (the freed copy goes to the head of the queue).
 # ---------------------------------------------------------------------------
+
+_AVAILABILITY_BUCKETS = 5
+_MULTI_COPY_BUCKET = 0
+_WAITLISTED_BUCKET = 1
+_ACTIVE_LOAN_EVENTS = ("borrow", "browse", "renew_borrow", "renew_browse")
+
+
+def _availability_bucket(identifier: str) -> int:
+    """Stable per-identifier bucket. crc32, not hash(): str hashing is salted
+    per process, which would make the mock's answers change on every restart."""
+    return zlib.crc32(identifier.encode()) % _AVAILABILITY_BUCKETS
+
+
+def _latest_event_for(identifier: str, events: list[dict]) -> dict | None:
+    latest = None
+    for event in events:
+        if event["identifier"] == identifier and (latest is None or event["uid"] > latest["uid"]):
+            latest = event
+    return latest
+
+
+def _availability_for(identifier: str, events: list[dict]) -> dict:
+    bucket = _availability_bucket(identifier)
+    latest = _latest_event_for(identifier, events)
+
+    on_loan = False
+    if latest and latest["event_type"] in _ACTIVE_LOAN_EVENTS:
+        until = jsonlib.loads(latest["extra"] or "{}").get("until")
+        on_loan = not until or datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC) > datetime.now(UTC)
+
+    if bucket == _MULTI_COPY_BUCKET:
+        available = True
+    elif bucket == _WAITLISTED_BUCKET:
+        available = False
+    else:
+        available = not on_loan
+
+    num_waitlist = 3 if (not available and bucket == _WAITLISTED_BUCKET) else 0
+    return {
+        "status": "borrow_available" if available else "borrow_unavailable",
+        "available_to_browse": available,
+        "available_to_borrow": available,
+        "available_to_waitlist": bool(num_waitlist),
+        "is_printdisabled": True,
+        "is_readable": False,
+        "is_lendable": True,
+        "is_previewable": True,
+        "identifier": identifier,
+        "isbn": None,
+        "oclc": None,
+        "openlibrary_work": None,
+        "openlibrary_edition": None,
+        "last_loan_date": latest["time"] if latest else None,
+        "num_waitlist": str(num_waitlist),
+        "last_waitlist_date": None,
+    }
 
 
 @app.api_route("/services/availability/", methods=["GET", "POST"])
@@ -564,7 +689,14 @@ async def availability(
     else:
         ids = [i.strip() for i in str(raw_ids).split(",") if i.strip()]
 
-    responses = {item_id: _deterministic_availability(item_id) for item_id in ids}
+    async with _loan_changes_lock:
+        events = list(_loan_changes)
+    known = {event["identifier"] for event in events}
+
+    # Event-derived for identifiers the changes window knows about, so this
+    # endpoint and the changes feed cannot disagree about them; the variant
+    # matrix for everything else.
+    responses = {item_id: (_availability_for(item_id, events) if item_id in known else _deterministic_availability(item_id)) for item_id in ids}
     return JSONResponse({"success": True, "responses": responses})
 
 
