@@ -170,59 +170,11 @@ export class SearchModal extends LitElement {
         /* ── Search input row ──────────────────────────────────────── */
 
         .bar {
-            position: relative;
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
             padding: var(--spacing-md) var(--spacing-lg);
             border-bottom: var(--border-divider);
-        }
-
-        /* ── Search in flight ──────────────────────────────────────── */
-
-        /* Sits on the bar's own divider while a newer answer is outstanding, so
-           the signal is next to the input the patron is typing in. Appears with
-           the stale dim (after STALE_DELAY_MS), so a fast answer never flashes
-           it. Indeterminate — neither backend reports progress. */
-        .progress {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            height: var(--border-width-thick);
-            overflow: hidden;
-        }
-
-        /* Feathered at both ends and wide enough to cross slowly: a shimmer
-           passing under the field, not a block shuttling across it. The colour
-           stays the accent blue — this is activity, and it reads as activity —
-           but only the centre of the sweep ever reaches full strength. The
-           travel is exactly one track width (100 / 45), so it clears each edge
-           without going dark mid-cycle. */
-        .progress::before {
-            content: '';
-            position: absolute;
-            inset-block: 0;
-            inline-size: 45%;
-            background: linear-gradient(to right, transparent, var(--color-primary) 50%, transparent);
-            animation: ol-search-progress 1.8s var(--ease-in-out-cubic) infinite;
-        }
-
-        @keyframes ol-search-progress {
-            from { transform: translateX(-100%); }
-            to   { transform: translateX(222%); }
-        }
-
-        /* No travel: hold a faint full-width bar instead, which still reads as
-           "working" without motion across the viewport. Flat rather than the
-           gradient, which only makes sense on something moving. */
-        @media (prefers-reduced-motion: reduce) {
-            .progress::before {
-                inline-size: 100%;
-                background: var(--color-primary);
-                opacity: 0.35;
-                animation: none;
-            }
         }
 
         /* Wraps the icon + input (+ ESC pill). Transparent on desktop so the
@@ -896,7 +848,7 @@ export class SearchModal extends LitElement {
         .results.is-stale,
         .ft-band.is-stale {
             opacity: 0.55;
-            transition: opacity var(--duration-base) var(--ease-state);
+            transition: opacity var(--duration-fast) var(--ease-state);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1373,7 +1325,6 @@ export class SearchModal extends LitElement {
                             @click=${this._closeModal}
                         >ESC</button>
                     </div>
-                    ${this._markStale ? html`<div class="progress" aria-hidden="true"></div>` : nothing}
                 </div>
 
                 <!-- Visually-hidden live region: announces the result count to
