@@ -1547,7 +1547,7 @@ export class SearchModal extends LitElement {
         }
 
         if (this._loading && this._results.length === 0) {
-            return html`<div class="results">${this._renderSearching()}</div>`;
+            return html`<div class="results">${this._renderSearching(this._i18n.searchingBooks)}</div>`;
         }
 
         if (this._results.length === 0 && this._hasSearched) {
@@ -1589,7 +1589,7 @@ export class SearchModal extends LitElement {
             return html`<div class="results"><div class="empty">${this._i18n.insidePrompt}</div></div>`;
         }
         if (this._ftLoading && this._ftHits.length === 0) {
-            return html`<div class="results">${this._renderSearching()}</div>`;
+            return html`<div class="results">${this._renderSearching(this._i18n.searchingInside)}</div>`;
         }
         if (this._ftHits.length === 0) {
             return html`<div class="results"><div class="empty">${this._i18n.noInsideResults}</div></div>`;
@@ -1605,8 +1605,8 @@ export class SearchModal extends LitElement {
 
     // Strip any trailing ellipsis/period(s) from the (translated) label so the
     // animated dots that follow aren't doubled up.
-    _renderSearching() {
-        const label = this._i18n.searching.replace(/[.…。]+$/, '');
+    _renderSearching(text) {
+        const label = text.replace(/[.…。]+$/, '');
         return html`<div class="loading"
             >${label}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div>`;
     }

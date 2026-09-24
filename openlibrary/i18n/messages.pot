@@ -5821,7 +5821,11 @@ msgid "Availability"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "Searching…"
+msgid "Searching books and authors…"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Searching inside books…"
 msgstr ""
 
 #: search/search_modal_i18n.html

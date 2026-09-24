@@ -94,7 +94,9 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languagePlaceholder: 'Search languages…',
     languageHeading: 'Languages',
     languagesLoading: 'Loading…',
-    searching: 'Searching…',
+    // Loading labels, one per scope tab so the wait names what's being searched.
+    searchingBooks: 'Searching books and authors…',
+    searchingInside: 'Searching inside books…',
     noResults: 'No results found',
     // When only the Search Inside band has matches, "No results found" would contradict it.
     noCatalogResults: 'No matching books or authors',
