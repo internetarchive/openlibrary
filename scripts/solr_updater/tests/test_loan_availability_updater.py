@@ -8,6 +8,7 @@ import pytest
 from scripts.solr_updater.loan_availability_updater import (
     EBOOK_AVAILABLE,
     EBOOK_UNAVAILABLE,
+    SOLR_QUERY_CHUNK,
     build_recheck_updates,
     build_reconcile_updates,
     build_solr_updates,
@@ -324,7 +325,7 @@ def test_build_reconcile_updates_raises_when_ground_truth_is_silent():
             return_value=ID_TO_EDITION,
         ),
         patch("openlibrary.core.lending.get_availability_batch", return_value={}),
-        pytest.raises(RuntimeError, match="No availability answers"),
+        pytest.raises(RuntimeError, match="refusing to reconcile"),
     ):
         build_reconcile_updates(["bookabc"])
 
@@ -905,8 +906,158 @@ def test_main_cold_start_refuses_to_start_without_ground_truth(
     mock_lending.get_availability_batch.return_value = {}
 
     state_file = tmp_path / "state"
-    with pytest.raises(RuntimeError, match="No availability answers"):
+    with pytest.raises(RuntimeError, match="refusing to reconcile"):
         main("fake_config.yml", state_file=str(state_file), poll_interval=0)
 
     solr.update_in_place.assert_not_called()
     assert not state_file.exists(), "state must not be written when the cold start aborted"
+
+
+# ---------------------------------------------------------------------------
+# Findings from the adversarial review of the first revision
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_edition_keys_chunks_its_query():
+    """The cold start hands over every identifier touched in 14 days. One
+    clause per identifier against Solr's maxBooleanClauses (30000 in
+    production) failed the whole query, which propagated out of the cold start
+    and killed the process before any state was written -- so the daemon could
+    never complete a cold start at all, on every restart."""
+    identifiers = [f"ocaid_{i}" for i in range(SOLR_QUERY_CHUNK * 3 + 7)]
+    mock_solr = MagicMock()
+    mock_solr.select.return_value = MagicMock(docs=[])
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
+        resolve_edition_keys(identifiers)
+
+    assert mock_solr.select.call_count == 4
+    for call in mock_solr.select.call_args_list:
+        terms = call.kwargs["query"].count('"') // 2
+        assert terms <= SOLR_QUERY_CHUNK, f"a chunk carried {terms} clauses"
+
+
+def test_resolve_edition_keys_still_resolves_across_chunks():
+    """Chunking must not lose results at the seams."""
+    identifiers = [f"ocaid_{i}" for i in range(SOLR_QUERY_CHUNK + 2)]
+    first, last = identifiers[0], identifiers[-1]
+
+    def select(query, **kwargs):
+        docs = []
+        if f'"{first}"' in query:
+            docs.append({"key": "/books/OL1M", "ia": [first], "_root_": "/works/OL1W"})
+        if f'"{last}"' in query:
+            docs.append({"key": "/books/OL2M", "ia": [last], "_root_": "/works/OL2W"})
+        return MagicMock(docs=docs)
+
+    mock_solr = MagicMock()
+    mock_solr.select.side_effect = select
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
+        resolved = resolve_edition_keys(identifiers)
+    assert set(resolved) == {first, last}
+
+
+def test_reconcile_refuses_on_partial_availability_coverage():
+    """The guard used to fire only on TOTAL silence. `get_availability_batch`
+    swallows a failed chunk and continues, so a widespread timeout still
+    returns a non-empty dict -- and most genuinely-on-loan books would be left
+    unmarked, which the re-check cannot correct because it only inspects books
+    already marked."""
+    ids = [f"ocaid_{i}" for i in range(10)]
+    editions = {i: {"key": f"/books/OL{n}M", "root": f"/works/OL{n}W"} for n, i in enumerate(ids)}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", return_value=editions),
+        patch("openlibrary.core.lending.get_availability_batch", return_value={ids[0]: UNAVAILABLE}),
+        pytest.raises(RuntimeError, match="refusing to reconcile"),
+    ):
+        build_reconcile_updates(ids)
+
+
+def test_reconcile_accepts_full_coverage():
+    ids = [f"ocaid_{i}" for i in range(10)]
+    editions = {i: {"key": f"/books/OL{n}M", "root": f"/works/OL{n}W"} for n, i in enumerate(ids)}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", return_value=editions),
+        patch("openlibrary.core.lending.get_availability_batch", return_value=dict.fromkeys(ids, UNAVAILABLE)),
+    ):
+        assert len(build_reconcile_updates(ids)) == 10
+
+
+def test_recheck_sorts_so_the_window_rotates():
+    """Unsorted, the select returns the same lowest-docid prefix every pass, so
+    once more than RECHECK_MAX_EDITIONS are marked the tail is re-checked only
+    as fast as the head frees -- measured at ~5 editions per pass, stranding an
+    over-marked book for months."""
+    mock_solr = MagicMock()
+    mock_solr.select.return_value = MagicMock(docs=[])
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
+        build_recheck_updates()
+    kwargs = mock_solr.select.call_args.kwargs
+    assert kwargs.get("sort") == "loan_uid asc"
+    assert "loan_uid" in kwargs["fields"], "loan_uid must be selected for the clear guard"
+
+
+def test_recheck_will_not_clear_an_edition_the_follower_just_marked():
+    """The unrecoverable direction. `get_availability_batch` is ~100 sequential
+    requests taking tens of seconds; the follower keeps consuming events
+    throughout. A book borrowed during that window is marked by the follower
+    and would then be cleared by a snapshot predating the borrow -- published
+    as borrowable while on loan, with the event already behind the cursor and
+    the re-check unable to re-mark it."""
+    mock_solr = MagicMock()
+    mock_solr.select.return_value = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookabc"], "_root_": "/works/OL1W", "loan_uid": 5}])
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
+        patch("openlibrary.core.lending.get_availability_batch", return_value={"bookabc": AVAILABLE}),
+    ):
+        assert build_recheck_updates(marked_during_pass={"/books/OL1M"}) == []
+        assert build_recheck_updates(marked_during_pass=set()) != []
+
+
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+def test_main_does_not_spin_when_the_feed_returns_nothing_newer(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+    """A full page whose uids never pass the cursor spun the loop with no sleep
+    -- 201 API calls in 0.21s, hammering IA and Solr -- and `last_uid = new_uid`
+    was unconditional, so the cursor could also move backwards."""
+    solr = MagicMock()
+    mock_get_solr.return_value = solr
+    solr.select.side_effect = _select_side_effect
+    solr.update_in_place.return_value = _OK_RESPONSE
+
+    stale = {"identifier": "bookabc", "uid": 5, "event_type": "borrow", "extra": "{}"}
+    mock_lending.get_loan_changes.side_effect = [
+        {"status": "OK", "rows": [stale], "latest_uid": 5},
+        SystemExit(0),
+    ]
+    state_file = tmp_path / "state"
+    state_file.write_text("99")
+
+    with pytest.raises(SystemExit):
+        main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
+
+    assert state_file.read_text().strip() == "99", "cursor moved backwards"
+    solr.update_in_place.assert_not_called()
+
+
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+def test_main_does_not_hard_commit_every_cycle(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+    """A hard commit opens a new searcher and invalidates every Solr cache. Done
+    per cycle on the Solr serving openlibrary.org, with no pacing during
+    catch-up, that is a real cost -- and it bought nothing: last_uid advances in
+    memory before any commit, and autoCommit persists the docs regardless."""
+    solr = MagicMock()
+    mock_get_solr.return_value = solr
+    solr.select.side_effect = _select_side_effect
+    solr.update_in_place.return_value = _OK_RESPONSE
+
+    _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
+
+    commits = [c for c in solr.update_in_place.call_args_list if c.kwargs.get("commit")]
+    assert commits == [], f"expected no hard commit, got {len(commits)}"
