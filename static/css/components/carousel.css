@@ -55,15 +55,6 @@
   box-sizing: border-box;
 }
 
-/* :focus state for when selected */
-/* e.g. "pick one of existing covers" on change cover. */
-/* Is .selected redundant? */
-.carousel__item:focus,
-.carousel__item.selected {
-  border: 5px solid var(--orange);
-  outline: 0;
-}
-
 .carousel.carousel--grid .carousel__item {
   margin: 0; /* Handled by grid gap */
 }
@@ -244,6 +235,30 @@
   display: inline-block;
   margin: 0 auto;
   max-width: 100%;
+}
+
+/* Floats over the cover's top-right corner; the visible circle is inset 4px
+   inside the 32px hit target. */
+.book-cover-wrapper > ol-shelf-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* On a fine pointer the bookmark waits for hover, focus, or its popover being
+   open (`open` is the component's attribute; focus inside a top-layer popover
+   does not register as :focus-within on the host). Once shelved it stays, as
+   status. Touch has nothing to hover, so it is always shown. */
+@media (hover: hover) and (pointer: fine) {
+  .book-cover-wrapper > ol-shelf-button:not([shelf]) {
+    opacity: 0;
+  }
+
+  .book-cover-wrapper:hover > ol-shelf-button,
+  .book-cover-wrapper > ol-shelf-button:focus-within,
+  .book-cover-wrapper > ol-shelf-button[open] {
+    opacity: 1;
+  }
 }
 
 .loan-overlay-badge__waitlist {

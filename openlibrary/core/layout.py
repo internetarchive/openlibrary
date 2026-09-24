@@ -86,6 +86,9 @@ def _extract_body_attrs() -> list[str]:
     from infogami.utils.context import context as _ctx
 
     bodyattrs = list(_ctx.get("bodyattrs", [])) if isinstance(_ctx.get("bodyattrs"), (list, tuple)) else []
+    # For book-state.js: carousel shelf buttons are rendered without a reader.
+    if user := get_current_user():
+        bodyattrs.append(f'data-user-key="{user.key}"')
     return bodyattrs
 
 

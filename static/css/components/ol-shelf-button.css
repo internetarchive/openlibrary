@@ -1,0 +1,14 @@
+/**
+ * ol-shelf-button.css — pre-upgrade box for <ol-shelf-button>, so a row's CTA
+ * column and a cover's corner don't shift when Lit upgrades it.
+ */
+
+ol-shelf-button:not(:defined) {
+  display: block;
+  height: var(--control-height-medium);
+}
+
+ol-shelf-button[variant="icon"]:not(:defined) {
+  width: 32px;
+  height: 32px;
+}

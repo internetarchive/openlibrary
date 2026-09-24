@@ -220,32 +220,6 @@ def seed_key_to_seed_type(key: str) -> SeedType:
 
 
 @public
-def get_seed_info(doc):
-    """Takes a thing, determines what type it is, and returns a seed summary"""
-    seed_type = seed_key_to_seed_type(doc.key)
-    match seed_type:
-        case "subject":
-            seed = subject_key_to_seed(doc.key)
-            title = doc.name
-        case "work" | "edition":
-            seed = {"key": doc.key}
-            title = doc.get("title", "untitled")
-        case "author":
-            seed = {"key": doc.key}
-            title = doc.get("name", "name missing")
-        case _:
-            raise ValueError(f"Invalid seed type: {seed_type}")
-    return {
-        "seed": seed,
-        "type": seed_type,
-        "title": web.websafe(title),
-        "remove_dialog_html": _(
-            "Are you sure you want to remove <strong>%(title)s</strong> from your list?",
-            title=web.websafe(title),
-        ),
-    }
-
-
 def get_list_data(list, seed, include_cover_url=True):
     list_items = []
     for s in list.get_seeds():
@@ -272,11 +246,20 @@ def get_list_data(list, seed, include_cover_url=True):
     return d
 
 
+def evict_user_lists(user_key: str) -> None:
+    """Drop the memoised list keys of a user, so the next read sees a list just made or deleted.
+
+    The infobase edit hook evicts the same entry, but not reliably in every environment.
+    """
+    cache.memcache_cache.delete("d" + user_key)
+
+
 @public
 def get_user_lists(seed_info):
     user = get_current_user()
     if not user:
         return []
+    # The default limit is the memcached path; the list write paths below evict it.
     user_lists = user.get_lists(sort=True)
     seed = seed_info["seed"] if seed_info else None
     return [get_list_data(user_list, seed, include_cover_url=False) for user_list in user_lists]
@@ -490,6 +473,8 @@ class lists_delete:
 
         delete_doc = {"key": key, "type": {"key": "/type/delete"}}
         site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
+        if key.startswith("/people/"):
+            evict_user_lists(key.rsplit("/lists/", 1)[0])
 
 
 def build_pagination_links(
@@ -585,12 +570,14 @@ class lists_json:
         if spamcheck.is_spam(lst):
             raise SpamListError
 
-        return site.save(
+        result = site.save(
             lst.dict(),
             comment="Created new list.",
             action="create-list",
             data={"list": {"key": lst.key}, "seeds": seeds},
         )
+        evict_user_lists(user.key)
+        return result
 
     @staticmethod
     def process_seeds(
