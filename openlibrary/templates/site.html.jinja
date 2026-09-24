@@ -4,7 +4,7 @@
 <html lang="{{ layout.lang }}">
     {{ render_templetor_template("site/head", title=page.title) }}
     <body class="{{ layout.body_class }}"
-          {% for attr in layout.body_attrs %} {{ attr }}{% endfor %}>
+          {% for attr in layout.body_attrs %} {{ attr | safe }}{% endfor %}>
         <script>
             // Provide a signal that JS will load
             document.body.className += ' client-js';
@@ -14,6 +14,7 @@
         {% if layout.show_ol_shell %}
             {% include "site/alert.html.jinja" %}
             {{ render_templetor_template('lib/nav_head', None) }}
+            {{ render_templetor_template("my_books/shelf_button_i18n") }}
         {% endif %}
         <main{% if layout.show_ol_shell %} id="test-body-mobile"{% endif %}>
             {% if layout.show_ol_shell %}
