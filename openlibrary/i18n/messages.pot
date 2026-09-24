@@ -5355,10 +5355,6 @@ msgid "Remove date"
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
-msgid "I didn’t read this"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
 #, python-format
 msgid "Moved to %(shelf)s"
 msgstr ""

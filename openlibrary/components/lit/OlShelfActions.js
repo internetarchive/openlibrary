@@ -68,7 +68,6 @@ export const DEFAULT_LABELS = {
     day: 'Day',
     saveDate: 'Save',
     removeDate: 'Remove date',
-    didNotRead: 'I didn’t read this',
 };
 
 const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], label: SHELF_LABEL[id] }));
@@ -385,10 +384,37 @@ export class OlShelfActions extends LitElement {
             color: var(--color-link);
         }
 
-        /* The chevron is navigation, not part of the answer, so it keeps its resting color. */
-        .row[aria-pressed="true"] .trail[name="chevron-right"] {
-            color: var(--color-icon-muted);
+        /* Already Read on the shelf: the label toggles like the other rows,
+           the date is a second target into the date pane. Each half keeps its
+           own hover pill; the pair takes the inset a single row would. */
+        .row-split {
+            display: flex;
+            margin-inline: var(--menu-row-inset);
         }
+
+        .row-split > .row {
+            margin-inline: 0;
+        }
+
+        .row-split > .row:first-child {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .date-link {
+            flex: 0 1 auto;
+            max-width: 50%;
+            gap: var(--spacing-inline-xs);
+            padding-inline: var(--spacing-inset-sm);
+        }
+
+        .date-link .count {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
 
         /* A request in flight dims the group rather than disabling its rows:
            disabling the focused row would drop focus to the document. The
@@ -1010,18 +1036,27 @@ export class OlShelfActions extends LitElement {
                  navigation the rows don't have. aria-pressed marks the shelf
                  the book is on, which is what the checkmark shows. -->
             <div class="group shelves" role="group" aria-label=${this.t('readingLog')} aria-busy=${this._held}>
-                ${SHELF_ROWS.map(row => html`
-                    <button
-                        type="button"
-                        class="row"
-                        aria-pressed=${this.shelf === row.id ? 'true' : 'false'}
-                        @click=${() => this._onShelfClick(row.id)}
-                    >
-                        <ol-icon class="obd-icon" name=${row.icon}></ol-icon>
-                        <span class="label">${this.t(row.label)}</span>
-                        ${this._renderShelfTrail(row)}
-                    </button>
-                `)}
+                ${SHELF_ROWS.map(row => {
+        const toggle = html`
+                        <button
+                            type="button"
+                            class="row"
+                            data-shelf=${row.id}
+                            aria-pressed=${this.shelf === row.id ? 'true' : 'false'}
+                            @click=${() => this._onShelfClick(row.id)}
+                        >
+                            <ol-icon class="obd-icon" name=${row.icon}></ol-icon>
+                            <span class="label">${this.t(row.label)}</span>
+                            <!-- Already Read's date half sits where the check would; the pressed color marks it. -->
+                            ${this.shelf === row.id && row.id !== SHELF.ALREADY_READ ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
+                        </button>
+                    `;
+        // Wrapped whether or not the date shows, so toggling the
+        // shelf re-renders neither half and focus stays put.
+        return row.id === SHELF.ALREADY_READ
+            ? html`<div class="row-split">${toggle}${this._renderDateLink()}</div>`
+            : toggle;
+    })}
             </div>
             ${this.hideRating || this._starsElsewhere ? nothing : html`
                 <div class="group rating" aria-busy=${this._held}>
@@ -1080,31 +1115,28 @@ export class OlShelfActions extends LitElement {
     }
 
     /**
-     * The end of a shelf row. Already Read carries a chevron, because it leads
-     * to the date pane; the others only mark the shelf the book is on.
+     * The second half of the Already Read row: the date, or "Add date", leading
+     * to the date pane. Its own target, so the shelf half toggles like the other
+     * three and the chevron only ever navigates.
      *
-     * The date rides along only while the book is actually on that shelf. A
-     * move keeps the check-in — only coming off the shelves entirely deletes it
-     * — so a book moved to, say, Currently Reading still has a finish date, and
-     * showing it against a shelf the book has left reads as the wrong state.
-     * The date pane still opens on it, which is where it belongs. On the shelf
-     * with no date yet, a hint holds the date's place so the chevron has a reason.
+     * Only while the book is on the shelf. A move keeps the check-in (only
+     * coming off the shelves deletes it), but a finish date shown against a
+     * shelf the book has left reads as the wrong state.
      */
-    _renderShelfTrail(row) {
-        if (row.id === SHELF.ALREADY_READ) {
-            const onShelf = this.shelf === SHELF.ALREADY_READ;
-            let trail = nothing;
-            if (onShelf) {
-                trail = this.readDate
-                    ? html`<span class="count">${formatReadDate(this.readDate)}</span>`
-                    : html`<span class="count hint">${this.t('addDate')}</span>`;
-            }
-            return html`
-                ${trail}
+    _renderDateLink() {
+        if (this.shelf !== SHELF.ALREADY_READ) return nothing;
+        const date = this.readDate ? formatReadDate(this.readDate) : null;
+        return html`
+            <button
+                type="button"
+                class="row date-link"
+                aria-label=${date ? this.t('dateSaved', { date }) : nothing}
+                @click=${() => this._openCheckIn({ amending: true })}
+            >
+                <span class=${date ? 'count' : 'count hint'}>${date ?? this.t('addDate')}</span>
                 <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
-            `;
-        }
-        return this.shelf === row.id ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing;
+            </button>
+        `;
     }
 
     /**
@@ -1241,22 +1273,14 @@ export class OlShelfActions extends LitElement {
                 </button>
                 ${this._pickingDate ? this._renderDateFields() : nothing}
             </div>
-            <!-- Taking back an answer rather than giving another one, so these
-                 stand outside the group the question names. Remove date keeps
-                 the shelf; "I didn't read this" is the only way off Already
-                 Read, since that shelf's row leads here instead of toggling
-                 off. Only when amending: someone who just chose the shelf is
-                 here to date the read, not to undo it. -->
-            ${this._amending ? html`<div class="group retract">
-                ${this.eventId ? html`
-                    <button type="button" class="row remove-date" @click=${this._onRemoveDate}>
-                        <ol-icon class="obd-icon" name="x"></ol-icon>
-                        <span class="label">${this.t('removeDate')}</span>
-                    </button>
-                ` : nothing}
-                <button type="button" class="row did-not-read" @click=${this._removeFromShelf}>
-                    <ol-icon class="obd-icon" name="ban"></ol-icon>
-                    <span class="label">${this.t('didNotRead')}</span>
+            <!-- Taking back an answer rather than giving another one, so it
+                 stands outside the group the question names. Keeps the shelf:
+                 coming off it is the shelf row's job. Only when amending:
+                 someone who just chose the shelf is here to date the read. -->
+            ${this._amending && this.eventId ? html`<div class="group retract">
+                <button type="button" class="row remove-date" @click=${this._onRemoveDate}>
+                    <ol-icon class="obd-icon" name="x"></ol-icon>
+                    <span class="label">${this.t('removeDate')}</span>
                 </button>
             </div>` : nothing}
         `;
@@ -1554,27 +1578,9 @@ export class OlShelfActions extends LitElement {
 
     // ── Shelves ──────────────────────────────────────────────
 
-    async _onShelfClick(shelfId) {
-        const previous = this.shelf;
-        // Already Read leads to the date pane — that is what its chevron says,
-        // and it is the only way to change a date once given. Coming off the
-        // shelf is the pane's "I didn't read this" link's job, which is why
-        // that link is offered there and nowhere else.
-        if (shelfId === SHELF.ALREADY_READ && previous === SHELF.ALREADY_READ) {
-            return this._openCheckIn({ amending: true });
-        }
+    /** Every shelf row toggles; Already Read's date has its own target (`_renderDateLink`). */
+    _onShelfClick(shelfId) {
         return this._postShelf(shelfId);
-    }
-
-    /**
-     * "I didn't read this": off the shelf, and — because the server deletes a
-     * book's check-ins with it — out of the date the pane is asking about. The
-     * pane slides away first, as every other answer here does.
-     */
-    _removeFromShelf() {
-        if (!this.shelf || this._held) return;
-        this._backToMain();
-        return this._postShelf(this.shelf);
     }
 
     /** Posting the current shelf toggles it off server-side; any other shelf moves the book. */
@@ -1790,14 +1796,19 @@ export class OlShelfActions extends LitElement {
             return;
         }
         const from = this._pane;
+        const amending = this._amending;
         this._pane = 'main';
         this._creating = false;
         this._pickingDate = false;
         await this.updateComplete;
+        // From the date pane: whichever half of Already Read led there. The
+        // shelf half when the date half has gone with the shelf.
+        const main = this.shadowRoot.querySelector('.pane:nth-child(1)');
+        const shelfHalf = main?.querySelector(`.row[data-shelf="${SHELF.ALREADY_READ}"]`);
         const row = from === 'checkIn'
-            ? `.group.shelves .row:nth-child(${Object.values(SHELF).indexOf(SHELF.ALREADY_READ) + 1})`
-            : '.group.lists-entry .row';
-        this.shadowRoot.querySelector(`.pane:nth-child(1) ${row}`)?.focus({ preventScroll: true });
+            ? (amending && main?.querySelector('.date-link')) || shelfHalf
+            : main?.querySelector('.group.lists-entry .row');
+        row?.focus({ preventScroll: true });
     }
 
     /**
