@@ -34,7 +34,8 @@ makes each one simple:
     answered nothing -- which meant a lagging dependency stopped ingestion
     entirely.
   * The REPAIRER reads ground truth and only ever clears `unavailable`. It is
-    scoped to the editions currently marked, which is a small bounded set.
+    scoped to the editions currently marked -- not a small set, so it is capped
+    per pass and rotated oldest-mark-first rather than re-reading one prefix.
 
 Neither half can undo the other's direction, so they converge instead of
 fighting. Everything published as available has been checked; nothing is
@@ -65,7 +66,10 @@ So each fact is handled on the side that can be wrong safely:
     and the clear waits for a ground-truth answer.
 
 The asymmetry is the whole point: the recoverable error is allowed to happen
-often, and the unrecoverable one is made structurally impossible.
+often, and the unrecoverable one is made as hard as this design can make it.
+Not impossible: an availability snapshot takes minutes to gather and can
+outlive the mark it would clear, so the re-check refuses to clear anything the
+follower marked while that snapshot was in flight.
 
 Known gap: a book whose acquiring event we never see -- a feed gap, or a
 reindex that wipes the field (see below) -- stays published as available. The
@@ -189,6 +193,20 @@ _SEEN_ACQUIRING_EVENT_TYPES = frozenset({"borrow", "browse", "renew_borrow", "re
 
 LOAN_MAX_AGE_DAYS = 14
 BATCH_SIZE = 1000
+MIN_RECONCILE_COVERAGE = 0.9
+"""Fraction of cold-start identifiers that must get a ground-truth answer.
+
+Below this the reconcile is refused rather than half-applied: an unmarked
+on-loan book is published as borrowable and nothing corrects it.
+"""
+
+SOLR_QUERY_CHUNK = 500
+"""Identifiers per `ia:(...)` disjunction.
+
+One clause per identifier, against `solr.max.booleanClauses=30000` in
+production. 500 leaves a wide margin and keeps each query small; the cost of
+more round trips is irrelevant next to a query that fails outright.
+"""
 POLL_INTERVAL = 30  # seconds between polls when caught up
 RECHECK_INTERVAL = 600  # seconds between ground-truth re-checks of the unavailable set
 RECHECK_MAX_EDITIONS = 10000  # cap on editions re-checked per pass
@@ -321,14 +339,28 @@ def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     def _phrase(id_: str) -> str:
         return '"' + id_.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
-    quoted = " ".join(_phrase(id_) for id_ in identifiers)
-    result = get_solr().select(
-        query=f"type:edition AND ia:({quoted})",
-        fields=["key", "ia", "_root_"],
-        rows=len(identifiers) * 2,
-    )
     id_set = set(identifiers)
-    return {ia_id: {"key": doc["key"], "root": doc["_root_"]} for doc in result.docs for ia_id in doc.get("ia", []) if ia_id in id_set}
+    resolved: dict[str, dict] = {}
+    # Chunked here rather than at the call sites, because one caller cannot see
+    # how large another's list is. The cold-start path hands over every
+    # identifier touched in LOAN_MAX_AGE_DAYS -- tens of thousands -- and one
+    # clause per identifier against Solr's maxBooleanClauses (30000 in
+    # production) fails the whole query, which propagated out of the cold start
+    # and killed the process before any state was written. A daemon that cannot
+    # complete a cold start never starts at all.
+    for start in range(0, len(identifiers), SOLR_QUERY_CHUNK):
+        chunk = identifiers[start : start + SOLR_QUERY_CHUNK]
+        quoted = " ".join(_phrase(id_) for id_ in chunk)
+        result = get_solr().select(
+            query=f"type:edition AND ia:({quoted})",
+            fields=["key", "ia", "_root_"],
+            rows=len(chunk) * 2,
+        )
+        for doc in result.docs:
+            for ia_id in doc.get("ia", []):
+                if ia_id in id_set:
+                    resolved[ia_id] = {"key": doc["key"], "root": doc["_root_"]}
+    return resolved
 
 
 def query_solr_uid() -> int:
@@ -397,6 +429,7 @@ def build_solr_updates(
     meaningful only while ebook_unavailable is 1.
     """
     updates = []
+    unrecognized: dict[str, int] = {}
     for identifier, state in dirty.items():
         edition = id_to_edition.get(identifier)
         if not edition:
@@ -407,14 +440,10 @@ def build_solr_updates(
             # Deliberately nothing. See the docstring: the re-check frees it.
             continue
         if event_type not in _SEEN_ACQUIRING_EVENT_TYPES:
-            # Not an error -- IA's event_type vocabulary is not published, so
-            # this is how we learn of one. Treated as acquiring, which is the
-            # safe direction and is corrected by the re-check.
-            logger.warning(
-                "Unrecognized loan event_type %r for %s; treating as acquiring",
-                event_type,
-                identifier,
-            )
+            # Collected, not logged per identifier: one new IA verb at feed
+            # volume would emit a warning per event per batch and flood both the
+            # log and Sentry.
+            unrecognized[event_type] = unrecognized.get(event_type, 0) + 1
 
         update: dict = {
             "key": edition["key"],
@@ -426,6 +455,11 @@ def build_solr_updates(
         if becomes_available is not None:
             update["ebook_becomes_available"] = {"set": becomes_available}
         updates.append(update)
+
+    if unrecognized:
+        # Not an error -- IA's event_type vocabulary is not published, so this is
+        # how we learn of one. Treated as acquiring, the safe direction.
+        logger.warning("Unrecognized loan event_types treated as acquiring: %r", unrecognized)
     return updates
 
 
@@ -451,8 +485,15 @@ def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
         return []
 
     availability = lending.get_availability_batch(resolved)
-    if not availability:
-        raise RuntimeError(f"No availability answers for any of {len(resolved)} identifiers")
+    # Coverage, not mere non-emptiness. `get_availability_batch` swallows a
+    # failed chunk and continues, so with ~800 sequential requests a widespread
+    # timeout still returns a non-empty dict -- and an earlier version of this
+    # guard passed on it, leaving most genuinely-on-loan books unmarked. The
+    # re-check cannot correct that, because it only inspects books already
+    # marked. So this insists on most of what it asked for.
+    covered = len(availability) / len(resolved)
+    if covered < MIN_RECONCILE_COVERAGE:
+        raise RuntimeError(f"Availability covered only {len(availability)}/{len(resolved)} identifiers ({covered:.0%}); refusing to reconcile")
 
     updates = []
     for identifier, avail in availability.items():
@@ -469,26 +510,46 @@ def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
     return updates
 
 
-def build_recheck_updates() -> list[dict]:
+def build_recheck_updates(marked_during_pass: set[str] | None = None) -> list[dict]:
     """Re-check the known-unavailable editions against ground truth.
 
     Safety net for availability changes the changes feed never reports: missed
     return/expire events, a waitlist draining, copies being added, an item
-    leaving lending. Scoped to editions currently marked unavailable, which is
-    a small bounded population, and capped at RECHECK_MAX_EDITIONS per pass.
+    leaving lending. Scoped to editions currently marked unavailable.
+
+    That set is not small: it is roughly the books on loan plus every
+    multi-copy item the follower has over-marked, and it can exceed
+    RECHECK_MAX_EDITIONS. Sorted by `loan_uid` so the window rotates
+    oldest-mark-first; unsorted, the same prefix came back every pass and the
+    tail was reached only as fast as the head freed.
 
     Only flips unavailable -> available. Editions the service has no answer for
     keep their current value.
+
+    `marked_during_pass` is the set of edition keys the follower wrote while
+    this pass was in flight; they are never cleared here, because the answers
+    below may predate those marks.
     """
+    marked_during_pass = marked_during_pass or set()
     result = get_solr().select(
         query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}",
-        fields=["key", "ia", "_root_"],
+        # loan_uid, for two reasons. Sorted, it rotates the window: unsorted the
+        # select returns the same lowest-docid prefix every pass, so once more
+        # than RECHECK_MAX_EDITIONS are marked the tail is re-checked only as
+        # fast as the head frees -- measured at roughly five editions a pass,
+        # which strands an over-marked book for months. Oldest-marked-first also
+        # happens to be the right priority.
+        #
+        # Selected as a field so the clear can be guarded against a mark that
+        # landed after the availability snapshot was taken. See below.
+        fields=["key", "ia", "_root_", "loan_uid"],
+        sort="loan_uid asc",
         rows=RECHECK_MAX_EDITIONS,
     )
     docs = result.docs
     if len(docs) >= RECHECK_MAX_EDITIONS:
         logger.warning(
-            "Re-check hit the %d-edition cap; the remainder waits for the next pass",
+            "Re-check hit the %d-edition cap; the rest rotate in on later passes (sorted by loan_uid)",
             RECHECK_MAX_EDITIONS,
         )
 
@@ -509,6 +570,21 @@ def build_recheck_updates() -> list[dict]:
         if not doc or not lending.is_available_for_loan(avail):
             continue
         if doc["key"] in seen_keys:
+            continue
+        # Refuse to clear anything the follower marked while this pass was
+        # running. `get_availability_batch` is ~100 sequential requests and
+        # takes tens of seconds to minutes; the follower keeps consuming events
+        # throughout. Without this, a book borrowed during that window gets
+        # marked by the follower and then cleared by a snapshot that predates
+        # the borrow -- published as borrowable while on loan, with the event
+        # already behind the cursor and the re-check unable to re-mark it. That
+        # is the one direction this design calls unrecoverable.
+        #
+        # Checked in process rather than by re-reading Solr: follower writes use
+        # commit=False, so a re-select can lag them by a soft-commit window and
+        # would miss exactly the marks this needs to see.
+        if doc["key"] in marked_during_pass:
+            logger.info("Not clearing %s: the follower marked it during this pass", doc["key"])
             continue
         seen_keys.add(doc["key"])
         updates.append(
@@ -532,8 +608,10 @@ def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> int:
     This is the one path that genuinely depends on the availability service.
     Steady state deliberately does not, but a cold start has no prior state to
     fall back on: beginning from the head against an index where nothing is
-    marked would publish every on-loan book as borrowable. So a silent service
-    raises here rather than degrading.
+    marked would publish every on-loan book as borrowable. So a service that
+    answers for fewer than MIN_RECONCILE_COVERAGE of the identifiers raises
+    here rather than degrading -- coverage, not mere non-emptiness, because
+    `get_availability_batch` drops a failed chunk and carries on.
     """
     logger.info("Cold start: collecting identifiers from uid %d to the head", last_uid)
     touched: set[str] = set()
@@ -612,18 +690,6 @@ def main(  # noqa: PLR0915, PLR0912
             logger.info("No Solr uid; binary-searching for uid ~%d days ago", LOAN_MAX_AGE_DAYS)
             last_uid = find_start_uid()
             cold_start = True
-        if not dry_run and not cold_start:
-            # A cold start writes its cursor only AFTER the reconcile succeeds.
-            # Writing it here would make an aborted cold start unrecoverable:
-            # the next run would read the state file, skip the reconcile
-            # entirely, and follow events from the head against an index where
-            # nothing is marked unavailable -- publishing every on-loan book as
-            # borrowable, which is the outcome the abort exists to prevent.
-            try:
-                write_state(state_path, last_uid)
-            except OSError:
-                logger.exception("Failed to write initial state file %s", state_path)
-
     if cold_start:
         last_uid = run_cold_start(last_uid, poll_interval, dry_run)
         if not dry_run:
@@ -633,6 +699,9 @@ def main(  # noqa: PLR0915, PLR0912
                 logger.exception("Failed to write post-reconcile state file %s", state_path)
 
     last_recheck = 0.0
+    # Edition keys the follower marked since the last re-check pass. The re-check
+    # must not clear these: its availability answers may predate the mark.
+    marked_this_pass: set[str] = set()
 
     while True:
         try:
@@ -649,6 +718,7 @@ def main(  # noqa: PLR0915, PLR0912
 
         rows = resp.get("rows", [])
         did_updates = False
+        write_blocked = False
 
         if rows:
             # Advance the cursor using only rows with a valid int uid, so one malformed
@@ -660,6 +730,14 @@ def main(  # noqa: PLR0915, PLR0912
                 time.sleep(poll_interval)
                 continue
             new_uid = max(valid_uids)
+            if new_uid <= last_uid:
+                # The feed answered with nothing newer. Without this the cursor
+                # can move BACKWARDS, and a page whose uids never pass the
+                # cursor spins the loop with no sleep -- measured at 201 API
+                # calls in 0.21s, hammering IA, Solr and the commit path.
+                logger.warning("Feed returned %d rows but none past uid %d; sleeping", len(rows), last_uid)
+                time.sleep(poll_interval)
+                continue
             dirty = collect_dirty_identifiers(rows)
             try:
                 id_to_edition = resolve_edition_keys(list(dirty))
@@ -687,17 +765,22 @@ def main(  # noqa: PLR0915, PLR0912
                     try:
                         solr_update_in_place(updates, commit=False)
                     except Exception:
+                        # Do not `continue`: that skipped the re-check below, so
+                        # one rejected follower batch stopped the repairer too
+                        # and both loops wedged together.
                         logger.exception("Solr update failed; state not advanced")
-                        time.sleep(poll_interval)
-                        continue
-                did_updates = True
+                        write_blocked = True
+                    else:
+                        marked_this_pass.update(u["key"] for u in updates)
+                        did_updates = True
 
-            last_uid = new_uid
+            if not write_blocked:
+                last_uid = new_uid
 
         now = time.monotonic()
         if now - last_recheck >= recheck_interval:
             try:
-                rechecks = build_recheck_updates()
+                rechecks = build_recheck_updates(marked_this_pass)
             except Exception:
                 logger.exception("Failed to build re-check updates")
                 rechecks = []
@@ -712,18 +795,16 @@ def main(  # noqa: PLR0915, PLR0912
                         rechecks = []
                 did_updates = did_updates or bool(rechecks)
             last_recheck = now
+            marked_this_pass = set()
 
-        if did_updates and not dry_run:
-            # Deliberate hard commit per cycle: the state file is advanced only after a
-            # durable commit, so a crash never leaves state ahead of committed docs.
-            # On a shared Solr this is the conservative choice; tuning commit frequency
-            # (softCommit / leaning on Solr autoCommit) is a maintainer perf follow-up.
-            try:
-                solr_update_in_place([], commit=True)
-            except Exception:
-                logger.exception("Solr commit failed; state not advanced")
-                time.sleep(poll_interval)
-                continue
+        # No explicit commit. An earlier revision hard-committed every cycle to
+        # keep the state file behind a durable write, but it did not achieve
+        # that -- last_uid advances in memory before any commit -- and a hard
+        # commit opens a new searcher and invalidates every Solr cache, up to
+        # once every poll interval, on the Solr serving openlibrary.org. The
+        # documents are in the tlog and Solr's own autoCommit (120s) persists
+        # them; autoSoftCommit (60s) makes them visible. Replaying a few events
+        # after a crash is harmless -- marks are idempotent.
         if not dry_run:
             try:
                 write_state(state_path, last_uid)

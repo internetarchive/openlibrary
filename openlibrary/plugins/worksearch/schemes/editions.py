@@ -21,8 +21,13 @@ class EditionSearchScheme(SearchScheme):
             "alternative_subtitle",
             "cover_i",
             "ebook_access",
-            "ebook_unavailable",
-            "ebook_becomes_available",
+            # ebook_unavailable / ebook_becomes_available are deliberately NOT
+            # here. `all_fields` feeds `is_search_field`, which is what makes a
+            # bare `field:value` in a user query a Solr field -- and these are
+            # indexed="false", so filtering on them is a docValues scan, and
+            # they are wiped whenever the parent work is reindexed. They stay
+            # retrievable via `fields=` (that path does not consult this set),
+            # which is all the daemon's consumers need.
             "publish_date",
             "lccn",
             "ia",

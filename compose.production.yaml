@@ -329,6 +329,11 @@ services:
       - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset
+      # solr-next-updater overrides `environment` wholesale and has no
+      # counterpart in compose.yaml, so unlike solr-updater it inherits nothing
+      # from the merge. Without this the daemon launches with --state-file
+      # pointing at a directory and cold-starts on every restart.
+      - LOAN_STATE_FILE=loan-availability-next-update.state
       - OL_SENTRY_ENVIRONMENT=testing
     volumes:
       - solr-updater-data:/solr-updater-data
