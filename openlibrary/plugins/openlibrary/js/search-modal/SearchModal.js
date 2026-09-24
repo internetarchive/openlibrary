@@ -38,6 +38,12 @@ import { deriveAuthors } from './authorSuggestion.js';
 import { dedupeFulltextHits, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
 import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
 
+// The modal's two scopes. 'books' searches the catalogue (titles, authors,
+// subjects) and keeps the Search Inside band as a teaser under it; 'inside'
+// searches the text of the scans and shows nothing else.
+const MODE_BOOKS  = 'books';
+const MODE_INSIDE = 'inside';
+
 // `editions` is requested not to render it, but to opt /search.json into the
 // edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
 // availability filters like "Readable Books Only" (public_scan/print_disabled)
@@ -109,6 +115,7 @@ export class SearchModal extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
         _query: { state: true },
+        _mode: { state: true },
         _availability: { state: true },
         _languages: { state: true },
         _results: { state: true },
@@ -127,6 +134,7 @@ export class SearchModal extends LitElement {
         _ftHits: { state: true },
         _ftTotal: { state: true },
         _ftSearchKey: { state: true },
+        _ftLoading: { state: true },
     };
 
     static styles = css`
@@ -283,6 +291,63 @@ export class SearchModal extends LitElement {
             outline-offset: 2px;
         }
 
+        /* ── Scope tabs ────────────────────────────────────────────── */
+
+        /* Books / Inside books. Directly under the search field, so the scope
+           reads as part of the query rather than a filter on its results —
+           which is why this sits above .filter-section, not in it. */
+        .tabs {
+            display: flex;
+            gap: var(--spacing-md);
+            padding-inline: var(--spacing-lg);
+            border-bottom: var(--border-divider);
+        }
+
+        /* The underline is drawn at full width on every tab and hidden by
+           color, so selecting one re-paints rather than re-measures. */
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-2xs);
+            /* Sits the underline on the section's own divider. */
+            margin-bottom: -1px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--color-text-muted);
+            font: inherit;
+            font-size: var(--font-size-body-medium);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+        }
+
+        /* A hidden bold twin sizes the tab for its heaviest state, so the
+           selected tab can go bold without the row reflowing (same trick as
+           the design page's section tabs). */
+        .tab-ghost {
+            height: 0;
+            overflow: hidden;
+            visibility: hidden;
+            font-weight: var(--font-weight-semibold);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .tab:hover { color: var(--color-text); }
+        }
+
+        .tab:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .tab[aria-selected="true"] {
+            color: var(--color-text);
+            border-bottom-color: var(--color-text);
+            font-weight: var(--font-weight-semibold);
+        }
+
         /* ── Filter section (filter buttons + active chip row) ─────── */
 
         /* The filter buttons and active-filter chips read as one box: the
@@ -434,11 +499,15 @@ export class SearchModal extends LitElement {
             margin: calc(var(--spacing-sm) + 9px) var(--spacing-lg) 0 0;
         }
 
+        /* The row owns the tint; the anchor inside it must not add a second
+           overlay, or the link half reads darker than the button half. */
         @media (hover: hover) and (pointer: fine) {
-            .result-row:hover { background: var(--lightest-grey); }
+            .result-row:hover { background: var(--color-hover-overlay); }
+            .result-row .result:hover { background: none; }
         }
 
-        .result-row:focus-within { background: var(--lightest-grey); }
+        .result-row:focus-within { background: var(--color-hover-overlay); }
+        .result-row .result:focus-visible { background: none; }
 
         .result__cover-link {
             position: relative;
@@ -579,10 +648,38 @@ export class SearchModal extends LitElement {
         .ft-band .results-list li { border-top-color: var(--color-border-subtle); }
         .ft-band .results-list li:first-child { border-top: none; }
 
-        .ft-band__footer {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-top: 1px solid var(--color-border-subtle);
+        /* A link, not a button: it moves the patron rather than acting on
+           anything. Pushed to the far end of the heading row. */
+        .ft-band__view-all {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-3xs);
+            margin-inline-start: auto;
+            padding: 0;
+            background: none;
+            border: none;
+            color: var(--color-link);
+            font: inherit;
+            font-size: var(--font-size-label-medium);
+            font-weight: var(--font-weight-medium);
+            letter-spacing: normal;
+            text-transform: none;
+            cursor: pointer;
         }
+
+        @media (hover: hover) and (pointer: fine) {
+            .ft-band__view-all:hover { color: var(--color-link-hover); }
+        }
+
+        .ft-band__view-all:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .ft-band__view-all ol-icon { flex-shrink: 0; }
+
+        :host(:dir(rtl)) .ft-band__view-all ol-icon { transform: scaleX(-1); }
 
         /* Left rule marks the passage, as .fsi-quote does. Not boxed: the band
            is already a card. */
@@ -833,6 +930,7 @@ export class SearchModal extends LitElement {
         super();
         this.open          = false;
         this._query        = '';
+        this._mode         = MODE_BOOKS;
         this._results      = [];
         this._authorSuggestions = [];
         this._numFound     = null;
@@ -902,12 +1000,14 @@ export class SearchModal extends LitElement {
         this._ftHits  = [];
         this._ftTotal = null;
         this._ftSearchKey = null;
+        this._ftLoading = false;
         this._ftBand  = new FulltextBand({
             getFilters: () => this._fulltextFilters(),
-            onChange: ({ hits, total, searchKey }) => {
+            onChange: ({ hits, total, searchKey, loading }) => {
                 this._ftHits      = hits;
                 this._ftTotal     = total;
                 this._ftSearchKey = searchKey;
+                this._ftLoading   = loading;
             },
             onAttempt: (status) => this._scheduleBandOutcome(status),
         });
@@ -1154,7 +1254,7 @@ export class SearchModal extends LitElement {
                             autocorrect="off"
                             autocapitalize="off"
                             spellcheck="false"
-                            placeholder=${this._i18n.inputPlaceholder}
+                            placeholder=${this._inside ? this._i18n.insidePlaceholder : this._i18n.inputPlaceholder}
                             aria-label=${this._i18n.inputAria}
                             .value=${this._query}
                             @input=${this._onQueryInput}
@@ -1189,16 +1289,98 @@ export class SearchModal extends LitElement {
                     ${this._resultsAnnouncement()}
                 </div>
 
+                ${this._renderTabs()}
                 <div class="filter-section">
                     ${this._renderFilters()}
                 </div>
-                ${this._renderResults()}
+                <div role="tabpanel" id="ol-search-panel" aria-labelledby="ol-search-tab-${this._mode}">
+                    ${this._renderResults()}
+                </div>
 
                 <div slot="footer" class="footer">
                     ${this._renderSeeAll()}
                 </div>
             </ol-dialog>
         `;
+    }
+
+    /** True while the Inside books tab is showing. */
+    get _inside() { return this._mode === MODE_INSIDE; }
+
+    // No match count on the Inside tab. A count only exists when the band
+    // happened to fire (a passage query, or a weak catalog answer), so it would
+    // come and go for reasons the patron can't see — and measuring it for every
+    // query means an FTS request nobody asked for. The tab's footer carries the
+    // total once the patron is actually on it.
+    _renderTabs() {
+        const tab = (mode, label) => html`
+            <button
+                type="button"
+                class="tab"
+                id="ol-search-tab-${mode}"
+                role="tab"
+                aria-selected=${this._mode === mode}
+                aria-controls="ol-search-panel"
+                tabindex=${this._mode === mode ? '0' : '-1'}
+                @click=${() => this._selectMode(mode)}
+                @keydown=${this._onTabKeydown}
+            >
+                <span>${label}</span>
+                <span class="tab-ghost" aria-hidden="true">${label}</span>
+            </button>
+        `;
+        return html`
+            <div class="tabs" role="tablist" aria-label=${this._i18n.tabsAria}>
+                ${tab(MODE_BOOKS, this._i18n.tabBooks)}
+                ${tab(MODE_INSIDE, this._i18n.tabInside)}
+            </div>
+        `;
+    }
+
+    // Roving tabindex: ←/→ move between tabs, Home/End jump to the ends. The
+    // tablist is two items, so a move is always to the other one.
+    _onTabKeydown(e) {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            this._selectMode(this._inside ? MODE_BOOKS : MODE_INSIDE);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            this._selectMode(MODE_BOOKS);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            this._selectMode(MODE_INSIDE);
+        }
+    }
+
+    // Switching scope re-points the fulltext controller. Coming back to Books
+    // also has to catch the catalog up — it stopped fetching while Inside was
+    // showing — and re-run the band's gates, which the catalog's answer settled
+    // once already; without that the band stays empty for the rest of the
+    // query's life.
+    _selectMode(mode) {
+        if (this._mode === mode) return;
+        this._mode = mode;
+        this._track('Tab', mode);
+        this._navigatingKey = null;
+        this._ftSeeAllLoading = false;
+        const trimmed = this._query.trim();
+        const live = this._shouldAutocomplete();
+        this._ftBand.setExplicit(mode === MODE_INSIDE, live ? trimmed : '');
+        if (mode === MODE_BOOKS && live) {
+            if (this._activeFetchKey !== this._buildSearchJsonUrl(trimmed)) {
+                this._loading = true;
+                this._scheduleSearch();
+            } else {
+                this._ftBand.queryChanged(this._query);
+                if (this._searchFailed) this._ftBand.solrFailed(trimmed);
+                else if (this._hasSearched && !this._loading) this._ftBand.solrSettled(trimmed, this._results);
+            }
+        }
+        // Roving tabindex: focus follows selection, so an arrow press lands on
+        // the tab it just chose and the next arrow moves from there.
+        this.updateComplete.then(() => {
+            this.renderRoot.querySelector(`#ol-search-tab-${mode}`)?.focus();
+        });
     }
 
     _renderFilters() {
@@ -1210,7 +1392,9 @@ export class SearchModal extends LitElement {
         // scoped to the query + language. We only show it once a search lands and a
         // live count is in hand — before that there's no honest number to display
         // (the whole-corpus figure ignores the query/language), so we show nothing.
-        const sublabel = this._hasSearched && typeof this._readableCount === 'number'
+        // It's a catalog count, so it stays behind on the Books tab — the FTS
+        // backend reports no equivalent for the text inside the scans.
+        const sublabel = !this._inside && this._hasSearched && typeof this._readableCount === 'number'
             ? this._readableCount.toLocaleString()
             : '';
         // "Clear all" only earns its place once there's more than one filter to
@@ -1249,6 +1433,8 @@ export class SearchModal extends LitElement {
     }
 
     _renderResults() {
+        if (this._inside) return this._renderInsideResults();
+
         if (!this._shouldAutocomplete()) {
             return this._recentSearches.length > 0
                 ? this._renderRecentSearches()
@@ -1256,11 +1442,7 @@ export class SearchModal extends LitElement {
         }
 
         if (this._loading && this._results.length === 0) {
-            // Strip any trailing ellipsis/period(s) from the (translated) label
-            // so the animated dots that follow aren't doubled up.
-            const searchingLabel = this._i18n.searching.replace(/[.…。]+$/, '');
-            return html`<div class="results"><div class="loading"
-                >${searchingLabel}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div></div>`;
+            return html`<div class="results">${this._renderSearching()}</div>`;
         }
 
         if (this._results.length === 0 && this._hasSearched) {
@@ -1291,12 +1473,45 @@ export class SearchModal extends LitElement {
         `;
     }
 
+    // The Inside tab. No dedupe against the catalog — nothing else is on
+    // screen — and no author or shelf rows: every row is a passage in a scan.
+    _renderInsideResults() {
+        if (!this._shouldAutocomplete()) {
+            return html`<div class="results"><div class="empty">${this._i18n.insidePrompt}</div></div>`;
+        }
+        if (this._ftLoading && this._ftHits.length === 0) {
+            return html`<div class="results">${this._renderSearching()}</div>`;
+        }
+        if (this._ftHits.length === 0) {
+            return html`<div class="results"><div class="empty">${this._i18n.noInsideResults}</div></div>`;
+        }
+        const q = this._query.trim();
+        return html`
+            <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
+                <ul class="results-list">
+                    ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
+                </ul>
+            </div>
+        `;
+    }
+
+    // Strip any trailing ellipsis/period(s) from the (translated) label so the
+    // animated dots that follow aren't doubled up.
+    _renderSearching() {
+        const label = this._i18n.searching.replace(/[.…。]+$/, '');
+        return html`<div class="loading"
+            >${label}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div>`;
+    }
+
     // Hits minus scans already listed above. Computed at render since the two fetches race.
     _visibleFtHits() {
         return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
     }
 
     // Hidden until hits land: no spinner or empty state for a secondary surface.
+    // "View all" crosses to the Inside tab rather than leaving for /search/inside
+    // — the deeper list is one tab away, and the tab's own footer leads out. The
+    // total isn't repeated here; the tab's own badge is carrying it.
     _renderFulltextBand() {
         const hits = this._visibleFtHits();
         if (hits.length === 0) return nothing;
@@ -1305,27 +1520,31 @@ export class SearchModal extends LitElement {
             <div class="ft-band">
                 <h3 class="results-heading results-heading--icon">
                     ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
+                    <button
+                        type="button"
+                        class="ft-band__view-all"
+                        @click=${() => this._selectMode(MODE_INSIDE)}
+                    >${this._i18n.viewAllInside}${SearchModal._arrowRightIcon}</button>
                 </h3>
                 <ul class="results-list">
                     ${hits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
                 </ul>
-                <div class="ft-band__footer">${this._renderFulltextSeeAll()}</div>
             </div>
         `;
     }
 
-    // The count shows only when current and larger than the rows shown. No
-    // aria-label: the visible text is the name, so voice control can say it.
-    _renderFulltextSeeAll() {
-        const shown = this._visibleFtHits().length;
-        if (shown === 0) return nothing;
-        const counted = this._ftTotalIsCurrent() && this._ftTotal > shown;
+    // The Inside tab's footer action: the one route out to the full
+    // /search/inside page. No aria-label — the visible text is the accessible
+    // name, so voice control can say it.
+    _renderInsideSeeAll() {
         const q = this._query.trim();
+        const counted = this._ftTotalIsCurrent() && this._ftTotal > 0;
         const href = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
         return html`
             <ol-button
-                variant="secondary"
+                variant="primary"
                 href=${href}
+                ?disabled=${q.length < MIN_QUERY_LENGTH}
                 ?loading=${this._ftSeeAllLoading}
                 @click=${this._onFulltextSeeAll}
             >${counted ? this._seeAllInsideLabel() : this._i18n.seeAllInsidePlain}</ol-button>
@@ -1702,6 +1921,7 @@ export class SearchModal extends LitElement {
 
     // aria-label keeps the wide form; the narrow one only swaps what's on screen.
     _renderSeeAll() {
+        if (this._inside) return this._renderInsideSeeAll();
         const { wide, narrow } = this._seeAllLabels();
         return html`
             <ol-button
@@ -1796,6 +2016,9 @@ export class SearchModal extends LitElement {
     // Keyed on the catalog fetch so the band counts the same unit as the catalog
     // outcomes. `shown` is rows visible after dedupe, known only at fire time.
     _scheduleBandOutcome(status) {
+        // The Inside tab isn't the band, and isn't making the catalog fetch this
+        // is keyed to — its own funnel is the Tab and FulltextSeeAll events.
+        if (this._inside) return;
         this._scheduleOutcomeTrack('FulltextBand', this._activeFetchKey, () => {
             if (status === 'failed') return 'failed';
             const shown = this._visibleFtHits().length;
@@ -1818,6 +2041,12 @@ export class SearchModal extends LitElement {
         this._loading = false;
         this._seeAllLoading = false;
         this._ftSeeAllLoading = false;
+        // Scope is per visit too: the modal always reopens on Books, so the
+        // header search never quietly changes what it searches.
+        if (this._inside) {
+            this._mode = MODE_BOOKS;
+            this._ftBand.setExplicit(false);
+        }
         // Intent is per visit; the fetched state is kept.
         this._shelfStateWanted = false;
     }
@@ -1889,7 +2118,8 @@ export class SearchModal extends LitElement {
     _onInputKeydown(e) {
         if (e.key === 'Enter' && this._query.trim().length >= MIN_QUERY_LENGTH) {
             e.preventDefault();
-            this._onSeeAllResults();
+            if (this._inside) this._goToFulltextPage();
+            else this._onSeeAllResults();
             return;
         }
         // ArrowDown/Up step from the input into the result rows — ↓ to the first
@@ -1941,6 +2171,12 @@ export class SearchModal extends LitElement {
     // re-announces the whole text.
     _resultsAnnouncement() {
         if (!this._shouldAutocomplete()) return '';
+        if (this._inside) {
+            if (this._ftLoading) return '';
+            if (this._ftHits.length) return this._insideAnnouncement(this._ftHits.length);
+            // A null search key means nothing has been fetched for this query yet.
+            return this._ftSearchKey ? this._i18n.noInsideResults : '';
+        }
         const catalog = this._catalogAnnouncement();
         if (!catalog) return '';
         const band = this._bandAnnouncement();
@@ -1962,6 +2198,10 @@ export class SearchModal extends LitElement {
     _bandAnnouncement() {
         const shown = this._visibleFtHits().length;
         if (shown === 0) return '';
+        return this._insideAnnouncement(shown);
+    }
+
+    _insideAnnouncement(shown) {
         return sprintf(shown === 1 ? this._i18n.insideAnnounceOne : this._i18n.insideAnnounceMany, shown.toLocaleString());
     }
 
@@ -2017,15 +2257,28 @@ export class SearchModal extends LitElement {
         window.location.assign(url);
     }
 
-    // "<catalog>:<reason>" — whether results showed, and why the band did: a
-    // passage query, a weak catalog answer, or an outage (which wins).
+    // "<catalog>:<reason>" — whether results showed, and why the fulltext rows
+    // did: the patron picked the tab, a passage query, a weak catalog answer,
+    // or an outage (which wins over the two inferred reasons).
     _fulltextSeeAllLabel() {
         const catalog = this._results.length ? 'hasResults' : 'noResults';
         let reason;
-        if (this._searchFailed) reason = 'solrFailed';
+        if (this._inside) reason = 'tab';
+        else if (this._searchFailed) reason = 'solrFailed';
         else if (isPassageQuery(this._query.trim())) reason = 'passage';
         else reason = 'weakSolr';
         return `${catalog}:${reason}`;
+    }
+
+    // Enter on the Inside tab commits to the full-page search, mirroring the
+    // footer link the pointer and Tab key reach directly.
+    _goToFulltextPage() {
+        this._flushOutcomes();
+        this._track('FulltextSeeAll', this._fulltextSeeAllLabel());
+        this._saveCurrentSearch();
+        this._ftSeeAllLoading = true;
+        const params = fulltextSearchParams(this._query.trim(), this._fulltextFilters());
+        this._navigate(`/search/inside?${params.toString()}`);
     }
 
     // Mirrors _onResultPress: tracked always, spinner only for a plain click.
@@ -2189,7 +2442,11 @@ export class SearchModal extends LitElement {
 
     // Single entry point so the catalog fetch and the band can't drift apart.
     _scheduleSearch() {
-        this._debouncedFetch();
+        // The Inside tab shows no catalog rows, so it doesn't pay for them —
+        // which also keeps the search-outcome events measuring queries whose
+        // catalog answer the patron actually saw. _selectMode catches the
+        // Books tab up when it comes back.
+        if (!this._inside) this._debouncedFetch();
         this._ftBand.queryChanged(this._query);
     }
 
@@ -2214,6 +2471,8 @@ export class SearchModal extends LitElement {
     static _personIcon = html`<ol-icon name="user"></ol-icon>`;
 
     static _textSearchIcon = html`<ol-icon name="text-search" aria-hidden="true"></ol-icon>`;
+
+    static _arrowRightIcon = html`<ol-icon name="arrow-right" size="sm"></ol-icon>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);
