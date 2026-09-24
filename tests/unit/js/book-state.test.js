@@ -4,7 +4,7 @@
  * change on one button lands on every button for that work.
  */
 import '../../../openlibrary/components/lit/OlShelfButton.js';
-import { BATCH_SIZE, hydrate, initBookState, readLabels, resetBookState } from '../../../openlibrary/plugins/openlibrary/js/book-state.js';
+import { BATCH_SIZE, HYDRATE_DELAY, hydrate, initBookState, readLabels, resetBookState } from '../../../openlibrary/plugins/openlibrary/js/book-state.js';
 
 let calls;
 let posts;
@@ -33,6 +33,8 @@ function page({ userKey = '/people/tester', labels = LABELS, buttons = '' } = {}
 const button = (workKey, attrs = '') => `<ol-shelf-button work-key="${workKey}" book-title="A book" ${attrs}></ol-shelf-button>`;
 const all = () => [...document.querySelectorAll('ol-shelf-button')];
 const tick = () => new Promise(r => setTimeout(r, 0));
+/** Past the coalescing window, so the pass a mutation scheduled has run. */
+const settle = () => new Promise(r => setTimeout(r, HYDRATE_DELAY + 10));
 
 beforeAll(() => {
     window.matchMedia = query => ({
@@ -105,6 +107,29 @@ describe('hydrate', () => {
         expect(calls).toHaveLength(1);
     });
 
+    test('holds a button pending until its state lands, so a click in that window cannot unshelve', async() => {
+        let land;
+        global.fetch = vi.fn(async() => {
+            await new Promise(resolve => { land = resolve; });
+            return { ok: true, status: 200, json: async() => ({ works: { OL1W: { shelf: 1, rating: null, read_date: null, event_id: null } } }) };
+        });
+        page({ buttons: button('/works/OL1W') });
+        const pass = hydrate();
+        const [el] = all();
+        expect(el.pending).toBe(true);
+        land();
+        await pass;
+        expect(el.pending).toBe(false);
+        expect(el.shelf).toBe(1);
+    });
+
+    test('a button the server hydrated is never held', async() => {
+        stubFetch();
+        page({ buttons: button('/works/OL1W', 'data-hydrated shelf="2"') });
+        await hydrate();
+        expect(all()[0].pending).toBe(false);
+    });
+
     test('signed out, applies labels and never asks for state', async() => {
         stubFetch();
         page({ userKey: '', buttons: button('/works/OL1W') });
@@ -130,6 +155,8 @@ describe('hydrate', () => {
         await hydrate();
         expect(calls).toHaveLength(1);
         expect(all()[0].hasAttribute('data-hydrated')).toBe(false);
+        // Still unknown, so still held: a click here would be the same guess.
+        expect(all()[0].pending).toBe(true);
         stubFetch({ OL1W: { shelf: 1, rating: null, read_date: null, event_id: null } });
         await hydrate();
         expect(calls).toHaveLength(1);
@@ -180,7 +207,7 @@ describe('initBookState', () => {
         const carousel = document.createElement('div');
         carousel.innerHTML = button('/works/OL9W');
         document.body.appendChild(carousel);
-        await tick(); // the observer's coalescing timeout
+        await settle(); // the observer's coalescing window
         await tick(); // the fetch
         expect(calls).toHaveLength(1);
         const late = all()[0];
@@ -188,15 +215,33 @@ describe('initBookState', () => {
         expect(late.userKey).toBe('/people/tester');
         expect(late.shelf).toBe(4);
     });
+
+    test('carousels that land in separate macrotasks share one request', async() => {
+        stubFetch({ OL1W: { shelf: 1 }, OL2W: { shelf: 2 } });
+        page({ buttons: '' });
+        initBookState();
+        await tick();
+        for (const key of ['/works/OL1W', '/works/OL2W']) {
+            const carousel = document.createElement('div');
+            carousel.innerHTML = button(key);
+            document.body.appendChild(carousel);
+            // A gap no zero-delay timeout could span, well inside the window.
+            await new Promise(r => setTimeout(r, HYDRATE_DELAY / 4));
+        }
+        await settle();
+        await tick();
+        expect(calls).toHaveLength(1);
+        expect(calls[0].searchParams.get('work_ids')).toBe('OL1W,OL2W');
+    });
 });
 
 describe('a page that lists one shelf', () => {
     // The reading log's Currently Reading page: sidebar counts, the heading,
     // and one row whose book is on that shelf.
     const shelfPage = (buttonAttrs = 'data-hydrated shelf="2"') => `
-        <span class="li-count" data-shelf-count="2">27</span>
-        <span class="li-count" data-shelf-count="3">194</span>
-        <h2 data-shelf-count="2">Currently Reading (27)</h2>
+        <span class="li-count" data-shelf-count-for="2">27</span>
+        <span class="li-count" data-shelf-count-for="3">194</span>
+        <h2 data-shelf-count-for="2">Currently Reading (27)</h2>
         <ul class="list-books" data-shelf="2">
             <li class="searchResultItem">
                 ${button('/works/OL1W', buttonAttrs)}
@@ -206,9 +251,9 @@ describe('a page that lists one shelf', () => {
     const change = (shelf, rating = null) => document.dispatchEvent(
         new CustomEvent('ol-book-state-change', { detail: { key: '/works/OL1W', shelf, rating } }),
     );
-    const note = () => document.querySelector('.shelf-moved-note');
-    const noteText = () => note()?.querySelector('.shelf-moved-note__text').textContent;
-    const count = id => document.querySelector(`span[data-shelf-count="${id}"]`).textContent;
+    const note = () => document.querySelector('.left-shelf-notice');
+    const noteText = () => note()?.querySelector('.left-shelf-notice__text').textContent;
+    const count = id => document.querySelector(`span[data-shelf-count-for="${id}"]`).textContent;
 
     test('a book that leaves the shelf keeps its row, marked, and the counts follow', () => {
         stubFetch();
@@ -224,7 +269,7 @@ describe('a page that lists one shelf', () => {
         // Off every shelf: the same note, reworded; only one of them.
         change(null);
         expect(noteText()).toBe('Removed from shelf');
-        expect(document.querySelectorAll('.shelf-moved-note')).toHaveLength(1);
+        expect(document.querySelectorAll('.left-shelf-notice')).toHaveLength(1);
         expect([count(2), count(3)]).toEqual(['26', '194']);
     });
 
@@ -243,7 +288,7 @@ describe('a page that lists one shelf', () => {
         page({ buttons: shelfPage() });
         initBookState();
         change(3, 4);
-        note().querySelector('.shelf-moved-note__undo').click();
+        note().querySelector('.left-shelf-notice__undo').click();
         // Optimistic, like the button: the row and counts move before the request lands.
         expect(all()[0].shelf).toBe(2);
         expect(all()[0].rating).toBe(4);
@@ -260,7 +305,7 @@ describe('a page that lists one shelf', () => {
         page({ buttons: shelfPage() });
         initBookState();
         change(3);
-        note().querySelector('.shelf-moved-note__undo').click();
+        note().querySelector('.left-shelf-notice__undo').click();
         await tick();
         await tick();
         expect(all()[0].shelf).toBe(3);

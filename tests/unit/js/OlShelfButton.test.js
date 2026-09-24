@@ -374,6 +374,15 @@ describe('ol-shelf-button pending', () => {
         expect(seen).toHaveLength(1);
     });
 
+    test('says it is busy while it waits, and stops once it is not', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester', pending: true });
+        expect(q(el, '.main').getAttribute('aria-busy')).toBe('true');
+        el.pending = false;
+        await el.updateComplete;
+        expect(q(el, '.main').hasAttribute('aria-busy')).toBe(false);
+    });
+
     test('looks unshelved rather than guessing', async() => {
         const el = await mount({ variant: 'outline', userKey: '/people/tester', pending: true });
         expect(q(el, '.save').classList.contains('save--on')).toBe(false);

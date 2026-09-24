@@ -67,8 +67,9 @@ export const DEFAULT_LABELS = {
  * @prop {String} userKey - "/people/<username>" when signed in; empty sends the
  *     visitor to log in instead of opening the popover
  * @prop {Boolean} pending - The reader's state is not known yet. The button
- *     looks unshelved and the popover holds its rows: posting a shelf the book
- *     is already on removes it, so a guess could undo a save
+ *     dims and drops its clicks, and the popover holds its rows: posting a
+ *     shelf the book is already on removes it, so a guess could undo a save.
+ *     Set by whoever fetches the state (book-state.js, the search modal)
  * @prop {String} placement - ol-popover placement for the actions panel;
  *     unset uses its default
  * @prop {Boolean} hideRating - Always drop the popover's stars. Without it
@@ -79,7 +80,7 @@ export const DEFAULT_LABELS = {
  * @fires ol-book-state-change - The shelf or rating changed, optimistically or
  *     rolled back. detail: { key, shelf, rating }
  * @fires ol-book-check-in - Re-fired from the popover when a finish date is
- *     saved. detail: { key, date, eventId }
+ *     saved or removed. detail: { key, date, eventId }, both null on removal
  *
  * @attr {Boolean} open - Present while the actions popover is open. Set by the
  *     component, never by the page: focus inside a top-layer popover does not
@@ -351,6 +352,18 @@ export class OlShelfButton extends LitElement {
             outline-offset: -2px;
         }
 
+        /* ── Pending ──────────────────────────────────────────────── */
+
+        /* The handlers drop clicks until the reader's state arrives; this says
+           so, the way ol-shelf-actions dims its rows while busy. Blocking the
+           pointer takes the hover and press affordances with it — a keyboard
+           activation still lands, and the guard catches it. */
+        :host([pending]) .split,
+        :host([pending]) .save {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
         /* Live region: read out, never laid out. */
         .sr-only {
             position: absolute;
@@ -444,6 +457,7 @@ export class OlShelfButton extends LitElement {
                 slot="trigger"
                 class="save ${classMap({ 'save--on': on })}"
                 aria-label=${label}
+                aria-busy=${ifDefined(this.pending || undefined)}
                 @click=${this.userKey ? undefined : this._onLoggedOut}
             ><ol-icon class="glyph" name=${this._icon}></ol-icon></button>
         `);
@@ -461,6 +475,7 @@ export class OlShelfButton extends LitElement {
                             slot="trigger"
                             class="main"
                             aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
+                            aria-busy=${ifDefined(this.pending || undefined)}
                             @click=${this.userKey ? undefined : this._onLoggedOut}
                         ><ol-icon name="list-plus"></ol-icon><span>${label}</span></button>
                     `)}
@@ -478,6 +493,7 @@ export class OlShelfButton extends LitElement {
                     class="main ${classMap({ 'main--on': on })}"
                     aria-pressed=${on ? 'true' : 'false'}
                     aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
+                    aria-busy=${ifDefined(this.pending || undefined)}
                     @click=${this._onMainClick}
                 >${on ? html`<ol-icon name="check"></ol-icon>` : nothing}<span>${label}</span></button>
                 <span class="sr-only" role="status">${this._announce}</span>
