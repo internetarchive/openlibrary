@@ -185,6 +185,134 @@ def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
 
 
+def get_loan_changes(
+    after_uid: int,
+    limit: int = 1000,
+    s3_keys: dict | None = None,
+) -> dict:
+    """Fetch loan events with uid > after_uid from IA's loan changes API.
+
+    Returns a dict with 'status', 'latest_uid', and 'rows'.
+    Each row: {'time', 'identifier', 'username', 'loan_id', 'event_type', 'extra', 'uid'}.
+    The 'extra' field is a JSON string; parse it for 'until' (loan expiry).
+
+    :param after_uid: Return events with uid strictly greater than this value.
+    :param limit: Max rows per page (max 1000 per IA API contract).
+    :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
+                    defaults to config_ia_ol_metadata_write_s3.
+    """
+    url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
+    params: dict[str, str] = {"action": "changes", "after_uid": str(after_uid), "limit": str(limit)}
+
+    if s3_keys:
+        auth = "LOW {access}:{secret}".format(**s3_keys)
+    elif config_ia_ol_metadata_write_s3:
+        auth = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+    else:
+        auth = None
+
+    headers = {"Authorization": auth} if auth else {}
+    response = requests.get(
+        url,
+        params=params,
+        headers=headers,
+        timeout=config_http_request_timeout or 10,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+AVAILABILITY_BATCH_SIZE = 100
+
+
+def get_availability_batch(
+    identifiers: list[str],
+    batch_size: int = AVAILABILITY_BATCH_SIZE,
+    s3_keys: dict | None = None,
+) -> dict[str, AvailabilityStatus]:
+    """Fetch ground-truth availability for many ocaids, uncached, in batches.
+
+    Deliberately NOT get_availability(): that one memcaches for 5 minutes,
+    which would feed up-to-5-minute-stale state into a ~30s near-realtime
+    loop, and it comma-joins every id into a single request with no chunking.
+    It also builds headers from req_context, which does not exist outside a
+    web request. This is the daemon-side equivalent: no cache, chunked, and
+    no request-scoped state.
+
+    Identifiers absent from the service response are simply absent from the
+    returned dict -- callers must treat "no answer" as "don't touch it"
+    rather than as "available". A failed batch is logged and skipped for the
+    same reason.
+
+    :param identifiers: ocaids to look up.
+    :param batch_size: Max ids per request (the API accepts on the order of 100).
+    :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
+                    defaults to config_ia_ol_metadata_write_s3.
+    """
+    if not identifiers:
+        return {}
+
+    if s3_keys:
+        auth = "LOW {access}:{secret}".format(**s3_keys)
+    elif config_ia_ol_metadata_write_s3:
+        auth = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+    else:
+        auth = None
+
+    headers = {
+        "x-application-id": "openlibrary",
+        "user-agent": "Open Library Solr Updater",
+    }
+    if auth:
+        headers["authorization"] = auth
+
+    result: dict[str, AvailabilityStatus] = {}
+    for start in range(0, len(identifiers), batch_size):
+        batch = identifiers[start : start + batch_size]
+        try:
+            response = requests.get(
+                config_ia_availability_api_v2_url,
+                params={"identifier": ",".join(batch), "scope": "printdisabled"},
+                headers=headers,
+                timeout=config_http_request_timeout or 10,
+            )
+            response.raise_for_status()
+            body = response.json()
+        except Exception:
+            logger.exception("get_availability_batch failed for %d ids; skipping batch", len(batch))
+            continue
+
+        if body.get("success") is False:
+            logger.warning("Availability service error: %r", body.get("error"))
+            continue
+
+        responses = body.get("responses") or {}
+        if not isinstance(responses, dict):
+            logger.warning("Availability service returned a non-dict 'responses': %r", type(responses))
+            continue
+
+        for identifier, availability in responses.items():
+            # Only keep entries that correspond to ids we asked about and that
+            # actually carry a status: the service is the boundary of trust here.
+            if isinstance(availability, dict) and availability.get("status") not in (None, "error"):
+                # Quoted: AvailabilityStatus is declared further down this module.
+                result[identifier] = cast("AvailabilityStatus", availability)
+
+    return result
+
+
+def is_available_for_loan(availability: AvailabilityStatus) -> bool:
+    """Is this book borrowable/browsable right now, per ground truth?
+
+    Mirrors the borrowable branch of get_lending_state(): a book is available
+    when the service says it can be browsed or borrowed. Everything else --
+    checked out, all copies out, waitlist-blocked, not lendable at all -- is
+    unavailable for our purposes. Note that a `return` event does NOT imply
+    available: with a waitlist, the copy goes to the head of the queue.
+    """
+    return bool(availability.get("available_to_browse") or availability.get("available_to_borrow"))
+
+
 async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
