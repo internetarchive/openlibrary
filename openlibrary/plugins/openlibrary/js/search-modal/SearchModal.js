@@ -193,28 +193,34 @@ export class SearchModal extends LitElement {
             overflow: hidden;
         }
 
+        /* Feathered at both ends and wide enough to cross slowly: a shimmer
+           passing under the field, not a block shuttling across it. The colour
+           stays the accent blue — this is activity, and it reads as activity —
+           but only the centre of the sweep ever reaches full strength. The
+           travel is exactly one track width (100 / 45), so it clears each edge
+           without going dark mid-cycle. */
         .progress::before {
             content: '';
             position: absolute;
             inset-block: 0;
-            /* Narrow enough to read as a sweep; the keyframes carry it clear of
-               both ends so there's no pause at the edges. */
-            inline-size: 30%;
-            background: var(--color-primary);
-            animation: ol-search-progress 1.1s var(--ease-in-out-cubic) infinite;
+            inline-size: 45%;
+            background: linear-gradient(to right, transparent, var(--color-primary) 50%, transparent);
+            animation: ol-search-progress 1.8s var(--ease-in-out-cubic) infinite;
         }
 
         @keyframes ol-search-progress {
             from { transform: translateX(-100%); }
-            to   { transform: translateX(433%); }
+            to   { transform: translateX(222%); }
         }
 
-        /* No travel: hold a dimmed full-width bar instead, which still reads as
-           "working" without motion across the viewport. */
+        /* No travel: hold a faint full-width bar instead, which still reads as
+           "working" without motion across the viewport. Flat rather than the
+           gradient, which only makes sense on something moving. */
         @media (prefers-reduced-motion: reduce) {
             .progress::before {
                 inline-size: 100%;
-                opacity: 0.4;
+                background: var(--color-primary);
+                opacity: 0.35;
                 animation: none;
             }
         }
