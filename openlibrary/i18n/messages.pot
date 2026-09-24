@@ -1303,8 +1303,8 @@ msgstr ""
 msgid "No books are on this shelf"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
-msgid "Loans & History"
+#: account/mybooks.html
+msgid "Continue Reading"
 msgstr ""
 
 #. Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
@@ -1632,6 +1632,10 @@ msgstr ""
 
 #: account/readinglog_stats.html
 msgid "Click on a bar to see matching works"
+msgstr ""
+
+#: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+msgid "Loans & History"
 msgstr ""
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
