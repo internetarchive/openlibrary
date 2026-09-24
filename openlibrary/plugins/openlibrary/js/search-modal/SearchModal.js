@@ -96,6 +96,13 @@ const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
 // Idle time before a query's outcome counts, so partials typed on the way don't.
 const OUTCOME_DEBOUNCE_MS = 1200;
 
+// How long superseded results hold at full strength before they're dimmed.
+// Results linger through an edit rather than flickering out, so on a fast
+// answer nothing should ever mark them — only a wait long enough that the list
+// would otherwise read as the answer to what's now typed. Local Solr almost
+// never reaches this; the fulltext backend nearly always does.
+const STALE_DELAY_MS = 300;
+
 // The bare common-word "the" matches almost everything and isn't worth a Solr
 // round-trip, so the legacy SearchBar skipped it for autocomplete. Navigation
 // to /search is still allowed for it (handled by the length-only gates).
@@ -136,6 +143,8 @@ export class SearchModal extends LitElement {
         _ftSearchKey: { state: true },
         _ftQuery: { state: true },
         _ftLoading: { state: true },
+        _resultsKey: { state: true },
+        _markStale: { state: true },
     };
 
     static styles = css`
@@ -161,11 +170,53 @@ export class SearchModal extends LitElement {
         /* ── Search input row ──────────────────────────────────────── */
 
         .bar {
+            position: relative;
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
             padding: var(--spacing-md) var(--spacing-lg);
             border-bottom: var(--border-divider);
+        }
+
+        /* ── Search in flight ──────────────────────────────────────── */
+
+        /* Sits on the bar's own divider while a newer answer is outstanding, so
+           the signal is next to the input the patron is typing in. Appears with
+           the stale dim (after STALE_DELAY_MS), so a fast answer never flashes
+           it. Indeterminate — neither backend reports progress. */
+        .progress {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: var(--border-width-thick);
+            overflow: hidden;
+        }
+
+        .progress::before {
+            content: '';
+            position: absolute;
+            inset-block: 0;
+            /* Narrow enough to read as a sweep; the keyframes carry it clear of
+               both ends so there's no pause at the edges. */
+            inline-size: 30%;
+            background: var(--color-primary);
+            animation: ol-search-progress 1.1s var(--ease-in-out-cubic) infinite;
+        }
+
+        @keyframes ol-search-progress {
+            from { transform: translateX(-100%); }
+            to   { transform: translateX(433%); }
+        }
+
+        /* No travel: hold a dimmed full-width bar instead, which still reads as
+           "working" without motion across the viewport. */
+        @media (prefers-reduced-motion: reduce) {
+            .progress::before {
+                inline-size: 100%;
+                opacity: 0.4;
+                animation: none;
+            }
         }
 
         /* Wraps the icon + input (+ ESC pill). Transparent on desktop so the
@@ -823,6 +874,30 @@ export class SearchModal extends LitElement {
         }
 
         @media (prefers-reduced-motion: reduce) { .result__remove-recent { transition: none; } }
+        /* ── Stale (results a newer query has superseded) ───────────── */
+
+        /* Rows hold through an edit so the list doesn't flicker, but past
+           STALE_DELAY_MS the wait is long enough that they'd read as the answer
+           to what's now in the input. Dimming says otherwise. They stay
+           clickable: each row still links to the search it shows. Lighter than
+           the navigating dim, which means something stronger — you chose a row
+           and we're leaving.
+
+           Declaring the transition here rather than on the base selector fades
+           only on the way in: dropping the class drops the transition with it,
+           so fresh rows arrive at full strength instead of fading up under a
+           list that's already been replaced. */
+        .results.is-stale,
+        .ft-band.is-stale {
+            opacity: 0.55;
+            transition: opacity var(--duration-base) var(--ease-state);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .results.is-stale,
+            .ft-band.is-stale { transition: none; }
+        }
+
         /* ── Navigating (pressed result → page loading) ────────────── */
 
         /* Pressing a result navigates the whole window, and the next page can
@@ -996,6 +1071,16 @@ export class SearchModal extends LitElement {
 
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
+        // The search the rows on screen answer — unlike _activeFetchKey, which
+        // moves to the new query the moment its fetch starts. Comparing it to
+        // the current query is what tells the modal its list is out of date.
+        this._resultsKey = null;
+        // Set once superseded content has been on screen for STALE_DELAY_MS.
+        // One clock for the whole modal: the catalog and the band go stale
+        // together on an edit, and the band often stays stale long after the
+        // catalog has caught up.
+        this._markStale  = false;
+        this._staleTimer = null;
 
         // FulltextBand decides when to fetch; the modal mirrors its result.
         this._ftHits  = [];
@@ -1058,6 +1143,7 @@ export class SearchModal extends LitElement {
         document.removeEventListener('ol-book-state-change', this._onBookStateChange);
         document.removeEventListener('ol-book-check-in', this._onBookCheckIn);
         this._clearOutcomeTimers();
+        this._clearStaleTimer();
         super.disconnectedCallback();
     }
 
@@ -1118,6 +1204,7 @@ export class SearchModal extends LitElement {
     _resetResults({ hasSearched, clearReadableCount = true } = {}) {
         this._clearOutcomeTimers();
         this._results           = [];
+        this._resultsKey        = null;
         this._authorSuggestions = [];
         this._numFound          = null;
         if (clearReadableCount) this._readableCount = null;
@@ -1280,6 +1367,7 @@ export class SearchModal extends LitElement {
                             @click=${this._closeModal}
                         >ESC</button>
                     </div>
+                    ${this._markStale ? html`<div class="progress" aria-hidden="true"></div>` : nothing}
                 </div>
 
                 <!-- Visually-hidden live region: announces the result count to
@@ -1296,7 +1384,15 @@ export class SearchModal extends LitElement {
                 <div class="filter-section">
                     ${this._renderFilters()}
                 </div>
-                <div role="tabpanel" id="ol-search-panel" aria-labelledby="ol-search-tab-${this._mode}">
+                <!-- aria-busy sits on the panel rather than the results
+                     container, which is replaced wholesale between states — a
+                     stable element is what assistive tech can actually watch. -->
+                <div
+                    role="tabpanel"
+                    id="ol-search-panel"
+                    aria-labelledby="ol-search-tab-${this._mode}"
+                    aria-busy=${this._markStale ? 'true' : 'false'}
+                >
                     ${this._renderResults()}
                 </div>
 
@@ -1305,6 +1401,55 @@ export class SearchModal extends LitElement {
                 </div>
             </ol-dialog>
         `;
+    }
+
+    // Reconciled after every render rather than set at the call sites that move
+    // the query, so no path — an edit, a tab switch, a filter toggle, a failed
+    // fetch — can leave a dim behind that nothing clears.
+    updated() {
+        if (this._catalogSuperseded() || this._bandSuperseded()) {
+            if (this._markStale || this._staleTimer) return;
+            this._staleTimer = setTimeout(() => {
+                this._staleTimer = null;
+                this._markStale = true;
+            }, STALE_DELAY_MS);
+        } else {
+            this._clearStaleTimer();
+            this._markStale = false;
+        }
+    }
+
+    _clearStaleTimer() {
+        if (!this._staleTimer) return;
+        clearTimeout(this._staleTimer);
+        this._staleTimer = null;
+    }
+
+    // ── Staleness ────────────────────────────────────────────────────────
+    //
+    // Both surfaces keep their rows through an edit so the list doesn't flicker,
+    // which leaves them briefly answering a query that's no longer in the input.
+    // The *Superseded predicates say that's true now; the *IsStale ones add the
+    // delay, and are what the render methods ask.
+
+    _catalogSuperseded() {
+        return this._results.length > 0 && this._resultsKey !== this._buildSearchJsonUrl(this._query.trim());
+    }
+
+    _bandSuperseded() {
+        return this._ftHits.length > 0 && !this._ftIsCurrent();
+    }
+
+    _catalogIsStale() { return this._markStale && this._catalogSuperseded(); }
+
+    _bandIsStale() { return this._markStale && this._bandSuperseded(); }
+
+    // Class list for a populated results container. is-navigating is the
+    // stronger signal — the patron has chosen a row and we're leaving — so a
+    // press supersedes the stale dim rather than compounding with it.
+    _resultsClass(stale) {
+        if (this._navigatingKey) return 'results is-navigating';
+        return stale ? 'results is-stale' : 'results';
     }
 
     /** True while the Inside books tab is showing. */
@@ -1462,7 +1607,7 @@ export class SearchModal extends LitElement {
         }
 
         return html`
-            <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
+            <div class=${this._resultsClass(this._catalogIsStale())} @keydown=${this._onResultsKeydown}>
                 ${this._authorSuggestions.length ? html`
                     <h3 class="results-heading">${this._i18n.authorResults}</h3>
                     <ul class="results-list author-suggestion">
@@ -1493,7 +1638,7 @@ export class SearchModal extends LitElement {
             return html`<div class="results"><div class="empty">${this._i18n.noInsideResults}</div></div>`;
         }
         return html`
-            <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
+            <div class=${this._resultsClass(this._bandIsStale())} @keydown=${this._onResultsKeydown}>
                 <ul class="results-list">
                     ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
                 </ul>
@@ -1521,8 +1666,12 @@ export class SearchModal extends LitElement {
     _renderFulltextBand() {
         const hits = this._visibleFtHits();
         if (hits.length === 0) return nothing;
+        // Only when the band is stale on its own. When the container above is
+        // already dimmed — stale, or navigating after a press — nesting a second
+        // dim would fade these rows twice as far.
+        const stale = !this._navigatingKey && this._bandIsStale() && !this._catalogIsStale();
         return html`
-            <div class="ft-band">
+            <div class="ft-band ${stale ? 'is-stale' : ''}">
                 <h3 class="results-heading results-heading--icon">
                     ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
                     <button
@@ -2342,6 +2491,7 @@ export class SearchModal extends LitElement {
             .then(data => {
                 if (this._activeFetchKey !== fetchKey) return;
                 this._results           = data.docs || [];
+                this._resultsKey        = fetchKey;
                 this._authorSuggestions = deriveAuthors(this._results, trimmed);
                 this._numFound          = typeof data.numFound === 'number' ? data.numFound : null;
                 if (this._availability === 'readable') this._readableCount = this._numFound;
