@@ -208,6 +208,7 @@ production. 500 leaves a wide margin and keeps each query small; the cost of
 more round trips is irrelevant next to a query that fails outright.
 """
 POLL_INTERVAL = 30  # seconds between polls when caught up
+HEARTBEAT_INTERVAL = 300  # seconds between proof-of-life log lines
 RECHECK_INTERVAL = 600  # seconds between ground-truth re-checks of the unavailable set
 RECHECK_MAX_EDITIONS = 10000  # cap on editions re-checked per pass
 
@@ -699,6 +700,7 @@ def main(  # noqa: PLR0915, PLR0912
                 logger.exception("Failed to write post-reconcile state file %s", state_path)
 
     last_recheck = 0.0
+    last_heartbeat = 0.0
     # Edition keys the follower marked since the last re-check pass. The re-check
     # must not clear these: its availability answers may predate the mark.
     marked_this_pass: set[str] = set()
@@ -715,6 +717,22 @@ def main(  # noqa: PLR0915, PLR0912
             logger.error("Loan changes API returned status=%r; sleeping", resp.get("status"))
             time.sleep(poll_interval)
             continue
+
+        # A cursor ahead of the feed is a permanent stall, and it used to be a
+        # silent one: zero rows come back forever and nothing above DEBUG is
+        # logged, so the daemon looks healthy while doing nothing. Reachable
+        # from a Solr `loan_uid` left by a different environment, or a restored
+        # index. `latest_uid` is on every response and was only ever read at
+        # startup; clamp to it and say so.
+        latest_uid = resp.get("latest_uid")
+        if isinstance(latest_uid, int) and latest_uid and last_uid > latest_uid:
+            logger.warning(
+                "Cursor %d is ahead of the feed head %d; clamping. The feed was probably rebuilt, "
+                "or this state came from another environment.",
+                last_uid,
+                latest_uid,
+            )
+            last_uid = latest_uid
 
         rows = resp.get("rows", [])
         did_updates = False
@@ -813,6 +831,19 @@ def main(  # noqa: PLR0915, PLR0912
 
         if len(rows) >= BATCH_SIZE:
             continue
+
+        # Periodic proof of life. Without it the only evidence the daemon is
+        # working is the absence of errors, which is also what a stall looks
+        # like. Cursor lag answers "is it keeping up"; the marked count answers
+        # "is it doing anything", and both are cheap.
+        if now - last_heartbeat >= HEARTBEAT_INTERVAL:
+            lag = (latest_uid - last_uid) if isinstance(latest_uid, int) and latest_uid else None
+            try:
+                marked = get_solr().select(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0).num_found
+            except Exception:
+                marked = None
+            logger.info("Heartbeat: cursor=%s lag=%s editions_marked_unavailable=%s", last_uid, lag, marked)
+            last_heartbeat = now
 
         logger.debug("Caught up at uid=%d; sleeping %ds", last_uid, poll_interval)
         time.sleep(poll_interval)
