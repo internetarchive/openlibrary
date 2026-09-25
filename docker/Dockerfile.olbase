@@ -83,6 +83,15 @@ COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm ci --no-audit
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
+
+# Pull latest translations from openlibrary-i18n (kept current by AI pipeline)
+RUN git clone --depth=1 https://github.com/internetarchive/openlibrary-i18n /tmp/i18n \
+ && for lang in /tmp/i18n/locale/*/; do \
+      lang_code=$(basename "$lang"); \
+      cp "$lang/messages.po" /openlibrary/openlibrary/i18n/${lang_code}/messages.po; \
+    done \
+ && rm -rf /tmp/i18n
+
 # run make to initialize git submodules, build css and js files
 RUN ln -s vendor/infogami/infogami infogami \
  && make
