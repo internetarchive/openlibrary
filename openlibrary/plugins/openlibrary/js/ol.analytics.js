@@ -7,15 +7,14 @@ import $ from 'jquery';
 */
 
 /**
- * Report a custom interaction event to Matomo from JS.
+ * Report a custom interaction event from JS, the same way a `data-ol-link-track`
+ * click does: to Matomo through its `_paq` queue, and to Archive.org's own
+ * analytics through the athena event ping. Both, so an interaction that moves
+ * from a tracked link to a JS call keeps reporting wherever it was counted.
  *
- * Use this for interactions that Matomo's DOM-based trigger can't see — chiefly
- * Shadow DOM controls (Lit components), where a `data-ol-link-track` attribute
- * on an inner element is invisible to Matomo's selector-based click trigger. We
- * push a `trackEvent` straight onto Matomo's `_paq` queue — the same path that
- * trigger ultimately uses, so the event lands in Matomo under the given
- * category/action/label. (Athena does not forward into Matomo, so the `_paq`
- * push is what actually makes these events report.)
+ * Use this for interactions that the click trigger can't see — chiefly Shadow
+ * DOM controls (Lit components), where the attribute on an inner element is
+ * invisible to the document-level selector.
  *
  * Guarded so a blocked or absent analytics script can never break the
  * interaction that triggered it.
@@ -25,10 +24,12 @@ import $ from 'jquery';
  * @param {string} [label]   Optional event label, e.g. 'edition:3'
  */
 export function trackEvent(category, action, label) {
-    if (!window._paq) return;
-    const event = ['trackEvent', category, action];
-    if (label) event.push(label);
-    window._paq.push(event);
+    if (window._paq) {
+        const event = ['trackEvent', category, action];
+        if (label) event.push(label);
+        window._paq.push(event);
+    }
+    window.archive_analytics?.ol_send_event_ping?.({ category, action, label });
 }
 
 export default function initAnalytics() {
@@ -64,14 +65,7 @@ export default function initAnalytics() {
         }
         $(document).on('click', '[data-ol-link-track]', function() {
             var category_action = $(this).attr('data-ol-link-track').split('|');
-            // for testing,
-            // console.log(category_action[0], category_action[1]);
             trackEvent(category_action[0], category_action[1], category_action[2]);
-            window.archive_analytics.ol_send_event_ping({
-                category: category_action[0],
-                action: category_action[1],
-                label: category_action[2],
-            });
         });
     }
     window.vs = vs;

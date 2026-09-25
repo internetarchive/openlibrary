@@ -71,8 +71,8 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
             /* A crisp ease-out (no overshoot) for the slide — the pill should
                feel like it snaps to the new segment, not bounce. */
-            --slide-duration: 0.25s;
-            --slide-ease: cubic-bezier(0.32, 0.72, 0, 1);
+            --slide-duration: var(--duration-base);
+            --slide-ease: var(--ease-move);
         }
 
         :host([full-width]) {
@@ -106,7 +106,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             height: var(--control-height-medium);
             padding: var(--spacing-3xs);
             border-radius: var(--border-radius-button);
-            background-color: var(--lightest-grey);
+            background-color: var(--color-control-track);
         }
 
         :host([full-width]) .track {
@@ -168,9 +168,14 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             left: var(--spacing-3xs);
             /* width + translateX are set directly by _measure() (see above). */
             width: 0;
-            border: 1px solid var(--color-border-subtle);
+            /* Border, fill and lift are ol-button[variant="secondary"]'s, so the
+               selected segment reads as the same control as the buttons beside
+               it. The track stays a step lighter than this border, so the pill
+               keeps a visible outline against it. */
+            border: 1px solid var(--color-control-border);
             border-radius: var(--pill-radius);
-            background-color: var(--white);
+            background-color: var(--color-control-bg);
+            --control-surface: var(--color-control-bg);
             box-shadow:
                 var(--box-shadow-raised),
                 inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
@@ -228,9 +233,9 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                Color is intentionally NOT transitioned so hover darkening is
                instant — the hover effect must give immediate feedback. */
             transition:
-                background-color 0.15s,
-                border-color 0.15s,
-                box-shadow 0.15s;
+                background-color var(--duration-fast),
+                border-color var(--duration-fast),
+                box-shadow var(--duration-fast);
         }
 
         :host([full-width]) .segment {
@@ -268,7 +273,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         }
 
         .segment:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: -2px;
         }
 

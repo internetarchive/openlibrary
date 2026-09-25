@@ -9,9 +9,13 @@
 /**
  * Commonly focusable elements. Excludes `tabindex="-1"` (programmatic focus only).
  *
+ * The href clause is scoped to links: a bare `[href]` also matches the `<use>`
+ * in every sprite icon, which can't take focus, so a trap would stop there and
+ * `.focus()` would no-op — leaving Tab stuck on the element before it.
+ *
  * @type {string}
  */
-export const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+export const FOCUSABLE_SELECTOR = 'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /**
  * The focused element, descending through shadow roots.

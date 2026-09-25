@@ -33,7 +33,7 @@ import GENRE from './LibraryExplorer/genre.json';
 import GENRE_BASIC from './LibraryExplorer/genre-basic.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
 import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
-import maxBy from 'lodash/maxBy';
+import { maxBy } from '../plugins/openlibrary/js/nonjquery_utils.js';
 
 // Genre/subgenre slugs, gathered from both genre.json (enriched) and genre-basic.json (the
 // basic/enriched toggle's raw tree) -- basic subgenres use the tags vocabulary's own slug

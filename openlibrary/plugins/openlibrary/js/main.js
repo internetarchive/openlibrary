@@ -1,11 +1,4 @@
 import $ from 'jquery';
-// API polyfills for the ESM browser floor (~Chrome 61 / Safari 11.1). Vite lowers
-// syntax only (Oxc); these replace babel `preset-env` `useBuiltIns: 'usage'` for
-// the ES2018+ APIs used in this codebase.
-import 'core-js/es/array/flat-map';
-import 'core-js/es/object/from-entries';
-import 'core-js/es/promise/finally';
-import 'core-js/es/symbol/async-iterator';
 import initSentry from './sentry';
 import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
@@ -243,23 +236,23 @@ $(function() {
     }
 
     const $observationModalLinks = $('.observations-modal-link');
-    const $notesModalLinks = $('.notes-modal-link');
+    const notesModalLinks = document.querySelectorAll('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
+    if ($observationModalLinks.length || notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
         import('./modals')
             .then(module => {
                 if ($observationModalLinks.length) {
                     module.initObservationsModal($observationModalLinks);
                 }
-                if ($notesModalLinks.length) {
-                    module.initNotesModal($notesModalLinks);
+                if (notesModalLinks.length) {
+                    module.initNotesModal(notesModalLinks);
                 }
                 if ($notesPageButtons.length) {
                     module.addNotesPageButtonListeners();
                 }
                 if ($shareModalLinks.length) {
-                    module.initShareModal($shareModalLinks);
+                    module.initShareModal();
                 }
             });
     }
@@ -410,32 +403,30 @@ $(function() {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
-    const droppers = document.querySelectorAll('.dropper');
-    const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper');
-    if (droppers.length || genericDroppers.length) {
-        import('./dropper')
-            .then((module) => {
-                module.initDroppers(droppers);
-                module.initGenericDroppers(genericDroppers);
-            });
+    // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
+    if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
+        import('./book-state')
+            .then(module => module.initBookState());
     }
 
-    // My Books Droppers (includes New List Form and Reading Check-Ins):
-    const myBooksDroppers = document.querySelectorAll('.my-books-dropper');
-    if (myBooksDroppers.length) {
-        const actionableListShowcases = document.querySelectorAll('.actionable-item');
-
-        import('./my-books')
-            .then((module) => {
-                module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases);
-            });
+    // The lists a book is on, under the shelf button on its page:
+    const listShowcase = document.querySelector('.already-lists[data-seed-keys]');
+    if (listShowcase) {
+        import('./lists/list-showcase')
+            .then(module => module.initListShowcase(listShowcase));
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
+    const $dialogs = $('.dialog--open,.dialog--close,#bookPreview');
     if ($dialogs.length) {
         import('./dialog')
             .then(module => module.initDialogs());
+    }
+
+    const citationCopyButton = document.querySelector('[data-wikipedia-citation-copy]');
+    if (citationCopyButton) {
+        import('./wikipedia-citation')
+            .then(module => module.initWikipediaCitation());
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog');
@@ -470,8 +461,6 @@ $(function() {
     $(document).on('click', '.slide-toggle', function() {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
-
-    $('#wikiselect').on('focus', function(){$(this).trigger('select');});
 
     $('.header-dropdown').on('keydown', function(event) {
         if (event.key === 'Escape') {
@@ -621,8 +610,8 @@ $(function() {
             .then(module => module.initPasswordToggling(passwordVisibilityToggle));
     }
 
-    // Affiliate links:
-    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section');
+    // Affiliate link prices:
+    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section[data-isbn]');
     if (affiliateLinksSection.length) {
         import('./affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection));

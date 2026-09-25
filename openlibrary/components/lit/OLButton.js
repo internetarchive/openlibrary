@@ -21,7 +21,12 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *
  * Links: set `href` and it renders an <a> instead, styled identically, so a
  * button-shaped navigation CTA ("Read", "Borrow") needs no separate recipe.
- * `disabled` / `loading` on a link drop the href and set aria-disabled.
+ * `disabled` on a link drops the href and sets aria-disabled. `loading` keeps
+ * the href — consumers set it from the link's own click to show a spinner
+ * during navigation, and dropping it there would cancel the very navigation
+ * being spun for (the browser reads the href *after* listeners run, and it
+ * drains microtasks — a Lit re-render — between listeners of a user event).
+ * Re-activation while loading is blocked in the click listener instead.
  *
  * Forms: `type="submit"` / `type="reset"` behave like a native button. The
  * shadow-rendered control can't be a form's submit button (it has no form
@@ -58,8 +63,13 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *
  * @element ol-button
  *
- * @prop {"primary" | "secondary" | "destructive" | "ghost"} variant - Default: "secondary".
- *   Ghost is transparent with no border or lift; it fills on hover.
+ * @prop {"primary" | "secondary" | "ghost"} variant - Emphasis only, never hue.
+ *   Default: "secondary". Ghost is transparent with no border or lift; it fills
+ *   on hover.
+ * @prop {"danger"} tone - Crosses the danger hue with the chosen emphasis, for
+ *   actions that destroy something. `secondary` and `ghost` carry the red in the
+ *   label and fill on hover; `primary` is the solid red fill. Save the fill for
+ *   the confirmation, where deleting *is* the primary action.
  * @prop {"small" | "medium" | "large"}            size    - Default: "medium"
  * @prop {"icon" | "circle"} shape - Icon-only: width equals the size's height,
  *   no horizontal padding. "circle" additionally rounds it. Give it an aria-label.
@@ -92,14 +102,20 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  * @csspart label - The span wrapping the slotted label.
  *
  * @example
- *   <ol-button variant="destructive" size="medium">Delete</ol-button>
+ *   <ol-button variant="primary" tone="danger" size="medium">Delete</ol-button>
  *   <ol-button type="submit" loading>Saving…</ol-button>
  *   <ol-button variant="primary" href="/borrow/OL1M">Borrow</ol-button>
  *   <ol-button shape="circle" elevation="floating" aria-label="Save">+</ol-button>
  */
 export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
+    /** `host.focus()` lands on the inner control even where delegatesFocus is unavailable (jsdom). */
+    get _focusTarget() {
+        return this.shadowRoot?.querySelector('.control') ?? null;
+    }
+
     static properties = {
         variant: { type: String, reflect: true },
+        tone: { type: String, reflect: true },
         size: { type: String, reflect: true },
         shape: { type: String, reflect: true },
         elevation: { type: String, reflect: true },
@@ -165,12 +181,14 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             line-height: var(--line-height-control);
             text-align: center;
             white-space: nowrap;
-            border: 1px solid var(--color-border-subtle);
+            border: 1px solid var(--color-control-border);
             border-radius: var(--border-radius-button);
-            background-color: var(--white);
+            background-color: var(--color-control-bg);
             color: var(--color-text);
+            /* Keep --control-surface on the fill so the specular edge tones to it. */
+            --control-surface: var(--color-control-bg);
             /* Strength of the specular top edge. Full on light fills (secondary); the
-               dark-filled variants (primary/destructive) dial it down — see below. */
+               dark fills (primary, and primary + tone="danger") dial it down — see below. */
             --control-highlight-strength: 35%;
             box-shadow:
                 var(--box-shadow-raised),
@@ -263,18 +281,19 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* Secondary is the default (already set above). Explicit selector for clarity. */
         :host([variant="secondary"]) .control {
-            background-color: var(--white);
-            border-color: var(--color-border-subtle);
+            background-color: var(--color-control-bg);
+            border-color: var(--color-control-border);
             color: var(--color-text);
+            --control-surface: var(--color-control-bg);
         }
 
-        /* Destructive — solid red fill, mirroring primary but in the danger hue. */
-        :host([variant="destructive"]) .control {
-            background-color: var(--red);
+        /* Primary in the danger hue — the same solid fill, swapped to red. */
+        :host([variant="primary"][tone="danger"]) .control {
+            background-color: var(--color-destructive);
             border-color: var(--color-border-error);
             color: var(--white);
             /* Tone the specular highlight to the red fill and soften it, matching primary. */
-            --control-surface: var(--red);
+            --control-surface: var(--color-destructive);
             --control-highlight-strength: 18%;
         }
 
@@ -286,6 +305,28 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             background-color: transparent;
             border-color: transparent;
             color: var(--color-text);
+            box-shadow: none;
+        }
+
+        /* Danger tone on the quiet variants. Emphasis stays with variant; tone only
+           swaps the hue, so these read as a secondary or ghost button that happens
+           to be dangerous, not as a separate family of delete styles. The red lives
+           in the label at rest and the fill arrives on hover (below), which keeps a
+           delete legible without it outshouting the action beside it.
+
+           Two attributes, so these outrank the single-attribute variant fills above
+           wherever they sit — and, unlike those, they also outrank [selected]. That
+           only matters for a selected danger button, which nothing builds: selected
+           marks a popover trigger carrying a choice, not a destructive action. */
+        :host([variant="secondary"][tone="danger"]) .control {
+            border-color: var(--color-error-border);
+            color: var(--color-error-fg);
+        }
+
+        :host([variant="ghost"][tone="danger"]) .control {
+            background-color: transparent;
+            border-color: transparent;
+            color: var(--color-error-fg);
             box-shadow: none;
         }
 
@@ -303,14 +344,16 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         /* Hover (never fires while disabled/loading — pointer-events is none on
            the host). Hover changes the fill, so --control-surface moves with it —
            otherwise the specular highlight stays toned to the resting color (e.g. a
-           blown-out white edge once destructive fills red). Keep
+           blown-out white edge once a danger button fills red). Keep
            --control-surface == background-color. */
         @media (hover: hover) and (pointer: fine) {
             :host([variant="secondary"]) .control:hover {
                 background-color: var(--color-control-hover);
-                /* Nudge the border a touch darker in step with the fill (both drop ~7%
-                   in lightness) so the whole button reads as one shape on hover, rather
-                   than the fill darkening inside a static outline. */
+                /* Nudge the border darker in step with the fill so the whole button
+                   reads as one shape on hover, rather than the fill darkening inside
+                   a static outline. Both now move about four points of lightness:
+                   --color-control-border sits between the two border tokens, so the
+                   step down to muted is the same small move the fill makes. */
                 border-color: var(--color-border-muted);
                 --control-surface: var(--color-control-hover);
             }
@@ -332,15 +375,33 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                brightness() carries the fill, border, and inset specular edge together, so
                there's no per-property override or --control-surface retoning to keep in
                sync. The press-scale on :active still reads as the "down" step. */
-            :host([variant="primary"]) .control:hover,
-            :host([variant="destructive"]) .control:hover {
+            :host([variant="primary"]) .control:hover {
                 filter: brightness(1.1);
+            }
+
+            /* The quiet danger steps commit on hover instead of lightening: ghost
+               takes the solid fill it was standing in for, secondary warms to the
+               red tint. Ghost has no shadow to retone; secondary does, so its
+               --control-surface moves with the fill like the neutral one above. */
+            :host([variant="ghost"][tone="danger"]) .control:hover {
+                background-color: var(--color-destructive);
+                border-color: var(--color-destructive);
+                color: var(--white);
+            }
+
+            :host([variant="secondary"][tone="danger"]) .control:hover {
+                background-color: var(--color-error-bg);
+                /* Border steps along the red ramp with the fill, the way the
+                   neutral secondary goes subtle -> muted, so the whole control
+                   reads as one shape rather than a tint inside a static edge. */
+                border-color: var(--color-border-error);
+                --control-surface: var(--color-error-bg);
             }
         }
 
         /* Focus ring — delegatesFocus lands focus on the inner control. */
         .control:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: var(--spacing-3xs);
         }
 
@@ -371,9 +432,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             justify-content: center;
             gap: var(--spacing-2xs);
             transition:
-                opacity 0.24s ease,
-                transform 0.24s ease,
-                filter 0.24s ease;
+                opacity var(--duration-base) var(--ease-state),
+                transform var(--duration-base) var(--ease-state),
+                filter var(--duration-base) var(--ease-state);
         }
 
         /* Slotted icons take the size's icon dimension regardless of the SVG's own
@@ -414,9 +475,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             filter: blur(3px);
             pointer-events: none;
             transition:
-                opacity 0.24s ease,
-                transform 0.24s ease,
-                filter 0.24s ease;
+                opacity var(--duration-base) var(--ease-state),
+                transform var(--duration-base) var(--ease-state),
+                filter var(--duration-base) var(--ease-state);
         }
 
         .spinner::before {
@@ -437,7 +498,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         :host([loading]) .spinner::before {
-            animation: ol-button-spin 0.7s linear infinite;
+            animation: ol-button-spin var(--duration-spin) linear infinite;
         }
 
         @keyframes ol-button-spin {
@@ -470,7 +531,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             margin-left: calc(var(--spacing-2xs) * -1);
             margin-right: calc(var(--spacing-2xs) * -1);
             background: currentcolor;
-            transition: transform 150ms ease-out;
+            transition: transform var(--duration-fast) var(--ease-enter);
             -webkit-mask: var(--chevron) center / 16px no-repeat;
             mask: var(--chevron) center / 16px no-repeat;
         }
@@ -510,6 +571,8 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
     constructor() {
         super();
         this.variant = 'secondary';
+        // tone is left undefined on purpose, like shape/elevation: a reflected
+        // String property set to '' emits an empty tone="" on every button.
         this.size = 'medium';
         this.type = 'button';
         this.loading = false;
@@ -593,6 +656,11 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
      * Implicit submission (Enter in a text field) never comes through here —
      * the browser clicks the proxy directly.
      *
+     * Also attached to the link control: the loading/disabled guard is what
+     * blocks (keyboard) activation while loading, since a loading link keeps
+     * its href (see render). The click that *starts* loading passes through —
+     * `loading` is still false when this inner listener runs.
+     *
      * @param {MouseEvent} e
      * @returns {void}
      */
@@ -644,13 +712,17 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         if (this.href !== undefined && this.href !== null) {
             // A link can't be disabled natively: drop the href (no navigation,
-            // no tab stop) and say so via aria-disabled. The host's
-            // pointer-events: none handles clicks.
+            // no tab stop) and say so via aria-disabled. Only `disabled` drops
+            // it — `loading` must keep the href, or setting loading from the
+            // link's own click re-renders the href away before the browser's
+            // follow-the-hyperlink reads it, cancelling the navigation the
+            // spinner is for. While loading, _onControlClick blocks keyboard
+            // re-activation; the host's pointer-events: none blocks the mouse.
             return html`
                 <a
                     class="control"
                     part="control"
-                    href=${inert ? nothing : this.href}
+                    href=${this.isDisabled ? nothing : this.href}
                     target=${this.target ?? nothing}
                     rel=${this.rel ?? nothing}
                     download=${this.download ?? nothing}
@@ -659,6 +731,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                     aria-label=${this.a11yLabel ?? nothing}
                     aria-haspopup=${this.a11yHasPopup ?? nothing}
                     aria-expanded=${this.a11yExpanded ?? nothing}
+                    @click=${this._onControlClick}
                 >${content}</a>
             `;
         }

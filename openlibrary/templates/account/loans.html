@@ -123,8 +123,11 @@ th.status {
     $if len(waitinglist) == 0:
         <div><em>$_('You are not waiting for any books at this moment.')</em></div>
     $else:
-        <div id="leave-waitinglist-dialog" class="hidden dialog"
-             title="$_('Leave the Waiting List')">$:_('Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?')</div>
+        $# Confirmation strings for waitlist.js, which fills in the title; see confirm-template.js
+        <template id="leave-waitinglist-dialog"
+                  data-i18n="$json_encode({'title': _('Leave the waiting list?'), 'confirm': _('Leave waiting list'), 'cancel': _('Cancel'), 'close': _('Close')})">
+            $:_('You will lose your place in line for <strong>%(title)s</strong>.', title='')
+        </template>
         <div class="borrow borrow-table collapse waitinglist">
           <table>
               <thead>
@@ -227,6 +230,6 @@ th.status {
 
 <div>$_("Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:")</div>
     $if carousel:
-        $:render_template("books/custom_carousel", carousel["books"], title=_('Books We Love'), url=carousel["url"], key="staff_picks", load_more=carousel["load_more"], min_books=7, test=test, compact_mode=True)
+        $:render_jinja_template("books/custom_carousel.html.jinja", **get_book_carousel_data(carousel["books"], title=_('Books We Love'), url=carousel["url"], key="staff_picks", load_more=carousel["load_more"], min_books=7, test=test, compact_mode=True, full_path=request.fullpath))
     $:render_template("home/categories", featured_subjects=featured_subjects)
     $:_('Or, check out our <a href="/collections">special collections</a>.')

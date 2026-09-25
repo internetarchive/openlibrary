@@ -56,6 +56,8 @@ export async function toggleListSeed(listKey, seedKey, inList) {
     const list = lists[listKey];
     const before = list.members;
     const beforeOrder = lists;
+    // Only ever this seed: a list may also hold the work or another edition of
+    // it, and those are the reader's, not this row's to remove.
     list.members = inList ? [...before, seedKey] : before.filter(k => k !== seedKey);
     // Re-listing a key it already holds only moves it; the spread keeps the value.
     lists = { [listKey]: list, ...lists };

@@ -64,9 +64,18 @@ function _removeFromOverlayStack(el) {
  *     "start", "center", or "end". Default: "bottom-start" — a panel is
  *     usually wider than the control that opens it, and aligning their leading
  *     edges keeps it under the trigger instead of straddling it.
+ * @prop {String} anchor - Selector for an ancestor to position against instead
+ *     of the trigger, e.g. the whole split button when only its caret opens the
+ *     popover. Falls back to the trigger when nothing matches.
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
+ * @prop {Boolean} blockOutsideClicks - Swallow the click that dismisses the
+ *     popover instead of letting it reach what is underneath. Light dismiss
+ *     (like native `popover=auto`) lets it through, which over a page of links
+ *     also follows the link under the pointer. A transparent backdrop takes the
+ *     hit, so hover and wheel under the panel are blocked too, like a native
+ *     menu. The popover stays non-modal for assistive tech. Default: false
  *
  * @attr aria-label - Forwarded to the inner dialog as its accessible name.
  *
@@ -96,8 +105,10 @@ export class OlPopover extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
         placement: { type: String },
+        anchor: { type: String },
         offset: { type: Number },
         autoClose: { type: Boolean, attribute: 'auto-close' },
+        blockOutsideClicks: { type: Boolean, attribute: 'block-outside-clicks' },
         _position: { state: true },
         _transformOrigin: { state: true },
         _animState: { state: true },
@@ -220,6 +231,17 @@ export class OlPopover extends LitElement {
             transition: opacity var(--duration-base) var(--ease-enter);
         }
 
+        /* ── Desktop click guard ── */
+
+        /* The scrim made invisible: still a hit-test target, so the dismissing
+           click ends here instead of on the link underneath. */
+        .backdrop.guard {
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            transition: none;
+        }
+
         /* ── Mobile tray panel ── */
 
         .panel.tray {
@@ -324,8 +346,10 @@ export class OlPopover extends LitElement {
         super();
         this.open = false;
         this.placement = 'bottom-start';
+        this.anchor = '';
         this.offset = 4;
         this.autoClose = true;
+        this.blockOutsideClicks = false;
         this._position = { top: 0, left: 0 };
         this._transformOrigin = 'top left';
         this._animState = 'closed';
@@ -357,9 +381,9 @@ export class OlPopover extends LitElement {
         return html`
             <slot name="trigger" @click="${this._onTriggerClick}"></slot>
             ${showPanel ? html`
-                ${this._mobile ? html`
+                ${this._mobile || this.blockOutsideClicks ? html`
                     <div
-                        class="backdrop"
+                        class="backdrop ${this._mobile ? '' : 'guard'}"
                         popover="${ifDefined(topLayerAttr())}"
                         data-state="${this._animState}"
                         @click="${this._onBackdropClick}"
@@ -646,10 +670,10 @@ export class OlPopover extends LitElement {
      * as needed to keep it within the viewport.
      */
     _computePosition(panelW, panelH) {
-        const trigger = this._triggerEl;
-        if (!trigger) return;
+        const anchorEl = this._anchorEl;
+        if (!anchorEl) return;
 
-        const anchor = trigger.getBoundingClientRect();
+        const anchor = anchorEl.getBoundingClientRect();
         const gap = this.offset;
         const viewW = window.innerWidth;
         const viewH = window.innerHeight;
@@ -734,6 +758,11 @@ export class OlPopover extends LitElement {
         // flatten:true unwraps nested <slot>s (ol-select-popover) so we anchor
         // to the real trigger element, not a layout-less slot node.
         return slot?.assignedElements({ flatten: true })[0] ?? null;
+    }
+
+    /** The element the panel is positioned against: the `anchor` ancestor, else the trigger. */
+    get _anchorEl() {
+        return (this.anchor && this.closest(this.anchor)) || this._triggerEl;
     }
 
     // ── Scroll / resize repositioning ───────────────────────────

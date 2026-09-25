@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -30,10 +30,15 @@ export const DEFAULT_LABELS = {
     rated: 'Rated %(rating)s of 5',
     ratingCleared: 'Rating cleared',
     dateSaved: 'Finished %(date)s',
+    dateRemoved: 'Date removed',
+    addDate: 'Add date',
     rateThisBook: 'Rate this book',
     rateStar: 'Rate %(rating)s of 5',
     clearRating: 'Clear rating',
     addToList: 'Add to list',
+    // A plural set: how many other editions of this book the list already holds.
+    otherEditions: { one: '%(count)s other edition', other: '%(count)s other editions' },
+    anyEdition: 'Any edition',
     back: 'Back',
     createList: 'Create a list',
     listName: 'List name',
@@ -44,14 +49,17 @@ export const DEFAULT_LABELS = {
     loadingLists: 'Loading lists…',
     // A plural set: the form is picked for `count` by the page language's rules.
     itemsInList: { one: '%(count)s item', other: '%(count)s items' },
-    inLists: 'In %(count)s of your lists',
+    // A plural set: how many of the reader's lists hold this book.
+    onLists: { one: 'On %(count)s list', other: 'On %(count)s lists' },
     recentLists: 'Recently used',
     pinnedLists: 'On this book and recently used',
     otherLists: 'Other lists',
     addedToList: 'Added to %(name)s',
     removedFromList: 'Removed from %(name)s',
+    manageLists: 'Manage lists',
     errorGeneric: 'Something went wrong. Please try again.',
     whenFinished: 'When did you finish this book?',
+    skipDate: 'Skip',
     today: 'Today',
     inYear: 'In %(year)s',
     otherDate: 'Other date',
@@ -59,7 +67,7 @@ export const DEFAULT_LABELS = {
     month: 'Month',
     day: 'Day',
     saveDate: 'Save',
-    didNotRead: 'I didn’t read this',
+    removeDate: 'Remove date',
 };
 
 const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], label: SHELF_LABEL[id] }));
@@ -73,10 +81,27 @@ const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id],
 const PIN_THRESHOLD = 5;
 
 /**
+ * Recent lists offered on the main pane. A curation burst alternates between
+ * one list and maybe a second; a third row is a menu, and the pane is for that.
+ */
+const SHORTCUT_LIMIT = 2;
+
+/**
  * The panes in the track, in order. The track's width and slide are both
  * derived from this, so a new pane is an entry here plus a `_render*`.
  */
 const PANES = ['main', 'lists', 'checkIn'];
+
+/**
+ * Work key → promise of its edition keys. Module-level, so several buttons for
+ * the same book share one request and re-opening costs nothing.
+ */
+const EDITION_KEYS = new Map();
+
+/** Forget the cached editions (tests). */
+export function resetWorkEditionsCache() {
+    EDITION_KEYS.clear();
+}
 
 /**
  * Per-book action popover: reading-log shelves, a star rating, and an
@@ -97,19 +122,31 @@ const PANES = ['main', 'lists', 'checkIn'];
  * @prop {Number} eventId - Id of that check-in, so changing the date edits it
  *     rather than recording a second finish
  * @prop {String} userKey  - "/people/<username>", needed to create lists
+ * @prop {Boolean} pending - The reader's state is not known yet. The shelf and
+ *     rating rows dim and ignore clicks until it is: posting the shelf a book
+ *     is already on removes it, so a guess could undo a save
  * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
  * @prop {String} placement - ol-popover placement; unset uses its default
+ * @prop {Boolean} hideRating - Always drop the stars. Without it they go on
+ *     their own whenever a visible `.star-rating-form` for the same book is
+ *     on the page, checked at each open
+ * @prop {Boolean} listsOnly - Only the lists pane, opened straight into: for
+ *     a seed with no work to shelve, an author or an edition on its own.
+ *     `book.key` is then that seed's key, and its title the heading
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
- * @fires ol-book-check-in - After a finish date is saved. The component keeps
- *     its own copy (`readDate`/`eventId`); the event is for the surface to
- *     persist it across renders. detail: { key, date, eventId } — `date` is
- *     whole or partial, as stored. A date is only ever removed by the book
- *     coming off its shelf, which the surface hears as ol-book-state-change.
+ * @fires ol-book-check-in - After a finish date is saved or removed. The
+ *     component keeps its own copy (`readDate`/`eventId`); the event is for
+ *     the surface to persist it across renders. detail: { key, date, eventId }
+ *     — `date` is whole or partial, as stored, and both are null on removal.
+ *     A book coming off its shelf drops its date too, which the surface hears
+ *     as ol-book-state-change instead.
  * @fires ol-list-created - After the inline form creates a list. Sibling
  *     popovers share the lists store and need no event; this is for surfaces
  *     outside the components. detail: { key, name, seedKey }
+ * @fires ol-list-change - After the book is put in a list or taken out of one.
+ *     detail: { key, name, seedKey, member } — `member` is whether it is in the list now
  *
  * @slot trigger - The button that opens the popover.
  */
@@ -124,6 +161,11 @@ export class OlShelfActions extends LitElement {
         labels: { type: Object },
         placement: { type: String },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
+        listsOnly: { type: Boolean, attribute: 'lists-only' },
+        pending: { type: Boolean, reflect: true },
+        _starsElsewhere: { state: true },
+        _editionKeys: { state: true },
+        _matchPending: { state: true },
         _pane: { state: true },
         _snap: { state: true },
         _trackHeight: { state: true },
@@ -139,6 +181,7 @@ export class OlShelfActions extends LitElement {
         _hoverRating: { state: true },
         _busy: { state: true },
         _pickingDate: { state: true },
+        _amending: { state: true },
         _dateBusy: { state: true },
         _date: { state: true },
     };
@@ -195,7 +238,7 @@ export class OlShelfActions extends LitElement {
         .pane-header::after,
         .group.rating::before,
         .group.lists-entry::before,
-        .group.not-read::before {
+        .group.retract::before {
             content: "";
             position: absolute;
             inset-inline: var(--spacing-inset-md);
@@ -253,13 +296,13 @@ export class OlShelfActions extends LitElement {
 
         .group.rating,
         .group.lists-entry,
-        .group.not-read {
+        .group.retract {
             position: relative;
         }
 
         .group.rating::before,
         .group.lists-entry::before,
-        .group.not-read::before {
+        .group.retract::before {
             top: 0;
         }
 
@@ -275,10 +318,10 @@ export class OlShelfActions extends LitElement {
                re-render (the rating caption swaps between a span and a button). */
             min-height: var(--menu-row-height);
             margin: 0;
-            margin-inline: var(--spacing-inset-xs);
+            margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-sm);
-            padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
-            border-radius: var(--border-radius-button);
+            padding-inline: var(--menu-row-padding-inline);
+            border-radius: var(--border-radius-menu-row);
             border: 0;
             background: none;
             color: inherit;
@@ -326,7 +369,7 @@ export class OlShelfActions extends LitElement {
         }
 
         .row:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: -2px;
         }
 
@@ -340,6 +383,38 @@ export class OlShelfActions extends LitElement {
         .row[aria-pressed="true"] .obd-icon {
             color: var(--color-link);
         }
+
+        /* Already Read on the shelf: the label toggles like the other rows,
+           the date is a second target into the date pane. Each half keeps its
+           own hover pill; the pair takes the inset a single row would. */
+        .row-split {
+            display: flex;
+            margin-inline: var(--menu-row-inset);
+        }
+
+        .row-split > .row {
+            margin-inline: 0;
+        }
+
+        .row-split > .row:first-child {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .date-link {
+            flex: 0 1 auto;
+            max-width: 50%;
+            gap: var(--spacing-inline-xs);
+            padding-inline: var(--spacing-inset-sm);
+        }
+
+        .date-link .count {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
 
         /* A request in flight dims the group rather than disabling its rows:
            disabling the focused row would drop focus to the document. The
@@ -403,7 +478,7 @@ export class OlShelfActions extends LitElement {
         }
 
         .star:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             border-radius: var(--border-radius-sm);
         }
 
@@ -432,15 +507,15 @@ export class OlShelfActions extends LitElement {
         }
 
         .clear:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             border-radius: var(--border-radius-sm);
         }
 
         /* Check-in pane */
 
-        /* Muted like the question above it: this row undoes an answer rather
-           than giving one, so it must not read as a fifth date to pick. */
-        .not-read .row {
+        /* Muted like the question above it: these rows undo an answer rather
+           than giving one, so they must not read as more dates to pick. */
+        .retract .row {
             color: var(--color-text-secondary);
             font-size: var(--font-size-label-medium);
         }
@@ -502,7 +577,7 @@ export class OlShelfActions extends LitElement {
         }
 
         .select:focus {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: -1px;
         }
 
@@ -529,6 +604,23 @@ export class OlShelfActions extends LitElement {
             height: calc(var(--control-height-small) + 2 * var(--spacing-inset-sm));
         }
 
+        /* Lists-only in a split frame: the slotted trigger is the whole
+           button, so the popover (its flex parent) must fill the host. */
+        :host([lists-only]) ol-popover {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Lists-only: the seed's title stands where Back would be. */
+        .lists-title {
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-label-medium);
+        }
+
         .lists-header,
         .pane-header {
             position: relative;
@@ -539,22 +631,27 @@ export class OlShelfActions extends LitElement {
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
         }
 
-        .back {
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
-            padding: 0;
-            border: 0;
-            background: none;
-            color: inherit;
-            font: inherit;
-            font-weight: 600;
-            cursor: pointer;
+        /* Small ghost <ol-button>s. The negative margin pulls the button's own
+           padding back so the chevron / label sits flush with the content below. */
+        .back,
+        .lists-link {
+            margin-left: calc(-1 * var(--spacing-sm));
         }
 
-        .back .obd-icon {
-            width: 16px;
-            height: 16px;
+        /* The way out to the lists themselves, below the rows so it is never
+           in reach of a tick. Same ghost button as Back, mirrored. */
+        .lists-footer {
+            position: relative;
+            padding: var(--spacing-inset-xs) var(--spacing-inset-md);
+        }
+
+        .lists-footer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            inset-inline: var(--spacing-inset-md);
+            height: 1px;
+            background: var(--color-border-subtle);
         }
 
         .field {
@@ -579,7 +676,7 @@ export class OlShelfActions extends LitElement {
         }
 
         .input:focus {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: -1px;
         }
 
@@ -592,20 +689,22 @@ export class OlShelfActions extends LitElement {
             }
         }
 
+        /* Same breathing room off the header rule as the main pane's groups. */
         .list-items {
             max-height: 240px;
             overflow-y: auto;
-            padding-bottom: var(--spacing-inset-xs);
+            padding-block: var(--spacing-inset-xs);
         }
 
         .list-row {
+            position: relative;
             display: flex;
             align-items: center;
             gap: var(--spacing-inline-md);
-            margin-inline: var(--spacing-inset-xs);
+            margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-sm);
-            padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
-            border-radius: var(--border-radius-button);
+            padding-inline: var(--menu-row-padding-inline);
+            border-radius: var(--border-radius-menu-row);
             cursor: pointer;
         }
 
@@ -615,32 +714,34 @@ export class OlShelfActions extends LitElement {
             }
         }
 
-        /* 16px like the other popover controls, but sitting in a 20px slot so
-           it lines up with the main pane's row icons — one row height, one
-           label column across both panes. */
-        .list-row input {
-            width: 16px;
-            height: 16px;
-            margin-inline: 2px;
-            accent-color: var(--color-primary);
-            flex: 0 0 auto;
+        /* Plus or check, marked like the main pane's recent-list shortcuts, so
+           a list the book is on looks the same in both panes. */
+        .list-row .obd-icon {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            color: var(--color-icon-muted);
         }
 
-        /* The recent lists, above the rest. Same inset rule as the panel's
-           other separators, drawn under the group rather than between rows. */
-        .group-lists.pinned {
-            position: relative;
-            padding-bottom: var(--spacing-inset-xs);
-            margin-bottom: var(--spacing-inset-xs);
+        .list-row.checked {
+            color: var(--color-link);
+            font-weight: 600;
         }
 
-        .group-lists.pinned::after {
-            content: "";
-            position: absolute;
-            inset-inline: var(--spacing-inset-md);
-            bottom: 0;
-            height: 1px;
-            background: var(--color-border-subtle);
+        .list-row.checked .obd-icon {
+            color: var(--color-link);
+        }
+
+        /* The annotations describe the list, not the answer. */
+        .list-row .count,
+        .list-row .other-form {
+            font-weight: normal;
+        }
+
+        /* The checkbox is hidden, so the row wears its focus. */
+        .list-row:has(input:focus-visible) {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
         }
 
         /* What Enter commits to, marked so the key is never a guess. */
@@ -648,8 +749,17 @@ export class OlShelfActions extends LitElement {
             box-shadow: inset 0 0 0 1px var(--color-border-subtle);
         }
 
-        .list-row .name {
+        /* Name over label. The name is what the reader is looking for, so it
+           keeps the full width and the annotation goes under it rather than
+           taking room from it. */
+        .list-row .text {
             flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-row .name {
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -661,8 +771,31 @@ export class OlShelfActions extends LitElement {
             font-size: var(--font-size-label-medium);
         }
 
-        /* Live region: read out, never laid out. */
-        .sr-only {
+        /* A prompt, not an answer: it must not take the pressed row's weight. */
+        .count.hint {
+            font-weight: normal;
+        }
+
+        .shortcuts {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Says the book is on this list already, as another edition or with no
+           edition named. Tight leading, so a labelled row grows by one small
+           line rather than by a whole row. */
+        .list-row .other-form {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.3;
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-label-small);
+        }
+
+        /* Live region and the list rows' checkboxes: read out, never laid out. */
+        .sr-only,
+        .list-row input {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -708,6 +841,10 @@ export class OlShelfActions extends LitElement {
         this.userKey = '';
         this.labels = {};
         this.hideRating = false;
+        this.listsOnly = false;
+        this._starsElsewhere = false;
+        this._editionKeys = [];
+        this._matchPending = false;
         this._warm = false;
         // Capture-phase, so the panes exist before ol-popover's own trigger
         // handling measures the panel.
@@ -726,6 +863,7 @@ export class OlShelfActions extends LitElement {
         this._createBusy = false;
         this._hoverRating = 0;
         this._busy = false;
+        this.pending = false;
         this._pickingDate = false;
         this._dateBusy = false;
         this._date = { year: '', month: '', day: '' };
@@ -743,15 +881,42 @@ export class OlShelfActions extends LitElement {
      * panel's measured size before it fires `ol-popover-open`.
      */
     _warmUp = () => {
-        if (this._warm) return;
+        // Checked on every open, not once: a layout toggle can hide or show
+        // the row's star form between two opens of the same popover.
+        const starsElsewhere = this._findStarsElsewhere();
+        const changed = starsElsewhere !== this._starsElsewhere;
+        this._starsElsewhere = starsElsewhere;
+        if (this._warm && !changed) return;
         this._warm = true;
         this.requestUpdate();
         this.performUpdate();
     };
 
+    /**
+     * A visible star form for this book elsewhere on the page makes the
+     * popover's stars a second control for the same thing, so they go.
+     * `checkVisibility` sees through hidden ancestors; the fallback catches
+     * `display: none` on the form itself, which is what the grid layout does.
+     */
+    _findStarsElsewhere() {
+        const key = this.book?.key;
+        if (!key) return false;
+        return [...document.querySelectorAll(`.star-rating-form[data-work-key="${key}"]`)]
+            .some(form => (form.checkVisibility ? form.checkVisibility() : form.getClientRects().length > 0));
+    }
+
+    /** Open the popover without a trigger click; the split button's main half does this for a book on a reading shelf. */
+    open() {
+        this._warmUp();
+        const popover = this.shadowRoot?.querySelector('ol-popover');
+        if (popover && !popover.open) popover.open = true;
+    }
+
     /** @param {string} name */
     _renderPane(name) {
         if (name === 'lists') return this._renderLists();
+        // Lists-only never leaves its pane, so the other two stay empty.
+        if (this.listsOnly) return nothing;
         if (name === 'checkIn') return this._renderCheckIn();
         return this._renderMain();
     }
@@ -761,8 +926,61 @@ export class OlShelfActions extends LitElement {
         return translate(this.labels, DEFAULT_LABELS, key, vars);
     }
 
+    /**
+     * The key a list records: the edition when the surface knows one, else the
+     * work. A list is a shelf of editions, so which edition the reader was looking
+     * at is worth keeping — that was the old dropper's default too. A
+     * `lists-only` seed (an author, an edition with no work) carries its own
+     * key in `book.key` and is never rewritten.
+     */
     get _seedKey() {
-        return this.book?.key || '';
+        const edition = this.book?.editionKey;
+        if (!edition || this.listsOnly) return this.book?.key || '';
+        return edition.startsWith('/') ? edition : `/books/${edition}`;
+    }
+
+    /**
+     * The work's other editions, asked for once per book and shared by every
+     * popover on the page. A failure resolves to nothing rather than rejecting:
+     * the pane then matches on the two keys it already has, which is where it
+     * stood before, instead of spinning for an answer that is not coming.
+     */
+    _loadEditionKeys() {
+        const workKey = this.book?.key;
+        if (!workKey || this.listsOnly || !workKey.startsWith('/works/')) return null;
+        if (!EDITION_KEYS.has(workKey)) {
+            EDITION_KEYS.set(workKey, fetchWorkEditions(workKey).catch(() => []));
+        }
+        return EDITION_KEYS.get(workKey);
+    }
+
+    /**
+     * Whether the list holds this exact seed — the edition in front of the reader.
+     * This is what the checkbox says, and all it ever adds or removes.
+     */
+    _holdsSeed(list) {
+        return !!list && list.members.includes(this._seedKey);
+    }
+
+    /**
+     * What else of this book the list holds, beside the edition this row is for:
+     * `{ kind: 'edition', count }` for other editions of it, `{ kind: 'work' }`
+     * for the book with no edition named, or null. Ticking the row adds this
+     * edition alongside — some lists collect editions on purpose — so this
+     * stands whether the row is ticked or not: before, it is the warning that
+     * the book is already here; after, it is the count of editions on the list.
+     */
+    _otherForm(list) {
+        if (!list) return null;
+        const count = list.members.filter(key => key !== this._seedKey && this._editionKeys.includes(key)).length;
+        if (count) return { kind: 'edition', count };
+        if (this.book?.key && this.book.key !== this._seedKey && list.members.includes(this.book.key)) return { kind: 'work' };
+        return null;
+    }
+
+    /** Whether this book is on the list at all, however it was filed. Counts and pinning ask this. */
+    _inList(list) {
+        return this._holdsSeed(list) || !!this._otherForm(list);
     }
 
     render() {
@@ -777,6 +995,7 @@ export class OlShelfActions extends LitElement {
             <ol-popover
                 placement=${ifDefined(this.placement)}
                 offset="6"
+                block-outside-clicks
                 aria-label=${this.t('actionsFor', { title })}
                 @ol-popover-open=${this._onOpen}
                 @ol-popover-close=${this._onCloseRequest}
@@ -816,22 +1035,31 @@ export class OlShelfActions extends LitElement {
                  several kinds of control, and menuitem roles promise arrow-key
                  navigation the rows don't have. aria-pressed marks the shelf
                  the book is on, which is what the checkmark shows. -->
-            <div class="group shelves" role="group" aria-label=${this.t('readingLog')} aria-busy=${this._busy}>
-                ${SHELF_ROWS.map(row => html`
-                    <button
-                        type="button"
-                        class="row"
-                        aria-pressed=${this.shelf === row.id ? 'true' : 'false'}
-                        @click=${() => this._onShelfClick(row.id)}
-                    >
-                        <ol-icon class="obd-icon" name=${row.icon}></ol-icon>
-                        <span class="label">${this.t(row.label)}</span>
-                        ${this._renderShelfTrail(row)}
-                    </button>
-                `)}
+            <div class="group shelves" role="group" aria-label=${this.t('readingLog')} aria-busy=${this._held}>
+                ${SHELF_ROWS.map(row => {
+        const toggle = html`
+                        <button
+                            type="button"
+                            class="row"
+                            data-shelf=${row.id}
+                            aria-pressed=${this.shelf === row.id ? 'true' : 'false'}
+                            @click=${() => this._onShelfClick(row.id)}
+                        >
+                            <ol-icon class="obd-icon" name=${row.icon}></ol-icon>
+                            <span class="label">${this.t(row.label)}</span>
+                            <!-- Already Read's date half sits where the check would; the pressed color marks it. -->
+                            ${this.shelf === row.id && row.id !== SHELF.ALREADY_READ ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
+                        </button>
+                    `;
+        // Wrapped whether or not the date shows, so toggling the
+        // shelf re-renders neither half and focus stays put.
+        return row.id === SHELF.ALREADY_READ
+            ? html`<div class="row-split">${toggle}${this._renderDateLink()}</div>`
+            : toggle;
+    })}
             </div>
-            ${this.hideRating ? nothing : html`
-                <div class="group rating" aria-busy=${this._busy}>
+            ${this.hideRating || this._starsElsewhere ? nothing : html`
+                <div class="group rating" aria-busy=${this._held}>
                     ${this._renderStars()}
                 </div>
             `}
@@ -839,29 +1067,40 @@ export class OlShelfActions extends LitElement {
                 <button type="button" class="row" @click=${this._openLists}>
                     <ol-icon class="obd-icon" name="list-plus"></ol-icon>
                     <span class="label">${this.t('addToList')}</span>
-                    ${this._listCount ? html`<span class="count" aria-label=${this.t('inLists', { count: this._listCount })}>${this._listCount}</span>` : nothing}
+                    ${this._listCount && !this._matchPending ? html`<span class="count">${this.t('onLists', { count: this._listCount })}</span>` : nothing}
                     <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
                 </button>
-                ${this._renderRecentShortcut()}
+                ${this._renderRecentShortcuts()}
             </div>
         `;
     }
 
     /**
-     * The list the reader was last working in, one tap away. A curation
-     * session is many books into the same list, and on mobile the filter
-     * costs a tap and a keyboard over the names — so the pane is the slow
-     * path there, and this is the whole flow.
+     * The lists the reader was last working in, one tap away, as shortcuts under
+     * "Add to list" rather than headed as a section of their own; the plus or
+     * check says what a tap does. A curation session is many books into the same list, and on mobile the
+     * filter costs a tap and a keyboard over the names — so the pane is the
+     * slow path there, and this is the whole flow.
      */
-    _renderRecentShortcut() {
-        const recent = this._recent[0];
-        if (!recent) return nothing;
-        const list = getLists()?.[recent.key];
+    _renderRecentShortcuts() {
+        const lists = getLists();
         // Loaded lists are the authority on the name and on membership; until
-        // they arrive the remembered name carries the row, so the panel does
-        // not grow one mid-open. A list that has gone takes the row with it.
-        if (getLists() && !list) return nothing;
-        const inList = !!list?.members.includes(this._seedKey);
+        // they arrive the remembered names carry the rows, so the panel does
+        // not grow one mid-open. A list that has gone takes its row with it.
+        const rows = this._recent
+            .slice(0, SHORTCUT_LIMIT)
+            .map(recent => ({ recent, list: lists?.[recent.key] }))
+            .filter(({ list }) => !lists || list);
+        if (!rows.length) return nothing;
+        return html`
+            <div class="shortcuts" role="group" aria-label=${this.t('recentLists')}>
+                ${rows.map(({ recent, list }) => this._renderRecentShortcut(recent, list))}
+            </div>
+        `;
+    }
+
+    _renderRecentShortcut(recent, list) {
+        const inList = this._holdsSeed(list);
         return html`
             <button
                 type="button"
@@ -869,34 +1108,35 @@ export class OlShelfActions extends LitElement {
                 aria-pressed=${inList ? 'true' : 'false'}
                 @click=${() => this._onListToggle(recent.key, !inList)}
             >
-                <!-- Not the entry row's list-plus: two rows with one icon read
-                     as two ways to do the same thing. -->
-                <ol-icon class="obd-icon" name="list"></ol-icon>
+                <ol-icon class="obd-icon" name=${inList ? 'check' : 'plus'}></ol-icon>
                 <span class="label">${list?.listName || recent.name}</span>
-                ${inList ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
             </button>
         `;
     }
 
     /**
-     * The end of a shelf row. Already Read carries a chevron, because it leads
-     * to the date pane; the others only mark the shelf the book is on.
+     * The second half of the Already Read row: the date, or "Add date", leading
+     * to the date pane. Its own target, so the shelf half toggles like the other
+     * three and the chevron only ever navigates.
      *
-     * The date rides along only while the book is actually on that shelf. A
-     * move keeps the check-in — only coming off the shelves entirely deletes it
-     * — so a book moved to, say, Currently Reading still has a finish date, and
-     * showing it against a shelf the book has left reads as the wrong state.
-     * The date pane still opens on it, which is where it belongs.
+     * Only while the book is on the shelf. A move keeps the check-in (only
+     * coming off the shelves deletes it), but a finish date shown against a
+     * shelf the book has left reads as the wrong state.
      */
-    _renderShelfTrail(row) {
-        if (row.id === SHELF.ALREADY_READ) {
-            const onShelf = this.shelf === SHELF.ALREADY_READ;
-            return html`
-                ${this.readDate && onShelf ? html`<span class="count">${formatReadDate(this.readDate)}</span>` : nothing}
+    _renderDateLink() {
+        if (this.shelf !== SHELF.ALREADY_READ) return nothing;
+        const date = this.readDate ? formatReadDate(this.readDate) : null;
+        return html`
+            <button
+                type="button"
+                class="row date-link"
+                aria-label=${date ? this.t('dateSaved', { date }) : nothing}
+                @click=${() => this._openCheckIn({ amending: true })}
+            >
+                <span class=${date ? 'count' : 'count hint'}>${date ?? this.t('addDate')}</span>
                 <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
-            `;
-        }
-        return this.shelf === row.id ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing;
+            </button>
+        `;
     }
 
     /**
@@ -980,17 +1220,25 @@ export class OlShelfActions extends LitElement {
         const answered = this._answeredBy;
         return html`
             <div class="pane-header">
-                <button type="button" class="back" @click=${this._backToMain}>
-                    <ol-icon class="obd-icon" name="chevron-left"></ol-icon>${this.t('back')}
-                </button>
+                <ol-button class="back" variant="ghost" size="small" @click=${this._backToMain}>
+                    <ol-icon slot="icon-start" name="chevron-left"></ol-icon>${this.t('back')}
+                </ol-button>
             </div>
             <!-- The question names the group, so focus landing on a row
                  (which is where the pane opens) is read with it. -->
             <div class="caption" id="check-in-question">${this.t('whenFinished')}</div>
             <div class="group dates" role="group" aria-labelledby="check-in-question" aria-busy=${this._dateBusy}>
+                <!-- The date is optional, and Back alone doesn't say so. Only
+                     while there is none: with one, Skip would read as clearing it. -->
+                ${this.readDate ? nothing : html`
+                    <button type="button" class="row skip" @click=${this._onSkipDate}>
+                        <ol-icon class="obd-icon" name="arrow-right"></ol-icon>
+                        <span class="label">${this.t('skipDate')}</span>
+                    </button>
+                `}
                 <button
                     type="button"
-                    class="row"
+                    class="row today"
                     aria-pressed=${answered === 'today' ? 'true' : 'false'}
                     @click=${this._onToday}
                 >
@@ -1025,16 +1273,16 @@ export class OlShelfActions extends LitElement {
                 </button>
                 ${this._pickingDate ? this._renderDateFields() : nothing}
             </div>
-            <!-- Taking back the answer rather than giving another one, so it
-                 stands outside the group the question names. Also the only way
-                 off Already Read: that shelf's row leads here instead of
-                 toggling off, and coming off it deletes the check-in too. -->
-            <div class="group not-read">
-                <button type="button" class="row" @click=${this._removeFromShelf}>
-                    <ol-icon class="obd-icon" name="ban"></ol-icon>
-                    <span class="label">${this.t('didNotRead')}</span>
+            <!-- Taking back an answer rather than giving another one, so it
+                 stands outside the group the question names. Keeps the shelf:
+                 coming off it is the shelf row's job. Only when amending:
+                 someone who just chose the shelf is here to date the read. -->
+            ${this._amending && this.eventId ? html`<div class="group retract">
+                <button type="button" class="row remove-date" @click=${this._onRemoveDate}>
+                    <ol-icon class="obd-icon" name="x"></ol-icon>
+                    <span class="label">${this.t('removeDate')}</span>
                 </button>
-            </div>
+            </div>` : nothing}
         `;
     }
 
@@ -1080,9 +1328,13 @@ export class OlShelfActions extends LitElement {
         const creating = this._creating || this._firstList;
         return html`
             <div class="lists-header">
-                <button type="button" class="back" @click=${this._backToMain}>
-                    <ol-icon class="obd-icon" name="chevron-left"></ol-icon>${this.t('back')}
-                </button>
+                ${this.listsOnly ? html`
+                    <span class="lists-title">${this.book.title}</span>
+                ` : html`
+                    <ol-button class="back" variant="ghost" size="small" @click=${this._backToMain}>
+                        <ol-icon slot="icon-start" name="chevron-left"></ol-icon>${this.t('back')}
+                    </ol-button>
+                `}
                 ${creating ? nothing : html`
                     <ol-button size="small" @click=${this._startCreate}>
                         <ol-icon slot="icon-start" name="plus"></ol-icon>${this.t('createList')}
@@ -1119,12 +1371,19 @@ export class OlShelfActions extends LitElement {
                 </div>
             ` : nothing}
             <div class="list-items">${this._renderListItems()}</div>
+            ${!this._listTotal || !this.userKey ? nothing : html`
+                <div class="lists-footer">
+                    <ol-button class="lists-link" variant="ghost" size="small" href=${`${this.userKey}/lists`}>
+                        ${this.t('manageLists')}<ol-icon slot="icon-end" name="arrow-right"></ol-icon>
+                    </ol-button>
+                </div>
+            `}
         `;
     }
 
     _renderListItems() {
         const lists = getLists();
-        if (this._listsLoading || (lists === null && !this._listsFailed)) {
+        if (this._listsLoading || this._matchPending || (lists === null && !this._listsFailed)) {
             return html`<div class="loading" role="status"><ol-icon class="obd-icon spinner" name="loader"></ol-icon>${this.t('loadingLists')}</div>`;
         }
         // No lists at all: the create form above is the whole pane.
@@ -1135,19 +1394,17 @@ export class OlShelfActions extends LitElement {
         // filter to have typed; without one, Enter has no obvious target.
         const target = this._listFilter.trim() ? (pinned[0] ?? rest[0]) : null;
         if (!pinned.length) return this._renderListRows(lists, rest, target);
-        const group = (keys, label, isPinned) => html`
-            <div class="group-lists ${classMap({ pinned: isPinned })}" role="group" aria-label=${this.t(label)}>
+        const group = (keys, label) => html`
+            <div class="group-lists" role="group" aria-label=${this.t(label)}>
                 ${this._renderListRows(lists, keys, target)}
             </div>
         `;
         // The pinned group's label follows what is actually in it, so it never
         // promises rows for this book when there are none.
         const pinnedLabel = pinned.some(key => this._members.includes(key)) ? 'pinnedLists' : 'recentLists';
-        // The rule under the pinned group is a separator, so it needs both
-        // sides; a filter that matched only pinned rows leaves them plain.
         return html`
-            ${group(pinned, pinnedLabel, rest.length > 0)}
-            ${rest.length ? group(rest, 'otherLists', false) : nothing}
+            ${group(pinned, pinnedLabel)}
+            ${rest.length ? group(rest, 'otherLists') : nothing}
         `;
     }
 
@@ -1157,11 +1414,17 @@ export class OlShelfActions extends LitElement {
         // static and fine with index reconciliation.
         return repeat(keys, key => key, key => {
             const list = lists[key];
-            const checked = list.members.includes(this._seedKey);
+            const checked = this._holdsSeed(list);
+            const other = this._otherForm(list);
             return html`
-                <label class="list-row ${classMap({ target: key === target })}">
+                <label class="list-row ${classMap({ target: key === target, checked })}">
+                    <!-- Still a checkbox to assistive tech and the keyboard; the icon is what shows. -->
                     <input type="checkbox" .checked=${checked} @change=${e => this._onListToggle(key, e.target.checked)} />
-                    <span class="name">${list.listName}</span>
+                    <ol-icon class="obd-icon" name=${checked ? 'check' : 'plus'}></ol-icon>
+                    <span class="text">
+                        <span class="name">${list.listName}</span>
+                        ${other ? html`<span class="other-form">${other.kind === 'edition' ? this.t('otherEditions', { count: other.count }) : this.t('anyEdition')}</span>` : nothing}
+                    </span>
                     <span class="count" aria-label=${this.t('itemsInList', { count: list.members.length })}>${list.members.length}</span>
                 </label>
             `;
@@ -1214,22 +1477,40 @@ export class OlShelfActions extends LitElement {
 
     _onOpen() {
         this._warmUp(); // for opens that arrive without a click
-        this._pane = 'main';
-        this._snap = false;
         this._creating = false;
         this._pickingDate = false;
         this._listFilter = '';
         this._announce = '';
         this._snapshotLists();
+        // Lists-only lands on the pane itself, with nothing to slide in from.
+        if (this.listsOnly) {
+            this._snap = true;
+            this._openLists();
+            return;
+        }
+        this._pane = 'main';
+        this._snap = false;
         // Prefetch so the "in N lists" count is right on the first open, not
         // only after a trip to the lists pane. One request per page — every
         // popover reads the shared lists store.
         if (this.userKey) this._loadLists({ quiet: true }).then(() => this._snapshotLists());
+        // Which editions count as this book is the other half of that answer,
+        // so the count and the ticks wait for it rather than show a list the
+        // book is already on as empty. The shelf rows stay live throughout.
+        const editions = this.userKey && this._loadEditionKeys();
+        if (editions) {
+            this._matchPending = this._editionKeys.length === 0;
+            editions.then(keys => {
+                this._editionKeys = keys;
+                this._matchPending = false;
+                this._snapshotLists();
+            });
+        }
     }
 
     _onCloseRequest(e) {
         // Escape from a sub-pane goes back a step instead of closing.
-        if (e.detail?.reason === 'escape' && this._pane !== 'main') {
+        if (e.detail?.reason === 'escape' && this._pane !== 'main' && !this.listsOnly) {
             e.preventDefault();
             this._backToMain();
             return;
@@ -1237,7 +1518,7 @@ export class OlShelfActions extends LitElement {
         // Reset to the main pane now, so the next open doesn't slide back from
         // the lists pane. `snap` skips the slide while the popover fades out.
         this._snap = true;
-        this._pane = 'main';
+        this._pane = this.listsOnly ? 'lists' : 'main';
         this._creating = false;
         this._pickingDate = false;
     }
@@ -1274,8 +1555,13 @@ export class OlShelfActions extends LitElement {
      * `announce` is spoken with the optimistic change, as the checkmark is
      * shown with it; a rollback is announced by the error toast.
      */
+    /** No shelf or rating change while one is in flight, or before the state is known. */
+    get _held() {
+        return this._busy || this.pending;
+    }
+
     async _mutate(optimistic, action, announce) {
-        if (this._busy) return;
+        if (this._held) return;
         const snapshot = Object.fromEntries(Object.keys(optimistic).map(key => [key, this[key]]));
         Object.assign(this, optimistic);
         if (announce) this._say(announce);
@@ -1292,27 +1578,9 @@ export class OlShelfActions extends LitElement {
 
     // ── Shelves ──────────────────────────────────────────────
 
-    async _onShelfClick(shelfId) {
-        const previous = this.shelf;
-        // Already Read leads to the date pane — that is what its chevron says,
-        // and it is the only way to change a date once given. Coming off the
-        // shelf is the pane's "I didn't read this" link's job, which is why
-        // that link is offered there and nowhere else.
-        if (shelfId === SHELF.ALREADY_READ && previous === SHELF.ALREADY_READ) {
-            return this._openCheckIn();
-        }
+    /** Every shelf row toggles; Already Read's date has its own target (`_renderDateLink`). */
+    _onShelfClick(shelfId) {
         return this._postShelf(shelfId);
-    }
-
-    /**
-     * "I didn't read this": off the shelf, and — because the server deletes a
-     * book's check-ins with it — out of the date the pane is asking about. The
-     * pane slides away first, as every other answer here does.
-     */
-    _removeFromShelf() {
-        if (!this.shelf || this._busy) return;
-        this._backToMain();
-        return this._postShelf(this.shelf);
     }
 
     /** Posting the current shelf toggles it off server-side; any other shelf moves the book. */
@@ -1362,24 +1630,33 @@ export class OlShelfActions extends LitElement {
 
     // ── Check-in ─────────────────────────────────────────────
 
-    async _openCheckIn() {
+    /** `amending`: the book was already on the shelf, so the pane offers a way off it too. */
+    async _openCheckIn({ amending = false } = {}) {
         this._pane = 'checkIn';
+        this._amending = amending;
+        // The prompt asked unbidden is counted as shown, so the answers and
+        // skips it gets can be read as a rate. Amending an existing date is
+        // the old prompt's "Edit" link, under the name its dashboards use.
+        if (!amending) trackEvent('CheckInPrompt', 'Shown');
+        else if (this.readDate) trackEvent('CheckInPrompt', 'EditDate');
         // A date the shortcuts cannot express would otherwise sit unseen
         // behind a collapsed row, so the pane opens on it. Focus still lands
-        // on the first row: the reader is being shown their answer, not asked
-        // to retype it.
+        // on Today: the reader is being shown their answer, not asked to
+        // retype it, and Skip above it is not the answer to land on.
         this._pickingDate = this._answeredBy === 'other';
         // Seeded from the date already given, so "Other date" opens on it
         // rather than making the reader re-enter what they are amending.
         const [year = '', month = '', day = ''] = (this.readDate || '').split('-');
         this._date = { year, month: month.replace(/^0/, ''), day: day.replace(/^0/, '') };
         await this.updateComplete;
-        this.shadowRoot.querySelector(`.pane:nth-child(${PANES.indexOf('checkIn') + 1}) .row`)?.focus({ preventScroll: true });
+        this.shadowRoot.querySelector(`.pane:nth-child(${PANES.indexOf('checkIn') + 1}) .row.today`)?.focus({ preventScroll: true });
     }
 
     /** Focus follows the disclosure: into the selects, and back to the row on collapse. */
     async _toggleDatePicker() {
         this._pickingDate = !this._pickingDate;
+        // Opening the fields is what the old prompt's "Other" link did.
+        if (this._pickingDate) trackEvent('CheckInPrompt', 'SetDateCustom');
         await this.updateComplete;
         const target = this._pickingDate ? '.select.year' : '.date-toggle';
         this.shadowRoot.querySelector(target)?.focus({ preventScroll: true });
@@ -1393,13 +1670,24 @@ export class OlShelfActions extends LitElement {
         this._date = next;
     }
 
+    /** Keeps the shelf, gives no date. Tracked so we learn how often the question goes unanswered. */
+    _onSkipDate() {
+        trackEvent('CheckInPrompt', 'Skip');
+        return this._backToMain();
+    }
+
+    // The analytics events are the ones the old check-in prompt and form sent
+    // for the same answers, so their dashboards carry on across the move into
+    // the popover: the two quick rows were the prompt's links, the fields
+    // were its form.
+
     _onToday() {
         const now = new Date();
-        return this._saveCheckIn({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() });
+        return this._saveCheckIn({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }, ['CheckInPrompt', 'SetDateToday']);
     }
 
     _onYear(year) {
-        return this._saveCheckIn({ year });
+        return this._saveCheckIn({ year }, ['CheckInPrompt', 'SetDateCurrentYear']);
     }
 
     _onSaveDate(e) {
@@ -1410,10 +1698,34 @@ export class OlShelfActions extends LitElement {
             year: Number(year),
             month: month ? Number(month) : null,
             day: day ? Number(day) : null,
-        });
+        }, ['CheckInForm', 'SubmitCheckIn']);
     }
 
-    async _saveCheckIn(date) {
+    /** Drops the date but keeps the shelf, as the old form's Delete Event did, under its event name. */
+    async _onRemoveDate() {
+        if (this._dateBusy || !this.eventId) return;
+        this._dateBusy = true;
+        try {
+            await deleteCheckIn(this.eventId);
+            this.readDate = null;
+            this.eventId = null;
+            trackEvent('CheckInForm', 'DeleteCheckIn');
+            this.dispatchEvent(new CustomEvent('ol-book-check-in', {
+                bubbles: true,
+                composed: true,
+                detail: { key: this.book.key, date: null, eventId: null },
+            }));
+            this._say(this.t('dateRemoved'));
+            this._backToMain();
+        } catch (error) {
+            this._fail(error);
+        } finally {
+            this._dateBusy = false;
+        }
+    }
+
+    /** @param {[string, string]} event - The analytics category and action for this answer. */
+    async _saveCheckIn(date, event) {
         if (this._dateBusy) return;
         this._dateBusy = true;
         try {
@@ -1422,7 +1734,7 @@ export class OlShelfActions extends LitElement {
             // date, and re-saving amends this event instead of adding one.
             this.readDate = partialDate(date);
             this.eventId = saved?.id ?? this.eventId ?? null;
-            trackEvent('CheckInPrompt', date.day ? 'SetDateDay' : date.month ? 'SetDateMonth' : 'SetDateYear');
+            trackEvent(...event);
             this.dispatchEvent(new CustomEvent('ol-book-check-in', {
                 bubbles: true,
                 composed: true,
@@ -1458,30 +1770,45 @@ export class OlShelfActions extends LitElement {
      * field of the create form, or the first list. On mobile (ol-popover's
      * tray breakpoint) a text field would raise the soft keyboard over the
      * lists they came here to see, so take the back button instead; the pane
-     * the focus came from is inert now and would strand it.
+     * the focus came from is inert now and would strand it. Opening and
+     * closing the create form go through here too, for the same reason.
      */
     _focusListsPane() {
         const pane = `.pane:nth-child(${PANES.indexOf('lists') + 1})`;
         const mobile = window.matchMedia('(max-width: 767px)').matches;
         // A selector list matches the first of them in document order, and the
         // fields both sit above the rows.
-        const target = mobile ? '.back' : '.input, .list-row input';
+        // Lists-only has no back button; on mobile the first row stands in for it.
+        const target = mobile ? (this.listsOnly ? '.list-row input, ol-button' : '.back') : '.input, .list-row input';
         const el = this.shadowRoot.querySelector(`${pane} ${target}`);
-        el?.focus({ preventScroll: true });
-        return !!el;
+        if (!el) return false;
+        // A fresh <ol-button> has no inner control to take focus until its own first render.
+        if (el.updateComplete) el.updateComplete.then(() => el.focus({ preventScroll: true }));
+        else el.focus({ preventScroll: true });
+        return true;
     }
 
-    /** Focus goes back to the row that led to the pane being left. */
+    /** Focus goes back to the row that led to the pane being left. Lists-only has no main pane: leaving the lists closes. */
     async _backToMain() {
+        if (this.listsOnly) {
+            const popover = this.shadowRoot.querySelector('ol-popover');
+            if (popover) popover.open = false;
+            return;
+        }
         const from = this._pane;
+        const amending = this._amending;
         this._pane = 'main';
         this._creating = false;
         this._pickingDate = false;
         await this.updateComplete;
+        // From the date pane: whichever half of Already Read led there. The
+        // shelf half when the date half has gone with the shelf.
+        const main = this.shadowRoot.querySelector('.pane:nth-child(1)');
+        const shelfHalf = main?.querySelector(`.row[data-shelf="${SHELF.ALREADY_READ}"]`);
         const row = from === 'checkIn'
-            ? `.group.shelves .row:nth-child(${Object.values(SHELF).indexOf(SHELF.ALREADY_READ) + 1})`
-            : '.group.lists-entry .row';
-        this.shadowRoot.querySelector(`.pane:nth-child(1) ${row}`)?.focus({ preventScroll: true });
+            ? (amending && main?.querySelector('.date-link')) || shelfHalf
+            : main?.querySelector('.group.lists-entry .row');
+        row?.focus({ preventScroll: true });
     }
 
     /**
@@ -1494,7 +1821,7 @@ export class OlShelfActions extends LitElement {
         const lists = getLists() || {};
         this._order = Object.keys(lists);
         this._recent = getRecentLists(this.userKey);
-        this._members = this._order.filter(key => lists[key].members.includes(this._seedKey));
+        this._members = this._order.filter(key => this._inList(lists[key]));
     }
 
     /**
@@ -1552,7 +1879,7 @@ export class OlShelfActions extends LitElement {
     get _listCount() {
         const lists = getLists();
         if (!lists) return 0;
-        return Object.values(lists).filter(l => l.members.includes(this._seedKey)).length;
+        return Object.values(lists).filter(list => this._inList(list)).length;
     }
 
     /** `quiet` is for the open-time prefetch: no toast, no login bounce. */
@@ -1583,6 +1910,11 @@ export class OlShelfActions extends LitElement {
             // book back out is as good a signal as putting one in.
             noteListUsed(this.userKey, listKey, name);
             trackEvent('Lists', checked ? 'AddSeed' : 'RemoveSeed');
+            this.dispatchEvent(new CustomEvent('ol-list-change', {
+                bubbles: true,
+                composed: true,
+                detail: { key: listKey, name, seedKey: this._seedKey, member: checked },
+            }));
         } catch (error) {
             this._fail(error);
         }
@@ -1603,7 +1935,7 @@ export class OlShelfActions extends LitElement {
         const key = pinned[0] ?? rest[0];
         if (!key) return;
         const name = lists[key].listName;
-        const checked = !lists[key].members.includes(this._seedKey);
+        const checked = !this._holdsSeed(lists[key]);
         this._say(this.t(checked ? 'addedToList' : 'removedFromList', { name }));
         this._onListToggle(key, checked);
     }
@@ -1611,7 +1943,7 @@ export class OlShelfActions extends LitElement {
     async _startCreate() {
         this._creating = true;
         await this.updateComplete;
-        this.shadowRoot.querySelector('form.field .input')?.focus({ preventScroll: true });
+        this._focusListsPane();
     }
 
     async _cancelCreate() {
@@ -1619,7 +1951,7 @@ export class OlShelfActions extends LitElement {
         if (this._firstList) return this._backToMain();
         this._creating = false;
         await this.updateComplete;
-        this.shadowRoot.querySelector('.field .input')?.focus({ preventScroll: true });
+        this._focusListsPane();
     }
 
     async _onCreateSubmit(e) {

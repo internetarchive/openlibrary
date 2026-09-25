@@ -24,9 +24,18 @@ test.describe('Book (Work) page @smoke', () => {
         await expect(page.locator('.workDetails')).toBeVisible();
     });
 
-    test('reading log dropper is disabled for anonymous visitors', async ({ page }) => {
+    test('shelf button sends anonymous visitors to log in', async ({ page }) => {
         await page.goto(WORK_URL);
-        await expect(page.locator('.my-books-dropper.generic-dropper--disabled').first()).toBeAttached();
+        const button = page.locator('ol-shelf-button[variant="split"]').first();
+        await expect(button).toBeAttached();
+        // No reader, so a click goes to login.
+        await expect(button).not.toHaveAttribute('user-key');
+        await button.locator('.main').click();
+        await page.waitForURL(/\/account\/login/);
+        const url = new URL(page.url());
+        expect(url.pathname).toBe('/account/login');
+        // Back to the same book afterwards.
+        expect(url.searchParams.get('redirect')).toMatch(/^\/works\/OL\d+W/);
     });
 
     test.describe('when logged in', () => {
@@ -39,11 +48,14 @@ test.describe('Book (Work) page @smoke', () => {
             expect(errors()).toHaveLength(0);
         });
 
-        test('reading log dropper is enabled', async ({ page }) => {
+        test('shelf button is rendered for the reader', async ({ page }) => {
             await page.goto(WORK_URL);
-            const dropper = page.locator('.my-books-dropper').first();
-            await expect(dropper).toBeAttached();
-            await expect(dropper).not.toHaveClass(/generic-dropper--disabled/);
+            const button = page.locator('ol-shelf-button[variant="split"]').first();
+            await expect(button).toBeAttached();
+            // Rendered with the reader and their state: nothing to fetch, popover wired up.
+            await expect(button).toHaveAttribute('user-key', /^\/people\/.+/);
+            await expect(button).toHaveAttribute('data-hydrated');
+            await expect(button.locator('ol-shelf-actions')).toBeAttached();
         });
     });
 

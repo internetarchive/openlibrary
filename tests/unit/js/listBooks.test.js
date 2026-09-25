@@ -1,8 +1,8 @@
 import { ListBooks } from '../../../openlibrary/plugins/openlibrary/js/list_books.js';
 
-// Must be `mock`-prefixed: jest hoists the factory above the declarations.
-const mockTrackEvent = jest.fn();
-jest.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
+// Must be `mock`-prefixed: vitest hoists the factory above the declarations.
+const mockTrackEvent = vi.fn();
+vi.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
     trackEvent: (...args) => mockTrackEvent(...args),
 }));
 
@@ -77,6 +77,37 @@ describe('ListBooks', () => {
         fire(layoutControl, 'grid');
 
         expect(document.cookie).toContain('LBL=grid');
+    });
+
+    test('moves each shelf button between the cover badge and the CTA split', () => {
+        const { listBooks, layoutControl } = makeFixture();
+        listBooks.innerHTML = `
+            <li class="searchResultItem">
+                <span class="book-cover-wrapper"><a href="/works/OL1W"><img></a></span>
+                <div class="searchResultItemCTA">
+                    <div class="searchResultItemCTA__shelf"><ol-shelf-button variant="split" work-key="/works/OL1W"></ol-shelf-button></div>
+                </div>
+            </li>`;
+        const button = listBooks.querySelector('ol-shelf-button');
+
+        fire(layoutControl, 'grid');
+        expect(button.parentElement.className).toBe('book-cover-wrapper');
+        expect(button.getAttribute('variant')).toBe('icon');
+
+        fire(layoutControl, 'details');
+        expect(button.parentElement.className).toBe('searchResultItemCTA__shelf');
+        expect(button.getAttribute('variant')).toBe('split');
+    });
+
+    test('leaves a row without slots alone', () => {
+        const { listBooks, layoutControl } = makeFixture();
+        listBooks.innerHTML = '<li class="searchResultItem"><ol-shelf-button variant="split"></ol-shelf-button></li>';
+        const button = listBooks.querySelector('ol-shelf-button');
+
+        fire(layoutControl, 'grid');
+
+        expect(button.parentElement.className).toBe('searchResultItem');
+        expect(button.getAttribute('variant')).toBe('split');
     });
 
     test('reports the layout change to analytics', () => {

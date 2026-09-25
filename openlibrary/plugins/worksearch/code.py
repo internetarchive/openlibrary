@@ -20,6 +20,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
+from openlibrary.core.fulltext import is_passage_query
 from openlibrary.core.lending import add_availability, add_availability_async
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
@@ -315,6 +316,10 @@ async def execute_solr_query_async(
 
 
 execute_solr_query = async_bridge.wrap(execute_solr_query_async)
+
+
+# Gates work_search.html's Search Inside band, mirroring the modal's gate.
+public(is_passage_query)
 
 
 @public
@@ -693,6 +698,8 @@ def get_doc(doc: SolrDocument):
         subtitle=doc.get("subtitle", None),
         cover_edition_key=doc.get("cover_edition_key", None),
         cover_i=doc.get("cover_i", None),
+        cover_width=doc.get("cover_width", None),
+        cover_height=doc.get("cover_height", None),
         languages=doc.get("language", []),
         id_project_gutenberg=doc.get("id_project_gutenberg", []),
         id_project_runeberg=doc.get("id_project_runeberg", []),

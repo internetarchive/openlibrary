@@ -1,16 +1,11 @@
 import $ from 'jquery';
-import sinon from 'sinon';
 import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
 import { init } from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
 
-let sandbox;
-
 beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    global.htmlquote = htmlquote;
     // htmlquote is used inside an eval expression (yuck) so is an implied dependency
-    sandbox.stub(global, 'htmlquote').callsFake(htmlquote);
+    global.htmlquote = htmlquote;
 });
 
 test('identifiers of repeated elements are never the same.', () => {

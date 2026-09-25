@@ -42,8 +42,6 @@
 import LazyBookCard from './BarcodeScanner/components/LazyBookCard.vue';
 import SettingsIcon from './LibraryExplorer/components/icons/SettingsIcon.vue';
 import Quagga from '@ericblade/quagga2';
-import maxBy from 'lodash/maxBy';
-import countBy from 'lodash/countBy';
 import { OCRScanner, ThrottleGrouping } from './BarcodeScanner/utils/classes.js';
 
 export default {
@@ -75,14 +73,11 @@ export default {
                 func: this.submitISBN.bind(this),
                 // Use the most frequent
                 reducer: (groupOfArgs) => {
-                    const isbnCounts = Array.from(
-                        Object.entries(
-                            countBy(groupOfArgs, (arg) => arg[0])
-                        )
-                    );
-
-                    /* eslint-disable no-unused-vars */
-                    const mostFrequentISBN = maxBy(isbnCounts, ([isbn, count]) => count)[0];
+                    const isbnCounts = new Map();
+                    for (const [isbn] of groupOfArgs) {
+                        isbnCounts.set(isbn, (isbnCounts.get(isbn) || 0) + 1);
+                    }
+                    const [mostFrequentISBN] = [...isbnCounts].reduce((best, entry) => entry[1] > best[1] ? entry : best);
                     return groupOfArgs.reverse().find((args) => args[0] === mostFrequentISBN);
                 },
                 wait: 300,

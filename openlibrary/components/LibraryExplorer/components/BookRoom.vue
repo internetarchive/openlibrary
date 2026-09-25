@@ -157,7 +157,7 @@ import GenreTopNav from './GenreTopNav.vue';
 import GenreFilterBar from './GenreFilterBar.vue';
 import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
-import debounce from 'lodash/debounce';
+import { debounce } from '../../../plugins/openlibrary/js/nonjquery_utils.js';
 import { nextTick } from 'vue';
 import { decrementStringSolr, hierarchyFind, testLuceneSyntax, pollUntilTruthy } from '../utils.js';
 import CONFIGS from '../../configs';
@@ -380,7 +380,7 @@ export default {
     },
 
     async created() {
-        this.debouncedUpdateWidths = debounce(this.updateWidths);
+        this.debouncedUpdateWidths = debounce(this.updateWidths, 0);
         window.addEventListener('resize', this.debouncedUpdateWidths, { passive: true });
     },
     async mounted() {

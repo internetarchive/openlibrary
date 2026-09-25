@@ -41,6 +41,9 @@ pytest openlibrary/core/tests/test_models.py::test_function_name -xvs
 # JavaScript tests
 npm run test:js
 
+# JavaScript component tests in a real browser (Vitest browser mode)
+npm run test:js:browser
+
 # i18n validation
 make test-i18n
 
@@ -205,12 +208,12 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Browser Support
 
-We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 11.1, iOS ≥ 11.3, Android ≥ 5. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 15.4, iOS ≥ 15.4. The Safari floor is set by the Lit components, which need `delegatesFocus` and `<dialog>.showModal()`. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
 
 What the toolchain guarantees:
 
-- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari11.1', 'ios11.3']` in `scripts/vite/build.mjs`, matching `browserslist`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/main.js`. `all.js` is a `<script type="module">`, so the floor is Safari/iOS 11.x plus evergreen Chrome/Edge/Firefox per `browserslist`.
-- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `scripts/vite/build.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari15.4', 'ios15.4']` in `scripts/vite/build.mjs`, matching `browserslist`). No built-ins are polyfilled — everything we use ships natively at Safari 15.4.
+- **Vue/Lit components** use the same `build.target` — syntax is transpiled, but **runtime APIs are not polyfilled**.
 - **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
 
 Rules for new code:
@@ -247,10 +250,10 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 
 These companion docs cover specific areas in depth:
 
-- [Accessibility](a11y/index.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
+- [Accessibility](web-components.md#accessibility) — focus, ARIA across shadow roots, keyboard patterns for Lit components
 - [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
-- [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
-- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM
+- [Design](design.md) — UI rules and their scope: typography, RTL, the component inventory (what to use, what to avoid), icons, design tokens, overlays, animations, mobile, and what enforces each rule
+- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
 - [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
 
 ## Domain Knowledge Bases
@@ -278,6 +281,7 @@ Deep-dive references for major system domains. Each covers production architectu
 | Lit components | `openlibrary/components/lit/` |
 | Python tests | `tests/`, `openlibrary/**/tests/` |
 | JS tests | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
+| Browser-mode component tests | `tests/browser/` |
 | Docker config | `docker/`, `compose.yaml` |
 | Solr config | `conf/solr/` |
 | i18n translations | `openlibrary/i18n/` |

@@ -11,20 +11,24 @@ $def year_span(year, use_local_year=False):
 <div class="mybooks-details-specific">
 
   $code:
+      SHELF_IDS = shelf_ids()
       def compact_carousel(data):
           key, title, url = data
           books = mybooks[key].docs
           count = mybooks[key].total_results
-          return render_template("books/custom_carousel", **{
+          return render_jinja_template("books/custom_carousel.html.jinja", **get_book_carousel_data(**{
               "books": books,
-              "title": title if key == "loans" else "%s (%d)" % (title, count),
+              "title": title,
+              "count": None if key == "loans" else count,
+              "shelf": SHELF_IDS.get(key),
               "url": url,
               "key": key,
               "min_books": 1,
               "load_more": None,
               "compact_mode": True,
-              "test": False
-          }) if books else None
+              "test": False,
+              "full_path": request.fullpath,
+          })) if books else None
 
   $def empty_carousel(data):
     $ key, title, url = data
@@ -62,7 +66,9 @@ $code:
         count = mybooks[key].total_results
         return render_template("books/mobile_carousel", **{
             "books": books,
-            "title": title if key == "loans" else "%s (%d)" % (title, count),
+            "title": title,
+            "count": None if key == "loans" else count,
+            "shelf": SHELF_IDS.get(key),
             "url": url,
             "key": key,
             "min_books": 1,

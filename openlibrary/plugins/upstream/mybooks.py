@@ -21,9 +21,11 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
+from openlibrary.core.reading_state import ReadingState, get_reading_state
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -78,22 +80,45 @@ class mybooks_home(delegate.page):
             # Dictionary mapping dedup_key -> (book, timestamp, is_active)
             merged_books: dict[str, tuple[Any, float, bool]] = {}
 
-            # Process active loans first
+            # Resolve books independently of loans: batch-fetch the unique loan
+            # book keys, then keep fetching /type/redirect targets in batches
+            # (up to 5 hops). Nothing is fetched inside the loan loop below.
+            book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
+            fetched_keys = set(book_keys)
+            book_map: dict[str, Any] = {}
+            if book_keys:
+                book_map.update({b.key: b for b in site.get().get_many(book_keys)})
+
+            for _ in range(5):
+                redirect_locations = {
+                    book.location
+                    for book in book_map.values()
+                    if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
+                }
+                if not redirect_locations:
+                    break
+                fetched_keys.update(redirect_locations)
+                book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
+
+            # Process loans in one loop, following redirect chains through book_map.
             for loan in myloans:
-                book_key = loan["book"]
-                if book := site.get().get(book_key):
-                    for _ in range(5):
-                        if getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
-                            book_key = book.location
-                            book = site.get().get(book_key)
-                        else:
-                            break
-                    if book:
-                        book.loan = loan
-                        works = getattr(book, "works", None)
-                        work_key = works[0].key if works and len(works) > 0 else book.key
-                        loaned_at = loan.get("loaned_at") or 0.0
-                        merged_books[work_key] = (book, float(loaned_at), True)
+                book_key = loan.get("book")
+                if not book_key:
+                    continue
+                book = book_map.get(book_key)
+                if not book:
+                    continue
+                for _ in range(5):
+                    if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                        book = book_map.get(book.location)
+                    else:
+                        break
+                if book:
+                    book.loan = loan
+                    works = getattr(book, "works", None)
+                    work_key = works[0].key if works and len(works) > 0 else book.key
+                    loaned_at = loan.get("loaned_at") or 0.0
+                    merged_books[work_key] = (book, float(loaned_at), True)
 
             # Ownership gate, not just "is logged in": mb.username comes from the
             # URL, while mb.me is the session. get_loan_history_data() resolves S3
@@ -376,15 +401,6 @@ class mybooks_readinglog(delegate.page):
 
 
 @public
-def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
-    if not username:
-        return None
-    work_id = extract_numeric_id_from_olid(work_key)
-    status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
-    return status_id
-
-
-@public
 class MyBooksTemplate:
     # Reading log shelves
     READING_LOG_KEYS = frozenset(
@@ -606,6 +622,113 @@ def add_read_statuses(username, works):
     return works
 
 
+def work_key_of(doc) -> str | None:
+    """The work behind a doc: a work, an edition with its work, or an edition a carousel handed a `work_key`; None for anything else (an author, a subject)."""
+    if not hasattr(doc, "get"):
+        return getattr(doc, "key", None) if str(getattr(doc, "key", "")).startswith("/works/") else None
+    if work_key := doc.get("work_key"):
+        return work_key
+    key = doc.get("key")
+    if not key:
+        return None
+    if key.startswith("/works/"):
+        return key
+    if key.startswith("/books/") and (works := doc.get("works")):
+        work = works[0]
+        return work.key if hasattr(work, "key") else work.get("key")
+    return None
+
+
+def edition_key_of(doc) -> str | None:
+    """The edition a shelf change records: the doc itself when it is one, the edition a Solr result selected, or the one the reader logged."""
+    if not hasattr(doc, "get"):
+        return None
+    key = doc.get("key") or ""
+    if key.startswith("/books/"):
+        return key
+    # Solr hands editions as a list, or as a dict holding `docs`. On a work
+    # Thing it is a lazy backreference query, which is skipped.
+    editions = doc.get("editions") or []
+    if isinstance(editions, dict):
+        editions = editions.get("docs") or []
+    if isinstance(editions, list | tuple) and editions:
+        return editions[0].get("key")
+    if logged := doc.get("logged_edition"):
+        return logged
+    if olids := doc.get("edition_key"):
+        return f"/books/{olids[0]}"
+    return None
+
+
+def list_seed_of(doc) -> str | None:
+    """A seed with no work to shelve but a list to join: an author, or an edition on its own."""
+    key = doc.get("key") if hasattr(doc, "get") else None
+    return key if key and key.startswith(("/authors/", "/books/")) else None
+
+
+def _shelf_title_of(doc) -> str:
+    """The work's title when an edition carries its work, else the doc's own title or name."""
+    key = doc.get("key") or ""
+    # An author's `title` is an honorific ("OBE"), and their `works` a lazy query.
+    if key.startswith("/authors/"):
+        return doc.get("name") or ""
+    if key.startswith("/books/") and (works := doc.get("works")) and (title := works[0].get("title")):
+        return title
+    return doc.get("title") or ""
+
+
+@public
+def shelf_ids() -> dict[str, int]:
+    """The preset shelves' ids keyed by URL slug: `{"want-to-read": 1, "currently-reading": 2, ...}`."""
+    return {name.replace("_", "-"): shelf_id for name, shelf_id in Bookshelves.PRESET_BOOKSHELVES_JSON.items()}
+
+
+@public
+def shelf_button_for(doc, variant: str = "split", reading_states: dict[str, ReadingState] | None = None, async_load: bool = False) -> str:
+    """The `<ol-shelf-button>` for a doc, Solr or Infogami: a work or an edition to shelve, or an
+    author or orphaned edition that can only join a list (`lists-only`). Empty for anything else.
+
+    `reading_states` is the page's `get_reading_states()`; left out, the button looks its own up.
+    `async_load` renders the button without the reader's key and state, for HTML that is not
+    per-reader (carousel cards, which are cached or fetched lazily); book-state.js fills both in.
+    """
+    work_key = work_key_of(doc)
+    seed_key = work_key or list_seed_of(doc)
+    if not seed_key:
+        return ""
+    user = None if async_load else accounts.get_current_user()
+    user_key = user.key if user else ""
+    state: ReadingState | dict[str, Any] = {}
+    if work_key and not async_load:
+        states = reading_states if reading_states is not None else get_reading_states(user, [doc])
+        state = states.get(work_key) or {}
+    return render_jinja_template(
+        "my_books/shelf_button.html.jinja",
+        variant=variant,
+        work_key=seed_key,
+        title=_shelf_title_of(doc),
+        edition_key=edition_key_of(doc) if work_key else None,
+        user_key=user_key,
+        state=state,
+        hydrated=not async_load,
+        lists_only=not work_key,
+    )
+
+
+@public
+def get_reading_states(user: User | None, docs) -> dict[str, ReadingState]:
+    """`user`'s shelf, rating and last finish date for the works in `docs`, keyed by work key.
+
+    Empty when `user` is None (signed out). Call once per page of rows and pass the result down.
+    """
+    if not user:
+        return {}
+    keys = {key for doc in docs if (key := work_key_of(doc))}
+    by_id = {int(extract_numeric_id_from_olid(key)): key for key in keys}
+    states = get_reading_state(user.key.split("/")[-1], list(by_id))
+    return {by_id[work_id]: state for work_id, state in states.items()}
+
+
 class PatronBooknotes:
     """Manages the patron's book notes and observations"""
 
@@ -616,12 +739,25 @@ class PatronBooknotes:
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
 
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
+        works = {w.key: w for w in site.get().get_many(work_keys)} if work_keys else {}
+
         for entry in notes:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
-            entry["work_details"] = self._get_work_details(entry["work"])
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            entry["editions"] = {k: site.get().get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+
+        all_edition_keys = {
+            f"/books/OL{edition_id}M": edition_id for entry in notes for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+        }
+        edition_keys = list(all_edition_keys)
+        editions = {edition.key: edition for edition in site.get().get_many(edition_keys)} if edition_keys else {}
+
+        for work_key, entry in zip(work_keys, notes):
+            entry["work_key"] = work_key
+            entry["work"] = works.get(work_key)
+            entry["work_details"] = self._get_work_details(entry["work"])
+            entry["editions"] = {
+                edition_id: editions.get(f"/books/OL{edition_id}M") for edition_id in entry["notes"] if edition_id != Booknotes.NULL_EDITION_VALUE
+            }
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:

@@ -159,11 +159,10 @@ function commonJsBuildOptions() {
         copyPublicDir: false,
         sourcemap: true,
         minify: mode !== "development",
-        // Mirror package.json's browserslist. The binding constraint is Safari
-        // 11.1 / iOS 11.3. Oxc lowers syntax (optional chaining, nullish
-        // coalescing, …) to that floor; API polyfills are covered by the explicit
-        // core-js import at the top of main.js.
-        target: ["safari11.1", "ios11.3"],
+        // Mirror package.json's browserslist; Safari/iOS 15.4 is the binding
+        // constraint. Oxc lowers syntax only, so APIs newer than that floor
+        // (e.g. Object.groupBy, Array#toSorted) must not be used unguarded.
+        target: ["safari15.4", "ios15.4"],
         // Vite only warns about big chunks; `bundlesize` (CI) is the real gate.
         chunkSizeWarningLimit: 3000,
     };
@@ -287,7 +286,7 @@ function getComponentsConfig() {
             virtualVuePlugin(),
         ],
         build: {
-            target: ["es2019", "safari13"],
+            target: ["safari15.4", "ios15.4"],
             outDir: outDirForJob("components", "production"),
             emptyOutDir: true,
             copyPublicDir: false,

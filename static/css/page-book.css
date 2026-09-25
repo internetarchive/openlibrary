@@ -35,17 +35,19 @@
 @import "components/illustration.css";
 @import "components/rating-form.css";
 @import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
 @import "components/listLists.css";
 @import "components/readerStats.css";
 @import "components/link-box.css";
 @import "components/read-panel.css";
+@import "components/buy-popover.css";
 @import "components/work.css";
 @import "components/book.css";
 @import "components/carousel.css";
 @import "components/category-item.css";
 @import "components/loading-indicator.css";
 @import "components/page-history.css";
+@import "components/copy-button.css";
+@import "components/wikipedia-citation.css";
 @import "components/footer.css";
 @import "components/language.css";
 @import "components/editions.css";
@@ -57,10 +59,9 @@
 @import "components/modal-links.css";
 @import "components/list-follow.css";
 @import "components/tagging-menu.css";
-@import "components/check-in.css";
 @import "components/reading-goal.css";
 @import "components/work-title-and-author.css";
-@import "components/shareLinks.css";
+@import "components/share-popover.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
 @import "components/page-banner--tablet.css" only screen and (min-width: 768px);

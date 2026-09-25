@@ -10,7 +10,8 @@ and attribution as a new section here.
 Glyphs under `static/icons/src/lucide/` are derived from **Lucide**
 (https://lucide.dev), the community fork of Feather Icons. They are normalized
 to Open Library's canonical form (24×24 viewBox, `currentColor`, 2px stroke) but
-the path geometry is Lucide's.
+the path geometry is Lucide's. The `*-filled` glyphs are Open Library's solid
+re-drawings of the matching Lucide outlines.
 
 Lucide is distributed under the ISC License. Feather (its ancestor) is MIT.
 
@@ -32,6 +33,38 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
 OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
 TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
+```
+
+## `src/tabler/` — Tabler Icons
+
+Glyphs under `static/icons/src/tabler/` are derived from **Tabler Icons**
+(https://tabler.io/icons), used for brand marks, which Lucide deliberately does
+not ship. They are normalized to the same canonical form as the Lucide glyphs.
+
+Tabler Icons is distributed under the MIT License.
+
+```
+MIT License
+
+Copyright (c) 2020-2026 Paweł Kuna
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
 
 ## `src/custom/` — Open Library originals
