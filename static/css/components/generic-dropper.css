@@ -60,6 +60,8 @@
 
 .cta-dropper__menu > .cta-dropper__toggle--primary {
   border-color: var(--color-primary-border);
+  /* A step darker than the outer border so the divider reads on the fill. */
+  border-left-color: var(--blue-600);
   background-color: var(--color-primary);
   --control-surface: var(--color-primary);
 }

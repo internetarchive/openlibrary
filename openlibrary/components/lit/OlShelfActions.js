@@ -4,7 +4,8 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin } from './utils/books-api.js';
+import { loadWorkEditionKeys, otherForm } from './utils/book-editions.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -91,17 +92,6 @@ const SHORTCUT_LIMIT = 2;
  * derived from this, so a new pane is an entry here plus a `_render*`.
  */
 const PANES = ['main', 'lists', 'checkIn'];
-
-/**
- * Work key → promise of its edition keys. Module-level, so several buttons for
- * the same book share one request and re-opening costs nothing.
- */
-const EDITION_KEYS = new Map();
-
-/** Forget the cached editions (tests). */
-export function resetWorkEditionsCache() {
-    EDITION_KEYS.clear();
-}
 
 /**
  * Per-book action popover: reading-log shelves, a star rating, and an
@@ -942,19 +932,9 @@ export class OlShelfActions extends LitElement {
         return edition.startsWith('/') ? edition : `/books/${edition}`;
     }
 
-    /**
-     * The work's other editions, asked for once per book and shared by every
-     * popover on the page. A failure resolves to nothing rather than rejecting:
-     * the pane then matches on the two keys it already has, which is where it
-     * stood before, instead of spinning for an answer that is not coming.
-     */
+    /** The work's editions, shared with every popover and the list strip on the page. */
     _loadEditionKeys() {
-        const workKey = this.book?.key;
-        if (!workKey || this.listsOnly || !workKey.startsWith('/works/')) return null;
-        if (!EDITION_KEYS.has(workKey)) {
-            EDITION_KEYS.set(workKey, fetchWorkEditions(workKey).catch(() => []));
-        }
-        return EDITION_KEYS.get(workKey);
+        return this.listsOnly ? null : loadWorkEditionKeys(this.book?.key);
     }
 
     /**
@@ -975,10 +955,7 @@ export class OlShelfActions extends LitElement {
      */
     _otherForm(list) {
         if (!list) return null;
-        const count = list.members.filter(key => key !== this._seedKey && this._editionKeys.includes(key)).length;
-        if (count) return { kind: 'edition', count };
-        if (this.book?.key && this.book.key !== this._seedKey && list.members.includes(this.book.key)) return { kind: 'work' };
-        return null;
+        return otherForm(list.members, { seedKey: this._seedKey, workKey: this.book?.key, editionKeys: this._editionKeys });
     }
 
     /** Whether this book is on the list at all, however it was filed. Counts and pinning ask this. */

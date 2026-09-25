@@ -4906,14 +4906,56 @@ msgstr ""
 msgid "On your lists"
 msgstr ""
 
+#: lists/widget.html my_books/shelf_button_i18n.html
+#, python-format
+msgid "%(count)s other edition"
+msgid_plural "%(count)s other editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lists/widget.html my_books/shelf_button_i18n.html
+msgid "Any edition"
+msgstr ""
+
 #: lists/widget.html
 #, python-format
 msgid "Remove from %(name)s"
 msgstr ""
 
+#: lists/widget.html
+#, python-format
+msgid "Remove this edition from %(name)s"
+msgstr ""
+
+#: lists/widget.html
+#, python-format
+msgid "Remove %(count)s edition from %(name)s"
+msgid_plural "Remove %(count)s editions from %(name)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lists/widget.html
+#, python-format
+msgid "Remove %(count)s other edition from %(name)s"
+msgid_plural "Remove %(count)s other editions from %(name)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lists/widget.html
+#, python-format
+msgid "Remove the work and %(count)s edition from %(name)s"
+msgid_plural "Remove the work and %(count)s editions from %(name)s"
+msgstr[0] ""
+msgstr[1] ""
+
 #: lists/widget.html my_books/shelf_button_i18n.html
 #, python-format
 msgid "Removed from %(name)s"
+msgstr ""
+
+#: lists/widget.html
+#, python-format
+msgid "Removed this edition from %(name)s. The book is still on it."
 msgstr ""
 
 #: lists/widget.html my_books/shelf_button_i18n.html
@@ -5270,17 +5312,6 @@ msgid "%(count)s item"
 msgid_plural "%(count)s items"
 msgstr[0] ""
 msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
-msgid "%(count)s other edition"
-msgid_plural "%(count)s other editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Any edition"
-msgstr ""
 
 #: my_books/shelf_button_i18n.html
 #, python-format

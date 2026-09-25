@@ -13,8 +13,39 @@ $if ctx.user:
   $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key] or [page.key]
   $ book_lists_labels = {
   $   "onYourLists": _("On your lists"),
+  $   "otherEditions": {
+  $     "one": ungettext("%(count)s other edition", "%(count)s other editions", 1),
+  $     "two": ungettext("%(count)s other edition", "%(count)s other editions", 2),
+  $     "few": ungettext("%(count)s other edition", "%(count)s other editions", 3),
+  $     "many": ungettext("%(count)s other edition", "%(count)s other editions", 11),
+  $     "other": ungettext("%(count)s other edition", "%(count)s other editions", 100),
+  $   },
+  $   "anyEdition": _("Any edition"),
   $   "removeFromList": _("Remove from %(name)s"),
+  $   "removeThisEdition": _("Remove this edition from %(name)s"),
+  $   "removeEditions": {
+  $     "one": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 1),
+  $     "two": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 2),
+  $     "few": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 3),
+  $     "many": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 11),
+  $     "other": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 100),
+  $   },
+  $   "removeOtherEditions": {
+  $     "one": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 1),
+  $     "two": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 2),
+  $     "few": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 3),
+  $     "many": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 11),
+  $     "other": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 100),
+  $   },
+  $   "removeWorkAndEditions": {
+  $     "one": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 1),
+  $     "two": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 2),
+  $     "few": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 3),
+  $     "many": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 11),
+  $     "other": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 100),
+  $   },
   $   "removedFromList": _("Removed from %(name)s"),
+  $   "removedThisEdition": _("Removed this edition from %(name)s. The book is still on it."),
   $   "errorGeneric": _("Something went wrong. Please try again."),
   $ }
   <ol-book-lists seed-keys="$json_encode(seed_keys)" labels="$json_encode(book_lists_labels)"></ol-book-lists>
