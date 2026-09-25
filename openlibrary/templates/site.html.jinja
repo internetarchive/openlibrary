@@ -12,8 +12,10 @@
         <span id="top"></span>
         <div id="offline-info">{{ _("It looks like you're offline.") }}</div>
         {% if layout.show_ol_shell %}
-            {% include "site/alert.html.jinja" %}
-            {{ render_templetor_template('lib/nav_head', None) }}
+            <div id="site-header-autohide" class="site-header-autohide">
+                {% include "site/alert.html.jinja" %}
+                {{ render_templetor_template('lib/nav_head', None) }}
+            </div>
             {{ render_templetor_template("my_books/shelf_button_i18n") }}
         {% endif %}
         <main{% if layout.show_ol_shell %} id="test-body-mobile"{% endif %}>

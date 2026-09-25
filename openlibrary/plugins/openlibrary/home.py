@@ -1,13 +1,15 @@
 """Controller for home page."""
 
+import json
 import logging
 import random
+from pathlib import Path
 
 import web
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, env
 from openlibrary.core.carousels import get_carousel_data
 from openlibrary.i18n import gettext as _
@@ -213,6 +215,39 @@ def get_cached_featured_subjects():
         get_featured_subjects,
         f"home.featured_subjects.{web.ctx.lang}",
         timeout=dateutil.HOUR_SECS,
+        prethread=caching_prethread(),
+    )()
+
+
+# Same file LibraryExplorer.vue imports at build time (see scripts/generate_genre_classification.py).
+GENRE_JSON_PATH = Path(__file__).parent.parent.parent / "components" / "LibraryExplorer" / "genre.json"
+
+
+def get_featured_genres():
+    """Genre Explorer (#13158) homepage carousel. Sourced from the same genre.json
+    Library Explorer's genre mode uses -- not the hardcoded FEATURED_SUBJECTS list --
+    so the two stay in sync without a second synthesis/maintenance path.
+    """
+    genres = json.loads(GENRE_JSON_PATH.read_text())
+    return [
+        {
+            # jumpTo is "<classification field>:<value>", and the genre tree's field is
+            # subject_key (see LibraryExplorer.vue) -- "genre:" finds no classification and
+            # throws before the explorer mounts.
+            "key": f"/explore/genres?jumpTo=subject_key:{genre['short']}",
+            "presentable_name": genre["name"],
+            "work_count": genre.get("count", 0),
+        }
+        for genre in sorted(genres, key=lambda g: g["name"])
+    ]
+
+
+@public
+def get_cached_featured_genres():
+    return cache.memcache_memoize(
+        get_featured_genres,
+        f"home.featured_genres.{web.ctx.lang}",
+        timeout=dateutil.WEEK_SECS,
         prethread=caching_prethread(),
     )()
 

@@ -267,7 +267,10 @@
                   value="trending"
                 >Trending Score
               </label>
-              <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
+              <label
+                v-if="settingsState.selectedClassification.supportsPreciseJump !== false"
+                title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it."
+              >
                 <input
                   v-model="sortState.order"
                   type="radio"

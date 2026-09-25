@@ -1,0 +1,24 @@
+$def with (test=False)
+
+$ genres = get_cached_featured_genres() if not test else []
+$if genres:
+  <div class="carousel-section">
+    <div class="carousel-section-header">
+      <h2 class="home-h2"><a href="/explore/genres">$_('Browse by Genre')</a></h2>
+    </div>
+    <div class="carousel-container">
+      <div class="carousel carousel--progressively-enhanced"
+        data-config="$json_encode({'carouselKey': 'genres', 'booksPerBreakpoint': [6, 5, 4, 3, 2, 2]})">
+        $for genre in genres:
+          <div class="category-item carousel__item">
+            <a class="category-nostyle" data-ol-link-track="CarouselGenres"
+               href="$genre['key']">
+              <p class="category-title">$genre['presentable_name']</p>
+              $if genre.get('work_count'):
+                $ count = commify(genre['work_count'])
+                <p class="category-count">$ungettext('%(count)s Book', '%(count)s Books', genre['work_count'], count=count)</p>
+            </a>
+          </div>
+      </div>
+    </div>
+  </div>
