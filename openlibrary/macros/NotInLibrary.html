@@ -9,6 +9,8 @@ $if link:
     >$_('Not in Library')</a>
   </div>
 $else:
+  $# Nothing to act on, so this reads as a status line rather than a button,
+  $# like the waitlist notes under the book page CTAs.
   <div class="cta-button-group">
-    <span class="cta-btn cta-btn--no-pointer">$_('Not in Library')</span>
+    <p class="waitinglist-message">$_('Not in Library')</p>
   </div>
