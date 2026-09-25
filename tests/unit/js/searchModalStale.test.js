@@ -4,6 +4,7 @@
  * dimmed rather than left passing for the answer to what's now in the input.
  * Exercised on a bare SearchModal instance, as the other search-modal suites do.
  */
+import { nothing } from 'lit';
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
 
 const STALE_DELAY_MS = 300;
@@ -112,20 +113,23 @@ describe('the stale delay', () => {
         expect(modal._catalogIsStale()).toBe(false);
     });
 
-    // One clock for the modal, so the band keeps its dim through the moment the
-    // catalog catches up — which on the Books tab is the common case, the
-    // fulltext backend being much the slower of the two.
-    test('the clock keeps running while only the band is behind', () => {
-        const modal = withCatalog({ query: 'white whales', answered: 'white whale' });
-        modal._ftHits = [{ ia: 'mobydick00melv' }];
-        modal._ftSearchKey = 'q=white+whale';
+    // The Books tab's band hides rather than dims, so on that tab its hits
+    // falling behind is no reason to start the clock.
+    test('on the Books tab a band behind on its own starts no clock', () => {
+        const modal = withBand({ query: 'white whales', answered: 'white whale' });
         modal.updated();
         vi.advanceTimersByTime(STALE_DELAY_MS);
 
-        modal._resultsKey = modal._buildSearchJsonUrl('white whales');
-        modal.updated();
+        expect(modal._markStale).toBe(false);
+        expect(modal._bandIsStale()).toBe(false);
+    });
 
-        expect(modal._catalogIsStale()).toBe(false);
+    test('on the Inside tab the band is the surface the clock watches', () => {
+        const modal = withBand({ query: 'white whales', answered: 'white whale' });
+        modal._mode = 'inside';
+        modal.updated();
+        vi.advanceTimersByTime(STALE_DELAY_MS);
+
         expect(modal._bandIsStale()).toBe(true);
     });
 
@@ -152,6 +156,24 @@ describe('the stale delay', () => {
         modal.updated();
 
         expect(modal._markStale).toBe(false);
+    });
+});
+
+describe('the band on the Books tab', () => {
+    test('shows hits that answer the query on screen', () => {
+        const modal = withBand({ query: 'white whale', answered: 'white whale' });
+        expect(modal._renderFulltextBand()).not.toBe(nothing);
+    });
+
+    test('hides the moment an edit outdates them', () => {
+        const modal = withBand({ query: 'white whales', answered: 'white whale' });
+        expect(modal._renderFulltextBand()).toBe(nothing);
+    });
+
+    test('and is back once the query returns to the one they answer', () => {
+        const modal = withBand({ query: 'white whales', answered: 'white whale' });
+        modal._query = 'white whale';
+        expect(modal._renderFulltextBand()).not.toBe(nothing);
     });
 });
 

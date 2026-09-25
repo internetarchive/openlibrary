@@ -845,15 +845,13 @@ export class SearchModal extends LitElement {
            only on the way in: dropping the class drops the transition with it,
            so fresh rows arrive at full strength instead of fading up under a
            list that's already been replaced. */
-        .results.is-stale,
-        .ft-band.is-stale {
+        .results.is-stale {
             opacity: 0.55;
             transition: opacity var(--duration-fast) var(--ease-state);
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .results.is-stale,
-            .ft-band.is-stale { transition: none; }
+            .results.is-stale { transition: none; }
         }
 
         /* ── Navigating (pressed result → page loading) ────────────── */
@@ -1364,7 +1362,10 @@ export class SearchModal extends LitElement {
     // the query, so no path — an edit, a tab switch, a filter toggle, a failed
     // fetch — can leave a dim behind that nothing clears.
     updated() {
-        if (this._catalogSuperseded() || this._bandSuperseded()) {
+        // Only the surface on screen: the Books tab's band hides rather than
+        // dims, so its hits falling behind is no reason to start the clock.
+        const superseded = this._inside ? this._bandSuperseded() : this._catalogSuperseded();
+        if (superseded) {
             if (this._markStale || this._staleTimer) return;
             this._staleTimer = setTimeout(() => {
                 this._staleTimer = null;
@@ -1384,10 +1385,12 @@ export class SearchModal extends LitElement {
 
     // ── Staleness ────────────────────────────────────────────────────────
     //
-    // Both surfaces keep their rows through an edit so the list doesn't flicker,
-    // which leaves them briefly answering a query that's no longer in the input.
-    // The *Superseded predicates say that's true now; the *IsStale ones add the
-    // delay, and are what the render methods ask.
+    // The catalog list and the Inside tab keep their rows through an edit so the
+    // list doesn't flicker, which leaves them briefly answering a query that's
+    // no longer in the input. The *Superseded predicates say that's true now;
+    // the *IsStale ones add the delay, and are what the render methods ask.
+    // (The Books tab's band is the exception: it hides instead, see
+    // _renderFulltextBand.)
 
     _catalogSuperseded() {
         return this._results.length > 0 && this._resultsKey !== this._buildSearchJsonUrl(this._query.trim());
@@ -1611,24 +1614,35 @@ export class SearchModal extends LitElement {
             >${label}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div>`;
     }
 
+    // A fresh answer starts from its first row. The rows swap inside one
+    // long-lived .results div, so the previous answer's scroll offset would
+    // otherwise carry over. The Inside tab keeps its place — its rows didn't change.
+    _scrollResultsToTop() {
+        if (this._inside) return;
+        this.updateComplete.then(() => {
+            const results = this.renderRoot?.querySelector('.results');
+            if (results) results.scrollTop = 0;
+        });
+    }
+
     // Hits minus scans already listed above. Computed at render since the two fetches race.
     _visibleFtHits() {
         return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
     }
 
     // Hidden until hits land: no spinner or empty state for a secondary surface.
+    // Hidden again the moment an edit outdates them — unlike the catalog rows
+    // above, which linger and dim, the band sits at the foot of the list, where
+    // vanishing costs no flicker, and its refetch is the slower of the two. The
+    // hits themselves stay: backspace to the query they answer and they're back.
     // "View all" crosses to the Inside tab rather than leaving for /search/inside
     // — the deeper list is one tab away, and the tab's own footer leads out. The
     // total isn't repeated here; the tab's own badge is carrying it.
     _renderFulltextBand() {
         const hits = this._visibleFtHits();
-        if (hits.length === 0) return nothing;
-        // Only when the band is stale on its own. When the container above is
-        // already dimmed — stale, or navigating after a press — nesting a second
-        // dim would fade these rows twice as far.
-        const stale = !this._navigatingKey && this._bandIsStale() && !this._catalogIsStale();
+        if (hits.length === 0 || !this._ftIsCurrent()) return nothing;
         return html`
-            <div class="ft-band ${stale ? 'is-stale' : ''}">
+            <div class="ft-band">
                 <h3 class="results-heading results-heading--icon">
                     ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
                     <button
@@ -2454,6 +2468,7 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
+                this._scrollResultsToTop();
                 this._ftBand.solrSettled(trimmed, this._results);
                 if (this._shelfStateWanted) this._loadShelfState();
                 // Record the settled outcome — ResultsShown or NoResults —
