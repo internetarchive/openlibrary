@@ -300,6 +300,16 @@
 .ol-action-row .ol-macro-wrapper .cta-button-group {
   width: 100%;
 }
+
+/* A status line ("Not in Library") takes the button's slot, so it sits on the
+   same line as the Read label in the next card and keeps the row one height. */
+.ol-action-row .waitinglist-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height-medium);
+  margin: 0;
+}
 .ol-return-wrapper {
   flex: 0 0 39px;
 }
