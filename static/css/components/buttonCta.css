@@ -40,11 +40,6 @@ a.cta-btn:visited {
   text-decoration: none;
 }
 
-.cta-btn--no-pointer,
-a.cta-btn--no-pointer {
-  cursor: default;
-}
-
 /* The CTAs share ol-button's medium box (components/ol-button.css): control
    height, padding, type and radius. They stay full-width — that is the CTA's
    job — so every state of the button lines up with the Buy trigger. */

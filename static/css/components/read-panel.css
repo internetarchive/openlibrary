@@ -24,10 +24,8 @@
 
 .read-options .cta-btn,
 .read-options .cta-button-group,
-.read-options .cta-btn.cta-btn--no-pointer,
 .btn-notice .cta-btn,
-.btn-notice .cta-button-group,
-.btn-notice .cta-btn.cta-btn--no-pointer {
+.btn-notice .cta-button-group {
   margin-bottom: var(--spacing-stack-sm);
 }
 
