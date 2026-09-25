@@ -494,10 +494,13 @@ a.testing-env__pill:focus-visible {
   border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-/* Deploy and Refresh side by side, as one action row. */
+/* Deploy, Refresh, and the Add PRs form share this row; it spans the card so
+   the form has room, and wraps to its own line when it runs out. */
 .testing-env__deploy-action {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-sm);
+  align-self: stretch;
   align-items: center;
   margin: 0;
 }
