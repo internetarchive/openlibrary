@@ -185,9 +185,14 @@ def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
 
 
+LOAN_CHANGES_MAX_LIMIT = 1000
+"""Rows per page the loan-changes API will return. A hard ceiling on IA's side:
+a larger `limit` is silently capped, not honoured."""
+
+
 def get_loan_changes(
     after_uid: int,
-    limit: int = 1000,
+    limit: int = LOAN_CHANGES_MAX_LIMIT,
     s3_keys: dict | None = None,
 ) -> dict:
     """Fetch loan events with uid > after_uid from IA's loan changes API.
@@ -197,7 +202,7 @@ def get_loan_changes(
     The 'extra' field is a JSON string; parse it for 'until' (loan expiry).
 
     :param after_uid: Return events with uid strictly greater than this value.
-    :param limit: Max rows per page (max 1000 per IA API contract).
+    :param limit: Max rows per page; see LOAN_CHANGES_MAX_LIMIT.
     :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
                     defaults to config_ia_ol_metadata_write_s3.
     """

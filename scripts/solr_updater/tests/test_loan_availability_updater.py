@@ -5,9 +5,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from openlibrary.core.lending import AVAILABILITY_BATCH_SIZE
 from scripts.solr_updater.loan_availability_updater import (
     EBOOK_AVAILABLE,
     EBOOK_UNAVAILABLE,
+    RECHECK_INTERVAL,
+    RECHECK_MAX_EDITIONS,
     SOLR_QUERY_CHUNK,
     build_recheck_updates,
     build_reconcile_updates,
@@ -1088,3 +1091,30 @@ def test_main_clamps_a_cursor_that_is_ahead_of_the_feed(mock_config, mock_infoga
         main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
 
     assert state_file.read_text().strip() == "50", "cursor was not clamped to the feed head"
+
+
+def test_a_recheck_pass_fits_inside_its_own_interval():
+    """Sizing, asserted rather than left to a comment.
+
+    The re-check sends AVAILABILITY_BATCH_SIZE ids per sequential request. If a
+    pass can outlast RECHECK_INTERVAL -- which it could at the original cap of
+    10000, once archive.org starts timing out -- the re-check runs back to back
+    forever and, sharing a single-threaded loop with the follower, stops the
+    feed being consumed for the length of the outage."""
+    requests_per_pass = RECHECK_MAX_EDITIONS / AVAILABILITY_BATCH_SIZE
+    worst_case_seconds = requests_per_pass * 10  # a timing-out request
+    assert worst_case_seconds < RECHECK_INTERVAL, (
+        f"{requests_per_pass:.0f} sequential requests could take {worst_case_seconds:.0f}s, "
+        f"which outlasts the {RECHECK_INTERVAL}s interval and would starve the follower"
+    )
+
+
+def test_recheck_says_so_when_ground_truth_is_unreachable():
+    """An archive.org outage must be visible, not silent -- and must free nothing."""
+    mock_solr = MagicMock()
+    mock_solr.select.return_value = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookabc"], "_root_": "/works/OL1W", "loan_uid": 5}])
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
+        patch("openlibrary.core.lending.get_availability_batch", return_value={}),
+    ):
+        assert build_recheck_updates() == []

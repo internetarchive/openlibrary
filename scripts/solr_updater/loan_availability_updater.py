@@ -192,7 +192,10 @@ def is_releasing_event(event_type: str) -> bool:
 _SEEN_ACQUIRING_EVENT_TYPES = frozenset({"borrow", "browse", "renew_borrow", "renew_browse", "renew"})
 
 LOAN_MAX_AGE_DAYS = 14
-BATCH_SIZE = 1000
+BATCH_SIZE = lending.LOAN_CHANGES_MAX_LIMIT
+"""Rows per feed page. Pinned to IA's own ceiling rather than restated: asking
+for more is silently capped, so a larger number here would quietly mean fewer
+events per request than the code claims."""
 MIN_RECONCILE_COVERAGE = 0.9
 """Fraction of cold-start identifiers that must get a ground-truth answer.
 
@@ -210,7 +213,21 @@ more round trips is irrelevant next to a query that fails outright.
 POLL_INTERVAL = 30  # seconds between polls when caught up
 HEARTBEAT_INTERVAL = 300  # seconds between proof-of-life log lines
 RECHECK_INTERVAL = 600  # seconds between ground-truth re-checks of the unavailable set
-RECHECK_MAX_EDITIONS = 10000  # cap on editions re-checked per pass
+RECHECK_MAX_EDITIONS = 2000
+"""Editions re-checked per pass. Sized so a pass fits inside RECHECK_INTERVAL.
+
+`get_availability_batch` sends AVAILABILITY_BATCH_SIZE (100) ids per request,
+sequentially. At 10000 that is 100 requests; if archive.org is slow or down and
+each hits the HTTP timeout, a single pass runs far longer than the 600s interval
+-- so the re-check would run back to back forever and, being in the same
+single-threaded loop, starve the follower completely. The feed would stop being
+consumed for the length of the outage.
+
+At 2000 it is 20 requests: a few seconds healthy, a few minutes at worst, always
+finishing before the next pass is due. Nothing is lost by the smaller window
+because the select rotates (`sort=loan_uid asc`), so successive passes advance
+through the marked set rather than re-reading one prefix.
+"""
 
 
 def read_state(path: Path) -> int:
@@ -563,6 +580,11 @@ def build_recheck_updates(marked_during_pass: set[str] | None = None) -> list[di
         return []
 
     availability = lending.get_availability_batch(list(id_to_doc))
+    if not availability:
+        # Visible during an archive.org outage. Nothing to do -- the follower
+        # keeps running and the marks simply persist until ground truth returns.
+        logger.warning("Re-check got no availability answers for %d identifiers; nothing freed this pass", len(id_to_doc))
+        return []
 
     updates = []
     seen_keys = set()
