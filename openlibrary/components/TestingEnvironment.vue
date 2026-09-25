@@ -88,6 +88,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
 <template>
   <section
     class="testing-env"
+    :class="{ 'testing-env--deploying': payload?.deploying }"
     :aria-busy="busy ? 'true' : 'false'"
   >
     <div
