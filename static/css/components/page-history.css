@@ -193,7 +193,7 @@ table#pageHistory .compare-against a:hover {
 .page-history-compare {
   position: sticky;
   top: 0;
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-base);
   display: flex;
   flex-wrap: wrap;
   align-items: center;

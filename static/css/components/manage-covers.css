@@ -14,7 +14,8 @@
 }
 .manageCoversContainer {
   width: 100%;
-  z-index: var(--z-index-level-16);
+  /* Legacy value: sits inside a jQuery UI dialog. */
+  z-index: var(--z-index-overlay);
 }
 .manageCoversContainer a {
   display: block;

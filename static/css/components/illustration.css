@@ -8,7 +8,7 @@
   text-align: center;
   margin-bottom: var(--spacing-stack-sm);
   position: relative;
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-base);
   /* Contain the cover's behind-parent animation layer (.cover-animation,
      z-index: behind) explicitly, so it stays contained even if the z-index
      above is ever removed. */
