@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from openlibrary.core import lending
 from openlibrary.core.lending import AVAILABILITY_BATCH_SIZE
 from scripts.solr_updater.loan_availability_updater import (
     EBOOK_AVAILABLE,
@@ -1118,3 +1119,66 @@ def test_recheck_says_so_when_ground_truth_is_unreachable():
         patch("openlibrary.core.lending.get_availability_batch", return_value={}),
     ):
         assert build_recheck_updates() == []
+
+
+# ---------------------------------------------------------------------------
+# Waitlists: the case that decides whether the whole asymmetry holds
+# ---------------------------------------------------------------------------
+
+WAITLISTED = {
+    "status": "borrow_unavailable",
+    "available_to_browse": False,
+    "available_to_borrow": False,
+    "available_to_waitlist": True,
+    "num_waitlist": "3",
+}
+
+
+def test_a_waitlisted_book_is_not_available():
+    """The predicate both loops share. `available_to_waitlist` means you may
+    join a QUEUE, not that you may read the book -- counting it as available
+    here is the single edit that would break everything below."""
+    assert lending.is_available_for_loan(WAITLISTED) is False
+    assert lending.is_available_for_loan(AVAILABLE) is True
+
+
+def test_the_recheck_does_not_free_a_waitlisted_book():
+    """A return does not mean available: with people queued, the freed copy goes
+    to the head of the waitlist and the book stays unborrowable.
+
+    The follower already declines to write on a release, so the mark survives
+    the return. This pins the other half -- that the re-check, which is the only
+    thing allowed to clear, also refuses. If it cleared here the book would be
+    published as borrowable with a queue in front of it, and nothing would
+    correct it: the re-check only ever clears."""
+    mock_solr = MagicMock()
+    mock_solr.select.return_value = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookabc"], "_root_": "/works/OL1W", "loan_uid": 5}])
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
+        patch("openlibrary.core.lending.get_availability_batch", return_value={"bookabc": WAITLISTED}),
+    ):
+        assert build_recheck_updates() == []
+
+
+def test_the_recheck_frees_the_book_once_the_queue_drains():
+    """And the mark must not be permanent. The changes feed never reports a
+    waitlist draining -- there is no event for it -- so the re-check is the only
+    thing that can ever free this book. Same edition, same marked state, ground
+    truth now says borrowable."""
+    mock_solr = MagicMock()
+    mock_solr.select.return_value = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookabc"], "_root_": "/works/OL1W", "loan_uid": 5}])
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
+        patch("openlibrary.core.lending.get_availability_batch", return_value={"bookabc": AVAILABLE}),
+    ):
+        assert build_recheck_updates() == [{"key": "/books/OL1M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_AVAILABLE}}]
+
+
+def test_a_return_on_a_waitlisted_book_leaves_the_mark_alone():
+    """End to end on the follower side, for the exact sequence a reviewer
+    worries about: borrow, then return, while a queue exists."""
+    borrow = {"identifier": "bookabc", "uid": 100, "event_type": "borrow", "extra": '{"until": "2026-05-15 10:00:00"}'}
+    assert build_solr_updates(collect_dirty_identifiers([borrow]), ID_TO_EDITION)[0]["ebook_unavailable"] == {"set": EBOOK_UNAVAILABLE}
+
+    ret = {"identifier": "bookabc", "uid": 200, "event_type": "return", "extra": "{}"}
+    assert build_solr_updates(collect_dirty_identifiers([ret]), ID_TO_EDITION) == []
