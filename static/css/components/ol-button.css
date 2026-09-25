@@ -31,7 +31,10 @@ ol-button:not(:defined),
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-inline-md);
+  /* Icon-to-label gap. 4px, mirroring the component's .label — not .control's
+     8px, which separates the label from the spinner and chevron. Here the icon
+     and text are flattened into the same flex box, so .label's value is the one. */
+  gap: var(--spacing-2xs);
   box-sizing: border-box;
   vertical-align: middle;
   --ol-button-height: var(--control-height-medium);
@@ -110,10 +113,10 @@ ol-button[elevation="floating"]:not(:defined) {
 ol-button[variant="primary"]:not(:defined),
 .ol-button-static--primary {
   background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-border);
   color: var(--white);
   --control-surface: var(--color-primary);
-  --control-highlight-strength: 18%;
+  --control-highlight-strength: var(--control-highlight-strength-filled);
 }
 
 ol-button[variant="ghost"]:not(:defined),
@@ -147,7 +150,7 @@ ol-button[variant="primary"][tone="danger"]:not(:defined) {
   border-color: var(--color-border-error);
   color: var(--white);
   --control-surface: var(--color-destructive);
-  --control-highlight-strength: 18%;
+  --control-highlight-strength: var(--control-highlight-strength-filled);
 }
 /* stylelint-enable selector-max-specificity */
 

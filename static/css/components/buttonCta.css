@@ -24,27 +24,12 @@ a.cta-btn {
   text-decoration: none;
 }
 
-.cta-btn .btn-icon,
-a.cta-btn .btn-icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-}
-
-/* stylelint-disable selector-max-specificity */
-.cta-btn .btn-icon.read-aloud,
-a.cta-btn .btn-icon.read-aloud {
-  background-image: url(/static/images/icons/read%20aloud.svg);
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-}
-/* stylelint-enable selector-max-specificity */
-
-/* Gap between the icon and the label on .cta-btn--w-icon, its only user. */
-.cta-btn .btn-label,
-a.cta-btn .btn-label {
-  padding-left: var(--spacing-inset-sm);
+/* Icons sit inline beside the label, as in ol-button's icon slots. The label
+   gives way first, so a narrow button ellipsizes text rather than the icon. */
+.cta-btn__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cta-btn:link,
@@ -60,33 +45,49 @@ a.cta-btn--no-pointer {
   cursor: default;
 }
 
-/* The filled CTA is the primary button in a full-width shape, so it takes the
-   same look as .ol-button-static--primary (components/ol-button.css): the token
-   radius, a 1px border in the fill, and the raised shadow with its specular top
-   edge. It can't simply wear that class — ol-components.css loads ahead of the
-   page sheets, so .cta-btn's own box would win on the tie. It stays full-width
-   — that is the CTA's job — but takes the shared control height, so it lines up
-   with the Buy trigger and everything else on the ol-button scale. */
+/* The CTAs share ol-button's medium box (components/ol-button.css): control
+   height, padding, type and radius. They stay full-width — that is the CTA's
+   job — so every state of the button lines up with the Buy trigger. */
+.cta-btn--available,
+.cta-btn--primary,
+.cta-btn--unavailable,
+.cta-btn--preview,
+.cta-btn--missing,
+.cta-btn--shell,
+a.cta-btn--available,
+a.cta-btn--primary,
+a.cta-btn--unavailable,
+a.cta-btn--preview,
+a.cta-btn--missing,
+a.cta-btn--shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2xs);
+  height: var(--control-height-medium);
+  padding: 0 var(--spacing-md);
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-control);
+  border-radius: var(--border-radius-button);
+}
+
+/* The filled CTA is the primary button, so it takes the same look as
+   .ol-button-static--primary: a 1px border in the fill, and the raised shadow
+   with its specular top edge. It can't simply wear that class —
+   ol-components.css loads ahead of the page sheets, so .cta-btn's own box would
+   win on the tie. */
 .cta-btn--available,
 .cta-btn--primary,
 .cta-btn--unavailable,
 a.cta-btn--available,
 a.cta-btn--primary,
 a.cta-btn--unavailable {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--control-height-medium);
-  padding: 0 var(--spacing-md);
-  font-size: var(--font-size-body-medium);
-  line-height: var(--line-height-control);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--border-radius-button);
+  border: 1px solid var(--color-primary-border);
   background-color: var(--color-primary);
   color: var(--white);
-  font-family: var(--font-family-button);
   --control-surface: var(--color-primary);
-  --control-highlight-strength: 18%;
+  --control-highlight-strength: var(--control-highlight-strength-filled);
   box-shadow:
     var(--box-shadow-raised),
     inset 0 1px 0
@@ -112,7 +113,8 @@ a.cta-btn--unavailable {
 }
 
 /* These stretch the width of their column, where the standard press reads as a
-   lurch — the same softer scale the Buy trigger takes. */
+   lurch — the same softer scale the Buy trigger takes. Inside a .cta-dropper
+   the group presses as one unit instead (generic-dropper.css). */
 .cta-btn--available:active,
 .cta-btn--primary:active,
 .cta-btn--unavailable:active,
@@ -166,20 +168,6 @@ a.cta-btn--preview:disabled {
   cursor: default;
 }
 
-.cta-btn--external,
-a.cta-btn--external {
-  background-image: url(/static/images/icons/octicon-link-external-24.svg);
-  background-repeat: no-repeat;
-  background-size: 20px;
-  background-position: center right var(--spacing-md);
-  justify-content: center;
-}
-
-.cta-btn--shell.cta-btn--external,
-a.cta-btn--shell.cta-btn--external {
-  background-blend-mode: difference;
-}
-
 .cta-btn--shell,
 .cta-btn--shell:link,
 .cta-btn--shell:visited,
@@ -196,12 +184,6 @@ a.cta-btn--shell:disabled {
   border: 2px solid var(--color-border-muted);
   color: var(--light-grey);
   cursor: default;
-}
-
-.cta-btn--sponsor,
-a.cta-btn--sponsor {
-  border: 2px solid var(--link-blue);
-  background: var(--blue-50);
 }
 
 .cta-btn--vanilla,
@@ -230,65 +212,29 @@ a.cta-btn--unstyled:link {
 }
 
 .cta-btn--delete,
-.cta-btn--cancel,
-a.cta-btn--delete,
-a.cta-btn--cancel {
+a.cta-btn--delete {
   background-color: var(--red);
 }
 
 .cta-btn--delete:visited,
-.cta-btn--cancel:visited,
-a.cta-btn--delete:visited,
-a.cta-btn--cancel:visited {
+a.cta-btn--delete:visited {
   color: var(--color-text-secondary);
 }
 
 .cta-btn--delete:hover,
-.cta-btn--cancel:hover,
-a.cta-btn--delete:hover,
-a.cta-btn--cancel:hover {
+a.cta-btn--delete:hover {
   background-color: hsl(8, 78%, 29%);
 }
 
-.cta-btn.cta-btn--w-icon,
-a.cta-btn.cta-btn--w-icon {
-  display: flex;
-  align-items: center;
-  padding: 0 var(--spacing-md);
-}
-
-.cta-btn--sponsor:link,
-.cta-btn--sponsor:visited,
-a.cta-btn--sponsor:link,
-a.cta-btn--sponsor:visited {
-  color: var(--color-link);
-}
-
-.cta-btn--sponsor:hover,
-a.cta-btn--sponsor:hover {
-  border: 2px solid var(--link-blue);
-  background-color: var(--link-blue);
-  color: var(--white);
-}
-
-.cta-btn__badge,
-a.cta-btn__badge {
-  background-color: hsl(19, 95%, 20%);
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-  border-radius: 5px;
-  font-size: 0.7em;
-}
-
 /* Button inside carousel */
+/* Cards run as narrow as 130px on phones, so the inset drops to ol-button
+   small's to keep "Nearby Libraries" whole. */
 .carousel-section .cta-btn {
+  padding: 0 var(--spacing-sm);
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: var(--font-size-label-large);
   text-align: center;
-}
-
-.carousel-section .cta-btn.cta-btn--external {
-  padding-right: var(--spacing-inset-lg);
 }
 
 /* Top margin to button coming after another button */

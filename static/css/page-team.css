@@ -23,4 +23,3 @@
 @import "components/language.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
-@import "components/page-banner--tablet.css" only screen and (min-width: 768px);

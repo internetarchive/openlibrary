@@ -127,6 +127,8 @@ export function resetWorkEditionsCache() {
  *     is already on removes it, so a guess could undo a save
  * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
  * @prop {String} placement - ol-popover placement; unset uses its default
+ * @prop {Element} anchorElement - ol-popover anchorElement: what the panel
+ *     lines up under when the trigger is only part of a control
  * @prop {Boolean} hideRating - Always drop the stars. Without it they go on
  *     their own whenever a visible `.star-rating-form` for the same book is
  *     on the page, checked at each open
@@ -160,6 +162,7 @@ export class OlShelfActions extends LitElement {
         userKey: { type: String, attribute: 'user-key' },
         labels: { type: Object },
         placement: { type: String },
+        anchorElement: { attribute: false },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
         listsOnly: { type: Boolean, attribute: 'lists-only' },
         pending: { type: Boolean, reflect: true },
@@ -994,6 +997,7 @@ export class OlShelfActions extends LitElement {
         return html`
             <ol-popover
                 placement=${ifDefined(this.placement)}
+                .anchorElement=${this.anchorElement ?? null}
                 offset="6"
                 block-outside-clicks
                 aria-label=${this.t('actionsFor', { title })}

@@ -3285,7 +3285,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html type/work/editions.html
+#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -4818,7 +4818,7 @@ msgstr ""
 msgid "Avatar of the owner of the list"
 msgstr ""
 
-#: lists/list_follow.html.jinja lists/widget.html
+#: lists/list_follow.html.jinja
 msgid "You"
 msgstr ""
 
@@ -4903,19 +4903,21 @@ msgid "You have no lists."
 msgstr ""
 
 #: lists/widget.html
-msgid "See this list"
+msgid "On your lists"
 msgstr ""
 
 #: lists/widget.html
-msgid "Remove from your list?"
+#, python-format
+msgid "Remove from %(name)s"
 msgstr ""
 
-#: lists/widget.html type/type/view.html
-msgid "from"
+#: lists/widget.html my_books/shelf_button_i18n.html
+#, python-format
+msgid "Removed from %(name)s"
 msgstr ""
 
-#: lists/widget.html
-msgid "Loading<span class=\"loading-ellipsis\">...</span>"
+#: lists/widget.html my_books/shelf_button_i18n.html
+msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: merge/authors.html
@@ -5305,16 +5307,7 @@ msgid "Added to %(name)s"
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Removed from %(name)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
 msgid "Manage lists"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
@@ -6880,6 +6873,10 @@ msgstr ""
 
 #: type/type/view.html
 msgid "Backreferences"
+msgstr ""
+
+#: type/type/view.html
+msgid "from"
 msgstr ""
 
 #: type/user/edit.html

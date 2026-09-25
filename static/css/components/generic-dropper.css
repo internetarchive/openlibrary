@@ -2,10 +2,25 @@
    reading options popover (macros/ReadingOptionsMenu.html) */
 .cta-dropper {
   display: flex;
+  transition: transform var(--duration-press);
 }
 
+/* One fused control, so the group squeezes from either half — as
+   ol-shelf-button's .split does. It stretches to its column, so it takes the
+   wide tier; the main half's own press rule (buttonCta.css) stands down. */
+.cta-dropper:active {
+  transform: scale(var(--press-scale-wide));
+}
+
+.cta-dropper > .cta-btn:active {
+  transform: none;
+}
+
+/* The halves butt together and the caret's left border is the divider — a
+   tone of the fill, as in ol-shelf-button's split, not a gap of page showing. */
 /* stylelint-disable-next-line selector-max-specificity */
 .cta-dropper.cta-button-group > .cta-btn:first-child:not(:last-child) {
+  border-right: 0;
   border-radius: var(--border-radius-button) 0 0 var(--border-radius-button);
 }
 
@@ -23,14 +38,15 @@
   justify-content: center;
   box-sizing: border-box;
   width: 32px;
-  margin: 0 0 0 1px;
+  margin: 0;
   padding: 0;
   border: 1px solid var(--grey);
+  border-left-color: var(--grey-555);
   border-radius: 0 var(--border-radius-button) var(--border-radius-button) 0;
   background-color: var(--grey);
   color: var(--white);
   --control-surface: var(--grey);
-  --control-highlight-strength: 18%;
+  --control-highlight-strength: var(--control-highlight-strength-filled);
   box-shadow:
     var(--box-shadow-raised),
     inset 0 1px 0
@@ -43,7 +59,7 @@
 }
 
 .cta-dropper__menu > .cta-dropper__toggle--primary {
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-border);
   background-color: var(--color-primary);
   --control-surface: var(--color-primary);
 }
@@ -60,7 +76,7 @@
 }
 
 .cta-dropper__chevron {
-  transition: transform 0.2s;
+  transition: transform var(--duration-fast) var(--ease-enter);
 }
 
 .cta-dropper__menu[open] .cta-dropper__chevron {

@@ -1,26 +1,5 @@
-/* https://docs.openlibrary.org/designers/design-pattern-library.html#buttonbtn */
-
-/* FIXME: Not clear how recent this comment is. When is "now on?" */
-/* This button should be used for now on */
-.btn {
-  text-align: center;
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-}
-
-.btn.primary {
-  /* For input[type=submit] */
-  border: none;
-  background-color: var(--color-primary);
-  /* Important is necessary to override default link color */
-  color: var(--white) !important;
-  border-radius: 5px;
-}
-
-a.btn {
-  text-decoration: none;
-}
-
-/* These should be in their own chip.css file */
+/* Chips. The `.btn` rules this file was named for are gone — nothing emitted
+   that class — so everything below wants to move to its own chip.css. */
 .chip {
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
   border: 1px solid var(--mid-grey);

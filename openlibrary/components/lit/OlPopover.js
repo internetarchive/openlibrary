@@ -66,7 +66,12 @@ function _removeFromOverlayStack(el) {
  *     edges keeps it under the trigger instead of straddling it.
  * @prop {String} anchor - Selector for an ancestor to position against instead
  *     of the trigger, e.g. the whole split button when only its caret opens the
- *     popover. Falls back to the trigger when nothing matches.
+ *     popover. Falls back to the trigger when nothing matches. The panel is
+ *     never narrower than what it is anchored to, so a short menu under a wide
+ *     button fills the button's width instead of floating beside it.
+ * @prop {Element} anchorElement - Property-only alternative to `anchor` for a
+ *     positioning element `closest()` cannot reach, such as a host across a
+ *     shadow boundary. Wins over `anchor` when both are set.
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
@@ -106,10 +111,12 @@ export class OlPopover extends LitElement {
         open: { type: Boolean, reflect: true },
         placement: { type: String },
         anchor: { type: String },
+        anchorElement: { attribute: false },
         offset: { type: Number },
         autoClose: { type: Boolean, attribute: 'auto-close' },
         blockOutsideClicks: { type: Boolean, attribute: 'block-outside-clicks' },
         _position: { state: true },
+        _minWidth: { state: true },
         _transformOrigin: { state: true },
         _animState: { state: true },
         _mobile: { state: true },
@@ -347,10 +354,12 @@ export class OlPopover extends LitElement {
         this.open = false;
         this.placement = 'bottom-start';
         this.anchor = '';
+        this.anchorElement = null;
         this.offset = 4;
         this.autoClose = true;
         this.blockOutsideClicks = false;
         this._position = { top: 0, left: 0 };
+        this._minWidth = 0;
         this._transformOrigin = 'top left';
         this._animState = 'closed';
         this._mobile = false;
@@ -413,6 +422,7 @@ export class OlPopover extends LitElement {
                     style="${this._mobile ? '' : `
                         top: ${this._position.top}px;
                         left: ${this._position.left}px;
+                        min-width: ${this._minWidth}px;
                         transform-origin: ${this._transformOrigin};
                     `}"
                     @transitionend="${this._onTransitionEnd}"
@@ -674,6 +684,9 @@ export class OlPopover extends LitElement {
         if (!anchorEl) return;
 
         const anchor = anchorEl.getBoundingClientRect();
+        // The panel grows to at least the anchor's width (applied via the
+        // rendered min-width), so position against the widened size.
+        panelW = Math.max(panelW, anchor.width);
         const gap = this.offset;
         const viewW = window.innerWidth;
         const viewH = window.innerHeight;
@@ -743,6 +756,7 @@ export class OlPopover extends LitElement {
         const originX = `${anchorCenterInPanel}px`;
 
         this._position = { top, left };
+        this._minWidth = anchor.width;
         this._transformOrigin = `${originX} ${originY}`;
     }
 
@@ -760,9 +774,9 @@ export class OlPopover extends LitElement {
         return slot?.assignedElements({ flatten: true })[0] ?? null;
     }
 
-    /** The element the panel is positioned against: the `anchor` ancestor, else the trigger. */
+    /** The element the panel is positioned against: `anchorElement`, else the `anchor` ancestor, else the trigger. */
     get _anchorEl() {
-        return (this.anchor && this.closest(this.anchor)) || this._triggerEl;
+        return this.anchorElement || (this.anchor && this.closest(this.anchor)) || this._triggerEl;
     }
 
     // ── Scroll / resize repositioning ───────────────────────────

@@ -98,6 +98,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             color: var(--_toggle-fg);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
+            line-height: var(--line-height-control);
             text-align: start;
             cursor: pointer;
             user-select: none;
@@ -167,7 +168,6 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             display: inline-flex;
             align-items: baseline;
             gap: var(--spacing-xs);
-            line-height: var(--line-height-chip);
         }
 
         .toggle__sublabel {
@@ -195,10 +195,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                or text metrics. Setting the outer height (not vertical padding)
                with box-sizing: border-box is what makes the alignment exact —
                see /developers/design ("Control alignment"). Match the sibling
-               dropdown trigger's corner radius too. */
+               dropdown trigger's inline padding and corner radius too. */
             box-sizing: border-box;
             height: var(--control-height-medium);
-            padding: 0 var(--spacing-inset-sm);
+            padding: 0 var(--spacing-md);
             border-radius: var(--border-radius-button);
             /* Raised look borrowed from ol-button[variant="secondary"]: a subtle
                drop shadow at rest, plus an inset specular top edge that fades in

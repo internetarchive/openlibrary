@@ -4,7 +4,7 @@
  */
 
 /* Some preview rules are too specific and need to be rewritten */
-/* Preview button appears styled as a text link with a book icon */
+/* Preview button appears styled as a text link, led by its book icon */
 .bookcover .cta-btn.cta-btn--preview,
 .bookcover .cta-btn.cta-btn--no-preview {
   color: var(--primary-blue);
@@ -24,23 +24,6 @@
 /* stylelint-disable selector-max-specificity */
 .bookcover .cta-btn.cta-btn--preview:hover {
   text-decoration: underline;
-}
-
-.bookcover .cta-btn.cta-btn--preview::before {
-  width: 22px;
-  height: 18px;
-  display: inline-block;
-  margin-right: var(--spacing-inline-sm);
-  position: relative;
-  top: 2px;
-
-  /* Setting pseudo-element content to book icon; mask is used to allow for a 'fill' color */
-  content: "";
-  -webkit-mask: url(/static/images/icons/open-book.svg);
-  mask: url(/static/images/icons/open-book.svg);
-  -webkit-mask-size: cover;
-  mask-size: cover;
-  background-color: var(--color-primary);
 }
 
 /* No Preview state - muted placeholder, shown in grid layout only */

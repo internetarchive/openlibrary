@@ -77,6 +77,14 @@ ol-popover:not(:defined) > :not([slot="trigger"]) {
   display: none;
 }
 
+/* Match the upgraded :host box so the trigger sizes the same on first paint —
+   otherwise a stretched trigger (the split CTA's caret) starts short and grows. */
+ol-popover:not(:defined) {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+}
+
 /* Hide ol-drawer's slotted menu content before the component upgrades; the
    drawer shell renders in its shadow root once Lit defines it. */
 ol-drawer:not(:defined) {

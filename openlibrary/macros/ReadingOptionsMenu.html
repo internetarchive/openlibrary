@@ -3,7 +3,7 @@ $# The caret half of a split CTA (Read, Borrow, Join Waitlist) and its menu.
 $# Place it after the main button inside a .cta-dropper.cta-button-group.
 $# listen_track: rendered data-ol-link-track attribute for the Listen row.
 
-<ol-popover class="cta-dropper__menu" placement="bottom-center" anchor=".cta-dropper" aria-label="$_('More reading options')">
+<ol-popover class="cta-dropper__menu" anchor=".cta-dropper" aria-label="$_('More reading options')">
   <button slot="trigger" type="button" class="cta-dropper__toggle $cond(primary, 'cta-dropper__toggle--primary', '')" aria-label="$_('More reading options')">
     $:macros.icon("chevron-down", size="sm", extra_class="cta-dropper__chevron")
   </button>
