@@ -1,6 +1,10 @@
 import { shallowRef } from 'vue';
 import { actionErrorMessage, effectiveActive, parsePrNumbers, postAction } from '../utils.js';
 
+// How long a newly added row stays highlighted. Purely client-side: a page
+// refresh clears it, which is the intended behaviour.
+const RECENT_HIGHLIGHT_MS = 10000;
+
 /**
  * PR toggle, update, remove, restore, deploy, refresh, and add actions.
  *
@@ -16,6 +20,9 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     const adding = shallowRef(false);
     const deploying = shallowRef(false);
     const addInput = shallowRef('');
+    // PR numbers added within the last RECENT_HIGHLIGHT_MS. Replaced rather
+    // than mutated, because shallowRef does not track changes inside a Set.
+    const recentlyAdded = shallowRef(new Set());
     const queue = [];
     let draining = false;
 
@@ -118,6 +125,15 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         }
     }
 
+    function markRecentlyAdded(prs) {
+        recentlyAdded.value = new Set([...recentlyAdded.value, ...prs]);
+        setTimeout(() => {
+            const remaining = new Set(recentlyAdded.value);
+            prs.forEach((pr) => remaining.delete(pr));
+            recentlyAdded.value = remaining;
+        }, RECENT_HIGHLIGHT_MS);
+    }
+
     async function addPrs() {
         if (adding.value) return;
         const value = addInput.value.trim();
@@ -130,6 +146,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
             // A failed add keeps the input so it's obvious the PR didn't land.
             if (result && result.ok) {
                 addInput.value = '';
+                markRecentlyAdded(prs);
             }
         } finally {
             adding.value = false;
@@ -141,6 +158,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         adding,
         deploying,
         addInput,
+        recentlyAdded,
         togglePr,
         updatePr,
         removePr,

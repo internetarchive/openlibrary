@@ -45,7 +45,7 @@ const { setToast } = useToast();
 // busy marks the action queue as processing and pauses background refreshes.
 const busy = shallowRef(false);
 const { view, payload, now, loadStatus, retry } = useTestingStatus(busy);
-const { refreshing, adding, deploying, addInput, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
+const { refreshing, adding, deploying, addInput, recentlyAdded, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
     busy,
     loadStatus,
     setToast,
@@ -88,6 +88,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
 <template>
   <section
     class="testing-env"
+    :class="{ 'testing-env--deploying': payload?.deploying }"
     :aria-busy="busy ? 'true' : 'false'"
   >
     <div
@@ -130,39 +131,6 @@ onBeforeUnmount(() => syncDeployFavicon(false));
           <h2 class="testing-env__title">
             {{ strings.title }}
           </h2>
-          <form
-            v-if="isMaintainer"
-            method="post"
-            class="testing-env__add"
-            data-add-form
-            @submit.prevent="addPrs"
-          >
-            <label
-              class="shift"
-              for="testing-env-add"
-            >{{ strings.addPrs }}</label>
-            <input
-              id="testing-env-add"
-              v-model="addInput"
-              type="text"
-              name="pr"
-              class="testing-env__input"
-              autocomplete="off"
-              :placeholder="strings.addPlaceholder"
-            >
-            <button
-              type="submit"
-              class="testing-env__btn testing-env__btn--primary"
-              :disabled="adding"
-            >
-              <span
-                v-if="adding"
-                class="testing-env__btn-icon testing-env__spinner"
-                aria-hidden="true"
-              />
-              {{ strings.add }}
-            </button>
-          </form>
         </header>
 
         <div
@@ -206,6 +174,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
                 :pr="pr"
                 :maintainer="isMaintainer"
                 :strings="strings"
+                :recent="recentlyAdded.has(pr.pr)"
                 @toggle="togglePr"
                 @update="updatePr"
                 @remove="removePr"
@@ -223,6 +192,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
       </div>
 
       <DeploySection
+        v-model:add-input="addInput"
         :payload="payload"
         :now="now"
         :maintainer="isMaintainer"
@@ -230,8 +200,10 @@ onBeforeUnmount(() => syncDeployFavicon(false));
         :jenkins-url="jenkinsUrl"
         :refreshing="refreshing"
         :deploying="deploying"
+        :adding="adding"
         @deploy="deploy"
         @refresh="refresh"
+        @add="addPrs"
       />
     </div>
   </section>

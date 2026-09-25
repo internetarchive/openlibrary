@@ -455,6 +455,13 @@ a.testing-env__pill:focus-visible {
   color: var(--color-success-fg);
 }
 
+/* A row added in the last few seconds, so a new entry stands out in a long
+   table. Client-side only — a refresh clears it. */
+.testing-env__row--recent > td {
+  background: var(--color-success-bg);
+  transition: background var(--duration-base) var(--ease-state);
+}
+
 /* Last of the row backgrounds: pointer feedback beats every state tint. */
 .testing-env__row:hover td {
   background: var(--color-control-hover);
@@ -494,10 +501,13 @@ a.testing-env__pill:focus-visible {
   border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-/* Deploy and Refresh side by side, as one action row. */
+/* Deploy, Refresh, and the Add PRs form share this row; it spans the card so
+   the form has room, and wraps to its own line when it runs out. */
 .testing-env__deploy-action {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-sm);
+  align-self: stretch;
   align-items: center;
   margin: 0;
 }
@@ -516,6 +526,20 @@ a.testing-env__pill:focus-visible {
   animation: testing-env-pulse 1.6s ease-in-out infinite;
 }
 
+/* While a deploy runs, the panel border pulses. The card is two stacked
+   elements, so both borders animate together to read as one edge. */
+.testing-env--deploying .testing-env__main,
+.testing-env--deploying .testing-env__deploy {
+  animation: testing-env-border-pulse var(--duration-slower) var(--ease-state)
+    infinite alternate;
+}
+
+@keyframes testing-env-border-pulse {
+  to {
+    border-color: var(--color-primary);
+  }
+}
+
 @keyframes testing-env-pulse {
   50% {
     opacity: 0.25;
@@ -523,12 +547,15 @@ a.testing-env__pill:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .testing-env__switch-knob {
+  .testing-env__switch-knob,
+  .testing-env__row--recent > td {
     transition: none;
   }
 
   .testing-env__status--deploying .testing-env__dot,
-  .testing-env__spinner {
+  .testing-env__spinner,
+  .testing-env--deploying .testing-env__main,
+  .testing-env--deploying .testing-env__deploy {
     animation: none;
   }
 }
