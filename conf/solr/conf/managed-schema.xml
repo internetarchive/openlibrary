@@ -165,6 +165,13 @@
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
+    <!-- Near-realtime loan availability, written to EDITION docs by loan_availability_updater. -->
+    <!-- Exceptions, not state: absent/0 means available, so query -ebook_unavailable:1. -->
+    <!-- numeric + stored/indexed=false is required by update.partial.requireInPlace. -->
+    <!-- See docs/ai/solr/index.md "Near-realtime loan availability" before changing any of this. -->
+    <field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <field name="ebook_becomes_available" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <field name="loan_uid" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 
     <!-- Usefulness scores -->
     <field name="usefulness_score" type="pint" multiValued="false"/>
