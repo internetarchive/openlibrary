@@ -18,6 +18,16 @@ permissions:
 jobs:
   python_tests:
     runs-on: ubuntu-latest
+    services:
+      # For tests that need a real Postgres (they read OL_TEST_POSTGRES and skip without it)
+      postgres:
+        image: postgres:16@sha256:95206741a5b214807675e14165369d05b93a9cf692223b616d07cca227e74b0b
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -56,6 +66,8 @@ jobs:
           make i18n
           make test-i18n
       - name: Run tests
+        env:
+          OL_TEST_POSTGRES: host=localhost port=5432 user=postgres password=postgres dbname=postgres
         run: |
           git fetch --no-tags --prune --depth=1 origin master
           make test-py

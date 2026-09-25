@@ -1,5 +1,107 @@
 # Coverstore README
 
+## Running cover archival safely, one step at a time
+
+Archival has three stages, and only the last one deletes anything:
+
+1. **Archive**: `archive.archive()` copies covers from `localdisk/` into per-batch zips under `items/`
+   and marks them `archived`. It never touches the *open* batch (the one holding the newest cover),
+   because covers are still landing in it.
+2. **Upload**: `Batch.process_pending(upload=True)` uploads each complete zip that archive.org lacks, or
+   holds a different copy of. **This is the backup.** Covers stay on local disk and keep being served
+   from there.
+3. **Finalize**: `Batch.process_pending(finalize=True)` points covers at archive.org and deletes the local
+   copies. It does this only when archive.org's copy of every size is byte-identical (md5) to the local
+   zip, and it checks that for itself (`Batch.is_verified`).
+
+Stopping after step 2 loses nothing, so a batch can wait between steps for as long as you like. Every
+step also takes `test=True`, which only reports and changes nothing.
+
+In 2024, finalize trusted "a file with this name exists on archive.org" and deleted covers that were
+only in the local zip ([#9836](https://github.com/internetarchive/openlibrary/issues/9836)).
+`openlibrary/coverstore/tests/test_archive_safety.py` replays that sequence.
+
+### 0. Open a shell (on `ol-covers0`)
+
+```
+ssh -A ol-covers0
+cd /opt/openlibrary
+CONTAINER=$(docker ps | grep -oP 'openlibrary_covers_run_\S+')
+if [ -z "$CONTAINER" ]; then
+    COMPOSE_FILE="compose.yaml:compose.production.yaml" HOSTNAME=$HOSTNAME docker compose run --rm -d covers bash
+    CONTAINER=$(docker ps | grep -oP 'openlibrary_covers_run_\S+')
+fi
+docker exec -it $CONTAINER screen -DR python bash -c 'python && bash'
+```
+
+```python
+from openlibrary.coverstore.server import load_config
+load_config("/olsystem/etc/openlibrary.yml")
+load_config("/olsystem/etc/coverstore.yml")
+from openlibrary.coverstore import archive
+```
+
+### 1. Look (changes nothing)
+
+```python
+db = archive.CoverDB().db
+list(db.query("SELECT max(id) FROM cover"))            # the open batch is max_id // 10_000
+archive.Batch.get_pending()                              # zips already on local disk
+archive.Batch.process_pending()                          # per batch and size: complete? identical on archive.org?
+```
+
+**Check `get_pending()` before doing anything else.** Zips left from earlier runs are processed like new
+ones. Anything not `Complete? True` is skipped and reports why (`batch_open`, `archival_incomplete`,
+`zip_discrepency`, `nozip`).
+
+### 2. Archive
+
+```python
+archive.archive()   # the lowest batch with unarchived covers; stops at the open batch
+```
+
+It archives one batch per call. Run it again for the next batch.
+
+### 3. Upload
+
+```python
+archive.Batch.process_pending(upload=True, test=True)    # prints "Would upload ..."
+archive.Batch.process_pending(upload=True, test=False)
+```
+
+### 4. Wait, then confirm archive.org has it
+
+archive.org reports a file's md5 once its upload task finishes. Re-run step 1's `process_pending()` until
+each size of the batch prints `identical copy on archive.org`. To count what archive.org holds
+independently, run `docs/investigations/9836-cover-archival/census.py <item_id> --only-short` from a
+checkout. A closed batch should show 10,000, minus covers marked `failed`.
+
+### 5. Finalize
+
+```python
+archive.Batch.process_pending(finalize=True, test=True)  # prints "Finalizing N covers ... [test=True]"
+archive.Batch.process_pending(finalize=True, test=False)
+```
+
+A batch that isn't verified yet shows `Finalize? False` and is skipped. If one prints
+`Refusing to finalize`, **stop**: finalize's own re-check found archive.org and local disk disagreeing,
+and nothing was deleted. Re-running step 3 replaces a differing copy on archive.org with the local one.
+
+### 6. Spot-check
+
+```
+curl -sI https://covers.openlibrary.org/b/id/<a cover id from the batch>-L.jpg | grep -i location
+```
+
+It should redirect into the batch's `l_covers_NNNN_NN.zip`, and that URL should serve the image.
+
+### All at once
+
+`archive.py`'s `main()` (and the #8278 recipe: `archive.archive()`, then
+`Batch.process_pending(upload=True, finalize=True, test=False)`) runs steps 2, 3 and 5 in one go. A batch
+uploaded in a run is finalized on a later run, once step 4 would pass. `main(..., dry_run=True)` changes
+nothing.
+
 ## Where are covers archived?
 
 * Covers 0 - 7,139,999 are stored in `zip` files within items https://archive.org/download/olcovers1 - https://archive.org/download/olcovers713 in the https://archive.org/details/ol_exports collection
@@ -16,7 +118,10 @@ As a result, it is recommended to adjust the cover query for unarchived items wi
 covers = _db.select('cover', where='archived=$f and id>6708293', order='id', vars={'f': False}, limit=1000)
 ```
 
-# How to run Covers Archival
+# How to run Covers Archival (2022, historical)
+
+> Superseded by *Running cover archival safely* above. `archive.archive(test=False)` no longer matches
+> `archive()`'s signature.
 
 First, `ssh -A ol-covers0` and run `docker exec -it openlibrary_covers_1 bash`. Next, launch a python terminal and run:
 
@@ -56,7 +161,10 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
 
 **NB**: We identified **unarchived** covers (denoted with `archived=false` within the `covers` table) prior to `2014-11-29` but early tests suggest the archive process may not have been ironed out and standardized before this date, and so we decided to use the latest successful archival date to resume our archival efforts.  
 
-## Archival Process
+## Archival Process (tar era, historical)
+
+> Superseded by *Running cover archival safely* above. Do not remove local files by hand: finalize
+> does it, and only after verifying archive.org's copy.
 
 **Recipe for moving one batch of 10k covers at a time into tars on archive.org.**
 

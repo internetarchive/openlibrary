@@ -1,11 +1,9 @@
 # #9836 investigation: how cover archival lost covers_0014_62
 
-> **This is an investigation, not a fix.** Nothing in this directory changes runtime code.
-> The fix belongs in a separate PR, and nobody has authorised one yet.
-
-> **The mechanism is live on current master** (`df4a7a7c3`, 2026-09-25). It is dormant only
-> because cover archival has uploaded nothing since 2024-08-26. **Restarting the archival cron,
-> as #13287 asks, re-arms it.**
+> **On master before this PR** (`df4a7a7c3`) the mechanism below is live. It is dormant only
+> because archival has uploaded nothing since 2024-08-26. **Do not restart archival on that code**,
+> as #13287 asks, because doing so re-arms it. This PR fixes it in `openlibrary/coverstore/archive.py`;
+> the safe procedure is in `openlibrary/coverstore/README.md`.
 
 ## What was lost
 
@@ -37,7 +35,36 @@ this logic is unchanged in behaviour since #9296 (merged 2024-05-22, `16681e1d2`
 3 differ, and each difference is behaviour-preserving (`not len(x)` to `not x`, an unused
 variable removed, a no-op `with open(...)` removed).
 
-Three flaws, each necessary:
+### The chain, in one sentence
+
+`process_pending` checks completeness (`is_zip_complete`) only before an **upload**. The **delete**
+(`finalize`) is gated by nothing but "a file with this name exists on archive.org", so it runs at
+exactly the moment the completeness check would fail, and the local and remote copies are never
+compared again.
+
+### Run by run
+
+- **Run N (2024-05-07):** `archive()` zips batch 62 while it is still the open batch (4,073 covers).
+  `is_zip_complete` compares the zip only with covers archived so far, so it passes, and the zip is
+  uploaded. There is no finalize this run, because the names weren't on archive.org when checked.
+- **Between runs:** covers 14,624,073–14,629,999 are created.
+- **Run N+1 (by 2024-08-26):** `archive()` picks batch 62 again, appends the new covers to the local
+  zip and marks them archived. `process_pending` finds all four names on archive.org and skips
+  `is_zip_complete`. `finalize` deletes local files for all of them and marks them uploaded. The
+  local zips, the only other copy, are deleted.
+
+**Evidence this path fired, not another.** Lost covers 14627720 and 14629990 redirect today to
+`l_covers_0014_62.zip`, as 14624072 (the last one that made it in) does. RAN 2026-09-25 with
+`curl -sI https://covers.openlibrary.org/b/id/<id>-L.jpg`. The coverstore redirects only rows marked
+`uploaded` (`code.py:373`), and the only code anywhere that sets `uploaded=True` is
+`update_completed_batch` (`archive.py:287` at `df4a7a7c3`), which touches only rows marked `archived`.
+So the lost covers went through `archive()` into the local zip and were then finalized. Batch 63 was
+uploaded 2024-08-26, and `archive()` cannot reach it while batch 62 has unarchived covers.
+
+### The flaws
+
+Two were necessary for this incident (1 and 2). The third is real but did not fire here: every lost
+cover was archived.
 
 1. **No tail guard.** `archive()` (:351) with no arguments calls `get_batch_unarchived()`, which
    picks the batch of the lowest unarchived cover (`_get_current_batch_start_id`, :250). Nothing
@@ -51,16 +78,14 @@ Three flaws, each necessary:
    batch as uploaded, so `process_pending()` never re-uploads it (:116-125) and sets
    `batch_complete` (:109, :119).
 
-3. **`finalize` deletes covers that were never archived.** `finalize()` (:180) selects
+3. **`finalize` deletes covers that were never archived.** *(Did not fire in 2024.)* `finalize()` (:180) selects
    `failed=False, uploaded=False` (:184). **It does not filter on `archived=True`.** For every cover
    in the 10,000-ID range that has files on disk, it deletes them (:195, via `delete_files`, :328).
    `update_completed_batch()` (:280) then repoints only rows with `archived=true` (:285) at the zip.
    Rows left out keep pointing at files that no longer exist. `process_pending` then deletes the
    local zips (:132-139), which held the only other copy of covers archived after the upload.
 
-Sequence for batch 62: partial upload on 2024-05-07 (1+2) → later covers archived into the local
-zip only, or not at all → next run: `is_uploaded` true for all four tiers → `finalize` deletes
-their files (3). No manual step is required, and the same sequence works on a manual run.
+No manual step is required, and the same sequence works on a manual run.
 
 **Not established:** whether the 2024-05-07 upload came from a manual run or from pre-merge code.
 It predates #9296's merge by 15 days. The mechanism is the same either way.
@@ -100,13 +125,24 @@ name-presence check (now exact-match rather than substring), `finalize`'s query 
 there is no tail guard. It is 6,099 commits behind master and `git merge-tree` reports 3 conflicts
 (`archive.py`, `code.py`, and `tests/test_archive.py`, which the PR deletes and master modified).
 
-Recommendation: a small fix PR first, then #8251 refreshed on top as clean-up. A fix needs all three:
+This PR takes from #8251 the parts that bear on safety: the exact-match archive.org lookup through
+the `internetarchive` API instead of `ia list | grep`, counting zip members with `zipfile` instead of
+`unzip -l | grep | wc`, and `ZipManager` as a context manager. It leaves the rest (the `Cover`
+dataclass, the doctest conversion, removing unused `ZipManager` methods) for #8251 to carry on top.
 
-- `is_uploaded`, or a new check, compares file count and md5 with the local zip (archive.org
-  metadata publishes md5).
-- `finalize` selects only `archived=True` rows and refuses to delete anything unless the remote zip
-  matches the local one.
-- `archive()` skips any batch whose range the highest cover ID has not yet passed.
+## The fix in this PR
+
+Each flaw gets its own guard, and each guard has a test that fails without it:
+
+| Flaw | Guard | Caught by |
+|---|---|---|
+| 1. No tail guard | `archive()` stops at the open batch; `is_zip_complete` reports `batch_open` for a leftover zip of it | `test_open_batch_is_not_zipped_or_uploaded`, `test_leftover_zip_of_open_batch_is_not_uploaded` |
+| 2. Name-only check | `process_pending` compares md5 with the local zip and re-uploads on mismatch; `finalize` re-checks for itself (`is_verified`) | `test_partial_copy_on_archive_org_is_replaced_not_trusted`, `test_finalize_refuses_by_itself_when_archive_org_differs` |
+| 3. Unfiltered delete | `finalize` deletes only `archived` covers, and only ones present in the verified zips | covered by `is_verified` requiring nothing left to archive; no test can reach it separately |
+| `test=True` still uploaded | uploads and finalize both honour `test` | `test_dry_run_changes_nothing` |
+
+`test_recipe_keeps_covers_added_after_their_batch_was_first_archived` replays the 2024 sequence
+through the recipe itself. On master it loses exactly the covers added after the first upload.
 
 ## Reproducing
 
