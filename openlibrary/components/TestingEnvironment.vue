@@ -130,39 +130,6 @@ onBeforeUnmount(() => syncDeployFavicon(false));
           <h2 class="testing-env__title">
             {{ strings.title }}
           </h2>
-          <form
-            v-if="isMaintainer"
-            method="post"
-            class="testing-env__add"
-            data-add-form
-            @submit.prevent="addPrs"
-          >
-            <label
-              class="shift"
-              for="testing-env-add"
-            >{{ strings.addPrs }}</label>
-            <input
-              id="testing-env-add"
-              v-model="addInput"
-              type="text"
-              name="pr"
-              class="testing-env__input"
-              autocomplete="off"
-              :placeholder="strings.addPlaceholder"
-            >
-            <button
-              type="submit"
-              class="testing-env__btn testing-env__btn--primary"
-              :disabled="adding"
-            >
-              <span
-                v-if="adding"
-                class="testing-env__btn-icon testing-env__spinner"
-                aria-hidden="true"
-              />
-              {{ strings.add }}
-            </button>
-          </form>
         </header>
 
         <div
@@ -223,6 +190,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
       </div>
 
       <DeploySection
+        v-model:add-input="addInput"
         :payload="payload"
         :now="now"
         :maintainer="isMaintainer"
@@ -230,8 +198,10 @@ onBeforeUnmount(() => syncDeployFavicon(false));
         :jenkins-url="jenkinsUrl"
         :refreshing="refreshing"
         :deploying="deploying"
+        :adding="adding"
         @deploy="deploy"
         @refresh="refresh"
+        @add="addPrs"
       />
     </div>
   </section>
