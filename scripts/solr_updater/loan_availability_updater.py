@@ -598,6 +598,42 @@ def build_recheck_updates(marked_during_pass: set[str] | None = None) -> list[di
     return updates
 
 
+def clamp_cursor_to_feed(last_uid: int, latest_uid: object) -> int:
+    """Pull a cursor that has overshot the feed back to its head.
+
+    A cursor ahead of the feed is a permanent stall, and it used to be a silent
+    one: zero rows come back forever and nothing above DEBUG is logged, so the
+    daemon looks healthy while doing nothing. Reachable from a Solr `loan_uid`
+    left by another environment, or a feed rebuilt behind us. `latest_uid` is on
+    every response and was only ever read at startup.
+    """
+    if isinstance(latest_uid, int) and latest_uid and last_uid > latest_uid:
+        logger.warning(
+            "Cursor %d is ahead of the feed head %d; clamping. The feed was probably rebuilt, or this state came from another environment.",
+            last_uid,
+            latest_uid,
+        )
+        return latest_uid
+    return last_uid
+
+
+def log_heartbeat(last_uid: int, latest_uid: object) -> None:
+    """Proof of life, because the absence of errors is also what a stall looks like.
+
+    Cursor lag answers "is it keeping up"; the marked count answers "is it doing
+    anything". Deliberately a log line and not a metrics integration: the
+    requirement is that the question be answerable from outside, not dashboarded.
+    """
+    lag = (latest_uid - last_uid) if isinstance(latest_uid, int) and latest_uid else None
+    try:
+        marked = get_solr().select(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0).num_found
+    except OSError, ValueError, KeyError, RuntimeError:
+        # A heartbeat must never be the thing that stops the daemon.
+        logger.debug("Heartbeat could not count marked editions", exc_info=True)
+        marked = None
+    logger.info("Heartbeat: cursor=%s lag=%s editions_marked_unavailable=%s", last_uid, lag, marked)
+
+
 def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> int:
     """Settle the replay window against ground truth, then return the new cursor.
 
@@ -725,14 +761,7 @@ def main(  # noqa: PLR0915, PLR0912
         # index. `latest_uid` is on every response and was only ever read at
         # startup; clamp to it and say so.
         latest_uid = resp.get("latest_uid")
-        if isinstance(latest_uid, int) and latest_uid and last_uid > latest_uid:
-            logger.warning(
-                "Cursor %d is ahead of the feed head %d; clamping. The feed was probably rebuilt, "
-                "or this state came from another environment.",
-                last_uid,
-                latest_uid,
-            )
-            last_uid = latest_uid
+        last_uid = clamp_cursor_to_feed(last_uid, latest_uid)
 
         rows = resp.get("rows", [])
         did_updates = False
@@ -837,12 +866,7 @@ def main(  # noqa: PLR0915, PLR0912
         # like. Cursor lag answers "is it keeping up"; the marked count answers
         # "is it doing anything", and both are cheap.
         if now - last_heartbeat >= HEARTBEAT_INTERVAL:
-            lag = (latest_uid - last_uid) if isinstance(latest_uid, int) and latest_uid else None
-            try:
-                marked = get_solr().select(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0).num_found
-            except Exception:
-                marked = None
-            logger.info("Heartbeat: cursor=%s lag=%s editions_marked_unavailable=%s", last_uid, lag, marked)
+            log_heartbeat(last_uid, latest_uid)
             last_heartbeat = now
 
         logger.debug("Caught up at uid=%d; sleeping %ds", last_uid, poll_interval)
