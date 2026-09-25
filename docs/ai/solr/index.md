@@ -182,6 +182,36 @@ The enum is **sortable** — Solr can range-query it. This is how availability f
 
 `AVAILABILITY_TO_PARAMS` in `worksearch/code.py` **must stay in sync** with the JS `constants.js` file — both encode the same mapping from UI filter names to Solr `fq` clauses.
 
+### Near-realtime loan availability (`ebook_unavailable`)
+
+Written to **edition** documents by `scripts/solr_updater/loan_availability_updater.py`, a daemon that follows Internet Archive's loan-changes feed. See that module's docstring for the two-loop design; this section covers the schema side.
+
+Three fields, all `pint`/`plong`, all `docValues=true stored=false indexed=false`:
+
+| Field | Meaning |
+|---|---|
+| `ebook_unavailable` | `1` = no borrowing capacity right now. Absent or `0` = available. |
+| `ebook_becomes_available` | Epoch seconds the current loan expires. Advisory display data only. |
+| `loan_uid` | The changes-feed cursor that produced the last write. Also the daemon's resume point. |
+
+**These record exceptions, not state.** An `ebook_access:borrowable` edition is assumed AVAILABLE unless `ebook_unavailable=1` says otherwise, so the common case writes nothing. Consumers must query:
+
+```
+ebook_access:borrowable AND -ebook_unavailable:1
+```
+
+Treating a missing value as "unknown" is wrong — absent means available.
+
+**Why the field flags are what they are.** `stored=false indexed=false` is *required* for `update.partial.requireInPlace` to work, and in-place updates are what make a per-loan-event write cheap enough to run every 30 seconds — a normal atomic update reindexes the whole document. Solr additionally requires the field be **numeric** for in-place updates: `string` and `pdate` return HTTP 400 on `requireInPlace` regardless of the docValues/stored/indexed combination.
+
+**Why they are not search filters.** With `indexed=false` these are cheap to *retrieve* for documents a query already matched (a docValues lookup over the result page), but filtering or faceting on them is a docValues scan. Measured on a 200k-edition index with 150k carrying a value, `type:edition AND ebook_unavailable:1` ran in ~2 ms — sparse docValues means the iterator visits only documents that have the field — so the cost grows with the number of editions this daemon has ever written, not with index size. Cheaper than it looks, but still not a filter we advertise: the fields are deliberately absent from `EditionSearchScheme.all_fields`, which is what `is_search_field` consults to decide whether a bare `field:value` in a user query is a Solr field.
+
+Making them real filters means `indexed=true`, which forfeits in-place updates — and a non-in-place atomic update to a nested child reindexes the parent work and all its editions. Unresolved; this is the tradeoff to revisit if search ever needs to filter on borrowability.
+
+**`ebook_becomes_available` is never cleared.** `requireInPlace` rejects `"set": null` unconditionally — you cannot clear a field in place, even one that has no value. So when a book frees up the timestamp is left at its last value rather than removed. It is meaningful **only** while `ebook_unavailable=1`; read at any other time it is stale.
+
+**Reindex wipes these fields.** They live on nested edition children, and reindexing a work rewrites its children from the indexer's own view, which has no knowledge of them. This is not limited to a full reindex — the main `solr_updater` reindexes a work on any change to it or its editions, continuously, from the infobase changelog. The daemon's re-check cannot repair it, because that only inspects editions already marked. A cold start (or `--reset`) is the recovery.
+
 ### Trending fields
 
 Trending data (written by `trending_updater.py`) uses dedicated fields:
