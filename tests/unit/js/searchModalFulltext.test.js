@@ -291,11 +291,19 @@ describe('see-all button label', () => {
         modal._ftTotal = 134731;
         expect(modal._seeAllInsideLabel()).toBe('Search Inside 134,731 books');
     });
+
+    // A phrase can match exactly one scan; the button showed "1 books".
+    test('a single match reads in the singular', () => {
+        const modal = new SearchModal();
+        modal._ftTotal = 1;
+        expect(modal._seeAllInsideLabel()).toBe('Search Inside 1 book');
+    });
 });
 
 describe('live-region announcement', () => {
     // A settled search with the given catalog rows and band hits on screen.
-    const settled = ({ results = [], numFound = results.length, ftHits = [] } = {}) => {
+    // `ftSearchKey` defaults to the query's own key, as the band's onChange sets it.
+    const settled = ({ results = [], numFound = results.length, ftHits = [], ftSearchKey } = {}) => {
         const modal = new SearchModal();
         modal._query = 'it was the best of times';
         modal._hasSearched = true;
@@ -303,6 +311,9 @@ describe('live-region announcement', () => {
         modal._results = results;
         modal._numFound = numFound;
         modal._ftHits = ftHits;
+        modal._ftSearchKey = ftSearchKey === undefined
+            ? fulltextSearchParams(modal._query, modal._fulltextFilters()).toString()
+            : ftSearchKey;
         return modal;
     };
     const hits = (n) => Array.from({ length: n }, (_, i) => ({ ia: `scan${i}` }));
@@ -335,6 +346,13 @@ describe('live-region announcement', () => {
         const modal = settled({ ftHits: hits(3) });
         modal._loading = true;
         expect(modal._resultsAnnouncement()).toBe('');
+    });
+
+    // The render hides superseded hits; the announcement must not describe rows
+    // that aren't on screen, or narrow "no results" on the strength of them.
+    test('hits an edit outdated are neither counted nor allowed to narrow the gap', () => {
+        const modal = settled({ ftHits: hits(3), ftSearchKey: 'q=a+tale+of+two+cities' });
+        expect(modal._resultsAnnouncement()).toBe('No results found');
     });
 });
 
@@ -502,5 +520,139 @@ describe('dedupeFulltextHits', () => {
     test('no docs — the rescue path — filters nothing', () => {
         expect(dedupeFulltextHits(hits, [])).toEqual(hits);
         expect(dedupeFulltextHits(hits, undefined)).toEqual(hits);
+    });
+});
+
+describe('a failed fulltext fetch', () => {
+    const bandThatFails = async() => {
+        const onChange = vi.fn();
+        const band = new FulltextBand({
+            getFilters: () => ({ readable: false, languages: [] }),
+            onChange,
+        });
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 502 });
+        band._fetch('white whale');
+        await vi.waitFor(() => expect(band.error).toBe(true));
+        return { band, onChange };
+    };
+
+    test('is reported, not swallowed into an empty band', async() => {
+        const { band, onChange } = await bandThatFails();
+
+        expect(band.hits).toEqual([]);
+        expect(band.loading).toBe(false);
+        expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ error: true, hits: [] }));
+    });
+
+    // The bug this guards: an outage rendered as "No matches inside books",
+    // i.e. a verdict on the query rather than on the backend.
+    test('the Inside tab says the backend is down, not that nothing matched', async() => {
+        const { band } = await bandThatFails();
+        const modal = new SearchModal();
+        modal._mode = 'inside';
+        modal._query = 'white whale';
+        modal._ftError = band.error;
+
+        expect(modal._resultsAnnouncement())
+            .toBe('Search inside books is temporarily unavailable. Please try again later.');
+    });
+
+    test('the next attempt clears it, so the message can\'t outlive the outage', async() => {
+        const { band } = await bandThatFails();
+        global.fetch = vi.fn(() => new Promise(() => {}));   // in flight, never settles
+
+        band._fetch('white whales');
+
+        expect(band.error).toBe(false);
+        expect(band.loading).toBe(true);
+    });
+
+    test('a cleared band is not an errored one', async() => {
+        const { band } = await bandThatFails();
+        band.clear();
+        expect(band.error).toBe(false);
+    });
+});
+
+describe('fulltext request economy', () => {
+    const bandWithPendingFetch = () => {
+        const band = new FulltextBand({
+            getFilters: () => ({ readable: false, languages: [] }),
+            onChange: vi.fn(),
+        });
+        global.fetch = vi.fn(() => new Promise(() => {}));   // in flight, never settles
+        return band;
+    };
+
+    // Flipping tabs clears the band, which used to make every re-entry a fresh
+    // request to a load-sensitive backend.
+    test('re-entering the tab adopts the open request instead of re-asking', () => {
+        const band = bandWithPendingFetch();
+        band.setExplicit(true, 'white whale');
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+
+        band.setExplicit(false);
+        band.setExplicit(true, 'white whale');
+
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        // Adopted, not dropped: the open request may still paint.
+        expect(band.loading).toBe(true);
+        expect(band._fetchKey).toBe(global.fetch.mock.calls[0][0]);
+    });
+
+    test('a different query is still a new request', () => {
+        const band = bandWithPendingFetch();
+        band.setExplicit(true, 'white whale');
+        band.setExplicit(false);
+        band.setExplicit(true, 'white whales');
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    // The bug this guards: the debounced fetch only re-checked the mode at fire
+    // time, so a query deleted inside the debounce window was fetched anyway.
+    test('a query deleted inside the debounce window is never fetched', () => {
+        vi.useFakeTimers();
+        try {
+            const band = bandWithPendingFetch();
+            band.explicit = true;
+            band.queryChanged('white whale');
+            band.clear();
+
+            vi.advanceTimersByTime(1000);
+
+            expect(global.fetch).not.toHaveBeenCalled();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    test('a passage query deleted inside its window is dropped too', () => {
+        vi.useFakeTimers();
+        try {
+            const band = bandWithPendingFetch();
+            band.queryChanged('it was the best of times, it was the worst of times');
+            band.clear();
+
+            vi.advanceTimersByTime(2000);
+
+            expect(global.fetch).not.toHaveBeenCalled();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    test('a query still current when the timer fires is fetched', () => {
+        vi.useFakeTimers();
+        try {
+            const band = bandWithPendingFetch();
+            band.explicit = true;
+            band.queryChanged('white whale');
+
+            vi.advanceTimersByTime(1000);
+
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 });

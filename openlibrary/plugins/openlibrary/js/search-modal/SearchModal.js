@@ -138,6 +138,7 @@ export class SearchModal extends LitElement {
         _ftSearchKey: { state: true },
         _ftQuery: { state: true },
         _ftLoading: { state: true },
+        _ftError: { state: true },
         _resultsKey: { state: true },
         _markStale: { state: true },
     };
@@ -1018,14 +1019,16 @@ export class SearchModal extends LitElement {
         this._ftSearchKey = null;
         this._ftQuery = '';
         this._ftLoading = false;
+        this._ftError = false;
         this._ftBand  = new FulltextBand({
             getFilters: () => this._fulltextFilters(),
-            onChange: ({ hits, total, searchKey, query, loading }) => {
+            onChange: ({ hits, total, searchKey, query, loading, error }) => {
                 this._ftHits      = hits;
                 this._ftTotal     = total;
                 this._ftSearchKey = searchKey;
                 this._ftQuery     = query;
                 this._ftLoading   = loading;
+                this._ftError     = error;
             },
             onAttempt: (status) => this._scheduleBandOutcome(status),
         });
@@ -1404,7 +1407,10 @@ export class SearchModal extends LitElement {
     }
 
     // Roving tabindex: ←/→ and Home/End. With two tabs, a move is always to the other.
+    // Auto-repeat is dropped: focus follows selection, so a held arrow would
+    // flip tabs at the key-repeat rate and fetch on every flip.
     _onTabKeydown(e) {
+        if (e.repeat) return;
         if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             e.preventDefault();
             this._selectMode(this._inside ? MODE_BOOKS : MODE_INSIDE);
@@ -1429,7 +1435,6 @@ export class SearchModal extends LitElement {
         this._ftBand.setExplicit(mode === MODE_INSIDE, live ? trimmed : '');
         if (mode === MODE_BOOKS && live) {
             if (this._activeFetchKey !== this._buildSearchJsonUrl(trimmed)) {
-                this._loading = true;
                 this._scheduleSearch();
             } else {
                 this._ftBand.queryChanged(this._query);
@@ -1506,7 +1511,7 @@ export class SearchModal extends LitElement {
 
         if (this._results.length === 0 && this._hasSearched) {
             // With band hits for *this* query, scope the message to the catalog.
-            const emptyLabel = this._ftIsCurrent() && this._visibleFtHits().length
+            const emptyLabel = this._visibleFtHits().length
                 ? this._i18n.noCatalogResults
                 : this._i18n.noResults;
             return html`<div class="results" @keydown=${this._onResultsKeydown}>
@@ -1542,6 +1547,11 @@ export class SearchModal extends LitElement {
         if (this._ftLoading && this._ftHits.length === 0) {
             return html`<div class="results">${this._renderSearching(this._i18n.searchingInside)}</div>`;
         }
+        // A failed fetch leaves no hits, which would otherwise read as a
+        // definitive "no matches" — the backend never answered.
+        if (this._ftError) {
+            return html`<div class="results"><div class="empty">${this._i18n.insideError}</div></div>`;
+        }
         if (this._ftHits.length === 0) {
             return html`<div class="results"><div class="empty">${this._i18n.noInsideResults}</div></div>`;
         }
@@ -1571,8 +1581,11 @@ export class SearchModal extends LitElement {
         });
     }
 
-    // Hits minus scans already listed above. Computed at render since the two fetches race.
+    // Hits minus scans already listed above. Computed at render since the two
+    // fetches race. Empty once an edit outdates them, so the band, the empty
+    // label and the live region all drop them together.
     _visibleFtHits() {
+        if (!this._ftIsCurrent()) return [];
         return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
     }
 
@@ -1581,7 +1594,7 @@ export class SearchModal extends LitElement {
     // "View all" switches to the Inside tab rather than leaving the modal.
     _renderFulltextBand() {
         const hits = this._visibleFtHits();
-        if (hits.length === 0 || !this._ftIsCurrent()) return nothing;
+        if (hits.length === 0) return nothing;
         return html`
             <div class="ft-band">
                 <h3 class="results-heading results-heading--icon">
@@ -1625,7 +1638,8 @@ export class SearchModal extends LitElement {
     }
 
     _seeAllInsideLabel() {
-        return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
+        const label = this._ftTotal === 1 ? this._i18n.seeAllInsideOne : this._i18n.seeAllInsideMany;
+        return sprintf(label, this._ftTotal.toLocaleString());
     }
 
     // Opens BookReader searching for the phrase. `q` is the query the hit answers, not the input.
@@ -1694,7 +1708,6 @@ export class SearchModal extends LitElement {
         this._query = query;
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = query;
-        this._loading = true;
         this._scheduleSearch();
     }
 
@@ -2157,7 +2170,6 @@ export class SearchModal extends LitElement {
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = text;
         if (this._shouldAutocomplete()) {
-            this._loading = true;
             this._scheduleSearch();
         }
     }
@@ -2176,7 +2188,6 @@ export class SearchModal extends LitElement {
         // unrelated query is actively misleading. It repopulates when the fetch
         // resolves.
         this._authorSuggestions = [];
-        this._loading = true;
         this._scheduleSearch();
     }
 
@@ -2238,6 +2249,7 @@ export class SearchModal extends LitElement {
         if (!this._shouldAutocomplete()) return '';
         if (this._inside) {
             if (this._ftLoading) return '';
+            if (this._ftError) return this._i18n.insideError;
             if (this._ftHits.length) return this._insideAnnouncement(this._ftHits.length);
             // A null search key means nothing has been fetched for this query yet.
             return this._ftSearchKey ? this._i18n.noInsideResults : '';
@@ -2296,7 +2308,6 @@ export class SearchModal extends LitElement {
 
     _refetchIfActive() {
         if (this._shouldAutocomplete()) {
-            this._loading = true;
             this._scheduleSearch();
         }
     }
@@ -2505,9 +2516,14 @@ export class SearchModal extends LitElement {
     }
 
     // Single entry point so the catalog fetch and the band can't drift apart.
+    // The spinner is raised here, not by the callers: on the Inside tab there's
+    // no fetch to lower it again, and a stranded _loading outlives the tab.
     _scheduleSearch() {
         // The Inside tab shows no catalog rows, so skip the fetch. _selectMode catches up.
-        if (!this._inside) this._debouncedFetch();
+        if (!this._inside) {
+            this._loading = true;
+            this._debouncedFetch();
+        }
         this._ftBand.queryChanged(this._query);
     }
 

@@ -5865,6 +5865,11 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
+msgid "Search Inside %s book"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
 msgid "Search Inside %s books"
 msgstr ""
 
@@ -5882,6 +5887,10 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 msgid "No matches inside books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search inside books is temporarily unavailable. Please try again later."
 msgstr ""
 
 #: search/search_modal_i18n.html

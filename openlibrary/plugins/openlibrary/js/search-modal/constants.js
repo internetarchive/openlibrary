@@ -118,8 +118,9 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
     insideHeading: 'Search inside books',
-    // Inside tab footer action. %s = books with matches (always plural).
-    seeAllInside: 'Search Inside %s books',
+    // Inside tab footer action. %s = books with matches.
+    seeAllInsideOne: 'Search Inside %s book',
+    seeAllInsideMany: 'Search Inside %s books',
     // Before a total is measured for the current input.
     seeAllInsidePlain: 'Search Inside',
     // Crosses from the band to the Inside books tab — it doesn't leave the modal.
@@ -128,6 +129,9 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     insidePlaceholder: 'Search inside books…',
     insidePrompt: 'Type a word or phrase to find it on the pages of millions of books.',
     noInsideResults: 'No matches inside books',
+    // Replaces the empty state when the fulltext backend failed, so an outage
+    // doesn't read as a verdict on the query.
+    insideError: 'Search inside books is temporarily unavailable. Please try again later.',
     // %s = snippet rows shown (1–3), not the backend total.
     insideAnnounceOne: '%s match found inside books',
     insideAnnounceMany: '%s matches found inside books',

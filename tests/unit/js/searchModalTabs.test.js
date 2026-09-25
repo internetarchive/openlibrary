@@ -232,6 +232,53 @@ describe('SearchModal scope tabs', () => {
 
         expect(modal._fulltextSeeAllLabel()).toBe('noResults:tab');
     });
+
+    // The bug this guards: the callers raised the catalog spinner, but the
+    // Inside tab skips the fetch that lowers it, so it never came down — the
+    // Books tab then showed "Searching…" forever with nothing in flight.
+    test('typing on the Inside tab never raises the catalog spinner', () => {
+        const modal = modalSetup();
+        modal._selectMode('inside');
+
+        modal._onQueryInput({ target: { value: 'white whales' } });
+
+        expect(modal._loading).toBe(false);
+    });
+
+    test('a filter toggle on the Inside tab does not either', () => {
+        const modal = modalSetup();
+        modal._selectMode('inside');
+
+        modal._setAvailability('readable');
+
+        expect(modal._loading).toBe(false);
+    });
+
+    test('an edit made on the Inside tab is searched on return to Books', () => {
+        const modal = modalSetup();
+        modal._selectMode('inside');
+        modal._onQueryInput({ target: { value: 'white whales' } });
+        modal._debouncedFetch.mockClear();
+
+        modal._selectMode('books');
+
+        expect(modal._loading).toBe(true);
+        expect(modal._debouncedFetch).toHaveBeenCalled();
+    });
+
+    // Focus follows selection, so a held arrow key would flip tabs at the
+    // key-repeat rate, fetching fulltext on every flip.
+    test('a held arrow key flips the tab once, not once per repeat', () => {
+        const modal = modalSetup();
+        const press = (repeat) => modal._onTabKeydown({ key: 'ArrowRight', repeat, preventDefault: () => {} });
+
+        press(false);
+        expect(modal._inside).toBe(true);
+
+        press(true);
+        press(true);
+        expect(modal._inside).toBe(true);
+    });
 });
 
 describe('SearchModal Inside tab announcement', () => {
