@@ -1,8 +1,5 @@
 /**
- * The search modal's stale treatment: results linger through an edit so the
- * list doesn't flicker, and once they've lingered past STALE_DELAY_MS they're
- * dimmed rather than left passing for the answer to what's now in the input.
- * Exercised on a bare SearchModal instance, as the other search-modal suites do.
+ * Results that linger past STALE_DELAY_MS after an edit are dimmed.
  */
 import { nothing } from 'lit';
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
@@ -86,8 +83,7 @@ describe('the stale delay', () => {
         expect(modal._catalogIsStale()).toBe(true);
     });
 
-    // The point of the delay: a local Solr answer lands well inside it, so the
-    // list never strobes on a keystroke the patron barely finished typing.
+    // A fast answer lands inside the delay, so the list never flickers.
     test('an answer that lands first is never marked', () => {
         const modal = withCatalog({ query: 'white whales', answered: 'white whale' });
 
@@ -113,8 +109,7 @@ describe('the stale delay', () => {
         expect(modal._catalogIsStale()).toBe(false);
     });
 
-    // The Books tab's band hides rather than dims, so on that tab its hits
-    // falling behind is no reason to start the clock.
+    // The Books tab's band hides rather than dims, so it doesn't start the clock.
     test('on the Books tab a band behind on its own starts no clock', () => {
         const modal = withBand({ query: 'white whales', answered: 'white whale' });
         modal.updated();
@@ -183,8 +178,7 @@ describe('the results container class', () => {
         expect(modalSetup()._resultsClass(false)).toBe('results');
     });
 
-    // Both dims are an opacity on the same element, so they'd compound. A press
-    // is the stronger signal, and it's the one the patron just made.
+    // Both dims set opacity on the same element, so they'd compound.
     test('a press supersedes the stale dim rather than compounding with it', () => {
         const modal = modalSetup();
         modal._navigatingKey = '/works/OL1W';

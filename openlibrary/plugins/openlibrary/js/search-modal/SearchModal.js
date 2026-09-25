@@ -38,9 +38,8 @@ import { deriveAuthors } from './authorSuggestion.js';
 import { dedupeFulltextHits, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
 import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
 
-// The modal's two scopes. 'books' searches the catalogue (titles, authors,
-// subjects) and keeps the Search Inside band as a teaser under it; 'inside'
-// searches the text of the scans and shows nothing else.
+// 'books' searches the catalogue (with the Search Inside band as a teaser);
+// 'inside' searches only the text of the scans.
 const MODE_BOOKS  = 'books';
 const MODE_INSIDE = 'inside';
 
@@ -96,11 +95,7 @@ const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
 // Idle time before a query's outcome counts, so partials typed on the way don't.
 const OUTCOME_DEBOUNCE_MS = 1200;
 
-// How long superseded results hold at full strength before they're dimmed.
-// Results linger through an edit rather than flickering out, so on a fast
-// answer nothing should ever mark them — only a wait long enough that the list
-// would otherwise read as the answer to what's now typed. Local Solr almost
-// never reaches this; the fulltext backend nearly always does.
+// How long superseded results hold before they're dimmed, so fast answers never flicker.
 const STALE_DELAY_MS = 300;
 
 // The bare common-word "the" matches almost everything and isn't worth a Solr
@@ -303,9 +298,7 @@ export class SearchModal extends LitElement {
 
         /* ── Scope tabs ────────────────────────────────────────────── */
 
-        /* Books / Inside books. Directly under the search field, so the scope
-           reads as part of the query rather than a filter on its results —
-           which is why this sits above .filter-section, not in it. */
+        /* Above .filter-section, so scope reads as part of the query, not a filter. */
         .tabs {
             display: flex;
             gap: var(--spacing-md);
@@ -313,8 +306,7 @@ export class SearchModal extends LitElement {
             border-bottom: var(--border-divider);
         }
 
-        /* The underline is drawn at full width on every tab and hidden by
-           color, so selecting one re-paints rather than re-measures. */
+        /* Underline is always drawn and hidden by color, so selecting re-paints only. */
         .tab {
             display: flex;
             flex-direction: column;
@@ -332,9 +324,7 @@ export class SearchModal extends LitElement {
             cursor: pointer;
         }
 
-        /* A hidden bold twin sizes the tab for its heaviest state, so the
-           selected tab can go bold without the row reflowing (same trick as
-           the design page's section tabs). */
+        /* Hidden bold twin reserves width so the selected tab goes bold without reflow. */
         .tab-ghost {
             height: 0;
             overflow: hidden;
@@ -509,8 +499,7 @@ export class SearchModal extends LitElement {
             margin: calc(var(--spacing-sm) + 9px) var(--spacing-lg) 0 0;
         }
 
-        /* The row owns the tint; the anchor inside it must not add a second
-           overlay, or the link half reads darker than the button half. */
+        /* The row owns the tint; a second overlay on the anchor would read darker. */
         @media (hover: hover) and (pointer: fine) {
             .result-row:hover { background: var(--color-hover-overlay); }
             .result-row .result:hover { background: none; }
@@ -658,8 +647,7 @@ export class SearchModal extends LitElement {
         .ft-band .results-list li { border-top-color: var(--color-border-subtle); }
         .ft-band .results-list li:first-child { border-top: none; }
 
-        /* A link, not a button: it moves the patron rather than acting on
-           anything. Pushed to the far end of the heading row. */
+        /* Styled as a link since it navigates. Pushed to the end of the heading row. */
         .ft-band__view-all {
             display: inline-flex;
             align-items: center;
@@ -834,17 +822,8 @@ export class SearchModal extends LitElement {
         @media (prefers-reduced-motion: reduce) { .result__remove-recent { transition: none; } }
         /* ── Stale (results a newer query has superseded) ───────────── */
 
-        /* Rows hold through an edit so the list doesn't flicker, but past
-           STALE_DELAY_MS the wait is long enough that they'd read as the answer
-           to what's now in the input. Dimming says otherwise. They stay
-           clickable: each row still links to the search it shows. Lighter than
-           the navigating dim, which means something stronger — you chose a row
-           and we're leaving.
-
-           Declaring the transition here rather than on the base selector fades
-           only on the way in: dropping the class drops the transition with it,
-           so fresh rows arrive at full strength instead of fading up under a
-           list that's already been replaced. */
+        /* Past STALE_DELAY_MS, lingering rows dim so they don't pass for the current
+           answer. Transition lives here so only the fade-in animates. */
         .results.is-stale {
             opacity: 0.55;
             transition: opacity var(--duration-fast) var(--ease-state);
@@ -1027,14 +1006,9 @@ export class SearchModal extends LitElement {
 
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
-        // The search the rows on screen answer — unlike _activeFetchKey, which
-        // moves to the new query the moment its fetch starts. Comparing it to
-        // the current query is what tells the modal its list is out of date.
+        // The search the rows on screen answer; _activeFetchKey moves as soon as a fetch starts.
         this._resultsKey = null;
-        // Set once superseded content has been on screen for STALE_DELAY_MS.
-        // One clock for the whole modal: the catalog and the band go stale
-        // together on an edit, and the band often stays stale long after the
-        // catalog has caught up.
+        // Set once superseded content has shown for STALE_DELAY_MS. One clock for the whole modal.
         this._markStale  = false;
         this._staleTimer = null;
 
@@ -1339,9 +1313,7 @@ export class SearchModal extends LitElement {
                 <div class="filter-section">
                     ${this._renderFilters()}
                 </div>
-                <!-- aria-busy sits on the panel rather than the results
-                     container, which is replaced wholesale between states — a
-                     stable element is what assistive tech can actually watch. -->
+                <!-- aria-busy on the panel: the results container is replaced between states. -->
                 <div
                     role="tabpanel"
                     id="ol-search-panel"
@@ -1358,12 +1330,9 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // Reconciled after every render rather than set at the call sites that move
-    // the query, so no path — an edit, a tab switch, a filter toggle, a failed
-    // fetch — can leave a dim behind that nothing clears.
+    // Reconciled after every render, so no path can leave a dim that nothing clears.
     updated() {
-        // Only the surface on screen: the Books tab's band hides rather than
-        // dims, so its hits falling behind is no reason to start the clock.
+        // The Books tab's band hides rather than dims, so it doesn't start the clock.
         const superseded = this._inside ? this._bandSuperseded() : this._catalogSuperseded();
         if (superseded) {
             if (this._markStale || this._staleTimer) return;
@@ -1385,12 +1354,7 @@ export class SearchModal extends LitElement {
 
     // ── Staleness ────────────────────────────────────────────────────────
     //
-    // The catalog list and the Inside tab keep their rows through an edit so the
-    // list doesn't flicker, which leaves them briefly answering a query that's
-    // no longer in the input. The *Superseded predicates say that's true now;
-    // the *IsStale ones add the delay, and are what the render methods ask.
-    // (The Books tab's band is the exception: it hides instead, see
-    // _renderFulltextBand.)
+    // *Superseded: rows answer an older query. *IsStale: the same, past the delay.
 
     _catalogSuperseded() {
         return this._results.length > 0 && this._resultsKey !== this._buildSearchJsonUrl(this._query.trim());
@@ -1404,9 +1368,7 @@ export class SearchModal extends LitElement {
 
     _bandIsStale() { return this._markStale && this._bandSuperseded(); }
 
-    // Class list for a populated results container. is-navigating is the
-    // stronger signal — the patron has chosen a row and we're leaving — so a
-    // press supersedes the stale dim rather than compounding with it.
+    // is-navigating replaces the stale dim rather than compounding with it.
     _resultsClass(stale) {
         if (this._navigatingKey) return 'results is-navigating';
         return stale ? 'results is-stale' : 'results';
@@ -1415,11 +1377,7 @@ export class SearchModal extends LitElement {
     /** True while the Inside books tab is showing. */
     get _inside() { return this._mode === MODE_INSIDE; }
 
-    // No match count on the Inside tab. A count only exists when the band
-    // happened to fire (a passage query, or a weak catalog answer), so it would
-    // come and go for reasons the patron can't see — and measuring it for every
-    // query means an FTS request nobody asked for. The tab's footer carries the
-    // total once the patron is actually on it.
+    // No count on the Inside tab: it would only exist when the band happened to fire.
     _renderTabs() {
         const tab = (mode, label) => html`
             <button
@@ -1445,8 +1403,7 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // Roving tabindex: ←/→ move between tabs, Home/End jump to the ends. The
-    // tablist is two items, so a move is always to the other one.
+    // Roving tabindex: ←/→ and Home/End. With two tabs, a move is always to the other.
     _onTabKeydown(e) {
         if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             e.preventDefault();
@@ -1460,11 +1417,7 @@ export class SearchModal extends LitElement {
         }
     }
 
-    // Switching scope re-points the fulltext controller. Coming back to Books
-    // also has to catch the catalog up — it stopped fetching while Inside was
-    // showing — and re-run the band's gates, which the catalog's answer settled
-    // once already; without that the band stays empty for the rest of the
-    // query's life.
+    // Returning to Books refetches the catalog (paused on Inside) and re-runs the band's gates.
     _selectMode(mode) {
         if (this._mode === mode) return;
         this._mode = mode;
@@ -1484,8 +1437,7 @@ export class SearchModal extends LitElement {
                 else if (this._hasSearched && !this._loading) this._ftBand.solrSettled(trimmed, this._results);
             }
         }
-        // Roving tabindex: focus follows selection, so an arrow press lands on
-        // the tab it just chose and the next arrow moves from there.
+        // Focus follows selection.
         this.updateComplete.then(() => {
             this.renderRoot.querySelector(`#ol-search-tab-${mode}`)?.focus();
         });
@@ -1500,8 +1452,7 @@ export class SearchModal extends LitElement {
         // scoped to the query + language. We only show it once a search lands and a
         // live count is in hand — before that there's no honest number to display
         // (the whole-corpus figure ignores the query/language), so we show nothing.
-        // It's a catalog count, so it stays behind on the Books tab — the FTS
-        // backend reports no equivalent for the text inside the scans.
+        // Catalog-only; FTS has no equivalent.
         const sublabel = !this._inside && this._hasSearched && typeof this._readableCount === 'number'
             ? this._readableCount.toLocaleString()
             : '';
@@ -1554,9 +1505,7 @@ export class SearchModal extends LitElement {
         }
 
         if (this._results.length === 0 && this._hasSearched) {
-            // The band doubles as a no-results rescue; with hits, scope the
-            // message to the catalog. Only hits fetched for *this* query earn
-            // that narrowing — lingering ones say nothing about it.
+            // With band hits for *this* query, scope the message to the catalog.
             const emptyLabel = this._ftIsCurrent() && this._visibleFtHits().length
                 ? this._i18n.noCatalogResults
                 : this._i18n.noResults;
@@ -1585,8 +1534,7 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // The Inside tab. No dedupe against the catalog — nothing else is on
-    // screen — and no author or shelf rows: every row is a passage in a scan.
+    // The Inside tab: passages only, no dedupe, author or shelf rows.
     _renderInsideResults() {
         if (!this._shouldAutocomplete()) {
             return html`<div class="results"><div class="empty">${this._i18n.insidePrompt}</div></div>`;
@@ -1614,9 +1562,7 @@ export class SearchModal extends LitElement {
             >${label}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div>`;
     }
 
-    // A fresh answer starts from its first row. The rows swap inside one
-    // long-lived .results div, so the previous answer's scroll offset would
-    // otherwise carry over. The Inside tab keeps its place — its rows didn't change.
+    // A fresh answer scrolls to the top; .results is long-lived and would keep the old offset.
     _scrollResultsToTop() {
         if (this._inside) return;
         this.updateComplete.then(() => {
@@ -1631,13 +1577,8 @@ export class SearchModal extends LitElement {
     }
 
     // Hidden until hits land: no spinner or empty state for a secondary surface.
-    // Hidden again the moment an edit outdates them — unlike the catalog rows
-    // above, which linger and dim, the band sits at the foot of the list, where
-    // vanishing costs no flicker, and its refetch is the slower of the two. The
-    // hits themselves stay: backspace to the query they answer and they're back.
-    // "View all" crosses to the Inside tab rather than leaving for /search/inside
-    // — the deeper list is one tab away, and the tab's own footer leads out. The
-    // total isn't repeated here; the tab's own badge is carrying it.
+    // Hidden (not dimmed) once an edit outdates them; at the foot of the list that costs no flicker.
+    // "View all" switches to the Inside tab rather than leaving the modal.
     _renderFulltextBand() {
         const hits = this._visibleFtHits();
         if (hits.length === 0 || !this._ftIsCurrent()) return nothing;
@@ -1658,9 +1599,7 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // The Inside tab's footer action: the one route out to the full
-    // /search/inside page. No aria-label — the visible text is the accessible
-    // name, so voice control can say it.
+    // The Inside tab's route to /search/inside. No aria-label, so voice control can say it.
     _renderInsideSeeAll() {
         const q = this._query.trim();
         const counted = this._ftTotalIsCurrent() && this._ftTotal > 0;
@@ -1676,9 +1615,7 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // Whether the hits on screen were fetched for the query + filters in force
-    // now. They linger across edits, so anything that speaks for the current
-    // query — the total, the empty-state wording — has to check this first.
+    // Whether the hits on screen answer the current query + filters.
     _ftIsCurrent() {
         return this._ftSearchKey === fulltextSearchParams(this._query.trim(), this._fulltextFilters()).toString();
     }
@@ -1691,10 +1628,7 @@ export class SearchModal extends LitElement {
         return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
     }
 
-    // Opens BookReader with the phrase-quoted query; its in-book search finds
-    // the passage. `q` is the query the hit answers, not what's in the input:
-    // hits linger across edits, and quoting the new phrase would send the
-    // patron into a scan that never matched it.
+    // Opens BookReader searching for the phrase. `q` is the query the hit answers, not the input.
     _renderFulltextHit(hit, q, index = 0) {
         const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
         const segments = parseSnippet(hit.snippet);
@@ -2149,8 +2083,7 @@ export class SearchModal extends LitElement {
     // Keyed on the catalog fetch so the band counts the same unit as the catalog
     // outcomes. `shown` is rows visible after dedupe, known only at fire time.
     _scheduleBandOutcome(status) {
-        // The Inside tab isn't the band, and isn't making the catalog fetch this
-        // is keyed to — its own funnel is the Tab and FulltextSeeAll events.
+        // The Inside tab is tracked by its own Tab and FulltextSeeAll events.
         if (this._inside) return;
         this._scheduleOutcomeTrack('FulltextBand', this._activeFetchKey, () => {
             if (status === 'failed') return 'failed';
@@ -2174,8 +2107,7 @@ export class SearchModal extends LitElement {
         this._loading = false;
         this._seeAllLoading = false;
         this._ftSeeAllLoading = false;
-        // Scope is per visit too: the modal always reopens on Books, so the
-        // header search never quietly changes what it searches.
+        // Always reopen on Books.
         if (this._inside) {
             this._mode = MODE_BOOKS;
             this._ftBand.setExplicit(false);
@@ -2390,9 +2322,7 @@ export class SearchModal extends LitElement {
         window.location.assign(url);
     }
 
-    // "<catalog>:<reason>" — whether results showed, and why the fulltext rows
-    // did: the patron picked the tab, a passage query, a weak catalog answer,
-    // or an outage (which wins over the two inferred reasons).
+    // "<catalog>:<reason>": whether results showed, and why the fulltext rows did.
     _fulltextSeeAllLabel() {
         const catalog = this._results.length ? 'hasResults' : 'noResults';
         let reason;
@@ -2403,8 +2333,7 @@ export class SearchModal extends LitElement {
         return `${catalog}:${reason}`;
     }
 
-    // Enter on the Inside tab commits to the full-page search, mirroring the
-    // footer link the pointer and Tab key reach directly.
+    // Enter on the Inside tab goes to the full-page search, like its footer link.
     _goToFulltextPage() {
         this._flushOutcomes();
         this._track('FulltextSeeAll', this._fulltextSeeAllLabel());
@@ -2577,10 +2506,7 @@ export class SearchModal extends LitElement {
 
     // Single entry point so the catalog fetch and the band can't drift apart.
     _scheduleSearch() {
-        // The Inside tab shows no catalog rows, so it doesn't pay for them —
-        // which also keeps the search-outcome events measuring queries whose
-        // catalog answer the patron actually saw. _selectMode catches the
-        // Books tab up when it comes back.
+        // The Inside tab shows no catalog rows, so skip the fetch. _selectMode catches up.
         if (!this._inside) this._debouncedFetch();
         this._ftBand.queryChanged(this._query);
     }

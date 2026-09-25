@@ -83,8 +83,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // Narrow-footer form of seeAllMany; the wide form stays the accessible name.
     seeAllManyNarrow: 'All %s books',
     clearAll: 'Clear all',
-    // Scope tabs. "Books" is the catalogue (titles, authors, subjects); "Inside
-    // books" is the text of the scans.
+    // Scope tabs: the catalogue, and the text of the scans.
     tabsAria: 'Search scope',
     tabBooks: 'Books',
     tabInside: 'Inside books',
@@ -119,15 +118,13 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
     insideHeading: 'Search inside books',
-    // The Inside tab's footer action. %s = books with matches; always plural,
-    // since it only carries a count once one has been measured.
+    // Inside tab footer action. %s = books with matches (always plural).
     seeAllInside: 'Search Inside %s books',
     // Before a total is measured for the current input.
     seeAllInsidePlain: 'Search Inside',
     // Crosses from the band to the Inside books tab — it doesn't leave the modal.
     viewAllInside: 'View all',
-    // Inside tab chrome: the placeholder while it's showing, the prompt before
-    // the query is long enough to search, and the empty result.
+    // Inside tab placeholder, too-short prompt, and empty result.
     insidePlaceholder: 'Search inside books…',
     insidePrompt: 'Type a word or phrase to find it on the pages of millions of books.',
     noInsideResults: 'No matches inside books',

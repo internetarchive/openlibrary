@@ -1,8 +1,5 @@
 /**
- * A new catalog answer scrolls the results pane back to its first row. The
- * rows swap inside one long-lived .results div, so without an explicit reset
- * the previous answer's scroll offset would carry over. Exercised on a bare
- * SearchModal instance with a stand-in render root, as the other suites do.
+ * A new catalog answer scrolls the results pane back to its first row.
  */
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
 

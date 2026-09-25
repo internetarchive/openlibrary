@@ -1,9 +1,6 @@
 /**
- * Decides when the search modal queries Search Inside, and holds its state.
- * It backs two surfaces: the band under the Books tab, whose fetches are gated
- * to passages and Solr rescues (always-on fulltext was rolled back in 2020 over
- * backend load), and the Inside books tab, where picking the tab *is* the
- * request — so in explicit mode every query fetches, and deeper.
+ * Decides when the search modal queries Search Inside. The Books tab's band is
+ * gated to passages and Solr rescues; the Inside tab (explicit mode) fetches every query.
  */
 
 import { debounce } from '../nonjquery_utils.js';
@@ -12,7 +9,7 @@ import { fulltextHitDisplay, isPassageQuery, solrLooksWeak } from './fulltext.js
 /** Small because each hit costs server-side hydration; the band is a teaser. */
 export const FULLTEXT_LIMIT = 3;
 
-/** The Inside tab is the destination, not a teaser, so it asks for a full page. */
+/** The Inside tab is the destination, so it asks for a full page. */
 export const INSIDE_LIMIT = 10;
 
 /** Spare hits, since readable filtering and catalog dedupe both drop some. */
@@ -59,19 +56,13 @@ export class FulltextBand {
         // Params these hits were fetched for, so the modal can tell a total
         // still matches its "see all" link.
         this.searchKey = null;
-        // The query the hits on screen answer. Hits linger across edits, so the
-        // rows' BookReader links have to quote this rather than what's typed now
-        // — otherwise a lingering row searches the new phrase in a scan that
-        // matched the old one.
+        // The query the hits on screen answer; BookReader links quote this, not the input.
         this.query = '';
-        // Set while the Inside books tab is showing: every query fetches, and
-        // the gates below step aside.
+        // Inside tab showing: every query fetches, bypassing the gates.
         this.explicit = false;
-        // Whether a fetch is outstanding. Only the Inside tab renders it — the
-        // band stays silent until hits land.
+        // A fetch is outstanding. Only the Inside tab shows it.
         this.loading = false;
-        // Both test the mode at fire time, so switching tabs (or an edit that
-        // stops being a passage) cancels a timer the other mode started.
+        // Both check the mode at fire time, so a tab switch cancels the other's timer.
         this._debouncedPassageFetch = debounce((query) => {
             if (!this.explicit && isPassageQuery(query)) this._fetch(query);
         }, PASSAGE_DEBOUNCE_MS, false);
@@ -81,10 +72,8 @@ export class FulltextBand {
     }
 
     /**
-     * Enter or leave the Inside tab. The previous mode's hits are dropped
-     * rather than reused: they were fetched at the other depth. Switching *to*
-     * the tab fetches at once — the click is the intent, so there's nothing to
-     * debounce.
+     * Enter or leave the Inside tab, dropping the other depth's hits.
+     * Entering fetches at once, without the debounce.
      *
      * @param {boolean} explicit
      * @param {string} query - fetched immediately when entering; pass '' to skip
@@ -101,8 +90,7 @@ export class FulltextBand {
     queryChanged(query) {
         this._fetchKey = null;
         if (this.explicit) {
-            // Ahead of the debounce, so the tab shows a spinner the moment the
-            // query moves rather than 400ms of results that no longer match.
+            // Set before the debounce so the spinner shows immediately.
             this._setLoading(Boolean((query || '').trim()));
             this._debouncedExplicitFetch(query);
         } else {
@@ -113,8 +101,7 @@ export class FulltextBand {
     /** A weak Solr answer fetches as a rescue; a strong one clears the band.
      *  Passage queries already fetch on their own timer. */
     solrSettled(query, docs) {
-        // The tab doesn't ride on the catalog's answer, and clearing here would
-        // wipe hits the patron explicitly asked for.
+        // The tab doesn't depend on the catalog's answer.
         if (this.explicit) return;
         if (isPassageQuery(query)) return;
         if (solrLooksWeak(docs, query)) {

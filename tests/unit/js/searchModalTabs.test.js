@@ -1,7 +1,5 @@
 /**
- * The search modal's Books / Inside books scope tabs, and the explicit mode
- * they put the fulltext controller into. Exercised on SearchModal and
- * FulltextBand instances directly, as the other search-modal suites do.
+ * The search modal's Books / Inside books tabs and the fulltext explicit mode.
  */
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
 import { FulltextBand, INSIDE_LIMIT } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltextBand.js';
@@ -23,8 +21,7 @@ function modalSetup({ query = 'white whale' } = {}) {
     modal._saveCurrentSearch = vi.fn();
     modal._debouncedFetch = vi.fn();
     modal._query = query;
-    // _selectMode focuses the chosen tab once Lit re-renders; there's no
-    // render root on a bare instance.
+    // No render root on a bare instance for _selectMode to focus.
     Object.defineProperty(modal, 'updateComplete', { value: { then: () => {} } });
     return modal;
 }
@@ -180,8 +177,7 @@ describe('SearchModal scope tabs', () => {
         expect(modal._debouncedFetch).toHaveBeenCalled();
     });
 
-    // The catalog stopped fetching while Inside was showing, so a query typed
-    // there leaves the Books tab holding someone else's results.
+    // The catalog paused while Inside was showing, so Books must catch up.
     test('coming back to Books refetches a catalog that fell behind', () => {
         const modal = modalSetup();
         modal._selectMode('inside');

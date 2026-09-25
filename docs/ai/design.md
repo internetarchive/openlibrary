@@ -16,10 +16,10 @@ The principles these rules serve — and the tensions between them — are on `/
 
 ### Preventing Layout Shift
 
-**Font weight:** Never change font weight on hover. A bolder selected state is fine only when the element is already sized for it, otherwise the row reflows.
+**Font weight:** Never change font weight on hover or selected states. This causes layout shift.
 
 ```css
-/* Bad - the row reflows when weight changes */
+/* Bad - causes layout shift */
 .tab:hover {
   font-weight: 600;
 }
@@ -27,33 +27,14 @@ The principles these rules serve — and the tensions between them — are on `/
   font-weight: 600;
 }
 
-/* Good - a hidden bold twin sizes the tab for its heaviest state */
+/* Good - consistent weight */
 .tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   font-weight: 500;
 }
-.tab-ghost {
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-  font-weight: 600;
-}
 .tab.selected {
-  font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-primary);
 }
 ```
-
-```html
-<button class="tab">
-  <span>Books</span>
-  <span class="tab-ghost" aria-hidden="true">Books</span>
-</button>
-```
-
-The design page's section tabs and the search modal's scope tabs both use this. Selected tabs stay in text colour with a text-coloured underline; blue is reserved for links in content.
 
 **Tabular numbers:** Use `font-variant-numeric: tabular-nums` for numbers that change dynamically (counters, prices, timers), so the text doesn't shift width as digits change.
 
