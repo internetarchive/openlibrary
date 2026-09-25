@@ -1061,3 +1061,30 @@ def test_main_does_not_hard_commit_every_cycle(mock_config, mock_infogami, mock_
 
     commits = [c for c in solr.update_in_place.call_args_list if c.kwargs.get("commit")]
     assert commits == [], f"expected no hard commit, got {len(commits)}"
+
+
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+def test_main_clamps_a_cursor_that_is_ahead_of_the_feed(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+    """Observed in a live run: a cursor ahead of the feed head returns zero rows
+    forever and logs nothing above DEBUG, so the daemon looks healthy while
+    doing nothing. `latest_uid` is on every response and was only read at
+    startup."""
+    solr = MagicMock()
+    mock_get_solr.return_value = solr
+    solr.select.side_effect = _select_side_effect
+
+    mock_lending.get_loan_changes.side_effect = [
+        {"status": "OK", "rows": [], "latest_uid": 50},
+        SystemExit(0),
+    ]
+    state_file = tmp_path / "state"
+    state_file.write_text("200001")
+
+    with pytest.raises(SystemExit):
+        main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
+
+    assert state_file.read_text().strip() == "50", "cursor was not clamped to the feed head"
