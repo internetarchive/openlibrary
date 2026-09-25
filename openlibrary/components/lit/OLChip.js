@@ -138,7 +138,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         :host([selected]:not([variant])) {
             --_chip-bg: var(--color-primary);
             --_chip-fg: var(--white);
-            --_chip-border: var(--color-primary);
+            --_chip-border: var(--color-primary-border);
             --_chip-bg-hover: var(--color-primary);
             /* This chip lightens on hover via a brightness() filter (below)
                rather than darkening its fill, so keep the border color put — the
@@ -146,8 +146,8 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-border-hover: var(--_chip-border);
             --_chip-count-fg: #c6e1f0;
             /* A white edge reads much louder on the dark fill than on a tint
-               (same 18% as primary buttons). */
-            --control-highlight-strength: 18%;
+               (same strength as primary buttons). */
+            --control-highlight-strength: var(--control-highlight-strength-filled);
         }
 
         @media (hover: hover) and (pointer: fine) {

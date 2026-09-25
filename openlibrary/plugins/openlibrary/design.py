@@ -417,6 +417,13 @@ COMPONENTS = (
         group="Books",
         tag="ol-shelf-actions",
     ),
+    Component(
+        "book-lists",
+        "Book Lists",
+        "design/components/book-lists.html.jinja",
+        group="Books",
+        tag="ol-book-lists",
+    ),
 )
 
 # Icon sources, one SVG per icon, grouped into folders by provenance. The file

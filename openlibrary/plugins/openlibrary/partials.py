@@ -119,8 +119,8 @@ class WorkEditionsPartial:
     list under any of its editions. Matching only the key this button would write reads
     those lists as empty and files the book a second time.
 
-    The answer is the same for every reader, so it is fetched per book on open rather than
-    for every member of every list up front, and carousels pay nothing for it.
+    The answer is the same for every reader, so it is fetched per book (on popover open, or by
+    a book page's list strip when a list holds an unknown edition), and carousels pay nothing.
     """
 
     @classmethod

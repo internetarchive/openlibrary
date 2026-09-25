@@ -189,15 +189,17 @@ class WorkEditionsResponse(BaseModel):
 
 @router.get("/partials/WorkEditions.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 def work_editions_partial(
+    response: Response,
     work_id: Annotated[str, BeforeValidator(parse_work_olid), Query(description="A work OLID, e.g. OL1W")],
 ) -> WorkEditionsResponse:
     """
     Every edition OLID of a work.
 
-    The shelf popover asks on open: a list records the edition the reader was looking at,
-    so a list holding any edition of this work already holds the book. Not reader-specific,
-    and the same answer for everyone.
+    The shelf popover and the book page's list strip ask: a list records the edition the
+    reader was looking at, so a list holding any edition of this work already holds the book.
+    Not reader-specific, so browsers and the CDN may cache it.
     """
+    response.headers["Cache-Control"] = "public, max-age=300"
     return WorkEditionsResponse(**WorkEditionsPartial.generate(work_id))
 
 

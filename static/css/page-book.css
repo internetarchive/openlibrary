@@ -35,7 +35,6 @@
 @import "components/illustration.css";
 @import "components/rating-form.css";
 @import "components/generic-dropper.css";
-@import "components/listLists.css";
 @import "components/readerStats.css";
 @import "components/link-box.css";
 @import "components/read-panel.css";
@@ -64,7 +63,6 @@
 @import "components/share-popover.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
-@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
 @import "components/work--tablet.css" only screen and (min-width: 768px);
 @import "components/edit-toolbar--tablet.css" only screen and (min-width: 768px);
 
