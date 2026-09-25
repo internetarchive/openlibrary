@@ -455,6 +455,13 @@ a.testing-env__pill:focus-visible {
   color: var(--color-success-fg);
 }
 
+/* A row added in the last few seconds, so a new entry stands out in a long
+   table. Client-side only — a refresh clears it. */
+.testing-env__row--recent > td {
+  background: var(--color-success-bg);
+  transition: background var(--duration-base) var(--ease-state);
+}
+
 /* Last of the row backgrounds: pointer feedback beats every state tint. */
 .testing-env__row:hover td {
   background: var(--color-control-hover);
@@ -526,7 +533,8 @@ a.testing-env__pill:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .testing-env__switch-knob {
+  .testing-env__switch-knob,
+  .testing-env__row--recent > td {
     transition: none;
   }
 

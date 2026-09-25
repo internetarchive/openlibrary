@@ -23,6 +23,10 @@ const props = defineProps({
     strings: {
         type: Object,
         required: true
+    },
+    recent: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -66,7 +70,10 @@ function text(key, ...args) {
 </script>
 
 <template>
-  <tr class="testing-env__row">
+  <tr
+    class="testing-env__row"
+    :class="{ 'testing-env__row--recent': recent }"
+  >
     <td
       v-if="maintainer"
       class="testing-env__col-toggle"

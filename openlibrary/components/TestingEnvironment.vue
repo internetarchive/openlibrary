@@ -45,7 +45,7 @@ const { setToast } = useToast();
 // busy marks the action queue as processing and pauses background refreshes.
 const busy = shallowRef(false);
 const { view, payload, now, loadStatus, retry } = useTestingStatus(busy);
-const { refreshing, adding, deploying, addInput, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
+const { refreshing, adding, deploying, addInput, recentlyAdded, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
     busy,
     loadStatus,
     setToast,
@@ -173,6 +173,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
                 :pr="pr"
                 :maintainer="isMaintainer"
                 :strings="strings"
+                :recent="recentlyAdded.has(pr.pr)"
                 @toggle="togglePr"
                 @update="updatePr"
                 @remove="removePr"
