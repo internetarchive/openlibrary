@@ -24,7 +24,7 @@ def get_reading_goals(year=None):
 
     books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(username, BookshelfEvent.FINISH, year)
     read_count = len(books_read)
-    result = YearlyGoal(data[0].year, data[0].target, read_count)
+    result = YearlyGoal(data[0]["year"], data[0]["target"], read_count)
 
     return result
 
