@@ -26,6 +26,7 @@ export const DEFAULT_STRINGS = {
     add: 'Add PRs',
     addChange: 'Add',
     pr: 'PR',
+    draft: 'Draft',
     author: 'Author',
     assignee: 'Assignee',
     drift: 'Drift',

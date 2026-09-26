@@ -7596,6 +7596,10 @@ msgid "PR"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "Draft"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "Assignee"
 msgstr ""
 

@@ -26,7 +26,7 @@ from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 status_info: dict[str, Any] = {}
 
 TESTING_STATE_FILE = Path("./_testing-prs.json")
-_GITHUB_API_BASE = "https://api.github.com/repos/internetarchive/openlibrary"
+_GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 _DRIFT_CACHE_KEY = "status.github_pr_drift"
 _DRIFT_CACHE_TTL = 60  # 1 minute
 # Jenkins never calls back, so a triggered deploy is only ever presumed to be
@@ -365,6 +365,7 @@ class GitHubPRInfo(BaseModel):
     author_avatar: str = ""
     assignee: str = ""
     assignee_avatar: str = ""
+    draft: bool = False
 
 
 class TestingPR(BaseModel):
@@ -383,6 +384,7 @@ class TestingPR(BaseModel):
     author_avatar: str = ""  # GitHub avatar URL (append &s=N for sizing)
     assignee: str = ""  # GitHub login of assignee, empty if unassigned
     assignee_avatar: str = ""  # GitHub avatar URL for assignee
+    draft: bool = False  # whether GitHub currently marks the PR as a draft
 
     @field_serializer("pending_active")
     def _serialize_pending_active(self, value: bool | None) -> bool | None:
@@ -410,6 +412,7 @@ class TestingPR(BaseModel):
             author_avatar=info.author_avatar,
             assignee=info.assignee,
             assignee_avatar=info.assignee_avatar,
+            draft=info.draft,
         )
 
     @property
@@ -716,25 +719,117 @@ def _is_maintainer() -> bool:
     return bool(user and user.is_maintainer())
 
 
-# One pooled client per event loop. The drift fan-out makes up to two GitHub
-# calls per PR, and a fresh AsyncClient per call would pay a TCP + TLS
-# handshake every time. cache_per_event_loop keeps a separate pool per loop,
-# since AsyncBridge's background loop and FastAPI's can't share one.
+# One pooled client per event loop. cache_per_event_loop keeps a separate pool
+# per loop, since AsyncBridge's background loop and FastAPI's can't share one.
 get_github_client = cache_per_event_loop(lambda: httpx.AsyncClient(timeout=5.0))
 
 
-async def _github_get_async(path: str) -> dict:
-    """GET a GitHub API path; raises httpx.HTTPError (network or non-2xx) on failure."""
-    url = f"{_GITHUB_API_BASE}/{path}"
+def _build_pr_query(pr_numbers: list[int]) -> str:
+    """Build one GraphQL query for the requested pull requests."""
+    fields = """
+        title state isDraft mergedAt headRefOid
+        author { login avatarUrl }
+        assignees(first: 1) { nodes { login avatarUrl } }
+        commits(last: 100) { nodes { commit { oid } } }
+    """
+    prs = " ".join(f"pr_{number}: pullRequest(number: {number}) {{ {fields} }}" for number in pr_numbers)
+    return f'query GitHubPRStatus {{ repository(owner: "internetarchive", name: "openlibrary") {{ {prs} }} }}'
+
+
+async def _github_graphql_async(query: str) -> dict:
+    """POST a GitHub GraphQL query and return its data payload."""
     headers = {
         "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json",
         "User-Agent": "openlibrary-status",
     }
     if token := getattr(config, "github_api_token", None):
         headers["Authorization"] = f"Bearer {token}"
-    resp = await get_github_client().get(url, headers=headers)
-    resp.raise_for_status()
-    return resp.json()
+    else:
+        raise GitHubUnavailableError("GitHub GraphQL token is not configured")
+    try:
+        resp = await get_github_client().post(_GITHUB_GRAPHQL_URL, headers=headers, json={"query": query})
+        resp.raise_for_status()
+        body = resp.json()
+    except (httpx.HTTPError, ValueError) as e:
+        raise GitHubUnavailableError("Could not fetch GitHub PR data") from e
+    if body.get("errors") and not body.get("data"):
+        raise GitHubUnavailableError("GitHub GraphQL query failed")
+    if not isinstance(body.get("data"), dict):
+        raise GitHubUnavailableError("GitHub GraphQL response had no data")
+    return body["data"]
+
+
+async def _fetch_prs_graphql_async(pr_numbers: list[int]) -> dict[int, dict | None]:
+    """Fetch metadata and drift inputs for all requested PRs in one request."""
+    if not pr_numbers:
+        return {}
+    data = await _github_graphql_async(_build_pr_query(pr_numbers))
+    repository = data.get("repository")
+    if not isinstance(repository, dict):
+        raise GitHubUnavailableError("GitHub GraphQL response had no repository")
+    return {number: repository.get(f"pr_{number}") for number in pr_numbers}
+
+
+def _parse_pr_info(pr_number: int, pr: dict) -> GitHubPRInfo:
+    author = pr.get("author") or {}
+    assignees = (pr.get("assignees") or {}).get("nodes") or []
+    assignee = assignees[0] if assignees else {}
+    return GitHubPRInfo(
+        pr=pr_number,
+        title=pr.get("title") or f"PR #{pr_number}",
+        head_sha=pr["headRefOid"],
+        author=author.get("login", ""),
+        author_avatar=author.get("avatarUrl", ""),
+        assignee=assignee.get("login", ""),
+        assignee_avatar=assignee.get("avatarUrl", ""),
+        draft=bool(pr.get("isDraft", False)),
+    )
+
+
+def _unknown_pr_drift() -> dict:
+    return {
+        "head_sha": "",
+        "drift": -1,
+        "merged": False,
+        "closed": False,
+        "title": "",
+        "author": "",
+        "author_avatar": "",
+        "assignee": "",
+        "assignee_avatar": "",
+        "draft": None,
+    }
+
+
+def _parse_pr_drift(pr: TestingPR, payload: dict | None) -> dict:
+    if not payload:
+        return _unknown_pr_drift()
+    try:
+        info = _parse_pr_info(pr.pr, payload)
+        stored = pr.commit.strip()
+        if info.head_sha == stored or (len(stored) < 40 and info.head_sha.startswith(stored)):
+            drift = 0
+        else:
+            commits = (payload.get("commits") or {}).get("nodes") or []
+            oids = [node.get("commit", {}).get("oid", "") for node in commits]
+            index = next((i for i, oid in enumerate(oids) if oid == stored or (len(stored) < 40 and oid.startswith(stored))), None)
+            drift = len(oids) - index - 1 if index is not None else -1
+        merged = bool(payload.get("mergedAt"))
+        return {
+            "head_sha": info.head_sha[:7],
+            "drift": drift,
+            "merged": merged,
+            "closed": payload.get("state") == "CLOSED" and not merged,
+            "title": info.title,
+            "author": info.author,
+            "author_avatar": info.author_avatar,
+            "assignee": info.assignee,
+            "assignee_avatar": info.assignee_avatar,
+            "draft": info.draft,
+        }
+    except AttributeError, KeyError, TypeError, ValueError:
+        return _unknown_pr_drift()
 
 
 async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
@@ -748,20 +843,23 @@ async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tu
     deploy path passes ``persist=False`` so its metadata refresh can never write
     staged-but-untriggered changes to disk.
 
-    Per-PR fetches run concurrently (asyncio.gather) — with a handful of PRs,
-    sequential awaits would stack each GitHub round-trip.
+    All PR metadata and drift inputs are fetched in one GraphQL request.
     """
     mc = cache.get_memcache()
     if (cached := mc.get(_DRIFT_CACHE_KEY)) is not None:
         return {int(k): v for k, v in cached.items()}, True
     drift = {}
     state_changed = False
-    infos = await asyncio.gather(*(_get_pr_drift_async(p) for p in state.prs))
-    for p, info in zip(state.prs, infos):
+    try:
+        payloads = await _fetch_prs_graphql_async([p.pr for p in state.prs])
+    except GitHubAPIError:
+        payloads = {}
+    for p in state.prs:
+        info = _parse_pr_drift(p, payloads.get(p.pr))
         drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged", "closed")}
-        for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar"):
+        for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar", "draft"):
             new_val = info.get(attr, "")
-            if new_val and getattr(p, attr) != new_val:
+            if (new_val or (attr == "draft" and new_val is not None)) and getattr(p, attr) != new_val:
                 setattr(p, attr, new_val)
                 state_changed = True
     if state_changed and persist:
@@ -811,71 +909,14 @@ async def _get_pr_info_async(pr_number: int) -> GitHubPRInfo:
     PR number from a GitHub outage, and a returned value is always real data.
     """
     try:
-        pr = await _github_get_async(f"pulls/{pr_number}")
-        user = pr.get("user") or {}
-        assignee = pr.get("assignee") or {}
-        return GitHubPRInfo(
-            pr=pr_number,
-            title=pr.get("title") or f"PR #{pr_number}",
-            head_sha=pr["head"]["sha"],
-            author=user.get("login", ""),
-            author_avatar=user.get("avatar_url", ""),
-            assignee=assignee.get("login", ""),
-            assignee_avatar=assignee.get("avatar_url", ""),
-        )
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
-            raise PRNotFoundError(f"PR #{pr_number} not found") from e
-        raise GitHubUnavailableError(f"GitHub returned {e.response.status_code} for PR #{pr_number}") from e
-    except (httpx.HTTPError, KeyError, ValueError) as e:
+        payload = (await _fetch_prs_graphql_async([pr_number]))[pr_number]
+        if payload is None:
+            raise PRNotFoundError(f"PR #{pr_number} not found")
+        return _parse_pr_info(pr_number, payload)
+    except PRNotFoundError:
+        raise
+    except (AttributeError, KeyError, TypeError, ValueError) as e:
         raise GitHubUnavailableError(f"Could not fetch PR #{pr_number}") from e
-
-
-async def _get_pr_drift_async(pr: TestingPR) -> dict:
-    """Fetch live drift info + metadata for a PR from GitHub.
-
-    Returns head_sha, drift, merged plus title/author/assignee so callers can
-    refresh state without a second API call.
-    """
-    try:
-        gh = await _github_get_async(f"pulls/{pr.pr}")
-        head_sha = gh["head"]["sha"]
-        merged = bool(gh.get("merged") or gh.get("merged_at"))
-        stored = pr.commit.strip()
-        if head_sha == stored or (len(stored) < 40 and head_sha.startswith(stored)):
-            drift = 0
-        else:
-            try:
-                cmp = await _github_get_async(f"compare/{stored}...{head_sha}")
-                drift = cmp.get("ahead_by", -1)
-            except httpx.HTTPError, ValueError:
-                drift = -1
-        user = gh.get("user") or {}
-        assignee = gh.get("assignee") or {}
-        return {
-            "head_sha": head_sha[:7],
-            "drift": drift,
-            "merged": merged,
-            # A merge is itself a close, so "closed" means closed without merging.
-            "closed": gh.get("state") == "closed" and not merged,
-            "title": gh.get("title", f"PR #{pr.pr}"),
-            "author": user.get("login", ""),
-            "author_avatar": user.get("avatar_url", ""),
-            "assignee": assignee.get("login", ""),
-            "assignee_avatar": assignee.get("avatar_url", ""),
-        }
-    except httpx.HTTPError, KeyError, ValueError:
-        return {
-            "head_sha": "",
-            "drift": -1,
-            "merged": False,
-            "closed": False,
-            "title": "",
-            "author": "",
-            "author_avatar": "",
-            "assignee": "",
-            "assignee_avatar": "",
-        }
 
 
 # Sync bridge wrappers: the remaining web.py action handlers reach the async

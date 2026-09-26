@@ -255,6 +255,7 @@ These companion docs cover specific areas in depth:
 - [Design](design.md) — UI rules and their scope: typography, RTL, the component inventory (what to use, what to avoid), icons, design tokens, overlays, animations, mobile, and what enforces each rule
 - [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
 - [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
+- [Status Page GitHub Fetch](status-page.md) — the testing panel's single-GraphQL-request PR fetch, REST→GraphQL field audit, token requirement
 
 ## Domain Knowledge Bases
 
