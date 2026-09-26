@@ -7616,6 +7616,7 @@ msgid "Not yet deployed"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+#, python-format
 msgid "Merge conflict with %(pr)s"
 msgstr ""
 
