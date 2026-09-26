@@ -193,6 +193,22 @@ class Edition(models.Edition):
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
 
+    def get_filterable_isbns(self) -> list[str]:
+        """Every ISBN this edition lists, for the editions table's filter.
+
+        :func:`get_isbn10` and :func:`get_isbn13` each answer with a single
+        canonical ISBN, deriving it from the other type when their own is
+        missing. That is right for building a link, but it is not enough to
+        filter on: a record can list several of either, and on a record whose
+        ISBN-10 and ISBN-13 do not correspond the derived value is not an ISBN
+        the edition carries at all -- so filtering for the real one matched
+        nothing.
+
+        Values come back as recorded, hyphens included, so a patron can filter
+        by the form printed on the book as well as the canonical form.
+        """
+        return [isbn for isbn in (list(self.isbn_10 or []) + list(self.isbn_13 or [])) if isbn]
+
     def get_worldcat_url(self):
         url = "https://search.worldcat.org/"
         if self.get("oclc_numbers"):
