@@ -45,10 +45,17 @@ class TestIaJsCdn:
 
     @pytest.mark.parametrize(
         "bad_name",
-        ["evil.js", "../../etc/passwd", "donate.js.map", "athena.min.js", ""],
+        ["evil.js", "donate.js.map", "athena.min.js"],
     )
     def test_various_invalid_filenames_return_404(self, fastapi_client, mock_upstream, bad_name):
         """Any filename that is not donate.js or athena.js must be rejected with 404."""
+        response = fastapi_client.get(f"/cdn/archive.org/{bad_name}")
+        assert response.status_code == 404
+
+    @pytest.mark.parametrize("bad_name", ["../../etc/passwd", ""])
+    def test_unroutable_filenames_fall_through_to_proxy(self, fastapi_client, mock_upstream, bad_name):
+        """Filenames that don't match the route path fall through to the
+        web.py proxy, which is stubbed to 404 in tests."""
         response = fastapi_client.get(f"/cdn/archive.org/{bad_name}")
         assert response.status_code == 404
 
