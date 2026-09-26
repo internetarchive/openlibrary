@@ -2791,6 +2791,11 @@ msgstr ""
 
 #: book_providers/read_button.html
 #, python-format
+msgid "Read your loan from %s"
+msgstr ""
+
+#: book_providers/read_button.html
+#, python-format
 msgid "Listen to a reading from %s"
 msgstr ""
 

@@ -10,6 +10,7 @@ import web
 from web import uniq
 
 from openlibrary.app import render_template
+from openlibrary.core.provider_loans import get_provider_loan
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
@@ -227,6 +228,7 @@ class AbstractBookProvider[TProviderMetadata]:
         ed_or_solr: Edition | dict,
         analytics_attr: Callable[[str], str],
         show_locate: bool = False,
+        check_loan_status: bool = False,
     ) -> TemplateResult | str:
         acq_sorted = sorted(
             (p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED),
@@ -237,6 +239,10 @@ class AbstractBookProvider[TProviderMetadata]:
             return ""
 
         acquisition = acq_sorted[0]
+        # Asked here rather than in the template so the lookup needs no template
+        # global, and only when the caller says this page is worth asking on --
+        # see LoanStatus.html, which keeps it off carousels and search results.
+        provider_loan = get_provider_loan(ed_or_solr.get("key"), None) if check_loan_status else None
         # pre-process acquisition.url so ParseResult.netloc is always the domain. Only netloc is used.
         url = "https://" + acquisition.url if not acquisition.url.startswith("http") else acquisition.url
         parsed_url = parse.urlparse(url)
@@ -248,6 +254,7 @@ class AbstractBookProvider[TProviderMetadata]:
             self.long_name or domain,
             analytics_attr,
             show_locate=show_locate,
+            provider_loan=provider_loan,
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None) -> TemplateResult:

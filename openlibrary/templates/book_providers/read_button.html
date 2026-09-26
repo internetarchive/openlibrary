@@ -1,9 +1,12 @@
-$def with(edition_key, acquisition, provider_name, analytics_attr, show_locate=False)
+$def with(edition_key, acquisition, provider_name, analytics_attr, show_locate=False, provider_loan=None)
 $# :param edition_key str:
 $# :param Acquisition acquisition:
 $# :param provider_name str:
 $# :param analytics_attr Callable[[str], str]:
 $# :param show_locate bool: add a menu with a library lookup (book page only)
+$# :param provider_loan dict|None: the patron's live loan at this provider, if
+$#     they hold one. It takes precedence over acquisition.access, which is
+$#     harvested from the provider's feed and so is the same for every patron.
 
 $ show_locate = show_locate and edition_key
 $ group_class = "cta-button-group cta-dropper" if show_locate else "cta-button-group"
@@ -12,7 +15,19 @@ $def locate_menu():
   $if show_locate:
     $:macros.ReadingOptionsMenu(edition_key)
 
-$if acquisition.access == 'open-access':
+$if provider_loan:
+  $# The patron already holds this book here, so offer the loan, not another
+  $# borrow. Checked first because acquisition.access cannot know about loans.
+  <div class="$group_class">
+    <a href="$provider_loan['read_url']"
+        title="$_('Read your loan from %s', provider_name)"
+        class="cta-btn cta-btn--available cta-btn--read cta-btn--external"
+        target="_blank" rel="noopener noreferrer"
+        $:analytics_attr('Read')
+    >$_('Read')</a>
+    $:locate_menu()
+  </div>
+$elif acquisition.access == 'open-access':
   <div class="$group_class">
     $if acquisition.format == 'audio':
       <a href="/books/${edition_key}/-/borrow?action=read"
