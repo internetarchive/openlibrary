@@ -6,16 +6,23 @@ Archival has three stages, and only the last one deletes anything:
 
 1. **Archive**: `archive.archive()` copies covers from `localdisk/` into per-batch zips under `items/`
    and marks them `archived`. It never touches the *open* batch (the one holding the newest cover),
-   because covers are still landing in it.
+   because covers are still landing in it, and never touches covers below 8,000,000, which are served
+   from older layouts.
 2. **Upload**: `Batch.process_pending(upload=True)` uploads each complete zip that archive.org lacks, or
    holds a different copy of. **This is the backup.** Covers stay on local disk and keep being served
-   from there.
+   from there. A batch that has already been finalized is never uploaded again.
 3. **Finalize**: `Batch.process_pending(finalize=True)` points covers at archive.org and deletes the local
-   copies. It does this only when archive.org's copy of every size is byte-identical (md5) to the local
-   zip, and it checks that for itself (`Batch.is_verified`).
+   copies. It checks for itself that archive.org's copy of every size is byte-identical (md5) to the
+   local zip, that the zips' data passes its checksums, and that each local file matches its zip entry.
 
-Stopping after step 2 loses nothing, so a batch can wait between steps for as long as you like. Every
-step also takes `test=True`, which only reports and changes nothing.
+Stopping after step 1 or 2 loses nothing, so a batch can wait between steps for as long as you like.
+`process_pending` takes `test=True`, which only reports and changes nothing. `archive()` has no test
+mode, but it only writes zips and flags; it never deletes.
+
+Every step that writes (`archive()`, and `process_pending` or `finalize` without `test=True`) takes a lock
+(`items/.archive.lock`). A second run started while one is going stops with `Another archival run holds
+...`, so a manual session and a cron can't overlap. Uploads can hold it for hours; check `ps` and wait.
+`test=True` runs don't need it, so you can always look.
 
 In 2024, finalize trusted "a file with this name exists on archive.org" and deleted covers that were
 only in the local zip ([#9836](https://github.com/internetarchive/openlibrary/issues/9836)).
@@ -26,10 +33,10 @@ only in the local zip ([#9836](https://github.com/internetarchive/openlibrary/is
 ```
 ssh -A ol-covers0
 cd /opt/openlibrary
-CONTAINER=$(docker ps | grep -oP 'openlibrary_covers_run_\S+')
+CONTAINER=$(docker ps | grep -oP 'openlibrary_covers_run_\S+' | head -1)
 if [ -z "$CONTAINER" ]; then
     COMPOSE_FILE="compose.yaml:compose.production.yaml" HOSTNAME=$HOSTNAME docker compose run --rm -d covers bash
-    CONTAINER=$(docker ps | grep -oP 'openlibrary_covers_run_\S+')
+    CONTAINER=$(docker ps | grep -oP 'openlibrary_covers_run_\S+' | head -1)
 fi
 docker exec -it $CONTAINER screen -DR python bash -c 'python && bash'
 ```
@@ -46,18 +53,23 @@ from openlibrary.coverstore import archive
 ```python
 db = archive.CoverDB().db
 list(db.query("SELECT max(id) FROM cover"))            # the open batch is max_id // 10_000
+list(db.query("SELECT count(*) FROM cover WHERE id >= 8000000"
+              " AND (failed IS NULL OR archived IS NULL OR uploaded IS NULL)"))   # expect 0
 archive.Batch.get_pending()                              # zips already on local disk
 archive.Batch.process_pending()                          # per batch and size: complete? identical on archive.org?
 ```
 
 **Check `get_pending()` before doing anything else.** Zips left from earlier runs are processed like new
 ones. Anything not `Complete? True` is skipped and reports why (`batch_open`, `archival_incomplete`,
-`zip_discrepency`, `nozip`).
+`zip_discrepency`, `zip_corrupt`, `nozip`).
+
+If the NULL count isn't 0, stop and ask. Archival selects on `failed=false` and `uploaded=false`, so
+those rows would be skipped silently.
 
 ### 2. Archive
 
 ```python
-archive.archive()   # the lowest batch with unarchived covers; stops at the open batch
+archive.archive()   # the lowest batch at or above 8,000,000 with unarchived covers; stops at the open batch
 ```
 
 It archives one batch per call. Run it again for the next batch.
@@ -72,9 +84,9 @@ archive.Batch.process_pending(upload=True, test=False)
 ### 4. Wait, then confirm archive.org has it
 
 archive.org reports a file's md5 once its upload task finishes. Re-run step 1's `process_pending()` until
-each size of the batch prints `identical copy on archive.org`. To count what archive.org holds
-independently, run `docs/investigations/9836-cover-archival/census.py <item_id> --only-short` from a
-checkout. A closed batch should show 10,000, minus covers marked `failed`.
+each size of the batch prints `identical copy on archive.org`. To look independently,
+`https://archive.org/download/covers_NNNN/covers_NNNN_NN.zip/` lists the zip's members. A closed batch
+holds up to 10,000: IDs marked `failed`, or never used by the id sequence, are absent.
 
 ### 5. Finalize
 
@@ -84,8 +96,9 @@ archive.Batch.process_pending(finalize=True, test=False)
 ```
 
 A batch that isn't verified yet shows `Finalize? False` and is skipped. If one prints
-`Refusing to finalize`, **stop**: finalize's own re-check found archive.org and local disk disagreeing,
-and nothing was deleted. Re-running step 3 replaces a differing copy on archive.org with the local one.
+`Refusing to finalize`, **stop and read the reason**: finalize's own checks failed, and nothing was
+deleted. The reason says which check (archive.org copy, zip checksums, a cover missing from or
+differing from the zips, or a zip that changed during finalize).
 
 ### 6. Spot-check
 
@@ -94,6 +107,24 @@ curl -sI https://covers.openlibrary.org/b/id/<a cover id from the batch>-L.jpg |
 ```
 
 It should redirect into the batch's `l_covers_NNNN_NN.zip`, and that URL should serve the image.
+
+### When a batch doesn't progress
+
+These states are safe: covers stay on local disk and keep being served. Each needs a person to decide.
+
+- **`zip_discrepency` on a batch whose covers are already uploaded.** A cover landed in the batch after
+  it was finalized. Its zip holds only the stragglers and is never uploaded over archive.org's copy.
+  The straggler stays local.
+- **`zip_corrupt`, or `archive()` stopping with `... is not a readable zip`.** A run was killed mid-write.
+  The covers it added are marked `archived` but aren't in a readable zip, and `archive()` refuses to
+  append to it, so that batch goes no further until someone rebuilds the zip.
+- **`zip_discrepency` on a batch with nothing uploaded.** The zip and the db disagree about which covers
+  are archived (for example, a zip written before this procedure existed). Nothing is uploaded or
+  deleted until they agree.
+- **`nozip` for some sizes of a batch whose covers are all uploaded.** Finalize stopped while deleting
+  zips. It deletes the full-size zip last, so the batch still shows up in `get_pending()`.
+- **One cover's local files remain after an interrupted finalize.** Finalize repoints then deletes one
+  cover at a time, so at most one cover's files are left, and that cover already resolves to archive.org.
 
 ### All at once
 

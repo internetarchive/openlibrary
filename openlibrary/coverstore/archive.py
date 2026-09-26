@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Utility to move files from local disk to zip files and update the paths in the db"""
 
+import fcntl
 import glob
 import hashlib
 import os
@@ -8,6 +9,8 @@ import re
 import sys
 import time
 import zipfile
+import zlib
+from contextlib import contextmanager, nullcontext
 from typing import ClassVar
 
 import internetarchive as ia
@@ -23,11 +26,34 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 ITEM_SIZE = 1_000_000
 BATCH_SIZE = 10_000
 BATCH_SIZES = ("", "s", "m", "l")
+# code.py redirects uploaded covers to archive.org zips only at or above this id;
+# below it, older layouts apply, so this module never archives those covers.
+MIN_ARCHIVABLE_ID = 8_000_000
 
 
 def log(*args):
     msg = " ".join(args)
     print(msg)
+
+
+@contextmanager
+def archival_lock():
+    """Held by archive(), process_pending and finalize whenever they write, so
+    finalize never runs while archive() is appending to a zip it is verifying.
+    A second run fails fast.
+    """
+    path = os.path.join(config.data_root, "items", ".archive.lock")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    # Read-only: flock needs no write access, so a lock file left by another user still works.
+    fd = os.open(path, os.O_RDONLY | os.O_CREAT, 0o644)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise RuntimeError(f"Another archival run holds {path}; wait for it to finish (check `ps`)") from None
+        yield
+    finally:
+        os.close(fd)
 
 
 class Uploader:
@@ -109,34 +135,41 @@ class Batch:
         Assumes s, m, l and full zips are in sync: if covers_0008 has
         covers_0008_01.zip, s_covers_0008 also has s_covers_0008_01.zip.
         """
-        for batch in cls.get_pending():
-            item_id, batch_id = cls.zip_path_to_item_and_batch_id(batch)
+        # test=True only reads, so it can report while another run holds the lock.
+        with nullcontext() if test else archival_lock():
+            for batch in cls.get_pending():
+                item_id, batch_id = cls.zip_path_to_item_and_batch_id(batch)
 
-            print(f"\n## [Processing batch {item_id}_{batch_id}] ##")
-            verified = True
+                print(f"\n## [Processing batch {item_id}_{batch_id}] ##")
+                verified = True
+                # A finalized batch's archive.org zips are the only copy of its
+                # covers; a later local zip of the batch must never replace them.
+                finalized = CoverDB().has_uploaded(cls.batch_start_id(item_id, batch_id))
 
-            for size in BATCH_SIZES:
-                itemname, filename = cls.get_relpath(item_id, batch_id, ext="zip", size=size).split(os.path.sep)
-                zip_complete, errors = cls.is_zip_complete(item_id, batch_id, size=size, verbose=True)
-                print(f"* {filename}: Complete? {zip_complete} {errors or ''}")
-                if not zip_complete:
+                for size in BATCH_SIZES:
+                    itemname, filename = cls.get_relpath(item_id, batch_id, ext="zip", size=size).split(os.path.sep)
+                    zip_complete, errors = cls.is_zip_complete(item_id, batch_id, size=size, verbose=True)
+                    print(f"* {filename}: Complete? {zip_complete} {errors or ''}")
+                    if not zip_complete:
+                        verified = False
+                        continue
+                    # TODO Uploader.check_item_health(itemname)
+                    # to ensure no conflicting tasks/redrows
+                    if cls.remote_matches_local(item_id, batch_id, size=size):
+                        print(f"* {filename}: identical copy on archive.org")
+                        continue
                     verified = False
-                    continue
-                # TODO Uploader.check_item_health(itemname)
-                # to ensure no conflicting tasks/redrows
-                if cls.remote_matches_local(item_id, batch_id, size=size):
-                    print(f"* {filename}: identical copy on archive.org")
-                    continue
-                verified = False
-                if upload and not test:
-                    print(f"=> Uploading {filename} to {itemname}")
-                    Uploader.upload(itemname, cls.get_abspath(item_id, batch_id, ext="zip", size=size))
-                elif upload:
-                    print(f"=> Would upload {filename} to {itemname} [test=True]")
+                    if finalized:
+                        print(f"=> Not uploading {filename}: batch already finalized, archive.org holds the only copy")
+                    elif upload and not test:
+                        print(f"=> Uploading {filename} to {itemname}")
+                        Uploader.upload(itemname, cls.get_abspath(item_id, batch_id, ext="zip", size=size))
+                    elif upload:
+                        print(f"=> Would upload {filename} to {itemname} [test=True]")
 
-            print(f"* Finalize? {finalize and verified}")
-            if finalize and verified:
-                cls.finalize(item_id, batch_id, test=test)
+                print(f"* Finalize? {finalize and verified}")
+                if finalize and verified:
+                    cls._finalize(item_id, batch_id, test=test)
 
     @staticmethod
     def get_pending():
@@ -170,9 +203,14 @@ class Batch:
         if not os.path.exists(filepath):
             errors.append({"error": "nozip"})
         else:
+            # Counts finalized rows too, so a later zip holding only stragglers never passes.
             expected_num_files = len(cdb.get_batch_archived(start_id=start_id))
-            num_files = ZipManager.count_files_in_zip(filepath)
-            if num_files != expected_num_files:
+            try:
+                num_files = ZipManager.count_files_in_zip(filepath)
+            except zipfile.BadZipFile:
+                num_files = None
+                errors.append({"error": "zip_corrupt"})
+            if num_files is not None and num_files != expected_num_files:
                 errors.append(
                     {
                         "error": "zip_discrepency",
@@ -197,38 +235,70 @@ class Batch:
         """
         return all(cls.is_zip_complete(item_id, batch_id, size=size) and cls.remote_matches_local(item_id, batch_id, size=size) for size in BATCH_SIZES)
 
+    @staticmethod
+    def batch_start_id(item_id, batch_id) -> int:
+        return (ITEM_SIZE * int(item_id)) + (BATCH_SIZE * int(batch_id))
+
     @classmethod
     def finalize(cls, item_id, batch_id, test=True) -> bool:
         """Point a batch's archived covers at its archive.org zips, then delete
         their local files and the local zips.
 
         Checks for itself, rather than trusting the caller, that the batch is
-        verified and that every cover it will delete is inside the zips.
+        verified, that every zip's data passes its checksums, and that every
+        local file it will delete is byte-for-byte the zip entry (size and CRC).
         Otherwise it changes nothing. Returns whether it finalized.
         """
+        with nullcontext() if test else archival_lock():
+            return cls._finalize(item_id, batch_id, test=test)
+
+    @classmethod
+    def _finalize(cls, item_id, batch_id, test=True) -> bool:
+        """finalize(), for callers already holding archival_lock()."""
+        start_id = cls.batch_start_id(item_id, batch_id)
+        if start_id < MIN_ARCHIVABLE_ID:
+            print(f"=> Refusing to finalize {item_id}_{batch_id}: below {MIN_ARCHIVABLE_ID}")
+            return False
         if not cls.is_verified(item_id, batch_id):
             print(f"=> Refusing to finalize {item_id}_{batch_id}: archive.org copy not verified")
             return False
 
         cdb = CoverDB()
-        start_id = (ITEM_SIZE * int(item_id)) + (BATCH_SIZE * int(batch_id))
-        covers = [Cover(**c) for c in cdb.get_batch_archived(start_id=start_id, uploaded=False)]
+        covers = [Cover(**c) for c in cdb.get_batch_archived(start_id=start_id)]
         zips = {size: cls.get_abspath(item_id, batch_id, ext="zip", size=size) for size in BATCH_SIZES}
-        zipped = {size: ZipManager.names_in_zip(path) for size, path in zips.items()}
-        if missing := [c.id for c in covers for size in BATCH_SIZES if c.files[Cover.FILE_KEYS[size]].name not in zipped[size]]:
-            print(f"=> Refusing to finalize {item_id}_{batch_id}: covers missing from zips: {sorted(set(missing))}")
+        entries: dict[str, dict[str, tuple[int, int]]] = {}
+        for size, path in zips.items():
+            if (zip_entries := ZipManager.read_entries(path)) is None:
+                print(f"=> Refusing to finalize {item_id}_{batch_id}: {os.path.basename(path)} fails its checksums")
+                return False
+            entries[size] = zip_entries
+        if bad := sorted({c.id for c in covers for size in BATCH_SIZES if not matches_zip_entry(entries[size], c.files[Cover.FILE_KEYS[size]])}):
+            print(f"=> Refusing to finalize {item_id}_{batch_id}: covers missing from or differing from zips: {bad}")
+            return False
+        # The entries above must describe what archive.org holds: re-check after reading them.
+        if not all(cls.remote_matches_local(item_id, batch_id, size=size) for size in BATCH_SIZES):
+            print(f"=> Refusing to finalize {item_id}_{batch_id}: a local zip changed during finalize")
             return False
 
-        print(f"=> Finalizing {len(covers)} covers in {item_id}_{batch_id} [test={test}]")
+        to_finalize = [c for c in covers if c.uploaded is False]
+        print(f"=> Finalizing {len(to_finalize)} covers in {item_id}_{batch_id} [test={test}]")
         if test:
             return False
-        # Repoint before deleting: if deletion is interrupted, every cover still resolves.
-        cdb.update_completed_batch(start_id)
-        for cover in covers:
-            cover.delete_files()
-        for path in zips.values():
-            print(f"=> Deleting {path}")
-            os.remove(path)
+        # One cover at a time, repointing before deleting: if this stops midway every
+        # cover still resolves, and at most one cover's local files are left behind.
+        # A cover whose row did not update keeps its files, and the batch keeps its zips.
+        not_repointed = []
+        for cover in to_finalize:
+            if cdb.update_completed_batch(start_id, ids=[cover.id]) == 1:
+                cover.delete_files()
+            else:
+                not_repointed.append(cover.id)
+        if not_repointed:
+            print(f"=> Keeping {item_id}_{batch_id}'s zips: rows not repointed: {not_repointed}")
+            return False
+        for size in reversed(BATCH_SIZES):  # full size last: get_pending() finds batches by it
+            print(f"=> Deleting {zips[size]}")
+            os.remove(zips[size])
         return True
 
 
@@ -255,7 +325,24 @@ class CoverDB:
         """
         return self.get_max_id() >= self._get_batch_end_id(start_id)
 
-    def get_covers(self, limit=None, start_id=None, end_id=None, **kwargs):
+    def has_uploaded(self, start_id) -> bool:
+        """Whether any cover in the batch already points at archive.org."""
+        end_id = self._get_batch_end_id(start_id)
+        where = "id>=$start_id AND id<$end_id AND uploaded=true"
+        return bool(self.db.select(self.TABLE, what="id", where=where, vars={"start_id": start_id, "end_id": end_id}, limit=1).list())
+
+    def get_first_unarchived_id(self, min_id) -> int | None:
+        rows = self.db.select(
+            self.TABLE,
+            what="id",
+            where="failed=false AND archived=false AND id>=$min_id",
+            vars={"min_id": min_id},
+            order="id asc",
+            limit=1,
+        ).list()
+        return rows[0].id if rows else None
+
+    def get_covers(self, limit=None, start_id=None, end_id=None, min_id=None, **kwargs):
         """Utility for fetching covers from the database
 
         start_id: explicitly define a starting id. This is significant
@@ -266,10 +353,15 @@ class CoverDB:
 
         limit: if no start_id is present, specifies num rows to return.
 
+        min_id: only covers with at least this id.
+
         kwargs: additional specifiable cover table query arguments
         like those found in STATUS_KEYS
         """
         wheres = [f"{key}=${key}" for key in kwargs if key in self.STATUS_KEYS and kwargs.get(key) is not None]
+        if min_id:
+            wheres.append("id>=$min_id")
+            kwargs["min_id"] = min_id
         if start_id:
             wheres.append("id>=$start_id AND id<$end_id")
             kwargs["start_id"] = start_id
@@ -284,8 +376,8 @@ class CoverDB:
             limit=limit,
         )
 
-    def get_unarchived_covers(self, limit, **kwargs):
-        return self.get_covers(limit=limit, failed=False, archived=False, **kwargs)
+    def get_unarchived_covers(self, limit, min_id=0, **kwargs):
+        return self.get_covers(limit=limit, min_id=min_id, failed=False, archived=False, **kwargs)
 
     def _get_current_batch_start_id(self, **kwargs):
         c = self.get_covers(limit=1, **kwargs)[0]
@@ -317,13 +409,16 @@ class CoverDB:
             **kwargs,
         )
 
-    def update_completed_batch(self, start_id):
+    def update_completed_batch(self, start_id, ids):
+        """Point exactly `ids` (covers of this batch) at the batch's zips."""
+        if not ids:
+            return 0
         end_id = start_id + BATCH_SIZE
         item_id, batch_id = Cover.id_to_item_and_batch_id(start_id)
         return self.db.update(
             self.TABLE,
-            where="id>=$start_id AND id<$end_id AND archived=true AND failed=false AND uploaded=false",
-            vars={"start_id": start_id, "end_id": end_id},
+            where="id IN $ids AND id>=$start_id AND id<$end_id AND archived=true AND failed=false AND uploaded=false",
+            vars={"ids": ids, "start_id": start_id, "end_id": end_id},
             uploaded=True,
             filename=Batch.get_relpath(item_id, batch_id, ext="zip"),
             filename_s=Batch.get_relpath(item_id, batch_id, ext="zip", size="s"),
@@ -396,14 +491,28 @@ def archive(limit=None, start_id=None, end_id=None):
     """Add covers from local disk to their batch's zips and mark them archived.
 
     Never touches the open batch, the one holding the newest cover: covers
-    are still landing in it, so a zip of it would be partial (#9836).
+    are still landing in it, so a zip of it would be partial (#9836). Never
+    touches covers below MIN_ARCHIVABLE_ID either.
     """
     cdb = CoverDB()
     max_id = cdb.get_max_id()
     open_batch_start = max_id - (max_id % BATCH_SIZE)
 
-    with ZipManager() as file_manager:
-        covers = cdb.get_unarchived_covers(limit=limit) if limit else cdb.get_batch_unarchived(start_id=start_id, end_id=end_id)
+    if start_id is not None and start_id < MIN_ARCHIVABLE_ID:
+        print(f"Not archiving from {start_id}: covers below {MIN_ARCHIVABLE_ID} are not archived by this module")
+        return
+    if not limit and start_id is None:
+        first = cdb.get_first_unarchived_id(min_id=MIN_ARCHIVABLE_ID)
+        if first is None:
+            print("Nothing to archive")
+            return
+        start_id = first - (first % BATCH_SIZE)
+
+    with archival_lock(), ZipManager() as file_manager:
+        if limit:
+            covers = cdb.get_unarchived_covers(limit=limit, min_id=MIN_ARCHIVABLE_ID)
+        else:
+            covers = cdb.get_batch_unarchived(start_id=start_id, end_id=end_id)
 
         for cover in covers:
             cover = Cover(**cover)
@@ -472,6 +581,16 @@ class ZipManager:
     def count_files_in_zip(cls, filepath) -> int:
         return len(cls.names_in_zip(filepath))
 
+    @staticmethod
+    def read_entries(filepath) -> dict[str, tuple[int, int]] | None:
+        """name -> (size, CRC-32) for each .jpg in the zip, or None if any
+        member's data does not match its recorded CRC.
+        """
+        with zipfile.ZipFile(filepath, "r") as zip_ref:
+            if zip_ref.testzip() is not None:
+                return None
+            return {i.filename: (i.file_size, i.CRC) for i in zip_ref.infolist() if i.filename.endswith(".jpg")}
+
     def get_zipfile(self, name):
         cid = web.numify(name)
         zipname = f"covers_{cid[:4]}_{cid[4:6]}.zip"
@@ -497,6 +616,10 @@ class ZipManager:
         dir = os.path.dirname(path)
         if not os.path.exists(dir):
             os.makedirs(dir)
+        # Appending to a damaged zip (e.g. after a killed run) silently starts a new one
+        # after the damage, hiding covers already marked archived.
+        if os.path.exists(path) and not zipfile.is_zipfile(path):
+            raise RuntimeError(f"{path} is not a readable zip; it needs repair before archiving continues")
 
         return zipfile.ZipFile(path, "a")
 
@@ -536,6 +659,26 @@ class ZipManager:
 def md5sum(path) -> str:
     with open(path, "rb") as f:
         return hashlib.file_digest(f, "md5").hexdigest()
+
+
+def crc32(path) -> int:
+    crc = 0
+    with open(path, "rb") as f:
+        while chunk := f.read(1 << 20):
+            crc = zlib.crc32(chunk, crc)
+    return crc
+
+
+def matches_zip_entry(entries: dict[str, tuple[int, int]], f) -> bool:
+    """Whether cover file `f` is in the zip and, if it is still on local disk,
+    is byte-for-byte the zip's entry.
+    """
+    if f.name not in entries:
+        return False
+    if not (f.path and os.path.exists(f.path)):
+        return True
+    size, crc = entries[f.name]
+    return os.path.getsize(f.path) == size and crc32(f.path) == crc
 
 
 def main(openlibrary_yml: str, coverstore_yml: str, dry_run: bool = False):

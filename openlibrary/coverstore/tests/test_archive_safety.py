@@ -13,6 +13,8 @@ CI sets it (.github/workflows/python_tests.yml); without it they are skipped.
 import hashlib
 import io
 import os
+import re
+import struct
 import uuid
 import zipfile
 from pathlib import Path
@@ -157,7 +159,7 @@ def test_open_batch_is_not_zipped_or_uploaded(store):
 
 
 def test_partial_copy_on_archive_org_is_replaced_not_trusted(store):
-    """Today's state for covers_0014_62: archive.org holds a partial zip of a closed batch."""
+    """archive.org holds a partial zip of a closed batch whose covers are still local."""
     ids = list(range(BATCH, BATCH + 4))
     store.add_covers(*ids, NEXT_BATCH)
     run_recipe()  # archives and uploads the whole batch
@@ -190,16 +192,195 @@ def test_leftover_zip_of_open_batch_is_not_uploaded(store):
     """A zip of a still-open batch, as the old code made and could have left on disk."""
     ids = [BATCH, BATCH + 1]
     store.add_covers(*ids)
-    zips = archive.ZipManager()
-    for row in store.db.select("cover", order="id"):
-        for f in archive.Cover(**row).files.values():
-            zips.add_file(f.name, filepath=f.path)
-    zips.close()
-    store.db.update("cover", where="true", archived=True)
+    zip_covers(store, ids)
 
     archive.Batch.process_pending(upload=True, finalize=True, test=False)
     assert store.remote.files == {}
     assert all(store.on_local_disk(cid) for cid in ids)
+
+
+def zip_covers(store, ids):
+    """Add covers to their batch's local zips and mark them archived, bypassing archive()'s
+    guards, as the old code or a concurrent run would."""
+    zips = archive.ZipManager()
+    for cid in ids:
+        row = store.db.select("cover", where="id=$id", vars={"id": cid})[0]
+        for f in archive.Cover(**row).files.values():
+            zips.add_file(f.name, filepath=f.path)
+    zips.close()
+    store.db.update("cover", where="id IN $ids", vars={"ids": list(ids)}, archived=True)
+
+
+def append_straggler(store, cid):
+    """What a concurrent archive() does: add a cover to the batch's local zips, then mark it archived."""
+    store.add_covers(cid)
+    zip_covers(store, [cid])
+
+
+def test_cover_archived_during_finalize_is_not_deleted(store, monkeypatch):
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()  # uploads
+    verified = archive.Batch.is_verified.__func__
+
+    def verified_then_straggler(cls, item_id, batch_id):
+        result = verified(cls, item_id, batch_id)
+        append_straggler(store, BATCH + 2)
+        return result
+
+    monkeypatch.setattr(archive.Batch, "is_verified", classmethod(verified_then_straggler))
+    assert archive.Batch.finalize("0014", "62", test=False) is False
+    assert store.on_local_disk(BATCH + 2)
+    assert store.uploaded(ids + [BATCH + 2]) == []
+
+
+def test_local_file_differing_from_its_zip_entry_is_not_deleted(store):
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()  # uploads
+    changed = store.root / "localdisk" / f"2024/05/07/{BATCH}-L.jpg"
+    changed.write_bytes(b"not what the zip holds")
+
+    run_recipe()
+    assert changed.read_bytes() == b"not what the zip holds"
+    assert store.uploaded(ids) == []
+
+
+def test_zip_whose_data_fails_its_checksum_is_not_finalized(store):
+    """Corruption inside a member's data, with its header intact, uploads as-is; finalize must catch it."""
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    archive.archive()
+    path = archive.Batch.get_abspath("0014", "62", ext="zip", size="l")
+    with zipfile.ZipFile(path) as z:
+        offset = z.getinfo(f"{BATCH:010}-L.jpg").header_offset
+    with open(path, "r+b") as f:
+        f.seek(offset + 26)
+        name_len, extra_len = struct.unpack("<HH", f.read(4))
+        f.seek(offset + 30 + name_len + extra_len)
+        byte = f.read(1)
+        f.seek(-1, os.SEEK_CUR)
+        f.write(bytes([byte[0] ^ 0xFF]))
+
+    run_recipe()  # uploads the corrupt zip, as it matches the db count
+    run_recipe()
+    assert all(store.on_local_disk(cid) for cid in ids)
+    assert store.uploaded(ids) == []
+
+
+def test_straggler_in_finalized_batch_never_replaces_archive_org_zip(store):
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()
+    run_recipe()  # finalized
+    remote = dict(store.remote.files)
+
+    store.add_covers(BATCH + 2)  # a row that lands in the batch after it was finalized
+    run_recipe()
+    run_recipe()
+    assert store.remote.files == remote
+    assert store.lost(ids + [BATCH + 2]) == []
+
+
+def test_covers_below_min_archivable_id_are_left_alone(store):
+    old = [7_320_000, 7_320_001]
+    store.add_covers(*old, BATCH, BATCH + 1, NEXT_BATCH)
+    archive.archive(start_id=7_320_000)
+    archive.archive(limit=10)
+    assert store.db.select("cover", where="archived AND id < $min", vars={"min": archive.MIN_ARCHIVABLE_ID}).list() == []
+    assert archive.Batch.finalize("0007", "32", test=False) is False
+
+    run_recipe()
+    run_recipe()
+    assert store.db.select("cover", where="archived AND id < $min", vars={"min": archive.MIN_ARCHIVABLE_ID}).list() == []
+    assert all(store.on_local_disk(cid) for cid in old)
+    assert store.uploaded(old) == []
+    assert store.uploaded([BATCH, BATCH + 1]) == [BATCH, BATCH + 1]
+
+
+def test_finalize_refuses_below_min_archivable_id(store):
+    """A verified zip of old covers, as the old code could have made: code.py would not redirect them."""
+    old = [7_320_000, 7_320_001]
+    store.add_covers(*old, NEXT_BATCH)
+    zip_covers(store, old)
+    archive.Batch.process_pending(upload=True, finalize=False, test=False)
+    assert archive.Batch.finalize("0007", "32", test=False) is False
+    assert all(store.on_local_disk(cid) for cid in old)
+    assert store.uploaded(old) == []
+
+
+def test_second_archival_run_fails_fast(store):
+    store.add_covers(BATCH, NEXT_BATCH)
+    with archive.archival_lock():
+        with pytest.raises(RuntimeError, match="Another archival run"):
+            archive.archive()
+        with pytest.raises(RuntimeError, match="Another archival run"):
+            archive.Batch.process_pending(upload=True, finalize=True, test=False)
+        with pytest.raises(RuntimeError, match="Another archival run"):
+            archive.Batch.finalize("0014", "62", test=False)
+        archive.Batch.process_pending()  # looking is still allowed
+    assert store.remote.files == {}
+
+
+def test_row_with_null_uploaded_keeps_its_files(store):
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()  # uploads
+    store.db.update("cover", where="id=$id", vars={"id": BATCH + 1}, uploaded=None)
+
+    run_recipe()
+    assert store.on_local_disk(BATCH + 1)
+    assert store.lost(ids) == []
+
+
+def test_archive_refuses_to_append_to_a_damaged_zip(store):
+    """A zip left unreadable by a killed run: appending would start a new zip after the damage."""
+    store.add_covers(BATCH, BATCH + 1, NEXT_BATCH)
+    damaged = Path(archive.Batch.get_abspath("0014", "62", ext="zip"))
+    damaged.parent.mkdir(parents=True)
+    damaged.write_bytes(b"PK\x03\x04 truncated")
+
+    with pytest.raises(RuntimeError, match="not a readable zip"):
+        archive.archive()
+    assert store.db.select("cover", where="archived").list() == []
+
+
+def test_corrupt_local_zip_does_not_stop_other_batches(store):
+    store.add_covers(BATCH, NEXT_BATCH, NEXT_BATCH + archive.BATCH_SIZE)
+    archive.archive()  # batch 62
+    archive.archive()  # batch 63
+    Path(archive.Batch.get_abspath("0014", "62", ext="zip")).write_bytes(b"not a zip")
+
+    archive.Batch.process_pending(upload=True, finalize=True, test=False)
+    assert ("covers_0014", "covers_0014_63.zip") in store.remote.files
+    assert ("covers_0014", "covers_0014_62.zip") not in store.remote.files
+    assert store.on_local_disk(BATCH)
+
+
+def test_rerun_after_interrupted_finalize_finishes_cleanly(store, monkeypatch):
+    ids = [BATCH, BATCH + 1, BATCH + 2]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()  # uploads
+    delete_files = archive.Cover.delete_files
+
+    def dies_on_second_cover(self):
+        if self.id == BATCH + 1:
+            raise OSError("interrupted")
+        delete_files(self)
+
+    monkeypatch.setattr(archive.Cover, "delete_files", dies_on_second_cover)
+    with pytest.raises(OSError, match="interrupted"):
+        run_recipe()
+    assert store.lost(ids) == []
+
+    monkeypatch.setattr(archive.Cover, "delete_files", delete_files)
+    run_recipe()
+    assert store.lost(ids) == []
+    assert store.uploaded(ids) == ids
+    assert list((store.root / "items").rglob("*.zip")) == []
+    # Only the cover interrupted between repoint and delete keeps local files (4 at most).
+    leftover = {int(re.match(r"\d+", p.name)[0]) for p in (store.root / "localdisk").rglob("*.jpg")}
+    assert leftover & set(ids) == {BATCH + 1}
 
 
 def test_dry_run_changes_nothing(store):
