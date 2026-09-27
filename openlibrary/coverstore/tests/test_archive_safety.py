@@ -21,8 +21,10 @@ from pathlib import Path
 
 import pytest
 import web
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-from openlibrary.coverstore import archive, config, db
+from openlibrary.coverstore import archive, code, config, db
 
 BATCH = 14_620_000  # covers_0014_62, the batch #9836 lost covers from
 NEXT_BATCH = BATCH + archive.BATCH_SIZE
@@ -218,17 +220,20 @@ def append_straggler(store, cid):
 
 
 def test_cover_archived_during_finalize_is_not_deleted(store, monkeypatch):
+    """A cover appended to the zips after finalize has read them (the lock stops a real
+    archive() doing this; this checks finalize does not rely on that alone)."""
     ids = [BATCH, BATCH + 1]
     store.add_covers(*ids, NEXT_BATCH)
     run_recipe()  # uploads
-    verified = archive.Batch.is_verified.__func__
+    read_entries = archive.ZipManager.read_entries
 
-    def verified_then_straggler(cls, item_id, batch_id):
-        result = verified(cls, item_id, batch_id)
-        append_straggler(store, BATCH + 2)
-        return result
+    def read_then_straggler(path):
+        entries = read_entries(path)
+        if not store.on_local_disk(BATCH + 2):
+            append_straggler(store, BATCH + 2)
+        return entries
 
-    monkeypatch.setattr(archive.Batch, "is_verified", classmethod(verified_then_straggler))
+    monkeypatch.setattr(archive.ZipManager, "read_entries", staticmethod(read_then_straggler))
     assert archive.Batch.finalize("0014", "62", test=False) is False
     assert store.on_local_disk(BATCH + 2)
     assert store.uploaded(ids + [BATCH + 2]) == []
@@ -246,14 +251,10 @@ def test_local_file_differing_from_its_zip_entry_is_not_deleted(store):
     assert store.uploaded(ids) == []
 
 
-def test_zip_whose_data_fails_its_checksum_is_not_finalized(store):
-    """Corruption inside a member's data, with its header intact, uploads as-is; finalize must catch it."""
-    ids = [BATCH, BATCH + 1]
-    store.add_covers(*ids, NEXT_BATCH)
-    archive.archive()
-    path = archive.Batch.get_abspath("0014", "62", ext="zip", size="l")
+def corrupt_member_data(path, member):
+    """Flip one byte of a member's data, leaving its header and recorded CRC intact."""
     with zipfile.ZipFile(path) as z:
-        offset = z.getinfo(f"{BATCH:010}-L.jpg").header_offset
+        offset = z.getinfo(member).header_offset
     with open(path, "r+b") as f:
         f.seek(offset + 26)
         name_len, extra_len = struct.unpack("<HH", f.read(4))
@@ -262,10 +263,112 @@ def test_zip_whose_data_fails_its_checksum_is_not_finalized(store):
         f.seek(-1, os.SEEK_CUR)
         f.write(bytes([byte[0] ^ 0xFF]))
 
-    run_recipe()  # uploads the corrupt zip, as it matches the db count
+
+def test_corrupt_local_zip_never_replaces_archive_org_copy(store):
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()  # uploads
+    remote = dict(store.remote.files)
+    corrupt_member_data(archive.Batch.get_abspath("0014", "62", ext="zip", size="l"), f"{BATCH:010}-L.jpg")
+
     run_recipe()
+    assert store.remote.files == remote
+    assert all(store.on_local_disk(cid) for cid in ids)
+
+
+def test_corrupt_zip_on_both_sides_is_not_finalized(store):
+    """Identical corrupt copies locally and on archive.org, as the old code could upload."""
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    archive.archive()
+    corrupt_member_data(archive.Batch.get_abspath("0014", "62", ext="zip", size="l"), f"{BATCH:010}-L.jpg")
+    for size in SUFFIXES:
+        store.remote.upload(store._zip(BATCH, size)[0], archive.Batch.get_abspath("0014", "62", ext="zip", size=size))
+
+    archive.Batch.process_pending(upload=False, finalize=True, test=False)
     assert all(store.on_local_disk(cid) for cid in ids)
     assert store.uploaded(ids) == []
+
+
+def test_zip_with_junk_before_it_is_treated_as_corrupt(store):
+    """What appending to a damaged zip produced before this change: Python still reads it."""
+    store.add_covers(BATCH, BATCH + 1, NEXT_BATCH)
+    archive.archive()
+    path = Path(archive.Batch.get_abspath("0014", "62", ext="zip"))
+    path.write_bytes(b"leftover bytes" + path.read_bytes())
+
+    archive.Batch.process_pending(upload=True, finalize=True, test=False)
+    assert ("covers_0014", "covers_0014_62.zip") not in store.remote.files
+
+
+def test_zip_with_right_count_but_wrong_names_is_not_uploaded(store):
+    store.add_covers(BATCH, BATCH + 1, BATCH + 2, NEXT_BATCH)
+    zip_covers(store, [BATCH, BATCH + 1])
+    store.db.update("cover", where="id=$id", vars={"id": BATCH + 1}, failed=True)
+    store.db.update("cover", where="id=$id", vars={"id": BATCH + 2}, archived=True)  # not in the zip
+
+    archive.Batch.process_pending(upload=True, finalize=True, test=False)
+    assert store.remote.files == {}
+
+
+def test_finalized_batch_with_partial_archive_org_copy_is_restored(store):
+    """#9836's state, if batch 62's local zip survived: rows repointed, local files gone,
+    archive.org partial. The complete local zip must be uploaded, not kept back."""
+    ids = [BATCH, BATCH + 1, BATCH + 2]
+    store.add_covers(*ids, NEXT_BATCH)
+    archive.archive()
+    for size in SUFFIXES:
+        item, filename = store._zip(BATCH, size)
+        store.remote.upload(item, archive.Batch.get_abspath("0014", "62", ext="zip", size=size))
+        store.remote.truncate(item, filename, keep=1)
+    archive.CoverDB().update_completed_batch(BATCH, ids=ids)
+    for p in (store.root / "localdisk").rglob("*.jpg"):
+        if int(re.match(r"\d+", p.name)[0]) in ids:
+            p.unlink()
+    assert store.lost(ids) == [BATCH + 1, BATCH + 2]
+
+    run_recipe()  # uploads the complete local zips
+    run_recipe()  # then removes them
+    assert store.lost(ids) == []
+    assert list((store.root / "items").rglob("*.zip")) == []
+
+
+def test_finalize_tolerates_covers_whose_local_files_are_already_gone(store):
+    """What an interrupted run of the old code could leave: archived, not repointed, files gone."""
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()  # uploads
+    for p in (store.root / "localdisk").rglob(f"{BATCH}*.jpg"):
+        p.unlink()
+
+    run_recipe()
+    assert store.uploaded(ids) == ids
+    assert all(store.on_archive_org(cid) for cid in ids)
+
+
+def test_finalized_cover_is_served_from_its_archive_org_zip(store):
+    store.add_covers(BATCH, NEXT_BATCH)
+    run_recipe()
+    run_recipe()
+    app = FastAPI()
+    app.include_router(code.router)
+
+    response = TestClient(app).get(f"/b/id/{BATCH}-L.jpg", follow_redirects=False)
+    assert response.status_code == 302
+    item, zipname, member = response.headers["location"].split("/download/", 1)[1].split("/")
+    assert member in store.remote.members(item, zipname)
+
+
+def test_main_continues_past_a_damaged_batch(store, monkeypatch):
+    monkeypatch.setattr("openlibrary.coverstore.server.load_config", lambda path: None)
+    store.add_covers(BATCH, NEXT_BATCH, NEXT_BATCH + archive.BATCH_SIZE)
+    archive.archive(start_id=NEXT_BATCH)  # batch 63 zipped
+    damaged = Path(archive.Batch.get_abspath("0014", "62", ext="zip"))
+    damaged.parent.mkdir(parents=True, exist_ok=True)
+    damaged.write_bytes(b"PK\x03\x04 truncated")
+
+    archive.main("openlibrary.yml", "coverstore.yml")
+    assert ("covers_0014", "covers_0014_63.zip") in store.remote.files
 
 
 def test_straggler_in_finalized_batch_never_replaces_archive_org_zip(store):

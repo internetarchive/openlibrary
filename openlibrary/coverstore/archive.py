@@ -124,8 +124,9 @@ class Batch:
         """For each batch zipped on local disk:
 
         1. Skip any size whose local zip is not complete (see is_zip_complete).
-        2. Upload any complete zip that archive.org lacks or holds a different
-           copy of. This is also how a partial upload gets replaced.
+        2. Upload any complete zip whose data passes its checksums and that
+           archive.org lacks or holds a different copy of. This is also how a
+           partial upload gets replaced, even for a finalized batch (#9836).
         3. Finalize the batch only if archive.org holds a byte-identical copy
            of every size. A zip uploaded in this run is therefore finalized
            on a later run, once archive.org reports its md5.
@@ -142,9 +143,6 @@ class Batch:
 
                 print(f"\n## [Processing batch {item_id}_{batch_id}] ##")
                 verified = True
-                # A finalized batch's archive.org zips are the only copy of its
-                # covers; a later local zip of the batch must never replace them.
-                finalized = CoverDB().has_uploaded(cls.batch_start_id(item_id, batch_id))
 
                 for size in BATCH_SIZES:
                     itemname, filename = cls.get_relpath(item_id, batch_id, ext="zip", size=size).split(os.path.sep)
@@ -159,13 +157,16 @@ class Batch:
                         print(f"* {filename}: identical copy on archive.org")
                         continue
                     verified = False
-                    if finalized:
-                        print(f"=> Not uploading {filename}: batch already finalized, archive.org holds the only copy")
-                    elif upload and not test:
-                        print(f"=> Uploading {filename} to {itemname}")
-                        Uploader.upload(itemname, cls.get_abspath(item_id, batch_id, ext="zip", size=size))
-                    elif upload:
+                    if not upload:
+                        continue
+                    local = cls.get_abspath(item_id, batch_id, ext="zip", size=size)
+                    if ZipManager.read_entries(local) is None:
+                        print(f"=> Not uploading {filename}: its data fails its checksums")
+                    elif test:
                         print(f"=> Would upload {filename} to {itemname} [test=True]")
+                    else:
+                        print(f"=> Uploading {filename} to {itemname}")
+                        Uploader.upload(itemname, local)
 
                 print(f"* Finalize? {finalize and verified}")
                 if finalize and verified:
@@ -188,7 +189,7 @@ class Batch:
     def is_zip_complete(item_id, batch_id, size="", verbose=False):
         """Whether the local zip holds every cover the batch will ever hold:
         the batch is closed, nothing in it is left to archive, and the zip
-        has one file per archived cover.
+        holds exactly the batch's archived covers, by name.
         """
         cdb = CoverDB()
         errors = []
@@ -203,19 +204,20 @@ class Batch:
         if not os.path.exists(filepath):
             errors.append({"error": "nozip"})
         else:
-            # Counts finalized rows too, so a later zip holding only stragglers never passes.
-            expected_num_files = len(cdb.get_batch_archived(start_id=start_id))
-            try:
-                num_files = ZipManager.count_files_in_zip(filepath)
-            except zipfile.BadZipFile:
-                num_files = None
+            # Finalized rows count too, so a later zip holding only stragglers never passes.
+            key = Cover.FILE_KEYS[size]
+            expected = {Cover(**c).files[key].name for c in cdb.get_batch_archived(start_id=start_id)}
+            actual = ZipManager.names_in_zip(filepath) if ZipManager.is_readable(filepath) else None
+            if actual is None:
                 errors.append({"error": "zip_corrupt"})
-            if num_files is not None and num_files != expected_num_files:
+            elif actual != expected:
                 errors.append(
                     {
                         "error": "zip_discrepency",
-                        "expected": expected_num_files,
-                        "actual": num_files,
+                        "expected": len(expected),
+                        "actual": len(actual),
+                        "missing": len(expected - actual),
+                        "unexpected": len(actual - expected),
                     }
                 )
         success = not errors
@@ -259,25 +261,23 @@ class Batch:
         if start_id < MIN_ARCHIVABLE_ID:
             print(f"=> Refusing to finalize {item_id}_{batch_id}: below {MIN_ARCHIVABLE_ID}")
             return False
-        if not cls.is_verified(item_id, batch_id):
-            print(f"=> Refusing to finalize {item_id}_{batch_id}: archive.org copy not verified")
-            return False
-
         cdb = CoverDB()
         covers = [Cover(**c) for c in cdb.get_batch_archived(start_id=start_id)]
         zips = {size: cls.get_abspath(item_id, batch_id, ext="zip", size=size) for size in BATCH_SIZES}
         entries: dict[str, dict[str, tuple[int, int]]] = {}
         for size, path in zips.items():
-            if (zip_entries := ZipManager.read_entries(path)) is None:
-                print(f"=> Refusing to finalize {item_id}_{batch_id}: {os.path.basename(path)} fails its checksums")
+            zip_entries = ZipManager.read_entries(path) if os.path.exists(path) and ZipManager.is_readable(path) else None
+            if zip_entries is None:
+                print(f"=> Refusing to finalize {item_id}_{batch_id}: {os.path.basename(path)} is missing, unreadable or fails its checksums")
                 return False
             entries[size] = zip_entries
         if bad := sorted({c.id for c in covers for size in BATCH_SIZES if not matches_zip_entry(entries[size], c.files[Cover.FILE_KEYS[size]])}):
             print(f"=> Refusing to finalize {item_id}_{batch_id}: covers missing from or differing from zips: {bad}")
             return False
-        # The entries above must describe what archive.org holds: re-check after reading them.
-        if not all(cls.remote_matches_local(item_id, batch_id, size=size) for size in BATCH_SIZES):
-            print(f"=> Refusing to finalize {item_id}_{batch_id}: a local zip changed during finalize")
+        # Verified only after the covers and entries above were read: a zip that has
+        # changed since then no longer matches archive.org, and finalize refuses.
+        if not cls.is_verified(item_id, batch_id):
+            print(f"=> Refusing to finalize {item_id}_{batch_id}: archive.org copy not verified")
             return False
 
         to_finalize = [c for c in covers if c.uploaded is False]
@@ -324,12 +324,6 @@ class CoverDB:
         covers can still land in it, so any zip of it is partial (#9836).
         """
         return self.get_max_id() >= self._get_batch_end_id(start_id)
-
-    def has_uploaded(self, start_id) -> bool:
-        """Whether any cover in the batch already points at archive.org."""
-        end_id = self._get_batch_end_id(start_id)
-        where = "id>=$start_id AND id<$end_id AND uploaded=true"
-        return bool(self.db.select(self.TABLE, what="id", where=where, vars={"start_id": start_id, "end_id": end_id}, limit=1).list())
 
     def get_first_unarchived_id(self, min_id) -> int | None:
         rows = self.db.select(
@@ -395,8 +389,8 @@ class CoverDB:
             end_id=end_id,
         )
 
-    def get_batch_archived(self, start_id=None, **kwargs):
-        return self._get_batch(start_id=start_id, archived=True, failed=False, **kwargs)
+    def get_batch_archived(self, start_id=None):
+        return self._get_batch(start_id=start_id, archived=True, failed=False)
 
     def get_batch_failures(self, start_id=None):
         return self._get_batch(start_id=start_id, failed=True)
@@ -582,6 +576,22 @@ class ZipManager:
         return len(cls.names_in_zip(filepath))
 
     @staticmethod
+    def is_readable(filepath) -> bool:
+        """Whether the file is a zip starting at its first byte whose directory
+        reads. Rejects a zip appended after junk, which is what appending to a
+        damaged zip produces.
+        """
+        with open(filepath, "rb") as f:
+            if f.read(4) != b"PK\x03\x04":
+                return False
+        try:
+            with zipfile.ZipFile(filepath, "r") as zip_ref:
+                zip_ref.namelist()
+        except zipfile.BadZipFile:
+            return False
+        return True
+
+    @staticmethod
     def read_entries(filepath) -> dict[str, tuple[int, int]] | None:
         """name -> (size, CRC-32) for each .jpg in the zip, or None if any
         member's data does not match its recorded CRC.
@@ -618,7 +628,7 @@ class ZipManager:
             os.makedirs(dir)
         # Appending to a damaged zip (e.g. after a killed run) silently starts a new one
         # after the damage, hiding covers already marked archived.
-        if os.path.exists(path) and not zipfile.is_zipfile(path):
+        if os.path.exists(path) and not self.is_readable(path):
             raise RuntimeError(f"{path} is not a readable zip; it needs repair before archiving continues")
 
         return zipfile.ZipFile(path, "a")
@@ -690,7 +700,11 @@ def main(openlibrary_yml: str, coverstore_yml: str, dry_run: bool = False):
     load_config(openlibrary_yml)
     load_config(coverstore_yml)
     if not dry_run:
-        archive()
+        try:
+            archive()
+        except RuntimeError as e:
+            # e.g. a damaged zip in the lowest batch; batches already zipped can still proceed
+            print(f"archive() stopped: {e}")
     Batch.process_pending(upload=True, finalize=True, test=dry_run)
 
 

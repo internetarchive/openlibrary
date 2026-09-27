@@ -8,9 +8,10 @@ Archival has three stages, and only the last one deletes anything:
    and marks them `archived`. It never touches the *open* batch (the one holding the newest cover),
    because covers are still landing in it, and never touches covers below 8,000,000, which are served
    from older layouts.
-2. **Upload**: `Batch.process_pending(upload=True)` uploads each complete zip that archive.org lacks, or
-   holds a different copy of. **This is the backup.** Covers stay on local disk and keep being served
-   from there. A batch that has already been finalized is never uploaded again.
+2. **Upload**: `Batch.process_pending(upload=True)` uploads each complete zip (it holds exactly the
+   batch's archived covers, by name, and its data passes its checksums) that archive.org lacks, or holds
+   a different copy of. **This is the backup.** Covers stay on local disk and keep being served from
+   there.
 3. **Finalize**: `Batch.process_pending(finalize=True)` points covers at archive.org and deletes the local
    copies. It checks for itself that archive.org's copy of every size is byte-identical (md5) to the
    local zip, that the zips' data passes its checksums, and that each local file matches its zip entry.
@@ -111,13 +112,20 @@ It should redirect into the batch's `l_covers_NNNN_NN.zip`, and that URL should 
 ### When a batch doesn't progress
 
 These states are safe: covers stay on local disk and keep being served. Each needs a person to decide.
+**Never delete a local zip by hand.** It can be the only complete copy of a batch, as it would be for
+`covers_0014_62` if its 2024 zip survived.
 
+- **A complete local zip of a batch whose covers are already uploaded, differing from archive.org.**
+  This is `covers_0014_62`'s state if its local zip survived: archive.org holds a partial copy. Step 3
+  uploads the local zip over it, which restores the missing covers, and finalize then removes the local
+  zips.
 - **`zip_discrepency` on a batch whose covers are already uploaded.** A cover landed in the batch after
-  it was finalized. Its zip holds only the stragglers and is never uploaded over archive.org's copy.
-  The straggler stays local.
+  it was finalized. Its zip holds only the stragglers, so it isn't complete and is never uploaded over
+  archive.org's copy. The straggler stays local.
 - **`zip_corrupt`, or `archive()` stopping with `... is not a readable zip`.** A run was killed mid-write.
   The covers it added are marked `archived` but aren't in a readable zip, and `archive()` refuses to
-  append to it, so that batch goes no further until someone rebuilds the zip.
+  append to it. Since `archive()` always starts at the lowest batch with unarchived covers, no new batch
+  is archived until someone rebuilds that zip; batches already zipped still upload and finalize.
 - **`zip_discrepency` on a batch with nothing uploaded.** The zip and the db disagree about which covers
   are archived (for example, a zip written before this procedure existed). Nothing is uploaded or
   deleted until they agree.
