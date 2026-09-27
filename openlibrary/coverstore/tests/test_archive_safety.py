@@ -366,6 +366,29 @@ def test_requeued_finalized_batch_never_shrinks_archive_org_copy(store, clear_up
     assert store.lost(ids) == []
 
 
+def test_finalized_cover_stays_expected_after_its_filename_is_edited(store):
+    """A finalized cover whose filename columns were hand-edited away from its zip (so
+    archive() cannot skip it) is still on archive.org: a zip lacking it must not replace it."""
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()
+    run_recipe()  # finalized
+    remote = dict(store.remote.files)
+    restored, edited = {}, {}
+    for size, suffix in SUFFIXES.items():
+        key = f"filename_{size}" if size else "filename"
+        rel = f"2024/05/07/{BATCH}{suffix}.jpg"
+        (store.root / "localdisk" / rel).write_bytes(os.urandom(5000))
+        restored[key] = rel
+        edited[key] = f"2024/05/07/{BATCH + 1}{suffix}.jpg"  # no file behind it
+    store.db.update("cover", where="id=$id", vars={"id": BATCH}, archived=False, uploaded=False, **restored)
+    store.db.update("cover", where="id=$id", vars={"id": BATCH + 1}, archived=False, **edited)
+
+    run_recipe()
+    run_recipe()
+    assert store.remote.files == remote
+
+
 def test_local_zip_smaller_than_archive_org_copy_is_not_uploaded(store):
     """Right names, wrong (here empty) contents, for covers whose only copy is on archive.org."""
     ids = [BATCH, BATCH + 1]

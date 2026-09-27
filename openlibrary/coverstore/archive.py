@@ -213,9 +213,11 @@ class Batch:
         if not os.path.exists(filepath):
             errors.append({"error": "nozip"})
         else:
-            # Finalized rows count too, so a later zip holding only stragglers never passes.
+            # Finalized rows count too, whatever their failed flag: archive.org may hold
+            # their only copy, so a zip lacking any of them must never replace it.
             key = Cover.FILE_KEYS[size]
-            expected = {Cover(**c).files[key].name for c in cdb.get_batch_archived(start_id=start_id)}
+            rows = [*cdb.get_batch_archived(start_id=start_id), *cdb._get_batch(start_id=start_id, uploaded=True)]
+            expected = {Cover(**c).files[key].name for c in rows}
             actual = ZipManager.names_in_zip(filepath) if ZipManager.is_readable(filepath) else None
             if actual is None:
                 errors.append({"error": "zip_corrupt"})

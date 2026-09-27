@@ -115,10 +115,11 @@ It should redirect into the batch's `l_covers_NNNN_NN.zip`, and that URL should 
 
 These states are safe: covers stay on local disk and keep being served. Each needs a person to decide.
 **Never delete a local zip by hand.** It can be the only complete copy of a batch, as it would be for
-`covers_0014_62` if its 2024 zip survived. **Never reset `archived`, `uploaded` or `failed` by hand on
-covers that already point at a zip:** `archive()` skips such covers (it prints `Skipping ...: already
-points at a zip`), so the batch stays incomplete, but it is the flags that tell the pipeline archive.org
-may hold their only copy.
+`covers_0014_62` if its 2024 zip survived. **Never edit the `archived`, `uploaded` or `failed` flags, or
+the `filename*` columns, by hand on covers that already point at a zip:** those are what tell the
+pipeline archive.org may hold their only copy. `archive()` skips such covers (it prints `Skipping ...:
+already points at a zip`), which keeps their batch incomplete, and since `archive()` always starts at the
+lowest batch with unarchived covers, no newer batch is archived until someone decides about them.
 
 - **A complete local zip of a batch whose covers are already uploaded, differing from archive.org.**
   This is `covers_0014_62`'s state if its local zip survived: archive.org holds a partial copy. Step 3
