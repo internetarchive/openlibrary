@@ -36,13 +36,16 @@ pytestmark = pytest.mark.skipif(not os.environ.get("OL_TEST_POSTGRES"), reason="
 class FakeArchiveOrg:
     def __init__(self):
         self.files: dict[tuple[str, str], bytes] = {}
+        self.report_size = True
 
     def upload(self, item, path):
         self.files[item, os.path.basename(path)] = Path(path).read_bytes()
 
     def remote_file(self, item, filename):
         data = self.files.get((item, filename))
-        return None if data is None else {"md5": hashlib.md5(data).hexdigest(), "size": str(len(data))}
+        if data is None:
+            return None
+        return {"md5": hashlib.md5(data).hexdigest()} | ({"size": str(len(data))} if self.report_size else {})
 
     def remote_md5(self, item, filename):
         f = self.remote_file(item, filename)
@@ -341,7 +344,8 @@ def test_finalized_batch_with_partial_archive_org_copy_is_restored(store):
 @pytest.mark.parametrize("clear_uploaded", [False, True])
 def test_requeued_finalized_batch_never_shrinks_archive_org_copy(store, clear_uploaded):
     """An operator restores one finalized cover's files and re-queues the whole batch.
-    archive() then marks the others failed, so a one-cover zip must not replace the full one."""
+    The restored cover outweighs the others, so a size comparison alone would let a
+    one-cover zip replace archive.org's full copy."""
     ids = [BATCH, BATCH + 1, BATCH + 2]
     store.add_covers(*ids, NEXT_BATCH)
     run_recipe()
@@ -350,7 +354,7 @@ def test_requeued_finalized_batch_never_shrinks_archive_org_copy(store, clear_up
     restored = {}
     for size, suffix in SUFFIXES.items():
         rel = f"2024/05/07/{BATCH}{suffix}.jpg"
-        (store.root / "localdisk" / rel).write_bytes(f"cover {BATCH}{suffix}".encode())
+        (store.root / "localdisk" / rel).write_bytes(os.urandom(5000))
         restored[f"filename_{size}" if size else "filename"] = rel
     store.db.update("cover", where="id=$id", vars={"id": BATCH}, uploaded=False, **restored)
     requeue = {"archived": False, "uploaded": False} if clear_uploaded else {"archived": False}
@@ -377,6 +381,21 @@ def test_local_zip_smaller_than_archive_org_copy_is_not_uploaded(store):
                 z.writestr(f"{cid:010}{suffix}.jpg", b"")
 
     run_recipe()
+    assert store.remote.files == remote
+
+
+def test_no_upload_over_an_archive_org_file_of_unknown_size(store):
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    archive.archive()
+    for size in SUFFIXES:
+        item, filename = store._zip(BATCH, size)
+        store.remote.upload(item, archive.Batch.get_abspath("0014", "62", ext="zip", size=size))
+        store.remote.truncate(item, filename, keep=1)
+    remote = dict(store.remote.files)
+    store.remote.report_size = False
+
+    archive.Batch.process_pending(upload=True, finalize=True, test=False)
     assert store.remote.files == remote
 
 

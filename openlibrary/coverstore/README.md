@@ -115,16 +115,18 @@ It should redirect into the batch's `l_covers_NNNN_NN.zip`, and that URL should 
 
 These states are safe: covers stay on local disk and keep being served. Each needs a person to decide.
 **Never delete a local zip by hand.** It can be the only complete copy of a batch, as it would be for
-`covers_0014_62` if its 2024 zip survived.
+`covers_0014_62` if its 2024 zip survived. **Never reset `archived`, `uploaded` or `failed` by hand on
+covers that already point at a zip:** `archive()` skips such covers (it prints `Skipping ...: already
+points at a zip`), so the batch stays incomplete, but it is the flags that tell the pipeline archive.org
+may hold their only copy.
 
 - **A complete local zip of a batch whose covers are already uploaded, differing from archive.org.**
   This is `covers_0014_62`'s state if its local zip survived: archive.org holds a partial copy. Step 3
   uploads the local zip over it, which restores the missing covers, and finalize then removes the local
   zips. This works only while none of those covers' rows is marked `failed`; if any is, the batch shows
   `zip_discrepency ... unexpected: N` instead, and needs a person.
-- **`Not uploading ...: archive.org's copy is larger`.** A local zip that would replace archive.org's copy
-  with a smaller one is refused: a genuine replacement only ever adds covers.
-- **`zip_discrepency` on a batch whose covers are already uploaded.** A cover landed in the batch after
+- **`Not uploading ...: archive.org's copy is larger (or of unknown size)`.** A local zip that would
+  replace archive.org's copy with a smaller one is refused: a genuine replacement only ever adds covers.- **`zip_discrepency` on a batch whose covers are already uploaded.** A cover landed in the batch after
   it was finalized. Its zip holds only the stragglers, so it isn't complete and is never uploaded over
   archive.org's copy. The straggler stays local.
 - **`zip_corrupt`, or `archive()` stopping with `... is not a readable zip`.** A run was killed mid-write.

@@ -168,9 +168,9 @@ class Batch:
                     remote = Uploader.remote_file(itemname, filename)
                     if ZipManager.read_entries(local) is None:
                         print(f"=> Not uploading {filename}: its data fails its checksums")
-                    elif remote and int(remote.get("size", 0)) > os.path.getsize(local):
+                    elif remote and ("size" not in remote or int(remote["size"]) > os.path.getsize(local)):
                         # A genuine replacement only ever adds covers to archive.org's copy.
-                        print(f"=> Not uploading {filename}: archive.org's copy is larger and may hold covers this one lacks")
+                        print(f"=> Not uploading {filename}: archive.org's copy is larger (or of unknown size) and may hold covers this one lacks")
                     elif test:
                         print(f"=> Would upload {filename} to {itemname} [test=True]")
                     else:
@@ -213,11 +213,9 @@ class Batch:
         if not os.path.exists(filepath):
             errors.append({"error": "nozip"})
         else:
-            # Finalized rows count too, whatever their failed flag: archive.org may hold
-            # their only copy, so a zip lacking any of them must never replace it.
+            # Finalized rows count too, so a later zip holding only stragglers never passes.
             key = Cover.FILE_KEYS[size]
-            rows = [*cdb.get_batch_archived(start_id=start_id), *cdb._get_batch(start_id=start_id, uploaded=True)]
-            expected = {Cover(**c).files[key].name for c in rows}
+            expected = {Cover(**c).files[key].name for c in cdb.get_batch_archived(start_id=start_id)}
             actual = ZipManager.names_in_zip(filepath) if ZipManager.is_readable(filepath) else None
             if actual is None:
                 errors.append({"error": "zip_corrupt"})
@@ -524,6 +522,11 @@ def archive(limit=None, start_id=None, end_id=None):
             if cover.id >= open_batch_start:
                 print(f"Stopping at {cover.id:010}: its batch is still open (newest cover is {max_id:010})")
                 break
+            if (cover.filename or "").endswith(".zip"):
+                # Already finalized: its only copy may be on archive.org. Leaving it unarchived
+                # keeps the batch incomplete, so no smaller zip can replace archive.org's.
+                print(f"Skipping {cover.id:010}: already points at a zip; its flags were reset by hand")
+                continue
             print("archiving", cover)
             print(cover.files.values())
 
