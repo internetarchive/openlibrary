@@ -1,10 +1,12 @@
 from typing import cast
 
+import pytest
 import web
 
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
 )
+from openlibrary.plugins.admin import code as admin_code
 from openlibrary.plugins.admin.code import revert_all_user_edits
 
 
@@ -219,3 +221,30 @@ class TestRevertAllUserEdits:
         assert web.ctx.site.get("/works/OL1W").type.key == "/type/delete"
         assert web.ctx.site.get("/works/OL2W").revision == 4
         assert web.ctx.site.get("/works/OL2W").type.key == "/type/delete"
+
+
+class TestPeopleEditsPost:
+    def test_revert_redirects_back_to_the_same_page(self, monkeypatch):
+        reverted = []
+        monkeypatch.setattr(admin_code, "revert_changesets", lambda ids, comment: reverted.append(ids))
+        monkeypatch.setattr(
+            web,
+            "input",
+            lambda **defaults: web.storage(defaults, changesets=["123"], action="revert"),
+        )
+        for name, value in {
+            "home": "http://localhost",
+            "path": "/people/spammer/edits",
+            "fullpath": "/people/spammer/edits?page=3",
+            "headers": [],
+        }.items():
+            monkeypatch.setattr(web.ctx, name, value, raising=False)
+
+        with pytest.raises(web.Redirect):
+            admin_code.people_edits().POST("spammer")
+
+        assert reverted == [["123"]]
+        assert (
+            "Location",
+            "http://localhost/people/spammer/edits?page=3",
+        ) in web.ctx.headers
