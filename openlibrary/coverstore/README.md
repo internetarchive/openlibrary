@@ -56,12 +56,14 @@ db = archive.CoverDB().db
 list(db.query("SELECT max(id) FROM cover"))            # the open batch is max_id // 10_000
 list(db.query("SELECT count(*) FROM cover WHERE id >= 8000000"
               " AND (failed IS NULL OR archived IS NULL OR uploaded IS NULL)"))   # expect 0
-archive.Batch.get_pending()                              # zips already on local disk
+archive.Batch.get_pending()                              # batches with a full-size zip on local disk
+import glob; sorted(glob.glob(archive.config.data_root + "/items/*covers_*/*.zip"))   # every size's zips
 archive.Batch.process_pending()                          # per batch and size: complete? identical on archive.org?
 ```
 
-**Check `get_pending()` before doing anything else.** Zips left from earlier runs are processed like new
-ones. Anything not `Complete? True` is skipped and reports why (`batch_open`, `archival_incomplete`,
+**Check both lists before doing anything else.** Zips left from earlier runs are processed like new
+ones. `get_pending()` finds a batch only by its full-size zip, so s/m/l zips with no full-size zip beside
+them (possible after a 2024 run, which deleted the full size first) show up only in the second list. Anything not `Complete? True` is skipped and reports why (`batch_open`, `archival_incomplete`,
 `zip_discrepency`, `zip_corrupt`, `nozip`).
 
 If the NULL count isn't 0, stop and ask. Archival selects on `failed=false` and `uploaded=false`, so
@@ -118,7 +120,10 @@ These states are safe: covers stay on local disk and keep being served. Each nee
 - **A complete local zip of a batch whose covers are already uploaded, differing from archive.org.**
   This is `covers_0014_62`'s state if its local zip survived: archive.org holds a partial copy. Step 3
   uploads the local zip over it, which restores the missing covers, and finalize then removes the local
-  zips.
+  zips. This works only while none of those covers' rows is marked `failed`; if any is, the batch shows
+  `zip_discrepency ... unexpected: N` instead, and needs a person.
+- **`Not uploading ...: archive.org's copy is larger`.** A local zip that would replace archive.org's copy
+  with a smaller one is refused: a genuine replacement only ever adds covers.
 - **`zip_discrepency` on a batch whose covers are already uploaded.** A cover landed in the batch after
   it was finalized. Its zip holds only the stragglers, so it isn't complete and is never uploaded over
   archive.org's copy. The straggler stays local.

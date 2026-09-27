@@ -80,14 +80,19 @@ class Uploader:
         )
 
     @staticmethod
-    def remote_md5(item: str, filename: str) -> str | None:
-        """md5 of `filename` in archive.org item `item` (e.g. `s_covers_0008`),
-        or None if the item has no file of that exact name.
+    def remote_file(item: str, filename: str) -> dict | None:
+        """archive.org's metadata (md5, size, ...) for `filename` in item `item`
+        (e.g. `s_covers_0008`), or None if the item has no file of that exact name.
         """
         for f in ia.get_item(item).files:
             if f["name"] == filename:
-                return f.get("md5", "")
+                return f
         return None
+
+    @classmethod
+    def remote_md5(cls, item: str, filename: str) -> str | None:
+        f = cls.remote_file(item, filename)
+        return None if f is None else f.get("md5", "")
 
     @classmethod
     def is_uploaded(cls, item: str, filename: str) -> bool:
@@ -160,8 +165,12 @@ class Batch:
                     if not upload:
                         continue
                     local = cls.get_abspath(item_id, batch_id, ext="zip", size=size)
+                    remote = Uploader.remote_file(itemname, filename)
                     if ZipManager.read_entries(local) is None:
                         print(f"=> Not uploading {filename}: its data fails its checksums")
+                    elif remote and int(remote.get("size", 0)) > os.path.getsize(local):
+                        # A genuine replacement only ever adds covers to archive.org's copy.
+                        print(f"=> Not uploading {filename}: archive.org's copy is larger and may hold covers this one lacks")
                     elif test:
                         print(f"=> Would upload {filename} to {itemname} [test=True]")
                     else:
@@ -204,9 +213,11 @@ class Batch:
         if not os.path.exists(filepath):
             errors.append({"error": "nozip"})
         else:
-            # Finalized rows count too, so a later zip holding only stragglers never passes.
+            # Finalized rows count too, whatever their failed flag: archive.org may hold
+            # their only copy, so a zip lacking any of them must never replace it.
             key = Cover.FILE_KEYS[size]
-            expected = {Cover(**c).files[key].name for c in cdb.get_batch_archived(start_id=start_id)}
+            rows = [*cdb.get_batch_archived(start_id=start_id), *cdb._get_batch(start_id=start_id, uploaded=True)]
+            expected = {Cover(**c).files[key].name for c in rows}
             actual = ZipManager.names_in_zip(filepath) if ZipManager.is_readable(filepath) else None
             if actual is None:
                 errors.append({"error": "zip_corrupt"})
@@ -582,7 +593,7 @@ class ZipManager:
         damaged zip produces.
         """
         with open(filepath, "rb") as f:
-            if f.read(4) != b"PK\x03\x04":
+            if f.read(4) not in (b"PK\x03\x04", b"PK\x05\x06"):  # a first entry, or an empty zip
                 return False
         try:
             with zipfile.ZipFile(filepath, "r") as zip_ref:

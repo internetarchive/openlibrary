@@ -40,9 +40,13 @@ class FakeArchiveOrg:
     def upload(self, item, path):
         self.files[item, os.path.basename(path)] = Path(path).read_bytes()
 
-    def remote_md5(self, item, filename):
+    def remote_file(self, item, filename):
         data = self.files.get((item, filename))
-        return None if data is None else hashlib.md5(data).hexdigest()
+        return None if data is None else {"md5": hashlib.md5(data).hexdigest(), "size": str(len(data))}
+
+    def remote_md5(self, item, filename):
+        f = self.remote_file(item, filename)
+        return None if f is None else f["md5"]
 
     def is_uploaded(self, item, filename):
         return (item, filename) in self.files
@@ -125,6 +129,7 @@ def store(tmp_path, monkeypatch):
     monkeypatch.setattr(archive.Uploader, "upload", remote.upload)
     monkeypatch.setattr(archive.Uploader, "is_uploaded", remote.is_uploaded)
     monkeypatch.setattr(archive.Uploader, "remote_md5", remote.remote_md5, raising=False)
+    monkeypatch.setattr(archive.Uploader, "remote_file", remote.remote_file, raising=False)
     yield Store(tmp_path, pg, remote)
     admin.query(f"DROP SCHEMA {schema} CASCADE")
 
@@ -331,6 +336,54 @@ def test_finalized_batch_with_partial_archive_org_copy_is_restored(store):
     run_recipe()  # then removes them
     assert store.lost(ids) == []
     assert list((store.root / "items").rglob("*.zip")) == []
+
+
+@pytest.mark.parametrize("clear_uploaded", [False, True])
+def test_requeued_finalized_batch_never_shrinks_archive_org_copy(store, clear_uploaded):
+    """An operator restores one finalized cover's files and re-queues the whole batch.
+    archive() then marks the others failed, so a one-cover zip must not replace the full one."""
+    ids = [BATCH, BATCH + 1, BATCH + 2]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()
+    run_recipe()  # finalized: local files gone, rows point at the zips
+    remote = dict(store.remote.files)
+    restored = {}
+    for size, suffix in SUFFIXES.items():
+        rel = f"2024/05/07/{BATCH}{suffix}.jpg"
+        (store.root / "localdisk" / rel).write_bytes(f"cover {BATCH}{suffix}".encode())
+        restored[f"filename_{size}" if size else "filename"] = rel
+    store.db.update("cover", where="id=$id", vars={"id": BATCH}, uploaded=False, **restored)
+    requeue = {"archived": False, "uploaded": False} if clear_uploaded else {"archived": False}
+    store.db.update("cover", where="id IN $ids", vars={"ids": ids}, **requeue)
+
+    run_recipe()
+    run_recipe()
+    assert store.remote.files == remote
+    assert store.lost(ids) == []
+
+
+def test_local_zip_smaller_than_archive_org_copy_is_not_uploaded(store):
+    """Right names, wrong (here empty) contents, for covers whose only copy is on archive.org."""
+    ids = [BATCH, BATCH + 1]
+    store.add_covers(*ids, NEXT_BATCH)
+    run_recipe()
+    run_recipe()  # finalized
+    remote = dict(store.remote.files)
+    for size, suffix in SUFFIXES.items():
+        path = Path(archive.Batch.get_abspath("0014", "62", ext="zip", size=size))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(path, "w") as z:
+            for cid in ids:
+                z.writestr(f"{cid:010}{suffix}.jpg", b"")
+
+    run_recipe()
+    assert store.remote.files == remote
+
+
+def test_empty_zip_is_readable(tmp_path):
+    path = tmp_path / "empty.zip"
+    zipfile.ZipFile(path, "w").close()
+    assert archive.ZipManager.is_readable(str(path))
 
 
 def test_finalize_tolerates_covers_whose_local_files_are_already_gone(store):
