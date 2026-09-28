@@ -1,6 +1,7 @@
 #!/bin/bash
 
 python --version
+source docker/ol-install-missing-deps.sh
 OSP_DUMP_LOCATION="/solr-updater-data/osp_totals.db"
 # If the osp dump file does not exist, download it. Takes ~30s
 # Keep link in sync with Makefile and Jenkinsfile

@@ -1,18 +1,15 @@
 // @ts-check
-import fromPairs from 'lodash/fromPairs';
-import isUndefined from 'lodash/isUndefined';
-import includes from 'lodash/includes';
-import orderBy from 'lodash/orderBy';
-import entries from 'lodash/entries';
-import groupBy from 'lodash/groupBy';
-import uniq from 'lodash/uniq';
-import uniqBy from 'lodash/uniqBy';
+import $ from 'jquery';
+import { uniqBy } from './nonjquery_utils.js';
 import Chart from 'chart.js';
 import 'chartjs-plugin-datalabels';
 
 /**
  * @typedef {object} Work
  * @property {string} key
+ * @property {number | null} first_publish_year
+ * @property {string | null} [first_publish_decade]
+ * @property {string | null} [first_publish_century]
  */
 
 /**
@@ -41,7 +38,7 @@ import 'chartjs-plugin-datalabels';
  */
 export function init(config) {
     Chart.scaleService.updateScaleDefaults('linear', { ticks: { beginAtZero: true, stepSize: 1 } });
-    const authors_by_id = fromPairs(config.authors.map(a => [a.key, a]));
+    const authors_by_id = Object.fromEntries(config.authors.map(a => [a.key, a]));
 
     /**
      *
@@ -57,10 +54,11 @@ export function init(config) {
         const excluded = [];
 
         for (const work of config.works) {
-            const allKeys = getPath(work, chartConfig.key) || [];
-            const validKeys = uniq(
-                allKeys.filter(key => !isUndefined(key) && !includes(chartConfig.exclude, key))
-            );
+            const result = getPath(work, chartConfig.key);
+            const allKeys = Array.isArray(result) ? result : (result ? [result] : []);
+            const validKeys = [...new Set(
+                allKeys.filter(key => key !== undefined && !chartConfig.exclude?.includes(key))
+            )];
             if (!validKeys.length) {
                 excluded.push(work);
                 continue;
@@ -71,7 +69,7 @@ export function init(config) {
             }
         }
 
-        const bars = orderBy(entries(grouped), x => x[1].length, 'desc').slice(0, 20);
+        const bars = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length).slice(0, 20);
         canvas.height = bars.length * 20 + 5;
         canvas.width= 400;
         new Chart(canvas.getContext('2d'), {
@@ -167,9 +165,13 @@ export function init(config) {
         .then(r => r.json())
         .then(resp => {
             const bindings = resp.results.bindings;
-            const grouped = groupBy(bindings, o => o.x.value.split('/')[4]);
-            const records = entries(grouped).map(([qid, bindings]) => {
-                const record = { qid, olids: uniq(bindings.map(x => x.olid.value)) };
+            const grouped = {};
+            for (const binding of bindings) {
+                const qid = binding.x.value.split('/')[4];
+                (grouped[qid] = grouped[qid] || []).push(binding);
+            }
+            const records = Object.entries(grouped).map(([qid, bindings]) => {
+                const record = { qid, olids: [...new Set(bindings.map(x => x.olid.value))] };
                 // { qid: Q123, olids: [ { value: }, {value: }], blah: [ {value:}, {value:} ], blahLabel: [{value:}, {value:},
                 for (const {name, type} of SPARQL_FIELDS) {
                     if (type === 'uri') {
@@ -182,7 +184,7 @@ export function init(config) {
                         record[name] = deduped.map(x => x[name]);
                         record[`${name}Label`] = deduped.map(x => x[`${name}Label`]);
                     } else {
-                        record[name] = uniqBy(bindings.map(x => x[name]), 'value');
+                        record[name] = uniqBy(bindings.map(x => x[name]), x => x?.value);
                     }
                 }
                 return record;
@@ -200,6 +202,8 @@ export function init(config) {
     // Add full authors to the works objects for easy reference
     for (const work of config.works) {
         work.authors = work.author_keys.map(key => authors_by_id[key]);
+        work.first_publish_decade = work.first_publish_year ? `${Math.floor(work.first_publish_year / 10) * 10}s` : null;
+        work.first_publish_century = work.first_publish_year ? `${Math.floor(work.first_publish_year / 100) * 100}s` : null;
     }
 
     for (const container of document.querySelectorAll(config.charts_selector)) {

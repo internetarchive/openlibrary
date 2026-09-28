@@ -8,8 +8,6 @@ cd /opt/openlibrary
 git pull origin master
 cd /opt/openlibrary/vendor/infogami
 git pull origin master
-cd /opt/booklending_utils
-git pull origin master
 
 export COMPOSE_FILE="compose.yaml:compose.infogami-local.yaml:compose.production.yaml"
 # SERVICE can be: web, covers, infobase, home

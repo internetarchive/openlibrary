@@ -1,19 +1,17 @@
 """Merge authors."""
 
-import json
 import re
 from typing import Any
 
 import web
 
-from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import dicthash, uniq
-from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
+from openlibrary.utils.request_context import site
 
 
 class BasicRedirectEngine:
@@ -87,7 +85,7 @@ class BasicMergeEngine:
         docs_to_save.extend(self.redirect_engine.make_redirects(master, duplicates))
 
         # Merge all the duplicates into the master.
-        master_doc = web.ctx.site.get(master).dict()
+        master_doc = site.get().get(master).dict()
         dups = get_many(duplicates)
         for d in dups:
             master_doc = self.merge_docs(master_doc, d)
@@ -125,12 +123,12 @@ class BasicMergeEngine:
 class AuthorRedirectEngine(BasicRedirectEngine):
     def find_references(self, key):
         q = {"type": "/type/edition", "authors": key, "limit": 10000}
-        edition_keys = web.ctx.site.things(q)
+        edition_keys = site.get().things(q)
         editions = get_many(edition_keys)
         work_keys_1 = [w["key"] for e in editions for w in e.get("works", [])]
 
         q = {"type": "/type/work", "authors": {"author": {"key": key}}, "limit": 10000}
-        work_keys_2 = web.ctx.site.things(q)
+        work_keys_2 = site.get().things(q)
         return edition_keys + work_keys_1 + work_keys_2
 
 
@@ -146,7 +144,7 @@ class AuthorMergeEngine(BasicMergeEngine):
         return master
 
     def save(self, docs, master, duplicates):
-        return web.ctx.site.save_many(
+        return site.get().save_many(
             docs,
             comment="merge authors",
             action="merge-authors",
@@ -200,7 +198,7 @@ def get_many(keys: list[str]) -> list[dict]:
             doc["table_of_contents"] = fix_table_of_contents(doc["table_of_contents"])
         return doc
 
-    return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
+    return [process(thing.dict()) for thing in site.get().get_many(list(keys))]
 
 
 def make_redirect_doc(key, redirect):
@@ -211,11 +209,11 @@ class merge_authors(delegate.page):
     path = "/authors/merge"
 
     def is_enabled(self):
-        user = web.ctx.site.get_user()
-        return "merge-authors" in web.ctx.features or (user and user.is_admin())
+        user = site.get().get_user()
+        return user and user.is_librarian_or_higher()
 
     def filter_authors(self, keys):
-        docs = web.ctx.site.get_many(["/authors/" + k for k in keys])
+        docs = site.get().get_many(["/authors/" + k for k in keys])
         d = {doc.key: doc.type.key for doc in docs}
         return [k for k in keys if d.get("/authors/" + k) == "/type/author"]
 
@@ -238,7 +236,7 @@ class merge_authors(delegate.page):
         keys = sorted(keys, key=lambda key: int(key[2:-1]))
 
         user = get_current_user()
-        can_merge = user and (user.is_admin() or user.is_super_librarian())
+        can_merge = user and user.is_super_librarian_or_higher()
         return render_template(
             "merge/authors",
             keys,
@@ -253,7 +251,7 @@ class merge_authors(delegate.page):
         selected = uniq(i.merge_key)
 
         user = get_current_user()
-        can_merge = user and (user.is_admin() or user.is_super_librarian())
+        can_merge = user and user.is_super_librarian_or_higher()
         can_request_merge = not can_merge and (user and user.is_librarian())
 
         # filter bad keys
@@ -303,62 +301,6 @@ class merge_authors(delegate.page):
             if i.comment:
                 redir_url = f"{redir_url}&comment={i.comment}"
             raise web.seeother(redir_url)
-
-
-class merge_authors_json(delegate.page):
-    """JSON API for merge authors.
-
-    This is called from the master author page to trigger the merge while displaying progress.
-    """
-
-    path = "/authors/merge"
-    encoding = "json"
-
-    def is_enabled(self):
-        user = web.ctx.site.get_user()
-        return "merge-authors" in web.ctx.features or (user and user.is_admin())
-
-    def POST(self):
-        data = json.loads(web.data())
-        master = data["master"]
-        duplicates = data["duplicates"]
-        mrid = data.get("mrid", None)
-        comment = data.get("comment", None)
-        olids = data.get("olids", "")
-
-        def merge_records() -> Any:
-            try:
-                engine = AuthorMergeEngine(AuthorRedirectEngine())
-                return engine.merge(master, duplicates)
-            except ClientException as e:
-                raise web.badrequest(json.loads(e.json))
-
-        def update_request() -> None:
-            data = {}
-            if mrid:
-                # Update the request
-                rtype = "update-request"
-                data = {"action": "approve", "mrid": mrid}
-            else:
-                # Create new request
-                rtype = "create-request"
-                data = {"mr_type": 2, "olids": olids, "action": "create-merged"}
-            if comment:
-                data["comment"] = comment
-            process_merge_request(rtype, data)
-
-        # actually perform merge and save affected records to db
-        merge_result = merge_records()
-        # attempt to update the merge request status with retries
-        try:
-            RetryStrategy(
-                [ClientException],
-                max_retries=5,
-                delay=2,
-            )(update_request)
-        except MaxRetriesExceeded as e:
-            raise web.badrequest(str(e.last_exception))
-        return delegate.RawText(json.dumps(merge_result), content_type="application/json")
 
 
 def setup():

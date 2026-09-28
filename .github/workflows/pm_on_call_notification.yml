@@ -1,0 +1,49 @@
+name: pm_on_call_notification
+
+on:
+  schedule:  # 08:30 UTC, Monday and Tuesday
+    - cron: '30 8 * * 1,2'
+
+permissions:
+  contents: read
+
+jobs:
+  notify_on-call:
+    if: ${{ github.repository == 'internetarchive/openlibrary' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: build_message
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs');
+            const { onCallNotificationJob: { personnel } } = JSON.parse(
+              fs.readFileSync('.github/workflows/config/pm_config.json', 'utf8')
+            );
+
+            const daysSinceEpoch = Math.floor(Date.now() / 86400000);
+            const weekIndex = Math.floor(daysSinceEpoch / 7);
+            const lead = personnel[weekIndex % personnel.length].slackId;
+            const secondary = personnel[(weekIndex + 1) % personnel.length].slackId;
+
+            // getUTCDay(): 0=Sun, 1=Mon, 2=Tue, ...
+            const dow = { 1: 'monday', 2: 'tuesday' }[new Date().getUTCDay()] ?? 'none';
+
+            if (dow === 'monday') {
+              return `${lead} is on-call this week.  ${secondary} is the back-up.`;
+            } else if (dow === 'tuesday') {
+              return `Reminder: ${lead} will lead this week's deployment.`;
+            }
+            return '';
+      - if: ${{ steps.build_message.outputs.result != '' }}
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+            text: ${{ toJSON(steps.build_message.outputs.result) }}

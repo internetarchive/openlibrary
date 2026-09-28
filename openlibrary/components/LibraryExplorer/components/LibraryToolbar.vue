@@ -406,9 +406,18 @@ export default {
     },
 
     props: {
-        filterState: Object,
-        settingsState: Object,
-        sortState: Object,
+        filterState: {
+            type: Object,
+            required: true
+        },
+        settingsState: {
+            type: Object,
+            required: true
+        },
+        sortState: {
+            type: Object,
+            required: true
+        },
     },
 
     data() {
@@ -545,7 +554,9 @@ export default {
   display: flex;
   justify-content: center;
   pointer-events: none;
-  z-index: 20;
+  /* Must stay above BookRoom, which is isolated — its whole subtree
+     (shelves, signs) sits at `auto` beneath this. */
+  z-index: var(--z-index-fixed);
 }
 
 .floating-controls-wrapper .multiselect {

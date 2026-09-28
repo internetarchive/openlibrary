@@ -7,7 +7,7 @@
       <MergeTable
         ref="mergeTable"
         :olids="olids"
-        :show_diffs="show_diffs"
+        :show-diffs="showDiffs"
         :primary="primary"
       />
       <div class="action-bar">
@@ -38,7 +38,7 @@
         <div id="diffs-toggle">
           <label>
             <input
-              v-model="show_diffs"
+              v-model="showDiffs"
               type="checkbox"
               title="Show textual differences"
             >
@@ -73,7 +73,8 @@ export default {
         },
         primary: {
             type: String,
-            required: false
+            required: false,
+            default: ''
         },
         canmerge: {
             type: String,
@@ -86,7 +87,7 @@ export default {
             url: new URL(location.toString()),
             mergeStatus: LOADING,
             mergeOutput: null,
-            show_diffs: false,
+            showDiffs: false,
             comment: ''
         };
     },

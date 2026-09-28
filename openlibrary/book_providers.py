@@ -13,6 +13,7 @@ from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
+from openlibrary.utils.request_context import get_provider_pref
 
 if typing.TYPE_CHECKING:
     from web.template import TemplateResult
@@ -113,6 +114,14 @@ class Acquisition:
             )
         else:
             raise ValueError(f"Unknown ebook acquisition format: {json}")
+
+    @staticmethod
+    def from_json_safe(json: dict) -> Acquisition | None:
+        try:
+            return Acquisition.from_json(json)
+        except ValueError as e:
+            logger.warning(f"Failed to parse acquisition from json: {json} with error {e}")
+            return None
 
     @staticmethod
     def from_opds_json(json: dict) -> Acquisition:
@@ -217,6 +226,7 @@ class AbstractBookProvider[TProviderMetadata]:
         edition_key: str,
         ed_or_solr: Edition | dict,
         analytics_attr: Callable[[str], str],
+        show_locate: bool = False,
     ) -> TemplateResult | str:
         acq_sorted = sorted(
             (p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED),
@@ -237,6 +247,7 @@ class AbstractBookProvider[TProviderMetadata]:
             acquisition,
             self.long_name or domain,
             analytics_attr,
+            show_locate=show_locate,
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None) -> TemplateResult:
@@ -266,7 +277,7 @@ class AbstractBookProvider[TProviderMetadata]:
         ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
         if providers := ed_or_solr.get("providers", []):
-            return [Acquisition.from_json(dict(p)) for p in providers]
+            return [acq for p in providers if (acq := Acquisition.from_json_safe(dict(p)))]
         else:
             return []
 
@@ -573,7 +584,9 @@ class DirectProvider(AbstractBookProvider):
         in the solr request. (Note: this field is populated from db)
         """
         if providers := ed_or_solr.get("providers", []):
-            identifiers = [provider.url for provider in map(Acquisition.from_json, providers) if provider.ebook_access >= EbookAccess.PRINTDISABLED]
+            identifiers = [
+                provider.url for provider in map(Acquisition.from_json_safe, providers) if provider and provider.ebook_access >= EbookAccess.PRINTDISABLED
+            ]
             to_remove = set()
             for tbp in PROVIDER_ORDER:
                 # Avoid infinite recursion.
@@ -603,7 +616,9 @@ class DirectProvider(AbstractBookProvider):
         Return the access level of the edition.
         """
         # For now assume 0 is best
-        return EbookAccess.from_acquisition_access(Acquisition.from_json(edition["providers"][0]).access)
+        if acq := Acquisition.from_json_safe(edition["providers"][0]):
+            return EbookAccess.from_acquisition_access(acq.access)
+        return EbookAccess.NO_EBOOK
 
 
 class WikisourceProvider(AbstractBookProvider):
@@ -745,13 +760,9 @@ def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
-    provider_overrides = None
-    # Need this to work in test environments
-    if "env" in web.ctx:
-        provider_overrides = web.input(providerPref=None, _method="GET").providerPref
-    if provider_overrides:
+    if provider_pref := get_provider_pref():
         new_order: list[AbstractBookProvider] = []
-        for name in provider_overrides.split(","):
+        for name in provider_pref.split(","):
             if name == "*":
                 new_order += default_order
             else:

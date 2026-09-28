@@ -76,9 +76,10 @@ class ListSearchScheme(SearchScheme):
             ("q.op", "AND"),  # use 'AND' for matching multiple words in search queries
             ("defType", "edismax"),  # use edismax parser for better full-text search
             # qf specifies which fields to search and their boost weights.
-            # Searching 'text' allows matching on subjects aggregated from the list's
-            # books, while boosting 'name' ensures title matches rank highest.
-            ("qf", "text name^10"),
+            # Searching subject/place/person/time allows matching on subjects
+            # aggregated from the list's books, while boosting 'name' ensures
+            # title matches rank highest.
+            ("qf", "subject place person time name^10"),
         ]
         # Default: exclude low-seed lists (issue #11905).
         # Lists with fewer than 2 seeds are likely spam. Series are exempt

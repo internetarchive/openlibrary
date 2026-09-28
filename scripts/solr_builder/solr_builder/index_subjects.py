@@ -72,6 +72,8 @@ async def index_subjects(
         docs,
         solr_base_url=solr_base_url,
         skip_id_check=skip_id_check,
+        tolerant_chain=True,
+        timeout=None,  # Don't set a timeout for indexing
     )
     print(
         json.dumps(
@@ -92,10 +94,10 @@ async def index_all_subjects(
     instances=2,
     solr_base_url="http://solr:8983/solr/openlibrary",
     skip_id_check=False,
+    offset=0,
 ):
     done = False
     active_workers: set[Future] = set()
-    offset = 0
     while True:
         if done:
             # Done! Wait for any previous workers that are still going

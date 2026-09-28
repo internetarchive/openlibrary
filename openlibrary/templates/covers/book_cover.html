@@ -40,8 +40,8 @@ $if preload:
     </div>
     <div class="SRPCoverBlank" style="display: $cond(not cover_url, 'block', 'none');">
         <div class="innerBorder">
-            <div class="BookTitle">$:macros.TruncateString(title, 45)
-                <div class="Author">$:macros.TruncateString(author_names, 30)</div>
+            <div class="BookTitle">$:render_jinja_template("TruncateString.html.jinja", s=title, n=45)
+                <div class="Author">$:render_jinja_template("TruncateString.html.jinja", s=author_names, n=30)</div>
             </div>
         </div>
     </div>
@@ -50,7 +50,7 @@ $if preload:
 <div class="hidden">
     <div class="coverFloat" id="seeImage">
         <div class="coverFloatHead">
-            <h2>$:macros.TruncateString(title, 70)</h2>
+            <h2>$:render_jinja_template("TruncateString.html.jinja", s=title, n=70)</h2>
             <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
         <a class="dialog--close"><img src="$cover_lg" class="cover" alt="$title $_('by') $author_names"/></a>

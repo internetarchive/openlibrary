@@ -1,0 +1,2597 @@
+import { LitElement, html, css, nothing } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
+import { repeat } from 'lit/directives/repeat.js';
+// The <ol-*> custom elements this modal uses (ol-icon, ol-dialog, ol-toggle,
+// ol-select-popover) are registered by the site-wide
+// Lit bundle: build/components/production/ol-components.js, loaded from
+// openlibrary/templates/site.html.jinja. Do NOT re-import those component
+// modules here — re-running customElements.define() throws NotSupportedError,
+// which aborts the rest of that bundle and unregisters every other component.
+import { debounce } from '../nonjquery_utils.js';
+import { sprintf } from '../i18n.js';
+import { trackEvent } from '../ol.analytics.js';
+import { buildPartialsUrl } from '../utils.js';
+import { readLabels } from '../book-state.js';
+import {
+    AVAILABILITY_OPTIONS,
+    AVAILABILITY_TO_PARAMS,
+    DEFAULT_AVAILABILITY,
+    DEFAULT_LANGUAGE_OPTIONS,
+    DEFAULT_SEARCH_MODAL_STRINGS,
+    SS_AVAILABILITY_KEY,
+    SS_LANGUAGES_KEY,
+    ssGet,
+    ssSet,
+    availabilityOptionsFromElement,
+    readableLanguageMismatch,
+    readableEditionLanguages,
+    readStoredLanguages,
+    searchModalStringsFromElement,
+    siteLanguageToMarc,
+    readRecentSearches,
+    saveRecentSearch,
+    removeRecentSearch,
+} from './constants.js';
+import { fetchLanguageOptions } from './languages.js';
+import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
+import { deriveAuthors } from './authorSuggestion.js';
+import { dedupeFulltextHits, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
+import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
+
+// 'books' searches the catalogue (with the Search Inside band as a teaser);
+// 'inside' searches only the text of the scans.
+const MODE_BOOKS  = 'books';
+const MODE_INSIDE = 'inside';
+
+// `editions` is requested not to render it, but to opt /search.json into the
+// edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
+// availability filters like "Readable Books Only" (public_scan/print_disabled)
+// only match the work-level `ebook_access` aggregate, so the modal would surface
+// works the /search page hides — e.g. a work whose only query-matching edition
+// is non-readable. Requesting `editions` makes the modal match /search exactly.
+// `author_key` rides along with `author_name` so each result's author can link
+// to the author page (and so deriveAuthors() can surface author rows for the
+// top results whose author the query names).
+// `ia` lets _renderResult fall back to the Internet Archive scanned cover when a
+// book has no OL-uploaded cover (cover_i is null) — mirroring the rest of the
+// site (Edition.get_cover_url → get_ia_cover). Requesting `ia` also propagates
+// it into the `editions:[subquery]` docs (see WorkSearchScheme), so both the
+// work-level `ia` and the top edition's `ia` are available. See issue #12893.
+// `ebook_access` is the access level (Solr enum: no_ebook, unclassified,
+// printdisabled, borrowable, public). It rides along at both levels: the
+// promoted edition's value drives the per-result "Readable" badge (the badge
+// describes the copy this row opens — see _renderResult), and the work-level
+// aggregate is the fallback when no edition is promoted. It says only what kind
+// of access a copy has, not whether it's currently on loan; live "checked out"
+// state is not in Solr.
+// `language` propagates into the `editions:[subquery]` docs (WORK_FIELD_TO_ED_FIELD),
+// so the promoted readable edition carries its own language — letting
+// _renderResult flag a readable copy that isn't in the patron's site language
+// (see _readableLanguageMismatch).
+const SEARCH_FIELDS = ['key', 'cover_i', 'ia', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'ebook_access', 'language', 'editions'];
+
+// `ebook_access` values that earn the "Readable" badge: `public` (free to read
+// now) and `borrowable` (lendable) — everything any patron can read without
+// special access, mirroring the modal's "Readable Only" filter
+// (ebook_access:[borrowable TO *]). `unclassified` and `no_ebook` get no badge —
+// a badge there would over-promise access.
+const READABLE_ACCESS = new Set(['public', 'borrowable']);
+
+// `printdisabled` scans are readable only by patrons verified for print-disabled
+// access. For those patrons the server's "Readable Only" filter and count widen
+// to ebook_access:[printdisabled TO *] (see get_fulltext_min), so the badge must
+// widen too — otherwise the toggle counts a book the row then shows no badge for
+// (the exact mismatch this guards against). _isReadableAccess folds this in per
+// patron; everyone else still gets no badge on printdisabled.
+const PRINT_DISABLED_ACCESS = 'printdisabled';
+
+const RESULTS_LIMIT     = 10;
+// Matches the legacy SearchBar autocomplete threshold: fire the header
+// autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
+const MIN_QUERY_LENGTH  = 3;
+/** "/works/OL1W" → "OL1W" */
+const olidOf = key => key.split('/').pop();
+const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
+// Idle time before a query's outcome counts, so partials typed on the way don't.
+const OUTCOME_DEBOUNCE_MS = 1200;
+
+// How long superseded results hold before they're dimmed, so fast answers never flicker.
+const STALE_DELAY_MS = 300;
+
+// The bare common-word "the" matches almost everything and isn't worth a Solr
+// round-trip, so the legacy SearchBar skipped it for autocomplete. Navigation
+// to /search is still allowed for it (handled by the length-only gates).
+const AUTOCOMPLETE_STOPWORDS = new Set(['the']);
+
+// Narrow footer labels only; Intl localizes the suffix ("135K", "13万").
+const compactCount = n => new Intl.NumberFormat(undefined, { notation: 'compact', maximumSignificantDigits: 3 }).format(n);
+
+// A drag the trigger should accept: it carries plain text (a text selection
+// or a URL) and is not an ILE book selection, which stores JSON as text/plain.
+function isTextDrag(dataTransfer) {
+    const types = Array.from(dataTransfer?.types || []);
+    return types.includes('text/plain') && !types.includes('application/x.ile+json');
+}
+
+export class SearchModal extends LitElement {
+    static properties = {
+        open: { type: Boolean, reflect: true },
+        _query: { state: true },
+        _mode: { state: true },
+        _availability: { state: true },
+        _languages: { state: true },
+        _results: { state: true },
+        _authorSuggestions: { state: true },
+        _numFound: { state: true },
+        _readableCount: { state: true },
+        _loading: { state: true },
+        _seeAllLoading: { state: true },
+        _ftSeeAllLoading: { state: true },
+        _hasSearched: { state: true },
+        _languageItems: { state: true },
+        _langsLoading: { state: true },
+        _navigatingKey: { state: true },
+        _recentSearches: { state: true },
+        _readingState: { state: true },
+        _ftHits: { state: true },
+        _ftTotal: { state: true },
+        _ftSearchKey: { state: true },
+        _ftQuery: { state: true },
+        _ftLoading: { state: true },
+        _ftError: { state: true },
+        _resultsKey: { state: true },
+        _markStale: { state: true },
+    };
+
+    static styles = css`
+        :host {
+            font-family: var(--font-family-body);
+            color: var(--color-text);
+        }
+
+        /* Visually hidden but available to screen readers (used by the
+           aria-live results-count region). Standard clip-rect technique. */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            border: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
+        /* ── Search input row ──────────────────────────────────────── */
+
+        .bar {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: var(--border-divider);
+        }
+
+        /* Wraps the icon + input (+ ESC pill). Transparent on desktop so the
+           bar reads as one flat row; becomes an inset rounded box on mobile. */
+        .search-field {
+            display: flex;
+            flex: 1;
+            min-width: 0;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .search-icon {
+            flex-shrink: 0;
+            color: var(--color-text-muted);
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 0;
+            padding: var(--spacing-sm) 0;
+            background: transparent;
+            border: none;
+            color: inherit;
+            font: inherit;
+            font-size: 17px;
+            line-height: 1.4;
+        }
+
+        .search-input::placeholder { color: var(--color-text-muted); }
+        .search-input:focus         { outline: none; }
+
+        /* Drop the native type="search" clear affordance — the modal renders
+           its own clear button (.clear-btn) once the query is non-empty. */
+        .search-input::-webkit-search-cancel-button,
+        .search-input::-webkit-search-decoration {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .esc-pill {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            padding: var(--spacing-2xs) var(--spacing-sm);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-button);
+            color: var(--color-text-muted);
+            font: inherit;
+            font-size: var(--font-size-label-medium);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .esc-pill:hover { background: var(--color-control-hover); }
+        }
+
+        .esc-pill:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        @media (hover: none) and (pointer: coarse) { .esc-pill { display: none; } }
+
+        /* ── Back button (mobile) ──────────────────────────────────── */
+
+        /* Touch devices don't have an Esc key, so the modal closes via a back
+           arrow to the left of the search field (replacing the desktop ESC
+           pill). Hidden on desktop, where Esc / the ESC pill do the job. */
+        .back-btn {
+            flex-shrink: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            margin-left: calc(var(--spacing-xs) * -1);
+            background: transparent;
+            border: none;
+            border-radius: var(--border-radius-button);
+            color: var(--color-text-muted);
+            cursor: pointer;
+        }
+
+        .back-btn:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        @media (hover: none) and (pointer: coarse) { .back-btn { display: inline-flex; } }
+
+        /* ── Clear input button ────────────────────────────────────── */
+
+        /* A small X inside the field, shown only once the query is non-empty.
+           Clears the text and refocuses the input without closing the modal. */
+        .clear-btn {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: var(--border-radius-circle);
+            color: var(--color-text-muted);
+            cursor: pointer;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .clear-btn:hover {
+                background: var(--color-control-hover);
+                color: var(--color-text);
+            }
+        }
+
+        .clear-btn:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        /* ── Scope tabs ────────────────────────────────────────────── */
+
+        /* Above .filter-section, so scope reads as part of the query, not a filter. */
+        .tabs {
+            display: flex;
+            gap: var(--spacing-md);
+            padding-inline: var(--spacing-lg);
+            border-bottom: var(--border-divider);
+        }
+
+        /* Underline is always drawn and hidden by color, so selecting re-paints only. */
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-2xs);
+            /* Sits the underline on the section's own divider. */
+            margin-bottom: -1px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--color-text-muted);
+            font: inherit;
+            font-size: var(--font-size-body-medium);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+        }
+
+        /* Hidden bold twin reserves width so the selected tab goes bold without reflow. */
+        .tab-ghost {
+            height: 0;
+            overflow: hidden;
+            visibility: hidden;
+            font-weight: var(--font-weight-semibold);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .tab:hover { color: var(--color-text); }
+        }
+
+        .tab:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .tab[aria-selected="true"] {
+            color: var(--color-text);
+            border-bottom-color: var(--color-text);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        /* ── Filter section (filter buttons + active chip row) ─────── */
+
+        /* The filter buttons and active-filter chips read as one box: the
+           padding and divider live on the wrapper, and a gap spaces the rows.
+           When there are no chips the buttons keep the same breathing room
+           above the divider. */
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            /* No horizontal padding here: the filter row scrolls on mobile and
+               needs the full viewport width as its scroll track. The inline
+               inset lives on .filters instead (as scroll-container padding) so
+               items still line up with the search field above. */
+            padding: var(--spacing-md) 0;
+        }
+
+        /* A ghost ol-button, so it paints itself; only its place in the row
+           lives here. */
+        .clear-all {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* ── Filter button row ─────────────────────────────────────── */
+
+        /* A single horizontal-scrolling row: filters keep their natural size
+           and overflow off-screen (mobile, or future extra filters) rather
+           than wrapping. "Clear all" sits at the far right via margin-left:auto
+           when there's spare room, and falls in line after the filters when the
+           row overflows. */
+        .filters {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: var(--spacing-xs);
+            overflow-x: auto;
+            /* Inline inset (matches the search field above). Lives here rather
+               than on .filter-section so the scroll track spans the full width
+               and the trailing inset shows after scrolling. */
+            padding-inline: var(--spacing-lg);
+            /* Vertical breathing room so focus rings / the active scale aren't
+               clipped by the scroll container; the negative margin keeps the
+               row's position in the column unchanged. */
+            padding-block: var(--spacing-2xs);
+            margin-block: calc(var(--spacing-2xs) * -1);
+            scrollbar-width: none;
+        }
+
+        .filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filters > * {
+            flex-shrink: 0;
+        }
+
+        /* ── Results ───────────────────────────────────────────────── */
+
+        .results {
+            flex: 1;
+            min-height: 80px;
+            max-height: 480px;
+            overflow-y: auto;
+        }
+
+        .results-heading {
+            margin: 0;
+            padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-2xs);
+            color: var(--color-text-muted);
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
+        }
+
+        .results-list + .results-heading { margin-top: var(--spacing-lg); }
+
+        .results-heading--icon {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2xs);
+        }
+
+        .results-heading--icon ol-icon {
+            flex-shrink: 0;
+            width: 14px;
+            height: 14px;
+        }
+
+        .results-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Hairline above every row, on the faintest border step so the lines
+           read as texture rather than structure. Adjacent rows share one line;
+           the first row keeps its rule, closing the gap under the heading. */
+        .results-list li { border-top: 1px solid var(--color-border-extra-subtle); }
+
+        /* Sets the author suggestion apart from the "Books" works below.
+           The row hairlines draw the dividing line; this just adds air. */
+        .author-suggestion { margin-bottom: var(--spacing-2xs); }
+
+        .result {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            color: inherit;
+            text-decoration: none;
+            /* Hover background is instant (see docs/ai/design.md); only the
+               result fade-in and press-transform animate. */
+            transition:
+                opacity 160ms ease,
+                transform 100ms ease;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .result:hover { background: var(--color-hover-overlay); }
+        }
+
+        /* Both the author suggestion and the work rows are single anchors, so
+           the same focus highlight covers the whole row. */
+        .result:focus-visible {
+            outline: none;
+            background: var(--color-hover-overlay);
+            box-shadow: inset var(--focus-width) 0 0 var(--color-focus-ring);
+        }
+
+        @media (prefers-reduced-motion: reduce) { .result { transition: none; } }
+
+        /* The link and the shelf button are siblings (a button cannot live inside
+           an anchor); the row carries the hover tint so the two read as one. */
+        .result-row {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .result-row .result {
+            flex: 1;
+            min-width: 0;
+            padding-right: var(--spacing-sm);
+        }
+
+        .result-row ol-shelf-button {
+            flex-shrink: 0;
+            /* Centred on the 50px cover: (50 − 32) / 2 below the row's padding. */
+            margin: calc(var(--spacing-sm) + 9px) var(--spacing-lg) 0 0;
+        }
+
+        /* The row owns the tint; a second overlay on the anchor would read darker. */
+        @media (hover: hover) and (pointer: fine) {
+            .result-row:hover { background: var(--color-hover-overlay); }
+            .result-row .result:hover { background: none; }
+        }
+
+        .result-row:focus-within { background: var(--color-hover-overlay); }
+        .result-row .result:focus-visible { background: none; }
+
+        .result__cover-link {
+            position: relative;
+            display: flex;
+            flex-shrink: 0;
+        }
+
+        .result__cover {
+            flex-shrink: 0;
+            width: 36px;
+            height: 50px;
+            object-fit: cover;
+            background: var(--color-surface-sunken);
+            border-radius: var(--border-radius-thumbnail);
+        }
+
+        /* Circular author avatar. The person glyph sits underneath as the
+           always-present fallback; the photo (when the author has one) is
+           layered over it and covers the circle. If the photo 404s, it's hidden
+           to reveal the glyph — so there's never a broken-image flash. */
+        .result__avatar {
+            position: relative;
+            display: flex;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            overflow: hidden;
+            color: var(--color-text-muted);
+            background: var(--color-surface-sunken);
+            border-radius: var(--border-radius-avatar);
+        }
+
+        .result__avatar-photo {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .result__meta {
+            flex: 1;
+            min-width: 0;
+            font-size: var(--font-size-body-medium);
+            line-height: var(--line-height-meta);
+        }
+
+        .result__title {
+            display: block;
+            overflow: hidden;
+            color: var(--color-text);
+            font-weight: 600;
+            text-decoration: none;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .result__author {
+            display: block;
+            overflow: hidden;
+            color: var(--color-text-muted);
+            font-size: 13px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .result__year {
+            display: block;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-label-medium);
+            font-weight: 400;
+        }
+
+        /* The title truncates; the badge beside it stays whole. */
+        .result__title-line {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            min-width: 0;
+        }
+
+        .result__title-line .result__title { flex: 0 1 auto; min-width: 0; }
+
+        /* Status badge beside the title: a label, not a button. Bordered so it
+           reads as a chip on the hover tint too. Muted by default, which
+           "Readable in <language>" wears: a readable copy with a caveat. */
+        .result__badge {
+            flex-shrink: 0;
+            padding: 0 var(--spacing-2xs);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-badge);
+            font-size: var(--font-size-label-medium);
+            font-weight: 500;
+            line-height: 1.5;
+            white-space: nowrap;
+            color: var(--color-text-muted);
+            background: var(--color-surface-sunken);
+        }
+
+        /* "Readable" — green echoes the site's "you can read this" hue. */
+        .result__badge--readable {
+            color: var(--color-success-fg);
+            border-color: var(--color-success-border);
+            background: var(--color-success-bg);
+        }
+
+        .empty, .loading {
+            padding: var(--spacing-lg) var(--spacing-lg);
+            color: var(--color-text-muted);
+            font-size: var(--font-size-body-medium);
+            text-align: center;
+        }
+
+        /* ── "Search inside books" band ────────────────────────────── */
+
+        /* Inset card: sets matches from inside the scans apart from catalog rows. */
+        .ft-band {
+            margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+            border: var(--border-card);
+            border-radius: var(--border-radius-card);
+            background-color: var(--color-surface-sunken);
+            overflow: hidden;
+        }
+
+        /* Rules match the card border; the list hairline barely shows on this fill. */
+        .ft-band .results-heading {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
+        .ft-band .result {
+            padding-left: var(--spacing-md);
+            padding-right: var(--spacing-md);
+        }
+
+        .ft-band .results-list li { border-top-color: var(--color-border-subtle); }
+        .ft-band .results-list li:first-child { border-top: none; }
+
+        /* Styled as a link since it navigates. Pushed to the end of the heading row. */
+        .ft-band__view-all {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-3xs);
+            margin-inline-start: auto;
+            padding: 0;
+            background: none;
+            border: none;
+            color: var(--color-link);
+            font: inherit;
+            font-size: var(--font-size-label-medium);
+            font-weight: var(--font-weight-medium);
+            letter-spacing: normal;
+            text-transform: none;
+            cursor: pointer;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .ft-band__view-all:hover { color: var(--color-link-hover); }
+        }
+
+        .ft-band__view-all:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .ft-band__view-all ol-icon { flex-shrink: 0; }
+
+        :host(:dir(rtl)) .ft-band__view-all ol-icon { transform: scaleX(-1); }
+
+        /* Left rule marks the passage, as .fsi-quote does. Not boxed: the band
+           is already a card. */
+        .ft-quote {
+            display: block;
+            margin-top: var(--spacing-2xs);
+            padding: var(--spacing-3xs) 0 var(--spacing-3xs) var(--spacing-md);
+            border-left: 3px solid var(--color-border-muted);
+            color: var(--color-text);
+            font-family: var(--font-family-quote);
+            font-size: var(--font-size-body-medium);
+            line-height: var(--line-height-relaxed);
+            overflow-wrap: anywhere;
+        }
+
+        /* Scanned titles carry their subtitles, so allow two lines. */
+        .ft-result .result__title {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            white-space: normal;
+        }
+
+        /* So a long OCR run can't balloon the row. */
+        .ft-quote__text {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+        }
+
+        /* One step up from .fsi-quote's amber-50, which vanishes on this fill.
+           The padding bleeds out so it doesn't shift the punctuation. */
+        .ft-quote mark {
+            background-color: var(--amber-100);
+            color: inherit;
+            font-weight: 500;
+            border-radius: var(--border-radius-sm);
+            padding: 0 var(--spacing-inline-xs);
+            margin: 0 calc(-1 * var(--spacing-inline-xs));
+            box-decoration-break: clone;
+        }
+
+        /* Animated trailing dots on the "Searching" label. The three dots
+           cycle 1 → 2 → 3 → 2 → 1 (a bounce) on a shared 4-step timeline:
+           dot 1 is always shown, dot 2 hides only in the first step, dot 3
+           shows only in the third. Opacity (not display) keeps all three in
+           flow, so the label width never shifts as dots blink. */
+        .loading-dots .dot { opacity: 0; }
+        .loading-dots .dot:nth-child(1) { opacity: 1; }
+        .loading-dots .dot:nth-child(2) { animation: ol-search-dots-2 1.4s linear infinite; }
+        .loading-dots .dot:nth-child(3) { animation: ol-search-dots-3 1.4s linear infinite; }
+
+        @keyframes ol-search-dots-2 {
+            0%, 24.99%   { opacity: 0; }
+            25%, 100%    { opacity: 1; }
+        }
+
+        @keyframes ol-search-dots-3 {
+            0%, 49.99%   { opacity: 0; }
+            50%, 74.99%  { opacity: 1; }
+            75%, 100%    { opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .loading-dots .dot { opacity: 1; animation: none; }
+        }
+
+        /* ── Recent-search row ──────────────────────────────────────────── */
+
+        /* The whole row is one actionable item (a div with role="button",
+           since the remove button is nested inside it and buttons can't nest
+           in anchors). .result supplies the flex layout and hover/focus
+           treatment; the div just needs the pointer cursor anchors get free. */
+        .recent-result {
+            cursor: pointer;
+            /* Tighter than book/author rows — no cover or avatar to clear,
+               so the rows can sit closer together. */
+            padding-top: var(--spacing-2xs);
+            padding-bottom: var(--spacing-2xs);
+        }
+
+        /* The row is top-aligned (see .result), but recent rows have only a
+           single line of text flanked by fixed-height icons — center the query
+           and the clock icon so everything lines up on one baseline. */
+        .recent-result .result__meta,
+        .recent-result .result__recent-icon { align-self: center; }
+
+        /* A past query, not a book title — lighter than the result rows. */
+        .recent-result .result__title { font-weight: 500; }
+
+        .result__recent-icon {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 28px;
+            /* Decorative — the heading already says these are recent searches. */
+            color: var(--color-icon-muted);
+        }
+
+        .result__remove-recent {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            /* Keep the full 36px tap target without it propping the
+               tightened row back open. */
+            margin-top: -2px;
+            margin-bottom: -2px;
+            background: transparent;
+            border: none;
+            border-radius: var(--border-radius-button);
+            color: var(--color-text-muted);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 100ms ease;
+        }
+
+        .recent-result:hover .result__remove-recent,
+        .recent-result:focus-within .result__remove-recent { opacity: 1; }
+
+        /* An opaque fill over the row's translucent hover overlay, so the
+           button reads as its own target inside the highlighted row. */
+        @media (hover: hover) and (pointer: fine) {
+            .result__remove-recent:hover { background: var(--color-control-hover); }
+        }
+
+        .result__remove-recent:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+            opacity: 1;
+        }
+
+        /* Always show remove button on touch devices (no hover state). */
+        @media (hover: none) and (pointer: coarse) {
+            .result__remove-recent { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) { .result__remove-recent { transition: none; } }
+        /* ── Stale (results a newer query has superseded) ───────────── */
+
+        /* Past STALE_DELAY_MS, lingering rows dim so they don't pass for the current
+           answer. Transition lives here so only the fade-in animates. */
+        .results.is-stale {
+            opacity: 0.55;
+            transition: opacity var(--duration-fast) var(--ease-state);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .results.is-stale { transition: none; }
+        }
+
+        /* ── Navigating (pressed result → page loading) ────────────── */
+
+        /* Pressing a result navigates the whole window, and the next page can
+           take a moment to start painting. During that gap the chosen row
+           holds full opacity while the rest dim back and its cover darkens
+           under a spinner. */
+        .results.is-navigating .result,
+        .results.is-navigating ol-shelf-button { opacity: 0.4; }
+
+        .results.is-navigating .result.is-target {
+            opacity: 1;
+            background: var(--color-hover-overlay);
+        }
+
+        .result.is-target .result__cover,
+        .result.is-target .result__avatar-photo {
+            filter: brightness(0.5);
+        }
+
+        /* Spinner centered over the thumbnail. Mirrors the <ol-button> loading
+           spinner — a currentcolor ring with one transparent edge spun by
+           keyframes — but white here to read over the darkened cover. */
+        .result__spinner {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 160ms ease;
+        }
+
+        .result__spinner::before {
+            content: "";
+            box-sizing: border-box;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--color-text-inverse);
+            border-right-color: transparent;
+            border-radius: var(--border-radius-circle);
+        }
+
+        .result.is-target .result__spinner { opacity: 1; }
+
+        .result.is-target .result__spinner::before {
+            animation: ol-search-result-spin 0.7s linear infinite;
+        }
+
+        @keyframes ol-search-result-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .results.is-navigating .result.is-target { transform: none; }
+            .result.is-target .result__spinner::before { animation-duration: 2s; }
+        }
+
+        /* ── Footer ────────────────────────────────────────────────── */
+
+        .footer {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-top: var(--border-divider);
+        }
+
+        .footer ol-button { flex-shrink: 0; }
+
+        /* The primary "See N books" holds the right edge. */
+        .footer ol-button:last-child { margin-left: auto; }
+
+        /* Width picks a label form; aria-label keeps the wide one. */
+        .footer .label-narrow { display: none; }
+
+        /* ── Mobile overrides ──────────────────────────────────────── */
+
+        @media (max-width: 767px) {
+            .search-input { font-size: var(--font-size-body-large); }
+            .results { max-height: none; flex: 1; }
+            /* The footer is pinned by the dialog's flex column (it sits
+               outside the scrolling body). */
+            .footer { background: var(--color-surface); }
+
+            /* Narrow rows, long counts — swap in the short labels. */
+            .footer .label-wide { display: none; }
+            .footer .label-narrow { display: inline; }
+
+            /* Flat search row: no boxed field — the back arrow and input read
+               as one line under the bar's bottom divider (kept from the base
+               .bar style). The magnifying glass is dropped (the back arrow
+               anchors the left edge instead). */
+            .bar { padding: var(--spacing-sm) var(--spacing-md); }
+            .search-field {
+                padding: 0;
+                border: none;
+                border-radius: 0;
+            }
+            .search-icon { display: none; }
+            .back-btn { margin-left: 0; }
+        }
+    `;
+
+    constructor() {
+        super();
+        this.open          = false;
+        this._query        = '';
+        this._mode         = MODE_BOOKS;
+        this._results      = [];
+        this._authorSuggestions = [];
+        this._numFound     = null;
+        // Live count of how many of the current query's hits are readable, shown
+        // on the "Readable Only" toggle once a search lands. null before the
+        // first search (the toggle falls back to the static corpus figure).
+        this._readableCount = null;
+        this._loading      = false;
+        // Whether the footer "See all results" button shows its loading spinner.
+        // Set when the patron commits to /search (click or Enter) and the page
+        // begins navigating; mirrors how a pressed result uses _navigatingKey.
+        this._seeAllLoading = false;
+        // Same, for the band's "Search Inside N books" button.
+        this._ftSeeAllLoading = false;
+        this._hasSearched  = false;
+        // A failed fetch, not an empty result. Non-reactive: read at click time.
+        this._searchFailed = false;
+        this._langsLoading = false;
+        this._navigatingKey = null;
+
+        // Availability options. Defaults to the built-in English list; the
+        // localized list (from the trigger's data-i18n) is set in
+        // initSearchModal before the modal first renders.
+        this._availabilityOptions = AVAILABILITY_OPTIONS;
+
+        // Chrome strings (labels, placeholders, status messages). Defaults to
+        // English; the translated set (from the trigger's data-i18n-ui) is set
+        // in initSearchModal before the modal first renders.
+        this._i18n = DEFAULT_SEARCH_MODAL_STRINGS;
+
+        // Curated set shown instantly; replaced by the real catalogue list
+        // (translated names, volume-ranked) once _loadAllLanguages() resolves.
+        // `_languageItems` is what the popover renders — the catalogue, or the
+        // catalogue merged with the current query's facet counts. `_allLanguageItems`
+        // keeps the uncounted catalogue so each new query re-merges from a clean
+        // list instead of one already filtered by the previous query's counts.
+        this._languageItems    = DEFAULT_LANGUAGE_OPTIONS;
+        this._allLanguageItems = DEFAULT_LANGUAGE_OPTIONS;
+
+        // The patron's site language as a MARC code (e.g. 'eng'), matching Solr's
+        // `language` field. Mapped from the trigger's 2-letter data-search-lang in
+        // initSearchModal; '' when unknown, in which case the mismatch pill is
+        // suppressed rather than guessed.
+        this._siteLanguage = '';
+
+        // Whether the patron is verified for print-disabled access (the `pd`
+        // cookie, surfaced as data-print-disabled on the trigger). Widens the
+        // "Readable" badge to printdisabled scans for these patrons, matching the
+        // server's per-patron readable count (see _isReadableAccess). Defaults to
+        // false; set in initSearchModal before the first render.
+        this._printDisabled = false;
+
+        // Availability is now a binary All / Readable Only toggle. Honor only an
+        // explicit stored 'readable'; everything else — no preference, or a
+        // legacy 'open'/'borrowable' value from before the toggle — collapses to
+        // the default 'all' (toggle off).
+        const _storedAvailability = ssGet(SS_AVAILABILITY_KEY);
+        this._availability = _storedAvailability === 'readable' ? 'readable' : DEFAULT_AVAILABILITY;
+        this._languages    = readStoredLanguages();
+
+        this._recentSearches = readRecentSearches();
+
+        this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
+        this._activeFetchKey = null;
+        // The search the rows on screen answer; _activeFetchKey moves as soon as a fetch starts.
+        this._resultsKey = null;
+        // Set once superseded content has shown for STALE_DELAY_MS. One clock for the whole modal.
+        this._markStale  = false;
+        this._staleTimer = null;
+
+        // FulltextBand decides when to fetch; the modal mirrors its result.
+        this._ftHits  = [];
+        this._ftTotal = null;
+        this._ftSearchKey = null;
+        this._ftQuery = '';
+        this._ftLoading = false;
+        this._ftError = false;
+        this._ftBand  = new FulltextBand({
+            getFilters: () => this._fulltextFilters(),
+            onChange: ({ hits, total, searchKey, query, loading, error }) => {
+                this._ftHits      = hits;
+                this._ftTotal     = total;
+                this._ftSearchKey = searchKey;
+                this._ftQuery     = query;
+                this._ftLoading   = loading;
+                this._ftError     = error;
+            },
+            onAttempt: (status) => this._scheduleBandOutcome(status),
+        });
+        this._allLangsLoaded = false;
+        // Search context the currently-merged language counts describe, and the
+        // one a request is in flight for. Equal keys mean the counts on screen
+        // are already right for this query, so re-opening the dropper is free.
+        this._facetKey       = null;
+        this._activeFacetKey = null;
+        // Search-outcome analytics: keys already counted this modal session, so
+        // re-settling the same query never re-fires. Reset per open. One timer
+        // per action, so the band's outcome can't cancel the catalog's.
+        this._outcomeTracked = new Set();
+        this._outcomeTimers  = new Map();
+
+        // For the rows' shelf buttons. State is keyed by work OLID and outlives
+        // the query, so a book seen again never refetches. Filled on intent.
+        this._userKey       = '';
+        this._shelfLabels   = null;
+        this._readingState  = new Map();
+        this._stateRequested = new Set();
+        this._shelfStateWanted = false;
+        this._onBookStateChange = this._onBookStateChange.bind(this);
+        this._onBookCheckIn     = this._onBookCheckIn.bind(this);
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        // The back button can restore this page (and modal) from the bfcache
+        // with a row (or the footer button) still flagged as navigating — clear
+        // both so their spinners don't linger on a page the user has returned to.
+        this._onPageShow = () => {
+            this._navigatingKey = null;
+            this._seeAllLoading = false;
+            this._ftSeeAllLoading = false;
+        };
+        window.addEventListener('pageshow', this._onPageShow);
+        // At the document, so a change made anywhere on the page reaches the same map.
+        document.addEventListener('ol-book-state-change', this._onBookStateChange);
+        document.addEventListener('ol-book-check-in', this._onBookCheckIn);
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('pageshow', this._onPageShow);
+        document.removeEventListener('ol-book-state-change', this._onBookStateChange);
+        document.removeEventListener('ol-book-check-in', this._onBookCheckIn);
+        this._clearOutcomeTimers();
+        this._clearStaleTimer();
+        super.disconnectedCallback();
+    }
+
+    attachToTrigger(trigger) {
+        if (!trigger) return;
+        // The trigger is a <button>, so a click (incl. keyboard Enter/Space)
+        // is the open intent — focus alone should not pop the modal open.
+        trigger.addEventListener('click', (e) => {
+            if (this.open) return;
+            e.preventDefault();
+            this._openModal();
+        });
+        // preventDefault (required for 'drop' to fire on this element at all)
+        // and show the "copy" cursor so the drag doesn't look rejected while
+        // hovering over the trigger. Non-text drags (files, images, ILE book
+        // selections) are left alone so they can't open an empty modal.
+        trigger.addEventListener('dragover', (e) => {
+            if (!isTextDrag(e.dataTransfer)) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        });
+        // Open the modal on drop (not dragover, which fires continuously and
+        // would pop the modal open before the patron has committed to the
+        // drop) and forward the dropped text into the search input.
+        trigger.addEventListener('drop', (e) => {
+            if (!isTextDrag(e.dataTransfer)) return;
+            e.preventDefault();
+            const text = e.dataTransfer.getData('text/plain');
+            if (!text) return;
+            if (!this.open) this._openModal('drag');
+            this._applyDroppedText(text);
+        });
+    }
+
+    _openModal(trigger = 'click') {
+        this.open = true;
+        this._outcomeTracked.clear();
+        this._track('Open', trigger);
+        if (!this._allLangsLoaded && !this._langsLoading) {
+            this._loadAllLanguages();
+        }
+        // Lit updates are async, which would defer the dialog's showModal()
+        // and the input focus past the trigger click's call stack. Mobile
+        // browsers only raise the soft keyboard for focus() calls made inside
+        // the user gesture, so flush both renders and focus synchronously.
+        // (ol-after-open re-focuses after the animation — that's a no-op here.)
+        this.performUpdate();
+        this.renderRoot.querySelector('ol-dialog')?.performUpdate();
+        this.renderRoot.querySelector('.search-input')?.focus();
+    }
+
+    _closeModal() { this.open = false; }
+
+    // Empties the result list and its derived counts. `hasSearched` records
+    // whether this is a post-search empty state (true) or a pre-search reset
+    // (false); `clearReadableCount` is false in the main fetch's error path,
+    // where the separate readable-count request owns that field.
+    _resetResults({ hasSearched, clearReadableCount = true } = {}) {
+        this._clearOutcomeTimers();
+        this._results           = [];
+        this._resultsKey        = null;
+        this._authorSuggestions = [];
+        this._numFound          = null;
+        if (clearReadableCount) this._readableCount = null;
+        this._loading           = false;
+        this._hasSearched       = hasSearched;
+    }
+
+    // The small X inside the field: clear the query without closing the modal,
+    // then refocus so the patron can keep typing. Mirrors the reset
+    // _onQueryInput does when the query drops below the autocomplete threshold,
+    // and drops _activeFetchKey so an in-flight fetch can't repopulate results.
+    _clearInput() {
+        this._query          = '';
+        this._navigatingKey  = null;
+        this._seeAllLoading  = false;
+        this._ftSeeAllLoading = false;
+        this._activeFetchKey = null;
+        this._resetResults({ hasSearched: false });
+        this._ftBand.clear();
+        const input = this.renderRoot.querySelector('.search-input');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+    }
+
+    // Fetch the catalogue once per modal instance. The in-flight promise is
+    // memoized so the modal-open prefetch and a dropper opened before it lands
+    // share one request instead of racing two.
+    _ensureLanguageCatalogue() {
+        if (!this._languageCataloguePromise) {
+            this._languageCataloguePromise = fetchLanguageOptions().then(options => {
+                this._allLanguageItems = options;
+                this._allLangsLoaded   = true;
+                return options;
+            });
+        }
+        return this._languageCataloguePromise;
+    }
+
+    async _loadAllLanguages() {
+        this._langsLoading = true;
+        try {
+            this._languageItems = await this._ensureLanguageCatalogue();
+        } finally {
+            this._langsLoading = false;
+        }
+    }
+
+    _onLanguageOpenRequest(e) {
+        return openWhenCountsReady(e, () => this._loadLanguageFacets());
+    }
+
+    // Context-aware counts for the language dropper, fetched when the patron
+    // asks for it rather than alongside every search — most never open it, and
+    // the counts are only ever seen while it's on screen.
+    //
+    // Loading can't race the query: the dropper takes focus, so the query is
+    // frozen from the moment it's asked for. A query typed while it was
+    // *closed* just changes the key, and the next open refetches.
+    async _loadLanguageFacets() {
+        // Counts describe the current query's results. With no query there's
+        // nothing to count, so fall back to the plain catalogue — this also
+        // undoes a previous query's merge after the input is cleared.
+        if (!this._shouldAutocomplete()) {
+            this._languageItems = this._allLanguageItems;
+            this._facetKey      = null;
+            return;
+        }
+
+        const params = this._buildFacetParams(this._query.trim());
+        const key    = params.toString();
+        if (key === this._facetKey) return;   // already merged for this context
+
+        this._activeFacetKey = key;
+        this._langsLoading   = true;
+        // Drop the outgoing query's counts now rather than showing them under
+        // the spinner. The suggestion list is hidden while `loading` is set, but
+        // any selected rows stay on screen and would otherwise read as current.
+        this._languageItems = this._allLanguageItems;
+
+        // The catalogue is normally already in flight (kicked off on modal open);
+        // await it so a dropper opened immediately still merges. Counts are
+        // caught rather than awaited fail-fast, so a failed count request still
+        // leaves the catalogue that did load on screen.
+        const [catalogue, counts] = await Promise.all([
+            this._ensureLanguageCatalogue(),
+            fetchFacetCounts('language', params).catch(() => null),
+        ]);
+        if (this._activeFacetKey !== key) return;
+
+        // No counts (request failed, or the query matched nothing) degrades to
+        // the uncounted catalogue — filtering must never break. Only a real
+        // response is cached; a null key lets the next open retry.
+        this._languageItems = counts?.length
+            ? mergeFacetCounts(catalogue, counts, this._languages)
+            : catalogue;
+        this._facetKey     = counts ? key : null;
+        this._langsLoading = false;
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────
+
+    render() {
+        return html`
+            <ol-dialog
+                ?open=${this.open}
+                without-header
+                fullscreen-on-mobile
+                width="large"
+                placement="top"
+                label=${this._i18n.dialogAria}
+                style="
+                    --ol-dialog-padding: 0;
+                    --ol-dialog-top-offset: 54px;
+                    --ol-dialog-animation-duration: 160ms;
+                    --ol-dialog-width-large: min(680px, 92vw);
+                "
+                @ol-after-open=${this._onDialogOpened}
+                @ol-after-close=${this._onDialogClosed}
+            >
+                <div slot="header" class="bar">
+                    <button
+                        type="button"
+                        class="back-btn"
+                        aria-label=${this._i18n.closeAria}
+                        @click=${this._closeModal}
+                    >${SearchModal._backIcon}</button>
+                    <div class="search-field">
+                        ${SearchModal._searchIcon}
+                        <input
+                            type="search"
+                            autofocus
+                            enterkeyhint="search"
+                            class="search-input"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            placeholder=${this._inside ? this._i18n.insidePlaceholder : this._i18n.inputPlaceholder}
+                            aria-label=${this._i18n.inputAria}
+                            .value=${this._query}
+                            @input=${this._onQueryInput}
+                            @keydown=${this._onInputKeydown}
+                            @drop=${this._onDrop}
+                            @dragover=${this._onDragOver}
+                        />
+                        ${this._query.length ? html`
+                            <button
+                                type="button"
+                                class="clear-btn"
+                                aria-label=${this._i18n.clearAria}
+                                @click=${this._clearInput}
+                            >${SearchModal._closeIcon}</button>
+                        ` : nothing}
+                        <button
+                            type="button"
+                            class="esc-pill"
+                            aria-label=${this._i18n.closeAria}
+                            @click=${this._closeModal}
+                        >ESC</button>
+                    </div>
+                </div>
+
+                <!-- Visually-hidden live region: announces the result count to
+                     screen readers as the list updates (sighted users just see
+                     it appear). Rendered unconditionally so the region is already
+                     in the a11y tree before its text changes — a live region
+                     inserted at the same time as its content isn't reliably
+                     announced. -->
+                <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                    ${this._resultsAnnouncement()}
+                </div>
+
+                ${this._renderTabs()}
+                <div class="filter-section">
+                    ${this._renderFilters()}
+                </div>
+                <!-- aria-busy on the panel: the results container is replaced between states. -->
+                <div
+                    role="tabpanel"
+                    id="ol-search-panel"
+                    aria-labelledby="ol-search-tab-${this._mode}"
+                    aria-busy=${this._markStale ? 'true' : 'false'}
+                >
+                    ${this._renderResults()}
+                </div>
+
+                <div slot="footer" class="footer">
+                    ${this._renderSeeAll()}
+                </div>
+            </ol-dialog>
+        `;
+    }
+
+    // Reconciled after every render, so no path can leave a dim that nothing clears.
+    updated() {
+        // The Books tab's band hides rather than dims, so it doesn't start the clock.
+        const superseded = this._inside ? this._bandSuperseded() : this._catalogSuperseded();
+        if (superseded) {
+            if (this._markStale || this._staleTimer) return;
+            this._staleTimer = setTimeout(() => {
+                this._staleTimer = null;
+                this._markStale = true;
+            }, STALE_DELAY_MS);
+        } else {
+            this._clearStaleTimer();
+            this._markStale = false;
+        }
+    }
+
+    _clearStaleTimer() {
+        if (!this._staleTimer) return;
+        clearTimeout(this._staleTimer);
+        this._staleTimer = null;
+    }
+
+    // ── Staleness ────────────────────────────────────────────────────────
+    //
+    // *Superseded: rows answer an older query. *IsStale: the same, past the delay.
+
+    _catalogSuperseded() {
+        return this._results.length > 0 && this._resultsKey !== this._buildSearchJsonUrl(this._query.trim());
+    }
+
+    _bandSuperseded() {
+        return this._ftHits.length > 0 && !this._ftIsCurrent();
+    }
+
+    _catalogIsStale() { return this._markStale && this._catalogSuperseded(); }
+
+    _bandIsStale() { return this._markStale && this._bandSuperseded(); }
+
+    // is-navigating replaces the stale dim rather than compounding with it.
+    _resultsClass(stale) {
+        if (this._navigatingKey) return 'results is-navigating';
+        return stale ? 'results is-stale' : 'results';
+    }
+
+    /** True while the Inside books tab is showing. */
+    get _inside() { return this._mode === MODE_INSIDE; }
+
+    // No count on the Inside tab: it would only exist when the band happened to fire.
+    _renderTabs() {
+        const tab = (mode, label) => html`
+            <button
+                type="button"
+                class="tab"
+                id="ol-search-tab-${mode}"
+                role="tab"
+                aria-selected=${this._mode === mode}
+                aria-controls="ol-search-panel"
+                tabindex=${this._mode === mode ? '0' : '-1'}
+                @click=${() => this._selectMode(mode)}
+                @keydown=${this._onTabKeydown}
+            >
+                <span>${label}</span>
+                <span class="tab-ghost" aria-hidden="true">${label}</span>
+            </button>
+        `;
+        return html`
+            <div class="tabs" role="tablist" aria-label=${this._i18n.tabsAria}>
+                ${tab(MODE_BOOKS, this._i18n.tabBooks)}
+                ${tab(MODE_INSIDE, this._i18n.tabInside)}
+            </div>
+        `;
+    }
+
+    // Roving tabindex: ←/→ and Home/End. With two tabs, a move is always to the other.
+    // Auto-repeat is dropped: focus follows selection, so a held arrow would
+    // flip tabs at the key-repeat rate and fetch on every flip.
+    _onTabKeydown(e) {
+        if (e.repeat) return;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            this._selectMode(this._inside ? MODE_BOOKS : MODE_INSIDE);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            this._selectMode(MODE_BOOKS);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            this._selectMode(MODE_INSIDE);
+        }
+    }
+
+    // Returning to Books refetches the catalog (paused on Inside) and re-runs the band's gates.
+    _selectMode(mode) {
+        if (this._mode === mode) return;
+        this._mode = mode;
+        this._track('Tab', mode);
+        this._navigatingKey = null;
+        this._ftSeeAllLoading = false;
+        const trimmed = this._query.trim();
+        const live = this._shouldAutocomplete();
+        this._ftBand.setExplicit(mode === MODE_INSIDE, live ? trimmed : '');
+        if (mode === MODE_BOOKS && live) {
+            if (this._activeFetchKey !== this._buildSearchJsonUrl(trimmed)) {
+                this._scheduleSearch();
+            } else {
+                this._ftBand.queryChanged(this._query);
+                if (this._searchFailed) this._ftBand.solrFailed(trimmed);
+                else if (this._hasSearched && !this._loading) this._ftBand.solrSettled(trimmed, this._results);
+            }
+        }
+        // Focus follows selection.
+        this.updateComplete.then(() => {
+            this.renderRoot.querySelector(`#ol-search-tab-${mode}`)?.focus();
+        });
+    }
+
+    _renderFilters() {
+        // Binary availability: off = "All books", on = "Readable Only". The
+        // label comes from the (localized) 'readable' option so the toggle reads
+        // the same as the old dropdown's Readable Only row.
+        const readable = this._availabilityOptions.find(o => o.value === 'readable');
+        // The sublabel shows how many of the current query's results are readable,
+        // scoped to the query + language. We only show it once a search lands and a
+        // live count is in hand — before that there's no honest number to display
+        // (the whole-corpus figure ignores the query/language), so we show nothing.
+        // Catalog-only; FTS has no equivalent.
+        const sublabel = !this._inside && this._hasSearched && typeof this._readableCount === 'number'
+            ? this._readableCount.toLocaleString()
+            : '';
+        // "Clear all" only earns its place once there's more than one filter to
+        // clear — i.e. readable-only is on *and* a language is selected. With a
+        // single filter active the user just toggles/deselects it directly.
+        const showClearAll = this._availability === 'readable' && this._languages.length > 0;
+        return html`
+            <div class="filters" role="group" aria-label=${this._i18n.filtersAria}>
+                <ol-toggle
+                    variant="button"
+                    label=${readable?.label ?? this._i18n.availabilityLabel}
+                    sublabel=${sublabel}
+                    ?checked=${this._availability === 'readable'}
+                    @ol-toggle-change=${this._onAvailabilityToggle}
+                ></ol-toggle>
+                <ol-select-popover
+                    label=${this._i18n.languageLabel}
+                    placeholder=${this._i18n.languagePlaceholder}
+                    unselected-heading=${this._i18n.languageHeading}
+                    loading-label=${this._i18n.languagesLoading}
+                    ?loading=${this._langsLoading}
+                    .items=${this._languageItems}
+                    .selected=${this._languages}
+                    @ol-select-popover-request-open=${this._onLanguageOpenRequest}
+                    @ol-select-popover-change=${this._onLanguagesChange}
+                ></ol-select-popover>
+                ${showClearAll ? html`
+                    <ol-button
+                        variant="ghost"
+                        class="clear-all"
+                        @click=${this._clearAllFilters}
+                    >${this._i18n.clearAll}</ol-button>
+                ` : nothing}
+            </div>
+        `;
+    }
+
+    _renderResults() {
+        if (this._inside) return this._renderInsideResults();
+
+        if (!this._shouldAutocomplete()) {
+            return this._recentSearches.length > 0
+                ? this._renderRecentSearches()
+                : html`<div class="results"></div>`;
+        }
+
+        if (this._loading && this._results.length === 0) {
+            return html`<div class="results">${this._renderSearching(this._i18n.searchingBooks)}</div>`;
+        }
+
+        if (this._results.length === 0 && this._hasSearched) {
+            // With band hits for *this* query, scope the message to the catalog.
+            const emptyLabel = this._visibleFtHits().length
+                ? this._i18n.noCatalogResults
+                : this._i18n.noResults;
+            return html`<div class="results" @keydown=${this._onResultsKeydown}>
+                <div class="empty">${emptyLabel}</div>
+                ${this._renderFulltextBand()}
+            </div>`;
+        }
+
+        return html`
+            <div class=${this._resultsClass(this._catalogIsStale())} @keydown=${this._onResultsKeydown}>
+                ${this._authorSuggestions.length ? html`
+                    <h3 class="results-heading">${this._i18n.authorResults}</h3>
+                    <ul class="results-list author-suggestion">
+                        ${repeat(this._authorSuggestions, a => a.key, (a, i) => this._renderAuthorSuggestion(a, i))}
+                    </ul>
+                ` : nothing}
+                <h3 class="results-heading">${this._i18n.topResults}</h3>
+                <ul
+                    class="results-list"
+                    @pointerenter=${this._onShelfIntent}
+                    @focusin=${this._onShelfIntent}
+                >${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
+                ${this._renderFulltextBand()}
+            </div>
+        `;
+    }
+
+    // The Inside tab: passages only, no dedupe, author or shelf rows.
+    _renderInsideResults() {
+        if (!this._shouldAutocomplete()) {
+            return html`<div class="results"><div class="empty">${this._i18n.insidePrompt}</div></div>`;
+        }
+        if (this._ftLoading && this._ftHits.length === 0) {
+            return html`<div class="results">${this._renderSearching(this._i18n.searchingInside)}</div>`;
+        }
+        // A failed fetch leaves no hits, which would otherwise read as a
+        // definitive "no matches" — the backend never answered.
+        if (this._ftError) {
+            return html`<div class="results"><div class="empty">${this._i18n.insideError}</div></div>`;
+        }
+        if (this._ftHits.length === 0) {
+            return html`<div class="results"><div class="empty">${this._i18n.noInsideResults}</div></div>`;
+        }
+        return html`
+            <div class=${this._resultsClass(this._bandIsStale())} @keydown=${this._onResultsKeydown}>
+                <ul class="results-list">
+                    ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
+                </ul>
+            </div>
+        `;
+    }
+
+    // Strip any trailing ellipsis/period(s) from the (translated) label so the
+    // animated dots that follow aren't doubled up.
+    _renderSearching(text) {
+        const label = text.replace(/[.…。]+$/, '');
+        return html`<div class="loading"
+            >${label}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div>`;
+    }
+
+    // A fresh answer scrolls to the top; .results is long-lived and would keep the old offset.
+    _scrollResultsToTop() {
+        if (this._inside) return;
+        this.updateComplete.then(() => {
+            const results = this.renderRoot?.querySelector('.results');
+            if (results) results.scrollTop = 0;
+        });
+    }
+
+    // Hits minus scans already listed above. Computed at render since the two
+    // fetches race. Empty once an edit outdates them, so the band, the empty
+    // label and the live region all drop them together.
+    _visibleFtHits() {
+        if (!this._ftIsCurrent()) return [];
+        return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
+    }
+
+    // Hidden until hits land: no spinner or empty state for a secondary surface.
+    // Hidden (not dimmed) once an edit outdates them; at the foot of the list that costs no flicker.
+    // "View all" switches to the Inside tab rather than leaving the modal.
+    _renderFulltextBand() {
+        const hits = this._visibleFtHits();
+        if (hits.length === 0) return nothing;
+        return html`
+            <div class="ft-band">
+                <h3 class="results-heading results-heading--icon">
+                    ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
+                    <button
+                        type="button"
+                        class="ft-band__view-all"
+                        @click=${() => this._selectMode(MODE_INSIDE)}
+                    >${this._i18n.viewAllInside}${SearchModal._arrowRightIcon}</button>
+                </h3>
+                <ul class="results-list">
+                    ${hits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
+                </ul>
+            </div>
+        `;
+    }
+
+    // The Inside tab's route to /search/inside. No aria-label, so voice control can say it.
+    _renderInsideSeeAll() {
+        const q = this._query.trim();
+        const counted = this._ftTotalIsCurrent() && this._ftTotal > 0;
+        const href = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
+        return html`
+            <ol-button
+                variant="primary"
+                href=${href}
+                ?disabled=${q.length < MIN_QUERY_LENGTH}
+                ?loading=${this._ftSeeAllLoading}
+                @click=${this._onFulltextSeeAll}
+            >${counted ? this._seeAllInsideLabel() : this._i18n.seeAllInsidePlain}</ol-button>
+        `;
+    }
+
+    // Whether the hits on screen answer the current query + filters.
+    _ftIsCurrent() {
+        return this._ftSearchKey === fulltextSearchParams(this._query.trim(), this._fulltextFilters()).toString();
+    }
+
+    _ftTotalIsCurrent() {
+        return typeof this._ftTotal === 'number' && this._ftIsCurrent();
+    }
+
+    _seeAllInsideLabel() {
+        const label = this._ftTotal === 1 ? this._i18n.seeAllInsideOne : this._i18n.seeAllInsideMany;
+        return sprintf(label, this._ftTotal.toLocaleString());
+    }
+
+    // Opens BookReader searching for the phrase. `q` is the query the hit answers, not the input.
+    _renderFulltextHit(hit, q, index = 0) {
+        const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
+        const segments = parseSnippet(hit.snippet);
+        return html`<li>
+                <a
+                    class="result ft-result ${this._navigatingKey === href ? 'is-target' : ''}"
+                    href=${href}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'FulltextClick', label: `rank:${index + 1}` })}
+                >
+                    <span class="result__cover-link">
+                        <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} srcset=${hit.coverSrcset || nothing} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
+                        <span class="result__spinner" aria-hidden="true"></span>
+                    </span>
+                    <span class="result__meta">
+                        <span class="result__title">${hit.title || this._i18n.untitled}</span>
+                        ${hit.author ? html`<span class="result__author">${hit.author}</span>` : nothing}
+                        ${hit.year ? html`<span class="result__year">${hit.year}</span>` : nothing}
+                        <span class="ft-quote">
+                            <span class="ft-quote__text">…${segments.map(s => s.match ? html`<mark>${s.text}</mark>` : s.text)}…</span>
+                        </span>
+                    </span>
+                </a>
+            </li>`;
+    }
+
+    _renderRecentSearches() {
+        return html`
+            <div class="results" @keydown=${this._onResultsKeydown}>
+                <h3 class="results-heading">${this._i18n.recentSearches}</h3>
+                <ul class="results-list">
+                    ${repeat(this._recentSearches, s => s, s => html`
+                        <li>
+                            <div
+                                class="result recent-result"
+                                role="button"
+                                tabindex="0"
+                                @click=${() => this._onRecentSearchClick(s)}
+                                @keydown=${(e) => this._onRecentSearchKeydown(e, s)}
+                            >
+                                <span class="result__recent-icon" aria-hidden="true">
+                                    ${SearchModal._clockIcon}
+                                </span>
+                                <span class="result__meta">
+                                    <span class="result__title">${s}</span>
+                                </span>
+                                <button
+                                    type="button"
+                                    class="result__remove-recent"
+                                    aria-label=${sprintf(this._i18n.removeRecent, s)}
+                                    @click=${(e) => { e.stopPropagation(); this._recentSearches = removeRecentSearch(s); }}
+                                >${SearchModal._closeIcon}</button>
+                            </div>
+                        </li>
+                    `)}
+                </ul>
+            </div>
+        `;
+    }
+
+    // Clicking a recent-search row fills the input and kicks off a search,
+    // rather than hard-navigating, so the patron sees inline results first.
+    _onRecentSearchClick(query) {
+        this._query = query;
+        const input = this.renderRoot.querySelector('.search-input');
+        if (input) input.value = query;
+        this._scheduleSearch();
+    }
+
+    // role="button" rows activate on Enter and Space. Keydowns bubbling up
+    // from the nested remove button are ignored.
+    _onRecentSearchKeydown(e, query) {
+        if (e.target !== e.currentTarget) return;
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault(); // keep Space from scrolling the results
+        this._onRecentSearchClick(query);
+    }
+
+    // Save the current query to recent searches. Called before any navigation.
+    _saveCurrentSearch() {
+        const trimmed = this._query.trim();
+        if (trimmed.length < MIN_QUERY_LENGTH) return;
+        saveRecentSearch(trimmed);
+        this._recentSearches = readRecentSearches();
+    }
+
+    // A "go to the author page" row shown above the works for each top-result
+    // author the query names (see deriveAuthors). The whole row is a single link
+    // to the author page, so it's a plain anchor (no nested-link concern).
+    _renderAuthorSuggestion(author, index = 0) {
+        const href = `/authors/${author.key}`;
+        return html`<li>
+                <a
+                    class="result ${this._navigatingKey === href ? 'is-target' : ''}"
+                    href=${href}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'ResultClick', label: `author:${index + 1}` })}
+                >
+                    <span class="result__avatar">
+                        ${SearchModal._personIcon}
+                        <img
+                            class="result__avatar-photo"
+                            src="https://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=false"
+                            srcset="https://covers.openlibrary.org/a/olid/${author.key}-M.jpg?default=false 2x"
+                            alt=""
+                            loading="lazy"
+                            @error=${this._onAvatarError}
+                        />
+                        <span class="result__spinner" aria-hidden="true"></span>
+                    </span>
+                    <span class="result__meta">
+                        <span class="result__title">${author.name}</span>
+                        <span class="result__author">${this._i18n.authorLabel}</span>
+                    </span>
+                </a>
+            </li>`;
+    }
+
+    // Direct archive.org cover URLs (used as the IA fallback in _renderResult)
+    // have no `?default=` graceful-fallback param, so a missing scan 404s with a
+    // broken image. Swap in the placeholder once; the guard avoids a reload loop
+    // if the placeholder itself ever fails.
+    _onCoverError(e) {
+        const img = e.currentTarget;
+        if (img.dataset.coverFallback) return;
+        img.dataset.coverFallback = '1';
+        img.srcset = '';
+        img.src = COVER_PLACEHOLDER;
+    }
+
+    // Whether an `ebook_access` value earns the "Readable" badge for this patron.
+    // `public`/`borrowable` are readable for everyone; `printdisabled` only for
+    // patrons verified for print-disabled access — mirroring the server's
+    // per-patron readable filter/count (get_fulltext_min) so the badge and the
+    // "Readable Only" count never disagree about the same book.
+    _isReadableAccess(access) {
+        if (READABLE_ACCESS.has(access)) return true;
+        return this._printDisabled && access === PRINT_DISABLED_ACCESS;
+    }
+
+    // The whole row is a single link to the work — the author is surfaced in
+    // its own suggestion row, so there's no separate author link here (which
+    // also keeps this a plain anchor with no nested-link concern).
+    _renderResult(work, index = 0) {
+        // Promote the hit to the specific edition that best matches the query —
+        // its OL edition page — so the result opens on (and displays) that copy
+        // rather than the work page. The edition is editions.docs[0] from the
+        // block-join subquery, ranked by text relevance + a site-language boost
+        // and already constrained to any active availability/language filter at
+        // the edition level (see SEARCH_FIELDS note). Promotion is unconditional:
+        // a query like "kammer" should land on the matching German edition whether
+        // or not Readable Only is on.
+        //
+        // We render the row from that edition's own title and cover — not the
+        // work's — so the row matches where it links. The work's display title is
+        // its canonical (often English) title, but the matched edition can be in
+        // another language: a German edition wins "kammer", a French/Persian scan
+        // wins "chambre des secrets". Showing the work title over an edition link
+        // would send the patron to a surprise-language book — and clicking the
+        // bare work would instead land on the work page's own "best edition" pick
+        // (get_best_edition), unrelated to their query. Falls back to the work
+        // (both link and display) when the block-join returns no edition (e.g.
+        // editions disabled via the SOLR_EDITIONS flag, or an edition-less work).
+        const edition = work.editions?.docs?.[0];
+        const display = edition?.key ? edition : work;
+        const href    = display === edition ? edition.key : work.key;
+
+        // Author and year stay work-level: authors aren't indexed on editions,
+        // and first_publish_year is the work's original-publication year.
+        const author = work.author_name?.[0] || '';
+        const year   = work.first_publish_year || '';
+
+        // Whether the promoted edition — the copy weighted toward the patron's
+        // site language, and the one this row opens — is itself readable for this
+        // patron. Drives both the badge and the language hint below.
+        const editionReadable = this._isReadableAccess(edition?.ebook_access);
+
+        // "Readable" badge. When an edition is promoted, the badge reflects
+        // whether *that* copy is readable — not the work-level ebook_access
+        // aggregate. So a work whose only readable copies are in another language
+        // no longer flashes "Readable" off a copy the patron can't read in their
+        // language: with Readable Only off the language-matched edition wins
+        // promotion and, when it isn't readable, the row carries no badge. (Turn
+        // Readable Only on and the subquery instead promotes the readable foreign
+        // copy, which earns a "Readable in <language>" badge.) Falls back to
+        // the work-level aggregate only when no edition was promoted — editions
+        // disabled via SOLR_EDITIONS, or an edition-less work — so those still
+        // badge from the work.
+        const readable = edition ? editionReadable : this._isReadableAccess(work.ebook_access);
+
+        // Name the promoted edition's language in the badge ("Readable in Dutch")
+        // so the patron knows the language of the copy this row opens. Gated on the
+        // promoted edition's own readability (so we only name a language for a copy
+        // we've confirmed readable); since the badge now keys off this same edition,
+        // the hint never shows without it. Two cases drive it:
+        //
+        //  - No language filter: flag the copy only when it *isn't* in the patron's
+        //    site language (readableLanguageMismatch) — a surprise-avoidance hint.
+        //  - Several languages chosen: a readable row could be in any of them, so
+        //    always name the copy's language (readableEditionLanguages) so the
+        //    patron can tell which of their filters it satisfies. (A single language
+        //    filter constrains every result to it, so both helpers stay quiet.)
+        //
+        // Edge (rare, accepted): Solr promotes one edition via a soft site-language
+        // boost (works.py bq `language:{user_lang}^40`), not a hard sort, and we
+        // read only that edition (editions.rows=1). A strongly text-matching
+        // readable foreign edition can outrank a readable same-language copy, so the
+        // hint may name a foreign language even when a readable site-language copy
+        // exists deeper in the work. Eliminating it would mean fetching every
+        // readable edition's language, which we don't.
+        const otherLang = !editionReadable
+            ? null
+            : this._languages.length >= 2
+                ? readableEditionLanguages({
+                    edition,
+                    languages: this._languages,
+                    options: this._languageItems,
+                })
+                : readableLanguageMismatch({
+                    edition,
+                    languages: this._languages,
+                    siteLanguage: this._siteLanguage,
+                    options: this._languageItems,
+                });
+
+        // Cover resolution mirrors the rest of the site (Edition.get_cover_url →
+        // get_ia_cover): prefer an OL-uploaded cover (cover_i), else fall back to
+        // the Internet Archive scan (ia), else the placeholder — resolved from the
+        // displayed record so the cover matches the title and link. Without the IA
+        // fallback, IA-only books (lending/print-disabled scans with no uploaded
+        // cover) render a blank placeholder here while every other surface shows
+        // the scanned cover. The trailing work-edition `ia` keeps that fallback
+        // for the un-promoted work row too. See issue #12893.
+        const ia = display.ia?.[0] || work.ia?.[0] || work.editions?.docs?.[0]?.ia?.[0];
+        let cover, coverSrcset;
+        if (display.cover_i) {
+            cover       = `https://covers.openlibrary.org/b/id/${display.cover_i}-S.jpg`;
+            coverSrcset = `https://covers.openlibrary.org/b/id/${display.cover_i}-M.jpg 2x`;
+        } else if (ia) {
+            // IA cover size map matches get_ia_cover: S = 116×58, M = 180×360.
+            // archive.org URLs have no `?default=` fallback, so a missing scan
+            // 404s and the <img> @error handler swaps in the placeholder.
+            cover       = `https://archive.org/download/${ia}/page/cover_w116_h58.jpg`;
+            coverSrcset = `https://archive.org/download/${ia}/page/cover_w180_h360.jpg 2x`;
+        } else {
+            cover       = COVER_PLACEHOLDER;
+            coverSrcset = nothing;
+        }
+
+        const title = display.title || work.title || this._i18n.untitled;
+
+        let badge = nothing;
+        if (otherLang) {
+            badge = html`<span class="result__badge">${sprintf(this._i18n.readableInLanguage, otherLang)}</span>`;
+        } else if (readable) {
+            badge = html`<span class="result__badge result__badge--readable">${this._i18n.accessReadable}</span>`;
+        }
+
+        return html`<li class="result-row">
+                <a
+                    class="result ${this._navigatingKey === href ? 'is-target' : ''}"
+                    href=${href}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'ResultClick', label: `${display === edition ? 'edition' : 'work'}:${index + 1}` })}
+                >
+                    <span class="result__cover-link">
+                        <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
+                        <span class="result__spinner" aria-hidden="true"></span>
+                    </span>
+                    <span class="result__meta">
+                        <span class="result__title-line">
+                            <span class="result__title">${title}</span>
+                            ${badge}
+                        </span>
+                        ${author ? html`<span class="result__author">${author}</span>` : nothing}
+                        ${year ? html`<span class="result__year">${year}</span>` : nothing}
+                    </span>
+                </a>
+                ${this._renderShelfButton(work, edition, title)}
+            </li>`;
+    }
+
+    // ── Shelf buttons ─────────────────────────────────────────────────────
+
+    // Shelf is work-level, so the button acts on the work even when the row
+    // links to an edition; the edition rides along so the shelf records the copy.
+    _renderShelfButton(work, edition, title) {
+        const state = this._readingState.get(olidOf(work.key));
+        return html`<ol-shelf-button
+            variant="outline"
+            work-key=${work.key}
+            edition-key=${ifDefined(edition?.key ? olidOf(edition.key) : undefined)}
+            book-title=${title}
+            user-key=${this._userKey}
+            .labels=${this._shelfLabels || {}}
+            .shelf=${state?.shelf ?? null}
+            .rating=${state?.rating ?? null}
+            .readDate=${state?.read_date ?? null}
+            .eventId=${state?.event_id ?? null}
+            ?pending=${Boolean(this._userKey) && !state}
+            @pointerdown=${this._onShelfIntent}
+        ></ol-shelf-button>`;
+    }
+
+    // State is fetched on intent (hover or focus on the results, a press on a
+    // button), not with the search: one request then covers every row while
+    // the modal stays open, and readers who only navigate cost nothing.
+    _onShelfIntent() {
+        if (this._shelfStateWanted) return;
+        this._shelfStateWanted = true;
+        this._loadShelfState();
+    }
+
+    // A failed batch is forgotten so the next intent tries it again.
+    async _loadShelfState() {
+        if (!this._userKey) return;
+        const olids = this._results
+            .map(work => olidOf(work.key))
+            .filter(olid => !this._readingState.has(olid) && !this._stateRequested.has(olid));
+        if (olids.length === 0) return;
+        olids.forEach(olid => this._stateRequested.add(olid));
+        let works;
+        try {
+            const response = await fetch(buildPartialsUrl('ReadingState', { work_ids: olids.join(',') }), { credentials: 'same-origin' });
+            if (!response.ok) throw new Error(`ReadingState → ${response.status}`);
+            works = (await response.json()).works;
+        } catch {
+            olids.forEach(olid => this._stateRequested.delete(olid));
+            return;
+        }
+        this._readingState = new Map([...this._readingState, ...Object.entries(works)]);
+    }
+
+    // Only a known book is patched. An unknown one is fetched whole instead,
+    // once intent is shown: a patch alone would let the popover act on the
+    // shelf without knowing the date.
+    _patchShelfState(key, patch) {
+        const olid = olidOf(key);
+        const current = this._readingState.get(olid);
+        if (!current) {
+            if (this._shelfStateWanted) this._loadShelfState();
+            return;
+        }
+        this._readingState = new Map(this._readingState).set(olid, { ...current, ...patch });
+    }
+
+    _onBookStateChange(e) {
+        const { key, shelf, rating } = e.detail;
+        const patch = { shelf: shelf ?? null, rating: rating ?? null };
+        // Off the shelf takes the check-ins with it (the server deletes them).
+        if (patch.shelf === null) Object.assign(patch, { read_date: null, event_id: null });
+        this._patchShelfState(key, patch);
+    }
+
+    _onBookCheckIn(e) {
+        const { key, date, eventId } = e.detail;
+        this._patchShelfState(key, { read_date: date, event_id: eventId });
+    }
+
+    // aria-label keeps the wide form; the narrow one only swaps what's on screen.
+    _renderSeeAll() {
+        if (this._inside) return this._renderInsideSeeAll();
+        const { wide, narrow } = this._seeAllLabels();
+        return html`
+            <ol-button
+                variant="primary"
+                aria-label=${wide}
+                ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
+                ?loading=${this._seeAllLoading}
+                @click=${this._onSeeAllResults}
+            >${this._responsiveLabel(wide, narrow)}</ol-button>
+        `;
+    }
+
+    // The footer button shows the actual hit count once a search lands
+    // (e.g. "See all 1,234 books"); the bare "See results" label is
+    // used before any results are in (initial open, query under MIN_QUERY_LENGTH,
+    // or fetch error). Zero hits gets "Go to full search" instead.
+    _seeAllLabels() {
+        const n = this._numFound;
+        if (this._hasSearched && n === 0) return { wide: this._i18n.seeNone, narrow: this._i18n.seeNone };
+        if (typeof n !== 'number' || n <= 0) return { wide: this._i18n.seeAll, narrow: this._i18n.seeAll };
+        const count = n.toLocaleString();
+        // "all" is only meaningful when there are more matches than we render
+        // inline. Once every hit is shown, drop "all" (and "all 1" never made
+        // sense). A there's-more count is always plural, so seeAllMany suffices.
+        if (n > this._results.length) {
+            return {
+                wide: sprintf(this._i18n.seeAllMany, count),
+                narrow: sprintf(this._i18n.seeAllManyNarrow, compactCount(n)),
+            };
+        }
+        const label = sprintf(n === 1 ? this._i18n.seeOne : this._i18n.seeMany, count);
+        return { wide: label, narrow: label };
+    }
+
+    // Render both forms so a media query, not a render-time match, picks one.
+    _responsiveLabel(wide, narrow) {
+        return html`<span class="label-wide">${wide}</span><span class="label-narrow">${narrow}</span>`;
+    }
+
+    // ── Event handlers ───────────────────────────────────────────────────
+
+    /** Send a Matomo analytics event */
+    _track(action, label) {
+        trackEvent('SearchModal', action, label);
+    }
+
+    /** Drop every pending outcome — the query moved on, so it never settled. */
+    _clearOutcomeTimers() {
+        for (const { id } of this._outcomeTimers.values()) clearTimeout(id);
+        this._outcomeTimers.clear();
+    }
+
+    // Settle pending outcomes at the modal's exits: acting on results proves the
+    // query settled, and waiting out the idle window would lose it to unload.
+    _flushOutcomes() {
+        const pending = [...this._outcomeTimers.values()];
+        this._outcomeTimers.clear();
+        for (const { id, fire } of pending) {
+            clearTimeout(id);
+            fire();
+        }
+    }
+
+    // Active filter categories — never values or query text — so a catalog gap
+    // (`unfiltered`) reads apart from an over-constrained search.
+    _filterLabel() {
+        const active = [];
+        if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
+        if (this._languages.length > 0) active.push('language');
+        return active.length ? active.join('+') : 'unfiltered';
+    }
+
+    // Fire a search-outcome event only for a query the patron settled on: the
+    // idle window and _activeFetchKey check drop partials, and the per-session
+    // Set collapses repeat settles. `buildLabel` runs at fire time since the
+    // catalog and fulltext fetches race.
+    _scheduleOutcomeTrack(action, fetchKey, buildLabel) {
+        if (!fetchKey) return;
+        const fire = () => {
+            this._outcomeTimers.delete(action);
+            if (this._activeFetchKey !== fetchKey) return;   // query moved on
+            const key = `${action}:${fetchKey}`;
+            if (this._outcomeTracked.has(key)) return;       // already counted
+            this._outcomeTracked.add(key);
+            this._track(action, buildLabel ? buildLabel() : this._filterLabel());
+        };
+        const pending = this._outcomeTimers.get(action);
+        if (pending) clearTimeout(pending.id);
+        this._outcomeTimers.set(action, { id: setTimeout(fire, OUTCOME_DEBOUNCE_MS), fire });
+    }
+
+    // Keyed on the catalog fetch so the band counts the same unit as the catalog
+    // outcomes. `shown` is rows visible after dedupe, known only at fire time.
+    _scheduleBandOutcome(status) {
+        // The Inside tab is tracked by its own Tab and FulltextSeeAll events.
+        if (this._inside) return;
+        this._scheduleOutcomeTrack('FulltextBand', this._activeFetchKey, () => {
+            if (status === 'failed') return 'failed';
+            const shown = this._visibleFtHits().length;
+            return shown ? `shown:${shown}` : 'empty';
+        });
+    }
+
+    _onDialogOpened() {
+        this.renderRoot.querySelector('.search-input')?.focus();
+    }
+
+    _onDialogClosed() {
+        this.open = false;
+        this._navigatingKey = null;
+        // Settle rather than drop: closing on a returned search is an abandonment worth counting.
+        this._flushOutcomes();
+        // Drop any in-flight spinner so a search interrupted by closing the
+        // modal doesn't show a stale "Searching…" on reopen. The next keystroke
+        // would clear it, but reopening to a frozen spinner looks broken.
+        this._loading = false;
+        this._seeAllLoading = false;
+        this._ftSeeAllLoading = false;
+        // Always reopen on Books.
+        if (this._inside) {
+            this._mode = MODE_BOOKS;
+            this._ftBand.setExplicit(false);
+        }
+        // Intent is per visit; the fetched state is kept.
+        this._shelfStateWanted = false;
+    }
+
+    // A result is a native anchor, so pressing it navigates the whole window.
+    // The new page can take a beat to start painting; flag the chosen row so it
+    // shows its loading treatment (cover spinner, dimmed siblings) during that
+    // gap. Modified clicks (open in new tab/window) don't navigate this page —
+    // leave them untreated.
+    _onResultPress(e, key, meta) {
+        if (e.defaultPrevented) return;
+        // Settle the search's outcome before the click it's measured against.
+        this._flushOutcomes();
+        // Track the row by type + 1-based rank (e.g. "work:3") — never the title.
+        // Modified clicks count too; only the loading treatment below skips them.
+        if (meta) this._track(meta.event, meta.label);
+        this._saveCurrentSearch();
+        if (e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        this._navigatingKey = key;
+    }
+
+    // The author photo is requested with ?default=false, so a missing photo
+    // 404s and fires this — hide the <img> to reveal the person glyph beneath.
+    _onAvatarError(e) { e.target.hidden = true; }
+
+    _onDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    }
+
+    _onDrop(e) {
+        e.preventDefault();
+        const text = e.dataTransfer.getData('text/plain');
+        if (!text) return;
+        this._applyDroppedText(text);
+    }
+
+    // Shared by the search-input's own @drop and the trigger button's drop
+    // handler (which opens the modal first, then forwards the text here).
+    _applyDroppedText(text) {
+        this._query = text;
+        const input = this.renderRoot.querySelector('.search-input');
+        if (input) input.value = text;
+        if (this._shouldAutocomplete()) {
+            this._scheduleSearch();
+        }
+    }
+
+    _onQueryInput(e) {
+        this._query = e.target.value;
+        this._navigatingKey = null;
+        if (!this._shouldAutocomplete()) {
+            this._resetResults({ hasSearched: false });
+            this._ftBand.clear();
+            return;
+        }
+        // Drop the previous query's author suggestion immediately. Stale book
+        // results linger for the debounce window (which avoids a list flicker),
+        // but an author row names one specific person — keeping it under a new,
+        // unrelated query is actively misleading. It repopulates when the fetch
+        // resolves.
+        this._authorSuggestions = [];
+        this._scheduleSearch();
+    }
+
+    _onInputKeydown(e) {
+        if (e.key === 'Enter' && this._query.trim().length >= MIN_QUERY_LENGTH) {
+            e.preventDefault();
+            if (this._inside) this._goToFulltextPage();
+            else this._onSeeAllResults();
+            return;
+        }
+        // ArrowDown/Up step from the input into the result rows — ↓ to the first
+        // row, ↑ to the last — so the suggestions are reachable by arrow key the
+        // way the old header autocomplete was, alongside (not instead of) Tab.
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            const rows = this._focusableRows();
+            if (rows.length === 0) return;
+            e.preventDefault();
+            (e.key === 'ArrowDown' ? rows[0] : rows[rows.length - 1]).focus();
+        }
+    }
+
+    // The actionable rows in the results region (book + author links and recent-
+    // search rows), in DOM order. Both carry the `.result` class and are natively
+    // focusable, so arrow navigation just walks this list.
+    _focusableRows() {
+        return [...this.renderRoot.querySelectorAll('.results .result')];
+    }
+
+    // ArrowUp/Down move focus between adjacent rows; stepping off either end
+    // returns focus to the input so the patron can keep editing the query.
+    // (Enter on a focused row activates the native link/button as usual.)
+    _onResultsKeydown(e) {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        // From a row's shelf button the arrows step rows too, unless its popover
+        // is open and owns them. (Keys from its shadow tree arrive retargeted to the button.)
+        let row = e.target.closest('.result');
+        if (!row && e.target.matches('ol-shelf-button') && !e.target.hasAttribute('open')) {
+            row = e.target.closest('.result-row')?.querySelector('.result');
+        }
+        if (!row) return;
+        const rows = this._focusableRows();
+        const idx  = rows.indexOf(row);
+        if (idx === -1) return;
+        e.preventDefault();
+        const next = e.key === 'ArrowDown' ? idx + 1 : idx - 1;
+        if (next < 0 || next >= rows.length) {
+            this.renderRoot.querySelector('.search-input')?.focus();
+        } else {
+            rows[next].focus();
+        }
+    }
+
+    // Screen-reader announcement for the live region: the result count once a
+    // search lands, "no results" when a search came back empty, and nothing
+    // while idle/typing/loading (so the region stays quiet until there's news).
+    // Band rows add a second sentence; the region is aria-atomic, so a late band
+    // re-announces the whole text.
+    _resultsAnnouncement() {
+        if (!this._shouldAutocomplete()) return '';
+        if (this._inside) {
+            if (this._ftLoading) return '';
+            if (this._ftError) return this._i18n.insideError;
+            if (this._ftHits.length) return this._insideAnnouncement(this._ftHits.length);
+            // A null search key means nothing has been fetched for this query yet.
+            return this._ftSearchKey ? this._i18n.noInsideResults : '';
+        }
+        const catalog = this._catalogAnnouncement();
+        if (!catalog) return '';
+        const band = this._bandAnnouncement();
+        return band ? `${catalog}. ${band}` : catalog;
+    }
+
+    // The catalog half of the announcement, or '' while there's no news yet.
+    _catalogAnnouncement() {
+        if (this._results.length === 0) {
+            if (!this._hasSearched || this._loading) return '';
+            return this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
+        }
+        const shown = this._results.length;
+        const total = typeof this._numFound === 'number' ? this._numFound : shown;
+        return sprintf(this._i18n.resultsAnnounce, shown.toLocaleString(), total.toLocaleString());
+    }
+
+    // Rows on screen, not the backend total (that's on the see-all).
+    _bandAnnouncement() {
+        const shown = this._visibleFtHits().length;
+        if (shown === 0) return '';
+        return this._insideAnnouncement(shown);
+    }
+
+    _insideAnnouncement(shown) {
+        return sprintf(shown === 1 ? this._i18n.insideAnnounceOne : this._i18n.insideAnnounceMany, shown.toLocaleString());
+    }
+
+    _onAvailabilityToggle(e) {
+        this._setAvailability(e.detail.checked ? 'readable' : DEFAULT_AVAILABILITY);
+    }
+
+    _onLanguagesChange(e) {
+        this._languages = [...e.detail.selected];
+        ssSet(SS_LANGUAGES_KEY, JSON.stringify(this._languages));
+        this._refetchIfActive();
+    }
+
+    _setAvailability(value) {
+        this._availability = value;
+        ssSet(SS_AVAILABILITY_KEY, value);
+        this._refetchIfActive();
+    }
+
+    _clearAllFilters() {
+        this._availability = DEFAULT_AVAILABILITY;
+        this._languages    = [];
+        ssSet(SS_AVAILABILITY_KEY, DEFAULT_AVAILABILITY);
+        ssSet(SS_LANGUAGES_KEY, JSON.stringify([]));
+        this._refetchIfActive();
+    }
+
+    _refetchIfActive() {
+        if (this._shouldAutocomplete()) {
+            this._scheduleSearch();
+        }
+    }
+
+    _onSeeAllResults() {
+        this._saveCurrentSearch();
+        const url = this._buildSearchUrl();
+        if (!url) return;
+        // Distinguish a fall-through from the typeahead (results were showing)
+        // from a blind jump to /search (no inline results yet) — the ratio of
+        // this to ResultClick tells us whether the typeahead satisfies intent.
+        this._flushOutcomes();
+        this._track('SeeAllResults', this._results.length ? 'hasResults' : 'noResults');
+        // Flag the footer button so its spinner shows during the navigation
+        // delay (the page keeps painting until /search arrives). Mirrors how a
+        // pressed result sets _navigatingKey before the window navigates.
+        this._seeAllLoading = true;
+        this._navigate(url);
+    }
+
+    /** Whole-window navigation, as its own seam so tests can observe it. */
+    _navigate(url) {
+        window.location.assign(url);
+    }
+
+    // "<catalog>:<reason>": whether results showed, and why the fulltext rows did.
+    _fulltextSeeAllLabel() {
+        const catalog = this._results.length ? 'hasResults' : 'noResults';
+        let reason;
+        if (this._inside) reason = 'tab';
+        else if (this._searchFailed) reason = 'solrFailed';
+        else if (isPassageQuery(this._query.trim())) reason = 'passage';
+        else reason = 'weakSolr';
+        return `${catalog}:${reason}`;
+    }
+
+    // Enter on the Inside tab goes to the full-page search, like its footer link.
+    _goToFulltextPage() {
+        this._flushOutcomes();
+        this._track('FulltextSeeAll', this._fulltextSeeAllLabel());
+        this._saveCurrentSearch();
+        this._ftSeeAllLoading = true;
+        const params = fulltextSearchParams(this._query.trim(), this._fulltextFilters());
+        this._navigate(`/search/inside?${params.toString()}`);
+    }
+
+    // Mirrors _onResultPress: tracked always, spinner only for a plain click.
+    _onFulltextSeeAll(e) {
+        if (e.defaultPrevented) return;
+        this._flushOutcomes();
+        this._track('FulltextSeeAll', this._fulltextSeeAllLabel());
+        this._saveCurrentSearch();
+        if (e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        this._ftSeeAllLoading = true;
+    }
+
+    // ── Data layer ───────────────────────────────────────────────────────
+
+    // Whether the current query should trigger the header autocomplete. Mirrors
+    // the legacy SearchBar gate: long enough, and not a bare autocomplete stopword.
+    _shouldAutocomplete() {
+        const trimmed = this._query.trim();
+        return trimmed.length >= MIN_QUERY_LENGTH && !AUTOCOMPLETE_STOPWORDS.has(trimmed.toLowerCase());
+    }
+
+    _fetchResults() {
+        const trimmed = this._query.trim();
+        // Nothing to fetch (query too short, or a stopword) — make sure we don't
+        // leave a spinner spinning. _onRecentSearchClick can land here with a
+        // saved query that no longer autocompletes.
+        if (!this._shouldAutocomplete()) {
+            this._loading = false;
+            return;
+        }
+
+        const url      = this._buildSearchJsonUrl(trimmed);
+        const fetchKey = url;
+        this._activeFetchKey = fetchKey;
+        this._searchFailed   = false;
+
+        // When the readable filter is off, the main numFound is the all-books
+        // total and says nothing about the readable subset, so fetch that count
+        // separately. When it's on, the main numFound already *is* the readable
+        // count (set in the .then below) — no extra round-trip needed.
+        if (this._availability !== 'readable') {
+            this._fetchReadableCount(trimmed, fetchKey);
+        }
+
+        fetch(url)
+            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Search failed: ${r.status}`)))
+            .then(data => {
+                if (this._activeFetchKey !== fetchKey) return;
+                this._results           = data.docs || [];
+                this._resultsKey        = fetchKey;
+                this._authorSuggestions = deriveAuthors(this._results, trimmed);
+                this._numFound          = typeof data.numFound === 'number' ? data.numFound : null;
+                if (this._availability === 'readable') this._readableCount = this._numFound;
+                this._loading           = false;
+                this._hasSearched       = true;
+                this._scrollResultsToTop();
+                this._ftBand.solrSettled(trimmed, this._results);
+                if (this._shelfStateWanted) this._loadShelfState();
+                // Record the settled outcome — ResultsShown or NoResults —
+                // deferred so only a query the patron actually stops on counts
+                // (not each partial typed on the way). See _scheduleOutcomeTrack.
+                this._scheduleOutcomeTrack(this._results.length === 0 ? 'NoResults' : 'ResultsShown', fetchKey);
+            })
+            .catch(() => {
+                if (this._activeFetchKey !== fetchKey) return;
+                this._searchFailed = true;
+                this._resetResults({
+                    hasSearched: true,
+                    clearReadableCount: this._availability === 'readable',
+                });
+                this._ftBand.solrFailed(trimmed);
+                // After _resetResults, which cancels pending outcome timers.
+                this._scheduleOutcomeTrack('SearchFailed', fetchKey);
+            });
+    }
+
+    // Counts how many of the current query's hits are readable (has_fulltext),
+    // for the "Readable Only" toggle sublabel. limit=0 returns just the count —
+    // no docs — so it's a cheap second round-trip. The `editions` field opts
+    // into the edition-level block-join so this count matches what flipping the
+    // toggle on actually yields (see the SEARCH_FIELDS note above). Shares the
+    // main search's fetchKey so a stale count never lands after the query moves on.
+    _fetchReadableCount(query, fetchKey) {
+        fetch(this._buildReadableCountUrl(query))
+            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Count failed: ${r.status}`)))
+            .then(data => {
+                if (this._activeFetchKey !== fetchKey) return;
+                this._readableCount = typeof data.numFound === 'number' ? data.numFound : null;
+            })
+            .catch(() => {
+                if (this._activeFetchKey !== fetchKey) return;
+                this._readableCount = null;
+            });
+    }
+
+    // q + spellcheck shared by every /search.json request the modal makes;
+    // callers layer on limit/fields and the availability/language filters.
+    _baseSearchParams(query) {
+        const params = new URLSearchParams();
+        params.set('q', query);
+        params.set('_spellcheck_count', '0');
+        return params;
+    }
+
+    _buildSearchJsonUrl(query) {
+        const params = this._baseSearchParams(query);
+        params.set('limit', String(RESULTS_LIMIT));
+        params.set('fields', SEARCH_FIELDS.join(','));
+        this._appendFilterParams(params);
+        return `/search.json?${params.toString()}`;
+    }
+
+    // Same query + language context as the main search, but forced to the
+    // readable subset and limit=0 so Solr returns only the count.
+    _buildReadableCountUrl(query) {
+        const params = this._baseSearchParams(query);
+        params.set('limit', '0');
+        params.set('fields', 'key,editions');
+        this._appendFilterParams(params, 'readable');
+        return `/search.json?${params.toString()}`;
+    }
+
+    _buildSearchUrl() {
+        const trimmed = this._query.trim();
+        if (trimmed.length < MIN_QUERY_LENGTH) return null;
+
+        const params = new URLSearchParams();
+        params.set('q', trimmed);
+        this._appendFilterParams(params);
+        return `/search?${params.toString()}`;
+    }
+
+    // Search context for /search/facets.json: the query plus the availability
+    // subset, so the counts describe the same result set the modal is showing.
+    //
+    // The selected `language` values are deliberately left out: they'd change
+    // the cache key, making every tick of a checkbox refetch and flash the
+    // spinner while the dropper is open. fetchFacetCounts() strips them too —
+    // Solr ANDs an fq on the faceted field, collapsing the list to what's ticked.
+    _buildFacetParams(query) {
+        const params = new URLSearchParams();
+        params.set('q', query);
+        const availParams = AVAILABILITY_TO_PARAMS[this._availability] || {};
+        for (const [key, value] of Object.entries(availParams)) {
+            params.append(key, value);
+        }
+        return params;
+    }
+
+    // `availability` defaults to the patron's current selection; the readable
+    // count query forces 'readable' so it mirrors the main search's language
+    // context while overriding only the availability subset.
+    _appendFilterParams(params, availability = this._availability) {
+        const availParams = AVAILABILITY_TO_PARAMS[availability] || {};
+        for (const [key, value] of Object.entries(availParams)) {
+            params.append(key, value);
+        }
+        for (const lang of this._languages) {
+            params.append('language', lang);
+        }
+    }
+
+    // Single entry point so the catalog fetch and the band can't drift apart.
+    // The spinner is raised here, not by the callers: on the Inside tab there's
+    // no fetch to lower it again, and a stranded _loading outlives the tab.
+    _scheduleSearch() {
+        // The Inside tab shows no catalog rows, so skip the fetch. _selectMode catches up.
+        if (!this._inside) {
+            this._loading = true;
+            this._debouncedFetch();
+        }
+        this._ftBand.queryChanged(this._query);
+    }
+
+    // One readable flag: the FTS collections can't split open vs borrowable.
+    _fulltextFilters() {
+        return {
+            readable: this._availability !== DEFAULT_AVAILABILITY,
+            languages: this._languages,
+        };
+    }
+
+    // ── Static icons ─────────────────────────────────────────────────────
+
+    static _clockIcon = html`<ol-icon name="clock" size="sm"></ol-icon>`;
+
+    static _searchIcon = html`<ol-icon class="search-icon" name="search"></ol-icon>`;
+
+    static _closeIcon = html`<ol-icon name="x" size="sm"></ol-icon>`;
+
+    static _backIcon = html`<ol-icon name="arrow-left" size="lg"></ol-icon>`;
+
+    static _personIcon = html`<ol-icon name="user"></ol-icon>`;
+
+    static _textSearchIcon = html`<ol-icon name="text-search" aria-hidden="true"></ol-icon>`;
+
+    static _arrowRightIcon = html`<ol-icon name="arrow-right" size="sm"></ol-icon>`;
+}
+
+customElements.define('ol-search-modal', SearchModal);
+
+/**
+ * Mounts a single SearchModal (once ol-dialog is defined) and wires it to the header search trigger button.
+ * Idempotent – safe to call multiple times with the same element.
+ * @param {HTMLButtonElement} trigger
+ * @returns {SearchModal|null}
+ */
+export function initSearchModal(trigger) {
+    if (!trigger || trigger.dataset.olSearchModalAttached === 'true') {
+        return null;
+    }
+
+    const modal = document.createElement('ol-search-modal');
+
+    // Translated strings are rendered into the trigger's data-i18n
+    // (availability options) and data-i18n-ui (chrome) attributes by
+    // search/availability_i18n.html and search/search_modal_i18n.html. Apply
+    // them before the modal mounts so the first render is already localized.
+    modal._availabilityOptions = availabilityOptionsFromElement(trigger);
+    modal._i18n = searchModalStringsFromElement(trigger);
+    // The patron's site language as a MARC code, matching Solr's `language`
+    // field so the modal can compare it against a readable edition's language.
+    // The trigger carries the 2-letter UI code (data-search-lang); map it to
+    // MARC here. '' when absent or not a known UI language.
+    modal._siteLanguage = siteLanguageToMarc(trigger.dataset.searchLang || '');
+    // Whether the patron is verified for print-disabled access (data-print-disabled,
+    // from ctx.user.is_printdisabled()). Widens the "Readable" badge to
+    // printdisabled scans for these patrons, matching the readable count.
+    modal._printDisabled = trigger.dataset.printDisabled === 'true';
+    // For the rows' shelf buttons (site.html.jinja, my_books/shelf_button_i18n).
+    modal._userKey = document.body.dataset.userKey || '';
+    modal._shelfLabels = readLabels();
+
+    // Mount only once ol-components.js has defined ol-dialog: this bundle can run
+    // first, and an un-upgraded dialog would let the [autofocus] input scroll the page.
+    trigger.dataset.olSearchModalAttached = 'true';
+    customElements.whenDefined('ol-dialog').then(() => {
+        document.body.appendChild(modal);
+        modal.attachToTrigger(trigger);
+    });
+    return modal;
+}

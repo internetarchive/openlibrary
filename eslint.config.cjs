@@ -1,6 +1,8 @@
 const js = require("@eslint/js");
 const vuePlugin = require("eslint-plugin-vue");
 const globals = require("globals");
+// NOTE: .babelrc is lint-only (this parser). The production JS build
+// uses Vite/Oxc (see scripts/vite/build.mjs).
 const babelParser = require("@babel/eslint-parser");
 
 /** @type {import('eslint').Linter.Config[]} */
@@ -10,13 +12,14 @@ module.exports = [
     ignores: [
       ".*",
       "*.config.js",
-      "*.config.mjs",
       "conf/",
       "config/",
       "docker/",
+      "docs/wiki/",
       "infogami/",
       "node_modules/",
-      "scripts/",
+      "openlibrary/components/lit/icons.generated.js",
+      "scripts/gh_scripts/",
       "static/build/",
       "build/",
       "coverage/",
@@ -24,6 +27,7 @@ module.exports = [
       "vendor/",
       "tests/screenshots/",
       "venv/",
+      ".venv/",
       "eslint.config.cjs",
     ],
   },
@@ -31,12 +35,9 @@ module.exports = [
   // Configuration for build and config files (CommonJS)
   {
     files: [
-      "webpack.config.js",
-      "webpack.config.css.js",
-      "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
-      "stories/.storybook/main.js",
+      "stylelint/*.cjs",
     ],
     languageOptions: {
       sourceType: "script",
@@ -50,30 +51,16 @@ module.exports = [
     },
   },
 
-  // Configuration for Vite config files (ES modules)
+  // Configuration for Vite shared modules (ES modules)
   {
     files: [
-      "openlibrary/components/vite.config.mjs",
-      "openlibrary/components/vite-lit.config.mjs",
+      "vite-asset-urls.mjs",
+      "custom-elements-manifest.config.mjs",
+      "scripts/vite/**/*.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
-      globals: {
-        ...globals.node,
-      },
-    },
-    rules: {
-      "no-console": "off",
-    },
-  },
-
-  // Configuration for Storybook preview files (ES modules)
-  {
-    files: ["stories/.storybook/preview.js"],
-    languageOptions: {
-      sourceType: "module",
-      ecmaVersion: "latest",
       globals: {
         ...globals.node,
       },
@@ -105,8 +92,6 @@ module.exports = [
       },
       globals: {
         ...globals.browser,
-        $: "readonly",
-        jQuery: "readonly",
       },
     },
     rules: {
@@ -128,6 +113,17 @@ module.exports = [
         },
       ],
       "no-useless-escape": "error",
+      "no-warning-comments": [
+        "error",
+        {
+          // The webpackChunkName magic comments were removed in the Vite
+          // migration; they are dead under Vite (chunks are named after
+          // their imported file). Flag any that slip back in so the
+          // cleanup stays enforced.
+          terms: ["webpackChunkName"],
+          location: "anywhere",
+        },
+      ],
       "space-in-parens": "error",
       "vars-on-top": "error",
       "prefer-const": "error",
@@ -148,6 +144,11 @@ module.exports = [
           ignores: ["Bookshelf", "Shelf"],
         },
       ],
+      "vue/require-prop-types": "error",
+      "vue/require-explicit-emits": "error",
+      "vue/require-default-prop": "error",
+      "vue/no-v-html": "error",
+      "vue/no-template-shadow": "error",
       // jQuery deprecated rules
       "no-jquery/no-box-model": "warn",
       "no-jquery/no-browser": "warn",
@@ -219,11 +220,11 @@ module.exports = [
 
   // Configuration for test files
   {
-    files: ["tests/unit/**/*.{js,vue}", "tests/unit/js/setup.js"],
+    files: ["tests/unit/**/*.{js,vue}", "tests/unit/js/setup.js", "openlibrary/components/__tests__/**/*.js", "openlibrary/components/test-utils/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.es2021,
-        ...globals.jest,
+        ...globals.vitest,
         ...globals.node,
       },
     },

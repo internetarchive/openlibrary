@@ -13,6 +13,7 @@ import requests
 import web
 
 from infogami.infobase import client
+from infogami.utils import types
 
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
@@ -54,11 +55,11 @@ logger = logging.getLogger("openlibrary.core")
 
 def _get_ol_base_url() -> str:
     # Anand Oct 2013
-    # Looks like the default value when called from script
-    if "[unknown]" in web.ctx.home:
-        return "https://openlibrary.org"
-    else:
-        return web.ctx.home
+    # Looks like the default value when called from script or from FastAPI (no web.ctx)
+    home = getattr(web.ctx, "home", None)
+    if home and "[unknown]" not in home:
+        return home
+    return "https://openlibrary.org"
 
 
 class Image:
@@ -106,6 +107,7 @@ class Thing(client.Thing):
     """Base class for all OL models."""
 
     key: ThingKey
+    last_modified: datetime
 
     @functools.cached_property
     def history_preview(self):
@@ -346,9 +348,10 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_size(self.key)
 
     def get_loans(self):
-        from ..plugins.upstream import borrow
-
-        return borrow.get_edition_loans(self)
+        if not self.ocaid:
+            return []
+        loan = lending.get_loan(self.ocaid)
+        return [loan] if loan else []
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
@@ -430,8 +433,8 @@ class Edition(Thing):
             else:
                 query = {"type": "/type/edition", f"isbn_{len(book_id)}": book_id}
 
-            if matches := web.ctx.site.things(query):
-                return web.ctx.site.get(matches[0])
+            if matches := site.get().things(query):
+                return site.get().get(matches[0])
 
         # Attempt to fetch the book from the import_item table
         if allow_import:
@@ -464,7 +467,7 @@ class Edition(Thing):
         """
         Create a dummy work from an orphaned_edition.
         """
-        return web.ctx.site.new(
+        return site.get().new(
             "",
             {
                 "key": "",
@@ -721,7 +724,7 @@ class Work(Thing):
         redirect_chain = []
         key = work_key
         while not resolved_key:
-            thing = web.ctx.site.get(key)
+            thing = site.get().get(key)
             redirect_chain.append(thing)
             if thing.type.key == "/type/redirect":
                 key = thing.location
@@ -776,7 +779,7 @@ class Work(Thing):
     def get_redirects(cls, day, batch_size=1000, batch=0):
         tomorrow = day + timedelta(days=1)
 
-        work_redirect_ids = web.ctx.site.things(
+        work_redirect_ids = site.get().things(
             {
                 "type": "/type/redirect",
                 "key~": "/works/*",
@@ -820,7 +823,7 @@ class Work(Thing):
                     f"[update-redirects] {current_date}, batch {batch + 1}: #{total}",
                 )
                 work_redirect_ids, has_more = cls.get_redirects(current_date, batch_size=batch_size, batch=batch)
-                work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
+                work_redirect_batch = site.get().get_many(work_redirect_ids)
                 for work in work_redirect_batch:
                     total += 1
                     chain = Work.resolve_redirect_chain(work.key, test=test)
@@ -899,6 +902,21 @@ class Author(Thing):
 
 
 class User(Thing):
+    #: Preference keys that may be written via :meth:`save_preferences`.
+    #: ``type`` is managed internally and always forced to ``preferences``.
+    PREFERENCE_KEYS = frozenset(
+        {
+            "notify",
+            "pda",
+            "public_readlog",
+            "rpd",
+            "safe_mode",
+            "update",
+            "updates",
+            "yrg_banner_pref",
+        }
+    )
+
     def get_default_preferences(self) -> dict[str, str]:
         return {"update": "no", "public_readlog": "no", "type": "preferences"}
         # New users are now public by default for new patrons
@@ -926,7 +944,7 @@ class User(Thing):
 
     def preferences(self):
         def query_store(_key):
-            return web.ctx.site.store.get(_key)
+            return site.get().store.get(_key)
 
         key = f"{self.key}/preferences"
 
@@ -935,10 +953,10 @@ class User(Thing):
     def save_preferences(self, new_prefs) -> None:
         key = f"{self.key}/preferences"
         prefs = self.preferences()
-        prefs.update(new_prefs)
+        prefs.update({k: v for k, v in new_prefs.items() if k in self.PREFERENCE_KEYS})
         prefs["_rev"] = None
         prefs["type"] = "preferences"
-        web.ctx.site.store[key] = prefs
+        site.get().store[key] = prefs
 
     def is_usergroup_member(self, usergroup: str) -> bool:
         if not usergroup.startswith("/usergroup/"):
@@ -964,11 +982,32 @@ class User(Thing):
     def is_admin(self) -> bool:
         return self.is_usergroup_member("/usergroup/admin")
 
+    def is_maintainer(self) -> bool:
+        """Whether the user can manage the testing environment (maintainers + admins)."""
+        return self.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"])
+
     def is_librarian(self) -> bool:
         return self.is_usergroup_member("/usergroup/librarians")
 
     def is_super_librarian(self) -> bool:
         return self.is_usergroup_member("/usergroup/super-librarians")
+
+    def is_librarian_or_higher(self) -> bool:
+        return self.is_member_of_any(
+            [
+                "/usergroup/librarians",
+                "/usergroup/super-librarians",
+                "/usergroup/admin",
+            ]
+        )
+
+    def is_super_librarian_or_higher(self) -> bool:
+        return self.is_member_of_any(
+            [
+                "/usergroup/super-librarians",
+                "/usergroup/admin",
+            ]
+        )
 
     def is_beta_tester(self) -> bool:
         return self.is_usergroup_member("/usergroup/beta-testers")
@@ -1007,7 +1046,7 @@ class User(Thing):
     )
     def get_avatar_url(cls, username: str) -> str:
         username = username.rsplit("/people/", maxsplit=1)[-1]
-        user = web.ctx.site.get(f"/people/{username}")
+        user = site.get().get(f"/people/{username}")
         itemname = user.get_account().get("internetarchive_itemname")
 
         return f"https://archive.org/services/img/{itemname}"
@@ -1136,7 +1175,7 @@ class UserGroup(Thing):
         """
         if not key.startswith("/usergroup/"):
             key = f"/usergroup/{key}"
-        return web.ctx.site.get(key)
+        return site.get().get(key)
 
     def add_user(self, userkey: str) -> None:
         """Administrative utility (designed to be used in conjunction with
@@ -1144,7 +1183,7 @@ class UserGroup(Thing):
 
         :param str userkey: e.g. /people/mekBot
         """
-        if not web.ctx.site.get(userkey):
+        if not site.get().get(userkey):
             raise KeyError("Invalid userkey")
 
         # Make sure userkey not already in group members:
@@ -1152,14 +1191,14 @@ class UserGroup(Thing):
         if not any(userkey == member["key"] for member in members):
             members.append({"key": userkey})
             self.members = members
-            web.ctx.site.save(
+            site.get().save(
                 self.dict(),
                 f"Adding {userkey} to {self.key}",
                 action="edit-usergroup-add-member",
             )
 
     def remove_user(self, userkey):
-        if not web.ctx.site.get(userkey):
+        if not site.get().get(userkey):
             raise KeyError("Invalid userkey")
 
         members = self.get("members", [])
@@ -1171,7 +1210,7 @@ class UserGroup(Thing):
                 break
 
         self.members = members
-        web.ctx.site.save(
+        site.get().save(
             self.dict(),
             f"Removing {userkey} from {self.key}",
             action="edit-usergroup-delete-member",
@@ -1222,7 +1261,7 @@ class Subject(web.storage):
         for w in self.works:
             cover_id = w.get("cover_id")
             if cover_id:
-                return Image(web.ctx.site, "b", cover_id)
+                return Image(site.get(), "b", cover_id)
 
 
 class Tag(Thing):
@@ -1249,7 +1288,7 @@ class Tag(Thing):
         q = {"type": "/type/tag", "slugs": cls.normalize(tag_name)}
         if tag_type:
             q["tag_type"] = tag_type
-        matches = list(web.ctx.site.things(q))
+        matches = list(site.get().things(q))
         return matches
 
     @classmethod
@@ -1260,16 +1299,14 @@ class Tag(Thing):
         comment="New Tag",
     ):
         """Creates a new Tag object."""
-        current_user = web.ctx.site.get_user()
+        current_user = site.get().get_user()
         patron = current_user.get_username() if current_user else "ImportBot"
-        key = web.ctx.site.new_key("/type/tag")
+        key = site.get().new_key("/type/tag")
         tag["key"] = key
 
-        from openlibrary.accounts import RunAs
-
-        with RunAs(patron):
+        with accounts.RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            t = web.ctx.site.save(tag, comment=comment, action="create-tag")
+            t = site.get().save(tag, comment=comment, action="create-tag")
             return t
 
 
@@ -1325,8 +1362,6 @@ def register_models():
 
 def register_types():
     """Register default types for various path patterns used in OL."""
-    from infogami.utils import types
-
     types.register_type("^/authors/[^/]*$", "/type/author")
     types.register_type("^/books/[^/]*$", "/type/edition")
     types.register_type("^/works/[^/]*$", "/type/work")

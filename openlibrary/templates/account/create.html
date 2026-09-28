@@ -42,12 +42,14 @@ $var title: $_("Sign Up to Open Library")
                 $:input.render()
                 $if input.name == 'password':
                     <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
-                        <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                        $:macros.icon("eye-off", label=_('Toggle Password Visibility'))
                     </a>
                 $else:
                     <div class="ol-signup-form__icon-wrap">
                         <img src="/static/images/bubble-loader.svg" class="ol-signup-form__icon ol-signup-form__icon--loading" title="$_('Loading...')" alt="$_('Loading...')" style="display:none"/>
-                        <img src="/static/images/icons/icon_check-circle.svg" class="ol-signup-form__icon ol-signup-form__icon--success" title="$_('Success!')" alt="$_('Success!')" style="display:none" />
+                        $# Wrapped so signup.js can keep show()/hide()-ing a single element:
+                        $# jQuery toggles the inline style, which the macro cannot emit.
+                        <span class="ol-signup-form__icon ol-signup-form__icon--success" style="display:none">$:macros.icon("circle-check", label=_('Success!'))</span>
                     </div>
             </div>
             <div class="ol-signup-form__suffix">$:suffix</div>

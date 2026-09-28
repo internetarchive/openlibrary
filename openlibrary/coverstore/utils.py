@@ -1,22 +1,53 @@
 """Utilities for coverstore"""
 
 import contextlib
+import functools
 import json
 import mimetypes
 import os
 import random
-import socket
+import re
 import string
 import traceback
 from io import IOBase as file
+from typing import Final
 from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit  # type: ignore[attr-defined]
 from urllib.parse import urlencode as real_urlencode
 
-import requests
+import httpx
 
-from openlibrary.coverstore import config, oldb
+from openlibrary.utils.async_utils import cache_per_event_loop
 
-socket.setdefaulttimeout(10.0)
+COVERSTORE_USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+# Note: These domains need to also be kept insync with the IA squid proxy
+ALLOWED_COVER_URLS: Final = (
+    # e.g. https://archive.org/download/goody/page/title.jpg
+    # e.g. https://archive.org/download/goody/page/cover_w500_h500.jpg
+    r"^https?://archive.org/download/[^?#]+/page/(cover|title)(_w\d+)?(_h\d+)?(\.jpg)?$",
+    # e.g. https://archive.org/services/img/goody/full/pct:600/0/default.jpg
+    r"^https?://archive.org/services/img/[^?#]+/full/pct:\d+/0/(default)\.jpg$",
+    # e.g. https://covers.openlibrary.org/b/id/15082914-M.jpg
+    r"^https?://covers.openlibrary.org/b/[^/?#]+/[^/?#.]+(-[A-Z])?\.jpg$",
+    r"^https?://books.google.com/.*$",
+    r"^https?://commons.wikimedia.org/.*$",
+    r"^https?://m.media-amazon.com/.*$",
+)
+
+
+# Per event loop, not process-wide: an AsyncClient binds its pooled connections to
+# whichever loop first contends for them. See cache_per_event_loop.
+get_async_session = cache_per_event_loop(
+    functools.partial(
+        httpx.AsyncClient,
+        headers={"User-Agent": COVERSTORE_USER_AGENT},
+        timeout=10,
+        follow_redirects=True,
+    )
+)
+
+
+def is_allowed_cover_url(url: str) -> bool:
+    return any(re.match(pattern, url) for pattern in ALLOWED_COVER_URLS)
 
 
 def safeint(value, default=None):
@@ -34,44 +65,61 @@ def safeint(value, default=None):
 
 
 def get_ol_url():
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import config
+
     return config.ol_url.removesuffix("/")
 
 
-def ol_things(key: str, value: str) -> list[str]:
+async def ol_things(key: str, value: str) -> list[str]:
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import oldb
+
     if oldb.is_supported():
         return oldb.query(key, value)
-    else:
-        query = {
-            "type": "/type/edition",
-            key: value,
-            "sort": "last_modified",
-            "limit": 10,
-        }
-        try:
-            d = {"query": json.dumps(query)}
-            result = download(get_ol_url() + "/api/things?" + real_urlencode(d))
-            result = json.loads(result)
-            return result["result"]
-        except OSError:
-            traceback.print_exc()
-            return []
+
+    query = {
+        "type": "/type/edition",
+        key: value,
+        "sort": "last_modified",
+        "limit": 10,
+    }
+    try:
+        resp = await get_async_session().get(
+            f"{get_ol_url()}/api/things",
+            params={"query": json.dumps(query)},
+        )
+        result = resp.json()
+        return result["result"]
+    except httpx.RequestError:
+        traceback.print_exc()
+        return []
 
 
-def ol_get(olkey: str) -> dict | None:
+async def ol_get(olkey: str) -> dict | None:
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import oldb
+
     if oldb.is_supported():
         return oldb.get(olkey)
-    else:
-        try:
-            return json.loads(download(get_ol_url() + olkey + ".json"))
-        except OSError:
-            return None
+
+    try:
+        resp = await get_async_session().get(f"{get_ol_url()}/{olkey}.json")
+        return resp.json()
+    except httpx.RequestError:
+        return None
 
 
-USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+class DisallowedCoverUrl(Exception):
+    pass
 
 
-def download(url):
-    return requests.get(url, headers={"User-Agent": USER_AGENT}).content
+async def download_external_image(url: str) -> bytes:
+    if not is_allowed_cover_url(url):
+        raise DisallowedCoverUrl(f"URL {url} is not an allowed cover URL")
+
+    resp = await get_async_session().get(url)
+    return resp.content
 
 
 def urldecode(url: str) -> tuple[str, dict[str, str]]:

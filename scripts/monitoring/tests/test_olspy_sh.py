@@ -27,6 +27,18 @@ export -f py-spy
 """
 
 
+def _make_aliases_with_ps(nc_path: str, pyspy_dump_path: str, ps_output: str) -> str:
+    return _make_aliases(nc_path, pyspy_dump_path).replace("cat scripts/monitoring/tests/sample_ps_aux.txt", f"printf '%s' {ps_output!r}")
+
+
+# How the coverstore actually appears in ps: it builds gunicorn programmatically, so
+# unlike the main FastAPI app its command line never mentions uvicorn.
+COVERSTORE_PS = """USER  PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND
+root  101  0.0  0.1 100 100 ?   Ss   10:00 0:01 python /openlibrary/scripts/coverstore-server /olsystem/etc/coverstore.yml --gunicorn --workers 10 --bind :7075
+root  102  0.0  0.1 100 100 ?   Sl   10:00 0:01 python /openlibrary/scripts/coverstore-server /olsystem/etc/coverstore.yml --gunicorn --workers 10 --bind :7075
+"""
+
+
 def _classify_lines(lines: str) -> str:
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as input_fp:
         input_fp.write(lines)
@@ -69,6 +81,39 @@ def test_log_workers_cur_fn_fastapi():
 
     with open(nc_fp.name) as f:
         assert f.read().strip() == "stats.ol-web0.workers.fastapi.cur_fn.ia.get_api_response 2 1741054377"
+
+
+def test_coverstore_workers_are_found_under_fastapi():
+    """The coverstore runs uvicorn workers, so it must be inspected as fastapi. Before
+    the FastAPI migration it was matched by the webpy pattern instead."""
+    with (
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as nc_fp,
+    ):
+        aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_fastapi_dump.txt", COVERSTORE_PS))
+
+    bash_run(
+        "log_workers_cur_fn fastapi stats.ol-covers0.workers.fastapi.cur_fn",
+        sources=[aliases_fp.name, "olspy.sh"],
+    )
+    with open(nc_fp.name) as f:
+        # one worker (the Ss master is excluded)
+        assert f.read().strip() == "stats.ol-covers0.workers.fastapi.cur_fn.ia.get_api_response 1 1741054377"
+
+
+def test_coverstore_workers_are_not_found_under_webpy():
+    with (
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(mode="w", delete=False) as nc_fp,
+    ):
+        aliases_fp.write(_make_aliases_with_ps(nc_fp.name, "scripts/monitoring/tests/sample_py_spy_webpy_dump.txt", COVERSTORE_PS))
+
+    bash_run(
+        "log_workers_cur_fn webpy stats.ol-covers0.workers.webpy.cur_fn",
+        sources=[aliases_fp.name, "olspy.sh"],
+    )
+    with open(nc_fp.name) as f:
+        assert f.read().strip() == ""
 
 
 def test_classify_workers_cur_fn_direct_matches():

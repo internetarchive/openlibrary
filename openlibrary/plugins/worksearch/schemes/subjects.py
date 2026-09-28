@@ -57,4 +57,7 @@ class SubjectSearchScheme(SearchScheme):
             ("q", q),
             ("q.op", "AND"),
             ("defType", "edismax"),
+            # Without an explicit qf, edismax falls back to solrconfig's df,
+            # which isn't guaranteed to be a field subject docs populate.
+            ("qf", "name"),
         ]

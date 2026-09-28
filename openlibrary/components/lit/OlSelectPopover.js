@@ -1,7 +1,11 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
+import './OlIcon.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import './OlPopover.js';
+import './OLButton.js';
 
 let _idCounter = 0;
 
@@ -20,6 +24,9 @@ let _idCounter = 0;
  *     attribute (`items='[{"value":"en","label":"English"}]'`) or property.
  * @prop {Array} selected - Array of selected `value`s. Reflects to attribute
  *     as JSON.
+ * @prop {String} name - Form field name. When set, each selected value submits
+ *     with the enclosing `<form>` as a repeated `name` entry (see
+ *     FormAssociatedMixin).
  * @prop {String} label - Default trigger button text (e.g. "Language").
  * @prop {Number} searchThreshold - Show the filter input when `items.length`
  *     exceeds this value. Default `8`. Use `0` to always show, a large number
@@ -33,6 +40,8 @@ let _idCounter = 0;
  *     ≥1 item is selected (default "SUGGESTIONS").
  * @prop {String} clearLabel - Label for the clear-selections button (default
  *     "Clear selections").
+ * @prop {String} loadingLabel - Text shown beside the spinner while `loading`
+ *   is set (default "Loading…").
  * @prop {String} noMatchesLabel - Empty-state text when the filter has no
  *     matches (default "No matches").
  *
@@ -43,10 +52,20 @@ let _idCounter = 0;
  *     detail: { selected: String[], added: String|null, removed: String|null }
  * @fires ol-select-popover-clear - Fires when the clear-selections button is
  *     clicked. A change event also fires with the cleared selection.
+ * @fires ol-select-popover-request-open - Cancelable; fires when the patron
+ *     activates the trigger on a closed panel. detail: { focusFirst: Boolean }.
+ *     Calling preventDefault() defers the open: the panel stays shut until the
+ *     listener calls show(). For hosts that load items on demand — the panel
+ *     then opens once, at its final size, instead of resizing and re-sorting
+ *     under the pointer. A host that defers owns any busy affordance, and
+ *     should keep the wait short enough not to need one.
  *
- * @slot trigger - Optional custom trigger element. When omitted, a styled
- *     default button renders showing `label` plus a "(n)" badge when items
- *     are selected and a chevron icon.
+ * @slot trigger - Optional custom trigger element. When omitted, a default
+ *     `<ol-button>` is injected, labelled by the current selection: `label`
+ *     when nothing is picked, the single item's own label when one is, and
+ *     `label (n)` beyond that. It also carries ol-button's `selected` tint
+ *     while a selection is active, and its disclosure chevron comes from
+ *     ol-button automatically. A custom trigger owns its own label and state.
  *
  * @example
  * <ol-select-popover
@@ -69,7 +88,9 @@ let _idCounter = 0;
  *     @ol-select-popover-change=${e => updateUrl(e.detail.selected)}
  * ></ol-select-popover>
  */
-export class OlSelectPopover extends LitElement {
+// NOT a FocusableHostMixin host: the focusable is the light-DOM trigger, not an
+// element in this shadow root. See the mixin's "NOT for" note.
+export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     static properties = {
         items: { type: Array },
         selected: { type: Array, reflect: true },
@@ -81,74 +102,27 @@ export class OlSelectPopover extends LitElement {
         suggestionsHeading: { type: String, attribute: 'suggestions-heading' },
         clearLabel: { type: String, attribute: 'clear-label' },
         noMatchesLabel: { type: String, attribute: 'no-matches-label' },
+        loadingLabel: { type: String, attribute: 'loading-label' },
         _query: { state: true },
+        loading: { type: Boolean, reflect: true },
     };
 
     static styles = css`
         :host {
             display: inline-block;
             font-family: var(--font-family-body);
+
+            /* Declared here rather than on .panel: the panel is slotted into
+               <ol-popover>, whose tray clears these, and an override only
+               reaches it by inheriting past the tray. */
+            --ol-popover-content-max-width: 360px;
+            --ol-popover-content-max-height: min(70vh, 480px);
         }
 
-        /* ── Default trigger ─────────────────────────────────────── */
-
-        .default-trigger {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-            background: var(--white);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--border-radius-button);
-            color: var(--darker-grey);
-            font: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.4;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .default-trigger:hover {
-                background: var(--lightest-grey);
-            }
-        }
-
-        .default-trigger:active {
-            transform: scale(0.97);
-        }
-
-        .default-trigger:focus {
-            outline: none;
-        }
-
-        .default-trigger:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .trigger-count {
-            font-variant-numeric: tabular-nums;
-        }
-
-        .trigger-chevron {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            transition: transform 150ms ease-out;
-            flex-shrink: 0;
-        }
-
-        :host([data-open]) .trigger-chevron {
-            transform: rotate(180deg);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .trigger-chevron {
-                transition: none;
-            }
-        }
+        /* The default trigger is an <ol-button> injected as a light-DOM child
+           (see _createDefaultTrigger); it paints itself, including the automatic
+           disclosure chevron. No trigger styles live here. A consumer-supplied
+           trigger is likewise their own light-DOM element. */
 
         /* ── Panel layout ────────────────────────────────────────── */
 
@@ -156,16 +130,18 @@ export class OlSelectPopover extends LitElement {
             display: flex;
             flex-direction: column;
             min-width: 240px;
-            max-width: min(90vw, 360px);
-            max-height: min(70vh, 480px);
+            max-width: var(--ol-popover-content-max-width);
+            max-height: var(--ol-popover-content-max-height);
         }
 
         /* ── Filter input ────────────────────────────────────────── */
 
+        /* Uniform padding; at 8px inside the 16px panel the field's 8px
+           radius sits concentric with the panel corners. */
         .filter {
             position: relative;
             padding: var(--spacing-inset-sm);
-            border-bottom: 1px solid var(--color-border-subtle);
+            border-bottom: var(--border-divider);
         }
 
         .filter-input {
@@ -176,12 +152,12 @@ export class OlSelectPopover extends LitElement {
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-input);
             font: inherit;
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
             color: inherit;
         }
 
         .filter-input::placeholder {
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
         .filter-input:focus {
@@ -190,13 +166,19 @@ export class OlSelectPopover extends LitElement {
             box-shadow: 0 0 0 1px var(--color-border-focused);
         }
 
+        /* iOS zooms in on focus when the input font is < 16px; bump it up on
+           mobile to suppress that. */
+        @media (max-width: 767px) {
+            .filter-input { font-size: var(--font-size-body-large); }
+        }
+
         .filter-icon {
             position: absolute;
             top: 50%;
             left: calc(var(--spacing-inset-sm) + 10px);
             width: 14px;
             height: 14px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             pointer-events: none;
             transform: translateY(-50%);
         }
@@ -212,7 +194,7 @@ export class OlSelectPopover extends LitElement {
         .group {
             list-style: none;
             margin: 0;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
         }
 
         /* Pinned above the suggestions scroll region, like the filter input.
@@ -224,65 +206,66 @@ export class OlSelectPopover extends LitElement {
             flex-shrink: 0;
             max-height: 200px;
             overflow-y: auto;
-            border-bottom: 1px solid var(--color-border-subtle);
+            border-bottom: var(--border-divider);
         }
 
         .group-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--accessible-grey);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
         }
 
         .item {
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
         }
 
         .item-row {
             display: flex;
             align-items: center;
             gap: var(--spacing-inline-md);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            box-sizing: border-box;
+            /* One height across every menu row. */
+            min-height: var(--menu-row-height);
+            /* The menu-row pill; see OlMenuPopover.js for the recipe. */
+            margin-inline: var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
+            border-radius: var(--border-radius-menu-row);
+            line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
         }
 
         @media (hover: hover) and (pointer: fine) {
             .item-row:hover {
-                background: var(--icon-link-grey);
+                background: var(--color-hover-overlay);
             }
         }
 
         .item-row:focus-within {
             outline: none;
-            background: var(--icon-link-grey);
+            background: var(--color-hover-overlay);
         }
 
-        .item--selected .item-row {
-            background: hsla(202, 96%, 37%, 0.08);
-            color: var(--link-blue);
-            font-weight: 600;
-        }
-
-        .item--selected .item-row:focus-within,
-        .item--selected .item-row:hover {
-            background: hsla(202, 96%, 37%, 0.12);
-        }
+        /* No selected-row styling: the checkbox is the state, and the selected
+           group pins the chosen items to the top of the panel. A tint on top of
+           both only makes the row look hovered. */
 
         .item-checkbox {
             flex-shrink: 0;
             width: 16px;
             height: 16px;
             margin: 0;
-            accent-color: var(--primary-blue);
+            accent-color: var(--color-primary);
             cursor: pointer;
         }
 
         .item-checkbox:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
             border-radius: 2px;
         }
@@ -298,8 +281,8 @@ export class OlSelectPopover extends LitElement {
         .empty-state {
             padding: var(--spacing-inset-md);
             text-align: center;
-            color: var(--accessible-grey);
-            font-size: 14px;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-body-medium);
         }
 
         /* ── Footer ──────────────────────────────────────────────── */
@@ -308,7 +291,7 @@ export class OlSelectPopover extends LitElement {
             display: flex;
             justify-content: center;
             padding: var(--spacing-inset-sm);
-            border-top: 1px solid var(--color-border-subtle);
+            border-top: var(--border-divider);
         }
 
         .clear-button {
@@ -316,16 +299,16 @@ export class OlSelectPopover extends LitElement {
             background: transparent;
             border: 1px solid transparent;
             border-radius: var(--border-radius-button);
-            color: var(--dark-red);
+            color: var(--color-text-muted);
             font: inherit;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: var(--font-size-label-large);
+            font-weight: 500;
             cursor: pointer;
         }
 
         @media (hover: hover) and (pointer: fine) {
             .clear-button:hover {
-                background: hsla(8, 70%, 44%, 0.08);
+                background: var(--color-hover-overlay);
             }
         }
 
@@ -334,29 +317,66 @@ export class OlSelectPopover extends LitElement {
         }
 
         .clear-button:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
+        }
+
+        /* ── Item count ──────────────────────────────────────────────── */
+
+        .item-count {
+            margin-left: auto;
+            flex-shrink: 0;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-label-medium);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Host-driven loading state ───────────────────────────────────────── */
+
+        @keyframes ol-sp-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-inline-sm);
+            padding: var(--spacing-inset-md);
+            color: var(--color-text-muted);
+            font-size: var(--font-size-body-medium);
+        }
+        .loading-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--color-border-subtle);
+            border-top-color: var(--color-text-muted);
+            border-radius: 50%;
+            flex-shrink: 0;
+            animation: ol-sp-spin var(--duration-spin) linear infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+                .loading-spinner { animation: none; opacity: 0.5; }
         }
     `;
 
-    /** Chevron icon for the default trigger */
-    static _chevronIcon = html`<svg class="trigger-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
-
     /** Search icon for the filter input */
-    static _searchIcon = html`<svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
+    static _searchIcon = html`<ol-icon class="filter-icon" name="search"></ol-icon>`;
 
     constructor() {
         super();
         this.items = [];
         this.selected = [];
         this.label = '';
-        this.searchThreshold = 8;
+        this.searchThreshold = FILTER_THRESHOLD;
         this.placeholder = 'Filter…';
         this.unselectedHeading = '';
         this.selectedHeading = 'SELECTED';
         this.suggestionsHeading = 'SUGGESTIONS';
         this.clearLabel = 'Clear selections';
         this.noMatchesLabel = 'No matches';
+        this.loadingLabel = 'Loading…';
         this._query = '';
         this._panelId = `ol-select-popover-${++_idCounter}`;
         // Mirrors the inner ol-popover's open state via its open/close events.
@@ -364,12 +384,49 @@ export class OlSelectPopover extends LitElement {
         // One-shot flag set by ArrowDown on the trigger to focus into the list
         // after the popover opens (vs. just focusing the filter on plain click).
         this._pendingFocusFirst = false;
+        // Item value to refocus after the next render — set by a toggle that
+        // re-homes the item between the selected/suggestions groups (which
+        // destroys its DOM node, so its focus is lost).
+        this._restoreFocusToValue = null;
+        this.loading = false;
+        // True between a host cancelling ol-select-popover-request-open and the
+        // show() that follows, so repeat clicks don't stack up new requests.
+        this._openDeferred = false;
+        // Bound once so the capture listener dedupes across reconnects.
+        this._onTriggerClickCapture = this._onTriggerClickCapture.bind(this);
+    }
+
+    updated(changedProperties) {
+        super.updated?.(changedProperties);
+        // `items` too: at one selection the trigger shows that item's own label,
+        // so a late-arriving catalogue has to re-label it. Mirrors OlOptionsPopover.
+        if (changedProperties.has('label') || changedProperties.has('selected') || changedProperties.has('items')) {
+            this._updateDefaultTriggerLabel();
+        }
+        // Ensure bare `el.selected = [...]` is also correctly reflected.
+        if (changedProperties.has('selected')) {
+            this._syncFormValue();
+        }
+        // Restore focus to the checkbox of an item that just moved between
+        // the selected/suggestions groups (see _onItemToggle). Lit binds the
+        // checkbox value via `.value=` (the JS property, not the attribute),
+        // so we match by property at lookup time.
+        if (this._restoreFocusToValue !== null && changedProperties.has('selected')) {
+            const value = this._restoreFocusToValue;
+            this._restoreFocusToValue = null;
+            const checkboxes = this.shadowRoot?.querySelectorAll('.item-checkbox') ?? [];
+            for (const cb of checkboxes) {
+                if (cb.value === value) {
+                    cb.focus({ preventScroll: true });
+                    break;
+                }
+            }
+        }
     }
 
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label="${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}"
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
@@ -378,27 +435,115 @@ export class OlSelectPopover extends LitElement {
                     name="trigger"
                     slot="trigger"
                     @keydown=${this._onTriggerKeydown}
-                >${this._renderDefaultTrigger()}</slot>
+                ></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
     }
 
-    _renderDefaultTrigger() {
-        const count = (this.selected || []).length;
-        const text = count > 0
-            ? `${this.label} (${count})`
-            : this.label;
-        return html`
-            <button
-                type="button"
-                class="default-trigger"
-                aria-label=${ifDefined(count > 0 ? `${this.label}, ${count} selected` : undefined)}
-            >
-                <span>${text}</span>
-                ${OlSelectPopover._chevronIcon}
-            </button>
-        `;
+    connectedCallback() {
+        super.connectedCallback();
+        // role="group" allows aria-label on the host (axe: aria-prohibited-attr).
+        if (!this.getAttribute('role')) {
+            this.setAttribute('role', 'group');
+        }
+        // Capture on the host so this runs before the click reaches ol-popover's
+        // own trigger handler — the only point where the open can still be
+        // intercepted (see _requestOpen).
+        this.addEventListener('click', this._onTriggerClickCapture, true);
+        const hasConsumerTrigger = Array.from(this.children).some(
+            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
+        );
+        if (!hasConsumerTrigger && !this._defaultTrigger) {
+            this._createDefaultTrigger();
+        }
+        // Capture the authored default selection for <form>.reset().
+        if (this._defaultSelected === undefined) this._defaultSelected = [...(this.selected || [])];
+    }
+
+    firstUpdated() {
+        this._syncFormValue();
+    }
+
+    /**
+     * @override
+     * @returns {FormData|null} One `name` entry per selected value, mirroring a
+     *   native `<select multiple>`; nothing when empty.
+     */
+    get formAssociatedValue() {
+        const values = this.selected || [];
+        if (values.length === 0 || !this.name) return null;
+        const data = new FormData();
+        for (const value of values) data.append(this.name, value);
+        return data;
+    }
+
+    /**
+     * @override
+     * @returns {void}
+     */
+    formAssociatedReset() {
+        this.selected = [...this._defaultSelected];
+        this._updateDefaultTriggerLabel();
+    }
+
+    /**
+     * Build the default trigger as a real light-DOM child. Injected on connect,
+     * before the first render, so it's structurally identical to a
+     * consumer-supplied trigger (slotted, focusable from the page). The chevron
+     * comes from ol-button.
+     *
+     * @returns {void}
+     */
+    _createDefaultTrigger() {
+        const btn = document.createElement('ol-button');
+        btn.setAttribute('slot', 'trigger');
+        // The span stays a light-DOM child (slotted into ol-button), so label
+        // updates can mutate it in place.
+        const text = document.createElement('span');
+        // ol-button is nowrap with no max-width, so clamp long labels here (MARC
+        // language names run long). Inline: this element has no stylesheet of
+        // its own to reach a slotted node with.
+        text.style.cssText = 'display:block;max-width:18ch;overflow:hidden;text-overflow:ellipsis';
+        btn.appendChild(text);
+        this._defaultTrigger = btn;
+        this._defaultTriggerText = text;
+        this._updateDefaultTriggerLabel();
+        this.appendChild(btn);
+    }
+
+    /**
+     * Label the trigger by the selection: the field name when nothing is picked
+     * ("Language"), the item's own label at one ("English"), "Language (n)"
+     * beyond that.
+     *
+     * @returns {void}
+     */
+    _updateDefaultTriggerLabel() {
+        const btn = this._defaultTrigger;
+        if (!btn || !this._defaultTriggerText) return;
+        const selected = this.selected || [];
+        const count = selected.length;
+        const labelFor = (value) => (this.items || []).find(it => it.value === value)?.label ?? value;
+
+        if (count === 0) {
+            this._defaultTriggerText.textContent = this.label;
+        } else if (count === 1) {
+            this._defaultTriggerText.textContent = labelFor(selected[0]);
+        } else {
+            this._defaultTriggerText.textContent = `${this.label} (${count})`;
+        }
+
+        // Blue tint while a selection is active (see ol-button.css).
+        btn.toggleAttribute('selected', count > 0);
+
+        // Visible text loses the field name at 1 and the values beyond that, so
+        // name both for AT.
+        if (count > 0) {
+            btn.setAttribute('aria-label', `${this.label}: ${selected.map(labelFor).join(', ')}`);
+        } else {
+            btn.removeAttribute('aria-label');
+        }
     }
 
     _renderPanel() {
@@ -448,6 +593,13 @@ export class OlSelectPopover extends LitElement {
                     </ul>
                 ` : nothing}
                 <div class="list-area" id=${this._panelId} @keydown=${this._onListKeydown}>
+                    ${this.loading
+        ? html`
+                        <div class="loading-row" role="status" aria-live="polite">
+                            <span class="loading-spinner" aria-hidden="true"></span>
+                            <span>${this.loadingLabel}</span>
+                        </div>`
+        : html`
                     <ul
                         class="group group--suggestions"
                         role="group"
@@ -457,7 +609,7 @@ export class OlSelectPopover extends LitElement {
                         ${filteredSuggestions.length === 0 && query
         ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
         : repeat(filteredSuggestions, it => it.value, it => this._renderItem(it))}
-                    </ul>
+                    </ul>`}
                 </div>
                 ${hasSelected ? html`
                     <div class="footer">
@@ -475,7 +627,7 @@ export class OlSelectPopover extends LitElement {
     _renderItem(item) {
         const isSelected = (this.selected || []).includes(item.value);
         return html`
-            <li class="item ${isSelected ? 'item--selected' : ''}">
+            <li class="item">
                 <label class="item-row">
                     <input
                         type="checkbox"
@@ -485,6 +637,9 @@ export class OlSelectPopover extends LitElement {
                         @change=${this._onItemToggle}
                     />
                     <span class="item-label">${item.label}</span>
+                    ${item.count !== null && item.count !== undefined
+        ? html`<span class="item-count" aria-hidden="true">${item.count.toLocaleString()}</span>`
+        : nothing}
                 </label>
             </li>
         `;
@@ -502,19 +657,77 @@ export class OlSelectPopover extends LitElement {
         // Native button click handles Enter/Space — let it bubble to ol-popover's
         // own click toggle. We only handle ArrowDown, which opens the popover and
         // moves focus into the list (vs. plain click, which focuses the filter).
-        if (e.key === 'ArrowDown' && !this._isOpen) {
+        if (e.key === 'ArrowDown' && !this._panelOpen) {
             e.preventDefault();
-            const popover = this.shadowRoot?.querySelector('ol-popover');
-            if (!popover) return;
-            this._pendingFocusFirst = true;
-            popover.open = true;
+            if (!this._requestOpen({ focusFirst: true })) return;
+            this.show({ focusFirst: true });
         }
+    }
+
+    // Whether the panel is actually open. `_isOpen` only tracks ol-popover's
+    // open/close events, and a programmatic `open = false` emits no close event
+    // — so anything gating an *open* has to read the panel itself.
+    get _panelOpen() {
+        return !!this.shadowRoot?.querySelector('ol-popover')?.open;
+    }
+
+    // Gate the trigger click on _requestOpen. Runs in the capture phase on the
+    // host, so stopping it here keeps ol-popover from opening the panel.
+    _onTriggerClickCapture(e) {
+        if (this._panelOpen || this._openDeferred) return;
+        if (!e.target.closest?.('[slot="trigger"]')) return;
+        if (this._requestOpen()) return;
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    /**
+     * Ask permission to open. A listener that calls preventDefault() on
+     * `ol-select-popover-request-open` takes ownership: the panel stays shut,
+     * and it's the listener's job to call show() once its items are ready.
+     * Lets a host that loads items on demand open the panel once, at its final
+     * size, instead of resizing and re-sorting under the pointer.
+     *
+     * @param {Object} [opts]
+     * @param {boolean} [opts.focusFirst] - Focus the list rather than the filter.
+     * @returns {boolean} True when the caller may open the panel itself.
+     */
+    _requestOpen({ focusFirst = false } = {}) {
+        const evt = new CustomEvent('ol-select-popover-request-open', {
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { focusFirst },
+        });
+        this.dispatchEvent(evt);
+        if (!evt.defaultPrevented) return true;
+
+        this._openDeferred = true;
+        this._pendingFocusFirst = focusFirst;
+        return false;
+    }
+
+    /**
+     * Open the panel. Public counterpart to a deferred
+     * `ol-select-popover-request-open` — safe to call unconditionally.
+     *
+     * @param {Object} [opts]
+     * @param {boolean} [opts.focusFirst] - Focus the list rather than the filter.
+     * @returns {void}
+     */
+    show({ focusFirst = false } = {}) {
+        this._openDeferred = false;
+        if (focusFirst) this._pendingFocusFirst = true;
+        const popover = this.shadowRoot?.querySelector('ol-popover');
+        if (popover) popover.open = true;
     }
 
     _onPopoverOpen() {
         this._isOpen = true;
         this._query = '';
-        this.setAttribute('data-open', '');
+        // However it ended up open — show(), or a second click falling through
+        // while a deferred open was still pending — the deferral is over.
+        this._openDeferred = false;
 
         if (this._pendingFocusFirst) {
             this._pendingFocusFirst = false;
@@ -531,7 +744,6 @@ export class OlSelectPopover extends LitElement {
     _onPopoverClose() {
         this._isOpen = false;
         this._pendingFocusFirst = false;
-        this.removeAttribute('data-open');
     }
 
     _onQueryInput(e) {
@@ -546,6 +758,16 @@ export class OlSelectPopover extends LitElement {
         const nextSelected = (this.items || [])
             .map(it => it.value)
             .filter(v => current.has(v));
+
+        // The toggled item is about to move between the "selected" and
+        // "suggestions" groups, which destroys its checkbox DOM node — focus
+        // would fall back to <body>. Only restore if the checkbox actually
+        // owned focus at toggle time (skips the mouse-click-without-focus
+        // path on Safari).
+        if (this.shadowRoot?.activeElement === e.target) {
+            this._restoreFocusToValue = value;
+        }
+
         this._emitChange(nextSelected, checked ? value : null, checked ? null : value);
     }
 
@@ -602,6 +824,7 @@ export class OlSelectPopover extends LitElement {
 
     _emitChange(nextSelected, added, removed) {
         this.selected = nextSelected;
+        this._syncFormValue();
         this.dispatchEvent(new CustomEvent('ol-select-popover-change', {
             bubbles: true, composed: true,
             detail: { selected: nextSelected, added, removed },
@@ -609,4 +832,6 @@ export class OlSelectPopover extends LitElement {
     }
 }
 
-customElements.define('ol-select-popover', OlSelectPopover);
+if (!customElements.get('ol-select-popover')) {
+    customElements.define('ol-select-popover', OlSelectPopover);
+}

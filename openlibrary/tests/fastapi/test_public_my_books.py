@@ -6,7 +6,7 @@ so route conflicts like the one in #12770 are caught.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 
 class TestReadingLogRoute:
@@ -19,7 +19,11 @@ class TestReadingLogRoute:
             "openlibrary.fastapi.public_my_books.site",
             _mock_site_context_returning(mock_user),
         )
-        monkeypatch.setattr("openlibrary.fastapi.public_my_books.ReadingLog", MagicMock())
+        mock_reading_log = MagicMock()
+        mock_reading_log_instance = mock_reading_log.return_value
+        mock_reading_log_instance.get_works_async = AsyncMock(return_value=MagicMock(docs=[]))
+        mock_reading_log_instance.count_shelf = MagicMock(return_value=0)
+        monkeypatch.setattr("openlibrary.fastapi.public_my_books.ReadingLog", mock_reading_log)
 
         resp = fastapi_client.get("/people/testuser/books/want-to-read.json")
         # If it reaches the reading-log handler with a public user, it returns 200

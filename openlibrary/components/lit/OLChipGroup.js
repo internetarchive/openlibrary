@@ -5,7 +5,10 @@ import { LitElement, html, css } from 'lit';
  *
  * Provides consistent spacing and wrapping behavior for groups of chips.
  *
- * @property {String} gap - Gap size: "small" (4px), "medium" (8px, default), or "large" (12px)
+ * @prop {"small" | "medium" | "large"} gap - "small" (4px), "medium" (8px,
+ *   default), or "large" (12px)
+ *
+ * @slot - One or more <ol-chip> elements
  *
  * @example
  * <ol-chip-group>

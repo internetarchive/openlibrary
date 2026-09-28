@@ -1,0 +1,125 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Confirmation", "For a yes/no question, await olConfirm() — the async replacement for window.confirm(). It builds an alert <ol-dialog> with Cancel and a confirm button, removes it once closed, and resolves true or false. Every label defaults to English, so always pass translated strings.",
+        code="import { olConfirm } from '../../../components/lit/alert-dialog.js';\n\n// true only for the confirm button; Escape, the backdrop, and the close button count as cancel\nif (await olConfirm({\n    title: i18n.deleteListTitle,\n    message: i18n.deleteListBody,   // strings are always text, never HTML\n    confirmLabel: i18n.deleteList,  // name the action, not OK\n    cancelLabel: i18n.cancel,\n    labelClose: i18n.close,\n    destructive: true,              // tone='danger' button, initial focus on Cancel\n})) {\n    await deleteList(listKey);\n}\n\n// For markup, write a <template> in the page template, where $_() extraction works:\n// <template id=remove-seed-message>$:_('Remove <strong>%(title)s</strong> from this list?', title=websafe(title))</template>\nawait olConfirm({ title: i18n.removeTitle, message: document.querySelector('#remove-seed-message') });",
+        language="js",
+        output_style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px;") %}
+        <ol-button variant="secondary" data-ds-dialog-helper="confirm" data-ds-dialog-out="#demo-dialog-confirm-out" data-ds-dialog-options='{{ {"title": "Delete this list?", "message": "Deleting “Want to Read” removes it permanently. This can’t be undone.", "confirmLabel": "Delete list", "destructive": true} | tojson }}'>
+            Delete list…
+        </ol-button>
+        <ol-button variant="secondary" data-ds-dialog-helper="confirm" data-ds-dialog-out="#demo-dialog-confirm-out" data-ds-dialog-template="#demo-dialog-confirm-template" data-ds-dialog-options='{{ {"title": "Remove book?", "confirmLabel": "Remove", "destructive": true} | tojson }}'>
+            Remove from list…
+        </ol-button>
+        <ol-button variant="secondary" data-ds-dialog-helper="confirm" data-ds-dialog-out="#demo-dialog-confirm-out" data-ds-dialog-options='{{ {"title": "Return this book?", "message": "You can borrow it again if a copy is available.", "confirmLabel": "Return book"} | tojson }}'>
+            Return book…
+        </ol-button>
+        <template id="demo-dialog-confirm-template">Remove <strong>The Left Hand of Darkness</strong> from “Want to Read”?</template>
+        <p>Resolved: <strong id="demo-dialog-confirm-out">(none)</strong></p>
+    {% endcall %}
+    {% call ex.example("Alert", "When the reader must acknowledge something before continuing, await olAlert(). It has a single button and resolves once closed. Anything they can safely miss is a Toast.",
+        code="import { olAlert } from '../../../components/lit/alert-dialog.js';\n\nawait olAlert({\n    title: i18n.noPrimaryTitle,\n    message: i18n.noPrimaryBody,\n    okLabel: i18n.ok,\n});",
+        language="js") %}
+        <ol-button variant="secondary" data-ds-dialog-helper="alert" data-ds-dialog-options='{{ {"title": "No primary record", "message": "Select the record the duplicates should point to, then merge."} | tojson }}'>
+            Merge authors
+        </ol-button>
+    {% endcall %}
+    {% call ex.example("Width presets", "small is 400px, medium 550px (default), large 800px. Never exceeds 90vw, so presets stay responsive. Override one instance with the --ol-dialog-width-* custom properties.",
+        output_style="display: flex; gap: 12px; flex-wrap: wrap;") %}
+        <ol-button data-width="small" variant="secondary">
+            Small
+        </ol-button>
+        <ol-button data-width="medium" variant="secondary">
+            Medium
+        </ol-button>
+        <ol-button data-width="large" variant="secondary">
+            Large
+        </ol-button>
+        <ol-dialog id="demo-dialog-width" label="Width demo">
+            <p class="ds-demo-dialog-body">
+                Using the <strong id="demo-dialog-width-label">medium</strong> preset. Resize the window to see it stay within 90vw.
+            </p>
+        </ol-dialog>
+        <script>
+            (function () {
+                const dialog = document.getElementById('demo-dialog-width');
+                const label = document.getElementById('demo-dialog-width-label');
+                document.querySelectorAll('[data-width]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        dialog.width = button.dataset.width;
+                        label.textContent = button.dataset.width;
+                        dialog.open = true;
+                    });
+                });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Form dialog", "Once a dialog collects input, compose <ol-dialog> yourself — olConfirm() only asks yes/no. icon puts a decorative glyph before the title, matching the control the dialog was opened from. close(value) records which button closed it, like native <dialog>; read it from detail.returnValue on ol-close (cancelable, so you can validate and keep the dialog open) or ol-after-close. Escape and the backdrop close with an empty returnValue.",
+        code='<ol-dialog label="Add a note" icon="sticky-note" width="medium">\n  <textarea>…</textarea>\n  <div slot="footer">\n    <ol-button onclick="dialog.close(\'cancel\')">Cancel</ol-button>\n    <ol-button variant="primary" onclick="dialog.close(\'save\')">Save note</ol-button>\n  </div>\n</ol-dialog>\n\ndialog.addEventListener(\'ol-close\', (event) => {\n  if (event.detail.returnValue === \'save\' && !textarea.value.trim()) event.preventDefault();\n});') %}
+        <ol-button id="demo-dialog-form-trigger" variant="secondary">
+            Add a note…
+        </ol-button>
+        <ol-dialog id="demo-dialog-form" label="Add a note" icon="sticky-note" width="medium">
+            <label for="demo-dialog-note" class="ds-demo-label">Your note</label>
+            <textarea id="demo-dialog-note"
+                      rows="3"
+                      class="ds-demo-textarea"
+                      placeholder="e.g. Recommended by a friend — start with chapter 3."></textarea>
+            <div slot="footer" class="ds-demo-dialog-footer">
+                <ol-button data-action="cancel" variant="secondary">
+                    Cancel
+                </ol-button>
+                <ol-button data-action="save" variant="primary">
+                    Save note
+                </ol-button>
+            </div>
+        </ol-dialog>
+        <p>Closed with: <strong id="demo-dialog-form-out">(none)</strong></p>
+        <script>
+            (function () {
+                const dialog = document.getElementById('demo-dialog-form');
+                const note = document.getElementById('demo-dialog-note');
+                const out = document.getElementById('demo-dialog-form-out');
+                document.getElementById('demo-dialog-form-trigger').addEventListener('click', () => { dialog.open = true; });
+                dialog.querySelectorAll('[data-action]').forEach((button) => {
+                    button.addEventListener('click', () => dialog.close(button.dataset.action));
+                });
+                // Saving an empty note keeps the dialog open.
+                dialog.addEventListener('ol-close', (event) => {
+                    if (event.detail.returnValue === 'save' && !note.value.trim()) {
+                        event.preventDefault();
+                        note.focus();
+                    }
+                });
+                dialog.addEventListener('ol-after-close', (event) => {
+                    out.textContent = event.detail.returnValue || '(dismissed)';
+                });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Command palette / search modal", "placement=\"top\" plus without-header, fullscreen-on-mobile, and --ol-dialog-padding: 0 slots a search bar into the header region and lets results grow downward while the top edge stays put. This is the site header's search modal. Focus the input on ol-after-open.",
+        code='<ol-dialog\n placement="top"\n  without-header\n  fullscreen-on-mobile\n  label="Search the catalog"\n  style="--ol-dialog-padding: 0">\n  <div slot="header"><input type="search" /></div>\n  <ul>…results…</ul>\n</ol-dialog>') %}
+        <ol-button id="demo-dialog-search-trigger" variant="secondary">
+            Search…
+        </ol-button>
+        <ol-dialog id="demo-dialog-search" placement="top" without-header fullscreen-on-mobile label="Search the catalog" style="--ol-dialog-padding: 0;">
+            <div slot="header" class="ds-demo-search-header">
+                <input id="demo-dialog-search-input"
+                       type="search"
+                       class="ds-demo-search-input"
+                       placeholder="Search books, authors, subjects…">
+            </div>
+            <ul class="ds-demo-menu">
+                <li>The Left Hand of Darkness <span class="ds-demo-menu__muted">— Ursula K. Le Guin</span></li>
+                <li>A Wizard of Earthsea <span class="ds-demo-menu__muted">— Ursula K. Le Guin</span></li>
+                <li>The Dispossessed <span class="ds-demo-menu__muted">— Ursula K. Le Guin</span></li>
+            </ul>
+        </ol-dialog>
+        <script>
+            (function () {
+                const dialog = document.getElementById('demo-dialog-search');
+                document.getElementById('demo-dialog-search-trigger').addEventListener('click', () => { dialog.open = true; });
+                dialog.addEventListener('ol-after-open', () => { document.getElementById('demo-dialog-search-input').focus(); });
+            })();
+        </script>
+    {% endcall %}
+{% endmacro %}

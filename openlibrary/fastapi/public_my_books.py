@@ -99,7 +99,7 @@ async def get_public_my_books_json(
 
     page = pagination.page or 1
     readlog = ReadingLog(user=user_obj)
-    books = readlog.get_works(key, page, pagination.limit, q=q, fq=fq).docs
+    logged_book_data = await readlog.get_works_async(key, page, pagination.limit, q=q, fq=fq)
 
     records_json = [
         ReadingLogEntry(
@@ -117,7 +117,7 @@ async def get_public_my_books_json(
             logged_edition=w.get("logged_edition") or None,
             logged_date=w.get("logged_date").strftime("%Y/%m/%d, %H:%M:%S") if w.get("logged_date") else None,
         )
-        for w in books
+        for w in logged_book_data.docs
     ]
 
     if page == 1 and len(records_json) < pagination.limit:

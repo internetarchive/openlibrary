@@ -1,0 +1,19 @@
+{% import "design/_example.html.jinja" as ex %}
+{% set DEMO_RESULTS %}
+    {"name":"Edition Scorecard","score":115,"maxScore":225,"sections":[{"name":"Access","score":75,"maxScore":100,"checks":[{"description":"Can be accessed in full online","details":"Borrowable and readable books can be accessed by readers, researchers, and all patrons alike.","score":50,"passing":true},{"description":"Has purchase options (ISBN available)","details":"An ISBN enables patrons to purchase the book from retailers.","score":25,"passing":true},{"description":"Has Wikipedia link","details":"A Wikipedia link provides additional context.","score":25,"passing":false}]},{"name":"Discovery","score":40,"maxScore":125,"checks":[{"description":"Has title field","details":"A title is essential for discovery.","score":50,"passing":true},{"description":"Has ISBN","details":"An ISBN enables discovery through library catalogs.","score":40,"passing":true},{"description":"Has genre tags","details":"Genre tags help patrons find similar books.","score":35,"passing":false}]}]}
+{% endset %}
+{% macro demos() %}
+    <p class="ds-lead">
+        Displays a metadata quality scorecard as a tabbed set of sections, each listing the checks that make up its score. Data is passed as a JSON <code>results</code> attribute or property; labels are individually translatable.
+    </p>
+    {% call ex.example("Collapsed (default)", "Shows a small ring proportional to the overall percentage. Click it to expand.",
+        code='<ol-scorecard\n  results=\'{"name":"Edition Scorecard","score":115,"maxScore":225,"sections":[...]}\'>\n</ol-scorecard>') %}
+        <ol-scorecard results='{{ DEMO_RESULTS }}'>
+        </ol-scorecard>
+    {% endcall %}
+    {% call ex.example("Expanded", "The expanded attribute renders the full tabbed UI directly. Clicking the header collapses it again.",
+        code='<ol-scorecard\n  expanded\n  results=\'{"name":"Edition Scorecard","score":115,"maxScore":225,"sections":[...]}\'>\n</ol-scorecard>') %}
+        <ol-scorecard expanded results='{{ DEMO_RESULTS }}'>
+        </ol-scorecard>
+    {% endcall %}
+{% endmacro %}

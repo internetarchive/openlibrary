@@ -73,7 +73,7 @@
 
 /* Observations view */
 .observations-header {
-  color: var(--dark-grey);
+  color: var(--color-text);
   padding: 1em 1em 0;
   text-decoration: underline;
 }

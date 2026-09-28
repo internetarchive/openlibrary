@@ -6,13 +6,15 @@
 export function initPasswordToggling(elem) {
     const passwordInput = document.querySelector('input[type=password]');
 
+    // The affordance is a sprite icon, so swapping the glyph means repointing
+    // its <use> at another symbol rather than changing an image src.
+    const glyph = elem.querySelector('use');
+
     elem.addEventListener('click', () => {
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            elem.querySelector('img').src = '/static/images/icons/icon_eye-open.svg';
-        } else {
-            passwordInput.type = 'password';
-            elem.querySelector('img').src = '/static/images/icons/icon_eye-closed.svg';
-        }
+        const revealing = passwordInput.type === 'password';
+        passwordInput.type = revealing ? 'text' : 'password';
+        // Keep the server-rendered sprite URL; swap only the fragment.
+        const sprite = glyph.getAttribute('href').split('#')[0];
+        glyph.setAttribute('href', `${sprite}#${revealing ? 'icon-eye' : 'icon-eye-off'}`);
     });
 }

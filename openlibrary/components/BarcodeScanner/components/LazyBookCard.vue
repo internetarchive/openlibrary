@@ -17,11 +17,11 @@
 
 <script>
 import CONFIGS from '../../configs';
-import Promise from 'promise-polyfill';
 export default {
     props: {
         isbn: {
             type: String,
+            required: true,
         },
         tentativeCover: {
             type: String,

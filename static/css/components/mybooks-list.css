@@ -26,7 +26,7 @@
 
 .mybooks-list h4.work-subtitle {
   font-family: var(--font-family-subtitle);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: 1em;
   font-weight: normal;
   font-style: italic;
@@ -97,7 +97,7 @@
 .mybooks-list--clean span.editions {
   margin-top: 0;
   font-size: 0.6875em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding-top: var(--spacing-inset-xs);
   padding-bottom: var(--spacing-inset-xs);
 }

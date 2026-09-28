@@ -65,8 +65,7 @@ def stats_hook():
     stats_summary = stats.stats_summary()
     update_all_stats(stats_summary)
     try:
-        if "stats-header" in web.ctx.features:
-            web.header("X-OL-Stats", format_stats(stats_summary))
+        web.header("X-OL-Stats", format_stats(stats_summary))
     except Exception as e:
         # don't let errors in stats collection break the app.
         print(str(e), file=web.debug)

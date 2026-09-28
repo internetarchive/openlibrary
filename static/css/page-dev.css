@@ -21,23 +21,3 @@
   opacity: 0.2;
   height: 50px;
 }
-
-.logo-txt {
-  position: relative;
-}
-
-.logo-txt:after {
-  content: "development version";
-  position: absolute;
-  background: var(--mid-baby-green);
-  pointer-events: none;
-  padding: 0 0.7em;
-  font-size: 0.8em;
-  line-height: 1.75;
-  border-radius: var(--border-radius-badge);
-  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
-  left: 40px;
-  top: 36px;
-  z-index: var(--z-index-level-2);
-  transform: rotate(0deg);
-}

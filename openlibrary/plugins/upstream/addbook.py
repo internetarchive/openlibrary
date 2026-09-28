@@ -5,7 +5,7 @@ import datetime
 import io
 import logging
 import re
-import urllib
+import urllib.parse
 from typing import TYPE_CHECKING, Literal, NoReturn, overload
 
 import web
@@ -249,7 +249,7 @@ class addbook(delegate.page):
 
         if not accounts.get_current_user():
             recap = get_recaptcha()
-            if recap and not recap.validate():
+            if recap and not recap.validate_response(i.get("g-recaptcha-response"), web.ctx.ip):
                 return render_template(
                     "message.html",
                     "Recaptcha solution was incorrect",
@@ -285,7 +285,7 @@ class addbook(delegate.page):
             # no match
             return self.no_match(saveutil, i)
 
-    def find_matches(self, i: web.utils.Storage) -> None | Work | Edition | list[web.utils.Storage]:
+    def find_matches(self, i: web.utils.Storage) -> Work | Edition | list[web.utils.Storage] | None:
         """
         Tries to find an edition, or work, or multiple work candidates that match the
         given input data.
@@ -367,7 +367,7 @@ class addbook(delegate.page):
         publish_year: str | None = None,
         id_name: str | None = None,
         id_value: str | None = None,
-    ) -> None | Edition | list[web.Storage]:
+    ) -> Edition | list[web.Storage] | None:
         """
         Searches solr for potential edition matches.
 
@@ -556,7 +556,7 @@ class SaveBookHelper:
         comment = formdata.pop("_comment", "")
 
         user = accounts.get_current_user()
-        delete = user and (user.is_admin() or user.is_super_librarian()) and formdata.pop("_delete", "")
+        delete = user and user.is_super_librarian_or_higher() and formdata.pop("_delete", "")
 
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
@@ -748,7 +748,7 @@ class SaveBookHelper:
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
-        if user and (user.is_admin() or user.is_super_librarian()):
+        if user and user.is_super_librarian_or_higher():
             return
 
         # read ocaid from form data
@@ -813,12 +813,13 @@ class book_edit(delegate.page):
 
     def POST(self, key):
         i = web.input(v=None, work_key=None, _method="GET")
+        form_data = web.input()
 
-        if spamcheck.is_spam(allow_privileged_edits=True):
+        if spamcheck.is_spam(form_data, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
         recap = get_recaptcha()
-        if recap and not recap.validate():
+        if recap and not recap.validate_response(form_data.get("g-recaptcha-response"), web.ctx.ip):
             return render_template(
                 "message.html",
                 "Recaptcha solution was incorrect",
@@ -876,13 +877,14 @@ class work_edit(delegate.page):
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
+        form_data = web.input()
 
-        if spamcheck.is_spam(allow_privileged_edits=True):
+        if spamcheck.is_spam(form_data, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
         recap = get_recaptcha()
 
-        if recap and not recap.validate():
+        if recap and not recap.validate_response(form_data.get("g-recaptcha-response"), web.ctx.ip):
             return render_template(
                 "message.html",
                 "Recaptcha solution was incorrect",
@@ -966,6 +968,10 @@ class daisy(delegate.page):
 
         if not page:
             raise web.notfound()
+
+        if page.ocaid:
+            ia_item_url = f"https://archive.org/details/{urllib.parse.quote(page.ocaid, safe='')}"
+            raise web.seeother(ia_item_url)
 
         return render_template("books/daisy", page)
 

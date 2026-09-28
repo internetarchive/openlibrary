@@ -1,6 +1,9 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    "helpers:githubDigestChangelogs"
   ],
   "minimumReleaseAge": "7 days",
   "schedule": ["before 9am on Monday"],
@@ -46,9 +49,11 @@
     },
     {
       "matchPackageNames": [
-        "jest",
+        "vitest",
+        "@vitest/browser-playwright",
+        "vitest-browser-lit",
+        "vitest-browser-vue",
         "bundlesize2",
-        "sinon",
         "stylelint",
         "stylelint-declaration-strict-value",
         "stylelint-prettier",

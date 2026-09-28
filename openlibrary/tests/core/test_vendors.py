@@ -1,4 +1,6 @@
+import importlib
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -10,6 +12,7 @@ from openlibrary.core.vendors import (
     betterworldbooks_fmt,
     clean_amazon_metadata_for_load,
     get_amazon_metadata,
+    get_amazon_metadata_async,
     is_dvd,
     split_amazon_title,
 )
@@ -245,6 +248,8 @@ def test_betterworldbooks_fmt():
     assert bad_data.get("price") is None
     assert bad_data.get("price_amt") is None
     assert bad_data.get("qlt") is None
+    assert bad_data.get("new_qty") is None
+    assert bad_data.get("used_price") is None
 
 
 # Test cases to add:
@@ -253,8 +258,9 @@ def test_betterworldbooks_fmt():
 
 def test_get_amazon_metadata() -> None:
     """
-    Mock a reply from the Amazon Products API so we can do a basic test for
-    get_amazon_metadata() and cached_get_amazon_metadata().
+    Mock a reply from the Amazon affiliate server so we can do a basic test for
+    get_amazon_metadata(), the sync async_bridge wrapper around the canonical
+    get_amazon_metadata_async().
     """
 
     class MockResponse:
@@ -302,12 +308,75 @@ def test_get_amazon_metadata() -> None:
         "physical_format": "paperback",
     }
     isbn = "059035342X"
+
+    async def mock_async_get(*args, **kwargs):
+        return MockResponse()
+
     with (
-        patch("openlibrary.core.vendors.session.get", return_value=MockResponse()),
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
         assert got == expected
+
+
+@pytest.mark.asyncio
+async def test_get_amazon_metadata_async() -> None:
+    """
+    Async version of get_amazon_metadata: mock a reply from the affiliate
+    server via the shared httpx async session and verify the metadata is
+    returned without blocking.
+    """
+
+    class MockResponse:
+        def raise_for_status(self):
+            return True
+
+        def json(self):
+            return mock_response
+
+    captured_kwargs = {}
+
+    async def mock_async_get(*args, **kwargs):
+        captured_kwargs.update(kwargs)
+        return MockResponse()
+
+    mock_response = {
+        "status": "success",
+        "hit": {
+            "url": "https://www.amazon.com/dp/059035342X/?tag=internetarchi-20",
+            "source_records": ["amazon:059035342X"],
+            "isbn_10": ["059035342X"],
+            "isbn_13": ["9780590353427"],
+            "price": "$5.10",
+            "price_amt": 509,
+            "title": "Harry Potter and the Sorcerer's Stone",
+            "cover": "https://m.media-amazon.com/images/I/51Wbz5GypgL._SL500_.jpg",
+            "authors": [{"name": "Rowling, J.K."}, {"name": "GrandPr_, Mary"}],
+            "publishers": ["Scholastic"],
+            "number_of_pages": 309,
+            "edition_num": "1",
+            "publish_date": "Sep 02, 1998",
+            "product_group": "Book",
+            "physical_format": "paperback",
+        },
+    }
+    expected = mock_response["hit"]
+    # Use the ISBN-13 form of the same book for a distinct cache key.
+    isbn = "9780590353427"
+    with (
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
+        patch("openlibrary.core.vendors.affiliate_server_url", new=True),
+    ):
+        got = await get_amazon_metadata_async(id_=isbn, id_type="isbn", timeout=5.0)
+        assert got == expected
+        assert captured_kwargs["timeout"] == 5.0
 
 
 @dataclass
@@ -612,12 +681,32 @@ class CPrice:
 @dataclass
 class CAvailability:
     type: str = ""
+    message: str | None = None
+
+
+@dataclass
+class CCondition:
+    value: str | None = None
+    sub_condition: str | None = None
+
+
+@dataclass
+class CMerchantInfo:
+    name: str | None = None
+
+
+@dataclass
+class CDealDetails:
+    badge: str | None = None
 
 
 @dataclass
 class CListing:
     price: object = None
     availability: object = None
+    condition: object = None
+    merchant_info: object = None
+    deal_details: object = None
 
 
 @dataclass
@@ -689,7 +778,10 @@ def _make_creators_item() -> CItem:
                         savings=CSavings(10.0),
                         saving_basis=CSavingBasis(money=CMoney("$10.56", 10.56)),
                     ),
-                    availability=CAvailability("IN_STOCK"),
+                    availability=CAvailability("IN_STOCK", "In Stock"),
+                    condition=CCondition("New", "New"),
+                    merchant_info=CMerchantInfo("Amazon.com"),
+                    deal_details=CDealDetails("Limited time deal"),
                 )
             ]
         ),
@@ -700,6 +792,21 @@ def _make_creators_item() -> CItem:
             ]
         ),
     )
+
+
+def test_amazon_creatorsapi_lazy_import_resolves() -> None:
+    """
+    `AmazonCreatorsAPI.__init__` does `from amazon_creatorsapi import ...` at call
+    time, so a missing dependency surfaces only when the affiliate server boots.
+
+    This matters more since #13277 removed the legacy PA-API fallback: there is no
+    longer a second client to degrade to, so a broken import is a total outage. The
+    module ships inside `python-amazon-paapi` (requirements.txt), which is not an
+    obvious place to look, so a dependency bump can break it with nothing else failing.
+    """
+    module = importlib.import_module("amazon_creatorsapi")
+    assert hasattr(module, "AmazonCreatorsApi")
+    assert hasattr(module.Country, "US")
 
 
 # ---- AmazonCreatorsAPI.serialize() tests ------------------------------------
@@ -737,6 +844,11 @@ def test_creators_serialize_full_book() -> None:
     # Creators API additions absent from the legacy PA-API output
     assert result["categories"] == ["Science & Math", "Oceans & Seas"]
     assert result["availability"] == "IN_STOCK"
+    assert result["availability_message"] == "In Stock"
+    assert result["condition"] == "New"
+    assert result["sub_condition"] == "New"
+    assert result["merchant"] == "Amazon.com"
+    assert result["deal_badge"] == "Limited time deal"
     assert result["price_savings_pct"] == 10.0
     assert result["list_price"] == "$10.56"
     assert result["image_variants"] == ["https://m.media-amazon.com/images/I/variant1.jpg"]
@@ -838,3 +950,20 @@ def test_amazon_affiliate_url_explicit_asin_overrides_isbn_conversion() -> None:
 def test_amazon_affiliate_url_no_identifiers_returns_none() -> None:
     """Without isbn or asin, function returns None."""
     assert amazon_affiliate_url(None, None, "test-tag") is None
+
+
+def test_amazon_affiliate_url_falls_back_to_keyword_search() -> None:
+    """Without isbn or asin, a query searches Amazon's books for those keywords."""
+    url = amazon_affiliate_url(None, None, "test-tag", query="Dune Frank Herbert")
+    assert url == "https://www.amazon.com/s?k=Dune%20Frank%20Herbert&i=stripbooks&tag=test-tag"
+
+
+def test_amazon_affiliate_url_prefers_identifiers_over_query() -> None:
+    """An isbn or asin identifies the book exactly, so it wins over keywords."""
+    isbn_10_url = amazon_affiliate_url("9780590353427", None, "test-tag", query="Holes Louis Sachar")
+    assert isbn_10_url is not None
+    assert "/dp/059035342X/" in isbn_10_url
+
+    isbn_979_url = amazon_affiliate_url("9798776159572", None, "test-tag", query="Pickleball Soap Opera")
+    assert isbn_979_url is not None
+    assert "/s?k=9798776159572" in isbn_979_url

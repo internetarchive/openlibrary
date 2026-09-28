@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import './OlIcon.js';
 
 /**
  * OLReadMore - A web component for expandable/collapsible content
@@ -14,10 +15,19 @@ import { LitElement, html, css } from 'lit';
  *   <p>Long content here...</p>
  * </ol-read-more>
  *
- * @property {String} background-color - Background color for the gradient fade (default: white)
- * @property {String} label-size - Size of the toggle button text: "medium" (default) or "small" (12px)
+ * @prop {String} maxHeight - Collapsed height of the content before truncating (default: "80px")
+ * @prop {String} moreText - Label for the expand toggle (default: "Read more")
+ * @prop {String} lessText - Label for the collapse toggle (default: "Read less")
+ * @prop {String} backgroundColor - Background color for the gradient fade (default: white)
+ * @prop {"medium" | "small"} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
+ *
+ * @slot - The collapsible content
  *
  * @csspart toggle-btn - The toggle button element (targets both "more" and "less" buttons)
+ *
+ * @cssprop [--ol-readmore-link-color=var(--color-link)] - Color of the more/less toggle button
+ * @cssprop [--ol-readmore-gradient-color=white] - Solid color the fade gradient blends toward (match the surrounding background)
+ * @cssprop [--ol-readmore-gradient-color-transparent=rgba(255, 255, 255, 0)] - Transparent end of the fade gradient
  *
  * @example
  * <ol-read-more max-height="100px" more-text="Read more" less-text="Read less">
@@ -25,6 +35,10 @@ import { LitElement, html, css } from 'lit';
  * </ol-read-more>
  */
 export class OLReadMore extends LitElement {
+    // Number of lines worth hiding before a "Read more" button earns its place.
+    // Expressed in lines (not px) so font/spacing tweaks don't silently shift the threshold.
+    static BUFFER_LINES = 4;
+
     static properties = {
         maxHeight: { type: String, attribute: 'max-height' },
         moreText: { type: String, attribute: 'more-text' },
@@ -40,7 +54,7 @@ export class OLReadMore extends LitElement {
         :host {
             display: block;
             position: relative;
-            --ol-readmore-link-color: hsl(202, 96%, 28%);
+            --ol-readmore-link-color: var(--color-link);
             --ol-readmore-gradient-color: white;
             --ol-readmore-gradient-color-transparent: rgba(255, 255, 255, 0);
         }
@@ -75,8 +89,17 @@ export class OLReadMore extends LitElement {
             margin-top: calc(-1 * var(--spacing-md));
         }
 
-        .toggle-btn:hover {
-            text-decoration: underline;
+        @media (hover: hover) and (pointer: fine) {
+            .toggle-btn:hover {
+                text-decoration: underline;
+            }
+        }
+
+        /* Inset ring: the toggle is full-bleed, so an outward offset would draw
+           outside the container it sits on. */
+        .toggle-btn:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
         }
 
         .toggle-btn.hidden {
@@ -100,6 +123,7 @@ export class OLReadMore extends LitElement {
             width: 1.2em;
             height: 1.2em;
             vertical-align: middle;
+            --ol-icon-stroke-width: 2.5;
         }
 
         .chevron.up {
@@ -146,12 +170,26 @@ export class OLReadMore extends LitElement {
         }
     }
 
+    // Resolve an element's line-height to px, approximating `normal` from font-size.
+    _getLineHeight(el) {
+        const cs = getComputedStyle(el);
+        const lh = parseFloat(cs.lineHeight);
+        // `line-height: normal` parses to NaN — fall back to a typical ratio.
+        return Number.isNaN(lh) ? parseFloat(cs.fontSize) * 1.5 : lh;
+    }
+
     _checkIfTruncationNeeded() {
         const content = this.shadowRoot.querySelector('.content-wrapper');
         if (!content) return;
 
-        const isOverflowing = content.scrollHeight > content.clientHeight;
-        this._unnecessary = !isOverflowing;
+        // Measure the real slotted text, not the shadow wrapper — the wrapper
+        // inherits the host's line-height, which may differ from the content's.
+        const slot = this.shadowRoot.querySelector('slot');
+        const sample = slot?.assignedElements?.()[0] ?? content;
+        const buffer = OLReadMore.BUFFER_LINES * this._getLineHeight(sample);
+
+        const isOverflowingEnough = content.scrollHeight > content.clientHeight + buffer;
+        this._unnecessary = !isOverflowingEnough;
 
         if (this._unnecessary) {
             this._expanded = true;
@@ -208,7 +246,7 @@ export class OLReadMore extends LitElement {
                 @click="${this._handleMoreClick}"
             >
                 ${this.moreText}
-                <svg class="chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <ol-icon class="chevron" name="chevron-down"></ol-icon>
             </button>
             <button
                 part="toggle-btn"
@@ -217,7 +255,7 @@ export class OLReadMore extends LitElement {
                 @click="${this._handleLessClick}"
             >
                 ${this.lessText}
-                <svg class="chevron up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <ol-icon class="chevron up" name="chevron-down"></ol-icon>
             </button>
         `;
     }

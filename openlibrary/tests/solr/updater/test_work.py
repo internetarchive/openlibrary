@@ -113,7 +113,7 @@ class TestWorkSolrBuilder:
 
     def test_edition_key(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL1M"},
                 {"key": "/books/OL2M"},
@@ -169,16 +169,16 @@ class TestWorkSolrBuilder:
                 make_edition(work, identifiers={"librarything": ["lt-1"]}),
                 make_edition(work, identifiers={"librarything": ["lt-2"]}),
             ],
-        ).build_identifiers()
+        )._identifiers
         assert sorted(d.get("id_librarything", [])) == ["lt-1", "lt-2"]
 
     def test_ia_boxid(self):
         w = make_work()
-        d = make_work_solr_builder(w, [make_edition(w)]).build_legacy_ia_fields()
+        d = make_work_solr_builder(w, [make_edition(w)])._legacy_ia_fields
         assert "ia_box_id" not in d
 
         w = make_work()
-        d = make_work_solr_builder(w, [make_edition(w, ia_box_id="foo")]).build_legacy_ia_fields()
+        d = make_work_solr_builder(w, [make_edition(w, ia_box_id="foo")])._legacy_ia_fields
         assert d["ia_box_id"] == ["foo"]
 
     def test_with_one_lending_edition(self):
@@ -294,7 +294,7 @@ class TestWorkSolrBuilder:
 
     def test_subjects(self):
         w = make_work(subjects=["a", "b c"])
-        d = make_work_solr_builder(w).build_subjects()
+        d = make_work_solr_builder(w)._subjects
 
         assert d["subject"] == ["a", "b c"]
         assert d["subject_facet"] == ["a", "b c"]
@@ -310,7 +310,7 @@ class TestWorkSolrBuilder:
             subject_people=["a", "b c"],
             subject_times=["a", "b c"],
         )
-        d = make_work_solr_builder(w).build_subjects()
+        d = make_work_solr_builder(w)._subjects
 
         for k in ["subject", "person", "place", "time"]:
             assert d[k] == ["a", "b c"]
@@ -467,7 +467,7 @@ class Test_number_of_pages_median:
 class Test_Sort_Editions_Ocaids:
     def test_sort(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "ocaid_restricted"},
                 {"key": "/books/OL567M", "ocaid": "ocaid_printdisabled"},
@@ -503,7 +503,7 @@ class Test_Sort_Editions_Ocaids:
 
     def test_goog_deprioritized(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "foobargoog"},
                 {"key": "/books/OL789M", "ocaid": "foobarblah"},
@@ -516,7 +516,7 @@ class Test_Sort_Editions_Ocaids:
 
     def test_excludes_fav_ia_collections(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "foobargoog"},
                 {"key": "/books/OL789M", "ocaid": "foobarblah"},

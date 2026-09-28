@@ -2,7 +2,7 @@ import $ from 'jquery';
 
 import { Carousel } from '../../../openlibrary/plugins/openlibrary/js/carousel/Carousel';
 
-jest.mock('slick-carousel', () => {});
+vi.mock('slick-carousel', () => ({}));
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -47,15 +47,15 @@ describe('Carousel', () => {
 
         slick = {
             $slides: makeSlides(6),
-            addSlide: jest.fn(() => {
+            addSlide: vi.fn(() => {
                 slick.$slides = makeSlides(slick.$slides.length + 1);
             }),
-            removeSlide: jest.fn(() => {
+            removeSlide: vi.fn(() => {
                 slick.$slides = makeSlides(slick.$slides.length - 1);
             })
         };
 
-        $.fn.slick = jest.fn(function(arg) {
+        $.fn.slick = vi.fn(function(arg) {
             if (arg === 'getSlick') {
                 return slick;
             }
@@ -66,12 +66,12 @@ describe('Carousel', () => {
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     test('unlocks and removes the loading slide when loading more cards fails', async() => {
         const request = $.Deferred();
-        $.ajax = jest.fn(() => request.promise());
+        $.ajax = vi.fn(() => request.promise());
         carousel.loadMore.locked = true;
 
         carousel.fetchPartials();
@@ -84,11 +84,36 @@ describe('Carousel', () => {
         expect(carousel.loadMore.allDone).toBe(false);
     });
 
+    test('uses i18n strings from data-config, even without the hidden input', async() => {
+        document.querySelector('input[name="carousel-i18n-strings"]').remove();
+        document.querySelector('.carousel').dataset.config = JSON.stringify({
+            i18n: { loading: 'Cargando...' },
+            loadMore: {
+                queryType: 'SUBJECTS',
+                q: 'subject:science',
+                pageMode: 'offset',
+                limit: 18,
+                key: 'science'
+            }
+        });
+        carousel = new Carousel($('.carousel'));
+        const request = $.Deferred();
+        $.ajax = vi.fn(() => request.promise());
+        carousel.loadMore.locked = true;
+
+        carousel.fetchPartials();
+        request.reject(new Error('Request failed'));
+        await flushPromises();
+
+        expect(slick.addSlide).toHaveBeenCalledWith('<div class="carousel__item carousel__loading-end">Cargando...</div>');
+        expect(carousel.loadMore.locked).toBe(false);
+    });
+
     test('does not remain locked when the i18n input is missing', async() => {
         document.querySelector('input[name="carousel-i18n-strings"]').remove();
         carousel = new Carousel($('.carousel'));
         const request = $.Deferred();
-        jest.spyOn($, 'ajax').mockReturnValue(request.promise());
+        vi.spyOn($, 'ajax').mockReturnValue(request.promise());
         carousel.loadMore.locked = true;
 
         expect(() => carousel.fetchPartials()).not.toThrow();
@@ -97,5 +122,24 @@ describe('Carousel', () => {
 
         expect(carousel.loadMore.locked).toBe(false);
         expect(carousel.loadMore.allDone).toBe(false);
+    });
+
+    test('makes shelf buttons in hidden slides inert, and frees them again when shown', async() => {
+        carousel = new Carousel($('.carousel'));
+        carousel.init();
+        const container = document.querySelector('.carousel');
+        container.innerHTML = `
+            <div class="slick-slide" aria-hidden="false"><ol-shelf-button variant="icon"></ol-shelf-button></div>
+            <div class="slick-slide" aria-hidden="true"><ol-shelf-button variant="icon"></ol-shelf-button></div>
+        `;
+        await flushPromises();
+        const [shown, hidden] = container.querySelectorAll('ol-shelf-button');
+        expect(shown.hasAttribute('inert')).toBe(false);
+        expect(hidden.hasAttribute('inert')).toBe(true);
+
+        // The slide scrolls into view: slick flips aria-hidden.
+        hidden.parentElement.setAttribute('aria-hidden', 'false');
+        await flushPromises();
+        expect(hidden.hasAttribute('inert')).toBe(false);
     });
 });

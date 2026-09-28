@@ -9,7 +9,10 @@
 ## - Solr replication with 1 leader and 1 follower
 ##
 ## You probably want to run:
-## COMPOSE_FILE="compose.yaml:compose.override.yaml:compose.near-prod.yaml" docker compose up -d
+## COMPOSE_FILE="compose.yaml:compose.override.yaml:compose.near-prod.yaml" docker compose up -d SERVICES
+##
+## Or windows:
+## COMPOSE_FILE="compose.yaml;compose.override.yaml;compose.near-prod.yaml" docker compose up -d SERVICES
 ##
 
 services:
@@ -44,6 +47,27 @@ services:
     volumes:
       # Override with own copy of solr data
       - solr-replica-data:/var/solr
+
+  importbot:
+    image: "${OLIMAGE:-oldev:latest}"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-importbot-start.sh
+    environment:
+      - LOCAL_DEV=true
+      - OL_CONFIG=/openlibrary/conf/openlibrary.yml
+      # Setting to multiple is causing some odd db lock access issues
+      - OL_IMPORT_ALL_PROCESSES=1
+      - OL_IMPORT_ALL_SLEEP=15
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - ol-build:/openlibrary/static/build
+      - ol-nodemodules:/openlibrary/node_modules
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+    networks:
+      - webnet
+      - dbnet
 
 volumes:
   solr-replica-data:

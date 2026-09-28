@@ -36,6 +36,11 @@ class YearlyGoal:
         self.books_read = books_read
         self.progress = floor((books_read / goal) * 100)
 
+    @property
+    def completed(self) -> int:
+        """Capped progress for the bar width (``reading_goal_progress.html.jinja:13``)."""
+        return min(self.progress, 100) if self.progress is not None else 0
+
     @classmethod
     def calc_progress(cls, books_read, goal):
         return floor((books_read / goal) * 100)

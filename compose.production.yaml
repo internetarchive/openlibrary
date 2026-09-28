@@ -11,29 +11,38 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
+    ports:
+      - ${WEB_PORT:-8080}:8080
     environment:
-      - GUNICORN_OPTS= --workers 25 --timeout 300 --max-requests 1500
+      - GUNICORN_OPTS= --workers 22 --timeout 300 --max-requests 1500
+      - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      # Dockerfile.olbase PYTHONPATH + booklending_utils .
-      # Keep in sync with Dockerfile.olbase + other compose files
-      - PYTHONPATH=/openlibrary:/booklending_utils
     volumes:
-      - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+    extra_hosts:
+      # openlibrary.yml needs to reference the service name, to avoid some issues with how we
+      # use hostname, and a cyclical networks request (or something)
+      infobase_nginx: 207.241.234.145  # ol-home0.us.archive.org
 
   fast_web:
     profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
+    ports:
+      - ${FAST_WEB_PORT:-18080}:8080
     environment:
-      - GUNICORN_OPTS= --workers 7 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - GUNICORN_OPTS= --workers 10 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
-      - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+    extra_hosts:
+      # openlibrary.yml needs to reference the service name, to avoid some issues with how we
+      # use hostname, and a cyclical networks request (or something)
+      infobase_nginx: 207.241.234.145  # ol-home0.us.archive.org
 
   solr:
     # Disabled until next solr reindex due to solr version upgrade
@@ -102,11 +111,15 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 30 --max-requests 500
+      - GUNICORN_OPTS= --workers 10 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
     volumes:
       - ../olsystem:/olsystem
       - /1:/1
+    extra_hosts:
+      # openlibrary.yml needs to reference the service name, to avoid some issues with how we
+      # use hostname, and a cyclical networks request (or something)
+      infobase_nginx: 207.241.234.145  # ol-home0.us.archive.org
     deploy:
       # Note: the replicas here must be kept in sync with the `upstream covers_backend`
       # value in `docker/covers_nginx.conf`.
@@ -160,6 +173,8 @@ services:
     hostname: "$HOSTNAME"
     user: root
     command: docker/ol-cron-start.sh
+    environment:
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
     restart: unless-stopped
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
@@ -366,6 +381,28 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # Needed to inspect fail2ban since it runs on the host
       - /var/run/fail2ban:/var/run/fail2ban
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  node-exporter:
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
+    image: prom/node-exporter:v1.12.1
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
+    # Needed to see the host's network/PIDs instead of the container's
+    network_mode: host
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|run)($$|/)
     logging:
       options:
         max-size: "512m"

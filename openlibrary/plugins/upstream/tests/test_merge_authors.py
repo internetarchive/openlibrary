@@ -12,6 +12,7 @@ from openlibrary.plugins.upstream.merge_authors import (
     space_squash_and_strip,
 )
 from openlibrary.utils import dicthash
+from openlibrary.utils.request_context import site
 
 
 def setup_module(mod):
@@ -137,6 +138,7 @@ class TestBasicMergeEngine:
 
 def test_get_many():
     web.ctx.site = MockSite()
+    site.set(web.ctx.site)
     # get_many should handle bad table_of_contents in the edition.
     edition = {
         "key": "/books/OL1M",
@@ -158,6 +160,7 @@ def test_get_many():
 class TestAuthorRedirectEngine:
     def setup_method(self, method):
         web.ctx.site = MockSite()
+        site.set(web.ctx.site)
 
     def test_fix_edition(self):
         update_references = AuthorRedirectEngine().update_references
@@ -223,6 +226,7 @@ class TestAuthorMergeEngine:
     def setup_method(self, method):
         self.engine = AuthorMergeEngine(AuthorRedirectEngine())
         web.ctx.site = MockSite()
+        site.set(web.ctx.site)
 
     def test_redirection(self):
         web.ctx.site.add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])

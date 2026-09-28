@@ -1,5 +1,6 @@
 """Generic utilities"""
 
+import functools
 import re
 from collections.abc import Callable, Iterable
 from enum import Enum
@@ -185,6 +186,7 @@ def is_number(s):
         return False
 
 
+@functools.cache
 def get_software_version() -> str:
     """
     assert get_software_version()  # Should never return a falsy value

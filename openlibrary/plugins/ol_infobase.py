@@ -134,7 +134,17 @@ def get_thing_id(key):
         return None
 
 
+# `count(table, ...)` interpolates `table` raw into the SQL. All current
+# callers pass a hard-coded literal ("edition_ref"), but limit the accepted
+# values explicitly so a future caller can't turn this into a SQL injection
+# sink by forwarding user input as the table name. Add to the set if a new
+# legitimate caller needs to count a different table.
+_COUNT_ALLOWED_TABLES = frozenset({"edition_ref"})
+
+
 def count(table, type, key, value):
+    if table not in _COUNT_ALLOWED_TABLES:
+        raise ValueError(f"Invalid table: {table!r}. Must be one of {sorted(_COUNT_ALLOWED_TABLES)}.")
     pid = get_property_id(type, key)
 
     value_id = get_thing_id(value)
@@ -480,7 +490,10 @@ def safeint(value, default=0):
 def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format."""
 
+    core_fields = ("level", "label", "title", "pagenum")
+
     def row(r):
+        extra_fields = {}
         if isinstance(r, str):
             level = 0
             label = ""
@@ -496,13 +509,22 @@ def fix_table_of_contents(table_of_contents):
             label = r.get("label", "")
             title = r.get("title", "")
             pagenum = r.get("pagenum", "")
+            # Only the core fields need coercing; anything else a toc_item
+            # carries (authors, subtitle, description, ...) passes through.
+            extra_fields = {k: v for k, v in r.items() if k not in core_fields}
         else:
             return {}
 
-        return {"level": level, "label": label, "title": title, "pagenum": pagenum}
+        return {
+            "level": level,
+            "label": label,
+            "title": title,
+            "pagenum": pagenum,
+            **extra_fields,
+        }
 
     d = [row(r) for r in table_of_contents]
-    return [row for row in d if any(row.values())]
+    return [row for row in d if any(row.get(k) for k in core_fields)]
 
 
 def process_json(key, json_str):

@@ -81,18 +81,15 @@ class Ratings(db.CommonExtras):
     @classmethod
     def get_work_ratings_summary(cls, work_id: int) -> WorkRatingsSummary | None:
         oldb = db.get_db()
-        # NOTE: Using some old postgres syntax here :/ for modern postgres syntax,
-        # see the query in solr_builder.py
         query = """
             SELECT
-                sum( CASE WHEN rating = 1 THEN 1 ELSE 0 END ) as ratings_count_1,
-                sum( CASE WHEN rating = 2 THEN 1 ELSE 0 END ) as ratings_count_2,
-                sum( CASE WHEN rating = 3 THEN 1 ELSE 0 END ) as ratings_count_3,
-                sum( CASE WHEN rating = 4 THEN 1 ELSE 0 END ) as ratings_count_4,
-                sum( CASE WHEN rating = 5 THEN 1 ELSE 0 END ) as ratings_count_5
+                count(*) FILTER (WHERE rating = 1) AS ratings_count_1,
+                count(*) FILTER (WHERE rating = 2) AS ratings_count_2,
+                count(*) FILTER (WHERE rating = 3) AS ratings_count_3,
+                count(*) FILTER (WHERE rating = 4) AS ratings_count_4,
+                count(*) FILTER (WHERE rating = 5) AS ratings_count_5
             FROM ratings
             WHERE work_id = $work_id
-            GROUP BY work_id
         """
         result = oldb.query(query, vars={"work_id": work_id})
         if not result:
@@ -154,6 +151,15 @@ class Ratings(db.CommonExtras):
         return rating
 
     @classmethod
+    def get_users_ratings_of_works(cls, username: str, work_ids: list[int]) -> dict[int, int]:
+        """Map work_id -> rating for the subset of `work_ids` this user has rated."""
+        if not work_ids:
+            return {}
+        oldb = db.get_db()
+        query = "SELECT work_id, rating FROM ratings WHERE username=$username AND work_id IN $work_ids"
+        return {row.work_id: row.rating for row in oldb.query(query, vars={"username": username, "work_ids": work_ids})}
+
+    @classmethod
     def remove(cls, username, work_id):
         oldb = db.get_db()
         where = {"username": username, "work_id": int(work_id)}
@@ -173,9 +179,14 @@ class Ratings(db.CommonExtras):
         if rating not in cls.VALID_STAR_RATINGS:
             return None
 
-        # Vote implies user read book; Update reading log status as "Already Read"
+        # Vote implies user read book, so shelve unshelved (or Want to Read) books
+        # as "Already Read". Never overwrite Currently Reading or Stopped Reading,
+        # where the patron has explicitly said otherwise.
         users_read_status_for_work = Bookshelves.get_users_read_status_of_work(username, work_id)
-        if users_read_status_for_work != Bookshelves.PRESET_BOOKSHELVES["Already Read"]:
+        if users_read_status_for_work in (
+            None,
+            Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+        ):
             Bookshelves.add(
                 username,
                 Bookshelves.PRESET_BOOKSHELVES["Already Read"],
@@ -195,3 +206,25 @@ class Ratings(db.CommonExtras):
         else:
             where = "work_id=$work_id AND username=$username"
             return oldb.update("ratings", where=where, rating=rating, vars=data)
+
+    @classmethod
+    def calc_star_rating_counts(cls) -> dict[str, int]:
+        results = {}
+        oldb = db.get_db()
+        total_ratings_query = """
+            select count(*) from ratings
+            WHERE created >= date_trunc('hour', now() - interval '1 hour')
+                AND created < date_trunc('hour', now());
+        """
+        totals = oldb.query(total_ratings_query)
+        results["star_ratings"] = next(iter(totals))["count"]
+
+        distinct_raters_query = """
+            select count(distinct username) from ratings
+            WHERE created >= date_trunc('hour', now() - interval '1 hour')
+                AND created < date_trunc('hour', now());
+        """
+        distinct_totals = oldb.query(distinct_raters_query)
+        results["distinct_star_ratings"] = next(iter(distinct_totals))["count"]
+
+        return results

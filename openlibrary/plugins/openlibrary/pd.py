@@ -33,7 +33,9 @@ def get_pd_options() -> list[PDOption]:
 
 
 def get_pd_org(identifier: str) -> dict:
-    """Returns the name of the organization associated with the given identifier.
+    """Returns a dict containing the name and identifier of the
+    organization associated with the given identifier.
+
     Falls back to vtmas_disabilityresources if no match is found.
     """
     orgs = cached_pd_org_query()
