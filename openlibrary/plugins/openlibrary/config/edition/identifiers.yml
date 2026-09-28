@@ -293,7 +293,7 @@ identifiers:
     url: http://zdb-katalog.de/title.xhtml?ZDB-ID=@@@
     website: http://zdb-katalog.de
 -   label: Kansalliskirjastoon (National Library of Finland)
-    name: fennica
+    name: fikka
     notes: ''
     url: https://kansalliskirjasto.finna.fi/Record/fikka.@@@
     website: https://www.kansalliskirjasto.fi/
