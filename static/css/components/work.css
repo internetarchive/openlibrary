@@ -48,21 +48,10 @@
   opacity: calc(1 - 0.2 * var(--cover-tilt));
 }
 
-/* The shelf badge over the cover's top-right corner, scaled up from the
-   carousel's to suit the larger cover and dressed for it: the circle a shade
-   translucent so the scan tints it, the glyph in link blue and stamped into
-   the surface with a hairline of light below its edge and of shade above.
-   Inside .cover-animation, so it tilts with the artwork, and its sheen
-   crosses it as it does. */
+/* The large shelf badge over the cover's top-right corner. Inside
+   .cover-animation, so it tilts with the artwork, and its sheen crosses it
+   as it does. */
 .editionCover .cover-animation > ol-shelf-button {
-  --ol-shelf-badge-size: 40px;
-  --ol-shelf-badge-glyph-size: 20px;
-  --ol-shelf-badge-surface: color-mix(in srgb, var(--white) 88%, transparent);
-  --ol-shelf-badge-glyph-color: var(--color-link);
-  --ol-shelf-badge-glyph-filter: drop-shadow(
-      0 1px 0 color-mix(in srgb, var(--white) 85%, transparent)
-    )
-    drop-shadow(0 -0.5px 0 color-mix(in srgb, var(--black) 25%, transparent));
   --ol-shelf-badge-sheen-duration: var(--cover-tilt-duration);
   --ol-shelf-badge-sheen-position: calc(100% - 100% * var(--cover-tilt));
 

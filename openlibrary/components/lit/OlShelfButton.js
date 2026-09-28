@@ -51,6 +51,9 @@ export const DEFAULT_LABELS = {
  * @element ol-shelf-button
  *
  * @prop {String} variant - "split" (default), "icon" or "outline"
+ * @prop {String} size - "large" scales the `icon` badge up for a big cover:
+ *     a bigger circle a shade translucent, so the cover tints it, and the
+ *     glyph stamped into it. Unset is the carousel-card size
  * @prop {String} workKey - "/works/OL…W", the book this acts on. With
  *     `lists-only`, the seed instead: "/authors/OL…A" or "/books/OL…M"
  * @prop {Boolean} listsOnly - No shelf to act on; only the lists pane
@@ -89,15 +92,6 @@ export const DEFAULT_LABELS = {
  *     register as `:focus-within` on the host, so a hover-revealed trigger
  *     needs this to stay visible under its own menu
  *
- * @cssprop [--ol-shelf-badge-size=32px] - Hit target of the `icon` badge
- * @cssprop [--ol-shelf-badge-inset=4px] - Space between that target and its visible circle
- * @cssprop [--ol-shelf-badge-glyph-size=14px] - The badge's glyph
- * @cssprop [--ol-shelf-badge-surface=var(--color-control-bg)] - The circle's fill. A
- *     little short of opaque lets the cover's colour come through it
- * @cssprop [--ol-shelf-badge-glyph-color=var(--primary-blue)] - The glyph
- *     once shelved; the unshelved outline is always text ink
- * @cssprop [--ol-shelf-badge-glyph-filter=none] - A filter on the glyph, for
- *     a stamped look: a hairline of light below its edge and of shade above
  * @cssprop [--ol-shelf-badge-sheen-position=100%] - Where the sheen, a soft
  *     slanted band of shade, sits across the badge's circle: 100% parked off
  *     its right edge, 0% off its left. A page moves it to sweep the sheen
@@ -112,6 +106,7 @@ export class OlShelfButton extends LitElement {
 
     static properties = {
         variant: { type: String, reflect: true },
+        size: { type: String, reflect: true },
         workKey: { type: String, attribute: 'work-key' },
         editionKey: { type: String, attribute: 'edition-key' },
         bookTitle: { type: String, attribute: 'book-title' },
@@ -248,16 +243,14 @@ export class OlShelfButton extends LitElement {
 
         /* An outlined bookmark until the book is on a shelf, then the shelf's
            glyph in blue. The host is positioned by whatever it floats over
-           (ol-book-cover's overlay slot), so everything in here stays in flow.
-           The sizes are custom properties so a page with a larger cover can
-           scale the badge to it. */
+           (ol-book-cover's overlay slot), so everything in here stays in flow. */
         .save {
             position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: var(--ol-shelf-badge-size, 32px);
-            height: var(--ol-shelf-badge-size, 32px);
+            width: 32px;
+            height: 32px;
             padding: 0;
             border: 0;
             background: transparent;
@@ -275,18 +268,17 @@ export class OlShelfButton extends LitElement {
         .save::before {
             content: "";
             position: absolute;
-            inset: var(--ol-shelf-badge-inset, 4px);
+            inset: 4px;
             border-radius: var(--border-radius-circle);
-            background:
-                linear-gradient(
-                        100deg,
-                        transparent 40%,
-                        color-mix(in srgb, var(--color-text) 12%, transparent) 50%,
-                        transparent 60%
-                    )
-                    var(--ol-shelf-badge-sheen-position, 100%) 0 / 300% 100% no-repeat,
-                var(--ol-shelf-badge-surface, var(--color-control-bg));
-            --control-surface: var(--ol-shelf-badge-surface, var(--color-control-bg));
+            background: linear-gradient(
+                    100deg,
+                    transparent 40%,
+                    color-mix(in srgb, var(--color-text) 12%, transparent) 50%,
+                    transparent 60%
+                )
+                var(--ol-shelf-badge-sheen-position, 100%) 0 / 300% 100% no-repeat;
+            background-color: var(--control-surface);
+            --control-surface: var(--color-control-bg);
             transition: background-position var(--ol-shelf-badge-sheen-duration, 0.8s);
             box-shadow:
                 0 1px 4px var(--boxshadow-black),
@@ -309,11 +301,29 @@ export class OlShelfButton extends LitElement {
             position: relative;
             /* Not the shared 16px flex-basis: the badge sets its own size. */
             flex: none;
-            width: var(--ol-shelf-badge-glyph-size, 14px);
-            height: var(--ol-shelf-badge-glyph-size, 14px);
-            color: var(--ol-shelf-badge-glyph-color, var(--primary-blue));
-            filter: var(--ol-shelf-badge-glyph-filter, none);
+            width: 14px;
+            height: 14px;
+            color: var(--primary-blue);
             --ol-icon-stroke-width: 2.5;
+        }
+
+        /* Large, for a book page cover: the circle a shade translucent so the
+           scan tints it, the glyph stamped in with a hairline of light below
+           its edge and of shade above. */
+        :host([size="large"]) .save {
+            width: 40px;
+            height: 40px;
+        }
+
+        :host([size="large"]) .save::before {
+            --control-surface: color-mix(in srgb, var(--color-control-bg) 88%, transparent);
+        }
+
+        :host([size="large"]) .glyph {
+            width: 20px;
+            height: 20px;
+            filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--white) 85%, transparent))
+                drop-shadow(0 -0.5px 0 color-mix(in srgb, var(--black) 25%, transparent));
         }
 
         .glyph[name="bookmark"] {
