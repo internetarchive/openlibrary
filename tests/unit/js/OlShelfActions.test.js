@@ -4,7 +4,8 @@
  * toggle, create, and the recently-used lists it leans on). Network is stubbed
  * at `fetch`.
  */
-import { DEFAULT_LABELS, OlShelfActions, resetWorkEditionsCache } from '../../../openlibrary/components/lit/OlShelfActions.js';
+import { DEFAULT_LABELS, OlShelfActions } from '../../../openlibrary/components/lit/OlShelfActions.js';
+import { resetWorkEditionsCache } from '../../../openlibrary/components/lit/utils/book-editions.js';
 import { fmt, plural, translate } from '../../../openlibrary/components/lit/utils/labels.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';

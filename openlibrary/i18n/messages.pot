@@ -3285,7 +3285,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html type/work/editions.html
+#: FulltextResultIA.html.jinja IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -4818,7 +4818,7 @@ msgstr ""
 msgid "Avatar of the owner of the list"
 msgstr ""
 
-#: lists/list_follow.html.jinja lists/widget.html
+#: lists/list_follow.html.jinja
 msgid "You"
 msgstr ""
 
@@ -4903,19 +4903,63 @@ msgid "You have no lists."
 msgstr ""
 
 #: lists/widget.html
-msgid "See this list"
+msgid "On your lists"
+msgstr ""
+
+#: lists/widget.html my_books/shelf_button_i18n.html
+#, python-format
+msgid "%(count)s other edition"
+msgid_plural "%(count)s other editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lists/widget.html my_books/shelf_button_i18n.html
+msgid "Any edition"
 msgstr ""
 
 #: lists/widget.html
-msgid "Remove from your list?"
-msgstr ""
-
-#: lists/widget.html type/type/view.html
-msgid "from"
+#, python-format
+msgid "Remove from %(name)s"
 msgstr ""
 
 #: lists/widget.html
-msgid "Loading<span class=\"loading-ellipsis\">...</span>"
+#, python-format
+msgid "Remove this edition from %(name)s"
+msgstr ""
+
+#: lists/widget.html
+#, python-format
+msgid "Remove %(count)s edition from %(name)s"
+msgid_plural "Remove %(count)s editions from %(name)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lists/widget.html
+#, python-format
+msgid "Remove %(count)s other edition from %(name)s"
+msgid_plural "Remove %(count)s other editions from %(name)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lists/widget.html
+#, python-format
+msgid "Remove the work and %(count)s edition from %(name)s"
+msgid_plural "Remove the work and %(count)s editions from %(name)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lists/widget.html my_books/shelf_button_i18n.html
+#, python-format
+msgid "Removed from %(name)s"
+msgstr ""
+
+#: lists/widget.html
+#, python-format
+msgid "Removed this edition from %(name)s. The book is still on it."
+msgstr ""
+
+#: lists/widget.html my_books/shelf_button_i18n.html
+msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: merge/authors.html
@@ -5271,17 +5315,6 @@ msgstr[1] ""
 
 #: my_books/shelf_button_i18n.html
 #, python-format
-msgid "%(count)s other edition"
-msgid_plural "%(count)s other editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Any edition"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-#, python-format
 msgid "On %(count)s list"
 msgid_plural "On %(count)s lists"
 msgstr[0] ""
@@ -5305,16 +5338,7 @@ msgid "Added to %(name)s"
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
-#, python-format
-msgid "Removed from %(name)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
 msgid "Manage lists"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Something went wrong. Please try again."
 msgstr ""
 
 #: my_books/shelf_button_i18n.html
@@ -6917,6 +6941,10 @@ msgstr ""
 
 #: type/type/view.html
 msgid "Backreferences"
+msgstr ""
+
+#: type/type/view.html
+msgid "from"
 msgstr ""
 
 #: type/user/edit.html
