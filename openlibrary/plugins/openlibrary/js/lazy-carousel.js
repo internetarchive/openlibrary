@@ -1,4 +1,5 @@
 import {initialzeCarousels} from './carousel';
+import { trackEvent } from './ol.analytics.js';
 import { buildPartialsUrl, whenVisible } from './utils';
 
 let relatedBooksTracked = false;
@@ -78,10 +79,17 @@ function doFetchAndUpdate(target) {
                 target.dataset.config = JSON.stringify(config);
 
                 target.querySelector('.lazy-carousel-fallback').classList.remove('hidden');
+            } else if (carouselElements.length === 0) {
+                // Nothing to show on first load: drop the row (with its controls) rather than
+                // announcing an empty shelf the patron never asked for.
+                target.remove();
             } else {
+                // The loaded wrapper keeps the config so its header controls can refetch in place.
+                newElem.dataset.config = JSON.stringify(config);
                 target.parentNode.insertBefore(newElem, target);
                 target.remove();
                 initialzeCarousels(carouselElements);
+                bindControls(newElem);
 
                 // ==========================================
                 // EXPERIMENT TRACKING: Related Books Discovery
@@ -135,4 +143,74 @@ function handleRetry(target) {
         carouselFallbackElem.classList.add('hidden');
     }
     doFetchAndUpdate(target);
+}
+
+/**
+ * Wires the header controls (sort menu, readable-only toggle, shuffle) of a
+ * loaded carousel. Each change rewrites the stored config and refetches the
+ * whole carousel, so the server re-renders the controls in their new state.
+ *
+ * @param host {HTMLElement} `.lazy-carousel-loaded` wrapper carrying `data-config`
+ */
+function bindControls(host) {
+    const controls = host.querySelector('.carousel-controls');
+    if (!controls) return;
+    const config = JSON.parse(host.dataset.config);
+    const label = config.key || config.title || '';
+
+    controls.querySelector('.carousel-controls__sort')?.addEventListener('ol-menu-popover-select', (e) => {
+        const value = e.detail.value;
+        config.sort = value === 'random' ? `random_${Date.now()}` : value;
+        trackEvent('Carousel', `Sort|${value}`, label);
+        refetch(host, config);
+    });
+
+    controls.querySelector('.carousel-controls__readable')?.addEventListener('ol-toggle-change', (e) => {
+        config.has_fulltext_only = e.detail.checked;
+        trackEvent('Carousel', e.detail.checked ? 'ReadableOn' : 'ReadableOff', label);
+        refetch(host, config);
+    });
+
+    controls.querySelector('.carousel-controls__shuffle')?.addEventListener('click', () => {
+        config.sort = `random_${Date.now()}`;
+        trackEvent('Carousel', 'Shuffle', label);
+        refetch(host, config);
+    });
+}
+
+/**
+ * Replaces a loaded carousel with a fresh render for `config`. The old cards
+ * stay visible, dimmed, until the new ones arrive; on failure they stay put.
+ *
+ * @param host {HTMLElement}
+ * @param config {object}
+ */
+function refetch(host, config) {
+    host.dataset.config = JSON.stringify(config);
+    host.classList.add('lazy-carousel-loaded--refreshing');
+    host.setAttribute('aria-busy', 'true');
+    // The control that triggered this is about to be re-rendered; find its successor by class.
+    const active = document.activeElement;
+    const activeControl = host.contains(active) && Array.from(active.classList).find(cls => cls.startsWith('carousel-controls__'));
+
+    fetchPartials(config)
+        .then(resp => {
+            if (!resp.ok) {
+                throw new Error('Failed to fetch partials from server');
+            }
+            return resp.json();
+        })
+        .then(data => {
+            host.innerHTML = data.partials.trim();
+            initialzeCarousels(host.querySelectorAll('.carousel--progressively-enhanced'));
+            bindControls(host);
+            if (activeControl) host.querySelector(`.${activeControl}`)?.focus();
+        })
+        .catch(() => {
+            // Keep the current cards; the controls still reflect the last successful state.
+        })
+        .finally(() => {
+            host.classList.remove('lazy-carousel-loaded--refreshing');
+            host.removeAttribute('aria-busy');
+        });
 }

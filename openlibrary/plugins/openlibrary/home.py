@@ -10,7 +10,9 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core import admin, cache, env
 from openlibrary.core.carousels import get_carousel_data
+from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
     get_blog_feeds,
@@ -31,6 +33,7 @@ def get_homepage(devmode):
         stats = None
     blog_posts = get_blog_feeds()
     featured_subjects = get_cached_featured_subjects()
+    featured_genres = get_cached_featured_genres()
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
@@ -41,6 +44,7 @@ def get_homepage(devmode):
         stats=stats,
         blog_posts=blog_posts,
         featured_subjects=featured_subjects,
+        featured_genres=featured_genres,
         carousel_data=carousel_data,
     )
     # Convert to a dict so it can be cached
@@ -213,6 +217,54 @@ def get_cached_featured_subjects():
         get_featured_subjects,
         f"home.featured_subjects.{web.ctx.lang}",
         timeout=dateutil.HOUR_SECS,
+        prethread=caching_prethread(),
+    )()
+
+
+# Covers shown fanned on each genre tile.
+GENRE_TILE_COVERS = 3
+
+
+def get_featured_genres():
+    """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live counts
+    and a few trending covers per genre. Two Solr queries per genre, cached for a day."""
+    if "env" not in web.ctx:
+        delegate.fakeload()
+    solr = search.get_solr()
+    genres = []
+    for genre in home_genres.load_home_genres():
+        # Raw Solr defaults to OR between clauses, so the ANDs are load-bearing.
+        query = home_genres.solr_query(genre)
+        readable = solr.select(
+            f'{query} AND has_fulltext:true AND NOT subject:"content_warning:cover"',
+            fields=["cover_i"],
+            rows=GENRE_TILE_COVERS * 2,
+            sort="def(trending_z_score,0) desc",
+        )
+        total = solr.select(query, fields=["key"], rows=0)
+        covers = [doc["cover_i"] for doc in readable["docs"] if doc.get("cover_i")][:GENRE_TILE_COVERS]
+        genres.append(
+            {
+                **genre,
+                "work_count": total["num_found"],
+                "readable_count": readable["num_found"],
+                "work_count_str": commify(total["num_found"]),
+                "readable_count_str": commify(readable["num_found"]),
+                "covers": covers,
+                "url": home_genres.search_url(genre),
+            }
+        )
+    # Strongest shelves first; a genre with nothing readable is left off.
+    genres = [g for g in genres if g["readable_count"]]
+    genres.sort(key=lambda g: -g["readable_count"])
+    return genres
+
+
+def get_cached_featured_genres():
+    return cache.memcache_memoize(
+        get_featured_genres,
+        "home.featured_genres",
+        timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
     )()
 

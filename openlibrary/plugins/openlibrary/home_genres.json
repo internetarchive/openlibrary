@@ -1,0 +1,607 @@
+{
+  "generated": "2026-09-28",
+  "source": "https://raw.githubusercontent.com/Open-Book-Genome-Project/tags/main/tag_types/",
+  "genres": [
+    {
+      "name": "Absurd",
+      "slug": "absurd",
+      "tag_key": "/tags/OL162T",
+      "query": "absurd*",
+      "work_count": 306,
+      "readable_count": 51,
+      "subgenres": []
+    },
+    {
+      "name": "Action",
+      "slug": "action",
+      "tag_key": "/tags/OL163T",
+      "query": "(action_and_adventure_fiction OR action_and_adventure OR action)",
+      "work_count": 694,
+      "readable_count": 277,
+      "subgenres": []
+    },
+    {
+      "name": "Adventure",
+      "slug": "adventure",
+      "tag_key": "/tags/OL164T",
+      "query": "adventure*",
+      "work_count": 33021,
+      "readable_count": 16118,
+      "subgenres": [
+        {
+          "name": "Steampunk",
+          "slug": "steampunk",
+          "tag_key": "/tags/OL288T",
+          "query": "steampunk*",
+          "work_count": 275,
+          "readable_count": 171
+        },
+        {
+          "name": "Picaresque",
+          "slug": "picaresque",
+          "tag_key": "/tags/OL284T",
+          "query": "picaresque*",
+          "work_count": 377,
+          "readable_count": 88
+        }
+      ]
+    },
+    {
+      "name": "Comedy",
+      "slug": "comedy",
+      "tag_key": "/tags/OL165T",
+      "query": "comedy*",
+      "work_count": 3156,
+      "readable_count": 1039,
+      "subgenres": [
+        {
+          "name": "Picaresque",
+          "slug": "picaresque",
+          "tag_key": "/tags/OL284T",
+          "query": "picaresque*",
+          "work_count": 377,
+          "readable_count": 88
+        }
+      ]
+    },
+    {
+      "name": "Crime",
+      "slug": "crime",
+      "tag_key": "/tags/OL166T",
+      "query": "(crime OR crime_fiction OR crime_fiction_fiction)",
+      "work_count": 37822,
+      "readable_count": 11280,
+      "subgenres": [
+        {
+          "name": "Detective",
+          "slug": "detective",
+          "tag_key": "/tags/OL273T",
+          "query": "detective*",
+          "work_count": 19869,
+          "readable_count": 13367
+        },
+        {
+          "name": "Espionage",
+          "slug": "espionage",
+          "tag_key": "/tags/OL277T",
+          "query": "espionage*",
+          "work_count": 4589,
+          "readable_count": 1430
+        },
+        {
+          "name": "True Crime",
+          "slug": "true-crime",
+          "tag_key": "/tags/OL289T",
+          "query": "true_crime*",
+          "work_count": 1781,
+          "readable_count": 886
+        }
+      ]
+    },
+    {
+      "name": "Drama",
+      "slug": "drama",
+      "tag_key": "/tags/OL167T",
+      "query": "drama",
+      "work_count": 63301,
+      "readable_count": 16254,
+      "subgenres": [
+        {
+          "name": "Psychological",
+          "slug": "psychological",
+          "tag_key": "/tags/OL286T",
+          "query": "psychological_fiction*",
+          "work_count": 2101,
+          "readable_count": 1539
+        },
+        {
+          "name": "Coming of Age",
+          "slug": "coming-of-age",
+          "tag_key": "/tags/OL270T",
+          "query": "coming_of_age*",
+          "work_count": 1483,
+          "readable_count": 1011
+        },
+        {
+          "name": "Epistolary",
+          "slug": "epistolary",
+          "tag_key": "/tags/OL275T",
+          "query": "epistolary*",
+          "work_count": 362,
+          "readable_count": 119
+        },
+        {
+          "name": "Family Saga",
+          "slug": "family-saga",
+          "tag_key": "/tags/OL278T",
+          "query": "family_saga*",
+          "work_count": 86,
+          "readable_count": 73
+        },
+        {
+          "name": "Melodrama",
+          "slug": "melodrama",
+          "tag_key": "/tags/OL283T",
+          "query": "melodrama*",
+          "work_count": 362,
+          "readable_count": 73
+        },
+        {
+          "name": "Cli-fi",
+          "slug": "cli-fi",
+          "tag_key": "/tags/OL269T",
+          "query": "climate_fiction*",
+          "work_count": 20,
+          "readable_count": 2
+        }
+      ]
+    },
+    {
+      "name": "Fantasy",
+      "slug": "fantasy",
+      "tag_key": "/tags/OL169T",
+      "query": "fantasy*",
+      "work_count": 36391,
+      "readable_count": 17304,
+      "subgenres": [
+        {
+          "name": "Coming of Age",
+          "slug": "coming-of-age",
+          "tag_key": "/tags/OL270T",
+          "query": "coming_of_age*",
+          "work_count": 1483,
+          "readable_count": 1011
+        },
+        {
+          "name": "Apocalyptic",
+          "slug": "apocalyptic",
+          "tag_key": "/tags/OL267T",
+          "query": "apocalyptic*",
+          "work_count": 1447,
+          "readable_count": 364
+        },
+        {
+          "name": "Epic",
+          "slug": "epic",
+          "tag_key": "/tags/OL276T",
+          "query": "(epic OR epic_fiction OR epic_fantasy OR epic_literature)",
+          "work_count": 813,
+          "readable_count": 349
+        },
+        {
+          "name": "Steampunk",
+          "slug": "steampunk",
+          "tag_key": "/tags/OL288T",
+          "query": "steampunk*",
+          "work_count": 275,
+          "readable_count": 171
+        },
+        {
+          "name": "Dystopian",
+          "slug": "dystopian",
+          "tag_key": "/tags/OL274T",
+          "query": "dystopian*",
+          "work_count": 246,
+          "readable_count": 104
+        },
+        {
+          "name": "Utopian",
+          "slug": "utopian",
+          "tag_key": "/tags/OL290T",
+          "query": "utopian*",
+          "work_count": 509,
+          "readable_count": 96
+        },
+        {
+          "name": "Post-Apocalyptic",
+          "slug": "post-apocalyptic",
+          "tag_key": "/tags/OL285T",
+          "query": "post_apocalyptic*",
+          "work_count": 65,
+          "readable_count": 12
+        }
+      ]
+    },
+    {
+      "name": "Historical",
+      "slug": "historical",
+      "tag_key": "/tags/OL170T",
+      "query": "historical_fiction*",
+      "work_count": 8698,
+      "readable_count": 5663,
+      "subgenres": [
+        {
+          "name": "Epic",
+          "slug": "epic",
+          "tag_key": "/tags/OL276T",
+          "query": "(epic OR epic_fiction OR epic_fantasy OR epic_literature)",
+          "work_count": 813,
+          "readable_count": 349
+        },
+        {
+          "name": "Family Saga",
+          "slug": "family-saga",
+          "tag_key": "/tags/OL278T",
+          "query": "family_saga*",
+          "work_count": 86,
+          "readable_count": 73
+        }
+      ]
+    },
+    {
+      "name": "Horror",
+      "slug": "horror",
+      "tag_key": "/tags/OL171T",
+      "query": "horror*",
+      "work_count": 13678,
+      "readable_count": 6407,
+      "subgenres": [
+        {
+          "name": "Psychological",
+          "slug": "psychological",
+          "tag_key": "/tags/OL286T",
+          "query": "psychological_fiction*",
+          "work_count": 2101,
+          "readable_count": 1539
+        },
+        {
+          "name": "Cult",
+          "slug": "cult",
+          "tag_key": "/tags/OL271T",
+          "query": "cult",
+          "work_count": 7652,
+          "readable_count": 589
+        },
+        {
+          "name": "Gothic",
+          "slug": "gothic",
+          "tag_key": "/tags/OL281T",
+          "query": "gothic_fiction*",
+          "work_count": 955,
+          "readable_count": 416
+        },
+        {
+          "name": "Apocalyptic",
+          "slug": "apocalyptic",
+          "tag_key": "/tags/OL267T",
+          "query": "apocalyptic*",
+          "work_count": 1447,
+          "readable_count": 364
+        },
+        {
+          "name": "Epistolary",
+          "slug": "epistolary",
+          "tag_key": "/tags/OL275T",
+          "query": "epistolary*",
+          "work_count": 362,
+          "readable_count": 119
+        },
+        {
+          "name": "Post-Apocalyptic",
+          "slug": "post-apocalyptic",
+          "tag_key": "/tags/OL285T",
+          "query": "post_apocalyptic*",
+          "work_count": 65,
+          "readable_count": 12
+        }
+      ]
+    },
+    {
+      "name": "Humor",
+      "slug": "humor",
+      "tag_key": "/tags/OL172T",
+      "query": "humor*",
+      "work_count": 57772,
+      "readable_count": 25965,
+      "subgenres": [
+        {
+          "name": "Gonzo",
+          "slug": "gonzo",
+          "tag_key": "/tags/OL280T",
+          "query": "gonzo*",
+          "work_count": 6,
+          "readable_count": 2
+        }
+      ]
+    },
+    {
+      "name": "LGBTQ+",
+      "slug": "lgbtq",
+      "tag_key": "/tags/OL173T",
+      "query": "lgbtq*",
+      "work_count": 5254,
+      "readable_count": 2382,
+      "subgenres": []
+    },
+    {
+      "name": "Literary",
+      "slug": "literary",
+      "tag_key": "/tags/OL174T",
+      "query": "literary_fiction*",
+      "work_count": 429,
+      "readable_count": 239,
+      "subgenres": [
+        {
+          "name": "Coming of Age",
+          "slug": "coming-of-age",
+          "tag_key": "/tags/OL270T",
+          "query": "coming_of_age*",
+          "work_count": 1483,
+          "readable_count": 1011
+        },
+        {
+          "name": "Cult",
+          "slug": "cult",
+          "tag_key": "/tags/OL271T",
+          "query": "cult",
+          "work_count": 7652,
+          "readable_count": 589
+        },
+        {
+          "name": "Gothic",
+          "slug": "gothic",
+          "tag_key": "/tags/OL281T",
+          "query": "gothic_fiction*",
+          "work_count": 955,
+          "readable_count": 416
+        },
+        {
+          "name": "Gonzo",
+          "slug": "gonzo",
+          "tag_key": "/tags/OL280T",
+          "query": "gonzo*",
+          "work_count": 6,
+          "readable_count": 2
+        }
+      ]
+    },
+    {
+      "name": "Mystery",
+      "slug": "mystery",
+      "tag_key": "/tags/OL175T",
+      "query": "mystery*",
+      "work_count": 26361,
+      "readable_count": 16247,
+      "subgenres": [
+        {
+          "name": "Detective",
+          "slug": "detective",
+          "tag_key": "/tags/OL273T",
+          "query": "detective*",
+          "work_count": 19869,
+          "readable_count": 13367
+        },
+        {
+          "name": "Locked Room",
+          "slug": "locked-room",
+          "tag_key": "/tags/OL282T",
+          "query": "locked-room*",
+          "work_count": 100,
+          "readable_count": 96
+        }
+      ]
+    },
+    {
+      "name": "Mythology",
+      "slug": "mythology",
+      "tag_key": "/tags/OL176T",
+      "query": "mythology*",
+      "work_count": 18533,
+      "readable_count": 4700,
+      "subgenres": []
+    },
+    {
+      "name": "Romance",
+      "slug": "romance",
+      "tag_key": "/tags/OL177T",
+      "query": "romance*",
+      "work_count": 48179,
+      "readable_count": 18359,
+      "subgenres": [
+        {
+          "name": "Coming of Age",
+          "slug": "coming-of-age",
+          "tag_key": "/tags/OL270T",
+          "query": "coming_of_age*",
+          "work_count": 1483,
+          "readable_count": 1011
+        },
+        {
+          "name": "Gothic",
+          "slug": "gothic",
+          "tag_key": "/tags/OL281T",
+          "query": "gothic_fiction*",
+          "work_count": 955,
+          "readable_count": 416
+        },
+        {
+          "name": "Epistolary",
+          "slug": "epistolary",
+          "tag_key": "/tags/OL275T",
+          "query": "epistolary*",
+          "work_count": 362,
+          "readable_count": 119
+        },
+        {
+          "name": "Melodrama",
+          "slug": "melodrama",
+          "tag_key": "/tags/OL283T",
+          "query": "melodrama*",
+          "work_count": 362,
+          "readable_count": 73
+        }
+      ]
+    },
+    {
+      "name": "Satire",
+      "slug": "satire",
+      "tag_key": "/tags/OL178T",
+      "query": "satire*",
+      "work_count": 3304,
+      "readable_count": 951,
+      "subgenres": []
+    },
+    {
+      "name": "Sci-Fi",
+      "slug": "sci-fi",
+      "tag_key": "/tags/OL179T",
+      "query": "science_fiction*",
+      "work_count": 28211,
+      "readable_count": 13711,
+      "subgenres": [
+        {
+          "name": "Apocalyptic",
+          "slug": "apocalyptic",
+          "tag_key": "/tags/OL267T",
+          "query": "apocalyptic*",
+          "work_count": 1447,
+          "readable_count": 364
+        },
+        {
+          "name": "Epic",
+          "slug": "epic",
+          "tag_key": "/tags/OL276T",
+          "query": "(epic OR epic_fiction OR epic_fantasy OR epic_literature)",
+          "work_count": 813,
+          "readable_count": 349
+        },
+        {
+          "name": "Steampunk",
+          "slug": "steampunk",
+          "tag_key": "/tags/OL288T",
+          "query": "steampunk*",
+          "work_count": 275,
+          "readable_count": 171
+        },
+        {
+          "name": "Futurism",
+          "slug": "futurism",
+          "tag_key": "/tags/OL279T",
+          "query": "futurism*",
+          "work_count": 1834,
+          "readable_count": 136
+        },
+        {
+          "name": "Dystopian",
+          "slug": "dystopian",
+          "tag_key": "/tags/OL274T",
+          "query": "dystopian*",
+          "work_count": 246,
+          "readable_count": 104
+        },
+        {
+          "name": "Utopian",
+          "slug": "utopian",
+          "tag_key": "/tags/OL290T",
+          "query": "utopian*",
+          "work_count": 509,
+          "readable_count": 96
+        },
+        {
+          "name": "Space Opera",
+          "slug": "space-opera",
+          "tag_key": "/tags/OL287T",
+          "query": "space_opera*",
+          "work_count": 196,
+          "readable_count": 93
+        },
+        {
+          "name": "Cyberpunk",
+          "slug": "cyberpunk",
+          "tag_key": "/tags/OL272T",
+          "query": "cyberpunk*",
+          "work_count": 143,
+          "readable_count": 33
+        },
+        {
+          "name": "Post-Apocalyptic",
+          "slug": "post-apocalyptic",
+          "tag_key": "/tags/OL285T",
+          "query": "post_apocalyptic*",
+          "work_count": 65,
+          "readable_count": 12
+        },
+        {
+          "name": "Cli-fi",
+          "slug": "cli-fi",
+          "tag_key": "/tags/OL269T",
+          "query": "climate_fiction*",
+          "work_count": 20,
+          "readable_count": 2
+        },
+        {
+          "name": "Biopunk",
+          "slug": "biopunk",
+          "tag_key": "/tags/OL268T",
+          "query": "biopunk*",
+          "work_count": 2,
+          "readable_count": 1
+        }
+      ]
+    },
+    {
+      "name": "Thriller",
+      "slug": "thriller",
+      "tag_key": "/tags/OL180T",
+      "query": "thriller*",
+      "work_count": 3998,
+      "readable_count": 2382,
+      "subgenres": [
+        {
+          "name": "Psychological",
+          "slug": "psychological",
+          "tag_key": "/tags/OL286T",
+          "query": "psychological_fiction*",
+          "work_count": 2101,
+          "readable_count": 1539
+        },
+        {
+          "name": "Espionage",
+          "slug": "espionage",
+          "tag_key": "/tags/OL277T",
+          "query": "espionage*",
+          "work_count": 4589,
+          "readable_count": 1430
+        }
+      ]
+    },
+    {
+      "name": "Tragedy",
+      "slug": "tragedy",
+      "tag_key": "/tags/OL181T",
+      "query": "tragedy*",
+      "work_count": 2938,
+      "readable_count": 1068,
+      "subgenres": []
+    },
+    {
+      "name": "Western",
+      "slug": "western",
+      "tag_key": "/tags/OL182T",
+      "query": "(western_stories OR westerns OR western_fiction OR western)",
+      "work_count": 5530,
+      "readable_count": 3820,
+      "subgenres": []
+    }
+  ]
+}

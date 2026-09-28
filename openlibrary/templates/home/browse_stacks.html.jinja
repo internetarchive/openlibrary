@@ -1,0 +1,48 @@
+{#
+  "Browse the stacks": one tile per genre, fanned with a few trending covers. A tile opens
+  the genre's shelf (home/genre_shelf.html.jinja) in place; browse-stacks.js does the fetching.
+  `genres` comes from home.get_cached_featured_genres().
+#}
+{% if genres is defined and genres %}
+    <section class="browse-stacks"
+             aria-labelledby="browse-stacks-title"
+             data-i18n="{{ i18n_json }}">
+        <div class="carousel-section-header browse-stacks__header">
+            <h2 class="home-h2" id="browse-stacks-title">{{ _("Browse the stacks") }}</h2>
+            <a class="browse-stacks__all"
+               href="/subjects"
+               data-ol-link-track="BrowseStacks|AllSubjects">{{ _("All subjects") }}{{ icon("arrow-right", size="sm") }}</a>
+        </div>
+        <p class="browse-stacks__lead">{{ _("Every genre in the library, shelved by subgenre. Open one to see what's trending inside it.") }}</p>
+        <div class="browse-stacks__tiles" role="list">
+            {% for genre in genres %}
+                <div role="listitem">
+                    <button class="browse-stacks__tile"
+                            type="button"
+                            data-genre="{{ genre.slug }}"
+                            aria-expanded="false"
+                            aria-controls="browse-stacks-shelf">
+                        <span class="browse-stacks__fan" aria-hidden="true">
+                            {% for cover in genre.covers %}
+                                <img src="//covers.openlibrary.org/b/id/{{ cover }}-M.jpg"
+                                     alt=""
+                                     loading="lazy"
+                                     width="44"
+                                     height="66">
+                            {% endfor %}
+                            {% for blank in range(3 - genre.covers | length) %}
+                                <span class="browse-stacks__blank"></span>
+                            {% endfor %}
+                        </span>
+                        <span class="browse-stacks__name">{{ genre.name }}</span>
+                        <span class="browse-stacks__count">
+                            {{ ngettext("%(count)s Book", "%(count)s Books", genre.work_count, count=genre.work_count_str) }}
+                            · {{ _("%(count)s readable", count=genre.readable_count_str) }}
+                        </span>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
+    </section>
+{% endif %}

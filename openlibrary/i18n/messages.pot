@@ -532,7 +532,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: ObservationsModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html home/genre_shelf.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -3070,6 +3070,26 @@ msgstr ""
 msgid "Add another author?"
 msgstr ""
 
+#: books/carousel_controls.html.jinja
+msgid "Readable only"
+msgstr ""
+
+#: books/carousel_controls.html.jinja
+msgid "Show only books you can read now"
+msgstr ""
+
+#: books/carousel_controls.html.jinja search/sort_options.html
+msgid "Sort by"
+msgstr ""
+
+#: books/carousel_controls.html.jinja
+msgid "Sort this carousel"
+msgstr ""
+
+#: books/carousel_controls.html.jinja search/sort_options.html
+msgid "Shuffle"
+msgstr ""
+
 #: books/check.html lib/nav_foot.html.jinja lib/nav_head.html
 msgid "Add a Book"
 msgstr ""
@@ -3105,6 +3125,10 @@ msgstr ""
 
 #: books/check.html
 msgid "Continue"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "No books match these filters."
 msgstr ""
 
 #: books/custom_carousel_card.html.jinja
@@ -4138,19 +4162,49 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
-#: home/categories.html
-msgid "Browse by Subject"
+#: home/browse_stacks.html.jinja
+msgid "Browse the stacks"
 msgstr ""
 
-#: home/categories.html
+#: home/browse_stacks.html.jinja
+msgid "All subjects"
+msgstr ""
+
+#: home/browse_stacks.html.jinja
+msgid "Every genre in the library, shelved by subgenre. Open one to see what's trending inside it."
+msgstr ""
+
+#: home/browse_stacks.html.jinja home/categories.html
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
 
+#: home/browse_stacks.html.jinja
+#, python-format
+msgid "%(count)s readable"
+msgstr ""
+
+#: home/categories.html
+msgid "Browse by Subject"
+msgstr ""
+
+#: home/genre_shelf.html.jinja
+#, python-format
+msgid "Browse all %(genre)s"
+msgstr ""
+
+#: home/genre_shelf.html.jinja
+msgid "Subgenres"
+msgstr ""
+
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
+msgstr ""
+
+#: home/index.html
+msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
@@ -5103,15 +5157,15 @@ msgstr ""
 msgid "Sort ▾"
 msgstr ""
 
-#: merge_request_table/table_header.html
+#: merge_request_table/table_header.html openlibrary/plugins/openlibrary/partials.py
 msgid "Sort"
 msgstr ""
 
-#: merge_request_table/table_header.html
+#: merge_request_table/table_header.html openlibrary/plugins/openlibrary/partials.py
 msgid "Newest"
 msgstr ""
 
-#: merge_request_table/table_header.html
+#: merge_request_table/table_header.html openlibrary/plugins/openlibrary/partials.py
 msgid "Oldest"
 msgstr ""
 
@@ -5911,7 +5965,7 @@ msgstr ""
 msgid "Work Count"
 msgstr ""
 
-#: search/sort_options.html
+#: openlibrary/plugins/openlibrary/partials.py search/sort_options.html
 msgid "Random"
 msgstr ""
 
@@ -5967,7 +6021,7 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/nav.py search/sort_options.html
+#: openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/openlibrary/partials.py search/sort_options.html
 msgid "Trending"
 msgstr ""
 
@@ -5976,15 +6030,7 @@ msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Sort by"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Sort results"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Shuffle"
 msgstr ""
 
 #: search/subjects.html
@@ -8330,6 +8376,15 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Top rated"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Trending in %(name)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

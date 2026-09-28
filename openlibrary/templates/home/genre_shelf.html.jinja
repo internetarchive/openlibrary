@@ -1,0 +1,27 @@
+{#
+  The shelf that opens under a "Browse the stacks" tile. Rendered by HomeGenrePartial;
+  `carousels` are lazy placeholders that browse-stacks.js hands to lazy-carousel.js.
+#}
+{% if genre is defined %}
+    <div class="genre-shelf" data-genre="{{ genre.slug }}">
+        <div class="genre-shelf__top">
+            <h3 class="genre-shelf__title" tabindex="-1">{{ genre.name }}</h3>
+            <a class="genre-shelf__all"
+               href="{{ url }}"
+               data-ol-link-track="BrowseStacks|BrowseAll|{{ genre.slug }}">{{ _("Browse all %(genre)s", genre=genre.name) }}{{ icon("arrow-right", size="sm") }}</a>
+            <ol-button class="genre-shelf__close" variant="ghost" shape="icon" size="small" aria-label="{{ _('Close') }}">
+                {{ icon("x", size="sm") }}
+            </ol-button>
+        </div>
+        {% if subgenres %}
+            <ol-chip-group class="genre-shelf__subgenres" role="group" aria-label="{{ _('Subgenres') }}">
+                {% for subgenre in subgenres %}
+                    <ol-chip size="small" data-subgenre="{{ subgenre.slug }}" {% if selected == subgenre.slug %}selected{% endif %}>{{ subgenre.name }}</ol-chip>
+                {% endfor %}
+            </ol-chip-group>
+        {% endif %}
+        {% for carousel in carousels %}
+            {{ carousel | safe }}
+        {% endfor %}
+    </div>
+{% endif %}

@@ -23,6 +23,45 @@
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
 }
 
+/* Header with tools: title on the start side, controls on the end side. The h2 keeps
+   its own top margin, so the row aligns on the title's baseline area rather than its box. */
+.carousel-section-header--tools {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-inline-lg);
+  flex-wrap: wrap;
+}
+
+.carousel-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin-bottom: 0.5em;
+}
+
+.carousel-empty {
+  margin: 0 0 var(--spacing-stack-md);
+  padding: var(--spacing-inset-lg);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+/* A carousel being re-fetched keeps its cards on screen, dimmed, until the new ones land. */
+.lazy-carousel-loaded--refreshing .carousel-container {
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-state);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lazy-carousel-loaded--refreshing .carousel-container {
+    transition: none;
+  }
+}
+
 .carousel {
   display: flex;
   margin-bottom: var(--spacing-stack-md);

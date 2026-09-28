@@ -26,6 +26,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import (
     convert_list,
@@ -57,6 +58,7 @@ from openlibrary.plugins.worksearch.subjects import (
     get_subject_async,
 )
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.request_context import get_request_lang
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -791,6 +793,44 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
+    # Header tools: sort menu + shuffle (`controls`), plus a readable-only toggle where
+    # the query itself doesn't already restrict access (`readable_toggle`).
+    controls: bool = False
+    readable_toggle: bool = False
+
+
+def carousel_sort_labels() -> dict[str, str]:
+    """Sort menu on a carousel with controls. Keys are work-search sorts (schemes/works.py)."""
+    return {
+        "trending": _("Trending"),
+        "new": _("Newest"),
+        "old": _("Oldest"),
+        "rating": _("Top rated"),
+        "random": _("Random"),
+    }
+
+
+def carousel_sort_key(sort: str) -> str:
+    """Map a carousel's sort string (which may be compound or seeded) onto a menu value."""
+    head = sort.split(",", 1)[0].strip()
+    if head.startswith("random"):
+        return "random"
+    if head.startswith("trending"):
+        return "trending"
+    return head
+
+
+def render_carousel_controls(sort: str, has_fulltext_only: bool, readable_toggle: bool) -> str:
+    sort_key = carousel_sort_key(sort)
+    labels = carousel_sort_labels()
+    return render_jinja_template(
+        "books/carousel_controls.html.jinja",
+        sort_value=sort_key,
+        sort_label=labels.get(sort_key, _("Sort")),
+        sort_items_json=json_encode([{"value": value, "label": label} for value, label in labels.items()]),
+        readable_toggle=readable_toggle,
+        readable=has_fulltext_only,
+    )
 
 
 class CarouselPartial:
@@ -826,10 +866,12 @@ class CarouselPartial:
             layout=params.layout,
             full_path=full_path,
         )
+        tools_html = render_carousel_controls(params.sort, params.has_fulltext_only, params.readable_toggle) if params.controls else ""
         data = EagerQueryCarouselData(
             search=params.search,
             query=effective_query,
             has_fulltext_only=params.has_fulltext_only,
+            tools_html=tools_html,
             show=book_data["show"],
             title=book_data["title"],
             url=book_data["url"],
@@ -958,6 +1000,8 @@ class CarouselQueryParams(CarouselCommonData):
     layout: str
     fallback: str | bool | None
     safe_mode: bool
+    controls: NotRequired[bool]
+    readable_toggle: NotRequired[bool]
 
 
 class BookCarouselData(CarouselCommonData):
@@ -987,6 +1031,7 @@ class EagerQueryCarouselData(BookCarouselData):
     search: bool
     query: str
     has_fulltext_only: bool
+    tools_html: str
 
 
 @public
@@ -1071,6 +1116,64 @@ def get_book_carousel_data(
     )
 
 
+class HomeGenreParams(BaseModel):
+    """Parameters for the home page genre shelf partial."""
+
+    genre: str
+    subgenre: str = ""
+
+
+class HomeGenrePartial:
+    """The shelf that opens under a "Browse the stacks" tile: subgenre chips plus lazy
+    carousels for the genre (or the chosen subgenre). Rendered by browse-stacks.js."""
+
+    SUBGENRE_ROWS = 2
+
+    @classmethod
+    def carousel_html(cls, node: home_genres.GenreNode, title: str, key: str, lang: str | None) -> str:
+        query = home_genres.solr_query(node)
+        config = build_carousel_placeholder_config(
+            query=query + home_genres.user_language_clause(lang),
+            title=title,
+            sort="trending",
+            key=key,
+            limit=20,
+            search=False,
+            has_fulltext_only=True,
+            url=home_genres.search_url(node),
+            layout="carousel",
+            fallback=query,
+            safe_mode=True,
+            controls=True,
+            readable_toggle=True,
+        )
+        return render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **config)
+
+    @classmethod
+    def generate(cls, params: HomeGenreParams) -> dict:
+        lang = get_request_lang()
+        genre = home_genres.find_genre(params.genre)
+        if not genre:
+            return {"partials": ""}
+        subgenre = home_genres.find_subgenre(genre, params.subgenre) if params.subgenre else None
+
+        if subgenre:
+            carousels = [cls.carousel_html(subgenre, _("Trending in %(name)s", name=subgenre["name"]), f"genre-{genre['slug']}-{subgenre['slug']}", lang)]
+        else:
+            carousels = [cls.carousel_html(genre, _("Trending in %(name)s", name=genre["name"]), f"genre-{genre['slug']}", lang)]
+            carousels += [cls.carousel_html(s, s["name"], f"genre-{genre['slug']}-{s['slug']}", lang) for s in genre["subgenres"][: cls.SUBGENRE_ROWS]]
+
+        html = render_jinja_template(
+            "home/genre_shelf.html.jinja",
+            genre=genre,
+            url=home_genres.search_url(genre),
+            subgenres=genre["subgenres"],
+            selected=subgenre["slug"] if subgenre else "",
+            carousels=carousels,
+        )
+        return {"partials": html}
+
+
 @public
 def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> CarouselPlaceholderData:
     """Build config for the placeholder at macros/RawQueryCarouselPlaceholder.html.jinja.
@@ -1093,6 +1196,8 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
+        **({"controls": True} if params.get("controls") else {}),
+        **({"readable_toggle": True} if params.get("readable_toggle") else {}),
     }
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),
