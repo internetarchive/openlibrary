@@ -51,21 +51,12 @@ export const SHELF_EVENT = Object.freeze({
 });
 
 /**
- * The analytics label for a shelf control's event: where on the site it sits,
- * then what about it — "carousel:quick", "book-page:split". A control rendered
- * without a `surface` reads "unknown", so the gap shows up in the reports.
+ * Count a failed request as `ShelfActions|Error`, labelled with the operation
+ * and the HTTP status ("shelf:500"). Without it a broken endpoint reads as
+ * readers who stopped saving books.
  */
-export function trackLabel(surface, detail) {
-    return [surface || 'unknown', detail].filter(Boolean).join(':');
-}
-
-/**
- * Count a failed request as `ShelfActions|Error`, labelled with the surface, the
- * operation and the HTTP status ("search-results:shelf:500"). Without it a
- * broken endpoint reads as readers who stopped saving books.
- */
-export function trackError(surface, operation, error) {
-    trackEvent('ShelfActions', 'Error', trackLabel(surface, `${operation}:${error?.status ?? 'no-response'}`));
+export function trackError(operation, error) {
+    trackEvent('ShelfActions', 'Error', `${operation}:${error?.status ?? 'no-response'}`);
 }
 
 /** Work key "/works/OL1W" → "OL1W". */

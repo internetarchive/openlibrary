@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackLabel, trackError } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
@@ -76,9 +76,6 @@ export const DEFAULT_LABELS = {
  *     the popover drops them itself while a visible star form for the same
  *     book is on the page
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
- * @prop {String} surface - Where on the site the button sits ("carousel",
- *     "book-page", "search-modal"…), the first part of every analytics label
- *     it and its popover send. Passed down to the popover
  *
  * @fires ol-book-state-change - The shelf or rating changed, optimistically or
  *     rolled back. detail: { key, shelf, rating }
@@ -110,7 +107,6 @@ export class OlShelfButton extends LitElement {
         hideRating: { type: Boolean, attribute: 'hide-rating' },
         listsOnly: { type: Boolean, attribute: 'lists-only', reflect: true },
         pending: { type: Boolean, reflect: true },
-        surface: { type: String },
         _announce: { state: true },
     };
 
@@ -394,7 +390,6 @@ export class OlShelfButton extends LitElement {
         this.hideRating = false;
         this.listsOnly = false;
         this.pending = false;
-        this.surface = '';
         this._announce = '';
     }
 
@@ -451,7 +446,6 @@ export class OlShelfButton extends LitElement {
                 ?hide-rating=${this.hideRating}
                 ?lists-only=${this.listsOnly}
                 ?pending=${this.pending}
-                surface=${ifDefined(this.surface || undefined)}
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >${trigger}</ol-shelf-actions>
@@ -534,13 +528,13 @@ export class OlShelfButton extends LitElement {
     }
 
     /**
-     * Every open is counted, labelled by surface and shape, so the saves
-     * reported later have a denominator: how many people got as far as the
-     * menu, and from which control.
+     * Every open is counted, labelled by shape, so the saves reported later
+     * have a denominator: how many people got as far as the menu, and from
+     * which control.
      */
     _onPopoverOpen() {
         this.toggleAttribute('open', true);
-        trackEvent('ShelfActions', 'Open', trackLabel(this.surface, this._shape));
+        trackEvent('ShelfActions', 'Open', this._shape);
     }
 
     /** A close the panel cancels (Escape stepping back a pane) is not a close. */
@@ -551,7 +545,7 @@ export class OlShelfButton extends LitElement {
     /** Counted so we can see how many visitors want to save a book before they have an account. */
     _onLoggedOut(e) {
         e.preventDefault();
-        trackEvent('ShelfActions', 'LoggedOut', trackLabel(this.surface, this._shape));
+        trackEvent('ShelfActions', 'LoggedOut', this._shape);
         this._toLogin();
     }
 
@@ -582,10 +576,10 @@ export class OlShelfButton extends LitElement {
         try {
             await setShelf(this.workKey, target, { editionKey: this.editionKey });
             // "quick": the one-tap half, told apart from the same save made in the menu.
-            trackEvent('ReadingLog', SHELF_EVENT[next], trackLabel(this.surface, 'quick'));
+            trackEvent('ReadingLog', SHELF_EVENT[next], 'quick');
         } catch (error) {
             this._emitState(previous);
-            trackError(this.surface, 'shelf', error);
+            trackError('shelf', error);
             // An expired session, not a signed-out visitor: counted as the error it is.
             if (error?.status === 401) return this._toLogin();
             showToast(this.t('errorGeneric'), { type: 'error' });

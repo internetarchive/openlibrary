@@ -1930,7 +1930,6 @@ export class SearchModal extends LitElement {
         const state = this._readingState.get(olidOf(work.key));
         return html`<ol-shelf-button
             variant="outline"
-            surface="search-modal"
             work-key=${work.key}
             edition-key=${ifDefined(edition?.key ? olidOf(edition.key) : undefined)}
             book-title=${title}

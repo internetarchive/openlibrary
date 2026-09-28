@@ -169,22 +169,20 @@ describe('ol-shelf-button popover', () => {
     });
 
     // The denominator for every save the popover reports: how many opens,
-    // and from where and which shape.
-    test('an open is reported, labelled by surface and shape', async() => {
+    // and from which shape.
+    test('an open is reported, labelled by shape', async() => {
         window._paq = [];
         try {
             for (const [props, label] of [
-                [{ variant: 'split', surface: 'book-page' }, 'book-page:split'],
-                [{ variant: 'icon', surface: 'carousel' }, 'carousel:icon'],
-                [{ variant: 'outline', listsOnly: true, surface: 'search-modal' }, 'search-modal:outline-lists'],
-                // Missing the surface shows up in the reports rather than vanishing.
-                [{ variant: 'split' }, 'unknown:split'],
+                [{ variant: 'split' }, 'split'],
+                [{ variant: 'icon' }, 'icon'],
+                [{ variant: 'outline', listsOnly: true }, 'outline-lists'],
             ]) {
                 const el = await mount({ userKey: '/people/tester', ...props });
                 q(el, 'ol-shelf-actions').dispatchEvent(new CustomEvent('ol-popover-open', { bubbles: true, composed: true }));
                 expect(window._paq.at(-1)).toEqual(['trackEvent', 'ShelfActions', 'Open', label]);
             }
-            expect(window._paq).toHaveLength(4);
+            expect(window._paq).toHaveLength(3);
         } finally {
             delete window._paq;
         }
@@ -200,7 +198,7 @@ describe('ol-shelf-button analytics', () => {
     // "quick" tells the one-tap half apart from the same save made in the menu.
     test('the one-tap half reports its save and its removal as quick', async() => {
         stubFetch();
-        const el = await mount({ userKey: '/people/tester', surface: 'carousel' });
+        const el = await mount({ userKey: '/people/tester' });
         q(el, '.main').click();
         await new Promise(r => setTimeout(r, 0));
         el.shelf = SHELF.WANT_TO_READ;
@@ -209,43 +207,39 @@ describe('ol-shelf-button analytics', () => {
         await new Promise(r => setTimeout(r, 0));
 
         expect(events()).toEqual([
-            ['ReadingLog', 'WantToRead', 'carousel:quick'],
-            ['ReadingLog', 'RemoveFromShelf', 'carousel:quick'],
+            ['ReadingLog', 'WantToRead', 'quick'],
+            ['ReadingLog', 'RemoveFromShelf', 'quick'],
         ]);
     });
 
     test('a failed write reports an error and no save', async() => {
         stubFetch({ ok: false, status: 500 });
-        const el = await mount({ userKey: '/people/tester', surface: 'search-results' });
+        const el = await mount({ userKey: '/people/tester' });
         q(el, '.main').click();
         await new Promise(r => setTimeout(r, 0));
-        expect(events()).toEqual([['ShelfActions', 'Error', 'search-results:shelf:500']]);
+        expect(events()).toEqual([['ShelfActions', 'Error', 'shelf:500']]);
     });
 
     // An expired session is an error, not a visitor without an account.
     test('a 401 reports an error, not a signed-out click', async() => {
         stubFetch({ ok: false, status: 401 });
-        const el = await mount({ userKey: '/people/tester', surface: 'book-page' });
+        const el = await mount({ userKey: '/people/tester' });
         q(el, '.main').click();
         await new Promise(r => setTimeout(r, 0));
-        expect(events()).toEqual([['ShelfActions', 'Error', 'book-page:shelf:401']]);
+        expect(events()).toEqual([['ShelfActions', 'Error', 'shelf:401']]);
     });
 
     test.each([
-        [{ variant: 'split' }, '.main', 'list:split'],
-        [{ variant: 'split' }, '.more', 'list:split'],
-        [{ variant: 'icon' }, '.save', 'list:icon'],
-        [{ variant: 'split', listsOnly: true }, '.main', 'list:split-lists'],
+        [{ variant: 'split' }, '.main', 'split'],
+        [{ variant: 'split' }, '.more', 'split'],
+        [{ variant: 'icon' }, '.save', 'icon'],
+        [{ variant: 'split', listsOnly: true }, '.main', 'split-lists'],
     ])('a signed-out click is reported (%o on %s)', async(props, selector, label) => {
-        const el = await mount({ surface: 'list', ...props });
+        const el = await mount(props);
         q(el, selector).dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
         expect(events()).toEqual([['ShelfActions', 'LoggedOut', label]]);
     });
 
-    test('hands its surface to the popover', async() => {
-        const el = await mount({ userKey: '/people/tester', surface: 'trending' });
-        expect(q(el, 'ol-shelf-actions').surface).toBe('trending');
-    });
 });
 
 describe('ol-shelf-button state changes', () => {
