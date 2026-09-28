@@ -41,6 +41,7 @@ re_ocolc = re.compile("^ocolc *$", re.IGNORECASE)
 re_ocn_or_ocm = re.compile(r"^oc[nm]0*(\d+) *$")
 re_int = re.compile(r"\d{2,}")
 re_bracket_field = re.compile(r"^\s*(\[.*\])\.?\s*$")
+re_trailing_dashes = re.compile(r"\s*--\s*$")
 
 
 ROLES = {
@@ -604,7 +605,9 @@ def read_notes(rec: MarcBase) -> str:
 
 def read_description(rec: MarcBase) -> str:
     fields = rec.get_fields("520")
-    found = [v for f in fields for v in f.get_subfield_values("a")]
+    # A 520 $a often ends in the ISBD "--" that separates the summary from
+    # its source in $c, which is not imported: "...a killer?"--$cPublisher.
+    found = [re_trailing_dashes.sub("", v) for f in fields for v in f.get_subfield_values("a")]
     return "\n\n".join(found)
 
 
