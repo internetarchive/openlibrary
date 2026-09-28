@@ -149,13 +149,6 @@ export class SearchModal extends LitElement {
             color: var(--color-text);
         }
 
-        /* Mirrors the ol-components.css guard, which can't reach into this shadow
-           root. Until ol-dialog upgrades its body is ordinary markup, so the
-           [autofocus] input would be focused at first paint and scroll the page. */
-        ol-dialog:not(:defined) {
-            display: none;
-        }
-
         /* Visually hidden but available to screen readers (used by the
            aria-live results-count region). Standard clip-rect technique. */
         .sr-only {
@@ -2562,7 +2555,7 @@ export class SearchModal extends LitElement {
 customElements.define('ol-search-modal', SearchModal);
 
 /**
- * Mounts a single SearchModal and wires it to the header search trigger button.
+ * Mounts a single SearchModal (once ol-dialog is defined) and wires it to the header search trigger button.
  * Idempotent – safe to call multiple times with the same element.
  * @param {HTMLButtonElement} trigger
  * @returns {SearchModal|null}
@@ -2593,8 +2586,12 @@ export function initSearchModal(trigger) {
     modal._userKey = document.body.dataset.userKey || '';
     modal._shelfLabels = readLabels();
 
-    document.body.appendChild(modal);
-    modal.attachToTrigger(trigger);
+    // Mount only once ol-components.js has defined ol-dialog: this bundle can run
+    // first, and an un-upgraded dialog would let the [autofocus] input scroll the page.
     trigger.dataset.olSearchModalAttached = 'true';
+    customElements.whenDefined('ol-dialog').then(() => {
+        document.body.appendChild(modal);
+        modal.attachToTrigger(trigger);
+    });
     return modal;
 }
