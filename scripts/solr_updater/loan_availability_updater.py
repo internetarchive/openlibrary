@@ -502,7 +502,27 @@ def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
     if not resolved:
         return []
 
+    # Logged before the call, not after, because this is the slowest thing the
+    # daemon does and it is otherwise silent. Cold start does not enter steady
+    # state until it finishes, so an operator running --reset needs to know
+    # what they have started: the requests are sequential, so the wall clock is
+    # roughly this count times per-request latency, and much worse while
+    # archive.org is degraded.
+    expected_requests = -(-len(resolved) // lending.AVAILABILITY_BATCH_SIZE)
+    logger.info(
+        "Reconciling %d of %d feed identifiers that have an Open Library edition: ~%d sequential availability requests",
+        len(resolved),
+        len(identifiers),
+        expected_requests,
+    )
+    started = time.monotonic()
     availability = lending.get_availability_batch(resolved)
+    logger.info(
+        "Reconcile answered %d/%d in %.0fs",
+        len(availability),
+        len(resolved),
+        time.monotonic() - started,
+    )
     # Coverage, not mere non-emptiness. `get_availability_batch` swallows a
     # failed chunk and continues, so with ~800 sequential requests a widespread
     # timeout still returns a non-empty dict -- and an earlier version of this

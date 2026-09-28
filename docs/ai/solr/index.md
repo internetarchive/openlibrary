@@ -225,6 +225,25 @@ The fields stay absent from `EditionSearchScheme.all_fields`. That governs wheth
 
 **`ebook_becomes_available` is never cleared.** `requireInPlace` rejects `"set": null` unconditionally — you cannot clear a field in place, even one that has no value. So when a book frees up the timestamp is left at its last value rather than removed. It is meaningful **only** while `ebook_unavailable=1`; read at any other time it is stale.
 
+**Operating a cold start, and `--reset`.** The daemon cold-starts whenever it has no cursor (first deploy, lost state file, or `--reset`). It collects every identifier the loan-changes feed touched over `LOAN_MAX_AGE_DAYS` (14), resolves them to Solr editions, and settles them against IA's availability service in one pass **before** following any events. It will not enter steady state until that succeeds.
+
+Two different quantities drive the cost, and they are not the same number:
+
+| work | scales with | cost |
+|---|---|---|
+| Solr selects | **N** = distinct identifiers in the feed window | `N / 500` selects, single-digit ms each |
+| archive.org requests | **R** = the subset of N that Open Library has an edition for | `R / 100` **sequential** requests |
+
+So wall clock ≈ `(R / 100) × per-request latency`. At R = 50,000 that is 500 requests and a couple of minutes; at R = 500,000 it is 5,000 requests, tens of minutes normally and **hours** while archive.org is degraded — with the daemon doing nothing else throughout.
+
+This path is deliberately **not** capped, unlike the re-check (`RECHECK_MAX_EDITIONS`). Capping it would mean following events against a partly-unmarked index, which is precisely what `MIN_RECONCILE_COVERAGE` exists to prevent. Unbounded time with correct results is the better trade: if availability is degraded, coverage falls below the threshold, the reconcile raises, and the supervisor in `ol-solr-updater-start.sh` retries. A slow start fails loudly rather than starting wrongly.
+
+**Anyone running `--reset` should know the runtime before starting it**, from the formula above. The progress lines (`Reconciling N identifiers…`, `Reconcile answered X/Y in Zs`) are there so a long start is legible rather than silent.
+
+**After a bulk write to works** — for example the tags repo's `migrate_work.py` or `backfill_tags.py` — the fields are wiped on every affected work's editions (see below) and `--reset` is the recovery. Note that tag *renames* are not a trigger: `can_update_key` is False for `/tags/`, so only writes to works reindex.
+
+> Better future option, not built: a bulk migration touches a *known* set of works, so a scoped re-mark of just those works' editions would be bounded by migration size rather than by a fortnight of loan traffic. Worth doing if bulk migrations become routine.
+
 **Reindex wipes these fields.** They live on nested edition children, and reindexing a work rewrites its children from the indexer's own view, which has no knowledge of them. This is not limited to a full reindex — the main `solr_updater` reindexes a work on any change to it or its editions, continuously, from the infobase changelog. The daemon's re-check cannot repair it, because that only inspects editions already marked. A cold start (or `--reset`) is the recovery.
 
 ### Trending fields
