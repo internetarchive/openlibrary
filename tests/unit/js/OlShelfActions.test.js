@@ -1834,3 +1834,41 @@ describe('ol-shelf-actions lists-only', () => {
         expect(el._pane).toBe('lists');
     });
 });
+
+describe('ol-shelf-actions analytics labels', () => {
+    const events = () => window._paq.map(e => e.slice(1));
+
+    beforeEach(() => { window._paq = []; });
+    afterEach(() => { delete window._paq; });
+
+    // "menu" tells these apart from the split button's one-tap half, which says "quick".
+    test('a shelf change reports that it came from the menu', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row[data-shelf]')[1].click();
+        await tick(el);
+        expect(events()).toEqual([['ReadingLog', 'CurrentlyReading', 'menu']]);
+    });
+
+    test('a failed request reports the operation and status, and no save', async() => {
+        stubFetch({ failWith: 500 });
+        const el = await mount();
+        qa(el, '.group.shelves .row[data-shelf]')[0].click();
+        await tick(el);
+        qa(el, '.star')[3].click();
+        await tick(el);
+        expect(events()).toEqual([
+            ['ShelfActions', 'Error', 'shelf:500'],
+            ['ShelfActions', 'Error', 'rating:500'],
+        ]);
+    });
+
+    test('a request that never gets a response says so', async() => {
+        stubFetch();
+        global.fetch = vi.fn(async() => { throw new TypeError('Failed to fetch'); });
+        const el = await mount();
+        qa(el, '.group.shelves .row[data-shelf]')[0].click();
+        await tick(el);
+        expect(events()).toEqual([['ShelfActions', 'Error', 'shelf:no-response']]);
+    });
+});

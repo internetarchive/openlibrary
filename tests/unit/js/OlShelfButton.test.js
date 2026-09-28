@@ -189,6 +189,59 @@ describe('ol-shelf-button popover', () => {
     });
 });
 
+describe('ol-shelf-button analytics', () => {
+    beforeEach(() => { window._paq = []; });
+    afterEach(() => { delete window._paq; });
+
+    const events = () => window._paq.map(e => e.slice(1));
+
+    // "quick" tells the one-tap half apart from the same save made in the menu.
+    test('the one-tap half reports its save and its removal as quick', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester' });
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        el.shelf = SHELF.WANT_TO_READ;
+        await el.updateComplete;
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+
+        expect(events()).toEqual([
+            ['ReadingLog', 'WantToRead', 'quick'],
+            ['ReadingLog', 'RemoveFromShelf', 'quick'],
+        ]);
+    });
+
+    test('a failed write reports an error and no save', async() => {
+        stubFetch({ ok: false, status: 500 });
+        const el = await mount({ userKey: '/people/tester' });
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        expect(events()).toEqual([['ShelfActions', 'Error', 'shelf:500']]);
+    });
+
+    // An expired session is an error, not a visitor without an account.
+    test('a 401 reports an error, not a signed-out click', async() => {
+        stubFetch({ ok: false, status: 401 });
+        const el = await mount({ userKey: '/people/tester' });
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        expect(events()).toEqual([['ShelfActions', 'Error', 'shelf:401']]);
+    });
+
+    test.each([
+        [{ variant: 'split' }, '.main', 'split'],
+        [{ variant: 'split' }, '.more', 'split'],
+        [{ variant: 'icon' }, '.save', 'icon'],
+        [{ variant: 'split', listsOnly: true }, '.main', 'split-lists'],
+    ])('a signed-out click is reported (%o on %s)', async(props, selector, label) => {
+        const el = await mount(props);
+        q(el, selector).dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        expect(events()).toEqual([['ShelfActions', 'LoggedOut', label]]);
+    });
+
+});
+
 describe('ol-shelf-button state changes', () => {
     test('clicking main adds to Want to Read and reports it before the request lands', async() => {
         stubFetch();
