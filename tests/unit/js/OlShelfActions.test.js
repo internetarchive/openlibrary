@@ -1007,6 +1007,29 @@ describe('ol-shelf-actions check-in pane', () => {
         ]);
     });
 
+    // Otherwise "Add date" flashes up for the round trip, just before the pane slides over it.
+    test('the date half stays hidden while the shelf saves on the way to the pane', async() => {
+        stubFetch();
+        let release;
+        const stub = global.fetch;
+        global.fetch = vi.fn((url, init) => (String(url).endsWith('/bookshelves.json')
+            ? new Promise(resolve => { release = () => resolve(stub(url, init)); })
+            : stub(url, init)));
+        const el = await mount();
+        qa(el, '.group.shelves .row[data-shelf]')[2].click();
+        await el.updateComplete;
+        expect(el.shelf).toBe(SHELF.ALREADY_READ);
+        expect(el._pane).toBe('main');
+        expect(dateLink(el)).toBeNull();
+        release();
+        await tick(el);
+        expect(el._pane).toBe('checkIn');
+        // Back on the main pane, the prompt is where it belongs.
+        skipRow(el).click();
+        await tick(el);
+        expect(dateLink(el)).not.toBeNull();
+    });
+
     test('Skip keeps the shelf, writes no date, and slides back', async() => {
         stubFetch();
         const el = await mount();
