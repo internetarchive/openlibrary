@@ -80,7 +80,7 @@ sudo apt install -y \
 
 docker --version        # 29.x.x
 docker compose version  # v5.x.x
-sudo systemctl status docker
+sudo systemctl status docker | head -n 20
 
 # See "Nexus Artifact Repository User Documentation" in google docs for what to put here
 sudo tee /etc/docker/daemon.json > /dev/null <<EOF
