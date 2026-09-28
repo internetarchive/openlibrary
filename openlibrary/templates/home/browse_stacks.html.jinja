@@ -13,41 +13,56 @@
                href="/subjects"
                data-ol-link-track="BrowseStacks|AllSubjects">{{ _("All subjects") }}{{ icon("arrow-right", size="sm") }}</a>
         </div>
-        {% for kind, label in [("genre", _("Genres")), ("subject", _("Subjects"))] %}
-            {% set group = genres | selectattr("kind", "equalto", kind) | list %}
-            {% if group %}
-                <h3 class="browse-stacks__group">{{ label }}</h3>
-                <div class="browse-stacks__tiles" role="list">
-                    {% for genre in group %}
-                        <div role="listitem">
-                            <button class="browse-stacks__tile"
-                                    type="button"
-                                    data-genre="{{ genre.slug }}"
-                                    aria-expanded="false"
-                                    aria-controls="browse-stacks-shelf">
-                                <span class="browse-stacks__fan" aria-hidden="true">
-                                    {% for cover in genre.covers %}
-                                        <img src="//covers.openlibrary.org/b/id/{{ cover }}-M.jpg"
-                                             alt=""
-                                             loading="lazy"
-                                             width="44"
-                                             height="66">
-                                    {% endfor %}
-                                    {% for blank in range(3 - genre.covers | length) %}
-                                        <span class="browse-stacks__blank"></span>
-                                    {% endfor %}
-                                </span>
-                                <span class="browse-stacks__name">{{ genre.name }}</span>
-                                <span class="browse-stacks__count">
-                                    {{ ngettext("%(count)s Book", "%(count)s Books", genre.work_count, count=genre.work_count_str) }}
-                                    · {{ _("%(count)s readable", count=genre.readable_count_str) }}
-                                </span>
-                            </button>
-                        </div>
+        {# Two tiles per column; the rail pages sideways. Order is shuffled per visit below. #}
+        <ol-carousel id="browse-stacks-rail" class="browse-stacks__rail" label="{{ _('Browse the stacks') }}" gap="12" show-indicators>
+            {% for column in genres | batch(2) %}
+                <div class="browse-stacks__column">
+                    {% for genre in column %}
+                        <button class="browse-stacks__tile"
+                                type="button"
+                                data-genre="{{ genre.slug }}"
+                                aria-expanded="false"
+                                aria-controls="browse-stacks-shelf">
+                            <span class="browse-stacks__fan" aria-hidden="true">
+                                {% for cover in genre.covers %}
+                                    <img src="//covers.openlibrary.org/b/id/{{ cover }}-M.jpg"
+                                         alt=""
+                                         loading="lazy"
+                                         width="44"
+                                         height="66">
+                                {% endfor %}
+                                {% for blank in range(3 - genre.covers | length) %}
+                                    <span class="browse-stacks__blank"></span>
+                                {% endfor %}
+                            </span>
+                            <span class="browse-stacks__name">{{ genre.name }}</span>
+                            <span class="browse-stacks__count">
+                                {{ ngettext("%(count)s Book", "%(count)s Books", genre.work_count, count=genre.work_count_str) }}
+                                · {{ _("%(count)s readable", count=genre.readable_count_str) }}
+                            </span>
+                        </button>
                     {% endfor %}
                 </div>
-            {% endif %}
-        {% endfor %}
+            {% endfor %}
+        </ol-carousel>
+        {# Shuffle the tiles before first paint, so every visit leads with different shelves even
+           though the page itself is cached. Runs inline for that reason; no-JS keeps the server order. #}
+        <script>
+            (function () {
+                var rail = document.getElementById('browse-stacks-rail');
+                var tiles = Array.prototype.slice.call(rail.querySelectorAll('.browse-stacks__tile'));
+                for (var i = tiles.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var swap = tiles[i];
+                    tiles[i] = tiles[j];
+                    tiles[j] = swap;
+                }
+                var columns = rail.querySelectorAll('.browse-stacks__column');
+                tiles.forEach(function (tile, index) {
+                    columns[Math.floor(index / 2)].appendChild(tile);
+                });
+            })();
+        </script>
         <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
     </section>
 {% endif %}

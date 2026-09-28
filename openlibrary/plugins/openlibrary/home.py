@@ -32,7 +32,8 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    featured_genres = get_cached_featured_genres()
+    # Random order so the rail leads with different shelves; the template reshuffles per visit.
+    featured_genres = random.sample(get_cached_featured_genres(), k=len(get_cached_featured_genres()))
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
@@ -273,10 +274,8 @@ def get_featured_genres():
                 "url": home_genres.browse_url(genre),
             }
         )
-    # Genres before subjects, strongest shelves first within each; nothing readable, no tile.
-    genres = [g for g in genres if g["readable_count"]]
-    genres.sort(key=lambda g: (g["kind"] != "genre", -g["readable_count"]))
-    return genres
+    # Nothing readable, no tile. Order is decided at render time.
+    return [g for g in genres if g["readable_count"]]
 
 
 def get_cached_featured_genres():

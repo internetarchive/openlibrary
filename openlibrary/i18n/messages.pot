@@ -4170,14 +4170,6 @@ msgstr ""
 msgid "All subjects"
 msgstr ""
 
-#: home/browse_stacks.html.jinja
-msgid "Genres"
-msgstr ""
-
-#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html home/browse_stacks.html.jinja lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
-msgid "Subjects"
-msgstr ""
-
 #: home/browse_stacks.html.jinja home/categories.html
 #, python-format
 msgid "%(count)s Book"
@@ -4545,6 +4537,10 @@ msgstr ""
 
 #: lib/nav_foot.html.jinja
 msgid "Explore subjects"
+msgstr ""
+
+#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
+msgid "Subjects"
 msgstr ""
 
 #: lib/nav_foot.html.jinja
