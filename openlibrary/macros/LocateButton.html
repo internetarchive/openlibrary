@@ -2,5 +2,5 @@ $def with(edition_key)
 
 $ locateUrl = "/books/XXX/-/borrow?action=locate".replace('XXX', edition_key or '')
 
-<a class="cta-btn cta-btn--available cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
-  data-ol-link-track="CTAClick|Locate">$_("Nearby Libraries")</a>
+<a class="cta-btn cta-btn--available" href="$locateUrl" target="_blank" rel="noopener noreferrer"
+  data-ol-link-track="CTAClick|Locate"><span class="cta-btn__label">$_("Nearby Libraries")</span></a>
