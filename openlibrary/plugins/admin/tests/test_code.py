@@ -234,17 +234,19 @@ class TestPeopleEditsPost:
         )
         for name, value in {
             "home": "http://localhost",
-            "path": "/people/spammer/edits",
-            "fullpath": "/people/spammer/edits?page=3",
+            "path": "/admin/people/spammer/edits",
+            "fullpath": "/admin/people/spammer/edits?page=3",
             "headers": [],
+            "status": None,
         }.items():
             monkeypatch.setattr(web.ctx, name, value, raising=False)
 
-        with pytest.raises(web.Redirect):
+        with pytest.raises(web.SeeOther):
             admin_code.people_edits().POST("spammer")
 
         assert reverted == [["123"]]
+        assert web.ctx.status == "303 See Other"
         assert (
             "Location",
-            "http://localhost/people/spammer/edits?page=3",
+            "http://localhost/admin/people/spammer/edits?page=3",
         ) in web.ctx.headers

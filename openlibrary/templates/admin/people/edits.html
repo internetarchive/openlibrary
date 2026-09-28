@@ -7,7 +7,8 @@ $if paginate:
 $else:
     $ page = 1
 
-$ limit = safeint(query_param('limit', '100'))
+$# The pager below divides by limit, and safeint returns 0 for ?limit=0 or ?limit=abc
+$ limit = max(safeint(query_param('limit', '100')), 1)
 
 <div id="contentHead">
     $:render_template("admin/menu")
@@ -88,5 +89,5 @@ $def call_template(name, change):
 
 </form>
 $if paginate:
-    $:macros.OlPaginationArrows(page, len(changes) == limit)
+    $:macros.OlPagination(page, ceil(account.get_edit_count() / limit))
 </div>

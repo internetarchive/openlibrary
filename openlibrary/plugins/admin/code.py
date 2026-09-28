@@ -436,7 +436,7 @@ class people_edits:
         if i.action == "revert" and i.changesets:
             revert_changesets(i.changesets, i.comment)
         # fullpath keeps the query string, so a revert on ?page=N returns to page N
-        raise web.redirect(web.ctx.fullpath)
+        raise web.seeother(web.ctx.fullpath)
 
 
 class ipaddress:
