@@ -15,6 +15,15 @@
 .searchResultItemCTA ol-shelf-button {
   margin-top: 5px;
 }
+/* A status line ("Not in Library") takes the button's slot, so it keeps the
+   button's height and the rows and grid cards stay aligned. */
+.searchResultItemCTA .cta-button-group > .waitinglist-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height-medium);
+  margin: 0;
+}
 /* A row whose book has left the shelf this page lists stays, and says so. */
 .left-shelf-notice {
   margin: var(--spacing-stack-xs) 0 0;

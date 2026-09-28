@@ -78,8 +78,10 @@ ol-popover:not(:defined) > :not([slot="trigger"]) {
 }
 
 /* Match the upgraded :host box so the trigger sizes the same on first paint —
-   otherwise a stretched trigger (the split CTA's caret) starts short and grows. */
-ol-popover:not(:defined) {
+   otherwise a stretched trigger (the split CTA's caret) starts short and grows.
+   Zero specificity, so a page's own rule on the element (e.g. a hidden
+   .ds__nav-popover) wins before upgrade as it does after. */
+:where(ol-popover:not(:defined)) {
   display: inline-flex;
   position: relative;
   align-items: center;

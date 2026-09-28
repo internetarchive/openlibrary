@@ -34,8 +34,12 @@
   pointer-events: none;
 }
 
+/* Same box as the Preview link it stands in for, so the CTA below lines up. */
 .list-books--grid .bookcover .cta-btn.cta-btn--no-preview {
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  height: var(--control-height-medium);
+  padding-block: 0;
 }
 /* stylelint-enable selector-max-specificity */
 
