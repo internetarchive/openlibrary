@@ -32,8 +32,11 @@
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
 }
 
+/* Always two equal rows, so a lone tile in the last column stays tile-sized instead of
+   stretching to the column's full height. */
 .browse-stacks__column {
   display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-inline-lg);
 }
 
