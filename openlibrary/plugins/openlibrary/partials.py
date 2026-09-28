@@ -1130,12 +1130,12 @@ class HomeGenrePartial:
     SUBGENRE_ROWS = 2
 
     @classmethod
-    def carousel_html(cls, node: home_genres.GenreNode, title: str, key: str, lang: str | None) -> str:
+    def carousel_html(cls, node: home_genres.GenreNode, title: str, key: str, lang: str | None, sort: str = "trending") -> str:
         query = home_genres.solr_query(node)
         config = build_carousel_placeholder_config(
             query=query + home_genres.user_language_clause(lang),
             title=title,
-            sort="trending",
+            sort=sort,
             key=key,
             limit=20,
             search=False,
@@ -1158,16 +1158,20 @@ class HomeGenrePartial:
             return {"partials": ""}
         subgenre = home_genres.find_subgenre(genre, params.subgenre) if params.subgenre else None
 
-        if subgenre:
-            carousels = [cls.carousel_html(subgenre, _("Trending in %(name)s", name=subgenre["name"]), f"genre-{genre['slug']}-{subgenre['slug']}", lang)]
+        # Trending first; then the top subgenres, or, where there are none, the newest arrivals.
+        node = subgenre or genre
+        key = f"genre-{genre['slug']}" + (f"-{subgenre['slug']}" if subgenre else "")
+        carousels = [cls.carousel_html(node, _("Trending in %(name)s", name=node["name"]), key, lang)]
+        sub_rows = genre["subgenres"][: cls.SUBGENRE_ROWS] if not subgenre else []
+        if sub_rows:
+            carousels += [cls.carousel_html(s, s["name"], f"genre-{genre['slug']}-{s['slug']}", lang) for s in sub_rows]
         else:
-            carousels = [cls.carousel_html(genre, _("Trending in %(name)s", name=genre["name"]), f"genre-{genre['slug']}", lang)]
-            carousels += [cls.carousel_html(s, s["name"], f"genre-{genre['slug']}-{s['slug']}", lang) for s in genre["subgenres"][: cls.SUBGENRE_ROWS]]
+            carousels.append(cls.carousel_html(node, _("Newest in %(name)s", name=node["name"]), f"{key}-new", lang, sort="new"))
 
         html = render_jinja_template(
             "home/genre_shelf.html.jinja",
             genre=genre,
-            url=home_genres.search_url(genre),
+            url=home_genres.browse_url(genre),
             subgenres=genre["subgenres"],
             selected=subgenre["slug"] if subgenre else "",
             carousels=carousels,

@@ -32,7 +32,6 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    featured_subjects = get_cached_featured_subjects()
     featured_genres = get_cached_featured_genres()
 
     # render template should be setting ctx.cssfile
@@ -43,7 +42,6 @@ def get_homepage(devmode):
         "home/index",
         stats=stats,
         blog_posts=blog_posts,
-        featured_subjects=featured_subjects,
         featured_genres=featured_genres,
         carousel_data=carousel_data,
     )
@@ -225,12 +223,32 @@ def get_cached_featured_subjects():
 GENRE_TILE_COVERS = 3
 
 
+def subject_tile_labels() -> dict[str, str]:
+    """Translated names for the subject tiles in home_genres.json (keyed by slug). Genre names
+    come from the tags vocabulary and aren't translated yet."""
+    return {
+        "kids": _("Kids"),
+        "history": _("History"),
+        "biography": _("Biography"),
+        "philosophy": _("Philosophy"),
+        "psychology": _("Psychology"),
+        "poetry": _("Poetry"),
+        "travel": _("Travel"),
+        "science": _("Science"),
+        "cooking": _("Cooking"),
+        "religion": _("Religion"),
+        "art": _("Art"),
+        "textbooks": _("Textbooks"),
+    }
+
+
 def get_featured_genres():
     """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live counts
     and a few trending covers per genre. Two Solr queries per genre, cached for a day."""
     if "env" not in web.ctx:
         delegate.fakeload()
     solr = search.get_solr()
+    labels = subject_tile_labels()
     genres = []
     for genre in home_genres.load_home_genres():
         # Raw Solr defaults to OR between clauses, so the ANDs are load-bearing.
@@ -246,17 +264,18 @@ def get_featured_genres():
         genres.append(
             {
                 **genre,
+                "name": labels.get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"],
                 "work_count": total["num_found"],
                 "readable_count": readable["num_found"],
                 "work_count_str": commify(total["num_found"]),
                 "readable_count_str": commify(readable["num_found"]),
                 "covers": covers,
-                "url": home_genres.search_url(genre),
+                "url": home_genres.browse_url(genre),
             }
         )
-    # Strongest shelves first; a genre with nothing readable is left off.
+    # Genres before subjects, strongest shelves first within each; nothing readable, no tile.
     genres = [g for g in genres if g["readable_count"]]
-    genres.sort(key=lambda g: -g["readable_count"])
+    genres.sort(key=lambda g: (g["kind"] != "genre", -g["readable_count"]))
     return genres
 
 

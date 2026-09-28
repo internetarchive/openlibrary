@@ -311,7 +311,7 @@
       "slug": "humor",
       "tag_key": "/tags/OL172T",
       "query": "humor*",
-      "work_count": 57772,
+      "work_count": 57774,
       "readable_count": 25965,
       "subgenres": [
         {
@@ -601,6 +601,116 @@
       "query": "(western_stories OR westerns OR western_fiction OR western)",
       "work_count": 5530,
       "readable_count": 3820,
+      "subgenres": []
+    }
+  ],
+  "subjects": [
+    {
+      "name": "Kids",
+      "slug": "kids",
+      "query": "(juvenile_fiction OR juvenile_literature OR children's_fiction OR juvenile_nonfiction)",
+      "page": "/subjects/juvenile_fiction",
+      "work_count": 709516,
+      "readable_count": 364662,
+      "subgenres": []
+    },
+    {
+      "name": "History",
+      "slug": "history",
+      "query": "history",
+      "page": "/subjects/history",
+      "work_count": 2559241,
+      "readable_count": 446781,
+      "subgenres": []
+    },
+    {
+      "name": "Biography",
+      "slug": "biography",
+      "query": "(biography OR biographies)",
+      "page": "/subjects/biography",
+      "work_count": 919993,
+      "readable_count": 198740,
+      "subgenres": []
+    },
+    {
+      "name": "Philosophy",
+      "slug": "philosophy",
+      "query": "philosophy",
+      "page": "/subjects/philosophy",
+      "work_count": 204770,
+      "readable_count": 31272,
+      "subgenres": []
+    },
+    {
+      "name": "Psychology",
+      "slug": "psychology",
+      "query": "psychology",
+      "page": "/subjects/psychology",
+      "work_count": 97387,
+      "readable_count": 30962,
+      "subgenres": []
+    },
+    {
+      "name": "Poetry",
+      "slug": "poetry",
+      "query": "poetry",
+      "page": "/subjects/poetry",
+      "work_count": 113538,
+      "readable_count": 30089,
+      "subgenres": []
+    },
+    {
+      "name": "Travel",
+      "slug": "travel",
+      "query": "travel",
+      "page": "/subjects/travel",
+      "work_count": 88007,
+      "readable_count": 27077,
+      "subgenres": []
+    },
+    {
+      "name": "Science",
+      "slug": "science",
+      "query": "science",
+      "page": "/subjects/science",
+      "work_count": 105678,
+      "readable_count": 23557,
+      "subgenres": []
+    },
+    {
+      "name": "Cooking",
+      "slug": "cooking",
+      "query": "(cooking OR cookery OR recipes)",
+      "page": "/subjects/cooking",
+      "work_count": 57024,
+      "readable_count": 23763,
+      "subgenres": []
+    },
+    {
+      "name": "Religion",
+      "slug": "religion",
+      "query": "religion",
+      "page": "/subjects/religion",
+      "work_count": 170848,
+      "readable_count": 23097,
+      "subgenres": []
+    },
+    {
+      "name": "Art",
+      "slug": "art",
+      "query": "art",
+      "page": "/subjects/art",
+      "work_count": 134772,
+      "readable_count": 20177,
+      "subgenres": []
+    },
+    {
+      "name": "Textbooks",
+      "slug": "textbooks",
+      "query": "textbooks",
+      "page": "/subjects/textbooks",
+      "work_count": 40015,
+      "readable_count": 14190,
       "subgenres": []
     }
   ]

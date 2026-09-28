@@ -30,6 +30,24 @@ DEFAULT_OUTPUT = Path("openlibrary/plugins/openlibrary/home_genres.json")
 # Not shown on the home page.
 EXCLUDED_GENRES = {"Erotica"}
 
+# Subjects shelved alongside the genres, so nonfiction and kids' books have a way in too. These
+# aren't in the genres vocabulary; `page` is the subject page the shelf links out to. Names are
+# translated at render time (home.py SUBJECT_LABELS), so keep them in sync.
+SUBJECTS = [
+    ("Kids", "kids", "(juvenile_fiction OR juvenile_literature OR children's_fiction OR juvenile_nonfiction)", "/subjects/juvenile_fiction"),
+    ("History", "history", "history", "/subjects/history"),
+    ("Biography", "biography", "(biography OR biographies)", "/subjects/biography"),
+    ("Philosophy", "philosophy", "philosophy", "/subjects/philosophy"),
+    ("Psychology", "psychology", "psychology", "/subjects/psychology"),
+    ("Poetry", "poetry", "poetry", "/subjects/poetry"),
+    ("Travel", "travel", "travel", "/subjects/travel"),
+    ("Science", "science", "science", "/subjects/science"),
+    ("Cooking", "cooking", "(cooking OR cookery OR recipes)", "/subjects/cooking"),
+    ("Religion", "religion", "religion", "/subjects/religion"),
+    ("Art", "art", "art", "/subjects/art"),
+    ("Textbooks", "textbooks", "textbooks", "/subjects/textbooks"),
+]
+
 # Vocabulary terms whose common cataloguing name differs from the tag name.
 KNOWN_SYNONYMS = {
     "Sci-Fi": "science fiction",
@@ -128,6 +146,21 @@ def node(tag: dict) -> dict:
     }
 
 
+def build_subjects() -> list[dict]:
+    return [
+        {
+            "name": name,
+            "slug": slug,
+            "query": query,
+            "page": page,
+            "work_count": fetch_count(f"subject_key:{query}"),
+            "readable_count": fetch_count(f"subject_key:{query} has_fulltext:true"),
+            "subgenres": [],
+        }
+        for name, slug, query, page in SUBJECTS
+    ]
+
+
 def build(genres: list[dict], subgenres: list[dict]) -> list[dict]:
     tree = {g["tag"]: {**node(g), "subgenres": []} for g in genres if g["tag"] not in EXCLUDED_GENRES}
     for sg in subgenres:
@@ -153,6 +186,7 @@ def main():
         "generated": datetime.now(UTC).strftime("%Y-%m-%d"),
         "source": f"{TAGS_REPO_RAW_BASE}/tag_types/",
         "genres": build(genres, subgenres),
+        "subjects": build_subjects(),
     }
     args.output.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
     print(f"Wrote {args.output}", file=sys.stderr)

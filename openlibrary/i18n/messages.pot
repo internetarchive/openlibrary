@@ -4170,6 +4170,14 @@ msgstr ""
 msgid "All subjects"
 msgstr ""
 
+#: home/browse_stacks.html.jinja
+msgid "Genres"
+msgstr ""
+
+#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html home/browse_stacks.html.jinja lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr ""
+
 #: home/browse_stacks.html.jinja home/categories.html
 #, python-format
 msgid "%(count)s Book"
@@ -4215,7 +4223,7 @@ msgstr ""
 msgid "Romance"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
 msgid "Kids"
 msgstr ""
 
@@ -4537,10 +4545,6 @@ msgstr ""
 
 #: lib/nav_foot.html.jinja
 msgid "Explore subjects"
-msgstr ""
-
-#: RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
-msgid "Subjects"
 msgstr ""
 
 #: lib/nav_foot.html.jinja
@@ -8306,6 +8310,30 @@ msgstr ""
 msgid "Science"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biography"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Philosophy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Psychology"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Poetry"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Travel"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Cooking"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
 msgstr ""
@@ -8381,6 +8409,11 @@ msgstr ""
 #: openlibrary/plugins/openlibrary/partials.py
 #, python-format
 msgid "Trending in %(name)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Newest in %(name)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

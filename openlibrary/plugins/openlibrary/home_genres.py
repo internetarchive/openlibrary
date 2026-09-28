@@ -8,7 +8,7 @@ approximates the genre against the legacy subject facet.
 import functools
 import json
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 
 GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
 
@@ -20,28 +20,32 @@ MIN_SUBGENRE_READABLE = 100
 class GenreNode(TypedDict):
     name: str
     slug: str
-    tag_key: str | None
     query: str
     work_count: int
     readable_count: int
 
 
 class Genre(GenreNode):
+    kind: str  # "genre" from the vocabulary, or "subject" for the nonfiction/kids tiles
+    page: NotRequired[str]  # subject page to browse, when there is one
     subgenres: list[GenreNode]
 
 
 @functools.cache
 def load_home_genres() -> list[Genre]:
+    """Genres first, then the subject tiles; slugs are unique across both."""
     data = json.loads(GENRES_JSON_PATH.read_text())
     return [
         cast(
             Genre,
             {
-                **genre,
-                "subgenres": [s for s in genre["subgenres"] if s["readable_count"] >= MIN_SUBGENRE_READABLE],
+                **node,
+                "kind": kind,
+                "subgenres": [s for s in node["subgenres"] if s["readable_count"] >= MIN_SUBGENRE_READABLE],
             },
         )
-        for genre in data["genres"]
+        for kind, nodes in (("genre", data["genres"]), ("subject", data["subjects"]))
+        for node in nodes
     ]
 
 
@@ -73,3 +77,8 @@ def search_url(node: GenreNode, has_fulltext: bool = True) -> str:
     if has_fulltext:
         params["has_fulltext"] = "true"
     return "/search?" + urlencode(params)
+
+
+def browse_url(node: Genre) -> str:
+    """Where "Browse all …" goes: the subject page when there is one, else a search."""
+    return node.get("page") or search_url(node)

@@ -13,35 +13,41 @@
                href="/subjects"
                data-ol-link-track="BrowseStacks|AllSubjects">{{ _("All subjects") }}{{ icon("arrow-right", size="sm") }}</a>
         </div>
-        <div class="browse-stacks__tiles" role="list">
-            {% for genre in genres %}
-                <div role="listitem">
-                    <button class="browse-stacks__tile"
-                            type="button"
-                            data-genre="{{ genre.slug }}"
-                            aria-expanded="false"
-                            aria-controls="browse-stacks-shelf">
-                        <span class="browse-stacks__fan" aria-hidden="true">
-                            {% for cover in genre.covers %}
-                                <img src="//covers.openlibrary.org/b/id/{{ cover }}-M.jpg"
-                                     alt=""
-                                     loading="lazy"
-                                     width="44"
-                                     height="66">
-                            {% endfor %}
-                            {% for blank in range(3 - genre.covers | length) %}
-                                <span class="browse-stacks__blank"></span>
-                            {% endfor %}
-                        </span>
-                        <span class="browse-stacks__name">{{ genre.name }}</span>
-                        <span class="browse-stacks__count">
-                            {{ ngettext("%(count)s Book", "%(count)s Books", genre.work_count, count=genre.work_count_str) }}
-                            · {{ _("%(count)s readable", count=genre.readable_count_str) }}
-                        </span>
-                    </button>
+        {% for kind, label in [("genre", _("Genres")), ("subject", _("Subjects"))] %}
+            {% set group = genres | selectattr("kind", "equalto", kind) | list %}
+            {% if group %}
+                <h3 class="browse-stacks__group">{{ label }}</h3>
+                <div class="browse-stacks__tiles" role="list">
+                    {% for genre in group %}
+                        <div role="listitem">
+                            <button class="browse-stacks__tile"
+                                    type="button"
+                                    data-genre="{{ genre.slug }}"
+                                    aria-expanded="false"
+                                    aria-controls="browse-stacks-shelf">
+                                <span class="browse-stacks__fan" aria-hidden="true">
+                                    {% for cover in genre.covers %}
+                                        <img src="//covers.openlibrary.org/b/id/{{ cover }}-M.jpg"
+                                             alt=""
+                                             loading="lazy"
+                                             width="44"
+                                             height="66">
+                                    {% endfor %}
+                                    {% for blank in range(3 - genre.covers | length) %}
+                                        <span class="browse-stacks__blank"></span>
+                                    {% endfor %}
+                                </span>
+                                <span class="browse-stacks__name">{{ genre.name }}</span>
+                                <span class="browse-stacks__count">
+                                    {{ ngettext("%(count)s Book", "%(count)s Books", genre.work_count, count=genre.work_count_str) }}
+                                    · {{ _("%(count)s readable", count=genre.readable_count_str) }}
+                                </span>
+                            </button>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        </div>
+            {% endif %}
+        {% endfor %}
         <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
     </section>
 {% endif %}
