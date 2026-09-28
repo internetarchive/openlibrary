@@ -182,6 +182,10 @@ div#subjectsPage {
   }
 }
 
+div#subjectsPage h3 {
+  break-after: avoid;
+}
+
 div#subjectsPage ul {
   display: inline-block;
 }
