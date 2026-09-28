@@ -5805,6 +5805,14 @@ msgid "Clear all"
 msgstr ""
 
 #: search/search_modal_i18n.html
+msgid "Search scope"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Inside books"
+msgstr ""
+
+#: search/search_modal_i18n.html
 msgid "Search filters"
 msgstr ""
 
@@ -5813,7 +5821,11 @@ msgid "Availability"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "Searching…"
+msgid "Searching books and authors…"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Searching inside books…"
 msgstr ""
 
 #: search/search_modal_i18n.html
@@ -5853,7 +5865,32 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
+msgid "Search Inside %s book"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
 msgid "Search Inside %s books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "View all"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search inside books…"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Type a word or phrase to find it on the pages of millions of books."
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "No matches inside books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search inside books is temporarily unavailable. Please try again later."
 msgstr ""
 
 #: search/search_modal_i18n.html
