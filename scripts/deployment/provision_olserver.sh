@@ -4,6 +4,9 @@
 #
 # DOCKER_USERS=""
 # The users who will be able to use docker (space-separated)
+#
+# NEXUS_HOST="" (required)
+# Hostname of the Nexus artifact repository that mirrors Docker's apt repo/GPG key
 
 echo "This script isn't complete and not ready to be run yet. Please run it line-by-line for now."
 exit 1
@@ -21,15 +24,23 @@ wait_yn() {
     done
 }
 
-# Which debian release are we running on?  Do not fail if /etc/os-release does not exist.
-cat /etc/os-release | grep VERSION= || true  # VERSION="13 (trixie)"
+: "${NEXUS_HOST:?NEXUS_HOST must be set to the Nexus repository hostname}"
+
+# Which distro/release are we running on? Supports debian and ubuntu.
+DISTRO_ID=$(. /etc/os-release && echo "$ID")
+case $DISTRO_ID in
+    debian|ubuntu) ;;
+    *) echo "Unsupported distro: '$DISTRO_ID' (expected debian or ubuntu)"; exit 1;;
+esac
+grep VERSION= /etc/os-release  # e.g. VERSION="13 (trixie)" or VERSION="24.04.3 LTS (Noble Numbat)"
 
 # apt list --installed
 sudo apt update
 
 # Remove any old versions and install newer versions of Docker Engine and Docker Compose.
-# See https://docs.docker.com/engine/install/debian/ for any possible changes.
-docker_packages_to_remove=$(dpkg --get-selections docker.io docker-compose docker-doc podman-docker containerd runc | cut -f1)
+# See https://docs.docker.com/engine/install/debian/ and https://docs.docker.com/engine/install/ubuntu/
+# for any possible changes.
+docker_packages_to_remove=$(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc podman-docker containerd runc 2>/dev/null | cut -f1)
 if [ -n "$docker_packages_to_remove" ]; then
     sudo apt remove $docker_packages_to_remove
 fi
@@ -44,13 +55,13 @@ sudo apt install \
 sudo apt update
 sudo apt install ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://XXXXXX/repository/raw-oss-mirror/mirrored-objects/download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo curl -fsSL https://${NEXUS_HOST}/repository/raw-oss-mirror/mirrored-objects/download.docker.com/linux/${DISTRO_ID}/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
 # Add the repository to Apt sources:
 sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
 Types: deb
-URIs: https://XXXXXX/repository/apt-docker-debian-proxy/
+URIs: https://${NEXUS_HOST}/repository/apt-docker-${DISTRO_ID}-proxy/
 Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
 Components: stable
 Architectures: $(dpkg --print-architecture)
