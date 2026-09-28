@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions, trackError } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions, trackError } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -70,7 +70,7 @@ export const DEFAULT_LABELS = {
     removeDate: 'Remove date',
 };
 
-const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], label: SHELF_LABEL[id] }));
+const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], iconOn: SHELF_ICON_FILLED[id], label: SHELF_LABEL[id] }));
 
 /**
  * Lists needed before the lists the book is on, and the recent ones, are
@@ -313,7 +313,7 @@ export class OlShelfActions extends LitElement {
         .row {
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-md);
+            gap: var(--spacing-icon-gap);
             box-sizing: border-box;
             /* One height for every row, so the panel never shifts as rows
                re-render (the rating caption swaps between a span and a button). */
@@ -714,7 +714,7 @@ export class OlShelfActions extends LitElement {
             position: relative;
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-md);
+            gap: var(--spacing-icon-gap);
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-sm);
             padding-inline: var(--menu-row-padding-inline);
@@ -1060,7 +1060,7 @@ export class OlShelfActions extends LitElement {
                             aria-pressed=${this.shelf === row.id ? 'true' : 'false'}
                             @click=${() => this._onShelfClick(row.id)}
                         >
-                            <ol-icon class="obd-icon" name=${row.icon}></ol-icon>
+                            <ol-icon class="obd-icon" name=${this.shelf === row.id ? row.iconOn : row.icon}></ol-icon>
                             <span class="label">${this.t(row.label)}</span>
                             <!-- Already Read's date half sits where the check would; the pressed color marks it. -->
                             ${this.shelf === row.id && row.id !== SHELF.ALREADY_READ ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
