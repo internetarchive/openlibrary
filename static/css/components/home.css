@@ -1,3 +1,23 @@
+/* Home page carousel and section headings: ink and the serif title face, not link blue.
+   carousel.css sets the site-wide default; this file only loads on the home page.
+   `.home-h2 a` ties with the global `a:link`, and wins by loading later. */
+.home-h2 {
+  font-family: var(--font-family-title);
+  font-weight: var(--font-weight-heading);
+  color: var(--color-text-heading);
+}
+
+.home-h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-h2 a:hover {
+    text-decoration: underline;
+  }
+}
+
 /* Homepage about section */
 
 div.tutorial__item {
