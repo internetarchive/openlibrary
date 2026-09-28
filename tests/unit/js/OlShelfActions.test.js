@@ -1445,7 +1445,8 @@ describe('ol-shelf-actions check-in pane', () => {
     // The old prompt and form reported under these names; the dashboards
     // built on them must keep counting when the same answers move in here.
     describe('analytics', () => {
-        const events = () => window._paq.filter(e => e[0] === 'trackEvent' && /^CheckIn/.test(e[1])).map(e => e.slice(1));
+        // Names only: the surface label they carry is covered in 'ol-shelf-actions analytics labels'.
+        const events = () => window._paq.filter(e => e[0] === 'trackEvent' && /^CheckIn/.test(e[1])).map(e => e.slice(1, 3));
 
         beforeEach(() => { window._paq = []; });
         afterEach(() => { delete window._paq; });
@@ -1832,5 +1833,60 @@ describe('ol-shelf-actions lists-only', () => {
         popover.dispatchEvent(close);
         expect(close.defaultPrevented).toBe(false);
         expect(el._pane).toBe('lists');
+    });
+});
+
+describe('ol-shelf-actions analytics labels', () => {
+    const events = () => window._paq.map(e => e.slice(1));
+
+    beforeEach(() => { window._paq = []; });
+    afterEach(() => { delete window._paq; });
+
+    // "menu" tells these apart from the split button's one-tap half, which says "quick".
+    test('a shelf change reports its surface and that it came from the menu', async() => {
+        stubFetch();
+        const el = await mount({ surface: 'book-page' });
+        qa(el, '.group.shelves .row[data-shelf]')[1].click();
+        await tick(el);
+        expect(events()).toEqual([['ReadingLog', 'CurrentlyReading', 'book-page:menu']]);
+    });
+
+    test('everything else it reports carries the surface', async() => {
+        stubFetch();
+        const el = await mount({ surface: 'carousel' });
+        qa(el, '.group.shelves .row[data-shelf]')[2].click();
+        await tick(el);
+        skipRow(el).click();
+        await tick(el);
+        qa(el, '.star')[3].click();
+        await tick(el);
+        expect(events()).toEqual([
+            ['ReadingLog', 'AlreadyRead', 'carousel:menu'],
+            ['CheckInPrompt', 'Shown', 'carousel'],
+            ['CheckInPrompt', 'Skip', 'carousel'],
+            ['StarRating', 'BookRated', 'carousel'],
+        ]);
+    });
+
+    test('a failed request reports the operation and status, and no save', async() => {
+        stubFetch({ failWith: 500 });
+        const el = await mount({ surface: 'search-results' });
+        qa(el, '.group.shelves .row[data-shelf]')[0].click();
+        await tick(el);
+        qa(el, '.star')[3].click();
+        await tick(el);
+        expect(events()).toEqual([
+            ['ShelfActions', 'Error', 'search-results:shelf:500'],
+            ['ShelfActions', 'Error', 'search-results:rating:500'],
+        ]);
+    });
+
+    test('a request that never gets a response says so', async() => {
+        stubFetch();
+        global.fetch = vi.fn(async() => { throw new TypeError('Failed to fetch'); });
+        const el = await mount({ surface: 'list' });
+        qa(el, '.group.shelves .row[data-shelf]')[0].click();
+        await tick(el);
+        expect(events()).toEqual([['ShelfActions', 'Error', 'list:shelf:no-response']]);
     });
 });

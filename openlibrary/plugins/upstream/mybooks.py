@@ -684,13 +684,14 @@ def shelf_ids() -> dict[str, int]:
 
 
 @public
-def shelf_button_for(doc, variant: str = "split", reading_states: dict[str, ReadingState] | None = None, async_load: bool = False) -> str:
+def shelf_button_for(doc, variant: str = "split", reading_states: dict[str, ReadingState] | None = None, async_load: bool = False, surface: str = "") -> str:
     """The `<ol-shelf-button>` for a doc, Solr or Infogami: a work or an edition to shelve, or an
     author or orphaned edition that can only join a list (`lists-only`). Empty for anything else.
 
     `reading_states` is the page's `get_reading_states()`; left out, the button looks its own up.
     `async_load` renders the button without the reader's key and state, for HTML that is not
     per-reader (carousel cards, which are cached or fetched lazily); book-state.js fills both in.
+    `surface` names where on the site the button sits ("carousel", "book-page"…), for its analytics labels.
     """
     work_key = work_key_of(doc)
     seed_key = work_key or list_seed_of(doc)
@@ -712,6 +713,7 @@ def shelf_button_for(doc, variant: str = "split", reading_states: dict[str, Read
         state=state,
         hydrated=not async_load,
         lists_only=not work_key,
+        surface=surface,
     )
 
 

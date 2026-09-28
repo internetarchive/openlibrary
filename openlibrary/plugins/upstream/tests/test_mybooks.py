@@ -131,6 +131,14 @@ class TestShelfButtonFor:
         assert 'work-key="/books/OL2M"' in html
         assert "edition-key" not in html
 
+    def test_the_surface_labels_its_analytics(self):
+        html, _ = self.render(web.storage(key="/works/OL1W", title="Dune"), surface="search-results")
+        assert 'surface="search-results"' in html
+
+    def test_no_surface_leaves_the_attribute_off(self):
+        html, _ = self.render(web.storage(key="/works/OL1W", title="Dune"))
+        assert "surface=" not in html
+
 
 class TestGetReadingStates:
     def test_signed_out_is_empty_without_querying(self):

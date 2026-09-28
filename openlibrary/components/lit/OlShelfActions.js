@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions, trackLabel, trackError } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -133,6 +133,8 @@ export function resetWorkEditionsCache() {
  * @prop {Boolean} listsOnly - Only the lists pane, opened straight into: for
  *     a seed with no work to shelve, an author or an edition on its own.
  *     `book.key` is then that seed's key, and its title the heading
+ * @prop {String} surface - Where on the site the popover's trigger sits
+ *     ("carousel", "book-page"…), the label on every analytics event it sends
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
@@ -163,6 +165,7 @@ export class OlShelfActions extends LitElement {
         hideRating: { type: Boolean, attribute: 'hide-rating' },
         listsOnly: { type: Boolean, attribute: 'lists-only' },
         pending: { type: Boolean, reflect: true },
+        surface: { type: String },
         _starsElsewhere: { state: true },
         _editionKeys: { state: true },
         _matchPending: { state: true },
@@ -842,6 +845,7 @@ export class OlShelfActions extends LitElement {
         this.labels = {};
         this.hideRating = false;
         this.listsOnly = false;
+        this.surface = '';
         this._starsElsewhere = false;
         this._editionKeys = [];
         this._matchPending = false;
@@ -1531,7 +1535,14 @@ export class OlShelfActions extends LitElement {
         }));
     }
 
-    _fail(error) {
+    /** `trackEvent` labelled with this popover's surface, then `detail` if given. */
+    _track(category, action, detail) {
+        trackEvent(category, action, trackLabel(this.surface, detail));
+    }
+
+    /** `operation` names the request that failed, for the error's analytics label. */
+    _fail(error, operation) {
+        trackError(this.surface, operation, error);
         if (error?.status === 401) return redirectToLogin();
         showToast(this.t('errorGeneric'), { type: 'error' });
     }
@@ -1553,14 +1564,15 @@ export class OlShelfActions extends LitElement {
      * what keeps a handler from restoring one property and forgetting another.
      * The busy flag dims the rows and drops a click that beats the re-render.
      * `announce` is spoken with the optimistic change, as the checkmark is
-     * shown with it; a rollback is announced by the error toast.
+     * shown with it; a rollback is announced by the error toast. `operation`
+     * names the request in the error's analytics label.
      */
     /** No shelf or rating change while one is in flight, or before the state is known. */
     get _held() {
         return this._busy || this.pending;
     }
 
-    async _mutate(optimistic, action, announce) {
+    async _mutate(operation, optimistic, action, announce) {
         if (this._held) return;
         const snapshot = Object.fromEntries(Object.keys(optimistic).map(key => [key, this[key]]));
         Object.assign(this, optimistic);
@@ -1570,7 +1582,7 @@ export class OlShelfActions extends LitElement {
             await action();
         } catch (error) {
             Object.assign(this, snapshot);
-            this._fail(error);
+            this._fail(error, operation);
         } finally {
             this._busy = false;
         }
@@ -1593,9 +1605,10 @@ export class OlShelfActions extends LitElement {
         const announce = removing
             ? this.t('removedFromShelf')
             : this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[shelfId]) });
-        return this._mutate(removing ? { shelf: null, readDate: null, eventId: null } : { shelf: shelfId }, async() => {
+        return this._mutate('shelf', removing ? { shelf: null, readDate: null, eventId: null } : { shelf: shelfId }, async() => {
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
-            trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId]);
+            // "menu": told apart from the split button's one-tap half, which says "quick".
+            this._track('ReadingLog', SHELF_EVENT[removing ? null : shelfId], 'menu');
             this._emitState();
             // Only on the way in, and only when they chose the shelf themselves:
             // rating moves a book to Already Read too, and interrupting that
@@ -1621,9 +1634,9 @@ export class OlShelfActions extends LitElement {
             next ? this.t('rated', { rating: next }) : this.t('ratingCleared'),
             optimistic.shelf && optimistic.shelf !== this.shelf ? this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[optimistic.shelf]) }) : '',
         ].filter(Boolean).join('. ');
-        return this._mutate(optimistic, async() => {
+        return this._mutate('rating', optimistic, async() => {
             await setRating(this.book.key, next, { editionKey: this.book.editionKey });
-            trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
+            this._track('StarRating', next ? 'BookRated' : 'RatingCleared');
             this._emitState();
         }, announce);
     }
@@ -1637,8 +1650,8 @@ export class OlShelfActions extends LitElement {
         // The prompt asked unbidden is counted as shown, so the answers and
         // skips it gets can be read as a rate. Amending an existing date is
         // the old prompt's "Edit" link, under the name its dashboards use.
-        if (!amending) trackEvent('CheckInPrompt', 'Shown');
-        else if (this.readDate) trackEvent('CheckInPrompt', 'EditDate');
+        if (!amending) this._track('CheckInPrompt', 'Shown');
+        else if (this.readDate) this._track('CheckInPrompt', 'EditDate');
         // A date the shortcuts cannot express would otherwise sit unseen
         // behind a collapsed row, so the pane opens on it. Focus still lands
         // on Today: the reader is being shown their answer, not asked to
@@ -1656,7 +1669,7 @@ export class OlShelfActions extends LitElement {
     async _toggleDatePicker() {
         this._pickingDate = !this._pickingDate;
         // Opening the fields is what the old prompt's "Other" link did.
-        if (this._pickingDate) trackEvent('CheckInPrompt', 'SetDateCustom');
+        if (this._pickingDate) this._track('CheckInPrompt', 'SetDateCustom');
         await this.updateComplete;
         const target = this._pickingDate ? '.select.year' : '.date-toggle';
         this.shadowRoot.querySelector(target)?.focus({ preventScroll: true });
@@ -1672,7 +1685,7 @@ export class OlShelfActions extends LitElement {
 
     /** Keeps the shelf, gives no date. Tracked so we learn how often the question goes unanswered. */
     _onSkipDate() {
-        trackEvent('CheckInPrompt', 'Skip');
+        this._track('CheckInPrompt', 'Skip');
         return this._backToMain();
     }
 
@@ -1709,7 +1722,7 @@ export class OlShelfActions extends LitElement {
             await deleteCheckIn(this.eventId);
             this.readDate = null;
             this.eventId = null;
-            trackEvent('CheckInForm', 'DeleteCheckIn');
+            this._track('CheckInForm', 'DeleteCheckIn');
             this.dispatchEvent(new CustomEvent('ol-book-check-in', {
                 bubbles: true,
                 composed: true,
@@ -1718,7 +1731,7 @@ export class OlShelfActions extends LitElement {
             this._say(this.t('dateRemoved'));
             this._backToMain();
         } catch (error) {
-            this._fail(error);
+            this._fail(error, 'remove-date');
         } finally {
             this._dateBusy = false;
         }
@@ -1734,7 +1747,7 @@ export class OlShelfActions extends LitElement {
             // date, and re-saving amends this event instead of adding one.
             this.readDate = partialDate(date);
             this.eventId = saved?.id ?? this.eventId ?? null;
-            trackEvent(...event);
+            this._track(...event);
             this.dispatchEvent(new CustomEvent('ol-book-check-in', {
                 bubbles: true,
                 composed: true,
@@ -1743,7 +1756,7 @@ export class OlShelfActions extends LitElement {
             this._say(this.t('dateSaved', { date: formatReadDate(this.readDate) }));
             this._backToMain();
         } catch (error) {
-            this._fail(error);
+            this._fail(error, 'check-in');
         } finally {
             this._dateBusy = false;
         }
@@ -1894,7 +1907,7 @@ export class OlShelfActions extends LitElement {
             // retries and reports.
             if (quiet) return;
             this._listsFailed = true;
-            this._fail(error);
+            this._fail(error, 'lists');
         } finally {
             this._listsLoading = false;
         }
@@ -1909,14 +1922,14 @@ export class OlShelfActions extends LitElement {
             // Either way round the reader is working in this list: taking a
             // book back out is as good a signal as putting one in.
             noteListUsed(this.userKey, listKey, name);
-            trackEvent('Lists', checked ? 'AddSeed' : 'RemoveSeed');
+            this._track('Lists', checked ? 'AddSeed' : 'RemoveSeed');
             this.dispatchEvent(new CustomEvent('ol-list-change', {
                 bubbles: true,
                 composed: true,
                 detail: { key: listKey, name, seedKey: this._seedKey, member: checked },
             }));
         } catch (error) {
-            this._fail(error);
+            this._fail(error, 'list-toggle');
         }
     }
 
@@ -1965,7 +1978,7 @@ export class OlShelfActions extends LitElement {
             // A list made mid-session is the one about to be filled. It renders
             // first without any help: the snapshot has never seen the key.
             noteListUsed(this.userKey, key, name);
-            trackEvent('Lists', 'CreateList');
+            this._track('Lists', 'CreateList');
             this._creating = false;
             this.dispatchEvent(new CustomEvent('ol-list-created', {
                 bubbles: true,
@@ -1977,7 +1990,7 @@ export class OlShelfActions extends LitElement {
             await this.updateComplete;
             this.shadowRoot.querySelector('.pane:nth-child(2) .list-row input')?.focus({ preventScroll: true });
         } catch (error) {
-            this._fail(error);
+            this._fail(error, 'list-create');
         } finally {
             this._createBusy = false;
         }

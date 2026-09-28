@@ -6,7 +6,8 @@
   either; book-state.js fills them in.
   `lists_only` is a seed with no work to shelve: work_key is then the
   author's or edition's own key.
+  `surface` is where on the site the button sits, for its analytics labels.
 #}
 {% set state = state or {} %}
-<ol-shelf-button variant="{{ variant }}" work-key="{{ work_key }}" book-title="{{ title }}" {%- if hydrated %} data-hydrated{% endif %} {%- if lists_only %} lists-only{% endif %} {%- if edition_key %} edition-key="{{ edition_key.split('/')[-1] }}"{% endif %} {%- if user_key %} user-key="{{ user_key }}"{% endif %} {%- if state.get('shelf') is not none %} shelf="{{ state['shelf'] }}"{% endif %} {%- if state.get('rating') is not none %} rating="{{ state['rating'] }}"{% endif %} {%- if state.get('read_date') %} read-date="{{ state['read_date'] }}"{% endif %} {%- if state.get('event_id') is not none %} event-id="{{ state['event_id'] }}"{% endif %}>
+<ol-shelf-button variant="{{ variant }}" work-key="{{ work_key }}" book-title="{{ title }}" {%- if hydrated %} data-hydrated{% endif %} {%- if lists_only %} lists-only{% endif %} {%- if surface %} surface="{{ surface }}"{% endif %} {%- if edition_key %} edition-key="{{ edition_key.split('/')[-1] }}"{% endif %} {%- if user_key %} user-key="{{ user_key }}"{% endif %} {%- if state.get('shelf') is not none %} shelf="{{ state['shelf'] }}"{% endif %} {%- if state.get('rating') is not none %} rating="{{ state['rating'] }}"{% endif %} {%- if state.get('read_date') %} read-date="{{ state['read_date'] }}"{% endif %} {%- if state.get('event_id') is not none %} event-id="{{ state['event_id'] }}"{% endif %}>
 </ol-shelf-button>

@@ -4,6 +4,7 @@
  * branch on 401 (send to login) vs anything else (toast).
  */
 
+import { trackEvent } from '../../../plugins/openlibrary/js/ol.analytics.js';
 import { queueAction, buildPartialsUrl } from '../../../plugins/openlibrary/js/utils.js';
 
 export const SHELF = Object.freeze({
@@ -48,6 +49,24 @@ export const SHELF_EVENT = Object.freeze({
     [SHELF.STOPPED_READING]: 'StoppedReading',
     null: 'RemoveFromShelf',
 });
+
+/**
+ * The analytics label for a shelf control's event: where on the site it sits,
+ * then what about it — "carousel:quick", "book-page:split". A control rendered
+ * without a `surface` reads "unknown", so the gap shows up in the reports.
+ */
+export function trackLabel(surface, detail) {
+    return [surface || 'unknown', detail].filter(Boolean).join(':');
+}
+
+/**
+ * Count a failed request as `ShelfActions|Error`, labelled with the surface, the
+ * operation and the HTTP status ("search-results:shelf:500"). Without it a
+ * broken endpoint reads as readers who stopped saving books.
+ */
+export function trackError(surface, operation, error) {
+    trackEvent('ShelfActions', 'Error', trackLabel(surface, `${operation}:${error?.status ?? 'no-response'}`));
+}
 
 /** Work key "/works/OL1W" → "OL1W". */
 export function olid(key) {
