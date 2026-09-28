@@ -57,7 +57,7 @@ The principles these rules serve — and the tensions between them — are on `/
 }
 ```
 
-Headings share the body ink (`--color-text-heading` is `--color-text`); size and weight carry the hierarchy, not color.
+Headings take `--color-text-heading`, one step darker on the neutral ramp than the body ink (`--color-text`); size and weight still carry most of the hierarchy, the darker ink just lifts a heading off its copy.
 
 ## Visual Design
 
