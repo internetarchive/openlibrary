@@ -202,11 +202,26 @@ ebook_access:borrowable AND -ebook_unavailable:1
 
 Treating a missing value as "unknown" is wrong — absent means available.
 
-**Why the field flags are what they are.** `stored=false indexed=false` is *required* for `update.partial.requireInPlace` to work, and in-place updates are what make a per-loan-event write cheap enough to run every 30 seconds — a normal atomic update reindexes the whole document. Solr additionally requires the field be **numeric** for in-place updates: `string` and `pdate` return HTTP 400 on `requireInPlace` regardless of the docValues/stored/indexed combination.
+**Why the field flags are what they are.** `stored=false indexed=false` is *required* for `update.partial.requireInPlace` to work, and in-place updates are what make a per-loan-event write cheap enough to run every 30 seconds — a normal atomic update reindexes the whole document. Solr additionally requires the field be **numeric**: a `pdate` field returns `HTTP 400 — Can not satisfy 'update.partial.requireInPlace'`, verified against both `last_modified` and a dynamic `*_dt`. Both of those are `indexed=true stored=true`, so that test does not isolate the type from the flags — what it establishes is that **`plong`/`pint` with `docValues=true stored=false indexed=false` demonstrably works and `pdate` as configured here does not.** Use epoch `plong` for timestamps, not `pdate`.
 
-**Why they are not search filters.** With `indexed=false` these are cheap to *retrieve* for documents a query already matched (a docValues lookup over the result page), but filtering or faceting on them is a docValues scan. Measured on a 200k-edition index with 150k carrying a value, `type:edition AND ebook_unavailable:1` ran in ~2 ms — sparse docValues means the iterator visits only documents that have the field — so the cost grows with the number of editions this daemon has ever written, not with index size. Cheaper than it looks, but still not a filter we advertise: the fields are deliberately absent from `EditionSearchScheme.all_fields`, which is what `is_search_field` consults to decide whether a bare `field:value` in a user query is a Solr field.
+**Filtering on them is cheap — measured, not assumed.** With `indexed=false` these are a docValues scan rather than an index lookup, which sounds expensive and is not: sparse docValues iterate only the documents that *have* the field.
 
-Making them real filters means `indexed=true`, which forfeits in-place updates — and a non-in-place atomic update to a nested child reindexes the parent work and all its editions. Unresolved; this is the tradeoff to revisit if search ever needs to filter on borrowability.
+Measured on Solr 10.0.0 with this configset, single node, **2,900,000 borrowable editions** nested under works (matching production's `ebook_access:borrowable` count):
+
+| query | numFound | QTime cold | QTime warm |
+|---|---|---|---|
+| `type:edition AND subject_key:X AND ebook_access:borrowable` | 58,000 | 3–12 ms | 0 ms |
+| the same **plus** `-ebook_unavailable:1` | 58,000 | 3–7 ms | 0 ms |
+| `type:edition AND -ebook_unavailable:1` (no pre-filter) | 2,871,014 | 20 ms | 0 ms |
+| `type:edition AND ebook_unavailable:1` | 29,000 | 0 ms | 0 ms |
+
+Re-run with **290,000** marked (10× more) and the negation still added nothing measurable, so the cost does not scale with the marked set at these magnitudes. Cold figures were taken with the filterCache defeated by a unique clause; in practice `-ebook_unavailable:1` is *identical across every page using it*, so one cached filter serves them all — but production soft-commits every 60s and drops that cache, so treat the cold column as the steady state. It is single-digit milliseconds.
+
+Caveats: one node, one shard, no replicas, no concurrent query load, and synthetic documents carrying few fields. Filter evaluation does not read stored fields so this should transfer, but it is not production.
+
+So an edition-level filter such as `genre_key:X AND ebook_access:borrowable AND -ebook_unavailable:1` is viable **without changing the field design**. `indexed=true` is not required and should be avoided: it forfeits in-place updates, and a non-in-place atomic update to a nested child reindexes the parent work and all its editions.
+
+The fields stay absent from `EditionSearchScheme.all_fields`. That governs whether a bare `field:value` typed by an end user is treated as a Solr field — a separate question from whether internal code may build an `fq` on them, which it may.
 
 **`ebook_becomes_available` is never cleared.** `requireInPlace` rejects `"set": null` unconditionally — you cannot clear a field in place, even one that has no value. So when a book frees up the timestamp is left at its last value rather than removed. It is meaningful **only** while `ebook_unavailable=1`; read at any other time it is stale.
 
