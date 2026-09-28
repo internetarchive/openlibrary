@@ -90,7 +90,6 @@ div#subjectsPage h3 {
 
 div#subjectsPage ul {
   display: inline-block;
-  break-before: avoid;
 }
 
 div.lists {
