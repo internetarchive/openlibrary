@@ -9,8 +9,12 @@
   color: var(--color-text-heading);
 }
 
-/* The welcome heading doubles as the page title, so it sits a step above the section headings. */
+/* The welcome heading doubles as the page title, so it sits a step above the section headings
+   and hugs the top of the content box by the same inset the box uses at its sides. */
 .home-h2--page-title {
+  /* Padding, not margin: a margin would collapse through the content box, which has no top padding. */
+  margin-top: 0;
+  padding-top: var(--contentBody-padding);
   font-size: var(--font-size-headline-medium);
 }
 
