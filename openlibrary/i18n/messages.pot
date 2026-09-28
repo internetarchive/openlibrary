@@ -4170,10 +4170,6 @@ msgstr ""
 msgid "All subjects"
 msgstr ""
 
-#: home/browse_stacks.html.jinja
-msgid "Every genre in the library, shelved by subgenre. Open one to see what's trending inside it."
-msgstr ""
-
 #: home/browse_stacks.html.jinja home/categories.html
 #, python-format
 msgid "%(count)s Book"

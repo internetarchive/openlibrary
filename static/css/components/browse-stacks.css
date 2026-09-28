@@ -11,6 +11,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--spacing-inline-lg);
+  margin-bottom: var(--spacing-stack-md);
 }
 
 .browse-stacks__header .home-h2 {
@@ -23,13 +24,6 @@
   gap: var(--spacing-inline-sm);
   font-size: var(--font-size-body-medium);
   white-space: nowrap;
-}
-
-.browse-stacks__lead {
-  margin: var(--spacing-stack-xs) 0 var(--spacing-stack-md);
-  max-width: 60ch;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body-medium);
 }
 
 .browse-stacks__tiles {

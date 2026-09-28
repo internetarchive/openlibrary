@@ -3,8 +3,15 @@
    `.home-h2 a` ties with the global `a:link`, and wins by loading later. */
 .home-h2 {
   font-family: var(--font-family-title);
+  font-size: var(--font-size-title-large);
   font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
   color: var(--color-text-heading);
+}
+
+/* The welcome heading doubles as the page title, so it sits a step above the section headings. */
+.home-h2--page-title {
+  font-size: var(--font-size-headline-medium);
 }
 
 .home-h2 a {
