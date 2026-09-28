@@ -1142,7 +1142,8 @@ class HomeGenrePartial:
             has_fulltext_only=True,
             url=home_genres.search_url(node),
             layout="carousel",
-            fallback=query,
+            # No fallback state: a row with nothing in the patron's language is dropped, like the rest of the home page.
+            fallback=None,
             safe_mode=True,
             controls=True,
             readable_toggle=True,
