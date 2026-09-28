@@ -77,6 +77,8 @@ describe('new_pr_labeler.mjs', () => {
         expect(pairs.map((pair) => pair.callee).sort()).toEqual(['getLinkedIssueMetadata', 'parseArgs']);
     });
 
+    // A subset check, not equality: a returned key that no caller reads is
+    // harmless, so it must not fail here.
     test.each(pairs)('every key destructured from $callee() is one it returns', ({ destructured, returned }) => {
         for (const key of destructured) {
             expect(returned).toContain(key);
