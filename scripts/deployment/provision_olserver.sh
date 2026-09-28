@@ -83,7 +83,11 @@ docker compose version  # v5.x.x
 sudo systemctl status docker
 
 # See "Nexus Artifact Repository User Documentation" in google docs for what to put here
-sudo vim /etc/docker/daemon.json
+sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+{
+  "registry-mirrors": ["https://${NEXUS_HOST}:48080"]
+}
+EOF
 sudo systemctl restart docker
 
 # Give certain users access to docker commands
