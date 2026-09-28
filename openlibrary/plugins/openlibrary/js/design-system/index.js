@@ -114,8 +114,8 @@ function initCodeToggle(root) {
 
     const visible = readStored(CODE_VISIBLE_KEY) === 'true';
     root.classList.toggle('ds--code-visible', visible);
-    // This can run before <ol-toggle> upgrades. The attribute and the property both
-    // survive that (Lit restores pre-upgrade properties); the attribute reads plainer.
+    // Set the attribute rather than the property: this runs before <ol-toggle>
+    // has necessarily upgraded, and a property set then would be overwritten.
     if (visible) {
         toggle.setAttribute('checked', '');
         highlightCode(root);
