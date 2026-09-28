@@ -373,4 +373,28 @@ describe('ol-popover anchor', () => {
 
         expect(el._anchorEl).toBe(el.querySelector('[slot="trigger"]'));
     });
+
+    it('prefers anchorElement over the selector', async() => {
+        const el = await mountPopover();
+        const host = document.createElement('div');
+        el.anchor = '.missing';
+        el.anchorElement = host;
+
+        expect(el._anchorEl).toBe(host);
+    });
+
+    it('widens a narrow panel to the anchor and positions the widened size', async() => {
+        const el = await mountPopover();
+        const host = document.createElement('div');
+        el.anchorElement = host;
+        el.placement = 'bottom-end';
+        host.getBoundingClientRect = () => rect(100, 200);
+
+        el._computePosition(120, 80);
+
+        // The 120px panel grows to the 200px anchor, so end-aligned it starts
+        // at the anchor's left edge, not 80px in.
+        expect(el._minWidth).toBe(200);
+        expect(el._position.left).toBe(100);
+    });
 });

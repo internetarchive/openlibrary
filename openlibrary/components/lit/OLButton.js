@@ -271,12 +271,12 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         /* Primary — opt-in via variant="primary". */
         :host([variant="primary"]) .control {
             background-color: var(--color-primary);
-            border-color: var(--color-primary);
+            border-color: var(--color-primary-border);
             color: var(--white);
             /* Tone the specular highlight to the blue fill instead of pure white, and
                soften it — the white edge reads much louder on a dark fill than on white. */
             --control-surface: var(--color-primary);
-            --control-highlight-strength: 18%;
+            --control-highlight-strength: var(--control-highlight-strength-filled);
         }
 
         /* Secondary is the default (already set above). Explicit selector for clarity. */
@@ -294,7 +294,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             color: var(--white);
             /* Tone the specular highlight to the red fill and soften it, matching primary. */
             --control-surface: var(--color-destructive);
-            --control-highlight-strength: 18%;
+            --control-highlight-strength: var(--control-highlight-strength-filled);
         }
 
         /* Ghost — text and icon only, no fill, border, or lift at rest; picks up the
@@ -517,9 +517,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         :host([aria-haspopup]) .chevron {
-            /* Same glyph as static/images/icons/chevron-down.svg, inlined: this literal
-               never passes through the CSS formatter that mangled data URIs in the
-               global sheet, and inlining spares a request inside every shadow root. */
+            /* The sprite's chevron-down, inlined: this literal never passes through
+               the CSS formatter that mangled data URIs in the global sheet, and
+               inlining spares a request inside every shadow root. */
             --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
             display: inline-block;

@@ -49,13 +49,6 @@
   color: var(--white);
 }
 /* stylelint-enable selector-max-specificity */
-.page-banner .btn {
-  display: block;
-  max-width: 200px;
-  margin: auto;
-  border: 1px solid var(--button-hover-blue);
-  font-weight: bold;
-}
 .page-banner-body {
   font-size: 0.9em;
   padding: 10px;

@@ -130,6 +130,10 @@ Before writing new markup or CSS, check whether an existing component already do
 
 `ol-otp-login` is also registered but is a single login flow, not a reusable component. For when to build something new versus enhance a template, see [When to Build a Component](web-components.md#when-to-build-a-component).
 
+### Popover placement
+
+The default `ol-popover` placement is `bottom-start`, and the panel is never narrower than what it is anchored to. A short menu under a wide button fills the button's width, and a wider panel grows to one side instead of straddling the control. Keep that default in stacked columns of controls (the book page sidebar, a result row). Reserve `bottom-center` for icon-only or very small triggers, and `bottom-end` for triggers flush against a right edge. When only part of a control opens the popover, such as a split button's caret, set `anchor` (a selector) or `anchorElement` (across a shadow boundary) to the whole control so the panel lines up under it.
+
 ### Menu rows
 
 Rows inside a panel — the menu, options, and select popovers, the browse popover, the hamburger drawer, the design-site nav — are one shape, and share the tokens in `tokens/control-heights.css`:
@@ -157,7 +161,7 @@ One set — sources in `static/icons/src/`, built into `static/icons/sprite.svg`
 | The server — Templetor or Jinja templates, macros | the `icon()` macro (`openlibrary/macros/icon.html`): `icon("name", size="md", label="…")` | Sprite `<use>` — one cached request covers every icon on the page |
 | Client-side JS, or anything inside a shadow root | `<ol-icon name="name" size="md" label="…">` | Inlines the glyph — sprite `<use>` is unreliable across shadow roots |
 
-- **Never hand-inline an `<svg>` for a glyph that is in the set.** If a glyph is missing, add it to `static/icons/src/` so both paths get it.
+- **Never hand-inline an `<svg>` for a glyph that is in the set.** If a glyph is missing, drop a 24×24 `currentColor` SVG into `static/icons/src/<group>/` and run `make icons` — the filename becomes the icon name, and both outputs are generated, not committed.
 - **Size is the `size` argument** — `sm` 16px, `md` 20px (default), `lg` 24px, from `tokens/icon-sizes.css`, which also corrects stroke width per size. Don't set width or height on the SVG.
 - **`label` decides the semantics.** Omit it for decorative icons (rendered `aria-hidden`); pass it when the icon is the control's only content.
 - Inside `ol-button`, pass `slot="icon-start"` or `slot="icon-end"` (the macro takes a `slot` argument) and let the button size and gap it.
@@ -435,6 +439,8 @@ Scale a control on `:active` only if it is **self-contained**: it has its own vi
 /* Stretched controls: full-width buttons, the search bar (200px+) */
 .search-bar:active { transform: scale(var(--press-scale-wide)); }     /* 0.985 */
 ```
+
+A split control — `ol-shelf-button`'s split, the CTA dropper — is one fused shape, so the wrapper carries the press and `:active` reaches it from either half; a half that squeezes on its own reads as the control breaking. The wrapper stretches to its column, so it takes the wide tier, the same as `ol-button[full-width]` and the Buy trigger it sits beside on the book page.
 
 Tokens live in `static/css/tokens/press.css`. The press transition is the one place a hover-adjacent transition is allowed — `transform` only, never color (see [Hover state changes are instant](#hover-state-changes-are-instant)).
 

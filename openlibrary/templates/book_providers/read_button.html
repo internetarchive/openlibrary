@@ -17,29 +17,29 @@ $if acquisition.access == 'open-access':
     $if acquisition.format == 'audio':
       <a href="/books/${edition_key}/-/borrow?action=read"
           title="$_('Listen to a reading from %s', provider_name)"
-          class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--w-icon"
+          class="cta-btn cta-btn--available cta-btn--read"
           target="_blank" rel="noopener noreferrer"
           $:analytics_attr('Listen')
       >
-        <span class="btn-icon read-aloud"></span>
-        <span class="btn-label">$_("Audiobook")</span>
+        $:macros.icon("headphones", size="sm")
+        <span class="cta-btn__label">$_("Audiobook")</span>
       </a>
     $else:
       <a href="/books/${edition_key}/-/borrow?action=read"
           title="$_('Read free online from %s', provider_name)"
-          class="cta-btn cta-btn--available cta-btn--read cta-btn--external"
+          class="cta-btn cta-btn--available cta-btn--read"
           target="_blank" rel="noopener noreferrer"
           $:analytics_attr('Read')
-      >$_('Read')</a>
+      ><span class="cta-btn__label">$_('Read')</span></a>
     $:locate_menu()
   </div>
 $elif acquisition.access == 'sample':
   <div class="$group_class">
     <a href="/books/${edition_key}/-/borrow?action=read"
-      class="cta-btn cta-btn--shell cta-btn--external"
+      class="cta-btn cta-btn--shell"
       data-ol-link-track="CTAClick|Preview"
       target="_blank" rel="noopener noreferrer"
       $:analytics_attr('Preview')
-    >$_('Preview')</a>
+    ><span class="cta-btn__label">$_('Preview')</span></a>
     $:locate_menu()
   </div>

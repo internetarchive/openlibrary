@@ -9,7 +9,7 @@ $if ocaid:
       data-book-preview
       data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
       data-iframe-link="https://archive.org/details/$ocaid"
-      data-ol-link-track="CTAClick|Preview">$(_('Preview Only') if show_only else _('Preview'))</a>
+      data-ol-link-track="CTAClick|Preview">$:macros.icon("book-open", size="sm")<span class="cta-btn__label">$(_('Preview Only') if show_only else _('Preview'))</span></a>
   </div>
 $else:
   <div class="cta-button-group">
