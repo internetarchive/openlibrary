@@ -146,7 +146,7 @@ function handleRetry(target) {
 }
 
 /**
- * Wires the header controls (sort menu, readable-only toggle, shuffle) of a
+ * Wires the header controls (readable-only toggle, shuffle) of a
  * loaded carousel. Each change rewrites the stored config and refetches the
  * whole carousel, so the server re-renders the controls in their new state.
  *
@@ -157,13 +157,6 @@ function bindControls(host) {
     if (!controls) return;
     const config = JSON.parse(host.dataset.config);
     const label = config.key || config.title || '';
-
-    controls.querySelector('.carousel-controls__sort')?.addEventListener('ol-menu-popover-select', (e) => {
-        const value = e.detail.value;
-        config.sort = value === 'random' ? `random_${Date.now()}` : value;
-        trackEvent('Carousel', `Sort|${value}`, label);
-        refetch(host, config);
-    });
 
     controls.querySelector('.carousel-controls__readable')?.addEventListener('ol-toggle-change', (e) => {
         config.has_fulltext_only = e.detail.checked;

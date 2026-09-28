@@ -793,41 +793,15 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
-    # Header tools: sort menu + shuffle (`controls`), plus a readable-only toggle where
-    # the query itself doesn't already restrict access (`readable_toggle`).
+    # Header tools: a shuffle button (`controls`), plus a readable-only toggle where the
+    # query itself doesn't already restrict access (`readable_toggle`).
     controls: bool = False
     readable_toggle: bool = False
 
 
-def carousel_sort_labels() -> dict[str, str]:
-    """Sort menu on a carousel with controls. Keys are work-search sorts (schemes/works.py)."""
-    return {
-        "trending": _("Trending"),
-        "new": _("Newest"),
-        "old": _("Oldest"),
-        "rating": _("Top rated"),
-        "random": _("Random"),
-    }
-
-
-def carousel_sort_key(sort: str) -> str:
-    """Map a carousel's sort string (which may be compound or seeded) onto a menu value."""
-    head = sort.split(",", 1)[0].strip()
-    if head.startswith("random"):
-        return "random"
-    if head.startswith("trending"):
-        return "trending"
-    return head
-
-
-def render_carousel_controls(sort: str, has_fulltext_only: bool, readable_toggle: bool) -> str:
-    sort_key = carousel_sort_key(sort)
-    labels = carousel_sort_labels()
+def render_carousel_controls(has_fulltext_only: bool, readable_toggle: bool) -> str:
     return render_jinja_template(
         "books/carousel_controls.html.jinja",
-        sort_value=sort_key,
-        sort_label=labels.get(sort_key, _("Sort")),
-        sort_items_json=json_encode([{"value": value, "label": label} for value, label in labels.items()]),
         readable_toggle=readable_toggle,
         readable=has_fulltext_only,
     )
@@ -866,7 +840,7 @@ class CarouselPartial:
             layout=params.layout,
             full_path=full_path,
         )
-        tools_html = render_carousel_controls(params.sort, params.has_fulltext_only, params.readable_toggle) if params.controls else ""
+        tools_html = render_carousel_controls(params.has_fulltext_only, params.readable_toggle) if params.controls else ""
         data = EagerQueryCarouselData(
             search=params.search,
             query=effective_query,

@@ -3079,14 +3079,6 @@ msgid "Show only books you can read now"
 msgstr ""
 
 #: books/carousel_controls.html.jinja search/sort_options.html
-msgid "Sort by"
-msgstr ""
-
-#: books/carousel_controls.html.jinja
-msgid "Sort this carousel"
-msgstr ""
-
-#: books/carousel_controls.html.jinja search/sort_options.html
 msgid "Shuffle"
 msgstr ""
 
@@ -5149,15 +5141,15 @@ msgstr ""
 msgid "Sort ▾"
 msgstr ""
 
-#: merge_request_table/table_header.html openlibrary/plugins/openlibrary/partials.py
+#: merge_request_table/table_header.html
 msgid "Sort"
 msgstr ""
 
-#: merge_request_table/table_header.html openlibrary/plugins/openlibrary/partials.py
+#: merge_request_table/table_header.html
 msgid "Newest"
 msgstr ""
 
-#: merge_request_table/table_header.html openlibrary/plugins/openlibrary/partials.py
+#: merge_request_table/table_header.html
 msgid "Oldest"
 msgstr ""
 
@@ -5957,7 +5949,7 @@ msgstr ""
 msgid "Work Count"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/partials.py search/sort_options.html
+#: search/sort_options.html
 msgid "Random"
 msgstr ""
 
@@ -6013,12 +6005,16 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/openlibrary/partials.py search/sort_options.html
+#: openlibrary/plugins/openlibrary/nav.py search/sort_options.html
 msgid "Trending"
 msgstr ""
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Sort by"
 msgstr ""
 
 #: search/sort_options.html
@@ -8392,10 +8388,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
-msgid "Top rated"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
