@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
@@ -50,8 +50,8 @@ export const DEFAULT_LABELS = {
  *
  * @element ol-shelf-button
  *
- * @prop {String} variant - "split" (default), "icon" or "outline"
- * @prop {String} size - "large" scales the `icon` badge up for a big cover:
+ * @prop {"split" | "icon" | "outline"} variant - Default: "split"
+ * @prop {"large"} size - Scales the `icon` badge up for a big cover:
  *     a bigger circle a shade translucent, so the cover tints it, and the
  *     glyph stamped into it. Unset is the carousel-card size
  * @prop {String} workKey - "/works/OL…W", the book this acts on. With
@@ -551,7 +551,7 @@ export class OlShelfButton extends LitElement {
                     aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
                     aria-busy=${ifDefined(this.pending || undefined)}
                     @click=${this._onMainClick}
-                >${on ? html`<ol-icon name=${SHELF_ICON[this.shelf]}></ol-icon>` : nothing}<span>${label}</span></button>
+                >${on ? html`<ol-icon name=${SHELF_ICON_FILLED[this.shelf]}></ol-icon>` : nothing}<span>${label}</span></button>
                 <span class="sr-only" role="status">${this._announce}</span>
                 ${this._withActions(html`
                     <button
