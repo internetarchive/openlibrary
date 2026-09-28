@@ -18,14 +18,6 @@
   margin-bottom: 0;
 }
 
-.browse-stacks__all {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-  font-size: var(--font-size-body-medium);
-  white-space: nowrap;
-}
-
 /* The rail pages sideways; each card is a column of two tiles. The viewport padding leaves
    room for the tile's hover lift and shadow. */
 .browse-stacks__rail {

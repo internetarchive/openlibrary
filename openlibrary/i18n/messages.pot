@@ -4166,10 +4166,6 @@ msgstr ""
 msgid "Browse the stacks"
 msgstr ""
 
-#: home/browse_stacks.html.jinja
-msgid "All subjects"
-msgstr ""
-
 #: home/browse_stacks.html.jinja home/categories.html
 #, python-format
 msgid "%(count)s Book"
