@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions, trackError } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -1535,7 +1535,9 @@ export class OlShelfActions extends LitElement {
         }));
     }
 
-    _fail(error) {
+    /** `operation` names the request that failed, for the error's analytics label. */
+    _fail(error, operation) {
+        trackError(operation, error);
         if (error?.status === 401) return redirectToLogin();
         showToast(this.t('errorGeneric'), { type: 'error' });
     }
@@ -1557,14 +1559,15 @@ export class OlShelfActions extends LitElement {
      * what keeps a handler from restoring one property and forgetting another.
      * The busy flag dims the rows and drops a click that beats the re-render.
      * `announce` is spoken with the optimistic change, as the checkmark is
-     * shown with it; a rollback is announced by the error toast.
+     * shown with it; a rollback is announced by the error toast. `operation`
+     * names the request in the error's analytics label.
      */
     /** No shelf or rating change while one is in flight, or before the state is known. */
     get _held() {
         return this._busy || this.pending;
     }
 
-    async _mutate(optimistic, action, announce) {
+    async _mutate(operation, optimistic, action, announce) {
         if (this._held) return;
         const snapshot = Object.fromEntries(Object.keys(optimistic).map(key => [key, this[key]]));
         Object.assign(this, optimistic);
@@ -1574,7 +1577,7 @@ export class OlShelfActions extends LitElement {
             await action();
         } catch (error) {
             Object.assign(this, snapshot);
-            this._fail(error);
+            this._fail(error, operation);
         } finally {
             this._busy = false;
         }
@@ -1597,9 +1600,10 @@ export class OlShelfActions extends LitElement {
         const announce = removing
             ? this.t('removedFromShelf')
             : this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[shelfId]) });
-        return this._mutate(removing ? { shelf: null, readDate: null, eventId: null } : { shelf: shelfId }, async() => {
+        return this._mutate('shelf', removing ? { shelf: null, readDate: null, eventId: null } : { shelf: shelfId }, async() => {
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
-            trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId]);
+            // "menu": told apart from the split button's one-tap half, which says "quick".
+            trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId], 'menu');
             this._emitState();
             // Only on the way in, and only when they chose the shelf themselves:
             // rating moves a book to Already Read too, and interrupting that
@@ -1625,7 +1629,7 @@ export class OlShelfActions extends LitElement {
             next ? this.t('rated', { rating: next }) : this.t('ratingCleared'),
             optimistic.shelf && optimistic.shelf !== this.shelf ? this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[optimistic.shelf]) }) : '',
         ].filter(Boolean).join('. ');
-        return this._mutate(optimistic, async() => {
+        return this._mutate('rating', optimistic, async() => {
             await setRating(this.book.key, next, { editionKey: this.book.editionKey });
             trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
             this._emitState();
@@ -1722,7 +1726,7 @@ export class OlShelfActions extends LitElement {
             this._say(this.t('dateRemoved'));
             this._backToMain();
         } catch (error) {
-            this._fail(error);
+            this._fail(error, 'remove-date');
         } finally {
             this._dateBusy = false;
         }
@@ -1747,7 +1751,7 @@ export class OlShelfActions extends LitElement {
             this._say(this.t('dateSaved', { date: formatReadDate(this.readDate) }));
             this._backToMain();
         } catch (error) {
-            this._fail(error);
+            this._fail(error, 'check-in');
         } finally {
             this._dateBusy = false;
         }
@@ -1898,7 +1902,7 @@ export class OlShelfActions extends LitElement {
             // retries and reports.
             if (quiet) return;
             this._listsFailed = true;
-            this._fail(error);
+            this._fail(error, 'lists');
         } finally {
             this._listsLoading = false;
         }
@@ -1920,7 +1924,7 @@ export class OlShelfActions extends LitElement {
                 detail: { key: listKey, name, seedKey: this._seedKey, member: checked },
             }));
         } catch (error) {
-            this._fail(error);
+            this._fail(error, 'list-toggle');
         }
     }
 
@@ -1981,7 +1985,7 @@ export class OlShelfActions extends LitElement {
             await this.updateComplete;
             this.shadowRoot.querySelector('.pane:nth-child(2) .list-row input')?.focus({ preventScroll: true });
         } catch (error) {
-            this._fail(error);
+            this._fail(error, 'list-create');
         } finally {
             this._createBusy = false;
         }

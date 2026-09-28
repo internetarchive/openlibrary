@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin, trackError } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
@@ -436,6 +436,11 @@ export class OlShelfButton extends LitElement {
         return this.variant === 'icon' || this.variant === 'outline';
     }
 
+    /** The control's shape for analytics labels: the variant, marked when lists-only. */
+    get _shape() {
+        return this.listsOnly ? `${this.variant}-lists` : this.variant;
+    }
+
     render() {
         return this._glyphShaped ? this._renderIcon() : this._renderSplit();
     }
@@ -550,7 +555,7 @@ export class OlShelfButton extends LitElement {
      */
     _onPopoverOpen() {
         this.toggleAttribute('open', true);
-        trackEvent('ShelfActions', 'Open', this.listsOnly ? `${this.variant}-lists` : this.variant);
+        trackEvent('ShelfActions', 'Open', this._shape);
     }
 
     /** A close the panel cancels (Escape stepping back a pane) is not a close. */
@@ -558,8 +563,14 @@ export class OlShelfButton extends LitElement {
         if (!e.defaultPrevented) this.toggleAttribute('open', false);
     }
 
+    /** Counted so we can see how many visitors want to save a book before they have an account. */
     _onLoggedOut(e) {
         e.preventDefault();
+        trackEvent('ShelfActions', 'LoggedOut', this._shape);
+        this._toLogin();
+    }
+
+    _toLogin() {
         // No resumeUrl: come back to the page they were on. On a book page that
         // is the same thing, but from a list of results it is not — the legacy
         // dropper returned them to their results too.
@@ -585,10 +596,13 @@ export class OlShelfButton extends LitElement {
         this._pending = true;
         try {
             await setShelf(this.workKey, target, { editionKey: this.editionKey });
-            trackEvent('ReadingLog', SHELF_EVENT[next]);
+            // "quick": the one-tap half, told apart from the same save made in the menu.
+            trackEvent('ReadingLog', SHELF_EVENT[next], 'quick');
         } catch (error) {
             this._emitState(previous);
-            if (error?.status === 401) return this._onLoggedOut(e);
+            trackError('shelf', error);
+            // An expired session, not a signed-out visitor: counted as the error it is.
+            if (error?.status === 401) return this._toLogin();
             showToast(this.t('errorGeneric'), { type: 'error' });
         } finally {
             this._pending = false;
