@@ -101,7 +101,7 @@
                 Import the element once, then use it like any other tag — including inside your own shadow
                 root. Size it from your component's CSS; stroke width follows the size unless you set
                 <code>--ol-icon-stroke-width</code>. The import is only for modules inside the Lit bundle;
-                code bundled by webpack already has <code>&lt;ol-icon&gt;</code> registered site-wide and must
+                code in the page-JS bundle already has <code>&lt;ol-icon&gt;</code> registered site-wide and must
                 <em>not</em> import it, or the second <code>customElements.define()</code> throws and takes the
                 rest of the Lit bundle down with it.
             </p>
@@ -297,7 +297,7 @@
 {% endmacro %}
 {% macro gallery() %}
     <section class="ds-section" id="icon-gallery">
-        <h2 class="ds-section__title">Icons</h2>
+        <h2 class="ds-section__title">Gallery</h2>
         <p class="ds-section__blurb">
             One curated set, every glyph on a 24×24 grid at a single stroke weight, themed with
             <code>currentColor</code>. Shown here at <code>lg</code> (24px). Click a glyph to copy it in any of
@@ -352,14 +352,14 @@
                data-ds-code makes it a copy target for the shared handler. #}
             <div class="ds-icon-popover__row">
                 <span class="ds-icon-popover__label">{{ label }}</span>
-                <button class="ds-icon-popover__snippet"
+                <button class="copy-button"
                         type="button"
                         data-ds-code
                         data-ds-copy
                         aria-label="Copy {{ label }} snippet">
-                    <code class="ds-icon-popover__code" data-ds-snippet="{{ key }}"></code>
-                    {{ icon("copy", size="sm", extra_class="ds-icon-popover__glyph--copy") }}
-                    {{ icon("check", size="sm", extra_class="ds-icon-popover__glyph--check") }}
+                    <code class="copy-code" data-ds-snippet="{{ key }}"></code>
+                    {{ icon("copy", size="sm", extra_class="copy-button__glyph--copy") }}
+                    {{ icon("check", size="sm", extra_class="copy-button__glyph--check") }}
                 </button>
             </div>
         {% endfor %}

@@ -17,6 +17,7 @@ from urllib.parse import urlencode
 import httpx
 
 from infogami import config
+from openlibrary.utils.async_utils import cache_per_event_loop
 
 if TYPE_CHECKING:
     from openlibrary.plugins.openlibrary.status import TestingPR
@@ -26,6 +27,10 @@ JENKINS_JOB_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(interna
 # The deploy pipeline's own run list (newest first). fullStages=true brings the
 # per-stage status so the panel can name the stage a running build is on.
 JENKINS_RUNS_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/wfapi/runs?fullStages=true"
+
+# One pooled client per event loop: the panel polls this every few seconds, so
+# a fresh TCP + TLS handshake per poll is pure waste. See cache_per_event_loop.
+get_jenkins_client = cache_per_event_loop(lambda: httpx.AsyncClient(timeout=5.0))
 
 
 async def jenkins_deploy_status() -> dict | None:
@@ -44,9 +49,8 @@ async def jenkins_deploy_status() -> dict | None:
     """
     result = None
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get(JENKINS_RUNS_URL, headers={"User-Agent": "openlibrary-status"})
-            runs = resp.json()
+        resp = await get_jenkins_client().get(JENKINS_RUNS_URL, headers={"User-Agent": "openlibrary-status"})
+        runs = resp.json()
         if isinstance(runs, list) and runs and isinstance(runs[0], dict):
             run = runs[0]
             result = {

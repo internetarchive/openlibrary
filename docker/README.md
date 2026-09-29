@@ -211,8 +211,8 @@ Commands that run npm inside a container (e.g. `make css`/`js`, `npm run build-a
 ```log
 npm error code ENOTEMPTY
 npm error syscall rmdir
-npm error path /openlibrary/node_modules/webpack/lib
-npm error ENOTEMPTY: directory not empty, rmdir '/openlibrary/node_modules/webpack/lib'
+npm error path /openlibrary/node_modules/vite/dist
+npm error ENOTEMPTY: directory not empty, rmdir '/openlibrary/node_modules/vite/dist'
 make: *** [Makefile:20: node_modules] Error 217
 ```
 

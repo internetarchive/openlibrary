@@ -4,11 +4,8 @@
  * Renders the real component so axe inspects its actual shadow DOM: the ARIA
  * wiring on the slotted trigger, and the radiogroup of options once open.
  */
-import { toHaveNoViolations } from 'jest-axe';
 import { checkA11y, cleanup, mount, openPopover, setupComponentEnv } from '../test-utils/a11y.js';
 import '../lit/OlOptionsPopover.js';
-
-expect.extend(toHaveNoViolations);
 
 const ITEMS = [
     { value: 'all', label: 'Full Card Catalog' },

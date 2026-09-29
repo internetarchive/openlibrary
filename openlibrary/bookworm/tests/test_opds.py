@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from openlibrary.bookworm.opds import Feed, Link, Publication, extract_local_id, to_import_record
 
 SAMPLES = Path(__file__).parent / "samples"
@@ -130,3 +132,29 @@ def test_borrow_rel_is_recognised_as_an_acquisition_link():
         ]
     )
     assert [link.rel for link in pub.acquisition_links()] == ["http://opds-spec.org/acquisition/borrow"]
+
+
+@pytest.mark.parametrize(
+    ("flag", "local_id", "expected"),
+    [
+        (True, "51008637", "OL51008637M"),
+        (False, "51008637", None),
+        (True, "not-a-number", None),
+    ],
+)
+def test_names_the_ol_edition_only_when_the_feed_says_so(flag, local_id, expected):
+    """``local_id_is_ol_edition`` is what makes a record name its edition.
+
+    Without it the record carries only a title and a provider id, and the
+    catalog is left to infer the edition from the title -- against every
+    same-title edition in the catalog. With it the record answers outright.
+    Guarded on the id being numeric, since ``OL<not-a-number>M`` is not a key.
+    """
+    feed = Feed(provider_name="lenny", id_strategy="self_link", local_id_is_ol_edition=flag)
+    pub = Publication(
+        metadata={"title": "The Art of War", "author": {"name": "Sun Tzu"}},
+        links=[{"rel": "self", "href": f"https://example.org/opds/{local_id}"}],
+    )
+    record = to_import_record(pub, feed)
+    assert record is not None
+    assert record.get("openlibrary") == expected

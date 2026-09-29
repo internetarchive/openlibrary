@@ -1,9 +1,11 @@
+/* Legacy page-level overlay: keep its z-index band as is and add no new consumers.
+   New overlays use ol-popover / ol-dialog, which live in the top layer (#12363). */
 /* stylelint-disable no-descending-specificity */
 .ac_results {
   padding: 0;
   margin: 0;
   overflow: auto;
-  z-index: var(--z-index-level-16);
+  z-index: var(--z-index-overlay);
   position: absolute;
   display: none;
   top: -5px;

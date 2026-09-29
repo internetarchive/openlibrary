@@ -4,7 +4,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
 from types import MappingProxyType
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import luqum.tree
 
@@ -23,6 +23,9 @@ from openlibrary.solr.query_utils import (
     luqum_replace_field,
     luqum_traverse,
 )
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Edition
 from openlibrary.utils.ddc import (
     normalize_ddc,
     normalize_ddc_prefix,
@@ -116,6 +119,9 @@ class WorkSearchScheme(SearchScheme):
             "work.description",
             "editions.description",
             "editions.providers",
+            # Dotted-only: a bare name is expanded into both `work.X` and
+            # `editions.X`, and a price belongs to a printing, not to a work.
+            "editions.opds_acquisitions",
         }
     )
     facet_fields = frozenset(
@@ -210,6 +216,8 @@ class WorkSearchScheme(SearchScheme):
             "has_fulltext",
             "first_publish_year",
             "cover_i",
+            "cover_width",
+            "cover_height",
             "cover_edition_key",
             "public_scan_b",
             "lending_edition_s",
@@ -647,6 +655,54 @@ class WorkSearchScheme(SearchScheme):
         key_to_thing = {t.key: t for t in things if t.key in keys}
 
         from openlibrary.book_providers import get_acquisitions
+        from openlibrary.core.acquisitions import MAX_DB_INT, MAX_EDITIONS_PER_QUERY
+        from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
+        from openlibrary.utils import extract_numeric_id_from_olid
+
+        # One batched read for every edition on the page. Prices change far
+        # more often than bibliographic data, so this is read at request time
+        # rather than indexed into Solr.
+        #
+        # Deliberately synchronous, on the event loop: `asyncio.to_thread`
+        # would open a Postgres connection per pool thread, since web.py
+        # holds them per thread. Becomes a real await with the async driver.
+        #
+        # This does not bound the method by page size. `get_many()` above is
+        # uncapped for `providers` too; the endpoint's `limit` has no `le=`,
+        # which is where that belongs and is not changed here.
+        stored_by_edition: dict[int, list] = {}
+        if "editions.opds_acquisitions" in prefixed_fields:
+            edition_ids = []
+            for doc in solr_result["response"]["docs"]:
+                for ed_doc in doc.get("editions", {}).get("docs", []):
+                    try:
+                        numeric_id = int(extract_numeric_id_from_olid(ed_doc["key"]))
+                    except ValueError, TypeError, IndexError, OverflowError:
+                        continue
+                    if 0 < numeric_id <= MAX_DB_INT:
+                        edition_ids.append(numeric_id)
+            if len(edition_ids) > MAX_EDITIONS_PER_QUERY:
+                logger.warning(
+                    "skipping acquisitions for a page of %d editions (cap %d); ask for a smaller limit",
+                    len(edition_ids),
+                    MAX_EDITIONS_PER_QUERY,
+                )
+                # Remove the field, all or nothing. It must come out of
+                # `prefixed_fields`, which drives the weave below -- clearing
+                # the ids alone still gives every document a list, built from
+                # the synthesized half and missing every harvested price,
+                # which a caller cannot tell from a book that has none.
+                # Absent they can detect, and retry with a smaller `limit`.
+                prefixed_fields.discard("editions.opds_acquisitions")
+                edition_ids = []
+            try:
+                stored_by_edition = StoredAcquisition.get_by_editions(edition_ids)
+            except Exception:
+                # Same rule as the oversized page above, for the same
+                # reason: a list without the harvested half reads as
+                # complete.
+                prefixed_fields.discard("editions.opds_acquisitions")
+                logger.exception("failed to read acquisitions; returning results without the field")
 
         for doc in solr_result["response"]["docs"]:
             for field in prefixed_fields:
@@ -661,6 +717,10 @@ class WorkSearchScheme(SearchScheme):
                     if not db_thing:
                         continue
 
+                    if field_name == "opds_acquisitions":
+                        solr_doc[field_name] = self._opds_acquisitions(solr_doc, cast("Edition", db_thing), stored_by_edition)
+                        continue
+
                     val = getattr(db_thing, field_name)
                     if field_name == "providers":
                         ed = cast(Edition, db_thing)
@@ -669,6 +729,53 @@ class WorkSearchScheme(SearchScheme):
                         continue
                     elif field_name == "description":
                         solr_doc[field_name] = val if isinstance(val, str) else val.value
+
+    @staticmethod
+    def _opds_acquisitions(solr_doc: dict, edition: Edition, stored_by_edition: dict[int, list]) -> list[dict]:
+        """How this edition can be acquired, as OPDS2 acquisition links.
+
+        Not every way: the Internet Archive synthesizes nothing unless the
+        caller also requested `editions.ebook_access`, because IA reads it
+        off the Solr document and `editions.fl` carries only the solr fields
+        asked for. A documented requirement of the field, pinned by a test.
+
+        One field, one format, one call. Previously a caller had to read
+        `providers` for the providers Open Library synthesizes and a second
+        field for the ones harvested from a registered feed, and reconcile the
+        two shapes itself.
+
+        Precedence is per provider: a harvested row wins over a synthesized
+        one, because the feed is that provider's own statement of what it
+        offers, while the synthesized version is our inference. Providers with
+        no harvested row are coerced into OPDS2 and appended, so the absence of
+        a feed is invisible to the caller.
+
+        Deduplicated on the feed registry's spelling of the provider name --
+        `book_providers` says `gutenberg` where the registry says
+        `project_gutenberg`, and comparing the raw names would treat them as
+        two providers and emit both.
+        """
+        from openlibrary.core.acquisitions import opds_links_for_edition, provider_acquisition_as_opds, provider_dedupe_key, synthesized_acquisitions
+        from openlibrary.utils import extract_numeric_id_from_olid
+
+        try:
+            edition_id = int(extract_numeric_id_from_olid(solr_doc["key"]))
+        except ValueError, TypeError, IndexError, OverflowError, KeyError:
+            edition_id = None
+
+        links = opds_links_for_edition(stored_by_edition.get(edition_id) or []) if edition_id else []
+        # Canonicalize BOTH sides. Resolving only the synthesized one left the
+        # comparison a case-sensitive exact match against raw database strings,
+        # so a harvested row spelled "Lenny" or "standard-ebooks" deduped
+        # against nothing and the edition showed the same acquisition twice.
+        harvested = {provider_dedupe_key(link.get("provider_name")) for link in links}
+
+        for trusted_name, acquisition in synthesized_acquisitions(solr_doc, edition):
+            if provider_dedupe_key(trusted_name or acquisition.provider_name) in harvested:
+                continue
+            if coerced := provider_acquisition_as_opds(acquisition, trusted_name):
+                links.append(coerced)
+        return links
 
 
 def lcc_transform(sf: luqum.tree.SearchField):

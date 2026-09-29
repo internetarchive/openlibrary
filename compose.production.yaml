@@ -14,7 +14,7 @@ services:
     ports:
       - ${WEB_PORT:-8080}:8080
     environment:
-      - GUNICORN_OPTS= --workers 25 --timeout 300 --max-requests 1500
+      - GUNICORN_OPTS= --workers 22 --timeout 300 --max-requests 1500
       - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
@@ -33,7 +33,7 @@ services:
     ports:
       - ${FAST_WEB_PORT:-18080}:8080
     environment:
-      - GUNICORN_OPTS= --workers 7 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - GUNICORN_OPTS= --workers 10 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
@@ -111,7 +111,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 30 --max-requests 500
+      - GUNICORN_OPTS= --workers 10 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
     volumes:
       - ../olsystem:/olsystem

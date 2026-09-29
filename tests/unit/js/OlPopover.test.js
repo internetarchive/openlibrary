@@ -16,11 +16,11 @@
 /** Minimal Popover API stand-in: jsdom implements neither the methods nor the pseudo-class. */
 function installPopoverApiStub() {
     const open = new WeakSet();
-    HTMLElement.prototype.showPopover = jest.fn(function() {
+    HTMLElement.prototype.showPopover = vi.fn(function() {
         if (open.has(this)) throw new DOMException('already open', 'InvalidStateError');
         open.add(this);
     });
-    HTMLElement.prototype.hidePopover = jest.fn(function() {
+    HTMLElement.prototype.hidePopover = vi.fn(function() {
         if (!open.has(this)) throw new DOMException('not open', 'InvalidStateError');
         open.delete(this);
     });
@@ -58,14 +58,12 @@ function installMatchMediaStub(matches = false) {
 let tagSeq = 0;
 async function mountPopover() {
     const tag = `ol-popover-test-${++tagSeq}`;
-    let el;
-    await jest.isolateModulesAsync(async() => {
-        const { OlPopover } = await import('../../../openlibrary/components/lit/OlPopover.js');
-        customElements.define(tag, class extends OlPopover {});
-        el = document.createElement(tag);
-        el.innerHTML = '<button slot="trigger">Open</button><div>Panel content</div>';
-        document.body.appendChild(el);
-    });
+    vi.resetModules();
+    const { OlPopover } = await import('../../../openlibrary/components/lit/OlPopover.js');
+    customElements.define(tag, class extends OlPopover {});
+    const el = document.createElement(tag);
+    el.innerHTML = '<button slot="trigger">Open</button><div>Panel content</div>';
+    document.body.appendChild(el);
     await el.updateComplete;
     return el;
 }
@@ -168,7 +166,7 @@ describe('ol-popover close fallback', () => {
     let realScrollTo;
 
     beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         installMatchMediaStub();
         // jsdom has no scrollTo; releasing the mobile scroll lock calls it.
         realScrollTo = window.scrollTo;
@@ -178,7 +176,7 @@ describe('ol-popover close fallback', () => {
 
     afterEach(() => {
         window.scrollTo = realScrollTo;
-        jest.useRealTimers();
+        vi.useRealTimers();
         popoverApi?.restore();
         popoverApi = null;
         document.body.innerHTML = '';
@@ -199,7 +197,7 @@ describe('ol-popover close fallback', () => {
         expect(el._animState).toBe('exiting');
 
         // No transitionend in jsdom, exactly as in a tab that paints no frames.
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
 
         expect(el._animState).toBe('closed');
         expect(popoverApi.isOpen(panel)).toBe(false);
@@ -220,7 +218,7 @@ describe('ol-popover close fallback', () => {
 
         // The armed timer must not fire a second cleanup into the closed popover.
         const hideCalls = HTMLElement.prototype.hidePopover.mock.calls.length;
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
         expect(HTMLElement.prototype.hidePopover.mock.calls.length).toBe(hideCalls);
     });
 
@@ -233,7 +231,7 @@ describe('ol-popover close fallback', () => {
         await el.updateComplete;
 
         await openAndSettle(el);
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
 
         expect(el._animState).not.toBe('closed');
         expect(popoverApi.isOpen(panelOf(el))).toBe(true);
@@ -253,8 +251,126 @@ describe('ol-popover close fallback', () => {
 
         el.open = false;
         await el.updateComplete;
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
 
         expect(document.body.style.position).toBe('');
+    });
+});
+
+/**
+ * Light dismiss lets the closing click through to whatever is under the
+ * pointer; `block-outside-clicks` renders a transparent backdrop that takes
+ * the hit instead, without turning the popover modal.
+ */
+describe('ol-popover block-outside-clicks', () => {
+    let popoverApi;
+
+    beforeEach(() => {
+        installMatchMediaStub();
+        document.body.innerHTML = '';
+    });
+
+    afterEach(() => {
+        popoverApi?.restore();
+        popoverApi = null;
+        document.body.innerHTML = '';
+    });
+
+    const backdropOf = (el) => el.shadowRoot.querySelector('.backdrop');
+
+    it('renders no backdrop on desktop by default', async() => {
+        const el = await mountPopover();
+        await openAndSettle(el);
+        expect(backdropOf(el)).toBeNull();
+    });
+
+    it('renders a transparent guard backdrop under the panel when set', async() => {
+        popoverApi = installPopoverApiStub();
+        const el = await mountPopover();
+        el.blockOutsideClicks = true;
+
+        await openAndSettle(el);
+
+        const backdrop = backdropOf(el);
+        expect(backdrop).not.toBeNull();
+        expect(backdrop.classList.contains('guard')).toBe(true);
+        expect(popoverApi.isOpen(backdrop)).toBe(true);
+        // Shown before the panel so the panel paints above it in the top layer.
+        const order = HTMLElement.prototype.showPopover.mock.instances;
+        expect(order.indexOf(backdrop)).toBeLessThan(order.indexOf(panelOf(el)));
+        // The guard is a hit target, not a scrim: the popover stays non-modal.
+        expect(panelOf(el).hasAttribute('aria-modal')).toBe(false);
+    });
+
+    it('closes on a backdrop click and keeps it from reaching the page', async() => {
+        const el = await mountPopover();
+        el.blockOutsideClicks = true;
+        await openAndSettle(el);
+
+        const pageClick = vi.fn();
+        document.body.addEventListener('click', pageClick);
+        const onClose = vi.fn();
+        el.addEventListener('ol-popover-close', onClose);
+
+        backdropOf(el).dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+        await el.updateComplete;
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(onClose.mock.calls[0][0].detail.reason).toBe('outside-click');
+        // Page listeners see the popover as the target, never a link beneath it.
+        expect(pageClick.mock.calls[0][0].target).toBe(el);
+        expect(el._animState).toBe('exiting');
+    });
+
+    it('keeps the tray scrim, not the guard, on mobile', async() => {
+        installMatchMediaStub((q) => q.includes('max-width'));
+        const el = await mountPopover();
+        el.blockOutsideClicks = true;
+        await openAndSettle(el);
+
+        const backdrop = backdropOf(el);
+        expect(backdrop).not.toBeNull();
+        expect(backdrop.classList.contains('guard')).toBe(false);
+    });
+});
+
+/**
+ * `anchor` positions the panel against an ancestor instead of the trigger, so a
+ * split button's caret can center its menu under the whole button.
+ */
+describe('ol-popover anchor', () => {
+    beforeEach(() => {
+        installMatchMediaStub();
+        document.body.innerHTML = '';
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    const rect = (left, width) => ({ left, right: left + width, width, top: 100, bottom: 136, height: 36 });
+
+    it('centers the panel on the matching ancestor', async() => {
+        const el = await mountPopover();
+        const group = document.createElement('div');
+        group.className = 'split';
+        document.body.appendChild(group);
+        group.appendChild(el);
+        el.placement = 'bottom-center';
+        el.anchor = '.split';
+        group.getBoundingClientRect = () => rect(100, 200);
+        el.querySelector('[slot="trigger"]').getBoundingClientRect = () => rect(268, 32);
+
+        el._computePosition(240, 80);
+
+        // Group center is 200, so a 240px panel starts at 80.
+        expect(el._position.left).toBe(80);
+    });
+
+    it('falls back to the trigger when the selector matches nothing', async() => {
+        const el = await mountPopover();
+        el.anchor = '.missing';
+
+        expect(el._anchorEl).toBe(el.querySelector('[slot="trigger"]'));
     });
 });

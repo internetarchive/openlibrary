@@ -17,6 +17,9 @@ export const DEFAULT_STRINGS = {
     loadError: 'Could not load the testing environment.',
     retry: 'Try again',
     actionFailed: 'Could not complete that action.',
+    addFailedNotFound: 'PR %s does not exist.',
+    addFailedUnavailable: 'Could not check PR %s — GitHub is unavailable.',
+    addFailedOther: 'Could not add PR %s.',
     title: 'Testing Environment',
     addPrs: 'Add PRs',
     addPlaceholder: 'PR numbers or URLs, space or comma separated',
@@ -77,6 +80,56 @@ export function sprintf(fmt, ...args) {
 }
 
 /**
+ * The action endpoints answer {"ok": false, "error": "<code>"} for business
+ * failures; each code maps to the string that explains it.
+ */
+export const ACTION_ERRORS = {
+    add_failed: 'actionFailed',
+    deploy_failed: 'deployFailedTrigger',
+    deploy_unconfigured: 'deployUnconfigured'
+};
+
+export function parsePrNumbers(value) {
+    return String(value || '')
+        .trim()
+        .split(/[\s,]+/)
+        .filter(Boolean)
+        .flatMap((token) => {
+            if (token.includes('/issues/')) return [];
+            const match = token.match(/\/pull\/(\d+)/);
+            const number = match ? Number(match[1]) : Number(token.replace(/^#/, ''));
+            return Number.isInteger(number) && number > 0 ? [number] : [];
+        });
+}
+
+/**
+ * The toast to show for a failed action.
+ *
+ * An add that GitHub rejected carries `failed_prs` ({number: reason}), so it
+ * can name the numbers that didn't land and why. Every other code — and an
+ * add without that detail — falls back to its fixed string.
+ */
+export function actionErrorMessage(result, strings) {
+    const failed = result?.failed_prs;
+    if (result?.error === 'add_failed' && failed && Object.keys(failed).length) {
+        const reasons = {
+            not_found: strings.addFailedNotFound,
+            unavailable: strings.addFailedUnavailable
+        };
+        // Numeric order, not insertion order: JSON object keys that look like
+        // integers come back re-sorted ascending by the JS engine, so relying
+        // on the server's order would show them in an order nobody chose.
+        return Object.keys(failed)
+            .map(Number)
+            .sort((a, b) => a - b)
+            .map((prNumber) => sprintf(reasons[failed[prNumber]] || strings.addFailedOther, prNumber))
+            .join(' ');
+    }
+    const key = ACTION_ERRORS[result?.error] || 'actionFailed';
+    return strings[key] || strings.actionFailed || key;
+}
+
+/**
  * Decode a URL-encoded JSON attribute value (how render_component passes
  * dict/list attrs to Vue components).
  */
@@ -99,30 +152,17 @@ export async function getTestingStatus() {
 }
 
 /**
- * POST an action and resolve its JSON body. The status handlers answer
- * {"ok": true} or {"ok": false, "error": "<code>"} directly — no redirect to
- * re-fetch — so callers toast on ok=false and then reload the panel state
- * from /status/testing.json. Array values are repeated so
- * web.input(prs=[]) sees multiple checkboxes.
+ * Send a JSON action request and resolve its JSON body.
  */
-export async function postAction(action, fields = {}) {
-    const body = new URLSearchParams();
-    for (const [key, value] of Object.entries(fields)) {
-        if (Array.isArray(value)) {
-            value.forEach((item) => body.append(key, item));
-        } else {
-            body.append(key, value);
-        }
-    }
-
+export async function postAction(action, fields = {}, method = 'POST') {
     const response = await fetch(action, {
-        method: 'POST',
+        method,
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
             Accept: 'application/json'
         },
         credentials: 'same-origin',
-        body
+        body: JSON.stringify(fields)
     });
     if (!response.ok) {
         throw new Error(`${action} failed: ${response.status}`);

@@ -5373,14 +5373,10 @@ msgstr ""
 "a>, <a href=\"//archive.org/\">archive.org</a> y <a href=\"//archive-it."
 "org\">archive-it.org</a>"
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 #, python-format
-msgid ""
-"version <a href=\"https://github.com/internetarchive/openlibrary/commit/"
-"%s\">%s</a>"
-msgstr ""
-"versión <a href=\"https://github.com/internetarchive/openlibrary/commit/"
-"%s\">%s</a>"
+msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
+msgstr "versión <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
 
 # The literal translation into Spanish is too long, so it is cut off in the
 # UI. The translation has been shortened with an etcetera.

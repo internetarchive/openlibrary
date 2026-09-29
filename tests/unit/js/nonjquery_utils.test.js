@@ -1,56 +1,83 @@
-import sinon from 'sinon';
-import { debounce } from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
+import { debounce, maxBy, uniqBy } from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
 
 describe('debounce', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     test('func not called during initialization', () => {
-        const spy = sinon.spy();
+        const spy = vi.fn();
         debounce(spy, 100, false);
-        expect(spy.callCount).toBe(0);
+        expect(spy).not.toHaveBeenCalled();
     });
 
     test('func called after threshold when !execAsap', () => {
-        const clock = sinon.useFakeTimers();
-        const spy = sinon.spy();
+        vi.useFakeTimers();
+        const spy = vi.fn();
         const debouncedSpy = debounce(spy, 100, false);
         debouncedSpy();
-        expect(spy.callCount).toBe(0);
-        clock.tick(99);
-        expect(spy.callCount).toBe(0);
-        clock.tick(1);
-        expect(spy.callCount).toBe(1);
-        clock.restore();
+        expect(spy).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(99);
+        expect(spy).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(1);
+        expect(spy).toHaveBeenCalledTimes(1);
     });
 
     test('func called immediately when execAsap', () => {
-        const clock = sinon.useFakeTimers();
-        const spy = sinon.spy();
+        vi.useFakeTimers();
+        const spy = vi.fn();
         const debouncedSpy = debounce(spy, 100, true);
         debouncedSpy();
-        expect(spy.callCount).toBe(1);
-        clock.tick(100);
-        expect(spy.callCount).toBe(1);
-        clock.restore();
+        expect(spy).toHaveBeenCalledTimes(1);
+        vi.advanceTimersByTime(100);
+        expect(spy).toHaveBeenCalledTimes(1);
     });
 
     test('func called with correct context and arguments', () => {
-        const spy = sinon.spy();
+        const spy = vi.fn();
         const debouncedSpy = debounce(spy, 100, true);
         const context = {};
         debouncedSpy.call(context, 1, 2, 3);
-        expect(spy.thisValues[0]).toBe(context);
-        expect(spy.args[0]).toEqual([1, 2, 3]);
+        expect(spy.mock.contexts[0]).toBe(context);
+        expect(spy).toHaveBeenCalledWith(1, 2, 3);
     });
 
     test('func only called once when spammed', () => {
-        const clock = sinon.useFakeTimers();
-        const spy = sinon.spy();
+        vi.useFakeTimers();
+        const spy = vi.fn();
         const debouncedSpy = debounce(spy, 100, false);
         for (let i = 0; i < 10; i++) {
             debouncedSpy();
-            expect(spy.callCount).toBe(0);
+            expect(spy).not.toHaveBeenCalled();
         }
-        clock.tick(100);
-        expect(spy.callCount).toBe(1);
-        clock.restore();
+        vi.advanceTimersByTime(100);
+        expect(spy).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('uniqBy', () => {
+    test('keeps the first item for each key', () => {
+        const items = [{ id: 1, n: 'a' }, { id: 2, n: 'b' }, { id: 1, n: 'c' }];
+        expect(uniqBy(items, x => x.id)).toEqual([{ id: 1, n: 'a' }, { id: 2, n: 'b' }]);
+    });
+
+    test('treats undefined as a key', () => {
+        expect(uniqBy([undefined, { value: 'x' }, undefined], x => x?.value)).toEqual([undefined, { value: 'x' }]);
+    });
+});
+
+describe('maxBy', () => {
+    test('returns the first item with the largest key', () => {
+        expect(maxBy(['aa', 'b', 'cc'], s => s.length)).toBe('aa');
+    });
+
+    test('returns undefined for an empty array', () => {
+        expect(maxBy([], x => x)).toBeUndefined();
+    });
+
+    test('skips null, undefined and NaN keys', () => {
+        expect(maxBy([undefined, 2], x => x)).toBe(2);
+        expect(maxBy([NaN, 2, null], x => x)).toBe(2);
+        expect(maxBy([NaN, undefined], x => x)).toBeUndefined();
     });
 });

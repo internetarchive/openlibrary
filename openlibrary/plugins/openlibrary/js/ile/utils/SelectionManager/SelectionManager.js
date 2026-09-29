@@ -84,10 +84,13 @@ export default class SelectionManager {
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
     processClick(clickEvent) {
-        // If there is text selection or the click is on a link that isn't a select handle, don't do anything
-        if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
-            ($(clickEvent.target).closest('a, button, details').length > 0 &&
-            $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
+        // If there is text selection, don't do anything
+        if (!clickEvent.shiftKey && window.getSelection()?.toString() !== '') return;
+        // Walk the composed path: a click inside a web component (ol-shelf-button)
+        // is retargeted to its host by the time it reaches the row.
+        const path = (clickEvent.originalEvent ?? clickEvent).composedPath();
+        const onControl = path.some(n => n instanceof Element && n.matches('a, button, details, [popover]'));
+        if (onControl && !clickEvent.target.classList.contains('ile-select-handle')) return;
 
         const el = clickEvent.currentTarget;
         if (clickEvent.shiftKey && this.lastClicked)

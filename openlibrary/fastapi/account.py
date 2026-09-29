@@ -26,7 +26,7 @@ from openlibrary.fastapi.auth import (
     get_authenticated_user,
     require_authenticated_user,
 )
-from openlibrary.fastapi.utils import set_flash_cookie
+from openlibrary.fastapi.shared.utils import set_flash_cookie
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
 from openlibrary.utils.request_context import site

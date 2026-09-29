@@ -47,7 +47,7 @@ $def remove_item_link():
     $ owner = list.get_owner()
     $if owner and ctx.user and ctx.user.key == owner.key:
         <span class="listDelete sansserif smaller">
-            <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Remove this item?')</a>
+            <a href="javascript:;"><span></span>$_('Remove this item?')</a>
         </span>
 
 $def seed_meta_line(seed):
@@ -66,10 +66,15 @@ $def seed_attrs(seed):
     data-list-key="$list.key"
 
 <div id="contentBody">
-    <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
-    <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
-        $_('You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?')
-    </div>
+    $# Confirmation strings for ListViewBody.js; see confirm-template.js
+    <template id="remove-seed-dialog"
+              data-i18n="$json_encode({'title': _('Remove from this list?'), 'confirm': _('Remove'), 'cancel': _('Cancel'), 'close': _('Close')})">
+        $_('This item will be removed from the list.')
+    </template>
+    <template id="delete-list-dialog"
+              data-i18n="$json_encode({'title': _('Delete this list?'), 'confirm': _('Delete list'), 'cancel': _('Cancel'), 'close': _('Close')})">
+        $_('This is the last item in the list. Removing it will delete the whole list.')
+    </template>
 
     $def render_authors(authors):
         $if not authors:
@@ -109,10 +114,11 @@ $def seed_attrs(seed):
                 <a href="/help/faq/reading-log#lists" target="_blank" rel="noopener noreferrer">$_('Learn more.')</a>
             </p>
 
+        $ reading_states = get_reading_states(ctx.user, [item.doc for item in items if item.seed.type in ['edition', 'work']])
         $for item in items:
             $ seed = item.seed
             $if seed.type in ['edition', 'work']:
-                $:macros.SearchResultsWork(item.doc, attrs=seed_attrs(seed), availability=item.availability, decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
+                $:macros.SearchResultsWork(item.doc, attrs=seed_attrs(seed), availability=item.availability, decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, reading_states=reading_states, layout=layout, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
             $else:
                 $ default_image = "https://openlibrary.org/static/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()

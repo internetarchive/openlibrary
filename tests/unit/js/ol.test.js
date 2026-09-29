@@ -8,7 +8,7 @@ describe('move_to_work', () => {
     });
 
     it('reports no failures when all PUTs succeed', async() => {
-        global.fetch = jest.fn()
+        global.fetch = vi.fn()
             .mockResolvedValueOnce({ json: () => Promise.resolve({ works: [] }) })
             .mockResolvedValueOnce({ ok: true, status: 200 });
 
@@ -18,8 +18,8 @@ describe('move_to_work', () => {
     });
 
     it('counts PUTs that return a non-successful status as failed and warns', async() => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        global.fetch = jest.fn()
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        global.fetch = vi.fn()
             .mockResolvedValueOnce({ json: () => Promise.resolve({ works: [] }) })
             .mockResolvedValueOnce({ ok: false, status: 500 })
             .mockResolvedValueOnce({ json: () => Promise.resolve({ works: [] }) })
@@ -45,7 +45,7 @@ describe('move_to_author', () => {
     }
 
     it('reports no failures when all PUTs succeed', async() => {
-        global.fetch = jest.fn()
+        global.fetch = vi.fn()
             .mockResolvedValueOnce({ json: () => Promise.resolve(workRecord()) })
             .mockResolvedValueOnce({ ok: true, status: 200 });
 
@@ -55,8 +55,8 @@ describe('move_to_author', () => {
     });
 
     it('counts PUTs that return a non-successful status as failed and warns', async() => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        global.fetch = jest.fn()
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        global.fetch = vi.fn()
             .mockResolvedValueOnce({ json: () => Promise.resolve(workRecord()) })
             .mockResolvedValueOnce({ ok: false, status: 400 })
             .mockResolvedValueOnce({ json: () => Promise.resolve(workRecord()) })

@@ -1,44 +1,14 @@
 # Copilot Instructions
 
-> **Canonical guide:** [`docs/ai/README.md`](../docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
-
-## Quick Reference
-
-**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 10
-
-**Dev setup:** `make git && docker compose up` → http://localhost:8080
-
-**Note:** When updating a dependency, ensure it's updated across all dependency locations: requirements*.txt files, package.json files, and .pre-commit-config.yaml.
-
-### Key Commands
-
-```bash
-make test-py                # Python tests
-npm run test:js             # JS tests
-make lint                   # Python lint (ruff)
-npm run lint                # JS + CSS lint
-npm run lint-fix            # Auto-fix JS/CSS
-npm run watch               # Dev mode with hot reload
-```
+> **Canonical guides:** [`AGENTS.md`](../AGENTS.md) for stack, commands, and conventions; [`docs/ai/README.md`](../docs/ai/README.md) for architecture and data-model. Path-specific review guidance lives in [`instructions/`](instructions/).
 
 ### Code Style
 
-- **Python:** Ruff for linting and `ruff format` for formatting, line length 162
+- **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes
 - **JS:** ESLint, single quotes, no jQuery in new code
-- **CSS:** Stylelint — no hex/named colors, use variables
+- **CSS:** Stylelint — semantic tokens only, no hex/named colors
+- **Templates:** Jinja2 for new templates; Templetor is legacy
 - **Branches:** `{issue-number}/{type}/{slug}`
-
-### Entry Points
-
-| What | Where |
-|---|---|
-| App entry | `openlibrary/code.py` |
-| FastAPI | `openlibrary/asgi_app.py` |
-| Route handlers | `openlibrary/plugins/*/code.py` |
-| Templates | `openlibrary/templates/` |
-| Core logic | `openlibrary/core/` |
-| JS source | `openlibrary/plugins/openlibrary/js/` |
-| CSS source | `static/css/` |
 
 ### Code Quality Guidelines
 
@@ -49,6 +19,8 @@ npm run watch               # Dev mode with hot reload
 **Idiomatic Code:** Use language idioms (e.g., comprehensions in Python, modern JS features). Simplify verbose patterns like `if len(items) > 0:` → `if items:`.
 
 **DRY:** Abstract repeated code blocks into shared helpers.
+
+**Dependencies:** When updating a dependency, ensure it's updated across all dependency locations: requirements*.txt files, package.json files, and .pre-commit-config.yaml.
 
 **i18n:** Wrap all user-facing strings in translation functions (`$_(...)` or `$:_('...')`). Do not use string concatenation to construct user-visible strings; prefer a single parameterized translation string instead. Use named placeholders (`_('Hello, %(name)s')`) rather than positional placeholders such as `%s` so translators have more context. Use `$:_()` for HTML content to prevent double-escaping.
 

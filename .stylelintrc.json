@@ -19,6 +19,13 @@
         ]
       }
     ],
+    "declaration-property-value-disallowed-list": [
+      { "z-index": ["/--z-index-level-/"] },
+      {
+        "severity": "warning",
+        "message": "Use a semantic or local z-index token, not a --z-index-level-* primitive (#12363)"
+      }
+    ],
     "color-no-hex": true,
     "color-named": "never",
     "declaration-block-no-duplicate-properties": true,
@@ -44,5 +51,39 @@
 		"font-family-no-duplicate-names": true,
 		"font-family-no-missing-generic-family-keyword": [true, {"ignoreFontFamilies": ["!important"]}],
 		"no-descending-specificity": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["static/css/base/common.css"],
+      "rules": {
+        "scale-unlimited/declaration-strict-value": [
+          ["font-family", "font-weight", "background-color", "z-index", "color"],
+          {
+            "disableFix": true,
+            "ignoreValues": ["inherit", "transparent", "none"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["openlibrary/**/*.js"],
+      "customSyntax": "postcss-lit",
+      "rules": {
+        "prettier/prettier": null,
+        "scale-unlimited/declaration-strict-value": [
+          ["z-index"],
+          { "disableFix": true, "ignoreValues": ["inherit", "transparent", "none"] }
+        ],
+        "color-no-hex": null,
+        "color-named": null,
+        "no-descending-specificity": null,
+        "no-duplicate-selectors": null,
+        "declaration-block-no-duplicate-properties": null,
+        "declaration-block-no-redundant-longhand-properties": null,
+        "shorthand-property-no-redundant-values": null,
+        "length-zero-no-unit": null,
+        "selector-max-specificity": null
+      }
+    }
+  ]
 }

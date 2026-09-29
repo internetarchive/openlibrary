@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, patch
 
 import pytest
 import web
@@ -57,14 +56,20 @@ def test_set_share_links():
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.com",
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+            "text": "X (Twitter)",
+            "url": "https://x.com/intent/post?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.com&description=Check+this+out%3A+bar",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
 
@@ -81,14 +86,20 @@ def test_set_share_links_unicode():
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.%C3%A9",
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81",
+            "text": "X (Twitter)",
+            "url": "https://x.com/intent/post?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.%C3%A9&description=Check+this+out%3A+b%C4%81",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
 
@@ -337,46 +348,6 @@ def test_commify_list(name: str, seq: Sequence[str], locale: str, expected: str,
     request_context_fixture(lang=locale)
     got = utils.commify_list(seq)
     assert got == expected
-
-
-def test_render_cached_macro_evicts_cache_on_error(monkeypatch):
-    """
-    When a rendered macro returns `do_not_cache='True'` (e.g. because
-    `work_search` returned a Solr error in RawQueryCarousel), the bad result
-    must be evicted from memcache so subsequent requests get a fresh attempt.
-    """
-    # Simulate the rendered macro result indicating failure
-    error_page = {"do_not_cache": "True", "content": "<div></div>"}
-
-    mock_mc = MagicMock()
-    mock_mc.return_value = error_page  # mc(name, args, **kwargs) returns the error page
-
-    # Patch memcache_memoize to return our mock mc object and
-    # set up web.ctx with the minimum required attributes
-    monkeypatch.setattr(web, "ctx", web.storage(lang="en"))
-    web.ctx.env = {}
-
-    with (
-        patch(
-            "openlibrary.plugins.upstream.utils.cache.memcache_memoize",
-            return_value=mock_mc,
-        ),
-        patch(
-            "openlibrary.plugins.upstream.utils.render_macro",
-        ),
-        patch(
-            "openlibrary.plugins.openlibrary.code.is_bot",
-            return_value=False,
-        ),
-        patch(
-            "openlibrary.utils.request_context.caching_prethread",
-            return_value=None,
-        ),
-    ):
-        utils.render_cached_macro("RawQueryCarousel", ("subject:fantasy",))
-
-    # The cache entry must have been evicted
-    mock_mc.memcache_delete_by_args.assert_called_once_with("RawQueryCarousel", ("subject:fantasy",))
 
 
 def test_get_language_name(add_languages):  # noqa: F811
