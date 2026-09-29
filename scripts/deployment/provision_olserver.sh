@@ -7,6 +7,13 @@
 #
 # NEXUS_HOST="" (required)
 # Hostname of the Nexus artifact repository that mirrors Docker's apt repo/GPG key
+#
+# PROMETHEUS_IP="" (required)
+# IP of the Prometheus server allowed to scrape node-exporter (port 9100)
+#
+# MANUAL_NODE_EXPORTER=false
+# Set to true to start node-exporter with `docker run`, for servers whose compose
+# profile doesn't include the node-exporter service
 
 echo "This script isn't complete and not ready to be run yet. Please run it line-by-line for now."
 exit 1
@@ -25,6 +32,7 @@ wait_yn() {
 }
 
 : "${NEXUS_HOST:?NEXUS_HOST must be set to the Nexus repository hostname}"
+: "${PROMETHEUS_IP:?PROMETHEUS_IP must be set to the Prometheus server IP}"
 
 # Which distro/release are we running on? Supports debian and ubuntu.
 DISTRO_ID=$(. /etc/os-release && echo "$ID")
@@ -100,6 +108,39 @@ sudo groupadd --system openlibrary
 sudo useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 
 sudo git config --global init.defaultBranch master
+
+## Set up node exporter for prometheus monitoring
+# The new configs
+sudo tee /etc/ferm/input/node-exporter.conf > /dev/null <<EOF
+saddr ${PROMETHEUS_IP} proto tcp dport 9100 ACCEPT;
+EOF
+
+sudo systemctl restart ferm
+sudo systemctl restart docker
+
+MANUAL_NODE_EXPORTER=${MANUAL_NODE_EXPORTER:-'false'}
+if [[ $MANUAL_NODE_EXPORTER == 'true' ]]; then
+    # Start node exporter
+    # Keep in sync with node-exporter in compose.production.yaml (see tests/test_docker_compose.py)
+    ## TEST-START: test_provision_node_exporter_matches_production
+    sudo docker run -d \
+      --name node-exporter \
+      --restart unless-stopped \
+      --hostname "$HOSTNAME" \
+      --network host \
+      --pid host \
+      -v /proc:/host/proc:ro \
+      -v /sys:/host/sys:ro \
+      -v /:/host:ro \
+      --log-opt max-size=512m \
+      --log-opt max-file=4 \
+      prom/node-exporter:v1.12.1 \
+      --path.procfs=/host/proc \
+      --path.sysfs=/host/sys \
+      --path.rootfs=/host \
+      --collector.filesystem.mount-points-exclude='^/(sys|proc|dev|host|etc|run)($|/)'
+    ## TEST-END: test_provision_node_exporter_matches_production
+fi
 
 # Here we need to run a deploy to get the commands
 echo "Next, you will need to run the deploy script to get olsystem and openlibrary"
