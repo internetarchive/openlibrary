@@ -2288,8 +2288,8 @@ msgid "If you are adding a domain, prepend the following to the domain:"
 msgstr "Domen əlavə edirsinizsə, domenin əvvəlinə aşağıdakı ifadəni yazın:"
 
 #: admin/spamwords.html
-msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the spamwords list."
-msgstr "Məsələn, <code>t.co</code> domenini ehtiva edən düzəlişlərin qarşısını almaq istəyirsinizsə, spam sözlər siyahısına <code>(\b|https://|http://)t\\.co</code> əlavə edin."
+msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(\\b|https://|http://)t\\.co</code> to the spamwords list."
+msgstr "Məsələn, <code>t.co</code> domenini ehtiva edən düzəlişlərin qarşısını almaq istəyirsinizsə, spam sözlər siyahısına <code>(\\b|https://|http://)t\\.co</code> əlavə edin."
 
 #: admin/spamwords.html
 msgid "Spam Domains"
@@ -3089,7 +3089,7 @@ msgstr "Kitab əlavə et"
 #: books/check.html
 #, python-format
 msgid "One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
-msgstr "Bir an gözləyin... Görünür, <b>%(author)s</b> müəllifinin <b>%(title)s</b> əsəri üçün artıq <em>bəzi mümkün uyğunluqlar</em> var."
+msgstr "<!-- i18n-lint no-tree-equal -->Bir an gözləyin... Görünür, <b>%(author)s</b> müəllifinin <b>%(title)s</b> əsəri üçün artıq <em>bəzi mümkün uyğunluqlar</em> var."
 
 #: books/check.html
 msgid "Rather than creating a duplicate record, please click through the result you think best matches your book."
@@ -3153,7 +3153,7 @@ msgstr "Bunun üçün DAISY faylı mövcud deyil: "
 #: books/daisy.html
 #, python-format
 msgid "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a href=\"%(url)s\">%(title)s</a>"
-msgstr "<a href=\"%(url)s\">%(title)s</a> üçün <a href=\"%(daisy_url)s\"><strong>DAISY.zip faylını endir</strong></a>"
+msgstr "<!-- i18n-lint no-tree-equal --><a href=\"%(url)s\">%(title)s</a> üçün <a href=\"%(daisy_url)s\"><strong>DAISY.zip faylını endir</strong></a>"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
