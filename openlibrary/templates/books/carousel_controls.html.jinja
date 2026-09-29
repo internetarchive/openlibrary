@@ -1,0 +1,15 @@
+{#
+  Header tools for a query carousel: optional readable-only toggle, and shuffle.
+  lazy-carousel.js listens on the wrapper and refetches the carousel in place.
+#}
+{% if readable_toggle is defined %}
+    <div class="carousel-controls">
+        {% if readable_toggle %}
+            <ol-toggle class="carousel-controls__readable" variant="button" label="{{ _('Readable only') }}" accessible-label="{{ _('Show only books you can read now') }}" {% if readable %}checked{% endif %}>
+            </ol-toggle>
+        {% endif %}
+        <ol-button class="carousel-controls__shuffle" variant="secondary" shape="icon" aria-label="{{ _('Shuffle') }}" title="{{ _('Shuffle') }}">
+            {{ icon("dices") }}
+        </ol-button>
+    </div>
+{% endif %}
