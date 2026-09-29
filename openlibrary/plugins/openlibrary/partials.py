@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, quote, quote_plus
 
 import web
 from markupsafe import Markup
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel
 
 from infogami.utils.view import public
 from openlibrary.core import cache
@@ -151,17 +151,6 @@ class CarouselLoadMoreParams(BaseModel):
     key: str = ""
     layout: str | None = None
     published_in: str = ""
-    language: list[str] = Field(default_factory=list)
-
-    @field_validator("language")
-    @classmethod
-    def validate_language_codes(cls, v: list[str]) -> list[str]:
-        """Validate language codes."""
-        for lang in v:
-            # Allow ISO 639-1 (2 letters), ISO 639-3 (3 letters), with optional script
-            if not re.match(r"^[a-z]{2,3}(?:-[a-z]{4})?(?:-[A-Z]{2})?$", lang):
-                raise ValueError(f'Invalid language code: {lang}. Expected ISO 639-1 (e.g., "en", "fr") or ISO 639-3 (e.g., "eng", "fra").')
-        return v
 
 
 _CAROUSEL_CARD_FALLBACK_COVER = "https://openlibrary.org/static/images/icons/avatar_book.png"
@@ -336,12 +325,6 @@ class CarouselCardPartial:
 
     @classmethod
     async def _do_search_query(cls, params: CarouselLoadMoreParams) -> list:
-        """Execute a search query with global filters applied.
-
-        Supported filters:
-        - language: language codes (e.g., 'eng', 'fra')
-        - hasFulltextOnly: readable-only scope (maps to has_fulltext=true)
-        """
         fields = [
             "key",
             "title",
@@ -358,18 +341,8 @@ class CarouselCardPartial:
             "editions",
         ]
         query_params: dict = {"q": params.q}
-
-        if params.language:
-            query_params["language"] = params.language
-
-        # Build filter queries
-        filter_queries: list[str] = []
-
         if params.hasFulltextOnly:
             query_params["has_fulltext"] = "true"
-
-        if filter_queries:
-            query_params["fq"] = filter_queries
 
         results = await work_search_async(
             query_params,

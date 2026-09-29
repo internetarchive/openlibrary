@@ -869,23 +869,23 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: account/reading_log.html home/filter_panel.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html search/inside.html type/author/view.html work_search.html
+#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html search/inside.html type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
-#: account/reading_log.html home/filter_panel.html search/inside.html type/author/view.html work_search.html
+#: account/reading_log.html search/inside.html type/author/view.html work_search.html
 msgid "Filter by availability"
 msgstr ""
 
-#: home/filter_panel.html openlibrary/plugins/worksearch/code.py search/inside.html search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/plugins/worksearch/code.py search/inside.html search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
-#: home/filter_panel.html search/inside.html search/search_modal_i18n.html work_search.html
+#: search/inside.html search/search_modal_i18n.html work_search.html
 msgid "Search languages…"
 msgstr ""
 
-#: books/edit/edition.html home/filter_panel.html languages/index.html search/search_modal_i18n.html work_search.html
+#: books/edit/edition.html languages/index.html search/search_modal_i18n.html work_search.html
 msgid "Languages"
 msgstr ""
 
@@ -893,7 +893,7 @@ msgstr ""
 msgid "Loading…"
 msgstr ""
 
-#: home/filter_panel.html search/inside.html work_search.html
+#: search/inside.html work_search.html
 msgid "Filter by language"
 msgstr ""
 
@@ -2280,7 +2280,7 @@ msgid "If you are adding a domain, prepend the following to the domain:"
 msgstr ""
 
 #: admin/spamwords.html
-msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(\\b|https://|http://)t\\.co</code> to the spamwords list."
+msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the spamwords list."
 msgstr ""
 
 #: admin/spamwords.html
@@ -4153,18 +4153,6 @@ msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: home/filter_panel.html
-msgid "Home filters"
-msgstr ""
-
-#: home/filter_panel.html
-msgid "Filter"
-msgstr ""
-
-#: home/filter_panel.html search/search_modal_i18n.html
-msgid "Clear all"
-msgstr ""
-
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
 msgstr ""
@@ -5814,6 +5802,10 @@ msgstr ""
 #: search/search_modal_i18n.html
 #, python-format
 msgid "All %s books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Clear all"
 msgstr ""
 
 #: search/search_modal_i18n.html

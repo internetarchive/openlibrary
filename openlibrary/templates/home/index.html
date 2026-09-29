@@ -13,6 +13,7 @@ $add_metatag(property="og:url", content="https://openlibrary.org")
 $add_metatag(property="og:site_name", content="Open Library")
 
 <div id="contentBody">
+
   $:macros.BookPreviewFloater()
 
   $:render_template("home/welcome")
@@ -45,10 +46,4 @@ $add_metatag(property="og:site_name", content="Open Library")
   $:render_template("home/stats", stats)
 
   $:render_template("home/about", blog_posts)
-
-  <script type="module">
-    import { initializeFilterPanel } from '/static/js/filter_panel.js';
-
-    initializeFilterPanel();
-  </script>
  </div>

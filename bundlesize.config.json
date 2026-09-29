@@ -67,7 +67,6 @@
     {
       "path": "static/build/css/page-admin.css",
       "maxSize": "28KB"
-
     },
     {
       "path": "static/build/css/page-book.css",
@@ -83,7 +82,7 @@
     },
     {
       "path": "static/build/css/page-home.css",
-      "maxSize": "8.3KB"
+      "maxSize": "8KB"
     },
     {
       "path": "static/build/css/page-plain.css",
@@ -95,7 +94,7 @@
     },
     {
       "path": "static/build/css/page-user.css",
-      "maxSize": "30.5KB"
+      "maxSize": "30KB"
     }
   ]
 }
