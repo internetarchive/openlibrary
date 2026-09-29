@@ -791,6 +791,18 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
+    # Header tools: a shuffle button (`controls`), plus a readable-only toggle where the
+    # query itself doesn't already restrict access (`readable_toggle`).
+    controls: bool = False
+    readable_toggle: bool = False
+
+
+def render_carousel_controls(has_fulltext_only: bool, readable_toggle: bool) -> str:
+    return render_jinja_template(
+        "books/carousel_controls.html.jinja",
+        readable_toggle=readable_toggle,
+        readable=has_fulltext_only,
+    )
 
 
 class CarouselPartial:
@@ -826,10 +838,12 @@ class CarouselPartial:
             layout=params.layout,
             full_path=full_path,
         )
+        tools_html = render_carousel_controls(params.has_fulltext_only, params.readable_toggle) if params.controls else ""
         data = EagerQueryCarouselData(
             search=params.search,
             query=effective_query,
             has_fulltext_only=params.has_fulltext_only,
+            tools_html=tools_html,
             show=book_data["show"],
             title=book_data["title"],
             url=book_data["url"],
@@ -958,6 +972,8 @@ class CarouselQueryParams(CarouselCommonData):
     layout: str
     fallback: str | bool | None
     safe_mode: bool
+    controls: NotRequired[bool]
+    readable_toggle: NotRequired[bool]
 
 
 class BookCarouselData(CarouselCommonData):
@@ -987,6 +1003,7 @@ class EagerQueryCarouselData(BookCarouselData):
     search: bool
     query: str
     has_fulltext_only: bool
+    tools_html: str
 
 
 @public
@@ -1093,6 +1110,8 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
+        **({"controls": True} if params.get("controls") else {}),
+        **({"readable_toggle": True} if params.get("readable_toggle") else {}),
     }
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),
