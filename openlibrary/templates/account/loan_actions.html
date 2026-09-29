@@ -1,0 +1,35 @@
+$def with (loan)
+
+$# What a patron can do with one active loan, dispatched on where the loan lives.
+$#
+$# Its own template rather than inline markup in account/loans.html because the
+$# dispatch is the part that can be wrong, and this can be rendered on its own in
+$# a test. The inline version could only be reached by rendering the whole loans
+$# page -- a mock site, covers and a waiting list stand in front of this decision
+$# -- so in practice it was not exercised at all. #13690 is what that costs: a
+$# borrow acquisition fell off the end of the if/elif chain in
+$# book_providers/read_button.html and rendered the empty string, with the
+$# provider correctly registered and the patron shown nothing. That template is
+$# also where this shape comes from; it is tested the same way.
+$#
+$# The provider test comes FIRST, before the resource_type chain. A loan from a
+$# Lenny node has no ocaid and no loan_link, and the chain's else branch reads
+$# loan['loan_link'] and offers an Adobe Digital Editions return -- a KeyError,
+$# and the wrong instruction if it were not one. See lenny.provider_loans (#13687).
+$if loan.get('provider'):
+    <a href="$loan['read_url']" class="cta-btn cta-btn--available">$_("Read")</a>
+    $if loan.get('expiry'):
+        $ expiry_dt = datetime_from_isoformat(loan['expiry'])
+        $:render_jinja_template("FormatExpiry.html.jinja", expiry_utc=datetimestr_utc(expiry_dt), expiry_display=datestr(expiry_dt))
+    <span class="smaller grey sansserif" style="display: block; margin-top: var(--spacing-stack-sm);">$_("Borrowed from %(library)s", library=loan['provider'])</span>
+$elif loan['resource_type'] == 'bookreader':
+    $:macros.LoanReadForm(loan['ocaid'])
+    $:macros.ReturnForm(loan['ocaid'], loan['expiry'], analytics_track="LoansAndHistory|ReturnClick")
+$else:
+    $if loan['expiry'] is None:
+        <span class="red">$_("Not yet downloaded.") </span><br/>
+        <a href="$loan['loan_link']">$_("Download Now")</a>
+    $else:
+        $ expiry_dt = datetime_from_isoformat(loan['expiry'])
+        $:render_jinja_template("FormatExpiry.html.jinja", expiry_utc=datetimestr_utc(expiry_dt), expiry_display=datestr(expiry_dt))
+    <span class="smaller grey sansserif" style="display: block; margin-top: var(--spacing-stack-sm);">$:_("Return via<br/>Adobe Digital Editions")</span>
