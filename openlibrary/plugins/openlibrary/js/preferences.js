@@ -1,15 +1,12 @@
 const STORAGE_KEY = 'preferences';
 
-function normalizeLanguageSelection(language) {
-    if (Array.isArray(language)) {
-        return language.filter((value) => typeof value === 'string' && value && value !== 'all');
-    }
+// 'fulltext' is Readable only; 'all' lifts it. Readable only is the home page's default,
+// so that is what a patron with nothing stored (or an unrecognised value) gets.
+const DEFAULT_MODE = 'fulltext';
+const MODES = ['fulltext', 'all'];
 
-    if (typeof language === 'string' && language && language !== 'all') {
-        return [language];
-    }
-
-    return [];
+function normalizeMode(mode) {
+    return MODES.includes(mode) ? mode : DEFAULT_MODE;
 }
 
 export function getGlobalPreferences() {
@@ -17,34 +14,18 @@ export function getGlobalPreferences() {
         const stored = localStorage.getItem(STORAGE_KEY);
         const parsed = (stored && JSON.parse(stored)) || {};
 
-        if (!parsed.global) {
-            const cookiePrefs = checkCookiesAndHydrate();
-            if (cookiePrefs) {
-                return cookiePrefs;
-            }
-        }
-
         return {
-            mode: parsed.global?.mode || 'all',
-            language: normalizeLanguageSelection(parsed.global?.language),
+            mode: normalizeMode(parsed.global?.mode),
         };
     } catch (e) {
-        return { mode: 'all', language: [] };
+        return { mode: DEFAULT_MODE };
     }
 }
 
 export function mapPreferencesToBackend(prefs) {
-    const params = {
-        hasFulltextOnly: prefs.mode === 'fulltext' ? true : null,
+    return {
+        hasFulltextOnly: normalizeMode(prefs?.mode) === 'fulltext',
     };
-
-    const languages = normalizeLanguageSelection(prefs.language);
-
-    if (languages.length) {
-        params.language = languages;
-    }
-
-    return params;
 }
 
 export function setGlobalPreferences(prefs) {
@@ -56,9 +37,7 @@ export function setGlobalPreferences(prefs) {
         const parsed = stored ? JSON.parse(stored) : {};
 
         parsed.global = {
-            mode: prefs.mode || 'all',
-            language: normalizeLanguageSelection(prefs.language),
-
+            mode: normalizeMode(prefs.mode),
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
@@ -70,7 +49,7 @@ export function resetGlobalPreferences() {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         const parsed = stored ? JSON.parse(stored) : {};
-        parsed.global = { mode: 'all', language: []};
+        parsed.global = { mode: DEFAULT_MODE };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
         // Silently fail if unable to reset preferences
@@ -91,25 +70,4 @@ export function updateAllCarousels() {
         detail: prefs
     });
     document.dispatchEvent(event);
-}
-
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
-
-function checkCookiesAndHydrate() {
-    const mode = getCookie('ol_mode');
-    const language = getCookie('ol_lang');
-
-    if (mode || language) {
-        const cookiePrefs = {
-            mode: mode || 'all',
-            language: language ? [language] : [],
-        };
-        setGlobalPreferences(cookiePrefs);
-        return cookiePrefs;
-    }
-    return null;
 }

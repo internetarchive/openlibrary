@@ -1,6 +1,6 @@
 
 import { getGlobalPreferences, mapPreferencesToBackend, setGlobalPreferences, resetGlobalPreferences,
-    onGlobalPreferencesChange, updateAllCarousels} from '../../../static/js/preferences';
+    onGlobalPreferencesChange, updateAllCarousels} from '../../../openlibrary/plugins/openlibrary/js/preferences';
 
 describe('getGlobalPreferences', () => {
     beforeEach(() => {
@@ -11,16 +11,14 @@ describe('getGlobalPreferences', () => {
     it('returns default preferences when localStorage is empty', () => {
         const prefs = getGlobalPreferences();
 
-        expect(prefs.mode).toBe('all');
-        expect(prefs.language).toEqual([]);
+        expect(prefs.mode).toBe('fulltext');
     });
 
     it('returns stored preferences when localStorage has valid data', () => {
         // Assert getGlobalPreferences returns the stored values
         const testData = {
             global: {
-                mode: 'fulltext',
-                language: ['es']
+                mode: 'fulltext'
             }
         };
 
@@ -29,7 +27,6 @@ describe('getGlobalPreferences', () => {
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('fulltext');
-        expect(result.language).toEqual(['es']);
     });
 
     it('returns defaults when localStorage contains invalid JSON', () => {
@@ -38,16 +35,14 @@ describe('getGlobalPreferences', () => {
 
         const result = getGlobalPreferences();
 
-        expect(result.mode).toBe('all');
-        expect(result.language).toEqual([]);
+        expect(result.mode).toBe('fulltext');
     });
 
     it('handles localStorage.getItem throwing an error gracefully', () => {
         const result = getGlobalPreferences();
 
         // When localStorage works fine, should return what's stored or defaults
-        expect(result.mode).toBe('all');
-        expect(result.language).toEqual([]);
+        expect(result.mode).toBe('fulltext');
     });
 });
 
@@ -57,20 +52,19 @@ describe('setGlobalPreferences', () => {
     });
 
     it('stores preferences in localStorage with correct structure', () => {
-        const prefs = { mode: 'fulltext', language: ['en'] };
+        const prefs = { mode: 'fulltext' };
 
         setGlobalPreferences(prefs);
 
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('fulltext');
-        expect(result.language).toEqual(['en']);
     });
 
 
 
     it('silently fails when localStorage quota is exceeded', () => {
-        const prefs = { mode: 'fulltext', language: ['en'] };
+        const prefs = { mode: 'fulltext' };
 
         expect(() => {
             setGlobalPreferences(prefs);
@@ -91,28 +85,31 @@ describe('setGlobalPreferences', () => {
         }).not.toThrow();
 
         const result = getGlobalPreferences();
-        expect(result.mode).toBe('all');
+        expect(result.mode).toBe('fulltext');
+    });
+
+    it('stores an unrecognised mode as the default', () => {
+        setGlobalPreferences({ mode: 'preview' });
+
+        expect(getGlobalPreferences().mode).toBe('fulltext');
     });
 
     it('handles invalid data types gracefully', () => {
         expect(() => {
             setGlobalPreferences({
-                mode: 'fulltext',
-                language: ['en']
+                mode: 'fulltext'
             });
         }).not.toThrow();
 
         expect(() => {
             setGlobalPreferences({
-                mode: 123,
-                language: ['en']
+                mode: 123
             });
         }).not.toThrow();
 
         expect(() => {
             setGlobalPreferences({
-                mode: 'fulltext',
-                language: { lang: 'en' }
+                mode: 'fulltext'
             });
         }).not.toThrow();
     });
@@ -120,17 +117,15 @@ describe('setGlobalPreferences', () => {
 
 describe('resetGlobalPreferences', () => {
     it('resets preferences to defaults', () => {
-        setGlobalPreferences({ mode: 'fulltext', language: ['es'] });
+        setGlobalPreferences({ mode: 'all' });
 
         let result = getGlobalPreferences();
-        expect(result.mode).toBe('fulltext');
-        expect(result.language).toEqual(['es']);
+        expect(result.mode).toBe('all');
 
         resetGlobalPreferences();
 
         result = getGlobalPreferences();
-        expect(result.mode).toBe('all');
-        expect(result.language).toEqual([]);
+        expect(result.mode).toBe('fulltext');
     });
 
     it('handles localStorage errors when resetting', () => {
@@ -142,44 +137,22 @@ describe('resetGlobalPreferences', () => {
 
 describe('mapPreferencesToBackend', () => {
     it('transforms mode "fulltext" to hasFulltextOnly true', () => {
-        const result = mapPreferencesToBackend({ mode: 'fulltext', language: [] });
+        const result = mapPreferencesToBackend({ mode: 'fulltext' });
 
         expect(result.hasFulltextOnly).toBe(true);
     });
 
-    it('omits language when language is "all"', () => {
-        const result = mapPreferencesToBackend({ mode: 'all', language: [] });
+    it('transforms mode "all" to hasFulltextOnly false', () => {
+        const result = mapPreferencesToBackend({ mode: 'all' });
 
-        expect(result).not.toHaveProperty('language');
+        expect(result.hasFulltextOnly).toBe(false);
     });
 
-    it('wraps specific language in array', () => {
-        const result = mapPreferencesToBackend({ mode: 'all', language: ['es'] });
-
-        expect(result.language).toEqual(['es']);
-    });
-
-    it('handles missing/null properties gracefully', () => {
-        expect(() => {
-            const result = mapPreferencesToBackend({ mode: 'fulltext', language: undefined });
-            expect(result.hasFulltextOnly).toBe(true);
-            expect(result).not.toHaveProperty('language');
-        }).not.toThrow();
-
-        expect(() => {
-            const result = mapPreferencesToBackend({ mode: null, language: ['en'] });
-            expect(result.language).toEqual(['en']);
-        }).not.toThrow();
-
-        expect(() => {
-            const result = mapPreferencesToBackend({ mode: 'fulltext', language: ['es'] });
-            expect(result.hasFulltextOnly).toBe(true);
-        }).not.toThrow();
-
-        expect(() => {
-            const result = mapPreferencesToBackend({ mode: 'preview' });
-            expect(result).not.toHaveProperty('language');
-        }).not.toThrow();
+    it('treats a missing or unrecognised mode as the default, Readable only', () => {
+        expect(mapPreferencesToBackend({ mode: null }).hasFulltextOnly).toBe(true);
+        expect(mapPreferencesToBackend({ mode: 'preview' }).hasFulltextOnly).toBe(true);
+        expect(mapPreferencesToBackend({}).hasFulltextOnly).toBe(true);
+        expect(mapPreferencesToBackend(undefined).hasFulltextOnly).toBe(true);
     });
 });
 
@@ -193,8 +166,7 @@ describe('onGlobalPreferencesChange', () => {
 
         const testData = {
             global: {
-                mode: 'fulltext',
-                language: ['es']
+                mode: 'fulltext'
             }
         };
         localStorage.setItem('preferences', JSON.stringify(testData));
@@ -212,8 +184,7 @@ describe('onGlobalPreferencesChange', () => {
 
         expect(mockCallback).toHaveBeenCalled();
         expect(mockCallback).toHaveBeenCalledWith({
-            mode: 'fulltext',
-            language: ['es']
+            mode: 'fulltext'
         });
 
         vi.restoreAllMocks();
@@ -242,8 +213,7 @@ describe('onGlobalPreferencesChange', () => {
 
         const testData = {
             global: {
-                mode: 'preview',
-                language: ['fr']
+                mode: 'all'
             }
         };
 
@@ -258,8 +228,7 @@ describe('onGlobalPreferencesChange', () => {
         window.dispatchEvent(storageEvent);
 
         expect(mockCallback).toHaveBeenCalledWith({
-            mode: 'preview',
-            language: ['fr']
+            mode: 'all'
         });
 
         vi.restoreAllMocks();
@@ -287,20 +256,19 @@ describe('updateAllCarousels', () => {
     it('includes current preferences in event detail', () => {
         const dispatchSpy = vi.spyOn(document, 'dispatchEvent');
 
-        setGlobalPreferences({ mode: 'all', language: [] });
+        setGlobalPreferences({ mode: 'all' });
 
         updateAllCarousels();
 
         const eventDispatched = dispatchSpy.mock.calls[0][0];
         expect(eventDispatched.detail).toBeDefined();
         expect(eventDispatched.detail.mode).toBe('all');
-        expect(eventDispatched.detail.language).toEqual([]);
 
         vi.restoreAllMocks();
     });
 
     it('creates event with correct preferences data', () => {
-        const testPrefs = { mode: 'fulltext', language: ['es'] };
+        const testPrefs = { mode: 'fulltext' };
         setGlobalPreferences(testPrefs);
 
         const dispatchSpy = vi.spyOn(document, 'dispatchEvent');
@@ -309,8 +277,7 @@ describe('updateAllCarousels', () => {
 
         const eventDispatched = dispatchSpy.mock.calls[0][0];
         expect(eventDispatched.detail).toEqual({
-            mode: 'fulltext',
-            language: ['es']
+            mode: 'fulltext'
         });
 
         vi.restoreAllMocks();
