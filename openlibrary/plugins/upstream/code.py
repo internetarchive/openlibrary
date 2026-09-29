@@ -34,6 +34,7 @@ from openlibrary.plugins.upstream import (
     checkins,
     covers,
     edits,
+    lenny,  # noqa: F401 side effects may be needed
     likes,  # noqa: F401 side effects may be needed
     merge_authors,
     models,
