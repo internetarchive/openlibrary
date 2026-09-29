@@ -34,7 +34,7 @@ async def get_solr_fields_for_works(
 class ReadProcessor:
     def __init__(self, options):
         self.options = options
-        self.checked_out: AbstractSet[str] = frozenset()
+        self.checked_out_ocaids: AbstractSet[str] = frozenset()
 
     def get_item_status(self, ekey, iaid, collections) -> str:
         if "inlibrary" in collections:
@@ -42,7 +42,7 @@ class ReadProcessor:
         else:
             status = "restricted" if "printdisabled" in collections else "full access"
 
-        if status == "lendable" and iaid in self.checked_out:
+        if status == "lendable" and iaid in self.checked_out_ocaids:
             status = "checked out"
 
         return status
@@ -229,7 +229,7 @@ class ReadProcessor:
         iaids = [value for sublist in self.wkey_to_iaids.values() for value in sublist]
         self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
         lendable_iaids = [iaid for iaid, meta in self.iaid_to_meta.items() if meta and "inlibrary" in meta.get("collection", [])]
-        self.checked_out = await lending.get_checked_out_async(lendable_iaids)
+        self.checked_out_ocaids = await lending.get_checked_out_async(lendable_iaids)
 
         def lookup_iaids(iaids):
             step = 10

@@ -186,13 +186,13 @@ def uniq[T: Hashable](values: Iterable[T]) -> list[T]:
 def process_result(
     result: dict[str, OpenLibraryEditionWithPreview],
     jscmd: Literal["details", "data", "viewapi"] | str | None,  # noqa: PYI051
-    checked_out: AbstractSet[str] = frozenset(),
+    checked_out_ocaids: AbstractSet[str] = frozenset(),
 ) -> dict:
     match jscmd:
         case "details":
             return process_result_for_details(result)
         case "data":
-            return DataProcessor(checked_out).process(result)
+            return DataProcessor(checked_out_ocaids).process(result)
         case _:
             return process_result_for_viewapi(result)
 
@@ -218,9 +218,9 @@ def get_url(doc: OpenLibraryThing) -> str:
 class DataProcessor:
     """Processor to process the result when jscmd=data."""
 
-    def __init__(self, checked_out: AbstractSet[str] = frozenset()):
-        """checked_out: ocaids to report as checked out; see get_checked_out_ocaids"""
-        self.checked_out = checked_out
+    def __init__(self, checked_out_ocaids: AbstractSet[str] = frozenset()):
+        """checked_out_ocaids: ocaids to report as checked out; see get_checked_out_ocaids"""
+        self.checked_out_ocaids = checked_out_ocaids
 
     def process(self, result: dict[str, OpenLibraryEditionWithPreview]) -> dict:
         work_keys = [w["key"] for doc in result.values() for w in doc.get("works", [])]
@@ -370,7 +370,7 @@ class DataProcessor:
                 }
             elif availability == "borrow":
                 d["borrow_url"] = "https://openlibrary.org{}/{}/borrow".format(doc["key"], h.urlsafe(doc.get("title", "untitled")))
-                d["checkedout"] = itemid in self.checked_out
+                d["checkedout"] = itemid in self.checked_out_ocaids
 
             return d
 
@@ -592,8 +592,8 @@ async def dynlinks(bib_keys: Iterable[str], options: DynlinksOptions) -> str:
             edition_dicts.update(new_editions)
 
         docs = await add_availability(edition_dicts)
-        checked_out = await get_checked_out_ocaids(docs.values()) if options.get("jscmd") == "data" else frozenset()
-        edition_dicts = process_result(docs, options.get("jscmd"), checked_out)
+        checked_out_ocaids = await get_checked_out_ocaids(docs.values()) if options.get("jscmd") == "data" else frozenset()
+        edition_dicts = process_result(docs, options.get("jscmd"), checked_out_ocaids)
     except:
         print("Error in processing Books API", file=sys.stderr)
         register_exception()

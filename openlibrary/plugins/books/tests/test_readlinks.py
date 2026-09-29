@@ -18,15 +18,15 @@ def test_get_item_status(collections, options, expected, mock_site):
 
 
 @pytest.mark.parametrize(
-    ("checked_out", "expected"),
+    ("checked_out_ocaids", "expected"),
     [
         ({"iaid"}, "checked out"),
         (frozenset(), "lendable"),
     ],
 )
-def test_get_item_status_checked_out(checked_out, expected, mock_site):
+def test_get_item_status_checked_out(checked_out_ocaids, expected, mock_site):
     read_processor = readlinks.ReadProcessor(options={})
-    read_processor.checked_out = checked_out
+    read_processor.checked_out_ocaids = checked_out_ocaids
     collections = ["inlibrary"]
     status = read_processor.get_item_status("ekey", "iaid", collections)
     assert status == expected
