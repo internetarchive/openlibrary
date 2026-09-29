@@ -1118,7 +1118,6 @@ class HomeGenrePartial:
             fallback=None,
             safe_mode=True,
             controls=True,
-            readable_toggle=True,
         )
         return render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **config)
 
