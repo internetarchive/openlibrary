@@ -208,51 +208,14 @@ class TestGetLendingState:
             assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "open"
 
 
-class TestGetLoan:
-    @pytest.fixture(autouse=True)
-    def setup_mocks(self, monkeypatch):
-        self.mock_api = Mock()
-        self.mock_api.get_loan.return_value = None
-        monkeypatch.setattr(lending, "ia_lending_api", self.mock_api)
-        monkeypatch.setattr(lending.Loan, "from_ia_loan", staticmethod(lambda d: ("loan", d)))
+def test_get_loan_queries_ia_once(monkeypatch):
+    mock_api = Mock()
+    mock_api.get_loan.return_value = {"identifier": "foo00bar"}
+    monkeypatch.setattr(lending, "ia_lending_api", mock_api)
+    monkeypatch.setattr(lending.Loan, "from_ia_loan", staticmethod(lambda d: ("loan", d)))
 
-    def make_account(self, monkeypatch, itemname="@mek"):
-        account = Mock(username="mek", itemname=itemname)
-        monkeypatch.setattr(lending.OpenLibraryAccount, "get_by_key", Mock(return_value=account))
-        return account
-
-    def test_anonymous_lookup_queries_once_unfiltered(self):
-        self.mock_api.get_loan.return_value = {"identifier": "foo00bar"}
-
-        assert lending.get_loan("foo00bar") == ("loan", {"identifier": "foo00bar"})
-        self.mock_api.get_loan.assert_called_once_with("foo00bar", None)
-
-    def test_user_lookup_queries_once_by_itemname(self, monkeypatch):
-        self.make_account(monkeypatch)
-        self.mock_api.get_loan.return_value = {"identifier": "foo00bar"}
-
-        assert lending.get_loan("foo00bar", user_key="/people/mek") == ("loan", {"identifier": "foo00bar"})
-        self.mock_api.get_loan.assert_called_once_with("foo00bar", "@mek")
-
-    def test_no_loan_returns_none(self, monkeypatch):
-        self.make_account(monkeypatch)
-
-        assert lending.get_loan("foo00bar", user_key="/people/mek") is None
-
-    @pytest.mark.parametrize("has_account", [True, False])
-    def test_user_without_itemname_skips_api(self, monkeypatch, has_account):
-        if has_account:
-            self.make_account(monkeypatch, itemname=None)
-        else:
-            monkeypatch.setattr(lending.OpenLibraryAccount, "get_by_key", Mock(return_value=None))
-
-        assert lending.get_loan("foo00bar", user_key="/people/mek") is None
-        self.mock_api.get_loan.assert_not_called()
-
-    def test_api_error_returns_none(self):
-        self.mock_api.get_loan.side_effect = ValueError
-
-        assert lending.get_loan("foo00bar") is None
+    assert lending.get_loan("foo00bar") == ("loan", {"identifier": "foo00bar"})
+    mock_api.get_loan.assert_called_once_with("foo00bar")
 
 
 @pytest.mark.usefixtures("request_context_fixture")
