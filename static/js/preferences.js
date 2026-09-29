@@ -29,7 +29,7 @@ export function getGlobalPreferences() {
             language: normalizeLanguageSelection(parsed.global?.language),
         };
     } catch (e) {
-        return { mode: 'all'};
+        return { mode: 'all', language: [] };
     }
 }
 

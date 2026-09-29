@@ -114,9 +114,6 @@ class FilterPanelController {
     updateClearAll() {
         if (!this.clearAllBtn) return;
         const show = this.toggle.checked && (this.language.selected?.length > 0);
-        console.log('toggle.checked:', this.toggle.checked);
-        console.log('language.selected:', this.language.selected);
-        console.log('show:', show);
         this.clearAllBtn.hidden = !show;
     }
 
