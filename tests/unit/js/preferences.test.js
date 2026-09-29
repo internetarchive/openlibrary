@@ -12,7 +12,7 @@ describe('getGlobalPreferences', () => {
         const prefs = getGlobalPreferences();
 
         expect(prefs.mode).toBe('all');
-            expect(prefs.language).toEqual([]);
+        expect(prefs.language).toEqual([]);
         expect(prefs.date).toEqual([1900, 2025]);
     });
 
@@ -21,7 +21,7 @@ describe('getGlobalPreferences', () => {
         const testData = {
             global: {
                 mode: 'fulltext',
-                    language: ['es'],
+                language: ['es'],
                 date: [2002, 2022]
             }
         };
@@ -31,7 +31,7 @@ describe('getGlobalPreferences', () => {
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('fulltext');
-            expect(result.language).toEqual(['es']);
+        expect(result.language).toEqual(['es']);
         expect(result.date).toEqual([2002, 2022]);
     });
 
@@ -42,7 +42,7 @@ describe('getGlobalPreferences', () => {
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('all');
-            expect(result.language).toEqual([]);
+        expect(result.language).toEqual([]);
         expect(result.date).toEqual([1900, 2025]);
     });
 
@@ -51,7 +51,7 @@ describe('getGlobalPreferences', () => {
 
         // When localStorage works fine, should return what's stored or defaults
         expect(result.mode).toBe('all');
-            expect(result.language).toEqual([]);
+        expect(result.language).toEqual([]);
         expect(result.date).toEqual([1900, 2025]);
     });
 });
@@ -227,7 +227,7 @@ describe('onGlobalPreferencesChange', () => {
         const testData = {
             global: {
                 mode: 'fulltext',
-                    language: ['es'],
+                language: ['es'],
                 date: [2000, 2020]
             }
         };
@@ -247,7 +247,7 @@ describe('onGlobalPreferencesChange', () => {
         expect(mockCallback).toHaveBeenCalled();
         expect(mockCallback).toHaveBeenCalledWith({
             mode: 'fulltext',
-                language: ['es'],
+            language: ['es'],
             date: [2000, 2020]
         });
 
@@ -278,7 +278,7 @@ describe('onGlobalPreferencesChange', () => {
         const testData = {
             global: {
                 mode: 'preview',
-                    language: ['fr'],
+                language: ['fr'],
                 date: [2010, 2023]
             }
         };
@@ -295,7 +295,7 @@ describe('onGlobalPreferencesChange', () => {
 
         expect(mockCallback).toHaveBeenCalledWith({
             mode: 'preview',
-                language: ['fr'],
+            language: ['fr'],
             date: [2010, 2023]
         });
 
