@@ -19,6 +19,7 @@ from openlibrary.core.models import (
 )
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.solr.data_provider import SUPPORTED_TAG_TYPES
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder, sort_title
 from openlibrary.solr.utils import SolrUpdateRequest
@@ -102,7 +103,11 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 authors = [a for a in authors if a["type"]["key"] == "/type/author"]
 
                 # Fetch tags (genres, subgenres, audience)
-                tag_keys = [key for field in ("genres", "subgenres", "audience") for key in work.get(field, [])]
+                tag_keys = [
+                    t["key"] if isinstance(t, dict) else t
+                    for field in SUPPORTED_TAG_TYPES
+                    for t in work.get(field, [])
+                ]
                 tags = [await self.data_provider.get_document(key) for key in tag_keys]
                 tags = [t for t in tags if t["type"]["key"] == "/type/tag"]
 

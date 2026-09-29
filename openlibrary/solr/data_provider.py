@@ -34,6 +34,7 @@ logger = logging.getLogger("openlibrary.solr.data_provider")
 
 IA_METADATA_FIELDS = ("identifier", "boxid", "collection", "access-restricted-item")
 OCAID_PATTERN = re.compile(r"^[^\s&#?/]+$")
+SUPPORTED_TAG_TYPES = ("genres", "subgenres", "audience")
 
 
 def get_data_provider(type="default"):
@@ -436,8 +437,8 @@ class DatabaseDataProvider(DataProvider):
         keys = []
         for doc in self.cache.values():
             if doc and doc["type"]["key"] == "/type/work":
-                for field in ("genres", "subgenres", "audience"):
-                    keys.extend(doc.get(field, []))
+                for field in SUPPORTED_TAG_TYPES:
+                    keys.extend(t["key"] if isinstance(t, dict) else t for t in doc.get(field, []))
         self.preload_documents0(list(set(keys)))
 
     def find_redirects(self, key):

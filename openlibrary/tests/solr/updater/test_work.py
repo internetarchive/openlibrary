@@ -513,7 +513,7 @@ class TestWorkSolrUpdaterTags:
     async def test_tags_loaded_from_data_provider(self):
         genre = make_tag(tag_type="genres", name="Romance", key="/tags/OL177T")
         work = make_work()
-        work["genres"] = ["/tags/OL177T"]
+        work["genres"] = [{"key": "/tags/OL177T"}]
         req, _ = await WorkSolrUpdater(FakeDataProvider([work, genre])).update_key(work)
         assert len(req.adds) == 1
         assert req.adds[0]["genre_key"] == ["OL177T"]
@@ -527,8 +527,8 @@ class TestWorkSolrUpdaterTags:
             make_tag(tag_type="audience", name="Adult", key="/tags/OL301T"),
         ]
         work = make_work()
-        work["genres"] = ["/tags/OL177T"]
-        work["subgenres"] = ["/tags/OL272T"]
+        work["genres"] = [{"key": "/tags/OL177T"}]
+        work["subgenres"] = [{"key": "/tags/OL272T"}]
         work["audience"] = ["/tags/OL301T"]
         req, _ = await WorkSolrUpdater(FakeDataProvider([work, *tags])).update_key(work)
         assert len(req.adds) == 1
@@ -545,7 +545,7 @@ class TestWorkSolrUpdaterTags:
         genre = make_tag(tag_type="genres", name="Romance", key="/tags/OL177T")
         genre["type"] = {"key": "/type/delete"}
         work = make_work()
-        work["genres"] = ["/tags/OL177T"]
+        work["genres"] = [{"key": "/tags/OL177T"}]
         req, _ = await WorkSolrUpdater(FakeDataProvider([work, genre])).update_key(work)
         assert len(req.adds) == 1
         assert req.adds[0].get("genre_key") is None
