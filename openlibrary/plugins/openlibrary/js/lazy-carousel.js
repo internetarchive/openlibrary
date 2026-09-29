@@ -146,7 +146,7 @@ function handleRetry(target) {
 }
 
 /**
- * Wires the header controls (readable-only toggle, shuffle) of a
+ * Wires the header controls (the readable-only toggle) of a
  * loaded carousel. Each change rewrites the stored config and refetches the
  * whole carousel, so the server re-renders the controls in their new state.
  *
@@ -161,12 +161,6 @@ function bindControls(host) {
     controls.querySelector('.carousel-controls__readable')?.addEventListener('ol-toggle-change', (e) => {
         config.has_fulltext_only = e.detail.checked;
         trackEvent('Carousel', e.detail.checked ? 'ReadableOn' : 'ReadableOff', label);
-        refetch(host, config);
-    });
-
-    controls.querySelector('.carousel-controls__shuffle')?.addEventListener('click', () => {
-        config.sort = `random_${Date.now()}`;
-        trackEvent('Carousel', 'Shuffle', label);
         refetch(host, config);
     });
 }
