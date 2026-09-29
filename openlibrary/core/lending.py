@@ -601,36 +601,14 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
         return None
 
 
-def get_loan(identifier: str, user_key: str | None = None):
-    """Returns the loan object for given identifier, if a loan exists.
-
-    If user_key is specified, it returns the loan only if that user is
-    borrowed that book.
-    """
-    _loan = None
-    account = None
-    if user_key:
-        if user_key.startswith("@"):
-            account = OpenLibraryAccount.get_by_link(user_key)
-        else:
-            account = OpenLibraryAccount.get_by_key(user_key)
-
+def get_loan(identifier: str) -> Loan | None:
+    """Returns the loan object for given identifier, if a loan exists."""
     try:
-        _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
+        ia_loan = ia_lending_api.get_loan(identifier)
+        return ia_loan and Loan.from_ia_loan(ia_loan)
     except Exception:  # TODO: Narrow exception scope
-        logger.exception(f"get_loan({identifier}) 1 of 2")
-
-    try:
-        _loan = _get_ia_loan(identifier, account and account.itemname)
-    except Exception:  # TODO: Narrow exception scope
-        logger.exception(f"get_loan({identifier}) 2 of 2")
-
-    return _loan
-
-
-def _get_ia_loan(identifier: str, userid: str | None = None):
-    ia_loan = ia_lending_api.get_loan(identifier, userid)
-    return ia_loan and Loan.from_ia_loan(ia_loan)
+        logger.exception(f"get_loan({identifier})")
+        return None
 
 
 def get_loans_of_user(user_key: str) -> list[Loan]:
