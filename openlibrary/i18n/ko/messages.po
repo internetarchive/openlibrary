@@ -3381,7 +3381,7 @@ msgid ""
 "Activated on <span class=\"time\">%(date)s</span> from <a "
 "href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 msgstr ""
-"<!-- i18n-lint no-tree-equal --><a href=\"/admin/ip/%(ip)s\">%(ip)s</a>에서"
+"<!-- i18n-lint no-tree-order --><a href=\"/admin/ip/%(ip)s\">%(ip)s</a>에서"
 " <span class=\"time\">%(date)s</span>에 활성화됨."
 
 #: admin/people/view.html
@@ -3932,7 +3932,7 @@ msgid ""
 "One moment... It looks like we already have <em>some potential "
 "matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
 msgstr ""
-"<!-- i18n-lint no-tree-equal -->잠시만요... 이미 <b>%(author)s</b>의 "
+"<!-- i18n-lint no-tree-order -->잠시만요... 이미 <b>%(author)s</b>의 "
 "<b>%(title)s</b>와 <em>비슷한 후보</em>가 있는 것 같습니다."
 
 #: books/check.html
@@ -3992,7 +3992,7 @@ msgid ""
 "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
 " <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
-"<!-- i18n-lint no-tree-equal --><a href=\"%(url)s\">%(title)s</a>의 <a "
+"<!-- i18n-lint no-tree-order --><a href=\"%(url)s\">%(title)s</a>의 <a "
 "href=\"%(daisy_url)s\"><strong>DAISY.zip 다운로드</strong></a>"
 
 #: books/daisy.html

@@ -3465,7 +3465,7 @@ msgstr "添加书籍"
 #: books/check.html
 #, python-format
 msgid "One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
-msgstr "<!-- i18n-lint no-tree-equal -->等等... 我们好像已经有一些<b>%(author)s</b>写的<b>%(title)s</b>的<em>可能匹配</em>了。"
+msgstr "<!-- i18n-lint no-tree-order -->等等... 我们好像已经有一些<b>%(author)s</b>写的<b>%(title)s</b>的<em>可能匹配</em>了。"
 
 #: books/check.html
 msgid "Rather than creating a duplicate record, please click through the result you think best matches your book."
