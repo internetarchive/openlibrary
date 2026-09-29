@@ -3078,10 +3078,6 @@ msgstr ""
 msgid "Show only books you can read now"
 msgstr ""
 
-#: books/carousel_controls.html.jinja search/sort_options.html
-msgid "Shuffle"
-msgstr ""
-
 #: books/check.html lib/nav_foot.html.jinja lib/nav_head.html
 msgid "Add a Book"
 msgstr ""
@@ -5997,6 +5993,10 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Sort results"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Shuffle"
 msgstr ""
 
 #: search/subjects.html

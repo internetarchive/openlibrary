@@ -791,18 +791,15 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
-    # Header tools: a shuffle button (`controls`), plus a readable-only toggle where the
-    # query itself doesn't already restrict access (`readable_toggle`).
+    # `controls` puts a Readable-only toggle in the header. `readable_clause` is the part of
+    # the row's query that restricts access (e.g. `ebook_access:[borrowable TO *]`); it is
+    # applied only while the toggle is on, so turning it off genuinely widens the row.
     controls: bool = False
-    readable_toggle: bool = False
+    readable_clause: str | None = None
 
 
-def render_carousel_controls(has_fulltext_only: bool, readable_toggle: bool) -> str:
-    return render_jinja_template(
-        "books/carousel_controls.html.jinja",
-        readable_toggle=readable_toggle,
-        readable=has_fulltext_only,
-    )
+def render_carousel_controls(has_fulltext_only: bool) -> str:
+    return render_jinja_template("books/carousel_controls.html.jinja", readable=has_fulltext_only)
 
 
 class CarouselPartial:
@@ -813,8 +810,9 @@ class CarouselPartial:
 
     @classmethod
     async def generate_async(cls, params: LazyCarouselParams, full_path: str = "/") -> dict:
+        query = f"{params.query} {params.readable_clause}" if params.readable_clause and params.has_fulltext_only else params.query
         books = await gather_lazy_carousel_data_async(
-            query=params.query,
+            query=query,
             sort=params.sort,
             limit=params.limit,
             has_fulltext_only=params.has_fulltext_only,
@@ -822,7 +820,7 @@ class CarouselPartial:
         )
         # Build eager data here. Keep lazy logic in build_carousel_placeholder_config.
         # Apply safe_mode to the query for the book carousel as build_carousel_placeholder_config does for lazy.
-        effective_query = f"{params.query} {_SAFE_MODE_FILTER}" if params.safe_mode else params.query
+        effective_query = f"{query} {_SAFE_MODE_FILTER}" if params.safe_mode else query
         book_data = get_book_carousel_data(
             books=[web.storage(b) for b in books["docs"]],
             title=params.title,
@@ -838,7 +836,7 @@ class CarouselPartial:
             layout=params.layout,
             full_path=full_path,
         )
-        tools_html = render_carousel_controls(params.has_fulltext_only, params.readable_toggle) if params.controls else ""
+        tools_html = render_carousel_controls(params.has_fulltext_only) if params.controls else ""
         data = EagerQueryCarouselData(
             search=params.search,
             query=effective_query,
@@ -973,7 +971,7 @@ class CarouselQueryParams(CarouselCommonData):
     fallback: str | bool | None
     safe_mode: bool
     controls: NotRequired[bool]
-    readable_toggle: NotRequired[bool]
+    readable_clause: NotRequired[str | None]
 
 
 class BookCarouselData(CarouselCommonData):
@@ -1111,7 +1109,7 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
         **({"controls": True} if params.get("controls") else {}),
-        **({"readable_toggle": True} if params.get("readable_toggle") else {}),
+        **({"readable_clause": params["readable_clause"]} if params.get("readable_clause") else {}),
     }
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),
