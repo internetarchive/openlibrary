@@ -607,34 +607,23 @@ def get_loan(identifier: str, user_key: str | None = None):
     If user_key is specified, it returns the loan only if that user is
     borrowed that book.
     """
-    _loan = None
     account = None
     if user_key:
         if user_key.startswith("@"):
             account = OpenLibraryAccount.get_by_link(user_key)
         else:
             account = OpenLibraryAccount.get_by_key(user_key)
+        # IA loans are held under the patron's linked archive.org itemname,
+        # so a user without one can't have a loan.
+        if not (account and account.itemname):
+            return None
 
     try:
-        _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
+        ia_loan = ia_lending_api.get_loan(identifier, account and account.itemname)
+        return ia_loan and Loan.from_ia_loan(ia_loan)
     except Exception:  # TODO: Narrow exception scope
-        logger.exception(f"get_loan({identifier}) 1 of 2")
-
-    # Only look up by the linked IA account when the OL-username lookup found
-    # nothing; an unconditional second call would duplicate the anonymous query
-    # and overwrite a loan found above.
-    if account and account.itemname and not _loan:
-        try:
-            _loan = _get_ia_loan(identifier, account.itemname)
-        except Exception:  # TODO: Narrow exception scope
-            logger.exception(f"get_loan({identifier}) 2 of 2")
-
-    return _loan
-
-
-def _get_ia_loan(identifier: str, userid: str | None = None):
-    ia_loan = ia_lending_api.get_loan(identifier, userid)
-    return ia_loan and Loan.from_ia_loan(ia_loan)
+        logger.exception(f"get_loan({identifier})")
+        return None
 
 
 def get_loans_of_user(user_key: str) -> list[Loan]:
