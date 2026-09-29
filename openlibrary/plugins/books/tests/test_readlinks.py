@@ -1,5 +1,4 @@
 import pytest
-import web
 
 from openlibrary.plugins.books import readlinks
 
@@ -19,15 +18,15 @@ def test_get_item_status(collections, options, expected, mock_site):
 
 
 @pytest.mark.parametrize(
-    ("borrowed", "expected"),
+    ("checked_out", "expected"),
     [
-        ("true", "checked out"),
-        ("false", "lendable"),
+        ({"iaid"}, "checked out"),
+        (frozenset(), "lendable"),
     ],
 )
-def test_get_item_status_monkeypatched(borrowed, expected, monkeypatch, mock_site):
+def test_get_item_status_checked_out(checked_out, expected, mock_site):
     read_processor = readlinks.ReadProcessor(options={})
-    monkeypatch.setattr(web.ctx.site.store, "get", lambda _, __: {"borrowed": borrowed})
+    read_processor.checked_out = checked_out
     collections = ["inlibrary"]
     status = read_processor.get_item_status("ekey", "iaid", collections)
     assert status == expected
