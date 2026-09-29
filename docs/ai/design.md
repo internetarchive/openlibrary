@@ -130,6 +130,15 @@ Before writing new markup or CSS, check whether an existing component already do
 
 `ol-otp-login` is also registered but is a single login flow, not a reusable component. For when to build something new versus enhance a template, see [When to Build a Component](web-components.md#when-to-build-a-component).
 
+### Primary action goes right in a dialog, left in a page form
+
+Two conventions, each standard in its own context. Both are deliberate — a page form whose button order disagrees with a dialog's is not a bug.
+
+- **Dialogs and other contained surfaces** put the primary action on the right, matching OS and web convention. `olConfirm()` renders `[Cancel] [Confirm]` into a `justify-content: flex-end` row, and the footer example on `/developers/design` follows the same order.
+- **Page forms** left-align their buttons with the primary action first, so it lines up with the inputs and sits where the reader's eye already is after the last field.
+
+GitHub, Atlassian and Adobe split the same way.
+
 ### Menu rows
 
 Rows inside a panel — the menu, options, and select popovers, the browse popover, the hamburger drawer, the design-site nav — are one shape, and share the tokens in `tokens/control-heights.css`:
