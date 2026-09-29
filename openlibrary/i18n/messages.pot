@@ -4189,6 +4189,14 @@ msgstr ""
 msgid "Books in Local Environment"
 msgstr ""
 
+#: home/readable_filter.html.jinja
+msgid "Readable only"
+msgstr ""
+
+#: home/readable_filter.html.jinja
+msgid "Show only books you can read now"
+msgstr ""
+
 #: home/stats.html
 msgid "Around the Library"
 msgstr ""
