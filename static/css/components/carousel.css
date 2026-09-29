@@ -23,6 +23,36 @@
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
 }
 
+/* The page's Readable-only switch (home/readable_filter.html.jinja) sits at the end of a
+   row above the carousels it governs. */
+.readable-filter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-stack-lg);
+}
+
+.carousel-empty {
+  margin: 0 0 var(--spacing-stack-md);
+  padding: var(--spacing-inset-lg);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+/* A carousel being re-fetched keeps its cards on screen, dimmed, until the new ones land. */
+.lazy-carousel-loaded--refreshing .carousel-container {
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-state);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lazy-carousel-loaded--refreshing .carousel-container {
+    transition: none;
+  }
+}
+
 .carousel {
   display: flex;
   margin-bottom: var(--spacing-stack-md);

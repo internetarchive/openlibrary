@@ -2,8 +2,10 @@
   Shows one book carousel. `count` and `shelf` are optional: see carousel_count.html.jinja.
 #}
 {% from "books/carousel_count.html.jinja" import carousel_count %}
-{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none) %}
-    {% if show %}
+{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, readable_filter=false) %}
+    {# A carousel that follows the page's Readable-only switch keeps its header when the
+       switch empties it, so the patron can see which row went quiet and switch back. #}
+    {% if show or readable_filter %}
         <div class="carousel-section">
             {% if title and url %}
                 <div class="carousel-section-header">
@@ -13,14 +15,18 @@
                     </h2>
                 </div>
             {% endif %}
-            <div class="carousel-container carousel-container-decorated">
-                <div class="carousel {{ grid }} {{ compact }} {{ loadjs }}"
-                     data-config="{{ config_json }}">
-                    {% for card in cards %}
-                        {{ card | safe }}
-                    {% endfor %}
+            {% if show %}
+                <div class="carousel-container carousel-container-decorated">
+                    <div class="carousel {{ grid }} {{ compact }} {{ loadjs }}"
+                         data-config="{{ config_json }}">
+                        {% for card in cards %}
+                            {{ card | safe }}
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
+            {% else %}
+                <p class="carousel-empty">{{ _("No books match these filters.") }}</p>
+            {% endif %}
         </div>
     {% endif %}
 {% endmacro %}
