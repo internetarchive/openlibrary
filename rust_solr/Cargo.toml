@@ -1,0 +1,18 @@
+[package]
+name = "rust_solr"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+duckdb = { version = "1.1", features = ["bundled"] }
+arrow = { version = "54", features = ["prettyprint"] }
+parquet = { version = "54" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+rayon = "1"
+once_cell = "1"
+anyhow = "1"
+thiserror = "2"
+chrono = "0.4"

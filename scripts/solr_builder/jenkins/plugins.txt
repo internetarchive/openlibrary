@@ -1,0 +1,8 @@
+# Pinned against Jenkins LTS 2.568.2 stable update center (2026-08-21).
+# Transitive dependencies are resolved and downloaded at image build time by
+# jenkins-plugin-cli, so the built image is fully reproducible.
+workflow-aggregator:608.v67378e9d3db_1
+docker-workflow:653.v2f2c08eff0ec
+git:5.10.1
+configuration-as-code:2117.vc05a_0b_e6b_f4e
+pipeline-stage-view:2.41

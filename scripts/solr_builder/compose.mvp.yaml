@@ -1,0 +1,29 @@
+# MVP isolated Solr — do NOT touch prod solr on 8983
+# Usage: docker compose -f compose.yaml -p solr_mvp -f compose.mvp.yaml up -d solr_mvp
+# Verify: curl http://localhost:8984/solr/openlibrary/admin/ping
+services:
+  solr_mvp:
+    image: solr:10.0.0
+    restart: on-failure
+    environment:
+      - SOLR_OPTS=-Dsolr.autoSoftCommit.maxTime=-1 -Dsolr.autoCommit.maxTime=3600000 -Dsolr.environment=test
+      - SOLR_MODULES=analysis-extras
+      - SOLR_JAVA_MEM=-Xms3g -Xmx3g
+    ports:
+      - "8984:8983"
+    volumes:
+      - solr_mvp_data:/var/solr
+      - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
+    networks:
+      - solr_mvp_net
+      - solr-access
+
+volumes:
+  solr_mvp_data:
+
+networks:
+  solr_mvp_net:
+  solr-access:
+    external: true
+    name: solr_builder_solr-access
