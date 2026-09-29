@@ -8,7 +8,7 @@
 
 .browse-stacks__header {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--spacing-inline-lg);
   margin-bottom: var(--spacing-stack-md);
@@ -16,6 +16,10 @@
 
 .browse-stacks__header .home-h2 {
   margin-bottom: 0;
+}
+
+.browse-stacks__header .readable-filter {
+  margin-top: 0;
 }
 
 /* The rail pages sideways; each card is a column of two tiles. The viewport padding leaves

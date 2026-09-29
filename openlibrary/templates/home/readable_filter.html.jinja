@@ -1,0 +1,9 @@
+{#
+  The page's Readable-only switch. Every QueryCarousel rendered with readable_filter=True
+  follows it; lazy-carousel.js applies the state before each carousel's first fetch and
+  refetches them all when it changes.
+#}
+<div class="readable-filter">
+    <ol-toggle class="readable-filter__toggle" variant="button" label="{{ _('Readable only') }}" accessible-label="{{ _('Show only books you can read now') }}" checked>
+    </ol-toggle>
+</div>
