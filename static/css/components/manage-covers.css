@@ -1,7 +1,8 @@
 .manageCoversContainer {
   width: 100%;
   text-align: center;
-  z-index: var(--z-index-level-16);
+  /* Legacy value: sits inside a jQuery UI dialog. */
+  z-index: var(--z-index-overlay);
 }
 
 /* Revealed while the cover is hovered, or while the button has keyboard focus. */

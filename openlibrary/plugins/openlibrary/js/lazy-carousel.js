@@ -1,5 +1,12 @@
 import {initialzeCarousels} from './carousel';
 import { trackEvent } from './ol.analytics.js';
+import {
+    getGlobalPreferences,
+    mapPreferencesToBackend,
+    onGlobalPreferencesChange,
+    setGlobalPreferences,
+    updateAllCarousels,
+} from './preferences';
 import { buildPartialsUrl, whenVisible } from './utils';
 
 let relatedBooksTracked = false;
@@ -146,8 +153,10 @@ function handleRetry(target) {
 
 /**
  * The page's Readable-only switch, if this page has one (home/readable_filter.html.jinja).
- * Carousels rendered with `readable_filter` in their config follow it: the switch's state
- * is applied before their first fetch, and a change refetches every loaded one.
+ * Carousels rendered with `readable_filter` in their config follow it. The patron's choice
+ * is kept in preferences.js: restored here before any carousel fetches, stored when the
+ * switch changes, and broadcast as `global-preferences-changed` so every carousel (and
+ * any other tab) follows.
  */
 const readableSwitch = document.querySelector('.readable-filter__toggle');
 
@@ -158,21 +167,34 @@ function applyReadableSwitch(config) {
     return config;
 }
 
-readableSwitch?.addEventListener('ol-toggle-change', (e) => {
-    const readable = e.detail.checked;
-    trackEvent('ReadableFilter', readable ? 'On' : 'Off', 'home');
-    document.querySelectorAll('.lazy-carousel-loaded[data-config], .lazy-carousel[data-config]').forEach((host) => {
-        const config = JSON.parse(host.dataset.config);
-        if (!config.readable_filter) return;
-        config.has_fulltext_only = readable;
-        if (host.classList.contains('lazy-carousel-loaded')) {
-            refetch(host, config);
-        } else {
-            // Not fetched yet (below the fold): it picks the new state up when it loads.
-            host.dataset.config = JSON.stringify(config);
-        }
+if (readableSwitch) {
+    readableSwitch.checked = mapPreferencesToBackend(getGlobalPreferences()).hasFulltextOnly;
+
+    readableSwitch.addEventListener('ol-toggle-change', (e) => {
+        trackEvent('ReadableFilter', e.detail.checked ? 'On' : 'Off', 'home');
+        setGlobalPreferences({ mode: e.detail.checked ? 'fulltext' : 'all' });
+        updateAllCarousels();
     });
-});
+
+    // The preference changed in another tab.
+    onGlobalPreferencesChange(() => updateAllCarousels());
+
+    document.addEventListener('global-preferences-changed', (e) => {
+        const readable = mapPreferencesToBackend(e.detail).hasFulltextOnly;
+        readableSwitch.checked = readable;
+        document.querySelectorAll('.lazy-carousel-loaded[data-config], .lazy-carousel[data-config]').forEach((host) => {
+            const config = JSON.parse(host.dataset.config);
+            if (!config.readable_filter || config.has_fulltext_only === readable) return;
+            config.has_fulltext_only = readable;
+            if (host.classList.contains('lazy-carousel-loaded')) {
+                refetch(host, config);
+            } else {
+                // Not fetched yet (below the fold): it picks the new state up when it loads.
+                host.dataset.config = JSON.stringify(config);
+            }
+        });
+    });
+}
 
 /**
  * Replaces a loaded carousel with a fresh render for `config`. The old cards

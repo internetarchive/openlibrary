@@ -2280,7 +2280,7 @@ msgid "If you are adding a domain, prepend the following to the domain:"
 msgstr ""
 
 #: admin/spamwords.html
-msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the spamwords list."
+msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(\\b|https://|http://)t\\.co</code> to the spamwords list."
 msgstr ""
 
 #: admin/spamwords.html

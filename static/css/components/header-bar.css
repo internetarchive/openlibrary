@@ -27,7 +27,7 @@
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-raised);
   position: relative;
 }
 
@@ -180,7 +180,7 @@
   -webkit-box-ordinal-group: 2;
   -ms-flex-order: 1;
   order: 1;
-  z-index: var(--z-index-level-negative);
+  z-index: var(--z-index-behind);
 }
 
 .header-bar .logo-component .logo-icon {
@@ -217,7 +217,7 @@
   color: var(--white);
   left: 40px;
   top: 40px;
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-raised);
 }
 
 .logo-txt--env-development::after {
@@ -244,7 +244,7 @@
   order: 5;
   /* Despite occurring later in the DOM, this header should be overlaid underneath the items
    * above. E.g. search and account dropdowns. */
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-base);
 }
 
 .header-bar .navigation-component li {
@@ -429,7 +429,7 @@
     );
     padding: var(--spacing-inset-xs) 0;
     border-bottom: 1px solid var(--color-border-muted);
-    z-index: var(--z-index-level-3);
+    z-index: var(--z-index-sticky);
   }
 
   .header-bar .logo-component .logo-icon {

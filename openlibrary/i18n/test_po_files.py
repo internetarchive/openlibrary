@@ -9,7 +9,7 @@ from openlibrary.i18n import get_locales
 root = os.path.dirname(__file__)
 
 
-def trees_equal(el1: ET.Element, el2: ET.Element, error=True):
+def trees_equal(el1: ET.Element, el2: ET.Element, error=True, ordered=True):
     """
     Check if the tree data is the same
     >>> trees_equal(ET.fromstring('<root />'), ET.fromstring('<root />'))
@@ -29,13 +29,29 @@ def trees_equal(el1: ET.Element, el2: ET.Element, error=True):
     >>> trees_equal(ET.fromstring('<root><a href="" /></root>'),
     ...               ET.fromstring('<root><a>Foo</a></root>'), error=False)
     False
+    >>> trees_equal(ET.fromstring('<root><a /><b /></root>'),
+    ...               ET.fromstring('<root><b /><a /></root>'), error=False)
+    False
+    >>> trees_equal(ET.fromstring('<root><a /><b /></root>'),
+    ...               ET.fromstring('<root><b /><a /></root>'), ordered=False)
+    True
+    >>> trees_equal(ET.fromstring('<root><a /><b /></root>'),
+    ...               ET.fromstring('<root><b /><b /></root>'), error=False, ordered=False)
+    False
     """
     try:
         assert el1.tag == el2.tag
         assert set(el1.attrib.keys()) == set(el2.attrib.keys())
         assert len(el1) == len(el2)
-        for c1, c2 in zip(el1, el2):
-            trees_equal(c1, c2)
+        if ordered:
+            for c1, c2 in zip(el1, el2):
+                trees_equal(c1, c2)
+        else:
+            unmatched = list(el2)
+            for c1 in el1:
+                match = next((c2 for c2 in unmatched if trees_equal(c1, c2, error=False, ordered=False)), None)
+                assert match is not None, f"No match for <{c1.tag}> in translation"
+                unmatched.remove(match)
     except AssertionError as e:
         if error:
             raise e
@@ -81,5 +97,8 @@ def test_html_format(locale: str, msgid: str, msgstr: str):
     entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
     id_tree = ET.fromstring(f"{entities}<root>{msgid}</root>")
     str_tree = ET.fromstring(f"{entities}<root>{msgstr}</root>")
-    if not msgstr.startswith("<!-- i18n-lint no-tree-equal -->"):
-        assert trees_equal(id_tree, str_tree)
+    if msgstr.startswith("<!-- i18n-lint no-tree-equal -->"):
+        return
+    # For translations that correctly reorder elements to fit the target language's word order
+    ordered = not msgstr.startswith("<!-- i18n-lint no-tree-order -->")
+    assert trees_equal(id_tree, str_tree, ordered=ordered)
