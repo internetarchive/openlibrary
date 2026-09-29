@@ -791,15 +791,12 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
-    # `controls` puts a Readable-only toggle in the header. `readable_clause` is the part of
-    # the row's query that restricts access (e.g. `ebook_access:[borrowable TO *]`); it is
-    # applied only while the toggle is on, so turning it off genuinely widens the row.
-    controls: bool = False
+    # `readable_filter` marks a carousel that follows the page's Readable-only switch.
+    # `readable_clause` is the part of its query that restricts access (e.g.
+    # `ebook_access:[borrowable TO *]`); it is applied only while the switch is on, so
+    # turning it off genuinely widens the row.
+    readable_filter: bool = False
     readable_clause: str | None = None
-
-
-def render_carousel_controls(has_fulltext_only: bool) -> str:
-    return render_jinja_template("books/carousel_controls.html.jinja", readable=has_fulltext_only)
 
 
 class CarouselPartial:
@@ -836,12 +833,11 @@ class CarouselPartial:
             layout=params.layout,
             full_path=full_path,
         )
-        tools_html = render_carousel_controls(params.has_fulltext_only) if params.controls else ""
         data = EagerQueryCarouselData(
             search=params.search,
             query=effective_query,
             has_fulltext_only=params.has_fulltext_only,
-            tools_html=tools_html,
+            readable_filter=params.readable_filter,
             show=book_data["show"],
             title=book_data["title"],
             url=book_data["url"],
@@ -970,7 +966,7 @@ class CarouselQueryParams(CarouselCommonData):
     layout: str
     fallback: str | bool | None
     safe_mode: bool
-    controls: NotRequired[bool]
+    readable_filter: NotRequired[bool]
     readable_clause: NotRequired[str | None]
 
 
@@ -1001,7 +997,7 @@ class EagerQueryCarouselData(BookCarouselData):
     search: bool
     query: str
     has_fulltext_only: bool
-    tools_html: str
+    readable_filter: bool
 
 
 @public
@@ -1108,7 +1104,7 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
-        **({"controls": True} if params.get("controls") else {}),
+        **({"readable_filter": True} if params.get("readable_filter") else {}),
         **({"readable_clause": params["readable_clause"]} if params.get("readable_clause") else {}),
     }
     return CarouselPlaceholderData(

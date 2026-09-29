@@ -23,21 +23,12 @@
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
 }
 
-/* Header with tools: title on the start side, controls on the end side. The h2 keeps
-   its own top margin, so the row aligns on the title's baseline area rather than its box. */
-.carousel-section-header--tools {
+/* The page's Readable-only switch (home/readable_filter.html.jinja) sits at the end of a
+   row above the carousels it governs. */
+.readable-filter {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-inline-lg);
-  flex-wrap: wrap;
-}
-
-.carousel-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-  margin-bottom: 0.5em;
+  justify-content: flex-end;
+  margin-top: var(--spacing-stack-lg);
 }
 
 .carousel-empty {

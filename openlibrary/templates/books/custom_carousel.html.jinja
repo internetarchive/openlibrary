@@ -2,18 +2,17 @@
   Shows one book carousel. `count` and `shelf` are optional: see carousel_count.html.jinja.
 #}
 {% from "books/carousel_count.html.jinja" import carousel_count %}
-{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, tools_html="") %}
-    {# A carousel with header tools keeps its header when a sort or filter empties it,
-       so the patron can change the controls back. #}
-    {% if show or tools_html %}
+{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, readable_filter=false) %}
+    {# A carousel that follows the page's Readable-only switch keeps its header when the
+       switch empties it, so the patron can see which row went quiet and switch back. #}
+    {% if show or readable_filter %}
         <div class="carousel-section">
             {% if title and url %}
-                <div class="carousel-section-header {% if tools_html %}carousel-section-header--tools{% endif %}">
+                <div class="carousel-section-header">
                     <h2 class="home-h2">
                         <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
                            href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
                     </h2>
-                    {{ tools_html | safe }}
                 </div>
             {% endif %}
             {% if show %}

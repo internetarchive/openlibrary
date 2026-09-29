@@ -3070,14 +3070,6 @@ msgstr ""
 msgid "Add another author?"
 msgstr ""
 
-#: books/carousel_controls.html.jinja
-msgid "Readable only"
-msgstr ""
-
-#: books/carousel_controls.html.jinja
-msgid "Show only books you can read now"
-msgstr ""
-
 #: books/check.html lib/nav_foot.html.jinja lib/nav_head.html
 msgid "Add a Book"
 msgstr ""

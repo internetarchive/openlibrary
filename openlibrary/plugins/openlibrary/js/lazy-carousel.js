@@ -52,7 +52,7 @@ async function fetchPartials(data) {
  * @param target {HTMLElement} A placeholder element for a carousel
  */
 function doFetchAndUpdate(target) {
-    const config = JSON.parse(target.dataset.config);
+    const config = applyReadableSwitch(JSON.parse(target.dataset.config));
     const loadingIndicator = target.querySelector('.loadingIndicator');
 
     fetchPartials(config)
@@ -89,7 +89,6 @@ function doFetchAndUpdate(target) {
                 target.parentNode.insertBefore(newElem, target);
                 target.remove();
                 initialzeCarousels(carouselElements);
-                bindControls(newElem);
 
                 // ==========================================
                 // EXPERIMENT TRACKING: Related Books Discovery
@@ -146,24 +145,34 @@ function handleRetry(target) {
 }
 
 /**
- * Wires the header controls (the readable-only toggle) of a
- * loaded carousel. Each change rewrites the stored config and refetches the
- * whole carousel, so the server re-renders the controls in their new state.
- *
- * @param host {HTMLElement} `.lazy-carousel-loaded` wrapper carrying `data-config`
+ * The page's Readable-only switch, if this page has one (home/readable_filter.html.jinja).
+ * Carousels rendered with `readable_filter` in their config follow it: the switch's state
+ * is applied before their first fetch, and a change refetches every loaded one.
  */
-function bindControls(host) {
-    const controls = host.querySelector('.carousel-controls');
-    if (!controls) return;
-    const config = JSON.parse(host.dataset.config);
-    const label = config.key || config.title || '';
+const readableSwitch = document.querySelector('.readable-filter__toggle');
 
-    controls.querySelector('.carousel-controls__readable')?.addEventListener('ol-toggle-change', (e) => {
-        config.has_fulltext_only = e.detail.checked;
-        trackEvent('Carousel', e.detail.checked ? 'ReadableOn' : 'ReadableOff', label);
-        refetch(host, config);
-    });
+function applyReadableSwitch(config) {
+    if (config.readable_filter && readableSwitch) {
+        config.has_fulltext_only = readableSwitch.checked;
+    }
+    return config;
 }
+
+readableSwitch?.addEventListener('ol-toggle-change', (e) => {
+    const readable = e.detail.checked;
+    trackEvent('ReadableFilter', readable ? 'On' : 'Off', 'home');
+    document.querySelectorAll('.lazy-carousel-loaded[data-config], .lazy-carousel[data-config]').forEach((host) => {
+        const config = JSON.parse(host.dataset.config);
+        if (!config.readable_filter) return;
+        config.has_fulltext_only = readable;
+        if (host.classList.contains('lazy-carousel-loaded')) {
+            refetch(host, config);
+        } else {
+            // Not fetched yet (below the fold): it picks the new state up when it loads.
+            host.dataset.config = JSON.stringify(config);
+        }
+    });
+});
 
 /**
  * Replaces a loaded carousel with a fresh render for `config`. The old cards
@@ -176,9 +185,6 @@ function refetch(host, config) {
     host.dataset.config = JSON.stringify(config);
     host.classList.add('lazy-carousel-loaded--refreshing');
     host.setAttribute('aria-busy', 'true');
-    // The control that triggered this is about to be re-rendered; find its successor by class.
-    const active = document.activeElement;
-    const activeControl = host.contains(active) && Array.from(active.classList).find(cls => cls.startsWith('carousel-controls__'));
 
     fetchPartials(config)
         .then(resp => {
@@ -190,8 +196,6 @@ function refetch(host, config) {
         .then(data => {
             host.innerHTML = data.partials.trim();
             initialzeCarousels(host.querySelectorAll('.carousel--progressively-enhanced'));
-            bindControls(host);
-            if (activeControl) host.querySelector(`.${activeControl}`)?.focus();
         })
         .catch(() => {
             // Keep the current cards; the controls still reflect the last successful state.
