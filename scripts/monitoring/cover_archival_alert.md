@@ -16,9 +16,9 @@ Every claim about current state is labelled **RAN** (a command was executed, and
 
 | | Signal | Instrument |
 |---|---|---|
-| **S1** | Invariant: no cover points into a zip that lacks it | The #13762 checker. It emits one JSON line per batch, `{batch, listing_count, missing_count, sampled, verdict, evidence_ids}` plus `serves` on `partial` rows, then a summary line with no `batch` key. Verdicts include `missing_zip`: an expected zip absent from archive.org, LOSS-class. A listing that can't be validated is indeterminate, never LOSS. Exit codes: 0 clean, 1 new `LOSS` or `missing_zip`, 2 control failed, 3 indeterminate (including any uncaught exception), 4 request cap hit, 5 a known loss shrank. When several apply: **2 > 1 > 5 > 4 > 3 > 0**, so a printed loss outranks a later cap hit or crash. **The workflow also treats exit 4 or 3 with a `LOSS` or `missing_zip` row on stdout as exit 1.** That guards the alert against a checker regression in the ordering; RAN by the reviewer on `e26f600f2`, a LOSS row followed by a cap hit exited 4. |
+| **S1** | Invariant: no cover points into a zip that lacks it | The #13762 checker. READ at #13765 `3fcc16972`. It prints one JSON row per batch **on stdout**: `{batch, listing_count, missing_count, sampled, verdict, evidence_ids}`, plus optional `serves` (an **HTTP status code**, not a boolean), `known`, `expected_by` and `error`. It prints one summary line **on stderr**, on every exit path: `{summary, conditions, known_losses, positive_control, requests, exit}`. Known losses are read from `cover_archival_known_losses.json`. Verdicts include `missing_zip`, an expected zip absent from archive.org, whose `expected_by` is `known`, `baseline` or `pointer` (evidence: exit 1) or `below_newest` (inference: exit 3). A listing that can't be validated is indeterminate, never LOSS. Exit codes: 0 clean, 1 new `LOSS` or `missing_zip`, 2 control failed, 3 indeterminate (including any uncaught exception), 4 request cap hit, 5 a known loss shrank. When several apply: **2 > 1 > 5 > 4 > 3 > 0**, so a printed loss outranks a later cap hit or crash. **The workflow also treats exit 4 or 3 with a `LOSS` or `missing_zip` row on stdout as exit 1.** That guards the alert against a checker regression in the ordering; RAN by the reviewer on `e26f600f2`, a LOSS row followed by a cap hit exited 4. |
 | **S2** | Heartbeat: when a bulk zip last reached archive.org | The newest `mtime` among `covers_NNNN_NN.zip` files in `https://archive.org/metadata/covers_NNNN`, for the newest item **and the next one** (the next is created by its first upload). |
-| **S3** | Backlog: closed batches with no zip on archive.org | `newest_id // 10_000` is the open batch. Every lower batch without a full-size zip is backlog. The newest ID is found by binary search with `HEAD /b/id/<id>-S.jpg?default=false`: 200 or 302 means present, 404 means absent. |
+| **S3** | Backlog: closed batches with no zip on archive.org | `newest_id // 10_000` is the open batch. Every lower batch without a full-size zip is backlog. The newest ID is found by binary search with `HEAD /b/id/<id>-S.jpg?default=false`: 200 or 302 means present, 404 means absent. **The result stands only if 10 consecutive IDs from the first miss all 404.** A single deleted cover at a midpoint makes the search converge just below it, and the tail then finds live covers above. So on any live tail ID, the search resumes from there, at most 5 times. **This is the same verify-and-resume tail check as #13765's newest-ID search:** `newest_existing_id` and `first_live_in_tail` in `scripts/monitoring/cover_archival_check.py`, with `END_OF_IDS_TAIL = 10` and `MAX_NEWEST_RESUMES = 5` (READ at `3fcc16972`). **S3 calls those functions rather than reimplementing them**, passing its own `exists` and `resolution=1`, because the open batch is derived from the exact newest ID and the checker's `NEWEST_ID_RESOLUTION = 100` could misplace it by one near a batch boundary. It is robust to up to 9 consecutive deleted IDs; **10 or more** make the result a lower bound. |
 
 **S2 must not use `publicdate`.** RAN: advancedsearch sorted by `publicdate` returns
 `covers_0014` at 2023-10-14, the item's creation. But its newest zip, `covers_0014_68.zip`, has
@@ -92,7 +92,7 @@ Costs, stated plainly:
   |---|---|
   | `LOSS` rows against the known-loss allowlist, which is written by hand and present at launch | A `listing_count` below baseline |
   | Both controls, and every watcher-health rule | A `missing_count` moving |
-  | Counts of `partial` and `serves: false` rows, **reported weekly, not paged**: without a baseline they can't be told apart from the known failed-cover class | A transition to `serves: false`, and a new `partial` or `short_no_record` batch |
+  | Counts of `partial` rows whose `serves` isn't 200, **reported weekly, not paged**: without a baseline they can't be told apart from the known failed-cover class | A `partial` row's `serves` changing from 200, and a new `partial` or `short_no_record` batch |
   | S2, S3 and the stall rule, which need no baseline | W6 regressions against a seeded 200, until the seed merges |
   | W6's probe and share rules (§3), which trigger on any non-200, seeded or not | |
 
@@ -100,7 +100,7 @@ Costs, stated plainly:
   issue in week 2 for every unseeded slot. **Paging still waits for the §4 fire drill,** whatever is
   live.
 - **Where every other previous value lives.** None of them needs repo write access:
-  - Slot baselines, known losses, each `partial` row's `serves`, and the serving sample's known-404
+  - Slot baselines, known losses, known no-copy regions, each `partial` row's `serves`, and the serving sample's known-404
     IDs: the checked-in file.
   - The stall rule's last posted count and its value 28 days ago: the bot's own dated comments on
     #13287.
@@ -114,7 +114,7 @@ covers oversight page. All requests are public reads at ≤1/s with an identifyi
 
 | Job | When | Requests |
 |---|---|---|
-| S1 (checker, newest 70 zipped batches plus controls) | weekly, and the day after a new upload | ≤250 per run |
+| S1 (checker, newest 100 zipped batches plus controls) | weekly, and the day after a new upload | ≈159 by default: RAN by pr-13762 at `3fcc16972`, a live default run with 91 requests of headroom (not run here). Capped at 250 (`DEFAULT_MAX_REQUESTS`, READ at `3fcc16972`) |
 | S2/S3 (heartbeat, backlog) | daily | ≈35 |
 | Daily `/metadata` md5 read, all 28 zip-era records | daily, same job as S2/S3 | ≈28 (≈63 a day with S2/S3) |
 | W6 serving sample | daily | ≈25 (≈170 a week), plus ≤~11 per failure |
@@ -133,7 +133,7 @@ covers oversight page. All requests are public reads at ≤1/s with an identifyi
   An empty `{}` or a missing `files` list is **indeterminate**, as elsewhere (§5). **What md5 can't
   see:** it is archive.org's recorded checksum, so it detects replacement and deletion, not silent
   bit-rot inside archive.org's storage. That residual is archive.org's.
-- S1 runs **weekly, in its own workflow, on the newest 70 zipped full-size batches, across item
+- S1 runs **weekly, in its own workflow, on the newest 100 zipped full-size batches, across item
   boundaries, plus the controls.** An unzipped batch has nothing for S1 to check; the backlog belongs
   to the stall rule. Scoping it to "the newest item" would drop just-archived
   batches to the quarterly census at the `0014`→`0015` boundary. Its own workflow lets §4 watch it
@@ -153,8 +153,11 @@ covers oversight page. All requests are public reads at ≤1/s with an identifyi
 - S1 also runs the day after S2 sees a newest zip `mtime` within the last 24 hours. The danger window is between a partial upload and
   the next archival run.
 - **Controls are named explicitly on every S1 run:** batch 62 (positive) and a full batch-61 ID
-  (negative). They run on every run, outside the scope, so it doesn't matter when batch 62 leaves
-  the newest-70 window.
+  (negative), plus a present-local control. It finds a cover among the last 5 IDs of the newest
+  zip's batch, runs the newest-ID search from there (resuming past deleted IDs, as S3 does), then
+  tries 3 open-batch candidates for one that is local and served. A failure names every ID it
+  probed (READ, `3fcc16972`; its requests count in the run's total). They run on every run, outside the scope, so it doesn't matter when batch 62
+  leaves the newest-100 window.
 - **A quarterly full census covers every older batch:** about 2,700 listing reads (≈3,000 cap) at ≤1/s, human-
   dispatched or scheduled. It runs the checker itself with `--items`, so there's no second
   implementation. It is the same class as the seed pass, on the covers lead's authority. Its results
@@ -203,11 +206,12 @@ notifies whoever watches the repo.
   - **`covers_0014_62` is the only live positive control.** If #13725's runbook restores it, the
     checker's recorded fixture becomes the only positive control, and the checker's summary line must
     say so. A control that quietly disappears reads the same as one that passes.
-- **A `partial` row that reports `serves: false` where the baseline file records `serves: true`.**
-  Before the seed, no batch has a baseline, and such rows are counted and reported weekly, not paged
-  (the §1 table). The row points local, the local file is gone, and the zip lacks it, so
-  nothing public holds that cover. Host disk and backups are unknown (§5). Rows that were already
-  `serves: false` are most likely the long-standing failed-cover class. They're reported weekly as
+- **A `partial` row whose `serves` is 404 where the baseline file records 200.** (A `serves` of
+  302 is already a `LOSS` row in the checker: the cover redirects into a zip that lacks it.) Before
+  the seed, no batch has a baseline, and such rows are counted and reported weekly, not paged (the §1
+  table). The row points local, the local file is gone, and the zip lacks it, so nothing public holds
+  that cover. Host disk and backups are unknown (§5). Rows that were already 404 are most likely the
+  long-standing failed-cover class. They're reported weekly as
   a known-loss count, not paged. Paging on them would fire every week, and people learn to route
   around an alert like that.
 
@@ -299,7 +303,8 @@ So the watcher proves it ran *and did its job*, through two paths whose failures
 checks. GitHub's own failure email goes only to the person who last edited the workflow's
 schedule (READ, GitHub docs), so the issue, not the email, is the alert.
 
-- The summary line is present.
+- The summary line is present **on stderr**, and its `exit` matches the process exit code. Reading
+  stdout for it would fail every healthy run.
 - The row count is at least the batch count it planned.
 - Both S3 controls hold, and so does W6's known-present local ID.
 - The W6 job sampled at least the IDs its stride and rotation position imply for today, and its S3
@@ -338,14 +343,15 @@ been triggered on purpose and acknowledged by its reader: a dispatch with a muta
 | Whether the archival cron is scheduled on the host | The live crontab isn't public. READ: the cron config has had it commented out since 2025-01-12. | Nothing sees intent. S2 and S3 see the effect within a batch interval, and the §3 stall rule reports it on #13287. Mek checks the live crontab once (plan step 0). |
 | Local disk on `ol-covers0`: surviving files, space filling | No host access | Surviving files: plan step 0, once. Space: READ, a daily `ol-covers0` disk check exists and posts to Slack at 80%. But it measures the filesystem holding the nginx logs, while its message names the data volume. **Whether it covers the coverstore data volume is open.** |
 | Database flags (`failed` / `uploaded` NULL defaults) | No DB access | Plan step 0. A NULL-flag row is skipped silently, and it shows up only indirectly, as a `partial` gap after its batch uploads. |
-| **The unzipped backlog, 57 batches, a single copy** | S1 only produces rows for zipped batches. A cover that was never zipped can't become `partial` or `serves: false`. | **W6 stratum (a):** one ID every 700 across the backlog (≈570k), about 100 a week, for a full pass in **about 8 weeks. That is the worst-case latency for a lost day-directory**, and for single-copy covers the delay is the exposure. "One ID per 700 ≈ one per day-directory" is **UNMEASURED**: #13769 is measuring it from created dates. Stride = _(#13769's figure)_. It replaces a uniform 20-a-week sample, which would catch a lost day in about 2.7% of weeks. |
+| **The unzipped backlog, 57 batches, a single copy** | S1 only produces rows for zipped batches. A cover that was never zipped can't appear in a `partial` row. | **W6 stratum (a):** one ID every 700 across the backlog (≈570k), about 100 a week, for a full pass in **about 8 weeks. That is the worst-case latency for a lost day-directory**, and for single-copy covers the delay is the exposure. "One ID per 700 ≈ one per day-directory" is **UNMEASURED**: #13769 is measuring it from created dates. Stride = _(#13769's figure)_. It replaces a uniform 20-a-week sample, which would catch a lost day in about 2.7% of weeks. |
 | **Rolled-back or lost DB rows in full batches** | READ: S1 examines only the missing IDs of short batches. If the DB were restored from an older backup, finalized rows would revert to local filenames whose files are gone. Those covers 404 while the zip still holds all 10,000. | Nothing in this design. It's recoverable from the zip, but nobody would know to repair it. W6 samples only unzipped and sub-8M covers. Extending it to zipped batches would catch this at about W6's rate. |
-| **Covers 0–7,139,999 (`olcovers1`–`olcovers713`)** | Different item and file shape (`olcoversN-{S,M,L}.zip`), outside S1–S3. Reviewer READ (`code.py`): S/M sizes below 6M are served from local tars. | **For most of the range the data is on archive.org, so a local loss is an outage, not an archival loss. Not for 3.38M–3.69M:** their L and original copies redirect into `olcovers338`–`368`, which don't exist (#13770), so those sizes have no archive.org copy. W6 stratum (b) samples S/M serving in 0–6M and 6M–7.14M. The redirect tier is stratum (c), the next row. |
+| **Covers 0–7,139,999 (`olcovers1`–`olcovers713`)** | Different item and file shape (`olcoversN-{S,M,L}.zip`), outside S1–S3. Reviewer READ (`code.py`): S/M sizes below 6M are served from local tars. | **For most of the range the data is on archive.org, so a local loss is an outage, not an archival loss. Not for 3.38M–3.69M: no copy found in any size** (sampled by the reviewer: S and M 404 on 5 of 5 IDs, no DB row on 3 of 3, with controls outside the range serving; L and original redirect into `olcovers338`–`368`, which don't exist, #13770). **Whether they were lost or never existed is undetermined without DB access.** The range is a **known no-copy region**, a separate category from known losses in the baseline file, so later readers don't take it as confirmed loss. In it, a W6(b)/(c) 404 doesn't page, and a 200 is news: a copy has appeared. The missing items' L probes are a standing positive control for stratum (c). W6 stratum (b) samples S/M serving in 0–6M and 6M–7.14M. The redirect tier is stratum (c), the next row. |
 | **Covers 7,140,000–7,999,999** | Reviewer RAN a 7-ID sample: some are in local `covers_0007_NN.tar` files with no archive.org item, and the rest are unarchived local files. #13725's `MIN_ARCHIVABLE_ID` of 8,000,000 means archival never picks them up. | **A single copy, up to about 860k IDs, and no archival path** (#476, 2017). **W6 stratum (b)** watches that they still serve. It is weighted with the other sub-8M strata (about 50 a week in all) and re-weighted when #13769 measures density. Archiving them is Mek's priority call, not a watch. |
 | **The `olcovers` redirect tier (L and original sizes, 0–7.14M)** | L and original redirect by ID alone, before any DB lookup (covers lead READ), so an S/M probe can't see this class. RAN 2026-09-29: 3,500,000-L → 302 → **404** at archive.org; the control 3,000,000-L → 200. | **W6 stratum (c):** one `HEAD /b/id/<id>-L.jpg?default=false` per `olcovers` item (1–713), following the redirect to its final status, rotated about 20 a week (a full pass in about 36 weeks). All 713 are seeded by the one-off pass. **404** = the item is missing, as in #13770. **503** = it exists but isn't answering: a different failure (seen twice on `olcovers337`), so it counts only after two consecutive runs. |
-| Older batches between censuses | Weekly S1 covers only the newest 70 zipped full-size batches. | **Archive.org side:** within a day, via the daily md5 read. **Pointer side** (covers repointed into an old zip that lacks them): up to about 13 weeks, via the quarterly census. That is acceptable because repointing an old cover needs a re-archival, and a re-archival uploads, which moves S2 and triggers S1 the next day. |
+| Older batches between censuses | Weekly S1 covers only the newest 100 zipped full-size batches. | **Archive.org side:** within a day, via the daily md5 read. **Pointer side** (covers repointed into an old zip that lacks them): up to about 13 weeks, via the quarterly census. That is acceptable because repointing an old cover needs a re-archival, and a re-archival uploads, which moves S2 and triggers S1 the next day. |
 | **Loss on archive.org's side** | A zip deleted or shortened on archive.org leaves the cover pointers intact. | **The daily `/metadata` read (§1)** sees any expected zip vanish or change size, in any slot, within a day. **`missing_zip`** (exit 1) confirms it on S1's next listing, and the listing-shrink rule confirms a shrink. Together they are the archive.org-side check this row was missing. |
-| An archive.org item going missing or dark | RAN: a nonexistent item's `/metadata` returns **HTTP 200 with the body `{}`** (`covers_0007`; the `covers_0008` control returns 64 KB). A naive count would read that as 0 files. | An empty metadata object is its own state, **missing item**: indeterminate for S1 and S2, never a count of 0 and never "not uploaded". For an item that already has a baseline entry, it pages as a possible loss on archive.org's side. The shape of an item that exists but is dark is **not measured**. |
+| **The newest zip deleted, before seeding** | READ (#13765 `3fcc16972`): without a baseline, the *inferred* `missing_zip` covers only batches below the newest zip present. **A deleted newest zip whose covers still point into it, the real loss case after finalize, is caught** as `missing_zip` with `expected_by: pointer` (exit 1): `probe_above` deliberately reads up to 3 IDs in the batch above the newest zip listed. The checker also re-reads the item before emitting any `missing_zip`, and an unconfirmed absence is indeterminate. | **The only case missed before seeding** is a deleted zip whose covers were never finalized into it: nothing is lost yet, because they still point local. Seeding closes that too. S2's newest zip date moving backwards against the last #13287 count is a secondary signal. |
+| An archive.org item going missing or dark | RAN: a nonexistent item's `/metadata` returns **HTTP 200 with the body `{}`** (`covers_0007`; the `covers_0008` control returns 64 KB). A naive count would read that as 0 files. | An empty metadata object is its own state, **missing item**: indeterminate for S1 and S2, including an item inside S1's 100-batch window (pinned by a test in #13765 `352f6d0b4`; READ), never a count of 0 and never "not uploaded". For an item that already has a baseline entry, it pages as a possible loss on archive.org's side. The shape of an item that exists but is dark is **not measured**. |
 
 ## Open questions
 
