@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       i18n_ref:
-        description: "openlibrary-i18n branch, tag or SHA to bake translations from"
+        description: "openlibrary-i18n branch, tag or full 40-character SHA to bake translations from"
         default: main
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
         run: |
           git init -q i18n
           git -C i18n fetch -q --depth=1 https://github.com/internetarchive/openlibrary-i18n "$I18N_REF"
-          sha=$(git -C i18n rev-parse FETCH_HEAD)
+          sha=$(git -C i18n rev-parse 'FETCH_HEAD^{commit}')
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "openlibrary-i18n: \`$I18N_REF\` → \`$sha\`" >> "$GITHUB_STEP_SUMMARY"
 

@@ -3,8 +3,10 @@
 # committed one, if it is safe to ship (see openlibrary.i18n.install_translations).
 # A locale that fails keeps its committed file; pass --strict to exit 1 instead.
 #
-# docker/Dockerfile.olbase and the i18n_upstream CI job both run this, so CI checks
-# exactly what olbase bakes. Run from the repository root.
+# docker/Dockerfile.olbase and the i18n_upstream CI job both run this script, so CI
+# exercises the same pull and gate. CI runs on openlibrary PRs against the current
+# openlibrary-i18n main, which is not necessarily the SHA the next weekly olbase build
+# bakes; in the build itself only the gate and `make` run. Run from the repository root.
 #
 # Usage: scripts/i18n-pull-translations.sh [REF] [--strict]
 #   REF  branch, tag or commit SHA of openlibrary-i18n (default: main)

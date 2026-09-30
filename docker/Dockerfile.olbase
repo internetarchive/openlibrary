@@ -84,10 +84,13 @@ RUN npm ci --no-audit
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 
-# Translations come from openlibrary-i18n at I18N_REF (a branch, tag or SHA). olbase.yaml
-# resolves it to one SHA so both architectures bake the same translations. A locale whose
-# .po would break the build or crash a render keeps its committed file; the resolved SHA
-# and each locale's outcome are written to openlibrary/i18n/openlibrary-i18n.txt.
+# Translations come from openlibrary-i18n at I18N_REF (a branch, tag or full SHA).
+# olbase.yaml always passes I18N_REF (resolved to one SHA for both architectures), so
+# to pin a release, use its i18n_ref input; changing this default does not affect it.
+# Locally, the default `main` lets Docker reuse a cached layer: pass a SHA to refresh.
+# A locale whose .po would break the build or crash a render keeps its committed file;
+# the resolved SHA and each locale's outcome are written to
+# openlibrary/i18n/openlibrary-i18n.txt.
 ARG I18N_REF=main
 
 # run make to initialize git submodules, build css and js files
