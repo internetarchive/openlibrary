@@ -25,6 +25,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  *   "button" for a bordered, raised container styled like
  *   ol-button[variant="secondary"] (subtle drop shadow, inset specular edge on
  *   hover) that fills with a soft blue tint when checked.
+ * @property {"small"} size - Omit for the default size, or "small" for a
+ *   smaller switch and label.
  * @property {String} label - Primary label text.
  * @property {String} sublabel - Secondary greyed text shown after the label.
  * @property {String} accessibleLabel - Override aria-label on the switch.
@@ -53,6 +55,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         checked: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
         variant: { type: String, reflect: true },
+        size: { type: String, reflect: true },
         label: { type: String },
         sublabel: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
@@ -160,6 +163,23 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             .toggle__knob {
                 transition: none;
             }
+        }
+
+        /* ── Small size ─────────────────────────────────────────────────── */
+        :host([size="small"]) {
+            --toggle-track-width: 28px;
+            --toggle-track-height: 16px;
+            --toggle-knob-size: 12px;
+            --toggle-gap: var(--spacing-xs);
+        }
+
+        :host([size="small"]) .toggle {
+            font-size: var(--font-size-label-medium);
+        }
+
+        :host([size="small"][variant="button"]) .toggle {
+            height: var(--control-height-small);
+            padding: 0 var(--spacing-sm);
         }
 
         /* ── Label text ─────────────────────────────────────────────────── */
@@ -272,6 +292,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         this.checked = false;
         this.disabled = false;
         this.variant = null;
+        this.size = null;
         this.label = null;
         this.sublabel = null;
         this.accessibleLabel = null;

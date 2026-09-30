@@ -2,17 +2,31 @@
   Shows one book carousel. `count` and `shelf` are optional: see carousel_count.html.jinja.
 #}
 {% from "books/carousel_count.html.jinja" import carousel_count %}
-{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, readable_filter=false) %}
+{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, readable_filter=false, sort="", sort_control=false) %}
     {# A carousel that follows the page's Readable-only switch keeps its header when the
        switch empties it, so the patron can see which row went quiet and switch back. #}
     {% if show or readable_filter %}
         <div class="carousel-section">
             {% if title and url %}
-                <div class="carousel-section-header">
+                <div class="carousel-section-header{% if sort_control %} carousel-section-header--sortable{% endif %}">
                     <h2 class="home-h2">
                         <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
                            href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
                     </h2>
+                    {% if sort_control %}
+                        {# lazy-carousel.js refetches the row in place when this changes. #}
+                        <ol-segmented-control class="carousel-sort" size="small" value="{{ sort }}" accessible-label="{{ _('Sort %(title)s', title=title) }}">
+                            <ol-segment value="trending">
+                                {{ _("Trending") }}
+                            </ol-segment>
+                            <ol-segment value="new">
+                                {{ _("Newest") }}
+                            </ol-segment>
+                            <ol-segment value="rating">
+                                {{ _("Top rated") }}
+                            </ol-segment>
+                        </ol-segmented-control>
+                    {% endif %}
                 </div>
             {% endif %}
             {% if show %}

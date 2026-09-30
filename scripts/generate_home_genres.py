@@ -55,19 +55,26 @@ KNOWN_SYNONYMS = {
 }
 
 # Terms whose bare prefix drags in unrelated subjects (psychological* is mostly
-# "psychological aspects", cult* is "culture", western* is "western civilization").
-# Values are subject_key clauses, checked live against production.
+# "psychological aspects", cult* is "culture", western* is "western civilization"), or that are
+# thin on their own and need the BISAC key too ("Fiction / Action & Adventure" indexes as
+# fiction_action__adventure). Values are subject_key clauses, checked live against production.
 QUERY_OVERRIDES = {
-    "Action": "(action_and_adventure_fiction OR action_and_adventure OR action)",
-    "Crime": "(crime OR crime_fiction OR crime_fiction_fiction)",
+    "Action": "(fiction_action__adventure* OR action__adventure* OR action_and_adventure* OR action)",
+    "Comedy": "(comedy* OR comedies OR fiction_humorous*)",
+    "Crime": "(crime OR crime_fiction OR crime_fiction_fiction OR fiction_crime*)",
     "Cult": "cult",
     "Drama": "drama",
     "Epic": "(epic OR epic_fiction OR epic_fantasy OR epic_literature)",
     "Gothic": "gothic_fiction*",
-    "Historical": "historical_fiction*",
-    "Literary": "literary_fiction*",
+    "Historical": "(historical_fiction* OR fiction_historical*)",
+    "Horror": "(horror* OR fiction_horror*)",
+    "LGBTQ+": "(lgbtq* OR fiction_lgbtq* OR fiction_gay* OR fiction_lesbian* OR gay_men_fiction OR lesbians_fiction OR gays_fiction)",
+    "Literary": "(literary_fiction* OR fiction_literary*)",
     "Psychological": "psychological_fiction*",
-    "Western": "(western_stories OR westerns OR western_fiction OR western)",
+    "Satire": "(satire* OR fiction_satire* OR satirical*)",
+    "Thriller": "(thriller* OR fiction_thrillers* OR fiction_suspense* OR suspense*)",
+    "Tragedy": "(tragedy* OR tragedies OR tragic*)",
+    "Western": "(western_stories OR westerns OR western_fiction OR western OR fiction_westerns*)",
 }
 
 # Same normalization Solr indexing applies to a subject string (work.py: subject_name_to_key).

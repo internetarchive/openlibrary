@@ -9,13 +9,168 @@
   color: var(--color-text-heading);
 }
 
-/* The welcome heading doubles as the page title, so it sits a step above the section headings
-   and hugs the top of the content box by the same inset the box uses at its sides. */
+/* The welcome heading doubles as the page title, so it sits well above the section headings. */
 .home-h2--page-title {
-  /* Padding, not margin: a margin would collapse through the content box, which has no top padding. */
   margin-top: 0;
-  padding-top: var(--contentBody-padding);
-  font-size: var(--font-size-headline-medium);
+  margin-bottom: var(--spacing-stack-md);
+  font-size: var(--font-size-display-small);
+  line-height: var(--line-height-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* The opening is one warm band, inset from the content box on three sides. Its side padding
+   makes up the rest of the box's inset, so the cards line up with the sections below. */
+.home-welcome {
+  --home-welcome-inset: var(--spacing-inset-sm);
+
+  margin: var(--home-welcome-inset)
+    calc(var(--home-welcome-inset) - var(--contentBody-padding))
+    var(--spacing-stack-md);
+  padding: var(--spacing-inset-md)
+    calc(var(--contentBody-padding) - var(--home-welcome-inset))
+    calc(var(--contentBody-padding) - var(--home-welcome-inset));
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-header);
+}
+
+/* The two figures under the welcome heading: icon, number, and a small label, side by side. */
+.home-figures {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 var(--spacing-stack-lg);
+}
+
+.home-figures__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+  padding-inline-end: var(--spacing-inline-xl);
+}
+
+.home-figures__item:last-child {
+  padding-inline-end: 0;
+}
+
+/* One step darker than the everyday divider, which fades into the warm band. */
+.home-figures__item + .home-figures__item {
+  padding-inline-start: var(--spacing-inline-xl);
+  border-inline-start: 1px solid var(--color-border-muted);
+}
+
+/* Too narrow for both side by side: stack them as one centered block so the icons stay aligned. */
+/* --width-breakpoint-mobile */
+@media (max-width: 449px) {
+  /* A short rule under the title, standing in for the divider the stacked figures lose. */
+  .home-h2--page-title::after {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 1px;
+    margin: var(--spacing-stack-sm) auto 0;
+    background: var(--color-border);
+  }
+
+  .home-figures {
+    flex-direction: column;
+    gap: var(--spacing-stack-sm);
+    width: fit-content;
+    margin-inline: auto;
+    margin-bottom: 0;
+  }
+
+  .home-figures__item + .home-figures__item {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+}
+
+/* 2px: the stack scale starts at 4px, which reads as too loose between a number and its label. */
+.home-figures__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+}
+
+.home-figures__icon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-text-secondary);
+}
+
+.home-figures__number {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  color: var(--color-text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.home-figures__label {
+  margin: 0;
+  font-size: var(--font-size-label-large);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-secondary);
+}
+
+/* The three things you can do here: read, track, improve. */
+.home-tracks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-inline-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Phones skip the three pitch cards: stacked, they push the books below the fold. */
+/* --width-breakpoint-mobile */
+@media (max-width: 449px) {
+  .home-tracks {
+    display: none;
+  }
+}
+
+.home-tracks__card {
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--box-shadow-raised);
+}
+
+/* Icon and title share a row to keep the cards short. */
+/* 18px: the scale skips from 22 to 16, and 16 reads too close to the body copy. */
+.home-tracks__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  margin: 0 0 var(--spacing-stack-xs);
+  font-family: var(--font-family-title);
+  font-size: 18px;
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  color: var(--color-text-heading);
+}
+
+.home-tracks__icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+}
+
+.home-tracks__body {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+}
+
+.home-tracks__body a {
+  font-weight: var(--font-weight-semibold);
 }
 
 .home-h2 a {

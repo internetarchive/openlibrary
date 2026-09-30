@@ -532,7 +532,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: ObservationsModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html home/genre_shelf.html.jinja lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -3108,6 +3108,23 @@ msgid "Continue"
 msgstr ""
 
 #: books/custom_carousel.html.jinja
+#, python-format
+msgid "Sort %(title)s"
+msgstr ""
+
+#: books/custom_carousel.html.jinja openlibrary/plugins/openlibrary/nav.py search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: books/custom_carousel.html.jinja merge_request_table/table_header.html
+msgid "Newest"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Top rated"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
 msgid "No books match these filters."
 msgstr ""
 
@@ -4162,15 +4179,6 @@ msgstr ""
 msgid "Browse by Subject"
 msgstr ""
 
-#: home/genre_shelf.html.jinja
-#, python-format
-msgid "Browse all %(genre)s"
-msgstr ""
-
-#: home/genre_shelf.html.jinja
-msgid "Subgenres"
-msgstr ""
-
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
 msgstr ""
@@ -4280,67 +4288,44 @@ msgid "eBooks Borrowed"
 msgstr ""
 
 #: home/welcome.html
-msgid "Read Free Library Books Online"
+msgid "Find something to read"
 msgstr ""
 
 #: home/welcome.html
-msgid "Millions of books available through Controlled Digital Lending"
+msgid "Borrow from millions of books for free and read them right in your browser."
 msgstr ""
 
 #: home/welcome.html
-msgid "Set a Yearly Reading Goal"
+msgid "Track your reading"
 msgstr ""
 
 #: home/welcome.html
-msgid "Learn how to set a yearly reading goal and track what you read"
+msgid "Build reading lists, keep a record of what you've read, and set reading goals."
 msgstr ""
 
 #: home/welcome.html
-msgid "Keep Track of your Favorite Books"
+msgid "Improve the catalog"
 msgstr ""
 
 #: home/welcome.html
-msgid "Organize your Books using Lists & the Reading Log"
+#, python-format
+msgid "Open Library is a catalog anyone can edit. Add a book or fix a record and help build a library for everyone. %(link_start)sBecome a librarian%(link_end)s"
 msgstr ""
 
 #: home/welcome.html
-msgid "Try the virtual Library Explorer"
+msgid "50 million"
 msgstr ""
 
 #: home/welcome.html
-msgid "Digital shelves organized like a physical library"
+msgid "books in the catalog"
 msgstr ""
 
 #: home/welcome.html
-msgid "Try Fulltext Search"
+msgid "30 million"
 msgstr ""
 
 #: home/welcome.html
-msgid "Find matching results within the text of millions of books"
-msgstr ""
-
-#: home/welcome.html
-msgid "Be an Open Librarian"
-msgstr ""
-
-#: home/welcome.html
-msgid "Dozens of ways you can help improve the library"
-msgstr ""
-
-#: home/welcome.html
-msgid "Volunteer at Open Library"
-msgstr ""
-
-#: home/welcome.html
-msgid "Discover opportunities to improve the library"
-msgstr ""
-
-#: home/welcome.html
-msgid "Send us feedback"
-msgstr ""
-
-#: home/welcome.html
-msgid "Your feedback will help us improve these cards"
+msgid "free to read online"
 msgstr ""
 
 #: jsdef/LazyWorkPreview.html
@@ -5139,10 +5124,6 @@ msgstr ""
 
 #: merge_request_table/table_header.html
 msgid "Sort"
-msgstr ""
-
-#: merge_request_table/table_header.html
-msgid "Newest"
 msgstr ""
 
 #: merge_request_table/table_header.html
@@ -5999,10 +5980,6 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Any"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/nav.py search/sort_options.html
-msgid "Trending"
 msgstr ""
 
 #: search/sort_options.html
@@ -8392,16 +8369,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
-#, python-format
-msgid "Trending in %(name)s"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
-#, python-format
-msgid "Newest in %(name)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

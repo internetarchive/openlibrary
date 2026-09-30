@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-28",
+  "generated": "2026-09-30",
   "source": "https://raw.githubusercontent.com/Open-Book-Genome-Project/tags/main/tag_types/",
   "genres": [
     {
@@ -15,9 +15,9 @@
       "name": "Action",
       "slug": "action",
       "tag_key": "/tags/OL163T",
-      "query": "(action_and_adventure_fiction OR action_and_adventure OR action)",
-      "work_count": 694,
-      "readable_count": 277,
+      "query": "(fiction_action__adventure* OR action__adventure* OR action_and_adventure* OR action)",
+      "work_count": 43292,
+      "readable_count": 6843,
       "subgenres": []
     },
     {
@@ -25,8 +25,8 @@
       "slug": "adventure",
       "tag_key": "/tags/OL164T",
       "query": "adventure*",
-      "work_count": 33021,
-      "readable_count": 16118,
+      "work_count": 33022,
+      "readable_count": 16119,
       "subgenres": [
         {
           "name": "Steampunk",
@@ -50,9 +50,9 @@
       "name": "Comedy",
       "slug": "comedy",
       "tag_key": "/tags/OL165T",
-      "query": "comedy*",
-      "work_count": 3156,
-      "readable_count": 1039,
+      "query": "(comedy* OR comedies OR fiction_humorous*)",
+      "work_count": 15526,
+      "readable_count": 6305,
       "subgenres": [
         {
           "name": "Picaresque",
@@ -68,16 +68,16 @@
       "name": "Crime",
       "slug": "crime",
       "tag_key": "/tags/OL166T",
-      "query": "(crime OR crime_fiction OR crime_fiction_fiction)",
-      "work_count": 37822,
-      "readable_count": 11280,
+      "query": "(crime OR crime_fiction OR crime_fiction_fiction OR fiction_crime*)",
+      "work_count": 43763,
+      "readable_count": 13953,
       "subgenres": [
         {
           "name": "Detective",
           "slug": "detective",
           "tag_key": "/tags/OL273T",
           "query": "detective*",
-          "work_count": 19869,
+          "work_count": 19870,
           "readable_count": 13367
         },
         {
@@ -103,8 +103,8 @@
       "slug": "drama",
       "tag_key": "/tags/OL167T",
       "query": "drama",
-      "work_count": 63301,
-      "readable_count": 16254,
+      "work_count": 63308,
+      "readable_count": 16255,
       "subgenres": [
         {
           "name": "Psychological",
@@ -135,7 +135,7 @@
           "slug": "family-saga",
           "tag_key": "/tags/OL278T",
           "query": "family_saga*",
-          "work_count": 86,
+          "work_count": 91,
           "readable_count": 73
         },
         {
@@ -161,8 +161,8 @@
       "slug": "fantasy",
       "tag_key": "/tags/OL169T",
       "query": "fantasy*",
-      "work_count": 36391,
-      "readable_count": 17304,
+      "work_count": 36393,
+      "readable_count": 17306,
       "subgenres": [
         {
           "name": "Coming of Age",
@@ -226,9 +226,9 @@
       "name": "Historical",
       "slug": "historical",
       "tag_key": "/tags/OL170T",
-      "query": "historical_fiction*",
-      "work_count": 8698,
-      "readable_count": 5663,
+      "query": "(historical_fiction* OR fiction_historical*)",
+      "work_count": 86126,
+      "readable_count": 25158,
       "subgenres": [
         {
           "name": "Epic",
@@ -243,7 +243,7 @@
           "slug": "family-saga",
           "tag_key": "/tags/OL278T",
           "query": "family_saga*",
-          "work_count": 86,
+          "work_count": 91,
           "readable_count": 73
         }
       ]
@@ -252,9 +252,9 @@
       "name": "Horror",
       "slug": "horror",
       "tag_key": "/tags/OL171T",
-      "query": "horror*",
-      "work_count": 13678,
-      "readable_count": 6407,
+      "query": "(horror* OR fiction_horror*)",
+      "work_count": 30238,
+      "readable_count": 8746,
       "subgenres": [
         {
           "name": "Psychological",
@@ -269,7 +269,7 @@
           "slug": "cult",
           "tag_key": "/tags/OL271T",
           "query": "cult",
-          "work_count": 7652,
+          "work_count": 7653,
           "readable_count": 589
         },
         {
@@ -311,8 +311,8 @@
       "slug": "humor",
       "tag_key": "/tags/OL172T",
       "query": "humor*",
-      "work_count": 57774,
-      "readable_count": 25965,
+      "work_count": 57775,
+      "readable_count": 25964,
       "subgenres": [
         {
           "name": "Gonzo",
@@ -328,18 +328,18 @@
       "name": "LGBTQ+",
       "slug": "lgbtq",
       "tag_key": "/tags/OL173T",
-      "query": "lgbtq*",
-      "work_count": 5254,
-      "readable_count": 2382,
+      "query": "(lgbtq* OR fiction_lgbtq* OR fiction_gay* OR fiction_lesbian* OR gay_men_fiction OR lesbians_fiction OR gays_fiction)",
+      "work_count": 27225,
+      "readable_count": 5235,
       "subgenres": []
     },
     {
       "name": "Literary",
       "slug": "literary",
       "tag_key": "/tags/OL174T",
-      "query": "literary_fiction*",
-      "work_count": 429,
-      "readable_count": 239,
+      "query": "(literary_fiction* OR fiction_literary*)",
+      "work_count": 761,
+      "readable_count": 240,
       "subgenres": [
         {
           "name": "Coming of Age",
@@ -354,7 +354,7 @@
           "slug": "cult",
           "tag_key": "/tags/OL271T",
           "query": "cult",
-          "work_count": 7652,
+          "work_count": 7653,
           "readable_count": 589
         },
         {
@@ -388,7 +388,7 @@
           "slug": "detective",
           "tag_key": "/tags/OL273T",
           "query": "detective*",
-          "work_count": 19869,
+          "work_count": 19870,
           "readable_count": 13367
         },
         {
@@ -406,8 +406,8 @@
       "slug": "mythology",
       "tag_key": "/tags/OL176T",
       "query": "mythology*",
-      "work_count": 18533,
-      "readable_count": 4700,
+      "work_count": 18535,
+      "readable_count": 4701,
       "subgenres": []
     },
     {
@@ -415,7 +415,7 @@
       "slug": "romance",
       "tag_key": "/tags/OL177T",
       "query": "romance*",
-      "work_count": 48179,
+      "work_count": 48189,
       "readable_count": 18359,
       "subgenres": [
         {
@@ -456,9 +456,9 @@
       "name": "Satire",
       "slug": "satire",
       "tag_key": "/tags/OL178T",
-      "query": "satire*",
-      "work_count": 3304,
-      "readable_count": 951,
+      "query": "(satire* OR fiction_satire* OR satirical*)",
+      "work_count": 4018,
+      "readable_count": 1182,
       "subgenres": []
     },
     {
@@ -466,7 +466,7 @@
       "slug": "sci-fi",
       "tag_key": "/tags/OL179T",
       "query": "science_fiction*",
-      "work_count": 28211,
+      "work_count": 28214,
       "readable_count": 13711,
       "subgenres": [
         {
@@ -522,7 +522,7 @@
           "slug": "space-opera",
           "tag_key": "/tags/OL287T",
           "query": "space_opera*",
-          "work_count": 196,
+          "work_count": 197,
           "readable_count": 93
         },
         {
@@ -563,9 +563,9 @@
       "name": "Thriller",
       "slug": "thriller",
       "tag_key": "/tags/OL180T",
-      "query": "thriller*",
-      "work_count": 3998,
-      "readable_count": 2382,
+      "query": "(thriller* OR fiction_thrillers* OR fiction_suspense* OR suspense*)",
+      "work_count": 91853,
+      "readable_count": 27030,
       "subgenres": [
         {
           "name": "Psychological",
@@ -589,18 +589,18 @@
       "name": "Tragedy",
       "slug": "tragedy",
       "tag_key": "/tags/OL181T",
-      "query": "tragedy*",
-      "work_count": 2938,
-      "readable_count": 1068,
+      "query": "(tragedy* OR tragedies OR tragic*)",
+      "work_count": 4081,
+      "readable_count": 1461,
       "subgenres": []
     },
     {
       "name": "Western",
       "slug": "western",
       "tag_key": "/tags/OL182T",
-      "query": "(western_stories OR westerns OR western_fiction OR western)",
-      "work_count": 5530,
-      "readable_count": 3820,
+      "query": "(western_stories OR westerns OR western_fiction OR western OR fiction_westerns*)",
+      "work_count": 20227,
+      "readable_count": 9254,
       "subgenres": []
     }
   ],
@@ -610,8 +610,8 @@
       "slug": "kids",
       "query": "(juvenile_fiction OR juvenile_literature OR children's_fiction OR juvenile_nonfiction)",
       "page": "/subjects/juvenile_fiction",
-      "work_count": 709516,
-      "readable_count": 364662,
+      "work_count": 709507,
+      "readable_count": 364658,
       "subgenres": []
     },
     {
@@ -619,8 +619,8 @@
       "slug": "history",
       "query": "history",
       "page": "/subjects/history",
-      "work_count": 2559241,
-      "readable_count": 446781,
+      "work_count": 2559394,
+      "readable_count": 446784,
       "subgenres": []
     },
     {
@@ -628,8 +628,8 @@
       "slug": "biography",
       "query": "(biography OR biographies)",
       "page": "/subjects/biography",
-      "work_count": 919993,
-      "readable_count": 198740,
+      "work_count": 920023,
+      "readable_count": 198737,
       "subgenres": []
     },
     {
@@ -637,8 +637,8 @@
       "slug": "philosophy",
       "query": "philosophy",
       "page": "/subjects/philosophy",
-      "work_count": 204770,
-      "readable_count": 31272,
+      "work_count": 204778,
+      "readable_count": 31274,
       "subgenres": []
     },
     {
@@ -646,7 +646,7 @@
       "slug": "psychology",
       "query": "psychology",
       "page": "/subjects/psychology",
-      "work_count": 97387,
+      "work_count": 97393,
       "readable_count": 30962,
       "subgenres": []
     },
@@ -655,7 +655,7 @@
       "slug": "poetry",
       "query": "poetry",
       "page": "/subjects/poetry",
-      "work_count": 113538,
+      "work_count": 113544,
       "readable_count": 30089,
       "subgenres": []
     },
@@ -664,8 +664,8 @@
       "slug": "travel",
       "query": "travel",
       "page": "/subjects/travel",
-      "work_count": 88007,
-      "readable_count": 27077,
+      "work_count": 88009,
+      "readable_count": 27076,
       "subgenres": []
     },
     {
@@ -673,8 +673,8 @@
       "slug": "science",
       "query": "science",
       "page": "/subjects/science",
-      "work_count": 105678,
-      "readable_count": 23557,
+      "work_count": 105683,
+      "readable_count": 23558,
       "subgenres": []
     },
     {
@@ -691,8 +691,8 @@
       "slug": "religion",
       "query": "religion",
       "page": "/subjects/religion",
-      "work_count": 170848,
-      "readable_count": 23097,
+      "work_count": 170852,
+      "readable_count": 23099,
       "subgenres": []
     },
     {
@@ -700,7 +700,7 @@
       "slug": "art",
       "query": "art",
       "page": "/subjects/art",
-      "work_count": 134772,
+      "work_count": 134778,
       "readable_count": 20177,
       "subgenres": []
     },
@@ -709,7 +709,7 @@
       "slug": "textbooks",
       "query": "textbooks",
       "page": "/subjects/textbooks",
-      "work_count": 40015,
+      "work_count": 40016,
       "readable_count": 14190,
       "subgenres": []
     }

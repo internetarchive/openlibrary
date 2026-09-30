@@ -12,8 +12,10 @@ from typing import NotRequired, TypedDict, cast
 
 GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
 
-# Subgenres with fewer readable books than this (counted at generation time, against
-# production) are left off the chip row, so a shelf never opens onto a handful of titles.
+# Genres and subgenres with fewer readable books than these (counted at generation time,
+# against production) are left off: a tile needs a shelf worth browsing, a row needs more than
+# a handful of titles.
+MIN_GENRE_READABLE = 1000
 MIN_SUBGENRE_READABLE = 100
 
 
@@ -46,15 +48,12 @@ def load_home_genres() -> list[Genre]:
         )
         for kind, nodes in (("genre", data["genres"]), ("subject", data["subjects"]))
         for node in nodes
+        if node["readable_count"] >= MIN_GENRE_READABLE
     ]
 
 
 def find_genre(slug: str) -> Genre | None:
     return next((g for g in load_home_genres() if g["slug"] == slug), None)
-
-
-def find_subgenre(genre: Genre, slug: str) -> GenreNode | None:
-    return next((s for s in genre["subgenres"] if s["slug"] == slug), None)
 
 
 def solr_query(node: GenreNode) -> str:

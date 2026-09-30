@@ -6,16 +6,16 @@
  *  - openlibrary/plugins/openlibrary/js/browse-stacks.js
  */
 
+/* The heading with the page's Readable-only switch tucked under it. */
 .browse-stacks__header {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-inline-lg);
-  margin-bottom: var(--spacing-stack-md);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-stack-sm);
 }
 
 .browse-stacks__header .home-h2 {
-  margin-bottom: 0;
+  margin: 0;
 }
 
 .browse-stacks__header .readable-filter {
@@ -24,8 +24,11 @@
 
 /* The rail pages sideways; each card is a column of two tiles. The viewport padding leaves
    room for the tile's hover lift and shadow. */
+/* The margin and the viewport padding together match the header's own gap. */
 .browse-stacks__rail {
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
+
+  margin-top: var(--spacing-stack-xs);
 }
 
 /* Always two equal rows, so a lone tile in the last column stays tile-sized instead of
@@ -122,10 +125,24 @@
 }
 
 .browse-stacks__count {
+  display: flex;
+  flex-direction: column;
   font-size: var(--font-size-label-medium);
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
   line-height: var(--line-height-tight);
+}
+
+/* With Readable only on, the readable count is the only one that matters, so it reads "N Books". */
+.browse-stacks__count-filtered,
+.browse-stacks:has(.readable-filter__toggle[checked])
+  :where(.browse-stacks__count-total, .browse-stacks__count-readable) {
+  display: none;
+}
+
+.browse-stacks:has(.readable-filter__toggle[checked])
+  :where(.browse-stacks__count-filtered) {
+  display: revert;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -163,39 +180,10 @@
   }
 }
 
-.genre-shelf__top {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-lg);
-  flex-wrap: wrap;
-}
-
-.genre-shelf__title {
-  margin: 0;
-  font-family: var(--font-family-title);
-  font-size: var(--font-size-title-large);
-  font-weight: var(--font-weight-heading);
-}
-
-.genre-shelf__title:focus-visible {
+.genre-shelf:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 4px;
   border-radius: var(--border-radius-sm);
-}
-
-.genre-shelf__all {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-  font-size: var(--font-size-body-medium);
-}
-
-.genre-shelf__close {
-  margin-inline-start: auto;
-}
-
-.genre-shelf__subgenres {
-  margin-top: var(--spacing-stack-sm);
 }
 
 /* The shelf's carousels sit on the shelf surface, not the page's decorated band. */
@@ -204,8 +192,17 @@
   border: 0;
 }
 
-.genre-shelf .home-h2 {
+.genre-shelf .carousel-section-header--sortable {
   margin-top: 1.25em;
+}
+
+.genre-shelf > :first-child .carousel-section-header--sortable {
+  margin-top: 0;
+}
+
+/* The control's track is --neutral-100, the shelf's own surface; a step darker keeps it visible. */
+.genre-shelf .carousel-sort {
+  --color-control-track: var(--neutral-200);
 }
 
 .genre-shelf__error {

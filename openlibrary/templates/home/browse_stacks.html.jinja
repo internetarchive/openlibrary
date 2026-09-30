@@ -13,7 +13,7 @@
             {% include "home/readable_filter.html.jinja" %}
         </div>
         {# Two tiles per column; the rail pages sideways. Order is shuffled per visit below. #}
-        <ol-carousel id="browse-stacks-rail" class="browse-stacks__rail" label="{{ _('Browse the stacks') }}" gap="12" show-indicators>
+        <ol-carousel id="browse-stacks-rail" class="browse-stacks__rail" label="{{ _('Browse the stacks') }}" gap="12">
             {% for column in genres | batch(2) %}
                 <div class="browse-stacks__column">
                     {% for genre in column %}
@@ -36,8 +36,10 @@
                             </span>
                             <span class="browse-stacks__name">{{ genre.name }}</span>
                             <span class="browse-stacks__count">
-                                {{ ngettext("%(count)s Book", "%(count)s Books", genre.work_count, count=genre.work_count_str) }}
-                                · {{ _("%(count)s readable", count=genre.readable_count_str) }}
+                                <span class="browse-stacks__count-total">{{ ngettext("%(count)s Book", "%(count)s Books", genre.work_count, count=genre.work_count_str) }}</span>
+                                <span class="browse-stacks__count-readable">{{ _("%(count)s readable", count=genre.readable_count_str) }}</span>
+                                {# Shown instead of the two above when Readable only is on. #}
+                                <span class="browse-stacks__count-filtered">{{ ngettext("%(count)s Book", "%(count)s Books", genre.readable_count, count=genre.readable_count_str) }}</span>
                             </span>
                         </button>
                     {% endfor %}

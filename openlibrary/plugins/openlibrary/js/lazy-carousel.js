@@ -197,6 +197,22 @@ if (readableSwitch) {
 }
 
 /**
+ * A row's sort control (`sort_control` in its config; books/custom_carousel.html.jinja)
+ * refetches that row in place with the chosen sort.
+ */
+document.addEventListener('ol-segmented-control-change', (e) => {
+    const control = e.target.closest?.('.carousel-sort');
+    const host = control?.closest('.lazy-carousel-loaded[data-config]');
+    if (!host) return;
+    const config = JSON.parse(host.dataset.config);
+    trackEvent('CarouselSort', e.detail.value, config.key);
+    refetch(host, { ...config, sort: e.detail.value });
+});
+
+// The latest refetch per carousel, so a slower earlier response can't overwrite a newer one.
+const latestRefetch = new WeakMap();
+
+/**
  * Replaces a loaded carousel with a fresh render for `config`. The old cards
  * stay visible, dimmed, until the new ones arrive; on failure they stay put.
  *
@@ -204,6 +220,9 @@ if (readableSwitch) {
  * @param config {object}
  */
 function refetch(host, config) {
+    const previous = JSON.parse(host.dataset.config);
+    const request = {};
+    latestRefetch.set(host, request);
     host.dataset.config = JSON.stringify(config);
     host.classList.add('lazy-carousel-loaded--refreshing');
     host.setAttribute('aria-busy', 'true');
@@ -216,13 +235,25 @@ function refetch(host, config) {
             return resp.json();
         })
         .then(data => {
+            if (latestRefetch.get(host) !== request) return;
+            // The header re-renders too; keep focus on the sort control if it had it.
+            const sortHadFocus = host.querySelector('.carousel-sort')?.matches(':focus-within');
             host.innerHTML = data.partials.trim();
             initialzeCarousels(host.querySelectorAll('.carousel--progressively-enhanced'));
+            const sort = host.querySelector('.carousel-sort');
+            if (sortHadFocus && sort) {
+                sort.updateComplete.then(() => sort.renderRoot.querySelector('.segment[aria-checked="true"]')?.focus());
+            }
         })
         .catch(() => {
-            // Keep the current cards; the controls still reflect the last successful state.
+            if (latestRefetch.get(host) !== request) return;
+            // Keep the current cards, and put the controls back to the state they show.
+            host.dataset.config = JSON.stringify(previous);
+            const sort = host.querySelector('.carousel-sort');
+            if (sort) sort.value = previous.sort;
         })
         .finally(() => {
+            if (latestRefetch.get(host) !== request) return;
             host.classList.remove('lazy-carousel-loaded--refreshing');
             host.removeAttribute('aria-busy');
         });

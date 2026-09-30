@@ -17,6 +17,21 @@
   margin-top: 1.75em;
 }
 
+/* A row with a sort control (books/custom_carousel.html.jinja): the control sits at the end of
+   the heading line, and drops under the heading when there is no room. */
+.carousel-section-header--sortable {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
+  margin: 1.75em 0 0.5em;
+}
+
+.carousel-section-header--sortable > .home-h2 {
+  margin: 0;
+}
+
 .carousel-container,
 .lazy-carousel {
   margin: 0 -20px;

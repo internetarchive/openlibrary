@@ -1,6 +1,6 @@
 /**
  * "Browse the stacks" on the home page: a grid of genre tiles that open a shelf
- * (subgenre chips + carousels) in place. The shelf HTML comes from
+ * (a carousel for the genre, then one per subgenre) in place. The shelf HTML comes from
  * /partials/HomeGenre.json; its carousels are the same lazy placeholders the
  * rest of the home page uses, so lazy-carousel.js fills and controls them.
  */
@@ -36,18 +36,17 @@ export function initBrowseStacks(root) {
         if (returnFocus) tile?.focus();
     }
 
-    async function load(slug, subgenre = '') {
+    async function load(slug) {
         controller?.abort();
         controller = new AbortController();
         shelf.hidden = false;
         shelf.setAttribute('aria-busy', 'true');
         shelf.classList.add('browse-stacks__shelf--loading');
         try {
-            const resp = await fetch(buildPartialsUrl('HomeGenre', { genre: slug, subgenre }), { signal: controller.signal });
+            const resp = await fetch(buildPartialsUrl('HomeGenre', { genre: slug }), { signal: controller.signal });
             if (!resp.ok) throw new Error('Failed to fetch genre shelf');
             const data = await resp.json();
             shelf.innerHTML = data.partials;
-            bindShelf(slug);
             const placeholders = shelf.querySelectorAll('.lazy-carousel');
             if (placeholders.length) {
                 import('./lazy-carousel').then(module => module.initLazyCarousel(placeholders));
@@ -58,27 +57,13 @@ export function initBrowseStacks(root) {
             shelf.innerHTML = `<p class="genre-shelf__error"><a href="#" class="genre-shelf__retry">${i18n.error || 'Try again?'}</a></p>`;
             shelf.querySelector('.genre-shelf__retry').addEventListener('click', (ev) => {
                 ev.preventDefault();
-                load(slug, subgenre);
+                load(slug);
             });
             return false;
         } finally {
             shelf.classList.remove('browse-stacks__shelf--loading');
             shelf.removeAttribute('aria-busy');
         }
-    }
-
-    function bindShelf(slug) {
-        shelf.querySelector('.genre-shelf__close')?.addEventListener('click', () => {
-            trackEvent('BrowseStacks', 'Close', slug);
-            close();
-        });
-        shelf.querySelectorAll('ol-chip[data-subgenre]').forEach(chip => {
-            chip.addEventListener('ol-chip-select', (e) => {
-                const subgenre = e.detail.selected ? chip.dataset.subgenre : '';
-                trackEvent('BrowseStacks', subgenre ? 'Subgenre' : 'ClearSubgenre', `${slug}/${chip.dataset.subgenre}`);
-                load(slug, subgenre);
-            });
-        });
     }
 
     async function open(slug) {
@@ -92,7 +77,7 @@ export function initBrowseStacks(root) {
         const ok = await load(slug);
         if (!ok || current !== slug) return;
         shelf.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-        shelf.querySelector('.genre-shelf__title')?.focus({ preventScroll: true });
+        shelf.querySelector('.genre-shelf')?.focus({ preventScroll: true });
     }
 
     tiles.forEach(tile => tile.addEventListener('click', () => open(tile.dataset.genre)));
