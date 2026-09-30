@@ -1,4 +1,5 @@
 import json
+import random
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -533,6 +534,126 @@ class TestListViewGet:
             legacy_lists.list_view().GET("/lists/OL1L")
 
         lst.get_seeds.assert_called_once_with(sort=True, resolve_redirects=True)
+
+    def test_bare_random_sort_redirects_to_seeded_sort(self, monkeypatch):
+        """Bare ?sort=random would re-roll on every load (and across gunicorn
+        workers), so it 303s to a seeded random_* URL that renders a
+        reproducible, shareable order."""
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web.ctx, "path", "/lists/OL1L", raising=False)
+        monkeypatch.setattr(web.ctx, "home", "", raising=False)
+        monkeypatch.setattr(web.ctx, "headers", [], raising=False)
+        monkeypatch.setattr(web.ctx, "env", {"REQUEST_METHOD": "GET", "QUERY_STRING": "sort=random"}, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m=None, sort="random"))
+
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/list"),
+            get_seeds=Mock(return_value=[]),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        with patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context:
+            mock_site_context.get.return_value = mock_site
+
+            with pytest.raises(web.HTTPError) as excinfo:
+                legacy_lists.list_view().GET("/lists/OL1L")
+
+        assert excinfo.value.args[0] == "303 See Other"
+        assert any(h[0] == "Location" and h[1].startswith("/lists/OL1L?sort=random_") for h in web.ctx.headers)
+        # The redirect happens before any rendering work is done
+        lst.get_seeds.assert_not_called()
+
+    def test_seeded_random_sort_shuffles_deterministically(self, monkeypatch):
+        """The same seeded sort URL always yields the same order."""
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m=None, page=None, sort="random_42"))
+
+        all_seeds = [_make_seed(f"/works/OL{i}W", "work") for i in range(1, 11)]
+
+        def render_order():
+            lst = SimpleNamespace(
+                type=SimpleNamespace(key="/type/list"),
+                get_seeds=Mock(return_value=list(all_seeds)),
+            )
+            mock_site = Mock()
+            mock_site.get.return_value = lst
+
+            resolve_mock = Mock(return_value=[])
+            with (
+                patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+                patch("openlibrary.plugins.openlibrary.lists._resolve_list_view_items", resolve_mock),
+                patch("openlibrary.plugins.openlibrary.lists.render_template", Mock(return_value="rendered")),
+            ):
+                mock_site_context.get.return_value = mock_site
+
+                legacy_lists.list_view().GET("/lists/OL1L")
+
+            return resolve_mock.call_args[0][0]
+
+        expected = list(all_seeds)
+        random.Random("random_42").shuffle(expected)
+
+        assert render_order() == expected
+        assert render_order() == expected
+
+    def test_different_random_seeds_shuffle_differently(self, monkeypatch):
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+
+        all_seeds = [_make_seed(f"/works/OL{i}W", "work") for i in range(1, 11)]
+
+        def render_order(sort):
+            monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m=None, page=None, sort=sort))
+            lst = SimpleNamespace(
+                type=SimpleNamespace(key="/type/list"),
+                get_seeds=Mock(return_value=list(all_seeds)),
+            )
+            mock_site = Mock()
+            mock_site.get.return_value = lst
+
+            resolve_mock = Mock(return_value=[])
+            with (
+                patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+                patch("openlibrary.plugins.openlibrary.lists._resolve_list_view_items", resolve_mock),
+                patch("openlibrary.plugins.openlibrary.lists.render_template", Mock(return_value="rendered")),
+            ):
+                mock_site_context.get.return_value = mock_site
+
+                legacy_lists.list_view().GET("/lists/OL1L")
+
+            return resolve_mock.call_args[0][0]
+
+        order_a = render_order("random_1")
+        order_b = render_order("random_2")
+
+        assert order_a != order_b
+        # Shuffling reorders; it must not add, drop, or duplicate items
+        assert sorted(seed.key for seed in order_a) == sorted(seed.key for seed in all_seeds)
+        assert sorted(seed.key for seed in order_b) == sorted(seed.key for seed in all_seeds)
+
+    def test_non_random_sort_is_not_shuffled(self, monkeypatch):
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m=None, page=None, sort="last_modified"))
+
+        all_seeds = [_make_seed(f"/works/OL{i}W", "work") for i in range(1, 11)]
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/list"),
+            get_seeds=Mock(return_value=list(all_seeds)),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        resolve_mock = Mock(return_value=[])
+        with (
+            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+            patch("openlibrary.plugins.openlibrary.lists._resolve_list_view_items", resolve_mock),
+            patch("openlibrary.plugins.openlibrary.lists.render_template", Mock(return_value="rendered")),
+        ):
+            mock_site_context.get.return_value = mock_site
+
+            legacy_lists.list_view().GET("/lists/OL1L")
+
+        assert resolve_mock.call_args[0][0] == list(all_seeds)
 
 
 class TestUserListsEviction:
