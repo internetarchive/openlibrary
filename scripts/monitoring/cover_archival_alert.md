@@ -76,15 +76,26 @@ Costs, stated plainly:
   file by PR. The workflow needs no write access to the repo, and each baseline change is
   reviewed. **So an unacknowledged difference re-fires on every run until a human PR accepts the
   new baseline. That is deliberate:** the alert stops only when a person has looked.
-- **Seeding, before launch.** No run can write a baseline, so one human-reviewed PR seeds every slot
-  from a census pass (the method of `census.py` at `8cf85be17`), plus the checker's classes for the
-  short batches. A full pass is about 670 listing requests for the full-size tier, and about 2,700
-  for all four tiers. That is far over the ~100-per-run bound, so the pass is spread over bounded
-  runs: about a week for the full-size tier and about four for all tiers. That is still much faster
-  than waiting ~28 weeks for the rotation. **The S1 schedule isn't enabled until the seed PR has
-  merged.** A slot left without an entry is reported on its own "unseeded" line. It is never
-  indeterminate for the watcher-health rule, which would otherwise open an issue in week 2 for
-  every unseeded slot.
+- **Seeding.** No run can write a baseline, so one human-reviewed PR seeds every slot from a census
+  pass (the method of `census.py` at `8cf85be17`), plus the checker's classes for the short batches.
+  The pass is **one human-dispatched run of up to ~2,700 public read requests** (all four tiers), at
+  no more than 1/s (≈45 min), with an identifying User-Agent. It's a one-off, authorised by the
+  covers lead as the same class as the #13769 census. It opens a PR and writes nothing itself.
+  **Fallback if it fails partway:** resume in bounded runs. A slot counts as seeded only when its
+  whole listing was read, so a half-read slot stays unseeded.
+- **What is live from S1's first run, and what waits for the seed.** S1's schedule goes live at
+  launch; it isn't gated on the seed, because loss detection doesn't need a baseline.
+
+  | Live from the first run | Waits for the seed (reported as "unseeded" until then) |
+  |---|---|
+  | `LOSS` rows against the known-loss allowlist, which is written by hand and present at launch | A `listing_count` below baseline |
+  | Both controls, and every watcher-health rule | A `missing_count` moving |
+  | Counts of `partial` and `serves: false` rows, **reported weekly, not paged**: without a baseline they can't be told apart from the known failed-cover class | A transition to `serves: false`, and a new `partial` or `short_no_record` batch |
+  | S2, S3 and the stall rule, which need no baseline | W6 regressions (200 → non-200) |
+
+  An unseeded slot is never indeterminate for the watcher-health rule, which would otherwise open an
+  issue in week 2 for every unseeded slot. **Paging still waits for the §4 fire drill,** whatever is
+  live.
 - **Where every other previous value lives.** None of them needs repo write access:
   - Slot baselines, known losses, each `partial` row's `serves`, and the serving sample's known-404
     IDs: the checked-in file.
@@ -178,7 +189,7 @@ notifies whoever watches the repo.
 - **A new `partial` or `short_no_record` batch, or a rise in any batch's `missing_count`.** Today's
   small shortfalls are a stable class (probably failed covers, inferred from code), so presence
   alone isn't news. The comparison is against the slot's entry in the checked-in baseline file (§1),
-  seeded before launch. The seed is a fresh census pass plus the checker's classes; the 2026-09-24
+  seeded by the one-off pass in §1. The seed is a fresh census pass plus the checker's classes; the 2026-09-24
   census figures aren't reused. READ (from the census and the covers lead, not re-run here): 8 of
   `covers_0014`'s 69 zips are short, including 62, and 31 of the 669 zip batches in `0008`–`0014`
   are. A slot with no entry is reported as unseeded, never "no change".
@@ -189,8 +200,15 @@ notifies whoever watches the repo.
 
 - **Any sampled ID that answered 200 in its baseline entry and doesn't now → reported the same day**
   as an issue. These covers have no other copy we know of.
-- **Two or more in one day-directory or one local tar block → page Mek the same day** as a probable
-  local loss.
+- **On any W6 failure, the same run probes 5 more IDs from the same day-directory or tar block.**
+  The stride puts about one sample in each day-directory per pass, so two failures in one
+  directory would almost never occur by sampling alone. Until #13769's ID-to-date mapping exists, the
+  probes are the neighbouring IDs. IDs are assigned in upload order, so neighbours mostly share a
+  day (an assumption, unmeasured). **Two or more of the 5 failing → page Mek the same day** as a
+  probable local loss. This costs at most 5 requests per failure, and only after something has
+  already failed.
+- **Rotation order:** each day's samples are the next consecutive stride positions. That keeps
+  today's expected position derivable from the date for the §4 check.
 - A sampled ID with no baseline entry (the first pass) is recorded as unseeded, not reported. A
   404 on it goes to the known-404 list by human PR, because some covers are legitimately deleted.
 
