@@ -4296,19 +4296,19 @@ msgid "Open Library is a catalog anyone can edit. Add a book or fix a record and
 msgstr ""
 
 #: home/welcome.html
-msgid "55 million"
-msgstr ""
-
-#: home/welcome.html
-msgid "books in the catalog"
-msgstr ""
-
-#: home/welcome.html
 msgid "4.7 million"
 msgstr ""
 
 #: home/welcome.html
 msgid "free to read online"
+msgstr ""
+
+#: home/welcome.html
+msgid "55 million"
+msgstr ""
+
+#: home/welcome.html
+msgid "books in the catalog"
 msgstr ""
 
 #: jsdef/LazyWorkPreview.html
