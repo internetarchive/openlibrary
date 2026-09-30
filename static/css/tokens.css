@@ -8,6 +8,8 @@
  * a single CSS file loaded in <head> for all pages.
  */
 
+/* The serif webfont ships with the tokens so every page has it. */
+@import "fonts/literata.css";
 @import "tokens/border-radius.css";
 @import "tokens/borders.css";
 @import "tokens/breakpoints.css";

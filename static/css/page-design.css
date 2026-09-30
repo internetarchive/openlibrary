@@ -26,8 +26,7 @@
 @import "components/ol-message.css";
 @import "components/copy-button.css";
 
-/* Page and component titles set in the serif; import the face so it loads. */
-@import "fonts/literata.css";
+/* Literata comes with tokens.css; the sans webfont is still per-bundle. */
 @import "fonts/schibsted-grotesk.css";
 
 .ds {
