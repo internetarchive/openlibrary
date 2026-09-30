@@ -16,7 +16,7 @@ Every claim about current state is labelled **RAN** (a command was executed, and
 
 | | Signal | Instrument |
 |---|---|---|
-| **S1** | Invariant: no cover points into a zip that lacks it | The #13762 checker. It emits one JSON line per batch, `{batch, listing_count, missing_count, sampled, verdict, evidence_ids}` plus `serves` on `partial` rows, then a summary line with no `batch` key. Exit codes: 0 clean, 1 new `LOSS`, 2 control failed, 3 indeterminate (including any uncaught exception, so 1 always means a real new loss), 4 request cap hit, 5 a known loss shrank. When several apply: 2 > 4 > 1 > 5 > 3 > 0. |
+| **S1** | Invariant: no cover points into a zip that lacks it | The #13762 checker. It emits one JSON line per batch, `{batch, listing_count, missing_count, sampled, verdict, evidence_ids}` plus `serves` on `partial` rows, then a summary line with no `batch` key. Verdicts include `missing_zip`: an expected zip absent from archive.org, LOSS-class. A listing that can't be validated is indeterminate, never LOSS. Exit codes: 0 clean, 1 new `LOSS` or `missing_zip`, 2 control failed, 3 indeterminate (including any uncaught exception), 4 request cap hit, 5 a known loss shrank. When several apply: **2 > 1 > 5 > 4 > 3 > 0**, so a printed loss outranks a later cap hit or crash. **The workflow also treats exit 4 or 3 with a `LOSS` or `missing_zip` row on stdout as exit 1.** That guards the alert against a checker regression in the ordering; RAN by the reviewer on `e26f600f2`, a LOSS row followed by a cap hit exited 4. |
 | **S2** | Heartbeat: when a bulk zip last reached archive.org | The newest `mtime` among `covers_NNNN_NN.zip` files in `https://archive.org/metadata/covers_NNNN`, for the newest item **and the next one** (the next is created by its first upload). |
 | **S3** | Backlog: closed batches with no zip on archive.org | `newest_id // 10_000` is the open batch. Every lower batch without a full-size zip is backlog. The newest ID is found by binary search with `HEAD /b/id/<id>-S.jpg?default=false`: 200 or 302 means present, 404 means absent. |
 
@@ -112,10 +112,21 @@ Costs, stated plainly:
 Cadence:
 
 - S2 and S3 run **daily**, at about 35 requests.
+- **The same daily job reads `/metadata` for all 28 zip-era (item, tier) records**, about 28 more
+  requests. It compares each zip's presence, `size` and `md5` against the baseline. RAN 2026-09-29:
+  `/metadata` gives both for every zip, e.g. `covers_0014_61.zip` 2,934,966,543 bytes against
+  `_62`'s 1,153,995,779. It already lists every zip, so a zip that vanishes or changes size in *any* slot is seen within a day, not
+  when its slot next comes round in rotation (28 weeks, or about 2 years at 108 slots). A vanished
+  expected zip is `missing_zip`-class and pages. A changed size or md5 opens an issue, and the next S1 run
+  lists that slot out of turn to count it. An empty `{}` is a missing item, as in §5.
 - S1 runs **weekly, in its own workflow**, so that §4 can watch it on its own (a daily S2/S3 success
-  must not make a failed S1 look fresh). The checker's cap is 150 requests. READ from #13765 at
-  `e26f600f2`, as relayed: a default live run uses 128, controls included. The rotation interval in §5
-  assumes this and scales with it.
+  must not make a failed S1 look fresh). **The cap is 250 requests per live S1 run**, on the covers
+  lead's authority. That is S1's own line, not the generic ~100-per-run bound.
+- **What counts as an "expected" zip for `missing_zip`:** any zip in the checked-in baseline, any zip
+  some cover's `filename` points into, and, before seeding, every batch below the newest uploaded
+  zip in that item. The baseline term catches the newest zip itself disappearing, which "below the
+  newest uploaded" alone would silently absorb. A closed batch that was never zipped is **not**
+  expected: it's a stall (S3, #13287), not a loss. The 57 backlog batches never page through S1.
 - **The serving sample (W6 in the covers oversight page) runs daily in its own job, at about 25
   requests** (about 170 a week: ~100 backlog, ~50 below 8M, ~20 `olcovers` L probes), plus neighbour
   probes after a failure. It doesn't fit inside S1's cap, and daily runs make its "same day"
@@ -205,8 +216,16 @@ notifies whoever watches the repo.
 
 **Serving sample, W6 (report, then page):**
 
-- **Any sampled ID that answered 200 in its baseline entry and doesn't now → reported the same day**
-  as an issue. These covers have no other copy we know of.
+- **What counts as a W6 failure.** Only a **404**, or a **302 to the wrong target**. A 302 whose
+  Location is the zip for that ID's own batch is a **pass**: archival has finalized it, and the ID
+  now belongs to S1. Without this, resumed archival would page as a disk loss. A 5xx, a 429 or a
+  transport error is **indeterminate**, and counts only after two consecutive runs, as for stratum
+  (c).
+- **The page rules count only on a run whose same-run controls held:** the S3 pair, plus a
+  known-present local ID → 200. A run whose controls fail is watcher health, not a loss. Otherwise an
+  outage or a rate limit would read as a whole-disk loss.
+- **Any sampled ID that passed in its baseline entry and fails now → reported the same day** as an
+  issue. These covers have no other copy we know of.
 - **On any W6 failure, the same run probes 5 more IDs from the same day-directory or tar block.**
   The stride puts about one sample in each day-directory per pass, so two failures in one
   directory would almost never occur by sampling alone. **The directory is found from the failing
@@ -216,16 +235,17 @@ notifies whoever watches the repo.
   how well is unmeasured, and #13769 will report it. **Two or more of the 5 failing → page Mek the
   same day** as a probable local loss.
 - **The probes count against W6's budget line:** up to about 11 requests per failure (the lookup,
-  the neighbours' filenames, 5 probes). Even 3 failures in a day adds about 33 to W6's ~22, still
+  the neighbours' filenames, 5 probes). Even 3 failures in a day adds about 33 to W6's ~25, still
   within the per-run bound. They happen only after something has already failed.
 - **Rotation order:** each day's samples are the next consecutive stride positions. That keeps
   today's expected position derivable from the date for the §4 check.
-- **A non-200 on a sampled ID with no baseline entry still triggers the 5-neighbour probe.** The
+- **A failure on a sampled ID with no baseline entry still triggers the 5-neighbour probe.** The
   seed pass normally leaves no such IDs; this covers a partial seed, or a sample added later. 2+
   neighbours failing pages whatever the seed state. Otherwise the ID is reported for the known-404
   list, and added by human PR, because some covers are legitimately deleted. A deletion must never
   silence a directory loss next to it.
-- **Half or more of a day's W6 samples non-200 → page Mek the same day**, seeded or not. A whole-disk
+- **Half or more of a day's W6 samples failing (404, or a 302 to the wrong target) → page Mek the
+  same day**, seeded or not, on a run whose controls held. A whole-disk
   loss makes every sample fail at once. The threshold is re-set from the 404 share the seed pass
   measures, since the legitimate deletion rate is unmeasured.
 
@@ -254,14 +274,17 @@ schedule (READ, GitHub docs), so the issue, not the email, is the alert.
 
 - The summary line is present.
 - The row count is at least the batch count it planned.
-- Both S3 controls hold.
+- Both S3 controls hold, and so does W6's known-present local ID.
 - The W6 job sampled at least the IDs its stride and rotation position imply for today, and its S3
   controls held on the same run. A sample that silently returns nothing reads as "all serving".
-- The rotated (item, tier) slot is the one this ISO week implies. That needs no stored state, and a
-  stuck rotation fails it.
+- The rotated (item, tier) slot is the one the checker's own slot function returns for today.
+  That needs no stored state, and a stuck rotation fails it. **The check imports that function
+  rather than reimplementing it.** A copy of the rotation rule would drift from the code it checks,
+  and the reviewer has already found the week computed two ways: `ordinal//7` in the code, ISO week
+  in this doc.
 
-The last check exists because the checker rotates slots by ISO week, and "it ran" doesn't prove it
-looked anywhere new.
+The last check exists because the checker rotates slots, and "it ran" doesn't prove it looked
+anywhere new.
 
 **B. On IA infrastructure.** A small host cron, under `cron_wrapper.py` with a new monitor slug,
 reads the latest scheduled run of **each of the three workflows** (S1, S2/S3, W6) from the public
@@ -297,7 +320,8 @@ been triggered on purpose and acknowledged by its reader: a dispatch with a muta
 | **Covers 0–7,139,999 (`olcovers1`–`olcovers713`)** | Different item and file shape (`olcoversN-{S,M,L}.zip`), outside S1–S3. Reviewer READ (`code.py`): S/M sizes below 6M are served from local tars. | **For most of the range the data is on archive.org, so a local loss is an outage, not an archival loss. Not for 3.38M–3.69M:** their L and original copies redirect into `olcovers338`–`368`, which don't exist (#13770), so those sizes have no archive.org copy. W6 stratum (b) samples S/M serving in 0–6M and 6M–7.14M. The redirect tier is stratum (c), the next row. |
 | **Covers 7,140,000–7,999,999** | Reviewer RAN a 7-ID sample: some are in local `covers_0007_NN.tar` files with no archive.org item, and the rest are unarchived local files. #13725's `MIN_ARCHIVABLE_ID` of 8,000,000 means archival never picks them up. | **A single copy, up to about 860k IDs, and no archival path** (#476, 2017). **W6 stratum (b)** watches that they still serve. It is weighted with the other sub-8M strata (about 50 a week in all) and re-weighted when #13769 measures density. Archiving them is Mek's priority call, not a watch. |
 | **The `olcovers` redirect tier (L and original sizes, 0–7.14M)** | L and original redirect by ID alone, before any DB lookup (covers lead READ), so an S/M probe can't see this class. RAN 2026-09-29: 3,500,000-L → 302 → **404** at archive.org; the control 3,000,000-L → 200. | **W6 stratum (c):** one `HEAD /b/id/<id>-L.jpg?default=false` per `olcovers` item (1–713), following the redirect to its final status, rotated about 20 a week (a full pass in about 36 weeks). All 713 are seeded by the one-off pass. **404** = the item is missing, as in #13770. **503** = it exists but isn't answering: a different failure (seen twice on `olcovers337`), so it counts only after two consecutive runs. |
-| Old slots between rotations | 150-request cap. There are about 28 (item, tier) slots (items `0008`–`0014`, 4 tiers). | Each old slot is re-checked about every half-year. That is acceptable only because old zips don't change unless something re-uploads them, and a re-upload moves S2. |
+| Old slots between rotations | 250-request cap. **28 zip-era (item, tier) slots, one per ISO week**, by the covers lead's ruling. READ by the reviewer: #13765 at `e26f600f2` rotates over **108** slots (≈2 years) using `ordinal//7`. Until #13765 reconciles, the interval here is its figure, not a measured one. | Each old slot is re-checked about every half-year at 28 slots, or about every 2 years at 108. That is acceptable only because old zips don't change unless something re-uploads them, and a re-upload moves S2. |
+| **Loss on archive.org's side** | A zip deleted or shortened on archive.org leaves the cover pointers intact. | **The daily `/metadata` read (§1)** sees any expected zip vanish or change size, in any slot, within a day. **`missing_zip`** (exit 1) confirms it on S1's next listing, and the listing-shrink rule confirms a shrink. Together they are the archive.org-side check this row was missing. |
 | An archive.org item going missing or dark | RAN: a nonexistent item's `/metadata` returns **HTTP 200 with the body `{}`** (`covers_0007`; the `covers_0008` control returns 64 KB). A naive count would read that as 0 files. | An empty metadata object is its own state, **missing item**: indeterminate for S1 and S2, never a count of 0 and never "not uploaded". For an item that already has a baseline entry, it pages as a possible loss on archive.org's side. The shape of an item that exists but is dark is **not measured**. |
 
 ## Open questions
