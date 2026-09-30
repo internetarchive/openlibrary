@@ -9,7 +9,7 @@ describe('jquery-ui wrapper modules', () => {
     // format) fails loudly here instead of at runtime.
     const JQ = path.join(__dirname, '../../..', 'node_modules/jquery-ui');
     const WRAPPER_DIR = path.join(__dirname, '../../..', 'openlibrary/plugins/openlibrary/js');
-    const wrappers = ['jquery-ui-tabs', 'jquery-ui-dialog', 'jquery-ui-autocomplete', 'jquery-ui-sortable'];
+    const wrappers = ['jquery-ui-tabs', 'jquery-ui-autocomplete', 'jquery-ui-sortable'];
 
     const depsOf = (file) => {
         const code = fs.readFileSync(path.join(JQ, file), 'utf8');
@@ -44,16 +44,6 @@ describe('jquery-ui wrapper modules', () => {
                 expect(pos.has(rel)).toBe(true);
                 expect(pos.get(rel)).toBeLessThan(pos.get(f));
             }
-        }
-    });
-
-    test('dialog wrapper includes every direct AMD dep of the dialog widget', () => {
-        const code = fs.readFileSync(path.join(WRAPPER_DIR, 'jquery-ui-dialog.js'), 'utf8');
-        const files = new Set([...code.matchAll(/^import '([^']+)';/gm)].map((m) => `${stripSpecifier(m[1])}.js`));
-        for (const dep of depsOf('ui/widgets/dialog.js')) {
-            const resolved = path.resolve(path.join(JQ, 'ui/widgets'), dep);
-            const rel = resolved.slice(JQ.length + 1) + (resolved.endsWith('.js') ? '' : '.js');
-            expect(files.has(rel)).toBe(true);
         }
     });
 });

@@ -1,4 +1,4 @@
-$def with(book, preload=False)
+$def with(book, preload=False, overlay=None)
 
 $ title = book.title
 $ author_names = None
@@ -45,6 +45,9 @@ $if preload:
             </div>
         </div>
     </div>
+    $# Markup to float over the cover, inside the animated element so it moves with it.
+    $if overlay:
+        $:overlay
 </div>
 
 <div class="hidden">

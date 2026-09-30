@@ -30,7 +30,7 @@ import { glyphs } from './icons.generated.js';
  * @example
  * <ol-icon name="search"></ol-icon>
  * <ol-icon name="globe" size="lg" label="Language"></ol-icon>
- * <ol-icon name="bookmark" filled></ol-icon>
+ * <ol-icon name="circle-check" filled></ol-icon>
  */
 export class OlIcon extends LitElement {
     static properties = {

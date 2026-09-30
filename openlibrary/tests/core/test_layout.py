@@ -133,6 +133,7 @@ def test_layout_build_body_classes_and_librarian_tools(monkeypatch, request_cont
     assert "custom-class" in layout.body_class
     assert "show-librarian-tools" in layout.body_class
     assert "itemscope" in layout.body_attrs
+    assert 'data-user-key="/people/librarian_bob"' in layout.body_attrs
 
     # Reset
     infogami_ctx.clear()

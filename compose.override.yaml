@@ -146,6 +146,8 @@ services:
         volume:
           nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+    environment:
+      - LOCAL_DEV=true
 
   infobase:
     build:
