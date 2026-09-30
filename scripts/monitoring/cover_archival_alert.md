@@ -84,8 +84,8 @@ An alert nobody reads is the failure we're guarding against, so every alert has 
 
 | Class | Channel | Reader |
 |---|---|---|
-| **Page**: a loss is happening | Slack, in the channel the `ol-home0` disk-space alert already uses, **and** a GitHub issue | The cover-service owner, same day |
-| **Stall**: archival isn't making progress | One GitHub issue, `Cover archival stalled`, opened by the workflow and commented on at each daily run while the condition holds. Closed by a human, never by the bot. | The cover-service owner, weekly |
+| **Page**: a loss is happening | Slack, in the channel the existing host alerts already use, **and** a GitHub issue | The cover-service owner, same day |
+| **Stall**: archival isn't making progress | A comment on the existing #13287, already the record of this stall, **only when the backlog count changes**. If #13287 is closed, a new issue. Closed by a human, never by the bot. | The cover-service owner, weekly |
 | **Watcher health**: the checker can't produce a verdict | GitHub issue plus the §4 dead-man's switch | Whoever owns the workflow |
 
 **Why a GitHub issue.** It persists, it's assignable, and nobody has to be online when it fires.
@@ -95,9 +95,10 @@ notifies whoever watches the repo.
 **What someone with access has to create (nothing here creates it):**
 
 1. A Slack incoming webhook for that channel, stored as a repository secret. By a Slack admin, then
-   Mek for the secret. `notify_slack.sh` uses olsystem's credentials, which Actions can't reach and
-   shouldn't.
-2. The §4 `ol-home0` cron line and its Sentry monitor. An olsystem edit plus a Sentry admin; Mek.
+   Mek for the secret. The existing cron alerts use host-side credentials, which Actions can't reach
+   and shouldn't.
+2. The §4 host cron and its Sentry monitor. A change to the private cron config plus a Sentry
+   admin; Mek.
 3. `issues: write` and `actions: read` on the workflow's `GITHUB_TOKEN`, granted in the workflow
    file. Reviewed with the PR.
 
@@ -127,11 +128,16 @@ notifies whoever watches the repo.
 - **No new zip for 21 days while at least one closed batch waits.** A batch closes about every
   13 days, so 21 days is one missed batch plus a week of slack for a slow or retried upload. The
   "while one waits" clause keeps the alert quiet when there is nothing to archive.
-  **It is armed only when the archival cron ships (plan step 5).** On today's numbers it would fire
-  on day one. Until then, the backlog count goes in the weekly report, and the lead's weekly check in
-  `ol-kb` is the alert.
-- **Backlog not smaller than it was 28 days earlier, once armed.** This catches a cron that runs and
-  uploads but falls behind: two batch intervals of no net progress.
+  **Armed at launch, as an issue comment, never a page.** It fires on day one, and it should: that is
+  the true state. Leaving it unarmed would mean the watcher knows and says nothing, which is the
+  two-year failure again. What gets an alert routed around is repetition, not being red, so it
+  comments on #13287 only when the backlog count changes, about once per closed batch. It never posts
+  the same number twice. The comment carries the count, the newest zip date and the method, so each
+  one can be checked.
+- **Backlog not smaller than it was 28 days earlier; armed only when the archival cron ships (plan
+  step 5).** This catches a cron that runs and uploads but falls behind: two batch intervals of no
+  net progress. Before the cron exists, the backlog can't shrink, so this rule would only repeat the
+  one above.
 
 **Change, not presence (issue):**
 
@@ -153,11 +159,10 @@ notifies whoever watches the repo.
 
 ## 4. When the alert itself goes dark
 
-**This has already happened on this job.** READ: the archival line in olsystem's
-`etc/cron.d/openlibrary.ol_home0` ran through `scripts/cron_wrapper.py cover-archival`, and the
-olsystem cron README lists a `cover-archival` Sentry cron monitor. The line has been commented out
-since 2025-01-12. Whether that monitor then fired and went unread, or was muted, is **unverified**;
-answering it needs Sentry access.
+**This has already happened on this job.** READ: the archival cron ran under a Sentry cron monitor
+for the job, through `scripts/cron_wrapper.py`. In the production cron config it has been commented
+out since 2025-01-12. Whether that monitor then fired and went unread, or was muted, is
+**unverified**; answering it needs Sentry access.
 
 It shows two limits. A job-liveness monitor can't see an outcome stall: a run that exits 0 without
 uploading checks in green. And a dead-man's switch helps only if its alert reaches someone.
@@ -175,11 +180,11 @@ issue, unless its output passes these checks:
 The last check exists because the checker rotates slots by ISO week, and "it ran" doesn't prove it
 looked anywhere new.
 
-**B. On IA infrastructure.** A small `ol-home0` cron, under `cron_wrapper.py` with a new slug
-`cover-archival-watch`, reads the workflow's latest scheduled run from the public GitHub API. It
+**B. On IA infrastructure.** A small host cron, under `cron_wrapper.py` with a new monitor slug,
+reads the workflow's latest scheduled run from the public GitHub API. It
 exits non-zero if the latest successful run is older than **8 days**: the weekly S1 cadence plus a
 day for a delayed or dropped scheduled run. `cron_wrapper` reports that to Sentry as an error. If
-`ol-home0` or the cron dies, Sentry sees a missed check-in.
+the host or the cron dies, Sentry sees a missed check-in.
 
 The two watch each other. If GitHub Actions stops, B notices. If IA infrastructure or Sentry
 stops, A still opens its issues. If both stop, nobody is alerted, and the lead's weekly check in
@@ -199,8 +204,8 @@ been triggered on purpose and acknowledged by its reader: a dispatch with a muta
 
 | Blind spot | Why it's invisible | What covers it |
 |---|---|---|
-| Whether the archival cron is scheduled on the host | The live crontab isn't public. READ: the repo line has been commented out since 2025-01-12. | Nothing sees intent. S2 and S3 see the effect within a batch interval, and the §3 stall rule is armed only when the cron PR ships. Mek checks the live crontab once (plan step 0). |
-| Local disk on `ol-covers0`: surviving files, space filling | No host access | Plan step 0, once. READ: the `ol-home0` disk alert watches only `ol-home0`, so a matching check on `ol-covers0` is a gap to raise with Mek. |
+| Whether the archival cron is scheduled on the host | The live crontab isn't public. READ: the cron config has had it commented out since 2025-01-12. | Nothing sees intent. S2 and S3 see the effect within a batch interval, and the §3 stall rule reports it on #13287. Mek checks the live crontab once (plan step 0). |
+| Local disk on `ol-covers0`: surviving files, space filling | No host access | Surviving files: plan step 0, once. Space: READ, a daily `ol-covers0` disk check exists and posts to Slack at 80%. But it measures the filesystem holding the nginx logs, while its message names the data volume. **Whether it covers the coverstore data volume is open.** |
 | Database flags (`failed` / `uploaded` NULL defaults) | No DB access | Plan step 0. A NULL-flag row is skipped silently, and it shows up only indirectly, as a `partial` gap after its batch uploads. |
 | Losses by a different mechanism from batch 62: lost DB rows, disk failure | S1 watches the pointer pairing that #9836 found | The listing-shrink rule, plus a weekly sample of 20 recent non-zipped IDs that must return 200 (from `ol-kb` oversight). The real hedge is a reviewer who didn't write #13725. |
 | Old slots between rotations | 150-request cap. There are about 28 (item, tier) slots (items `0008`–`0014`, 4 tiers). | Each old slot is re-checked about every half-year. That is acceptable only because old zips don't change unless something re-uploads them, and a re-upload moves S2. |
@@ -208,7 +213,7 @@ been triggered on purpose and acknowledged by its reader: a dispatch with a muta
 
 ## Open questions
 
-1. Whether the `cover-archival` Sentry monitor fired after 2025-01-12, and who received it. This
+1. Whether the archival job's Sentry monitor fired after 2025-01-12, and who received it. This
    decides whether §4's Sentry path is read at all. Needs Sentry access.
 2. Whether GitHub runners can reach `sentry.archive.org`. This decides whether path B is needed.
 3. Where the page goes: which Slack channel, and who the cover-service owner is by name. Mek's call.
