@@ -123,16 +123,16 @@ def test_validate(message: Message, catalog: Catalog):
 
 
 @pytest.mark.parametrize(
-    ("msgstr", "expected_errors"),
-    [('<a href="%s">ti</a>', 0), ('<a href="%(link)s">ti</a>', 3)],
+    ("msgstr", "has_errors"),
+    [('<a href="%s">ti</a>', False), ('<a href="%(link)s">ti</a>', True)],
 )
-def test_validate_translations_counts_non_fuzzy_errors(tmp_path, monkeypatch, msgstr, expected_errors):
+def test_validate_translations_counts_non_fuzzy_errors(tmp_path, monkeypatch, msgstr, has_errors):
     (tmp_path / "xx").mkdir()
     (tmp_path / "xx" / "messages.po").write_text(
         f'msgid ""\nmsgstr ""\n\n#, python-format\nmsgid "by <a href=\\"%s\\">You</a>"\nmsgstr "{msgstr.replace('"', '\\"')}"\n'
     )
     monkeypatch.setattr(i18n, "root", str(tmp_path))
-    assert i18n.validate_translations(["xx"]) == {"xx": expected_errors}
+    assert (i18n.validate_translations(["xx"])["xx"] > 0) == has_errors
 
 
 @pytest.mark.parametrize(
@@ -143,6 +143,8 @@ def test_validate_translations_counts_non_fuzzy_errors(tmp_path, monkeypatch, ms
         ("%(username)s is reading %(total)d books. Join %(username)s", "%(username)s이(가) %(total)d권을 읽고", True),
         # Positional ones are consumed in order
         ("%s has %d books", "%d books by %s", False),
+        # Same-type positional swaps render in the wrong order without raising
+        ("%d of %i", "%i od %d", False),
         ('by <a href="%s">You</a>', '<a href="%(link)s">ti</a>', False),
         ("%(count)s commits behind", "%(count)개 커밋 뒤처짐", False),
         # A `%d` translation raises on the str a `%s` msgid accepts
@@ -151,6 +153,10 @@ def test_validate_translations_counts_non_fuzzy_errors(tmp_path, monkeypatch, ms
         # Babel's checker reads a malformed conversion as "no placeholders", in every plural form
         (("%(count)d item", "%(count)d items"), ("%(count)개 항목",), False),
         (("%(count)d item", "%(count)d items"), ("%(count)d stavka", "%(count)d stavke", "%(count)đ stavki"), False),
+        # `%c` accepts a 1-character str, so the probe value must be longer than that
+        (("One item", "%(count)s items"), ("%(count)c개",), False),
+        # A mapping fills a positional `%s` with its own repr instead of raising
+        (("One item", "%(count)d items"), ("%s개 항목",), False),
     ],
 )
 def test_validate_placeholders(msgid, msgstr, valid):

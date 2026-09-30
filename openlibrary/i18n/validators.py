@@ -52,8 +52,9 @@ NUMERIC_CONVERSIONS = frozenset("cdiouxXeEfFgG")
 def _format_args(msgids: list[str]) -> dict | tuple | None:
     """
     Arguments shaped the way the msgid declares them: a str for `%s`, an int for `%d`.
+    The str is two characters long because `%c` accepts one.
     >>> _format_args(['by <a href="%s">You</a>'])
-    ('x',)
+    ('xx',)
     >>> _format_args(['%(count)d item', '%(count)d items'])
     {'count': 1}
     >>> _format_args(['100%% Complete!']) is None
@@ -66,7 +67,7 @@ def _format_args(msgids: list[str]) -> dict | tuple | None:
         for placeholder in _parse_cfmt(msgid):
             if placeholder == "%%":
                 continue
-            value = 1 if placeholder[-1] in NUMERIC_CONVERSIONS else "x"
+            value = 1 if placeholder[-1] in NUMERIC_CONVERSIONS else "xx"
             if placeholder.startswith("%("):
                 named[placeholder[2 : placeholder.index(")")]] = value
             else:
@@ -97,6 +98,10 @@ def _validate_substitution(message: Message) -> list[str]:
             msgstr % args
         except (TypeError, ValueError, KeyError) as e:
             errors.append(f"    {msgstr!r} % {args!r} raises {type(e).__name__}: {e}")
+            continue
+        if isinstance(args, dict) and any(p != "%%" and not p.startswith("%(") for p in _parse_cfmt(msgstr)):
+            # A mapping fills a positional placeholder with its own repr instead of raising
+            errors.append(f"    {msgstr!r} uses positional placeholders but its msgid is named")
     return errors
 
 
