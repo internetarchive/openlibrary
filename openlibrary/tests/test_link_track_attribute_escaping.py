@@ -111,8 +111,10 @@ def test_read_button_special_access_omits_action_read(render_template, request_c
     """Special Access (printdisabled=True) buttons must not append &action=read."""
     request_context_fixture(lang="en")
     macro.load_macros("openlibrary", lazy=True)
+
     def analytics_attr(action):
         return f'data-analytics="{action}"'
+
     mock_site = MagicMock()
     mock_site.get_user.return_value = None
     mock_site_context = MagicMock()
@@ -130,8 +132,10 @@ def test_read_button_normal_read_includes_action_read(render_template, request_c
     """Normal Read buttons must append &action=read."""
     request_context_fixture(lang="en")
     macro.load_macros("openlibrary", lazy=True)
+
     def analytics_attr(action):
         return f'data-analytics="{action}"'
+
     mock_site = MagicMock()
     mock_site.get_user.return_value = None
     mock_site_context = MagicMock()
