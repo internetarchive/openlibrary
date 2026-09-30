@@ -47,24 +47,6 @@
       ]
     },
     {
-      "name": "Comedy",
-      "slug": "comedy",
-      "tag_key": "/tags/OL165T",
-      "query": "(comedy* OR comedies OR fiction_humorous*)",
-      "work_count": 15526,
-      "readable_count": 6305,
-      "subgenres": [
-        {
-          "name": "Picaresque",
-          "slug": "picaresque",
-          "tag_key": "/tags/OL284T",
-          "query": "picaresque*",
-          "work_count": 377,
-          "readable_count": 88
-        }
-      ]
-    },
-    {
       "name": "Crime",
       "slug": "crime",
       "tag_key": "/tags/OL166T",
@@ -160,9 +142,9 @@
       "name": "Fantasy",
       "slug": "fantasy",
       "tag_key": "/tags/OL169T",
-      "query": "fantasy*",
-      "work_count": 36393,
-      "readable_count": 17306,
+      "query": "(fantasy* OR fiction_fantasy*)",
+      "work_count": 99069,
+      "readable_count": 24986,
       "subgenres": [
         {
           "name": "Coming of Age",
@@ -310,9 +292,9 @@
       "name": "Humor",
       "slug": "humor",
       "tag_key": "/tags/OL172T",
-      "query": "humor*",
-      "work_count": 57775,
-      "readable_count": 25964,
+      "query": "(humor* OR fiction_humorous* OR comedy* OR comedies)",
+      "work_count": 72186,
+      "readable_count": 31427,
       "subgenres": [
         {
           "name": "Gonzo",
@@ -379,9 +361,9 @@
       "name": "Mystery",
       "slug": "mystery",
       "tag_key": "/tags/OL175T",
-      "query": "mystery*",
-      "work_count": 26361,
-      "readable_count": 16247,
+      "query": "(mystery* OR fiction_mystery__detective*)",
+      "work_count": 107558,
+      "readable_count": 48222,
       "subgenres": [
         {
           "name": "Detective",
@@ -414,9 +396,9 @@
       "name": "Romance",
       "slug": "romance",
       "tag_key": "/tags/OL177T",
-      "query": "romance*",
-      "work_count": 48189,
-      "readable_count": 18359,
+      "query": "(romance* OR fiction_romance*)",
+      "work_count": 235718,
+      "readable_count": 64537,
       "subgenres": [
         {
           "name": "Coming of Age",
@@ -453,21 +435,12 @@
       ]
     },
     {
-      "name": "Satire",
-      "slug": "satire",
-      "tag_key": "/tags/OL178T",
-      "query": "(satire* OR fiction_satire* OR satirical*)",
-      "work_count": 4018,
-      "readable_count": 1182,
-      "subgenres": []
-    },
-    {
       "name": "Sci-Fi",
       "slug": "sci-fi",
       "tag_key": "/tags/OL179T",
-      "query": "science_fiction*",
-      "work_count": 28214,
-      "readable_count": 13711,
+      "query": "(science_fiction* OR fiction_science_fiction*)",
+      "work_count": 71098,
+      "readable_count": 21953,
       "subgenres": [
         {
           "name": "Apocalyptic",
@@ -584,15 +557,6 @@
           "readable_count": 1430
         }
       ]
-    },
-    {
-      "name": "Tragedy",
-      "slug": "tragedy",
-      "tag_key": "/tags/OL181T",
-      "query": "(tragedy* OR tragedies OR tragic*)",
-      "work_count": 4081,
-      "readable_count": 1461,
-      "subgenres": []
     },
     {
       "name": "Western",

@@ -27,8 +27,9 @@ TAGS_REPO_RAW_BASE = "https://raw.githubusercontent.com/Open-Book-Genome-Project
 OL_SEARCH_URL = "https://openlibrary.org/search.json"
 DEFAULT_OUTPUT = Path("openlibrary/plugins/openlibrary/home_genres.json")
 
-# Not shown on the home page.
-EXCLUDED_GENRES = {"Erotica"}
+# Not shown on the home page: Erotica by choice, Satire and Tragedy too thin, Comedy folded
+# into Humor (see QUERY_OVERRIDES).
+EXCLUDED_GENRES = {"Comedy", "Erotica", "Satire", "Tragedy"}
 
 # Subjects shelved alongside the genres, so nonfiction and kids' books have a way in too. These
 # aren't in the genres vocabulary; `page` is the subject page the shelf links out to. Names are
@@ -60,20 +61,22 @@ KNOWN_SYNONYMS = {
 # fiction_action__adventure). Values are subject_key clauses, checked live against production.
 QUERY_OVERRIDES = {
     "Action": "(fiction_action__adventure* OR action__adventure* OR action_and_adventure* OR action)",
-    "Comedy": "(comedy* OR comedies OR fiction_humorous*)",
     "Crime": "(crime OR crime_fiction OR crime_fiction_fiction OR fiction_crime*)",
     "Cult": "cult",
     "Drama": "drama",
     "Epic": "(epic OR epic_fiction OR epic_fantasy OR epic_literature)",
+    "Fantasy": "(fantasy* OR fiction_fantasy*)",
     "Gothic": "gothic_fiction*",
     "Historical": "(historical_fiction* OR fiction_historical*)",
     "Horror": "(horror* OR fiction_horror*)",
+    "Humor": "(humor* OR fiction_humorous* OR comedy* OR comedies)",
     "LGBTQ+": "(lgbtq* OR fiction_lgbtq* OR fiction_gay* OR fiction_lesbian* OR gay_men_fiction OR lesbians_fiction OR gays_fiction)",
     "Literary": "(literary_fiction* OR fiction_literary*)",
+    "Mystery": "(mystery* OR fiction_mystery__detective*)",
     "Psychological": "psychological_fiction*",
-    "Satire": "(satire* OR fiction_satire* OR satirical*)",
+    "Romance": "(romance* OR fiction_romance*)",
+    "Sci-Fi": "(science_fiction* OR fiction_science_fiction*)",
     "Thriller": "(thriller* OR fiction_thrillers* OR fiction_suspense* OR suspense*)",
-    "Tragedy": "(tragedy* OR tragedies OR tragic*)",
     "Western": "(western_stories OR westerns OR western_fiction OR western OR fiction_westerns*)",
 }
 
