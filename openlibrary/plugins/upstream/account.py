@@ -898,7 +898,7 @@ class import_books(delegate.page):
         user = accounts.get_current_user()
         username = user["key"].split("/")[-1]
         template = render["account/import"]()
-        return MyBooksTemplate(username, "imports").render(header_title=_("Imports and Exports"), template=template)
+        return MyBooksTemplate(username, "imports").render(header_title=_("Import your data"), template=template)
 
 
 class fetch_goodreads(delegate.page):
@@ -1186,6 +1186,13 @@ class export_books(delegate.page):
     @require_login
     def GET(self):
         i = web.input(type="")
+        user = accounts.get_current_user()
+
+        if not i.type:
+            # Render export selection page when no type specified
+            username = user.key.split("/")[-1]
+            template = render["account/export"](user=user)
+            return MyBooksTemplate(username, "exports").render(header_title=_("Export your data"), template=template)
 
         export = self.get_export(i.type)
         data = export.make_export(export.get_data(), export.fieldnames)
