@@ -166,6 +166,9 @@ jobs:
     #   3. issue_comment @-mention on a PR -- open to any commenter including external
     #      contributors, and it runs with secrets in scope, so this path keeps an explicit
     #      staff allowlist.
+    # Drafts: the three automatic paths above skip draft PRs -- no reviewing unfinished work.
+    # A manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
+    # GitHub already requires write access to dispatch.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
@@ -218,8 +221,9 @@ jobs:
                   : context.payload.issue.number);
 
             const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
-            // Defensive draft check -- issue_comment's payload has no draft field.
-            if (pr.draft) { core.info(`PR #${prNumber} is a draft -- skipping.`); core.setOutput('skip','true'); return; }
+            // Draft check for the automatic paths -- issue_comment's payload has no draft field.
+            // A manual dispatch reviews drafts on purpose (see the trigger comment above).
+            if (pr.draft && context.eventName !== 'workflow_dispatch') { core.info(`PR #${prNumber} is a draft -- skipping.`); core.setOutput('skip','true'); return; }
             if (pr.state !== 'open') { core.info(`PR #${prNumber} is ${pr.state} -- skipping.`); core.setOutput('skip','true'); return; }
 
             const head = pr.head.sha;
