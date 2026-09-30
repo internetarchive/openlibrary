@@ -99,6 +99,7 @@ import re
 import sys
 import time
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -123,6 +124,11 @@ SERVES_ABSENT_ID = 999999999
 # tries candidates this far apart below it, so it never lands on a cover mid-upload.
 NEWEST_ID_RESOLUTION = 100
 OPEN_BATCH_CANDIDATES = 3
+# The newest-ID search's first gallop step, and the run of consecutive IDs without
+# a record that marks the end of the ID space (the rule #13766's S3 uses).
+GALLOP_FIRST_STEP = BATCH_SIZE
+END_OF_IDS_TAIL = 10
+MAX_NEWEST_RESUMES = 5
 # IDs tried down from the end of the newest zip's batch, in case one was deleted.
 FLOOR_CANDIDATES = 5
 # IDs read in the batch above the newest zip: a deleted newest zip that covers
@@ -143,6 +149,63 @@ SEVERITY = ["ok", "short_no_record", "partial", "indeterminate", "LOSS"]
 
 class BudgetExceeded(Exception):
     pass
+
+
+class NewestIdNotFound(Exception):
+    def __init__(self, tried: list[int]):
+        super().__init__(f"no tail of {END_OF_IDS_TAIL} missing IDs confirmed after {len(tried)} probes")
+        self.tried = tried
+
+
+def first_live_in_tail(exists: Callable[[int], bool], start: int, tail: int = END_OF_IDS_TAIL) -> int | None:
+    """The first of ``tail`` consecutive IDs from ``start`` that exists, or None if none does.
+
+    None means ``start`` begins a run of ``tail`` missing IDs: the end of the ID
+    space, unless more than ``tail - 1`` consecutive IDs were deleted.
+    """
+    return next((i for i in range(start, start + tail) if exists(i)), None)
+
+
+def newest_existing_id(
+    exists: Callable[[int], bool],
+    floor: int,
+    first_step: int,
+    resolution: int,
+    tail: int = END_OF_IDS_TAIL,
+    max_resumes: int = MAX_NEWEST_RESUMES,
+) -> int:
+    """An existing ID within ``resolution`` below the first run of ``tail`` missing IDs above ``floor``.
+
+    Gallops up from ``floor`` (which must exist), bisects to ``resolution``, then
+    checks that the ``tail`` IDs from the first miss are all missing. A deleted ID
+    on a probe point ends the search early; the tail check sees covers above it
+    and the search resumes from there, at most ``max_resumes`` times. So the
+    result is robust to up to ``tail - 1`` consecutive deleted IDs.
+    Raises NewestIdNotFound, listing every ID probed, when resumes run out.
+    """
+    tried: list[int] = []
+
+    def probe(i: int) -> bool:
+        tried.append(i)
+        return exists(i)
+
+    lo = floor
+    for _ in range(max_resumes + 1):
+        step = first_step
+        while probe(lo + step):
+            lo, step = lo + step, step * 2
+        hi = lo + step
+        while hi - lo > resolution:
+            mid = (lo + hi) // 2
+            if probe(mid):
+                lo = mid
+            else:
+                hi = mid
+        live = first_live_in_tail(probe, hi + 1, tail - 1)
+        if live is None:
+            return lo
+        lo = live
+    raise NewestIdNotFound(tried)
 
 
 class Http:
@@ -369,18 +432,11 @@ class Checker:
                 return
 
     def newest_cover_id(self, floor: int) -> int:
-        """Within NEWEST_ID_RESOLUTION of the newest cover ID, probing up from ``floor``, which exists."""
-        lo, step = floor, BATCH_SIZE
-        while self.pointer(lo + step)[0] == 200:
-            lo, step = lo + step, step * 2
-        hi = lo + step
-        while hi - lo > NEWEST_ID_RESOLUTION:
-            mid = (lo + hi) // 2
-            if self.pointer(mid)[0] == 200:
-                lo = mid
-            else:
-                hi = mid
-        return lo
+        """Within NEWEST_ID_RESOLUTION of the newest cover ID, probing up from ``floor``, which exists.
+
+        Robust to up to END_OF_IDS_TAIL - 1 consecutive deleted IDs; see newest_existing_id.
+        """
+        return newest_existing_id(lambda i: self.pointer(i)[0] == 200, floor, GALLOP_FIRST_STEP, NEWEST_ID_RESOLUTION, END_OF_IDS_TAIL, MAX_NEWEST_RESUMES)
 
     def open_batch_control(self, newest_zip: Zip) -> str | None:
         """None if a cover in the open batch is local and served; otherwise why not."""
@@ -389,7 +445,10 @@ class Checker:
         floor = next((i for i in floors if self.pointer(i)[0] == 200), None)
         if floor is None:
             return f"serves control: no cover at {floors[-1]}-{floors[0]}, the end of the newest zip's batch, to probe up from"
-        newest = self.newest_cover_id(floor)
+        try:
+            newest = self.newest_cover_id(floor)
+        except NewestIdNotFound as e:
+            return f"serves control: newest cover ID not found above {floor}: {e}; probed {e.tried}"
         tried = []
         for k in range(1, OPEN_BATCH_CANDIDATES + 1):
             cover_id = newest - k * NEWEST_ID_RESOLUTION

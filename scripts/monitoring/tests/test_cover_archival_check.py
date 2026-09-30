@@ -6,6 +6,7 @@ from pathlib import Path
 import httpx
 import pytest
 
+from scripts.monitoring import cover_archival_check
 from scripts.monitoring.cover_archival_check import (
     EXIT_BUDGET,
     EXIT_CONTROL,
@@ -551,3 +552,45 @@ def test_a_deleted_newest_zip_that_covers_point_into_is_caught_without_the_gallo
     code, rows, _ = run_to_strings(server, known=KNOWN, checker_cls=NoGallop)
     assert missing_zips(rows) == [("covers_0014_63", "pointer")]
     assert code == EXIT_LOSS
+
+
+class NoGallop(Checker):
+    """A checker whose newest-ID probe makes no requests, so nothing is caught by where it lands."""
+
+    def newest_cover_id(self, floor):
+        return NEWEST_COVER
+
+
+def test_the_above_top_probe_falls_back_when_the_first_id_has_no_record():
+    server = with_zips([61, 62])  # covers_0014_63 was finalized, then deleted
+    server.pointers |= {14630000: None, 14635000: {"id": 14635000, "filename": "covers_0014/covers_0014_63.zip"}}
+    code, rows, _ = run_to_strings(server, known=KNOWN, checker_cls=NoGallop)
+    assert missing_zips(rows) == [("covers_0014_63", "pointer")]
+    assert code == EXIT_LOSS
+
+
+# The independent reviewer's scenarios: one deleted cover on a probe point
+# must not collapse the newest-ID estimate, whatever the gallop's first step.
+@pytest.mark.parametrize("hole", [10_000, 20_000, 30_000])
+@pytest.mark.parametrize("step", [1, 2], ids=["step-1x", "step-2x"])
+def test_one_deleted_cover_on_a_probe_point_does_not_collapse_the_newest_id(monkeypatch, step, hole):
+    monkeypatch.setattr(cover_archival_check, "GALLOP_FIRST_STEP", step * 10_000)
+    floor = 14629999
+    newest = Checker(make_http(FakeServer(pointers={floor + hole: None}))).newest_cover_id(floor)
+    assert NEWEST_COVER - 100 <= newest <= NEWEST_COVER
+
+
+def test_the_newest_id_survives_nine_consecutive_deleted_covers():
+    floor = 14629999
+    holes = dict.fromkeys(range(floor + 10_000, floor + 10_009))
+    newest = Checker(make_http(FakeServer(pointers=holes))).newest_cover_id(floor)
+    assert NEWEST_COVER - 100 <= newest <= NEWEST_COVER
+
+
+def test_running_out_of_resumes_fails_loudly_naming_the_ids_probed(monkeypatch):
+    monkeypatch.setattr(cover_archival_check, "MAX_NEWEST_RESUMES", 0)
+    floor = 14629999
+    failure = Checker(make_http(FakeServer(pointers={floor + 10_000: None}))).open_batch_control(Zip("", "0014", 62))
+    assert failure is not None
+    assert "newest cover ID not found" in failure
+    assert str(floor + 10_000) in failure
