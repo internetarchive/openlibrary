@@ -232,16 +232,17 @@ def compile_translations(locales: list[str]):
             _compile_translation(po_path, mo_path)
 
 
-def _format_args(message: Message) -> dict | tuple | None:
+def _format_args(message: Message) -> dict | tuple:
     """Build stand-in arguments shaped like the ones the msgid expects at runtime.
 
     GetText/ungettext apply ``value % args`` (or ``% kwargs``) to whichever string
     they resolve, so a translation must accept the same arguments as its msgid.
-    Ints are used because they satisfy %s, %d and %f alike: this catches
-    structural mismatches, not type mismatches.
+    A msgid with no placeholders gets ``{}``: Jinja's newstyle gettext applies
+    ``% variables`` even when there are none. Ints are used because they satisfy
+    %s, %d and %f alike, so a %d applied to a runtime str is not caught.
     """
     if not message.python_format:
-        return None
+        return {}
     ids = message.id if isinstance(message.id, (list, tuple)) else [message.id]
     names: set[str] = set()
     positional = 0
@@ -253,14 +254,12 @@ def _format_args(message: Message) -> dict | tuple | None:
         return dict.fromkeys(names, 1)
     if positional:
         return (1,) * positional
-    return None
+    return {}
 
 
 def _render_errors(message: Message) -> list[str]:
     """Errors that formatting this translation would raise at render time."""
     args = _format_args(message)
-    if args is None:
-        return []
     strings = message.string if isinstance(message.string, (list, tuple)) else [message.string]
     errors = []
     for msgstr in strings:
@@ -270,22 +269,33 @@ def _render_errors(message: Message) -> list[str]:
             msgstr % args
         except (TypeError, ValueError, KeyError) as e:
             errors.append(f"line {message.lineno}: {msgstr!r}: {type(e).__name__}: {e}")
+            continue
+        # `"%s" % {...}` does not raise; it renders the dict's repr.
+        if isinstance(args, dict) and any(p != "%%" and not p.startswith("%(") for p in _parse_cfmt(msgstr)):
+            errors.append(f"line {message.lineno}: {msgstr!r}: positional placeholder where the msgid has none")
     return errors
 
 
 def check_po_file(po_path: str) -> list[str]:
     """Reasons this .po file is unsafe to ship, or an empty list if it is safe.
 
-    Unsafe means it would break ``make i18n`` (does not parse or compile) or a
-    translation that gets compiled would raise when rendered. Fuzzy entries are
-    skipped because ``write_mo`` leaves them out of the .mo.
+    Unsafe means it would break ``make i18n`` (does not parse or compile), the
+    compiled .mo would not load the way ``load_translations`` loads it (e.g. a
+    malformed Plural-Forms header), or a translation that gets compiled would
+    raise when rendered. Fuzzy entries are skipped because ``write_mo`` leaves
+    them out of the .mo.
     """
     try:
         with open(po_path, "rb") as po_file:
             catalog = read_po(po_file, abort_invalid=True)
-        write_mo(BytesIO(), catalog)
+        mo = BytesIO()
+        write_mo(mo, catalog)
+        mo.seek(0)
+        translations = Translations(mo)
+        for n in range(1000):
+            translations.plural(n)
     except Exception as e:
-        return [f"does not parse/compile: {type(e).__name__}: {e}"]
+        return [f"does not parse/compile/load: {type(e).__name__}: {e}"]
 
     errors = []
     for message in catalog:
