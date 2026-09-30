@@ -67,16 +67,28 @@ Costs, stated plainly:
   merge, test it with `workflow_dispatch` on a fork, and after merge with one manual dispatch.
 - **GitHub delays or drops scheduled runs under load** (READ, GitHub docs). The dead-man's switch in
   §4 has a margin for this.
-- **State between runs is the previous run's JSONL, kept as a workflow artifact** (90-day retention)
-  and fetched with the workflow's `GITHUB_TOKEN` (`actions: read`). If the previous artifact is
-  missing, every "changed since last run" threshold reports **indeterminate**, not "no change".
+- **Per-slot baselines are a checked-in file, not a workflow artifact.** An artifact lasts at most
+  90 days on a public repo (READ, GitHub docs). A rotated slot comes round again about every 28
+  weeks, so an artifact baseline would always have expired, and every change rule on an old slot
+  would be permanently indeterminate. The file holds each (item, tier) slot's `listing_count` and
+  short-batch classes, next to the known-loss allowlist. **The workflow only reads it.** Every
+  difference against it is already an alert, so the person who acknowledges the alert updates the
+  file by PR. The workflow needs no write access to the repo, and each baseline change is
+  reviewed. A slot with no entry reports **indeterminate**, never "no change".
 
 Cadence:
 
 - S2 and S3 run **daily**, at about 35 requests.
-- S1 runs **weekly**, within the checker's 150-request cap.
+- S1 runs **weekly, in its own workflow**, so that §4 can watch it on its own (a daily S2/S3 success
+  must not make a failed S1 look fresh). It stays within the checker's request cap, which #13765
+  hasn't settled yet: 100 in its body, 150 as relayed to me. The rotation interval below assumes 150,
+  and scales with the cap.
 - S1 also runs the day after S2 sees a new upload. The danger window is between a partial upload and
   the next archival run.
+- **Controls run on every S1 run, outside the rotation:** batch 62 (positive) and a full batch-61 ID
+  (negative). Today they happen to be covered anyway, because `covers_0014` is the newest item and is
+  scanned every run. Once `covers_0015` exists, batch 62 would be in rotation and absent 27 weeks
+  in 28, and "known loss missing = control failure" would fire most weeks.
 
 ## 2. Who reads it, and through what
 
@@ -84,7 +96,7 @@ An alert nobody reads is the failure we're guarding against, so every alert has 
 
 | Class | Channel | Reader |
 |---|---|---|
-| **Page**: a loss is happening | Slack, in the channel the existing host alerts already use, **and** a GitHub issue | The cover-service owner, same day |
+| **Page**: a loss is happening | Slack, in a channel that carries **no recurring automated alert** (Mek chooses it; see open question 3), **and** a GitHub issue | The cover-service owner, same day |
 | **Stall**: archival isn't making progress | A comment on the existing #13287, already the record of this stall, **only when the backlog count changes**. If #13287 is closed, a new issue. Closed by a human, never by the bot. | The cover-service owner, weekly |
 | **Watcher health**: the checker can't produce a verdict | GitHub issue plus the §4 dead-man's switch | Whoever owns the workflow |
 
@@ -94,13 +106,13 @@ notifies whoever watches the repo.
 
 **What someone with access has to create (nothing here creates it):**
 
-1. A Slack incoming webhook for that channel, stored as a repository secret. By a Slack admin, then
+1. A Slack incoming webhook for the chosen channel, stored as a repository secret. By a Slack admin, then
    Mek for the secret. The existing cron alerts use host-side credentials, which Actions can't reach
    and shouldn't.
 2. The §4 host cron and its Sentry monitor. A change to the private cron config plus a Sentry
    admin; Mek.
-3. `issues: write` and `actions: read` on the workflow's `GITHUB_TOKEN`, granted in the workflow
-   file. Reviewed with the PR.
+3. `issues: write` on the workflow's `GITHUB_TOKEN`, granted in the workflow file. Reviewed with the
+   PR. It needs no `contents: write`, because baselines change only by human PR (§1).
 
 ## 3. Thresholds
 
@@ -169,20 +181,22 @@ uploading checks in green. And a dead-man's switch helps only if its alert reach
 
 So the watcher proves it ran *and did its job*, through two paths whose failures don't correlate:
 
-**A. On GitHub.** The job fails, which triggers GitHub's failure notification and a watcher-health
-issue, unless its output passes these checks:
+**A. On GitHub.** The job fails and opens a watcher-health issue unless its output passes these
+checks. GitHub's own failure email goes only to the person who last edited the workflow's
+schedule (READ, GitHub docs), so the issue, not the email, is the alert.
 
 - The summary line is present.
 - The row count is at least the batch count it planned.
 - Both S3 controls hold.
-- The rotated (item, tier) slot differs from the previous run's.
+- The rotated (item, tier) slot is the one this ISO week implies. That needs no stored state, and a
+  stuck rotation fails it.
 
 The last check exists because the checker rotates slots by ISO week, and "it ran" doesn't prove it
 looked anywhere new.
 
 **B. On IA infrastructure.** A small host cron, under `cron_wrapper.py` with a new monitor slug,
-reads the workflow's latest scheduled run from the public GitHub API. It
-exits non-zero if the latest successful run is older than **8 days**: the weekly S1 cadence plus a
+reads **the S1 workflow's** latest scheduled run from the public GitHub API.
+It exits non-zero if that workflow's latest successful run is older than **8 days**: the weekly S1 cadence plus a
 day for a delayed or dropped scheduled run. `cron_wrapper` reports that to Sentry as an error. If
 the host or the cron dies, Sentry sees a missed check-in.
 
@@ -207,13 +221,20 @@ been triggered on purpose and acknowledged by its reader: a dispatch with a muta
 | Whether the archival cron is scheduled on the host | The live crontab isn't public. READ: the cron config has had it commented out since 2025-01-12. | Nothing sees intent. S2 and S3 see the effect within a batch interval, and the §3 stall rule reports it on #13287. Mek checks the live crontab once (plan step 0). |
 | Local disk on `ol-covers0`: surviving files, space filling | No host access | Surviving files: plan step 0, once. Space: READ, a daily `ol-covers0` disk check exists and posts to Slack at 80%. But it measures the filesystem holding the nginx logs, while its message names the data volume. **Whether it covers the coverstore data volume is open.** |
 | Database flags (`failed` / `uploaded` NULL defaults) | No DB access | Plan step 0. A NULL-flag row is skipped silently, and it shows up only indirectly, as a `partial` gap after its batch uploads. |
-| Losses by a different mechanism from batch 62: lost DB rows, disk failure | S1 watches the pointer pairing that #9836 found | The listing-shrink rule, plus a weekly sample of 20 recent non-zipped IDs that must return 200 (from `ol-kb` oversight). The real hedge is a reviewer who didn't write #13725. |
+| **The unzipped backlog, 57 batches, a single copy** | S1 only produces rows for zipped batches. A cover that was never zipped can't become `partial` or `serves: false`. | A weekly sample: 20 non-zipped IDs, **one per local day-directory**, rotating through the backlog's days, each of which must return 200. Specified here as an S1 check, with the S1 thresholds and the §4 did-its-job checks. **It detects total or large loss only.** Local files are stored by day, and one lost day is about 770 covers. A uniform 20-ID sample would hit that in about 2.7% of weeks (arithmetic). The day-rotated sample reaches each day about once every 38 weeks. Day-level loss needs a host-side check (Mek). |
+| **Rolled-back or lost DB rows in full batches** | READ: S1 examines only the missing IDs of short batches. If the DB were restored from an older backup, finalized rows would revert to local filenames whose files are gone. Those covers 404 while the zip still holds all 10,000. | Nothing in this design. It's recoverable from the zip, but nobody would know to repair it. The day-rotated sample above could be extended to zipped batches, and would then catch it at the same weak rate. |
+| **Covers 0–7,139,999 (`olcovers1`–`olcovers713`)** | Different item and file shape (`olcoversN-{S,M,L}.zip`), outside S1–S3. Reviewer READ (`code.py`): S/M sizes below 6M are served from local tars. | Their data is on archive.org, so a local disk loss is an outage, not an archival loss. Still, nothing here fires on it. |
+| **Covers 7,140,000–7,999,999** | Reviewer RAN a 7-ID sample: some are in local `covers_0007_NN.tar` files with no archive.org item, and the rest are unarchived local files. #13725's `MIN_ARCHIVABLE_ID` of 8,000,000 means archival never picks them up. | **Zero coverage, and a single copy: up to about 860k IDs** (density not measured). Recorded as a known gap (#476, 2017), not a watch to build here. |
 | Old slots between rotations | 150-request cap. There are about 28 (item, tier) slots (items `0008`–`0014`, 4 tiers). | Each old slot is re-checked about every half-year. That is acceptable only because old zips don't change unless something re-uploads them, and a re-upload moves S2. |
-| An archive.org item going dark | 503 or 5xx look like request failures | These return `indeterminate` (exit 3), and two consecutive runs raise a watcher-health issue. It never reads as clean. |
+| An archive.org item going missing or dark | RAN: a nonexistent item's `/metadata` returns **HTTP 200 with the body `{}`** (`covers_0007`; the `covers_0008` control returns 64 KB). A naive count would read that as 0 files. | An empty metadata object is its own state, **missing item**: indeterminate for S1 and S2, never a count of 0 and never "not uploaded". For an item that already has a baseline entry, it pages as a possible loss on archive.org's side. The shape of an item that exists but is dark is **not measured**. |
 
 ## Open questions
 
 1. Whether the archival job's Sentry monitor fired after 2025-01-12, and who received it. This
    decides whether §4's Sentry path is read at all. Needs Sentry access.
 2. Whether GitHub runners can reach `sentry.archive.org`. This decides whether path B is needed.
-3. Where the page goes: which Slack channel, and who the cover-service owner is by name. Mek's call.
+3. Where the page goes: which Slack channel, and who the cover-service owner is by name. Mek's call,
+   with one condition: **the page channel must not already carry an always-firing alert.** The
+   channel the existing host alerts use is suspect for exactly that reason, since an unrelated
+   disk-space alert there has been firing falsely every day (reproduced by the covers lead; whether
+   the alerts reached Slack isn't checked).
