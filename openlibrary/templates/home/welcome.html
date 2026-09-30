@@ -25,20 +25,20 @@ $ ]
 
 <section class="home-welcome" aria-labelledby="home-welcome-title">
   <h2 class="home-h2 home-h2--page-title" id="home-welcome-title">$_("Welcome to Open Library")</h2>
-  $# Hard-coded ballparks (2026-09): editions from /stats; works with ebook_access public or borrowable.
+  $# Hard-coded ballparks (2026-09): works with ebook_access public or borrowable; editions from /stats.
   <dl class="home-figures">
-    <div class="home-figures__item">
-      $:macros.icon("library-big", size="lg", extra_class="home-figures__icon")
-      <div class="home-figures__text">
-        <dt class="home-figures__number">$_("55 million")</dt>
-        <dd class="home-figures__label">$_("books in the catalog")</dd>
-      </div>
-    </div>
     <div class="home-figures__item">
       $:macros.icon("book-open-text", size="lg", extra_class="home-figures__icon")
       <div class="home-figures__text">
         <dt class="home-figures__number">$_("4.7 million")</dt>
         <dd class="home-figures__label">$_("free to read online")</dd>
+      </div>
+    </div>
+    <div class="home-figures__item">
+      $:macros.icon("library-big", size="lg", extra_class="home-figures__icon")
+      <div class="home-figures__text">
+        <dt class="home-figures__number">$_("55 million")</dt>
+        <dd class="home-figures__label">$_("books in the catalog")</dd>
       </div>
     </div>
   </dl>
