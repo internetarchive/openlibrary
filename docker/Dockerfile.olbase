@@ -7,7 +7,7 @@ ENV MODSECURITY_TAG=${MODSECURITY_TAG}
 COPY scripts/build_modsecurity.sh /tmp/build_modsecurity.sh
 RUN bash /tmp/build_modsecurity.sh
 
-FROM python:3.14.5-slim-trixie
+FROM python:3.14.7-slim-trixie
 
 ENV LANG=en_US.UTF-8
 
@@ -15,8 +15,8 @@ ENV LANG=en_US.UTF-8
 ENV LC_ALL=POSIX
 
 # Create openlibrary users
-# We use 999:999 for the openlibrary user. Any volume mounts which require read/write
-# access by the container should be set to this user. Ideally we would use a number
+# We use 999:999 for the openlibrary user. Any volume mounts that require read/write
+# access by the container should be set to this user. Ideally, we would use a number
 # larger than 10,000 to avoid host OS uid/gid conflicts, but this is what we have
 # at the moment.
 RUN groupadd --system --gid 999 openlibrary \
