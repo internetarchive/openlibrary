@@ -247,9 +247,10 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
     if availability and availability["status"] == "open":
         from openlibrary.plugins.openlibrary.code import is_bot
 
-        if not is_bot() and action == "read":
+        if not is_bot():
             stats.increment("ol.loans.openaccess")
-            _record_read_history(accounts.get_current_user(), edition)
+            if action == "read":
+                _record_read_history(accounts.get_current_user(), edition)
         return BorrowRedirect(archive_url)
 
     error_redirect = archive_url

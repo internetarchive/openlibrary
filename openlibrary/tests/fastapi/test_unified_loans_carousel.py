@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-from openlibrary.plugins.openlibrary.partials import get_carousel_card_data
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate, mybooks_home
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
@@ -282,7 +281,7 @@ def test_unified_loans_carousel_includes_read_history_and_deduplicates():
     with (
         patch("openlibrary.plugins.upstream.mybooks.get_loans_of_user", return_value=[]),
         patch("openlibrary.plugins.upstream.mybooks.get_loan_history_data", return_value={"docs": []}),
-        patch("openlibrary.plugins.upstream.mybooks.ReadHistory.get_history", return_value=mock_read_history_items),
+        patch("openlibrary.core.read_history.ReadHistory.get_history", return_value=mock_read_history_items),
         patch("openlibrary.plugins.upstream.mybooks.Bookshelves.add_solr_works"),
         patch("openlibrary.plugins.upstream.mybooks.site", mock_site_context),
         patch("openlibrary.plugins.upstream.mybooks.render", mock_render),
@@ -303,6 +302,8 @@ def test_unified_loans_carousel_includes_read_history_and_deduplicates():
 
 
 def test_carousel_card_data_includes_is_read_history():
+    from openlibrary.plugins.openlibrary.partials import get_carousel_card_data  # noqa: PLC0415
+
     book = MagicMock()
     book.key = "/works/OL1W"
     book.title = "Test Book"
@@ -364,7 +365,7 @@ def test_active_loan_bumps_to_top_when_read():
     with (
         patch("openlibrary.plugins.upstream.mybooks.get_loans_of_user", return_value=mock_active_loans),
         patch("openlibrary.plugins.upstream.mybooks.get_loan_history_data", return_value={"docs": []}),
-        patch("openlibrary.plugins.upstream.mybooks.ReadHistory.get_history", return_value=mock_read_history_items),
+        patch("openlibrary.core.read_history.ReadHistory.get_history", return_value=mock_read_history_items),
         patch("openlibrary.plugins.upstream.mybooks.Bookshelves.add_solr_works"),
         patch("openlibrary.plugins.upstream.mybooks.site", mock_site_context),
         patch("openlibrary.plugins.upstream.mybooks.render", mock_render),

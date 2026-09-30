@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from . import db
 
@@ -11,30 +10,20 @@ class ReadHistory(db.CommonExtras):
     @classmethod
     def add(cls, username: str, work_id: int, edition_id: int | None = None):
         oldb = db.get_db()
-        data = {"username": username, "work_id": work_id}
-
-        existing = list(
-            oldb.select(
-                cls.TABLENAME,
-                where="username=$username AND work_id=$work_id",
-                vars=data,
-            )
+        return oldb.query(
+            """
+            INSERT INTO read_history (username, work_id, edition_id, updated)
+            VALUES ($username, $work_id, $edition_id, now() at time zone 'utc')
+            ON CONFLICT (username, work_id) DO UPDATE SET
+                edition_id = EXCLUDED.edition_id,
+                updated = EXCLUDED.updated
+            """,
+            vars={
+                "username": username,
+                "work_id": work_id,
+                "edition_id": edition_id,
+            },
         )
-        if not existing:
-            return oldb.insert(
-                cls.TABLENAME,
-                username=username,
-                work_id=work_id,
-                edition_id=edition_id,
-            )
-        else:
-            return oldb.update(
-                cls.TABLENAME,
-                where="username=$username AND work_id=$work_id",
-                vars=data,
-                edition_id=edition_id,
-                updated=datetime.now(),
-            )
 
     @classmethod
     def get_history(cls, username: str, limit: int = 20, page: int = 1, offset: int | None = None) -> list:
@@ -50,6 +39,18 @@ class ReadHistory(db.CommonExtras):
                 limit=limit,
                 offset=offset,
                 vars={"username": username},
+            )
+        )
+
+    @classmethod
+    def get_for_work(cls, work_id: int | str) -> list:
+        oldb = db.get_db()
+        work_id = int(work_id)
+        return list(
+            oldb.select(
+                cls.TABLENAME,
+                where="work_id=$work_id",
+                vars={"work_id": work_id},
             )
         )
 

@@ -18,7 +18,7 @@ $else:
   $ title = _("Read ebook from Internet Archive")
   $ analytics_action = "Read"
 
-$if action == "read":
+$if action == "read" and not printdisabled:
   $ stream_url += "&action=read"
 
 $ user = get_current_user()

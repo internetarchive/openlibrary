@@ -55,8 +55,8 @@
   box-sizing: border-box;
 }
 
-.carousel .book,
-.carousel .carousel__item {
+.mybooks-details .carousel .book,
+.mybooks-details .carousel .carousel__item {
   flex: 0 0 140px;
   width: 140px;
   max-width: 140px;
