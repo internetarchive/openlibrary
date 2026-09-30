@@ -21,7 +21,7 @@ from babel.support import Translations
 
 from openlibrary.utils.request_context import req_context
 
-from .validators import validate
+from .validators import _parse_cfmt, validate
 
 root = os.path.dirname(__file__)
 
@@ -230,6 +230,89 @@ def compile_translations(locales: list[str]):
 
         if os.path.exists(po_path):
             _compile_translation(po_path, mo_path)
+
+
+def _format_args(message: Message) -> dict | tuple | None:
+    """Build stand-in arguments shaped like the ones the msgid expects at runtime.
+
+    GetText/ungettext apply ``value % args`` (or ``% kwargs``) to whichever string
+    they resolve, so a translation must accept the same arguments as its msgid.
+    Ints are used because they satisfy %s, %d and %f alike: this catches
+    structural mismatches, not type mismatches.
+    """
+    if not message.python_format:
+        return None
+    ids = message.id if isinstance(message.id, (list, tuple)) else [message.id]
+    names: set[str] = set()
+    positional = 0
+    for msgid in ids:
+        pieces = [p for p in _parse_cfmt(str(msgid)) if p != "%%"]
+        names.update(p[2 : p.index(")")] for p in pieces if p.startswith("%("))
+        positional = max(positional, sum(1 for p in pieces if not p.startswith("%(")))
+    if names:
+        return dict.fromkeys(names, 1)
+    if positional:
+        return (1,) * positional
+    return None
+
+
+def _render_errors(message: Message) -> list[str]:
+    """Errors that formatting this translation would raise at render time."""
+    args = _format_args(message)
+    if args is None:
+        return []
+    strings = message.string if isinstance(message.string, (list, tuple)) else [message.string]
+    errors = []
+    for msgstr in strings:
+        if not msgstr:
+            continue
+        try:
+            msgstr % args
+        except (TypeError, ValueError, KeyError) as e:
+            errors.append(f"line {message.lineno}: {msgstr!r}: {type(e).__name__}: {e}")
+    return errors
+
+
+def check_po_file(po_path: str) -> list[str]:
+    """Reasons this .po file is unsafe to ship, or an empty list if it is safe.
+
+    Unsafe means it would break ``make i18n`` (does not parse or compile) or a
+    translation that gets compiled would raise when rendered. Fuzzy entries are
+    skipped because ``write_mo`` leaves them out of the .mo.
+    """
+    try:
+        with open(po_path, "rb") as po_file:
+            catalog = read_po(po_file, abort_invalid=True)
+        write_mo(BytesIO(), catalog)
+    except Exception as e:
+        return [f"does not parse/compile: {type(e).__name__}: {e}"]
+
+    errors = []
+    for message in catalog:
+        if message.id and not message.fuzzy:
+            errors.extend(_render_errors(message))
+    return errors
+
+
+def install_translations(source: str, dest: str = root) -> dict[str, list[str]]:
+    """Copy ``<source>/<locale>/messages.po`` over ``<dest>/<locale>/messages.po``
+    for every locale whose file passes ``check_po_file``.
+
+    A locale that fails keeps whatever file ``dest`` already has. Returns each
+    locale's problems; an empty list means it was installed.
+    """
+    locales = sorted(d for d in os.listdir(source) if os.path.isfile(os.path.join(source, d, "messages.po")))
+    if not locales:
+        raise ValueError(f"no locales with a messages.po found in {source}")
+
+    results = {}
+    for locale in locales:
+        src_po = os.path.join(source, locale, "messages.po")
+        results[locale] = check_po_file(src_po)
+        if not results[locale]:
+            os.makedirs(os.path.join(dest, locale), exist_ok=True)
+            shutil.copyfile(src_po, os.path.join(dest, locale, "messages.po"))
+    return results
 
 
 def update_translations(locales: list[str]):
