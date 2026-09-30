@@ -44,8 +44,9 @@ npm run test:js
 # JavaScript component tests in a real browser (Vitest browser mode)
 npm run test:js:browser
 
-# i18n validation
+# i18n validation (.po syntax/placeholders, then HTML structure)
 make test-i18n
+pytest openlibrary/i18n/
 
 # All tests
 make test
