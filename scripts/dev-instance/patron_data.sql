@@ -117,16 +117,66 @@ INSERT INTO public.thing (key, type, latest_revision) VALUES ('/people/openlibra
 
 INSERT INTO public.transaction (action, author_id, ip, comment, changes, data) VALUES ('lists', 524, '172.19.0.1', '', '[{"key": "/people/openlibrary/lists/OL1L", "revision": 1}]', '{}');
 
-INSERT INTO public.version (thing_id, revision, transaction_id) VALUES ((SELECT id FROM public.thing WHERE key ='/people/openlibrary/lists/OL1L'), 1, (SELECT id FROM public.transaction WHERE action = 'lists'));
+INSERT INTO public.version (thing_id, revision, transaction_id) VALUES (
+    (
+        SELECT id FROM public.thing
+        WHERE key = '/people/openlibrary/lists/OL1L'
+    ),
+    1,
+    (
+        SELECT id FROM public.transaction
+        WHERE action = 'lists'
+    )
+);
 
-INSERT INTO public.data (thing_id, revision, data) VALUES ((SELECT id FROM public.thing WHERE key = '/people/openlibrary/lists/OL1L'), 1, '{"key": "/people/openlibrary/lists/OL1L", "type": {"key": "/type/list"}, "name": "OpenLibrary Test List", "description": {"type": "/type/text", "value": "Lorem ipsum dolor sit amet"}, "seeds": [{"key": "/works/OL20600W"}, {"key": "/works/OL45310W"}, {"key": "/books/OL24293426M"}, {"key": "/books/OL6514192M"}, {"key": "/works/OL61982W"}], "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2025-01-03T20:50:27.524685"}, "last_modified": {"type" :"/type/datetime", "value": "2025-01-03T20:50:27.524685"}}');
+INSERT INTO public.data (thing_id, revision, data) VALUES (
+    (
+        SELECT id FROM public.thing
+        WHERE key = '/people/openlibrary/lists/OL1L'
+    ),
+    1,
+    '{"key": "/people/openlibrary/lists/OL1L", "type": {"key": "/type/list"}, "name": "OpenLibrary Test List", "description": {"type": "/type/text", "value": "Lorem ipsum dolor sit amet"}, "seeds": [{"key": "/works/OL20600W"}, {"key": "/works/OL45310W"}, {"key": "/books/OL24293426M"}, {"key": "/books/OL6514192M"}, {"key": "/works/OL61982W"}], "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2025-01-03T20:50:27.524685"}, "last_modified": {"type" :"/type/datetime", "value": "2025-01-03T20:50:27.524685"}}'
+);
 
 INSERT INTO public.property (name, type) VALUES ('seeds', 35);
 INSERT INTO public.property (name, type) VALUES ('name', 35);
 
-INSERT INTO public.datum_str(key_id, thing_id, value) VALUES ((SELECT id FROM public.property WHERE type=35 AND name='name'), (SELECT id FROM public.thing WHERE key = '/people/openlibrary/lists/OL1L'), 'OpenLibrary Test List');
+INSERT INTO public.datum_str (key_id, thing_id, value) VALUES (
+    (
+        SELECT id FROM public.property
+        WHERE type = 35 AND name = 'name'
+    ),
+    (
+        SELECT id FROM public.thing
+        WHERE key = '/people/openlibrary/lists/OL1L'
+    ),
+    'OpenLibrary Test List'
+);
 
-INSERT INTO public.datum_ref (key_id, thing_id, value) SELECT * FROM (SELECT id FROM public.property WHERE type=35 AND name='seeds') t1 FULL JOIN (SELECT id FROM public.thing WHERE key='/people/openlibrary/lists/OL1L') t2 ON true FULL JOIN (SELECT id FROM public.thing WHERE key IN ('/works/OL20600W', '/works/OL45310W', '/books/OL24293426M', '/books/OL6514192M', '/works/OL61982W')) t3 ON true;
+INSERT INTO public.datum_ref (key_id, thing_id, value)
+WITH
+    seeds_property AS (
+        SELECT id FROM public.property
+        WHERE type = 35 AND name = 'seeds'
+    ),
+
+    list_thing AS (
+        SELECT id FROM public.thing
+        WHERE key = '/people/openlibrary/lists/OL1L'
+    ),
+
+    seed_things AS (
+        SELECT id FROM public.thing
+        WHERE key IN ('/works/OL20600W', '/works/OL45310W', '/books/OL24293426M', '/books/OL6514192M', '/works/OL61982W')
+    )
+
+SELECT
+    seeds_property.id AS key_id,
+    list_thing.id AS thing_id,
+    seed_things.id AS value
+FROM seeds_property
+FULL JOIN list_thing ON true
+FULL JOIN seed_things ON true;
 
 --
 -- PostgreSQL database dump complete
