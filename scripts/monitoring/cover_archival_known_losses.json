@@ -1,0 +1,8 @@
+[
+ {
+  "batch": "covers_0014_62",
+  "missing_count": 5927,
+  "evidence_ids": [14624073, 14627720, 14628517, 14629999],
+  "ref": "https://github.com/internetarchive/openlibrary/issues/9836"
+ }
+]
