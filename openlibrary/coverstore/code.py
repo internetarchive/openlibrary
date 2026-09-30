@@ -238,10 +238,17 @@ def get_details(coverid: int, size: CoverSizeLower = "") -> PartialCoverDetails 
     return db.details(coverid)
 
 
+# olcovers338-olcovers368 were never created on archive.org, so the covers they would
+# hold (3,380,000-3,689,999) are served locally instead. See #13770.
+MISSING_CLUSTER_ITEMS: Final = range(338, 369)
+
+
 def is_cover_in_cluster(coverid: int) -> bool:
     """Returns True if the cover is moved to archive.org cluster.
     It is found by looking at the config variable max_coveritem_index.
     """
+    if coverid // IMAGES_PER_ITEM in MISSING_CLUSTER_ITEMS:
+        return False
     try:
         return coverid < IMAGES_PER_ITEM * config.get("max_coveritem_index", 0)
     except TypeError, ValueError:

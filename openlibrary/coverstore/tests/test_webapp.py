@@ -210,6 +210,60 @@ class TestProxyScheme:
         assert r.headers["location"].startswith(expected), r.headers["location"]
 
 
+class TestMissingClusterItems:
+    """archive.org has no olcovers338-olcovers368, so L and original covers 3,380,000-3,689,999
+    must be served from the local tars instead of redirected there (#13770)."""
+
+    @pytest.fixture
+    def client(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(config, "max_coveritem_index", 713, raising=False)
+        monkeypatch.setattr(config, "data_root", str(tmp_path))
+        placeholder = tmp_path / "default.jpg"
+        placeholder.write_bytes(b"placeholder")
+        monkeypatch.setattr(config, "default_image", str(placeholder), raising=False)
+        monkeypatch.setattr(code.db, "details", lambda i: None)
+        code.get_tar_index.cache_clear()
+        yield TestClient(make_app())
+        code.get_tar_index.cache_clear()
+
+    @staticmethod
+    def write_tar(data_root, coverid, prefix, content):
+        """Writes a one-image tar and its index, where get_tar_filename will look."""
+        name = "%010d" % coverid
+        item_dir = data_root / "items" / f"{prefix}_{name[:4]}"
+        item_dir.mkdir(parents=True)
+        stem = f"{prefix}_{name[:4]}_{name[4:6]}"
+        (item_dir / f"{stem}.tar").write_bytes(b"\0" * 512 + content)
+        (item_dir / f"{stem}.index").write_text(f"{name}.jpg\t512\t{len(content)}\n")
+
+    @pytest.mark.parametrize("suffix", ["-L", ""])
+    @pytest.mark.parametrize("cover_id", [3_380_000, 3_685_000, 3_689_999])
+    def test_ids_in_the_gap_are_not_redirected(self, client, cover_id, suffix):
+        r = client.get(f"/b/id/{cover_id}{suffix}.jpg?default=false", follow_redirects=False)
+        assert r.status_code == 404
+        assert "location" not in r.headers
+
+    @pytest.mark.parametrize("suffix", ["-L", ""])
+    @pytest.mark.parametrize(("cover_id", "item"), [(3_379_999, 337), (3_690_000, 369)])
+    def test_ids_either_side_of_the_gap_still_redirect(self, client, cover_id, item, suffix):
+        r = client.get(f"/b/id/{cover_id}{suffix}.jpg", follow_redirects=False)
+        assert r.status_code == 302
+        assert f"/olcovers{item}/olcovers{item}{suffix}.zip/" in r.headers["location"]
+
+    @pytest.mark.parametrize(("suffix", "prefix"), [("-L", "l_covers"), ("", "covers")])
+    def test_a_gap_id_is_served_from_the_local_tar(self, client, tmp_path, suffix, prefix):
+        self.write_tar(tmp_path, 3_385_000, prefix, b"the real cover")
+        r = client.get(f"/b/id/3385000{suffix}.jpg", follow_redirects=False)
+        assert r.status_code == 200
+        assert r.content == b"the real cover"
+
+    @pytest.mark.parametrize("suffix", ["-L", ""])
+    def test_a_gap_id_with_no_local_copy_gets_the_placeholder(self, client, suffix):
+        r = client.get(f"/b/id/3385000{suffix}.jpg", follow_redirects=False)
+        assert r.status_code == 200
+        assert r.content == b"placeholder"
+
+
 class TestHeadAndOptions:
     """web.py's handle_class mapped HEAD onto GET, and CORSProcessor(cors_everything=True)
     answered every OPTIONS and stamped every response. FastAPI does neither by default."""
