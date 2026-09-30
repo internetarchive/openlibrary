@@ -59,6 +59,9 @@ def test_comment_names_each_file_and_says_when_the_overwrite_applies():
 
     assert "Once #13070 lands" in pending
     assert "Once #13070 lands" not in live
+    # Before the flip, a translator moving to openlibrary-i18n must learn the change is delayed, not lost.
+    assert "reaches openlibrary.org when #13070 ships" in pending
+    assert "reaches openlibrary.org when #13070 ships" not in live
 
 
 def test_comment_is_marked_resolved_when_no_affected_edits_remain():

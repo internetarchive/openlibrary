@@ -52,6 +52,7 @@ def render_comment(languages: list[str], in_place: bool) -> str:
         if in_place
         else "Once #13070 lands, the production image will copy openlibrary-i18n's `.po` files over these at build time"
     )
+    delay = "" if in_place else " A change made there reaches openlibrary.org when #13070 ships, not before; that delay is expected, and the change is not lost."
     return (
         f"{MARKER}\n"
         "**Translations for these languages are maintained in "
@@ -59,8 +60,8 @@ def render_comment(languages: list[str], in_place: bool) -> str:
         f"This PR edits:\n{files}\n\n"
         f"{when}, so a change merged here is overwritten and never reaches openlibrary.org. "
         "Nothing reports an error when that happens.\n\n"
-        f"Please make the same change to `locale/<lang>/messages.po` in [{I18N_REPO}](https://github.com/{I18N_REPO}) instead. "
-        "New or changed English strings, and the regenerated `openlibrary/i18n/messages.pot`, still belong in this repository.\n\n"
+        f"Please make the same change to `locale/<lang>/messages.po` in [{I18N_REPO}](https://github.com/{I18N_REPO}) instead."
+        f"{delay} New or changed English strings, and the regenerated `openlibrary/i18n/messages.pot`, still belong in this repository.\n\n"
         "_Posted by `.github/workflows/po_edit_warning.yml`._"
     )
 
