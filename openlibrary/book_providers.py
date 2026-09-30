@@ -683,7 +683,9 @@ def _warn_about_unservable_lenny_rows() -> None:
 
     Silent while one node is registered, which is today: production holds 94
     works and every one is plain ``lenny`` (``search.json?q=id_lenny:*`` -> 94,
-    ``q=id_lenny_lennyforlibraries_org:*`` -> 0, checked 2026-09-20).
+    ``q=id_lenny_lennyforlibraries_org:*`` -> 0). That figure is the one this
+    module already records for 2026-09-20 and was not re-measured here;
+    re-derive it with those two queries rather than trusting this line.
     """
     global _lenny_provider_scan_deadline
     now = time.monotonic()
