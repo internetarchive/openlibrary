@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions, trackError } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin, fetchWorkEditions, trackError } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -70,7 +70,7 @@ export const DEFAULT_LABELS = {
     removeDate: 'Remove date',
 };
 
-const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], label: SHELF_LABEL[id] }));
+const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], iconOn: SHELF_ICON_FILLED[id], label: SHELF_LABEL[id] }));
 
 /**
  * Lists needed before the lists the book is on, and the recent ones, are
@@ -185,6 +185,7 @@ export class OlShelfActions extends LitElement {
         _busy: { state: true },
         _pickingDate: { state: true },
         _amending: { state: true },
+        _checkInPending: { state: true },
         _dateBusy: { state: true },
         _date: { state: true },
     };
@@ -198,7 +199,7 @@ export class OlShelfActions extends LitElement {
         .panel {
             /* A fixed measure: the popover shrink-wraps its content, and the
                title would otherwise size the panel per book. */
-            width: 300px;
+            width: 320px;
             /* Keeps the first and last rows off the rounded corners. */
             padding-block: var(--spacing-inset-xs);
             color: var(--color-text);
@@ -315,7 +316,7 @@ export class OlShelfActions extends LitElement {
         .row {
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-md);
+            gap: var(--spacing-icon-gap);
             box-sizing: border-box;
             /* One height for every row, so the panel never shifts as rows
                re-render (the rating caption swaps between a span and a button). */
@@ -349,7 +350,11 @@ export class OlShelfActions extends LitElement {
             white-space: nowrap;
         }
 
+        /* The basis too, not just the width: WebKit sizes the row from the
+           width but lays it out at .obd-icon's 20px basis, and the 4px
+           difference comes out of the label beside it ("Add d…"). */
         .row .trail {
+            flex-basis: 16px;
             width: 16px;
             height: 16px;
             color: var(--color-icon-muted);
@@ -389,24 +394,33 @@ export class OlShelfActions extends LitElement {
 
         /* Already Read on the shelf: the label toggles like the other rows,
            the date is a second target into the date pane. Each half keeps its
-           own hover pill; the pair takes the inset a single row would. */
+           own hover pill; the pair takes the inset a single row would.
+           Neither half is sized for English: the shelf label never shrinks
+           and the date takes the rest. Where a translation leaves too little,
+           the date wraps under the label instead of truncating — the indent
+           lines it up with the label text, and the shelf half's negative
+           margin keeps the indent out of the one-line layout. */
         .row-split {
+            --split-indent: calc(var(--menu-row-padding-inline) + 20px + var(--spacing-inline-md) - var(--spacing-inset-sm));
             display: flex;
+            flex-wrap: wrap;
             margin-inline: var(--menu-row-inset);
+            padding-inline-start: var(--split-indent);
         }
 
         .row-split > .row {
             margin-inline: 0;
+            max-width: 100%;
         }
 
         .row-split > .row:first-child {
-            flex: 1;
-            min-width: 0;
+            flex: 1 0 auto;
+            margin-inline-start: calc(-1 * var(--split-indent));
+            max-width: calc(100% + var(--split-indent));
         }
 
         .date-link {
-            flex: 0 1 auto;
-            max-width: 50%;
+            flex: 0 0 auto;
             gap: var(--spacing-inline-xs);
             padding-inline: var(--spacing-inset-sm);
         }
@@ -703,7 +717,7 @@ export class OlShelfActions extends LitElement {
             position: relative;
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-md);
+            gap: var(--spacing-icon-gap);
             margin-inline: var(--menu-row-inset);
             padding-block: var(--spacing-inset-sm);
             padding-inline: var(--menu-row-padding-inline);
@@ -868,6 +882,7 @@ export class OlShelfActions extends LitElement {
         this._busy = false;
         this.pending = false;
         this._pickingDate = false;
+        this._checkInPending = false;
         this._dateBusy = false;
         this._date = { year: '', month: '', day: '' };
     }
@@ -1049,7 +1064,7 @@ export class OlShelfActions extends LitElement {
                             aria-pressed=${this.shelf === row.id ? 'true' : 'false'}
                             @click=${() => this._onShelfClick(row.id)}
                         >
-                            <ol-icon class="obd-icon" name=${row.icon}></ol-icon>
+                            <ol-icon class="obd-icon" name=${this.shelf === row.id ? row.iconOn : row.icon}></ol-icon>
                             <span class="label">${this.t(row.label)}</span>
                             <!-- Already Read's date half sits where the check would; the pressed color marks it. -->
                             ${this.shelf === row.id && row.id !== SHELF.ALREADY_READ ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
@@ -1128,7 +1143,9 @@ export class OlShelfActions extends LitElement {
      * shelf the book has left reads as the wrong state.
      */
     _renderDateLink() {
-        if (this.shelf !== SHELF.ALREADY_READ) return nothing;
+        // Held back while the shelf saves on the way to the date pane, so
+        // "Add date" doesn't flash up just before the pane slides over it.
+        if (this.shelf !== SHELF.ALREADY_READ || this._checkInPending) return nothing;
         const date = this.readDate ? formatReadDate(this.readDate) : null;
         return html`
             <button
@@ -1525,6 +1542,7 @@ export class OlShelfActions extends LitElement {
         this._pane = this.listsOnly ? 'lists' : 'main';
         this._creating = false;
         this._pickingDate = false;
+        this._checkInPending = false;
     }
 
     _emitState() {
@@ -1600,17 +1618,17 @@ export class OlShelfActions extends LitElement {
         const announce = removing
             ? this.t('removedFromShelf')
             : this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[shelfId]) });
-        return this._mutate('shelf', removing ? { shelf: null, readDate: null, eventId: null } : { shelf: shelfId }, async() => {
+        // Only on the way in, and only when they chose the shelf themselves:
+        // rating moves a book to Already Read too, and interrupting that
+        // would turn one tap into two.
+        const checkIn = !removing && shelfId === SHELF.ALREADY_READ && previous !== SHELF.ALREADY_READ;
+        const optimistic = removing ? { shelf: null, readDate: null, eventId: null } : { shelf: shelfId, _checkInPending: checkIn };
+        return this._mutate('shelf', optimistic, async() => {
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
             // "menu": told apart from the split button's one-tap half, which says "quick".
             trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId], 'menu');
             this._emitState();
-            // Only on the way in, and only when they chose the shelf themselves:
-            // rating moves a book to Already Read too, and interrupting that
-            // would turn one tap into two.
-            if (!removing && shelfId === SHELF.ALREADY_READ && previous !== SHELF.ALREADY_READ) {
-                this._openCheckIn();
-            }
+            if (checkIn) this._openCheckIn();
         }, announce);
     }
 
@@ -1641,6 +1659,7 @@ export class OlShelfActions extends LitElement {
     /** `amending`: the book was already on the shelf, so the pane offers a way off it too. */
     async _openCheckIn({ amending = false } = {}) {
         this._pane = 'checkIn';
+        this._checkInPending = false;
         this._amending = amending;
         // The prompt asked unbidden is counted as shown, so the answers and
         // skips it gets can be read as a rate. Amending an existing date is

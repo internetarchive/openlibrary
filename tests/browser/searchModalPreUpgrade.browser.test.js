@@ -1,34 +1,35 @@
 /**
- * The search modal renders an [autofocus] input inside an <ol-dialog> in its
- * own shadow root, where the page-level `ol-dialog:not(:defined)` guard in
- * ol-components.css does not apply. The modal mounts from the main bundle,
- * which can run before the components bundle defines ol-dialog; without a
- * shadow-scoped guard the browser focuses the input at first paint and
- * scrolls the page to the (closed) modal at the bottom of the body.
+ * The search modal renders an [autofocus] input inside an <ol-dialog> in its own
+ * shadow root. The main bundle can run before ol-components.js defines ol-dialog,
+ * and an un-upgraded dialog would let that input take focus at first paint and
+ * scroll the page, so initSearchModal waits for the definition before mounting.
  */
 import { expect, test } from 'vitest';
-import '../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
+import { initSearchModal } from '../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
 
-test('the un-upgraded ol-dialog inside the search modal is hidden, so its autofocus input is not focusable', async() => {
+test('initSearchModal waits for ol-dialog to be defined before mounting the modal', async() => {
     expect(customElements.get('ol-dialog'), 'test must run before OlDialog.js is imported').toBeUndefined();
 
-    const modal = document.createElement('ol-search-modal');
-    document.body.append(modal);
-    await modal.updateComplete;
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    document.body.append(trigger);
 
-    const dialog = modal.shadowRoot.querySelector('ol-dialog');
-    expect(getComputedStyle(dialog).display).toBe('none');
-
-    const input = modal.shadowRoot.querySelector('.search-input');
-    expect(input.hasAttribute('autofocus')).toBe(true);
-    input.focus();
-    expect(modal.shadowRoot.activeElement).toBeNull();
-    expect(window.scrollY).toBe(0);
+    const modal = initSearchModal(trigger);
+    expect(initSearchModal(trigger), 'a second call is a no-op').toBeNull();
+    await new Promise(requestAnimationFrame);
+    expect(modal.isConnected).toBe(false);
 
     await import('../../openlibrary/components/lit/OlDialog.js');
     await customElements.whenDefined('ol-dialog');
-    await dialog.updateComplete;
+    await modal.updateComplete;
 
-    // Once defined the guard stops applying; the component owns visibility.
-    expect(getComputedStyle(dialog).display).not.toBe('none');
+    expect(modal.isConnected).toBe(true);
+    const input = modal.shadowRoot.querySelector('.search-input');
+    expect(input.hasAttribute('autofocus')).toBe(true);
+    expect(modal.shadowRoot.activeElement).toBeNull();
+
+    // The trigger is wired once mounted: a click opens the dialog and focuses the input.
+    trigger.click();
+    expect(modal.open).toBe(true);
+    expect(modal.shadowRoot.activeElement).toBe(input);
 });

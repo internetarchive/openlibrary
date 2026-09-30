@@ -27,7 +27,9 @@ export const DEFAULT_LABELS = {
  * floats over cover art (`icon`), and that badge's glyph in a bordered square
  * (`outline`) for a row with room for a button but not a label. The badge and
  * the square show an outlined bookmark until the book is on a shelf, then that
- * shelf's own glyph, solid.
+ * shelf's own glyph, solid. A page with a large cover can dress the badge up
+ * through its custom properties: a translucent circle the cover tints, a
+ * glyph pressed into it, a sheen that crosses it as the cover moves.
  *
  * All three open the same `<ol-shelf-actions>` popover; the split variant adds
  * a main half that toggles Want to Read on and off without opening anything.
@@ -48,7 +50,10 @@ export const DEFAULT_LABELS = {
  *
  * @element ol-shelf-button
  *
- * @prop {String} variant - "split" (default), "icon" or "outline"
+ * @prop {"split" | "icon" | "outline"} variant - Default: "split"
+ * @prop {"large"} size - Scales the `icon` badge up for a big cover:
+ *     a bigger circle a shade translucent, so the cover tints it, and the
+ *     glyph stamped into it. Unset is the carousel-card size
  * @prop {String} workKey - "/works/OL…W", the book this acts on. With
  *     `lists-only`, the seed instead: "/authors/OL…A" or "/books/OL…M"
  * @prop {Boolean} listsOnly - No shelf to act on; only the lists pane
@@ -86,6 +91,13 @@ export const DEFAULT_LABELS = {
  *     component, never by the page: focus inside a top-layer popover does not
  *     register as `:focus-within` on the host, so a hover-revealed trigger
  *     needs this to stay visible under its own menu
+ *
+ * @cssprop [--ol-shelf-badge-sheen-position=100%] - Where the sheen, a soft
+ *     slanted band of shade, sits across the badge's circle: 100% parked off
+ *     its right edge, 0% off its left. A page moves it to sweep the sheen
+ *     across the badge as the cover it floats over tilts
+ * @cssprop [--ol-shelf-badge-sheen-duration=0.8s] - How long that sweep takes;
+ *     set it to the cover's own tilt duration so the two move as one
  */
 export class OlShelfButton extends LitElement {
     /** A shelf change is in flight. Deliberately not reactive: it gates the
@@ -94,6 +106,7 @@ export class OlShelfButton extends LitElement {
 
     static properties = {
         variant: { type: String, reflect: true },
+        size: { type: String, reflect: true },
         workKey: { type: String, attribute: 'work-key' },
         editionKey: { type: String, attribute: 'edition-key' },
         bookTitle: { type: String, attribute: 'book-title' },
@@ -165,7 +178,7 @@ export class OlShelfButton extends LitElement {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: var(--spacing-icon-gap);
             height: calc(var(--control-height-medium) - 2px);
             border: 0;
             background: none;
@@ -265,16 +278,26 @@ export class OlShelfButton extends LitElement {
             transition: transform var(--duration-press);
         }
 
-        /* The visible circle is smaller than the 32px hit target. Same inset
+        /* The visible circle is smaller than the hit target. Same inset
            specular edge as ol-button; the drop shadow is heavier since it floats
-           over cover art. */
+           over cover art. The sheen is a background layer on the circle, so it
+           passes under the glyph: a slanted band of shade three circles wide,
+           parked off one edge until a page slides it across. */
         .save::before {
             content: "";
             position: absolute;
             inset: 4px;
             border-radius: var(--border-radius-circle);
-            background: var(--color-control-bg);
+            background: linear-gradient(
+                    100deg,
+                    transparent 40%,
+                    color-mix(in srgb, var(--color-text) 12%, transparent) 50%,
+                    transparent 60%
+                )
+                var(--ol-shelf-badge-sheen-position, 100%) 0 / 300% 100% no-repeat;
+            background-color: var(--control-surface);
             --control-surface: var(--color-control-bg);
+            transition: background-position var(--ol-shelf-badge-sheen-duration, 0.8s);
             box-shadow:
                 0 1px 4px var(--boxshadow-black),
                 inset 0 1px 0
@@ -285,13 +308,40 @@ export class OlShelfButton extends LitElement {
                     );
         }
 
+        @media (prefers-reduced-motion: reduce) {
+            .save::before {
+                transition: none;
+            }
+        }
+
         /* The circle stays white; only the glyph turns blue once shelved. */
         .glyph {
             position: relative;
+            /* Not the shared 16px flex-basis: the badge sets its own size. */
+            flex: none;
             width: 14px;
             height: 14px;
             color: var(--primary-blue);
             --ol-icon-stroke-width: 2.5;
+        }
+
+        /* Large, for a book page cover: the circle a shade translucent so the
+           scan tints it, the glyph stamped in with a hairline of light below
+           its edge and of shade above. */
+        :host([size="large"]) .save {
+            width: 40px;
+            height: 40px;
+        }
+
+        :host([size="large"]) .save::before {
+            --control-surface: color-mix(in srgb, var(--color-control-bg) 88%, transparent);
+        }
+
+        :host([size="large"]) .glyph {
+            width: 20px;
+            height: 20px;
+            filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--white) 85%, transparent))
+                drop-shadow(0 -0.5px 0 color-mix(in srgb, var(--black) 25%, transparent));
         }
 
         .glyph[name="bookmark"] {
@@ -513,7 +563,8 @@ export class OlShelfButton extends LitElement {
         return html`
             <div class="split ${classMap({ 'split--on': on })}">
                 <!-- A toggle: the label names the shelf, pressed means the book
-                     is on it. The tint and check say the same thing on screen. -->
+                     is on it. The tint and the shelf's own glyph, the one beside
+                     that row in the popover, say the same thing on screen. -->
                 <button
                     type="button"
                     class="main ${classMap({ 'main--on': on })}"
@@ -521,7 +572,7 @@ export class OlShelfButton extends LitElement {
                     aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
                     aria-busy=${ifDefined(this.pending || undefined)}
                     @click=${this._onMainClick}
-                >${on ? html`<ol-icon name="check"></ol-icon>` : nothing}<span>${label}</span></button>
+                >${on ? html`<ol-icon name=${SHELF_ICON_FILLED[this.shelf]}></ol-icon>` : nothing}<span>${label}</span></button>
                 <span class="sr-only" role="status">${this._announce}</span>
                 ${this._withActions(html`
                     <button
