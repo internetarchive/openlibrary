@@ -55,8 +55,8 @@ and is reviewed like the rest of the repo. `monitor.py`'s scheduler doesn't fit 
   `ol-home0`. A watcher on that host shares fate with the thing it watches.
 - It reports to Graphite, which charts numbers. Nothing in the repo turns a Graphite series into a
   message to a person.
-- Its state lives in the process and is lost on every deploy. "Did this change since last run" needs
-  state that survives.
+- Its state lives in the process and is lost on every deploy. "Did this change" needs a previous
+  value that survives.
 
 Every signal is public HTTP, so nothing forces the watcher onto a host. A scheduled workflow is
 off-host, needs no credentials for its reads, and leaves a visible record of every run.
@@ -74,7 +74,26 @@ Costs, stated plainly:
   short-batch classes, next to the known-loss allowlist. **The workflow only reads it.** Every
   difference against it is already an alert, so the person who acknowledges the alert updates the
   file by PR. The workflow needs no write access to the repo, and each baseline change is
-  reviewed. A slot with no entry reports **indeterminate**, never "no change".
+  reviewed. **So an unacknowledged difference re-fires on every run until a human PR accepts the
+  new baseline. That is deliberate:** the alert stops only when a person has looked.
+- **Seeding, before launch.** No run can write a baseline, so one human-reviewed PR seeds every slot
+  from a census pass (the method of `census.py` at `8cf85be17`), plus the checker's classes for the
+  short batches. A full pass is about 670 listing requests for the full-size tier, and about 2,700
+  for all four tiers. That is far over the ~100-per-run bound, so the pass is spread over bounded
+  runs: about a week for the full-size tier and about four for all tiers. That is still much faster
+  than waiting ~28 weeks for the rotation. **The S1 schedule isn't enabled until the seed PR has
+  merged.** A slot left without an entry is reported on its own "unseeded" line. It is never
+  indeterminate for the watcher-health rule, which would otherwise open an issue in week 2 for
+  every unseeded slot.
+- **Where every other previous value lives.** None of them needs repo write access:
+  - Slot baselines, known losses, each `partial` row's `serves`, and the serving sample's known-404
+    IDs: the checked-in file.
+  - The stall rule's last posted count and its value 28 days ago: the bot's own dated comments on
+    #13287.
+  - Watcher health's "two consecutive runs": the S1 workflow's previous run conclusion (public API),
+    and the watcher-health issue body, which records the last run's exit code and indeterminate
+    batches.
+  - "A new upload": the newest zip `mtime` within the last 24 hours. No stored value.
 
 Cadence:
 
@@ -83,7 +102,10 @@ Cadence:
   must not make a failed S1 look fresh). It stays within the checker's request cap, which #13765
   hasn't settled yet: 100 in its body, 150 as relayed to me. The rotation interval below assumes 150,
   and scales with the cap.
-- S1 also runs the day after S2 sees a new upload. The danger window is between a partial upload and
+- **The serving sample (W6 in the covers oversight page) runs daily in its own job, at about 22
+  requests** (about 150 a week). It doesn't fit inside S1's cap, and daily runs make its "same day"
+  rule mean the same day. Its latency is below, in §5.
+- S1 also runs the day after S2 sees a newest zip `mtime` within the last 24 hours. The danger window is between a partial upload and
   the next archival run.
 - **Controls run on every S1 run, outside the rotation:** batch 62 (positive) and a full batch-61 ID
   (negative). Today they happen to be covered anyway, because `covers_0014` is the newest item and is
@@ -128,8 +150,8 @@ notifies whoever watches the repo.
   - **`covers_0014_62` is the only live positive control.** If #13725's runbook restores it, the
     checker's recorded fixture becomes the only positive control, and the checker's summary line must
     say so. A control that quietly disappears reads the same as one that passes.
-- **A `partial` row that changes to `serves: false`**, meaning it served last run, or its batch
-  wasn't in the baseline. The row points local, the local file is gone, and the zip lacks it, so
+- **A `partial` row that reports `serves: false` where the baseline file records `serves: true`**,
+  or where its batch isn't in the baseline. The row points local, the local file is gone, and the zip lacks it, so
   nothing public holds that cover. Host disk and backups are unknown (§5). Rows that were already
   `serves: false` are most likely the long-standing failed-cover class. They're reported weekly as
   a known-loss count, not paged. Paging on them would fire every week, and people learn to route
@@ -155,19 +177,29 @@ notifies whoever watches the repo.
 
 - **A new `partial` or `short_no_record` batch, or a rise in any batch's `missing_count`.** Today's
   small shortfalls are a stable class (probably failed covers, inferred from code), so presence
-  alone isn't news. The baseline is the checker's own classes and counts, not the 2026-09-24 census.
-  READ (from the census and the covers lead, not re-run here): 8 of `covers_0014`'s 69 zips are
-  short, including 62, and 31 of the 669 zip batches in `0008`–`0014` are. **Each (item, tier) slot's
-  baseline is set the first time that slot runs,** so with rotation the baseline fills in over
-  weeks. Until a slot has one, its change rules report **indeterminate** for that slot.
-- **Any `listing_count` that shrinks between two runs of the same slot.** That would be loss on
-  archive.org's side, which S1's pointer check can't see.
+  alone isn't news. The comparison is against the slot's entry in the checked-in baseline file (§1),
+  seeded before launch. The seed is a fresh census pass plus the checker's classes; the 2026-09-24
+  census figures aren't reused. READ (from the census and the covers lead, not re-run here): 8 of
+  `covers_0014`'s 69 zips are short, including 62, and 31 of the 669 zip batches in `0008`–`0014`
+  are. A slot with no entry is reported as unseeded, never "no change".
+- **Any `listing_count` below the slot's checked-in baseline.** That would be loss on archive.org's
+  side, which S1's pointer check can't see.
+
+**Serving sample, W6 (report, then page):**
+
+- **Any sampled ID that answered 200 in its baseline entry and doesn't now → reported the same day**
+  as an issue. These covers have no other copy we know of.
+- **Two or more in one day-directory or one local tar block → page Mek the same day** as a probable
+  local loss.
+- A sampled ID with no baseline entry (the first pass) is recorded as unseeded, not reported. A
+  404 on it goes to the known-404 list by human PR, because some covers are legitimately deleted.
 
 **Watcher health (issue, and the §4 switch):**
 
 - Exit 2 (control failed) or 4 (request cap hit) **on two consecutive runs.** One run can hit a bad
   moment; two is a broken checker.
-- Exit 3 (indeterminate) on **the same batch in two consecutive runs.**
+- Exit 3 (indeterminate) on **the same batch in two consecutive runs.** An unseeded slot is not
+  indeterminate for this rule (§1).
 
 ## 4. When the alert itself goes dark
 
@@ -188,6 +220,8 @@ schedule (READ, GitHub docs), so the issue, not the email, is the alert.
 - The summary line is present.
 - The row count is at least the batch count it planned.
 - Both S3 controls hold.
+- The W6 job sampled at least the IDs its stride and rotation position imply for today, and its S3
+  controls held on the same run. A sample that silently returns nothing reads as "all serving".
 - The rotated (item, tier) slot is the one this ISO week implies. That needs no stored state, and a
   stuck rotation fails it.
 
@@ -195,9 +229,11 @@ The last check exists because the checker rotates slots by ISO week, and "it ran
 looked anywhere new.
 
 **B. On IA infrastructure.** A small host cron, under `cron_wrapper.py` with a new monitor slug,
-reads **the S1 workflow's** latest scheduled run from the public GitHub API.
-It exits non-zero if that workflow's latest successful run is older than **8 days**: the weekly S1 cadence plus a
-day for a delayed or dropped scheduled run. `cron_wrapper` reports that to Sentry as an error. If
+reads the latest scheduled run of **each of the three workflows** (S1, S2/S3, W6) from the public
+GitHub API. It exits non-zero if any workflow's latest successful run is older than its limit:
+**8 days for S1** (the weekly cadence plus a day for a delayed or dropped run) and **2 days for the
+two daily jobs**. Watching each workflow on its own stops one job's success from covering for
+another's silence. `cron_wrapper` reports that to Sentry as an error. If
 the host or the cron dies, Sentry sees a missed check-in.
 
 The two watch each other. If GitHub Actions stops, B notices. If IA infrastructure or Sentry
@@ -221,10 +257,10 @@ been triggered on purpose and acknowledged by its reader: a dispatch with a muta
 | Whether the archival cron is scheduled on the host | The live crontab isn't public. READ: the cron config has had it commented out since 2025-01-12. | Nothing sees intent. S2 and S3 see the effect within a batch interval, and the §3 stall rule reports it on #13287. Mek checks the live crontab once (plan step 0). |
 | Local disk on `ol-covers0`: surviving files, space filling | No host access | Surviving files: plan step 0, once. Space: READ, a daily `ol-covers0` disk check exists and posts to Slack at 80%. But it measures the filesystem holding the nginx logs, while its message names the data volume. **Whether it covers the coverstore data volume is open.** |
 | Database flags (`failed` / `uploaded` NULL defaults) | No DB access | Plan step 0. A NULL-flag row is skipped silently, and it shows up only indirectly, as a `partial` gap after its batch uploads. |
-| **The unzipped backlog, 57 batches, a single copy** | S1 only produces rows for zipped batches. A cover that was never zipped can't become `partial` or `serves: false`. | A weekly sample: 20 non-zipped IDs, **one per local day-directory**, rotating through the backlog's days, each of which must return 200. Specified here as an S1 check, with the S1 thresholds and the §4 did-its-job checks. **It detects total or large loss only.** Local files are stored by day, and one lost day is about 770 covers. A uniform 20-ID sample would hit that in about 2.7% of weeks (arithmetic). The day-rotated sample reaches each day about once every 38 weeks. Day-level loss needs a host-side check (Mek). |
-| **Rolled-back or lost DB rows in full batches** | READ: S1 examines only the missing IDs of short batches. If the DB were restored from an older backup, finalized rows would revert to local filenames whose files are gone. Those covers 404 while the zip still holds all 10,000. | Nothing in this design. It's recoverable from the zip, but nobody would know to repair it. The day-rotated sample above could be extended to zipped batches, and would then catch it at the same weak rate. |
-| **Covers 0–7,139,999 (`olcovers1`–`olcovers713`)** | Different item and file shape (`olcoversN-{S,M,L}.zip`), outside S1–S3. Reviewer READ (`code.py`): S/M sizes below 6M are served from local tars. | Their data is on archive.org, so a local disk loss is an outage, not an archival loss. Still, nothing here fires on it. |
-| **Covers 7,140,000–7,999,999** | Reviewer RAN a 7-ID sample: some are in local `covers_0007_NN.tar` files with no archive.org item, and the rest are unarchived local files. #13725's `MIN_ARCHIVABLE_ID` of 8,000,000 means archival never picks them up. | **Zero coverage, and a single copy: up to about 860k IDs** (density not measured). Recorded as a known gap (#476, 2017), not a watch to build here. |
+| **The unzipped backlog, 57 batches, a single copy** | S1 only produces rows for zipped batches. A cover that was never zipped can't become `partial` or `serves: false`. | **W6 stratum (a):** one ID every 700 across the backlog (≈570k), about 100 a week, for a full pass in **about 8 weeks. That is the worst-case latency for a lost day-directory**, and for single-copy covers the delay is the exposure. "One ID per 700 ≈ one per day-directory" is **UNMEASURED**: #13769 is measuring it from created dates. Stride = _(#13769's figure)_. It replaces a uniform 20-a-week sample, which would catch a lost day in about 2.7% of weeks. |
+| **Rolled-back or lost DB rows in full batches** | READ: S1 examines only the missing IDs of short batches. If the DB were restored from an older backup, finalized rows would revert to local filenames whose files are gone. Those covers 404 while the zip still holds all 10,000. | Nothing in this design. It's recoverable from the zip, but nobody would know to repair it. W6 samples only unzipped and sub-8M covers. Extending it to zipped batches would catch this at about W6's rate. |
+| **Covers 0–7,139,999 (`olcovers1`–`olcovers713`)** | Different item and file shape (`olcoversN-{S,M,L}.zip`), outside S1–S3. Reviewer READ (`code.py`): S/M sizes below 6M are served from local tars. | Their data is on archive.org, so a local loss is an outage, not an archival loss. **W6 stratum (b)** samples serving in 0–6M and 6M–7.14M. Archive-side loss of the `olcovers` items is still unwatched. |
+| **Covers 7,140,000–7,999,999** | Reviewer RAN a 7-ID sample: some are in local `covers_0007_NN.tar` files with no archive.org item, and the rest are unarchived local files. #13725's `MIN_ARCHIVABLE_ID` of 8,000,000 means archival never picks them up. | **A single copy, up to about 860k IDs, and no archival path** (#476, 2017). **W6 stratum (b)** watches that they still serve. It is weighted with the other sub-8M strata (about 50 a week in all) and re-weighted when #13769 measures density. Archiving them is Mek's priority call, not a watch. |
 | Old slots between rotations | 150-request cap. There are about 28 (item, tier) slots (items `0008`–`0014`, 4 tiers). | Each old slot is re-checked about every half-year. That is acceptable only because old zips don't change unless something re-uploads them, and a re-upload moves S2. |
 | An archive.org item going missing or dark | RAN: a nonexistent item's `/metadata` returns **HTTP 200 with the body `{}`** (`covers_0007`; the `covers_0008` control returns 64 KB). A naive count would read that as 0 files. | An empty metadata object is its own state, **missing item**: indeterminate for S1 and S2, never a count of 0 and never "not uploaded". For an item that already has a baseline entry, it pages as a possible loss on archive.org's side. The shape of an item that exists but is dark is **not measured**. |
 
