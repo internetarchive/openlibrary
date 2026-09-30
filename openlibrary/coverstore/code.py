@@ -238,8 +238,8 @@ def get_details(coverid: int, size: CoverSizeLower = "") -> PartialCoverDetails 
     return db.details(coverid)
 
 
-# olcovers338-olcovers368 were never created on archive.org, so the covers they would
-# hold (3,380,000-3,689,999) are served locally instead. See #13770.
+# olcovers338-olcovers368 don't exist on archive.org (checked 2026-09-30, #13770), so the
+# covers they would hold (3,380,000-3,689,999) fall through to local lookup instead.
 MISSING_CLUSTER_ITEMS: Final = range(338, 369)
 
 
