@@ -95,7 +95,9 @@ $ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
       <div class="links">
         <ul class="read">
           $# render_first is only true on the book page for an edition.
-          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first, lending_state=lending_state)</li>
+          $# It also gates the provider-loan lookup, so this row agrees with the
+          $# sidebar's CTA instead of still offering Borrow for a held loan.
+          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first, check_loan_status=render_first, lending_state=lending_state)</li>
         </ul>
       </div>
     </td>
