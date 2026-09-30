@@ -4,34 +4,40 @@ $     {
 $         "icon": "book-open-text",
 $         "title": _("Find something to read"),
 $         "body": _("Borrow from millions of books for free and read them right in your browser."),
+$         "href": "/trending/now",
+$         "track": "Read",
 $     },
 $     {
 $         "icon": "library-big",
 $         "title": _("Track your reading"),
 $         "body": _("Build reading lists, keep a record of what you've read, and set reading goals."),
+$         "href": "/account/books",
+$         "track": "Track",
 $     },
 $     {
 $         "icon": "pencil",
 $         "title": _("Improve the catalog"),
-$         "body": _("Open Library is a catalog anyone can edit. Add a book or fix a record and help build a library for everyone. %(link_start)sBecome a librarian%(link_end)s", link_start='<a href="/librarians" data-ol-link-track="HomeTrackClick|Improve">', link_end="</a>"),
+$         "body": _("Open Library is a catalog anyone can edit. Add a book or fix a record and help build a library for everyone."),
+$         "href": "/librarians",
+$         "track": "Improve",
 $     },
 $ ]
 
 <section class="home-welcome" aria-labelledby="home-welcome-title">
   <h2 class="home-h2 home-h2--page-title" id="home-welcome-title">$_("Welcome to Open Library")</h2>
-  $# Placeholder numbers.
+  $# Hard-coded ballparks (2026-09): editions from /stats; works with ebook_access public or borrowable.
   <dl class="home-figures">
     <div class="home-figures__item">
       $:macros.icon("library-big", size="lg", extra_class="home-figures__icon")
       <div class="home-figures__text">
-        <dt class="home-figures__number">$_("50 million")</dt>
+        <dt class="home-figures__number">$_("55 million")</dt>
         <dd class="home-figures__label">$_("books in the catalog")</dd>
       </div>
     </div>
     <div class="home-figures__item">
       $:macros.icon("book-open-text", size="lg", extra_class="home-figures__icon")
       <div class="home-figures__text">
-        <dt class="home-figures__number">$_("30 million")</dt>
+        <dt class="home-figures__number">$_("4.7 million")</dt>
         <dd class="home-figures__label">$_("free to read online")</dd>
       </div>
     </div>
@@ -40,10 +46,10 @@ $ ]
   <ul class="home-tracks">
     $for track in tracks:
       <li>
-        <div class="home-tracks__card">
+        <a class="home-tracks__card" href="$track['href']" data-ol-link-track="HomeTrackClick|$track['track']">
           <h3 class="home-tracks__title">$:macros.icon(track["icon"], extra_class="home-tracks__icon") $track["title"]</h3>
-          <p class="home-tracks__body">$:track["body"]</p>
-        </div>
+          <p class="home-tracks__body">$track["body"]</p>
+        </a>
       </li>
   </ul>
 </section>

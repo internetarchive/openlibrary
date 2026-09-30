@@ -132,7 +132,9 @@
   }
 }
 
-.home-tracks__card {
+/* Each card is one link. `a.` ties with the global `a:link` and wins by loading later. */
+a.home-tracks__card {
+  display: block;
   height: 100%;
   box-sizing: border-box;
   padding: var(--spacing-inset-md);
@@ -140,6 +142,32 @@
   border-radius: var(--border-radius-card);
   background: var(--color-surface);
   box-shadow: var(--box-shadow-raised);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: transform var(--duration-press);
+}
+
+a.home-tracks__card:active {
+  transform: scale(var(--press-scale-wide));
+}
+
+a.home-tracks__card:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a.home-tracks__card:hover {
+    background: var(--color-control-hover);
+    border-color: var(--color-border-muted);
+    text-decoration: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.home-tracks__card {
+    transition: none;
+  }
 }
 
 /* Icon and title share a row to keep the cards short. */
@@ -167,10 +195,6 @@
   font-size: var(--font-size-body-medium);
   line-height: var(--line-height-body);
   color: var(--color-text-secondary);
-}
-
-.home-tracks__body a {
-  font-weight: var(--font-weight-semibold);
 }
 
 .home-h2 a {

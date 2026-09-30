@@ -129,7 +129,6 @@
   flex-direction: column;
   font-size: var(--font-size-label-medium);
   color: var(--color-text-muted);
-  font-variant-numeric: tabular-nums;
   line-height: var(--line-height-tight);
 }
 

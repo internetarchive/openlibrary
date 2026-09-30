@@ -4308,12 +4308,11 @@ msgid "Improve the catalog"
 msgstr ""
 
 #: home/welcome.html
-#, python-format
-msgid "Open Library is a catalog anyone can edit. Add a book or fix a record and help build a library for everyone. %(link_start)sBecome a librarian%(link_end)s"
+msgid "Open Library is a catalog anyone can edit. Add a book or fix a record and help build a library for everyone."
 msgstr ""
 
 #: home/welcome.html
-msgid "50 million"
+msgid "55 million"
 msgstr ""
 
 #: home/welcome.html
@@ -4321,7 +4320,7 @@ msgid "books in the catalog"
 msgstr ""
 
 #: home/welcome.html
-msgid "30 million"
+msgid "4.7 million"
 msgstr ""
 
 #: home/welcome.html
