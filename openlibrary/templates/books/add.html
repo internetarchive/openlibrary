@@ -56,7 +56,7 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $ is_privileged = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
+        $ is_privileged = ctx.user and ctx.user.is_super_librarian_or_higher()
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
@@ -79,7 +79,7 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
+        $if ctx.user and ctx.user.is_librarian_or_higher():
             <div class="formElement">
                 <div class="label">
                     <label for="web_book_url">$_("Book URL")</label> <span class="tip">$_("Only fill this out if this is a web book")</span></span>

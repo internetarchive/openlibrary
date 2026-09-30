@@ -1,6 +1,9 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
+// Registers <ol-button> for the header close control.
+import './OLButton.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { FOCUSABLE_SELECTOR, findFocusableIndex, getDeepActiveElement, getFocusableFromSlot, isFocusable } from './utils/focus-utils.js';
+import './OlIcon.js';
+import { findFocusableIndex, getDeepActiveElement, getTabbableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { slotHasContent } from './utils/slot-utils.js';
 
@@ -15,18 +18,27 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @prop {Boolean} open - Whether the dialog is open.
  * @prop {String} label - Title shown in the default header. Also used as the
  *     accessible name when `withoutHeader` is true.
+ * @prop {String} icon - Name of an `ol-icon` to show before the title in the
+ *     default header. Decorative: the title already names the dialog.
  * @prop {Boolean} withoutHeader - Hide the default header (title + close
  *     button). The `header` slot still works.
- * @prop {String} width - Width preset: `'small'` (400px), `'medium'` (550px,
- *     default), or `'large'` (800px). Override per-instance via
- *     `--ol-dialog-width-*` host CSS variables.
+ * @prop {Boolean} alert - Announce as `role="alertdialog"`, with the body as
+ *     the accessible description. For confirmations and alerts that interrupt
+ *     the reader; see `olConfirm()` in alert-dialog.js.
+ * @prop {String} labelClose - Translated accessible name for the default close
+ *     button. Attribute: `label-close`. Default "Close dialog".
+ * @prop {String} returnValue - Set by `close(returnValue)`; empty when closed by
+ *     Escape, the backdrop, or the close button. Reset each time it opens.
+ * @prop {'small' | 'medium' | 'large'} width - Width preset: `'small'` (400px),
+ *     `'medium'` (550px, default), or `'large'` (800px). Override per-instance
+ *     via `--ol-dialog-width-*` host CSS variables.
  * @prop {Boolean} closeOnBackdropClick - Whether clicking the backdrop closes
  *     the dialog. Default `true`. Attribute: `close-on-backdrop-click`.
  * @prop {Boolean} closeOnEscape - Whether pressing Escape closes the dialog.
  *     Default `true`. Attribute: `close-on-escape`.
  * @prop {Boolean} fullscreenOnMobile - At viewports ≤767px, render edge-to-edge
  *     (full viewport, no border-radius). Attribute: `fullscreen-on-mobile`.
- * @prop {String} placement - `'center'` (default) keeps the dialog vertically
+ * @prop {'center' | 'top'} placement - `'center'` (default) keeps the dialog vertically
  *     centered like a normal modal. `'top'` anchors it a fixed distance from
  *     the top of the viewport so the top edge stays put as content grows or
  *     shrinks (command-palette / search-modal pattern).
@@ -42,6 +54,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  *     or filter row that owns its own padding).
  * @cssprop --ol-dialog-border-radius - Corner radius (ignored in fullscreen mode).
  * @cssprop --ol-dialog-backdrop-color - Backdrop color.
+ * @cssprop --ol-dialog-backdrop-blur - Blur radius applied to the page behind
+ *     the backdrop. Set to `0` to dim without blurring.
  * @cssprop --ol-dialog-animation-duration - Open/close animation duration.
  * @cssprop --ol-dialog-top-offset - Distance from viewport top when
  *     `placement="top"`. Default `clamp(40px, 8vh, 96px)`.
@@ -50,13 +64,23 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @fires ol-after-open - Fires after the open animation completes.
  * @fires ol-close - Fires when the dialog starts closing. Cancelable —
  *     calling `event.preventDefault()` keeps the dialog open.
- * @fires ol-after-close - Fires after the close animation completes.
+ *     `detail.returnValue` says how it was closed.
+ * @fires ol-after-close - Fires after the close animation completes, with the
+ *     same `detail.returnValue`.
  *
  * @example
  * <ol-dialog label="Edit profile" width="medium" open>
  *   <p>Form goes here.</p>
  *   <button slot="footer">Save</button>
  * </ol-dialog>
+ *
+ * @example
+ * <!-- Read which button closed it, like native <dialog> -->
+ * <ol-dialog label="Discard draft?" width="small" alert>
+ *   <p>Your changes will be lost.</p>
+ *   <ol-button slot="footer" onclick="this.closest('ol-dialog').close('discard')">Discard</ol-button>
+ * </ol-dialog>
+ * dialog.addEventListener('ol-after-close', (e) => e.detail.returnValue === 'discard');
  *
  * @example
  * <!-- Custom header (e.g. a search bar) with no body padding -->
@@ -70,8 +94,13 @@ export class OlDialog extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
         label: { type: String },
+        icon: { type: String },
         withoutHeader: { type: Boolean, attribute: 'without-header' },
-        width: { type: String },
+        alert: { type: Boolean, reflect: true },
+        labelClose: { type: String, attribute: 'label-close' },
+        // Reflected: the width presets are :host([width=…]) rules, so setting the
+        // property in JS (as olConfirm() does) has to reach the attribute.
+        width: { type: String, reflect: true },
         closeOnBackdropClick: { type: Boolean, attribute: 'close-on-backdrop-click' },
         closeOnEscape: { type: Boolean, attribute: 'close-on-escape' },
         fullscreenOnMobile: { type: Boolean, attribute: 'fullscreen-on-mobile', reflect: true },
@@ -87,21 +116,22 @@ export class OlDialog extends LitElement {
             --ol-dialog-width-large: 800px;
             --ol-dialog-padding: var(--spacing-xl);
             --ol-dialog-border-radius: var(--border-radius-overlay);
-            --ol-dialog-animation-duration: 200ms;
-            --ol-dialog-backdrop-color: hsla(0, 0%, 0%, 0.25);
+            --ol-dialog-animation-duration: var(--duration-base);
+            --ol-dialog-backdrop-color: var(--overlay-backdrop-color);
+            --ol-dialog-backdrop-blur: var(--overlay-backdrop-blur);
             --ol-dialog-top-offset: clamp(40px, 8vh, 96px);
 
             font-family: var(--font-family-body);
         }
 
         dialog {
-            border: none;
+            border: var(--border-overlay);
             border-radius: var(--ol-dialog-border-radius);
             padding: 0;
             max-width: 90vw;
             max-height: 85vh;
             overflow: hidden;
-            box-shadow: 0 4px 24px var(--boxshadow-black);
+            box-shadow: var(--box-shadow-overlay);
         }
 
         dialog:focus {
@@ -109,27 +139,32 @@ export class OlDialog extends LitElement {
         }
 
         dialog:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
         dialog[open] {
             display: flex;
             flex-direction: column;
-            animation: dialog-open var(--ol-dialog-animation-duration) ease-out;
+            animation: dialog-open var(--ol-dialog-animation-duration) var(--ease-enter);
         }
 
         dialog.closing {
-            animation: dialog-close var(--ol-dialog-animation-duration) ease-in;
+            animation: dialog-close var(--ol-dialog-animation-duration) var(--ease-exit);
         }
 
+        /* The blur does the separating, so the dim can stay light — enough to
+           mute the page without darkening the room. Both fade together: the
+           keyframes animate opacity, which carries the filter with it. */
         dialog::backdrop {
             background-color: var(--ol-dialog-backdrop-color);
-            animation: backdrop-fade-in var(--ol-dialog-animation-duration) ease-out;
+            backdrop-filter: blur(var(--ol-dialog-backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--ol-dialog-backdrop-blur));
+            animation: backdrop-fade-in var(--ol-dialog-animation-duration) var(--ease-enter);
         }
 
         dialog.closing::backdrop {
-            animation: backdrop-fade-out var(--ol-dialog-animation-duration) ease-in;
+            animation: backdrop-fade-out var(--ol-dialog-animation-duration) var(--ease-exit);
         }
 
         @keyframes dialog-open {
@@ -185,11 +220,11 @@ export class OlDialog extends LitElement {
         }
 
         :host([placement="top"]) dialog[open] {
-            animation: dialog-open-top var(--ol-dialog-animation-duration) ease-out;
+            animation: dialog-open-top var(--ol-dialog-animation-duration) var(--ease-enter);
         }
 
         :host([placement="top"]) dialog.closing {
-            animation: dialog-close-top var(--ol-dialog-animation-duration) ease-in;
+            animation: dialog-close-top var(--ol-dialog-animation-duration) var(--ease-exit);
         }
 
         @keyframes dialog-open-top {
@@ -236,6 +271,7 @@ export class OlDialog extends LitElement {
                 height: 100dvh;
                 max-width: none;
                 max-height: none;
+                border: none;
                 border-radius: 0;
             }
 
@@ -258,47 +294,13 @@ export class OlDialog extends LitElement {
         }
 
         h2.title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
             margin: 0;
             padding: 0;
             font-size: 1.25rem;
             font-weight: 600;
-        }
-
-        .close-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            background: transparent;
-            border: none;
-            border-radius: var(--border-radius-button);
-            color: inherit;
-            cursor: pointer;
-            transition: background-color 150ms ease;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .close-button:hover {
-                background-color: var(--icon-link-grey);
-            }
-        }
-
-        .close-button:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .close-button {
-                transition: none;
-            }
-        }
-
-        .close-button svg {
-            width: 20px;
-            height: 20px;
         }
 
         .body {
@@ -320,7 +322,11 @@ export class OlDialog extends LitElement {
         super();
         this.open = false;
         this.label = '';
+        this.icon = '';
         this.withoutHeader = false;
+        this.alert = false;
+        this.labelClose = 'Close dialog';
+        this.returnValue = '';
         this.width = 'medium';
         this.closeOnBackdropClick = true;
         this.closeOnEscape = true;
@@ -351,9 +357,22 @@ export class OlDialog extends LitElement {
         return `${this.id || 'ol-dialog'}-title`;
     }
 
+    get _bodyId() {
+        return `${this.id || 'ol-dialog'}-body`;
+    }
+
     /** @returns {HTMLDialogElement} */
     get dialog() {
         return this.renderRoot?.querySelector('dialog');
+    }
+
+    /**
+     * Closes the dialog, recording why — mirrors native `HTMLDialogElement.close()`.
+     * @param {String} [returnValue]
+     */
+    close(returnValue) {
+        if (returnValue !== undefined) this.returnValue = String(returnValue);
+        this.open = false;
     }
 
     updated(changedProperties) {
@@ -370,7 +389,10 @@ export class OlDialog extends LitElement {
         const dialog = this.dialog;
         if (!dialog || dialog.open) return;
 
-        this._previouslyFocusedElement = document.activeElement;
+        this.returnValue = '';
+
+        // document.activeElement doesn't pass into shadow DOM
+        this._previouslyFocusedElement = getDeepActiveElement();
 
         this.dispatchEvent(new CustomEvent('ol-open', {
             bubbles: true,
@@ -404,6 +426,10 @@ export class OlDialog extends LitElement {
     /**
      * Sets initial focus when dialog opens.
      * Priority: [autofocus] > first focusable in body > close button > dialog
+     *
+     * Deferred a frame on purpose: focusing this late spends the tap's transient
+     * activation, so on mobile the field takes the caret without the soft
+     * keyboard coming up over the dialog.
      */
     _setInitialFocus() {
         requestAnimationFrame(() => {
@@ -416,13 +442,21 @@ export class OlDialog extends LitElement {
                 return;
             }
 
-            const firstFocusable = this.querySelector(FOCUSABLE_SELECTOR);
+            const closeButton = this.renderRoot?.querySelector('.close-button');
+
+            // Land initial focus on the same element the Tab trap treats as the
+            // first stop, using its shadow-piercing list so a slotted custom
+            // element whose real focusable lives in its shadow root (e.g.
+            // <ol-toggle>) is found — a light-DOM querySelector(FOCUSABLE_SELECTOR)
+            // would miss it and strand focus elsewhere. Skip the synthetic close
+            // button so focus still prefers real content over the X; we fall back
+            // to it below only when there's nothing else to focus.
+            const firstFocusable = this._getFocusableElements().find((el) => el !== closeButton);
             if (firstFocusable) {
                 firstFocusable.focus();
                 return;
             }
 
-            const closeButton = this.renderRoot?.querySelector('.close-button');
             if (closeButton && !this.withoutHeader && !this._hasHeaderContent) {
                 closeButton.focus();
                 return;
@@ -440,11 +474,13 @@ export class OlDialog extends LitElement {
             bubbles: true,
             composed: true,
             cancelable: true,
+            detail: { returnValue: this.returnValue },
         });
 
         this.dispatchEvent(closeEvent);
 
         if (closeEvent.defaultPrevented) {
+            this.returnValue = '';
             this.open = true;
             return;
         }
@@ -464,6 +500,7 @@ export class OlDialog extends LitElement {
             this.dispatchEvent(new CustomEvent('ol-after-close', {
                 bubbles: true,
                 composed: true,
+                detail: { returnValue: this.returnValue },
             }));
         });
     }
@@ -561,7 +598,7 @@ export class OlDialog extends LitElement {
         const focusable = [];
 
         const headerSlot = this.renderRoot?.querySelector('slot[name="header"]');
-        const headerSlotted = getFocusableFromSlot(headerSlot);
+        const headerSlotted = getTabbableFromSlot(headerSlot);
         if (headerSlotted.length > 0) {
             focusable.push(...headerSlotted);
         } else {
@@ -572,10 +609,10 @@ export class OlDialog extends LitElement {
         }
 
         const bodySlot = this.renderRoot?.querySelector('slot:not([name])');
-        focusable.push(...getFocusableFromSlot(bodySlot));
+        focusable.push(...getTabbableFromSlot(bodySlot));
 
         const footerSlot = this.renderRoot?.querySelector('slot[name="footer"]');
-        focusable.push(...getFocusableFromSlot(footerSlot));
+        focusable.push(...getTabbableFromSlot(footerSlot));
 
         return focusable;
     }
@@ -606,6 +643,24 @@ export class OlDialog extends LitElement {
     }
 
     /**
+     * Whether `el` sits inside a different open <ol-dialog>, climbing shadow
+     * boundaries. Nesting in the DOM counts too, so the innermost dialog wins.
+     * @param {Element|null} el
+     * @returns {Boolean}
+     */
+    _isInsideOtherDialog(el) {
+        let cur = el;
+        while (cur && cur !== this) {
+            if (cur.tagName === 'OL-DIALOG' && cur.open) return true;
+            const parent = cur.parentNode;
+            cur = (parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host)
+                ? parent.host
+                : cur.parentElement;
+        }
+        return false;
+    }
+
+    /**
      * Manual Tab focus trap. Needed because Safari doesn't trap focus across
      * shadow DOM boundaries for slotted content.
      */
@@ -619,6 +674,10 @@ export class OlDialog extends LitElement {
         // its own focus trap — don't intercept Tab or we'll yank focus back
         // out of the popover.
         if (this._isInsideOpenOverlay(activeElement)) return;
+
+        // A dialog stacked on top of this one (e.g. olConfirm() opened from it)
+        // traps its own focus; trapping here too would pull focus back beneath it.
+        if (this._isInsideOtherDialog(activeElement)) return;
 
         const focusable = this._getFocusableElements();
         if (focusable.length === 0) return;
@@ -733,36 +792,29 @@ export class OlDialog extends LitElement {
 
         return html`
             <dialog
-                role="dialog"
+                role=${this.alert ? 'alertdialog' : 'dialog'}
                 aria-modal="true"
                 aria-label=${ifDefined(ariaLabel)}
                 aria-labelledby=${ifDefined(ariaLabelledBy)}
+                aria-describedby=${ifDefined(this.alert ? this._bodyId : undefined)}
             >
                 <header class="header ${showDefaultHeader ? '' : 'hidden'}">
-                    <h2 class="title" id=${this._titleId}>${this.label}</h2>
-                    <button
+                    <h2 class="title" id=${this._titleId}>
+                        ${this.icon ? html`<ol-icon name=${this.icon}></ol-icon>` : nothing}
+                        ${this.label}
+                    </h2>
+                    <ol-button
                         class="close-button"
-                        type="button"
-                        aria-label="Close dialog"
+                        shape="icon"
+                        variant="ghost"
+                        aria-label=${this.labelClose}
                         @click=${this._handleCloseClick}
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            aria-hidden="true"
-                        >
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
+                        <ol-icon name="x"></ol-icon>
+                    </ol-button>
                 </header>
                 <slot name="header" @slotchange=${this._handleHeaderSlotChange}></slot>
-                <div class="body">
+                <div class="body" id=${this._bodyId}>
                     <slot></slot>
                 </div>
                 <footer class="footer" ?hidden=${!this._hasFooterContent}>

@@ -13,6 +13,7 @@ import requests
 import web
 
 from infogami.infobase import client
+from infogami.utils import types
 
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
@@ -106,6 +107,7 @@ class Thing(client.Thing):
     """Base class for all OL models."""
 
     key: ThingKey
+    last_modified: datetime
 
     @functools.cached_property
     def history_preview(self):
@@ -346,9 +348,10 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_size(self.key)
 
     def get_loans(self):
-        from ..plugins.upstream import borrow
-
-        return borrow.get_edition_loans(self)
+        if not self.ocaid:
+            return []
+        loan = lending.get_loan(self.ocaid)
+        return [loan] if loan else []
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
@@ -899,6 +902,21 @@ class Author(Thing):
 
 
 class User(Thing):
+    #: Preference keys that may be written via :meth:`save_preferences`.
+    #: ``type`` is managed internally and always forced to ``preferences``.
+    PREFERENCE_KEYS = frozenset(
+        {
+            "notify",
+            "pda",
+            "public_readlog",
+            "rpd",
+            "safe_mode",
+            "update",
+            "updates",
+            "yrg_banner_pref",
+        }
+    )
+
     def get_default_preferences(self) -> dict[str, str]:
         return {"update": "no", "public_readlog": "no", "type": "preferences"}
         # New users are now public by default for new patrons
@@ -935,7 +953,7 @@ class User(Thing):
     def save_preferences(self, new_prefs) -> None:
         key = f"{self.key}/preferences"
         prefs = self.preferences()
-        prefs.update(new_prefs)
+        prefs.update({k: v for k, v in new_prefs.items() if k in self.PREFERENCE_KEYS})
         prefs["_rev"] = None
         prefs["type"] = "preferences"
         site.get().store[key] = prefs
@@ -964,11 +982,32 @@ class User(Thing):
     def is_admin(self) -> bool:
         return self.is_usergroup_member("/usergroup/admin")
 
+    def is_maintainer(self) -> bool:
+        """Whether the user can manage the testing environment (maintainers + admins)."""
+        return self.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"])
+
     def is_librarian(self) -> bool:
         return self.is_usergroup_member("/usergroup/librarians")
 
     def is_super_librarian(self) -> bool:
         return self.is_usergroup_member("/usergroup/super-librarians")
+
+    def is_librarian_or_higher(self) -> bool:
+        return self.is_member_of_any(
+            [
+                "/usergroup/librarians",
+                "/usergroup/super-librarians",
+                "/usergroup/admin",
+            ]
+        )
+
+    def is_super_librarian_or_higher(self) -> bool:
+        return self.is_member_of_any(
+            [
+                "/usergroup/super-librarians",
+                "/usergroup/admin",
+            ]
+        )
 
     def is_beta_tester(self) -> bool:
         return self.is_usergroup_member("/usergroup/beta-testers")
@@ -1265,9 +1304,7 @@ class Tag(Thing):
         key = site.get().new_key("/type/tag")
         tag["key"] = key
 
-        from openlibrary.accounts import RunAs
-
-        with RunAs(patron):
+        with accounts.RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
             t = site.get().save(tag, comment=comment, action="create-tag")
             return t
@@ -1325,8 +1362,6 @@ def register_models():
 
 def register_types():
     """Register default types for various path patterns used in OL."""
-    from infogami.utils import types
-
     types.register_type("^/authors/[^/]*$", "/type/author")
     types.register_type("^/books/[^/]*$", "/type/edition")
     types.register_type("^/works/[^/]*$", "/type/work")

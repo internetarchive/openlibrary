@@ -13,6 +13,8 @@
  * an OL convention, not part of the component's API.
  */
 
+import { initBannerAnalytics } from '../banner-analytics.js';
+
 /**
  * Persist a banner dismissal by POSTing to /hide_banner.
  *
@@ -39,6 +41,8 @@ function setBannerCookie(cookieName, cookieDurationDays) {
  * Banners without a dismiss-id are page-only and left alone.
  */
 export function initOlBannerDismissals() {
+    initBannerAnalytics();
+
     document.addEventListener('ol-banner-dismiss', (e) => {
         const dismissId = e.detail?.dismissId;
         if (!dismissId) return;

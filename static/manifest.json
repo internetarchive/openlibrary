@@ -34,6 +34,7 @@
     "share_target": {
         "action": "/search",
         "method": "GET",
+        "enctype": "application/x-www-form-urlencoded",
         "params": {
             "text": "q"
         }

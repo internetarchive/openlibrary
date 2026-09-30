@@ -1,36 +1,87 @@
 /* buttonBtn styles are loaded globally via page entry points */
 
+/* The notes dialog (macros/NotesModalDialog.html) supplies its own padding
+   through --ol-dialog-padding, so the form adds none of its own. */
 .book-notes-form {
-  margin: 1em auto;
-  padding: 0 20px;
+  margin: 0;
 }
-.book-notes-form p {
-  font-size: var(--font-size-title-medium);
-}
-.book-notes-form div {
-  width: 100%;
-  margin-bottom: 1em;
-}
-.book-notes-form div textarea {
-  width: 100%;
-  padding: var(--spacing-inset-xs);
-  font-size: var(--font-size-title-medium);
-  resize: none;
+.book-notes-form__label {
+  display: block;
+  /* The label-to-input step. The title and edition sit on consecutive lines
+     with only their leading between them, so the field needs the wider gap to
+     read as a separate thing rather than a third line of the caption. */
+  margin-bottom: var(--spacing-stack-sm);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
 }
 
-.note-form-buttons {
-  display: flex;
-  justify-content: space-between;
+/* Title over edition, matching the search modal's result rows (result__title /
+   __author / __year): the name at full size and semibold, the metadata a step
+   down and muted. */
+.book-notes-form__title {
+  display: block;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
 }
-.note-form-buttons button {
-  font-size: 1.2em;
-  width: unset;
+.book-notes-form__edition {
+  display: block;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-muted);
 }
-.note-form-buttons .update-note-button {
-  margin-left: auto;
-  margin-top: 5px;
-  font-size: 1.2em;
+
+/* Same text-entry recipe as ol-select-popover's filter input: in-page radius,
+   subtle edge, and a focus ring on the focused-border token rather than the UA
+   outline. */
+.notes-modal-textarea {
+  box-sizing: border-box;
+  width: 100%;
   padding: var(--spacing-inset-sm);
+  background: var(--white);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-input);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-body);
+  color: var(--color-text);
+  resize: vertical;
+}
+.notes-modal-textarea::placeholder {
+  color: var(--color-text-muted);
+}
+.notes-modal-textarea:focus {
+  outline: none;
+  border-color: var(--color-border-focused);
+  box-shadow: 0 0 0 1px var(--color-border-focused);
+}
+
+/* Privacy note under the field. Muted and small: it reassures without
+   competing with the label or the note being written. */
+.book-notes-form__privacy {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin: var(--spacing-stack-xs) 0 0;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-muted);
+}
+.book-notes-form__privacy-icon {
+  flex-shrink: 0;
+  color: var(--color-icon-muted);
+}
+
+/* iOS zooms in on focus when the field's font is < 16px; bump it on mobile to
+   suppress that (docs/ai/design.md). */
+@media screen and (max-width: 767px) {
+  .notes-modal-textarea {
+    font-size: var(--font-size-body-large);
+  }
+}
+
+.notes-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-inline-md);
 }
 
 .observation-instructions {
@@ -39,14 +90,15 @@
 
 /* --width-breakpoint-tablet: 768px */
 @media screen and (max-width: 768px) {
-  .note-form-buttons {
+  .notes-modal__actions {
     flex-direction: column-reverse;
   }
-  .note-form-buttons .update-note-button {
-    margin-bottom: 1em;
-  }
-  .book-notes-form button {
+  /* The host stretches, but the inner button only follows via ::part. */
+  .notes-modal__actions ol-button {
+    display: block;
     width: 100%;
-    line-height: 1.5em;
+  }
+  .notes-modal__actions ol-button::part(control) {
+    width: 100%;
   }
 }

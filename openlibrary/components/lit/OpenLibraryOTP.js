@@ -71,7 +71,7 @@ export class OpenLibraryOTP extends LitElement {
                 position: fixed;
                 inset: 0;
                 background: rgba(0, 0, 0, 0.5);
-                z-index: 1000;
+                z-index: var(--z-index-modal);
                 align-items: center;
                 justify-content: center;
             }
@@ -126,8 +126,8 @@ export class OpenLibraryOTP extends LitElement {
             }
             .ol-otp-email-form button[type='submit'] {
                 padding: 8px 16px;
-                background: var(--ia-button-primary-bg, #4b4bdf);
-                color: var(--ia-button-primary-color, #fff);
+                background: var(--color-primary);
+                color: var(--color-on-primary);
                 border: none;
                 border-radius: 4px;
                 font-size: 1rem;
@@ -140,7 +140,7 @@ export class OpenLibraryOTP extends LitElement {
                 cursor: not-allowed;
             }
             .ol-otp-error {
-                color: var(--color-danger, #c00);
+                color: var(--color-danger);
                 font-size: 0.9rem;
                 margin: 0;
             }
@@ -226,8 +226,8 @@ export class OpenLibraryOTP extends LitElement {
         :host { display: inline-block; }
 
         .trigger-btn {
-            background: var(--primary-blue, hsl(202, 96%, 37%));
-            color: var(--ia-button-primary-color, #fff);
+            background: var(--color-primary);
+            color: var(--color-on-primary);
             border: none;
             border-radius: 4px;
             padding: 8px 16px;
@@ -239,7 +239,7 @@ export class OpenLibraryOTP extends LitElement {
         }
         .trigger-btn:hover,
         .trigger-btn:focus {
-            background: hsl(202, 96%, 17%);
+            background: hsl(211, 92%, 17%);
             outline: 2px solid currentColor;
             outline-offset: 2px;
         }

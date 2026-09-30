@@ -1,6 +1,7 @@
 import fnmatch
 import os
 import pickle
+import re
 import socket
 import struct
 import subprocess
@@ -10,6 +11,18 @@ from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+
+def graphite_safe(s: str) -> str:
+    """Normalize a string for safe use as a Graphite metric path segment."""
+    # Replace dots and spaces with underscores
+    s = s.replace(".", "_").replace(" ", "_")
+    # Remove or replace unsafe characters
+    s = re.sub(r"[^A-Za-z0-9_-]+", "_", s)
+    # Collapse multiple underscores
+    s = re.sub(r"_+", "_", s)
+    # Strip leading/trailing underscores or dots
+    return s.strip("._")
 
 
 @dataclass
@@ -40,6 +53,11 @@ class GraphiteEvent:
         message = header + payload
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            # Jobs run on a 60s interval with max_instances=1. A blackholed port
+            # already fails connect() in ~127s (tcp_syn_retries), costing two
+            # ticks; this also bounds the case that actually hangs forever -- a
+            # peer that accepts the connection and never reads.
+            sock.settimeout(10)
             sock.connect(graphite_address_tuple)
             sock.sendall(message)
 

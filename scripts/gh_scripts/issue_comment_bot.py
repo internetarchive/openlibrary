@@ -97,12 +97,12 @@ def fetch_issues():
     return results
 
 
-def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
+def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: list[dict[str, str | bool]]):
     """
     Returns list of issues that have the following criteria:
     - Issues have at least one comment
     - Issues have been last updated since the given number of hours
-    - Latest comment is not from an issue lead
+    - Latest comment is not from an issue lead, nor an excluded bot account
 
     Checking who left the last comment requires making up to two calls to
     GitHub's REST API.
@@ -176,7 +176,7 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
         if created > since:
             # Next step: Determine if the last commenter is a lead
             last_commenter = last_comment["user"]["login"]
-            if last_commenter not in [lead["githubUsername"] for lead in leads]:
+            if should_label_issue(last_commenter, leads, bots):
                 lead_label = find_lead_label(i.get("labels", []))
                 results.append(
                     {
@@ -189,6 +189,18 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
                 )
 
     return results
+
+
+def should_label_issue(last_commenter: str, leads: list[dict[str, str]], bots: list[dict[str, str | bool]]) -> bool:
+    """
+    Returns `True` if the last commenter's comment should trigger "Needs: Response" labeling
+    of an issue or PR.
+    """
+    if last_commenter in (lead["githubUsername"] for lead in leads):
+        return False
+    if bot_acct := next((bot for bot in bots if bot["githubUsername"] == last_commenter), None):
+        return bool(bot_acct["triggersNeedsResponse"])
+    return True
 
 
 def find_lead_label(labels: list[dict[str, Any]]) -> str:
@@ -384,6 +396,7 @@ def start_job():
         print("Reading configuration file...")
         config = read_config(args.config)
         leads = config.get("leads", [])
+        bots = config.get("bots", [])
     except OSError, json.JSONDecodeError:
         raise ConfigurationError("An error occurred while parsing the configuration file.")
 
@@ -392,7 +405,7 @@ def start_job():
     print(f"{len(issues)} found")
 
     print("Filtering issues...")
-    filtered_issues = filter_issues(issues, args.hours, leads)
+    filtered_issues = filter_issues(issues, args.hours, leads, bots)
     print(f"{len(filtered_issues)} remain after filtering.")
 
     all_issues_labeled = True

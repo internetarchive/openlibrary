@@ -5,16 +5,24 @@ Defines various monitoring jobs, that check the health of the system.
 
 import asyncio
 import os
-import re
 import time
+from collections.abc import Iterable
 
 import httpx
 
-from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts
+from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts, get_jail_list
+from scripts.monitoring.promotion import (
+    RollingPromoter,
+    parse_uniq_c,
+    promoted_events,
+    safe_label,
+    tally,
+)
 from scripts.monitoring.solr_updater_monitor import get_solr_updater_lag_event
 from scripts.monitoring.utils import (
     GraphiteEvent,
     bash_run,
+    graphite_safe,
     limit_server,
 )
 from scripts.utils.scheduler import OlAsyncIOScheduler
@@ -27,6 +35,34 @@ if not HOST:
 SERVER = HOST.split(".")[0]  # eg "ol-www0"
 GRAPHITE_URL = "graphite.us.archive.org:2004"
 scheduler = OlAsyncIOScheduler("OL-MONITOR")
+
+# Agents big enough to be worth their own grafana series get promoted out of the
+# `other` bucket automatically, so neither list below has to be edited to keep up.
+#
+# The jobs tick once a minute, so a 60-tick window is roughly an hour and
+# min_count is roughly a per-hour floor: 75/hour is 1.25 req/min. Roughly,
+# because a tick that overruns 60s is skipped rather than queued, which
+# stretches the window in wall-clock terms.
+#
+# max_labels caps how many agents hold their own series at once. It does not
+# bound the graphite tree over time: a name that is promoted and later drops
+# out leaves its whisper file behind. Pinned names do not count against it.
+#
+# This state lives in the process. The monitoring container restarts on deploy,
+# which empties the window; the promoted set rebuilds over the following hour.
+CRAWLER_PROMOTER = RollingPromoter(min_count=75, max_labels=25)
+PARTNER_PROMOTER = RollingPromoter(min_count=50, max_labels=50)
+
+
+def submit_promoted_counts(
+    counts: dict[str, int],
+    promoter: RollingPromoter,
+    prefix: str,
+    pinned: Iterable[str] = (),
+) -> None:
+    """Label one tick's counts via ``promoter`` and submit them under ``prefix``."""
+    events = promoted_events(counts, promoter, prefix, timestamp=int(time.time()), pinned=pinned)
+    GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
 @limit_server(["ol-web*", "ol-covers0"], scheduler)
@@ -73,6 +109,20 @@ def monitor_nginx_logs():
         sources=["../obfi.sh", "utils.sh"],
     )
 
+    # Bots that self-identify but aren't in obfi_grep_bots' list. The high-volume
+    # ones get their own series; the rest sum into `other`, which log_recent_bot_traffic
+    # used to emit as an undifferentiated line count.
+    unknown_bot_counts = bash_run(
+        "list_unknown_bot_counts",
+        sources=["../obfi.sh", "utils.sh"],
+        capture_output=True,
+    ).stdout
+    submit_promoted_counts(
+        counts=tally(parse_uniq_c(unknown_bot_counts), key=safe_label),
+        promoter=CRAWLER_PROMOTER,
+        prefix=f"stats.{bucket}.bot_traffic",
+    )
+
 
 @limit_server(["ol-solr0", "ol-solr1", "ol-solr2"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
@@ -96,35 +146,14 @@ async def monitor_solr():
     )
 
 
-@limit_server(["ol-www0"], scheduler)
-@scheduler.scheduled_job("interval", seconds=60)
-async def monitor_partner_useragents():
-
-    def graphite_safe(s: str) -> str:
-        """Normalize a string for safe use as a Graphite metric name."""
-        # Replace dots and spaces with underscores
-        s = s.replace(".", "_").replace(" ", "_")
-        # Remove or replace unsafe characters
-        s = re.sub(r"[^A-Za-z0-9_-]+", "_", s)
-        # Collapse multiple underscores
-        s = re.sub(r"_+", "_", s)
-        # Strip leading/trailing underscores or dots
-        return s.strip("._")
-
-    def extract_agent_counts(ua_counts, allowed_names=None):
-        agent_counts = {}
-        for ua in ua_counts.strip().split("\n"):
-            count, agent, *_ = ua.strip().split(" ")
-            count = int(count)
-            agent_name = graphite_safe(agent.split("/")[0])
-            if not allowed_names or agent_name in allowed_names:
-                agent_counts[agent_name] = count
-            else:
-                agent_counts.setdefault("other", 0)
-                agent_counts["other"] += count
-        return agent_counts
-
-    known_names = extract_agent_counts("""
+# Partner agents that always get their own series, however quiet they go.
+#
+# This snapshot of a previous run used to gate labelling entirely -- anything
+# absent from it collapsed into `other`, which is why `other` grew to dwarf every
+# labelled partner. It is now only a pin list: new partners are promoted on volume
+# (see scripts/monitoring/promotion.py), so it no longer has to be edited to keep
+# up, and an entry can be dropped whenever that partner stops being worth a line.
+PINNED_PARTNER_UAS = """
    4307 Bontent/1.0 (https://bontent.app; ***@bontent.app)
     403 Research-Cover-Scraper (***@cornell.edu)
     309 BookshopLT/1.0 (***@gmail.com)
@@ -136,6 +165,7 @@ async def monitor_partner_useragents():
     180 librimondo-pim/1.0 (https://librimondo.com; ***@fkwt.pl)
     180 WikiNerd (***@wikinerd.com.br)
     179 Blurbit/1.0 (***@blurbit.com)
+    179 BusinessBiographies/1.0 (research; ***@gmail.com)
     179 isbn-book-crawler/1.0 (educational)
     179 GoodreadsEnricher/1.0 (+***@***)
     177 CourseProjectAPI/1.0 (your@email.com)
@@ -145,6 +175,8 @@ async def monitor_partner_useragents():
     165 Pinakes-POC/0.1 (SNU Library; mailto:***@library.snu.ac.kr)
     160 BookEnricher/1.0 (your@email.com)
     153 OrelhaDoLivro/1.0 (***@orelhadelivro.com.br; openlibrary-summary)
+    146 KalamoBooks-Enrichment/1.0 (contacto: ***@gmail.com)
+    130 KuratoPublisherSweep/1.0 (***@gmail.com)
     129 TimberdoodleReading/0.1 (***@timberdoodle.com)
     126 KiveoAPI/1.0 (***@kiveo.app)
     111 BookInClub/1.0 (https://bookinclub.com; ***@bookinclub.com) node.js/axios
@@ -152,21 +184,25 @@ async def monitor_partner_useragents():
     107 BookDirectoryBot/1.0 (contact: ***@gmail.com)
     107 Shellf.app (***@shellf.app)
     102 AwarioSmartBot/1.0 (+https://awario.com/bots.html; ***@awario.com)
+     99 KkodecsBookBot/0.1.0-alpha5 (Livrarr; ***@proton.me; https://github.com/kkodecs/livrarr)
      85 Bookhives/1.0 (***@gmail.com)
      85 AliyunSecBot/Aliyun (***@service.alibaba.com)
      84 ASCENDCHESS/1.0 (Chess Training Platform; ***@ascendchess.com)
      78 PeoopleEnrichmentBot/1.0 (contact: ***@peoople.app)
-     76 KkodecsBookBot/0.1.0-alpha5 (Livrarr; ***@proton.me; https://github.com/kkodecs/livrarr)
      76 Lovvit-Archive/1.0 (https://lovvit.jp; ***@lovvit.jp)
+     75 Bookscovery/1.0 (https://bookscovery.com; ***@bookscovery.com)
      73 Pinakes-POC/0.1 (SNU Library; mailto:***@library.snu.ac.kr)
+     66 wiib-aitm-frbr/1.0 (***@gmail.com)
      65 PejibooksBot/1.0
+     64 UMDB/1.0 (+https://umdb.app; contact: ***@gmail.com)
      63 knihobot.cz (***@knihobot.cz)
      62 BookHub/1.0 (***@ybookshub.com)
      62 SafAI-EgitimBotu/3.0 (egitim amacli; iletisim: safai@example.com)
      61 siftivo-import-from-seed (***@siftivo.com)
-     58 Bookscovery/1.0 (https://bookscovery.com; ***@bookscovery.com)
      52 VisionBooksAdminBot/1.0 (https://visionbooks.app/; ***@gmail.com) Node.js
      51 chieveme.com (***@gmail.com)
+     47 BookiBot/1.0 (+https://booki.se; ***@booki.se)
+     46 Homebranch (self-hosted e-book library; ***@gmail.com)
      46 KuraReads/1.0 (contact@example.org)
      45 BookstoreApp/1.0 (***@thounkai.com)
      45 MonsoonFire-Portal/1.0 (+https://portal.monsoonfire.com; contact ***@monsoonfire.com)
@@ -174,18 +210,33 @@ async def monitor_partner_useragents():
      44 ReRoll/1.0 (rating-backfill; ***@gmail.com)
      39 ReRoll/1.0 (metadata-backfill; ***@gmail.com)
      44 UniversalHistoryBot/1.0 (contact: your@email.com)
+     42 PageLabCrawler/0.1 (https://pagelab.orbytgames.com; contact: ***@example.com)
+     40 BookTidy2-personal-library-tool/1.0 (contact: ***@gmail.com)
+     37 torrenty-enrich/1.0 (metadata enrichment; contact: ***@simpledev.cz)
+     35 Bibcitation (***@bibcitation.com)
      35 LikesnuBatch/1.0 (Contact: ***@likesnu.kr)
      32 eBookShelf/1.0 (***@gmail.com)
+     32 WonderclubBot/1.0 (+https://wonderclub.com; ***@gmail.com)
+     32 SMS4Smile-Enricher/1.0 (***@sms4smile.com)
      28 EmberNovels/1.0 (***@embernovels.com)
+     24 DMDB/1.0 (https://dmdb.com; ***@dmdb.com)
      23 RAGAMUFFIN (***@gmail.com)
      22 booklist4u/1.0 (https://booklist4u.com; ***@gmail.com)
+     22 rvbolio-calibre-classifier/1.0 (personal library; contact ***@tramacomunicacion.com)
      21 TurkicMT-BookPipeline/1.0 (research; ***@example.com)
+     20 BetterReads/0.1 (book-tracking-app; ***@betterreadsapp.com)
      20 Gleeph/1.0 (***@gleeph.net)
      20 ReadingList/2.8.11 (***@readinglist.app)
      18 LitCore/1.0 (https://litcore.io; ***@litcore.io) httpx/0.27
      12 ISBN.nu Book Price Comparison (***@isbn.nu)
+     11 montheque/0.1 (personal project; contact: ***@proton.me)
+     10 rare-books-intel/1.0 (***@gmail.com)
       9 ISBNdb (***@isbndb.com)
       9 AsayaApp/1.0 (***@asaya.app)
+      6 LibRoomApp/1.0 (***@gmail.com)
+      6 LoverOfBooks/1.0 (***@sunnyengineer.com)
+      6 Romancy/1.0 (***@romancy.app)
+      6 Spines/1.0 (github.com/fresheggdesigns/spines; ***@gmail.com)
       8 Sqwabl/1.0 (***@sqwabl.com)
       5 1000BooksBeforeKindergarten (***@1000booksfoundation.org)
       4 citesure/1.0 (***@citesure.com)
@@ -195,20 +246,38 @@ async def monitor_partner_useragents():
       2 OnTrack/1.0 (***@gmail.com)
       2 Leaders.org (leaders.org) ***@leaders.org
       1 inventaire/5.0.0 (https://inventaire.io; ***@inventaire.io)
-    """)
+    """
 
+
+# Read the User-Agent field specifically (the 6th "-delimited field). Matching `@`
+# anywhere in the line also picks up request paths and referrers, which would turn
+# `GET /search?q=a@b.com` into a partner called "GET".
+PARTNER_UA_COMMAND = """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | awk -F'"' '{print $6}' | grep -E '@' | sort | uniq -c | sort -rn"""
+
+
+def partner_label(user_agent: str) -> str:
+    """Label a partner by the first token of its UA, eg `Bontent/1.0 (...)` -> `Bontent`."""
+    return safe_label(user_agent.split(maxsplit=1)[0].split("/", maxsplit=1)[0])
+
+
+PINNED_PARTNER_NAMES = set(tally(parse_uniq_c(PINNED_PARTNER_UAS), key=partner_label))
+
+
+@limit_server(["ol-www0"], scheduler)
+@scheduler.scheduled_job("interval", seconds=60)
+async def monitor_partner_useragents():
     recent_uas = bash_run(
-        """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | grep -Eo '[^"]+@[^"]+' | sort | uniq -c | sort -rn""",
+        PARTNER_UA_COMMAND,
         sources=["../obfi.sh"],
         capture_output=True,
     ).stdout
 
-    agent_counts = extract_agent_counts(recent_uas, allowed_names=known_names)
-    events = []
-    ts = int(time.time())
-    for agent, count in agent_counts.items():
-        events.append(GraphiteEvent(path=f"stats.ol.partners.{agent}", value=float(count), timestamp=ts))
-    GraphiteEvent.submit_many(events, GRAPHITE_URL)
+    submit_promoted_counts(
+        counts=tally(parse_uniq_c(recent_uas), key=partner_label),
+        promoter=PARTNER_PROMOTER,
+        prefix="stats.ol.partners",
+        pinned=PINNED_PARTNER_NAMES,
+    )
 
 
 @limit_server(["ol-www0"], scheduler)
@@ -228,24 +297,27 @@ async def monitor_empty_homepage():
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 def monitor_fail2ban():
-    """Logs fail2ban nginx-429 jail stats (currently failed and banned counts)."""
-    failed, banned = get_fail2ban_counts("nginx-429")
+    """Logs fail2ban jail stats (currently failed and banned counts) for every configured jail."""
     ts = int(time.time())
-    GraphiteEvent.submit_many(
-        [
+    events = []
+    for jail in get_jail_list():
+        failed, banned = get_fail2ban_counts(jail)
+        jail_bucket = graphite_safe(jail)
+        events.append(
             GraphiteEvent(
-                path="stats.ol.fail2ban.nginx-429.failed",
+                path=f"stats.ol.fail2ban.{jail_bucket}.failed",
                 value=float(failed),
                 timestamp=ts,
-            ),
+            )
+        )
+        events.append(
             GraphiteEvent(
-                path="stats.ol.fail2ban.nginx-429.banned",
+                path=f"stats.ol.fail2ban.{jail_bucket}.banned",
                 value=float(banned),
                 timestamp=ts,
-            ),
-        ],
-        GRAPHITE_URL,
-    )
+            )
+        )
+    GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
 @limit_server(["ol-home0"], scheduler)

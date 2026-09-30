@@ -8,17 +8,20 @@ its experience. This does not include public facing APIs with LTS
 
 from __future__ import annotations
 
+import io
 import os
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
+import qrcode
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, Response, status
 from pydantic import BaseModel, BeforeValidator, Field
 from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
 from openlibrary.core import lending, models
+from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
@@ -32,14 +35,21 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
-from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async
+from openlibrary.plugins.openlibrary.api import (
+    bestbook_award,
+    get_bookshelves_summary,
+    get_editions_data,
+    get_price_data_async,
+    get_works_data_async,
+    process_work_bookshelves,
+)
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
-from openlibrary.plugins.openlibrary.api import work_bookshelves as legacy_work_bookshelves
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
+DAY_SECONDS = 60 * 60 * 24
 
 # Valid period values — mirrors SINCE_DAYS keys
 # IMPORTANT: Keep this Literal in sync with the keys of views.loanstats.SINCE_DAYS!
@@ -237,6 +247,7 @@ class BooknoteResponse(BaseModel):
 
 
 @router.post("/works/OL{work_id}W/notes", response_model=BooknoteResponse)
+@router.post("/works/OL{work_id}W/notes.json", response_model=BooknoteResponse)
 async def booknotes_post(
     work_id: Annotated[int, Path(gt=0)],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
@@ -269,7 +280,7 @@ async def booknotes_post(
 @router.get("/works/OL{work_id}W/bookshelves.json")
 def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
     """Get reading-log shelf counts for a work."""
-    return legacy_work_bookshelves.get_bookshelves_summary(work_id)
+    return get_bookshelves_summary(work_id)
 
 
 @router.post("/works/OL{work_id}W/bookshelves.json")
@@ -281,7 +292,7 @@ def post_work_bookshelves(
     dont_remove: Annotated[bool | None, Form()] = None,
 ) -> dict:
     """Add a work to, move a work between, or remove a work from a reading-log shelf."""
-    return legacy_work_bookshelves.process_work_bookshelves(
+    return process_work_bookshelves(
         username=user.username,
         work_id=work_id,
         bookshelf_id=bookshelf_id,
@@ -290,12 +301,64 @@ def post_work_bookshelves(
     )
 
 
-async def work_editions():
-    pass
+class PaginatedGroupEntryResponse(BaseModel):
+    links: dict[str, str]
+    size: int
+    entries: list[dict]
 
 
-async def author_works():
-    pass
+@router.get("/works/OL{work_id}W/editions.json", response_model=PaginatedGroupEntryResponse, response_model_exclude_none=True)
+def work_editions(
+    request: Request,
+    work_id: Annotated[int, Path(ge=0)],
+    limit: Annotated[int, Query(ge=0, le=1000, description="Maximum number of editions to return")] = 50,
+    offset: Annotated[int, Query(ge=0, description="Number of editions to skip")] = 0,
+) -> PaginatedGroupEntryResponse:
+    """Get paginated editions for a work."""
+    data = get_editions_data(
+        f"/works/OL{work_id}W",
+        url=request.url,
+        limit=limit,
+        offset=offset,
+    )
+    if data is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return PaginatedGroupEntryResponse(**data)
+
+
+@router.get("/authors/OL{author_id}A/works.json", response_model=PaginatedGroupEntryResponse, response_model_exclude_none=True)
+async def author_works(
+    request: Request,
+    author_id: Annotated[int, Path(ge=0)],
+    limit: Annotated[int, Query(ge=0, le=1000, description="Maximum number of works to return")] = 50,
+    offset: Annotated[int, Query(ge=0, description="Number of works to skip")] = 0,
+) -> PaginatedGroupEntryResponse:
+    """Get paginated works for an author."""
+    data = await get_works_data_async(
+        f"/authors/OL{author_id}A",
+        url=request.url,
+        limit=limit,
+        offset=offset,
+    )
+    if data is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return PaginatedGroupEntryResponse(**data)
+
+
+@router.get("/qrcode")
+def create_qrcode(
+    request: Request,
+    path: Annotated[str, Query()] = "/",
+) -> Response:
+    """Create a QR code PNG for an Open Library path."""
+    qr_url = f"{request.url.scheme}://{request.url.netloc}{path}"
+    img = qrcode.make(qr_url)
+    with io.BytesIO() as buf:
+        img.save(buf, format="PNG")
+        return Response(
+            content=buf.getvalue(),
+            media_type="image/png",
+        )
 
 
 class PriceResponse(BaseModel):
@@ -331,6 +394,34 @@ async def price_api(
         )
 
     return await get_price_data_async(isbn or "", asin or "")
+
+
+class HideBannerRequest(BaseModel):
+    """Request body for persisting a dismissed banner."""
+
+    cookie_name: str = Field(alias="cookie-name")
+    cookie_duration_days: int = Field(default=30, alias="cookie-duration-days")
+
+
+class HideBannerResponse(BaseModel):
+    """Response returned after a banner preference is saved."""
+
+    success: str = "Preference saved"
+
+
+@router.post("/hide_banner")
+def hide_banner(data: HideBannerRequest, response: Response) -> HideBannerResponse:
+    """Persist a banner dismissal in a cookie and, when applicable, user preferences."""
+    if (user := accounts.get_current_user()) and data.cookie_name.startswith("yrg"):
+        user.save_preferences({"yrg_banner_pref": data.cookie_name})
+
+    response.set_cookie(
+        data.cookie_name,
+        "1",
+        expires=data.cookie_duration_days * DAY_SECONDS,
+        samesite=None,
+    )
+    return HideBannerResponse()
 
 
 class FollowEntry(BaseModel):
@@ -444,9 +535,13 @@ async def get_bestbook_count(
     return BestbookCountResponse(count=Bestbook.get_count(work_id=work_id, username=username, topic=topic))
 
 
-async def unlink_ia_ol():
-    pass
+class MonthlyLoginsResponse(BaseModel):
+    """Response model for the /api/monthly_logins.json endpoint."""
+
+    loginCount: int
 
 
-async def monthly_logins():
-    pass
+@router.get("/api/monthly_logins.json", response_model=MonthlyLoginsResponse)
+def monthly_logins() -> MonthlyLoginsResponse:
+    """Return the cached unique monthly login count for the admin stats UI."""
+    return MonthlyLoginsResponse(loginCount=get_unique_logins_since())

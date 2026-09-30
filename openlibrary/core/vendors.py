@@ -23,6 +23,7 @@ from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
@@ -31,7 +32,7 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 session = requests.Session()
-async_session = httpx.AsyncClient()
+get_async_session = cache_per_event_loop(httpx.AsyncClient)
 
 BETTERWORLDBOOKS_API_URL = "https://products.bwbcontent.com/service.aspx?IncludeAmazon=True&ItemId="
 affiliate_server_url = None
@@ -308,7 +309,7 @@ def is_dvd(book) -> bool:
     return "dvd" in [product_group, physical_format]
 
 
-def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str) -> str | None:
+def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str, query: str | None = None) -> str | None:
     """Return an Amazon affiliate URL for a book, handling 979-prefix ISBNs.
 
     Amazon's /dp/<ASIN>/ route only accepts ISBN-10 or a real ASIN.
@@ -324,15 +325,17 @@ def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str) -> str | 
         asin: Pre-resolved ASIN (e.g. from edition identifiers or ISBN-10),
               or None.  Takes priority over isbn conversion.
         tag:  Amazon affiliate tag.
+        query: Keywords (e.g. title and author) to search for when the book has
+              no isbn or asin to link to directly.
 
     Returns:
-        A fully-formed Amazon URL, or None if neither isbn nor asin provided.
+        A fully-formed Amazon URL, or None if there is nothing to link or search by.
     """
     effective_asin = asin or (isbn and isbn_13_to_isbn_10(isbn))
     if effective_asin:
         return f"https://www.amazon.com/dp/{quote(effective_asin)}/?tag={tag}"
-    if isbn:
-        return f"https://www.amazon.com/s?k={quote(isbn)}&i=stripbooks&tag={tag}"
+    if keywords := isbn or query:
+        return f"https://www.amazon.com/s?k={quote(keywords)}&i=stripbooks&tag={tag}"
     return None
 
 
@@ -456,6 +459,10 @@ class AmazonCreatorsAPI:
           availability    — 'IN_STOCK', 'AVAILABLE_DATE', etc.
           price_savings_pct — discount percentage off list price
           list_price      — original list price string, e.g. '$17.00'
+          availability_message — buy-box shipping/stock text, e.g. 'In Stock'
+          condition, sub_condition — e.g. 'Used', 'LikeNew'
+          merchant        — seller name, e.g. 'Amazon.com'
+          deal_badge      — deal label, e.g. 'Limited time deal'
           image_variants  — alternate cover image URLs (back cover, spine, etc.)
         """
         if not product:
@@ -532,6 +539,13 @@ class AmazonCreatorsAPI:
 
         # Availability from the buy-box listing
         availability = listing and getattr(listing, "availability", None) and getattr(listing.availability, "type", None)
+        # Human-readable, e.g. "In Stock" or "Usually ships within 2 to 3 days"
+        availability_message = listing and getattr(listing, "availability", None) and getattr(listing.availability, "message", None)
+        condition = listing and getattr(listing, "condition", None)
+        condition_value = condition and getattr(condition, "value", None)
+        sub_condition = condition and getattr(condition, "sub_condition", None)
+        merchant = listing and getattr(listing, "merchant_info", None) and getattr(listing.merchant_info, "name", None)
+        deal_badge = listing and getattr(listing, "deal_details", None) and getattr(listing.deal_details, "badge", None)
 
         # Savings: percentage off and original list price
         savings = price and getattr(price, "savings", None)
@@ -575,6 +589,11 @@ class AmazonCreatorsAPI:
             # --- Creators API additions ---
             **({"categories": categories} if categories else {}),
             **({"availability": availability} if availability else {}),
+            **({"availability_message": availability_message} if availability_message else {}),
+            **({"condition": condition_value} if condition_value else {}),
+            **({"sub_condition": sub_condition} if sub_condition else {}),
+            **({"merchant": merchant} if merchant else {}),
+            **({"deal_badge": deal_badge} if deal_badge else {}),
             **({"price_savings_pct": price_savings_pct} if price_savings_pct else {}),
             **({"list_price": list_price} if list_price else {}),
             **({"image_variants": image_variants} if image_variants else {}),
@@ -585,42 +604,30 @@ class AmazonCreatorsAPI:
         return book
 
 
-def get_amazon_metadata(
+@cache.memoize(
+    engine="memcache",
+    key="get_amazon_metadata_async",
+    expires=dateutil.WEEK_SECS,
+    cacheable=lambda key, value: value is not None,
+)
+async def get_amazon_metadata_async(
     id_: str,
     id_type: Literal["asin", "isbn"] = "isbn",
     resources: Any = None,
     high_priority: bool = False,
     stage_import: bool = True,
-) -> dict | None:
-    """Main interface to Amazon LookupItem API. Will cache results.
-
-    :param str id_: The item id: isbn (10/13), or Amazon ASIN.
-    :param str id_type: 'isbn' or 'asin'.
-    :param bool high_priority: Priority in the import queue. High priority
-           goes to the front of the queue.
-    param bool stage_import: stage the id_ for import if not in the cache.
-    :return: A single book item's metadata, or None.
-    """
-    return cached_get_amazon_metadata(
-        id_,
-        id_type=id_type,
-        resources=resources,
-        high_priority=high_priority,
-        stage_import=stage_import,
-    )
-
-
-def _get_amazon_metadata(
-    id_: str,
-    id_type: Literal["asin", "isbn"] = "isbn",
-    resources: Any = None,
-    high_priority: bool = False,
-    stage_import: bool = True,
-    timeout: float = 10.0,
+    timeout: float = 10.0,  # noqa: ASYNC109
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
     https://webservices.amazon.com/paapi5/documentation/get-items.html
+
+    Canonical async implementation: makes the HTTP round-trip to the affiliate
+    server with a shared per-loop httpx client (see ``get_async_session``) so
+    it never blocks the event loop. Results are cached in memcache for a week;
+    bare ``None`` results (e.g. a 503 throttle from the affiliate server) are
+    not cached, so the next call retries — matching the historical "only the
+    value None will cause re-cache" behaviour.
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
@@ -628,7 +635,9 @@ def _get_amazon_metadata(
            See https://webservices.amazon.com/paapi5/documentation/get-items.html
     :param bool high_priority: Priority in the import queue. High priority
            goes to the front of the queue.
-    param bool stage_import: stage the id_ for import if not in the cache.
+    :param bool stage_import: stage the id_ for import if not in the cache.
+    :param float timeout: Per-request timeout in seconds for the affiliate
+           server call.
     :return: A single book item's metadata, or None.
     """
     if not affiliate_server_url:
@@ -648,7 +657,7 @@ def _get_amazon_metadata(
     try:
         priority = "true" if high_priority else "false"
         stage = "true" if stage_import else "false"
-        r = session.get(
+        r = await get_async_session().get(
             f"http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}",
             timeout=timeout,
         )
@@ -657,11 +666,15 @@ def _get_amazon_metadata(
             return data
         else:
             return None
-    except requests.exceptions.ConnectionError:
-        logger.exception("Affiliate Server unreachable")
-    except requests.exceptions.HTTPError:
+    except httpx.HTTPStatusError:
         logger.exception(f"Affiliate Server: id {id_} not found")
+    except httpx.TransportError:
+        logger.exception("Affiliate Server unreachable")
     return None
+
+
+# Sync wrapper for backward compatibility.
+get_amazon_metadata = async_bridge.wrap(get_amazon_metadata_async)
 
 
 def stage_bookworm_metadata(identifier: str | None) -> dict | None:
@@ -767,29 +780,6 @@ def create_edition_from_amazon_metadata(id_: str, id_type: Literal["asin", "isbn
     return None
 
 
-def cached_get_amazon_metadata(*args, **kwargs):
-    """If the cached data is `None`, it's likely a 503 throttling occurred on
-    Amazon's side. Try again to fetch the value instead of using the
-    cached value. It may 503 again, in which case the next access of
-    this page will trigger another re-cache. If the Amazon API call
-    succeeds but the book has no price data, then {"price": None} will
-    be cached as to not trigger a re-cache (only the value `None`
-    will cause re-cache)
-    """
-
-    # fetch/compose a cache controller obj for
-    # "upstream.code._get_amazon_metadata"
-    memoized_get_amazon_metadata = cache.memcache_memoize(
-        _get_amazon_metadata,
-        "upstream.code._get_amazon_metadata",
-        timeout=dateutil.WEEK_SECS,
-    )
-    # fetch cached value from this controller
-    result = memoized_get_amazon_metadata(*args, **kwargs)
-    # if no result, then recache / update this controller's cached value
-    return result or memoized_get_amazon_metadata.update(*args, **kwargs)[0]
-
-
 class BetterWorldBooksMetadata(TypedDict):
     url: str
     isbn: str
@@ -797,6 +787,11 @@ class BetterWorldBooksMetadata(TypedDict):
     price: str | None
     price_amt: str | None
     qlt: str | None
+    # Lowest price and copy count per condition; None when BWB didn't say
+    new_price: str | None
+    new_qty: int | None
+    used_price: str | None
+    used_qty: int | None
 
 
 class BetterWorldBooksMetadataError(TypedDict):
@@ -842,7 +837,7 @@ async def _get_betterworldbooks_metadata(
     """
 
     url = BETTERWORLDBOOKS_API_URL + isbn
-    response = await async_session.get(url, timeout=3)
+    response = await get_async_session().get(url, timeout=3)
     if response.status_code != requests.codes.ok:
         return {"error": response.text, "code": response.status_code}
     text = response.text
@@ -864,7 +859,16 @@ async def _get_betterworldbooks_metadata(
             qlt = "new"
 
     first_market_price = ("$" + market_price[0]) if market_price else None
-    return betterworldbooks_fmt(isbn, qlt, price, first_market_price)
+    return betterworldbooks_fmt(
+        isbn,
+        qlt,
+        price,
+        first_market_price,
+        new_price=new_price[0] if new_price else None,
+        new_qty=int(new_qty[0]) if new_qty else None,
+        used_price=used_price[0] if used_price else None,
+        used_qty=int(used_qty[0]) if used_qty else None,
+    )
 
 
 def betterworldbooks_fmt(
@@ -872,6 +876,10 @@ def betterworldbooks_fmt(
     qlt: str | None = None,
     price: str | None = None,
     market_price: str | None = None,
+    new_price: str | None = None,
+    new_qty: int | None = None,
+    used_price: str | None = None,
+    used_qty: int | None = None,
 ) -> BetterWorldBooksMetadata:
     """Defines a standard interface for returning bwb price info
 
@@ -886,4 +894,8 @@ def betterworldbooks_fmt(
         "price": price_fmt,
         "price_amt": price,
         "qlt": qlt,
+        "new_price": new_price,
+        "new_qty": new_qty,
+        "used_price": used_price,
+        "used_qty": used_qty,
     }

@@ -1,0 +1,187 @@
+/**
+ * Results that linger past STALE_DELAY_MS after an edit are dimmed.
+ */
+import { nothing } from 'lit';
+import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
+
+const STALE_DELAY_MS = 300;
+
+function modalSetup({ query = 'white whale' } = {}) {
+    const modal = new SearchModal();
+    modal._query = query;
+    modal._languages = [];
+    return modal;
+}
+
+/** A modal whose rows answer `answered` while `query` is what's typed. */
+function withCatalog({ query, answered }) {
+    const modal = modalSetup({ query: answered });
+    modal._results = [{ key: '/works/OL1W' }];
+    modal._resultsKey = modal._buildSearchJsonUrl(answered);
+    modal._query = query;
+    return modal;
+}
+
+/** A modal whose band hits answer `answered` while `query` is what's typed. */
+function withBand({ query, answered }) {
+    const modal = modalSetup({ query: answered });
+    modal._ftHits = [{ ia: 'mobydick00melv' }];
+    modal._ftSearchKey = `q=${encodeURIComponent(answered).replace(/%20/g, '+')}`;
+    modal._query = query;
+    return modal;
+}
+
+describe('what counts as superseded', () => {
+    test('rows fetched for the query on screen are current', () => {
+        expect(withCatalog({ query: 'white whale', answered: 'white whale' })._catalogSuperseded()).toBe(false);
+    });
+
+    test('an edit supersedes them', () => {
+        expect(withCatalog({ query: 'white whales', answered: 'white whale' })._catalogSuperseded()).toBe(true);
+    });
+
+    // Same query, different search — the rows answer the unfiltered one.
+    test('so does a filter toggle', () => {
+        const modal = withCatalog({ query: 'white whale', answered: 'white whale' });
+        modal._availability = 'readable';
+        expect(modal._catalogSuperseded()).toBe(true);
+    });
+
+    test('an empty list has nothing to supersede', () => {
+        const modal = withCatalog({ query: 'white whales', answered: 'white whale' });
+        modal._results = [];
+        expect(modal._catalogSuperseded()).toBe(false);
+    });
+
+    test('the band is superseded on the same terms', () => {
+        expect(withBand({ query: 'white whale', answered: 'white whale' })._bandSuperseded()).toBe(false);
+        expect(withBand({ query: 'white whales', answered: 'white whale' })._bandSuperseded()).toBe(true);
+    });
+});
+
+describe('the stale delay', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    test('superseded rows hold at full strength inside the delay', () => {
+        const modal = withCatalog({ query: 'white whales', answered: 'white whale' });
+
+        modal.updated();
+        vi.advanceTimersByTime(STALE_DELAY_MS - 1);
+
+        expect(modal._markStale).toBe(false);
+        expect(modal._catalogIsStale()).toBe(false);
+    });
+
+    test('and are marked once it passes', () => {
+        const modal = withCatalog({ query: 'white whales', answered: 'white whale' });
+
+        modal.updated();
+        vi.advanceTimersByTime(STALE_DELAY_MS);
+
+        expect(modal._markStale).toBe(true);
+        expect(modal._catalogIsStale()).toBe(true);
+    });
+
+    // A fast answer lands inside the delay, so the list never flickers.
+    test('an answer that lands first is never marked', () => {
+        const modal = withCatalog({ query: 'white whales', answered: 'white whale' });
+
+        modal.updated();
+        vi.advanceTimersByTime(150);
+        // The new answer arrives.
+        modal._resultsKey = modal._buildSearchJsonUrl('white whales');
+        modal.updated();
+        vi.advanceTimersByTime(STALE_DELAY_MS);
+
+        expect(modal._markStale).toBe(false);
+    });
+
+    test('a fresh answer clears a mark already showing', () => {
+        const modal = withCatalog({ query: 'white whales', answered: 'white whale' });
+        modal.updated();
+        vi.advanceTimersByTime(STALE_DELAY_MS);
+
+        modal._resultsKey = modal._buildSearchJsonUrl('white whales');
+        modal.updated();
+
+        expect(modal._markStale).toBe(false);
+        expect(modal._catalogIsStale()).toBe(false);
+    });
+
+    // The Books tab's band hides rather than dims, so it doesn't start the clock.
+    test('on the Books tab a band behind on its own starts no clock', () => {
+        const modal = withBand({ query: 'white whales', answered: 'white whale' });
+        modal.updated();
+        vi.advanceTimersByTime(STALE_DELAY_MS);
+
+        expect(modal._markStale).toBe(false);
+        expect(modal._bandIsStale()).toBe(false);
+    });
+
+    test('on the Inside tab the band is the surface the clock watches', () => {
+        const modal = withBand({ query: 'white whales', answered: 'white whale' });
+        modal._mode = 'inside';
+        modal.updated();
+        vi.advanceTimersByTime(STALE_DELAY_MS);
+
+        expect(modal._bandIsStale()).toBe(true);
+    });
+
+    test('a repeat reconcile does not restart the clock', () => {
+        const modal = withCatalog({ query: 'white whales', answered: 'white whale' });
+
+        modal.updated();
+        vi.advanceTimersByTime(200);
+        modal.updated();
+        vi.advanceTimersByTime(100);
+
+        expect(modal._markStale).toBe(true);
+    });
+
+    test('a query dropped below the autocomplete threshold leaves no dim behind', () => {
+        const modal = withCatalog({ query: 'wh', answered: 'white whale' });
+        modal.updated();
+        vi.advanceTimersByTime(STALE_DELAY_MS);
+        expect(modal._markStale).toBe(true);
+
+        // What _onQueryInput does on the way down.
+        modal._resetResults({ hasSearched: false });
+        modal._ftHits = [];
+        modal.updated();
+
+        expect(modal._markStale).toBe(false);
+    });
+});
+
+describe('the band on the Books tab', () => {
+    test('shows hits that answer the query on screen', () => {
+        const modal = withBand({ query: 'white whale', answered: 'white whale' });
+        expect(modal._renderFulltextBand()).not.toBe(nothing);
+    });
+
+    test('hides the moment an edit outdates them', () => {
+        const modal = withBand({ query: 'white whales', answered: 'white whale' });
+        expect(modal._renderFulltextBand()).toBe(nothing);
+    });
+
+    test('and is back once the query returns to the one they answer', () => {
+        const modal = withBand({ query: 'white whales', answered: 'white whale' });
+        modal._query = 'white whale';
+        expect(modal._renderFulltextBand()).not.toBe(nothing);
+    });
+});
+
+describe('the results container class', () => {
+    test('marks a stale list', () => {
+        expect(modalSetup()._resultsClass(true)).toBe('results is-stale');
+        expect(modalSetup()._resultsClass(false)).toBe('results');
+    });
+
+    // Both dims set opacity on the same element, so they'd compound.
+    test('a press supersedes the stale dim rather than compounding with it', () => {
+        const modal = modalSetup();
+        modal._navigatingKey = '/works/OL1W';
+        expect(modal._resultsClass(true)).toBe('results is-navigating');
+    });
+});

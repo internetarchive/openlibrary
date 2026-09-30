@@ -1,8 +1,8 @@
+import $ from 'jquery';
 /**
  * Functionality for templates/covers
  */
-import 'jquery-ui/ui/disable-selection';
-import 'jquery-ui/ui/widgets/sortable';
+import './jquery-ui-sortable'; // disable-selection + sortable for drag-to-reorder
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
 import { closePopup } from './utils';

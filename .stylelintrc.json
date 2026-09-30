@@ -1,7 +1,8 @@
 {
   "extends": ["stylelint-prettier/recommended"],
   "plugins": [
-    "stylelint-declaration-strict-value"
+    "stylelint-declaration-strict-value",
+    "./stylelint/ol-import-at-top.cjs"
   ],
   "rules": {
     "scale-unlimited/declaration-strict-value": [
@@ -16,6 +17,13 @@
         "ignoreValues": [
           "inherit", "transparent", "none"
         ]
+      }
+    ],
+    "declaration-property-value-disallowed-list": [
+      { "z-index": ["/--z-index-level-/"] },
+      {
+        "severity": "warning",
+        "message": "Use a semantic or local z-index token, not a --z-index-level-* primitive (#12363)"
       }
     ],
     "color-no-hex": true,
@@ -35,12 +43,47 @@
 		"selector-pseudo-element-no-unknown": true,
 		"selector-type-no-unknown": [true, {"ignoreTypes": ["/^ol-/"]}],
 		"media-feature-name-no-unknown": true,
-		"at-rule-no-unknown": true,
+    "at-rule-no-unknown": true,
+    "ol/import-at-top": true,
 		"comment-no-empty": true,
 		"no-duplicate-at-import-rules": true,
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
 		"font-family-no-missing-generic-family-keyword": [true, {"ignoreFontFamilies": ["!important"]}],
 		"no-descending-specificity": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["static/css/base/common.css"],
+      "rules": {
+        "scale-unlimited/declaration-strict-value": [
+          ["font-family", "font-weight", "background-color", "z-index", "color"],
+          {
+            "disableFix": true,
+            "ignoreValues": ["inherit", "transparent", "none"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["openlibrary/**/*.js"],
+      "customSyntax": "postcss-lit",
+      "rules": {
+        "prettier/prettier": null,
+        "scale-unlimited/declaration-strict-value": [
+          ["z-index"],
+          { "disableFix": true, "ignoreValues": ["inherit", "transparent", "none"] }
+        ],
+        "color-no-hex": null,
+        "color-named": null,
+        "no-descending-specificity": null,
+        "no-duplicate-selectors": null,
+        "declaration-block-no-duplicate-properties": null,
+        "declaration-block-no-redundant-longhand-properties": null,
+        "shorthand-property-no-redundant-values": null,
+        "length-zero-no-unit": null,
+        "selector-max-specificity": null
+      }
+    }
+  ]
 }

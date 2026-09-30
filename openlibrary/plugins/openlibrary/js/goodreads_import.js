@@ -1,5 +1,4 @@
-import Promise from 'promise-polyfill';
-
+import $ from 'jquery';
 export function initGoodreadsImport() {
 
     var count, prevPromise;

@@ -8,16 +8,18 @@ Open Library (openlibrary.org) is an open, editable library catalog by the Inter
 
 ## Development Setup
 
-Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
+Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. FastAPI is the primary entry point on port 8080; unmatched requests are proxied to the legacy web.py app by `openlibrary/fastapi/proxy.py` (the old web.py-on-8080 / FastAPI-on-18080 layout was swapped in #13423).
+
+On startup, the `home` container runs `docker/ol-home-start.sh`, which clones the [GitHub wiki](https://github.com/internetarchive/openlibrary.wiki) into `docs/wiki/` (gitignored). The wiki holds operational/how-to documentation that is **not** in this repo — search `docs/wiki/` locally before turning to a web search.
 
 ## Build Commands
 
 Build targets are in the `Makefile`. Key dev workflow commands:
 
 ```bash
-make all                    # Build everything (css, js, components, lit-components, i18n)
-npm run watch               # Dev mode with hot reload (CSS + JS)
-npm run watch:lit-components # Watch Lit components
+make all                    # Build everything (frontend, i18n)
+npm run watch               # Dev mode with hot reload (CSS + JS + components)
+npm run watch:components     # Watch components only
 ```
 
 ## Testing
@@ -39,8 +41,12 @@ pytest openlibrary/core/tests/test_models.py::test_function_name -xvs
 # JavaScript tests
 npm run test:js
 
-# i18n validation
+# JavaScript component tests in a real browser (Vitest browser mode)
+npm run test:js:browser
+
+# i18n validation (.po syntax/placeholders, then HTML structure)
 make test-i18n
+pytest openlibrary/i18n/
 
 # All tests
 make test
@@ -75,6 +81,68 @@ docker compose up -d solr
 docker compose run --rm home make reindex-solr
 ```
 
+### API writes silently drop `action`/`comment`/`data` or 500
+
+The infogami write API (`/api/save_many`, `/api/write`) only applies custom
+`action`, `comment`, and `data` headers when the request's `Opt` header
+matches the app's configured `http_ext_header_uri`. The dev app sets this to
+`http://openlibrary.org/dev/docs/api` (`openlibrary/plugins/openlibrary/code.py`),
+**not** the infogami default (`http://infogami.org/api`).
+
+- **Mismatch symptom:** saves succeed but are recorded as `default-bulk-update`
+  with no comment or data (silent — action-tagged saves like merges lose their
+  metadata), or `api/save_many` 500s when the custom headers come back `None`.
+- **Fix:** send the matching declaration, e.g.
+  `Opt: "http://openlibrary.org/dev/docs/api"; ns=12` plus
+  `X-12-action: merge-authors`, `X-12-comment: ...`, `X-12-data: {...}`.
+- **Prefer FastAPI endpoints instead:** they share the session auth and need
+  no custom headers — e.g. author merges via
+  `POST http://localhost:8080/authors/merge.json`.
+
+### Scripts must log in via the JSON endpoint
+
+`POST /account/login` with a form body returns **200 but does not set a
+session cookie** — scripts that use it appear logged in but their writes are
+unauthenticated. Always POST JSON to `/account/login.json`:
+
+```bash
+curl -s -c /tmp/ck.txt -X POST http://localhost:8080/account/login.json \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"openlibrary","password":"openlibrary"}'
+```
+
+The dev user `openlibrary` / `openlibrary` is a member of `/usergroup/admin`
+(see `scripts/dev-instance/dev_db.pg_dump`), i.e. a super-librarian.
+`scripts/copydocs.py`'s `~/.olrc` autologin hits the form-POST trap — see its
+docstring.
+
+### copydocs copies current revisions only
+
+`scripts/copydocs.py` copies the *current* revision of each document and
+follows *current* references. It does **not** copy changesets/transactions,
+version history (`?v=`), or references that only exist in older revisions,
+and it deliberately strips `authors` from editions.
+
+If you need older revisions:
+
+- **Fetch one revision directly:** `GET /api/get?key=<key>&v=<revision>`
+  (e.g. `curl 'http://localhost:8080/api/get?key=/books/OL1M&v=2'`). On
+  openlibrary.org the same works via `<key>.json?v=<revision>`.
+- **List a doc's revisions:** `GET /api/versions?query=<url-encoded JSON>` —
+  each entry includes the revision number, changeset id, action, and comment.
+  The `query` JSON must be URL-encoded, e.g.
+  `curl -G 'http://localhost:8080/api/versions' --data-urlencode 'query={"key": "/books/OL1M", "limit": 5}'`.
+- **copydocs `?v=N` keys** (`./scripts/copydocs.py /works/OL1W?v=2`) copy an
+  old revision's *content*, but it is saved as a fresh local revision — local
+  revision numbering and changeset history are still not preserved.
+- **Reproductions that depend on history** (e.g. undo, which fetches
+  `revision − 1`) need the local infobase rows
+  (`transaction`/`thing`/`data`/`version`) to match production — either
+  reconstruct them via `psql` in the `db` container (fetch R and R−1 from
+  production), or — usually simpler — build a synthetic scenario through the
+  API instead of copying history at all (the #5664 reproduction work is a
+  worked example of the API approach).
+
 ## Linting
 
 ```bash
@@ -100,7 +168,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 
 **Routes (web.py/Infogami):** Defined as classes extending `delegate.page` in plugin `code.py` files. The class attribute `path` is a regex pattern, and `GET`/`POST` methods handle requests.
 
-**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app.
+**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`.
 
 **Key plugins:**
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
@@ -133,11 +201,27 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Frontend
 
-- **CSS:** CSS files in `static/css/`, compiled via webpack. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
-- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
-- **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
-- **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
+- **CSS:** CSS files in `static/css/`, compiled via `scripts/vite/build.mjs` (`--only css`) to `static/build/css/`. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
+- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via `scripts/vite/build.mjs` (`--only js`) to `static/build/js/`.
+- **Vue components:** `openlibrary/components/*.vue`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
+- **Lit web components:** `openlibrary/components/lit/`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
+
+### Browser Support
+
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 15.4, iOS ≥ 15.4. The Safari floor is set by the Lit components, which need `delegatesFocus` and `<dialog>.showModal()`. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+
+What the toolchain guarantees:
+
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari15.4', 'ios15.4']` in `scripts/vite/build.mjs`, matching `browserslist`). No built-ins are polyfilled — everything we use ships natively at Safari 15.4.
+- **Vue/Lit components** use the same `build.target` — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
+
+Rules for new code:
+
+- **Do not add polyfills or legacy fallback bundles.** IE11-era polyfills were removed deliberately (#12685).
+- **Web platform APIs are not auto-polyfilled anywhere** — feature-detect (`if ('IntersectionObserver' in window)`) or verify the API is within the floor before using it unguarded.
+- Browsers below the floor get the server-rendered experience: content stays readable, JS enhancements are untested. Don't deliberately break them, but don't spend effort on them either.
 
 ### Search
 
@@ -167,10 +251,10 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 
 These companion docs cover specific areas in depth:
 
-- [Accessibility](a11y/index.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
+- [Accessibility](web-components.md#accessibility) — focus, ARIA across shadow roots, keyboard patterns for Lit components
 - [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
-- [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
-- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM
+- [Design](design.md) — UI rules and their scope: typography, RTL, the component inventory (what to use, what to avoid), icons, design tokens, overlays, animations, mobile, and what enforces each rule
+- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
 - [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
 
 ## Domain Knowledge Bases
@@ -198,10 +282,12 @@ Deep-dive references for major system domains. Each covers production architectu
 | Lit components | `openlibrary/components/lit/` |
 | Python tests | `tests/`, `openlibrary/**/tests/` |
 | JS tests | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
+| Browser-mode component tests | `tests/browser/` |
 | Docker config | `docker/`, `compose.yaml` |
 | Solr config | `conf/solr/` |
 | i18n translations | `openlibrary/i18n/` |
 | Infogami submodule | `vendor/infogami/` |
+| GitHub wiki (local clone) | `docs/wiki/` |
 
 ## Contributing to These Docs
 

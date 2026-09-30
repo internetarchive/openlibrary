@@ -3,7 +3,7 @@ import { FocusableHostMixin } from '../../../openlibrary/components/lit/utils/fo
 // We test the mixin against a stand-in for LitElement: a plain HTMLElement
 // subclass that satisfies the parts of the contract the mixin reads from
 // (`shadowRootOptions`, `connectedCallback`, `focus`). This keeps the test
-// independent of a Lit transform in Jest.
+// independent of a Lit transform in the test runner.
 class MockBase extends HTMLElement {
     static shadowRootOptions = { mode: 'open' };
 
@@ -18,7 +18,9 @@ class MockBase extends HTMLElement {
 function defineFocusableElement(tagName, { renderHTML = '', focusTargetSelector = null } = {}) {
     const cls = class extends FocusableHostMixin(MockBase) {
         connectedCallback() {
-            super.connectedCallback();
+            // Real consumers extend LitElement (which defines connectedCallback);
+            // MockBase is a bare HTMLElement, so guard the super call.
+            super.connectedCallback?.();
             if (!this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = renderHTML;
         }
         get _focusTarget() {
@@ -45,23 +47,17 @@ afterEach(() => {
 });
 
 describe('FocusableHostMixin', () => {
-    test('sets tabindex="0" on the host so an outer focus trap discovers it', () => {
+    test('does NOT add a host tabindex (avoids the delegatesFocus double tab stop)', () => {
+        // The inner native focusable is tabbable on its own, and our focus
+        // traps find it via the shadow-piercing walker — so the host must not
+        // be a second tab stop. See docs/ai/web-components.md (Focus and Shadow DOM).
         const el = document.createElement('mixin-test-default');
         document.body.appendChild(el);
 
-        expect(el.getAttribute('tabindex')).toBe('0');
-
-        const wrapper = document.createElement('div');
-        wrapper.appendChild(el);
-        document.body.appendChild(wrapper);
-
-        const discovered = wrapper.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        expect([...discovered]).toContain(el);
+        expect(el.hasAttribute('tabindex')).toBe(false);
     });
 
-    test('does not overwrite a consumer-provided tabindex', () => {
+    test('leaves a consumer-provided tabindex untouched', () => {
         const el = document.createElement('mixin-test-default');
         el.setAttribute('tabindex', '-1');
         document.body.appendChild(el);
@@ -82,7 +78,7 @@ describe('FocusableHostMixin', () => {
         document.body.appendChild(el);
 
         const trigger = el.shadowRoot.querySelector('.trigger');
-        const spy = jest.spyOn(trigger, 'focus');
+        const spy = vi.spyOn(trigger, 'focus');
 
         el.focus({ preventScroll: true });
 
@@ -96,8 +92,8 @@ describe('FocusableHostMixin', () => {
 
         const trigger = el.shadowRoot.querySelector('.trigger');
         const other = el.shadowRoot.querySelector('.other');
-        const triggerSpy = jest.spyOn(trigger, 'focus');
-        const otherSpy = jest.spyOn(other, 'focus');
+        const triggerSpy = vi.spyOn(trigger, 'focus');
+        const otherSpy = vi.spyOn(other, 'focus');
 
         expect(() => el.focus()).not.toThrow();
         // We don't programmatically focus a specific inner element — that's

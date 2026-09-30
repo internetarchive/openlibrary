@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import { isbnOverride } from './isbnOverride';
 import {
     parseIsbn,
@@ -417,7 +418,8 @@ function add_row(name) {
     const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
     const inputBox = document.createElement('input');
     inputBox.name = `${name}#${inputBoxes.length}`;
-    inputBox.type = 'text';
+    inputBox.type = 'url';
+    inputBox.placeholder = 'https://...';
     inputBoxes[inputBoxes.length-1].after(inputBox);
 }
 
@@ -550,5 +552,21 @@ function isValidURL(url) {
         return true;
     } catch (e) {
         return false;
+    }
+}
+
+/**
+ * @param {NodeList<HTMLElement>} elems
+ */
+export function initRecordDeletion(elems) {
+    for (const elem of elems) {
+        elem.addEventListener('click', (event) => {
+            event.preventDefault();
+            const form = elem.form;
+            const commentInput = document.querySelector('input[name=_comment]');
+            form.appendChild(commentInput);
+            // pass elem as submitter so its name/value pair is included in the submission
+            form.requestSubmit(elem);
+        });
     }
 }

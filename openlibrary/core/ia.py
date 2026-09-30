@@ -11,6 +11,7 @@ import web
 from infogami import config
 from infogami.utils import stats
 from openlibrary.core import cache
+from openlibrary.utils.async_utils import cache_per_event_loop
 
 logger = logging.getLogger("openlibrary.ia")
 
@@ -18,7 +19,7 @@ IA_BASE_URL = "https://archive.org"
 VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
 session = httpx.Client()
-async_session = httpx.AsyncClient()
+get_async_session = cache_per_event_loop(httpx.AsyncClient)
 
 
 def setup(config):

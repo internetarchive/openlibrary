@@ -1,0 +1,194 @@
+/**
+ * Collections pages (/collections and its sub-pages)
+ * =================================================
+ * Content runs the full width of the body, as it does on every other wiki page.
+ * What's left here is typography and vertical rhythm.
+ */
+
+/* The layout hooks are ids owned by type/page/view.html, and a couple of the
+   type rules have to outrank base stylesheets that target the same elements. */
+/* stylelint-disable selector-max-specificity */
+
+/* === head === */
+
+/* Column, not float, so the edit metadata and the title can't overlap on a
+   narrow screen. legacy.css caps the head 40px narrower than #contentBody,
+   which leaves the edit metadata short of the body's right edge — the padding
+   itself stays legacy's, so the two still share a left edge. */
+.collections-page #contentHead {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  padding-bottom: var(--spacing-stack-xl);
+}
+
+/* Back link and edit metadata in opposite corners, wrapping on a phone.
+   The head stacks on bottom margins alone, so this row owns the whole gap down
+   to the title block. */
+.collections-page #contentHead .collection-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+/* Margin, not space-between, so it stays right on the index page, which has no
+   back link opposite. Its bottom inset goes; the head sets the gap to the title. */
+.collections-page #contentHead #editTools {
+  margin-left: auto;
+  padding-bottom: 0;
+}
+
+.collections-page #contentHead .collection-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-label-medium);
+  color: var(--color-link);
+  white-space: nowrap;
+}
+
+.collections-page #contentHead .collection-back:hover {
+  color: var(--color-link-hover);
+}
+
+/* Sized off the label; the nudge offsets the chevron's own side bearing. */
+.collections-page .collection-back__chevron {
+  width: 1em;
+  height: 1em;
+  margin-left: -0.15em;
+}
+
+/* One size across the row — the shared toolbar sets this metadata at 11px. */
+.collections-page .collection-topbar #editInfo > div {
+  font-size: var(--font-size-label-medium);
+}
+
+/* === titles === */
+
+/* Kicker above the title. Uppercase and wide tracking let it read as a label at
+   a size that stays subordinate to the title. No margins of its own: the topbar
+   sets the gap above, and the title's own line-height carries the rest. */
+.collections-page #contentHead .collection-eyebrow {
+  margin: 0;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-label-large);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.collection-eyebrow__separator {
+  margin-inline: 0.35em;
+}
+
+/* No margins of its own: the eyebrow sets the gap above, and the head's padding
+   sets the gap down to the body. */
+.collections-page #contentHead h1 {
+  margin: 0;
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-display-medium);
+  font-weight: 700;
+  line-height: var(--line-height-display);
+  color: var(--color-text);
+}
+
+.collections-page #contentBody h2,
+.collections-page #contentBody h3,
+.collections-page #contentBody h4,
+.collections-page #contentBody h5,
+.collections-page #contentBody h6 {
+  margin-block: 0 var(--spacing-stack-sm);
+  font-family: var(--font-family-title);
+  font-weight: 650;
+  line-height: var(--line-height-heading);
+  color: var(--color-text);
+}
+
+/* markdown's `#` lands an h1 in the body too. Its typography is common.css's;
+   only the symmetric margins and the UA's bold need flipping — the latter so it
+   sits at the same weight as the other body heads. */
+.collections-page #contentBody h1 {
+  margin-block: 0 var(--spacing-stack-sm);
+  font-weight: 650;
+}
+
+/* Sans below h2: the serif carries the title and the section heads, so the
+   smaller heads read as labels instead of competing with them. */
+.collections-page #contentBody h3,
+.collections-page #contentBody h4,
+.collections-page #contentBody h5,
+.collections-page #contentBody h6 {
+  font-family: var(--font-family-body);
+}
+
+/* h5 alone needs !important: base/headings.css pins every h5 on the site to the
+   serif with one of its own, which no amount of specificity can outrank. */
+.collections-page #contentBody h5 {
+  font-family: var(--font-family-body) !important;
+}
+
+/* === body text === */
+
+.collections-page #contentBody {
+  font-size: var(--font-size-body-large);
+  font-weight: 400;
+}
+
+/* common.css colors p and li directly, so inheritance wouldn't reach them. */
+.collections-page #contentBody p,
+.collections-page #contentBody li {
+  color: var(--color-text);
+}
+
+.collections-page #contentBody p {
+  line-height: var(--line-height-relaxed);
+}
+
+/* The UA default is a symmetric `1em 0`; drop the top half. */
+.collections-page #contentBody > p {
+  margin-block: 0 var(--spacing-stack-md);
+}
+
+/* A divider wants equal air on both sides, which the block above it supplies
+   (see the last section); markdown.css's symmetric `2rem 0` would double it. */
+.collections-page #contentBody > hr {
+  margin-block: 0 var(--spacing-stack-xl);
+}
+
+/* The loader puts a search-within form above the band. It owns the gap down to
+   the covers, which would otherwise start right under the submit button. */
+.collections-page #contentBody .lazy-carousel-loaded > form.pagesearchbox {
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+/* === space above headings and dividers === */
+
+/* Bottom margins can't reach upward, so the block *before* a heading owns the
+   space above it. Section heads get the widest gap on the page; the smaller
+   heads, which read as labels, get less. Last in the file on purpose: these tie
+   on specificity with the per-element rules above and have to win. */
+.collections-page #contentBody > :has(+ :is(h1, h2)) {
+  margin-bottom: var(--spacing-stack-2xl);
+}
+
+.collections-page #contentBody > :has(+ :is(h3, h4, h5, h6)) {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+.collections-page #contentBody > :has(+ hr) {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+/* Two heads in a row are a pair — a subhead under a section head — not a
+   section break, so they keep the tight gap. */
+.collections-page
+  #contentBody
+  > :is(h1, h2, h3, h4, h5, h6):has(+ :is(h1, h2, h3, h4, h5, h6)) {
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+/* stylelint-enable selector-max-specificity */
