@@ -1,8 +1,10 @@
 {
- "_comment": "Recorded 2026-09-29 from public responses. Listings are reduced to their ID range (both are contiguous: 0 gaps) plus verbatim lines of the real page; pointers are reduced to id and filename (data minimisation); heads are the status of HEAD /b/id/<id>-L.jpg?default=false. missing_item_metadata is archive.org/metadata/covers_0015, which answers HTTP 200.",
+ "_comment": "Recorded 2026-09-29/30 from public responses. Listings are reduced to their ID range (both are contiguous: 0 gaps) plus verbatim lines of the real page (header, a row, the closing </table> and </html>); pointers are reduced to id and filename (data minimisation); heads are the status of HEAD /b/id/<id>-L.jpg?default=false; missing_item_metadata is archive.org/metadata/covers_0015, which answers HTTP 200.",
  "listing_page_lines": [
   "<link rel=\"SHORTCUT ICON\" href=\"https://archive.org/images/glogo.jpg\"/>",
-  "<tr><td><a href=\"//archive.org/download/covers_0014/covers_0014_62.zip/0014620000.jpg\">0014620000.jpg</a><td><td>2024-04-29 12:37<td id=\"size\">52631</tr>"
+  "<tr><td><a href=\"//archive.org/download/covers_0014/covers_0014_62.zip/0014620000.jpg\">0014620000.jpg</a><td><td>2024-04-29 12:37<td id=\"size\">52631</tr>",
+  "</table>        </div><!--/.container-->",
+  "</html>"
  ],
  "listings": {
   "covers_0014_61": [
@@ -45,10 +47,6 @@
   }
  ],
  "heads": [
-  {
-   "id": 15000000,
-   "status": 200
-  },
   {
    "id": 999999999,
    "status": 404
