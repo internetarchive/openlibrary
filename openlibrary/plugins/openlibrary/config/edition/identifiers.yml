@@ -204,6 +204,11 @@ identifiers:
     notes: ''
     url: http://www.magcloud.com/browse/Issue/@@@
     website: http://www.magcloud.com
+-   label: Melinda (Finland)
+    name: melinda
+    notes: ''
+    url: https://melinda.kansalliskirjasto.fi/byid/@@@
+    website: https://www.kansalliskirjasto.fi/en/services/melinda
 -   label: MusicBrainz
     name: musicbrainz
     url: https://musicbrainz.org/release/@@@
@@ -292,10 +297,10 @@ identifiers:
         (journals, annuals, newspapers etc., incl. e-journals). '
     url: http://zdb-katalog.de/title.xhtml?ZDB-ID=@@@
     website: http://zdb-katalog.de
--   label: Fennica
-    name: fennica
-    notes: The National Library of Finland
-    url: https://kansalliskirjasto.finna.fi/Record/vaari.@@@
+-   label: Kansalliskirjastoon (National Library of Finland)
+    name: fikka
+    notes: ''
+    url: https://kansalliskirjasto.finna.fi/Record/fikka.@@@
     website: https://www.kansalliskirjasto.fi/
 -   label: Bayerische Staatsbibliothek BSB-ID
     name: bayerische_staatsbibliothek
