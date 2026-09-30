@@ -4,14 +4,39 @@ on:
   schedule:
     - cron: '00 16 * * 2'
   workflow_dispatch:
+    inputs:
+      i18n_ref:
+        description: "openlibrary-i18n branch, tag or SHA to bake translations from"
+        default: main
 
 permissions:
   contents: read
 
 jobs:
-  docker:
+  # Resolve the openlibrary-i18n ref to a SHA once, so the amd64 and arm64 images
+  # bake the same translations even if the branch moves between the two builds.
+  i18n-ref:
     if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+    steps:
+      - id: resolve
+        env:
+          I18N_REF: ${{ inputs.i18n_ref || 'main' }}
+        run: |
+          git init -q i18n
+          git -C i18n fetch -q --depth=1 https://github.com/internetarchive/openlibrary-i18n "$I18N_REF"
+          sha=$(git -C i18n rev-parse FETCH_HEAD)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "openlibrary-i18n: \`$I18N_REF\` → \`$sha\`" >> "$GITHUB_STEP_SUMMARY"
+
+  docker:
+    needs: i18n-ref
+    if: github.repository_owner == 'internetarchive'
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
 
     env:
       # To test this GitHub action, you can create an upstream branch, and manually trigger
@@ -35,15 +60,18 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push amd64
+        id: build
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
           platforms: linux/amd64
           tags: openlibrary/olbase:${{ env.TAG_NAME }}
+          build-args: I18N_REF=${{ needs.i18n-ref.outputs.sha }}
           push: true
 
   docker-arm64:
+    needs: i18n-ref
     if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-24.04-arm
 
@@ -72,6 +100,7 @@ jobs:
           file: "./docker/Dockerfile.olbase"
           platforms: linux/arm64
           tags: openlibrary/olbase:${{ env.TAG_NAME }}-arm64
+          build-args: I18N_REF=${{ needs.i18n-ref.outputs.sha }}
           push: true
 
   combine-manifests:
@@ -100,3 +129,24 @@ jobs:
           docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${AMD64_DIGEST}
           docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${ARM64_DIGEST}
           docker manifest push openlibrary/olbase:${TAG_NAME}
+
+  # Report which locales the image kept at their committed .po because the
+  # openlibrary-i18n file was rejected. Reads the manifest from the pushed amd64
+  # image (both arches run the same script on the same SHA). Informational only:
+  # it cannot fail the build.
+  translations-summary:
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'internetarchive'
+    continue-on-error: true
+    steps:
+      - name: Summarize baked translations
+        env:
+          IMAGE: openlibrary/olbase@${{ needs.docker.outputs.digest }}
+        run: |
+          manifest=$(docker run --rm --entrypoint cat "$IMAGE" /openlibrary/openlibrary/i18n/openlibrary-i18n.txt)
+          { echo '### openlibrary-i18n translations baked into olbase'; echo '```'; echo "$manifest"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          kept=$(echo "$manifest" | awk -F'\t' '$2 == "kept committed" {print $1}' | xargs)
+          if [ -n "$kept" ]; then
+            echo "::warning title=Translations kept at committed .po::$kept (openlibrary-i18n file rejected; see build log for why)"
+          fi
