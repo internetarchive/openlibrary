@@ -122,10 +122,10 @@ def make_http(server: FakeServer | None = None, max_requests: int = 10_000) -> H
     return Http(max_requests=max_requests, delay=0, client=httpx.Client(transport=httpx.MockTransport(server or FakeServer())))
 
 
-def run_to_strings(server=None, known=None, items=None, baseline=None, main_batches=2, max_requests=10_000):
+def run_to_strings(server=None, known=None, items=None, baseline=None, main_batches=2, max_requests=10_000, checker_cls=Checker):
     out, err = io.StringIO(), io.StringIO()
     code = run(
-        Checker(make_http(server, max_requests)),
+        checker_cls(make_http(server, max_requests)),
         items,
         [""],
         {} if known is None else known,
@@ -361,8 +361,22 @@ def test_the_open_batch_control_names_what_it_tried():
 
 
 def test_the_open_batch_control_fails_without_a_cover_to_probe_up_from():
-    server = FakeServer(pointers={14629999: None})
+    server = FakeServer(pointers=dict.fromkeys(range(14629995, 14630000)))
     assert "to probe up from" in Checker(make_http(server)).open_batch_control(Zip("", "0014", 62))
+
+
+def test_one_deleted_cover_at_the_end_of_the_newest_zip_does_not_fail_the_control():
+    server = FakeServer(pointers={14629999: None})
+    assert Checker(make_http(server)).open_batch_control(Zip("", "0014", 62)) is None
+
+
+def test_the_open_batch_control_needs_a_local_filename_not_just_a_served_image():
+    newest = Checker(make_http()).newest_cover_id(14629999)
+    candidates = [newest - k * 100 for k in range(1, 4)]
+    zipped = {i: {"id": i, "filename": "covers_0015/covers_0015_26.zip"} for i in candidates}
+    failure = Checker(make_http(FakeServer(pointers=zipped))).open_batch_control(Zip("", "0014", 62))
+    assert failure is not None
+    assert "local False" in failure
 
 
 def test_no_zips_anywhere_fails_the_controls_rather_than_reading_as_empty():
@@ -455,7 +469,7 @@ def test_a_zip_named_in_the_baseline_that_is_gone_is_a_loss():
     assert code == EXIT_LOSS
 
 
-def test_without_a_baseline_a_deleted_newest_zip_is_not_seen():
+def test_without_a_baseline_a_deleted_newest_zip_nothing_was_finalized_into_is_not_seen():
     code, rows, _ = run_to_strings(with_zips([61, 62]), known=KNOWN)
     assert code == EXIT_OK
     assert missing_zips(rows) == []
@@ -488,7 +502,26 @@ def test_pointer_evidence_upgrades_an_inferred_missing_zip():
 def test_a_missing_zip_that_reappears_on_the_second_read_is_indeterminate():
     again = [f"covers_0014_{b}" for b in (58, 59, 60, 61, 62)]
     code, rows, _ = run_to_strings(with_zips([58, 59, 61, 62], second_metadata={"covers_0014": again}), known=KNOWN, main_batches=5)
-    assert [r.get("error") for r in rows if r["batch"] == "covers_0014_60"] == ["item listing changed between two reads"]
+    assert [r.get("error") for r in rows if r["batch"] == "covers_0014_60"] == ["absence not confirmed by a second read of the item"]
+    assert code == EXIT_INDETERMINATE
+
+
+def test_a_failed_second_read_never_confirms_a_missing_zip():
+    server = with_zips([61, 62], second_metadata={"covers_0014": None})
+    code, rows, _ = run_to_strings(server, known=KNOWN, baseline={"covers_0014_63"})
+    assert [(r["verdict"], r.get("error")) for r in rows if r["batch"] == "covers_0014_63"] == [
+        ("indeterminate", "absence not confirmed by a second read of the item")
+    ]
+    assert code == EXIT_INDETERMINATE
+
+
+def test_an_item_inside_the_window_without_metadata_gets_a_row_not_silence():
+    batches = list(range(63))
+    server = with_zips(batches)  # covers_0013 is not served: archive.org answers {}
+    code, rows, _ = run_to_strings(server, known=KNOWN, main_batches=70)
+    assert [r for r in rows if r["batch"] == "covers_0013"] == [
+        {"batch": "covers_0013", "listing_count": 0, "verdict": "indeterminate", "evidence_ids": [], "error": "item lists no zips"}
+    ]
     assert code == EXIT_INDETERMINATE
 
 
@@ -506,3 +539,15 @@ def test_the_census_path_needs_its_own_request_cap():
     with pytest.raises(SystemExit) as e:
         main(["--items", "0012"])
     assert e.value.code == 2
+
+
+def test_a_deleted_newest_zip_that_covers_point_into_is_caught_without_the_gallop():
+    class NoGallop(Checker):
+        def newest_cover_id(self, floor):
+            return NEWEST_COVER
+
+    server = with_zips([61, 62])  # covers_0014_63 was finalized, then deleted
+    server.pointers |= {14630000: {"id": 14630000, "filename": "covers_0014/covers_0014_63.zip"}}
+    code, rows, _ = run_to_strings(server, known=KNOWN, checker_cls=NoGallop)
+    assert missing_zips(rows) == [("covers_0014_63", "pointer")]
+    assert code == EXIT_LOSS

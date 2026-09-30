@@ -34,7 +34,9 @@ spaced) and classify the batch by the worst one:
   this run points into it) are evidence it existed, and exit 1;
   ``below_newest`` (its batch is below the newest zip) is only an inference,
   and exits 3. Batches above the newest zip are backlog, never
-  ``missing_zip``; a deleted newest zip is caught only through the baseline;
+  ``missing_zip``. A deleted newest zip is caught through the baseline or,
+  without one, through pointers read in the batch above the newest zip listed;
+  it is missed only if no cover was ever finalized into it, so nothing is lost;
 - ``indeterminate``: anything else: another zip, an unknown filename shape, a
   failed request, a listing that is unreadable, empty or cut short (no closing
   ``</table>`` and ``</html>``), a LOSS whose re-read disagrees, or an item that
@@ -121,6 +123,11 @@ SERVES_ABSENT_ID = 999999999
 # tries candidates this far apart below it, so it never lands on a cover mid-upload.
 NEWEST_ID_RESOLUTION = 100
 OPEN_BATCH_CANDIDATES = 3
+# IDs tried down from the end of the newest zip's batch, in case one was deleted.
+FLOOR_CANDIDATES = 5
+# IDs read in the batch above the newest zip: a deleted newest zip that covers
+# still point into shows up through them as a pointer-evidenced missing_zip.
+ABOVE_TOP_OFFSETS = (0, BATCH_SIZE // 2, BATCH_SIZE - 1)
 
 EXIT_OK, EXIT_LOSS, EXIT_CONTROL, EXIT_INDETERMINATE, EXIT_BUDGET, EXIT_STALE = 0, 1, 2, 3, 4, 5
 
@@ -354,6 +361,13 @@ class Checker:
         except httpx.TransportError:
             return None
 
+    def probe_above(self, top: Zip) -> None:
+        """Read pointers in the batch above the newest zip until one has a record."""
+        first = top.first_id + BATCH_SIZE
+        for offset in ABOVE_TOP_OFFSETS:
+            if self.pointer(first + offset)[0] == 200:
+                return
+
     def newest_cover_id(self, floor: int) -> int:
         """Within NEWEST_ID_RESOLUTION of the newest cover ID, probing up from ``floor``, which exists."""
         lo, step = floor, BATCH_SIZE
@@ -370,9 +384,11 @@ class Checker:
 
     def open_batch_control(self, newest_zip: Zip) -> str | None:
         """None if a cover in the open batch is local and served; otherwise why not."""
-        floor = newest_zip.first_id + BATCH_SIZE - 1
-        if self.pointer(floor)[0] != 200:
-            return f"serves control: no cover at {floor}, the end of the newest zip's batch, to probe up from"
+        end = newest_zip.first_id + BATCH_SIZE - 1
+        floors = range(end, end - FLOOR_CANDIDATES, -1)
+        floor = next((i for i in floors if self.pointer(i)[0] == 200), None)
+        if floor is None:
+            return f"serves control: no cover at {floors[-1]}-{floors[0]}, the end of the newest zip's batch, to probe up from"
         newest = self.newest_cover_id(floor)
         tried = []
         for k in range(1, OPEN_BATCH_CANDIDATES + 1):
@@ -512,7 +528,7 @@ def run(
 
     def emit(row: dict):
         if row["verdict"] == "missing_zip" and not checker.confirmed_missing(zip_from_name(row["batch"])):
-            row = indeterminate_row(row["batch"], "item listing changed between two reads")
+            row = indeterminate_row(row["batch"], "absence not confirmed by a second read of the item")
         if row["batch"] not in printed:
             printed.add(row["batch"])
             tally.add(row, known)
@@ -544,6 +560,7 @@ def run(
                     inferred.append(z)
                 else:
                     emit(z if isinstance(z, dict) else known_rows.get(z.name) or checker.check(z))
+            checker.probe_above(top)
             for z in sorted(checker.pointed, key=lambda z: z.name):
                 listed = checker.fetched_zips(z.tier, z.item)
                 if listed is not None and z not in listed:
