@@ -68,9 +68,9 @@ Costs, stated plainly:
 - **GitHub delays or drops scheduled runs under load** (READ, GitHub docs). The dead-man's switch in
   §4 has a margin for this.
 - **Per-slot baselines are a checked-in file, not a workflow artifact.** An artifact lasts at most
-  90 days on a public repo (READ, GitHub docs). A rotated slot comes round again about every 28
-  weeks, so an artifact baseline would always have expired, and every change rule on an old slot
-  would be permanently indeterminate. The file holds each (item, tier) slot's `listing_count` and
+  90 days on a public repo (READ, GitHub docs). The quarterly census (below) revisits old items
+  about every 13 weeks, longer than that, so an artifact baseline would have expired before it was
+  needed. The file holds each (item, tier) slot's `listing_count` and
   short-batch classes, next to the known-loss allowlist. **The workflow only reads it.** Every
   difference against it is already an alert, so the person who acknowledges the alert updates the
   file by PR. The workflow needs no write access to the repo, and each baseline change is
@@ -109,18 +109,31 @@ Costs, stated plainly:
     batches.
   - "A new upload": the newest zip `mtime` within the last 24 hours. No stored value.
 
-Cadence:
+Cadence and request budgets. Every figure here is on the covers lead's authority, recorded on the
+covers oversight page. All requests are public reads at ≤1/s with an identifying User-Agent.
+
+| Job | When | Requests |
+|---|---|---|
+| S1 (checker, newest 70 batches plus controls) | weekly, and the day after a new upload | ≤250 per run |
+| S2/S3 (heartbeat, backlog) | daily | ≈35 |
+| Daily `/metadata` md5 read, all 28 zip-era records | daily, same job as S2/S3 | ≈28 (**added in this doc; not yet in the lead's budget list**) |
+| W6 serving sample | daily | ≈25 (≈170 a week), plus ≤~11 per failure |
+| Quarterly census (checker `--items`, its own `--max-requests`) | quarterly | ≈3,000 |
+| One-off seed pass | once, before launch | ≤~4,400 |
 
 - S2 and S3 run **daily**, at about 35 requests.
 - **The same daily job reads `/metadata` for all 28 zip-era (item, tier) records**, about 28 more
   requests. It compares each zip's presence, `size` and `md5` against the baseline. RAN 2026-09-29:
   `/metadata` gives both for every zip, e.g. `covers_0014_61.zip` 2,934,966,543 bytes against
-  `_62`'s 1,153,995,779. It already lists every zip, so a zip that vanishes or changes size in *any* slot is seen within a day, not
-  when its slot next comes round in rotation (28 weeks, or about 2 years at 108 slots). A vanished
-  expected zip is `missing_zip`-class and pages. A changed size or md5 opens an issue, and the next S1 run
-  lists that slot out of turn to count it. An empty `{}` is a missing item, as in §5.
-- S1 runs **weekly, in its own workflow**, so that §4 can watch it on its own (a daily S2/S3 success
-  must not make a failed S1 look fresh). **The cap is 250 requests per live S1 run**, on the covers
+  `_62`'s 1,153,995,779. It already lists every zip, so a zip that vanishes or changes in *any* item
+  is seen within a day, not at the next census. A vanished expected zip is `missing_zip`-class and
+  pages. A changed size or md5 opens an issue, and that zip is listed by the checker the same day.
+  An empty `{}` is a missing item, as in §5.
+- S1 runs **weekly, in its own workflow, on the newest 70 full-size batches by batch number, across
+  item boundaries, plus the controls.** Scoping it to "the newest item" would drop just-archived
+  batches to the quarterly census at the `0014`→`0015` boundary. Its own workflow lets §4 watch it
+  separately, since a daily S2/S3 success must not make a failed S1 look fresh. There's no
+  rotation. **The cap is 250 requests per live S1 run**, on the covers
   lead's authority. That is S1's own line, not the generic ~100-per-run bound.
 - **What counts as an "expected" zip for `missing_zip`:** any zip in the checked-in baseline, any zip
   some cover's `filename` points into, and, before seeding, every batch below the newest uploaded
@@ -133,10 +146,17 @@ Cadence:
   rule mean the same day. Its latency is below, in §5.
 - S1 also runs the day after S2 sees a newest zip `mtime` within the last 24 hours. The danger window is between a partial upload and
   the next archival run.
-- **Controls run on every S1 run, outside the rotation:** batch 62 (positive) and a full batch-61 ID
-  (negative). Today they happen to be covered anyway, because `covers_0014` is the newest item and is
-  scanned every run. Once `covers_0015` exists, batch 62 would be in rotation and absent 27 weeks
-  in 28, and "known loss missing = control failure" would fire most weeks.
+- **Controls are named explicitly on every S1 run:** batch 62 (positive) and a full batch-61 ID
+  (negative). Today they're inside the newest 70 batches anyway. Once enough newer batches are
+  archived they fall outside it, and "known loss missing = control failure" would then fire every
+  week.
+- **A quarterly full census covers every older batch:** about 2,700 listing reads (≈3,000 cap) at ≤1/s, human-
+  dispatched or scheduled. It runs the checker itself with `--items`, so there's no second
+  implementation. It is the same class as the seed pass, on the covers lead's authority. Its results
+  update the baseline by reviewed PR, as the seed does. For old items, the listing-shrink,
+  `missing_count` and `missing_zip` rules run on census results. **Latency for old items:**
+  archive.org-side changes within a day (the daily `/metadata` md5 read above); pointer-side
+  changes, i.e. covers repointed into a zip that lacks them, up to about 13 weeks (the census).
 
 ## 2. Who reads it, and through what
 
@@ -277,14 +297,10 @@ schedule (READ, GitHub docs), so the issue, not the email, is the alert.
 - Both S3 controls hold, and so does W6's known-present local ID.
 - The W6 job sampled at least the IDs its stride and rotation position imply for today, and its S3
   controls held on the same run. A sample that silently returns nothing reads as "all serving".
-- The rotated (item, tier) slot is the one the checker's own slot function returns for today.
-  That needs no stored state, and a stuck rotation fails it. **The check imports that function
-  rather than reimplementing it.** A copy of the rotation rule would drift from the code it checks,
-  and the reviewer has already found the week computed two ways: `ordinal//7` in the code, ISO week
-  in this doc.
-
-The last check exists because the checker rotates slots, and "it ran" doesn't prove it looked
-anywhere new.
+- **The census ran this quarter**, and its summary line covers every zip-era item. The S1 workflow
+  checks this from the census workflow's last successful run, or from the date of the last
+  census-baseline PR if it was dispatched by hand. A census that hasn't run means old items are
+  watched on the archive.org side only (md5), so it's a watcher-health issue.
 
 **B. On IA infrastructure.** A small host cron, under `cron_wrapper.py` with a new monitor slug,
 reads the latest scheduled run of **each of the three workflows** (S1, S2/S3, W6) from the public
@@ -320,7 +336,7 @@ been triggered on purpose and acknowledged by its reader: a dispatch with a muta
 | **Covers 0–7,139,999 (`olcovers1`–`olcovers713`)** | Different item and file shape (`olcoversN-{S,M,L}.zip`), outside S1–S3. Reviewer READ (`code.py`): S/M sizes below 6M are served from local tars. | **For most of the range the data is on archive.org, so a local loss is an outage, not an archival loss. Not for 3.38M–3.69M:** their L and original copies redirect into `olcovers338`–`368`, which don't exist (#13770), so those sizes have no archive.org copy. W6 stratum (b) samples S/M serving in 0–6M and 6M–7.14M. The redirect tier is stratum (c), the next row. |
 | **Covers 7,140,000–7,999,999** | Reviewer RAN a 7-ID sample: some are in local `covers_0007_NN.tar` files with no archive.org item, and the rest are unarchived local files. #13725's `MIN_ARCHIVABLE_ID` of 8,000,000 means archival never picks them up. | **A single copy, up to about 860k IDs, and no archival path** (#476, 2017). **W6 stratum (b)** watches that they still serve. It is weighted with the other sub-8M strata (about 50 a week in all) and re-weighted when #13769 measures density. Archiving them is Mek's priority call, not a watch. |
 | **The `olcovers` redirect tier (L and original sizes, 0–7.14M)** | L and original redirect by ID alone, before any DB lookup (covers lead READ), so an S/M probe can't see this class. RAN 2026-09-29: 3,500,000-L → 302 → **404** at archive.org; the control 3,000,000-L → 200. | **W6 stratum (c):** one `HEAD /b/id/<id>-L.jpg?default=false` per `olcovers` item (1–713), following the redirect to its final status, rotated about 20 a week (a full pass in about 36 weeks). All 713 are seeded by the one-off pass. **404** = the item is missing, as in #13770. **503** = it exists but isn't answering: a different failure (seen twice on `olcovers337`), so it counts only after two consecutive runs. |
-| Old slots between rotations | 250-request cap. **28 zip-era (item, tier) slots, one per ISO week**, by the covers lead's ruling. READ by the reviewer: #13765 at `e26f600f2` rotates over **108** slots (≈2 years) using `ordinal//7`. Until #13765 reconciles, the interval here is its figure, not a measured one. | Each old slot is re-checked about every half-year at 28 slots, or about every 2 years at 108. That is acceptable only because old zips don't change unless something re-uploads them, and a re-upload moves S2. |
+| Older batches between censuses | Weekly S1 covers only the newest 70 full-size batches. | **Archive.org side:** within a day, via the daily md5 read. **Pointer side** (covers repointed into an old zip that lacks them): up to about 13 weeks, via the quarterly census. That is acceptable because repointing an old cover needs a re-archival, and a re-archival uploads, which moves S2 and triggers S1 the next day. |
 | **Loss on archive.org's side** | A zip deleted or shortened on archive.org leaves the cover pointers intact. | **The daily `/metadata` read (§1)** sees any expected zip vanish or change size, in any slot, within a day. **`missing_zip`** (exit 1) confirms it on S1's next listing, and the listing-shrink rule confirms a shrink. Together they are the archive.org-side check this row was missing. |
 | An archive.org item going missing or dark | RAN: a nonexistent item's `/metadata` returns **HTTP 200 with the body `{}`** (`covers_0007`; the `covers_0008` control returns 64 KB). A naive count would read that as 0 files. | An empty metadata object is its own state, **missing item**: indeterminate for S1 and S2, never a count of 0 and never "not uploaded". For an item that already has a baseline entry, it pages as a possible loss on archive.org's side. The shape of an item that exists but is dark is **not measured**. |
 
