@@ -27,6 +27,7 @@ from pathlib import Path
 API = "https://api.github.com"
 I18N_REPO = "internetarchive/openlibrary-i18n"
 MARKER = "<!-- po-edit-warning -->"
+BOT_LOGIN = "github-actions[bot]"
 PO_PATH = re.compile(r"^openlibrary/i18n/([^/]+)/messages\.po$")
 DOCKERFILE = Path("docker/Dockerfile.olbase")
 
@@ -37,9 +38,14 @@ def affected_languages(changed_files: list[str], i18n_languages: set[str]) -> li
     return sorted(edited & i18n_languages)
 
 
+# Either form #13070 has taken: an inline clone, or the pull script it now runs.
+OVERWRITE_SIGNS = (f"github.com/{I18N_REPO}", "i18n-pull-translations")
+
+
 def overwrite_in_place(dockerfile_text: str) -> bool:
     """Whether the olbase image build already pulls openlibrary-i18n's `.po` files."""
-    return f"github.com/{I18N_REPO}" in dockerfile_text
+    code = "\n".join(line for line in dockerfile_text.splitlines() if not line.lstrip().startswith("#"))
+    return any(sign in code for sign in OVERWRITE_SIGNS)
 
 
 def render_comment(languages: list[str], in_place: bool) -> str:
@@ -59,6 +65,7 @@ def render_comment(languages: list[str], in_place: bool) -> str:
         f"[{I18N_REPO}](https://github.com/{I18N_REPO}), not here.**\n\n"
         f"This PR edits:\n{files}\n\n"
         f"{when}, so a change merged here is overwritten and never reaches openlibrary.org. "
+        "(The one exception: a language whose openlibrary-i18n file fails the build's safety check keeps this repository's file for that build.) "
         "Nothing reports an error when that happens.\n\n"
         f"Please make the same change to `locale/<lang>/messages.po` in [{I18N_REPO}](https://github.com/{I18N_REPO}) instead."
         f"{delay} New or changed English strings, and the regenerated `openlibrary/i18n/messages.pot`, still belong in this repository.\n\n"
@@ -98,7 +105,7 @@ def main() -> int:
     languages = affected_languages(changed, i18n_languages)
 
     comments = _get_all(f"{API}/repos/{repo}/issues/{pr}/comments?per_page=100", token)
-    existing = next((c for c in comments if c["user"]["type"] == "Bot" and c["body"].startswith(MARKER)), None)
+    existing = next((c for c in comments if c["user"]["login"] == BOT_LOGIN and c["body"].startswith(MARKER)), None)
 
     if not languages and existing is None:
         print("No affected messages.po edits; nothing to do.")
