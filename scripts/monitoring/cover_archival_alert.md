@@ -127,7 +127,9 @@ covers oversight page. All requests are public reads at ≤1/s with an identifyi
   `/metadata` gives both for every zip, e.g. `covers_0014_61.zip` 2,934,966,543 bytes against
   `_62`'s 1,153,995,779. It already lists every zip, so a zip that vanishes or changes in *any* item
   is seen within a day, not at the next census. A vanished expected zip is `missing_zip`-class and
-  pages. A changed size or md5 opens an issue, and that zip is listed by the checker the same day.
+  pages, **but only after one re-read of that item's `/metadata` agrees**. That's one request, only
+  after something already looks wrong. Whether archive.org ever returns a partial `files` list is
+  **UNMEASURED**. A changed size or md5 opens an issue, and that zip is listed by the checker the same day.
   An empty `{}` or a missing `files` list is **indeterminate**, as elsewhere (§5). **What md5 can't
   see:** it is archive.org's recorded checksum, so it detects replacement and deletion, not silent
   bit-rot inside archive.org's storage. That residual is archive.org's.
@@ -138,10 +140,11 @@ covers oversight page. All requests are public reads at ≤1/s with an identifyi
   separately, since a daily S2/S3 success must not make a failed S1 look fresh. There's no
   rotation. **The cap is 250 requests per live S1 run**, on the covers
   lead's authority. That is S1's own line, not the generic ~100-per-run bound.
-- **What counts as an "expected" zip for `missing_zip`:** any zip in the checked-in baseline, any zip
-  some cover's `filename` points into, and, before seeding, every batch below the newest uploaded
-  zip in that item. The baseline term catches the newest zip itself disappearing, which "below the
-  newest uploaded" alone would silently absorb. A closed batch that was never zipped is **not**
+- **What counts as an "expected" zip for `missing_zip`:** `missing_zip` exits 1 only on **evidence
+  the zip existed**: it's in the checked-in baseline, or some cover's `filename` points into it.
+  Before seeding, a gap inferred only from "below the newest uploaded zip in that item" exits **3,
+  indeterminate**, not 1. This matches #13765. The baseline term also catches the newest zip itself
+  disappearing, which the inference would silently absorb. A closed batch that was never zipped is **not**
   expected: it's a stall (S3, #13287), not a loss. The 57 backlog batches never page through S1.
 - **The serving sample (W6 in the covers oversight page) runs daily in its own job, at about 25
   requests** (about 170 a week: ~100 backlog, ~50 below 8M, ~20 `olcovers` L probes), plus neighbour
@@ -239,8 +242,10 @@ notifies whoever watches the repo.
 **Serving sample, W6 (report, then page):**
 
 - **What counts as a W6 failure.** Only a **404**, or a **302 to the wrong target**. A 302 whose
-  Location is the zip for that ID's own batch is a **pass**: archival has finalized it, and the ID
-  now belongs to S1. Without this, resumed archival would page as a disk loss. A 5xx, a 429 or a
+  Location is the zip for that ID's own batch is a **pass** for W6: archival has finalized it, and
+  the ID now belongs to S1. **That pass is not "served":** a pointer into a zip that may lack the
+  cover is exactly the batch-62 shape. It's handed to S1 by design, and S1 catches it within a week,
+  or the day after the upload. Without this, resumed archival would page as a disk loss. A 5xx, a 429 or a
   transport error is **indeterminate**, and counts only after two consecutive runs, as for stratum
   (c).
 - **The page rules count only on a run whose same-run controls held:** the S3 pair, plus a
