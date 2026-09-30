@@ -1,5 +1,6 @@
 import functools
 import logging
+import time
 import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -638,6 +639,99 @@ class WikisourceProvider(AbstractBookProvider):
         ]
 
 
+# How often one process may scan `acquisitions` for Lenny provider names it
+# cannot serve. An hour: the thing being watched for is a library deciding to
+# stand up a node, which happens on a scale of days.
+_LENNY_PROVIDER_SCAN_INTERVAL = 3600.0
+_lenny_provider_scan_deadline = 0.0
+
+
+def _is_lenny_provider_name(provider_name: str) -> bool:
+    """``lenny`` itself, or a per-node ``lenny_<host>``.
+
+    Not a bare ``startswith``, which would also claim a hypothetical
+    ``lennylibrary`` -- a different provider that merely sorts next to this
+    one, and whose rows are not evidence of anything.
+    """
+    prefix = LennyProvider.short_name
+    return provider_name == prefix or provider_name.startswith(f"{prefix}_")
+
+
+def _warn_about_unservable_lenny_rows() -> None:
+    """Log harvested Lenny rows that no name this code reads can serve.
+
+    Lenny is built for many nodes, each harvested under its own
+    ``provider_name``: ``lenny``, then ``lenny_<host>`` for every node after
+    the first (Lenny's own ``_provider_name()``, shipped in 0.2.22). Open
+    Library reads exactly one of those names. So on the day a second library
+    registers, its books lose their borrow button and nothing anywhere records
+    it -- the row is harvested, the lookup misses, and ``get_acquisitions``
+    returns an empty list indistinguishable from a book nobody lends.
+
+    This does not fix that, and the button still vanishes. It makes the
+    vanishing audible, because the trigger is a third party deciding to run a
+    node and there is nobody here who can watch for that.
+
+    Deliberately NOT gated on the calling read having come up empty. The
+    editions that break never reach ``_harvested_lenny_entries`` at all: they
+    carry ``identifiers.lenny_<host>``, and ``get_book_providers`` only yields
+    a provider whose ``get_identifiers`` is non-empty, which reads
+    ``identifiers["lenny"]``. Every call that does arrive here is therefore a
+    healthy one, and gating on this call having failed would keep this silent
+    in precisely the case it exists for. A healthy call is the only trigger
+    available.
+
+    Silent while one node is registered, which is today: production holds 94
+    works and every one is plain ``lenny`` (``search.json?q=id_lenny:*`` -> 94,
+    ``q=id_lenny_lennyforlibraries_org:*`` -> 0). That figure is the one this
+    module already records for 2026-09-20 and was not re-measured here;
+    re-derive it with those two queries rather than trusting this line.
+    """
+    global _lenny_provider_scan_deadline
+    now = time.monotonic()
+    if now < _lenny_provider_scan_deadline:
+        return
+    # Moved BEFORE the query, not after: this runs once per Lenny edition per
+    # page render and a search page lists many, so a slow or failing scan must
+    # not be retried by every remaining edition on the page. Two threads can
+    # still race past the check and scan twice; the cost of that is one extra
+    # query an hour, so it does not buy a lock.
+    #
+    # This is a throttle, not the memo that `_harvested_lenny_entries` forbids
+    # below. What that ban protects against is per-edition data outliving its
+    # request, so that an edition with no row starts answering with another
+    # edition's. The only thing kept here is when this process last looked at
+    # the table, which is the same fact for every edition and cannot be
+    # attributed to the wrong one. Per process, so N web workers say it N
+    # times an hour -- bounded, and a warning emitted once a day is one that
+    # nobody is awake for.
+    _lenny_provider_scan_deadline = now + _LENNY_PROVIDER_SCAN_INTERVAL
+    try:
+        from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
+
+        harvested = StoredAcquisition.distinct_provider_names()
+    except Exception:
+        # Inherits the caller's contract: this is a log line, and there is no
+        # outcome it is allowed to change. `debug`, not `exception`, because
+        # the read that got us here already succeeded -- anything failing now
+        # is this scan's own problem and must not look like a lending fault.
+        logger.debug("could not check for unservable Lenny provider names", exc_info=True)
+        return
+    # Derived from what the lookup actually asks for, never a literal, so that
+    # widening the lookup silences this by itself instead of leaving behind a
+    # warning that outlived the defect it described.
+    servable = {LennyProvider.short_name}
+    unservable = sorted(name for name in harvested if _is_lenny_provider_name(name) and name not in servable)
+    if unservable:
+        logger.warning(
+            "acquisitions harvested under Lenny provider name(s) %s, which Open Library cannot "
+            "read back -- it serves only %s. Editions from those nodes render no borrow button. "
+            "See #13686.",
+            ", ".join(unservable),
+            ", ".join(sorted(servable)),
+        )
+
+
 def _harvested_lenny_entries(local_id: str) -> list[dict]:
     """The acquisition entries the harvester stored for one Lenny id.
 
@@ -667,6 +761,7 @@ def _harvested_lenny_entries(local_id: str) -> list[dict]:
     the Solr indexer, which need not have this database configured at all.
     """
     entries: list[dict] = []
+    database_answered = True
     try:
         from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
 
@@ -674,6 +769,13 @@ def _harvested_lenny_entries(local_id: str) -> list[dict]:
     except Exception:
         logger.exception("failed to read Lenny acquisitions for %s; rendering none", local_id)
         row = None
+        database_answered = False
+    if database_answered:
+        # Only when the database answered. Where it does not -- the Solr
+        # indexer need not have this database configured at all -- there is
+        # nothing to scan, and the sole effect would be one failing query an
+        # hour forever.
+        _warn_about_unservable_lenny_rows()
     if row is not None:
         # `data` is jsonb written from an external feed: its top level can be
         # any JSON type, and `_from_row` leaves an unparsable blob as a string.

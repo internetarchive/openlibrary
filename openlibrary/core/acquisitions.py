@@ -106,6 +106,24 @@ class Acquisition(web.storage, CommonExtras):
         return {row.local_id: Acquisition._from_row(row) for row in rows}
 
     @staticmethod
+    def distinct_provider_names() -> list[str]:
+        """Every ``provider_name`` the table currently holds a row under.
+
+        The result is small by construction -- one name per harvested feed --
+        but the scan behind it is not. The table's indexes are on ``work_id``,
+        ``edition_id`` and ``updated`` (``core/schema.sql``); ``provider_name``
+        has none, so this reads every row. Callers must rate-limit it rather
+        than put it on a request path.
+
+        Answers "what has been harvested", which is not the same question as
+        "what is configured" -- ``feed_registry`` answers that one, and the
+        two disagree exactly when a feed was ingested under a name nothing
+        reads back.
+        """
+        rows: ResultSet = db.query("SELECT DISTINCT provider_name FROM acquisitions ORDER BY provider_name")
+        return [row.provider_name for row in rows]
+
+    @staticmethod
     def get_by_editions(edition_ids: list[int]) -> dict[int, list[Acquisition]]:
         """Batch-fetch acquisitions for many editions, grouped by ``edition_id``.
 
