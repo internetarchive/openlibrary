@@ -382,8 +382,9 @@ class TestLoanChangesFeed:
     @pytest.mark.parametrize("params", [{}, {"after_uid": 0}])
     def test_missing_or_zero_after_uid_is_an_error(self, params):
         """IA answers this rather than the whole feed; the updater must never send it."""
-        body = _get("/services/loans/loan/", params={"action": "changes", "limit": 1, **params}).json()
-        assert body == {"status": "ERROR", "error": "No since or after_uid supplied."}
+        resp = _get("/services/loans/loan/", params={"action": "changes", "limit": 1, **params})
+        assert resp.status_code == 400
+        assert resp.json() == {"status": "ERROR", "error": "No since or after_uid supplied."}
 
     def test_unsupported_action_returns_400(self):
         resp = _get("/services/loans/loan/", params={"action": "bogus"})

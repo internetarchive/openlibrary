@@ -148,6 +148,7 @@ import infogami
 from openlibrary.config import load_config
 from openlibrary.core import lending
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.async_utils import gallop_back
 from openlibrary.utils.request_context import create_context_for_script, req_context
 from openlibrary.utils.sentry import init_sentry
 
@@ -195,10 +196,8 @@ def is_releasing_event(event_type: str) -> bool:
 _SEEN_ACQUIRING_EVENT_TYPES = frozenset({"borrow", "browse", "renew_borrow", "renew_browse", "renew"})
 
 LOAN_MAX_AGE_DAYS = 14
-MIN_START_UID = 462_000_000
-"""Floor for the start-uid search. The changes endpoint treats `after_uid=0` as
-absent and answers {"status": "ERROR", "error": "No since or after_uid
-supplied."}, so the search can never probe from 0."""
+START_UID_TOLERANCE = 1000
+"""How close to the target age the start-uid search gets -- minutes of events."""
 BATCH_SIZE = lending.LOAN_CHANGES_MAX_LIMIT
 """Rows per feed page. Pinned to IA's own ceiling rather than restated: asking
 for more is silently capped, so a larger number here would quietly mean fewer
@@ -250,56 +249,35 @@ def write_state(path: Path, uid: int) -> None:
 
 
 async def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
-    """Binary-search for the uid whose next event is ~target_age_days old.
+    """The uid to replay from so a cold start covers ~target_age_days of events.
 
-    Uses limit=1 probes. Never returns less than MIN_START_UID: that is the
-    answer if the API has no history or all history is newer than
-    target_age_days.
+    Gallops back from the feed head, so it only probes as far back as it needs
+    to: the feed holds years of history, and the target is days from its head.
+    Raises if the feed cannot answer rather than guessing -- too low replays
+    years of events, too high leaves loans that are still out unmarked -- and
+    the start script's restart loop retries.
     """
-    try:
-        resp = await lending.get_loan_changes(after_uid=MIN_START_UID, limit=1)
-    except Exception:
-        logger.exception("Loan changes API unreachable on startup probe; starting from uid %d", MIN_START_UID)
-        return MIN_START_UID
-
-    if resp.get("status") != "OK":
-        logger.warning("Loan changes API non-OK on startup probe (%r); starting from uid %d", resp.get("error"), MIN_START_UID)
-        return MIN_START_UID
-
-    latest_uid = resp.get("latest_uid") or 0
-    if latest_uid <= MIN_START_UID:
-        return MIN_START_UID
-
     target_time = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=target_age_days)
-    low, high = MIN_START_UID, latest_uid
 
-    for _ in range(40):
-        if high - low <= 1000:
-            break
-        mid = (low + high) // 2
-        try:
-            rows = (await lending.get_loan_changes(after_uid=mid, limit=1)).get("rows", [])
-        except Exception:
-            logger.exception("Binary-search probe failed at uid %d; shrinking window", mid)
-            high = mid
-            continue
+    async def changes_after(uid: int) -> dict:
+        resp = await lending.get_loan_changes(after_uid=uid, limit=1)
+        if resp.get("status") != "OK":
+            raise RuntimeError(f"Loan changes API answered {resp.get('status')!r} after uid {uid}: {resp.get('error')!r}")
+        return resp
+
+    async def next_event_is_older(uid: int) -> bool:
+        rows = (await changes_after(uid)).get("rows") or []
         if not rows:
-            high = mid
-            continue
-        try:
-            row_time = datetime.datetime.strptime(rows[0]["time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC)
-        except KeyError, TypeError, ValueError:
-            # Malformed/missing 'time' on a probe row: treat as "go earlier" rather
-            # than crash startup. Conservative -- worst case we start a bit further back.
-            high = mid
-            continue
-        if row_time < target_time:
-            low = mid
-        else:
-            high = mid
+            return False
+        return datetime.datetime.strptime(rows[0]["time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC) < target_time
 
-    logger.info("Starting from uid %d", low)
-    return low
+    # The feed rejects after_uid=0 as no cursor at all; 1 is the smallest it takes.
+    head = (await changes_after(1)).get("latest_uid") or 0
+    if head <= 1:
+        return 1
+    uid = await gallop_back(head, next_event_is_older, lowest=1, initial_step=START_UID_TOLERANCE, tolerance=START_UID_TOLERANCE)
+    logger.info("Starting from uid %d (feed head %d)", uid, head)
+    return uid
 
 
 def collect_dirty_identifiers(rows: list[dict]) -> dict[str, dict]:
@@ -403,7 +381,7 @@ async def query_solr_uid() -> int:
         if result.docs:
             return result.docs[0].get("loan_uid") or 0
     except Exception:
-        logger.exception("Failed to query Solr for max loan_uid; will fall back to binary search")
+        logger.exception("Failed to query Solr for max loan_uid; will search back from the feed head")
     return 0
 
 
@@ -751,7 +729,7 @@ async def main(  # noqa: PLR0915, PLR0912
     :param recheck_interval: Seconds between ground-truth re-checks of the
                              known-unavailable set.
     :param dry_run: Fetch and log updates but do not write to Solr.
-    :param reset: Ignore existing state and binary-search for the start uid.
+    :param reset: Ignore existing state and search back for the start uid.
     """
     logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(levelname)s %(message)s")
     logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s", dry_run, reset)
@@ -774,7 +752,7 @@ async def main(  # noqa: PLR0915, PLR0912
             logger.info("Resuming from Solr loan_uid=%d", last_uid)
             cold_start = True
         else:
-            logger.info("No Solr uid; binary-searching for uid ~%d days ago", LOAN_MAX_AGE_DAYS)
+            logger.info("No Solr uid; searching back for uid ~%d days ago", LOAN_MAX_AGE_DAYS)
             last_uid = await find_start_uid()
             cold_start = True
     if cold_start:
