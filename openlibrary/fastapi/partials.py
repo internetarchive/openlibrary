@@ -250,7 +250,7 @@ async def lazy_carousel_partial(
 def home_genre_partial(params: Annotated[HomeGenreParams, Query()]) -> dict:
     """
     Get the shelf HTML for one genre on the home page's "Browse the stacks":
-    subgenre chips plus lazy carousel placeholders.
+    a lazy carousel placeholder for the genre, with a control that narrows it to a subgenre.
     """
     return HomeGenrePartial.generate(params=params)
 

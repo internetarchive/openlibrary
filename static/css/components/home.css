@@ -28,17 +28,17 @@
     calc(var(--home-welcome-inset) - var(--contentBody-padding))
     var(--spacing-stack-md);
   padding: var(--spacing-inset-md)
-    calc(var(--contentBody-padding) - var(--home-welcome-inset))
     calc(var(--contentBody-padding) - var(--home-welcome-inset));
   border-radius: var(--border-radius-card);
   background: var(--color-surface-header);
 }
 
-/* The two figures under the welcome heading: icon, number, and a small label, side by side. */
+/* The two figures under the welcome heading: icon, number, and a small label, side by side.
+   No margin of its own: the band's padding sets the space around it. */
 .home-figures {
   display: flex;
   justify-content: center;
-  margin: 0 0 var(--spacing-stack-lg);
+  margin: 0;
 }
 
 .home-figures__item {
@@ -76,7 +76,6 @@
     gap: var(--spacing-stack-sm);
     width: fit-content;
     margin-inline: auto;
-    margin-bottom: 0;
   }
 
   .home-figures__item + .home-figures__item {
@@ -114,17 +113,21 @@
   color: var(--color-text-secondary);
 }
 
-/* The three things you can do here: read, track, improve. */
+/* The three things you can do here: read, track, improve. Columns in the band, divided by
+   hairlines, rather than cards on it: cards read as ads and pushed the books down the page. */
 .home-tracks {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--spacing-inline-md);
+  grid-template-columns: repeat(3, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* Phones skip the three pitch cards: stacked, they push the books below the fold. */
+.home-tracks__cell + .home-tracks__cell {
+  border-inline-start: 1px solid var(--color-border-muted);
+}
+
+/* Phones skip the three pitches: stacked, they push the books below the fold. */
 /* --width-breakpoint-mobile */
 @media (max-width: 449px) {
   .home-tracks {
@@ -132,51 +135,60 @@
   }
 }
 
-/* Each card is one link. `a.` ties with the global `a:link` and wins by loading later. */
-a.home-tracks__card {
-  display: block;
-  height: 100%;
-  box-sizing: border-box;
-  padding: var(--spacing-inset-md);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--box-shadow-raised);
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .home-tracks {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-stack-sm);
+  }
+
+  .home-tracks__cell + .home-tracks__cell {
+    border-inline-start: 0;
+  }
+}
+
+/* Each column is one link. `a.` ties with the global `a:link` and wins by loading later. */
+a.home-tracks__item {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-lg);
   color: var(--color-text);
   text-decoration: none;
-  transition: transform var(--duration-press);
 }
 
-a.home-tracks__card:active {
-  transform: scale(var(--press-scale-wide));
-}
-
-a.home-tracks__card:focus-visible {
+a.home-tracks__item:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  a.home-tracks__card:hover {
-    background: var(--color-control-hover);
-    border-color: var(--color-border-muted);
+  a.home-tracks__item:hover {
     text-decoration: none;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  a.home-tracks__card {
-    transition: none;
+  .home-tracks__item:hover .home-tracks__title {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 }
 
-/* Icon and title share a row to keep the cards short. */
+.home-tracks__icon {
+  flex: none;
+  margin-top: var(--spacing-3xs);
+  color: var(--color-text-secondary);
+}
+
+.home-tracks__text {
+  min-width: 0;
+}
+
 /* 18px: the scale skips from 22 to 16, and 16 reads too close to the body copy. */
 .home-tracks__title {
   display: flex;
   align-items: center;
-  gap: var(--spacing-inline-md);
-  margin: 0 0 var(--spacing-stack-xs);
+  gap: var(--spacing-inline-sm);
+  margin: 0 0 var(--spacing-3xs);
   font-family: var(--font-family-title);
   font-size: 18px;
   font-weight: var(--font-weight-heading);
@@ -184,10 +196,13 @@ a.home-tracks__card:focus-visible {
   color: var(--color-text-heading);
 }
 
-.home-tracks__icon {
-  width: 18px;
-  height: 18px;
+.home-tracks__arrow {
   color: var(--color-text-muted);
+}
+
+/* The arrow points "forward", which is leftward for Arabic, Hebrew and Persian readers. */
+.home-tracks__arrow:dir(rtl) {
+  transform: scaleX(-1);
 }
 
 .home-tracks__body {

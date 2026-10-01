@@ -1,4 +1,4 @@
-$def with (stats=None, blog_posts=None, test=False, carousel_data=None, featured_genres=[])
+$def with (stats=None, blog_posts=None, test=False, carousel_data=None, featured_genres=[], logged_in=False)
 
 $ _x = ctx.setdefault('cssfile', 'home')
 $var title: $_("Welcome to Open Library")
@@ -16,11 +16,13 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $:macros.BookPreviewFloater()
 
-  $:render_template("home/welcome")
+  $# The welcome band pitches the library to newcomers; members go straight to the stacks.
+  $if not logged_in:
+    $:render_template("home/welcome")
 
   $:render_jinja_template("home/browse_stacks.html.jinja", genres=featured_genres if not test else [], i18n_json=json_encode({"error": _("Couldn't load this shelf. Try again?")}))
 
-  $# With the stacks on the page the switch sits in their header; this one covers pages without them.
+  $# The stacks are readable-only with no switch; this one covers pages without them.
   $if test or not featured_genres:
     $:render_jinja_template("home/readable_filter.html.jinja")
 

@@ -6,7 +6,12 @@
  *  - openlibrary/plugins/openlibrary/js/browse-stacks.js
  */
 
-/* The heading with the page's Readable-only switch tucked under it. */
+/* Signed in, the stacks open the page; signed out, this collapses into the welcome band's margin. */
+.browse-stacks {
+  margin-top: var(--spacing-stack-md);
+}
+
+/* The section heading. */
 .browse-stacks__header {
   display: flex;
   flex-direction: column;
@@ -18,25 +23,13 @@
   margin: 0;
 }
 
-.browse-stacks__header .readable-filter {
-  margin-top: 0;
-}
-
-/* The rail pages sideways; each card is a column of two tiles. The viewport padding leaves
-   room for the tile's hover lift and shadow. */
+/* One row of tiles; the rail pages sideways. The viewport padding leaves room for the
+   tile's hover lift and shadow. */
 /* The margin and the viewport padding together match the header's own gap. */
 .browse-stacks__rail {
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
 
   margin-top: var(--spacing-stack-xs);
-}
-
-/* Always two equal rows, so a lone tile in the last column stays tile-sized instead of
-   stretching to the column's full height. */
-.browse-stacks__column {
-  display: grid;
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-inline-lg);
 }
 
 .browse-stacks__tile {
@@ -125,23 +118,9 @@
 }
 
 .browse-stacks__count {
-  display: flex;
-  flex-direction: column;
   font-size: var(--font-size-label-medium);
   color: var(--color-text-muted);
   line-height: var(--line-height-tight);
-}
-
-/* With Readable only on, the readable count is the only one that matters, so it reads "N Books". */
-.browse-stacks__count-filtered,
-.browse-stacks:has(.readable-filter__toggle[checked])
-  :where(.browse-stacks__count-total, .browse-stacks__count-readable) {
-  display: none;
-}
-
-.browse-stacks:has(.readable-filter__toggle[checked])
-  :where(.browse-stacks__count-filtered) {
-  display: revert;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -158,6 +137,7 @@
 /* The shelf ------------------------------------------------------------ */
 
 .browse-stacks__shelf {
+  position: relative;
   margin-top: var(--spacing-stack-md);
   padding: var(--spacing-inset-md) var(--spacing-inset-lg)
     var(--spacing-inset-sm);
@@ -170,6 +150,64 @@
 .browse-stacks__shelf--loading {
   min-height: 120px;
   opacity: 0.6;
+}
+
+/* A caret under the open tile, so the shelf reads as that tile's, not a box below the rail.
+   browse-stacks.js measures the tile and sets --caret-x (a physical offset, so it holds in RTL),
+   and fades it once the tile scrolls out of view. */
+.browse-stacks__shelf--anchored::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: var(--caret-x);
+  width: 14px;
+  height: 14px;
+  transform: translateX(-50%) rotate(45deg);
+  border-inline-start: 1px solid var(--color-border-muted);
+  border-top: 1px solid var(--color-border-muted);
+  background: var(--color-surface-header);
+  transition:
+    left var(--duration-base) var(--ease-move),
+    opacity var(--duration-base) var(--ease-exit);
+}
+
+/* Mid-scroll the caret is already moved every frame; easing would make it lag the tile. */
+.browse-stacks__shelf--tracking::before {
+  transition: opacity var(--duration-base) var(--ease-exit);
+}
+
+.browse-stacks__shelf--caret-out::before {
+  opacity: 0;
+}
+
+/* Ride the open tile's view timeline instead, so the caret moves on the compositor with the rail
+   rather than a frame behind it. The timeline's ends come from browse-stacks.js. */
+@supports (view-timeline: --a inline) and (timeline-scope: --a) {
+  .browse-stacks {
+    timeline-scope: --browse-stacks-open-tile;
+  }
+
+  .browse-stacks__tile[aria-expanded="true"] {
+    view-timeline: --browse-stacks-open-tile inline;
+    /* auto would inset by the rail's scroll-padding peek, skewing the ends. */
+    view-timeline-inset: 0;
+  }
+
+  .browse-stacks__shelf--anchored::before {
+    left: 0;
+    animation: browse-stacks-caret linear both;
+    animation-timeline: --browse-stacks-open-tile;
+  }
+}
+
+@keyframes browse-stacks-caret {
+  from {
+    translate: var(--caret-from);
+  }
+
+  to {
+    translate: var(--caret-to);
+  }
 }
 
 @keyframes browse-stacks-open {
@@ -192,15 +230,20 @@
 }
 
 .genre-shelf .carousel-section-header--sortable {
-  margin-top: 1.25em;
-}
-
-.genre-shelf > :first-child .carousel-section-header--sortable {
   margin-top: 0;
 }
 
+/* The genre's subgenres, under its heading: they narrow the row beneath them. On a narrow
+   screen the control scrolls sideways rather than widening the page. */
+.genre-shelf .carousel-subgenres-scroller {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: var(--spacing-stack-sm);
+}
+
 /* The control's track is --neutral-100, the shelf's own surface; a step darker keeps it visible. */
-.genre-shelf .carousel-sort {
+.genre-shelf .carousel-subgenres {
   --color-control-track: var(--neutral-200);
 }
 
@@ -212,10 +255,6 @@
 
 @media (max-width: 767px) {
   /* --width-breakpoint-tablet */
-  .browse-stacks__column {
-    gap: var(--spacing-inline-md);
-  }
-
   .browse-stacks__tile {
     padding: var(--spacing-inset-sm);
   }
@@ -254,5 +293,9 @@
 
   .browse-stacks__shelf {
     animation: none;
+  }
+
+  .browse-stacks__shelf--anchored::before {
+    transition: none;
   }
 }

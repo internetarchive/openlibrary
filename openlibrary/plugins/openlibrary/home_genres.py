@@ -13,10 +13,16 @@ from typing import NotRequired, TypedDict, cast
 GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
 
 # Genres and subgenres with fewer readable books than these (counted at generation time,
-# against production) are left off: a tile needs a shelf worth browsing, a row needs more than
-# a handful of titles.
+# against production) are left off: a tile needs a shelf worth browsing, a subgenre chip needs
+# about a carousel's worth. A subgenre's count is for books in both it and its parent.
 MIN_GENRE_READABLE = 1000
-MIN_SUBGENRE_READABLE = 100
+MIN_SUBGENRE_READABLE = 20
+# The shelf picks a subgenre with a segmented control; with "All" that keeps it at four options.
+MAX_SUBGENRES = 3
+
+# "Readable" as the carousels' has_fulltext filter means it for most patrons: borrowable or public.
+# The raw `has_fulltext` field also counts print-disabled-only books, which most patrons can't open.
+READABLE_CLAUSE = "ebook_access:[borrowable TO *]"
 
 
 class GenreNode(TypedDict):
@@ -43,7 +49,8 @@ def load_home_genres() -> list[Genre]:
             {
                 **node,
                 "kind": kind,
-                "subgenres": [s for s in node["subgenres"] if s["readable_count"] >= MIN_SUBGENRE_READABLE],
+                # The generator sorts subgenres largest first, so the cap keeps the biggest.
+                "subgenres": [s for s in node["subgenres"] if s["readable_count"] >= MIN_SUBGENRE_READABLE][:MAX_SUBGENRES],
             },
         )
         for kind, nodes in (("genre", data["genres"]), ("subject", data["subjects"]))
@@ -56,8 +63,14 @@ def find_genre(slug: str) -> Genre | None:
     return next((g for g in load_home_genres() if g["slug"] == slug), None)
 
 
-def solr_query(node: GenreNode) -> str:
-    return f"subject_key:{node['query']}"
+def find_subgenre(genre: Genre, slug: str | None) -> GenreNode | None:
+    return next((s for s in genre["subgenres"] if s["slug"] == slug), None)
+
+
+def solr_query(node: GenreNode, parent: GenreNode | None = None) -> str:
+    """A subgenre is searched within its parent: Psychological under Horror is psychological horror."""
+    query = f"subject_key:{node['query']}"
+    return f"subject_key:{parent['query']} AND {query}" if parent else query
 
 
 def user_language_clause(lang: str | None) -> str:
@@ -69,10 +82,10 @@ def user_language_clause(lang: str | None) -> str:
     return f" language:{marc}" if marc and marc in get_populated_languages() else ""
 
 
-def search_url(node: GenreNode, has_fulltext: bool = True) -> str:
+def search_url(node: GenreNode, has_fulltext: bool = True, parent: GenreNode | None = None) -> str:
     from openlibrary.plugins.upstream.utils import urlencode
 
-    params = {"q": solr_query(node), "sort": "trending"}
+    params = {"q": solr_query(node, parent), "sort": "trending"}
     if has_fulltext:
         params["has_fulltext"] = "true"
     return "/search?" + urlencode(params)

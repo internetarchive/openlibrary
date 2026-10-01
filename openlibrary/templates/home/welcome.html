@@ -3,21 +3,21 @@ $ tracks = [
 $     {
 $         "icon": "book-open-text",
 $         "title": _("Find something to read"),
-$         "body": _("Borrow from millions of books for free and read them right in your browser."),
+$         "body": _("Borrow for free and read in your browser."),
 $         "href": "/trending/now",
 $         "track": "Read",
 $     },
 $     {
 $         "icon": "library-big",
 $         "title": _("Track your reading"),
-$         "body": _("Build reading lists, keep a record of what you've read, and set reading goals."),
+$         "body": _("Lists, a reading log, and a yearly goal."),
 $         "href": "/account/books",
 $         "track": "Track",
 $     },
 $     {
 $         "icon": "pencil",
 $         "title": _("Improve the catalog"),
-$         "body": _("Open Library is a catalog anyone can edit. Add a book or fix a record and help build a library for everyone."),
+$         "body": _("Anyone can fix a record or add a book."),
 $         "href": "/librarians",
 $         "track": "Improve",
 $     },
@@ -31,7 +31,7 @@ $ ]
       $:macros.icon("book-open-text", size="lg", extra_class="home-figures__icon")
       <div class="home-figures__text">
         <dt class="home-figures__number">$_("4.7 million")</dt>
-        <dd class="home-figures__label">$_("free to read online")</dd>
+        <dd class="home-figures__label">$_("books free to read online")</dd>
       </div>
     </div>
     <div class="home-figures__item">
@@ -43,13 +43,19 @@ $ ]
     </div>
   </dl>
 
-  <ul class="home-tracks">
-    $for track in tracks:
-      <li>
-        <a class="home-tracks__card" href="$track['href']" data-ol-link-track="HomeTrackClick|$track['track']">
-          <h3 class="home-tracks__title">$:macros.icon(track["icon"], extra_class="home-tracks__icon") $track["title"]</h3>
-          <p class="home-tracks__body">$track["body"]</p>
-        </a>
-      </li>
-  </ul>
+  $# Three columns in the band, divided by hairlines, so they read as part of the welcome rather than boxes on it.
+  $# Hidden for now (2026-09) while the welcome is pared back to the title and figures.
+  $if False:
+    <ul class="home-tracks">
+      $for track in tracks:
+        <li class="home-tracks__cell">
+          <a class="home-tracks__item" href="$track['href']" data-ol-link-track="HomeTrackClick|$track['track']">
+            $:macros.icon(track["icon"], size="lg", extra_class="home-tracks__icon")
+            <span class="home-tracks__text">
+              <h3 class="home-tracks__title">$track["title"] $:macros.icon("arrow-right", size="sm", extra_class="home-tracks__arrow")</h3>
+              <p class="home-tracks__body">$track["body"]</p>
+            </span>
+          </a>
+        </li>
+    </ul>
 </section>

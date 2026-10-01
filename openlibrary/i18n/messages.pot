@@ -960,7 +960,7 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html type/tag/index.html
+#: about/index.html books/custom_carousel.html.jinja type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -3107,11 +3107,6 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
-#, python-format
-msgid "Sort %(title)s"
-msgstr ""
-
 #: books/custom_carousel.html.jinja openlibrary/plugins/openlibrary/nav.py search/sort_options.html
 msgid "Trending"
 msgstr ""
@@ -3122,6 +3117,42 @@ msgstr ""
 
 #: books/custom_carousel.html.jinja
 msgid "Top rated"
+msgstr ""
+
+#: books/custom_carousel.html.jinja search/sort_options.html
+msgid "Sort by"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "Sort %(title)s"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "%(genre)s subgenres"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Previous page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Next page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Carousel pages"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Go to page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Page {page} of {total}"
 msgstr ""
 
 #: books/custom_carousel.html.jinja
@@ -4170,11 +4201,6 @@ msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: home/browse_stacks.html.jinja
-#, python-format
-msgid "%(count)s readable"
-msgstr ""
-
 #: home/categories.html
 msgid "Browse by Subject"
 msgstr ""
@@ -4204,11 +4230,15 @@ msgid "Books in Local Environment"
 msgstr ""
 
 #: home/readable_filter.html.jinja
-msgid "Readable only"
+msgid "Readable online"
 msgstr ""
 
 #: home/readable_filter.html.jinja
-msgid "Show only books you can read now"
+msgid "Only books with a copy you can open on Open Library"
+msgstr ""
+
+#: home/readable_filter.html.jinja
+msgid "Show only books you can read online"
 msgstr ""
 
 #: home/stats.html
@@ -4276,7 +4306,7 @@ msgid "Find something to read"
 msgstr ""
 
 #: home/welcome.html
-msgid "Borrow from millions of books for free and read them right in your browser."
+msgid "Borrow for free and read in your browser."
 msgstr ""
 
 #: home/welcome.html
@@ -4284,7 +4314,7 @@ msgid "Track your reading"
 msgstr ""
 
 #: home/welcome.html
-msgid "Build reading lists, keep a record of what you've read, and set reading goals."
+msgid "Lists, a reading log, and a yearly goal."
 msgstr ""
 
 #: home/welcome.html
@@ -4292,7 +4322,7 @@ msgid "Improve the catalog"
 msgstr ""
 
 #: home/welcome.html
-msgid "Open Library is a catalog anyone can edit. Add a book or fix a record and help build a library for everyone."
+msgid "Anyone can fix a record or add a book."
 msgstr ""
 
 #: home/welcome.html
@@ -4300,7 +4330,7 @@ msgid "4.7 million"
 msgstr ""
 
 #: home/welcome.html
-msgid "free to read online"
+msgid "books free to read online"
 msgstr ""
 
 #: home/welcome.html
@@ -5967,10 +5997,6 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Sort by"
 msgstr ""
 
 #: search/sort_options.html

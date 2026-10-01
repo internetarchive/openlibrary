@@ -25,7 +25,7 @@ from openlibrary.utils.request_context import caching_prethread, req_context
 logger = logging.getLogger("openlibrary.home")
 
 
-def get_homepage(devmode):
+def get_homepage(devmode, logged_in=False):
     try:
         stats = admin.get_stats(use_mock_data=devmode)
     except Exception:
@@ -45,12 +45,13 @@ def get_homepage(devmode):
         blog_posts=blog_posts,
         featured_genres=featured_genres,
         carousel_data=carousel_data,
+        logged_in=logged_in,
     )
     # Convert to a dict so it can be cached
     return dict(page)
 
 
-def get_cached_homepage():
+def get_cached_homepage(logged_in=False):
     from openlibrary.plugins.openlibrary.code import is_bot
 
     five_minutes = 5 * dateutil.MINUTE_SECS
@@ -66,11 +67,12 @@ def get_cached_homepage():
 
     mc = cache.memcache_memoize(get_homepage, key, timeout=five_minutes, prethread=caching_prethread())
     devmode = env.get_ol_env().LOCAL_DEV
-    page = mc(devmode)
+    # logged_in is part of the memoize key, so members and visitors get separate cached pages.
+    page = mc(devmode, logged_in)
 
     if not page:
-        mc.memcache_delete_by_args(devmode)
-        mc(devmode)
+        mc.memcache_delete_by_args(devmode, logged_in)
+        mc(devmode, logged_in)
 
     return page
 
@@ -79,10 +81,11 @@ class home(delegate.page):
     path = "/"
 
     def GET(self):
+        logged_in = bool(web.ctx.site.get_user())
         if devmode := env.get_ol_env().LOCAL_DEV:
-            homepage_data = get_homepage(devmode)
+            homepage_data = get_homepage(devmode, logged_in)
         else:
-            homepage_data = get_cached_homepage()
+            homepage_data = get_cached_homepage(logged_in)
 
         # when homepage is cached, home/index.html template
         # doesn't run ctx.setdefault to set the cssfile so we must do so here:
@@ -255,7 +258,7 @@ def get_featured_genres():
         # Raw Solr defaults to OR between clauses, so the ANDs are load-bearing.
         query = home_genres.solr_query(genre)
         readable = solr.select(
-            f'{query} AND has_fulltext:true AND NOT subject:"content_warning:cover"',
+            f'{query} AND {home_genres.READABLE_CLAUSE} AND NOT subject:"content_warning:cover"',
             fields=["cover_i"],
             rows=GENRE_TILE_COVERS * 2,
             sort="def(trending_z_score,0) desc",

@@ -26,6 +26,8 @@ from pathlib import Path
 TAGS_REPO_RAW_BASE = "https://raw.githubusercontent.com/Open-Book-Genome-Project/tags/main"
 OL_SEARCH_URL = "https://openlibrary.org/search.json"
 DEFAULT_OUTPUT = Path("openlibrary/plugins/openlibrary/home_genres.json")
+# Matches home_genres.READABLE_CLAUSE: borrowable or public, not print-disabled-only.
+READABLE_CLAUSE = "ebook_access:[borrowable TO *]"
 
 # Not shown on the home page: Erotica by choice, Satire and Tragedy too thin, Comedy folded
 # into Humor (see QUERY_OVERRIDES).
@@ -152,7 +154,7 @@ def node(tag: dict) -> dict:
         "tag_key": tag.get("key"),
         "query": query,
         "work_count": work_count,
-        "readable_count": fetch_count(f"subject_key:{query} has_fulltext:true"),
+        "readable_count": fetch_count(f"subject_key:{query} {READABLE_CLAUSE}"),
     }
 
 
@@ -164,7 +166,7 @@ def build_subjects() -> list[dict]:
             "query": query,
             "page": page,
             "work_count": fetch_count(f"subject_key:{query}"),
-            "readable_count": fetch_count(f"subject_key:{query} has_fulltext:true"),
+            "readable_count": fetch_count(f"subject_key:{query} {READABLE_CLAUSE}"),
             "subgenres": [],
         }
         for name, slug, query, page in SUBJECTS
@@ -177,7 +179,9 @@ def build(genres: list[dict], subgenres: list[dict]) -> list[dict]:
         sg_node = node(sg)
         for parent in sg.get("parent_genres", []):
             if parent in tree:
-                tree[parent]["subgenres"].append(sg_node)
+                # A subgenre filters its parent's shelf, so its counts are for books in both.
+                both = f"subject_key:{tree[parent]['query']} subject_key:{sg_node['query']}"
+                tree[parent]["subgenres"].append({**sg_node, "work_count": fetch_count(both), "readable_count": fetch_count(f"{both} {READABLE_CLAUSE}")})
     for g in tree.values():
         g["subgenres"].sort(key=lambda s: -s["readable_count"])
     return sorted(tree.values(), key=lambda g: g["name"])
