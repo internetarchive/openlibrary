@@ -243,14 +243,14 @@ def write_state(path: Path, uid: int) -> None:
     path.write_text(str(uid))
 
 
-def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
+async def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     """Binary-search for the uid whose next event is ~target_age_days old.
 
     Uses limit=1 probes. Returns 0 if the API has no history or all history
     is newer than target_age_days.
     """
     try:
-        resp = lending.get_loan_changes(after_uid=0, limit=1)
+        resp = await lending.get_loan_changes(after_uid=0, limit=1)
     except Exception:
         logger.exception("Loan changes API unreachable on startup probe; starting from uid 0")
         return 0
@@ -271,7 +271,7 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
             break
         mid = (low + high) // 2
         try:
-            rows = lending.get_loan_changes(after_uid=mid, limit=1).get("rows", [])
+            rows = (await lending.get_loan_changes(after_uid=mid, limit=1)).get("rows", [])
         except Exception:
             logger.exception("Binary-search probe failed at uid %d; shrinking window", mid)
             high = mid
@@ -697,7 +697,7 @@ async def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> in
     touched: set[str] = set()
     while True:
         try:
-            resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
+            resp = await lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
         except Exception:
             logger.exception("Cold start: failed to fetch loan changes; retrying in %ds", poll_interval)
             await asyncio.sleep(poll_interval)
@@ -768,7 +768,7 @@ async def main(  # noqa: PLR0915, PLR0912
             cold_start = True
         else:
             logger.info("No Solr uid; binary-searching for uid ~%d days ago", LOAN_MAX_AGE_DAYS)
-            last_uid = find_start_uid()
+            last_uid = await find_start_uid()
             cold_start = True
     if cold_start:
         last_uid = await run_cold_start(last_uid, poll_interval, dry_run)
@@ -786,7 +786,7 @@ async def main(  # noqa: PLR0915, PLR0912
 
     while True:
         try:
-            resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
+            resp = await lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
         except Exception:
             logger.exception("Failed to fetch loan changes; will retry in %ds", poll_interval)
             await asyncio.sleep(poll_interval)
