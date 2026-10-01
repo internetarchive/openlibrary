@@ -13,7 +13,7 @@ docker/ol-solr-updater-start.sh, next to the main solr_updater). Every ~30s it:
      as unavailable. Releasing events (return, expire, cancel) write nothing.
   4. Separately, every ~10 minutes, re-checks the books currently marked
      unavailable against IA's bulk availability API
-     (lending.get_availability_batch -> GET services/availability/) and frees
+     (lending.get_availability_async -> GET services/availability/) and frees
      the ones that are actually borrowable.
   5. Saves a "uid" cursor to a state file so it resumes where it left off; on
      a cold start it collects the last ~14 days of loan changes and settles
@@ -223,7 +223,7 @@ RECHECK_INTERVAL = 600  # seconds between ground-truth re-checks of the unavaila
 RECHECK_MAX_EDITIONS = 2000
 """Editions re-checked per pass. Sized so a pass fits inside RECHECK_INTERVAL.
 
-`get_availability_batch` sends AVAILABILITY_BATCH_SIZE (100) ids per request,
+`get_availability_async` sends AVAILABILITY_BATCH_SIZE (100) ids per request,
 sequentially. At 10000 that is 100 requests; if archive.org is slow or down and
 each hits the HTTP timeout, a single pass runs far longer than the 600s interval
 -- so the re-check would run back to back forever and, being in the same
@@ -523,14 +523,14 @@ async def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
         expected_requests,
     )
     started = time.monotonic()
-    availability = await lending.get_availability_batch(resolved)
+    availability = await lending.get_availability_async("identifier", resolved, use_cache=False, drop_errors=True)
     logger.info(
         "Reconcile answered %d/%d in %.0fs",
         len(availability),
         len(resolved),
         time.monotonic() - started,
     )
-    # Coverage, not mere non-emptiness. `get_availability_batch` swallows a
+    # Coverage, not mere non-emptiness. `get_availability_async` drops a
     # failed chunk and continues, so with ~800 sequential requests a widespread
     # timeout still returns a non-empty dict -- and an earlier version of this
     # guard passed on it, leaving most genuinely-on-loan books unmarked. The
@@ -606,7 +606,7 @@ async def build_recheck_updates(marked_during_pass: set[str] | None = None) -> l
     if not id_to_doc:
         return []
 
-    availability = await lending.get_availability_batch(list(id_to_doc))
+    availability = await lending.get_availability_async("identifier", list(id_to_doc), use_cache=False, drop_errors=True)
     if not availability:
         # Visible during an archive.org outage. Nothing to do -- the follower
         # keeps running and the marks simply persist until ground truth returns.
@@ -622,7 +622,7 @@ async def build_recheck_updates(marked_during_pass: set[str] | None = None) -> l
         if doc["key"] in seen_keys:
             continue
         # Refuse to clear anything the follower marked while this pass was
-        # running. `get_availability_batch` is ~100 sequential requests and
+        # running. `get_availability_async` is ~100 sequential requests and
         # takes tens of seconds to minutes; the follower keeps consuming events
         # throughout. Without this, a book borrowed during that window gets
         # marked by the follower and then cleared by a snapshot that predates
@@ -697,7 +697,7 @@ async def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> in
     marked would publish every on-loan book as borrowable. So a service that
     answers for fewer than MIN_RECONCILE_COVERAGE of the identifiers raises
     here rather than degrading -- coverage, not mere non-emptiness, because
-    `get_availability_batch` drops a failed chunk and carries on.
+    `get_availability_async` drops a failed chunk and carries on.
     """
     logger.info("Cold start: collecting identifiers from uid %d to the head", last_uid)
     touched: set[str] = set()
