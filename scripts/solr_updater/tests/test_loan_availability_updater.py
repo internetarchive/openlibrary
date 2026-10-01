@@ -514,19 +514,22 @@ def _ts(days_ago: float) -> str:
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def test_find_start_uid_no_history():
+@pytest.mark.asyncio
+async def test_find_start_uid_no_history():
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes.return_value = {"status": "OK", "latest_uid": 0, "rows": []}
-        assert find_start_uid() == 0
+        mock_lending.get_loan_changes = AsyncMock(return_value={"status": "OK", "latest_uid": 0, "rows": []})
+        assert await find_start_uid() == 0
 
 
-def test_find_start_uid_api_error():
+@pytest.mark.asyncio
+async def test_find_start_uid_api_error():
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes.return_value = {"status": "error"}
-        assert find_start_uid() == 0
+        mock_lending.get_loan_changes = AsyncMock(return_value={"status": "error"})
+        assert await find_start_uid() == 0
 
 
-def test_find_start_uid_converges():
+@pytest.mark.asyncio
+async def test_find_start_uid_converges():
     """Binary search converges to a uid where the next record is ~14 days old."""
     call_count = 0
 
@@ -545,15 +548,16 @@ def test_find_start_uid_converges():
         }
 
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes.side_effect = fake_changes
-        uid = find_start_uid(target_age_days=14)
+        mock_lending.get_loan_changes = AsyncMock(side_effect=fake_changes)
+        uid = await find_start_uid(target_age_days=14)
 
     assert call_count <= 41  # 1 initial probe + up to 40 binary-search iterations
     # uid=150_000 is the exact 14-day boundary (500_000 * (20-14)/20 = 150_000)
     assert 100_000 < uid < 200_000
 
 
-def test_find_start_uid_survives_bad_probe_time():
+@pytest.mark.asyncio
+async def test_find_start_uid_survives_bad_probe_time():
     """A probe row with an unparsable 'time' must not crash startup."""
 
     def fake_changes(after_uid, limit):
@@ -563,8 +567,8 @@ def test_find_start_uid_survives_bad_probe_time():
         return {"status": "OK", "latest_uid": latest, "rows": [{"uid": after_uid + 1, "time": "garbage"}]}
 
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes.side_effect = fake_changes
-        uid = find_start_uid(target_age_days=14)  # must not raise
+        mock_lending.get_loan_changes = AsyncMock(side_effect=fake_changes)
+        uid = await find_start_uid(target_age_days=14)  # must not raise
     assert isinstance(uid, int)
 
 
@@ -614,10 +618,12 @@ def _select_side_effect(*args, **kwargs):
 
 def _wire_lending(lending_mock, first_batch_rows, availability=None):
     """Give the patched lending module realistic behaviour for main()."""
-    lending_mock.get_loan_changes.side_effect = [
-        {"status": "OK", "rows": first_batch_rows, "latest_uid": 100},
-        SystemExit(0),  # stop the loop on the second iteration
-    ]
+    lending_mock.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": first_batch_rows, "latest_uid": 100},
+            SystemExit(0),  # stop the loop on the second iteration
+        ]
+    )
     lending_mock.get_availability_batch = AsyncMock(return_value={"bookabc": AVAILABLE} if availability is None else availability)
     lending_mock.is_available_for_loan.side_effect = lambda a: bool(a.get("available_to_browse") or a.get("available_to_borrow"))
 
@@ -812,10 +818,12 @@ async def test_main_reset_ignores_stale_solr_loan_uid(
     solr.select.side_effect = _select_side_effect
     # --reset is a cold start, so the collection pass runs before the event
     # loop. Drain it empty (nothing to reconcile), then stop in steady state.
-    mock_lending.get_loan_changes.side_effect = [
-        {"status": "OK", "rows": [], "latest_uid": 42},
-        SystemExit(0),
-    ]
+    mock_lending.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": [], "latest_uid": 42},
+            SystemExit(0),
+        ]
+    )
 
     state_file = tmp_path / "state"
     with pytest.raises(SystemExit):
@@ -876,11 +884,13 @@ async def test_main_cold_start_reconciles_before_following_events(
     solr.update_in_place.return_value = _OK_RESPONSE
 
     # Collection drains to the head, then the steady-state loop stops us.
-    mock_lending.get_loan_changes.side_effect = [
-        {"status": "OK", "rows": [_BORROW_ROW, _RETURN_ROW], "latest_uid": 100},
-        {"status": "OK", "rows": [], "latest_uid": 100},
-        SystemExit(0),
-    ]
+    mock_lending.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": [_BORROW_ROW, _RETURN_ROW], "latest_uid": 100},
+            {"status": "OK", "rows": [], "latest_uid": 100},
+            SystemExit(0),
+        ]
+    )
     mock_lending.get_availability_batch = AsyncMock(return_value={"bookabc": UNAVAILABLE})
     mock_lending.is_available_for_loan.side_effect = lambda a: bool(a.get("available_to_browse") or a.get("available_to_borrow"))
 
@@ -919,16 +929,18 @@ async def test_main_cold_start_refuses_to_start_without_ground_truth(
     mock_get_solr.return_value = solr
     solr.select.side_effect = _select_side_effect
 
-    mock_lending.get_loan_changes.side_effect = [
-        {"status": "OK", "rows": [_BORROW_ROW], "latest_uid": 100},
-        {"status": "OK", "rows": [], "latest_uid": 100},
-        # Terminator. Without it, a regression that skipped the cold start
-        # would drop into the steady-state loop, exhaust this mock, and have
-        # the StopIteration swallowed by the retry handler's `except
-        # Exception` -- so the test would HANG rather than fail. A hang reads
-        # as an infrastructure problem, not as a caught regression.
-        SystemExit(0),
-    ]
+    mock_lending.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": [_BORROW_ROW], "latest_uid": 100},
+            {"status": "OK", "rows": [], "latest_uid": 100},
+            # Terminator. Without it, a regression that skipped the cold start
+            # would drop into the steady-state loop, exhaust this mock, and have
+            # the StopIteration swallowed by the retry handler's `except
+            # Exception` -- so the test would HANG rather than fail. A hang reads
+            # as an infrastructure problem, not as a caught regression.
+            SystemExit(0),
+        ]
+    )
     mock_lending.get_availability_batch = AsyncMock(return_value={})
 
     state_file = tmp_path / "state"
@@ -1059,10 +1071,12 @@ async def test_main_does_not_spin_when_the_feed_returns_nothing_newer(mock_confi
     solr.update_in_place.return_value = _OK_RESPONSE
 
     stale = {"identifier": "bookabc", "uid": 5, "event_type": "borrow", "extra": "{}"}
-    mock_lending.get_loan_changes.side_effect = [
-        {"status": "OK", "rows": [stale], "latest_uid": 5},
-        SystemExit(0),
-    ]
+    mock_lending.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": [stale], "latest_uid": 5},
+            SystemExit(0),
+        ]
+    )
     state_file = tmp_path / "state"
     state_file.write_text("99")
 
@@ -1110,10 +1124,12 @@ async def test_main_clamps_a_cursor_that_is_ahead_of_the_feed(mock_config, mock_
     mock_get_solr.return_value = solr
     solr.select.side_effect = _select_side_effect
 
-    mock_lending.get_loan_changes.side_effect = [
-        {"status": "OK", "rows": [], "latest_uid": 50},
-        SystemExit(0),
-    ]
+    mock_lending.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": [], "latest_uid": 50},
+            SystemExit(0),
+        ]
+    )
     state_file = tmp_path / "state"
     state_file.write_text("200001")
 

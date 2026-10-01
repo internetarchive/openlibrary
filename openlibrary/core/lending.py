@@ -190,7 +190,7 @@ LOAN_CHANGES_MAX_LIMIT = 1000
 a larger `limit` is silently capped, not honoured."""
 
 
-def get_loan_changes(
+async def get_loan_changes(
     after_uid: int,
     limit: int = LOAN_CHANGES_MAX_LIMIT,
     s3_keys: dict | None = None,
@@ -217,7 +217,7 @@ def get_loan_changes(
         auth = None
 
     headers = {"Authorization": auth} if auth else {}
-    response = requests.get(
+    response = await ia.get_async_session().get(
         url,
         params=params,
         headers=headers,
