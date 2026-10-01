@@ -52,8 +52,10 @@ describe('FOCUSABLE_SELECTOR', () => {
         // every focus trap built on top of this util.
         expect(FOCUSABLE_SELECTOR).toMatch(/button/);
         expect(FOCUSABLE_SELECTOR).toMatch(/input/);
-        expect(FOCUSABLE_SELECTOR).toMatch(/\[href\]/);
         expect(FOCUSABLE_SELECTOR).toMatch(/tabindex/);
+        // Scoped to links: a bare `[href]` also matches a sprite icon's <use>.
+        expect(FOCUSABLE_SELECTOR).toMatch(/a\[href\]/);
+        expect(FOCUSABLE_SELECTOR).not.toMatch(/[\s,]\[href\]/);
     });
 });
 
@@ -192,6 +194,19 @@ describe('getTabbableElements', () => {
         expect(getTabbableElements(document.body).map(el => el.className)).toEqual([
             'before', 'slotted', 'after',
         ]);
+    });
+
+    test('skips the <use> inside a sprite icon, which has an href but takes no focus', () => {
+        // macros.icon() renders <svg><use href="...#icon-eye-off"></use></svg>.
+        // As a tab stop it swallows the Tab: focusing it is a silent no-op.
+        const root = document.createElement('div');
+        root.innerHTML =
+            '<textarea></textarea>' +
+            '<p><svg><use href="/static/sprite.svg#icon-eye-off"></use></svg></p>' +
+            '<a href="/help">help</a>';
+        document.body.appendChild(root);
+
+        expect(getTabbableElements(root).map(el => el.tagName.toLowerCase())).toEqual(['textarea', 'a']);
     });
 
     test('skips hidden and disabled elements and their subtrees', () => {

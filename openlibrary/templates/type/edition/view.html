@@ -118,6 +118,8 @@ $ reader_observations = get_observation_metrics(work['key']) if show_observation
 $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
 $ component_times['affiliate_links component'] = time()
+$# A work with no editions renders here with `edition` set to the work
+$# itself (see _select_edition), which has no ISBN to price by.
 $ prices = edition.key.startswith('/books/')
 
 $ isbn_13 = edition.get_isbn13() or None
@@ -131,7 +133,8 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = render_affiliate_links(edition.title, isbn_13, asin, prices)
+$ first_author = (authors[0].name or None) if authors else None
+$ affiliate_links = render_affiliate_links(edition.title, isbn_13, asin, prices, author=first_author)
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book" data-lending-state="$lending_state">

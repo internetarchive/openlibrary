@@ -4,6 +4,7 @@
  * branch on 401 (send to login) vs anything else (toast).
  */
 
+import { trackEvent } from '../../../plugins/openlibrary/js/ol.analytics.js';
 import { queueAction, buildPartialsUrl } from '../../../plugins/openlibrary/js/utils.js';
 
 export const SHELF = Object.freeze({
@@ -29,6 +30,14 @@ export const SHELF_ICON = Object.freeze({
     [SHELF.STOPPED_READING]: 'circle-pause',
 });
 
+/** Solid counterparts of SHELF_ICON, for a glyph that floats over cover art. */
+export const SHELF_ICON_FILLED = Object.freeze({
+    [SHELF.WANT_TO_READ]: 'bookmark-filled',
+    [SHELF.CURRENTLY_READING]: 'book-open-filled',
+    [SHELF.ALREADY_READ]: 'circle-check-filled',
+    [SHELF.STOPPED_READING]: 'circle-pause-filled',
+});
+
 /**
  * Matomo action names, kept identical to the legacy dropper's
  * `data-ol-link-track`. Indexed by shelf id; `null` (no shelf) is the removal.
@@ -40,6 +49,15 @@ export const SHELF_EVENT = Object.freeze({
     [SHELF.STOPPED_READING]: 'StoppedReading',
     null: 'RemoveFromShelf',
 });
+
+/**
+ * Count a failed request as `ShelfActions|Error`, labelled with the operation
+ * and the HTTP status ("shelf:500"). Without it a broken endpoint reads as
+ * readers who stopped saving books.
+ */
+export function trackError(operation, error) {
+    trackEvent('ShelfActions', 'Error', `${operation}:${error?.status ?? 'no-response'}`);
+}
 
 /** Work key "/works/OL1W" → "OL1W". */
 export function olid(key) {
@@ -135,6 +153,20 @@ export async function deleteCheckIn(eventId) {
 export async function fetchUserLists() {
     const data = await request(String(buildPartialsUrl('MyBooksDropperLists')));
     return data.listData || {};
+}
+
+/**
+ * The work's edition keys, as `/books/OL…M`. A list records whichever copy the
+ * reader was looking at, so a list holding any edition of this work already
+ * holds the book — without these, such a list reads as empty and ticking it
+ * files the book twice. Asked per book on open, so carousels pay nothing.
+ */
+export async function fetchWorkEditions(workKey) {
+    const olid = workKey.split('/').pop();
+    const url = buildPartialsUrl('WorkEditions');
+    url.searchParams.set('work_id', olid);
+    const data = await request(String(url));
+    return (data.editions || []).map(key => `/books/${key}`);
 }
 
 export function addToList(listKey, seedKey) {

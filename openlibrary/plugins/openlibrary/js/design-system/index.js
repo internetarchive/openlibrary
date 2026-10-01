@@ -2,6 +2,8 @@
  * Page behaviour for the design system docs at /developers/design.
  * All progressive: the page is fully readable with this bundle absent.
  */
+import { olAlert, olConfirm } from '../../../../components/lit/alert-dialog.js';
+import { copyText } from '../copy-text.js';
 import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from './contrast.js';
 
 const CODE_VISIBLE_KEY = 'ol-design-show-code';
@@ -124,17 +126,6 @@ function initCodeToggle(root) {
         writeStored(CODE_VISIBLE_KEY, String(event.detail.checked));
         if (event.detail.checked) highlightCode(root);
     });
-}
-
-async function copyText(trigger, text) {
-    try {
-        await navigator.clipboard.writeText(text);
-    } catch {
-        return; // No clipboard permission — silently leave the page as it was.
-    }
-
-    trigger.classList.add('is-copied');
-    setTimeout(() => trigger.classList.remove('is-copied'), 1200);
 }
 
 /** Click-to-copy. `data-ds-copy-text`, else the nearest code block. */
@@ -336,6 +327,21 @@ function initIconFilter(root) {
     });
 }
 
+/** The Dialog helper demos call the real olConfirm()/olAlert(), which inline page scripts can't import. */
+function initDialogHelperDemos(root) {
+    const helpers = { confirm: olConfirm, alert: olAlert };
+    root.querySelectorAll('[data-ds-dialog-helper]').forEach((trigger) => {
+        trigger.addEventListener('click', async() => {
+            const { dsDialogHelper, dsDialogOptions, dsDialogTemplate, dsDialogOut } = trigger.dataset;
+            const options = JSON.parse(dsDialogOptions);
+            if (dsDialogTemplate) options.message = root.querySelector(dsDialogTemplate);
+            const result = await helpers[dsDialogHelper](options);
+            const out = dsDialogOut && root.querySelector(dsDialogOut);
+            if (out) out.textContent = String(result);
+        });
+    });
+}
+
 export function initDesignSystem(root) {
     initCodeToggle(root);
     initCopy(root);
@@ -345,4 +351,5 @@ export function initDesignSystem(root) {
     renderContrastBadges(root);
     initIconFilter(root);
     initIconPopover(root);
+    initDialogHelperDemos(root);
 }

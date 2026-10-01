@@ -53,7 +53,6 @@
 </template>
 
 <script>
-import _ from 'lodash';
 import ISBN from 'isbn3';
 
 export default {
@@ -112,11 +111,11 @@ export default {
         },
 
         asins() {
-            return _.uniq([
+            return [...new Set([
                 ...((this.edition.identifiers && this.edition.identifiers.amazon) || []),
                 this.edition.isbn_10 && ISBN.asIsbn10(this.edition.isbn_10),
                 this.edition.isbn_13 && ISBN.asIsbn10(this.edition.isbn_13),
-            ].filter(x => x));
+            ].filter(x => x))];
         }
     },
 

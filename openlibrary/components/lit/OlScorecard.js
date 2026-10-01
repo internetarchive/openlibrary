@@ -41,7 +41,13 @@ class OlScoreGauge extends LitElement {
             fill: none;
             stroke: currentColor;
             stroke-linecap: round;
-            transition: stroke-dashoffset 0.3s;
+            transition: stroke-dashoffset var(--duration-slow) var(--ease-enter);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .arc {
+                transition: none;
+            }
         }
 
         .value {
@@ -68,17 +74,19 @@ class OlScoreGauge extends LitElement {
     }
 
     /**
-     * Threshold color for the current percentage, as a CSS custom-property
-     * reference with a literal fallback (never a hardcoded default), so a
-     * consumer can still override e.g. --scorecard-excellent from outside.
+     * Threshold color for the current percentage, as a CSS color expression
+     * built from the status object-tier tokens.
      * @returns {String}
      */
     _colorVar() {
-        if (this.percentage >= 80) return 'var(--scorecard-excellent, #4caf50)';
-        if (this.percentage >= 60) return 'var(--scorecard-good, #8bc34a)';
-        if (this.percentage >= 40) return 'var(--scorecard-moderate, #ffc107)';
-        if (this.percentage >= 20) return 'var(--scorecard-needs-work, #ff9800)';
-        return 'var(--scorecard-poor, #f44336)';
+        // Object-tier status colors: saturated shapes, not text tones. The two
+        // in-between steps are mixed from their neighbours so the scale stays
+        // on the palette without extra tokens.
+        if (this.percentage >= 80) return 'var(--color-success-object)';
+        if (this.percentage >= 60) return 'color-mix(in oklch, var(--color-success-object) 70%, var(--color-warning-object))';
+        if (this.percentage >= 40) return 'var(--color-warning-object)';
+        if (this.percentage >= 20) return 'color-mix(in oklch, var(--color-warning-object) 55%, var(--color-error-object))';
+        return 'var(--color-error-object)';
     }
 
     /** @returns {import('lit').TemplateResult} */
@@ -192,7 +200,7 @@ export class OlScorecard extends LitElement {
         }
 
         .collapsed-toggle:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -222,7 +230,7 @@ export class OlScorecard extends LitElement {
         }
 
         .header:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -246,7 +254,7 @@ export class OlScorecard extends LitElement {
         .tab-separator {
             align-self: stretch;
             width: var(--border-width-divider, 1px);
-            background: var(--color-border-subtle, #ddd);
+            background: var(--color-border-subtle);
         }
 
         .tab {
@@ -269,9 +277,9 @@ export class OlScorecard extends LitElement {
         }
 
         ol-score-gauge {
-            background: var(--white, white);
+            background: var(--white);
             border-radius: 100px;
-            box-shadow: 0 0 4px 2px var(--white, white);
+            box-shadow: 0 0 4px 2px var(--white);
         }
 
         button.tab:hover ol-score-gauge {
@@ -279,7 +287,7 @@ export class OlScorecard extends LitElement {
         }
 
         button.tab[aria-selected="true"] {
-            background: var(--lightest-grey, #ededed);
+            background: var(--color-control-selected-bg);
         }
 
         button.tab[aria-selected="true"] .tab-label {
@@ -287,7 +295,7 @@ export class OlScorecard extends LitElement {
         }
 
         button.tab:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -314,11 +322,11 @@ export class OlScorecard extends LitElement {
         .checks-heading {
             margin: 0;
             padding: var(--spacing-inset-sm, 8px) var(--spacing-inset-md, 16px) var(--spacing-inset-xs, 4px);
-            color: var(--accessible-grey, #767676);
-            font-size: var(--font-size-label-medium, 12px);
-            font-weight: normal;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
             list-style: none;
         }
 
@@ -393,8 +401,8 @@ export class OlScorecard extends LitElement {
             padding: var(--spacing-inset-sm, 8px);
             border-radius: var(--border-radius-md, 6px);
             font-size: var(--font-size-label-medium, 12px);
-            background-color: var(--scorecard-warning-bg, hsl(32deg 100% 90%));
-            color: var(--scorecard-warning-text, hsl(32deg 100% 35%));
+            background-color: var(--color-warning-bg);
+            color: var(--color-warning-fg);
         }
 
         .outdated-banner-icon {

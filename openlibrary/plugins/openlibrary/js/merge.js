@@ -1,19 +1,18 @@
 import $ from 'jquery';
-import './jquery-ui-dialog';
+import { alertFromTemplate, confirmFromTemplate } from './confirm-template';
 import { declineRequest } from './merge-request-table/MergeRequestService';
 
 export function initAuthorMergePage() {
-    $('#save').on('click', function() {
+    $('#save').on('click', async function(event) {
+        event.preventDefault();
         const n = $('#mergeForm input[type=radio]:checked').length;
-        const confirmMergeButton = document.querySelector('#confirmMerge');
+        // Only rendered for librarians who can merge directly; others submit a request.
+        const confirmTemplate = document.getElementById('confirmMerge');
         if (n === 0) {
-            $('#noMaster').dialog('open');
-        } else if (confirmMergeButton) {
-            $('#confirmMerge').dialog('open');
-        } else {
-            $('#mergeForm').trigger('submit');
+            await alertFromTemplate(document.getElementById('noMaster'));
+        } else if (!confirmTemplate || await confirmFromTemplate(confirmTemplate, { destructive: false })) {
+            submitMerge();
         }
-        return false;
     });
     $('div.radio').first().find('input[type=radio]').prop('checked', true);
     $('div.checkbox').first().find('input[type=checkbox]').prop('checked', true);
@@ -41,6 +40,17 @@ export function initAuthorMergePage() {
         }
     });
     initRejectButton();
+}
+
+function submitMerge() {
+    const comment = document.querySelector('#author-merge-comment').value;
+    if (comment) {
+        document.querySelector('#hidden-comment-input').value = comment;
+    }
+    $('#mergeForm').trigger('submit');
+    for (const button of document.querySelectorAll('.merge-feedback__buttons button')) {
+        button.disabled = true;
+    }
 }
 
 function initRejectButton() {

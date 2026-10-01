@@ -103,6 +103,18 @@ export class Carousel {
         const observer = new MutationObserver(removeCarouselRoles);
         observer.observe(this.$container[0], { subtree: true, attributeFilter: ['role'] });
 
+        // Slick sets tabindex="-1" on links in hidden slides, but cannot reach a
+        // shelf button's real button behind its shadow root; inert does the same job.
+        const syncShelfButtons = () => {
+            this.$container[0].querySelectorAll('.slick-slide').forEach((slide) => {
+                const hidden = slide.getAttribute('aria-hidden') === 'true';
+                slide.querySelectorAll('ol-shelf-button').forEach((button) => button.toggleAttribute('inert', hidden));
+            });
+        };
+        syncShelfButtons();
+        new MutationObserver(syncShelfButtons)
+            .observe(this.$container[0], { subtree: true, childList: true, attributeFilter: ['aria-hidden'] });
+
         // Slick internally changes the click handlers on the next/prev buttons,
         // so we listen via the container instead
         this.$container.on('click', '.slick-next', (ev) => {

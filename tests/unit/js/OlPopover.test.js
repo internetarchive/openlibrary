@@ -256,3 +256,121 @@ describe('ol-popover close fallback', () => {
         expect(document.body.style.position).toBe('');
     });
 });
+
+/**
+ * Light dismiss lets the closing click through to whatever is under the
+ * pointer; `block-outside-clicks` renders a transparent backdrop that takes
+ * the hit instead, without turning the popover modal.
+ */
+describe('ol-popover block-outside-clicks', () => {
+    let popoverApi;
+
+    beforeEach(() => {
+        installMatchMediaStub();
+        document.body.innerHTML = '';
+    });
+
+    afterEach(() => {
+        popoverApi?.restore();
+        popoverApi = null;
+        document.body.innerHTML = '';
+    });
+
+    const backdropOf = (el) => el.shadowRoot.querySelector('.backdrop');
+
+    it('renders no backdrop on desktop by default', async() => {
+        const el = await mountPopover();
+        await openAndSettle(el);
+        expect(backdropOf(el)).toBeNull();
+    });
+
+    it('renders a transparent guard backdrop under the panel when set', async() => {
+        popoverApi = installPopoverApiStub();
+        const el = await mountPopover();
+        el.blockOutsideClicks = true;
+
+        await openAndSettle(el);
+
+        const backdrop = backdropOf(el);
+        expect(backdrop).not.toBeNull();
+        expect(backdrop.classList.contains('guard')).toBe(true);
+        expect(popoverApi.isOpen(backdrop)).toBe(true);
+        // Shown before the panel so the panel paints above it in the top layer.
+        const order = HTMLElement.prototype.showPopover.mock.instances;
+        expect(order.indexOf(backdrop)).toBeLessThan(order.indexOf(panelOf(el)));
+        // The guard is a hit target, not a scrim: the popover stays non-modal.
+        expect(panelOf(el).hasAttribute('aria-modal')).toBe(false);
+    });
+
+    it('closes on a backdrop click and keeps it from reaching the page', async() => {
+        const el = await mountPopover();
+        el.blockOutsideClicks = true;
+        await openAndSettle(el);
+
+        const pageClick = vi.fn();
+        document.body.addEventListener('click', pageClick);
+        const onClose = vi.fn();
+        el.addEventListener('ol-popover-close', onClose);
+
+        backdropOf(el).dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+        await el.updateComplete;
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(onClose.mock.calls[0][0].detail.reason).toBe('outside-click');
+        // Page listeners see the popover as the target, never a link beneath it.
+        expect(pageClick.mock.calls[0][0].target).toBe(el);
+        expect(el._animState).toBe('exiting');
+    });
+
+    it('keeps the tray scrim, not the guard, on mobile', async() => {
+        installMatchMediaStub((q) => q.includes('max-width'));
+        const el = await mountPopover();
+        el.blockOutsideClicks = true;
+        await openAndSettle(el);
+
+        const backdrop = backdropOf(el);
+        expect(backdrop).not.toBeNull();
+        expect(backdrop.classList.contains('guard')).toBe(false);
+    });
+});
+
+/**
+ * `anchor` positions the panel against an ancestor instead of the trigger, so a
+ * split button's caret can center its menu under the whole button.
+ */
+describe('ol-popover anchor', () => {
+    beforeEach(() => {
+        installMatchMediaStub();
+        document.body.innerHTML = '';
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    const rect = (left, width) => ({ left, right: left + width, width, top: 100, bottom: 136, height: 36 });
+
+    it('centers the panel on the matching ancestor', async() => {
+        const el = await mountPopover();
+        const group = document.createElement('div');
+        group.className = 'split';
+        document.body.appendChild(group);
+        group.appendChild(el);
+        el.placement = 'bottom-center';
+        el.anchor = '.split';
+        group.getBoundingClientRect = () => rect(100, 200);
+        el.querySelector('[slot="trigger"]').getBoundingClientRect = () => rect(268, 32);
+
+        el._computePosition(240, 80);
+
+        // Group center is 200, so a 240px panel starts at 80.
+        expect(el._position.left).toBe(80);
+    });
+
+    it('falls back to the trigger when the selector matches nothing', async() => {
+        const el = await mountPopover();
+        el.anchor = '.missing';
+
+        expect(el._anchorEl).toBe(el.querySelector('[slot="trigger"]'));
+    });
+});

@@ -27,7 +27,7 @@
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-raised);
   position: relative;
 }
 
@@ -180,7 +180,7 @@
   -webkit-box-ordinal-group: 2;
   -ms-flex-order: 1;
   order: 1;
-  z-index: var(--z-index-level-negative);
+  z-index: var(--z-index-behind);
 }
 
 .header-bar .logo-component .logo-icon {
@@ -217,7 +217,7 @@
   color: var(--white);
   left: 40px;
   top: 40px;
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-raised);
 }
 
 .logo-txt--env-development::after {
@@ -244,7 +244,7 @@
   order: 5;
   /* Despite occurring later in the DOM, this header should be overlaid underneath the items
    * above. E.g. search and account dropdowns. */
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-base);
 }
 
 .header-bar .navigation-component li {
@@ -429,7 +429,7 @@
     );
     padding: var(--spacing-inset-xs) 0;
     border-bottom: 1px solid var(--color-border-muted);
-    z-index: var(--z-index-level-3);
+    z-index: var(--z-index-sticky);
   }
 
   .header-bar .logo-component .logo-icon {
@@ -508,14 +508,16 @@
   }
 }
 
-/* The 4px side padding is the menu-row gutter: rows carry the rest of their
- * 16px label offset as their own padding, so the hover fill reads as a pill
- * inside the panel rather than a band running to its edges. */
+/* The 4px padding is the menu-row gutter: rows carry the rest of their 16px
+ * label offset as their own padding, so the hover fill reads as a pill inside
+ * the panel rather than a band running to its edges. It has to be the same on
+ * all four sides — the corner rows are concentric with the panel only when
+ * they sit the same distance in from every edge. */
 .header-bar .nav-popover__panel {
   box-sizing: border-box;
   width: 240px;
   max-width: calc(100vw - 24px);
-  padding: var(--spacing-inset-sm) var(--menu-row-inset);
+  padding: var(--menu-row-inset);
   text-align: left;
 }
 
@@ -538,7 +540,7 @@
   align-items: flex-start;
   gap: var(--spacing-inline-md);
   padding: var(--spacing-inset-sm) var(--menu-row-padding-inline);
-  border-radius: var(--border-radius-button);
+  border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   text-decoration: none;
 }
@@ -611,7 +613,7 @@
   gap: var(--spacing-inline-md);
   min-height: var(--menu-row-height);
   padding: var(--spacing-2xs) var(--menu-row-padding-inline);
-  border-radius: var(--border-radius-button);
+  border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
   text-decoration: none;
@@ -706,7 +708,7 @@
 
 @media (hover: hover) {
   .search-by-barcode:hover {
-    background-color: var(--lightest-grey);
+    background-color: var(--color-control-hover);
   }
 }
 
@@ -1039,7 +1041,7 @@
        the faux input lines up exactly with the nav and account buttons. */
     height: var(--header-control-height);
     box-sizing: border-box;
-    background-color: var(--grey-fafafa);
+    background-color: var(--color-control-bg);
     border: 1px solid var(--color-border-muted);
     border-radius: var(--border-radius-input);
   }

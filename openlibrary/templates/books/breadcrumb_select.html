@@ -1,4 +1,4 @@
-$def with (selected="", options=None)
+$def with (selected="", options=None, heading_attrs="")
     $if not options:
         $selected
     $elif len(options) == 1:
@@ -27,7 +27,7 @@ $def with (selected="", options=None)
         <span class="crumb">
             <span class="crumbicon">
                 <div class="dropdown">
-                    <h2 class="breadcrumb-title">$breadcrumb_title</h2>
+                    <h2 class="breadcrumb-title" $:heading_attrs>$breadcrumb_title</h2>
                     $:macros.icon("chevron-right", size="sm", extra_class="icon-link__image down-chevron")
                 </div>
                 <select class="disguised-select">
