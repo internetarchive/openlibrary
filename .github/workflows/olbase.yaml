@@ -13,13 +13,21 @@ jobs:
     if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-latest
 
-    env:
-      # To test this GitHub action, you can create an upstream branch, and manually trigger
-      # it from GitHub. The tag name of the image will be your branch name, so don't use
-      # any weird characters. Note this will not work with a fork ; you need an upstream branch!
-      TAG_NAME: ${{ github.ref == 'refs/heads/master' && 'latest' || github.ref_name }}
-
+    # To test this GitHub action, you can create an upstream branch, and manually trigger
+    # it from GitHub. The tag name of the image will be your branch name, with any characters
+    # not allowed in docker tags (e.g. "/") replaced by "-". Note this will not work with a
+    # fork ; you need an upstream branch!
     steps:
+      # Docker tags only allow [A-Za-z0-9_.-], so e.g. "7450/foo" becomes "7450-foo"
+      - name: Compute image tag
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            TAG_NAME=latest
+          else
+            TAG_NAME=$(echo "$GITHUB_REF_NAME" | sed 's/[^A-Za-z0-9_.-]/-/g')
+          fi
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
@@ -47,10 +55,17 @@ jobs:
     if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-24.04-arm
 
-    env:
-      TAG_NAME: ${{ github.ref == 'refs/heads/master' && 'latest' || github.ref_name }}
-
     steps:
+      # Docker tags only allow [A-Za-z0-9_.-], so e.g. "7450/foo" becomes "7450-foo"
+      - name: Compute image tag
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            TAG_NAME=latest
+          else
+            TAG_NAME=$(echo "$GITHUB_REF_NAME" | sed 's/[^A-Za-z0-9_.-]/-/g')
+          fi
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
@@ -78,10 +93,17 @@ jobs:
     needs: [docker, docker-arm64]
     runs-on: ubuntu-latest
     if: github.repository_owner == 'internetarchive'
-    env:
-      TAG_NAME: ${{ github.ref == 'refs/heads/master' && 'latest' || github.ref_name }}
-
     steps:
+      # Docker tags only allow [A-Za-z0-9_.-], so e.g. "7450/foo" becomes "7450-foo"
+      - name: Compute image tag
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            TAG_NAME=latest
+          else
+            TAG_NAME=$(echo "$GITHUB_REF_NAME" | sed 's/[^A-Za-z0-9_.-]/-/g')
+          fi
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+
       - name: Login to Docker Hub
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
