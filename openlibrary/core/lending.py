@@ -536,7 +536,14 @@ def update_availability_schema_to_v2(
 async def get_availability_async(
     id_type: Literal["identifier", "openlibrary_work", "openlibrary_edition"],
     ids: list[str],
+    use_cache: bool = True,
+    batch_size: int = AVAILABILITY_BATCH_SIZE,
 ) -> dict[str, AvailabilityStatusV2]:
+    """
+    :param use_cache: Read and write the 5-minute memcache. False always asks
+                      the availability service, and leaves the cache alone.
+    :param batch_size: Max ids per request to the availability service.
+    """
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
         return {}
@@ -544,72 +551,80 @@ async def get_availability_async(
     def key_func(_id: str) -> str:
         return cache.build_memcache_key("lending.get_availability", id_type, _id)
 
-    mc = cache.get_memcache()
+    mc = cache.get_memcache() if use_cache else None
 
-    cached_values = cast(dict[str, AvailabilityStatusV2], mc.get_multi([key_func(_id) for _id in ids]))
-    availabilities = {_id: cached_values[key] for _id in ids if (key := key_func(_id)) in cached_values}
-    ids_to_fetch = set(ids) - set(availabilities)
+    availabilities: dict[str, AvailabilityStatusV2] = {}
+    if mc is not None:
+        cached_values = cast(dict[str, AvailabilityStatusV2], mc.get_multi([key_func(_id) for _id in ids]))
+        availabilities = {_id: cached_values[key] for _id in ids if (key := key_func(_id)) in cached_values}
+    ids_to_fetch = list(dict.fromkeys(_id for _id in ids if _id not in availabilities))
 
     if not ids_to_fetch:
         return availabilities
 
-    try:
-        headers = {
-            "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
-            "x-preferred-client-useragent": req_context.get().user_agent or "",
-            "x-application-id": "openlibrary",
-            "user-agent": "Open Library Site",
-        }
-        if config_ia_ol_metadata_write_s3:
-            headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
-        resp = await ia.get_async_session().get(
-            config_ia_availability_api_v2_url,
-            params={
-                id_type: ",".join(ids_to_fetch),
-                "scope": "printdisabled",
-            },
-            headers=headers,
-            timeout=config_http_request_timeout,
-        )
-
-        # This API should always return 200
-        resp.raise_for_status()
-
-        response = cast(AvailabilityServiceResponse, resp.json())
-
-        if not response["success"]:
-            logger.warning(f"AvailabilityServiceError: {response['error']}")
-            stats.increment("ol.availability.service_error", rate=0.01)
-            return {}
-
-        uncached_values = {
-            _id: update_availability_schema_to_v2(
-                availability,
-                ocaid=(_id if id_type == "identifier" else availability.get("identifier")),
-            )
-            for _id, availability in response["responses"].items()
-        }
-        availabilities |= uncached_values
-        mc.set_multi(
-            {key_func(_id): availability for _id, availability in uncached_values.items()},
-            expires=5 * dateutil.MINUTE_SECS,
-        )
-        return availabilities
-    except Exception as e:  # TODO: Narrow exception scope
-        logger.exception("lending.get_availability", extra={"ids": ids})
-        availabilities.update(
-            {
-                _id: update_availability_schema_to_v2(
-                    cast(AvailabilityStatus, {"status": "error"}),
-                    ocaid=_id if id_type == "identifier" else None,
-                )
-                for _id in ids_to_fetch
+    error = None
+    for batch in itertools.batched(ids_to_fetch, batch_size, strict=False):
+        try:
+            headers = {
+                "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
+                "x-preferred-client-useragent": req_context.get().user_agent or "",
+                "x-application-id": "openlibrary",
+                "user-agent": "Open Library Site",
             }
-        )
+            if config_ia_ol_metadata_write_s3:
+                headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+            resp = await ia.get_async_session().get(
+                config_ia_availability_api_v2_url,
+                params={
+                    id_type: ",".join(batch),
+                    "scope": "printdisabled",
+                },
+                headers=headers,
+                timeout=config_http_request_timeout,
+            )
+
+            # This API should always return 200
+            resp.raise_for_status()
+
+            response = cast(AvailabilityServiceResponse, resp.json())
+
+            if not response["success"]:
+                logger.warning(f"AvailabilityServiceError: {response['error']}")
+                stats.increment("ol.availability.service_error", rate=0.01)
+                continue
+
+            uncached_values = {
+                _id: update_availability_schema_to_v2(
+                    availability,
+                    ocaid=(_id if id_type == "identifier" else availability.get("identifier")),
+                )
+                for _id, availability in response["responses"].items()
+            }
+            availabilities |= uncached_values
+            if mc is not None:
+                mc.set_multi(
+                    {key_func(_id): availability for _id, availability in uncached_values.items()},
+                    expires=5 * dateutil.MINUTE_SECS,
+                )
+        except Exception as e:  # TODO: Narrow exception scope
+            logger.exception("lending.get_availability", extra={"ids": batch})
+            error = e
+            availabilities.update(
+                {
+                    _id: update_availability_schema_to_v2(
+                        cast(AvailabilityStatus, {"status": "error"}),
+                        ocaid=_id if id_type == "identifier" else None,
+                    )
+                    for _id in batch
+                }
+            )
+
+    if error:
         return availabilities | {
             "error": "request_timeout",
-            "details": str(e),
+            "details": str(error),
         }  # type: ignore
+    return availabilities
 
 
 get_availability = async_bridge.wrap(get_availability_async)

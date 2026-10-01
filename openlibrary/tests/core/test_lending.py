@@ -108,6 +108,46 @@ class TestGetAvailability:
             assert mock_get.call_args[1]["params"]["identifier"] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}
 
+    @staticmethod
+    def _session(responses_per_call):
+        """Patch the shared async session; each GET answers with the next dict of `responses`."""
+        mock_get = AsyncMock()
+        replies = []
+        for responses in responses_per_call:
+            reply = Mock()
+            reply.json = Mock(return_value={"success": True, "responses": responses})
+            reply.raise_for_status = Mock()
+            replies.append(reply)
+        mock_get.side_effect = replies
+        return patch("openlibrary.core.ia.get_async_session", return_value=SimpleNamespace(get=mock_get)), mock_get
+
+    @pytest.mark.asyncio
+    async def test_use_cache_false_always_asks_and_leaves_the_cache_alone(self):
+        session, mock_get = self._session([{"nocache1": {"status": "open"}}] * 2)
+        with session, patch("openlibrary.core.lending.cache.get_memcache", side_effect=AssertionError("cache touched")):
+            await lending.get_availability_async("identifier", ["nocache1"], use_cache=False)
+            await lending.get_availability_async("identifier", ["nocache1"], use_cache=False)
+        assert mock_get.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_batches_requests(self):
+        ids = [f"batched{i}" for i in range(5)]
+        session, mock_get = self._session([{}, {}, {}])
+        with session:
+            await lending.get_availability_async("identifier", ids, use_cache=False, batch_size=2)
+        sent = [call.kwargs["params"]["identifier"].split(",") for call in mock_get.call_args_list]
+        assert sent == [ids[0:2], ids[2:4], ids[4:5]]
+
+    @pytest.mark.asyncio
+    async def test_a_failed_batch_only_errors_its_own_ids(self):
+        session, mock_get = self._session([{"failbatch2": {"status": "open"}}])
+        mock_get.side_effect = [RuntimeError("boom"), *mock_get.side_effect]
+        with session:
+            r = await lending.get_availability_async("identifier", ["failbatch1", "failbatch2"], use_cache=False, batch_size=1)
+        assert r["failbatch1"]["status"] == "error"
+        assert r["failbatch2"]["status"] == "open"
+        assert r["error"] == "request_timeout"
+
 
 @pytest.mark.usefixtures("request_context_fixture")
 class TestGetLendingState:
