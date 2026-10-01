@@ -138,6 +138,7 @@ wipe auto-detection) are a maintainer follow-up, out of scope here.
 import asyncio
 import contextlib
 import datetime
+import itertools
 import json
 import logging
 import time
@@ -372,8 +373,7 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     # production) fails the whole query, which propagated out of the cold start
     # and killed the process before any state was written. A daemon that cannot
     # complete a cold start never starts at all.
-    for start in range(0, len(identifiers), SOLR_QUERY_CHUNK):
-        chunk = identifiers[start : start + SOLR_QUERY_CHUNK]
+    for chunk in itertools.batched(identifiers, SOLR_QUERY_CHUNK, strict=False):
         quoted = " ".join(_phrase(id_) for id_ in chunk)
         result = await get_solr().select_async(
             query=f"type:edition AND ia:({quoted})",

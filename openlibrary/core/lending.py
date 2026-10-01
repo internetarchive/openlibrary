@@ -2,6 +2,7 @@
 
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
+import itertools
 import logging
 import os
 import time
@@ -272,8 +273,7 @@ async def get_availability_batch(
         headers["authorization"] = auth
 
     result: dict[str, AvailabilityStatus] = {}
-    for start in range(0, len(identifiers), batch_size):
-        batch = identifiers[start : start + batch_size]
+    for batch in itertools.batched(identifiers, batch_size, strict=False):
         try:
             response = await ia.get_async_session().get(
                 config_ia_availability_api_v2_url,
