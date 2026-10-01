@@ -960,7 +960,7 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html type/tag/index.html
+#: about/index.html books/custom_carousel.html.jinja type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -3107,6 +3107,58 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
+#: books/custom_carousel.html.jinja openlibrary/plugins/openlibrary/nav.py search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: books/custom_carousel.html.jinja merge_request_table/table_header.html
+msgid "Newest"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Top rated"
+msgstr ""
+
+#: books/custom_carousel.html.jinja search/sort_options.html
+msgid "Sort by"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "Sort %(title)s"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "%(genre)s subgenres"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Previous page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Next page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Carousel pages"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Go to page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "No books match these filters."
+msgstr ""
+
 #: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
@@ -4138,16 +4190,20 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
-#: home/categories.html
-msgid "Browse by Subject"
+#: home/browse_stacks.html.jinja
+msgid "Browse the stacks"
 msgstr ""
 
-#: home/categories.html
+#: home/browse_stacks.html.jinja home/categories.html
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
+
+#: home/categories.html
+msgid "Browse by Subject"
+msgstr ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
@@ -4165,7 +4221,7 @@ msgstr ""
 msgid "Romance"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
 msgid "Kids"
 msgstr ""
 
@@ -4183,6 +4239,10 @@ msgstr ""
 
 #: home/index.html
 msgid "Books in Local Environment"
+msgstr ""
+
+#: home/index.html
+msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
 #: home/stats.html
@@ -5108,10 +5168,6 @@ msgid "Sort"
 msgstr ""
 
 #: merge_request_table/table_header.html
-msgid "Newest"
-msgstr ""
-
-#: merge_request_table/table_header.html
 msgid "Oldest"
 msgstr ""
 
@@ -5967,16 +6023,8 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/nav.py search/sort_options.html
-msgid "Trending"
-msgstr ""
-
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Sort by"
 msgstr ""
 
 #: search/sort_options.html
@@ -8266,6 +8314,30 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Science"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biography"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Philosophy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Psychology"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Poetry"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Travel"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Cooking"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
