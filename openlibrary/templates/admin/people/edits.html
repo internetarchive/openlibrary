@@ -3,12 +3,13 @@ $def with (account, paginate=True)
 $var title: $_('[Admin Center] Edits of %(user)s', user=account.displayname)
 
 $if paginate:
-    $ page = safeint(query_param('page', '1'))
+    $ page = max(safeint(query_param('page', '1'), 1), 1)
 $else:
     $ page = 1
 
-$# The pager below divides by limit, and safeint returns 0 for ?limit=0 or ?limit=abc
-$ limit = max(safeint(query_param('limit', '100')), 1)
+$# The pager below divides by limit, so ?limit=0, -5 or abc fall back to the default
+$ limit = safeint(query_param('limit', '100'), 100)
+$ limit = limit if limit > 0 else 100
 
 <div id="contentHead">
     $:render_template("admin/menu")
