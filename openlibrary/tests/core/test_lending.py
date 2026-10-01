@@ -1,7 +1,10 @@
+import json
 from contextlib import contextmanager
+from contextvars import ContextVar
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
+import httpx
 import pytest
 
 from openlibrary.core import lending
@@ -141,7 +144,7 @@ class TestGetAvailability:
     @pytest.mark.asyncio
     async def test_a_failed_batch_only_errors_its_own_ids(self):
         session, mock_get = self._session([{"failbatch2": {"status": "open"}}])
-        mock_get.side_effect = [RuntimeError("boom"), *mock_get.side_effect]
+        mock_get.side_effect = [httpx.ConnectError("boom"), *mock_get.side_effect]
         with session:
             r = await lending.get_availability_async("identifier", ["failbatch1", "failbatch2"], use_cache=False, batch_size=1)
         assert r["failbatch1"]["status"] == "error"
@@ -153,10 +156,27 @@ class TestGetAvailability:
         """A caller deciding availability from this must not mistake a failed
         lookup for an answer: no placeholder, no top-level error keys."""
         session, mock_get = self._session([{"dropok": {"status": "open"}, "droperr": {"status": "error"}}])
-        mock_get.side_effect = [*mock_get.side_effect, RuntimeError("boom")]
+        mock_get.side_effect = [*mock_get.side_effect, httpx.ReadTimeout("boom")]
         with session:
             r = await lending.get_availability_async("identifier", ["dropok", "droperr", "dropfailed"], use_cache=False, batch_size=2, drop_errors=True)
         assert list(r) == ["dropok"]
+
+    @pytest.mark.asyncio
+    async def test_a_non_json_body_is_a_failed_batch(self):
+        session, mock_get = self._session([])
+        bad = Mock(raise_for_status=Mock(), json=Mock(side_effect=json.JSONDecodeError("Expecting value", "<html>", 0)))
+        mock_get.side_effect = [bad]
+        with session:
+            r = await lending.get_availability_async("identifier", ["htmlbody"], use_cache=False)
+        assert r["htmlbody"]["status"] == "error"
+
+    @pytest.mark.asyncio
+    async def test_a_missing_request_context_raises_rather_than_reading_as_no_answer(self):
+        """Under drop_errors a swallowed LookupError is indistinguishable from the
+        service answering nothing -- a daemon would free nothing, forever."""
+        session, _ = self._session([{"noctx": {"status": "open"}}])
+        with session, patch("openlibrary.core.lending.req_context", ContextVar("unset")), pytest.raises(LookupError):
+            await lending.get_availability_async("identifier", ["noctx"], use_cache=False, drop_errors=True)
 
     @pytest.mark.asyncio
     async def test_drop_errors_leaves_out_a_cached_error_without_refetching(self):
