@@ -375,7 +375,7 @@ async def _serve_cover(request: Request, category: CoverCategory, key: str, valu
             # A 302 isn't cacheable unless it says so, and this one never changes.
             return RedirectResponse(url, status_code=302, headers=headers)
         return Response(content=read_image(d, size), media_type="image/jpeg", headers=headers)
-    except (OSError, ValueError):
+    except OSError, ValueError:
         # ValueError as well as OSError: when a row's filename_<size> is NULL,
         # read_image() falls back to "<filename>-<SIZE>.jpg". On a tar-style
         # filename that yields "covers_NNNN_NN.tar:offset:size-L.jpg", and
