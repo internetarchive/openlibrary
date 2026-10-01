@@ -108,6 +108,11 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *   <ol-button shape="circle" elevation="floating" aria-label="Save">+</ol-button>
  */
 export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
+    /** `host.focus()` lands on the inner control even where delegatesFocus is unavailable (jsdom). */
+    get _focusTarget() {
+        return this.shadowRoot?.querySelector('.control') ?? null;
+    }
+
     static properties = {
         variant: { type: String, reflect: true },
         tone: { type: String, reflect: true },
@@ -165,7 +170,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: var(--spacing-inline-md);
+            gap: var(--spacing-icon-gap);
             box-sizing: border-box;
             /* Height is a custom property so the icon-only shapes can square up on it. */
             --ol-button-height: var(--control-height-medium);

@@ -1,12 +1,15 @@
-{# Shows one book carousel. #}
-{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards) %}
+{#
+  Shows one book carousel. `count` and `shelf` are optional: see carousel_count.html.jinja.
+#}
+{% from "books/carousel_count.html.jinja" import carousel_count %}
+{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none) %}
     {% if show %}
         <div class="carousel-section">
             {% if title and url %}
                 <div class="carousel-section-header">
                     <h2 class="home-h2">
                         <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
-                           href="{{ url }}">{{ title }}</a>
+                           href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
                     </h2>
                 </div>
             {% endif %}
@@ -22,5 +25,5 @@
     {% endif %}
 {% endmacro %}
 {% if show is defined %}
-    {{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards) }}
+    {{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count, shelf) }}
 {% endif %}

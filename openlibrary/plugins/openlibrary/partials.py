@@ -18,6 +18,7 @@ from openlibrary.core.fulltext import FulltextRow, exclude_ocaids, fulltext_page
 from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
+from openlibrary.core.reading_state import ReadingState, get_reading_state
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
@@ -32,6 +33,7 @@ from openlibrary.plugins.openlibrary.lists import (
     get_user_lists,
 )
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
+from openlibrary.plugins.upstream.mybooks import shelf_button_for
 from openlibrary.plugins.upstream.utils import (
     get_user_object,
     json_encode,
@@ -41,6 +43,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
+    get_solr_works,
     run_solr_query_async,
     work_search_async,
 )
@@ -53,6 +56,7 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -93,14 +97,11 @@ class ReadingGoalProgressPartial:
 
 
 class MyBooksDropperListsPartial:
-    """Handler for the MyBooks dropper list component."""
+    """The reader's lists with their members, for the popover's lists store and the book page's lists strip."""
 
     @classmethod
     def generate(cls) -> dict:
         user_lists = get_user_lists(None)
-
-        template = get_jinja_env().get_template("lists/dropper_lists.html.jinja")
-        dropper = template.render(lists=user_lists, json_encode=json_encode)
         list_data = {
             list_data["key"]: {
                 "members": list_data["list_items"],
@@ -108,11 +109,33 @@ class MyBooksDropperListsPartial:
             }
             for list_data in user_lists
         }
+        return {"listData": list_data}
 
-        return {
-            "dropper": dropper,
-            "listData": list_data,
-        }
+
+class WorkEditionsPartial:
+    """Every edition OLID of a work, so the popover can tell that a list holding one of them holds the book.
+
+    A list records whichever copy the reader was looking at, so the same book can sit on a
+    list under any of its editions. Matching only the key this button would write reads
+    those lists as empty and files the book a second time.
+
+    The answer is the same for every reader, so it is fetched per book on open rather than
+    for every member of every list up front, and carousels pay nothing for it.
+    """
+
+    @classmethod
+    def generate(cls, work_olid: str) -> dict[str, list[str]]:
+        doc = get_solr_works({f"/works/{work_olid}"}, fields={"key", "edition_key"}).get(f"/works/{work_olid}")
+        return {"editions": list(doc.get("edition_key") or []) if doc else []}
+
+
+class ReadingStatePartial:
+    """The opening state for `<ol-shelf-button>`s the server rendered without it (carousels); book-state.js asks here."""
+
+    @classmethod
+    def generate(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
+        work_ids = [int(extract_numeric_id_from_olid(olid)) for olid in work_olids]
+        return {f"OL{work_id}W": state for work_id, state in get_reading_state(username, work_ids).items()}
 
 
 class CarouselLoadMoreParams(BaseModel):
@@ -200,6 +223,7 @@ class CarouselCardData(TypedDict):
     loan_status_html: Markup
     return_confirm_i18n: str
     request_fullpath: str
+    shelf_button_html: Markup
 
 
 @public
@@ -247,6 +271,8 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, secondary_action=(secondary_action and not loan), key=key),
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
+        # No reader or state in the HTML: book-state.js fills both in.
+        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True)),
     }
 
 
@@ -272,6 +298,8 @@ class CarouselCardPartial:
             else:
                 book = editions.get("docs", [None])[0]
             book["authors"] = work.get("authors", [])
+            # An edition doc carries no work key; the shelf button needs it.
+            book["work_key"] = work.get("key")
             book = web.storage(book)
 
             try:
@@ -811,6 +839,8 @@ class CarouselPartial:
             loadjs=book_data["loadjs"],
             config_json=book_data["config_json"],
             cards=book_data["cards"],
+            count=book_data["count"],
+            shelf=book_data["shelf"],
         )
         return {"partials": render_jinja_template("RawQueryCarousel.html.jinja", **data)}
 
@@ -901,6 +931,9 @@ def _carousel_card_book(book: Any) -> Any:
     target = docs[0] if isinstance(docs, list) and docs else book
     card_book = target if hasattr(target, "key") else web.storage(target)
     card_book["authors"] = book.get("authors", [])
+    if target is not book:
+        # An edition doc carries no work key; the shelf button needs it.
+        card_book["work_key"] = book.get("key")
     if loan := book.get("loan"):
         card_book["loan"] = loan
     return card_book
@@ -936,6 +969,8 @@ class BookCarouselData(CarouselCommonData):
     loadjs: str
     config_json: str
     cards: list[str]
+    count: int | None  # shown after the title; a shelf carousel's count is kept live by book-state.js
+    shelf: int | None
 
 
 class CarouselPlaceholderData(TypedDict):
@@ -965,6 +1000,8 @@ def get_book_carousel_data(
     secondary_action: bool = False,
     layout: str = "carousel",
     full_path: str,
+    count: int | None = None,
+    shelf: int | None = None,
     **common: Unpack[CarouselCommonData],
 ) -> BookCarouselData:
     """Gather the data for books/custom_carousel.html.jinja.
@@ -978,7 +1015,7 @@ def get_book_carousel_data(
     key = common.get("key", "")
     books = books or []
     if not (test or (books and len(books) >= min_books)):
-        return BookCarouselData(show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[])
+        return BookCarouselData(show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[], count=count, shelf=shelf)
 
     config = {
         "booksPerBreakpoint": [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
@@ -1029,6 +1066,8 @@ def get_book_carousel_data(
         loadjs="carousel--progressively-enhanced" if layout == "carousel" else "",
         config_json=json_encode(config),
         cards=cards,
+        count=count,
+        shelf=shelf,
     )
 
 

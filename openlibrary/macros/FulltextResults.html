@@ -2,11 +2,15 @@ $def with(query, rows, total, page=1, results_per_page=20)
 
 $ phrase = phrase_query(query)
 
+$# One round of queries for the whole page. Rows whose scan has no OL record
+$# carry no edition, so they get no shelf button and nothing to look up.
+$ reading_states = get_reading_states(ctx.user, [row.edition for row in rows if row.edition])
+
 <div id="searchResults">
   <ul class="list-books list-books--fulltext">
     $for row in rows:
       $if row.edition:
-        $:macros.SearchResultsWork(row.edition, availability=row.availability, extra_row=render_jinja_template("FulltextSnippet.html.jinja", row=row, phrase=phrase), include_dropper=True, seq_index=loop.index0, show_title_year=True)
+        $:macros.SearchResultsWork(row.edition, availability=row.availability, extra_row=render_jinja_template("FulltextSnippet.html.jinja", row=row, phrase=phrase), include_dropper=True, reading_states=reading_states, seq_index=loop.index0, show_title_year=True)
       $else:
         $:render_jinja_template("FulltextResultIA.html.jinja", row=row, phrase=phrase)
   </ul>

@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 // The <ol-*> custom elements this modal uses (ol-icon, ol-dialog, ol-toggle,
 // ol-select-popover) are registered by the site-wide
@@ -9,6 +10,8 @@ import { repeat } from 'lit/directives/repeat.js';
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { trackEvent } from '../ol.analytics.js';
+import { buildPartialsUrl } from '../utils.js';
+import { readLabels } from '../book-state.js';
 import {
     AVAILABILITY_OPTIONS,
     AVAILABILITY_TO_PARAMS,
@@ -34,6 +37,11 @@ import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searc
 import { deriveAuthors } from './authorSuggestion.js';
 import { dedupeFulltextHits, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
 import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
+
+// 'books' searches the catalogue (with the Search Inside band as a teaser);
+// 'inside' searches only the text of the scans.
+const MODE_BOOKS  = 'books';
+const MODE_INSIDE = 'inside';
 
 // `editions` is requested not to render it, but to opt /search.json into the
 // edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
@@ -81,9 +89,14 @@ const RESULTS_LIMIT     = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
 // autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
 const MIN_QUERY_LENGTH  = 3;
+/** "/works/OL1W" → "OL1W" */
+const olidOf = key => key.split('/').pop();
 const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
 // Idle time before a query's outcome counts, so partials typed on the way don't.
 const OUTCOME_DEBOUNCE_MS = 1200;
+
+// How long superseded results hold before they're dimmed, so fast answers never flicker.
+const STALE_DELAY_MS = 300;
 
 // The bare common-word "the" matches almost everything and isn't worth a Solr
 // round-trip, so the legacy SearchBar skipped it for autocomplete. Navigation
@@ -104,6 +117,7 @@ export class SearchModal extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
         _query: { state: true },
+        _mode: { state: true },
         _availability: { state: true },
         _languages: { state: true },
         _results: { state: true },
@@ -118,9 +132,15 @@ export class SearchModal extends LitElement {
         _langsLoading: { state: true },
         _navigatingKey: { state: true },
         _recentSearches: { state: true },
+        _readingState: { state: true },
         _ftHits: { state: true },
         _ftTotal: { state: true },
         _ftSearchKey: { state: true },
+        _ftQuery: { state: true },
+        _ftLoading: { state: true },
+        _ftError: { state: true },
+        _resultsKey: { state: true },
+        _markStale: { state: true },
     };
 
     static styles = css`
@@ -277,6 +297,58 @@ export class SearchModal extends LitElement {
             outline-offset: 2px;
         }
 
+        /* ── Scope tabs ────────────────────────────────────────────── */
+
+        /* Above .filter-section, so scope reads as part of the query, not a filter. */
+        .tabs {
+            display: flex;
+            gap: var(--spacing-md);
+            padding-inline: var(--spacing-lg);
+            border-bottom: var(--border-divider);
+        }
+
+        /* Underline is always drawn and hidden by color, so selecting re-paints only. */
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-2xs);
+            /* Sits the underline on the section's own divider. */
+            margin-bottom: -1px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--color-text-muted);
+            font: inherit;
+            font-size: var(--font-size-body-medium);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+        }
+
+        /* Hidden bold twin reserves width so the selected tab goes bold without reflow. */
+        .tab-ghost {
+            height: 0;
+            overflow: hidden;
+            visibility: hidden;
+            font-weight: var(--font-weight-semibold);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .tab:hover { color: var(--color-text); }
+        }
+
+        .tab:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .tab[aria-selected="true"] {
+            color: var(--color-text);
+            border-bottom-color: var(--color-text);
+            font-weight: var(--font-weight-semibold);
+        }
+
         /* ── Filter section (filter buttons + active chip row) ─────── */
 
         /* The filter buttons and active-filter chips read as one box: the
@@ -409,6 +481,34 @@ export class SearchModal extends LitElement {
 
         @media (prefers-reduced-motion: reduce) { .result { transition: none; } }
 
+        /* The link and the shelf button are siblings (a button cannot live inside
+           an anchor); the row carries the hover tint so the two read as one. */
+        .result-row {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .result-row .result {
+            flex: 1;
+            min-width: 0;
+            padding-right: var(--spacing-sm);
+        }
+
+        .result-row ol-shelf-button {
+            flex-shrink: 0;
+            /* Centred on the 50px cover: (50 − 32) / 2 below the row's padding. */
+            margin: calc(var(--spacing-sm) + 9px) var(--spacing-lg) 0 0;
+        }
+
+        /* The row owns the tint; a second overlay on the anchor would read darker. */
+        @media (hover: hover) and (pointer: fine) {
+            .result-row:hover { background: var(--color-hover-overlay); }
+            .result-row .result:hover { background: none; }
+        }
+
+        .result-row:focus-within { background: var(--color-hover-overlay); }
+        .result-row .result:focus-visible { background: none; }
+
         .result__cover-link {
             position: relative;
             display: flex;
@@ -483,40 +583,37 @@ export class SearchModal extends LitElement {
             font-weight: 400;
         }
 
-        /* Trailing column at the row's edge (.result__meta's flex:1 pushes it
-           right): the "Readable" pill, with the "In <language>" hint stacked
-           directly beneath it. Right-aligned and top-aligned so the access
-           information reads as one unit, apart from the title/author block. */
-        .result__access-col {
-            flex-shrink: 0;
-            align-self: flex-start;
+        /* The title truncates; the badge beside it stays whole. */
+        .result__title-line {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: var(--spacing-3xs);
+            gap: var(--spacing-xs);
+            min-width: 0;
         }
 
-        /* "Readable" pill — a quiet status indicator, not a button (the whole
-           row is the link). Green echoes the site's "you can read this" hue. */
-        .result__access {
-            padding: var(--spacing-3xs) var(--spacing-xs);
-            border-radius: var(--border-radius-button);
-            font-size: var(--font-size-label-small);
-            font-weight: 600;
-            letter-spacing: 0.02em;
+        .result__title-line .result__title { flex: 0 1 auto; min-width: 0; }
+
+        /* Status badge beside the title: a label, not a button. Bordered so it
+           reads as a chip on the hover tint too. Muted by default, which
+           "Readable in <language>" wears: a readable copy with a caveat. */
+        .result__badge {
+            flex-shrink: 0;
+            padding: 0 var(--spacing-2xs);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-badge);
+            font-size: var(--font-size-label-medium);
+            font-weight: 500;
+            line-height: 1.5;
             white-space: nowrap;
-            color: var(--color-success-fg);
-            background: var(--color-success-bg);
-        }
-
-        /* Quiet "In <language>" hint shown under the Readable pill when the
-           readable copy isn't in the patron's site language. Informational, not
-           a button — muted so it sits below the pill without competing with it. */
-        .result__lang {
             color: var(--color-text-muted);
-            font-size: var(--font-size-label-small);
-            font-weight: 400;
-            white-space: nowrap;
+            background: var(--color-surface-sunken);
+        }
+
+        /* "Readable" — green echoes the site's "you can read this" hue. */
+        .result__badge--readable {
+            color: var(--color-success-fg);
+            border-color: var(--color-success-border);
+            background: var(--color-success-bg);
         }
 
         .empty, .loading {
@@ -551,10 +648,37 @@ export class SearchModal extends LitElement {
         .ft-band .results-list li { border-top-color: var(--color-border-subtle); }
         .ft-band .results-list li:first-child { border-top: none; }
 
-        .ft-band__footer {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-top: 1px solid var(--color-border-subtle);
+        /* Styled as a link since it navigates. Pushed to the end of the heading row. */
+        .ft-band__view-all {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-3xs);
+            margin-inline-start: auto;
+            padding: 0;
+            background: none;
+            border: none;
+            color: var(--color-link);
+            font: inherit;
+            font-size: var(--font-size-label-medium);
+            font-weight: var(--font-weight-medium);
+            letter-spacing: normal;
+            text-transform: none;
+            cursor: pointer;
         }
+
+        @media (hover: hover) and (pointer: fine) {
+            .ft-band__view-all:hover { color: var(--color-link-hover); }
+        }
+
+        .ft-band__view-all:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .ft-band__view-all ol-icon { flex-shrink: 0; }
+
+        :host(:dir(rtl)) .ft-band__view-all ol-icon { transform: scaleX(-1); }
 
         /* Left rule marks the passage, as .fsi-quote does. Not boxed: the band
            is already a card. */
@@ -697,13 +821,27 @@ export class SearchModal extends LitElement {
         }
 
         @media (prefers-reduced-motion: reduce) { .result__remove-recent { transition: none; } }
+        /* ── Stale (results a newer query has superseded) ───────────── */
+
+        /* Past STALE_DELAY_MS, lingering rows dim so they don't pass for the current
+           answer. Transition lives here so only the fade-in animates. */
+        .results.is-stale {
+            opacity: 0.55;
+            transition: opacity var(--duration-fast) var(--ease-state);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .results.is-stale { transition: none; }
+        }
+
         /* ── Navigating (pressed result → page loading) ────────────── */
 
         /* Pressing a result navigates the whole window, and the next page can
            take a moment to start painting. During that gap the chosen row
            holds full opacity while the rest dim back and its cover darkens
            under a spinner. */
-        .results.is-navigating .result { opacity: 0.4; }
+        .results.is-navigating .result,
+        .results.is-navigating ol-shelf-button { opacity: 0.4; }
 
         .results.is-navigating .result.is-target {
             opacity: 1;
@@ -804,6 +942,7 @@ export class SearchModal extends LitElement {
         super();
         this.open          = false;
         this._query        = '';
+        this._mode         = MODE_BOOKS;
         this._results      = [];
         this._authorSuggestions = [];
         this._numFound     = null;
@@ -868,17 +1007,28 @@ export class SearchModal extends LitElement {
 
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
+        // The search the rows on screen answer; _activeFetchKey moves as soon as a fetch starts.
+        this._resultsKey = null;
+        // Set once superseded content has shown for STALE_DELAY_MS. One clock for the whole modal.
+        this._markStale  = false;
+        this._staleTimer = null;
 
         // FulltextBand decides when to fetch; the modal mirrors its result.
         this._ftHits  = [];
         this._ftTotal = null;
         this._ftSearchKey = null;
+        this._ftQuery = '';
+        this._ftLoading = false;
+        this._ftError = false;
         this._ftBand  = new FulltextBand({
             getFilters: () => this._fulltextFilters(),
-            onChange: ({ hits, total, searchKey }) => {
+            onChange: ({ hits, total, searchKey, query, loading, error }) => {
                 this._ftHits      = hits;
                 this._ftTotal     = total;
                 this._ftSearchKey = searchKey;
+                this._ftQuery     = query;
+                this._ftLoading   = loading;
+                this._ftError     = error;
             },
             onAttempt: (status) => this._scheduleBandOutcome(status),
         });
@@ -893,6 +1043,16 @@ export class SearchModal extends LitElement {
         // per action, so the band's outcome can't cancel the catalog's.
         this._outcomeTracked = new Set();
         this._outcomeTimers  = new Map();
+
+        // For the rows' shelf buttons. State is keyed by work OLID and outlives
+        // the query, so a book seen again never refetches. Filled on intent.
+        this._userKey       = '';
+        this._shelfLabels   = null;
+        this._readingState  = new Map();
+        this._stateRequested = new Set();
+        this._shelfStateWanted = false;
+        this._onBookStateChange = this._onBookStateChange.bind(this);
+        this._onBookCheckIn     = this._onBookCheckIn.bind(this);
     }
 
     connectedCallback() {
@@ -906,11 +1066,17 @@ export class SearchModal extends LitElement {
             this._ftSeeAllLoading = false;
         };
         window.addEventListener('pageshow', this._onPageShow);
+        // At the document, so a change made anywhere on the page reaches the same map.
+        document.addEventListener('ol-book-state-change', this._onBookStateChange);
+        document.addEventListener('ol-book-check-in', this._onBookCheckIn);
     }
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
+        document.removeEventListener('ol-book-state-change', this._onBookStateChange);
+        document.removeEventListener('ol-book-check-in', this._onBookCheckIn);
         this._clearOutcomeTimers();
+        this._clearStaleTimer();
         super.disconnectedCallback();
     }
 
@@ -971,6 +1137,7 @@ export class SearchModal extends LitElement {
     _resetResults({ hasSearched, clearReadableCount = true } = {}) {
         this._clearOutcomeTimers();
         this._results           = [];
+        this._resultsKey        = null;
         this._authorSuggestions = [];
         this._numFound          = null;
         if (clearReadableCount) this._readableCount = null;
@@ -1110,7 +1277,7 @@ export class SearchModal extends LitElement {
                             autocorrect="off"
                             autocapitalize="off"
                             spellcheck="false"
-                            placeholder=${this._i18n.inputPlaceholder}
+                            placeholder=${this._inside ? this._i18n.insidePlaceholder : this._i18n.inputPlaceholder}
                             aria-label=${this._i18n.inputAria}
                             .value=${this._query}
                             @input=${this._onQueryInput}
@@ -1145,16 +1312,140 @@ export class SearchModal extends LitElement {
                     ${this._resultsAnnouncement()}
                 </div>
 
+                ${this._renderTabs()}
                 <div class="filter-section">
                     ${this._renderFilters()}
                 </div>
-                ${this._renderResults()}
+                <!-- aria-busy on the panel: the results container is replaced between states. -->
+                <div
+                    role="tabpanel"
+                    id="ol-search-panel"
+                    aria-labelledby="ol-search-tab-${this._mode}"
+                    aria-busy=${this._markStale ? 'true' : 'false'}
+                >
+                    ${this._renderResults()}
+                </div>
 
                 <div slot="footer" class="footer">
                     ${this._renderSeeAll()}
                 </div>
             </ol-dialog>
         `;
+    }
+
+    // Reconciled after every render, so no path can leave a dim that nothing clears.
+    updated() {
+        // The Books tab's band hides rather than dims, so it doesn't start the clock.
+        const superseded = this._inside ? this._bandSuperseded() : this._catalogSuperseded();
+        if (superseded) {
+            if (this._markStale || this._staleTimer) return;
+            this._staleTimer = setTimeout(() => {
+                this._staleTimer = null;
+                this._markStale = true;
+            }, STALE_DELAY_MS);
+        } else {
+            this._clearStaleTimer();
+            this._markStale = false;
+        }
+    }
+
+    _clearStaleTimer() {
+        if (!this._staleTimer) return;
+        clearTimeout(this._staleTimer);
+        this._staleTimer = null;
+    }
+
+    // ── Staleness ────────────────────────────────────────────────────────
+    //
+    // *Superseded: rows answer an older query. *IsStale: the same, past the delay.
+
+    _catalogSuperseded() {
+        return this._results.length > 0 && this._resultsKey !== this._buildSearchJsonUrl(this._query.trim());
+    }
+
+    _bandSuperseded() {
+        return this._ftHits.length > 0 && !this._ftIsCurrent();
+    }
+
+    _catalogIsStale() { return this._markStale && this._catalogSuperseded(); }
+
+    _bandIsStale() { return this._markStale && this._bandSuperseded(); }
+
+    // is-navigating replaces the stale dim rather than compounding with it.
+    _resultsClass(stale) {
+        if (this._navigatingKey) return 'results is-navigating';
+        return stale ? 'results is-stale' : 'results';
+    }
+
+    /** True while the Inside books tab is showing. */
+    get _inside() { return this._mode === MODE_INSIDE; }
+
+    // No count on the Inside tab: it would only exist when the band happened to fire.
+    _renderTabs() {
+        const tab = (mode, label) => html`
+            <button
+                type="button"
+                class="tab"
+                id="ol-search-tab-${mode}"
+                role="tab"
+                aria-selected=${this._mode === mode}
+                aria-controls="ol-search-panel"
+                tabindex=${this._mode === mode ? '0' : '-1'}
+                @click=${() => this._selectMode(mode)}
+                @keydown=${this._onTabKeydown}
+            >
+                <span>${label}</span>
+                <span class="tab-ghost" aria-hidden="true">${label}</span>
+            </button>
+        `;
+        return html`
+            <div class="tabs" role="tablist" aria-label=${this._i18n.tabsAria}>
+                ${tab(MODE_BOOKS, this._i18n.tabBooks)}
+                ${tab(MODE_INSIDE, this._i18n.tabInside)}
+            </div>
+        `;
+    }
+
+    // Roving tabindex: ←/→ and Home/End. With two tabs, a move is always to the other.
+    // Auto-repeat is dropped: focus follows selection, so a held arrow would
+    // flip tabs at the key-repeat rate and fetch on every flip.
+    _onTabKeydown(e) {
+        if (e.repeat) return;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            this._selectMode(this._inside ? MODE_BOOKS : MODE_INSIDE);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            this._selectMode(MODE_BOOKS);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            this._selectMode(MODE_INSIDE);
+        }
+    }
+
+    // Returning to Books refetches the catalog (paused on Inside) and re-runs the band's gates.
+    _selectMode(mode) {
+        if (this._mode === mode) return;
+        this._mode = mode;
+        this._track('Tab', mode);
+        this._navigatingKey = null;
+        this._ftSeeAllLoading = false;
+        const trimmed = this._query.trim();
+        const live = this._shouldAutocomplete();
+        this._ftBand.setExplicit(mode === MODE_INSIDE, live ? trimmed : '');
+        if (mode === MODE_BOOKS && live) {
+            if (this._activeFetchKey !== this._buildSearchJsonUrl(trimmed)) {
+                this._scheduleSearch();
+            } else {
+                this._ftBand.queryChanged(this._query);
+                if (this._searchFailed) this._ftBand.solrFailed(trimmed);
+                else if (this._hasSearched && !this._loading) this._ftBand.solrSettled(trimmed, this._results);
+            }
+        }
+        // Focus follows selection.
+        this.updateComplete.then(() => {
+            this.renderRoot.querySelector(`#ol-search-tab-${mode}`)?.focus();
+        });
     }
 
     _renderFilters() {
@@ -1166,7 +1457,8 @@ export class SearchModal extends LitElement {
         // scoped to the query + language. We only show it once a search lands and a
         // live count is in hand — before that there's no honest number to display
         // (the whole-corpus figure ignores the query/language), so we show nothing.
-        const sublabel = this._hasSearched && typeof this._readableCount === 'number'
+        // Catalog-only; FTS has no equivalent.
+        const sublabel = !this._inside && this._hasSearched && typeof this._readableCount === 'number'
             ? this._readableCount.toLocaleString()
             : '';
         // "Clear all" only earns its place once there's more than one filter to
@@ -1205,6 +1497,8 @@ export class SearchModal extends LitElement {
     }
 
     _renderResults() {
+        if (this._inside) return this._renderInsideResults();
+
         if (!this._shouldAutocomplete()) {
             return this._recentSearches.length > 0
                 ? this._renderRecentSearches()
@@ -1212,16 +1506,14 @@ export class SearchModal extends LitElement {
         }
 
         if (this._loading && this._results.length === 0) {
-            // Strip any trailing ellipsis/period(s) from the (translated) label
-            // so the animated dots that follow aren't doubled up.
-            const searchingLabel = this._i18n.searching.replace(/[.…。]+$/, '');
-            return html`<div class="results"><div class="loading"
-                >${searchingLabel}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div></div>`;
+            return html`<div class="results">${this._renderSearching(this._i18n.searchingBooks)}</div>`;
         }
 
         if (this._results.length === 0 && this._hasSearched) {
-            // The band doubles as a no-results rescue; with hits, scope the message to the catalog.
-            const emptyLabel = this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
+            // With band hits for *this* query, scope the message to the catalog.
+            const emptyLabel = this._visibleFtHits().length
+                ? this._i18n.noCatalogResults
+                : this._i18n.noResults;
             return html`<div class="results" @keydown=${this._onResultsKeydown}>
                 <div class="empty">${emptyLabel}</div>
                 ${this._renderFulltextBand()}
@@ -1229,7 +1521,7 @@ export class SearchModal extends LitElement {
         }
 
         return html`
-            <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
+            <div class=${this._resultsClass(this._catalogIsStale())} @keydown=${this._onResultsKeydown}>
                 ${this._authorSuggestions.length ? html`
                     <h3 class="results-heading">${this._i18n.authorResults}</h3>
                     <ul class="results-list author-suggestion">
@@ -1237,64 +1529,120 @@ export class SearchModal extends LitElement {
                     </ul>
                 ` : nothing}
                 <h3 class="results-heading">${this._i18n.topResults}</h3>
-                <ul class="results-list">${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
+                <ul
+                    class="results-list"
+                    @pointerenter=${this._onShelfIntent}
+                    @focusin=${this._onShelfIntent}
+                >${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
                 ${this._renderFulltextBand()}
             </div>
         `;
     }
 
-    // Hits minus scans already listed above. Computed at render since the two fetches race.
-    _visibleFtHits() {
-        return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
-    }
-
-    // Hidden until hits land: no spinner or empty state for a secondary surface.
-    _renderFulltextBand() {
-        const hits = this._visibleFtHits();
-        if (hits.length === 0) return nothing;
-        const q = this._query.trim();
+    // The Inside tab: passages only, no dedupe, author or shelf rows.
+    _renderInsideResults() {
+        if (!this._shouldAutocomplete()) {
+            return html`<div class="results"><div class="empty">${this._i18n.insidePrompt}</div></div>`;
+        }
+        if (this._ftLoading && this._ftHits.length === 0) {
+            return html`<div class="results">${this._renderSearching(this._i18n.searchingInside)}</div>`;
+        }
+        // A failed fetch leaves no hits, which would otherwise read as a
+        // definitive "no matches" — the backend never answered.
+        if (this._ftError) {
+            return html`<div class="results"><div class="empty">${this._i18n.insideError}</div></div>`;
+        }
+        if (this._ftHits.length === 0) {
+            return html`<div class="results"><div class="empty">${this._i18n.noInsideResults}</div></div>`;
+        }
         return html`
-            <div class="ft-band">
-                <h3 class="results-heading results-heading--icon">
-                    ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
-                </h3>
+            <div class=${this._resultsClass(this._bandIsStale())} @keydown=${this._onResultsKeydown}>
                 <ul class="results-list">
-                    ${hits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
+                    ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
                 </ul>
-                <div class="ft-band__footer">${this._renderFulltextSeeAll()}</div>
             </div>
         `;
     }
 
-    // The count shows only when current and larger than the rows shown. No
-    // aria-label: the visible text is the name, so voice control can say it.
-    _renderFulltextSeeAll() {
-        const shown = this._visibleFtHits().length;
-        if (shown === 0) return nothing;
-        const counted = this._ftTotalIsCurrent() && this._ftTotal > shown;
+    // Strip any trailing ellipsis/period(s) from the (translated) label so the
+    // animated dots that follow aren't doubled up.
+    _renderSearching(text) {
+        const label = text.replace(/[.…。]+$/, '');
+        return html`<div class="loading"
+            >${label}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div>`;
+    }
+
+    // A fresh answer scrolls to the top; .results is long-lived and would keep the old offset.
+    _scrollResultsToTop() {
+        if (this._inside) return;
+        this.updateComplete.then(() => {
+            const results = this.renderRoot?.querySelector('.results');
+            if (results) results.scrollTop = 0;
+        });
+    }
+
+    // Hits minus scans already listed above. Computed at render since the two
+    // fetches race. Empty once an edit outdates them, so the band, the empty
+    // label and the live region all drop them together.
+    _visibleFtHits() {
+        if (!this._ftIsCurrent()) return [];
+        return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
+    }
+
+    // Hidden until hits land: no spinner or empty state for a secondary surface.
+    // Hidden (not dimmed) once an edit outdates them; at the foot of the list that costs no flicker.
+    // "View all" switches to the Inside tab rather than leaving the modal.
+    _renderFulltextBand() {
+        const hits = this._visibleFtHits();
+        if (hits.length === 0) return nothing;
+        return html`
+            <div class="ft-band">
+                <h3 class="results-heading results-heading--icon">
+                    ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
+                    <button
+                        type="button"
+                        class="ft-band__view-all"
+                        @click=${() => this._selectMode(MODE_INSIDE)}
+                    >${this._i18n.viewAllInside}${SearchModal._arrowRightIcon}</button>
+                </h3>
+                <ul class="results-list">
+                    ${hits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
+                </ul>
+            </div>
+        `;
+    }
+
+    // The Inside tab's route to /search/inside. No aria-label, so voice control can say it.
+    _renderInsideSeeAll() {
         const q = this._query.trim();
+        const counted = this._ftTotalIsCurrent() && this._ftTotal > 0;
         const href = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
         return html`
             <ol-button
-                variant="secondary"
+                variant="primary"
                 href=${href}
+                ?disabled=${q.length < MIN_QUERY_LENGTH}
                 ?loading=${this._ftSeeAllLoading}
                 @click=${this._onFulltextSeeAll}
             >${counted ? this._seeAllInsideLabel() : this._i18n.seeAllInsidePlain}</ol-button>
         `;
     }
 
-    // Hits linger across edits, but the total belongs to one query + filters.
-    _ftTotalIsCurrent() {
-        if (typeof this._ftTotal !== 'number') return false;
+    // Whether the hits on screen answer the current query + filters.
+    _ftIsCurrent() {
         return this._ftSearchKey === fulltextSearchParams(this._query.trim(), this._fulltextFilters()).toString();
     }
 
-    _seeAllInsideLabel() {
-        return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
+    _ftTotalIsCurrent() {
+        return typeof this._ftTotal === 'number' && this._ftIsCurrent();
     }
 
-    // Opens BookReader with the phrase-quoted query; its in-book search finds the passage.
+    _seeAllInsideLabel() {
+        const label = this._ftTotal === 1 ? this._i18n.seeAllInsideOne : this._i18n.seeAllInsideMany;
+        return sprintf(label, this._ftTotal.toLocaleString());
+    }
+
+    // Opens BookReader searching for the phrase. `q` is the query the hit answers, not the input.
     _renderFulltextHit(hit, q, index = 0) {
         const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
         const segments = parseSnippet(hit.snippet);
@@ -1360,7 +1708,6 @@ export class SearchModal extends LitElement {
         this._query = query;
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = query;
-        this._loading = true;
         this._scheduleSearch();
     }
 
@@ -1478,14 +1825,14 @@ export class SearchModal extends LitElement {
         // language: with Readable Only off the language-matched edition wins
         // promotion and, when it isn't readable, the row carries no badge. (Turn
         // Readable Only on and the subquery instead promotes the readable foreign
-        // copy, which earns the badge plus an "In <language>" hint.) Falls back to
+        // copy, which earns a "Readable in <language>" badge.) Falls back to
         // the work-level aggregate only when no edition was promoted — editions
         // disabled via SOLR_EDITIONS, or an edition-less work — so those still
         // badge from the work.
         const readable = edition ? editionReadable : this._isReadableAccess(work.ebook_access);
 
-        // Name the promoted edition's language below the "Readable" badge so the
-        // patron knows the language of the copy this row opens. Gated on the
+        // Name the promoted edition's language in the badge ("Readable in Dutch")
+        // so the patron knows the language of the copy this row opens. Gated on the
         // promoted edition's own readability (so we only name a language for a copy
         // we've confirmed readable); since the badge now keys off this same edition,
         // the hint never shows without it. Two cases drive it:
@@ -1543,7 +1890,16 @@ export class SearchModal extends LitElement {
             coverSrcset = nothing;
         }
 
-        return html`<li>
+        const title = display.title || work.title || this._i18n.untitled;
+
+        let badge = nothing;
+        if (otherLang) {
+            badge = html`<span class="result__badge">${sprintf(this._i18n.readableInLanguage, otherLang)}</span>`;
+        } else if (readable) {
+            badge = html`<span class="result__badge result__badge--readable">${this._i18n.accessReadable}</span>`;
+        }
+
+        return html`<li class="result-row">
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
@@ -1554,20 +1910,98 @@ export class SearchModal extends LitElement {
                         <span class="result__spinner" aria-hidden="true"></span>
                     </span>
                     <span class="result__meta">
-                        <span class="result__title">${display.title || work.title || this._i18n.untitled}</span>
+                        <span class="result__title-line">
+                            <span class="result__title">${title}</span>
+                            ${badge}
+                        </span>
                         ${author ? html`<span class="result__author">${author}</span>` : nothing}
                         ${year ? html`<span class="result__year">${year}</span>` : nothing}
                     </span>
-                    ${readable ? html`<span class="result__access-col">
-                        <span class="result__access">${this._i18n.accessReadable}</span>
-                        ${otherLang ? html`<span class="result__lang">${sprintf(this._i18n.inLanguage, otherLang)}</span>` : nothing}
-                    </span>` : nothing}
                 </a>
+                ${this._renderShelfButton(work, edition, title)}
             </li>`;
+    }
+
+    // ── Shelf buttons ─────────────────────────────────────────────────────
+
+    // Shelf is work-level, so the button acts on the work even when the row
+    // links to an edition; the edition rides along so the shelf records the copy.
+    _renderShelfButton(work, edition, title) {
+        const state = this._readingState.get(olidOf(work.key));
+        return html`<ol-shelf-button
+            variant="outline"
+            work-key=${work.key}
+            edition-key=${ifDefined(edition?.key ? olidOf(edition.key) : undefined)}
+            book-title=${title}
+            user-key=${this._userKey}
+            .labels=${this._shelfLabels || {}}
+            .shelf=${state?.shelf ?? null}
+            .rating=${state?.rating ?? null}
+            .readDate=${state?.read_date ?? null}
+            .eventId=${state?.event_id ?? null}
+            ?pending=${Boolean(this._userKey) && !state}
+            @pointerdown=${this._onShelfIntent}
+        ></ol-shelf-button>`;
+    }
+
+    // State is fetched on intent (hover or focus on the results, a press on a
+    // button), not with the search: one request then covers every row while
+    // the modal stays open, and readers who only navigate cost nothing.
+    _onShelfIntent() {
+        if (this._shelfStateWanted) return;
+        this._shelfStateWanted = true;
+        this._loadShelfState();
+    }
+
+    // A failed batch is forgotten so the next intent tries it again.
+    async _loadShelfState() {
+        if (!this._userKey) return;
+        const olids = this._results
+            .map(work => olidOf(work.key))
+            .filter(olid => !this._readingState.has(olid) && !this._stateRequested.has(olid));
+        if (olids.length === 0) return;
+        olids.forEach(olid => this._stateRequested.add(olid));
+        let works;
+        try {
+            const response = await fetch(buildPartialsUrl('ReadingState', { work_ids: olids.join(',') }), { credentials: 'same-origin' });
+            if (!response.ok) throw new Error(`ReadingState → ${response.status}`);
+            works = (await response.json()).works;
+        } catch {
+            olids.forEach(olid => this._stateRequested.delete(olid));
+            return;
+        }
+        this._readingState = new Map([...this._readingState, ...Object.entries(works)]);
+    }
+
+    // Only a known book is patched. An unknown one is fetched whole instead,
+    // once intent is shown: a patch alone would let the popover act on the
+    // shelf without knowing the date.
+    _patchShelfState(key, patch) {
+        const olid = olidOf(key);
+        const current = this._readingState.get(olid);
+        if (!current) {
+            if (this._shelfStateWanted) this._loadShelfState();
+            return;
+        }
+        this._readingState = new Map(this._readingState).set(olid, { ...current, ...patch });
+    }
+
+    _onBookStateChange(e) {
+        const { key, shelf, rating } = e.detail;
+        const patch = { shelf: shelf ?? null, rating: rating ?? null };
+        // Off the shelf takes the check-ins with it (the server deletes them).
+        if (patch.shelf === null) Object.assign(patch, { read_date: null, event_id: null });
+        this._patchShelfState(key, patch);
+    }
+
+    _onBookCheckIn(e) {
+        const { key, date, eventId } = e.detail;
+        this._patchShelfState(key, { read_date: date, event_id: eventId });
     }
 
     // aria-label keeps the wide form; the narrow one only swaps what's on screen.
     _renderSeeAll() {
+        if (this._inside) return this._renderInsideSeeAll();
         const { wide, narrow } = this._seeAllLabels();
         return html`
             <ol-button
@@ -1662,6 +2096,8 @@ export class SearchModal extends LitElement {
     // Keyed on the catalog fetch so the band counts the same unit as the catalog
     // outcomes. `shown` is rows visible after dedupe, known only at fire time.
     _scheduleBandOutcome(status) {
+        // The Inside tab is tracked by its own Tab and FulltextSeeAll events.
+        if (this._inside) return;
         this._scheduleOutcomeTrack('FulltextBand', this._activeFetchKey, () => {
             if (status === 'failed') return 'failed';
             const shown = this._visibleFtHits().length;
@@ -1684,6 +2120,13 @@ export class SearchModal extends LitElement {
         this._loading = false;
         this._seeAllLoading = false;
         this._ftSeeAllLoading = false;
+        // Always reopen on Books.
+        if (this._inside) {
+            this._mode = MODE_BOOKS;
+            this._ftBand.setExplicit(false);
+        }
+        // Intent is per visit; the fetched state is kept.
+        this._shelfStateWanted = false;
     }
 
     // A result is a native anchor, so pressing it navigates the whole window.
@@ -1727,7 +2170,6 @@ export class SearchModal extends LitElement {
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = text;
         if (this._shouldAutocomplete()) {
-            this._loading = true;
             this._scheduleSearch();
         }
     }
@@ -1746,14 +2188,14 @@ export class SearchModal extends LitElement {
         // unrelated query is actively misleading. It repopulates when the fetch
         // resolves.
         this._authorSuggestions = [];
-        this._loading = true;
         this._scheduleSearch();
     }
 
     _onInputKeydown(e) {
         if (e.key === 'Enter' && this._query.trim().length >= MIN_QUERY_LENGTH) {
             e.preventDefault();
-            this._onSeeAllResults();
+            if (this._inside) this._goToFulltextPage();
+            else this._onSeeAllResults();
             return;
         }
         // ArrowDown/Up step from the input into the result rows — ↓ to the first
@@ -1779,7 +2221,12 @@ export class SearchModal extends LitElement {
     // (Enter on a focused row activates the native link/button as usual.)
     _onResultsKeydown(e) {
         if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-        const row = e.target.closest('.result');
+        // From a row's shelf button the arrows step rows too, unless its popover
+        // is open and owns them. (Keys from its shadow tree arrive retargeted to the button.)
+        let row = e.target.closest('.result');
+        if (!row && e.target.matches('ol-shelf-button') && !e.target.hasAttribute('open')) {
+            row = e.target.closest('.result-row')?.querySelector('.result');
+        }
         if (!row) return;
         const rows = this._focusableRows();
         const idx  = rows.indexOf(row);
@@ -1800,6 +2247,13 @@ export class SearchModal extends LitElement {
     // re-announces the whole text.
     _resultsAnnouncement() {
         if (!this._shouldAutocomplete()) return '';
+        if (this._inside) {
+            if (this._ftLoading) return '';
+            if (this._ftError) return this._i18n.insideError;
+            if (this._ftHits.length) return this._insideAnnouncement(this._ftHits.length);
+            // A null search key means nothing has been fetched for this query yet.
+            return this._ftSearchKey ? this._i18n.noInsideResults : '';
+        }
         const catalog = this._catalogAnnouncement();
         if (!catalog) return '';
         const band = this._bandAnnouncement();
@@ -1821,6 +2275,10 @@ export class SearchModal extends LitElement {
     _bandAnnouncement() {
         const shown = this._visibleFtHits().length;
         if (shown === 0) return '';
+        return this._insideAnnouncement(shown);
+    }
+
+    _insideAnnouncement(shown) {
         return sprintf(shown === 1 ? this._i18n.insideAnnounceOne : this._i18n.insideAnnounceMany, shown.toLocaleString());
     }
 
@@ -1850,7 +2308,6 @@ export class SearchModal extends LitElement {
 
     _refetchIfActive() {
         if (this._shouldAutocomplete()) {
-            this._loading = true;
             this._scheduleSearch();
         }
     }
@@ -1876,15 +2333,25 @@ export class SearchModal extends LitElement {
         window.location.assign(url);
     }
 
-    // "<catalog>:<reason>" — whether results showed, and why the band did: a
-    // passage query, a weak catalog answer, or an outage (which wins).
+    // "<catalog>:<reason>": whether results showed, and why the fulltext rows did.
     _fulltextSeeAllLabel() {
         const catalog = this._results.length ? 'hasResults' : 'noResults';
         let reason;
-        if (this._searchFailed) reason = 'solrFailed';
+        if (this._inside) reason = 'tab';
+        else if (this._searchFailed) reason = 'solrFailed';
         else if (isPassageQuery(this._query.trim())) reason = 'passage';
         else reason = 'weakSolr';
         return `${catalog}:${reason}`;
+    }
+
+    // Enter on the Inside tab goes to the full-page search, like its footer link.
+    _goToFulltextPage() {
+        this._flushOutcomes();
+        this._track('FulltextSeeAll', this._fulltextSeeAllLabel());
+        this._saveCurrentSearch();
+        this._ftSeeAllLoading = true;
+        const params = fulltextSearchParams(this._query.trim(), this._fulltextFilters());
+        this._navigate(`/search/inside?${params.toString()}`);
     }
 
     // Mirrors _onResultPress: tracked always, spinner only for a plain click.
@@ -1935,12 +2402,15 @@ export class SearchModal extends LitElement {
             .then(data => {
                 if (this._activeFetchKey !== fetchKey) return;
                 this._results           = data.docs || [];
+                this._resultsKey        = fetchKey;
                 this._authorSuggestions = deriveAuthors(this._results, trimmed);
                 this._numFound          = typeof data.numFound === 'number' ? data.numFound : null;
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
+                this._scrollResultsToTop();
                 this._ftBand.solrSettled(trimmed, this._results);
+                if (this._shelfStateWanted) this._loadShelfState();
                 // Record the settled outcome — ResultsShown or NoResults —
                 // deferred so only a query the patron actually stops on counts
                 // (not each partial typed on the way). See _scheduleOutcomeTrack.
@@ -2046,8 +2516,14 @@ export class SearchModal extends LitElement {
     }
 
     // Single entry point so the catalog fetch and the band can't drift apart.
+    // The spinner is raised here, not by the callers: on the Inside tab there's
+    // no fetch to lower it again, and a stranded _loading outlives the tab.
     _scheduleSearch() {
-        this._debouncedFetch();
+        // The Inside tab shows no catalog rows, so skip the fetch. _selectMode catches up.
+        if (!this._inside) {
+            this._loading = true;
+            this._debouncedFetch();
+        }
         this._ftBand.queryChanged(this._query);
     }
 
@@ -2072,12 +2548,14 @@ export class SearchModal extends LitElement {
     static _personIcon = html`<ol-icon name="user"></ol-icon>`;
 
     static _textSearchIcon = html`<ol-icon name="text-search" aria-hidden="true"></ol-icon>`;
+
+    static _arrowRightIcon = html`<ol-icon name="arrow-right" size="sm"></ol-icon>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);
 
 /**
- * Mounts a single SearchModal and wires it to the header search trigger button.
+ * Mounts a single SearchModal (once ol-dialog is defined) and wires it to the header search trigger button.
  * Idempotent – safe to call multiple times with the same element.
  * @param {HTMLButtonElement} trigger
  * @returns {SearchModal|null}
@@ -2104,9 +2582,16 @@ export function initSearchModal(trigger) {
     // from ctx.user.is_printdisabled()). Widens the "Readable" badge to
     // printdisabled scans for these patrons, matching the readable count.
     modal._printDisabled = trigger.dataset.printDisabled === 'true';
+    // For the rows' shelf buttons (site.html.jinja, my_books/shelf_button_i18n).
+    modal._userKey = document.body.dataset.userKey || '';
+    modal._shelfLabels = readLabels();
 
-    document.body.appendChild(modal);
-    modal.attachToTrigger(trigger);
+    // Mount only once ol-components.js has defined ol-dialog: this bundle can run
+    // first, and an un-upgraded dialog would let the [autofocus] input scroll the page.
     trigger.dataset.olSearchModalAttached = 'true';
+    customElements.whenDefined('ol-dialog').then(() => {
+        document.body.appendChild(modal);
+        modal.attachToTrigger(trigger);
+    });
     return modal;
 }

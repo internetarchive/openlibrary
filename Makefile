@@ -78,8 +78,7 @@ test-py-uv:
 	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
 
 test-i18n:
-	# Valid locale codes should be added as arguments to validate
-	python ./scripts/i18n-messages validate de es fr hr it ja zh
+	python ./scripts/i18n-messages validate
 
 test:
 	make test-py && npm run test && make test-i18n

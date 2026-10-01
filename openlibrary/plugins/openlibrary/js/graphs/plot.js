@@ -54,7 +54,7 @@ export function loadEditionsGraph() {
 
     placeholder = $('#chartPubHistory');
     function showTooltip(x, y, contents) {
-        $(`<div id="chartLabel">${contents}</div>`).css({
+        $(`<div id="chartLabel" class="chart-tooltip">${contents}</div>`).css({
             position: 'absolute',
             display: 'none',
             top: y + 12,
@@ -64,8 +64,7 @@ export function loadEditionsGraph() {
             'background-color': '#fffdcd',
             color: '#615132',
             'font-size': '11px',
-            opacity: 0.90,
-            'z-index': 100
+            opacity: 0.90
         }).appendTo('body').fadeIn(200);
     }
     previousPoint = null;
@@ -206,7 +205,7 @@ export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36')
     graph = $.plot(node, [data], options);
 
     function showTooltip(x, y, contents) {
-        $(`<div id="chartLabelA">${contents}</div>`).css({
+        $(`<div id="chartLabelA" class="chart-tooltip">${contents}</div>`).css({
             position: 'absolute',
             display: 'none',
             top: y + 12,
@@ -218,8 +217,7 @@ export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36')
             fontSize: '11px',
             webkitBoxShadow: '1px 1px 3px #333',
             mozBoxShadow: '1px 1px 1px #000',
-            boxShadow: '1px 1px 1px #000',
-            'z-index': 100
+            boxShadow: '1px 1px 1px #000'
         }).appendTo('body').fadeIn(200);
     }
     node.bind('plothover', function(event, pos, item) {

@@ -83,13 +83,19 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // Narrow-footer form of seeAllMany; the wide form stays the accessible name.
     seeAllManyNarrow: 'All %s books',
     clearAll: 'Clear all',
+    // Scope tabs: the catalogue, and the text of the scans.
+    tabsAria: 'Search scope',
+    tabBooks: 'Books',
+    tabInside: 'Inside books',
     filtersAria: 'Search filters',
     availabilityLabel: 'Availability',
     languageLabel: 'Language',
     languagePlaceholder: 'Search languages…',
     languageHeading: 'Languages',
     languagesLoading: 'Loading…',
-    searching: 'Searching…',
+    // Loading labels, one per scope tab so the wait names what's being searched.
+    searchingBooks: 'Searching books and authors…',
+    searchingInside: 'Searching inside books…',
     noResults: 'No results found',
     // When only the Search Inside band has matches, "No results found" would contradict it.
     noCatalogResults: 'No matching books or authors',
@@ -102,21 +108,30 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     topResults: 'Books',
     untitled: 'Untitled',
     authorLabel: 'Author',
-    // Result-row access badge, shown for any readable book (public-domain or
-    // lendable). Keep short — it sits in a small pill at the row edge.
+    // Result-row access badge, shown beside the title for any readable book
+    // (public-domain or lendable). Keep short — it sits in a small badge.
     accessReadable: 'Readable',
-    // Shown on a readable result whose only readable copy is in a language other
-    // than the patron's site language. %s = the localized language name, e.g.
-    // "In French". Filled client-side via sprintf.
-    inLanguage: 'In %s',
+    // Replaces "Readable" when the readable copy is in a language other than the
+    // patron's site language. %s = the localized language name, e.g.
+    // "Readable in French". Filled client-side via sprintf.
+    readableInLanguage: 'Readable in %s',
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
-    // %s = books with matches. Always plural: the button only shows when the
-    // total exceeds the hits shown inline.
     insideHeading: 'Search inside books',
-    seeAllInside: 'Search Inside %s books',
+    // Inside tab footer action. %s = books with matches.
+    seeAllInsideOne: 'Search Inside %s book',
+    seeAllInsideMany: 'Search Inside %s books',
     // Before a total is measured for the current input.
     seeAllInsidePlain: 'Search Inside',
+    // Crosses from the band to the Inside books tab — it doesn't leave the modal.
+    viewAllInside: 'View all',
+    // Inside tab placeholder, too-short prompt, and empty result.
+    insidePlaceholder: 'Search inside books…',
+    insidePrompt: 'Type a word or phrase to find it on the pages of millions of books.',
+    noInsideResults: 'No matches inside books',
+    // Replaces the empty state when the fulltext backend failed, so an outage
+    // doesn't read as a verdict on the query.
+    insideError: 'Search inside books is temporarily unavailable. Please try again later.',
     // %s = snippet rows shown (1–3), not the backend total.
     insideAnnounceOne: '%s match found inside books',
     insideAnnounceMany: '%s matches found inside books',

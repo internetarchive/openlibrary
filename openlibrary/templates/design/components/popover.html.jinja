@@ -33,4 +33,21 @@
             {{ menu("160px") }}
         </ol-popover>
     {% endcall %}
+    {% call ex.example("Block outside clicks", "By default the click that dismisses a popover also lands on whatever is underneath. With block-outside-clicks a transparent backdrop swallows it, so opening over dense links is safe. Try closing each popover by clicking a link beside it.",
+        code='<ol-popover block-outside-clicks>\n  <ol-button slot="trigger">Options</ol-button>\n  <ul>...</ul>\n</ol-popover>', output_style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;") %}
+        <ol-popover aria-label="Options menu">
+            <ol-button slot="trigger">
+                Default
+            </ol-button>
+            {{ menu("160px") }}
+        </ol-popover>
+        <ol-popover block-outside-clicks aria-label="Options menu">
+            <ol-button slot="trigger">
+                Blocked
+            </ol-button>
+            {{ menu("160px") }}
+        </ol-popover>
+        <a href="#popover-block-outside-clicks-clicked"
+           onclick="this.textContent = 'Link was clicked'; return false;">A link the dismissing click could hit</a>
+    {% endcall %}
 {% endmacro %}
