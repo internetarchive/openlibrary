@@ -3,6 +3,7 @@
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
 import itertools
+import json
 import logging
 import os
 import time
@@ -609,7 +610,10 @@ async def get_availability_async(
                     {key_func(_id): availability for _id, availability in uncached_values.items()},
                     expires=5 * dateutil.MINUTE_SECS,
                 )
-        except Exception as e:  # TODO: Narrow exception scope
+        except (httpx.HTTPError, json.JSONDecodeError) as e:
+            # Only the service failing to answer. Anything else -- a missing
+            # req_context, a malformed response -- is a bug, and under
+            # drop_errors would otherwise vanish into an empty result.
             logger.exception("lending.get_availability", extra={"ids": batch})
             error = e
             availabilities.update(
