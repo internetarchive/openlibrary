@@ -3,6 +3,7 @@
 import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from openlibrary.core import lending
@@ -11,10 +12,10 @@ from openlibrary.utils.solr import Solr
 from scripts.solr_updater.loan_availability_updater import (
     EBOOK_AVAILABLE,
     EBOOK_UNAVAILABLE,
-    MIN_START_UID,
     RECHECK_INTERVAL,
     RECHECK_MAX_EDITIONS,
     SOLR_QUERY_CHUNK,
+    START_UID_TOLERANCE,
     build_recheck_updates,
     build_reconcile_updates,
     build_solr_updates,
@@ -524,85 +525,106 @@ def _ts(days_ago: float) -> str:
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 
-@pytest.mark.asyncio
-async def test_find_start_uid_no_history():
+_FEED_HEAD = 463_000_000
+_EVENTS_PER_DAY = 240_000
+
+
+def _steady_feed(head=_FEED_HEAD, per_day=_EVENTS_PER_DAY, time=None):
+    """A changes feed advancing at a steady rate and ending at `head` now.
+    Returns (fake get_loan_changes, list of after_uids it was asked for)."""
+    probes = []
+
+    def changes(after_uid, limit):
+        probes.append(after_uid)
+        if after_uid >= head:
+            return {"status": "OK", "latest_uid": head, "rows": []}
+        row_time = time if time is not None else _ts((head - after_uid) / per_day)
+        return {"status": "OK", "latest_uid": head, "rows": [{"time": row_time, "uid": after_uid + 1}]}
+
+    return changes, probes
+
+
+async def _find_start_uid_against(changes, **kwargs):
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes = AsyncMock(return_value={"status": "OK", "latest_uid": 0, "rows": []})
-        assert await find_start_uid() == MIN_START_UID
-
-
-@pytest.mark.asyncio
-async def test_find_start_uid_api_error():
-    with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes = AsyncMock(return_value={"status": "error"})
-        assert await find_start_uid() == MIN_START_UID
-
-
-_NO_AFTER_UID = {"status": "ERROR", "error": "No since or after_uid supplied."}
-
-
-@pytest.mark.asyncio
-async def test_find_start_uid_never_probes_from_zero():
-    """IA reads after_uid=0 as no cursor at all and errors. Probing from 0 made
-    the search fall back to 0, and the cold start then asked for after_uid=0
-    on every retry, forever."""
-
-    def fake_changes(after_uid, limit):
-        if not after_uid:
-            return _NO_AFTER_UID
-        return {"status": "OK", "latest_uid": MIN_START_UID + 10, "rows": []}
-
-    with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes = AsyncMock(side_effect=fake_changes)
-        assert await find_start_uid() == MIN_START_UID
-    assert all(call.kwargs["after_uid"] >= MIN_START_UID for call in mock_lending.get_loan_changes.call_args_list)
+        mock_lending.get_loan_changes = AsyncMock(side_effect=changes)
+        return await find_start_uid(**kwargs)
 
 
 @pytest.mark.asyncio
-async def test_find_start_uid_converges():
-    """Binary search converges to a uid where the next record is ~14 days old."""
-    call_count = 0
-
-    def fake_changes(after_uid, limit):
-        nonlocal call_count
-        call_count += 1
-        if not after_uid:
-            return _NO_AFTER_UID
-        latest = MIN_START_UID + 500_000
-        if after_uid >= latest:
-            return {"status": "OK", "latest_uid": latest, "rows": []}
-        # MIN_START_UID → 20 days ago, latest → now (linear approximation)
-        days_ago = 20 * (1 - (after_uid - MIN_START_UID) / 500_000)
-        return {
-            "status": "OK",
-            "latest_uid": latest,
-            "rows": [{"time": _ts(days_ago), "uid": after_uid + 1}],
-        }
-
-    with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes = AsyncMock(side_effect=fake_changes)
-        uid = await find_start_uid(target_age_days=14)
-
-    assert call_count <= 41  # 1 initial probe + up to 40 binary-search iterations
-    # MIN_START_UID + 150_000 is the exact 14-day boundary (500_000 * (20-14)/20)
-    assert MIN_START_UID + 100_000 < uid < MIN_START_UID + 200_000
+async def test_find_start_uid_lands_just_before_the_target_age():
+    changes, _ = _steady_feed()
+    uid = await _find_start_uid_against(changes, target_age_days=14)
+    boundary = _FEED_HEAD - 14 * _EVENTS_PER_DAY
+    # Never after the boundary (that would skip loans still out), at most the
+    # tolerance before it. A few uids of slack for the clock moving mid-test.
+    assert boundary - START_UID_TOLERANCE - 10 <= uid <= boundary + 10
 
 
 @pytest.mark.asyncio
-async def test_find_start_uid_survives_bad_probe_time():
-    """A probe row with an unparsable 'time' must not crash startup."""
+async def test_find_start_uid_only_probes_back_as_far_as_it_needs():
+    """The feed holds years of history; bisecting all of it probed back to 2020
+    to find a uid days from the head."""
+    changes, probes = _steady_feed()
+    await _find_start_uid_against(changes, target_age_days=14)
+    head_probe, *search = probes
+    assert head_probe == 1, "the first call only reads the feed head"
+    assert min(search) >= _FEED_HEAD - 2 * 14 * _EVENTS_PER_DAY
+    assert len(search) <= 30
 
-    def fake_changes(after_uid, limit):
-        latest = MIN_START_UID + 500_000
-        if after_uid >= latest:
-            return {"status": "OK", "latest_uid": latest, "rows": []}
-        return {"status": "OK", "latest_uid": latest, "rows": [{"uid": after_uid + 1, "time": "garbage"}]}
 
-    with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes = AsyncMock(side_effect=fake_changes)
-        uid = await find_start_uid(target_age_days=14)  # must not raise
-    assert uid >= MIN_START_UID
-    assert mock_lending.get_loan_changes.call_count > 1, "never reached the binary search"
+@pytest.mark.asyncio
+async def test_find_start_uid_never_sends_after_uid_zero():
+    """IA answers after_uid=0 with HTTP 400 "No since or after_uid supplied."."""
+    changes, probes = _steady_feed(head=5_000, per_day=100)
+    await _find_start_uid_against(changes, target_age_days=14)
+    assert min(probes) >= 1
+
+
+@pytest.mark.asyncio
+async def test_find_start_uid_starts_from_the_beginning_of_a_short_history():
+    changes, _ = _steady_feed(per_day=100_000_000)  # the whole feed is a few days old
+    assert await _find_start_uid_against(changes, target_age_days=14) == 1
+
+
+@pytest.mark.asyncio
+async def test_find_start_uid_empty_feed():
+    assert await _find_start_uid_against(lambda **_: {"status": "OK", "latest_uid": 0, "rows": []}) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "fail_on_call",
+    [1, 5],
+    ids=["reading the head", "mid-search"],
+)
+async def test_find_start_uid_raises_rather_than_guessing_when_the_feed_fails(fail_on_call):
+    """There is no safe uid to fall back to: too low replays years of events,
+    too high leaves loans that are still out unmarked."""
+    changes, probes = _steady_feed()
+
+    def flaky(after_uid, limit):
+        if len(probes) + 1 == fail_on_call:
+            probes.append(after_uid)
+            raise httpx.ConnectError("boom")
+        return changes(after_uid, limit)
+
+    with pytest.raises(httpx.ConnectError):
+        await _find_start_uid_against(flaky)
+
+
+@pytest.mark.asyncio
+async def test_find_start_uid_raises_on_a_non_ok_answer():
+    with pytest.raises(RuntimeError, match="'error'"):
+        await _find_start_uid_against(lambda **_: {"status": "error"})
+
+
+@pytest.mark.asyncio
+async def test_find_start_uid_raises_on_an_unparsable_time():
+    """Read as "go earlier", a feed of bad timestamps galloped all the way down
+    to uid 1 and replayed its entire history."""
+    changes, _ = _steady_feed(time="garbage")
+    with pytest.raises(ValueError, match="garbage"):
+        await _find_start_uid_against(changes)
 
 
 # ---------------------------------------------------------------------------
@@ -840,7 +862,7 @@ async def test_main_recheck_failure_is_non_fatal(mock_config, mock_infogami, moc
 async def test_main_reset_ignores_stale_solr_loan_uid(
     mock_config, mock_infogami, mock_lending, mock_sentry, mock_query_uid, mock_find_start, mock_get_solr, tmp_path
 ):
-    """--reset must rebuild via find_start_uid (binary-search), never resume from a stale
+    """--reset must rebuild via find_start_uid (searching back), never resume from a stale
     loan_uid still in Solr. Regression: query_solr_uid() used to run even under --reset and
     silently short-circuit the documented 14-day rebuild."""
     mock_query_uid.return_value = 200001  # stale high uid lingering in Solr
