@@ -84,10 +84,13 @@ export default class SelectionManager {
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
     processClick(clickEvent) {
-        // If there is text selection or the click is on a link that isn't a select handle, don't do anything
-        if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
-            ($(clickEvent.target).closest('a, button, details').length > 0 &&
-            $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
+        // If there is text selection, don't do anything
+        if (!clickEvent.shiftKey && window.getSelection()?.toString() !== '') return;
+        // Walk the composed path: a click inside a web component (ol-shelf-button)
+        // is retargeted to its host by the time it reaches the row.
+        const path = (clickEvent.originalEvent ?? clickEvent).composedPath();
+        const onControl = path.some(n => n instanceof Element && n.matches('a, button, details, [popover]'));
+        if (onControl && !clickEvent.target.classList.contains('ile-select-handle')) return;
 
         const el = clickEvent.currentTarget;
         if (clickEvent.shiftKey && this.lastClicked)
@@ -343,8 +346,12 @@ SelectionManager.DROP_HANDLERS = [
             console.log('move', data);
             window.ILE.setStatusText('Working...');
             try {
-                await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
-                window.ILE.setStatusText('Completed!');
+                const { total, failed } = await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
+                if (failed) {
+                    window.ILE.setStatusText(`Something went wrong: ${failed}/${total} failed to save.`);
+                } else {
+                    window.ILE.setStatusText(`Completed! ${total}/${total} saved.`);
+                }
             } catch (e) {
                 window.ILE.setStatusText('Errored!');
                 throw e;
@@ -365,8 +372,12 @@ SelectionManager.DROP_HANDLERS = [
                     const ed = await fetch(`/books/${location.pathname.match(/OL\d+M/)[0]}.json`).then(r => r.json());
                     workOlid = ed.works[0].key.match(/OL\d+W/)[0];
                 }
-                await move_to_work(data.items, data.from, workOlid);
-                window.ILE.setStatusText('Completed!');
+                const { total, failed } = await move_to_work(data.items, data.from, workOlid);
+                if (failed) {
+                    window.ILE.setStatusText(`Something went wrong: ${failed}/${total} failed to save.`);
+                } else {
+                    window.ILE.setStatusText(`Completed! ${total}/${total} saved.`);
+                }
             } catch (e) {
                 window.ILE.setStatusText('Errored!');
                 throw e;

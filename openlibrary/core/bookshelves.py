@@ -605,7 +605,7 @@ class Bookshelves(db.CommonExtras):
         return user_read_status == cls.PRESET_BOOKSHELVES["Already Read"]
 
     @classmethod
-    def get_users_read_status_of_works(cls, username: str, work_ids: list[str]) -> list:
+    def get_users_read_status_of_works(cls, username: str, work_ids: list[str] | list[int]) -> list:
         oldb = db.get_db()
         data = {
             "username": username,

@@ -30,3 +30,41 @@ export function debounce(func, threshold=100, execAsap=false) {
         timeout = setTimeout(delayed, threshold);
     };
 }
+
+/**
+ * Drops items whose `keyFn` result was already seen, keeping the first occurrence.
+ * @template T
+ * @param {T[]} items
+ * @param {(item: T) => unknown} keyFn
+ * @returns {T[]}
+ */
+export function uniqBy(items, keyFn) {
+    const seen = new Set();
+    return items.filter(item => {
+        const key = keyFn(item);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+/**
+ * Returns the first item with the largest `keyFn` result, or undefined if none.
+ * Like lodash, items whose key is null, undefined or NaN are skipped.
+ * @template T
+ * @param {T[]} items
+ * @param {(item: T) => number} keyFn
+ * @returns {T | undefined}
+ */
+export function maxBy(items, keyFn) {
+    let best, bestKey;
+    items.forEach(item => {
+        const key = keyFn(item);
+        if (key === null || key === undefined || Number.isNaN(key)) return;
+        if (bestKey === undefined || key > bestKey) {
+            best = item;
+            bestKey = key;
+        }
+    });
+    return best;
+}

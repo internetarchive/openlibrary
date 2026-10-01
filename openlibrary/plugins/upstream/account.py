@@ -40,6 +40,7 @@ from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.auth import TimedOneTimePassword as OTP
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.carousels import get_carousel_data
 from openlibrary.core.db import get_db
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import get_loan_history_data
@@ -49,7 +50,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.plugins.openlibrary.pd import get_pd_options
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream import borrow, forms
+from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
@@ -331,16 +332,64 @@ def _parse_low_auth_header():
     return access, secret
 
 
-def _require_s3_auth():
+#: HTTP status for each way an OTP request can be refused. These endpoints used
+#: to answer 200 for all of them, which made every failure invisible: a 200 is
+#: not an exception, so Sentry never saw one, and it is not an error status, so
+#: nothing in the request logs or the load balancer flagged it either. A caller
+#: that did not inspect the body could not tell success from failure at all.
+OTP_ERROR_STATUS: Final = {
+    "missing_or_invalid_authorization": "401 Unauthorized",
+    "unauthorized": "401 Unauthorized",
+    "auth_service_unavailable": "503 Service Unavailable",
+    "missing_keys": "400 Bad Request",
+    "challenge_failed": "403 Forbidden",
+    "ratelimit": "429 Too Many Requests",
+    "otp_mismatch": "401 Unauthorized",
+}
+
+
+def _mask_email(email: str) -> str:
+    """`alice@example.org` -> `al***@example.org`, so a log line is useful for
+    support without writing a patron's full address into the request logs."""
+    local, _, domain = (email or "").partition("@")
+    return f"{local[:2]}***@{domain}" if domain else "***"
+
+
+def _otp_error(operation: str, code: str, service_ip: str = "", email: str = "", **extra):
+    """Refuse an OTP request: set a real HTTP status, log it, return the body.
+
+    The JSON body keeps exactly the shape it had before, so existing callers that
+    only read `error` are unaffected; the status code and the log line are added
+    on top.
+
+    The log line is the point. Requests to these endpoints fan out across
+    ol-web0..3 behind haproxy, so without a greppable record naming the
+    `service_ip` the request actually presented, there is no way to tell which
+    head served a given call or why it was refused.
+    """
+    web.ctx.status = OTP_ERROR_STATUS.get(code, "400 Bad Request")
+    logger.warning(
+        "otp %s refused: error=%s service_ip=%r email=%s extra=%s",
+        operation,
+        code,
+        service_ip,
+        _mask_email(email),
+        extra or "-",
+    )
+    return delegate.RawText(json.dumps({"error": code, **extra}))
+
+
+def _require_s3_auth(operation: str):
     """Validate the request's IA S3 credentials. Returns None on success or a RawText error response."""
+    service_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR", "")
     try:
         s3_access, s3_secret = _parse_low_auth_header()
     except ValueError:
-        return delegate.RawText(json.dumps({"error": "missing_or_invalid_authorization"}))
+        return _otp_error(operation, "missing_or_invalid_authorization", service_ip)
     if "error" in (result := InternetArchiveAccount.s3auth(s3_access, s3_secret)):
         if result.get("code", 400) >= 500:
-            return delegate.RawText(json.dumps({"error": "auth_service_unavailable"}))
-        return delegate.RawText(json.dumps({"error": "unauthorized"}))
+            return _otp_error(operation, "auth_service_unavailable", service_ip)
+        return _otp_error(operation, "unauthorized", service_ip)
     return None
 
 
@@ -349,7 +398,7 @@ class otp_service_issue(delegate.page):
 
     def POST(self):
         web.header("Content-Type", "application/json")
-        if err := _require_s3_auth():
+        if err := _require_s3_auth("issue"):
             return err
 
         i = web.input(email="", ip="", challenge_url="", sendmail="true")
@@ -357,13 +406,13 @@ class otp_service_issue(delegate.page):
         i.email = i.email.replace(" ", "+").lower()
         i.service_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
         if missing_fields := [k for k in required_keys if not getattr(i, k)]:
-            return delegate.RawText(json.dumps({"error": "missing_keys", "missing_keys": missing_fields}))
+            return _otp_error("issue", "missing_keys", i.service_ip or "", i.email, missing_keys=missing_fields)
 
         # Challenge currently does not work due to Firewall/Proxy limitations
         if i.challenge_url and not OTP.verify_service(i.service_ip, i.challenge_url):
-            return delegate.RawText(json.dumps({"error": "challenge_failed"}))
+            return _otp_error("issue", "challenge_failed", i.service_ip, i.email)
         if error := OTP.is_ratelimited(service_ip=i.service_ip, email=i.email, ip=i.ip):
-            return delegate.RawText(json.dumps(error))
+            return _otp_error("issue", "ratelimit", i.service_ip, i.email, ratelimit=error["ratelimit"])
 
         otp = OTP.generate(i.service_ip, i.email, i.ip)
         if i.sendmail.lower() == "true":
@@ -373,6 +422,18 @@ class otp_service_issue(delegate.page):
                 subject="Your One Time Password",
                 message=web.safestr(f"Your one time password is: {otp.upper()}"),
             )
+        # Logged so an issue can be correlated with its later redeem. `service_ip`
+        # is an ingredient of the OTP's HMAC, so when a redeem fails with
+        # otp_mismatch, comparing this value against the redeem's is the first
+        # thing worth checking — and requests fan across ol-web0..3, so without a
+        # log line there is nothing to compare.
+        logger.info(
+            "otp issue ok: service_ip=%r email=%s ip=%r sendmail=%s",
+            i.service_ip,
+            _mask_email(i.email),
+            i.ip,
+            i.sendmail.lower() == "true",
+        )
         return delegate.RawText(json.dumps({"success": "issued"}))
 
 
@@ -381,7 +442,7 @@ class otp_service_redeem(delegate.page):
 
     def POST(self):
         web.header("Content-Type", "application/json")
-        if err := _require_s3_auth():
+        if err := _require_s3_auth("redeem"):
             return err
 
         required_keys = ("email", "ip", "service_ip", "otp")
@@ -389,10 +450,14 @@ class otp_service_redeem(delegate.page):
         i.email = i.email.replace(" ", "+").lower()
         i.service_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
         if missing_fields := [k for k in required_keys if not getattr(i, k)]:
-            return delegate.RawText(json.dumps({"error": "missing_keys", "missing_keys": missing_fields}))
+            return _otp_error("redeem", "missing_keys", i.service_ip or "", i.email, missing_keys=missing_fields)
         if OTP.is_valid(i.email, i.ip, i.service_ip, i.otp):
+            logger.info("otp redeem ok: service_ip=%r email=%s ip=%r", i.service_ip, _mask_email(i.email), i.ip)
             return delegate.RawText(json.dumps({"success": "redeemed"}))
-        return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
+        # A mismatch is usually a typo, but it is also what a `service_ip` that
+        # differed between issue and redeem looks like — same payload, different
+        # HMAC. Log both so the two cases can be told apart.
+        return _otp_error("redeem", "otp_mismatch", i.service_ip, i.email)
 
 
 def _set_login_cookies(
@@ -1182,7 +1247,7 @@ class my_follows(delegate.page):
 
 def get_account_loans_json(user: User) -> dict[str, Any]:
     user.update_loan_status()
-    loans = borrow.get_loans(user)
+    loans = lending.get_loans_of_user(user.key)
     return {"loans": loans}
 
 
@@ -1214,6 +1279,9 @@ class account_loans(delegate.page):
         docs = get_loans_of_user(user.key)
         loan_history_data = get_loan_history_data(username, page=page)
         featured_subjects = get_cached_featured_subjects()
+
+        staff_picks = get_carousel_data(carousels=("staff_picks",))["staff_picks"]
+
         template = render["account/loans"](
             user,
             docs,
@@ -1222,6 +1290,7 @@ class account_loans(delegate.page):
             show_next=loan_history_data["show_next"],
             ia_base_url=CONFIG_IA_DOMAIN,
             featured_subjects=featured_subjects,
+            carousel=staff_picks,
         )
         return mb.render(header_title=_("Loans & History"), template=template)
 

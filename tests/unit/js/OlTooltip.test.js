@@ -13,11 +13,11 @@
 /** Minimal Popover API stand-in: jsdom implements neither the methods nor the pseudo-class. */
 function installPopoverApiStub() {
     const open = new WeakSet();
-    HTMLElement.prototype.showPopover = jest.fn(function() {
+    HTMLElement.prototype.showPopover = vi.fn(function() {
         if (open.has(this)) throw new DOMException('already open', 'InvalidStateError');
         open.add(this);
     });
-    HTMLElement.prototype.hidePopover = jest.fn(function() {
+    HTMLElement.prototype.hidePopover = vi.fn(function() {
         if (!open.has(this)) throw new DOMException('not open', 'InvalidStateError');
         open.delete(this);
     });
@@ -44,16 +44,14 @@ function installPopoverApiStub() {
 let tagSeq = 0;
 async function mountTooltip() {
     const tag = `ol-tooltip-test-${++tagSeq}`;
-    let el;
-    await jest.isolateModulesAsync(async() => {
-        const { OlTooltip } = await import('../../../openlibrary/components/lit/OlTooltip.js');
-        customElements.define(tag, class extends OlTooltip {});
-        el = document.createElement(tag);
-        el.setAttribute('content', 'Tooltip text');
-        el.setAttribute('show-delay', '0');
-        el.innerHTML = '<button>Trigger</button>';
-        document.body.appendChild(el);
-    });
+    vi.resetModules();
+    const { OlTooltip } = await import('../../../openlibrary/components/lit/OlTooltip.js');
+    customElements.define(tag, class extends OlTooltip {});
+    const el = document.createElement(tag);
+    el.setAttribute('content', 'Tooltip text');
+    el.setAttribute('show-delay', '0');
+    el.innerHTML = '<button>Trigger</button>';
+    document.body.appendChild(el);
     await el.updateComplete;
     return el;
 }

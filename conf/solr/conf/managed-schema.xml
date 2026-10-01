@@ -267,9 +267,6 @@
     <!-- Open Syllabus Project -->
     <field name="osp_count" type="pint"/>
 
-    <!-- TODO: This should probably be type text_international since it's the catchall -->
-    <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
-
     <field name="seed" type="string" multiValued="true"/>
 
 
@@ -358,36 +355,7 @@
     <copyField source="person" dest="person_facet"/>
     <copyField source="time" dest="time_facet"/>
 
-    <copyField source="key" dest="text"/>
-    <copyField source="redirects" dest="text"/>
-    <copyField source="title" dest="text"/>
-    <copyField source="subtitle" dest="text"/>
-    <copyField source="alternative_title" dest="text"/>
-    <copyField source="alternative_subtitle" dest="text"/>
-    <copyField source="edition_key" dest="text"/>
-    <copyField source="by_statement" dest="text"/>
-    <copyField source="lccn" dest="text"/>
-    <copyField source="ia" dest="text"/>
-    <copyField source="oclc" dest="text"/>
-    <copyField source="isbn" dest="text"/>
-    <copyField source="contributor" dest="text"/>
-    <copyField source="publisher" dest="text"/>
-    <copyField source="first_sentence" dest="text"/>
-    <copyField source="author_key" dest="text"/>
-    <copyField source="author_name" dest="text"/>
-    <copyField source="author_alternative_name" dest="text"/>
-    <copyField source="series_key" dest="text"/>
-    <copyField source="series_name" dest="text"/>
-    <copyField source="series_position" dest="text"/>
-    <copyField source="subject" dest="text"/>
-    <copyField source="place" dest="text"/>
-    <copyField source="person" dest="text"/>
-    <copyField source="time" dest="text"/>
-
-    <!-- Copy author search fields into default search field "text" -->
-    <copyField source="name" dest="text"/>
     <copyField source="name" dest="name_sort"/>
-    <copyField source="alternate_names" dest="text"/>
 
     <!-- *** END of OpenLibrary copyFields *** -->
 

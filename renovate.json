@@ -49,9 +49,11 @@
     },
     {
       "matchPackageNames": [
-        "jest",
+        "vitest",
+        "@vitest/browser-playwright",
+        "vitest-browser-lit",
+        "vitest-browser-vue",
         "bundlesize2",
-        "sinon",
         "stylelint",
         "stylelint-declaration-strict-value",
         "stylelint-prettier",

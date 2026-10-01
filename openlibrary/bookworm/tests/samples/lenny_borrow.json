@@ -1,0 +1,67 @@
+[
+  {
+    "metadata": {
+      "title": "An African abroad",
+      "type": "http://schema.org/Book",
+      "language": [
+        "en"
+      ],
+      "description": "One section of book on Australian Aborigines; Condition of La Perouse settlement, work of missionaries; Govt. policy, welfare.",
+      "author": [
+        {
+          "name": "Olabisi Ajala",
+          "links": [
+            {
+              "href": "https://openlibrary.org/authors/OL2203723A",
+              "type": "text/html",
+              "rel": "author"
+            }
+          ]
+        }
+      ],
+      "numberOfPages": 256,
+      "modified": "2026-08-28T04:14:10.205247Z"
+    },
+    "links": [
+      {
+        "href": "https://lennyforlibraries.org/v1/api/opds/46539165",
+        "type": "application/opds-publication+json",
+        "rel": "self",
+        "templated": false
+      },
+      {
+        "href": "https://lennyforlibraries.org/v1/api/items/46539165/borrow",
+        "type": "application/opds-publication+json",
+        "rel": "http://opds-spec.org/acquisition/borrow",
+        "title": "Lenny",
+        "templated": false,
+        "properties": {
+          "authenticate": {
+            "type": "application/opds-authentication+json",
+            "href": "https://lennyforlibraries.org/v1/api/oauth/implicit"
+          },
+          "availability": {
+            "state": "available"
+          },
+          "indirectAcquisition": [
+            {
+              "type": "application/vnd.readium.lcp.license.v1.0+json",
+              "child": [
+                {
+                  "type": "application/epub+zip"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "images": [
+      {
+        "href": "https://covers.openlibrary.org/b/id/13259021-L.jpg",
+        "type": "image/jpeg",
+        "rel": "cover"
+      }
+    ]
+  }
+]

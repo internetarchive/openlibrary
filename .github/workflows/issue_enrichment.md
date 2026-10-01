@@ -35,7 +35,6 @@ Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `s
 ```bash
 gh issue view {ISSUE_NUMBER} --repo internetarchive/openlibrary \
   --json number,title,body,labels,assignees,state,comments,author
-gh api repos/internetarchive/openlibrary/issues/{ISSUE_NUMBER}/comments
 ```
 
 Derive `{ISSUE_NUMBER}` from the issue number provided in your prompt context.

@@ -32,25 +32,8 @@ $if any(menu_items) and not is_carousel:
         $if loan:
           data-userid="$(loan['userid'])"
         >$label</a>
-    <details class="cta-btn cta-btn--available">
-      <summary aria-label="$_('More reading options')"></summary>
-      <ul class="dropper-menu">
-        $if listen:
-          <li>
-            <a href="$(stream_url)&_autoReadAloud=show"
-              title="$title using Read Aloud"
-              $:analytics_attr(action.capitalize() + 'Listen')
-              class="cta-btn cta-btn--available cta-btn--w-icon">
-              <span class="btn-icon listen"></span>
-              <span class="btn-label">$_("Listen")</span>
-            </a>
-          </li>
-        $if edition_key:
-          <li>
-            $:macros.LocateButton(edition_key, icon=True)
-          </li>
-      </ul>
-    </details>
+    $ listen_url = (stream_url + "&_autoReadAloud=show") if listen else None
+    $:macros.ReadingOptionsMenu(edition_key, listen_url=listen_url, listen_title="%s using Read Aloud" % title, listen_track=analytics_attr(action.capitalize() + 'Listen'))
   </div>
 $else:
   <div class="cta-button-group">

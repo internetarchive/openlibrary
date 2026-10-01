@@ -8,7 +8,7 @@
  *
  * The manifest is generated, not committed (see .gitignore), and read at runtime
  * by the /developers/design page to render API reference tables. Regenerate with
- * `npm run build-assets:lit-manifest` (also run as part of `make lit-components`).
+ * `npm run build-assets:lit-manifest` (also run as part of `make components`).
  */
 export default {
     globs: ['openlibrary/components/lit/**/*.js'],

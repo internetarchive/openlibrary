@@ -31,14 +31,14 @@ import './OlIcon.js';
  *
  * @element ol-banner
  *
- * @prop {String}  variant     - "neutral" (default) | "success" | "warning" | "danger"
- * @prop {String}  appearance  - "outlined" (default) shows a border and rounded
- *                               corners; "plain" removes both, for banners that
- *                               abut the edges of other UI.
- * @prop {String}  dismissId   - Opaque identifier passed in the dismiss event's
- *                               detail, for the host app's persistence layer.
+ * @prop {"neutral" | "success" | "warning" | "danger"} variant - Default: "neutral"
+ * @prop {"outlined" | "plain"} appearance - "outlined" (default) shows a border and
+ *     rounded corners; "plain" removes both, for banners that abut the edges of
+ *     other UI.
+ * @prop {String} dismissId - Opaque identifier passed in the dismiss event's
+ *     detail, for the host app's persistence layer.
  * @prop {Boolean} dismissible - Show a close button.
- * @prop {String}  labelClose  - Aria label for the close button (default: "Close")
+ * @prop {String} labelClose - Aria label for the close button (default: "Close")
  *
  * @slot - The (already translated, server-rendered) announcement content.
  * @slot icon - Optional custom icon (a child with slot="icon"), replacing the

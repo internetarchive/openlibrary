@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
  * Functionalities for templates/work_search and related templates.
  */

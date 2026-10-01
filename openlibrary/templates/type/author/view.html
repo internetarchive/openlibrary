@@ -20,7 +20,7 @@ $var history: $page.history
 
 $ olid = page.key.split('/')[-1]
 
-$ books = page.get_books(q=query_param('q'))
+$ books = page.get_books(q=query_param('q'), sort=query_param('sort', 'editions'), page=query_param('page', 1), rows=query_param('rows', 20), mode=query_param('mode', ''))
 $ book_list_excerpt = ''
 $if books and books.docs:
     $ book_titles_excerpt = [work.title for work in books.docs[:8]]
@@ -165,8 +165,9 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
                 <div id="searchResults">
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
+                      $ reading_states = get_reading_states(ctx.user, books.docs)
                       $for doc in books.docs:
-                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, seq_index=loop.index0)
+                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, reading_states=reading_states, layout=layout, seq_index=loop.index0)
                     </ul>
                 </div>
 

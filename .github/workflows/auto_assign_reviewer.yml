@@ -1,7 +1,15 @@
 name: Auto-assign Code Review
 
-on:
-  pull_request:
+# pull_request_target, not pull_request: a `pull_request` run triggered from a fork
+# gets a read-only GITHUB_TOKEN, so requestReviewers() below 403s with "Resource not
+# accessible by integration" on every externally-contributed PR. pull_request_target
+# runs in the base-repo context and keeps the write token.
+#
+# The usual pull_request_target caveat (it can expose secrets to untrusted fork code)
+# does not apply here: this job checks out no code at all -- it only calls the GitHub
+# API via actions/github-script, using payload metadata. Nothing from the fork is executed.
+on:  # zizmor: ignore[dangerous-triggers] -- safe: no checkout, no fork code executed; only GitHub API calls via actions/github-script using payload metadata
+  pull_request_target:
     types: [opened, ready_for_review]
 
 permissions:

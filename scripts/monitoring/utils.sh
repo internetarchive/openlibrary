@@ -28,21 +28,17 @@ log_recent_bot_traffic() {
         echo $graphite_event | nc -q0 graphite.us.archive.org 2003
     done <<< "$BOT_TRAFFIC_COUNTS"
 
-    # Also log other bots as a single metric
-    OTHER_BOTS_COUNT=$(
-        obfi_in_docker obfi_previous_minute | \
-        grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
-        obfi_grep_bots -v | \
-        wc -l
-    )
+    # Bots that aren't in obfi_grep_bots' list are handled by monitor.py, which
+    # promotes the high-volume ones to their own series and sums the rest into
+    # `$BUCKET.other`. See list_unknown_bot_counts below.
 
-    graphite_event="$BUCKET.other $OTHER_BOTS_COUNT $(date +%s)"
-    echo $graphite_event
-    echo $graphite_event | nc -q0 graphite.us.archive.org 2003
-
-    # And finally, also log non bot traffic
+    # And finally, also log non bot traffic. Scoped to the User-Agent field, to
+    # match list_unknown_bot_counts: excluding on the whole line here while the
+    # bot path matches only the UA would leave a browser request for /robots.txt
+    # counted in neither, so the two would stop adding up to the total.
     NON_BOT_TRAFFIC_COUNT=$(
         obfi_in_docker obfi_previous_minute | \
+        awk -F'"' '{print $6}' | \
         grep -viE '\b[a-z_-]+(bot|spider|crawler)' | \
         obfi_grep_bots -v | \
         wc -l
@@ -53,6 +49,44 @@ log_recent_bot_traffic() {
     echo $graphite_event | nc -q0 graphite.us.archive.org 2003
 }
 export -f log_recent_bot_traffic
+
+list_unknown_bot_counts() {
+    # Per-agent counts for traffic that self-identifies as a bot but is not in
+    # obfi_grep_bots' hardcoded list. Prints to stdout rather than submitting to
+    # graphite: monitor.py decides which of these names are high-volume enough
+    # to get their own series, and sums the remainder into `other`.
+
+    # Only look at the User-Agent (the 6th "-delimited field), not the whole log
+    # line. Matching the whole line invents agents out of ordinary traffic: a
+    # request for /robots.txt becomes "robot", /works/OL1W/I-Robot becomes
+    # "i_robot", and any visitor could name a metric by requesting a URL.
+
+    # Take only the FIRST match in each UA, unlike obfi_top_bots. Polite crawlers
+    # name themselves a second time in a self-documenting URL -- eg
+    # "OAI-SearchBot/1.0; +https://openai.com/searchbot" -- and counting every
+    # match gives that one agent two series ("oai_searchbot" and a phantom
+    # "searchbot"), doubles its volume, and spends two promotion slots on it.
+
+    # Separators become "-" first so obfi_grep_bots, whose patterns contain
+    # literal hyphens, also rejects a UA that spells a known bot with
+    # underscores ("Aranet_SearchBot") and would otherwise mint -- and overwrite
+    # -- that bot's real series. Then "-" becomes "_" for the metric path.
+    obfi_in_docker obfi_previous_minute | \
+        awk -F'"' '{print $6}' | \
+        tr '[:upper:]' '[:lower:]' | \
+        obfi_grep_bots -v | \
+        awk 'match($0, /[a-z_-]+(bot|spider|crawler)/) { print substr($0, RSTART, RLENGTH) }' | \
+        sed 's/[^[:alnum:]\n]/-/g' | \
+        obfi_grep_bots -v | \
+        sed 's/-/_/g' | \
+        sort | uniq -c | sort -rn
+
+    # Output like this:
+    #     412 semrushbot
+    #     118 dataforseobot
+    #       3 somerandomcrawler
+}
+export -f list_unknown_bot_counts
 
 log_recent_http_statuses() {
     BUCKET="$1"

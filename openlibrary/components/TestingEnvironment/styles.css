@@ -467,23 +467,6 @@ a.testing-env__pill:focus-visible {
   color: var(--color-text-muted);
 }
 
-/* ── Error toast ────────────────────────────────────────────── */
-
-/* Transient failure notice below the card; auto-dismisses. */
-.testing-env__toast {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
-  margin: var(--spacing-md) 0 0;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-notification);
-  background: var(--color-error-fg);
-  color: var(--color-text-inverse);
-  font-family: var(--font-family-code);
-  font-size: 0.75rem;
-  width: fit-content;
-}
-
 /* ── Deploy section ─────────────────────────────────────────── */
 
 /* Bottom band of the card, closing it off: the button, what it will do, then

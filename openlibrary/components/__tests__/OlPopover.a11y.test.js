@@ -5,11 +5,8 @@
  * wiring the component writes onto the slotted trigger, and the panel's
  * dialog semantics once open.
  */
-import { toHaveNoViolations } from 'jest-axe';
 import { checkA11y, cleanup, mount, openPopover, setupComponentEnv } from '../test-utils/a11y.js';
 import '../lit/OlPopover.js';
-
-expect.extend(toHaveNoViolations);
 
 const POPOVER = `
     <ol-popover aria-label="Edit options">
@@ -31,7 +28,7 @@ describe('OlPopover a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open: the panel is a named dialog and the trigger points at it', async() => {
+    test('open: the panel is a named dialog and the trigger reports it expanded', async() => {
         const el = await openPopover(await mount(POPOVER));
 
         const panel = el.shadowRoot.querySelector('[role="dialog"]');
@@ -39,7 +36,10 @@ describe('OlPopover a11y', () => {
 
         const trigger = el.querySelector('[slot="trigger"]');
         expect(trigger.getAttribute('aria-expanded')).toBe('true');
-        expect(trigger.getAttribute('aria-controls')).toBe(panel.id);
+        // No aria-controls: the trigger is slotted from outside the shadow
+        // root and the panel's id is inside it, so the IDREF could never
+        // resolve. A dangling reference is worse than none.
+        expect(trigger.hasAttribute('aria-controls')).toBe(false);
         expect(await checkA11y()).toHaveNoViolations();
     });
 
