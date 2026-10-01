@@ -340,7 +340,7 @@ def ia_until_to_epoch(until: str | None) -> int | None:
         return None
 
 
-def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
+async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     """Batch-resolve IA identifiers to Solr edition keys + parent work key via the ia field.
 
     Returns {identifier: {"key": "/books/OL1M", "root": "/works/OL1W"}}.
@@ -370,7 +370,7 @@ def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     for start in range(0, len(identifiers), SOLR_QUERY_CHUNK):
         chunk = identifiers[start : start + SOLR_QUERY_CHUNK]
         quoted = " ".join(_phrase(id_) for id_ in chunk)
-        result = get_solr().select(
+        result = await get_solr().select_async(
             query=f"type:edition AND ia:({quoted})",
             fields=["key", "ia", "_root_"],
             rows=len(chunk) * 2,
@@ -382,10 +382,10 @@ def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     return resolved
 
 
-def query_solr_uid() -> int:
+async def query_solr_uid() -> int:
     """Return the highest loan_uid written to Solr, or 0 if none."""
     try:
-        result = get_solr().select(
+        result = await get_solr().select_async(
             # Constrain by the indexed `type:edition` predicate to seed the candidate
             # set; without it, `loan_uid:[* TO *]` (indexed=false, docValues only) is
             # an unbounded full-collection docValues scan.
@@ -401,14 +401,14 @@ def query_solr_uid() -> int:
     return 0
 
 
-def solr_update_in_place(request: list[dict], commit: bool = False) -> None:
-    """Call Solr.update_in_place and raise if Solr reports failure.
+async def solr_update_in_place(request: list[dict], commit: bool = False) -> None:
+    """Call Solr.update_in_place_async and raise if Solr reports failure.
 
     update_in_place_async returns the parsed response without checking status
     -- other callers (trending_updater_daily/hourly) rely on that and just log
     it, so the check is done here rather than changing the shared method.
     """
-    resp = get_solr().update_in_place(request, commit=commit)
+    resp = await get_solr().update_in_place_async(request, commit=commit)
     if resp.get("responseHeader", {}).get("status") != 0:
         raise RuntimeError(f"Solr in-place update error: {resp}")
 
@@ -498,7 +498,7 @@ async def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
     """
     if not identifiers:
         return []
-    id_to_edition = resolve_edition_keys(identifiers)
+    id_to_edition = await resolve_edition_keys(identifiers)
     resolved = [identifier for identifier in identifiers if identifier in id_to_edition]
     if not resolved:
         return []
@@ -570,7 +570,7 @@ async def build_recheck_updates(marked_during_pass: set[str] | None = None) -> l
     below may predate those marks.
     """
     marked_during_pass = marked_during_pass or set()
-    result = get_solr().select(
+    result = await get_solr().select_async(
         query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}",
         # loan_uid, for two reasons. Sorted, it rotates the window: unsorted the
         # select returns the same lowest-docid prefix every pass, so once more
@@ -660,7 +660,7 @@ def clamp_cursor_to_feed(last_uid: int, latest_uid: object) -> int:
     return last_uid
 
 
-def log_heartbeat(last_uid: int, latest_uid: object) -> None:
+async def log_heartbeat(last_uid: int, latest_uid: object) -> None:
     """Proof of life, because the absence of errors is also what a stall looks like.
 
     Cursor lag answers "is it keeping up"; the marked count answers "is it doing
@@ -669,7 +669,7 @@ def log_heartbeat(last_uid: int, latest_uid: object) -> None:
     """
     lag = (latest_uid - last_uid) if isinstance(latest_uid, int) and latest_uid else None
     try:
-        marked = get_solr().select(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0).num_found
+        marked = (await get_solr().select_async(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0)).num_found
     except OSError, ValueError, KeyError, RuntimeError:
         # A heartbeat must never be the thing that stops the daemon.
         logger.debug("Heartbeat could not count marked editions", exc_info=True)
@@ -722,7 +722,7 @@ async def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> in
     if reconcile := await build_reconcile_updates(sorted(touched)):
         logger.info("Cold start: marking %d editions unavailable", len(reconcile))
         if not dry_run:
-            solr_update_in_place(reconcile, commit=True)
+            await solr_update_in_place(reconcile, commit=True)
     return last_uid
 
 
@@ -762,7 +762,7 @@ async def main(  # noqa: PLR0915, PLR0912
         # --reset forces a rebuild from the changes API; a stale loan_uid still in
         # Solr must not short-circuit that (else reset never goes back ~14 days).
         if not reset:
-            last_uid = query_solr_uid()
+            last_uid = await query_solr_uid()
         if last_uid:
             logger.info("Resuming from Solr loan_uid=%d", last_uid)
             cold_start = True
@@ -830,7 +830,7 @@ async def main(  # noqa: PLR0915, PLR0912
                 continue
             dirty = collect_dirty_identifiers(rows)
             try:
-                id_to_edition = resolve_edition_keys(list(dirty))
+                id_to_edition = await resolve_edition_keys(list(dirty))
             except Exception:
                 logger.exception("Failed to resolve edition keys; skipping batch")
                 await asyncio.sleep(poll_interval)
@@ -853,7 +853,7 @@ async def main(  # noqa: PLR0915, PLR0912
                 )
                 if not dry_run:
                     try:
-                        solr_update_in_place(updates, commit=False)
+                        await solr_update_in_place(updates, commit=False)
                     except Exception:
                         # Do not `continue`: that skipped the re-check below, so
                         # one rejected follower batch stopped the repairer too
@@ -879,7 +879,7 @@ async def main(  # noqa: PLR0915, PLR0912
                 logger.info("Freeing %d editions whose ground truth is now available", len(rechecks))
                 if not dry_run:
                     try:
-                        solr_update_in_place(rechecks, commit=False)
+                        await solr_update_in_place(rechecks, commit=False)
                     except Exception:
                         logger.exception("Solr re-check update failed; skipped this pass")
                         rechecks = []
@@ -909,7 +909,7 @@ async def main(  # noqa: PLR0915, PLR0912
         # like. Cursor lag answers "is it keeping up"; the marked count answers
         # "is it doing anything", and both are cheap.
         if now - last_heartbeat >= HEARTBEAT_INTERVAL:
-            log_heartbeat(last_uid, latest_uid)
+            await log_heartbeat(last_uid, latest_uid)
             last_heartbeat = now
 
         logger.debug("Caught up at uid=%d; sleeping %ds", last_uid, poll_interval)
