@@ -77,7 +77,7 @@ def seeded_editions():
     seeding the whole pool makes "did the daemon write anything real" a
     deterministic question.
     """
-    head = json.load(urllib.request.urlopen(f"{FEED}/services/loans/loan/?action=changes&after_uid=0&limit=1", timeout=10))
+    head = json.load(urllib.request.urlopen(f"{FEED}/services/loans/loan/?action=changes&after_uid=1&limit=1", timeout=10))
     after = max(0, (head.get("latest_uid") or 0) - 200)
     rows = json.load(urllib.request.urlopen(f"{FEED}/services/loans/loan/?action=changes&after_uid={after}&limit=200", timeout=10))["rows"]
     ocaids = sorted({r["identifier"] for r in rows if r.get("identifier")})
@@ -112,7 +112,7 @@ def test_the_daemon_marks_a_borrowed_book(seeded_editions, tmp_path, monkeypatch
     """
     monkeypatch.setenv("OL_SOLR_BASE_URL", SOLR)
 
-    head = json.load(urllib.request.urlopen(f"{FEED}/services/loans/loan/?action=changes&after_uid=0&limit=1", timeout=10))
+    head = json.load(urllib.request.urlopen(f"{FEED}/services/loans/loan/?action=changes&after_uid=1&limit=1", timeout=10))
     state = tmp_path / "state"
     state.write_text(str(max(1, (head.get("latest_uid") or 0) - 200)))
 

@@ -11,6 +11,7 @@ from openlibrary.utils.solr import Solr
 from scripts.solr_updater.loan_availability_updater import (
     EBOOK_AVAILABLE,
     EBOOK_UNAVAILABLE,
+    MIN_START_UID,
     RECHECK_INTERVAL,
     RECHECK_MAX_EDITIONS,
     SOLR_QUERY_CHUNK,
@@ -527,14 +528,34 @@ def _ts(days_ago: float) -> str:
 async def test_find_start_uid_no_history():
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
         mock_lending.get_loan_changes = AsyncMock(return_value={"status": "OK", "latest_uid": 0, "rows": []})
-        assert await find_start_uid() == 0
+        assert await find_start_uid() == MIN_START_UID
 
 
 @pytest.mark.asyncio
 async def test_find_start_uid_api_error():
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
         mock_lending.get_loan_changes = AsyncMock(return_value={"status": "error"})
-        assert await find_start_uid() == 0
+        assert await find_start_uid() == MIN_START_UID
+
+
+_NO_AFTER_UID = {"status": "ERROR", "error": "No since or after_uid supplied."}
+
+
+@pytest.mark.asyncio
+async def test_find_start_uid_never_probes_from_zero():
+    """IA reads after_uid=0 as no cursor at all and errors. Probing from 0 made
+    the search fall back to 0, and the cold start then asked for after_uid=0
+    on every retry, forever."""
+
+    def fake_changes(after_uid, limit):
+        if not after_uid:
+            return _NO_AFTER_UID
+        return {"status": "OK", "latest_uid": MIN_START_UID + 10, "rows": []}
+
+    with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
+        mock_lending.get_loan_changes = AsyncMock(side_effect=fake_changes)
+        assert await find_start_uid() == MIN_START_UID
+    assert all(call.kwargs["after_uid"] >= MIN_START_UID for call in mock_lending.get_loan_changes.call_args_list)
 
 
 @pytest.mark.asyncio
@@ -545,11 +566,13 @@ async def test_find_start_uid_converges():
     def fake_changes(after_uid, limit):
         nonlocal call_count
         call_count += 1
-        latest = 500_000
+        if not after_uid:
+            return _NO_AFTER_UID
+        latest = MIN_START_UID + 500_000
         if after_uid >= latest:
             return {"status": "OK", "latest_uid": latest, "rows": []}
-        # uid 0 → 20 days ago, uid latest → now (linear approximation)
-        days_ago = 20 * (1 - after_uid / latest)
+        # MIN_START_UID → 20 days ago, latest → now (linear approximation)
+        days_ago = 20 * (1 - (after_uid - MIN_START_UID) / 500_000)
         return {
             "status": "OK",
             "latest_uid": latest,
@@ -561,8 +584,8 @@ async def test_find_start_uid_converges():
         uid = await find_start_uid(target_age_days=14)
 
     assert call_count <= 41  # 1 initial probe + up to 40 binary-search iterations
-    # uid=150_000 is the exact 14-day boundary (500_000 * (20-14)/20 = 150_000)
-    assert 100_000 < uid < 200_000
+    # MIN_START_UID + 150_000 is the exact 14-day boundary (500_000 * (20-14)/20)
+    assert MIN_START_UID + 100_000 < uid < MIN_START_UID + 200_000
 
 
 @pytest.mark.asyncio
@@ -570,7 +593,7 @@ async def test_find_start_uid_survives_bad_probe_time():
     """A probe row with an unparsable 'time' must not crash startup."""
 
     def fake_changes(after_uid, limit):
-        latest = 500_000
+        latest = MIN_START_UID + 500_000
         if after_uid >= latest:
             return {"status": "OK", "latest_uid": latest, "rows": []}
         return {"status": "OK", "latest_uid": latest, "rows": [{"uid": after_uid + 1, "time": "garbage"}]}
@@ -578,7 +601,8 @@ async def test_find_start_uid_survives_bad_probe_time():
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
         mock_lending.get_loan_changes = AsyncMock(side_effect=fake_changes)
         uid = await find_start_uid(target_age_days=14)  # must not raise
-    assert isinstance(uid, int)
+    assert uid >= MIN_START_UID
+    assert mock_lending.get_loan_changes.call_count > 1, "never reached the binary search"
 
 
 # ---------------------------------------------------------------------------
