@@ -148,6 +148,7 @@ import infogami
 from openlibrary.config import load_config
 from openlibrary.core import lending
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.request_context import create_context_for_script, req_context
 from openlibrary.utils.sentry import init_sentry
 
 logger = logging.getLogger("openlibrary.loan-availability-updater")
@@ -757,6 +758,7 @@ async def main(  # noqa: PLR0915, PLR0912
 
     load_config(ol_config)
     lending.setup(infogami.config)
+    req_context.set(create_context_for_script())
     init_sentry(getattr(infogami.config, "sentry", {}))
 
     state_path = Path(state_file)
