@@ -125,7 +125,7 @@ async function findLinkedIssue(body, repoOwner, repoName) {
  * Returns the given issue's lead and priority, if any.
  *
  * @param {OctokitResponse<T>} issue
- * @returns {{lead: string|undefined, priority: string|undefined}}
+ * @returns {{leadName: string|undefined, priority: string|undefined}}
  */
 function getLinkedIssueMetadata(issue) {
     let leadName, priority
@@ -141,7 +141,7 @@ function getLinkedIssueMetadata(issue) {
     }
 
     return {
-        lead: leadName,
+        leadName: leadName,
         priority: priority
     }
 }
