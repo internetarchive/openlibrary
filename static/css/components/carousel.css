@@ -32,6 +32,39 @@
   margin: 0;
 }
 
+/* A heading that isn't a link (genre rows link from their footer instead). */
+.home-h2.carousel-heading--plain {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  color: var(--color-text-heading);
+}
+
+/* "See more in …", at the end of the row. */
+.carousel-section-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-stack-xs);
+}
+
+.carousel-more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+.carousel-more:link,
+.carousel-more:visited {
+  text-decoration: none;
+}
+
+.carousel-more:hover {
+  text-decoration: underline;
+}
+
 /* Bleeds to the edge of #contentBody. */
 .carousel-container,
 .lazy-carousel {

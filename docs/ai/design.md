@@ -109,6 +109,7 @@ Before writing new markup or CSS, check whether an existing component already do
 | Button | `ol-button` | One-shot actions, including form submit/reset | For a state that stays on or off, use Toggle. For a filter that can be removed, use Chip. |
 | Toggle | `ol-toggle` | A setting that is on or off | For picking one of several options use Segmented Control. |
 | Segmented Control | `ol-segmented-control` | Pick one of a few options, shown side by side | More than about four options belong in a Select Popover. |
+| Tabs | `ol-tabs` | Switch the content below between a few views or subsets | For a setting that changes in place, like a view, use Segmented Control. For links to other pages, use plain links. |
 | Chip | `ol-chip` | A selectable or removable filter | A chip is a removable or selectable filter. A one-shot action is a Button. |
 | Chip Group | `ol-chip-group` | Wrapping layout for a set of Chips | Only for laying out Chips; don't wrap other controls in it. |
 | Pagination | `ol-pagination` | Navigate numbered pages of results | For an open-ended feed, load more in place instead of paging. |

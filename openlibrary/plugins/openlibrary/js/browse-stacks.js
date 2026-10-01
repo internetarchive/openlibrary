@@ -30,10 +30,11 @@ export function initBrowseStacks(root) {
     }
 
     /**
-     * Point the shelf's caret at the open tile, and fade it once the tile's centre leaves the rail.
-     * Where scroll-driven animations exist, CSS moves the caret along the tile's view timeline,
+     * Point the shelf's caret at the open tile, fading it over the tile's last half-width of travel
+     * so it is gone before it reaches the rail's edge.
+     * Where scroll-driven animations exist, CSS moves and fades the caret along the tile's view timeline,
      * so it scrolls in the same frame as the tile; --caret-from/--caret-to are the timeline's ends.
-     * Elsewhere --caret-x is re-measured each scroll frame, a frame or so behind.
+     * Elsewhere --caret-x and --caret-opacity are re-measured each scroll frame, a frame or so behind.
      */
     function anchor() {
         const tile = tileFor(current);
@@ -42,19 +43,18 @@ export function initBrowseStacks(root) {
             return;
         }
         const tileRect = tile.getBoundingClientRect();
-        const railRect = rail.getBoundingClientRect();
+        const port = (scroller || rail).getBoundingClientRect();
         const shelfLeft = shelf.getBoundingClientRect().left;
         const centre = tileRect.left + tileRect.width / 2;
+        const half = tile.offsetWidth / 2;
         shelf.style.setProperty('--caret-x', `${centre - shelfLeft}px`);
+        shelf.style.setProperty('--caret-opacity', Math.max(0, Math.min(1, Math.min(centre - port.left, port.right - centre) / half)));
         if (scroller) {
             // The timeline runs from the tile entering at the scrollport's end edge to leaving at its start.
-            const port = scroller.getBoundingClientRect();
-            const half = tile.offsetWidth / 2;
             const rtl = getComputedStyle(rail).direction === 'rtl';
             shelf.style.setProperty('--caret-from', `${(rtl ? port.left - half : port.right + half) - shelfLeft}px`);
             shelf.style.setProperty('--caret-to', `${(rtl ? port.right + half : port.left - half) - shelfLeft}px`);
         }
-        shelf.classList.toggle('browse-stacks__shelf--caret-out', centre < railRect.left || centre > railRect.right);
         shelf.classList.add('browse-stacks__shelf--anchored');
     }
 

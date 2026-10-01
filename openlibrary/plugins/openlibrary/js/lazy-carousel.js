@@ -177,7 +177,7 @@ document.addEventListener('ol-menu-popover-select', (e) => {
  * A genre row's subgenre control (`genre` in its config; HomeGenrePartial) narrows the row to
  * one subgenre, or widens it back with "All".
  */
-document.addEventListener('ol-segmented-control-change', (e) => {
+document.addEventListener('ol-tabs-change', (e) => {
     const control = e.target.closest?.('.carousel-subgenres');
     const host = control?.closest('.lazy-carousel-loaded[data-config]');
     if (!host) return;
@@ -224,7 +224,7 @@ function refetch(host, config, refocus) {
                 const trigger = control.querySelector(':scope > [slot="trigger"]');
                 trigger?.updateComplete.then(() => trigger.focus());
             } else if (control) {
-                control.updateComplete.then(() => control.renderRoot.querySelector('.segment[aria-checked="true"]')?.focus());
+                control.updateComplete.then(() => control.renderRoot.querySelector('.tab[aria-selected="true"]')?.focus());
             }
         })
         .catch(() => {

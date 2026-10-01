@@ -1,7 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
-import './OlIcon.js';
 import './OlPopover.js';
 
 let _idCounter = 0;
@@ -18,9 +17,8 @@ let _idCounter = 0;
  *
  * @element ol-menu-popover
  *
- * @prop {Array}  items   - `{ value, label, icon?, nested? }` objects, as a JSON
- *     attribute or a property. `icon` is an `<ol-icon>` name shown before the
- *     label. `nested` indents the item under the one above.
+ * @prop {Array}  items   - `{ value, label, nested? }` objects, as a JSON
+ *     attribute or a property. `nested` indents the item under the one above.
  * @prop {String} value   - The active item's `value`. Reflects to attribute.
  * @prop {String} label   - Names the menu, and supplies the default panel
  *     heading and trigger text.
@@ -120,14 +118,6 @@ export class OlMenuPopover extends LitElement {
             line-height: var(--line-height-control);
             text-align: left;
             cursor: pointer;
-        }
-
-        /* Matches the header Browse menu: the glyph only echoes its label, so
-           it stays on the muted tier. */
-        .item-icon {
-            flex: none;
-            margin-inline-end: var(--spacing-inline-md);
-            color: var(--color-icon-muted);
         }
 
         /* Nested items are a subset of the item above them. Less the row's own
@@ -281,7 +271,7 @@ export class OlMenuPopover extends LitElement {
                 aria-checked=${isCurrent ? 'true' : 'false'}
                 tabindex=${i === this._focusIndex ? '0' : '-1'}
                 @click=${() => this._activate(item.value)}
-            >${item.icon ? html`<ol-icon class="item-icon" name=${item.icon} size="sm"></ol-icon>` : nothing}${item.label}</button>
+            >${item.label}</button>
         `;
     }
 

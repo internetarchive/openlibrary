@@ -3164,6 +3164,11 @@ msgstr ""
 msgid "No books match these filters."
 msgstr ""
 
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "See more in %(name)s"
+msgstr ""
+
 #: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"

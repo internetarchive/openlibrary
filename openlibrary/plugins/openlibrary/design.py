@@ -244,6 +244,14 @@ COMPONENTS = (
         avoid="More than about four options belong in a Select Popover.",
     ),
     Component(
+        "tabs",
+        "Tabs",
+        "design/components/tabs.html.jinja",
+        group="Actions",
+        tag="ol-tabs",
+        avoid="For a setting that changes in place, like a view, use Segmented Control. For links to other pages, use plain links.",
+    ),
+    Component(
         "chip",
         "Chip",
         "design/components/chip.html.jinja",

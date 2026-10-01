@@ -137,10 +137,11 @@
 /* The shelf ------------------------------------------------------------ */
 
 .browse-stacks__shelf {
+  --shelf-inset: var(--spacing-inset-lg);
+
   position: relative;
   margin-top: var(--spacing-stack-md);
-  padding: var(--spacing-inset-md) var(--spacing-inset-lg)
-    var(--spacing-inset-sm);
+  padding: var(--spacing-inset-md) var(--shelf-inset);
   border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-lg);
   background: var(--color-surface-header);
@@ -154,8 +155,8 @@
 }
 
 /* A caret under the open tile, so the shelf reads as that tile's, not a box below the rail.
-   browse-stacks.js measures the tile and sets --caret-x (a physical offset, so it holds in RTL),
-   and fades it once the tile scrolls out of view. */
+   browse-stacks.js measures the tile and sets --caret-x (a physical offset, so it holds in RTL)
+   and --caret-opacity, which fades it out before the tile reaches the rail's edge. */
 .browse-stacks__shelf--anchored::before {
   content: "";
   position: absolute;
@@ -163,6 +164,7 @@
   left: var(--caret-x);
   width: 14px;
   height: 14px;
+  opacity: var(--caret-opacity, 1);
   transform: translateX(-50%) rotate(45deg);
   border-inline-start: 1px solid var(--color-border-muted);
   border-top: 1px solid var(--color-border-muted);
@@ -172,17 +174,14 @@
     opacity var(--duration-base) var(--ease-exit);
 }
 
-/* Mid-scroll the caret is already moved every frame; easing would make it lag the tile. */
+/* Mid-scroll the caret is already moved and faded every frame; easing would make it lag the tile. */
 .browse-stacks__shelf--tracking::before {
-  transition: opacity var(--duration-base) var(--ease-exit);
-}
-
-.browse-stacks__shelf--caret-out::before {
-  opacity: 0;
+  transition: none;
 }
 
 /* Ride the open tile's view timeline instead, so the caret moves on the compositor with the rail
-   rather than a frame behind it. The timeline's ends come from browse-stacks.js. */
+   rather than a frame behind it. The timeline's ends come from browse-stacks.js. The fades span
+   the tile's centre reaching the edge (entry/exit 50%) to a half tile inside it. */
 @supports (view-timeline: --a inline) and (timeline-scope: --a) {
   .browse-stacks {
     timeline-scope: --browse-stacks-open-tile;
@@ -196,8 +195,17 @@
 
   .browse-stacks__shelf--anchored::before {
     left: 0;
-    animation: browse-stacks-caret linear both;
+    /* Longhands, not the `animation` shorthand: the minifier expands a multi-animation shorthand
+       to `animation-duration: 0s`, and a scroll-driven animation needs the `auto` default. */
+    animation-name:
+      browse-stacks-caret, browse-stacks-caret-in, browse-stacks-caret-out;
+    animation-timing-function: linear;
+    animation-fill-mode: both, backwards, forwards;
     animation-timeline: --browse-stacks-open-tile;
+    animation-range:
+      normal,
+      entry 50% entry 100%,
+      exit 0% exit 50%;
   }
 }
 
@@ -208,6 +216,26 @@
 
   to {
     translate: var(--caret-to);
+  }
+}
+
+@keyframes browse-stacks-caret-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes browse-stacks-caret-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
   }
 }
 
@@ -230,22 +258,24 @@
   border: 0;
 }
 
+/* The row bleeds to the shelf's edges rather than the page's, but rests inset from them. */
+.genre-shelf .lazy-carousel,
+.genre-shelf .carousel-container {
+  margin-inline: calc(-1 * var(--shelf-inset));
+  padding-inline: 0;
+}
+
+.genre-shelf .carousel--native {
+  --ol-carousel-inset: var(--spacing-inset-md);
+}
+
 .genre-shelf .carousel-section-header--sortable {
   margin-top: 0;
 }
 
-/* The genre's subgenres, under its heading: they narrow the row beneath them. On a narrow
-   screen the control scrolls sideways rather than widening the page. */
-.genre-shelf .carousel-subgenres-scroller {
-  max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin-bottom: var(--spacing-stack-sm);
-}
-
-/* The control's track is --neutral-100, the shelf's own surface; a step darker keeps it visible. */
+/* The genre's subgenre tabs, under its heading: they narrow the row beneath them. */
 .genre-shelf .carousel-subgenres {
-  --color-control-track: var(--neutral-200);
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .genre-shelf__error {
@@ -280,8 +310,7 @@
   }
 
   .browse-stacks__shelf {
-    padding: var(--spacing-inset-md) var(--spacing-inset-md)
-      var(--spacing-inset-xs);
+    --shelf-inset: var(--spacing-inset-md);
   }
 }
 
