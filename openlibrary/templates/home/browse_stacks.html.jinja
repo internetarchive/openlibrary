@@ -37,8 +37,7 @@
             {% endfor %}
         </ol-carousel>
         {# Shuffle the tiles before first paint, so every visit leads with a different shelf even
-           though the page itself is cached. Runs inline for that reason; no-JS keeps the server order.
-           browse-stacks.js opens the first tile's shelf once it loads. #}
+           though the page itself is cached. Runs inline for that reason; no-JS keeps the server order. #}
         <script>
             (function () {
                 var rail = document.getElementById('browse-stacks-rail');

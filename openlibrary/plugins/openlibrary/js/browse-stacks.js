@@ -3,7 +3,7 @@
  * (a carousel for the genre, with a subgenre control that narrows it) in place. The shelf HTML comes from
  * /partials/HomeGenre.json; its carousels are the same lazy placeholders the
  * rest of the home page uses, so lazy-carousel.js fills and controls them.
- * The first tile's shelf opens on load, and a caret on the shelf points at the open tile.
+ * No shelf is open on load; a caret on an open shelf points at its tile.
  */
 
 import { trackEvent } from './ol.analytics.js';
@@ -120,21 +120,18 @@ export function initBrowseStacks(root) {
 
     /**
      * @param {string} slug
-     * @param {object} [options]
-     * @param {boolean} [options.initial] - The shelf that opens by itself on load: no scroll, no focus, not tracked as a click.
      */
-    async function open(slug, { initial = false } = {}) {
+    async function open(slug) {
         if (current === slug) {
             close();
             return;
         }
         current = slug;
         markExpanded(slug);
-        if (!initial) trackEvent('BrowseStacks', 'Open', slug);
+        trackEvent('BrowseStacks', 'Open', slug);
         const ok = await load(slug);
         if (!ok || current !== slug) return;
         anchor();
-        if (initial) return;
         shelf.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         shelf.querySelector('.genre-shelf')?.focus({ preventScroll: true });
     }
@@ -157,8 +154,4 @@ export function initBrowseStacks(root) {
         if (e.target.closest?.('ol-menu-popover, ol-popover, ol-select-popover, ol-options-popover')) return;
         close();
     });
-
-    // The page opens with a shelf out, so the rail never reads as tiles with nothing behind them.
-    // The inline shuffle in the template has already picked which tile is first.
-    if (tiles.length) open(tiles[0].dataset.genre, { initial: true });
 }

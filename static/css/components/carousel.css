@@ -32,9 +32,10 @@
   margin: 0;
 }
 
+/* Bleeds to the edge of #contentBody. */
 .carousel-container,
 .lazy-carousel {
-  margin: 0 -20px;
+  margin: 0 calc(-1 * var(--spacing-page-gutter));
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
 }
 
@@ -65,6 +66,19 @@
   margin-bottom: var(--spacing-stack-md);
   overflow-x: scroll;
   padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
+}
+
+/* On a phone the row runs edge to edge: the first cover sits at the page gutter
+   instead of 40px of container and track padding in from it. */
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .carousel-container {
+    padding-inline: 0;
+  }
+
+  .carousel {
+    padding-inline: var(--spacing-page-gutter);
+  }
 }
 
 .carousel.carousel--grid {
