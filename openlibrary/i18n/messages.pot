@@ -960,7 +960,7 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html books/custom_carousel.html.jinja type/tag/index.html
+#: about/index.html type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -3131,6 +3131,11 @@ msgstr ""
 #: books/custom_carousel.html.jinja
 #, python-format
 msgid "%(genre)s subgenres"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "All %(genre)s"
 msgstr ""
 
 #: books/custom_carousel.html.jinja
