@@ -487,7 +487,10 @@ _LOAN_CHANGES_INTERVAL_SECONDS = 60
 
 _loan_changes: list[dict] = []
 _loan_changes_lock = asyncio.Lock()
-_next_loan_uid = itertools.count(1)
+# Real IA uids are in the hundreds of millions, and the loan availability
+# updater never searches below 462_000_000 (its MIN_START_UID), so the mock's
+# start above that for the updater to see its events.
+_next_loan_uid = itertools.count(462_000_001)
 
 
 async def _fetch_real_ia_ids(limit: int = 200) -> list[str]:
@@ -577,9 +580,12 @@ async def _loan_changes_ongoing_loop() -> None:
 
 
 @app.get("/services/loans/loan/")
-async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JSONResponse:
+async def loan_changes(action: str, after_uid: int | None = None, limit: int = 1000) -> JSONResponse:
     if action != "changes":
         return JSONResponse({"status": "error", "error": f"unsupported action: {action}"}, status_code=400)
+    if not after_uid:
+        # IA treats after_uid=0 the same as a missing one.
+        return JSONResponse({"status": "ERROR", "error": "No since or after_uid supplied."})
     async with _loan_changes_lock:
         rows = [event for event in _loan_changes if event["uid"] > after_uid][:limit]
         latest_uid = _loan_changes[-1]["uid"] if _loan_changes else 0

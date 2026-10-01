@@ -193,6 +193,10 @@ def is_releasing_event(event_type: str) -> bool:
 _SEEN_ACQUIRING_EVENT_TYPES = frozenset({"borrow", "browse", "renew_borrow", "renew_browse", "renew"})
 
 LOAN_MAX_AGE_DAYS = 14
+MIN_START_UID = 462_000_000
+"""Floor for the start-uid search. The changes endpoint treats `after_uid=0` as
+absent and answers {"status": "ERROR", "error": "No since or after_uid
+supplied."}, so the search can never probe from 0."""
 BATCH_SIZE = lending.LOAN_CHANGES_MAX_LIMIT
 """Rows per feed page. Pinned to IA's own ceiling rather than restated: asking
 for more is silently capped, so a larger number here would quietly mean fewer
@@ -246,25 +250,26 @@ def write_state(path: Path, uid: int) -> None:
 async def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     """Binary-search for the uid whose next event is ~target_age_days old.
 
-    Uses limit=1 probes. Returns 0 if the API has no history or all history
-    is newer than target_age_days.
+    Uses limit=1 probes. Never returns less than MIN_START_UID: that is the
+    answer if the API has no history or all history is newer than
+    target_age_days.
     """
     try:
-        resp = await lending.get_loan_changes(after_uid=0, limit=1)
+        resp = await lending.get_loan_changes(after_uid=MIN_START_UID, limit=1)
     except Exception:
-        logger.exception("Loan changes API unreachable on startup probe; starting from uid 0")
-        return 0
+        logger.exception("Loan changes API unreachable on startup probe; starting from uid %d", MIN_START_UID)
+        return MIN_START_UID
 
     if resp.get("status") != "OK":
-        logger.warning("Loan changes API non-OK on startup probe; starting from uid 0")
-        return 0
+        logger.warning("Loan changes API non-OK on startup probe (%r); starting from uid %d", resp.get("error"), MIN_START_UID)
+        return MIN_START_UID
 
     latest_uid = resp.get("latest_uid") or 0
-    if not latest_uid:
-        return 0
+    if latest_uid <= MIN_START_UID:
+        return MIN_START_UID
 
     target_time = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=target_age_days)
-    low, high = 0, latest_uid
+    low, high = MIN_START_UID, latest_uid
 
     for _ in range(40):
         if high - low <= 1000:
