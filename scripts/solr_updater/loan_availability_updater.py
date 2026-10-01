@@ -135,6 +135,7 @@ guarantees (indexer-side field preservation, a reindex-triggered re-apply, or
 wipe auto-detection) are a maintainer follow-up, out of scope here.
 """
 
+import asyncio
 import contextlib
 import datetime
 import json
@@ -481,7 +482,7 @@ def build_solr_updates(
     return updates
 
 
-def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
+async def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
     """Mark the genuinely-unavailable members of `identifiers` from ground truth.
 
     The cold-start half of the design. Replaying ~LOAN_MAX_AGE_DAYS of events
@@ -516,7 +517,7 @@ def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
         expected_requests,
     )
     started = time.monotonic()
-    availability = lending.get_availability_batch(resolved)
+    availability = await lending.get_availability_batch(resolved)
     logger.info(
         "Reconcile answered %d/%d in %.0fs",
         len(availability),
@@ -548,7 +549,7 @@ def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
     return updates
 
 
-def build_recheck_updates(marked_during_pass: set[str] | None = None) -> list[dict]:
+async def build_recheck_updates(marked_during_pass: set[str] | None = None) -> list[dict]:
     """Re-check the known-unavailable editions against ground truth.
 
     Safety net for availability changes the changes feed never reports: missed
@@ -599,7 +600,7 @@ def build_recheck_updates(marked_during_pass: set[str] | None = None) -> list[di
     if not id_to_doc:
         return []
 
-    availability = lending.get_availability_batch(list(id_to_doc))
+    availability = await lending.get_availability_batch(list(id_to_doc))
     if not availability:
         # Visible during an archive.org outage. Nothing to do -- the follower
         # keeps running and the marks simply persist until ground truth returns.
@@ -676,7 +677,7 @@ def log_heartbeat(last_uid: int, latest_uid: object) -> None:
     logger.info("Heartbeat: cursor=%s lag=%s editions_marked_unavailable=%s", last_uid, lag, marked)
 
 
-def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> int:
+async def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> int:
     """Settle the replay window against ground truth, then return the new cursor.
 
     Replaying the window through the event path would mark every book touched in
@@ -699,11 +700,11 @@ def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> int:
             resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
         except Exception:
             logger.exception("Cold start: failed to fetch loan changes; retrying in %ds", poll_interval)
-            time.sleep(poll_interval)
+            await asyncio.sleep(poll_interval)
             continue
         if resp.get("status") != "OK":
             logger.error("Cold start: loan changes returned status=%r; retrying", resp.get("status"))
-            time.sleep(poll_interval)
+            await asyncio.sleep(poll_interval)
             continue
         rows = resp.get("rows", [])
         if not rows:
@@ -718,14 +719,14 @@ def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> int:
             break
 
     logger.info("Cold start: %d identifiers touched; reconciling against ground truth", len(touched))
-    if reconcile := build_reconcile_updates(sorted(touched)):
+    if reconcile := await build_reconcile_updates(sorted(touched)):
         logger.info("Cold start: marking %d editions unavailable", len(reconcile))
         if not dry_run:
             solr_update_in_place(reconcile, commit=True)
     return last_uid
 
 
-def main(  # noqa: PLR0915, PLR0912
+async def main(  # noqa: PLR0915, PLR0912
     ol_config: str,
     state_file: str = "loan-availability-update.state",
     poll_interval: int = POLL_INTERVAL,
@@ -770,7 +771,7 @@ def main(  # noqa: PLR0915, PLR0912
             last_uid = find_start_uid()
             cold_start = True
     if cold_start:
-        last_uid = run_cold_start(last_uid, poll_interval, dry_run)
+        last_uid = await run_cold_start(last_uid, poll_interval, dry_run)
         if not dry_run:
             try:
                 write_state(state_path, last_uid)
@@ -788,12 +789,12 @@ def main(  # noqa: PLR0915, PLR0912
             resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
         except Exception:
             logger.exception("Failed to fetch loan changes; will retry in %ds", poll_interval)
-            time.sleep(poll_interval)
+            await asyncio.sleep(poll_interval)
             continue
 
         if resp.get("status") != "OK":
             logger.error("Loan changes API returned status=%r; sleeping", resp.get("status"))
-            time.sleep(poll_interval)
+            await asyncio.sleep(poll_interval)
             continue
 
         # A cursor ahead of the feed is a permanent stall, and it used to be a
@@ -816,7 +817,7 @@ def main(  # noqa: PLR0915, PLR0912
             valid_uids = [r["uid"] for r in rows if isinstance(r.get("uid"), int)]
             if not valid_uids:
                 logger.warning("Batch of %d rows had no valid uid; sleeping", len(rows))
-                time.sleep(poll_interval)
+                await asyncio.sleep(poll_interval)
                 continue
             new_uid = max(valid_uids)
             if new_uid <= last_uid:
@@ -825,14 +826,14 @@ def main(  # noqa: PLR0915, PLR0912
                 # cursor spins the loop with no sleep -- measured at 201 API
                 # calls in 0.21s, hammering IA, Solr and the commit path.
                 logger.warning("Feed returned %d rows but none past uid %d; sleeping", len(rows), last_uid)
-                time.sleep(poll_interval)
+                await asyncio.sleep(poll_interval)
                 continue
             dirty = collect_dirty_identifiers(rows)
             try:
                 id_to_edition = resolve_edition_keys(list(dirty))
             except Exception:
                 logger.exception("Failed to resolve edition keys; skipping batch")
-                time.sleep(poll_interval)
+                await asyncio.sleep(poll_interval)
                 continue
 
             # No availability call here, deliberately. The steady-state path
@@ -869,7 +870,7 @@ def main(  # noqa: PLR0915, PLR0912
         now = time.monotonic()
         if now - last_recheck >= recheck_interval:
             try:
-                rechecks = build_recheck_updates(marked_this_pass)
+                rechecks = await build_recheck_updates(marked_this_pass)
             except Exception:
                 logger.exception("Failed to build re-check updates")
                 rechecks = []
@@ -912,7 +913,7 @@ def main(  # noqa: PLR0915, PLR0912
             last_heartbeat = now
 
         logger.debug("Caught up at uid=%d; sleeping %ds", last_uid, poll_interval)
-        time.sleep(poll_interval)
+        await asyncio.sleep(poll_interval)
 
 
 if __name__ == "__main__":

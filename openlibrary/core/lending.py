@@ -230,7 +230,7 @@ def get_loan_changes(
 AVAILABILITY_BATCH_SIZE = 100
 
 
-def get_availability_batch(
+async def get_availability_batch(
     identifiers: list[str],
     batch_size: int = AVAILABILITY_BATCH_SIZE,
     s3_keys: dict | None = None,
@@ -275,7 +275,7 @@ def get_availability_batch(
     for start in range(0, len(identifiers), batch_size):
         batch = identifiers[start : start + batch_size]
         try:
-            response = requests.get(
+            response = await ia.get_async_session().get(
                 config_ia_availability_api_v2_url,
                 params={"identifier": ",".join(batch), "scope": "printdisabled"},
                 headers=headers,
