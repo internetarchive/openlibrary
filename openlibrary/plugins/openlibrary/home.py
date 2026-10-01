@@ -127,6 +127,8 @@ class random_book(delegate.page):
 
 
 def get_featured_subjects():
+    """The subject list behind the OPDS catalog's navigation (api.py). The home page's
+    subject strip that used it is gone; the stacks below replaced it."""
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()

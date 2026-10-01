@@ -1284,7 +1284,7 @@ msgid "<a href=\"/search\">Search for a book</a> to borrow."
 msgstr ""
 
 #: account/loans.html
-msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
+msgid "Looking for a book to borrow? Check out our staff picks:"
 msgstr ""
 
 #: account/loans.html home/index.html
@@ -4194,16 +4194,12 @@ msgstr ""
 msgid "Browse the stacks"
 msgstr ""
 
-#: home/browse_stacks.html.jinja home/categories.html
+#: home/browse_stacks.html.jinja
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
-
-#: home/categories.html
-msgid "Browse by Subject"
-msgstr ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"

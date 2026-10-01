@@ -1265,7 +1265,6 @@ class account_loans(delegate.page):
     @require_login
     def GET(self):
         from openlibrary.core.lending import get_loans_of_user
-        from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 
         i = web.input(page=1)
         try:
@@ -1278,7 +1277,6 @@ class account_loans(delegate.page):
         mb = MyBooksTemplate(username, "loans")
         docs = get_loans_of_user(user.key)
         loan_history_data = get_loan_history_data(username, page=page)
-        featured_subjects = get_cached_featured_subjects()
 
         staff_picks = get_carousel_data(carousels=("staff_picks",))["staff_picks"]
 
@@ -1289,7 +1287,6 @@ class account_loans(delegate.page):
             current_page=page,
             show_next=loan_history_data["show_next"],
             ia_base_url=CONFIG_IA_DOMAIN,
-            featured_subjects=featured_subjects,
             carousel=staff_picks,
         )
         return mb.render(header_title=_("Loans & History"), template=template)
