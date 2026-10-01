@@ -1,8 +1,7 @@
 /**
  * "Browse the stacks" on the home page: a rail of genre tiles that open a shelf
  * (a carousel for the genre, with a subgenre control that narrows it) in place. The shelf HTML comes from
- * /partials/HomeGenre.json; its carousels are the same lazy placeholders the
- * rest of the home page uses, so lazy-carousel.js fills and controls them.
+ * /partials/HomeGenre.json with its row already loaded; lazy-carousel.js sets it up and runs its controls.
  * No shelf is open on load; a caret on an open shelf points at its tile.
  */
 
@@ -17,6 +16,7 @@ export function initBrowseStacks(root) {
     const shelf = root.querySelector('.browse-stacks__shelf');
     const tiles = Array.from(root.querySelectorAll('.browse-stacks__tile'));
     const i18n = JSON.parse(root.dataset.i18n || '{}');
+    const loadingHtml = root.querySelector('.browse-stacks__loading')?.innerHTML || '';
     let current = null;
     let controller = null;
     let scroller = null;
@@ -91,18 +91,18 @@ export function initBrowseStacks(root) {
     async function load(slug) {
         controller?.abort();
         controller = new AbortController();
+        const { signal } = controller;
         shelf.hidden = false;
+        shelf.innerHTML = loadingHtml;
         shelf.setAttribute('aria-busy', 'true');
         shelf.classList.add('browse-stacks__shelf--loading');
         try {
-            const resp = await fetch(buildPartialsUrl('HomeGenre', { genre: slug }), { signal: controller.signal });
+            const resp = await fetch(buildPartialsUrl('HomeGenre', { genre: slug }), { signal });
             if (!resp.ok) throw new Error('Failed to fetch genre shelf');
-            const data = await resp.json();
+            const [data, lazyCarousel] = await Promise.all([resp.json(), import('./lazy-carousel')]);
+            if (signal.aborted) return false;
             shelf.innerHTML = data.partials;
-            const placeholders = shelf.querySelectorAll('.lazy-carousel');
-            if (placeholders.length) {
-                import('./lazy-carousel').then(module => module.initLazyCarousel(placeholders));
-            }
+            lazyCarousel.initLoadedCarousels(shelf);
             return true;
         } catch (e) {
             if (e.name === 'AbortError') return false;
@@ -113,8 +113,11 @@ export function initBrowseStacks(root) {
             });
             return false;
         } finally {
-            shelf.classList.remove('browse-stacks__shelf--loading');
-            shelf.removeAttribute('aria-busy');
+            // Unless a newer load owns the shelf's busy state now.
+            if (controller.signal === signal) {
+                shelf.classList.remove('browse-stacks__shelf--loading');
+                shelf.removeAttribute('aria-busy');
+            }
         }
     }
 

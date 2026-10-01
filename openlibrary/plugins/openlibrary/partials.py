@@ -983,8 +983,6 @@ class CarouselQueryParams(CarouselCommonData):
     layout: str
     fallback: str | bool | None
     safe_mode: bool
-    sort_control: NotRequired[bool]
-    genre: NotRequired[str]
 
 
 class BookCarouselData(CarouselCommonData):
@@ -1120,8 +1118,8 @@ class SubgenreOption(TypedDict):
 
 class HomeGenrePartial:
     """The shelf that opens under a "Browse the stacks" tile: one row for the genre, with its
-    subgenres as a control that narrows it. Rendered by browse-stacks.js; lazy-carousel.js refetches
-    the row when a subgenre is picked, and CarouselPartial calls `narrow` to build it."""
+    subgenres as a control that narrows it. Fetched by browse-stacks.js; lazy-carousel.js refetches
+    the row when a subgenre or sort is picked, and CarouselPartial calls `narrow` to build it."""
 
     @staticmethod
     def query(genre: home_genres.Genre, subgenre: home_genres.GenreNode | None, lang: str | None) -> str:
@@ -1141,30 +1139,29 @@ class HomeGenrePartial:
         return params.model_copy(update={"query": query, "url": url, "subgenre": subgenre and subgenre["slug"]}), options
 
     @classmethod
-    def generate(cls, params: HomeGenreParams) -> dict:
+    async def generate_async(cls, params: HomeGenreParams) -> dict:
         genre = home_genres.find_genre(params.genre)
         if not genre:
             return {"partials": ""}
 
-        config = build_carousel_placeholder_config(
+        row = LazyCarouselParams(
             query=cls.query(genre, None, get_request_lang()),
             title=genre["name"],
             sort="trending",
             key=f"genre-{genre['slug']}",
             limit=20,
-            search=False,
             has_fulltext_only=True,
             url=home_genres.search_url(genre),
             # The shelf rows pilot the native carousel component; the other home rows are still slick.
             layout="ol-carousel",
-            # No fallback state: a row with nothing in the patron's language is dropped, like the rest of the home page.
-            fallback=None,
-            safe_mode=True,
             sort_control=True,
             genre=genre["slug"],
         )
-        carousel = render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **config)
-        html = render_jinja_template("home/genre_shelf.html.jinja", genre=genre, carousel=carousel)
+        # Rendered in this response rather than as a lazy placeholder, so opening a shelf is one request.
+        carousel = await CarouselPartial.generate_async(row)
+        # The row's controls refetch it from this config, as for a lazy-loaded row (lazy-carousel.js).
+        config_json = json_encode(row.model_dump(exclude_none=True))
+        html = render_jinja_template("home/genre_shelf.html.jinja", genre=genre, carousel=carousel["partials"], config_json=config_json)
         return {"partials": html}
 
 
@@ -1190,8 +1187,6 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
-        **({"sort_control": True} if params.get("sort_control") else {}),
-        **({"genre": params["genre"]} if params.get("genre") else {}),
     }
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),

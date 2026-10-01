@@ -39,7 +39,7 @@ $add_metatag(property="og:site_name", content="Open Library")
   $if not test and get_ol_env().LOCAL_DEV:
     $:macros.QueryCarousel(title=_('Books in Local Environment'), query='*')
 
-  $:render_jinja_template("home/browse_stacks.html.jinja", genres=featured_genres if not test else [], i18n_json=json_encode({"error": _("Couldn't load this shelf. Try again?")}))
+  $:render_jinja_template("home/browse_stacks.html.jinja", genres=featured_genres if not test else [], i18n_json=json_encode({"error": _("Couldn't load this shelf. Try again?")}), loading_html=str(macros.LoadingIndicator(_("Loading carousel"), hidden=False)))
 
   $:render_template("home/stats", stats)
 

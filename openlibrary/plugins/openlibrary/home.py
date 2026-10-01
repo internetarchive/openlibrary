@@ -2,6 +2,7 @@
 
 import logging
 import random
+from urllib.parse import urlencode
 
 import web
 
@@ -20,6 +21,7 @@ from openlibrary.plugins.upstream.utils import (
 )
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import caching_prethread, req_context
 
 logger = logging.getLogger("openlibrary.home")
@@ -32,8 +34,8 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    # Random order so the rail leads with different shelves; the template reshuffles per visit.
-    featured_genres = random.sample(get_cached_featured_genres(), k=len(get_cached_featured_genres()))
+    # The template shuffles the tiles per visit, so the cached order doesn't matter.
+    featured_genres = get_cached_featured_genres()
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
@@ -246,33 +248,37 @@ def subject_tile_labels() -> dict[str, str]:
 
 
 def get_featured_genres():
-    """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live counts
-    and a few trending covers per genre. Two Solr queries per genre, cached for a day."""
+    """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live readable counts
+    and a few trending covers per genre. One grouped Solr query for all of them, cached for a day."""
     if "env" not in web.ctx:
         delegate.fakeload()
-    solr = search.get_solr()
+    nodes = home_genres.load_home_genres()
+    queries = [home_genres.solr_query(genre) for genre in nodes]
+    # One group per genre: its numFound is the readable count, its docs the most trending covers.
+    params = [
+        ("q", "*:*"),
+        ("fq", home_genres.READABLE_CLAUSE),
+        ("fq", '-subject:"content_warning:cover"'),
+        ("fl", "cover_i"),
+        ("rows", 0),
+        ("group", "true"),
+        ("group.limit", GENRE_TILE_COVERS * 2),
+        ("group.sort", "def(trending_z_score,0) desc"),
+        ("wt", "json"),
+        *(("group.query", query) for query in queries),
+    ]
+    grouped = async_bridge.run(search.get_solr().raw_request("select", urlencode(params))).json()["grouped"]
     labels = subject_tile_labels()
     genres = []
-    for genre in home_genres.load_home_genres():
-        # Raw Solr defaults to OR between clauses, so the ANDs are load-bearing.
-        query = home_genres.solr_query(genre)
-        readable = solr.select(
-            f'{query} AND {home_genres.READABLE_CLAUSE} AND NOT subject:"content_warning:cover"',
-            fields=["cover_i"],
-            rows=GENRE_TILE_COVERS * 2,
-            sort="def(trending_z_score,0) desc",
-        )
-        total = solr.select(query, fields=["key"], rows=0)
-        covers = [doc["cover_i"] for doc in readable["docs"] if doc.get("cover_i")][:GENRE_TILE_COVERS]
+    for genre, query in zip(nodes, queries, strict=True):
+        doclist = grouped[query]["doclist"]
         genres.append(
             {
                 **genre,
                 "name": labels.get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"],
-                "work_count": total["num_found"],
-                "readable_count": readable["num_found"],
-                "work_count_str": commify(total["num_found"]),
-                "readable_count_str": commify(readable["num_found"]),
-                "covers": covers,
+                "readable_count": doclist["numFound"],
+                "readable_count_str": commify(doclist["numFound"]),
+                "covers": [doc["cover_i"] for doc in doclist["docs"] if doc.get("cover_i")][:GENRE_TILE_COVERS],
                 "url": home_genres.browse_url(genre),
             }
         )

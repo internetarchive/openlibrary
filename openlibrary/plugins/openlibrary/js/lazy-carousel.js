@@ -17,6 +17,16 @@ function initCarousels(elems) {
     initNativeCarousels(native);
 }
 
+/**
+ * Sets up rows that arrive already loaded, inside a `.lazy-carousel-loaded[data-config]` wrapper
+ * (the "Browse the stacks" shelf), so they get the same behavior and controls as lazy-loaded rows.
+ *
+ * @param root {HTMLElement}
+ */
+export function initLoadedCarousels(root) {
+    initCarousels(root.querySelectorAll(CAROUSEL_SELECTOR));
+}
+
 document.addEventListener('click', (e) => {
     if (e.target.closest('a[data-ol-link-track="OpenRelatedBooks|BannerClick"]')) {
         bannerClicked = true;

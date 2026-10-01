@@ -259,7 +259,6 @@
 }
 
 /* The row bleeds to the shelf's edges rather than the page's, but rests inset from them. */
-.genre-shelf .lazy-carousel,
 .genre-shelf .carousel-container {
   margin-inline: calc(-1 * var(--shelf-inset));
   padding-inline: 0;

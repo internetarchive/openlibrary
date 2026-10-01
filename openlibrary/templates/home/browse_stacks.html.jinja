@@ -1,7 +1,7 @@
 {#
   "Browse the stacks": one tile per genre, fanned with a few trending covers. A tile opens
   the genre's shelf (home/genre_shelf.html.jinja) in place; browse-stacks.js does the fetching.
-  `genres` comes from home.get_cached_featured_genres().
+  `genres` comes from home.get_cached_featured_genres(); `loading_html` is the LoadingIndicator macro.
 #}
 {% if genres is defined and genres %}
     <section class="browse-stacks"
@@ -53,6 +53,8 @@
                 });
             })();
         </script>
+        {# Shown in the shelf while browse-stacks.js fetches it. #}
+        <template class="browse-stacks__loading">{{ loading_html | safe }}</template>
         <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
     </section>
 {% endif %}

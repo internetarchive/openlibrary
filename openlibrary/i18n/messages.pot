@@ -4251,6 +4251,10 @@ msgstr ""
 msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
+#: home/index.html openlibrary/plugins/openlibrary/partials.py
+msgid "Loading carousel"
+msgstr ""
+
 #: home/stats.html
 msgid "Around the Library"
 msgstr ""
@@ -8412,10 +8416,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
-msgid "Loading carousel"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py
