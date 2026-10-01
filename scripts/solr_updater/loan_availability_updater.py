@@ -198,6 +198,10 @@ _SEEN_ACQUIRING_EVENT_TYPES = frozenset({"borrow", "browse", "renew_borrow", "re
 LOAN_MAX_AGE_DAYS = 14
 START_UID_TOLERANCE = 1000
 """How close to the target age the start-uid search gets -- minutes of events."""
+LOAN_EVENTS_PER_DAY = 240_000
+"""Roughly how far the changes feed's uid advances in a day (measured 2026-10).
+Only sizes the start-uid search's first step back from the head, so being off
+in either direction costs a few probes, never accuracy."""
 BATCH_SIZE = lending.LOAN_CHANGES_MAX_LIMIT
 """Rows per feed page. Pinned to IA's own ceiling rather than restated: asking
 for more is silently capped, so a larger number here would quietly mean fewer
@@ -275,7 +279,7 @@ async def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     head = (await changes_after(1)).get("latest_uid") or 0
     if head <= 1:
         return 1
-    uid = await gallop_back(head, next_event_is_older, lowest=1, initial_step=START_UID_TOLERANCE, tolerance=START_UID_TOLERANCE)
+    uid = await gallop_back(head, next_event_is_older, lowest=1, initial_step=target_age_days * LOAN_EVENTS_PER_DAY, tolerance=START_UID_TOLERANCE)
     logger.info("Starting from uid %d (feed head %d)", uid, head)
     return uid
 

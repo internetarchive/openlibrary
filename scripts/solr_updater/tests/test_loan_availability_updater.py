@@ -551,10 +551,13 @@ async def _find_start_uid_against(changes, **kwargs):
 
 
 @pytest.mark.asyncio
-async def test_find_start_uid_lands_just_before_the_target_age():
-    changes, _ = _steady_feed()
+@pytest.mark.parametrize("per_day", [_EVENTS_PER_DAY // 10, _EVENTS_PER_DAY, _EVENTS_PER_DAY * 10], ids=["slower", "as-estimated", "faster"])
+async def test_find_start_uid_lands_just_before_the_target_age(per_day):
+    """LOAN_EVENTS_PER_DAY only sizes the first step; a feed far off that rate
+    must still land in the same place."""
+    changes, _ = _steady_feed(per_day=per_day)
     uid = await _find_start_uid_against(changes, target_age_days=14)
-    boundary = _FEED_HEAD - 14 * _EVENTS_PER_DAY
+    boundary = _FEED_HEAD - 14 * per_day
     # Never after the boundary (that would skip loans still out), at most the
     # tolerance before it. A few uids of slack for the clock moving mid-test.
     assert boundary - START_UID_TOLERANCE - 10 <= uid <= boundary + 10
