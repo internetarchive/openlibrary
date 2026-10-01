@@ -70,6 +70,7 @@ import './OlIcon.js';
  * @cssprop [--ol-carousel-arrow-icon-size=36px] - Diameter of the round arrow buttons
  * @cssprop [--ol-carousel-indicator-color=var(--neutral-300)] - Colour of the inactive page indicators
  * @cssprop [--ol-carousel-indicator-active=var(--neutral-700)] - Colour of the active page indicator
+ * @cssprop [--ol-carousel-fade-color=var(--color-surface)] - Colour the edge fades blend into; match the surface behind the carousel
  * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
  *
  * Browser support: scroll-snap (Safari 11) and scroll-padding (14.5) are the
@@ -253,6 +254,7 @@ export class OlCarousel extends LitElement {
 
         /* ── Edge gradients (always visible to hint at more content) ── */
         .edge-fade {
+            --_fade: var(--ol-carousel-fade-color, var(--color-surface));
             position: absolute;
             top: 0;
             bottom: 0;
@@ -267,12 +269,22 @@ export class OlCarousel extends LitElement {
 
         .edge-fade.prev {
             left: 0;
-            background: linear-gradient(to left, transparent, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0.85));
+            background: linear-gradient(
+                to left,
+                transparent,
+                color-mix(in srgb, var(--_fade) 40%, transparent) 40%,
+                color-mix(in srgb, var(--_fade) 85%, transparent)
+            );
         }
 
         .edge-fade.next {
             right: 0;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0.85));
+            background: linear-gradient(
+                to right,
+                transparent,
+                color-mix(in srgb, var(--_fade) 40%, transparent) 40%,
+                color-mix(in srgb, var(--_fade) 85%, transparent)
+            );
         }
 
         /* ── Arrow buttons ── */
