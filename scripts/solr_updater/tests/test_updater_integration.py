@@ -27,6 +27,7 @@ check locally. To run it:
     pytest scripts/solr_updater/tests/test_updater_integration.py
 """
 
+import asyncio
 import json
 import os
 import signal
@@ -122,7 +123,7 @@ def test_the_daemon_marks_a_borrowed_book(seeded_editions, tmp_path, monkeypatch
     signal.alarm(30)
     try:
         with pytest.raises(SystemExit):
-            main("conf/openlibrary.yml", state_file=str(state), poll_interval=2, recheck_interval=5)
+            asyncio.run(main("conf/openlibrary.yml", state_file=str(state), poll_interval=2, recheck_interval=5))
     finally:
         signal.alarm(0)
 

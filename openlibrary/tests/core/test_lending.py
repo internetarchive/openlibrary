@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -291,77 +292,94 @@ class TestIsAvailableForLoan:
 class TestGetAvailabilityBatch:
     """lending.get_availability_batch — the daemon-side, uncached, chunked lookup."""
 
+    @staticmethod
+    @contextmanager
+    def _session(**get_kwargs):
+        """Patch the shared async session, yielding its `get` mock."""
+        mock_get = AsyncMock(**get_kwargs)
+        with patch("openlibrary.core.ia.get_async_session", return_value=SimpleNamespace(get=mock_get)):
+            yield mock_get
+
     def _response(self, responses, success=True):
         response = Mock()
         response.json.return_value = {"success": success, "responses": responses}
         response.raise_for_status = Mock()
         return response
 
-    def test_empty_input_makes_no_request(self):
-        with patch("openlibrary.core.lending.requests.get") as mock_get:
-            assert lending.get_availability_batch([]) == {}
+    @pytest.mark.asyncio
+    async def test_empty_input_makes_no_request(self):
+        with self._session() as mock_get:
+            assert await lending.get_availability_batch([]) == {}
             mock_get.assert_not_called()
 
-    def test_returns_keyed_availability(self):
+    @pytest.mark.asyncio
+    async def test_returns_keyed_availability(self):
         payload = {"a": {"status": "borrow_available", "available_to_borrow": True}}
-        with patch("openlibrary.core.lending.requests.get", return_value=self._response(payload)):
-            assert lending.get_availability_batch(["a"]) == payload
+        with self._session(return_value=self._response(payload)):
+            assert await lending.get_availability_batch(["a"]) == payload
 
-    def test_chunks_requests(self):
+    @pytest.mark.asyncio
+    async def test_chunks_requests(self):
         """The shared get_availability() comma-joins every id into one request; this one
         must not, or a hydration pass would build a multi-megabyte URL."""
         ids = [f"id{i}" for i in range(250)]
-        with patch("openlibrary.core.lending.requests.get", return_value=self._response({})) as mock_get:
-            lending.get_availability_batch(ids, batch_size=100)
+        with self._session(return_value=self._response({})) as mock_get:
+            await lending.get_availability_batch(ids, batch_size=100)
         assert mock_get.call_count == 3
         sent = [call.kwargs["params"]["identifier"].split(",") for call in mock_get.call_args_list]
         assert [len(batch) for batch in sent] == [100, 100, 50]
         assert [id_ for batch in sent for id_ in batch] == ids
 
-    def test_a_failed_batch_is_skipped_not_fatal(self):
+    @pytest.mark.asyncio
+    async def test_a_failed_batch_is_skipped_not_fatal(self):
         """One bad batch must not lose the batches that did succeed -- and must not
         produce a fabricated answer for the ids it covered."""
         good = self._response({"b": {"status": "borrow_available", "available_to_borrow": True}})
-        with patch("openlibrary.core.lending.requests.get", side_effect=[RuntimeError("boom"), good]):
-            result = lending.get_availability_batch(["a", "b"], batch_size=1)
+        with self._session(side_effect=[RuntimeError("boom"), good]):
+            result = await lending.get_availability_batch(["a", "b"], batch_size=1)
         assert list(result) == ["b"]
 
-    def test_service_level_failure_yields_nothing(self):
-        with patch("openlibrary.core.lending.requests.get", return_value=self._response({"a": {}}, success=False)):
-            assert lending.get_availability_batch(["a"]) == {}
+    @pytest.mark.asyncio
+    async def test_service_level_failure_yields_nothing(self):
+        with self._session(return_value=self._response({"a": {}}, success=False)):
+            assert await lending.get_availability_batch(["a"]) == {}
 
-    def test_error_status_entries_are_dropped(self):
+    @pytest.mark.asyncio
+    async def test_error_status_entries_are_dropped(self):
         """The service reports per-identifier errors inline; those must not be written
         to Solr as if they were real answers."""
         payload = {
             "a": {"status": "error"},
             "b": {"status": "borrow_unavailable", "available_to_borrow": False},
         }
-        with patch("openlibrary.core.lending.requests.get", return_value=self._response(payload)):
-            assert list(lending.get_availability_batch(["a", "b"])) == ["b"]
+        with self._session(return_value=self._response(payload)):
+            assert list(await lending.get_availability_batch(["a", "b"])) == ["b"]
 
-    def test_non_dict_responses_are_ignored(self):
+    @pytest.mark.asyncio
+    async def test_non_dict_responses_are_ignored(self):
         response = Mock()
         response.json.return_value = {"success": True, "responses": ["not", "a", "dict"]}
         response.raise_for_status = Mock()
-        with patch("openlibrary.core.lending.requests.get", return_value=response):
-            assert lending.get_availability_batch(["a"]) == {}
+        with self._session(return_value=response):
+            assert await lending.get_availability_batch(["a"]) == {}
 
-    def test_sends_auth_and_static_headers(self):
+    @pytest.mark.asyncio
+    async def test_sends_auth_and_static_headers(self):
         """No req_context here: this runs in a daemon with no web request."""
         with (
             patch("openlibrary.core.lending.config_ia_ol_metadata_write_s3", {"s3_key": "k", "s3_secret": "s"}),
-            patch("openlibrary.core.lending.requests.get", return_value=self._response({})) as mock_get,
+            self._session(return_value=self._response({})) as mock_get,
         ):
-            lending.get_availability_batch(["a"])
+            await lending.get_availability_batch(["a"])
         headers = mock_get.call_args.kwargs["headers"]
         assert headers["authorization"] == "LOW k:s"
         assert headers["x-application-id"] == "openlibrary"
 
-    def test_explicit_s3_keys_override_config(self):
+    @pytest.mark.asyncio
+    async def test_explicit_s3_keys_override_config(self):
         with (
             patch("openlibrary.core.lending.config_ia_ol_metadata_write_s3", {"s3_key": "k", "s3_secret": "s"}),
-            patch("openlibrary.core.lending.requests.get", return_value=self._response({})) as mock_get,
+            self._session(return_value=self._response({})) as mock_get,
         ):
-            lending.get_availability_batch(["a"], s3_keys={"access": "A", "secret": "S"})
+            await lending.get_availability_batch(["a"], s3_keys={"access": "A", "secret": "S"})
         assert mock_get.call_args.kwargs["headers"]["authorization"] == "LOW A:S"

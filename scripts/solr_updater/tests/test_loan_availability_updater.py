@@ -1,7 +1,7 @@
 """Tests for loan_availability_updater.py"""
 
 import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -214,7 +214,8 @@ def test_build_solr_updates_every_releasing_shape_writes_nothing(event_type):
     assert build_solr_updates(collect_dirty_identifiers([row]), ID_TO_EDITION) == []
 
 
-def test_build_solr_updates_borrow_of_multi_copy_item_is_marked_then_healed():
+@pytest.mark.asyncio
+async def test_build_solr_updates_borrow_of_multi_copy_item_is_marked_then_healed():
     """The multi-copy case, and the cost this design accepts: a borrow of one of
     several copies marks the edition unavailable even though it is still
     borrowable. That is the SAFE direction and it is temporary -- the re-check
@@ -233,7 +234,7 @@ def test_build_solr_updates_borrow_of_multi_copy_item_is_marked_then_healed():
         patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
         patch("openlibrary.core.lending.get_availability_batch", return_value={"bookabc": AVAILABLE}),
     ):
-        healed = build_recheck_updates()
+        healed = await build_recheck_updates()
     assert healed == [{"key": "/books/OL1M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_AVAILABLE}}]
 
 
@@ -299,7 +300,8 @@ def test_build_solr_updates_mixed_batch_writes_the_still_borrowed_one():
 # ---------------------------------------------------------------------------
 
 
-def test_build_reconcile_updates_marks_only_the_unavailable():
+@pytest.mark.asyncio
+async def test_build_reconcile_updates_marks_only_the_unavailable():
     with (
         patch(
             "scripts.solr_updater.loan_availability_updater.resolve_edition_keys",
@@ -310,16 +312,18 @@ def test_build_reconcile_updates_marks_only_the_unavailable():
             return_value={"bookabc": UNAVAILABLE, "bookxyz": AVAILABLE},
         ),
     ):
-        updates = build_reconcile_updates(["bookabc", "bookxyz"])
+        updates = await build_reconcile_updates(["bookabc", "bookxyz"])
     assert updates == [{"key": "/books/OL1M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}}]
 
 
-def test_build_reconcile_updates_empty_input_asks_nothing():
+@pytest.mark.asyncio
+async def test_build_reconcile_updates_empty_input_asks_nothing():
     with patch("openlibrary.core.lending.get_availability_batch", side_effect=AssertionError("must not be called")):
-        assert build_reconcile_updates([]) == []
+        assert await build_reconcile_updates([]) == []
 
 
-def test_build_reconcile_updates_raises_when_ground_truth_is_silent():
+@pytest.mark.asyncio
+async def test_build_reconcile_updates_raises_when_ground_truth_is_silent():
     """Cold start has no event to fall back on, so a silent availability service
     must abort the start rather than leave the index unmarked -- which would
     publish every on-loan book as borrowable."""
@@ -331,7 +335,7 @@ def test_build_reconcile_updates_raises_when_ground_truth_is_silent():
         patch("openlibrary.core.lending.get_availability_batch", return_value={}),
         pytest.raises(RuntimeError, match="refusing to reconcile"),
     ):
-        build_reconcile_updates(["bookabc"])
+        await build_reconcile_updates(["bookabc"])
 
 
 # ---------------------------------------------------------------------------
@@ -437,15 +441,16 @@ def _recheck_docs():
     return mock_result
 
 
-def test_build_recheck_updates_frees_only_available():
+@pytest.mark.asyncio
+async def test_build_recheck_updates_frees_only_available():
     with (
         patch("scripts.solr_updater.loan_availability_updater.get_solr") as mock_get_solr,
         patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending,
     ):
         mock_get_solr.return_value.select.return_value = _recheck_docs()
-        mock_lending.get_availability_batch.return_value = {"freed": AVAILABLE, "stillout": UNAVAILABLE}
+        mock_lending.get_availability_batch = AsyncMock(return_value={"freed": AVAILABLE, "stillout": UNAVAILABLE})
         mock_lending.is_available_for_loan.side_effect = lambda a: bool(a.get("available_to_borrow"))
-        updates = build_recheck_updates()
+        updates = await build_recheck_updates()
 
     assert updates == [
         {
@@ -459,18 +464,20 @@ def test_build_recheck_updates_frees_only_available():
     assert f"ebook_unavailable:{EBOOK_UNAVAILABLE}" in call_args
 
 
-def test_build_recheck_updates_no_answer_leaves_edition_marked():
+@pytest.mark.asyncio
+async def test_build_recheck_updates_no_answer_leaves_edition_marked():
     """An edition the service says nothing about keeps its unavailable marker."""
     with (
         patch("scripts.solr_updater.loan_availability_updater.get_solr") as mock_get_solr,
         patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending,
     ):
         mock_get_solr.return_value.select.return_value = _recheck_docs()
-        mock_lending.get_availability_batch.return_value = {}
-        assert build_recheck_updates() == []
+        mock_lending.get_availability_batch = AsyncMock(return_value={})
+        assert await build_recheck_updates() == []
 
 
-def test_build_recheck_updates_empty_index():
+@pytest.mark.asyncio
+async def test_build_recheck_updates_empty_index():
     empty = MagicMock()
     empty.docs = []
     with (
@@ -478,11 +485,12 @@ def test_build_recheck_updates_empty_index():
         patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending,
     ):
         mock_get_solr.return_value.select.return_value = empty
-        assert build_recheck_updates() == []
+        assert await build_recheck_updates() == []
         mock_lending.get_availability_batch.assert_not_called()
 
 
-def test_build_recheck_updates_dedupes_multi_ocaid_edition():
+@pytest.mark.asyncio
+async def test_build_recheck_updates_dedupes_multi_ocaid_edition():
     """One edition can carry several ocaids; it must be written at most once."""
     result = MagicMock()
     result.docs = [{"key": "/books/OL99M", "ia": ["a", "b"], "_root_": "/works/OL99W"}]
@@ -491,9 +499,9 @@ def test_build_recheck_updates_dedupes_multi_ocaid_edition():
         patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending,
     ):
         mock_get_solr.return_value.select.return_value = result
-        mock_lending.get_availability_batch.return_value = {"a": AVAILABLE, "b": AVAILABLE}
+        mock_lending.get_availability_batch = AsyncMock(return_value={"a": AVAILABLE, "b": AVAILABLE})
         mock_lending.is_available_for_loan.return_value = True
-        assert len(build_recheck_updates()) == 1
+        assert len(await build_recheck_updates()) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -610,11 +618,11 @@ def _wire_lending(lending_mock, first_batch_rows, availability=None):
         {"status": "OK", "rows": first_batch_rows, "latest_uid": 100},
         SystemExit(0),  # stop the loop on the second iteration
     ]
-    lending_mock.get_availability_batch.return_value = {"bookabc": AVAILABLE} if availability is None else availability
+    lending_mock.get_availability_batch = AsyncMock(return_value={"bookabc": AVAILABLE} if availability is None else availability)
     lending_mock.is_available_for_loan.side_effect = lambda a: bool(a.get("available_to_browse") or a.get("available_to_borrow"))
 
 
-def _run_main_one_iteration(tmp_path, solr_mock, lending_mock, first_batch_rows, availability=None):
+async def _run_main_one_iteration(tmp_path, solr_mock, lending_mock, first_batch_rows, availability=None):
     """Run main() through exactly one event-processing iteration."""
     state_file = tmp_path / "state"
     state_file.write_text("99")  # pre-seed so we skip startup init
@@ -622,17 +630,18 @@ def _run_main_one_iteration(tmp_path, solr_mock, lending_mock, first_batch_rows,
     _wire_lending(lending_mock, first_batch_rows, availability)
 
     with pytest.raises(SystemExit):
-        main("fake_config.yml", state_file=str(state_file), poll_interval=0)
+        await main("fake_config.yml", state_file=str(state_file), poll_interval=0)
 
     return state_file
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_calls_update_in_place_not_bare_update(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_calls_update_in_place_not_bare_update(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """The daemon must call update_in_place(), never bare update(), at all Solr write
     sites -- ebook_unavailable/ebook_becomes_available are numeric specifically so
     this is possible."""
@@ -641,18 +650,19 @@ def test_main_calls_update_in_place_not_bare_update(mock_config, mock_infogami, 
     solr.select.side_effect = _select_side_effect
     solr.update_in_place.return_value = _OK_RESPONSE
 
-    _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
+    await _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
 
     assert solr.update_in_place.called, "update_in_place() was never called"
     solr.update.assert_not_called()
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_steady_state_never_calls_availability(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_steady_state_never_calls_availability(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """Replaces a test that asserted WHICH ids were sent to the availability
     service. The steady-state path no longer sends any: it writes from the
     events, so a slow or failing availability service cannot stall ingestion.
@@ -669,18 +679,19 @@ def test_main_steady_state_never_calls_availability(mock_config, mock_infogami, 
     _wire_lending(mock_lending, [_BORROW_ROW])
 
     with pytest.raises(SystemExit):
-        main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
+        await main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
 
     mock_lending.get_availability_batch.assert_not_called()
     assert solr.update_in_place.called
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_availability_silence_no_longer_stalls_the_cursor(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_availability_silence_no_longer_stalls_the_cursor(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """This assertion is INVERTED from the previous design, deliberately.
 
     It used to hold the cursor when the availability service answered nothing,
@@ -693,35 +704,37 @@ def test_main_availability_silence_no_longer_stalls_the_cursor(mock_config, mock
     solr.select.side_effect = _select_side_effect
     solr.update_in_place.return_value = _OK_RESPONSE
 
-    state_file = _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW], availability={})
+    state_file = await _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW], availability={})
 
     assert state_file.read_text().strip() == "100", "cursor must advance without any availability answer"
     assert solr.update_in_place.called
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_update_transport_failure_does_not_advance_state(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_update_transport_failure_does_not_advance_state(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """If the Solr update_in_place call raises, the state file must NOT be advanced."""
     solr = MagicMock()
     mock_get_solr.return_value = solr
     solr.select.side_effect = _select_side_effect
     solr.update_in_place.side_effect = RuntimeError("Solr unreachable")
 
-    state_file = _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
+    state_file = await _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
 
     assert state_file.read_text().strip() == "99", "write_state was called even though the Solr update failed"
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_update_nonzero_status_does_not_advance_state(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_update_nonzero_status_does_not_advance_state(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """Solr responds with a non-zero responseHeader.status (e.g. a rejected in-place
     update) without the HTTP layer raising. This must still be treated as a failure --
     state must NOT be advanced."""
@@ -730,17 +743,18 @@ def test_main_update_nonzero_status_does_not_advance_state(mock_config, mock_inf
     solr.select.side_effect = _select_side_effect
     solr.update_in_place.return_value = {"responseHeader": {"status": 400}, "error": {"msg": "rejected"}}
 
-    state_file = _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
+    state_file = await _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
 
     assert state_file.read_text().strip() == "99", "write_state was called even though Solr reported a non-zero status"
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_recheck_failure_is_non_fatal(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_recheck_failure_is_non_fatal(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """Re-check failure must not prevent state advancement: the main updates already
     committed, and the re-check retries automatically next pass."""
     solr = MagicMock()
@@ -772,11 +786,12 @@ def test_main_recheck_failure_is_non_fatal(mock_config, mock_infogami, mock_lend
     _wire_lending(mock_lending, [_BORROW_ROW], availability={"bookabc": AVAILABLE, "stale": AVAILABLE})
 
     with pytest.raises(SystemExit):
-        main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=0)
+        await main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=0)
 
     assert state_file.read_text().strip() == "100", "write_state was NOT called even though only the re-check (non-fatal) failed"
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.find_start_uid")
 @patch("scripts.solr_updater.loan_availability_updater.query_solr_uid")
@@ -784,7 +799,9 @@ def test_main_recheck_failure_is_non_fatal(mock_config, mock_infogami, mock_lend
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_reset_ignores_stale_solr_loan_uid(mock_config, mock_infogami, mock_lending, mock_sentry, mock_query_uid, mock_find_start, mock_get_solr, tmp_path):
+async def test_main_reset_ignores_stale_solr_loan_uid(
+    mock_config, mock_infogami, mock_lending, mock_sentry, mock_query_uid, mock_find_start, mock_get_solr, tmp_path
+):
     """--reset must rebuild via find_start_uid (binary-search), never resume from a stale
     loan_uid still in Solr. Regression: query_solr_uid() used to run even under --reset and
     silently short-circuit the documented 14-day rebuild."""
@@ -802,7 +819,7 @@ def test_main_reset_ignores_stale_solr_loan_uid(mock_config, mock_infogami, mock
 
     state_file = tmp_path / "state"
     with pytest.raises(SystemExit):
-        main("fake_config.yml", state_file=str(state_file), poll_interval=0, reset=True)
+        await main("fake_config.yml", state_file=str(state_file), poll_interval=0, reset=True)
 
     mock_lending.get_availability_batch.assert_not_called()  # nothing was touched
 
@@ -811,12 +828,13 @@ def test_main_reset_ignores_stale_solr_loan_uid(mock_config, mock_infogami, mock
     assert state_file.read_text().strip() == "42", "reset resumed from stale Solr loan_uid instead of binary-searching"
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_survives_malformed_row(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_survives_malformed_row(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """A batch containing a malformed row must not crash main; the cursor advances
     using the valid rows' uids."""
     solr = MagicMock()
@@ -824,7 +842,7 @@ def test_main_survives_malformed_row(mock_config, mock_infogami, mock_lending, m
     solr.select.side_effect = _select_side_effect
     solr.update_in_place.return_value = _OK_RESPONSE
     malformed = {"identifier": "broken", "event_type": "borrow"}  # missing uid
-    state_file = _run_main_one_iteration(tmp_path, solr, mock_lending, [malformed, _RETURN_ROW])
+    state_file = await _run_main_one_iteration(tmp_path, solr, mock_lending, [malformed, _RETURN_ROW])
     assert state_file.read_text().strip() == "100"  # advanced past the batch via the valid uid; no crash
 
 
@@ -833,6 +851,7 @@ def test_main_survives_malformed_row(mock_config, mock_infogami, mock_lending, m
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.find_start_uid", return_value=50)
 @patch("scripts.solr_updater.loan_availability_updater.query_solr_uid", return_value=0)
@@ -840,7 +859,9 @@ def test_main_survives_malformed_row(mock_config, mock_infogami, mock_lending, m
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_cold_start_reconciles_before_following_events(mock_config, mock_infogami, mock_lending, mock_sentry, mock_uid, mock_start, mock_get_solr, tmp_path):
+async def test_main_cold_start_reconciles_before_following_events(
+    mock_config, mock_infogami, mock_lending, mock_sentry, mock_uid, mock_start, mock_get_solr, tmp_path
+):
     """Cold start must settle the window against ground truth FIRST.
 
     Replaying ~14 days of events through the write path would mark every book
@@ -860,12 +881,12 @@ def test_main_cold_start_reconciles_before_following_events(mock_config, mock_in
         {"status": "OK", "rows": [], "latest_uid": 100},
         SystemExit(0),
     ]
-    mock_lending.get_availability_batch.return_value = {"bookabc": UNAVAILABLE}
+    mock_lending.get_availability_batch = AsyncMock(return_value={"bookabc": UNAVAILABLE})
     mock_lending.is_available_for_loan.side_effect = lambda a: bool(a.get("available_to_browse") or a.get("available_to_borrow"))
 
     state_file = tmp_path / "state"
     with pytest.raises(SystemExit):
-        main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
+        await main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
 
     # The reconcile asked ground truth about the collected identifier...
     assert mock_lending.get_availability_batch.called
@@ -876,6 +897,7 @@ def test_main_cold_start_reconciles_before_following_events(mock_config, mock_in
     assert state_file.read_text().strip() == "100"
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.find_start_uid", return_value=50)
 @patch("scripts.solr_updater.loan_availability_updater.query_solr_uid", return_value=0)
@@ -883,7 +905,7 @@ def test_main_cold_start_reconciles_before_following_events(mock_config, mock_in
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_cold_start_refuses_to_start_without_ground_truth(
+async def test_main_cold_start_refuses_to_start_without_ground_truth(
     mock_config, mock_infogami, mock_lending, mock_sentry, mock_uid, mock_start, mock_get_solr, tmp_path
 ):
     """The one place a ground-truth outage SHOULD stop us.
@@ -907,11 +929,11 @@ def test_main_cold_start_refuses_to_start_without_ground_truth(
         # as an infrastructure problem, not as a caught regression.
         SystemExit(0),
     ]
-    mock_lending.get_availability_batch.return_value = {}
+    mock_lending.get_availability_batch = AsyncMock(return_value={})
 
     state_file = tmp_path / "state"
     with pytest.raises(RuntimeError, match="refusing to reconcile"):
-        main("fake_config.yml", state_file=str(state_file), poll_interval=0)
+        await main("fake_config.yml", state_file=str(state_file), poll_interval=0)
 
     solr.update_in_place.assert_not_called()
     assert not state_file.exists(), "state must not be written when the cold start aborted"
@@ -960,7 +982,8 @@ def test_resolve_edition_keys_still_resolves_across_chunks():
     assert set(resolved) == {first, last}
 
 
-def test_reconcile_refuses_on_partial_availability_coverage():
+@pytest.mark.asyncio
+async def test_reconcile_refuses_on_partial_availability_coverage():
     """The guard used to fire only on TOTAL silence. `get_availability_batch`
     swallows a failed chunk and continues, so a widespread timeout still
     returns a non-empty dict -- and most genuinely-on-loan books would be left
@@ -973,20 +996,22 @@ def test_reconcile_refuses_on_partial_availability_coverage():
         patch("openlibrary.core.lending.get_availability_batch", return_value={ids[0]: UNAVAILABLE}),
         pytest.raises(RuntimeError, match="refusing to reconcile"),
     ):
-        build_reconcile_updates(ids)
+        await build_reconcile_updates(ids)
 
 
-def test_reconcile_accepts_full_coverage():
+@pytest.mark.asyncio
+async def test_reconcile_accepts_full_coverage():
     ids = [f"ocaid_{i}" for i in range(10)]
     editions = {i: {"key": f"/books/OL{n}M", "root": f"/works/OL{n}W"} for n, i in enumerate(ids)}
     with (
         patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", return_value=editions),
         patch("openlibrary.core.lending.get_availability_batch", return_value=dict.fromkeys(ids, UNAVAILABLE)),
     ):
-        assert len(build_reconcile_updates(ids)) == 10
+        assert len(await build_reconcile_updates(ids)) == 10
 
 
-def test_recheck_sorts_so_the_window_rotates():
+@pytest.mark.asyncio
+async def test_recheck_sorts_so_the_window_rotates():
     """Unsorted, the select returns the same lowest-docid prefix every pass, so
     once more than RECHECK_MAX_EDITIONS are marked the tail is re-checked only
     as fast as the head frees -- measured at ~5 editions per pass, stranding an
@@ -994,13 +1019,14 @@ def test_recheck_sorts_so_the_window_rotates():
     mock_solr = MagicMock()
     mock_solr.select.return_value = MagicMock(docs=[])
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
-        build_recheck_updates()
+        await build_recheck_updates()
     kwargs = mock_solr.select.call_args.kwargs
     assert kwargs.get("sort") == "loan_uid asc"
     assert "loan_uid" in kwargs["fields"], "loan_uid must be selected for the clear guard"
 
 
-def test_recheck_will_not_clear_an_edition_the_follower_just_marked():
+@pytest.mark.asyncio
+async def test_recheck_will_not_clear_an_edition_the_follower_just_marked():
     """The unrecoverable direction. `get_availability_batch` is ~100 sequential
     requests taking tens of seconds; the follower keeps consuming events
     throughout. A book borrowed during that window is marked by the follower
@@ -1013,16 +1039,17 @@ def test_recheck_will_not_clear_an_edition_the_follower_just_marked():
         patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
         patch("openlibrary.core.lending.get_availability_batch", return_value={"bookabc": AVAILABLE}),
     ):
-        assert build_recheck_updates(marked_during_pass={"/books/OL1M"}) == []
-        assert build_recheck_updates(marked_during_pass=set()) != []
+        assert await build_recheck_updates(marked_during_pass={"/books/OL1M"}) == []
+        assert await build_recheck_updates(marked_during_pass=set()) != []
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_does_not_spin_when_the_feed_returns_nothing_newer(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_does_not_spin_when_the_feed_returns_nothing_newer(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """A full page whose uids never pass the cursor spun the loop with no sleep
     -- 201 API calls in 0.21s, hammering IA and Solr -- and `last_uid = new_uid`
     was unconditional, so the cursor could also move backwards."""
@@ -1040,18 +1067,19 @@ def test_main_does_not_spin_when_the_feed_returns_nothing_newer(mock_config, moc
     state_file.write_text("99")
 
     with pytest.raises(SystemExit):
-        main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
+        await main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
 
     assert state_file.read_text().strip() == "99", "cursor moved backwards"
     solr.update_in_place.assert_not_called()
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_does_not_hard_commit_every_cycle(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_does_not_hard_commit_every_cycle(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """A hard commit opens a new searcher and invalidates every Solr cache. Done
     per cycle on the Solr serving openlibrary.org, with no pacing during
     catch-up, that is a real cost -- and it bought nothing: last_uid advances in
@@ -1061,18 +1089,19 @@ def test_main_does_not_hard_commit_every_cycle(mock_config, mock_infogami, mock_
     solr.select.side_effect = _select_side_effect
     solr.update_in_place.return_value = _OK_RESPONSE
 
-    _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
+    await _run_main_one_iteration(tmp_path, solr, mock_lending, [_BORROW_ROW])
 
     commits = [c for c in solr.update_in_place.call_args_list if c.kwargs.get("commit")]
     assert commits == [], f"expected no hard commit, got {len(commits)}"
 
 
+@pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-def test_main_clamps_a_cursor_that_is_ahead_of_the_feed(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+async def test_main_clamps_a_cursor_that_is_ahead_of_the_feed(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
     """Observed in a live run: a cursor ahead of the feed head returns zero rows
     forever and logs nothing above DEBUG, so the daemon looks healthy while
     doing nothing. `latest_uid` is on every response and was only read at
@@ -1089,7 +1118,7 @@ def test_main_clamps_a_cursor_that_is_ahead_of_the_feed(mock_config, mock_infoga
     state_file.write_text("200001")
 
     with pytest.raises(SystemExit):
-        main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
+        await main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
 
     assert state_file.read_text().strip() == "50", "cursor was not clamped to the feed head"
 
@@ -1110,7 +1139,8 @@ def test_a_recheck_pass_fits_inside_its_own_interval():
     )
 
 
-def test_recheck_says_so_when_ground_truth_is_unreachable():
+@pytest.mark.asyncio
+async def test_recheck_says_so_when_ground_truth_is_unreachable():
     """An archive.org outage must be visible, not silent -- and must free nothing."""
     mock_solr = MagicMock()
     mock_solr.select.return_value = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookabc"], "_root_": "/works/OL1W", "loan_uid": 5}])
@@ -1118,7 +1148,7 @@ def test_recheck_says_so_when_ground_truth_is_unreachable():
         patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
         patch("openlibrary.core.lending.get_availability_batch", return_value={}),
     ):
-        assert build_recheck_updates() == []
+        assert await build_recheck_updates() == []
 
 
 # ---------------------------------------------------------------------------
@@ -1142,7 +1172,8 @@ def test_a_waitlisted_book_is_not_available():
     assert lending.is_available_for_loan(AVAILABLE) is True
 
 
-def test_the_recheck_does_not_free_a_waitlisted_book():
+@pytest.mark.asyncio
+async def test_the_recheck_does_not_free_a_waitlisted_book():
     """A return does not mean available: with people queued, the freed copy goes
     to the head of the waitlist and the book stays unborrowable.
 
@@ -1157,10 +1188,11 @@ def test_the_recheck_does_not_free_a_waitlisted_book():
         patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
         patch("openlibrary.core.lending.get_availability_batch", return_value={"bookabc": WAITLISTED}),
     ):
-        assert build_recheck_updates() == []
+        assert await build_recheck_updates() == []
 
 
-def test_the_recheck_frees_the_book_once_the_queue_drains():
+@pytest.mark.asyncio
+async def test_the_recheck_frees_the_book_once_the_queue_drains():
     """And the mark must not be permanent. The changes feed never reports a
     waitlist draining -- there is no event for it -- so the re-check is the only
     thing that can ever free this book. Same edition, same marked state, ground
@@ -1171,7 +1203,7 @@ def test_the_recheck_frees_the_book_once_the_queue_drains():
         patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr),
         patch("openlibrary.core.lending.get_availability_batch", return_value={"bookabc": AVAILABLE}),
     ):
-        assert build_recheck_updates() == [{"key": "/books/OL1M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_AVAILABLE}}]
+        assert await build_recheck_updates() == [{"key": "/books/OL1M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_AVAILABLE}}]
 
 
 def test_a_return_on_a_waitlisted_book_leaves_the_mark_alone():
