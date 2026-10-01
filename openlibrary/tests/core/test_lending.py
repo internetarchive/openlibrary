@@ -148,6 +148,24 @@ class TestGetAvailability:
         assert r["failbatch2"]["status"] == "open"
         assert r["error"] == "request_timeout"
 
+    @pytest.mark.asyncio
+    async def test_drop_errors_leaves_errors_out_of_the_response(self):
+        """A caller deciding availability from this must not mistake a failed
+        lookup for an answer: no placeholder, no top-level error keys."""
+        session, mock_get = self._session([{"dropok": {"status": "open"}, "droperr": {"status": "error"}}])
+        mock_get.side_effect = [*mock_get.side_effect, RuntimeError("boom")]
+        with session:
+            r = await lending.get_availability_async("identifier", ["dropok", "droperr", "dropfailed"], use_cache=False, batch_size=2, drop_errors=True)
+        assert list(r) == ["dropok"]
+
+    @pytest.mark.asyncio
+    async def test_drop_errors_leaves_out_a_cached_error_without_refetching(self):
+        session, mock_get = self._session([{"cachederr": {"status": "error"}}])
+        with session:
+            assert (await lending.get_availability_async("identifier", ["cachederr"]))["cachederr"]["status"] == "error"
+            assert await lending.get_availability_async("identifier", ["cachederr"], drop_errors=True) == {}
+        assert mock_get.call_count == 1
+
 
 @pytest.mark.usefixtures("request_context_fixture")
 class TestGetLendingState:
