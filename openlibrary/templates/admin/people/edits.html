@@ -3,11 +3,13 @@ $def with (account, paginate=True)
 $var title: $_('[Admin Center] Edits of %(user)s', user=account.displayname)
 
 $if paginate:
-    $ page = safeint(query_param('page', '1'))
+    $ page = max(safeint(query_param('page', '1'), 1), 1)
 $else:
     $ page = 1
 
-$ limit = safeint(query_param('limit', '100'))
+$# The pager below divides by limit, so ?limit=0, -5 or abc fall back to the default
+$ limit = safeint(query_param('limit', '100'), 100)
+$ limit = limit if limit > 0 else 100
 
 <div id="contentHead">
     $:render_template("admin/menu")
@@ -88,5 +90,5 @@ $def call_template(name, change):
 
 </form>
 $if paginate:
-    $:macros.OlPaginationArrows(page, len(changes) == limit)
+    $:macros.OlPagination(page, ceil(account.get_edit_count() / limit))
 </div>

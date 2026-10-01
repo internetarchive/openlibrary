@@ -4,6 +4,7 @@
  * branch on 401 (send to login) vs anything else (toast).
  */
 
+import { trackEvent } from '../../../plugins/openlibrary/js/ol.analytics.js';
 import { queueAction, buildPartialsUrl } from '../../../plugins/openlibrary/js/utils.js';
 
 export const SHELF = Object.freeze({
@@ -48,6 +49,15 @@ export const SHELF_EVENT = Object.freeze({
     [SHELF.STOPPED_READING]: 'StoppedReading',
     null: 'RemoveFromShelf',
 });
+
+/**
+ * Count a failed request as `ShelfActions|Error`, labelled with the operation
+ * and the HTTP status ("shelf:500"). Without it a broken endpoint reads as
+ * readers who stopped saving books.
+ */
+export function trackError(operation, error) {
+    trackEvent('ShelfActions', 'Error', `${operation}:${error?.status ?? 'no-response'}`);
+}
 
 /** Work key "/works/OL1W" → "OL1W". */
 export function olid(key) {

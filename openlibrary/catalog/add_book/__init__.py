@@ -229,9 +229,10 @@ def find_matching_work(e):
     for a in e["authors"]:
         q = {"type": "/type/work", "authors": {"author": {"key": a["key"]}}}
         work_keys = list(site.get().things(q))
+        works = {w.key: w for w in site.get().get_many(work_keys)}
         for wkey in work_keys:
-            w = site.get().get(wkey)
-            if wkey in seen:
+            w = works.get(wkey)
+            if w is None or wkey in seen:
                 continue
             seen.add(wkey)
             if not w.get("title"):
