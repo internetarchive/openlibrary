@@ -407,6 +407,26 @@
   flex: 0 0 39px;
 }
 
+/* A phone fits three cards in ~330px, so the card gives up its slick-era inset
+   (the component gap alone separates the covers) and the cover box shrinks to
+   the narrower covers. The CTA's phone size is in buttonCta.css. */
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .carousel--native > .carousel__item {
+    padding: 0;
+    overflow: visible;
+  }
+
+  .carousel--native .book .book-cover {
+    height: 160px;
+  }
+
+  .carousel--native .book .bookcover,
+  .carousel--native .carousel__item__blankcover {
+    max-height: 160px;
+  }
+}
+
 /* Stretch the return button to whatever height the Read/Borrow button beside it
    works out to, rather than pinning a number that drifts out of step with it. */
 .ol-return-wrapper .return-form {

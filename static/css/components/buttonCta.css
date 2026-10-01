@@ -440,3 +440,31 @@ form.return-form .cta-btn {
   margin-bottom: 0;
   text-align: center;
 }
+
+/* In a native carousel card the CTA is a flex box, so its label is an anonymous
+   flex item that clips at both ends instead of taking the ellipsis. Block +
+   line-height keeps it centred and lets the ellipsis work; the fixed height
+   brings the padded variants (Preview Only, Checked Out) level with the filled ones. */
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel--native .ol-macro-wrapper .cta-btn {
+  display: block;
+  height: var(--control-height-medium);
+  padding-block: 0;
+  line-height: calc(var(--control-height-medium) - 2px);
+}
+
+/* A phone card is ~90px wide: the label drops a size with just enough padding to
+   keep "Join Waitlist" whole, and the external icon tucks into the end. */
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .carousel--native .ol-macro-wrapper .cta-btn {
+    padding-inline: var(--spacing-inset-xs);
+    font-size: var(--font-size-label-medium);
+  }
+
+  .carousel--native .ol-macro-wrapper .cta-btn--external {
+    padding-inline-end: calc(var(--spacing-inset-xs) + 16px);
+    background-size: 16px;
+    background-position: center right var(--spacing-inset-xs);
+  }
+}
