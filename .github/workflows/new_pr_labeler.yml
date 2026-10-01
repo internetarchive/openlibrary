@@ -1,8 +1,16 @@
 name: new_pr_labeler
 on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
   pull_request_target:
+    # `ready_for_review` is needed alongside `opened`: a PR opened as a draft is
+    # skipped by the `!draft` guard below, and with `opened` as the only trigger
+    # nothing ever re-evaluates it, so it never enters the labeling pipeline at
+    # all -- no priority label, no lead, not even `Needs: Lead`. A PR opened ready
+    # never emits `ready_for_review`, so this does not double-label.
+    #
+    # Same trigger pair as auto_assign_reviewer.yml, which handles this correctly.
     types:
       - opened
+      - ready_for_review
 env:
   NODE_VERSION: '24'
 jobs:
