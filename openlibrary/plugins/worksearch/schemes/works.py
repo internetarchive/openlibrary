@@ -292,7 +292,7 @@ class WorkSearchScheme(SearchScheme):
                     isbn_transform(node)
                 if node.name in ("lcc", "lcc_sort"):
                     lcc_transform(node)
-                if node.name in ("dcc", "dcc_sort"):
+                if node.name in ("ddc", "ddc_sort"):
                     ddc_transform(node)
 
         if not has_search_fields:
@@ -819,13 +819,18 @@ def ddc_transform(sf: luqum.tree.SearchField):
     val = sf.children[0]
     if isinstance(val, luqum.tree.Range):
         normed_range = normalize_ddc_range(val.low.value, val.high.value)
-        val.low.value = normed_range[0] or val.low
-        val.high.value = normed_range[1] or val.high
+        if normed_range[0]:
+            val.low.value = normed_range[0]
+        if normed_range[1]:
+            val.high.value = normed_range[1]
     elif isinstance(val, luqum.tree.Word) and val.value.endswith("*"):
-        return normalize_ddc_prefix(val.value[:-1]) + "*"
-    elif isinstance(val, (luqum.tree.Word, luqum.tree.Phrase)):
+        val.value = normalize_ddc_prefix(val.value[:-1]) + "*"
+    elif isinstance(val, luqum.tree.Word):
+        if normed := normalize_ddc(val.value):
+            val.value = normed[0]
+    elif isinstance(val, luqum.tree.Phrase):
         if normed := normalize_ddc(val.value.strip('"')):
-            val.value = normed
+            val.value = f'"{normed[0]}"'
     else:
         logger.warning(f"Unexpected ddc SearchField value type: {type(val)}")
 
