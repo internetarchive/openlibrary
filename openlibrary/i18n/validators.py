@@ -4,7 +4,7 @@ import gettext
 import re
 from typing import TYPE_CHECKING
 
-from babel.messages.catalog import Message
+from babel.messages.catalog import PYTHON_FORMAT, Message
 
 if TYPE_CHECKING:
     from babel.messages.catalog import Catalog
@@ -35,9 +35,6 @@ def _form0_selected_beyond_one(catalog: Catalog) -> bool:
         return False
 
 
-_NAMED = re.compile(r"%\((\w+)\)")
-
-
 def _form0_may_carry_plural_placeholders(message: Message) -> bool:
     """
     msgstr[0] holds every placeholder of the singular, nothing outside the two msgids,
@@ -47,10 +44,18 @@ def _form0_may_carry_plural_placeholders(message: Message) -> bool:
     singular, plural = (str(m) for m in message.id)
     form0 = str(message.string[0] if message.string else "")
 
-    def positional(s: str) -> int:
-        return sum(1 for p in _parse_cfmt(s) if p != "%%" and not p.startswith("%("))
+    # Babel's own placeholder syntax, so %r and %F count as placeholders here as they
+    # do in the check being forgiven.
+    def placeholders(s: str) -> list[str | None]:
+        return [m.group(1) for m in PYTHON_FORMAT.finditer(s) if m.group(3) != "%"]
 
-    sing_n, plur_n, form_n = (set(_NAMED.findall(s)) for s in (singular, plural, form0))
+    def positional(s: str) -> int:
+        return sum(1 for name in placeholders(s) if name is None)
+
+    def names(s: str) -> set[str]:
+        return {name for name in placeholders(s) if name is not None}
+
+    sing_n, plur_n, form_n = (names(s) for s in (singular, plural, form0))
     mixed_kinds = (positional(singular) and plur_n) or (sing_n and positional(plural))
     brings_more = bool(plur_n - sing_n) or positional(plural) > positional(singular)
     # The last two clauses are also enforced by Babel's check against msgid_plural;

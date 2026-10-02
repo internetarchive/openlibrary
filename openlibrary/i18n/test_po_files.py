@@ -239,9 +239,6 @@ RU_REST = ("У %(name)s %(count)s списка.", "У %(name)s %(count)s спи�
 @pytest.mark.parametrize(
     ("rule", "msgid", "msgstrs"),
     [
-        pytest.param("nplurals=1", LISTS, ("%(name)sには%(wrong)s件のリストがあります。",), id="unknown-name-single-form"),
-        pytest.param("ru", LISTS, ("У %(name)s %(wrong)s список.", *RU_REST), id="unknown-name-form-shown-at-21"),  # noqa: RUF001
-        pytest.param("nplurals=1", LISTS, ("%(name)sには%(count)d件のリストがあります。",), id="type-mismatch-single-form"),
         # Form 0 shown only at n=1: still checked against the singular msgid
         pytest.param("de", LISTS, ("%(name)s hat %(count)s Liste.", "%(name)s hat %(count)s Listen."), id="form0-only-at-one-2-forms"),
         pytest.param(
@@ -249,18 +246,37 @@ RU_REST = ("У %(name)s %(count)s списка.", "У %(name)s %(count)s спи�
         ),
         # The singular's own placeholders are still required in form 0
         pytest.param("nplurals=1", ("%(who)s merged one duplicate", "%(who)s merged %(count)d duplicates"), ("%(count)d件",), id="drops-singular-name"),
-        # A msgid_plural that brings nothing new must not switch Babel's singular check off
-        pytest.param("nplurals=1", ("%(name)s has one list", "Many lists"), ("%(bogus)s",), id="plural-brings-nothing-unknown"),
-        pytest.param("nplurals=1", ("%(name)s has one list", "Lists"), ("%(name)d件",), id="plural-brings-nothing-type"),
-        pytest.param("fr", ("%(name)s has one list", "Lists"), ("%(name)s a %(count)d liste", "Des listes"), id="neither-msgid-has-name"),
-        pytest.param("nplurals=1", ("%s of %d", "%s"), ("%s",), id="plural-fewer-positionals"),
         pytest.param("nplurals=1", ("one %s", "%(count)d of them"), ("それら",), id="mixed-kind-msgids"),
+        # %r and %F are placeholders too (Babel's PYTHON_FORMAT), so these msgids also mix kinds
+        pytest.param("nplurals=1", ("one %r", "%(count)d of them"), ("%(count)d件",), id="mixed-kind-msgids-r"),
+        pytest.param("nplurals=1", ("one %F", "%(count)d of them"), ("%(count)d件",), id="mixed-kind-msgids-F"),
+        # msgid_plural brings nothing the singular lacks, so Babel's singular check stands;
+        # this renders, so only that guard (not the substitution check) rejects it
+        pytest.param("nplurals=1", ("%(count)d list", "Lists"), ("%(count)s件",), id="plural-brings-nothing"),
         # Plural-Forms gettext cannot evaluate: the old singular-only check, no crash
         pytest.param("nplurals=2; plural=n ! = 1;", LISTS, ("%(name)s hat %(count)s Liste.", "%(name)s hat %(count)s Listen."), id="malformed-rule"),
         pytest.param("nplurals=2; plural=(1/n);", LISTS, ("%(name)s hat %(count)s Liste.", "%(name)s hat %(count)s Listen."), id="rule-divides-by-zero"),
     ],
 )
 def test_validate_still_rejects_plural_form0_mismatches(rule, msgid, msgstrs):
+    assert _plural_errors(PLURAL_RULES.get(rule, rule), msgid, msgstrs) != []
+
+
+@pytest.mark.parametrize(
+    ("rule", "msgid", "msgstrs"),
+    [
+        pytest.param("nplurals=1", LISTS, ("%(name)sには%(wrong)s件のリストがあります。",), id="unknown-name-single-form"),
+        pytest.param("ru", LISTS, ("У %(name)s %(wrong)s список.", *RU_REST), id="unknown-name-form-shown-at-21"),  # noqa: RUF001
+        pytest.param("nplurals=1", LISTS, ("%(name)sには%(count)d件のリストがあります。",), id="type-mismatch-single-form"),
+        pytest.param("nplurals=1", ("%(name)s has one list", "Many lists"), ("%(bogus)s",), id="plural-brings-nothing-unknown"),
+        pytest.param("nplurals=1", ("%(name)s has one list", "Lists"), ("%(name)d件",), id="plural-brings-nothing-type"),
+        pytest.param("fr", ("%(name)s has one list", "Lists"), ("%(name)s a %(count)d liste", "Des listes"), id="neither-msgid-has-name"),
+        pytest.param("nplurals=1", ("%s of %d", "%s"), ("%s",), id="plural-fewer-positionals"),
+    ],
+)
+def test_validate_rejects_plural_form0_that_would_raise(rule, msgid, msgstrs):
+    # These raise when rendered, so #13780's substitution check rejects them whatever
+    # the plural rule does; they pin that this change does not forgive them.
     assert _plural_errors(PLURAL_RULES.get(rule, rule), msgid, msgstrs) != []
 
 
@@ -283,6 +299,9 @@ def test_validate_rejects_type_change_only_babel_sees():
         (LISTS, "%(name)s %(count)s %(extra)s", False),
         # positional count must match one of the msgids
         (("one item", "%d items"), "%d %d", False),
+        # validate() never asks this (Babel's check skips a placeholder-free singular),
+        # and only a msgid whose English singular already raises has this shape; kept to
+        # mirror openlibrary-i18n's rule
         (("one item", "%d items"), "%d", True),
         # mixed positional/named msgids get no allowance
         (("one %s", "%(count)d of them"), "%(count)d", False),
