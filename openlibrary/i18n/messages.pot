@@ -1133,7 +1133,7 @@ msgid "Goodreads"
 msgstr ""
 
 #: account/import.html
-msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\" target=\"_blank\">Goodreads Import/Export</a>"
+msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\" target=\"_blank\" rel=\"noopener noreferrer\">Goodreads Import/Export</a>"
 msgstr ""
 
 #: account/import.html
