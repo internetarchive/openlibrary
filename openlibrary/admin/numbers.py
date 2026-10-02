@@ -148,7 +148,7 @@ def admin_range__covers(**kargs):
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__covers")
     # Match the parameterized form used by sibling admin_range__* helpers in
-    # this module (see admin_range__bot_edits, admin_range__loans). `start`
+    # this module (see admin_range__bot_edits). `start`
     # and `end` are derived from `datetime.strftime` so they are not directly
     # user-controllable today, but using `vars=` keeps this consistent with
     # the parameterized convention and removes the f-string footgun if a
@@ -164,26 +164,6 @@ admin_range__editions = functools.partial(single_thing_skeleton, type="edition")
 admin_range__authors = functools.partial(single_thing_skeleton, type="author")
 admin_range__lists = functools.partial(single_thing_skeleton, type="list")
 admin_range__members = functools.partial(single_thing_skeleton, type="user")
-
-
-def admin_range__loans(**kargs):
-    """Finds the number of loans on a given day.
-
-    Loan info is written to the `stats` table.  Such entries will have
-    type `loan`.  As of writing, _only_ loan data is saved in the `stats`
-    table.
-    """
-    try:
-        db = kargs["thingdb"]
-        start = kargs["start"]
-        end = kargs["end"]
-    except KeyError as k:
-        raise TypeError(f"{k} is a required argument for admin_total__ebooks")
-    result = db.query(
-        "SELECT count(*) as count FROM stats WHERE type='loan'   AND created >= $start   AND created < $end",
-        vars=locals(),
-    )
-    return result[0].count
 
 
 def admin_total__authors(**kargs):
