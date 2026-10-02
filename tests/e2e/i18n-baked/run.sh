@@ -13,7 +13,10 @@
 #   5. baked path  (no code mount) + control:   english_before assertions FAIL, others pass
 #   6. dev path    (checkout mount) + candidate: committed assertions PASS
 #   7. dev path    (checkout mount) + candidate: english_before baked assertions FAIL
-# Containers run in their own compose project and ports and are stopped at the end
+# Pages are requested from web.py directly, as production serves them (web on :8080).
+# fast_web is not started: under the dev stack's LOCAL_DEV it imports debugpy, which only
+# the dev image installs, and it reads the same /openlibrary/openlibrary/i18n anyway.
+# Containers run in their own compose project and ports and are stopped on exit
 # (not removed); images and volumes are left in place.
 set -euo pipefail
 
@@ -22,7 +25,7 @@ set -euo pipefail
 LANGS=${I18N_E2E_LANGS:-es,pl,hr,ja}
 KEPT=${I18N_E2E_KEPT:-az}
 PROJECT=${E2E_PROJECT:-pr13070-e2e}
-export E2E_WEB_PORT=${E2E_WEB_PORT:-18090} E2E_FAST_WEB_PORT=${E2E_FAST_WEB_PORT:-18091}
+export E2E_WEB_PORT=${E2E_WEB_PORT:-18090}
 HERE=tests/e2e/i18n-baked
 # Docker can only bind-mount paths under the VM's shared directory, so keep scratch in the tree.
 WORK=$(mktemp -d "$PWD/.probe-i18n-e2e-XXXXXXXX")
@@ -34,6 +37,9 @@ compose() {  # compose <baked|dev> <image> args...
     OLIMAGE=$2 OL_MOUNT_DIR=$WORK/checkout docker compose -p "$PROJECT" \
         -f compose.yaml -f compose.override.yaml -f "$overlay" "${@:3}"
 }
+
+CURRENT=(baked olbase-e2e:candidate)
+trap 'compose "${CURRENT[@]}" stop >/dev/null 2>&1 || true' EXIT
 
 RESULTS=()
 record() { RESULTS+=("$1|$2|$3"); }  # step | expected | actual
@@ -64,29 +70,30 @@ done
 
 # --- stack helpers -------------------------------------------------------------------
 up() {  # up <baked|dev> <image>
-    compose "$1" "$2" up -d --force-recreate web fast_web
+    CURRENT=("$1" "$2")
+    compose "$1" "$2" up -d --force-recreate web
     for _ in $(seq 120); do
-        curl -fsS -o /dev/null "http://localhost:$E2E_FAST_WEB_PORT/account/login" && return 0
+        curl -fsS -o /dev/null "http://localhost:$E2E_WEB_PORT/account/login" && return 0
         sleep 5
     done
     echo "stack did not come up" >&2
-    compose "$1" "$2" logs --tail 50 web fast_web >&2
+    compose "$1" "$2" logs --tail 50 web >&2
     exit 1
 }
 
-check_mounts() {  # check_mounts <baked|dev>: liveness, before any assertion
-    for svc in web fast_web; do
-        local id mounted
-        id=$(compose "$1" olbase-e2e:candidate ps -q "$svc")
-        mounted=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/openlibrary"}}yes{{end}}{{end}}' "$id")
-        if [ "$1" = baked ] && [ -n "$mounted" ]; then echo "$svc has a mount on /openlibrary in the baked run" >&2; exit 1; fi
-        if [ "$1" = dev ] && [ -z "$mounted" ]; then echo "$svc has no checkout mount in the dev run" >&2; exit 1; fi
-    done
+check_mounts() {  # check_mounts <baked|dev> <image>: liveness, before any assertion
+    local id mounted image
+    id=$(compose "$1" "$2" ps -q web)
+    mounted=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/openlibrary"}}yes{{end}}{{end}}' "$id")
+    image=$(docker inspect -f '{{.Config.Image}}' "$id")
+    [ "$image" = "$2" ] || { echo "web runs $image, expected $2" >&2; exit 1; }
+    if [ "$1" = baked ] && [ -n "$mounted" ]; then echo "web has a mount on /openlibrary in the baked run" >&2; exit 1; fi
+    if [ "$1" = dev ] && [ -z "$mounted" ]; then echo "web has no checkout mount in the dev run" >&2; exit 1; fi
 }
 
 playwright() {  # playwright <label> <baked|committed>; records per-class outcome
     local out=$WORK/$1.json
-    PLAYWRIGHT_JSON_OUTPUT_NAME=$out OL_BASE_URL="http://localhost:$E2E_FAST_WEB_PORT" \
+    PLAYWRIGHT_JSON_OUTPUT_NAME=$out OL_BASE_URL="http://localhost:$E2E_WEB_PORT" \
         I18N_E2E_FIXTURE=$WORK/fixture.json I18N_E2E_EXPECT=$2 \
         npx playwright test tests/e2e/i18n-baked.spec.ts --project=desktop --reporter=json >/dev/null || true
     python3 "$HERE/summarize.py" "$out"
@@ -98,8 +105,8 @@ cp -R vendor/infogami/. "$WORK/checkout/vendor/infogami/"
 python3 "$HERE/make_fixture.py" candidates --committed "$WORK/control/i18n" --baked "$WORK/candidate/i18n" \
     --langs "$LANGS" --kept "$KEPT" > "$WORK/candidates.json"
 up baked olbase-e2e:candidate
-check_mounts baked
-OL_BASE_URL="http://localhost:$E2E_FAST_WEB_PORT" I18N_E2E_DISCOVER=$WORK/visible.json \
+check_mounts baked "${CURRENT[1]}"
+OL_BASE_URL="http://localhost:$E2E_WEB_PORT" I18N_E2E_DISCOVER=$WORK/visible.json \
     npx playwright test tests/e2e/i18n-baked.spec.ts --project=desktop
 python3 "$HERE/make_fixture.py" select --candidates "$WORK/candidates.json" --visible "$WORK/visible.json" > "$WORK/fixture.json"
 
@@ -108,19 +115,18 @@ record "baked path + candidate" "all pass" "$(playwright 4-baked-candidate baked
 
 # --- 5. baked path, control: english_before fails ------------------------------------
 up baked olbase-e2e:control
-check_mounts baked
+check_mounts baked "${CURRENT[1]}"
 record "baked path + control (no pull)" "english_before fail; both, kept pass" "$(playwright 5-baked-control baked)"
 
 # --- 6/7. dev path, candidate --------------------------------------------------------
 up dev olbase-e2e:candidate
-check_mounts dev
+check_mounts dev "${CURRENT[1]}"
 compose dev olbase-e2e:candidate exec -T web make i18n >/dev/null
-compose dev olbase-e2e:candidate restart web fast_web >/dev/null
+compose dev olbase-e2e:candidate restart web >/dev/null
 up dev olbase-e2e:candidate
 record "dev path + candidate, expect committed" "all pass" "$(playwright 6-dev-committed committed)"
 record "dev path + candidate, expect baked" "english_before fail; both, kept pass" "$(playwright 7-dev-baked baked)"
 
-compose dev olbase-e2e:candidate stop >/dev/null
 
 # --- summary -------------------------------------------------------------------------
 echo
