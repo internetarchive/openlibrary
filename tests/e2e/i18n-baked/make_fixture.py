@@ -24,6 +24,7 @@ on a page is about a string that page really shows.
 import argparse
 import json
 import os
+import re
 import sys
 
 from babel.messages.pofile import read_po
@@ -39,7 +40,9 @@ def _load(path: str) -> dict[str, str]:
 
 
 def _plain(msgid: str) -> bool:
-    return len(msgid) >= 4 and "%" not in msgid and "<" not in msgid and "&" not in msgid and "\n" not in msgid
+    # At least two words: matching a page's English text to a msgid does not prove that
+    # msgid rendered it, and a single generic word ("Create") often comes from elsewhere.
+    return " " in msgid.strip() and "%" not in msgid and "<" not in msgid and "&" not in msgid and "\n" not in msgid
 
 
 def candidates(committed_dir: str, baked_dir: str, langs: list[str], kept: list[str]) -> dict:
@@ -55,6 +58,13 @@ def candidates(committed_dir: str, baked_dir: str, langs: list[str], kept: list[
     return out
 
 
+def _shown_once(msgid: str, text: str) -> bool:
+    """msgid appears exactly once on the page, and not inside a longer word:
+    "Collection" must not match a page whose only occurrence is "Collections"."""
+    whole_word = re.findall(rf"(?<!\w){re.escape(msgid)}(?!\w)", text)
+    return len(whole_word) == 1 and text.count(msgid) == 1
+
+
 def select(cands: dict, visible: dict[str, str], per_class: int = 3) -> dict:
     fixture: dict = {}
     for lang, classes in cands.items():
@@ -62,7 +72,7 @@ def select(cands: dict, visible: dict[str, str], per_class: int = 3) -> dict:
         for cls, items in classes.items():
             chosen = []
             for item in sorted(items, key=lambda i: -len(i["msgid"])):
-                page = next((url for url, text in visible.items() if text.count(item["msgid"]) == 1 and item["msgstr"] not in text), None)
+                page = next((url for url, text in visible.items() if _shown_once(item["msgid"], text) and item["msgstr"] not in text), None)
                 if page and item["msgid"] not in item["msgstr"] and item["msgstr"] not in item["msgid"]:
                     chosen.append({**item, "page": page})
                 if len(chosen) == per_class:
