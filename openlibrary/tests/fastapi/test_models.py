@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi import Request
+from pydantic import ValidationError
 
 from openlibrary.fastapi.models import SolrInternalsParams, parse_comma_separated_list, wrap_jsonp
 
@@ -172,3 +173,29 @@ class TestSolrInternalsParams:
         )
         subquery = p.to_solr_edismax_subquery()
         assert subquery == '({!edismax qf="title^2 body" mm="2<-1 5<-2" boost=$my_boost_function v=$userWorkQuery})'
+
+    def test_mlt_params_stay_out_of_the_edismax_subquery(self):
+        """The two sets of params go to different query parsers."""
+        p = SolrInternalsParams(solr_qf="title^2", mlt_qf="subject^4", mlt_mintf="1")
+        assert p.to_solr_edismax_subquery() == '({!edismax qf="title^2"})'
+
+    def test_mlt_overrides(self):
+        p = SolrInternalsParams(mlt_qf="subject^4", mlt_mintf="1", solr_qf="title^2")
+        assert p.mlt_overrides() == {"qf": "subject^4", "mintf": "1"}
+
+    def test_mlt_overrides_empty_when_unset(self):
+        assert SolrInternalsParams(solr_qf="title^2").mlt_overrides() == {}
+
+    @pytest.mark.parametrize("value", ["subject} OR key:* {!mlt", 'a"b', "a'b", "$foo"])
+    def test_mlt_values_rejecting_local_param_escapes(self, value):
+        """These land inside a {!mlt ...} block, so they must not be able to leave it."""
+        with pytest.raises(ValidationError):
+            SolrInternalsParams(mlt_qf=value)
+
+    def test_mlt_values_allow_ordinary_tuning(self):
+        p = SolrInternalsParams(mlt_qf="subject^4 person^2 title", mlt_maxdf="500000", mlt_boost="true")
+        assert p.mlt_overrides() == {
+            "qf": "subject^4 person^2 title",
+            "maxdf": "500000",
+            "boost": "true",
+        }

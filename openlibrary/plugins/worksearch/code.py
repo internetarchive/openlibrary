@@ -13,6 +13,7 @@ from unicodedata import normalize
 
 import httpx
 import web
+from pydantic import ValidationError
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -860,10 +861,14 @@ class search(delegate.page):
         sort = param.get("sort")
         rows = 20
 
+        solr_internals_params = None
         if get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
-            solr_internals_params = SolrInternalsParams.model_validate(dict(web_input))
-        else:
-            solr_internals_params = None
+            try:
+                solr_internals_params = SolrInternalsParams.model_validate(dict(web_input))
+            except ValidationError:
+                # A malformed tuning knob shouldn't take the whole search page
+                # down; run the search without it.
+                logger.warning("Ignoring invalid solr internals params", exc_info=True)
 
         if param:
             search_response = run_solr_query(

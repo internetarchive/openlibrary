@@ -289,6 +289,59 @@ Editions are nested documents; access them via:
 - `q=edition.isbn:1234567890` — the `edition.` prefix is stripped by `WorkSearchScheme.q_to_solr_params()` and passed as a block-join subquery filter
 - Direct Solr: `{!child of=type:work}isbn:1234567890`
 
+### `like:` — more like this
+
+`q=like:OL123W` returns works similar to a given work, via Solr's [more-like-this query
+parser](https://solr.apache.org/guide/solr/latest/query-guide/other-parsers.html#more-like-this-query-parser).
+Both `like:OL123W` and `like:/works/OL123W` work, and several seeds can be combined
+(`like:(OL1W OR OL2W)`) to mean "similar to any of these".
+
+`like` is not a Solr field; it's listed in `WorkSearchScheme.query_only_fields` so the query parser
+won't escape it, and `pop_mlt_seed_keys()` lifts it out of the parse tree in `q_to_solr_params()`
+before the work and edition queries are built. It has to be lifted out because the `{!mlt ...}`
+local-params syntax can't be nested inside the edismax query the rest of the tree becomes. It
+returns as its own mandatory clause in `q`, so its similarity score adds to the usual edismax
+boosts and it composes with other fields and facets (`like:OL123W language:eng`).
+
+**The popularity prior is deliberately off for these queries.** `q_to_solr_params()` sets the edismax
+`boost` (OL's edition-count/readinglog popularity function) to `None` whenever a `like:` clause is
+present. That function is *additive* with the more-like-this score and of comparable magnitude, so
+leaving it on ranks by fame rather than likeness. Measured on production before the fix: a linear
+algebra textbook recommended *Eat That Frog!* and *Getting Things Done*, *Clean Code* recommended
+*Harry Potter* and *The 48 Laws of Power*, and most seeds returned the same handful of bestsellers
+whatever their subject. The `solr_boost` url param still overrides this, so a prior can be A/B'd —
+but note a prior only a fifth of the original strength was already enough to push *Eat That Frog!*
+back into a linear algebra result set.
+
+**The tuning values in `MLT_LOCAL_PARAMS` are calibrated for the ~44M-work production index**, and
+`mindf`/`maxdf` are absolute document counts, so they do not transfer to a smaller one. On a local
+dev index no term clears `mindf=2000` and `like:` quietly returns nothing — pass `mlt_mindf=1` (the
+`mlt_*` params, or the controls on /developers/more-like-this) while working locally.
+
+Similarity is measured over the fields in `MLT_LOCAL_PARAMS['qf']`. Two things constrain that list:
+
+- **The fields must be `stored`.** Lucene's `MoreLikeThis` reads the seed document's terms from term
+  vectors when they exist and otherwise re-analyzes the stored value. The schema sets
+  `termVectors` on nothing, so it always takes the stored-value path — which is why this feature
+  needs **no reindex**, but also means the `*_facet`/`*_key` variants (`stored="false"`) can't be used.
+- **`mintf` must be 1.** The parser's default of 2 discards almost every useful term, since a
+  subject/person/place is typically listed once per work, giving it a term frequency of 1.
+- **`title` must stay in `qf`.** It looks like noise next to `subject`, but dropping it stops a
+  seed's own sequels and series from matching: without it *Dune* no longer finds *Dune Messiah*, and
+  a linear algebra text returns *Kidney pathology*.
+- **`boost=false`.** Weighting each extracted term by how distinctive it is lets one idiosyncratic
+  subject heading outweigh broad agreement; unweighted, a work sharing many of the seed's terms
+  wins. This is what turns *Dune* into the Dune series rather than assorted obscure SF.
+
+Two behaviours worth knowing:
+
+- The parser excludes its own seed from the results, but only its own, so with several seeds each
+  would still match via the others' clauses. `build_mlt_query()` adds an explicit `-key:(...)` for
+  every seed.
+- A seed key that isn't in the index makes Solr reject the whole query with a 400 (`Could not fetch
+  document with id [...]`); there is no tolerant mode. A `like:` value that doesn't name a work at
+  all is turned into a match-nothing clause rather than an error.
+
 ### SearchScheme pattern
 
 Each document type has a `SearchScheme` subclass in `openlibrary/plugins/worksearch/schemes/`:

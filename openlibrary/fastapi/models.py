@@ -5,7 +5,7 @@ import re
 from typing import Self
 
 from fastapi import HTTPException, Request, Response
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 
 from openlibrary.core.env import get_ol_env
 
@@ -130,6 +130,35 @@ class SolrInternalsParams(BaseModel):
 
     solr_v: str | None = Field(default=None, description="The value of the edismax query.")
 
+    # More-like-this parameters, used by the `like:` search field.
+    # See https://solr.apache.org/guide/solr/latest/query-guide/other-parsers.html#more-like-this-query-parser
+    # These descriptions are the help text on /developers/more-like-this, so
+    # they are written for a reader tuning the knob, not just naming it.
+    mlt_qf: str | None = Field(
+        default=None,
+        description="Fields whose terms decide whether two works are alike, with boosts (e.g. 'subject^4 title'). Must be stored fields.",
+    )
+    mlt_mintf: str | None = Field(
+        default=None,
+        description="Ignore terms appearing fewer than this many times in the seed work. Solr's default of 2 drops nearly everything: a subject is listed once.",
+    )
+    mlt_mindf: str | None = Field(
+        default=None,
+        description="Ignore terms appearing in fewer than this many works overall — the knob for discarding typos and one-off cataloguing noise.",
+    )
+    mlt_maxdf: str | None = Field(
+        default=None,
+        description="Ignore terms appearing in more than this many works overall — the knob for discarding terms too common to mean anything, like 'Fiction'.",
+    )
+    mlt_maxqt: str | None = Field(
+        default=None,
+        description="Cap on how many terms are taken from the seed work. Higher casts a wider net and costs more.",
+    )
+    mlt_boost: str | None = Field(
+        default=None,
+        description="'true' weights each extracted term by how distinctive it is; 'false' treats them all as equally meaningful.",
+    )
+
     @staticmethod
     def override(
         base: SolrInternalsParams,
@@ -157,7 +186,9 @@ class SolrInternalsParams(BaseModel):
 
     def to_solr_edismax_subquery(self, defaults: SolrInternalsParams | None = None) -> str:
         params = []
-        for field in SolrInternalsParams.model_fields:
+        # Only the `solr_`-prefixed fields are edismax params; the model also
+        # carries `mlt_` ones, which belong to a different query parser.
+        for field in SolrInternalsParams.edismax_fields():
             solr_name = field[len("solr_") :].replace("_", ".")
             value = getattr(self, field)
             if defaults and value is None:
@@ -176,6 +207,29 @@ class SolrInternalsParams(BaseModel):
                 params.append(f'{solr_name}="{value}"')
         return "({!edismax " + " ".join(params) + "})" if params else ""
 
+    # Values reach solr inside a `{!mlt ...}` local-params block, so anything
+    # that could close or extend that block is refused rather than escaped.
+    # Checked here, at the model boundary, so a hand-edited url fails before any
+    # query is built.
+    @field_validator("mlt_qf", "mlt_mintf", "mlt_mindf", "mlt_maxdf", "mlt_maxqt", "mlt_boost")
+    @classmethod
+    def _reject_local_param_escapes(cls, value: str | None) -> str | None:
+        if value and set(value) & set("\"'{}$"):
+            raise ValueError("may not contain quotes, braces or '$'")
+        return value
+
+    @staticmethod
+    def edismax_fields() -> list[str]:
+        return [field for field in SolrInternalsParams.model_fields if field.startswith("solr_")]
+
+    @staticmethod
+    def mlt_fields() -> list[str]:
+        return [field for field in SolrInternalsParams.model_fields if field.startswith("mlt_")]
+
+    def mlt_overrides(self) -> dict[str, str]:
+        """The supplied more-like-this params, keyed by their solr local-param name."""
+        return {field[len("mlt_") :]: value for field in SolrInternalsParams.mlt_fields() if (value := getattr(self, field)) is not None}
+
     @staticmethod
     def from_request(request: Request) -> SolrInternalsParams | None:
         """
@@ -184,7 +238,14 @@ class SolrInternalsParams(BaseModel):
         Returns None if the feature is not enabled or no params were provided.
         Raises 403 if params are provided but feature is disabled.
         """
-        params = SolrInternalsParams.model_validate(request.query_params)
+        try:
+            params = SolrInternalsParams.model_validate(request.query_params)
+        except ValidationError as e:
+            error = e.errors()[0]
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid solr internals parameter {error['loc'][0]}: {error['msg']}",
+            )
         has_params = bool(params.model_dump(exclude_none=True))
 
         if has_params and not get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
