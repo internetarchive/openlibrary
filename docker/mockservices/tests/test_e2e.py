@@ -334,6 +334,16 @@ class TestGroundtruthAvailability:
             assert bulk == groundtruth, f"{item_id}: bulk={bulk} groundtruth={groundtruth}"
 
 
+def test_availability_get_answers_the_verb_ol_actually_uses():
+    """lending.get_availability_async() issues a GET; the endpoint used to be
+    POST-only, so dev silently resolved every book to status="error"."""
+    resp = _get("/services/availability/", params={"identifier": "mockbook_0,mockbook_1"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    assert set(body["responses"]) == {"mockbook_0", "mockbook_1"}
+
+
 def test_borrow_status():
     resp = _get("/services/borrow/someocaid")
     body = resp.json()
@@ -347,7 +357,7 @@ class TestLoanChangesFeed:
     get_loan_changes() in openlibrary/core/lending.py)."""
 
     def test_catchup_seeds_events_in_increasing_uid_order(self):
-        resp = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 0, "limit": 2000})
+        resp = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 1, "limit": 2000})
         body = resp.json()
         assert body["status"] == "OK"
         assert body["rows"], "expected at least some seeded rows"
@@ -355,7 +365,7 @@ class TestLoanChangesFeed:
         assert uids == sorted(uids), "rows must be in monotonically increasing uid order"
 
     def test_pagination_respects_after_uid(self):
-        first = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 0, "limit": 1}).json()
+        first = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 1, "limit": 1}).json()
         first_uid = first["rows"][0]["uid"]
         second = _get(
             "/services/loans/loan/",
@@ -364,10 +374,17 @@ class TestLoanChangesFeed:
         assert second["rows"][0]["uid"] > first_uid
 
     def test_row_shape_matches_get_loan_changes_contract(self):
-        resp = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 0, "limit": 1})
+        resp = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 1, "limit": 1})
         row = resp.json()["rows"][0]
         for key in ("time", "identifier", "username", "loan_id", "event_type", "extra", "uid"):
             assert key in row
+
+    @pytest.mark.parametrize("params", [{}, {"after_uid": 0}])
+    def test_missing_or_zero_after_uid_is_an_error(self, params):
+        """IA answers this rather than the whole feed; the updater must never send it."""
+        resp = _get("/services/loans/loan/", params={"action": "changes", "limit": 1, **params})
+        assert resp.status_code == 400
+        assert resp.json() == {"status": "ERROR", "error": "No since or after_uid supplied."}
 
     def test_unsupported_action_returns_400(self):
         resp = _get("/services/loans/loan/", params={"action": "bogus"})

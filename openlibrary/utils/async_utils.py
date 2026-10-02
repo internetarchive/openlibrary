@@ -3,7 +3,7 @@ import contextvars
 import functools
 import threading
 import weakref
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any, ParamSpec, TypeVar
 
 # Start a persistent event loop in a background thread.
@@ -92,3 +92,45 @@ def cache_per_event_loop[T](factory: Callable[[], T]) -> Callable[[], T]:
         return value
 
     return get
+
+
+async def gallop_back(
+    start: int,
+    is_before: Callable[[int], Awaitable[bool]],
+    *,
+    lowest: int = 0,
+    initial_step: int = 1,
+    tolerance: int = 1,
+) -> int:
+    """Search backwards from `start` for the boundary of a monotonic predicate.
+
+    `is_before(x)` must be True for every x up to some boundary and False above
+    it; `start` itself is taken to be above it and never probed. Steps back from
+    `start` by `initial_step`, doubling each time, until a probe lands before the
+    boundary, then bisects that last step.
+
+    Returns the greatest x found with `is_before(x)`, at most `tolerance` below
+    the boundary -- or `lowest` if nothing down to `lowest` is before it.
+
+    Probes grow with the log of the distance back from `start`, not of the whole
+    range, so it suits a boundary near the top of a large range.
+    """
+    high = start
+    step = initial_step
+    while True:
+        probe = max(start - step, lowest)
+        if await is_before(probe):
+            low = probe
+            break
+        if probe == lowest:
+            return lowest
+        high = probe
+        step *= 2
+
+    while high - low > tolerance:
+        mid = (low + high) // 2
+        if await is_before(mid):
+            low = mid
+        else:
+            high = mid
+    return low

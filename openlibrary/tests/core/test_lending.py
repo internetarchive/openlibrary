@@ -1,6 +1,9 @@
+import json
+from contextvars import ContextVar
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
+import httpx
 import pytest
 
 from openlibrary.core import lending
@@ -106,6 +109,93 @@ class TestGetAvailability:
             assert mock_get.call_count == 2
             assert mock_get.call_args[1]["params"]["identifier"] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}
+
+    @staticmethod
+    def _session(responses_per_call):
+        """Patch the shared async session; each GET answers with the next dict of `responses`."""
+        mock_get = AsyncMock()
+        replies = []
+        for responses in responses_per_call:
+            reply = Mock()
+            reply.json = Mock(return_value={"success": True, "responses": responses})
+            reply.raise_for_status = Mock()
+            replies.append(reply)
+        mock_get.side_effect = replies
+        return patch("openlibrary.core.ia.get_async_session", return_value=SimpleNamespace(get=mock_get)), mock_get
+
+    @pytest.mark.asyncio
+    async def test_use_cache_false_always_asks_and_leaves_the_cache_alone(self):
+        session, mock_get = self._session([{"nocache1": {"status": "open"}}] * 2)
+        with session, patch("openlibrary.core.lending.cache.get_memcache", side_effect=AssertionError("cache touched")):
+            await lending.get_availability_async("identifier", ["nocache1"], use_cache=False)
+            await lending.get_availability_async("identifier", ["nocache1"], use_cache=False)
+        assert mock_get.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_batches_requests(self):
+        ids = [f"batched{i}" for i in range(5)]
+        session, mock_get = self._session([{}, {}, {}])
+        with session:
+            await lending.get_availability_async("identifier", ids, use_cache=False, batch_size=2)
+        sent = [call.kwargs["params"]["identifier"].split(",") for call in mock_get.call_args_list]
+        assert sent == [ids[0:2], ids[2:4], ids[4:5]]
+
+    @pytest.mark.asyncio
+    async def test_a_failed_batch_only_errors_its_own_ids(self):
+        session, mock_get = self._session([{"failbatch2": {"status": "open"}}])
+        mock_get.side_effect = [httpx.ConnectError("boom"), *mock_get.side_effect]
+        with session:
+            r = await lending.get_availability_async("identifier", ["failbatch1", "failbatch2"], use_cache=False, batch_size=1)
+        assert r["failbatch1"]["status"] == "error"
+        assert r["failbatch2"]["status"] == "open"
+        assert r["error"] == "request_timeout"
+
+    @pytest.mark.asyncio
+    async def test_drop_errors_leaves_errors_out_of_the_response(self):
+        """A caller deciding availability from this must not mistake a failed
+        lookup for an answer: no placeholder, no top-level error keys."""
+        session, mock_get = self._session([{"dropok": {"status": "open"}, "droperr": {"status": "error"}}])
+        mock_get.side_effect = [*mock_get.side_effect, httpx.ReadTimeout("boom")]
+        with session:
+            r = await lending.get_availability_async("identifier", ["dropok", "droperr", "dropfailed"], use_cache=False, batch_size=2, drop_errors=True)
+        assert list(r) == ["dropok"]
+
+    @pytest.mark.asyncio
+    async def test_a_service_level_failure_only_loses_its_own_batch(self):
+        """A `success: false` batch used to make the whole call return {},
+        discarding the other batches' answers and even the cached ones."""
+        session, mock_get = self._session([])
+        busy = Mock(raise_for_status=Mock(), json=Mock(return_value={"success": False, "error": "busy"}))
+        ok = Mock(raise_for_status=Mock(), json=Mock(return_value={"success": True, "responses": {"svcok": {"status": "open"}}}))
+        mock_get.side_effect = [busy, ok]
+        with session:
+            r = await lending.get_availability_async("identifier", ["svcfail", "svcok"], use_cache=False, batch_size=1)
+        assert list(r) == ["svcok"]
+
+    @pytest.mark.asyncio
+    async def test_a_non_json_body_is_a_failed_batch(self):
+        session, mock_get = self._session([])
+        bad = Mock(raise_for_status=Mock(), json=Mock(side_effect=json.JSONDecodeError("Expecting value", "<html>", 0)))
+        mock_get.side_effect = [bad]
+        with session:
+            r = await lending.get_availability_async("identifier", ["htmlbody"], use_cache=False)
+        assert r["htmlbody"]["status"] == "error"
+
+    @pytest.mark.asyncio
+    async def test_a_missing_request_context_raises_rather_than_reading_as_no_answer(self):
+        """Under drop_errors a swallowed LookupError is indistinguishable from the
+        service answering nothing -- a daemon would free nothing, forever."""
+        session, _ = self._session([{"noctx": {"status": "open"}}])
+        with session, patch("openlibrary.core.lending.req_context", ContextVar("unset")), pytest.raises(LookupError):
+            await lending.get_availability_async("identifier", ["noctx"], use_cache=False, drop_errors=True)
+
+    @pytest.mark.asyncio
+    async def test_drop_errors_leaves_out_a_cached_error_without_refetching(self):
+        session, mock_get = self._session([{"cachederr": {"status": "error"}}])
+        with session:
+            assert (await lending.get_availability_async("identifier", ["cachederr"]))["cachederr"]["status"] == "error"
+            assert await lending.get_availability_async("identifier", ["cachederr"], drop_errors=True) == {}
+        assert mock_get.call_count == 1
 
 
 @pytest.mark.usefixtures("request_context_fixture")
@@ -282,3 +372,20 @@ class TestGetLoanHistoryData:
 
         mock_api.assert_called_once()
         assert result["docs"] == []
+
+
+class TestIsAvailableForLoan:
+    def test_browsable_or_borrowable_is_available(self):
+        assert lending.is_available_for_loan({"available_to_browse": True, "available_to_borrow": False})
+        assert lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": True})
+
+    def test_neither_is_unavailable(self):
+        assert not lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": False})
+
+    def test_waitlistable_is_still_unavailable(self):
+        """A book you may queue for is not a book you may read: available_to_waitlist
+        must not be mistaken for availability."""
+        assert not lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": False, "available_to_waitlist": True})
+
+    def test_missing_keys_are_unavailable(self):
+        assert not lending.is_available_for_loan({})

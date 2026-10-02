@@ -2,6 +2,8 @@
 
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
+import itertools
+import json
 import logging
 import os
 import time
@@ -183,6 +185,63 @@ def compose_ia_url(
 @cache.memoize(engine="memcache", key="gt-availability", expires=5 * dateutil.MINUTE_SECS)
 def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
+
+
+LOAN_CHANGES_MAX_LIMIT = 1000
+"""Rows per page the loan-changes API will return. A hard ceiling on IA's side:
+a larger `limit` is silently capped, not honoured."""
+
+
+async def get_loan_changes(
+    after_uid: int,
+    limit: int = LOAN_CHANGES_MAX_LIMIT,
+    s3_keys: dict | None = None,
+) -> dict:
+    """Fetch loan events with uid > after_uid from IA's loan changes API.
+
+    Returns a dict with 'status', 'latest_uid', and 'rows'.
+    Each row: {'time', 'identifier', 'username', 'loan_id', 'event_type', 'extra', 'uid'}.
+    The 'extra' field is a JSON string; parse it for 'until' (loan expiry).
+
+    :param after_uid: Return events with uid strictly greater than this value.
+    :param limit: Max rows per page; see LOAN_CHANGES_MAX_LIMIT.
+    :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
+                    defaults to config_ia_ol_metadata_write_s3.
+    """
+    url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
+    params: dict[str, str] = {"action": "changes", "after_uid": str(after_uid), "limit": str(limit)}
+
+    if s3_keys:
+        auth = "LOW {access}:{secret}".format(**s3_keys)
+    elif config_ia_ol_metadata_write_s3:
+        auth = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+    else:
+        auth = None
+
+    headers = {"Authorization": auth} if auth else {}
+    response = await ia.get_async_session().get(
+        url,
+        params=params,
+        headers=headers,
+        timeout=config_http_request_timeout or 10,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+AVAILABILITY_BATCH_SIZE = 100
+
+
+def is_available_for_loan(availability: AvailabilityStatus) -> bool:
+    """Is this book borrowable/browsable right now, per ground truth?
+
+    Mirrors the borrowable branch of get_lending_state(): a book is available
+    when the service says it can be browsed or borrowed. Everything else --
+    checked out, all copies out, waitlist-blocked, not lendable at all -- is
+    unavailable for our purposes. Note that a `return` event does NOT imply
+    available: with a waitlist, the copy goes to the head of the queue.
+    """
+    return bool(availability.get("available_to_browse") or availability.get("available_to_borrow"))
 
 
 async def get_groundtruth_availability_async(ocaid, s3_keys=None):
@@ -403,7 +462,20 @@ def update_availability_schema_to_v2(
 async def get_availability_async(
     id_type: Literal["identifier", "openlibrary_work", "openlibrary_edition"],
     ids: list[str],
+    use_cache: bool = True,
+    batch_size: int = AVAILABILITY_BATCH_SIZE,
+    drop_errors: bool = False,
 ) -> dict[str, AvailabilityStatusV2]:
+    """
+    :param use_cache: Read and write the 5-minute memcache. False always asks
+                      the availability service, and leaves the cache alone.
+    :param batch_size: Max ids per request to the availability service.
+    :param drop_errors: Leave every `status: "error"` entry -- whether the
+                        service said so, a request failed, or it came from the
+                        cache -- and the top-level error keys out of the
+                        response. For callers that must tell "no answer" apart
+                        from "unavailable".
+    """
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
         return {}
@@ -411,72 +483,82 @@ async def get_availability_async(
     def key_func(_id: str) -> str:
         return cache.build_memcache_key("lending.get_availability", id_type, _id)
 
-    mc = cache.get_memcache()
+    mc = cache.get_memcache() if use_cache else None
 
-    cached_values = cast(dict[str, AvailabilityStatusV2], mc.get_multi([key_func(_id) for _id in ids]))
-    availabilities = {_id: cached_values[key] for _id in ids if (key := key_func(_id)) in cached_values}
-    ids_to_fetch = set(ids) - set(availabilities)
+    availabilities: dict[str, AvailabilityStatusV2] = {}
+    if mc is not None:
+        cached_values = cast(dict[str, AvailabilityStatusV2], mc.get_multi([key_func(_id) for _id in ids]))
+        availabilities = {_id: cached_values[key] for _id in ids if (key := key_func(_id)) in cached_values}
+    ids_to_fetch = list(dict.fromkeys(_id for _id in ids if _id not in availabilities))
 
-    if not ids_to_fetch:
-        return availabilities
-
-    try:
-        headers = {
-            "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
-            "x-preferred-client-useragent": req_context.get().user_agent or "",
-            "x-application-id": "openlibrary",
-            "user-agent": "Open Library Site",
-        }
-        if config_ia_ol_metadata_write_s3:
-            headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
-        resp = await ia.get_async_session().get(
-            config_ia_availability_api_v2_url,
-            params={
-                id_type: ",".join(ids_to_fetch),
-                "scope": "printdisabled",
-            },
-            headers=headers,
-            timeout=config_http_request_timeout,
-        )
-
-        # This API should always return 200
-        resp.raise_for_status()
-
-        response = cast(AvailabilityServiceResponse, resp.json())
-
-        if not response["success"]:
-            logger.warning(f"AvailabilityServiceError: {response['error']}")
-            stats.increment("ol.availability.service_error", rate=0.01)
-            return {}
-
-        uncached_values = {
-            _id: update_availability_schema_to_v2(
-                availability,
-                ocaid=(_id if id_type == "identifier" else availability.get("identifier")),
-            )
-            for _id, availability in response["responses"].items()
-        }
-        availabilities |= uncached_values
-        mc.set_multi(
-            {key_func(_id): availability for _id, availability in uncached_values.items()},
-            expires=5 * dateutil.MINUTE_SECS,
-        )
-        return availabilities
-    except Exception as e:  # TODO: Narrow exception scope
-        logger.exception("lending.get_availability", extra={"ids": ids})
-        availabilities.update(
-            {
-                _id: update_availability_schema_to_v2(
-                    cast(AvailabilityStatus, {"status": "error"}),
-                    ocaid=_id if id_type == "identifier" else None,
-                )
-                for _id in ids_to_fetch
+    error = None
+    for batch in itertools.batched(ids_to_fetch, batch_size, strict=False):
+        try:
+            headers = {
+                "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
+                "x-preferred-client-useragent": req_context.get().user_agent or "",
+                "x-application-id": "openlibrary",
+                "user-agent": "Open Library Site",
             }
-        )
+            if config_ia_ol_metadata_write_s3:
+                headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+            resp = await ia.get_async_session().get(
+                config_ia_availability_api_v2_url,
+                params={
+                    id_type: ",".join(batch),
+                    "scope": "printdisabled",
+                },
+                headers=headers,
+                timeout=config_http_request_timeout,
+            )
+
+            # This API should always return 200
+            resp.raise_for_status()
+
+            response = cast(AvailabilityServiceResponse, resp.json())
+
+            if not response["success"]:
+                logger.warning(f"AvailabilityServiceError: {response['error']}")
+                stats.increment("ol.availability.service_error", rate=0.01)
+                continue
+
+            uncached_values = {
+                _id: update_availability_schema_to_v2(
+                    availability,
+                    ocaid=(_id if id_type == "identifier" else availability.get("identifier")),
+                )
+                for _id, availability in response["responses"].items()
+            }
+            availabilities |= uncached_values
+            if mc is not None:
+                mc.set_multi(
+                    {key_func(_id): availability for _id, availability in uncached_values.items()},
+                    expires=5 * dateutil.MINUTE_SECS,
+                )
+        except (httpx.HTTPError, json.JSONDecodeError) as e:
+            # Only the service failing to answer. Anything else -- a missing
+            # req_context, a malformed response -- is a bug, and under
+            # drop_errors would otherwise vanish into an empty result.
+            logger.exception("lending.get_availability", extra={"ids": batch})
+            error = e
+            availabilities.update(
+                {
+                    _id: update_availability_schema_to_v2(
+                        cast(AvailabilityStatus, {"status": "error"}),
+                        ocaid=_id if id_type == "identifier" else None,
+                    )
+                    for _id in batch
+                }
+            )
+
+    if drop_errors:
+        return {_id: availability for _id, availability in availabilities.items() if availability.get("status") != "error"}
+    if error:
         return availabilities | {
             "error": "request_timeout",
-            "details": str(e),
+            "details": str(error),
         }  # type: ignore
+    return availabilities
 
 
 get_availability = async_bridge.wrap(get_availability_async)
