@@ -5,7 +5,7 @@ $def with (books=None, books_wo_isbns=None)
     <div class="data-transfer-grid">
       <div class="data-transfer-card data-transfer-card--full-width">
         <h3>$_("Goodreads")</h3>
-        <p>$:_('For instructions on exporting data refer to: <a href="https://www.goodreads.com/review/import" target="_blank">Goodreads Import/Export</a>')</p>
+        <p>$:_('For instructions on exporting data refer to: <a href="https://www.goodreads.com/review/import" target="_blank" rel="noopener noreferrer">Goodreads Import/Export</a>')</p>
         <p>$:_('File size limit 10MB and .csv file type only')</p>
         <div>
           <form method="POST" action="/account/import/goodreads"
