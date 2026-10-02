@@ -377,8 +377,8 @@ msgstr "%(date)s में शामिल हुए"
 #, python-format
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] "एक व्यक्ति इस किताब का इंतज़ार कर रहा है।"
-msgstr[1] "%(n)d लोग इस पुस्तक का इंतजार कर रहे हैं।"
+msgstr[0] ""
+msgstr[1] ""
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Not yet downloaded."

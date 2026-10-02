@@ -2,9 +2,12 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
+from babel.messages.catalog import Catalog, Message
 from babel.messages.pofile import read_po
 
+from openlibrary import i18n
 from openlibrary.i18n import get_locales
+from openlibrary.i18n.validators import validate
 
 root = os.path.dirname(__file__)
 
@@ -102,3 +105,61 @@ def test_html_format(locale: str, msgid: str, msgstr: str):
     # For translations that correctly reorder elements to fit the target language's word order
     ordered = not msgstr.startswith("<!-- i18n-lint no-tree-order -->")
     assert trees_equal(id_tree, str_tree, ordered=ordered)
+
+
+def gen_po_messages():
+    for locale in get_locales():
+        with open(os.path.join(root, locale, "messages.po"), "rb") as fil:
+            catalog = read_po(fil)
+        for message in catalog:
+            # The same selection as `make test-i18n`, so the two cannot disagree
+            if message.lineno:
+                yield pytest.param(message, catalog, id=f"{locale}:{message.lineno}")
+
+
+@pytest.mark.parametrize(("message", "catalog"), gen_po_messages())
+def test_validate(message: Message, catalog: Catalog):
+    assert validate(message, catalog) == []
+
+
+@pytest.mark.parametrize(
+    ("msgstr", "has_errors"),
+    [('<a href="%s">ti</a>', False), ('<a href="%(link)s">ti</a>', True)],
+)
+def test_validate_translations_counts_non_fuzzy_errors(tmp_path, monkeypatch, msgstr, has_errors):
+    (tmp_path / "xx").mkdir()
+    (tmp_path / "xx" / "messages.po").write_text(
+        f'msgid ""\nmsgstr ""\n\n#, python-format\nmsgid "by <a href=\\"%s\\">You</a>"\nmsgstr "{msgstr.replace('"', '\\"')}"\n'
+    )
+    monkeypatch.setattr(i18n, "root", str(tmp_path))
+    assert (i18n.validate_translations(["xx"])["xx"] > 0) == has_errors
+
+
+@pytest.mark.parametrize(
+    ("msgid", "msgstr", "valid"),
+    [
+        # Named placeholders are looked up by key, so a translation may reorder or repeat them
+        ("%(username)s has read %(total)d books. Join %(username)s", "%(total)d книг прочитані %(username)s. Приєднайтеся до %(username)s", True),
+        ("%(username)s is reading %(total)d books. Join %(username)s", "%(username)s이(가) %(total)d권을 읽고", True),
+        # Positional ones are consumed in order
+        ("%s has %d books", "%d books by %s", False),
+        # Same-type positional swaps render in the wrong order without raising
+        ("%d of %i", "%i od %d", False),
+        ('by <a href="%s">You</a>', '<a href="%(link)s">ti</a>', False),
+        ("%(count)s commits behind", "%(count)개 커밋 뒤처짐", False),
+        # A `%d` translation raises on the str a `%s` msgid accepts
+        ("%(n)s waiting", "%(n)d waiting", False),
+        (("%(count)d item", "%(count)d items"), ("%(count)d개 항목",), True),
+        # Babel's checker reads a malformed conversion as "no placeholders", in every plural form
+        (("%(count)d item", "%(count)d items"), ("%(count)개 항목",), False),
+        (("%(count)d item", "%(count)d items"), ("%(count)d stavka", "%(count)d stavke", "%(count)đ stavki"), False),
+        # `%c` accepts a 1-character str, so the probe value must be longer than that
+        (("One item", "%(count)s items"), ("%(count)c개",), False),
+        # A mapping fills a positional `%s` with its own repr instead of raising
+        (("One item", "%(count)d items"), ("%s개 항목",), False),
+    ],
+)
+def test_validate_placeholders(msgid, msgstr, valid):
+    catalog = Catalog(locale="ko" if len(msgstr) == 1 else "hr")
+    catalog.add(msgid, msgstr, flags=["python-format"])
+    assert (validate(catalog[msgid if isinstance(msgid, str) else msgid[0]], catalog) == []) == valid
