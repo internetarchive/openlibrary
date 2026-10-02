@@ -15,8 +15,10 @@ import { readFileSync, writeFileSync } from 'fs';
 const DISCOVER = process.env.I18N_E2E_DISCOVER;
 const FIXTURE = process.env.I18N_E2E_FIXTURE;
 const EXPECT = process.env.I18N_E2E_EXPECT;
+// Not "/": the stack runs no Solr, so the homepage's subject counts are None and
+// home/categories.html's ungettext() raises for every language with a Plural-Forms header.
 const PAGES = (process.env.I18N_E2E_PAGES ||
-    '/,/search?q=e2e,/search/inside?q=e2e,/account/login,/account/create,/search/authors?q=e2e,/subjects,/lists'
+    '/search?q=e2e,/search/inside?q=e2e,/account/login,/account/create,/search/authors?q=e2e,/subjects,/lists'
 ).split(',');
 
 type Item = { msgid: string; msgstr: string; page: string };
