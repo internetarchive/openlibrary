@@ -37,8 +37,19 @@ test.describe('baked translations @i18n-baked', () => {
 
     if (DISCOVER) {
         test('discover English page text', async ({ page }) => {
+            // The page list is a starting set: skip pages web.py does not serve rather
+            // than fail, and require at least one usable page.
             const out: Record<string, string> = {};
-            for (const url of PAGES) out[url] = await visibleText(page, withLang(url, 'en'));
+            for (const url of PAGES) {
+                const response = await page.goto(withLang(url, 'en'));
+                const status = response?.status() ?? 0;
+                if (status >= 400) {
+                    console.log(`discover: skipping ${url} (HTTP ${status})`);
+                    continue;
+                }
+                out[url] = await page.evaluate(() => document.body.innerText);
+            }
+            expect(Object.keys(out).length).toBeGreaterThan(0);
             writeFileSync(DISCOVER, JSON.stringify(out, null, 2));
         });
     }
