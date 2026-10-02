@@ -1,0 +1,37 @@
+##
+## E2E overlay: serve web and fast_web from an olbase image with NO code mounted, the way
+## compose.production.yaml does, so pages render the translations baked into the image.
+## Backing services (db, infobase, memcached, mockservices, solr) come from the dev stack.
+## Driven by tests/e2e/i18n-baked/run.sh; it is not meant to be used on its own:
+##
+## OLIMAGE=<olbase image> docker compose -p pr13070-e2e \
+##   -f compose.yaml -f compose.override.yaml -f tests/e2e/i18n-baked/compose.yaml up -d web fast_web
+##
+## Production's web mounts only ../olsystem (config/secrets), which is not available
+## locally, so this uses the image's own conf/openlibrary.yml. What matters here is that
+## /openlibrary inside the container is the image's, not a checkout.
+##
+
+services:
+  web:
+    image: "${OLIMAGE:?set OLIMAGE to the olbase image under test}"
+    build: !reset null
+    volumes: !reset []
+    ports: !override
+      - "127.0.0.1:${E2E_WEB_PORT:-18090}:8080"
+
+  fast_web:
+    image: "${OLIMAGE:?set OLIMAGE to the olbase image under test}"
+    build: !reset null
+    volumes: !reset []
+    ports: !override
+      - "127.0.0.1:${E2E_FAST_WEB_PORT:-18091}:8080"
+
+  # Publish nothing else: other local stacks already hold these host ports, and the
+  # test only talks to web/fast_web.
+  mockservices:
+    ports: !reset []
+  solr:
+    ports: !reset []
+  covers:
+    ports: !reset []

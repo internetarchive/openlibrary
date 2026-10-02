@@ -16,6 +16,8 @@ repos:
     hooks:
       - id: check-toml
       - id: check-yaml
+        # Compose's !reset/!override tags are not plain YAML; `docker compose config` validates these
+        exclude: ^tests/e2e/i18n-baked/compose(\.dev)?\.yaml$
       - id: detect-private-key
       - id: end-of-file-fixer
         exclude: ^.*\.(po|pot|type|svg|ini|mr|mrc|pg_dump)$
