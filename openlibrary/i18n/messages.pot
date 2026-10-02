@@ -6610,14 +6610,6 @@ msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT 
 msgstr ""
 
 #: type/list/embed.html
-msgid "This book is checked out"
-msgstr ""
-
-#: type/list/embed.html
-msgid "Checked out"
-msgstr ""
-
-#: type/list/embed.html
 msgid "Borrow book"
 msgstr ""
 

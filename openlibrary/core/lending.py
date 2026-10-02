@@ -5,6 +5,7 @@ from __future__ import annotations  # Needed for 'Loan' return types early on
 import logging
 import os
 import time
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import eventer
@@ -480,6 +481,17 @@ async def get_availability_async(
 
 
 get_availability = async_bridge.wrap(get_availability_async)
+
+
+async def get_checked_out_async(ocaids: Iterable[str]) -> set[str]:
+    """Returns the subset of ocaids whose lendable copies are all currently checked out."""
+    availabilities = await get_availability_async("identifier", list(set(ocaids)))
+    return {
+        ocaid
+        for ocaid, availability in availabilities.items()
+        # the error response mixes string values in with the per-id dicts
+        if isinstance(availability, dict) and availability.get("status") == "borrow_unavailable"
+    }
 
 
 def get_ocaid(item: dict) -> str | None:
