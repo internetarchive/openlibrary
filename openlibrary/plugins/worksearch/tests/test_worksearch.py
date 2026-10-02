@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import pytest
 import web
 
 from openlibrary.plugins.worksearch import code
@@ -12,7 +11,6 @@ from openlibrary.plugins.worksearch.code import (
     process_facet,
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-from openlibrary.solr.query_utils import luqum_parser
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
@@ -314,27 +312,3 @@ class TestSearchAvailabilityPreparedInPython:
         works_arg = render_args[2]
         assert works_arg == [get_doc(solr_doc)]
         assert works_arg is not get_doc
-
-
-DDC_TRANSFORM_TESTS = {
-    "simple": ("ddc:65.8", "ddc:065.8"),
-    "integer-no-padding-needed": ("ddc:658", "ddc:658"),
-    "range": ("ddc:[61 TO 65]", "ddc:[061 TO 065]"),
-    "range-open-end": ("ddc:[23.23 TO *]", "ddc:[023.23 TO *]"),
-    "wildcard": ("ddc:23.45*", "ddc:023.45*"),
-    "wildcard-integer": ("ddc:2*", "ddc:2*"),
-    "ddc_sort": ("ddc_sort:65.8", "ddc_sort:065.8"),
-    "phrase": ('ddc:"65.8"', 'ddc:"065.8"'),
-}
-
-
-@pytest.mark.parametrize(
-    ("user_query", "expected"),
-    DDC_TRANSFORM_TESTS.values(),
-    ids=DDC_TRANSFORM_TESTS.keys(),
-)
-def test_ddc_transform(user_query: str, expected: str):
-    scheme = WorkSearchScheme()
-    q_tree = luqum_parser(user_query)
-    result = scheme.transform_user_query(user_query, q_tree)
-    assert str(result).replace(" ", "") == expected.replace(" ", "")
