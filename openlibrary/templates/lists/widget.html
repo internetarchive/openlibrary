@@ -1,16 +1,6 @@
 $def with (page, include_rating=True, read_status=None, exclude_own_lists=False, async_load=False)
 
 <div class="lists-widget-container">
-$if render_once('lists/widget.i18n-strings'):
-  $ show_list_i18n_strings = {
-    $ "cover_of": _('Cover of: %(title)s', title=''),
-    $ "see_this_list": _('See this list'),
-    $ "remove_from_list": _('Remove from your list?'),
-    $ "from": _('from'),
-    $ "you": _('You')
-    $ }
-  <input type="hidden" name="list-i18n-strings" value="$json_encode(show_list_i18n_strings)">
-
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
 $ edition = page if page.key.startswith("/books/") else None
 
@@ -19,11 +9,46 @@ $# orphaned edition gets the same control in its lists-only form.
 $:shelf_button_for(page)
 
 $if ctx.user:
-  $# lists/list-showcase.js fills this with the lists the seeds are on.
+  $# The reader's lists that hold this book; keys and strings match OlBookLists.js.
   $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key] or [page.key]
-  <ul class="listLists already-lists" data-seed-keys="$json_encode(seed_keys)">
-    <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
-  </ul>
+  $ book_lists_labels = {
+  $   "onYourLists": _("On your lists"),
+  $   "otherEditions": {
+  $     "one": ungettext("%(count)s other edition", "%(count)s other editions", 1),
+  $     "two": ungettext("%(count)s other edition", "%(count)s other editions", 2),
+  $     "few": ungettext("%(count)s other edition", "%(count)s other editions", 3),
+  $     "many": ungettext("%(count)s other edition", "%(count)s other editions", 11),
+  $     "other": ungettext("%(count)s other edition", "%(count)s other editions", 100),
+  $   },
+  $   "anyEdition": _("Any edition"),
+  $   "removeFromList": _("Remove from %(name)s"),
+  $   "removeThisEdition": _("Remove this edition from %(name)s"),
+  $   "removeEditions": {
+  $     "one": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 1),
+  $     "two": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 2),
+  $     "few": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 3),
+  $     "many": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 11),
+  $     "other": ungettext("Remove %(count)s edition from %(name)s", "Remove %(count)s editions from %(name)s", 100),
+  $   },
+  $   "removeOtherEditions": {
+  $     "one": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 1),
+  $     "two": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 2),
+  $     "few": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 3),
+  $     "many": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 11),
+  $     "other": ungettext("Remove %(count)s other edition from %(name)s", "Remove %(count)s other editions from %(name)s", 100),
+  $   },
+  $   "removeWorkAndEditions": {
+  $     "one": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 1),
+  $     "two": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 2),
+  $     "few": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 3),
+  $     "many": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 11),
+  $     "other": ungettext("Remove the work and %(count)s edition from %(name)s", "Remove the work and %(count)s editions from %(name)s", 100),
+  $   },
+  $   "removedFromList": _("Removed from %(name)s"),
+  $   "removedThisEdition": _("Removed this edition from %(name)s. The book is still on it."),
+  $   "errorGeneric": _("Something went wrong. Please try again."),
+  $ }
+  <ol-book-lists seed-keys="$json_encode(seed_keys)" labels="$json_encode(book_lists_labels)"></ol-book-lists>
 
 $if work and include_rating:
   $:macros.StarRatings(work, edition)
