@@ -109,3 +109,14 @@ class TestTranslationsSource:
             dc: dict = yaml.safe_load(f)
         for name in ("web", "fast_web"):
             assert "/openlibrary" in _mount_targets(dc["services"][name]), f"{compose_file} {name}"
+
+    def test_near_prod_serves_committed_translations(self):
+        # compose.near-prod.yaml is layered on compose.override.yaml (see its header):
+        # it keeps override's web/fast_web, and its own app services mount the checkout.
+        # Despite the name, it is not a path that serves baked translations.
+        with open(p("..", "compose.near-prod.yaml")) as f:
+            dc: dict = yaml.safe_load(f)
+        assert not {"web", "fast_web"} & set(dc["services"])
+        for name, service in dc["services"].items():
+            if "image" in service and "solr" not in service["image"]:
+                assert "/openlibrary" in _mount_targets(service), f"compose.near-prod.yaml {name}"
