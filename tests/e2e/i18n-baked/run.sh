@@ -39,10 +39,15 @@ RESULTS=()
 record() { RESULTS+=("$1|$2|$3"); }  # step | expected | actual
 
 # --- 1. images -----------------------------------------------------------------------
+# Build from a fresh clone of HEAD, as CI does: the Dockerfile's `make git` needs a real
+# .git directory, and a worktree's .git is a file pointing outside the build context.
+git clone -q --no-hardlinks . "$WORK/ctx"
+git -C "$WORK/ctx" checkout -q "$(git rev-parse HEAD)"
+git -C "$WORK/ctx" submodule update -q --init vendor/infogami
 grep -c 'i18n-pull-translations.sh' docker/Dockerfile.olbase | grep -qx 1
 grep -v 'i18n-pull-translations.sh' docker/Dockerfile.olbase > "$WORK/Dockerfile.control"
-docker build -f docker/Dockerfile.olbase --build-arg I18N_REF="$I18N_REF" -t olbase-e2e:candidate .
-docker build -f "$WORK/Dockerfile.control" -t olbase-e2e:control .
+docker build -f "$WORK/ctx/docker/Dockerfile.olbase" --build-arg I18N_REF="$I18N_REF" -t olbase-e2e:candidate "$WORK/ctx"
+docker build -f "$WORK/Dockerfile.control" -t olbase-e2e:control "$WORK/ctx"
 
 # --- 2. what each image contains -----------------------------------------------------
 for img in candidate control; do
