@@ -35,3 +35,15 @@ services:
     ports: !reset []
   covers:
     ports: !reset []
+
+# Explicit subnets: on a host running many stacks, Docker's default address pools can be
+# exhausted ("all predefined address pools have been fully subnetted").
+networks:
+  webnet:
+    ipam:
+      config:
+        - subnet: "${E2E_WEBNET_SUBNET:-10.213.10.0/24}"
+  dbnet:
+    ipam:
+      config:
+        - subnet: "${E2E_DBNET_SUBNET:-10.213.11.0/24}"
