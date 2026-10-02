@@ -109,12 +109,12 @@ def validate_translations(args: list[str]):
                 for w in warnings:
                     print(warning_color_fn(f"openlibrary/i18n/{locale}/messages.po:{message.lineno}: ") + w)
 
-                    if errors:
-                        num_errors += len(errors)
-                        error_print.append(
-                            error_color_fn(f"openlibrary/i18n/{locale}/messages.po:{message.lineno}: ") + repr(message.string),
-                        )
-                        error_print.extend(errors)
+                if errors:
+                    num_errors += len(errors)
+                    error_print.append(
+                        error_color_fn(f"openlibrary/i18n/{locale}/messages.po:{message.lineno}: ") + repr(message.string),
+                    )
+                    error_print.extend(errors)
 
             if num_errors == 0:
                 print(success_color_fn(f'Translations for locale "{locale}" are valid!'))

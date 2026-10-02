@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from itertools import groupby
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -15,6 +14,7 @@ def validate(message: Message, catalog: Catalog) -> list[str]:
     errors = [f"    {err}" for err in message.check(catalog)]
     if message.python_format and not message.pluralizable and message.string:
         errors.extend(_validate_cfmt(str(message.id or ""), str(message.string or "")))
+    errors.extend(_validate_substitution(message))
 
     return errors
 
@@ -28,18 +28,81 @@ def _validate_cfmt(msgid: str, msgstr: str) -> list[str]:
     return errors
 
 
-def _cfmt_fingerprint(string: str):
+def _cfmt_fingerprint(string: str) -> tuple[tuple[str, ...], frozenset[str]]:
     """
-    Get a fingerprint dict of the cstyle format in this string
-    >>> _cfmt_fingerprint('hello %s')
-    {'%s': 1}
-    >>> _cfmt_fingerprint('hello %s and %s')
-    {'%s': 2}
-    >>> _cfmt_fingerprint('hello %(title)s. %(first)s %(last)s')
-    {'%(title)s': 1, '%(first)s': 1, '%(last)s': 1}
+    Get a fingerprint of the cstyle format in this string: positional placeholders in
+    order, since `%` consumes them in sequence, and the set of everything else, since
+    named placeholders are looked up by key and may be reordered or repeated.
+    >>> _cfmt_fingerprint('hello %s and %d')
+    (('%s', '%d'), frozenset())
+    >>> _cfmt_fingerprint('hello %s and %d') == _cfmt_fingerprint('%d and %s')
+    False
+    >>> _cfmt_fingerprint('%(username)s read %(total)d. Join %(username)s') == _cfmt_fingerprint('%(total)d read by %(username)s')
+    True
     """
     pieces = _parse_cfmt(string)
-    return {key: len(list(grp)) for key, grp in groupby(pieces)}
+    positional = tuple(p for p in pieces if p != "%%" and not p.startswith("%("))
+    return positional, frozenset(p for p in pieces if p == "%%" or p.startswith("%("))
+
+
+# Conversions that raise on a str argument; `s` accepts anything.
+NUMERIC_CONVERSIONS = frozenset("cdiouxXeEfFgG")
+
+
+def _format_args(msgids: list[str]) -> dict | tuple | None:
+    """
+    Arguments shaped the way the msgid declares them: a str for `%s`, an int for `%d`.
+    The str is two characters long because `%c` accepts one.
+    >>> _format_args(['by <a href="%s">You</a>'])
+    ('xx',)
+    >>> _format_args(['%(count)d item', '%(count)d items'])
+    {'count': 1}
+    >>> _format_args(['100%% Complete!']) is None
+    True
+    """
+    named: dict = {}
+    positional: list = []
+    for msgid in msgids:
+        values = []
+        for placeholder in _parse_cfmt(msgid):
+            if placeholder == "%%":
+                continue
+            value = 1 if placeholder[-1] in NUMERIC_CONVERSIONS else "xx"
+            if placeholder.startswith("%("):
+                named[placeholder[2 : placeholder.index(")")]] = value
+            else:
+                values.append(value)
+        positional = max(positional, values, key=len)
+    if named:
+        return named
+    return tuple(positional) or None
+
+
+def _validate_substitution(message: Message) -> list[str]:
+    """
+    Apply every translated form to the arguments its msgid accepts, the way
+    GetText and ungettext do at render time with no try/except. Unlike
+    _validate_cfmt this covers plural forms, and unlike Babel's checker it catches
+    malformed conversions such as `%(count)개`, which Babel reads as "no placeholders".
+    """
+    msgids = [str(m) for m in message.id] if message.pluralizable else [str(message.id or "")]
+    args = _format_args(msgids)
+    if args is None:
+        return []
+    msgstrs = message.string if message.pluralizable else [message.string]
+    errors = []
+    for msgstr in msgstrs:
+        if not msgstr:
+            continue
+        try:
+            msgstr % args
+        except (TypeError, ValueError, KeyError) as e:
+            errors.append(f"    {msgstr!r} % {args!r} raises {type(e).__name__}: {e}")
+            continue
+        if isinstance(args, dict) and any(p != "%%" and not p.startswith("%(") for p in _parse_cfmt(msgstr)):
+            # A mapping fills a positional placeholder with its own repr instead of raising
+            errors.append(f"    {msgstr!r} uses positional placeholders but its msgid is named")
+    return errors
 
 
 def _parse_cfmt(string: str):
