@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780439023481",
+  "sources": [
+    {
+      "id": "loc",
+      "match": "isbn13",
+      "url": "https://lccn.loc.gov/2007039987",
+      "fields": {
+        "publishers": [
+          "Scholastic Press"
+        ],
+        "publish_date": "2008.",
+        "number_of_pages": 374,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

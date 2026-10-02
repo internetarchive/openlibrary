@@ -1,0 +1,17 @@
+{
+  "isbn13": "9782764023068",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Comment_Se_Faire_des_Amis_et_Influencer.html?hl=&id=5NCGoAEACAAJ",
+      "fields": {
+        "publish_date": "2014-04",
+        "number_of_pages": 202,
+        "languages": [
+          "fre"
+        ]
+      }
+    }
+  ]
+}

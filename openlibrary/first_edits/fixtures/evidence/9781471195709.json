@@ -1,0 +1,15 @@
+{
+  "isbn13": "9781471195709",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/The_7_Habits_of_Highly_Effective_People.html?hl=&id=UU4T0QEACAAJ",
+      "fields": {
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "isbn13": "9781476753188",
+  "sources": [
+    {
+      "id": "loc",
+      "match": "isbn13",
+      "url": "https://lccn.loc.gov/2014008267",
+      "fields": {
+        "publishers": [
+          "Atria Books"
+        ],
+        "publish_date": "2014.",
+        "number_of_pages": 324,
+        "languages": [
+          "eng"
+        ]
+      }
+    },
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Ugly_Love.html?hl=&id=V7yEAwAAQBAJ",
+      "fields": {
+        "publishers": [
+          "Simon and Schuster"
+        ],
+        "publish_date": "2014-08-05",
+        "number_of_pages": 336,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

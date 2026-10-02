@@ -1,0 +1,40 @@
+{
+  "isbn13": "9780385474542",
+  "golden_key": "things-fall-apart-anchor-1994",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Things_Fall_Apart.html?hl=&id=2plPEAAAQBAJ",
+      "fields": {
+        "publishers": [
+          "Penguin"
+        ],
+        "publish_date": "1994-09-01",
+        "number_of_pages": 226,
+        "languages": [
+          "eng"
+        ],
+        "subtitle": "A Novel"
+      }
+    },
+    {
+      "id": "loc",
+      "match": "isbn13",
+      "url": "https://lccn.loc.gov/94013429",
+      "fields": {
+        "publishers": [
+          "Anchor Books"
+        ],
+        "publish_date": "1994.",
+        "number_of_pages": 209,
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "94013429"
+        ]
+      }
+    }
+  ]
+}

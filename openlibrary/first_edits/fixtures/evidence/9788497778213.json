@@ -1,0 +1,19 @@
+{
+  "isbn13": "9788497778213",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Piense_y_h%C3%A1gase_rico.html?hl=&id=rdnZtwAACAAJ",
+      "fields": {
+        "publishers": [
+          "Obelisco"
+        ],
+        "publish_date": "2012-02",
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}

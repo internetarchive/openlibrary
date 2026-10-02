@@ -1,0 +1,17 @@
+{
+  "isbn13": "9781536450286",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/The_Cruel_Prince.html?hl=&id=XMCZwgEACAAJ",
+      "fields": {
+        "publish_date": "2018",
+        "number_of_pages": 370,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

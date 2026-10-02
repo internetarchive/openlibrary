@@ -1,0 +1,17 @@
+{
+  "isbn13": "9789750708619",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/A%C5%9Fk_ve_gurur.html?hl=&id=BU5jkgEACAAJ",
+      "fields": {
+        "publish_date": "2007",
+        "number_of_pages": 440,
+        "languages": [
+          "tur"
+        ]
+      }
+    }
+  ]
+}

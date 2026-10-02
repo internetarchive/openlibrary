@@ -1,0 +1,24 @@
+{
+  "isbn13": "9780060935467",
+  "golden_key": "mockingbird-perennial",
+  "sources": [
+    {
+      "id": "loc",
+      "match": "isbn13",
+      "url": "https://lccn.loc.gov/2001016794",
+      "fields": {
+        "publishers": [
+          "HarperCollins"
+        ],
+        "publish_date": "2002, c1960.",
+        "number_of_pages": 323,
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "2001016794"
+        ]
+      }
+    }
+  ]
+}

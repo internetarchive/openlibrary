@@ -1,0 +1,17 @@
+{
+  "isbn13": "9788496208919",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Juego_de_tronos_bolsillo.html?hl=&id=FwLYpwAACAAJ",
+      "fields": {
+        "publish_date": "2011-07-29",
+        "number_of_pages": 832,
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}

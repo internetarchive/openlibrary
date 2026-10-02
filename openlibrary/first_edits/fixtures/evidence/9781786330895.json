@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781786330895",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Ikigai.html?hl=&id=U2gtMQAACAAJ",
+      "fields": {
+        "publishers": [
+          "Hutchinson"
+        ],
+        "publish_date": "2017-09-07",
+        "number_of_pages": 208,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "isbn13": "9788551002490",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/A_Sutil_Arte_De_Ligar_O_Foda_se.html?hl=&id=a6CXtAEACAAJ",
+      "fields": {
+        "publish_date": "2017-11-06",
+        "number_of_pages": 224
+      }
+    }
+  ]
+}

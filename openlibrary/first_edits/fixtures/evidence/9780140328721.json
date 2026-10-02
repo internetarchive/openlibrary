@@ -1,0 +1,21 @@
+{
+  "isbn13": "9780140328721",
+  "golden_key": "fantastic-mr-fox-puffin-1988",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Fantastic_Mr_Fox.html?hl=&id=DlQbmJc5WlQC",
+      "fields": {
+        "publishers": [
+          "Puffin"
+        ],
+        "publish_date": "1988",
+        "number_of_pages": 100,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

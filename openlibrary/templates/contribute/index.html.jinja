@@ -1,0 +1,23 @@
+{#- /contribute — the list of books with something to check. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="fe-page" data-contribute-list>
+    <header class="fe-hero">
+        <h1 class="fe-title">{{ _("Books that need a hand") }}</h1>
+    </header>
+    <ol class="fe-rows">
+        {% for row in data.rows %}
+            <li class="fe-row" data-book-row>
+                {{ parts.book_header(row.book, compact=True) }}
+                <ul class="fe-row__tasks">
+                    {% for task in row.tasks %}
+                        {{ parts.task_row(task) }}
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ol>
+    <p class="fe-empty" data-list-empty {% if data.rows %}hidden{% endif %}>
+        {{ _("You've been through everything here. Thank you.") }}
+    </p>
+    <p class="fe-muted">{{ _("Books are sorted by how many readers a fix would help. Skip any you're unsure about.") }}</p>
+</div>

@@ -1,0 +1,17 @@
+{
+  "isbn13": "9788204086600",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Harry_Potter_og_de_vises_stein.html?hl=&id=h8SsMwEACAAJ",
+      "fields": {
+        "publish_date": "2003",
+        "number_of_pages": 282,
+        "languages": [
+          "nor"
+        ]
+      }
+    }
+  ]
+}

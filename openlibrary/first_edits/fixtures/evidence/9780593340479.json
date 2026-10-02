@@ -1,0 +1,16 @@
+{
+  "isbn13": "9780593340479",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/A_Good_Girl_s_Guide_to_Murder.html?hl=&id=XTiOEAAAQBAJ",
+      "fields": {
+        "publish_date": "2020-05-12",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "isbn13": "9788374953986",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Rok_1984.html?hl=&id=YOFlewAACAAJ",
+      "fields": {
+        "publish_date": "2008",
+        "number_of_pages": 353,
+        "languages": [
+          "pol"
+        ]
+      }
+    }
+  ]
+}

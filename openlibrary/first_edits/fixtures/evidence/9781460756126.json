@@ -1,0 +1,17 @@
+{
+  "isbn13": "9781460756126",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Girl_in_Pieces.html?hl=&id=eUCcswEACAAJ",
+      "fields": {
+        "publish_date": "2018-06-18",
+        "number_of_pages": 416,
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

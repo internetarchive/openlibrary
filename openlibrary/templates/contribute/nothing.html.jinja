@@ -1,0 +1,12 @@
+{#- A task URL whose field has nothing to check right now. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="fe-page">
+    {{ parts.book_header(data.book) }}
+    <section class="fe-section">
+        <h1 class="fe-question__text">{{ _("Nothing to check for %(field)s on this edition", field=data.field_label) }}</h1>
+        <p>{{ _("Either the catalogs have nothing to say about it, or they disagree with each other and a librarian will settle it.") }}</p>
+        <ol-button href="/contribute">
+            {{ _("Back to the list") }}
+        </ol-button>
+    </section>
+</div>

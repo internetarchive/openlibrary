@@ -1,0 +1,17 @@
+{
+  "isbn13": "9786073156738",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Padre_rico_padre_pobre.html?hl=&id=97H1vQEACAAJ",
+      "fields": {
+        "publish_date": "2017",
+        "number_of_pages": 412,
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}

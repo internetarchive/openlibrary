@@ -1,0 +1,19 @@
+{
+  "isbn13": "9780349434285",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Twisted_Lies.html?hl=&id=cHf3zgEACAAJ",
+      "fields": {
+        "publishers": [
+          "Piatkus Books"
+        ],
+        "publish_date": "2022-07-26",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

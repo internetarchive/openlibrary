@@ -1,0 +1,16 @@
+{
+  "isbn13": "9798455344251",
+  "sources": [
+    {
+      "id": "googlebooks",
+      "match": "isbn13",
+      "url": "https://books.google.com/books/about/Haunting_Adeline.html?hl=&id=_cddzwEACAAJ",
+      "fields": {
+        "publish_date": "2021",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+$def with (data)
+
+$# /contribute — a thin shim into the Jinja First Edits templates.
+$# `data` is built in openlibrary/plugins/openlibrary/contribute.py.
+$var title: $data.title
+$ _x = ctx.setdefault('cssfile', 'contribute')
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('contribute-body')
+
+$:render_jinja_template(data.template, data=data.params)
