@@ -27,6 +27,13 @@
         <FlatBookCover :book="book" />
       </slot>
 
+      <div
+        v-if="book.ratings_count && book.ratings_average"
+        class="rating-placard"
+      >
+        <span class="rating-placard__star">★</span> {{ book.ratings_average.toFixed(1) }} by {{ book.ratings_count }}
+      </div>
+
       <div class="cover-label">
         <slot
           name="cover-label"
@@ -89,6 +96,38 @@ export default {
   min-height: 90%;
   color: inherit;
   text-decoration: none;
+}
+
+/* The rating badge, absolutely positioned so it doesn't affect cover sizing or the flex
+   layout the way an in-flow element would. Anchored to the book's *bottom* edge, not its
+   top: covers vary in rendered height (different aspect ratios under object-fit: contain),
+   but .books-carousel's align-items: flex-end bottom-aligns every .book to the same shelf
+   line regardless -- so anchoring to the bottom keeps every badge on that same line,
+   rather than each one floating at whatever height its own cover's top edge lands at. */
+.rating-placard {
+  position: absolute;
+  bottom: var(--spacing-2xs);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-index-local-1);
+  padding: 0 var(--spacing-inset-xs);
+  background: var(--color-surface);
+  border: var(--border-width-control) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-badge);
+  box-shadow: var(--box-shadow-raised);
+  font-size: var(--font-size-label-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+  /* The average and the count both vary per book, so fix the digit width or the badge
+     jitters as you scan along a shelf. */
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.rating-placard__star {
+  color: var(--color-icon-muted);
 }
 
 .bcbook-enter,

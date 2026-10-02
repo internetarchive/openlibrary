@@ -106,6 +106,12 @@ export async function pollUntilTruthy(fn, { timeout = 1000, step = 100 } = {}) {
  * @property {string} query
  * @property {number} count
  * @property {ClassificationNode[]} children
+ * Optional. Only genre.json sets this: `query` is a bare slug (embedded directly into
+ * the Solr query in Shelf.vue, e.g. `subject_key:apocalyptic*` -- real subject_key values
+ * have no genre/subgenre path structure), but a subgenre can have multiple parent genres,
+ * so BookRoom.vue's jumpTo resolution needs an ancestor-prefixed string instead (e.g.
+ * `horror/apocalyptic*`) to land on the right parent. Falls back to `query` when absent.
+ * @property {string} [hierarchyQuery]
  * Internal (not in ddc/lcc.json):
  * @property {string | number} position
  * @property {number} offset
@@ -120,4 +126,13 @@ export async function pollUntilTruthy(fn, { timeout = 1000, step = 100 } = {}) {
  * @property {(classification: string) => string} fieldTransform
  * @property {(classifications: string[]) => string} chooseBest
  * @property {ClassificationNode} root
+ * Optional; defaults to true. Set false when there's no corresponding `${field}_sort`
+ * Solr field (e.g. genre, which is backed by the unordered `subject_key` field) --
+ * BookRoom.vue then jumps to the right shelf via scrollIntoView but skips the
+ * precise book-offset fetch, which requires a sortable field.
+ * @property {boolean} [supportsPreciseJump]
+ * Optional; defaults to false. When true, BookRoom.vue's top nav is an alphabetical
+ * horizontally-scrollable list of all top-level nodes (GenreTopNav.vue) instead of
+ * the DDC/LCC prev/active/next signage strip.
+ * @property {boolean} [alphabeticalTopNav]
  */
