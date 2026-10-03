@@ -1,29 +1,68 @@
+import asyncio
 from datetime import date, datetime
-from typing import ClassVar
+from typing import ClassVar, TypedDict, cast
 
+from openlibrary.core.async_db import connection
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
-from . import db
+
+class YearlyReadingGoal(TypedDict):
+    """A row from the ``yearly_reading_goals`` table."""
+
+    username: str
+    year: int
+    target: int
+    created: datetime
+    updated: datetime
 
 
 class YearlyReadingGoals:
     TABLENAME = "yearly_reading_goals"
 
     @classmethod
-    def summary(cls) -> dict[str, dict[str, int]]:
+    async def summary(cls) -> dict[str, dict[str, int]]:
+        async with asyncio.TaskGroup() as tg:
+            t_total = tg.create_task(cls.total_yearly_reading_goals())
+            t_month = tg.create_task(cls.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO))
+            t_week = tg.create_task(cls.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO))
         return {
             "total_yearly_reading_goals": {
-                "total": YearlyReadingGoals.total_yearly_reading_goals(),
-                "month": YearlyReadingGoals.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO),
-                "week": YearlyReadingGoals.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO),
+                "total": t_total.result(),
+                "month": t_month.result(),
+                "week": t_week.result(),
             },
         }
 
+    @classmethod
+    def summary_sync(cls) -> dict[str, dict[str, int]]:
+        return async_bridge.run(cls.summary())
+
+    @classmethod
+    async def total_yearly_reading_goals(cls, since: date | None = None) -> int:
+        """Count reading goals, optionally filtered to those updated since `since`.
+
+        :param since: if given, only count goals updated at or after this date.
+        """
+        query = f"SELECT count(*) FROM {cls.TABLENAME}"
+        params: dict[str, date] = {}
+        if since:
+            query += " WHERE updated >= %(since)s"
+            params["since"] = since
+        async with connection() as conn:
+            cursor = await conn.execute(query, params)
+            rows = await cursor.fetchall()
+        return rows[0]["count"] if rows else 0
+
     # Create methods:
     @classmethod
-    def create(cls, username: str, year: int, target: int) -> None:
-        oldb = db.get_db()
-        oldb.insert(cls.TABLENAME, username=username, year=year, target=target)
+    async def create(cls, username: str, year: int, target: int) -> None:
+        async with connection() as conn:
+            await conn.execute(
+                f"INSERT INTO {cls.TABLENAME} (username, year, target) VALUES (%(username)s, %(year)s, %(target)s)",
+                {"username": username, "year": year, "target": target},
+            )
+            await conn.commit()
 
     # Read methods:
     # web.db's `order=` kwarg is interpolated raw into the SQL string -- only
@@ -36,84 +75,53 @@ class YearlyReadingGoals:
     }
 
     @classmethod
-    def select_by_username(cls, username: str, order: str = "year ASC") -> list[dict]:
-        oldb = db.get_db()
-
+    async def select_by_username(cls, username: str, order: str = "year ASC") -> list[YearlyReadingGoal]:
         if order not in cls._ALLOWED_ORDERS:
             raise ValueError(f"Invalid order: {order!r}. Must be one of {list(cls._ALLOWED_ORDERS)}.")
 
-        where = "username=$username"
-        data = {
-            "username": username,
-        }
-
-        return list(oldb.select(cls.TABLENAME, where=where, order=cls._ALLOWED_ORDERS[order], vars=data))
+        query = f"SELECT * FROM {cls.TABLENAME} WHERE username = %(username)s ORDER BY {cls._ALLOWED_ORDERS[order]}"
+        async with connection() as conn:
+            cursor = await conn.execute(query, {"username": username})
+            return cast(list[YearlyReadingGoal], await cursor.fetchall())
 
     @classmethod
-    def select_by_username_and_year(cls, username: str, year: int) -> list[dict]:
-        oldb = db.get_db()
-
-        where = "username=$username AND year=$year"
-        data = {
-            "username": username,
-            "year": year,
-        }
-
-        return list(oldb.select(cls.TABLENAME, where=where, vars=data))
-
-    @classmethod
-    def total_yearly_reading_goals(cls, since: date | None = None) -> int:
-        """Returns the number reading goals that were set. `since` may be used
-        number reading goals updated. `since` may be used
-        to limit the result to those reading goals updated since a specific
-        date. Any python datetime.date type should work.
-        :param since: returns all reading goals after date
-        """
-        oldb = db.get_db()
-
-        query = f"SELECT count(*) from {cls.TABLENAME}"
-        if since:
-            query += " WHERE updated >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+    async def select_by_username_and_year(cls, username: str, year: int) -> list[YearlyReadingGoal]:
+        query = f"SELECT * FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
+        async with connection() as conn:
+            cursor = await conn.execute(query, {"username": username, "year": year})
+            return cast(list[YearlyReadingGoal], await cursor.fetchall())
 
     # Update methods:
     @classmethod
-    def update_target(cls, username: str, year: int, new_target: int) -> None:
-        oldb = db.get_db()
-
-        where = "username=$username AND year=$year"
-        data = {
-            "username": username,
-            "year": year,
-        }
-
-        oldb.update(
-            cls.TABLENAME,
-            where=where,
-            vars=data,
-            target=new_target,
-            updated=datetime.now(),
-        )
+    async def update_target(cls, username: str, year: int, new_target: int) -> None:
+        query = f"UPDATE {cls.TABLENAME} SET target = %(target)s, updated = %(updated)s WHERE username = %(username)s AND year = %(year)s"
+        async with connection() as conn:
+            await conn.execute(
+                query,
+                {
+                    "username": username,
+                    "year": year,
+                    "target": new_target,
+                    "updated": datetime.now(),
+                },
+            )
+            await conn.commit()
 
     # Delete methods:
     @classmethod
-    def delete_by_username(cls, username: str) -> None:
-        oldb = db.get_db()
+    async def delete_by_username_and_year(cls, username: str, year: int) -> None:
+        query = f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
+        async with connection() as conn:
+            await conn.execute(query, {"username": username, "year": year})
+            await conn.commit()
 
-        where = "username=$username"
-        data = {"username": username}
-
-        oldb.delete(cls.TABLENAME, where=where, vars=data)
-
+    # Bridge (synchronous) API:
+    # The legacy web.py template helper get_reading_goals still calls the
+    # synchronous select_by_username_and_year_sync. Rather than keeping a
+    # parallel web.db implementation, we bridge the async method over
+    # async_bridge's persistent loop. The pool is created lazily per event
+    # loop (see openlibrary/core/async_db.py), so this works in the web.py
+    # process too.
     @classmethod
-    def delete_by_username_and_year(cls, username: str, year: int) -> None:
-        oldb = db.get_db()
-
-        data = {
-            "username": username,
-            "year": year,
-        }
-        where = "username=$username AND year=$year"
-
-        oldb.delete(cls.TABLENAME, where=where, vars=data)
+    def select_by_username_and_year_sync(cls, username: str, year: int) -> list[YearlyReadingGoal]:
+        return async_bridge.run(cls.select_by_username_and_year(username, year))
