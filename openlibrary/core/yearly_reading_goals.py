@@ -1,9 +1,19 @@
 from datetime import date, datetime
-from typing import ClassVar
+from typing import ClassVar, TypedDict, cast
 
 from openlibrary.core.async_db import connection
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+
+
+class YearlyReadingGoal(TypedDict):
+    """A row from the ``yearly_reading_goals`` table."""
+
+    username: str
+    year: int
+    target: int
+    created: datetime
+    updated: datetime
 
 
 class YearlyReadingGoals:
@@ -60,21 +70,21 @@ class YearlyReadingGoals:
     }
 
     @classmethod
-    async def select_by_username_async(cls, username: str, order: str = "year ASC") -> list[dict]:
+    async def select_by_username_async(cls, username: str, order: str = "year ASC") -> list[YearlyReadingGoal]:
         if order not in cls._ALLOWED_ORDERS:
             raise ValueError(f"Invalid order: {order!r}. Must be one of {list(cls._ALLOWED_ORDERS)}.")
 
         query = f"SELECT * FROM {cls.TABLENAME} WHERE username = %(username)s ORDER BY {cls._ALLOWED_ORDERS[order]}"
         async with connection() as conn:
             cursor = await conn.execute(query, {"username": username})
-            return await cursor.fetchall()
+            return cast(list[YearlyReadingGoal], await cursor.fetchall())
 
     @classmethod
-    async def select_by_username_and_year_async(cls, username: str, year: int) -> list[dict]:
+    async def select_by_username_and_year_async(cls, username: str, year: int) -> list[YearlyReadingGoal]:
         query = f"SELECT * FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
         async with connection() as conn:
             cursor = await conn.execute(query, {"username": username, "year": year})
-            return await cursor.fetchall()
+            return cast(list[YearlyReadingGoal], await cursor.fetchall())
 
     # Update methods:
     @classmethod
@@ -107,5 +117,5 @@ class YearlyReadingGoals:
     # persistent loop. The pool is created lazily per event loop (see
     # openlibrary/core/async_db.py), so this works in the web.py process too.
     @classmethod
-    def select_by_username_and_year(cls, username: str, year: int) -> list[dict]:
+    def select_by_username_and_year(cls, username: str, year: int) -> list[YearlyReadingGoal]:
         return async_bridge.run(cls.select_by_username_and_year_async(username, year))
