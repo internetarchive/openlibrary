@@ -38,11 +38,13 @@ import web
 
 logger = logging.getLogger("openlibrary.async_db")
 
-# psycopg/psycopg_pool may not be installed in every environment (e.g. a
-# minimal Docker image that doesn't need async DB access). Keep the module
-# importable without them; _open_pool() returns None and logs a warning when
-# they're missing, so only endpoints that actually call connection() fail --
-# the rest of the app keeps working.
+# psycopg/psycopg_pool are not yet in the dev Docker image's
+# requirements.txt, so existing dev environments won't have them installed
+# until the image is rebuilt. Keep this module importable without them so
+# the app doesn't crash on startup; _open_pool() returns None and logs a
+# warning when they're missing, so only endpoints that actually call
+# connection() fail — not the entire app. Once the image is rebuilt with
+# psycopg in requirements, this guard becomes a no-op.
 try:
     from psycopg.conninfo import make_conninfo
     from psycopg.rows import dict_row
