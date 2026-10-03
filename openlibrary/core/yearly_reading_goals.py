@@ -5,8 +5,6 @@ from openlibrary.core.async_db import connection
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
-from . import db
-
 
 class YearlyReadingGoals:
     TABLENAME = "yearly_reading_goals"
@@ -22,20 +20,24 @@ class YearlyReadingGoals:
         }
 
     @classmethod
-    def total_yearly_reading_goals(cls, since: date | None = None) -> int:
-        """Returns the number reading goals that were set. `since` may be used
-        number reading goals updated. `since` may be used
-        to limit the result to those reading goals updated since a specific
-        date. Any python datetime.date type should work.
-        :param since: returns all reading goals after date
-        """
-        oldb = db.get_db()
+    async def total_yearly_reading_goals_async(cls, since: date | None = None) -> int:
+        """Count reading goals, optionally filtered to those updated since `since`.
 
-        query = f"SELECT count(*) from {cls.TABLENAME}"
+        :param since: if given, only count goals updated at or after this date.
+        """
+        query = f"SELECT count(*) FROM {cls.TABLENAME}"
+        params: dict[str, date] = {}
         if since:
-            query += " WHERE updated >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+            query += " WHERE updated >= %(since)s"
+            params["since"] = since
+        async with connection() as conn:
+            cursor = await conn.execute(query, params)
+            rows = await cursor.fetchall()
+        return rows[0]["count"] if rows else 0
+
+    @classmethod
+    def total_yearly_reading_goals(cls, since: date | None = None) -> int:
+        return async_bridge.run(cls.total_yearly_reading_goals_async(since))
 
     # Create methods:
     @classmethod
