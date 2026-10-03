@@ -4959,15 +4959,25 @@ msgid "You must select a primary record to point the duplicates toward."
 msgstr ""
 
 #: merge/authors.html
-msgid "Merge these authors?"
-msgstr ""
+#, python-format
+msgid "Merge %(count)s author into %(name)s?"
+msgid_plural "Merge %(count)s authors into %(name)s?"
+msgstr[0] ""
+msgstr[1] ""
 
-#: merge/authors.html search/authors.html
-msgid "Merge authors"
+#: merge/authors.html
+#, python-format
+msgid "Merge %(count)s author"
+msgid_plural "Merge %(count)s authors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: merge/authors.html
+msgid "Keep"
 msgstr ""
 
 #: merge/authors.html
-msgid "The duplicate records will be redirected to the primary record."
+msgid "Merge in and redirect"
 msgstr ""
 
 #: merge/authors.html recentchanges/merge/view.html
@@ -5671,6 +5681,10 @@ msgstr ""
 
 #: search/authors.html
 msgid "Is the same author listed twice?"
+msgstr ""
+
+#: search/authors.html
+msgid "Merge authors"
 msgstr ""
 
 #: search/authors.html

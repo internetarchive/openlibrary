@@ -2,17 +2,102 @@ import $ from 'jquery';
 import { alertFromTemplate, confirmFromTemplate } from './confirm-template';
 import { declineRequest } from './merge-request-table/MergeRequestService';
 
+/**
+ * Every value the confirmation dialog shows is already on the page, including
+ * the work count, which the server has translated and pluralised. Read it,
+ * don't rebuild it.
+ *
+ * @returns {Map<String, {key: String, name: String, works: String}>} by author key
+ */
+function authorRows() {
+    const rows = new Map();
+    for (const row of document.querySelectorAll('#mergeForm .entry.author')) {
+        const key = row.querySelector('input[name=merge_key]')?.value;
+        if (!key) continue;
+        rows.set(key, {
+            key,
+            name: row.querySelector('.name')?.textContent.trim() || key,
+            works: row.querySelector('.data.count a')?.textContent.trim() || '',
+        });
+    }
+    return rows;
+}
+
+/**
+ * The dialog body: the record being kept, then the records redirected into it,
+ * so the decision can be made without reading the page behind the dialog.
+ *
+ * @param {Object} primary
+ * @param {Array<Object>} duplicates
+ * @param {Object} i18n - Parsed from the template's data-i18n.
+ * @returns {HTMLElement}
+ */
+function mergeSummary(primary, duplicates, i18n) {
+    const wrap = document.createElement('div');
+    wrap.className = 'merge-summary';
+    for (const [label, entries] of [[i18n.keep, [primary]], [i18n.redirect, duplicates]]) {
+        if (!entries.length) continue;
+        const heading = document.createElement('h3');
+        heading.className = 'merge-summary__label';
+        heading.textContent = label;
+        const list = document.createElement('ul');
+        list.className = 'merge-summary__list';
+        for (const entry of entries) {
+            const name = document.createElement('span');
+            name.className = 'merge-summary__name';
+            name.textContent = entry.name;
+            const meta = document.createElement('span');
+            meta.className = 'merge-summary__meta';
+            meta.textContent = entry.works ? `${entry.key} · ${entry.works}` : entry.key;
+            const item = document.createElement('li');
+            item.className = 'merge-summary__row';
+            item.append(name, meta);
+            list.append(item);
+        }
+        wrap.append(heading, list);
+    }
+    return wrap;
+}
+
 export function initAuthorMergePage() {
     $('#save').on('click', async function(event) {
         event.preventDefault();
-        const n = $('#mergeForm input[type=radio]:checked').length;
+        const master = document.querySelector('#mergeForm input[name=master]:checked');
         // Only rendered for librarians who can merge directly; others submit a request.
         const confirmTemplate = document.getElementById('confirmMerge');
-        if (n === 0) {
+        if (!master) {
             await alertFromTemplate(document.getElementById('noMaster'));
-        } else if (!confirmTemplate || await confirmFromTemplate(confirmTemplate, { destructive: false })) {
-            submitMerge();
+            return;
         }
+        if (!confirmTemplate) {
+            submitMerge();
+            return;
+        }
+        const i18n = JSON.parse(confirmTemplate.dataset.i18n);
+        const rows = authorRows();
+        const primary = rows.get(master.value);
+        // Selecting a primary also ticks its own merge box, so drop it here.
+        const duplicates = Array.from(document.querySelectorAll('#mergeForm input[name=merge_key]:checked'))
+            .map((box) => box.value)
+            .filter((key) => key !== master.value)
+            .map((key) => rows.get(key))
+            .filter(Boolean);
+        // English pluralises on n !== 1, so a zero-duplicate merge reads correctly too.
+        if (!duplicates.length) {
+            await alertFromTemplate(document.getElementById('noDuplicates'));
+            return;
+        }
+        const plural = duplicates.length !== 1;
+        const fill = (text) => text
+            .replace('%(count)s', duplicates.length)
+            .replace('%(name)s', primary.name);
+        const confirmed = await confirmFromTemplate(confirmTemplate, {
+            message: mergeSummary(primary, duplicates, i18n),
+            title: fill(plural ? i18n.titleMany : i18n.titleOne),
+            confirmLabel: fill(plural ? i18n.confirmMany : i18n.confirmOne),
+            destructive: false,
+        });
+        if (confirmed) submitMerge();
     });
     $('div.radio').first().find('input[type=radio]').prop('checked', true);
     $('div.checkbox').first().find('input[type=checkbox]').prop('checked', true);
