@@ -52,10 +52,10 @@ def fake_connection():
 
 
 @pytest.mark.asyncio
-async def test_select_by_username_async(fake_connection):
+async def test_select_by_username(fake_connection):
     fake_connection.cursor.rows = [{"username": "testuser", "year": 2026, "target": 25}]
 
-    rows = await YearlyReadingGoals.select_by_username_async("testuser")
+    rows = await YearlyReadingGoals.select_by_username("testuser")
 
     assert rows == [{"username": "testuser", "year": 2026, "target": 25}]
     ((query, params),) = fake_connection.executions
@@ -64,14 +64,14 @@ async def test_select_by_username_async(fake_connection):
 
 
 @pytest.mark.asyncio
-async def test_select_by_username_async_invalid_order(fake_connection):
+async def test_select_by_username_invalid_order(fake_connection):
     with pytest.raises(ValueError, match="Invalid order"):
-        await YearlyReadingGoals.select_by_username_async("testuser", order="target ASC")
+        await YearlyReadingGoals.select_by_username("testuser", order="target ASC")
 
 
 @pytest.mark.asyncio
-async def test_select_by_username_and_year_async(fake_connection):
-    rows = await YearlyReadingGoals.select_by_username_and_year_async("testuser", 2026)
+async def test_select_by_username_and_year(fake_connection):
+    rows = await YearlyReadingGoals.select_by_username_and_year("testuser", 2026)
 
     assert rows == []
     ((query, params),) = fake_connection.executions
@@ -80,8 +80,8 @@ async def test_select_by_username_and_year_async(fake_connection):
 
 
 @pytest.mark.asyncio
-async def test_create_async(fake_connection):
-    await YearlyReadingGoals.create_async("testuser", 2026, 25)
+async def test_create(fake_connection):
+    await YearlyReadingGoals.create("testuser", 2026, 25)
 
     ((query, params),) = fake_connection.executions
     assert "INSERT INTO yearly_reading_goals" in query
@@ -90,8 +90,8 @@ async def test_create_async(fake_connection):
 
 
 @pytest.mark.asyncio
-async def test_update_target_async(fake_connection):
-    await YearlyReadingGoals.update_target_async("testuser", 2026, 30)
+async def test_update_target(fake_connection):
+    await YearlyReadingGoals.update_target("testuser", 2026, 30)
 
     ((query, params),) = fake_connection.executions
     assert "UPDATE yearly_reading_goals" in query
@@ -103,8 +103,8 @@ async def test_update_target_async(fake_connection):
 
 
 @pytest.mark.asyncio
-async def test_delete_by_username_and_year_async(fake_connection):
-    await YearlyReadingGoals.delete_by_username_and_year_async("testuser", 2026)
+async def test_delete_by_username_and_year(fake_connection):
+    await YearlyReadingGoals.delete_by_username_and_year("testuser", 2026)
 
     ((query, params),) = fake_connection.executions
     assert "DELETE FROM yearly_reading_goals" in query

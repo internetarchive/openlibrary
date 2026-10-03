@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 def test_get_reading_goals_success(fastapi_client, mock_authenticated_user):
     fake_records = [{"year": 2026, "target": 25}]
     with patch(
-        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.select_by_username_async",
+        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.select_by_username",
         new_callable=AsyncMock,
         return_value=fake_records,
     ):
@@ -19,7 +19,7 @@ def test_get_reading_goals_success(fastapi_client, mock_authenticated_user):
 def test_get_reading_goals_with_year(fastapi_client, mock_authenticated_user):
     fake_records = [{"year": 2026, "target": 25}]
     with patch(
-        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year_async",
+        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year",
         new_callable=AsyncMock,
         return_value=fake_records,
     ):
@@ -36,7 +36,7 @@ def test_get_reading_goals_invalid_year(fastapi_client, mock_authenticated_user)
 
 def test_create_reading_goal_success(fastapi_client, mock_authenticated_user):
     with patch(
-        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.create_async",
+        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.create",
         new_callable=AsyncMock,
     ) as mock_create:
         response = fastapi_client.post("/reading-goal.json", data={"goal": 25, "year": 2026})
@@ -53,7 +53,7 @@ def test_create_reading_goal_invalid_year(fastapi_client, mock_authenticated_use
 
 def test_update_reading_goal_success(fastapi_client, mock_authenticated_user):
     with patch(
-        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.update_target_async",
+        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.update_target",
         new_callable=AsyncMock,
     ) as mock_update:
         response = fastapi_client.post(
@@ -68,7 +68,7 @@ def test_update_reading_goal_success(fastapi_client, mock_authenticated_user):
 
 def test_delete_reading_goal_success(fastapi_client, mock_authenticated_user):
     with patch(
-        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.delete_by_username_and_year_async",
+        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.delete_by_username_and_year",
         new_callable=AsyncMock,
     ) as mock_delete:
         response = fastapi_client.post(
