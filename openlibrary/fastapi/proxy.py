@@ -28,14 +28,21 @@ class StatelessCookieJar(CookieJar):
         pass
 
 
-# This timeout would set a global OpenLibrary timeout for all requests, which this code shouldn't handle.
-get_async_session = cache_per_event_loop(
-    lambda: httpx.AsyncClient(
+def _new_async_session(transport: httpx.AsyncBaseTransport | None = None) -> httpx.AsyncClient:
+    """Build the client used to proxy to web.py; tests inject a transport.
+
+    No timeout: that would set a global OpenLibrary timeout for all requests,
+    which this code shouldn't handle.
+    """
+    return httpx.AsyncClient(
         follow_redirects=False,
         timeout=None,
         cookies=StatelessCookieJar(),
+        transport=transport,
     )
-)
+
+
+get_async_session = cache_per_event_loop(_new_async_session)
 
 
 def _rebase_redirect(location: str, client_scheme: str, client_netloc: str) -> str:
