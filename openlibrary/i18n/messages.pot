@@ -7568,6 +7568,11 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
+msgid "Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
 msgid "Could not add PR %(num)s."
 msgstr ""
 
@@ -7585,6 +7590,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "PR"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Draft"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
