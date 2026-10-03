@@ -6,13 +6,16 @@ import pytest
 import web
 
 from openlibrary.core.vendors import betterworldbooks_fmt
+from openlibrary.plugins.openlibrary import code  # noqa: F401  # code.setup() imports partials; import it first
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
+    ReadingGoalProgressPartial,
     _solr_query_to_subject_key,
     build_stores,
 )
+from openlibrary.plugins.upstream.yearly_reading_goals import YearlyGoal
 
 
 class TestSolrQueryToSubjectKey:
@@ -61,6 +64,43 @@ def _community_card(title: str) -> dict:
 
 
 LISTS = [web.storage(key=f"/people/u/lists/OL{n}L", owner=None) for n in (1, 2, 3)]
+
+
+class TestReadingGoalProgressPartial:
+    """The async path renders the same component the sync path did."""
+
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        # gettext reads req_context.lang while rendering.
+        request_context_fixture(lang="en")
+
+    @pytest.mark.asyncio
+    async def test_generate_async_renders_goal(self):
+        goal = YearlyGoal(2026, 25, 10)
+        with patch(
+            "openlibrary.plugins.openlibrary.partials.get_reading_goals_async",
+            new_callable=AsyncMock,
+            return_value=goal,
+        ) as mock_get:
+            result = await ReadingGoalProgressPartial.generate_async("testuser", 2026)
+
+        mock_get.assert_awaited_once_with("testuser", 2026)
+        html = result["partials"]
+        assert "reading-goal-progress__completed" in html
+        assert "width: 40%" in html
+        assert ">10</span>/<span" in html
+        assert ">25</span>" in html
+
+    @pytest.mark.asyncio
+    async def test_generate_async_without_goal_renders_empty(self):
+        with patch(
+            "openlibrary.plugins.openlibrary.partials.get_reading_goals_async",
+            new_callable=AsyncMock,
+            return_value=None,
+        ):
+            result = await ReadingGoalProgressPartial.generate_async("testuser", 2026)
+
+        assert '<div class="reading-goal-progress">' not in result["partials"]
 
 
 class TestBookPageListsPartial:

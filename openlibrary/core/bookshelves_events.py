@@ -1,6 +1,8 @@
 from datetime import datetime
 from enum import IntEnum
 
+from openlibrary.core.async_db import connection
+
 from . import db
 
 
@@ -126,25 +128,27 @@ class BookshelvesEvents(db.CommonExtras):
         return list(oldb.select(cls.TABLENAME, where=where, vars=data))
 
     @classmethod
-    def select_distinct_by_user_type_and_year(cls, username, event_type, year):
-        """Returns a list of the most recent check-in events, with no repeating
-        work IDs.  Useful for calculating one's yearly reading goal progress.
+    async def select_distinct_by_user_type_and_year_async(cls, username: str, event_type: int, year: int) -> list[dict]:
+        """Return the most recent check-in events with no repeating work IDs.
+
+        Used to calculate yearly reading goal progress.
         """
-        oldb = db.get_db()
-
-        data = {
-            "username": username,
-            "event_type": event_type,
-            "event_date": f"{year}%",
-        }
         query = (
-            f"select distinct on (work_id) work_id, * from {cls.TABLENAME} "
-            "where username=$username and event_type=$event_type and "
-            "event_date LIKE $event_date "
-            "order by work_id, updated desc"
+            f"SELECT DISTINCT ON (work_id) work_id, * FROM {cls.TABLENAME}"
+            " WHERE username = %(username)s AND event_type = %(event_type)s"
+            " AND event_date LIKE %(event_date)s"
+            " ORDER BY work_id, updated DESC"
         )
-
-        return list(oldb.query(query, vars=data))
+        async with connection() as conn:
+            cursor = await conn.execute(
+                query,
+                {
+                    "username": username,
+                    "event_type": event_type,
+                    "event_date": f"{year}%",
+                },
+            )
+            return await cursor.fetchall()
 
     # Update methods:
     @classmethod

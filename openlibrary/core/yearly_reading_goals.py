@@ -114,14 +114,3 @@ class YearlyReadingGoals:
         async with connection() as conn:
             await conn.execute(query, {"username": username, "year": year})
             await conn.commit()
-
-    # Bridge (synchronous) API:
-    # The legacy web.py template helper get_reading_goals still calls the
-    # synchronous select_by_username_and_year_sync. Rather than keeping a
-    # parallel web.db implementation, we bridge the async method over
-    # async_bridge's persistent loop. The pool is created lazily per event
-    # loop (see openlibrary/core/async_db.py), so this works in the web.py
-    # process too.
-    @classmethod
-    def select_by_username_and_year_sync(cls, username: str, year: int) -> list[YearlyReadingGoal]:
-        return async_bridge.run(cls.select_by_username_and_year(username, year))

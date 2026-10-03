@@ -5,28 +5,29 @@ from infogami.utils.view import public
 from openlibrary.accounts import get_current_user
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.utils.async_utils import async_bridge
 
 MAX_READING_GOAL = 10_000
 
 
+async def get_reading_goals_async(username: str, year: int) -> YearlyGoal | None:
+    """Return the user's reading goal and progress for ``year``."""
+    if not (data := await YearlyReadingGoals.select_by_username_and_year(username, year)):
+        return None
+
+    books_read = await BookshelvesEvents.select_distinct_by_user_type_and_year_async(username, BookshelfEvent.FINISH, year)
+    return YearlyGoal(data[0]["year"], data[0]["target"], len(books_read))
+
+
 @public
 def get_reading_goals(year=None):
+    """web.py adapter: resolve the current user, then run the async path on the bridge."""
     user = get_current_user()
     if not user:
         return None
 
-    username = user["key"].split("/")[-1]
-    if not year:
-        year = datetime.now().year
-
-    if not (data := YearlyReadingGoals.select_by_username_and_year_sync(username, year)):
-        return None
-
-    books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(username, BookshelfEvent.FINISH, year)
-    read_count = len(books_read)
-    result = YearlyGoal(data[0]["year"], data[0]["target"], read_count)
-
-    return result
+    username = user.get_username()
+    return async_bridge.run(get_reading_goals_async(username, year or datetime.now().year))
 
 
 class YearlyGoal:
