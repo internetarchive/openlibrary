@@ -10,9 +10,14 @@ different event loop``. Pools are cached per event loop, the same trick
 
 Pools are created lazily on first use, so a model method wrapped with
 ``async_bridge.wrap`` works in the legacy web.py process too, where no
-FastAPI lifespan runs. ``init_pool()`` can pre-warm the current loop's pool
-at FastAPI startup. ``close_pool()`` closes every cached pool, each on its
-own loop.
+FastAPI lifespan runs. Each loop's lock serializes first callers, so
+concurrent callers share one pool. ``init_pool()`` can pre-warm the current
+loop's pool at FastAPI startup, and ``close_pool()`` closes every cached
+pool on its own loop.
+
+Pool lifetime is explicit: an open pool keeps its event loop alive, so close
+it before that loop dies. A loop that dies with an open pool leaves the pool's
+sockets and worker tasks to process teardown.
 
 Async call sites acquire connections with :func:`connection`:
 
@@ -28,9 +33,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import weakref
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
 
 import web
@@ -55,10 +60,19 @@ if TYPE_CHECKING:
     from psycopg_pool import AsyncConnectionPool as _PoolClass
 
     Pool = _PoolClass[AsyncConnection[dict[str, Any]]]
-    PoolMap = weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, Pool]
 
-_pools: PoolMap = weakref.WeakKeyDictionary()
-_opening: weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task] = weakref.WeakKeyDictionary()
+
+@dataclass
+class _LoopPool:
+    """One event loop's pool and the lock that opens it."""
+
+    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    pool: Pool | None = None
+
+
+# Keyed by the event loop that owns the pool. Entries are removed by
+# close_pool()/reset_pools(), never by garbage collection.
+_entries: dict[asyncio.AbstractEventLoop, _LoopPool] = {}
 
 
 def _connection_kwargs(db_parameters: dict) -> dict:
@@ -83,8 +97,8 @@ def _conninfo(db_parameters: dict) -> str:
 async def _open_pool() -> Pool | None:
     """Create and open a pool for the running loop.
 
-    Returns None when no database is configured or psycopg is missing, e.g.
-    under pytest.
+    Returns None if no database is configured or psycopg is missing. Closes
+    the pool on failure or cancellation before re-raising.
     """
     db_parameters = getattr(web.config, "db_parameters", None) or {}
     if not db_parameters.get("db"):
@@ -108,32 +122,44 @@ async def _open_pool() -> Pool | None:
             check=AsyncConnectionPool.check_connection,
         ),
     )
-    await pool.open()
-    await pool.wait()
+    try:
+        await pool.open()
+        await pool.wait()
+    except BaseException:
+        # close() is idempotent, so this covers a pool that opened before the
+        # failure or cancellation. Suppress close-time cancellation so the
+        # original exception still propagates.
+        with suppress(Exception, asyncio.CancelledError):
+            await pool.close()
+        raise
     return pool
 
 
 async def _pool_for_loop() -> Pool | None:
     """Return the running loop's pool, creating it lazily if needed.
 
-    Concurrent first callers on the same loop share a single open task, so
-    the pool opens once per loop.
+    The loop's lock serializes first callers, so the pool opens once. A
+    cancelled caller leaves the open to the others, and a pool that loses its
+    registry entry while opening closes itself.
     """
     loop = asyncio.get_running_loop()
-    if pool := _pools.get(loop):
-        return pool
-    if opening := _opening.get(loop):
-        return await opening
+    entry = _entries.get(loop)
+    if entry is None:
+        entry = _entries[loop] = _LoopPool()
+    if entry.pool is not None:
+        return entry.pool
 
-    task = asyncio.create_task(_open_pool())
-    _opening[loop] = task
-    try:
-        pool = await task
-    finally:
-        _opening.pop(loop, None)
-    if pool is not None:
-        _pools[loop] = pool
-    return pool
+    async with entry.lock:
+        if entry.pool is None:
+            pool = await _open_pool()
+            if _entries.get(loop) is not entry:
+                # close_pool()/reset_pools() removed this entry mid-open.
+                if pool is not None:
+                    with suppress(Exception, asyncio.CancelledError):
+                        await pool.close()
+                return None
+            entry.pool = pool
+        return entry.pool
 
 
 async def init_pool() -> None:
@@ -145,20 +171,47 @@ async def init_pool() -> None:
     await _pool_for_loop()
 
 
+async def _close_loop_pool(loop: asyncio.AbstractEventLoop) -> None:
+    """Close ``loop``'s pool. Must run on ``loop``.
+
+    If an open is in flight, its entry is removed so the opener closes the
+    pool itself. The pool stays cached unless close() succeeds, so a failed
+    close can be retried.
+    """
+    entry = _entries.get(loop)
+    if entry is None:
+        return
+    if entry.pool is None:
+        _entries.pop(loop, None)
+        return
+    await entry.pool.close()
+    _entries.pop(loop, None)
+
+
+def _drop_loop_entry(loop: asyncio.AbstractEventLoop, reason: str) -> None:
+    """Forget a stopped or closed loop's entry. Nothing can run on a dead loop."""
+    if _entries.pop(loop, None) is not None:
+        logger.warning("Dropping async DB pool for event loop %s without closing: %s", loop, reason)
+
+
 async def close_pool() -> None:
-    """Close every cached pool, dispatching each close onto its own loop."""
+    """Close every cached pool.
+
+    Each pool closes on its own loop; stopped or closed loops are dropped
+    with a warning instead of stalling shutdown. A pool that fails to close
+    stays cached for a retry.
+    """
     current_loop = asyncio.get_running_loop()
-    for loop, pool in list(_pools.items()):
-        _pools.pop(loop, None)
+    # Snapshot: owning loops mutate _entries while we await.
+    for loop in list(_entries):
         try:
             if loop is current_loop:
-                await pool.close()
+                await _close_loop_pool(loop)
+            elif loop.is_running() and not loop.is_closed():
+                future = asyncio.run_coroutine_threadsafe(_close_loop_pool(loop), loop)
+                await asyncio.wait_for(asyncio.wrap_future(future), timeout=10)
             else:
-                # Close on the owning loop and await the result here through
-                # wrap_future, so the current loop keeps running instead of
-                # blocking its thread on .result().
-                fut = asyncio.run_coroutine_threadsafe(pool.close(), loop)
-                await asyncio.wait_for(asyncio.wrap_future(fut), timeout=10)
+                _drop_loop_entry(loop, "event loop is closed" if loop.is_closed() else "event loop is not running")
         except Exception:
             logger.exception("Error closing async pool for event loop %s", loop)
 
@@ -169,16 +222,26 @@ def get_pool() -> Pool | None:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         return None
-    return _pools.get(loop)
+    entry = _entries.get(loop)
+    return entry.pool if entry else None
 
 
 def reset_pools() -> None:
-    """Drop all cached pools and in-flight open tasks.
+    """Synchronously drop all cached pools.
 
-    For test isolation; real code should call :func:`close_pool`.
+    For callers that can't await, such as test fixtures: running loops get a
+    scheduled close, dead loops are dropped where nothing can run. Prefer
+    ``await close_pool()``; it waits for cleanup.
     """
-    _pools.clear()
-    _opening.clear()
+    entries = list(_entries.items())
+    _entries.clear()
+    for loop, entry in entries:
+        if entry.pool is None:
+            continue
+        if loop.is_running() and not loop.is_closed():
+            asyncio.run_coroutine_threadsafe(entry.pool.close(), loop)
+        else:
+            logger.debug("Dropping async DB pool for inactive event loop %s without closing", loop)
 
 
 @asynccontextmanager
