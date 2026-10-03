@@ -48,6 +48,8 @@ export const DEFAULT_STRINGS = {
     restore: 'Restore',
     refresh: 'Refresh from GitHub',
     deploy: 'Deploy',
+    forceOldev: 'Force oldev rebuild',
+    forceOldevHint: 'Also rebuild the oldev Docker image on this deploy. Slower — use after changing Dockerfile.oldev or requirements files.',
     changeOne: '%s change will be applied',
     changeMany: '%s changes will be applied',
     nothingToDeploy: 'Nothing to deploy — testing matches the current set.',

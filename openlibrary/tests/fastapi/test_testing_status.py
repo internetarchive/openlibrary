@@ -4,6 +4,7 @@ import asyncio
 import datetime
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
+from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
@@ -877,6 +878,52 @@ async def test_deploy_records_who_clicked_it():
     assert state.deployed_by == "mecha-kraken"
 
 
+@pytest.mark.asyncio
+async def test_deploy_passes_force_oldev_to_trigger():
+    """The force-rebuild flag flows from the endpoint into the Jenkins trigger."""
+    state = _make_state(prs=[_make_pr()])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered") as mock_trigger,
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
+    ):
+        await status_module.deploy_testing_status(force_oldev=True)
+
+    mock_trigger.assert_called_once_with(state.prs, force_oldev=True)
+
+
+def test_trigger_rebuild_appends_force_oldev_parameter(monkeypatch):
+    """force_oldev sets Jenkins' FORCE_OLDEV_REBUILD build parameter."""
+    monkeypatch.setattr(jenkins_module.config, "jenkins_token", "t0k3n", raising=False)
+    urlopen = MagicMock()
+    monkeypatch.setattr("urllib.request.urlopen", urlopen)
+
+    outcome = jenkins_module.trigger_rebuild([_make_pr()], force_oldev=True)
+
+    assert outcome == "triggered"
+    (url,) = urlopen.call_args.args
+    params = parse_qs(urlparse(url).query)
+    assert params["FORCE_OLDEV_REBUILD"] == ["true"]
+    assert params["GH_REPO_AND_BRANCH"] == ["origin pull/13269/head  # Test PR"]
+
+
+def test_trigger_rebuild_omits_force_oldev_by_default(monkeypatch):
+    """Without the flag the trigger URL carries no FORCE_OLDEV_REBUILD at all."""
+    monkeypatch.setattr(jenkins_module.config, "jenkins_token", "t0k3n", raising=False)
+    urlopen = MagicMock()
+    monkeypatch.setattr("urllib.request.urlopen", urlopen)
+
+    jenkins_module.trigger_rebuild([_make_pr()])
+
+    (url,) = urlopen.call_args.args
+    assert "FORCE_OLDEV_REBUILD" not in parse_qs(urlparse(url).query)
+
+
 def test_build_testing_status_passes_deployed_by():
     """The API response carries the recorded deployer username through."""
     state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
@@ -1477,7 +1524,17 @@ def test_deploy_status_endpoint(fastapi_client, mock_authenticated_user, mock_ma
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
-    mock.assert_called_once_with()
+    mock.assert_called_once_with(force_oldev=False)
+
+
+def test_deploy_status_endpoint_forces_oldev_rebuild(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """Checking force-rebuild reaches the deploy as force_oldev=True."""
+    mock_maintainer_user(is_maintainer=True)
+    with patch("openlibrary.fastapi.status.deploy_testing_status", new_callable=AsyncMock, return_value={"ok": True}) as mock:
+        response = fastapi_client.post("/status/deploy", json={"force_oldev_rebuild": True})
+
+    assert response.status_code == 200
+    mock.assert_called_once_with(force_oldev=True)
 
 
 def test_pull_latest_endpoint_requires_auth(fastapi_client):

@@ -507,6 +507,19 @@ a.testing-env__pill:focus-visible {
   margin: 0;
 }
 
+/* The force-rebuild opt-in rides between Deploy and Refresh. */
+.testing-env__force-oldev {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.testing-env__force-oldev-input {
+  margin: 0;
+}
+
 .testing-env__status--deploying {
   background: var(--color-warning-bg);
   color: var(--color-warning-fg);

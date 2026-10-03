@@ -100,10 +100,14 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         enqueue('/status/restore', { prs: [pr.pr] });
     }
 
-    async function deploy() {
+    /**
+     * Deploy staged changes. ``forceOldev`` also rebuilds the oldev Docker
+     * image (Jenkins' FORCE_OLDEV_REBUILD parameter) for this deploy only.
+     */
+    async function deploy(forceOldev = false) {
         deploying.value = true;
         try {
-            await enqueue('/status/deploy', {});
+            await enqueue('/status/deploy', { force_oldev_rebuild: forceOldev });
         } finally {
             deploying.value = false;
         }

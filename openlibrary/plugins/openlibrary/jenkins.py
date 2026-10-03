@@ -87,8 +87,13 @@ def _current_stage(run: dict) -> str:
     return ""
 
 
-def trigger_rebuild(prs: list[TestingPR]) -> str:
+def trigger_rebuild(prs: list[TestingPR], force_oldev: bool = False) -> str:
     """Trigger the testing-deploy job for ``prs`` (each with ``pr``/``title``/``active``).
+
+    ``force_oldev`` passes FORCE_OLDEV_REBUILD, so the pipeline rebuilds the
+    oldev Docker image even when its diff checks (Dockerfile.oldev, uv.lock)
+    see no reason to — the same as ticking that parameter on a manual run.
+    Needed after edits the diff checks don't track, like requirements*.txt.
 
     Returns ``"triggered"``, ``"failed"`` (Jenkins unreachable or refused), or
     ``"unconfigured"`` when there is no jenkins_token, as in local dev.
@@ -97,7 +102,10 @@ def trigger_rebuild(prs: list[TestingPR]) -> str:
     if not token:
         return "unconfigured"
     lines = "\n".join(f"origin pull/{p.pr}/head  # {p.title}" for p in prs if p.active)
-    url = f"{JENKINS_URL}?{urlencode({'token': token, 'GH_REPO_AND_BRANCH': lines})}"
+    params = {"token": token, "GH_REPO_AND_BRANCH": lines}
+    if force_oldev:
+        params["FORCE_OLDEV_REBUILD"] = "true"
+    url = f"{JENKINS_URL}?{urlencode(params)}"
     try:
         urllib.request.urlopen(url, timeout=10)
         return "triggered"

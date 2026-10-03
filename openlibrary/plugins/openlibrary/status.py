@@ -146,8 +146,12 @@ async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
     return {"ok": True}
 
 
-async def deploy_testing_status() -> dict[str, bool | str]:
-    """Apply staged changes and trigger a testing deploy."""
+async def deploy_testing_status(force_oldev: bool = False) -> dict[str, bool | str]:
+    """Apply staged changes and trigger a testing deploy.
+
+    ``force_oldev`` also rebuilds the oldev Docker image on this deploy (see
+    :func:`trigger_rebuild`).
+    """
     state = _load_testing_state()
     if not state:
         return {"ok": True}
@@ -166,7 +170,7 @@ async def deploy_testing_status() -> dict[str, bool | str]:
             p.pending_active = None
     # Nothing above is persisted until Jenkins accepts the build, so a failed
     # trigger leaves every staged change intact and retryable.
-    outcome = trigger_rebuild(state.prs)
+    outcome = trigger_rebuild(state.prs, force_oldev=force_oldev)
     if outcome == "failed":
         return {"ok": False, "error": "deploy_failed"}
     user = get_current_user()

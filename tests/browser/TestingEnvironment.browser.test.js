@@ -127,3 +127,35 @@ test('queues and batches rapid updates before deploying', async() => {
 
     pendingPosts.shift().resolve();
 });
+
+test('sends force_oldev_rebuild when the force-rebuild box is checked', async() => {
+    const { calls, pendingPosts } = stubQueuedActions();
+    await render(TestingEnvironment, { props: { maintainer: 'true' } });
+
+    const checkbox = page.getByRole('checkbox', { name: 'Force oldev rebuild' });
+    await expect.element(checkbox).toBeInTheDocument();
+    await checkbox.click();
+    await page.getByRole('button', { name: 'Deploy' }).click();
+
+    await expect.poll(() => calls.length).toBe(1);
+    expect(calls[0].url).toBe('/status/deploy');
+    expect(JSON.parse(calls[0].options.body)).toEqual({ force_oldev_rebuild: true });
+    // The flag is one-shot: the box clears so a later deploy stays default.
+    await expect.element(checkbox).not.toBeChecked();
+
+    pendingPosts.shift().resolve();
+});
+
+test('sends force_oldev_rebuild false when the box is left unchecked', async() => {
+    const { calls, pendingPosts } = stubQueuedActions();
+    await render(TestingEnvironment, { props: { maintainer: 'true' } });
+
+    await expect.element(page.getByRole('button', { name: 'Deploy' })).toBeInTheDocument();
+    await page.getByRole('button', { name: 'Deploy' }).click();
+
+    await expect.poll(() => calls.length).toBe(1);
+    expect(calls[0].url).toBe('/status/deploy');
+    expect(JSON.parse(calls[0].options.body)).toEqual({ force_oldev_rebuild: false });
+
+    pendingPosts.shift().resolve();
+});

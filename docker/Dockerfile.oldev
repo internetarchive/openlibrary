@@ -1,5 +1,8 @@
 FROM openlibrary/olbase:latest
 
+# Touching this file forces an oldev image rebuild on the next deploy
+# (the pipeline rebuilds whenever it differs from the last deploy).
+
 # Allow for nexus overrides (used in testing/staging builds)
 ARG NPM_CONFIG_REGISTRY
 ARG PIP_INDEX_URL
