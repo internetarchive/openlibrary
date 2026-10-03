@@ -10,7 +10,6 @@ WORKDIR /openlibrary
 
 COPY --chown=openlibrary:openlibrary requirements*.txt ./
 USER root
-# Force rebuild to pick up psycopg3/psycopg-pool added to requirements.txt
 RUN uv pip install -r requirements_test.txt
 
 # For i18n scripts, which run as root (to modify the host filesystem) and need these packages.
