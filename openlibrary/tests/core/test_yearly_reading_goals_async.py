@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 
 class FakeCursor:
@@ -110,3 +111,16 @@ async def test_delete_by_username_and_year(fake_connection):
     assert "DELETE FROM yearly_reading_goals" in query
     assert params == {"username": "testuser", "year": 2026}
     assert fake_connection.committed
+
+
+@pytest.mark.asyncio
+async def test_summary_counts_every_window_in_one_query(fake_connection):
+    fake_connection.cursor.rows = [{"total": 10, "month": 4, "week": 2}]
+
+    summary = await YearlyReadingGoals.summary()
+
+    assert summary == {"total_yearly_reading_goals": {"total": 10, "month": 4, "week": 2}}
+    ((query, params),) = fake_connection.executions
+    assert "count(*) FILTER (WHERE updated >= %(month_ago)s)" in query
+    assert "count(*) FILTER (WHERE updated >= %(week_ago)s)" in query
+    assert params == {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO}

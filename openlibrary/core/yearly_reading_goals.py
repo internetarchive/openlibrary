@@ -1,5 +1,4 @@
-import asyncio
-from datetime import date, datetime
+from datetime import datetime
 from typing import ClassVar, TypedDict, cast
 
 from openlibrary.core.async_db import connection
@@ -22,37 +21,29 @@ class YearlyReadingGoals:
 
     @classmethod
     async def summary(cls) -> dict[str, dict[str, int]]:
-        async with asyncio.TaskGroup() as tg:
-            t_total = tg.create_task(cls.total_yearly_reading_goals())
-            t_month = tg.create_task(cls.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO))
-            t_week = tg.create_task(cls.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO))
+        query = (
+            f"SELECT count(*) AS total,"
+            f" count(*) FILTER (WHERE updated >= %(month_ago)s) AS month,"
+            f" count(*) FILTER (WHERE updated >= %(week_ago)s) AS week"
+            f" FROM {cls.TABLENAME}"
+        )
+        async with connection() as conn:
+            cursor = await conn.execute(
+                query,
+                {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO},
+            )
+            row = (await cursor.fetchall())[0]
         return {
             "total_yearly_reading_goals": {
-                "total": t_total.result(),
-                "month": t_month.result(),
-                "week": t_week.result(),
+                "total": row["total"],
+                "month": row["month"],
+                "week": row["week"],
             },
         }
 
     @classmethod
     def summary_sync(cls) -> dict[str, dict[str, int]]:
         return async_bridge.run(cls.summary())
-
-    @classmethod
-    async def total_yearly_reading_goals(cls, since: date | None = None) -> int:
-        """Count reading goals, optionally filtered to those updated since `since`.
-
-        :param since: if given, only count goals updated at or after this date.
-        """
-        query = f"SELECT count(*) FROM {cls.TABLENAME}"
-        params: dict[str, date] = {}
-        if since:
-            query += " WHERE updated >= %(since)s"
-            params["since"] = since
-        async with connection() as conn:
-            cursor = await conn.execute(query, params)
-            rows = await cursor.fetchall()
-        return rows[0]["count"] if rows else 0
 
     # Create methods:
     @classmethod
