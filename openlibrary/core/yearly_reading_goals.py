@@ -32,7 +32,8 @@ class YearlyReadingGoals:
                 query,
                 {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO},
             )
-            row = (await cursor.fetchall())[0]
+            row = await cursor.fetchone()
+        assert row is not None
         return {
             "total_yearly_reading_goals": {
                 "total": row["total"],

@@ -12,9 +12,16 @@ from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 class FakeCursor:
     def __init__(self, rows=None):
         self.rows = rows or []
+        self.fetchall_calls = 0
+        self.fetchone_calls = 0
 
     async def fetchall(self):
+        self.fetchall_calls += 1
         return self.rows
+
+    async def fetchone(self):
+        self.fetchone_calls += 1
+        return self.rows[0] if self.rows else None
 
 
 class FakeConnection:
@@ -124,3 +131,5 @@ async def test_summary_counts_every_window_in_one_query(fake_connection):
     assert "count(*) FILTER (WHERE updated >= %(month_ago)s)" in query
     assert "count(*) FILTER (WHERE updated >= %(week_ago)s)" in query
     assert params == {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO}
+    assert fake_connection.cursor.fetchone_calls == 1
+    assert fake_connection.cursor.fetchall_calls == 0
