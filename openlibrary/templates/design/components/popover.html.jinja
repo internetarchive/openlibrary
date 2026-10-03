@@ -19,7 +19,7 @@
             {{ menu() }}
         </ol-popover>
     {% endcall %}
-    {% call ex.example("Placement", "transform-origin follows placement, so the animation always expands from the trigger.", output_style="display: flex; gap: 16px; flex-wrap: wrap;") %}
+    {% call ex.example("Placement", "The default is bottom-start: the panel shares the trigger's leading edge and is never narrower than it, so extra width grows to one side instead of straddling the control. Reserve bottom-center for icon-only or very small triggers, and bottom-end for triggers flush against a right edge. When only part of a control opens the popover, such as a split button's caret, anchor to the whole control so the panel lines up under it. transform-origin follows placement, so the animation always expands from the trigger.", output_style="display: flex; gap: 16px; flex-wrap: wrap;") %}
         <ol-popover placement="bottom-start" aria-label="Actions">
             <ol-button slot="trigger">
                 bottom-start

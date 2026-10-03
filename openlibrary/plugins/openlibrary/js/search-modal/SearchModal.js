@@ -149,6 +149,13 @@ export class SearchModal extends LitElement {
             color: var(--color-text);
         }
 
+        /* Mirrors the ol-components.css guard, which can't reach into this shadow
+           root. Until ol-dialog upgrades its body is ordinary markup, so the
+           [autofocus] input would be focused at first paint and scroll the page. */
+        ol-dialog:not(:defined) {
+            display: none;
+        }
+
         /* Visually hidden but available to screen readers (used by the
            aria-live results-count region). Standard clip-rect technique. */
         .sr-only {
