@@ -100,8 +100,7 @@ repos:
           - types-requests
           - types-simplejson
           - fastapi
-          - psycopg[binary]==3.3.5
-          - psycopg-pool==3.3.1
+          - psycopg[binary,pool]==3.3.5
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
     rev: 0.0.2
