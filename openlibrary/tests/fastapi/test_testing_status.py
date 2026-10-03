@@ -80,7 +80,7 @@ def _graphql_pr(pr_number: int, head_sha: str = _HEAD_SHA, state: str = "OPEN", 
 
 
 async def _gh_lookup(pr_number: int) -> status_module.GitHubPRInfo:
-    """Stand-in for ``_get_pr_info``: describes the PR it was asked about."""
+    """Stand-in for ``get_pr_info``: describes the PR it was asked about."""
     return _gh_info(pr_number)
 
 
@@ -93,18 +93,18 @@ def _post_add(client, state, pr_value="12914", gh=None):
     """
     if isinstance(gh, BaseException):
         get_pr_info = patch(
-            "openlibrary.plugins.openlibrary.status._get_pr_info",
+            "openlibrary.plugins.openlibrary.status.get_pr_info",
             new_callable=AsyncMock,
             side_effect=gh,
         )
     elif gh is None:
         get_pr_info = patch(
-            "openlibrary.plugins.openlibrary.status._get_pr_info",
+            "openlibrary.plugins.openlibrary.status.get_pr_info",
             side_effect=_gh_lookup,
         )
     else:
         get_pr_info = patch(
-            "openlibrary.plugins.openlibrary.status._get_pr_info",
+            "openlibrary.plugins.openlibrary.status.get_pr_info",
             new_callable=AsyncMock,
             return_value=gh,
         )
@@ -179,8 +179,8 @@ async def test_get_drift_info_fetches_all_prs_in_one_graphql_request():
     mc.get.return_value = None
     with (
         patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._github_graphql", side_effect=fake_graphql),
+        patch("openlibrary.plugins.openlibrary.status.has_github_token", return_value=True),
+        patch("openlibrary.plugins.openlibrary.github.github_graphql", side_effect=fake_graphql),
     ):
         drift, from_cache = await status_module._get_drift_info(state, persist=False)
 
@@ -216,8 +216,8 @@ async def test_get_drift_info_falls_back_to_rest_without_token():
     mc.get.return_value = None
     with (
         patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=False),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_drift", side_effect=fake_rest_drift),
+        patch("openlibrary.plugins.openlibrary.status.has_github_token", return_value=False),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_drift", side_effect=fake_rest_drift),
     ):
         drift, from_cache = await status_module._get_drift_info(state, persist=False)
 
@@ -405,15 +405,6 @@ def test_build_testing_status_marks_closed_prs():
     assert row.closed is True
     assert row.action == "remove"
     assert result.has_pending is True
-
-
-def test_pr_drift_distinguishes_closed_from_merged():
-    """Merging closes a PR too; only a close without a merge counts as closed."""
-
-    assert status_module._parse_pr_drift(_make_pr(), _graphql_pr(13269, state="CLOSED"))["closed"] is True
-    info = status_module._parse_pr_drift(_make_pr(), _graphql_pr(13269, state="MERGED"))
-    assert info["closed"] is False
-    assert info["merged"] is True
 
 
 @pytest.mark.asyncio
@@ -716,7 +707,7 @@ async def test_pull_latest_stages_the_new_head_sha():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", new_callable=AsyncMock, return_value=info),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
         response = await status_module.pull_latest_prs([pr.pr])
@@ -734,7 +725,7 @@ async def test_pull_latest_stages_the_new_head_sha():
 async def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
     """A GitHub failure leaves the row alone and still answers ok.
 
-    Regression guard: ``_get_pr_info`` used to signal failure with an empty
+    Regression guard: ``get_pr_info`` used to signal failure with an empty
     ``head_sha`` rather than raising. Now that it raises, this handler has to
     catch it — an uncaught error here would 500 the endpoint, where it has
     always been a silent no-op.
@@ -744,7 +735,7 @@ async def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", new_callable=AsyncMock, side_effect=error),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, side_effect=error),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
     ):
         response = await status_module.pull_latest_prs([pr.pr])
@@ -775,75 +766,6 @@ async def test_deploy_unconfigured_answers_error_but_advances_state():
     assert state.deploy_started_at == ""
     # …but the record advances so a dev can exercise the rest of the panel.
     assert state.deployed == {13269: "Test PR"}
-
-
-@pytest.mark.asyncio
-async def test_get_pr_info_raises_not_found_when_github_reports_no_such_pr():
-    """A null GraphQL node is a missing PR, not an outage."""
-    with (
-        patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._github_graphql", return_value={"repository": {"pr_12914": None}}),
-        pytest.raises(status_module.PRNotFoundError),
-    ):
-        await status_module._get_pr_info(12914)
-
-
-@pytest.mark.asyncio
-async def test_get_pr_info_raises_unavailable_when_github_cannot_answer():
-    """A GraphQL failure stays distinguishable from a missing PR."""
-    with (
-        patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._github_graphql", side_effect=status_module.GitHubUnavailableError("rate limited")),
-        pytest.raises(status_module.GitHubUnavailableError),
-    ):
-        await status_module._get_pr_info(12914)
-
-
-@pytest.mark.asyncio
-async def test_get_pr_info_raises_unavailable_on_bad_graphql_body():
-    """A malformed GraphQL PR node is an outage, not an absence."""
-    with (
-        patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._github_graphql", return_value={"repository": {"pr_12914": {"title": "no headRefOid"}}}),
-        pytest.raises(status_module.GitHubUnavailableError),
-    ):
-        await status_module._get_pr_info(12914)
-
-
-@pytest.mark.asyncio
-async def test_get_pr_info_returns_only_valid_data_on_success():
-    """GraphQL fields map to the existing metadata DTO, including draft."""
-    body = _graphql_pr(12914, draft=True)
-    body["assignees"] = {"nodes": []}
-    with (
-        patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._github_graphql", return_value={"repository": {"pr_12914": body}}),
-    ):
-        info = await status_module._get_pr_info(12914)
-
-    assert info == status_module.GitHubPRInfo(
-        pr=12914,
-        title="Test PR 12914",
-        head_sha="abc1234def5678901234567890123456789012345",
-        author="author",
-        author_avatar="https://example.com/author.png",
-        draft=True,
-    )
-
-
-@pytest.mark.asyncio
-async def test_get_pr_info_falls_back_when_the_title_is_empty():
-    """GitHub always sends a title, but an empty one shouldn't render a blank row."""
-    body = _graphql_pr(12914)
-    body["title"] = ""
-    body["author"] = None
-    with (
-        patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
-        patch("openlibrary.plugins.openlibrary.status._github_graphql", return_value={"repository": {"pr_12914": body}}),
-    ):
-        info = await status_module._get_pr_info(12914)
-
-    assert info.title == "PR #12914"
 
 
 def test_from_github_builds_a_row_from_the_lookup():
@@ -1055,7 +977,7 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", side_effect=lookup),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", side_effect=lookup),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
@@ -1087,7 +1009,7 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", new_callable=AsyncMock) as mock_info,
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock) as mock_info,
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
@@ -1110,7 +1032,7 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", new_callable=AsyncMock, return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=gh_info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
@@ -1213,18 +1135,18 @@ async def test_adding_a_pr_leaves_the_next_read_a_cache_hit():
     with (
         patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", new_callable=AsyncMock, return_value=_gh_info()),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=_gh_info()),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
     ):
         assert await status_module.add_prs([12914], "testuser") == {"ok": True}
 
         with (
             patch(
-                "openlibrary.plugins.openlibrary.status._github_graphql",
+                "openlibrary.plugins.openlibrary.github.github_graphql",
                 side_effect=AssertionError("the read refetched from GitHub"),
             ),
             patch(
-                "openlibrary.plugins.openlibrary.status._get_pr_drift",
+                "openlibrary.plugins.openlibrary.status.get_pr_drift",
                 side_effect=AssertionError("the read refetched from GitHub"),
             ),
         ):
