@@ -137,7 +137,7 @@ async def close_pool() -> None:
             if loop is current_loop:
                 await pool.close()
             else:
-                asyncio.run_coroutine_threadsafe(pool.close(), loop).result()
+                asyncio.run_coroutine_threadsafe(pool.close(), loop).result(timeout=10)
         except Exception:
             logger.exception("Error closing async pool for event loop %s", loop)
 
@@ -149,6 +149,15 @@ def get_pool() -> Pool | None:
     except RuntimeError:
         return None
     return _pools.get(loop)
+
+
+def reset_pools() -> None:
+    """Clear all cached pools and in-progress open tasks.
+
+    Intended for test isolation; real code should use :func:`close_pool`.
+    """
+    _pools.clear()
+    _opening.clear()
 
 
 @asynccontextmanager
@@ -164,6 +173,6 @@ async def connection() -> AsyncIterator[AsyncConnection[dict[str, Any]]]:
     """
     pool = await _pool_for_loop()
     if pool is None:
-        raise RuntimeError("Async connection pool is not initialized; call init_pool() during app startup")
+        raise RuntimeError("No async database pool available; ensure web.config.db_parameters has a 'db' key configured (or call init_pool() during app startup)")
     async with pool.connection() as conn:
         yield conn

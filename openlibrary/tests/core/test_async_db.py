@@ -12,11 +12,9 @@ from openlibrary.utils.async_utils import AsyncBridge, async_bridge
 
 @pytest.fixture(autouse=True)
 def _reset_pools():
-    async_db._pools.clear()
-    async_db._opening.clear()
+    async_db.reset_pools()
     yield
-    async_db._pools.clear()
-    async_db._opening.clear()
+    async_db.reset_pools()
 
 
 class FakePool:
@@ -259,7 +257,7 @@ async def test_close_pool_closes_pools_on_other_loops():
     await async_db.close_pool()
 
     assert bridge_pool.closed
-    assert async_db.get_pool() is None
+    assert async_bridge._loop not in async_db._pools
 
 
 @pytest.mark.asyncio
