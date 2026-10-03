@@ -56,7 +56,6 @@ class status(delegate.page):
         return render_template(
             "status",
             status_info,
-            features_table=get_features_table(),
             dev_merged_status=get_dev_merged_status(),
             is_maintainer=is_maintainer_user,
             has_testing_state=has_testing_state,
@@ -890,24 +889,6 @@ load_testing_status = async_bridge.wrap(load_testing_status_async)
 @public
 def get_git_revision_short_hash():
     return status_info.get("Software version") if status_info and isinstance(status_info, dict) else None
-
-
-def get_features_enabled():
-    return config.features
-
-
-def get_features_table() -> list[dict[str, str]]:
-    """Build a list of enabled feature flags."""
-    infogami_dict = config.features  # type: ignore[attr-defined]
-    features_table = []
-    for feature in sorted(infogami_dict.keys()):
-        infogami_value = infogami_dict.get(feature)
-        if isinstance(infogami_value, dict):
-            infogami_str = f"usergroup: {infogami_value.get('usergroup', '?')}"
-        else:
-            infogami_str = str(infogami_value) if infogami_value is not None else ""
-        features_table.append({"feature": feature, "infogami": infogami_str})
-    return features_table
 
 
 def setup():

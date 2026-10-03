@@ -34,10 +34,17 @@ const props = defineProps({
     deploying: {
         type: Boolean,
         default: false
+    },
+    adding: {
+        type: Boolean,
+        default: false
     }
 });
 
-const emit = defineEmits(['deploy', 'refresh']);
+// The input's text lives in useActions so addPrs() can clear it on success.
+const addInput = defineModel('addInput', { type: String, default: '' });
+
+const emit = defineEmits(['deploy', 'refresh', 'add']);
 
 const CHANGE_LABELS = {
     add: 'addChange',
@@ -149,6 +156,38 @@ function prUrl(pr) {
         </svg>
         {{ strings.refresh }}
       </button>
+      <form
+        method="post"
+        class="testing-env__add"
+        data-add-form
+        @submit.prevent="emit('add')"
+      >
+        <label
+          class="shift"
+          for="testing-env-add"
+        >{{ strings.addPrs }}</label>
+        <input
+          id="testing-env-add"
+          v-model="addInput"
+          type="text"
+          name="pr"
+          class="testing-env__input"
+          autocomplete="off"
+          :placeholder="strings.addPlaceholder"
+        >
+        <button
+          type="submit"
+          class="testing-env__btn testing-env__btn--primary"
+          :disabled="adding"
+        >
+          <span
+            v-if="adding"
+            class="testing-env__btn-icon testing-env__spinner"
+            aria-hidden="true"
+          />
+          {{ strings.add }}
+        </button>
+      </form>
     </div>
 
     <div class="testing-env__plan">
