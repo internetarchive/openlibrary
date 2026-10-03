@@ -137,7 +137,11 @@ async def close_pool() -> None:
             if loop is current_loop:
                 await pool.close()
             else:
-                asyncio.run_coroutine_threadsafe(pool.close(), loop).result(timeout=10)
+                # Schedule the close on the owning loop, but await its result on
+                # the current loop via wrap_future so the current loop keeps
+                # ticking instead of blocking its thread on .result().
+                fut = asyncio.run_coroutine_threadsafe(pool.close(), loop)
+                await asyncio.wait_for(asyncio.wrap_future(fut), timeout=10)
         except Exception:
             logger.exception("Error closing async pool for event loop %s", loop)
 
