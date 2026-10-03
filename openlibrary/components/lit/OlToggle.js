@@ -25,8 +25,12 @@ import { slotHasContent } from './utils/slot-utils.js';
  *   "button" for a bordered, raised container styled like
  *   ol-button[variant="secondary"] (subtle drop shadow, inset specular edge on
  *   hover) that fills with a soft blue tint when checked.
+ * @property {"small"} size - Omit for the default size, or "small" for a
+ *   smaller switch and label.
  * @property {String} label - Primary label text.
  * @property {String} sublabel - Secondary greyed text shown after the label.
+ * @property {String} description - Helper sentence shown on its own line under
+ *   the label. The button variant grows past its locked control height to fit.
  * @property {String} accessibleLabel - Override aria-label on the switch.
  *   Needed when supplying label content via the default slot.
  *
@@ -43,6 +47,10 @@ import { slotHasContent } from './utils/slot-utils.js';
  * <ol-toggle variant="button" label="Readable Only" sublabel="4.6M" checked></ol-toggle>
  *
  * @example
+ * <!-- A helper line under the label -->
+ * <ol-toggle variant="button" label="Readable online" description="Only books with a copy you can open"></ol-toggle>
+ *
+ * @example
  * <!-- Custom label content via the slot -->
  * <ol-toggle accessible-label="Dark mode">
  *   <strong>Dark mode</strong>
@@ -53,8 +61,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         checked: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
         variant: { type: String, reflect: true },
+        size: { type: String, reflect: true },
         label: { type: String },
         sublabel: { type: String },
+        description: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
         value: { type: String },
         // Internal: whether the default slot holds real content — see
@@ -69,6 +79,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             --toggle-knob-size: 16px;
             --toggle-knob-inset: 2px;
             --toggle-gap: 10px;
+            --toggle-font-weight: var(--font-weight-regular);
 
             /* The knob rests at the inline start and travels toward the inline
                end, so the sign flips under RTL. */
@@ -79,6 +90,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             --_toggle-bg: transparent;
             --_toggle-fg: var(--color-text);
             --_toggle-sublabel-fg: var(--color-text-muted);
+            --_toggle-description-fg: var(--color-text-secondary);
             --_toggle-border: transparent;
             --_toggle-track: var(--color-neutral-object);
             --_toggle-knob: var(--white);
@@ -98,6 +110,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             color: var(--_toggle-fg);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
+            font-weight: var(--toggle-font-weight);
             text-align: start;
             cursor: pointer;
             user-select: none;
@@ -162,8 +175,32 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             }
         }
 
+        /* ── Small size ─────────────────────────────────────────────────── */
+        :host([size="small"]) {
+            --toggle-track-width: 28px;
+            --toggle-track-height: 16px;
+            --toggle-knob-size: 12px;
+            --toggle-gap: var(--spacing-xs);
+        }
+
+        :host([size="small"]) .toggle {
+            font-size: var(--font-size-label-medium);
+        }
+
+        :host([size="small"][variant="button"]) .toggle {
+            height: var(--control-height-small);
+            padding: 0 var(--spacing-sm);
+        }
+
+        :host([size="small"][variant="button"]) .toggle--described {
+            height: auto;
+            min-height: var(--control-height-small);
+            padding-block: var(--spacing-2xs);
+        }
+
         /* ── Label text ─────────────────────────────────────────────────── */
-        .toggle__text {
+        .toggle__text,
+        .toggle__label-row {
             display: inline-flex;
             align-items: baseline;
             gap: var(--spacing-xs);
@@ -173,6 +210,20 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         .toggle__sublabel {
             color: var(--_toggle-sublabel-fg);
             font-weight: 400;
+        }
+
+        /* With a description the text stacks: label row on top, helper line under it. */
+        .toggle--described .toggle__text {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--spacing-3xs);
+        }
+
+        .toggle__description {
+            color: var(--_toggle-description-fg);
+            font-size: var(--font-size-label-medium);
+            font-weight: var(--font-weight-regular);
+            line-height: var(--line-height-meta);
         }
 
         /* ── Checked (plain): just the track turns blue ─────────────────── */
@@ -212,6 +263,14 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             box-shadow: var(--_toggle-raised-shadow);
             /* Hover colors snap in; only the press-scale animates. */
             transition: transform var(--duration-press);
+        }
+
+        /* A description needs two lines, so the height lock becomes a floor and
+           the padding takes over vertically. */
+        :host([variant="button"]) .toggle--described {
+            height: auto;
+            min-height: var(--control-height-medium);
+            padding-block: var(--spacing-xs);
         }
 
         /* Press feedback — the button variant is a self-contained control (its
@@ -272,8 +331,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         this.checked = false;
         this.disabled = false;
         this.variant = null;
+        this.size = null;
         this.label = null;
         this.sublabel = null;
+        this.description = null;
         this.accessibleLabel = null;
         this.value = 'on';
     }
@@ -329,7 +390,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
     render() {
         return html`
             <button
-                class="toggle"
+                class="toggle ${this.description ? 'toggle--described' : ''}"
                 type="button"
                 role="switch"
                 aria-checked=${this.checked ? 'true' : 'false'}
@@ -343,8 +404,11 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 <span class="toggle__text">
                     <slot @slotchange=${this._handleLabelSlotChange}></slot>
                     ${this._hasSlottedLabel ? nothing : html`
-                        ${this.label ? html`<span>${this.label}</span>` : nothing}
-                        ${this.sublabel ? html`<span class="toggle__sublabel">${this.sublabel}</span>` : nothing}
+                        <span class="toggle__label-row">
+                            ${this.label ? html`<span>${this.label}</span>` : nothing}
+                            ${this.sublabel ? html`<span class="toggle__sublabel">${this.sublabel}</span>` : nothing}
+                        </span>
+                        ${this.description ? html`<span class="toggle__description">${this.description}</span>` : nothing}
                     `}
                 </span>
             </button>

@@ -2,28 +2,75 @@
   Shows one book carousel. `count` and `shelf` are optional: see carousel_count.html.jinja.
 #}
 {% from "books/carousel_count.html.jinja" import carousel_count %}
-{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none) %}
-    {% if show %}
+{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, readable_filter=false, sort="", sort_control=false, subgenres=none, layout="carousel") %}
+    {# A carousel that follows the page's Readable-only switch keeps its header when the
+       switch empties it, so the patron can see which row went quiet and switch back. #}
+    {% if show or readable_filter %}
         <div class="carousel-section">
             {% if title and url %}
-                <div class="carousel-section-header">
+                <div class="carousel-section-header{% if sort_control %} carousel-section-header--sortable{% endif %}">
                     <h2 class="home-h2">
                         <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
                            href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
                     </h2>
+                    {% if sort_control %}
+                        {# lazy-carousel.js refetches the row in place when this changes. The trigger is
+                           server-rendered so it doesn't shift while the component upgrades. #}
+                        {% set sort_items = [
+                            {"value": "trending", "icon": "trending-up", "label": _("Trending")},
+                            {"value": "new", "icon": "sparkles", "label": _("Newest")},
+                            {"value": "rating", "icon": "star", "label": _("Top rated")},
+                        ] %}
+                        {% set current_sort = sort_items | selectattr("value", "equalto", sort) | first | default(sort_items[0]) %}
+                        <ol-menu-popover class="carousel-sort" label="{{ _('Sort by') }}" heading="{{ _('Sort by') }}" value="{{ current_sort.value }}" items="{{ sort_items | tojson | forceescape }}">
+                            <ol-button slot="trigger" size="small" aria-label="{{ _('Sort %(title)s', title=title) }}, {{ current_sort.label }}">
+                                {{ current_sort.label }}
+                            </ol-button>
+                        </ol-menu-popover>
+                    {% endif %}
                 </div>
             {% endif %}
-            <div class="carousel-container carousel-container-decorated">
-                <div class="carousel {{ grid }} {{ compact }} {{ loadjs }}"
-                     data-config="{{ config_json }}">
-                    {% for card in cards %}
-                        {{ card | safe }}
-                    {% endfor %}
+            {% if subgenres %}
+                {# A genre row's subgenres (HomeGenrePartial): picking one narrows the row, "All" widens
+                   it again. lazy-carousel.js refetches in place. #}
+                <div class="carousel-subgenres-scroller">
+                    <ol-segmented-control class="carousel-subgenres" value="{{ subgenres | selectattr('selected') | map(attribute='slug') | first | default('all') }}" accessible-label="{{ _('%(genre)s subgenres', genre=title) }}">
+                        <ol-segment value="all">
+                            {{ _("All") }}
+                        </ol-segment>
+                        {% for subgenre in subgenres %}
+                            <ol-segment value="{{ subgenre.slug }}">
+                                {{ subgenre.name }}
+                            </ol-segment>
+                        {% endfor %}
+                    </ol-segmented-control>
                 </div>
-            </div>
+            {% endif %}
+            {% if show and layout == "ol-carousel" %}
+                {# The native carousel component sizes the cards itself; carousel/native.js adds
+                   load-more and analytics from the same data-config the slick rows use. #}
+                <div class="carousel-container carousel-container-decorated">
+                    <ol-carousel class="carousel--native" label="{{ title }}" label-previous="{{ _('Previous page') }}" label-next="{{ _('Next page') }}" label-pages="{{ _('Carousel pages') }}" label-go-to-page="{{ _('Go to page {page} of {total}') }}" label-page-announcement="{{ _('Page {page} of {total}') }}" data-config="{{ config_json }}">
+                        {% for card in cards %}
+                            {{ card | safe }}
+                        {% endfor %}
+                    </ol-carousel>
+                </div>
+            {% elif show %}
+                <div class="carousel-container carousel-container-decorated">
+                    <div class="carousel {{ grid }} {{ compact }} {{ loadjs }}"
+                         data-config="{{ config_json }}">
+                        {% for card in cards %}
+                            {{ card | safe }}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <p class="carousel-empty">{{ _("No books match these filters.") }}</p>
+            {% endif %}
         </div>
     {% endif %}
 {% endmacro %}
 {% if show is defined %}
-    {{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count, shelf) }}
+    {{ book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count, shelf, layout=layout | default('carousel')) }}
 {% endif %}

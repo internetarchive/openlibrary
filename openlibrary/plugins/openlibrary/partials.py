@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
-from urllib.parse import parse_qs, quote, quote_plus
+from urllib.parse import parse_qs, parse_qsl, quote, quote_plus, urlsplit, urlunsplit
 
 import web
 from markupsafe import Markup
@@ -26,6 +26,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import (
     convert_list,
@@ -57,6 +58,7 @@ from openlibrary.plugins.worksearch.subjects import (
     get_subject_async,
 )
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.request_context import get_request_lang
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -791,6 +793,18 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
+    # `readable_filter` marks a carousel that follows the page's Readable-only switch.
+    # `readable_clause` is the part of its query that restricts access (e.g.
+    # `ebook_access:[borrowable TO *]`); it is applied only while the switch is on, so
+    # turning it off genuinely widens the row.
+    readable_filter: bool = False
+    readable_clause: str | None = None
+    # Shows a Trending / Newest / Top rated control in the row's header; it refetches in place.
+    sort_control: bool = False
+    # A "Browse the stacks" shelf row (HomeGenrePartial): the genre's subgenres show as a control under
+    # the heading, and `subgenre` narrows the row to one of them. The server rebuilds the query.
+    genre: str | None = None
+    subgenre: str | None = None
 
 
 class CarouselPartial:
@@ -801,8 +815,12 @@ class CarouselPartial:
 
     @classmethod
     async def generate_async(cls, params: LazyCarouselParams, full_path: str = "/") -> dict:
+        subgenres = None
+        if params.genre and (genre := home_genres.find_genre(params.genre)):
+            params, subgenres = HomeGenrePartial.narrow(params, genre)
+        query = f"{params.query} {params.readable_clause}" if params.readable_clause and params.has_fulltext_only else params.query
         books = await gather_lazy_carousel_data_async(
-            query=params.query,
+            query=query,
             sort=params.sort,
             limit=params.limit,
             has_fulltext_only=params.has_fulltext_only,
@@ -810,11 +828,16 @@ class CarouselPartial:
         )
         # Build eager data here. Keep lazy logic in build_carousel_placeholder_config.
         # Apply safe_mode to the query for the book carousel as build_carousel_placeholder_config does for lazy.
-        effective_query = f"{params.query} {_SAFE_MODE_FILTER}" if params.safe_mode else params.query
+        effective_query = f"{query} {_SAFE_MODE_FILTER}" if params.safe_mode else query
+        url = params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort})
+        if params.sort_control:
+            url = _with_sort(url, params.sort)
+        if params.readable_filter:
+            url = _with_readable(url, params.has_fulltext_only)
         book_data = get_book_carousel_data(
             books=[web.storage(b) for b in books["docs"]],
             title=params.title,
-            url=params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort}),
+            url=url,
             key=params.key,
             load_more={
                 "queryType": "SEARCH",
@@ -830,6 +853,10 @@ class CarouselPartial:
             search=params.search,
             query=effective_query,
             has_fulltext_only=params.has_fulltext_only,
+            readable_filter=params.readable_filter,
+            sort=params.sort,
+            sort_control=params.sort_control,
+            subgenres=subgenres,
             show=book_data["show"],
             title=book_data["title"],
             url=book_data["url"],
@@ -841,6 +868,7 @@ class CarouselPartial:
             cards=book_data["cards"],
             count=book_data["count"],
             shelf=book_data["shelf"],
+            layout=book_data["layout"],
         )
         return {"partials": render_jinja_template("RawQueryCarousel.html.jinja", **data)}
 
@@ -862,6 +890,20 @@ _CAROUSEL_FIELDS = [
 ]
 
 _SAFE_MODE_FILTER = '-subject:"content_warning:cover"'
+
+
+def _with_sort(url: str, sort: str) -> str:
+    """`url` with its `sort` parameter set to `sort`, so a row's header link matches its sort control."""
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query) if k != "sort"] + [("sort", sort)]
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
+def _with_readable(url: str, readable: bool) -> str:
+    """`url` with `has_fulltext=true` only while `readable`, so a row's header link matches the Readable-only switch."""
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query) if k != "has_fulltext"] + ([("has_fulltext", "true")] if readable else [])
+    return urlunsplit(parts._replace(query=urlencode(query)))
 
 
 class CarouselData(TypedDict):
@@ -958,6 +1000,10 @@ class CarouselQueryParams(CarouselCommonData):
     layout: str
     fallback: str | bool | None
     safe_mode: bool
+    readable_filter: NotRequired[bool]
+    readable_clause: NotRequired[str | None]
+    sort_control: NotRequired[bool]
+    genre: NotRequired[str]
 
 
 class BookCarouselData(CarouselCommonData):
@@ -971,6 +1017,8 @@ class BookCarouselData(CarouselCommonData):
     cards: list[str]
     count: int | None  # shown after the title; a shelf carousel's count is kept live by book-state.js
     shelf: int | None
+    # "carousel" (slick), "grid", or "ol-carousel" (the native component; carousel/native.js).
+    layout: str
 
 
 class CarouselPlaceholderData(TypedDict):
@@ -987,6 +1035,10 @@ class EagerQueryCarouselData(BookCarouselData):
     search: bool
     query: str
     has_fulltext_only: bool
+    readable_filter: bool
+    sort: str
+    sort_control: bool
+    subgenres: list[SubgenreOption] | None
 
 
 @public
@@ -1015,7 +1067,9 @@ def get_book_carousel_data(
     key = common.get("key", "")
     books = books or []
     if not (test or (books and len(books) >= min_books)):
-        return BookCarouselData(show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[], count=count, shelf=shelf)
+        return BookCarouselData(
+            show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[], count=count, shelf=shelf, layout=layout
+        )
 
     config = {
         "booksPerBreakpoint": [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
@@ -1068,7 +1122,71 @@ def get_book_carousel_data(
         cards=cards,
         count=count,
         shelf=shelf,
+        layout=layout,
     )
+
+
+class HomeGenreParams(BaseModel):
+    """Parameters for the home page genre shelf partial."""
+
+    genre: str
+
+
+class SubgenreOption(TypedDict):
+    slug: str
+    name: str
+    selected: bool
+
+
+class HomeGenrePartial:
+    """The shelf that opens under a "Browse the stacks" tile: one row for the genre, with its
+    subgenres as a control that narrows it. Rendered by browse-stacks.js; lazy-carousel.js refetches
+    the row when a subgenre is picked, and CarouselPartial calls `narrow` to build it."""
+
+    @staticmethod
+    def query(genre: home_genres.Genre, subgenre: home_genres.GenreNode | None, lang: str | None) -> str:
+        node, parent = (subgenre, genre) if subgenre else (genre, None)
+        return home_genres.solr_query(node, parent) + home_genres.user_language_clause(lang)
+
+    @classmethod
+    def narrow(cls, params: LazyCarouselParams, genre: home_genres.Genre) -> tuple[LazyCarouselParams, list[SubgenreOption]]:
+        """`params` with the query and header link for `params.subgenre` within `genre`, and the subgenre options."""
+        subgenre = home_genres.find_subgenre(genre, params.subgenre)
+        query = cls.query(genre, subgenre, get_request_lang())
+        # As build_carousel_placeholder_config does for the row's first load.
+        if params.safe_mode:
+            query = f"{query} {_SAFE_MODE_FILTER}"
+        url = home_genres.search_url(subgenre, parent=genre) if subgenre else home_genres.search_url(genre)
+        options = [SubgenreOption(slug=s["slug"], name=s["name"], selected=s is subgenre) for s in genre["subgenres"]]
+        return params.model_copy(update={"query": query, "url": url, "subgenre": subgenre and subgenre["slug"]}), options
+
+    @classmethod
+    def generate(cls, params: HomeGenreParams) -> dict:
+        genre = home_genres.find_genre(params.genre)
+        if not genre:
+            return {"partials": ""}
+
+        config = build_carousel_placeholder_config(
+            query=cls.query(genre, None, get_request_lang()),
+            title=genre["name"],
+            sort="trending",
+            key=f"genre-{genre['slug']}",
+            limit=20,
+            search=False,
+            has_fulltext_only=True,
+            url=home_genres.search_url(genre),
+            # The shelf rows pilot the native carousel component; the other home rows are still slick.
+            layout="ol-carousel",
+            # No fallback state: a row with nothing in the patron's language is dropped, like the rest of the home page.
+            fallback=None,
+            safe_mode=True,
+            readable_filter=True,
+            sort_control=True,
+            genre=genre["slug"],
+        )
+        carousel = render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **config)
+        html = render_jinja_template("home/genre_shelf.html.jinja", genre=genre, carousel=carousel)
+        return {"partials": html}
 
 
 @public
@@ -1093,6 +1211,10 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "fallback": params.get("fallback"),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
+        **({"readable_filter": True} if params.get("readable_filter") else {}),
+        **({"readable_clause": params["readable_clause"]} if params.get("readable_clause") else {}),
+        **({"sort_control": True} if params.get("sort_control") else {}),
+        **({"genre": params["genre"]} if params.get("genre") else {}),
     }
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),

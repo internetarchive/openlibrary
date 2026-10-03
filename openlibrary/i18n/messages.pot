@@ -960,7 +960,7 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html type/tag/index.html
+#: about/index.html books/custom_carousel.html.jinja type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -3107,6 +3107,58 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
+#: books/custom_carousel.html.jinja openlibrary/plugins/openlibrary/nav.py search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: books/custom_carousel.html.jinja merge_request_table/table_header.html
+msgid "Newest"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Top rated"
+msgstr ""
+
+#: books/custom_carousel.html.jinja search/sort_options.html
+msgid "Sort by"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "Sort %(title)s"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "%(genre)s subgenres"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Previous page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Next page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Carousel pages"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Go to page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "No books match these filters."
+msgstr ""
+
 #: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
@@ -4138,19 +4190,27 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
-#: home/categories.html
-msgid "Browse by Subject"
+#: home/browse_stacks.html.jinja
+msgid "Browse the stacks"
 msgstr ""
 
-#: home/categories.html
+#: home/browse_stacks.html.jinja home/categories.html
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
 
+#: home/categories.html
+msgid "Browse by Subject"
+msgstr ""
+
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
+msgstr ""
+
+#: home/index.html
+msgid "Couldn't load this shelf. Try again?"
 msgstr ""
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
@@ -4161,28 +4221,24 @@ msgstr ""
 msgid "Recently Returned"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Romance"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Kids"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Thrillers"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Textbooks"
-msgstr ""
-
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
 msgstr ""
 
 #: home/index.html
 msgid "Books in Local Environment"
+msgstr ""
+
+#: home/readable_filter.html.jinja
+msgid "Readable online"
+msgstr ""
+
+#: home/readable_filter.html.jinja
+msgid "Only books with a copy you can open on Open Library"
+msgstr ""
+
+#: home/readable_filter.html.jinja
+msgid "Show only books you can read online"
 msgstr ""
 
 #: home/stats.html
@@ -4246,67 +4302,43 @@ msgid "eBooks Borrowed"
 msgstr ""
 
 #: home/welcome.html
-msgid "Read Free Library Books Online"
+msgid "Find something to read"
 msgstr ""
 
 #: home/welcome.html
-msgid "Millions of books available through Controlled Digital Lending"
+msgid "Borrow for free and read in your browser."
 msgstr ""
 
 #: home/welcome.html
-msgid "Set a Yearly Reading Goal"
+msgid "Track your reading"
 msgstr ""
 
 #: home/welcome.html
-msgid "Learn how to set a yearly reading goal and track what you read"
+msgid "Lists, a reading log, and a yearly goal."
 msgstr ""
 
 #: home/welcome.html
-msgid "Keep Track of your Favorite Books"
+msgid "Improve the catalog"
 msgstr ""
 
 #: home/welcome.html
-msgid "Organize your Books using Lists & the Reading Log"
+msgid "Anyone can fix a record or add a book."
 msgstr ""
 
 #: home/welcome.html
-msgid "Try the virtual Library Explorer"
+msgid "4.7 million"
 msgstr ""
 
 #: home/welcome.html
-msgid "Digital shelves organized like a physical library"
+msgid "books free to read online"
 msgstr ""
 
 #: home/welcome.html
-msgid "Try Fulltext Search"
+msgid "55 million"
 msgstr ""
 
 #: home/welcome.html
-msgid "Find matching results within the text of millions of books"
-msgstr ""
-
-#: home/welcome.html
-msgid "Be an Open Librarian"
-msgstr ""
-
-#: home/welcome.html
-msgid "Dozens of ways you can help improve the library"
-msgstr ""
-
-#: home/welcome.html
-msgid "Volunteer at Open Library"
-msgstr ""
-
-#: home/welcome.html
-msgid "Discover opportunities to improve the library"
-msgstr ""
-
-#: home/welcome.html
-msgid "Send us feedback"
-msgstr ""
-
-#: home/welcome.html
-msgid "Your feedback will help us improve these cards"
+msgid "books in the catalog"
 msgstr ""
 
 #: jsdef/LazyWorkPreview.html
@@ -5105,10 +5137,6 @@ msgstr ""
 
 #: merge_request_table/table_header.html
 msgid "Sort"
-msgstr ""
-
-#: merge_request_table/table_header.html
-msgid "Newest"
 msgstr ""
 
 #: merge_request_table/table_header.html
@@ -5967,16 +5995,8 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/nav.py search/sort_options.html
-msgid "Trending"
-msgstr ""
-
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Sort by"
 msgstr ""
 
 #: search/sort_options.html
@@ -8140,6 +8160,22 @@ msgstr ""
 msgid "Search Results"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+msgid "Kids"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+msgid "Textbooks"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
 msgstr ""
@@ -8258,6 +8294,30 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Science"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biography"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Philosophy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Psychology"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Poetry"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Travel"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Cooking"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py

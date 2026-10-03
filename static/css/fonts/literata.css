@@ -9,8 +9,8 @@
  * of the site). Licensed under the SIL Open Font License; see
  * static/fonts/literata/OFL.txt.
  *
- * Import this only from the page bundles that use Literata, so pages that
- * don't reference it never pay for the download.
+ * Imported by tokens.css, so every page gets the face. The Latin file is
+ * preloaded in templates/site/head.html.
  */
 
 /* stylelint-disable scale-unlimited/declaration-strict-value --
@@ -88,6 +88,70 @@
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
     U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
     U+2215, U+FEFF, U+FFFD;
+}
+
+/* Metric-matched fallbacks: Georgia (Noto Serif on Android) rescaled to
+   Literata's width and vertical metrics, so text doesn't reflow when the
+   webfont swaps in. Values are computed from the font files at opsz 24.
+   Georgia has two weights, so 500 and 600 rescale the nearer one. */
+@font-face {
+  font-family: "Literata Fallback";
+  font-weight: 400;
+  src: local("Georgia");
+  size-adjust: 107.56%;
+  ascent-override: 109.43%;
+  descent-override: 28.64%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback";
+  font-weight: 500;
+  src: local("Georgia");
+  size-adjust: 110.05%;
+  ascent-override: 106.95%;
+  descent-override: 27.99%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback";
+  font-weight: 600;
+  src: local("Georgia Bold"), local("Georgia-Bold");
+  size-adjust: 96.26%;
+  ascent-override: 122.27%;
+  descent-override: 32%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback";
+  font-weight: 700;
+  src: local("Georgia Bold"), local("Georgia-Bold");
+  size-adjust: 98.88%;
+  ascent-override: 119.03%;
+  descent-override: 31.15%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback Noto";
+  font-weight: 400;
+  src: local("Noto Serif"), local("NotoSerif-Regular");
+  size-adjust: 98.68%;
+  ascent-override: 119.28%;
+  descent-override: 31.21%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Literata Fallback Noto";
+  font-weight: 700;
+  src: local("Noto Serif Bold"), local("NotoSerif-Bold");
+  size-adjust: 99.59%;
+  ascent-override: 118.18%;
+  descent-override: 30.93%;
+  line-gap-override: 0%;
 }
 
 /* stylelint-enable scale-unlimited/declaration-strict-value */

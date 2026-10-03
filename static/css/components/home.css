@@ -1,3 +1,228 @@
+/* Home page carousel and section headings: ink and the serif title face, not link blue.
+   carousel.css sets the site-wide default; this file only loads on the home page.
+   `.home-h2 a` ties with the global `a:link`, and wins by loading later. */
+.home-h2 {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  color: var(--color-text-heading);
+}
+
+/* The welcome heading doubles as the page title, so it sits well above the section headings. */
+.home-h2--page-title {
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-md);
+  font-size: var(--font-size-display-small);
+  line-height: var(--line-height-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* The opening is one warm band, inset from the content box on three sides. Its side padding
+   makes up the rest of the box's inset, so the cards line up with the sections below. */
+.home-welcome {
+  --home-welcome-inset: var(--spacing-inset-sm);
+
+  margin: var(--home-welcome-inset)
+    calc(var(--home-welcome-inset) - var(--contentBody-padding))
+    var(--spacing-stack-md);
+  padding: var(--spacing-inset-md)
+    calc(var(--contentBody-padding) - var(--home-welcome-inset));
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface-header);
+}
+
+/* The two figures under the welcome heading: icon, number, and a small label, side by side.
+   No margin of its own: the band's padding sets the space around it. */
+.home-figures {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+
+.home-figures__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-lg);
+  padding-inline-end: var(--spacing-inline-xl);
+}
+
+.home-figures__item:last-child {
+  padding-inline-end: 0;
+}
+
+/* One step darker than the everyday divider, which fades into the warm band. */
+.home-figures__item + .home-figures__item {
+  padding-inline-start: var(--spacing-inline-xl);
+  border-inline-start: 1px solid var(--color-border-muted);
+}
+
+/* Too narrow for both side by side: stack them as one centered block so the icons stay aligned. */
+/* --width-breakpoint-mobile */
+@media (max-width: 449px) {
+  /* A short rule under the title, standing in for the divider the stacked figures lose. */
+  .home-h2--page-title::after {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 1px;
+    margin: var(--spacing-stack-sm) auto 0;
+    background: var(--color-border);
+  }
+
+  .home-figures {
+    flex-direction: column;
+    gap: var(--spacing-stack-sm);
+    width: fit-content;
+    margin-inline: auto;
+  }
+
+  .home-figures__item + .home-figures__item {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+}
+
+/* 2px: the stack scale starts at 4px, which reads as too loose between a number and its label. */
+.home-figures__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+}
+
+.home-figures__icon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-text-secondary);
+}
+
+.home-figures__number {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  color: var(--color-text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.home-figures__label {
+  margin: 0;
+  font-size: var(--font-size-label-large);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-secondary);
+}
+
+/* The three things you can do here: read, track, improve. Columns in the band, divided by
+   hairlines, rather than cards on it: cards read as ads and pushed the books down the page. */
+.home-tracks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-tracks__cell + .home-tracks__cell {
+  border-inline-start: 1px solid var(--color-border-muted);
+}
+
+/* Phones skip the three pitches: stacked, they push the books below the fold. */
+/* --width-breakpoint-mobile */
+@media (max-width: 449px) {
+  .home-tracks {
+    display: none;
+  }
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .home-tracks {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-stack-sm);
+  }
+
+  .home-tracks__cell + .home-tracks__cell {
+    border-inline-start: 0;
+  }
+}
+
+/* Each column is one link. `a.` ties with the global `a:link` and wins by loading later. */
+a.home-tracks__item {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-lg);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a.home-tracks__item:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a.home-tracks__item:hover {
+    text-decoration: none;
+  }
+
+  .home-tracks__item:hover .home-tracks__title {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.home-tracks__icon {
+  flex: none;
+  margin-top: var(--spacing-3xs);
+  color: var(--color-text-secondary);
+}
+
+.home-tracks__text {
+  min-width: 0;
+}
+
+/* 18px: the scale skips from 22 to 16, and 16 reads too close to the body copy. */
+.home-tracks__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  margin: 0 0 var(--spacing-3xs);
+  font-family: var(--font-family-title);
+  font-size: 18px;
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  color: var(--color-text-heading);
+}
+
+.home-tracks__arrow {
+  color: var(--color-text-muted);
+}
+
+/* The arrow points "forward", which is leftward for Arabic, Hebrew and Persian readers. */
+.home-tracks__arrow:dir(rtl) {
+  transform: scaleX(-1);
+}
+
+.home-tracks__body {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+}
+
+.home-h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-h2 a:hover {
+    text-decoration: underline;
+  }
+}
+
 /* Homepage about section */
 
 div.tutorial__item {

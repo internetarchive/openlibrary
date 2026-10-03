@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', user_lang_only=False, fallback=False, safe_mode=True)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', user_lang_only=False, fallback=False, safe_mode=True, readable_filter=False, readable_clause=None)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -11,6 +11,8 @@ $# * layout (str) -- layout type, default 'carousel', currently also supports 'g
 $# * user_lang_only (bool) -- Whether to filter results by the user's language
 $# * fallback (bool) -- Whether to show a fallback message if no results are found
 $# * safe_mode (bool) -- When True, blurs covers of books that have a `content_warning` tag
+$# * readable_filter (bool) -- Follow the page's Readable-only switch (home/readable_filter.html.jinja)
+$# * readable_clause (str) -- The access restriction for this row (e.g. 'ebook_access:[borrowable TO *]'), applied only while Readable-only is on. Keep it out of `query` so the toggle can lift it.
 
 $ fallback_query = None
 $if user_lang_only:
@@ -23,6 +25,6 @@ $if user_lang_only:
 $ fallback = fallback and fallback_query
 
 $# Eager case lives only in CarouselPartial (fastapi/partials.py). Templates use placeholder only.
-$ carousel = build_carousel_placeholder_config(query=query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode)
+$ carousel = build_carousel_placeholder_config(query=query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode, readable_filter=readable_filter, readable_clause=readable_clause)
 
 $:render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **carousel)
