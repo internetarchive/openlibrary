@@ -32,6 +32,7 @@ from openlibrary.core.helpers import (
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.core.read_history import ReadHistory
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
@@ -746,6 +747,7 @@ class Work(Thing):
             r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work(olid))
             r["occurrences"]["bestbooks"] = Bestbook.get_count(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
+            r["occurrences"]["readhistory"] = len(ReadHistory.get_for_work(olid))
 
             if new_olid != olid:
                 # track updates
@@ -754,6 +756,7 @@ class Work(Thing):
                 r["updates"]["booknotes"] = Booknotes.update_work_id(olid, new_olid, _test=test)
                 r["updates"]["observations"] = Observations.update_work_id(olid, new_olid, _test=test)
                 r["updates"]["bestbooks"] = Bestbook.update_work_id(olid, new_olid, _test=test)
+                r["updates"]["readhistory"] = ReadHistory.update_work_id(olid, new_olid, _test=test)
                 summary["modified"] = summary["modified"] or any(
                     any(r["updates"][group].values())
                     for group in [
@@ -762,6 +765,7 @@ class Work(Thing):
                         "booknotes",
                         "observations",
                         "bestbooks",
+                        "readhistory",
                     ]
                 )
 

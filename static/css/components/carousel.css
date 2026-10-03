@@ -55,8 +55,33 @@
   box-sizing: border-box;
 }
 
+.carousel--compact .book,
+.carousel--compact .carousel__item {
+  flex: 0 0 120px;
+  width: 120px;
+  max-width: 120px;
+  box-sizing: border-box;
+}
+
+/* :focus state for when selected */
+/* e.g. "pick one of existing covers" on change cover. */
+/* Is .selected redundant? */
+.carousel__item:focus,
+.carousel__item.selected {
+  border: 5px solid var(--orange);
+  outline: 0;
+}
+
 .carousel.carousel--grid .carousel__item {
   margin: 0; /* Handled by grid gap */
+}
+
+.mybooks-details .carousel .book,
+.mybooks-details .carousel .carousel__item {
+  flex: 0 0 140px;
+  width: 140px;
+  max-width: 140px;
+  box-sizing: border-box;
 }
 
 /* Modifiers */

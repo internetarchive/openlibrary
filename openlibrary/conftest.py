@@ -1,11 +1,25 @@
 """pytest configuration for openlibrary"""
 
+import os
+
 import pytest
 import web
 
 from infogami import config
 from infogami.infobase.tests.pytest_wildcard import Wildcard
-from infogami.utils import template
+from infogami.utils import macro, template
+from infogami.utils import template as infogami_template
+
+
+def _fixed_find(path):
+    for dirname, dirs, files in os.walk(path):
+        rel = os.path.relpath(dirname, path)
+        dirname = "" if rel == "." else rel
+        for f in files:
+            yield os.path.join(dirname, f).replace("\\", "/")
+
+
+infogami_template.find = _fixed_find
 from infogami.utils.view import render_template as infobase_render_template
 from openlibrary.core import helpers
 from openlibrary.i18n import gettext
@@ -140,6 +154,8 @@ def wildcard():
 def render_template(request):
     """Utility to test templates."""
     template.load_templates("openlibrary")
+    macro.load_macros("openlibrary", lazy=True)
+    macro.load_macros("openlibrary/plugins/openlibrary", lazy=True)
 
     # TODO: call setup on upstream and openlibrary plugins to
     # load all globals.
