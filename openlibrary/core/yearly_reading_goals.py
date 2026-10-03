@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date, datetime
 from typing import ClassVar, TypedDict, cast
 
@@ -20,14 +21,23 @@ class YearlyReadingGoals:
     TABLENAME = "yearly_reading_goals"
 
     @classmethod
-    def summary(cls) -> dict[str, dict[str, int]]:
+    async def summary_async(cls) -> dict[str, dict[str, int]]:
+        total, month, week = await asyncio.gather(
+            cls.total_yearly_reading_goals_async(),
+            cls.total_yearly_reading_goals_async(since=DATE_ONE_MONTH_AGO),
+            cls.total_yearly_reading_goals_async(since=DATE_ONE_WEEK_AGO),
+        )
         return {
             "total_yearly_reading_goals": {
-                "total": YearlyReadingGoals.total_yearly_reading_goals(),
-                "month": YearlyReadingGoals.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO),
-                "week": YearlyReadingGoals.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO),
+                "total": total,
+                "month": month,
+                "week": week,
             },
         }
+
+    @classmethod
+    def summary(cls) -> dict[str, dict[str, int]]:
+        return async_bridge.run(cls.summary_async())
 
     @classmethod
     async def total_yearly_reading_goals_async(cls, since: date | None = None) -> int:
@@ -44,10 +54,6 @@ class YearlyReadingGoals:
             cursor = await conn.execute(query, params)
             rows = await cursor.fetchall()
         return rows[0]["count"] if rows else 0
-
-    @classmethod
-    def total_yearly_reading_goals(cls, since: date | None = None) -> int:
-        return async_bridge.run(cls.total_yearly_reading_goals_async(since))
 
     # Create methods:
     @classmethod
