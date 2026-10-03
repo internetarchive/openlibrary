@@ -10,9 +10,84 @@ from openlibrary.plugins.openlibrary.partials import (
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
+    CarouselPartial,
+    HomeGenreParams,
+    HomeGenrePartial,
+    LazyCarouselParams,
     _solr_query_to_subject_key,
     build_stores,
 )
+
+HORROR = {
+    "name": "Horror",
+    "slug": "horror",
+    "query": "(horror* OR fiction_horror*)",
+    "kind": "genre",
+    "work_count": 1,
+    "readable_count": 1,
+    "subgenres": [
+        {"name": "Gothic", "slug": "gothic", "query": "gothic_fiction*", "work_count": 1, "readable_count": 1},
+        {"name": "Psychological", "slug": "psychological", "query": "psychological_fiction*", "work_count": 1, "readable_count": 1},
+    ],
+}
+
+
+class TestHomeGenreNarrow:
+    """A genre row's subgenre control narrows it to books in both the genre and the subgenre."""
+
+    def narrow(self, subgenre=None):
+        params = LazyCarouselParams(query="stale", genre="horror", subgenre=subgenre, safe_mode=False)
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.get_request_lang", return_value=None),
+            patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
+        ):
+            return HomeGenrePartial.narrow(params, HORROR)
+
+    def test_no_subgenre_is_the_whole_genre(self):
+        params, options = self.narrow()
+        assert params.query == "subject_key:(horror* OR fiction_horror*)"
+        assert params.subgenre is None
+        assert [o["selected"] for o in options] == [False, False]
+
+    def test_subgenre_is_scoped_to_its_genre(self):
+        params, options = self.narrow("gothic")
+        assert params.query == "subject_key:(horror* OR fiction_horror*) AND subject_key:gothic_fiction*"
+        assert "gothic_fiction" in params.url
+        assert "horror" in params.url
+        assert [(o["slug"], o["selected"]) for o in options] == [("gothic", True), ("psychological", False)]
+
+    def test_unknown_subgenre_falls_back_to_the_genre(self):
+        params, _ = self.narrow("romance")
+        assert params.query == "subject_key:(horror* OR fiction_horror*)"
+        assert params.subgenre is None
+
+
+class TestHomeGenreShelf:
+    """Opening a shelf is one request: the row comes back loaded, with the config its controls refetch from."""
+
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        request_context_fixture(lang="en")
+
+    @pytest.mark.asyncio
+    async def test_row_is_rendered_in_the_response(self):
+        render = AsyncMock(return_value={"partials": "<ol-carousel></ol-carousel>"})
+        with (
+            patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=HORROR),
+            patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
+            patch.object(CarouselPartial, "generate_async", render),
+        ):
+            html = (await HomeGenrePartial.generate_async(HomeGenreParams(genre="horror")))["partials"]
+        row = render.call_args.args[0]
+        assert (row.genre, row.layout, row.sort, row.sort_control) == ("horror", "ol-carousel", "trending", True)
+        assert "<ol-carousel></ol-carousel>" in html
+        assert 'class="lazy-carousel-loaded"' in html
+        assert "&#34;genre&#34;: &#34;horror&#34;" in html or "&quot;genre&quot;: &quot;horror&quot;" in html
+
+    @pytest.mark.asyncio
+    async def test_unknown_genre_is_empty(self):
+        with patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=None):
+            assert await HomeGenrePartial.generate_async(HomeGenreParams(genre="nope")) == {"partials": ""}
 
 
 class TestSolrQueryToSubjectKey:

@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import web
@@ -7,6 +8,7 @@ from bs4 import BeautifulSoup
 from openlibrary.core.admin import Stats
 from openlibrary.core.carousels import format_book_data
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.plugins.openlibrary import home
 
 
 class MockDoc(dict):
@@ -142,12 +144,47 @@ class TestHomeTemplates:
         macros = web.template.Template.globals.setdefault("macros", web.storage())
         macros.BookPreview = lambda *args, **kwargs: '<div id="bookPreview"></div>'
         macros.BookPreviewFloater = lambda *args, **kwargs: '<div id="bookPreview"></div>'
-        html = str(render_template("home/index", stats=stats, test=True, featured_subjects=[], carousel_data=carousel_data))
+        html = str(render_template("home/index", stats=stats, test=True, carousel_data=carousel_data))
 
         assert "Recently Returned" in html
         assert "bookPreview" in html
         assert "Around the Library" in html
         assert "About the Project" in html
+
+
+TILE_GENRES = [
+    {"name": "Horror", "slug": "horror", "query": "horror*", "kind": "genre", "subgenres": []},
+    {"name": "History", "slug": "history", "query": "history*", "kind": "subject", "subgenres": []},
+    {"name": "Absurd", "slug": "absurd", "query": "absurd*", "kind": "genre", "subgenres": []},
+]
+
+
+class TestFeaturedGenres:
+    """The stacks' tiles come from one grouped Solr query, one group per genre."""
+
+    def featured(self, grouped):
+        solr = MagicMock()
+        solr.raw_request = AsyncMock(return_value=MagicMock(json=lambda: {"grouped": grouped}))
+        with (
+            patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),
+            patch.object(home.search, "get_solr", return_value=solr),
+        ):
+            web.ctx.env = {}
+            return home.get_featured_genres(), solr.raw_request.call_args.args[1]
+
+    def test_one_query_for_every_tile(self):
+        genres, payload = self.featured(
+            {
+                "subject_key:horror*": {"doclist": {"numFound": 1200, "docs": [{"cover_i": 1}, {}, {"cover_i": 2}, {"cover_i": 3}, {"cover_i": 4}]}},
+                "subject_key:history*": {"doclist": {"numFound": 5, "docs": []}},
+                "subject_key:absurd*": {"doclist": {"numFound": 0, "docs": []}},
+            }
+        )
+        assert payload.count("group.query=") == 3
+        # Counted, and nothing readable means no tile.
+        assert [(g["slug"], g["readable_count"]) for g in genres] == [("horror", 1200), ("history", 5)]
+        # Docs without a cover are skipped, and the fan takes three.
+        assert genres[0]["covers"] == [1, 2, 3]
 
 
 class Test_format_book_data:

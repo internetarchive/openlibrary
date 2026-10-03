@@ -1284,7 +1284,7 @@ msgid "<a href=\"/search\">Search for a book</a> to borrow."
 msgstr ""
 
 #: account/loans.html
-msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
+msgid "Looking for a book to borrow? Check out our staff picks:"
 msgstr ""
 
 #: account/loans.html home/index.html
@@ -3107,6 +3107,68 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
+#: books/custom_carousel.html.jinja openlibrary/plugins/openlibrary/nav.py search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: books/custom_carousel.html.jinja merge_request_table/table_header.html
+msgid "Newest"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Top rated"
+msgstr ""
+
+#: books/custom_carousel.html.jinja search/sort_options.html
+msgid "Sort by"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "Sort %(title)s"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "%(genre)s subgenres"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "All %(genre)s"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Previous page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Next page"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "Carousel pages"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Go to page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-brace-format
+msgid "Page {page} of {total}"
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+msgid "No books match these filters."
+msgstr ""
+
+#: books/custom_carousel.html.jinja
+#, python-format
+msgid "See more in %(name)s"
+msgstr ""
+
 #: books/custom_carousel_card.html.jinja
 #, python-format
 msgid "1 person waiting"
@@ -4138,11 +4200,11 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
-#: home/categories.html
-msgid "Browse by Subject"
+#: home/browse_stacks.html.jinja
+msgid "Browse the stacks"
 msgstr ""
 
-#: home/categories.html
+#: home/browse_stacks.html.jinja
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
@@ -4165,7 +4227,7 @@ msgstr ""
 msgid "Romance"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
 msgid "Kids"
 msgstr ""
 
@@ -4183,6 +4245,14 @@ msgstr ""
 
 #: home/index.html
 msgid "Books in Local Environment"
+msgstr ""
+
+#: home/index.html
+msgid "Couldn't load this shelf. Try again?"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/partials.py
+msgid "Loading carousel"
 msgstr ""
 
 #: home/stats.html
@@ -5108,10 +5178,6 @@ msgid "Sort"
 msgstr ""
 
 #: merge_request_table/table_header.html
-msgid "Newest"
-msgstr ""
-
-#: merge_request_table/table_header.html
 msgid "Oldest"
 msgstr ""
 
@@ -5967,16 +6033,8 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/nav.py search/sort_options.html
-msgid "Trending"
-msgstr ""
-
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Sort by"
 msgstr ""
 
 #: search/sort_options.html
@@ -8260,6 +8318,30 @@ msgstr ""
 msgid "Science"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biography"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Philosophy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Psychology"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Poetry"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Travel"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Cooking"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
 msgstr ""
@@ -8326,10 +8408,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/partials.py
-msgid "Loading carousel"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py

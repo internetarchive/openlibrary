@@ -2,6 +2,7 @@
 
 import logging
 import random
+from urllib.parse import urlencode
 
 import web
 
@@ -10,7 +11,9 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core import admin, cache, env
 from openlibrary.core.carousels import get_carousel_data
+from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
     get_blog_feeds,
@@ -18,6 +21,7 @@ from openlibrary.plugins.upstream.utils import (
 )
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import caching_prethread, req_context
 
 logger = logging.getLogger("openlibrary.home")
@@ -30,7 +34,8 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    featured_subjects = get_cached_featured_subjects()
+    # The template shuffles the tiles per visit, so the cached order doesn't matter.
+    featured_genres = get_cached_featured_genres()
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
@@ -40,7 +45,7 @@ def get_homepage(devmode):
         "home/index",
         stats=stats,
         blog_posts=blog_posts,
-        featured_subjects=featured_subjects,
+        featured_genres=featured_genres,
         carousel_data=carousel_data,
     )
     # Convert to a dict so it can be cached
@@ -124,6 +129,8 @@ class random_book(delegate.page):
 
 
 def get_featured_subjects():
+    """The subject list behind the OPDS catalog's navigation (api.py). The home page's
+    subject strip that used it is gone; the stacks below replaced it."""
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()
@@ -213,6 +220,77 @@ def get_cached_featured_subjects():
         get_featured_subjects,
         f"home.featured_subjects.{web.ctx.lang}",
         timeout=dateutil.HOUR_SECS,
+        prethread=caching_prethread(),
+    )()
+
+
+# Covers shown fanned on each genre tile.
+GENRE_TILE_COVERS = 3
+
+
+def subject_tile_labels() -> dict[str, str]:
+    """Translated names for the subject tiles in home_genres.json (keyed by slug). Genre names
+    come from the tags vocabulary and aren't translated yet."""
+    return {
+        "kids": _("Kids"),
+        "history": _("History"),
+        "biography": _("Biography"),
+        "philosophy": _("Philosophy"),
+        "psychology": _("Psychology"),
+        "poetry": _("Poetry"),
+        "travel": _("Travel"),
+        "science": _("Science"),
+        "cooking": _("Cooking"),
+        "religion": _("Religion"),
+        "art": _("Art"),
+        "textbooks": _("Textbooks"),
+    }
+
+
+def get_featured_genres():
+    """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live readable counts
+    and a few trending covers per genre. One grouped Solr query for all of them, cached for a day."""
+    if "env" not in web.ctx:
+        delegate.fakeload()
+    nodes = home_genres.load_home_genres()
+    queries = [home_genres.solr_query(genre) for genre in nodes]
+    # One group per genre: its numFound is the readable count, its docs the most trending covers.
+    params = [
+        ("q", "*:*"),
+        ("fq", home_genres.READABLE_CLAUSE),
+        ("fq", '-subject:"content_warning:cover"'),
+        ("fl", "cover_i"),
+        ("rows", 0),
+        ("group", "true"),
+        ("group.limit", GENRE_TILE_COVERS * 2),
+        ("group.sort", "def(trending_z_score,0) desc"),
+        ("wt", "json"),
+        *(("group.query", query) for query in queries),
+    ]
+    grouped = async_bridge.run(search.get_solr().raw_request("select", urlencode(params))).json()["grouped"]
+    labels = subject_tile_labels()
+    genres = []
+    for genre, query in zip(nodes, queries, strict=True):
+        doclist = grouped[query]["doclist"]
+        genres.append(
+            {
+                **genre,
+                "name": labels.get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"],
+                "readable_count": doclist["numFound"],
+                "readable_count_str": commify(doclist["numFound"]),
+                "covers": [doc["cover_i"] for doc in doclist["docs"] if doc.get("cover_i")][:GENRE_TILE_COVERS],
+                "url": home_genres.browse_url(genre),
+            }
+        )
+    # Nothing readable, no tile. Order is decided at render time.
+    return [g for g in genres if g["readable_count"]]
+
+
+def get_cached_featured_genres():
+    return cache.memcache_memoize(
+        get_featured_genres,
+        "home.featured_genres",
+        timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
     )()
 

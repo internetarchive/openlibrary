@@ -1,0 +1,330 @@
+/**
+ * Browse the stacks — home page genre tiles and the shelf that opens under them.
+ * Defined in:
+ *  - openlibrary/templates/home/browse_stacks.html.jinja
+ *  - openlibrary/templates/home/genre_shelf.html.jinja
+ *  - openlibrary/plugins/openlibrary/js/browse-stacks.js
+ */
+
+/* Sits after the book carousels, so it takes the gap a section heading gets there. */
+.browse-stacks {
+  margin-top: var(--spacing-stack-xl);
+}
+
+/* The section heading. */
+.browse-stacks__header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-stack-sm);
+}
+
+.browse-stacks__header .home-h2 {
+  margin: 0;
+}
+
+/* One row of tiles; the rail pages sideways. The viewport padding leaves room for the
+   tile's hover lift and shadow. */
+/* The margin and the viewport padding together match the header's own gap. */
+.browse-stacks__rail {
+  --ol-carousel-viewport-padding: var(--spacing-inset-xs);
+
+  margin-top: var(--spacing-stack-xs);
+}
+
+.browse-stacks__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-stack-sm);
+  width: 100%;
+  padding: var(--spacing-inset-md) var(--spacing-inset-md)
+    var(--spacing-inset-sm);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--box-shadow-raised);
+  color: var(--color-text);
+  font-family: var(--font-family-body);
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--duration-press);
+}
+
+.browse-stacks__tile:active {
+  transform: scale(var(--press-scale));
+}
+
+.browse-stacks__tile[aria-expanded="true"] {
+  background: var(--color-control-selected-bg);
+  border-color: var(--color-control-selected-border);
+}
+
+/* Three covers fanned like books pulled off a shelf. */
+/* --fan-spread goes 0 → 1 on hover; each cover leans and slides a little further out. */
+.browse-stacks__fan {
+  --fan-spread: 0;
+
+  position: relative;
+  height: 72px;
+  width: 92px;
+}
+
+.browse-stacks__fan img,
+.browse-stacks__blank {
+  position: absolute;
+  bottom: 0;
+  width: 44px;
+  height: 66px;
+  object-fit: cover;
+  border-radius: var(--border-radius-thumbnail);
+  box-shadow: var(--box-shadow-floating);
+  background: var(--color-surface-sunken);
+  transition: transform var(--duration-base) var(--ease-move);
+}
+
+.browse-stacks__blank {
+  border: 1px solid var(--color-border-subtle);
+}
+
+.browse-stacks__fan > :nth-child(1) {
+  inset-inline-start: 0;
+  transform: rotate(calc(-7deg - 4deg * var(--fan-spread)))
+    translate(
+      calc(-4px * var(--fan-spread)),
+      calc(2px - 1px * var(--fan-spread))
+    );
+}
+
+.browse-stacks__fan > :nth-child(2) {
+  inset-inline-start: 22px;
+  transform: translateY(calc(-4px - 4px * var(--fan-spread)));
+  z-index: var(--z-index-base);
+}
+
+.browse-stacks__fan > :nth-child(3) {
+  inset-inline-start: 44px;
+  transform: rotate(calc(7deg + 4deg * var(--fan-spread)))
+    translate(
+      calc(4px * var(--fan-spread)),
+      calc(2px - 1px * var(--fan-spread))
+    );
+}
+
+.browse-stacks__name {
+  font-size: var(--font-size-title-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.browse-stacks__count {
+  font-size: var(--font-size-label-medium);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-tight);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .browse-stacks__tile:hover {
+    background: var(--color-control-hover);
+    border-color: var(--color-border-muted);
+  }
+
+  .browse-stacks__tile:hover .browse-stacks__fan {
+    --fan-spread: 1;
+  }
+}
+
+/* The shelf ------------------------------------------------------------ */
+
+.browse-stacks__shelf {
+  --shelf-inset: var(--spacing-inset-lg);
+
+  position: relative;
+  margin-top: var(--spacing-stack-md);
+  padding: var(--spacing-inset-md) var(--shelf-inset);
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface-header);
+  --ol-carousel-fade-color: var(--color-surface-header);
+  animation: browse-stacks-open var(--duration-base) var(--ease-enter);
+}
+
+.browse-stacks__shelf--loading {
+  min-height: 120px;
+  opacity: 0.6;
+}
+
+/* A caret under the open tile, so the shelf reads as that tile's, not a box below the rail.
+   browse-stacks.js measures the tile and sets --caret-x (a physical offset, so it holds in RTL)
+   and --caret-opacity, which fades it out before the tile reaches the rail's edge. */
+.browse-stacks__shelf--anchored::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: var(--caret-x);
+  width: 14px;
+  height: 14px;
+  opacity: var(--caret-opacity, 1);
+  transform: translateX(-50%) rotate(45deg);
+  border-inline-start: 1px solid var(--color-border-muted);
+  border-top: 1px solid var(--color-border-muted);
+  background: var(--color-surface-header);
+  transition:
+    left var(--duration-base) var(--ease-move),
+    opacity var(--duration-base) var(--ease-exit);
+}
+
+/* Mid-scroll the caret is already moved and faded every frame; easing would make it lag the tile. */
+.browse-stacks__shelf--tracking::before {
+  transition: none;
+}
+
+/* Ride the open tile's view timeline instead, so the caret moves on the compositor with the rail
+   rather than a frame behind it. The timeline's ends come from browse-stacks.js. The fades span
+   the tile's centre reaching the edge (entry/exit 50%) to a half tile inside it. */
+@supports (view-timeline: --a inline) and (timeline-scope: --a) {
+  .browse-stacks {
+    timeline-scope: --browse-stacks-open-tile;
+  }
+
+  .browse-stacks__tile[aria-expanded="true"] {
+    view-timeline: --browse-stacks-open-tile inline;
+    /* auto would inset by the rail's scroll-padding peek, skewing the ends. */
+    view-timeline-inset: 0;
+  }
+
+  .browse-stacks__shelf--anchored::before {
+    left: 0;
+    /* Longhands, not the `animation` shorthand: the minifier expands a multi-animation shorthand
+       to `animation-duration: 0s`, and a scroll-driven animation needs the `auto` default. */
+    animation-name:
+      browse-stacks-caret, browse-stacks-caret-in, browse-stacks-caret-out;
+    animation-timing-function: linear;
+    animation-fill-mode: both, backwards, forwards;
+    animation-timeline: --browse-stacks-open-tile;
+    animation-range:
+      normal,
+      entry 50% entry 100%,
+      exit 0% exit 50%;
+  }
+}
+
+@keyframes browse-stacks-caret {
+  from {
+    translate: var(--caret-from);
+  }
+
+  to {
+    translate: var(--caret-to);
+  }
+}
+
+@keyframes browse-stacks-caret-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes browse-stacks-caret-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes browse-stacks-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.genre-shelf:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 4px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* The shelf's carousels sit on the shelf surface, not the page's decorated band. */
+.genre-shelf .carousel-container-decorated {
+  background: transparent;
+  border: 0;
+}
+
+/* The row bleeds to the shelf's edges rather than the page's, but rests inset from them. */
+.genre-shelf .carousel-container {
+  margin-inline: calc(-1 * var(--shelf-inset));
+  padding-inline: 0;
+}
+
+.genre-shelf .carousel--native {
+  --ol-carousel-inset: var(--spacing-inset-md);
+}
+
+.genre-shelf .carousel-section-header--sortable {
+  margin-top: 0;
+}
+
+/* The genre's subgenre tabs, under its heading: they narrow the row beneath them. */
+.genre-shelf .carousel-subgenres {
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+.genre-shelf__error {
+  margin: 0;
+  padding: var(--spacing-inset-md) 0;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 767px) {
+  /* --width-breakpoint-tablet */
+  .browse-stacks__tile {
+    padding: var(--spacing-inset-sm);
+  }
+
+  .browse-stacks__fan {
+    height: 60px;
+    width: 76px;
+  }
+
+  .browse-stacks__fan img,
+  .browse-stacks__blank {
+    width: 36px;
+    height: 54px;
+  }
+
+  .browse-stacks__fan > :nth-child(2) {
+    inset-inline-start: 18px;
+  }
+
+  .browse-stacks__fan > :nth-child(3) {
+    inset-inline-start: 36px;
+  }
+
+  .browse-stacks__shelf {
+    --shelf-inset: var(--spacing-inset-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .browse-stacks__tile,
+  .browse-stacks__fan img,
+  .browse-stacks__blank {
+    transition: none;
+  }
+
+  .browse-stacks__shelf {
+    animation: none;
+  }
+
+  .browse-stacks__shelf--anchored::before {
+    transition: none;
+  }
+}

@@ -1,4 +1,4 @@
-$def with (user, loans, history_docs=None, current_page=1, show_next=False, ia_base_url="", test=False, featured_subjects=[], carousel=None)
+$def with (user, loans, history_docs=None, current_page=1, show_next=False, ia_base_url="", test=False, carousel=None)
 
 <style type="text/css">
 .date, .waitrank {
@@ -228,8 +228,7 @@ th.status {
 <hr/>
 <br/>
 
-<div>$_("Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:")</div>
+<div>$_("Looking for a book to borrow? Check out our staff picks:")</div>
     $if carousel:
         $:render_jinja_template("books/custom_carousel.html.jinja", **get_book_carousel_data(carousel["books"], title=_('Books We Love'), url=carousel["url"], key="staff_picks", load_more=carousel["load_more"], min_books=7, test=test, compact_mode=True, full_path=request.fullpath))
-    $:render_template("home/categories", featured_subjects=featured_subjects)
     $:_('Or, check out our <a href="/collections">special collections</a>.')

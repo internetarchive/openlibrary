@@ -70,7 +70,9 @@ import './OlIcon.js';
  * @cssprop [--ol-carousel-arrow-icon-size=36px] - Diameter of the round arrow buttons
  * @cssprop [--ol-carousel-indicator-color=var(--neutral-300)] - Colour of the inactive page indicators
  * @cssprop [--ol-carousel-indicator-active=var(--neutral-700)] - Colour of the active page indicator
+ * @cssprop [--ol-carousel-fade-color=var(--color-surface)] - Colour the edge fades blend into; match the surface behind the carousel
  * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
+ * @cssprop [--ol-carousel-inset=0px] - Space before the first item and after the last at rest; a full-bleed rail still scrolls edge to edge
  *
  * Browser support: scroll-snap (Safari 11) and scroll-padding (14.5) are the
  * load-bearing ones. scroll-behavior (15.4), scroll-snap-stop (15) and
@@ -180,9 +182,10 @@ export class OlCarousel extends LitElement {
                the hover lift room instead. */
             overflow-y: hidden;
             padding-block: var(--_viewport-padding);
+            padding-inline: var(--ol-carousel-inset, 0px);
             scroll-snap-type: x mandatory;
-            /* Start padding is the edge peek; the end stays flush. */
-            scroll-padding-inline: calc(var(--_peek, 0.03) * 100%) 0;
+            /* Start padding is the inset plus the edge peek; the end is just the inset. */
+            scroll-padding-inline: calc(var(--ol-carousel-inset, 0px) + var(--_peek, 0.03) * 100%) var(--ol-carousel-inset, 0px);
             scroll-behavior: smooth;
             /* No macOS history swipe when the rail hits its end. */
             overscroll-behavior-x: contain;
@@ -253,6 +256,7 @@ export class OlCarousel extends LitElement {
 
         /* ── Edge gradients (always visible to hint at more content) ── */
         .edge-fade {
+            --_fade: var(--ol-carousel-fade-color, var(--color-surface));
             position: absolute;
             top: 0;
             bottom: 0;
@@ -267,12 +271,22 @@ export class OlCarousel extends LitElement {
 
         .edge-fade.prev {
             left: 0;
-            background: linear-gradient(to left, transparent, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0.85));
+            background: linear-gradient(
+                to left,
+                transparent,
+                color-mix(in srgb, var(--_fade) 40%, transparent) 40%,
+                color-mix(in srgb, var(--_fade) 85%, transparent)
+            );
         }
 
         .edge-fade.next {
             right: 0;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0.85));
+            background: linear-gradient(
+                to right,
+                transparent,
+                color-mix(in srgb, var(--_fade) 40%, transparent) 40%,
+                color-mix(in srgb, var(--_fade) 85%, transparent)
+            );
         }
 
         /* ── Arrow buttons ── */
@@ -653,7 +667,8 @@ export class OlCarousel extends LitElement {
 
         const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
         const scrollerLeft = scroller.getBoundingClientRect().left;
-        const peekPx = this.peek * scroller.clientWidth;
+        // A page rests with its first item past the inset and the peek.
+        const startPx = this.peek * scroller.clientWidth + (parseFloat(getComputedStyle(scroller).paddingInlineStart) || 0);
         const offsets = [];
         // Cached so _syncFromScroll never forces a layout mid-scroll.
         this._maxScroll = maxScroll;
@@ -671,7 +686,7 @@ export class OlCarousel extends LitElement {
             }
             // Scroll-invariant distance from the scroller's start edge.
             const itemLeft = item.getBoundingClientRect().left - scrollerLeft + scroller.scrollLeft;
-            offsets.push(Math.min(maxScroll, Math.max(0, itemLeft - peekPx)));
+            offsets.push(Math.min(maxScroll, Math.max(0, itemLeft - startPx)));
         }
 
         this._pageOffsets = offsets.length ? offsets : [0];

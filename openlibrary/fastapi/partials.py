@@ -24,6 +24,8 @@ from openlibrary.plugins.openlibrary.partials import (
     CarouselLoadMoreParams,
     CarouselPartial,
     FullTextSuggestionsPartial,
+    HomeGenreParams,
+    HomeGenrePartial,
     LazyCarouselParams,
     MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
@@ -242,6 +244,15 @@ async def lazy_carousel_partial(
     TODO: Drop the lazy naming. Partials always load later.
     """
     return await CarouselPartial.generate_async(params=params, full_path=full_path)
+
+
+@router.get("/partials/HomeGenre.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def home_genre_partial(params: Annotated[HomeGenreParams, Query()]) -> dict:
+    """
+    Get the shelf HTML for one genre on the home page's "Browse the stacks":
+    the genre's carousel, with a control that narrows it to a subgenre.
+    """
+    return await HomeGenrePartial.generate_async(params=params)
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

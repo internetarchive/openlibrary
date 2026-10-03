@@ -17,10 +17,81 @@
   margin-top: 1.75em;
 }
 
+/* A row with a sort control (books/custom_carousel.html.jinja): the control sits at the end of
+   the heading line, and drops under the heading when there is no room. */
+.carousel-section-header--sortable {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
+  margin: 1.75em 0 0.5em;
+}
+
+.carousel-section-header--sortable > .home-h2 {
+  margin: 0;
+}
+
+/* A heading that isn't a link (genre rows link from their footer instead). */
+.home-h2.carousel-heading--plain {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  color: var(--color-text-heading);
+}
+
+/* "See more in …", at the end of the row. */
+.carousel-section-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-stack-xs);
+}
+
+.carousel-more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+.carousel-more:link,
+.carousel-more:visited {
+  text-decoration: none;
+}
+
+.carousel-more:hover {
+  text-decoration: underline;
+}
+
+/* Bleeds to the edge of #contentBody. */
 .carousel-container,
 .lazy-carousel {
-  margin: 0 -20px;
+  margin: 0 calc(-1 * var(--spacing-page-gutter));
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
+}
+
+.carousel-empty {
+  margin: 0 0 var(--spacing-stack-md);
+  padding: var(--spacing-inset-lg);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+/* A carousel being re-fetched keeps its cards on screen, dimmed, until the new ones land. */
+.lazy-carousel-loaded--refreshing .carousel-container {
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-state);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lazy-carousel-loaded--refreshing .carousel-container {
+    transition: none;
+  }
 }
 
 .carousel {
@@ -28,6 +99,19 @@
   margin-bottom: var(--spacing-stack-md);
   overflow-x: scroll;
   padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
+}
+
+/* On a phone the row runs edge to edge: the first cover sits at the page gutter
+   instead of 40px of container and track padding in from it. */
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .carousel-container {
+    padding-inline: 0;
+  }
+
+  .carousel {
+    padding-inline: var(--spacing-page-gutter);
+  }
 }
 
 .carousel.carousel--grid {
@@ -53,6 +137,18 @@
   min-height: 1px;
   overflow: hidden;
   box-sizing: border-box;
+}
+
+/* A row rendered as <ol-carousel> (books/custom_carousel.html.jinja, layout "ol-carousel"):
+   the component sizes and spaces the cards, so the slick-era item box is reset. */
+.carousel--native {
+  --ol-carousel-viewport-padding: var(--spacing-inset-xs);
+}
+
+.carousel--native > .carousel__item {
+  float: none;
+  margin: 0;
+  text-align: center;
 }
 
 .carousel.carousel--grid .carousel__item {
@@ -186,6 +282,13 @@
   box-sizing: border-box;
 }
 
+/* A blank cover is a fixed 130px for slick; in the native row it follows the card. */
+.carousel--native .carousel__item__blankcover {
+  width: 100%;
+  max-width: 130px;
+  margin: 0 auto;
+}
+
 /* Styles for lazy-loading carousel placeholder element */
 .lazy-carousel {
   /* Same height as the loaded carousel to avoid layout shift */
@@ -302,6 +405,26 @@
 }
 .ol-return-wrapper {
   flex: 0 0 39px;
+}
+
+/* A phone fits three cards in ~330px, so the card gives up its slick-era inset
+   (the component gap alone separates the covers) and the cover box shrinks to
+   the narrower covers. The CTA's phone size is in buttonCta.css. */
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .carousel--native > .carousel__item {
+    padding: 0;
+    overflow: visible;
+  }
+
+  .carousel--native .book .book-cover {
+    height: 160px;
+  }
+
+  .carousel--native .book .bookcover,
+  .carousel--native .carousel__item__blankcover {
+    max-height: 160px;
+  }
 }
 
 /* Stretch the return button to whatever height the Read/Borrow button beside it

@@ -36,7 +36,9 @@
    account — and it does nothing until the drawer's JS loads. Only Sign Up shows
    here; .hide-me keeps Log In for >=768px, as before. Sign Up alone is ~77px and
    stays on the header's first row, where showing both wraps the hamburger onto
-   a second one. */
+   a second one. The row is tight on a phone — logo, search, the touch-only
+   barcode button, Sign Up, hamburger — so the phone spacing below is trimmed to
+   keep all five on one row down to 360px. */
 .header-bar .auth-component {
   display: block;
   margin-right: var(--spacing-inline-sm);
@@ -361,9 +363,11 @@
   line-height: 0;
 }
 
+/* Was 15px, which on a 375px phone was the difference between the hamburger
+   fitting on the first row and wrapping under the logo. */
 @media only screen and (max-width: 25em) {
   .search-component {
-    margin-right: 15px;
+    margin-inline-end: var(--spacing-inline-sm);
   }
 }
 
@@ -455,6 +459,15 @@
   /* <ol-button> declares no weight, so it renders at the page's; a native
      <button> would otherwise take the UA's. */
   font-weight: normal;
+}
+
+/* Sign Up drops to ol-button's own 12px inset on a phone, where the header row
+   has no room for the roomier header padding. */
+/* --width-breakpoint-mobile */
+@media (max-width: 449px) {
+  .header-bar .auth-component .ol-button-static {
+    padding-inline: var(--spacing-md);
+  }
 }
 
 /* Leading glyphs only echo the label beside them, so they sit on the
@@ -648,7 +661,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
+  /* Square, like the barcode button beside it. */
+  min-width: var(--header-control-height);
   min-height: var(--header-control-height);
   padding: 0 var(--spacing-inset-sm);
   background: transparent;
