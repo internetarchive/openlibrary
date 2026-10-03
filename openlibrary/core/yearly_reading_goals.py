@@ -22,16 +22,15 @@ class YearlyReadingGoals:
 
     @classmethod
     async def summary(cls) -> dict[str, dict[str, int]]:
-        total, month, week = await asyncio.gather(
-            cls.total_yearly_reading_goals(),
-            cls.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO),
-            cls.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO),
-        )
+        async with asyncio.TaskGroup() as tg:
+            t_total = tg.create_task(cls.total_yearly_reading_goals())
+            t_month = tg.create_task(cls.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO))
+            t_week = tg.create_task(cls.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO))
         return {
             "total_yearly_reading_goals": {
-                "total": total,
-                "month": month,
-                "week": week,
+                "total": t_total.result(),
+                "month": t_month.result(),
+                "week": t_week.result(),
             },
         }
 
