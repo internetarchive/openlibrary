@@ -18,9 +18,14 @@ def _reset_pools():
 
 
 class FakePool:
-    def __init__(self, conninfo, kwargs=None, open=None):
+    @staticmethod
+    async def check_connection(conn):
+        pass
+
+    def __init__(self, conninfo, kwargs=None, open=None, check=None):
         self.conninfo = conninfo
         self.kwargs = kwargs
+        self.check = check
         self.opened = False
         self.closed = False
         self.connections = []
@@ -98,6 +103,7 @@ async def test_init_pool_creates_and_opens_pool():
     assert pool.opened
     assert pool.conninfo == "dbname=openlibrary user=openlibrary password=''"
     assert "row_factory" in pool.kwargs
+    assert pool.check is FakePool.check_connection
 
 
 @pytest.mark.asyncio

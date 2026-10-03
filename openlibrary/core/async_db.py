@@ -88,6 +88,9 @@ async def _open_pool() -> Pool | None:
             conninfo=_conninfo(db_parameters),
             kwargs={"row_factory": dict_row},
             open=False,
+            # Discard stale/dead connections before handing them out, e.g. after
+            # a Postgres restart or a server-side idle_session_timeout.
+            check=AsyncConnectionPool.check_connection,
         ),
     )
     await pool.open()
