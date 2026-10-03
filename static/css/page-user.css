@@ -112,18 +112,18 @@ div.siteSearch.darker {
   margin-bottom: 0;
 }
 
-/* The stats line labels the results below it, so it sits closer to them than
-   to the controls above — the filter row's margin-bottom below owns that split.
-   padding-left matches .searchResultItem's inset so the text starts on the
-   result card's content edge rather than its outer box. */
+/* The stats line labels the results below it, so it sits closer to them than */
+/* to the controls above — the filter row's margin-bottom below owns that split. */
+/* padding-left matches .searchResultItem's inset so the text starts on the */
+/* result card's content edge rather than its outer box. */
 .search-controls .search-results-stats {
   padding-bottom: 0;
   padding-left: var(--spacing-inset-sm);
 }
 
-/* Exception to the gap-owns-spacing rule above: the filters are the last
-   control before the results, so they need a block-level break rather than the
-   tighter row gap — most visible against the "Authors" section heading. */
+/* Exception to the gap-owns-spacing rule above: the filters are the last */
+/* control before the results, so they need a block-level break rather than the */
+/* tighter row gap — most visible against the "Authors" section heading. */
 .search-filter-row {
   display: flex;
   flex-wrap: wrap;
@@ -132,8 +132,8 @@ div.siteSearch.darker {
   margin: 0 0 var(--spacing-stack-md);
 }
 
-/* Own row on narrow screens: wrapping to the end of a half-empty line reads
-   as misaligned. */
+/* Own row on narrow screens: wrapping to the end of a half-empty line reads */
+/* as misaligned. */
 .search-filter-row__tools {
   display: flex;
   flex-basis: 100%;
@@ -141,8 +141,8 @@ div.siteSearch.darker {
   align-items: center;
 }
 
-/* From tablet up, share the filters' row. margin-left rather than
-   space-between so the filters stay packed together. */
+/* From tablet up, share the filters' row. margin-left rather than */
+/* space-between so the filters stay packed together. */
 @media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
   .search-filter-row__tools {
     flex-basis: auto;
@@ -150,16 +150,16 @@ div.siteSearch.darker {
   }
 }
 
-/* Where the sidebar moves beside the results, reserve its width so the
-   right-aligned tools land on the results column's edge, not the page's. */
+/* Where the sidebar moves beside the results, reserve its width so the */
+/* right-aligned tools land on the results column's edge, not the page's. */
 @media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
   .search-filter-row {
     padding-right: var(--search-facets-width);
   }
 }
 
-/* On the search page, enlarge the in-page search box to match the header
-   search bar. */
+/* On the search page, enlarge the in-page search box to match the header */
+/* search bar. */
 .search-page .searchbox {
   height: 47px;
   border-radius: 6px;
@@ -171,6 +171,112 @@ div#editHistory {
   display: none;
 }
 /* stylelint-enable selector-max-specificity */
+
+/* ── Data Transfer Pages (Import/Export) ──────────────────────────── */
+.data-transfer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.data-transfer-card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-xl);
+}
+
+.data-transfer-card--full-width {
+  grid-column: 1 / -1;
+}
+
+.data-transfer-card h3 {
+  margin: 0;
+}
+
+.data-transfer-card__badge {
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+/* ── Dropzone (reusable) ─────────────────────────────────────────── */
+.dropzone {
+  position: relative;
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  background: var(--color-surface-sunken);
+  margin-bottom: var(--spacing-lg);
+}
+
+.dropzone:hover,
+.dropzone.drag-active {
+  background: var(--color-primary-subtle);
+}
+
+.dropzone-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: var(--z-index-base);
+}
+
+.dropzone-icon {
+  color: var(--color-icon-muted);
+  margin: 0 auto var(--spacing-md);
+  transition: color 0.2s ease;
+}
+
+.dropzone:hover .dropzone-icon,
+.dropzone.drag-active .dropzone-icon {
+  color: var(--primary-blue);
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dropzone-browse {
+  background: none;
+  border: none;
+  color: var(--primary-blue);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.dropzone-browse:hover {
+  color: var(--dark-blue);
+}
+
+.dropzone-text {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.dropzone-filename {
+  display: none;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.dropzone.has-file .dropzone-text {
+  display: none;
+}
+
+.dropzone.has-file .dropzone-filename {
+  display: block;
+}
+
 div#subjectsPage {
   columns: 2;
 }
