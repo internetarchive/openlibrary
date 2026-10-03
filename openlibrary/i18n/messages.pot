@@ -7658,6 +7658,14 @@ msgid "Deploy"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "Force oldev rebuild"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Also rebuild the oldev Docker image on this deploy. Slower — use after changing Dockerfile.oldev or requirements files."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 #, python-format
 msgid "%(num)s change will be applied"
 msgstr ""

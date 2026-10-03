@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, shallowRef } from 'vue';
 import { REPO_URL, formatTime, sprintf, timeAgo } from './utils.js';
 
 defineOptions({ name: 'DeploySection' });
@@ -38,6 +38,17 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['deploy', 'refresh']);
+
+// One-shot opt-in: checked, the next deploy also rebuilds the oldev Docker
+// image (Jenkins' FORCE_OLDEV_REBUILD). Resets on click — the value rides
+// with the emitted event — so a later deploy can't force a slow image
+// rebuild by accident; a failed deploy means deliberately re-checking.
+const forceOldev = shallowRef(false);
+
+function onDeploy() {
+    emit('deploy', forceOldev.value);
+    forceOldev.value = false;
+}
 
 const CHANGE_LABELS = {
     add: 'addChange',
@@ -92,7 +103,7 @@ function prUrl(pr) {
         type="button"
         class="testing-env__btn testing-env__btn--primary"
         :disabled="deploying || !changeCount"
-        @click="emit('deploy')"
+        @click="onDeploy"
       >
         <span
           v-if="deploying"
@@ -119,6 +130,17 @@ function prUrl(pr) {
         </svg>
         {{ strings.deploy }}
       </button>
+      <label
+        class="testing-env__force-oldev"
+        :title="strings.forceOldevHint"
+      >
+        <input
+          v-model="forceOldev"
+          type="checkbox"
+          class="testing-env__force-oldev-input"
+        >
+        {{ strings.forceOldev }}
+      </label>
       <button
         type="button"
         class="testing-env__btn"

@@ -43,6 +43,16 @@ class ActivePRsRequest(PRsRequest):
     active: bool
 
 
+class DeployRequest(BaseModel):
+    force_oldev_rebuild: bool = False
+
+
+# Module-level so the endpoint default doesn't call a function in an argument
+# default (ruff B008); a defaulted body keeps bodyless POSTs (e.g. a bare
+# curl deploy) working.
+_EMPTY_DEPLOY_REQUEST = DeployRequest()
+
+
 @router.get("/status/testing.json", response_model=TestingStatus)
 async def testing_status() -> TestingStatus:
     """Return the testing environment status backing the /status deploy table.
@@ -104,6 +114,11 @@ def refresh_status() -> dict[str, bool]:
 
 
 @router.post("/status/deploy")
-async def deploy_status() -> dict[str, bool | str]:
-    """Deploy the staged testing-environment changes."""
-    return await deploy_testing_status()
+async def deploy_status(data: DeployRequest = _EMPTY_DEPLOY_REQUEST) -> dict[str, bool | str]:
+    """Deploy the staged testing-environment changes.
+
+    ``force_oldev_rebuild`` sets the pipeline's FORCE_OLDEV_REBUILD parameter,
+    so the oldev Docker image is rebuilt even when the pipeline's diff checks
+    would skip it.
+    """
+    return await deploy_testing_status(force_oldev=data.force_oldev_rebuild)
