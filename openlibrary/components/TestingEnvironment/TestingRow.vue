@@ -105,9 +105,10 @@ function text(key, ...args) {
         </span>
         <a
           class="testing-env__pr-title"
+          :class="{ 'testing-env__pr-title--draft': pr.draft }"
           :href="prUrl"
           :title="pr.title"
-        >{{ pr.title }}<template v-if="pr.draft"> ({{ strings.draft }})</template></a>
+        >{{ pr.draft ? `[${strings.draft}] ` : '' }}{{ pr.title }}</a>
       </div>
     </td>
     <td class="testing-env__col-person">
