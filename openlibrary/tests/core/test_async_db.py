@@ -22,10 +22,12 @@ class FakePool:
     async def check_connection(conn):
         pass
 
-    def __init__(self, conninfo, kwargs=None, open=None, check=None):
+    def __init__(self, conninfo, kwargs=None, open=None, check=None, min_size=None, max_size=None):
         self.conninfo = conninfo
         self.kwargs = kwargs
         self.check = check
+        self.min_size = min_size
+        self.max_size = max_size
         self.opened = False
         self.closed = False
         self.connections = []
@@ -124,6 +126,8 @@ async def test_init_pool_creates_and_opens_pool():
     assert pool.conninfo == "dbname=openlibrary user=openlibrary password=''"
     assert "row_factory" in pool.kwargs
     assert pool.check is FakePool.check_connection
+    assert pool.min_size == 4
+    assert pool.max_size == 20
 
 
 @pytest.mark.asyncio
