@@ -306,19 +306,21 @@ def test_load_testing_status_async_wires_merge_conflicts():
     assert result.prs[0].merge_conflict is True
 
 
-def test_load_testing_status_returns_none_without_state():
+@pytest.mark.asyncio
+async def test_load_testing_status_returns_none_without_state():
     with patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=None):
-        assert status_module.load_testing_status() is None
+        assert await status_module.load_testing_status_async() is None
 
 
-def test_load_testing_status_composes_state_and_drift():
+@pytest.mark.asyncio
+async def test_load_testing_status_composes_state_and_drift():
     state = _make_state()
     drift_info = {state.prs[0].pr: {"head_sha": "abc1234", "drift": 2, "merged": False}}
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", return_value=(drift_info, False)),
     ):
-        result = status_module.load_testing_status()
+        result = await status_module.load_testing_status_async()
 
     assert result.prs[0].drift == 2
 
@@ -414,7 +416,8 @@ def test_pr_drift_distinguishes_closed_from_merged():
     assert info["merged"] is True
 
 
-def test_deploy_drops_closed_prs():
+@pytest.mark.asyncio
+async def test_deploy_drops_closed_prs():
     """Deploying removes closed (not merged) PRs from the set, like merged ones."""
     pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
     state = _make_state(prs=[pr])
@@ -422,7 +425,7 @@ def test_deploy_drops_closed_prs():
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
-            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            "openlibrary.plugins.openlibrary.status._get_drift_info_async",
             return_value=({pr.pr: {"head_sha": "", "drift": 0, "merged": False, "closed": True}}, False),
         ),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
@@ -430,12 +433,13 @@ def test_deploy_drops_closed_prs():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        status_module.deploy_testing_status()
+        await status_module.deploy_testing_status()
 
     assert state.prs == []
 
 
-def test_deploy_drops_staged_removals():
+@pytest.mark.asyncio
+async def test_deploy_drops_staged_removals():
     """Deploying deletes rows whose removal is staged; the rest survive."""
     doomed = _make_pr(added_at="2026-08-01T10:00:00+00:00")
     doomed.pending_remove = True
@@ -445,13 +449,13 @@ def test_deploy_drops_staged_removals():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", return_value=({}, False)),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        status_module.deploy_testing_status()
+        await status_module.deploy_testing_status()
 
     assert [p.pr for p in state.prs] == [13238]
     assert state.deployed == {13238: survivor.title}
@@ -749,7 +753,8 @@ async def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
     assert pr.pull_latest_sha == ""
 
 
-def test_deploy_unconfigured_answers_error_but_advances_state():
+@pytest.mark.asyncio
+async def test_deploy_unconfigured_answers_error_but_advances_state():
     """Local dev (no Jenkins token): state advances so the UI is exercisable,
     but the response says nothing was actually deployed."""
     state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
@@ -757,13 +762,13 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", return_value=({}, False)),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        response = status_module.deploy_testing_status()
+        response = await status_module.deploy_testing_status()
 
     assert response == {"ok": False, "error": "deploy_unconfigured"}
     # No build was accepted, so no deploy window starts…
@@ -772,37 +777,41 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
     assert state.deployed == {13269: "Test PR"}
 
 
-def test_get_pr_info_raises_not_found_when_github_reports_no_such_pr():
+@pytest.mark.asyncio
+async def test_get_pr_info_raises_not_found_when_github_reports_no_such_pr():
     """A null GraphQL node is a missing PR, not an outage."""
     with (
         patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._github_graphql_async", return_value={"repository": {"pr_12914": None}}),
         pytest.raises(status_module.PRNotFoundError),
     ):
-        status_module._get_pr_info(12914)
+        await status_module._get_pr_info_async(12914)
 
 
-def test_get_pr_info_raises_unavailable_when_github_cannot_answer():
+@pytest.mark.asyncio
+async def test_get_pr_info_raises_unavailable_when_github_cannot_answer():
     """A GraphQL failure stays distinguishable from a missing PR."""
     with (
         patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._github_graphql_async", side_effect=status_module.GitHubUnavailableError("rate limited")),
         pytest.raises(status_module.GitHubUnavailableError),
     ):
-        status_module._get_pr_info(12914)
+        await status_module._get_pr_info_async(12914)
 
 
-def test_get_pr_info_raises_unavailable_on_bad_graphql_body():
+@pytest.mark.asyncio
+async def test_get_pr_info_raises_unavailable_on_bad_graphql_body():
     """A malformed GraphQL PR node is an outage, not an absence."""
     with (
         patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._github_graphql_async", return_value={"repository": {"pr_12914": {"title": "no headRefOid"}}}),
         pytest.raises(status_module.GitHubUnavailableError),
     ):
-        status_module._get_pr_info(12914)
+        await status_module._get_pr_info_async(12914)
 
 
-def test_get_pr_info_returns_only_valid_data_on_success():
+@pytest.mark.asyncio
+async def test_get_pr_info_returns_only_valid_data_on_success():
     """GraphQL fields map to the existing metadata DTO, including draft."""
     body = _graphql_pr(12914, draft=True)
     body["assignees"] = {"nodes": []}
@@ -810,7 +819,7 @@ def test_get_pr_info_returns_only_valid_data_on_success():
         patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._github_graphql_async", return_value={"repository": {"pr_12914": body}}),
     ):
-        info = status_module._get_pr_info(12914)
+        info = await status_module._get_pr_info_async(12914)
 
     assert info == status_module.GitHubPRInfo(
         pr=12914,
@@ -822,7 +831,8 @@ def test_get_pr_info_returns_only_valid_data_on_success():
     )
 
 
-def test_get_pr_info_falls_back_when_the_title_is_empty():
+@pytest.mark.asyncio
+async def test_get_pr_info_falls_back_when_the_title_is_empty():
     """GitHub always sends a title, but an empty one shouldn't render a blank row."""
     body = _graphql_pr(12914)
     body["title"] = ""
@@ -831,7 +841,7 @@ def test_get_pr_info_falls_back_when_the_title_is_empty():
         patch("openlibrary.plugins.openlibrary.status._has_github_token", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._github_graphql_async", return_value={"repository": {"pr_12914": body}}),
     ):
-        info = status_module._get_pr_info(12914)
+        info = await status_module._get_pr_info_async(12914)
 
     assert info.title == "PR #12914"
 
@@ -855,7 +865,8 @@ def test_from_github_builds_a_row_from_the_lookup():
     assert pr.pull_latest_sha == ""
 
 
-def test_deploy_failure_never_persists_staged_changes():
+@pytest.mark.asyncio
+async def test_deploy_failure_never_persists_staged_changes():
     """A failed Jenkins trigger must not write staged changes to disk.
 
     Regression: status_deploy used to call _get_drift_info(state) after staging
@@ -869,7 +880,7 @@ def test_deploy_failure_never_persists_staged_changes():
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
-            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            "openlibrary.plugins.openlibrary.status._get_drift_info_async",
             return_value=(
                 {13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
                 False,
@@ -878,7 +889,7 @@ def test_deploy_failure_never_persists_staged_changes():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="failed"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        response = status_module.deploy_testing_status()
+        response = await status_module.deploy_testing_status()
 
     assert response == {"ok": False, "error": "deploy_failed"}
     # The drift read is a read, not a commit: it must not persist.
@@ -886,7 +897,8 @@ def test_deploy_failure_never_persists_staged_changes():
     mock_save.assert_not_called()
 
 
-def test_deploy_success_applies_staged_changes_then_saves_once():
+@pytest.mark.asyncio
+async def test_deploy_success_applies_staged_changes_then_saves_once():
     """A successful trigger lands the staged pins/toggles and saves exactly once."""
     state = _make_deploy_state()
     pinned, toggled = state.prs
@@ -895,7 +907,7 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
-            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            "openlibrary.plugins.openlibrary.status._get_drift_info_async",
             return_value=(
                 {13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
                 False,
@@ -906,7 +918,7 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        response = status_module.deploy_testing_status()
+        response = await status_module.deploy_testing_status()
 
     assert response == {"ok": True}
     # Pin applied and consumed.
@@ -922,7 +934,8 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
     mock_save.assert_called_once_with(state)
 
 
-def test_deploy_records_who_clicked_it():
+@pytest.mark.asyncio
+async def test_deploy_records_who_clicked_it():
     """A deploy records the OL username of the maintainer who clicked it."""
     state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
     user = MagicMock()
@@ -931,13 +944,13 @@ def test_deploy_records_who_clicked_it():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", return_value=({}, False)),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=user),
     ):
-        status_module.deploy_testing_status()
+        await status_module.deploy_testing_status()
 
     assert state.deployed_by == "mecha-kraken"
 
@@ -1537,7 +1550,7 @@ def test_deploy_status_endpoint_requires_auth(fastapi_client):
 
 def test_deploy_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.deploy_testing_status", return_value={"ok": True}) as mock:
+    with patch("openlibrary.fastapi.status.deploy_testing_status", new_callable=AsyncMock, return_value={"ok": True}) as mock:
         response = fastapi_client.post("/status/deploy", json={})
 
     assert response.status_code == 200

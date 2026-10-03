@@ -21,7 +21,7 @@ from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, trigger_rebuild
 from openlibrary.utils import get_software_version
-from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
+from openlibrary.utils.async_utils import cache_per_event_loop
 
 status_info: dict[str, Any] = {}
 
@@ -154,7 +154,7 @@ async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
     return {"ok": True}
 
 
-def deploy_testing_status() -> dict[str, bool | str]:
+async def deploy_testing_status() -> dict[str, bool | str]:
     """Apply staged changes and trigger a testing deploy."""
     state = _load_testing_state()
     if not state:
@@ -162,7 +162,7 @@ def deploy_testing_status() -> dict[str, bool | str]:
     # Drop staged removals and merged/closed PRs on the unmutated state. The
     # drift metadata refresh must not write staged changes before Jenkins
     # accepts the build.
-    drift_info, _ = _get_drift_info(state, persist=False)
+    drift_info, _ = await _get_drift_info_async(state, persist=False)
     state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
     # Apply all pending changes before deploying.
     for p in state.prs:
@@ -595,8 +595,7 @@ async def load_testing_status_async() -> TestingStatus | None:
     """Load the state file and live drift info; None if there is no state file.
 
     Async so the FastAPI endpoint can await it: the GitHub drift fetch below
-    runs on the event loop instead of blocking it. Sync callers use the
-    ``load_testing_status`` bridge wrapper instead.
+    runs on the event loop instead of blocking it.
     """
     if (state := _load_testing_state()) is None:
         return None
@@ -863,54 +862,6 @@ def _parse_pr_drift(pr: TestingPR, payload: dict | None) -> dict:
         return _unknown_pr_drift()
 
 
-async def _get_pr_drift_async(pr: TestingPR) -> dict:
-    """Fetch live drift info + metadata for a PR from GitHub.
-
-    Returns head_sha, drift, merged plus title/author/assignee so callers can
-    refresh state without a second API call.
-    """
-    try:
-        gh = await _github_get_async(f"pulls/{pr.pr}")
-        head_sha = gh["head"]["sha"]
-        merged = bool(gh.get("merged") or gh.get("merged_at"))
-        stored = pr.commit.strip()
-        if head_sha == stored or (len(stored) < 40 and head_sha.startswith(stored)):
-            drift = 0
-        else:
-            try:
-                cmp = await _github_get_async(f"compare/{stored}...{head_sha}")
-                drift = cmp.get("ahead_by", -1)
-            except httpx.HTTPError, ValueError:
-                drift = -1
-        user = gh.get("user") or {}
-        assignee = gh.get("assignee") or {}
-        return {
-            "head_sha": head_sha[:7],
-            "drift": drift,
-            "merged": merged,
-            "closed": gh.get("state") == "closed" and not merged,
-            "title": gh.get("title", f"PR #{pr.pr}"),
-            "author": user.get("login", ""),
-            "author_avatar": user.get("avatar_url", ""),
-            "assignee": assignee.get("login", ""),
-            "assignee_avatar": assignee.get("avatar_url", ""),
-            "draft": bool(gh.get("draft", False)),
-        }
-    except httpx.HTTPError, KeyError, ValueError:
-        return {
-            "head_sha": "",
-            "drift": -1,
-            "merged": False,
-            "closed": False,
-            "title": "",
-            "author": "",
-            "author_avatar": "",
-            "assignee": "",
-            "assignee_avatar": "",
-            "draft": None,
-        }
-
-
 async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
     """Return (drift_dict, from_cache). Checks memcache first; fetches GitHub on miss.
 
@@ -1025,13 +976,52 @@ async def _get_pr_info_async(pr_number: int) -> GitHubPRInfo:
         raise GitHubUnavailableError(f"Could not fetch PR #{pr_number}") from e
 
 
-# Sync bridge wrappers: the remaining web.py action handlers reach the async
-# implementations above through AsyncBridge's background event loop instead of
-# duplicating them. FastAPI should call the ``*_async`` versions directly and
-# await them (see openlibrary/utils/async_utils.py).
-_get_pr_info = async_bridge.wrap(_get_pr_info_async)
-_get_drift_info = async_bridge.wrap(_get_drift_info_async)
-load_testing_status = async_bridge.wrap(load_testing_status_async)
+async def _get_pr_drift_async(pr: TestingPR) -> dict:
+    """Fetch live drift info + metadata for a PR from GitHub.
+
+    Returns head_sha, drift, merged plus title/author/assignee so callers can
+    refresh state without a second API call.
+    """
+    try:
+        gh = await _github_get_async(f"pulls/{pr.pr}")
+        head_sha = gh["head"]["sha"]
+        merged = bool(gh.get("merged") or gh.get("merged_at"))
+        stored = pr.commit.strip()
+        if head_sha == stored or (len(stored) < 40 and head_sha.startswith(stored)):
+            drift = 0
+        else:
+            try:
+                cmp = await _github_get_async(f"compare/{stored}...{head_sha}")
+                drift = cmp.get("ahead_by", -1)
+            except httpx.HTTPError, ValueError:
+                drift = -1
+        user = gh.get("user") or {}
+        assignee = gh.get("assignee") or {}
+        return {
+            "head_sha": head_sha[:7],
+            "drift": drift,
+            "merged": merged,
+            "closed": gh.get("state") == "closed" and not merged,
+            "title": gh.get("title", f"PR #{pr.pr}"),
+            "author": user.get("login", ""),
+            "author_avatar": user.get("avatar_url", ""),
+            "assignee": assignee.get("login", ""),
+            "assignee_avatar": assignee.get("avatar_url", ""),
+            "draft": bool(gh.get("draft", False)),
+        }
+    except httpx.HTTPError, KeyError, ValueError:
+        return {
+            "head_sha": "",
+            "drift": -1,
+            "merged": False,
+            "closed": False,
+            "title": "",
+            "author": "",
+            "author_avatar": "",
+            "assignee": "",
+            "assignee_avatar": "",
+            "draft": None,
+        }
 
 
 @public

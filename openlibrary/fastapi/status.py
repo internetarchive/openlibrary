@@ -104,6 +104,6 @@ def refresh_status() -> dict[str, bool]:
 
 
 @router.post("/status/deploy")
-def deploy_status() -> dict[str, bool | str]:
+async def deploy_status() -> dict[str, bool | str]:
     """Deploy the staged testing-environment changes."""
-    return deploy_testing_status()
+    return await deploy_testing_status()
