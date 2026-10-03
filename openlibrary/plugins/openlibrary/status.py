@@ -143,7 +143,7 @@ async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
 
     async def get_info(pr: TestingPR) -> tuple[TestingPR, GitHubPRInfo | None]:
         try:
-            return pr, await _get_pr_info_async(pr.pr)
+            return pr, await _get_pr_info(pr.pr)
         except GitHubAPIError:
             return pr, None
 
@@ -162,7 +162,7 @@ async def deploy_testing_status() -> dict[str, bool | str]:
     # Drop staged removals and merged/closed PRs on the unmutated state. The
     # drift metadata refresh must not write staged changes before Jenkins
     # accepts the build.
-    drift_info, _ = await _get_drift_info_async(state, persist=False)
+    drift_info, _ = await _get_drift_info(state, persist=False)
     state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
     # Apply all pending changes before deploying.
     for p in state.prs:
@@ -359,7 +359,7 @@ class GitHubPRInfo(BaseModel):
     """The PR metadata fetched from GitHub.
 
     A transport shape, not persisted state: it carries only what GitHub
-    reports, so a value here is always real data (``_get_pr_info_async`` raises
+    reports, so a value here is always real data (``_get_pr_info`` raises
     rather than returning placeholders).
     """
 
@@ -591,7 +591,7 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
     )
 
 
-async def load_testing_status_async() -> TestingStatus | None:
+async def load_testing_status() -> TestingStatus | None:
     """Load the state file and live drift info; None if there is no state file.
 
     Async so the FastAPI endpoint can await it: the GitHub drift fetch below
@@ -599,7 +599,7 @@ async def load_testing_status_async() -> TestingStatus | None:
     """
     if (state := _load_testing_state()) is None:
         return None
-    drift_info, _ = await _get_drift_info_async(state)
+    drift_info, _ = await _get_drift_info(state)
     return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
 
 
@@ -648,7 +648,7 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
         if pr_number in existing:
             continue
         try:
-            info = await _get_pr_info_async(pr_number)
+            info = await _get_pr_info(pr_number)
         except PRNotFoundError:
             failed[pr_number] = "not_found"
             continue
@@ -736,7 +736,7 @@ def _has_github_token() -> bool:
     return bool(getattr(config, "github_api_token", None))
 
 
-async def _github_get_async(path: str) -> dict:
+async def _github_get(path: str) -> dict:
     """GET a GitHub API path; raises httpx.HTTPError (network or non-2xx) on failure."""
     url = f"{_GITHUB_API_BASE}/{path}"
     headers = {
@@ -762,7 +762,7 @@ def _build_pr_query(pr_numbers: list[int]) -> str:
     return f'query GitHubPRStatus {{ repository(owner: "internetarchive", name: "openlibrary") {{ {prs} }} }}'
 
 
-async def _github_graphql_async(query: str) -> dict:
+async def _github_graphql(query: str) -> dict:
     """POST a GitHub GraphQL query and return its data payload."""
     headers = {
         "Accept": "application/vnd.github+json",
@@ -790,11 +790,11 @@ async def _github_graphql_async(query: str) -> dict:
     return body["data"]
 
 
-async def _fetch_prs_graphql_async(pr_numbers: list[int]) -> dict[int, dict | None]:
+async def _fetch_prs_graphql(pr_numbers: list[int]) -> dict[int, dict | None]:
     """Fetch metadata and drift inputs for all requested PRs in one request."""
     if not pr_numbers:
         return {}
-    data = await _github_graphql_async(_build_pr_query(pr_numbers))
+    data = await _github_graphql(_build_pr_query(pr_numbers))
     repository = data.get("repository")
     if not isinstance(repository, dict):
         raise GitHubUnavailableError("GitHub GraphQL response had no repository")
@@ -862,7 +862,7 @@ def _parse_pr_drift(pr: TestingPR, payload: dict | None) -> dict:
         return _unknown_pr_drift()
 
 
-async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
+async def _get_drift_info(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
     """Return (drift_dict, from_cache). Checks memcache first; fetches GitHub on miss.
 
     Keys are int PR numbers. JSON round-trip via memcache stringifies keys, so we
@@ -885,12 +885,12 @@ async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tu
     state_changed = False
     if _has_github_token():
         try:
-            payloads = await _fetch_prs_graphql_async([p.pr for p in state.prs])
+            payloads = await _fetch_prs_graphql([p.pr for p in state.prs])
         except GitHubAPIError:
             payloads = {}
         infos = [_parse_pr_drift(p, payloads.get(p.pr)) for p in state.prs]
     else:
-        infos = await asyncio.gather(*(_get_pr_drift_async(p) for p in state.prs))
+        infos = await asyncio.gather(*(_get_pr_drift(p) for p in state.prs))
     for p, info in zip(state.prs, infos):
         drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged", "closed")}
         for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar", "draft"):
@@ -916,7 +916,7 @@ def _extend_drift_cache(new_prs: dict[int, GitHubPRInfo]) -> None:
     over GitHub — the cost is in the fan-out, not the added row. Each new PR is
     pinned to its current head, so its drift is already known: 0 behind, not
     merged. ``merged``/``closed`` are defaults rather than observations —
-    ``_get_pr_info_async`` doesn't report them — and the next fetch replaces
+    ``_get_pr_info`` doesn't report them — and the next fetch replaces
     them within ``_DRIFT_CACHE_TTL``, the same staleness window every other
     cached row already lives with.
 
@@ -937,7 +937,7 @@ def _extend_drift_cache(new_prs: dict[int, GitHubPRInfo]) -> None:
     mc.set(_DRIFT_CACHE_KEY, cached, expires=_DRIFT_CACHE_TTL)
 
 
-async def _get_pr_info_async(pr_number: int) -> GitHubPRInfo:
+async def _get_pr_info(pr_number: int) -> GitHubPRInfo:
     """Fetch title, HEAD SHA, author, and assignee for a PR from GitHub.
 
     Raises ``PRNotFoundError`` on a 404 and ``GitHubUnavailableError`` for rate
@@ -946,7 +946,7 @@ async def _get_pr_info_async(pr_number: int) -> GitHubPRInfo:
     """
     if _has_github_token():
         try:
-            payload = (await _fetch_prs_graphql_async([pr_number]))[pr_number]
+            payload = (await _fetch_prs_graphql([pr_number]))[pr_number]
             if payload is None:
                 raise PRNotFoundError(f"PR #{pr_number} not found")
             return _parse_pr_info(pr_number, payload)
@@ -955,7 +955,7 @@ async def _get_pr_info_async(pr_number: int) -> GitHubPRInfo:
         except (AttributeError, KeyError, TypeError, ValueError) as e:
             raise GitHubUnavailableError(f"Could not fetch PR #{pr_number}") from e
     try:
-        pr = await _github_get_async(f"pulls/{pr_number}")
+        pr = await _github_get(f"pulls/{pr_number}")
         user = pr.get("user") or {}
         assignee = pr.get("assignee") or {}
         return GitHubPRInfo(
@@ -976,14 +976,14 @@ async def _get_pr_info_async(pr_number: int) -> GitHubPRInfo:
         raise GitHubUnavailableError(f"Could not fetch PR #{pr_number}") from e
 
 
-async def _get_pr_drift_async(pr: TestingPR) -> dict:
+async def _get_pr_drift(pr: TestingPR) -> dict:
     """Fetch live drift info + metadata for a PR from GitHub.
 
     Returns head_sha, drift, merged plus title/author/assignee so callers can
     refresh state without a second API call.
     """
     try:
-        gh = await _github_get_async(f"pulls/{pr.pr}")
+        gh = await _github_get(f"pulls/{pr.pr}")
         head_sha = gh["head"]["sha"]
         merged = bool(gh.get("merged") or gh.get("merged_at"))
         stored = pr.commit.strip()
@@ -991,7 +991,7 @@ async def _get_pr_drift_async(pr: TestingPR) -> dict:
             drift = 0
         else:
             try:
-                cmp = await _github_get_async(f"compare/{stored}...{head_sha}")
+                cmp = await _github_get(f"compare/{stored}...{head_sha}")
                 drift = cmp.get("ahead_by", -1)
             except httpx.HTTPError, ValueError:
                 drift = -1
