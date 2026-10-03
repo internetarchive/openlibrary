@@ -89,6 +89,26 @@ async def test_init_pool_skips_without_db_config():
 
 
 @pytest.mark.asyncio
+async def test_init_pool_skips_when_psycopg_not_installed():
+    """When psycopg/psycopg_pool aren't installed, _open_pool returns None
+    and logs a warning instead of crashing the app."""
+    web.config.db_parameters = {"dbn": "postgres", "db": "openlibrary", "user": "openlibrary"}
+    with patch("openlibrary.core.async_db.AsyncConnectionPool", None):
+        await async_db.init_pool()
+    assert async_db.get_pool() is None
+
+
+@pytest.mark.asyncio
+async def test_connection_raises_when_psycopg_not_installed():
+    """connection() raises RuntimeError (not ModuleNotFoundError) when the
+    pool can't be created because psycopg isn't installed."""
+    web.config.db_parameters = {"dbn": "postgres", "db": "openlibrary", "user": "openlibrary"}
+    with patch("openlibrary.core.async_db.AsyncConnectionPool", None), pytest.raises(RuntimeError, match="No async database pool available"):
+        async with async_db.connection():
+            pass
+
+
+@pytest.mark.asyncio
 async def test_init_pool_creates_and_opens_pool():
     web.config.db_parameters = {
         "dbn": "postgres",

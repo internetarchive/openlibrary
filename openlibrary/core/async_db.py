@@ -35,17 +35,28 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any, cast
 
 import web
-from psycopg.conninfo import make_conninfo
-from psycopg.rows import dict_row
-from psycopg_pool import AsyncConnectionPool
-
-if TYPE_CHECKING:
-    from psycopg import AsyncConnection
 
 logger = logging.getLogger("openlibrary.async_db")
 
+# psycopg/psycopg_pool may not be installed in every environment (e.g. a
+# minimal Docker image that doesn't need async DB access). Keep the module
+# importable without them; _open_pool() returns None and logs a warning when
+# they're missing, so only endpoints that actually call connection() fail --
+# the rest of the app keeps working.
+try:
+    from psycopg.conninfo import make_conninfo
+    from psycopg.rows import dict_row
+    from psycopg_pool import AsyncConnectionPool
+except ModuleNotFoundError:
+    make_conninfo = None  # type: ignore[assignment]
+    dict_row = None  # type: ignore[assignment]
+    AsyncConnectionPool = None  # type: ignore
+
 if TYPE_CHECKING:
-    Pool = AsyncConnectionPool[AsyncConnection[dict[str, Any]]]
+    from psycopg import AsyncConnection
+    from psycopg_pool import AsyncConnectionPool as _PoolClass
+
+    Pool = _PoolClass[AsyncConnection[dict[str, Any]]]
     PoolMap = weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, Pool]
 
 _pools: PoolMap = weakref.WeakKeyDictionary()
@@ -80,6 +91,9 @@ async def _open_pool() -> Pool | None:
     db_parameters = getattr(web.config, "db_parameters", None) or {}
     if not db_parameters.get("db"):
         logger.info("db_parameters not configured; skipping async pool creation")
+        return None
+    if AsyncConnectionPool is None:
+        logger.warning("psycopg/psycopg_pool not installed; async DB pool unavailable. Install with: pip install 'psycopg[binary,pool]'")
         return None
 
     pool = cast(
