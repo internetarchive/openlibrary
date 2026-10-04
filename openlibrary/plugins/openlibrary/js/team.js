@@ -1,7 +1,72 @@
 import team from '../../../templates/about/team.json';
 import { updateURLParameters } from './utils';
+
+// ********************************* Pure helpers (role-history schema) *********************************
+// A person's `roles` is a history list, most-recent first. Each entry is an object:
+//   { kind: 'staff'|'fellow'|'volunteer', status?: 'active'|'emeritus',
+//     title?, department?, lead?, program?, start?: year, end?: year|null }
+// `end: null` means the role is ongoing. Section placement is derived from these objects.
+
+// null (ongoing role) and undefined (field absent) are treated alike.
+const isNil = (value) => value === null || value === undefined;
+
+export const hasKind = (person, kind) =>
+    (person.roles || []).some((role) => role.kind === kind);
+
+export const isStaff = (person) => hasKind(person, 'staff');
+
+// Fellows exclude anyone who became staff; volunteers exclude anyone who became a fellow.
+export const isFellow = (person) =>
+    hasKind(person, 'fellow') && !hasKind(person, 'staff');
+
+export const isVolunteer = (person) =>
+    hasKind(person, 'volunteer') && !hasKind(person, 'fellow');
+
+export const isStaffEmeritus = (person) =>
+    isStaff(person) &&
+    (person.roles || []).some(
+        (role) => role.kind === 'staff' && role.status === 'emeritus'
+    );
+
+export const isCurrentFellow = (person, year) =>
+    isFellow(person) &&
+    (person.roles || []).some(
+        (role) => role.kind === 'fellow' && (isNil(role.end) || role.end === year)
+    );
+
+// Every calendar year a person held any role, for the Year facet.
+export const roleYears = (person, currentYear) => {
+    const years = new Set();
+    (person.roles || []).forEach((role) => {
+        if (isNil(role.start)) return;
+        const end = isNil(role.end) ? currentYear : role.end;
+        for (let y = role.start; y <= end; y++) {
+            years.add(y);
+        }
+    });
+    return years;
+};
+
+export const personMatchesYear = (person, year, currentYear) =>
+    year === 'All' || roleYears(person, currentYear).has(Number(year));
+
+// Substring match preserved for departments (string list); '' matches everything.
+const matchDepartment = (person, department) =>
+    (person.departments || []).some((d) => d.includes(department));
+
+export const classifyTeam = (people, year) => {
+    const staff = people.filter(isStaff);
+    return {
+        staffCurrent: staff.filter((p) => !isStaffEmeritus(p)),
+        staffEmeritus: staff.filter(isStaffEmeritus),
+        currentFellows: people.filter((p) => isCurrentFellow(p, year)),
+        pastFellows: people.filter((p) => isFellow(p) && !isCurrentFellow(p, year)),
+        volunteers: people.filter(isVolunteer),
+    };
+};
+
 export function initTeamFilter() {
-    const currentYear = new Date().getFullYear().toString();
+    const currentYear = new Date().getFullYear();
     // Photos
     const default_profile_image =
     '../../../static/images/openlibrary-180x180.png';
@@ -29,40 +94,9 @@ export function initTeamFilter() {
     };
     sortByLastName(team);
 
-    // Match a substring in each person's role
-    const matchSubstring = (array, substring) => {
-        return array.some((item) => item.includes(substring));
-    };
-
     // *************************************** Team sorted by role ***************************************
-    // ********** STAFF **********
-    const staff = team.filter((person) => matchSubstring(person.roles, 'staff'));
-    const staffEmeritus = staff.filter((person) =>
-        matchSubstring(person.roles, 'emeritus')
-    );
-    const staffCurrent = staff.filter(
-        (person) => !matchSubstring(person.roles, 'emeritus')
-    );
-
-    // ********** FELLOWS **********
-    const fellows = team.filter(
-        (person) =>
-            matchSubstring(person.roles, 'fellow') &&
-      !matchSubstring(person.roles, 'staff')
-    );
-    const currentFellows = fellows.filter((person) =>
-        matchSubstring(person.roles, currentYear)
-    );
-    const pastFellows = fellows.filter(
-        (person) => !matchSubstring(person.roles, currentYear)
-    );
-
-    // ********** VOLUNTEERS **********
-    const volunteers = team.filter(
-        (person) =>
-            matchSubstring(person.roles, 'volunteer') &&
-      !matchSubstring(person.roles, 'fellow')
-    );
+    const { staffCurrent, staffEmeritus, currentFellows, pastFellows, volunteers } =
+    classifyTeam(team, currentYear);
 
     // *************************************** Selectors and eventListeners ***************************************
     const roleFilter = document.getElementById('role');
@@ -106,8 +140,6 @@ export function initTeamFilter() {
             const teamCardDescription = document.createElement('div');
             const memberOlLink = document.createElement('a');
             const memberName = document.createElement('h2');
-            // const memberRole = document.createElement('h4');
-            // const memberDepartment = document.createElement('h3');
             const memberTitle = document.createElement('h3');
 
             const descriptionLinks = document.createElement('div');
@@ -121,6 +153,7 @@ export function initTeamFilter() {
             teamCardPhoto.src = `${
                 member.photo_path ? member.photo_path : default_profile_image
             }`;
+            teamCardPhoto.alt = member.name;
 
             teamCardDescription.classList.add('teamCard__description');
             if (member.ol_key) {
@@ -164,8 +197,6 @@ export function initTeamFilter() {
             memberOlLink.append(memberName);
             teamCardDescription.append(
                 memberOlLink,
-                // memberRole,
-                // memberDepartment,
                 memberTitle,
                 descriptionLinks
             );
@@ -207,51 +238,28 @@ export function initTeamFilter() {
         }
         // ************************************* sort by department ***************************************
         else if (role === 'All' && department !== 'All') {
-            role = '';
-            const filteredTeam = team.filter(
-                (person) =>
-                    matchSubstring(person.roles, role) &&
-          matchSubstring(person.departments, department)
+            const filteredTeam = team.filter((person) =>
+                matchDepartment(person, department)
             );
 
-            const staff = filteredTeam.filter((person) =>
-                matchSubstring(person.roles, 'staff')
-            );
-            const staffEmeritus = staff.filter((person) =>
-                matchSubstring(person.roles, 'emeritus')
-            );
-            const staffCurrent = staff.filter(
-                (person) => !matchSubstring(person.roles, 'emeritus')
-            );
+            const groups = classifyTeam(filteredTeam, currentYear);
 
-            const fellows = filteredTeam.filter(
-                (person) =>
-                    matchSubstring(person.roles, 'fellow') &&
-          !matchSubstring(person.roles, 'staff')
-            );
-            const currentFellows = fellows.filter((person) =>
-                matchSubstring(person.roles, currentYear)
-            );
-            const pastFellows = fellows.filter(
-                (person) => !matchSubstring(person.roles, currentYear)
-            );
-
-            const volunteers = filteredTeam.filter(
-                (person) =>
-                    matchSubstring(person.roles, 'volunteer') &&
-          !matchSubstring(person.roles, 'fellow')
-            );
-
+            const staff = filteredTeam.filter(isStaff);
             staff.length && createSectionHeading('Staff');
-            staffCurrent.length && createsubSection(staffCurrent, 'Current');
-            staffEmeritus.length && createsubSection(staffEmeritus, 'Emeritus');
+            groups.staffCurrent.length &&
+        createsubSection(groups.staffCurrent, 'Current');
+            groups.staffEmeritus.length &&
+        createsubSection(groups.staffEmeritus, 'Emeritus');
 
+            const fellows = filteredTeam.filter(isFellow);
             fellows.length && createSectionHeading('Fellows');
-            currentFellows.length && createsubSection(currentFellows, 'Current');
-            pastFellows.length && createsubSection(pastFellows, 'Past');
+            groups.currentFellows.length &&
+        createsubSection(groups.currentFellows, 'Current');
+            groups.pastFellows.length &&
+        createsubSection(groups.pastFellows, 'Past');
 
-            volunteers.length && createSectionHeading('Volunteers');
-            createCards(volunteers);
+            groups.volunteers.length && createSectionHeading('Volunteers');
+            createCards(groups.volunteers);
         }
         // ****************************** sort by role and/or department *******************************
         else {
@@ -259,17 +267,17 @@ export function initTeamFilter() {
             createSectionHeading(capitalize(role));
             if (role === 'volunteer') {
                 const filteredVolunteers = volunteers.filter((person) =>
-                    matchSubstring(person.departments, department)
+                    matchDepartment(person, department)
                 );
                 filteredVolunteers.length !== 0
                     ? createCards(filteredVolunteers)
                     : showError();
             } else if (role === 'staff') {
                 const filteredCurrentStaff = staffCurrent.filter((person) =>
-                    matchSubstring(person.departments, department)
+                    matchDepartment(person, department)
                 );
                 const filteredStaffEmeritus = staffEmeritus.filter((person) =>
-                    matchSubstring(person.departments, department)
+                    matchDepartment(person, department)
                 );
                 filteredCurrentStaff.length &&
           createsubSection(filteredCurrentStaff, 'Current');
@@ -280,10 +288,10 @@ export function initTeamFilter() {
           showError();
             } else {
                 const filteredCurrentFellows = currentFellows.filter((person) =>
-                    matchSubstring(person.departments, department)
+                    matchDepartment(person, department)
                 );
                 const filteredPastFellows = pastFellows.filter((person) =>
-                    matchSubstring(person.departments, department)
+                    matchDepartment(person, department)
                 );
                 filteredCurrentFellows.length &&
           createsubSection(filteredCurrentFellows, 'Current');
@@ -306,15 +314,5 @@ export function initTeamFilter() {
     };
 
     // on page load
-    createSectionHeading('Staff');
-    createsubSection(staffCurrent, 'Current');
-    createsubSection(staffEmeritus, 'Emeritus');
-
-    createSectionHeading('Fellows');
-    createsubSection(currentFellows, 'Current');
-    createsubSection(pastFellows, 'Past');
-
-    createSectionHeading('Volunteers');
-    createCards(volunteers);
     filterTeam(initialRole, initialDepartment);
 }
