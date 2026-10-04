@@ -25,6 +25,21 @@ check locally. To run it:
     SOLR_URL=http://localhost:8984/solr/openlibrary \\
     MOCKSERVICES_URL=http://localhost:8090 \\
     pytest scripts/solr_updater/tests/test_updater_integration.py
+
+Triaging a red run here. Both tests read a live mock whose state moves, so each
+has a race mode, and each names itself in its assertion message:
+
+* "the index reported nothing checked out" -- the mock's rolling window held no
+  checked-out identifier at the instant the seed was read.
+* "daemon completed cycles but wrote nothing" -- the feed emitted no followed
+  event inside its window, which the other test's docstring documents.
+
+Capture the assertion message before re-running, because a bare pass/fail count
+cannot tell you which. One failure of unknown identity was observed on
+2026-10-03 and never reproduced: 21 runs of this file against Solr 10.0.0 and
+mockservices, 20 green, including a dedicated 12-run batch afterwards that
+captured failure text and caught nothing. It is unexplained rather than benign
+-- a red here is worth reading, not worth re-running past.
 """
 
 import asyncio
