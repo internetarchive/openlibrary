@@ -718,7 +718,20 @@
     <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">title</str>
+      <!-- Build the dictionary from title_suggest, NOT title. DirectSolrSpellChecker
+           enumerates the *indexed terms* of this field, so the dictionary is only as
+           good as its analyzer. `title` is text_en_splitting, whose index analyzer
+           ends in porterStem, which made every dictionary entry a stem: "telivision"
+           was corrected to "televis" and "competiton" to "competit" (the highest
+           frequency stem, which is the wrong answer to offer a reader). Stems are
+           not words, so they make poor did-you-mean suggestions.
+
+           `title_suggest` is text_general (standard tokenizer, no stemmer) and is
+           already populated from title by a copyField, so it holds real whole words
+           with no reindex and no schema change. This only redirects the spellchecker:
+           title_suggest appears in no qf/pf/fq, so search matching and ranking are
+           unaffected. -->
+      <str name="field">title_suggest</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
       <str name="distanceMeasure">internal</str>
