@@ -5,11 +5,14 @@ import web
 
 from openlibrary.plugins.worksearch import code
 from openlibrary.plugins.worksearch.code import (
+    DidYouMean,
     SearchResponse,
     _get_readable_count,
     _prepare_solr_query_params,
     _primary_correction,
     build_corrected_query,
+    did_you_mean_link,
+    did_you_mean_search_url,
     find_did_you_mean_async,
     get_doc,
     process_facet,
@@ -623,10 +626,16 @@ class _StubSolr:
         return SearchResponse(facet_counts=None, sort="", docs=[], num_found=self.num_found, solr_select="/select")
 
 
-async def _run_dym(param, spellcheck, num_found):
+async def _run_dym(param, spellcheck, num_found, main_num_found=0):
+    """Run the did-you-mean decision.
+
+    `num_found` is what the *validation* query finds; `main_num_found` is what the
+    original search found, i.e. the Phase 5 zero-result gate. It defaults to 0 because
+    every candidate that reaches validation is, by that gate, a zero-result search.
+    """
     stub = _StubSolr(num_found)
     with patch.object(code, "run_solr_query_async", stub):
-        return await find_did_you_mean_async(param, spellcheck), stub
+        return await find_did_you_mean_async(param, spellcheck, main_num_found), stub
 
 
 @pytest.mark.asyncio
@@ -752,3 +761,171 @@ async def test_dym_rejected_candidate_leaves_the_search_response_untouched():
     # The spellcheck data itself is still there for a later phase to use.
     assert response.spellcheck is not None
     assert response.spellcheck.suggestions[0].original_token == "industril"
+
+
+# ---------------------------------------------------------------------------
+# Phase 5: the zero-result gate, and /search integration
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_dym_gate_skips_validation_when_the_search_found_results():
+    """Phase 5's central rule: a did-you-mean is only considered at zero results.
+
+    The gate must be decided *before* any Solr work, so a populated search page pays
+    nothing -- no correction lookup, no rows=0 validation query.
+    """
+    dym, stub = await _run_dym({"q": "industril applications"}, _spellcheck(_ONE_TYPO), 2888, main_num_found=42)
+
+    assert dym is None
+    # No validation query was issued at all, even though one would have matched.
+    assert stub.calls == []
+
+
+@pytest.mark.asyncio
+async def test_dym_gate_treats_a_missing_result_count_as_no_candidate():
+    """An errored search reports num_found=None; it must not become a candidate."""
+    dym, stub = await _run_dym({"q": "industril applications"}, _spellcheck(_ONE_TYPO), 2888, main_num_found=None)
+
+    assert dym is None
+    assert stub.calls == []
+
+
+@pytest.mark.asyncio
+async def test_dym_gate_lets_a_zero_result_search_through():
+    """The gate must not swallow the case it exists for."""
+    dym, stub = await _run_dym({"q": "industril applications"}, _spellcheck(_ONE_TYPO), 2888, main_num_found=0)
+
+    assert dym is not None
+    assert dym.corrected_query == "industrial applications"
+    assert len(stub.calls) == 1
+
+
+def _a_dym(param=None):
+    return DidYouMean(
+        original_query="industril applications",
+        corrected_query="industrial applications",
+        original_token="industril",
+        suggestion="industrial",
+        num_found=2888,
+    )
+
+
+def test_did_you_mean_search_url_keeps_the_users_filters():
+    """Following the suggestion must not silently drop the user's own filters."""
+    param = {"q": "industril applications", "language": ["eng", "spa"], "sort": "old", "page": ""}
+
+    url = did_you_mean_search_url(_a_dym(), param)
+
+    assert url.startswith("/search?")
+    assert "q=industrial+applications" in url
+    assert "language=eng" in url
+    assert "language=spa" in url
+    assert "sort=old" in url
+    # Empty params carry no meaning and are dropped rather than sent as "?page=".
+    assert "page=" not in url
+    # The user's misspelling is not left behind in the URL.
+    assert "industril" not in url
+
+
+def test_did_you_mean_link_escapes_the_corrected_query():
+    """The corrected query is derived from user input and lands in raw template output.
+
+    Templetor's `$:_()` does not escape, so did_you_mean_link owns escaping both halves.
+    """
+    dym = DidYouMean(
+        original_query="<script>alert(1)</script>",
+        corrected_query='<script>alert("xss")</script>',
+        original_token="script",
+        suggestion="scripts",
+        num_found=3,
+    )
+
+    link = did_you_mean_link(dym, {"q": dym.original_query})
+
+    assert "<script>" not in link
+    assert "&lt;script&gt;" in link
+    assert 'href="/search?q=%3Cscript%3E' in link
+
+
+def _run_search_page(monkeypatch, *, q, num_found, spellcheck, dym):
+    """Drive search.GET() and return what render.work_search was handed."""
+    render_kwargs = {}
+
+    def fake_input(**defaults):
+        if "q2" in defaults:
+            return web.storage(q="", q2="")
+        values = dict(defaults)
+        values["q"] = q
+        return web.storage(**values)
+
+    monkeypatch.setattr(code.web, "input", fake_input)
+
+    search_response = SearchResponse(
+        facet_counts={},
+        sort="",
+        docs=[],
+        num_found=num_found,
+        solr_select="",
+        spellcheck=spellcheck,
+    )
+
+    def fake_render_work_search(*a, **kw):
+        render_kwargs.update(kw)
+        return "rendered"
+
+    def run():
+        with (
+            patch.object(code, "run_solr_query", return_value=search_response),
+            patch.object(code, "add_availability", return_value=[]),
+            patch.object(code, "find_did_you_mean", return_value=dym) as mock_dym,
+        ):
+            monkeypatch.setattr(code.render, "work_search", fake_render_work_search, raising=False)
+            result = code.search().GET()
+            return result, mock_dym
+
+    result, mock_dym = _with_req_context(run)
+    return result, render_kwargs, mock_dym
+
+
+def test_search_offers_a_did_you_mean_on_a_zero_result_search(monkeypatch):
+    """The wiring: /search asks for a candidate only because it found nothing."""
+    dym = _a_dym()
+    result, render_kwargs, mock_dym = _run_search_page(
+        monkeypatch,
+        q="industril applications",
+        num_found=0,
+        spellcheck=_spellcheck(_ONE_TYPO),
+        dym=dym,
+    )
+
+    assert result == "rendered"
+    # The search's own num_found is what gates the decision, so it must be passed.
+    assert mock_dym.call_args.args[2] == 0
+    assert render_kwargs["did_you_mean"] is dym
+
+
+def test_search_offers_no_did_you_mean_when_it_found_results(monkeypatch):
+    """A populated results page must render exactly as it did before Phase 5."""
+    _, render_kwargs, _ = _run_search_page(
+        monkeypatch,
+        q="industril applications",
+        num_found=17,
+        spellcheck=_spellcheck(_ONE_TYPO),
+        dym=None,
+    )
+
+    assert render_kwargs["did_you_mean"] is None
+
+
+def test_search_offers_no_did_you_mean_without_a_correction(monkeypatch):
+    """Zero results but nothing to suggest -> the page is untouched."""
+    _, render_kwargs, _ = _run_search_page(
+        monkeypatch,
+        q="industril applications",
+        num_found=0,
+        spellcheck=_spellcheck({"suggestions": []}),
+        dym=None,
+    )
+
+    assert render_kwargs["did_you_mean"] is None
