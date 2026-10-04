@@ -36,7 +36,10 @@ import urllib.request
 
 import pytest
 
-from scripts.solr_updater.loan_availability_updater import main
+from infogami import config
+from openlibrary.config import load_config
+from openlibrary.utils.request_context import create_context_for_script, req_context
+from scripts.solr_updater.loan_availability_updater import main, run_cold_start
 
 SOLR = os.environ.get("SOLR_URL", "http://localhost:8984/solr/openlibrary")
 FEED = os.environ.get("MOCKSERVICES_URL", "http://localhost:8090")
@@ -136,3 +139,90 @@ def test_the_daemon_marks_a_borrowed_book(seeded_editions, tmp_path, monkeypatch
     written = [d for d in docs if "loan_uid" in d]
     assert written, f"daemon completed cycles but wrote nothing across {len(docs)} seeded editions"
     assert all(d.get("ebook_unavailable") in (0, 1, None) for d in written)
+
+
+def test_a_cold_start_seeds_from_the_index_and_lands_the_cursor_at_the_head(monkeypatch):
+    """The other test pre-seeds the cursor, so main() takes the steady-state
+    path and never calls run_cold_start -- its green says nothing about the
+    seed. This runs the cold start itself against a real Solr and a real
+    endpoint: index query, ground truth, overlap replay, cursor returned.
+
+    It calls run_cold_start directly rather than through main(), because
+    through main() the cursor cannot be judged at all: the daemon enters steady
+    state immediately afterwards and, against a feed this small, follows its
+    way to the head within any sane time budget whatever the cold start
+    returned. Reading the real function's return value is the only way to see
+    where the cold start actually put the cursor.
+
+    What this kills, measured by mutation: deleting the overlap replay
+    (`return 1` in place of the call) turns it red. What it does NOT kill, also
+    measured, and both for reasons about the mock rather than the daemon:
+
+    * Removing the `uid = head` line that places the cursor when the feed has
+      nothing left. That line is only reachable when a page comes back with
+      zero rows, and the mock always has rows, so no end-to-end run against it
+      can enter that branch. It is unit-covered.
+    * Removing the seed's Solr write. The mock derives checked-out status from
+      the same rolling event window it serves as the feed, so the replay marks
+      the same books the seed would have, and this stays green. Deleting that
+      write reddens two unit tests.
+
+    It also does not assert that any mark was written, which is a race: the
+    window moves between the index read and the availability call, and this was
+    observed marking 0 of 2 identifiers on one run and several on the next.
+
+    So: an honest smoke test that the whole cold start completes against real
+    services and advances the cursor to the head, not a substitute for the unit
+    tests that isolate its parts.
+    """
+    monkeypatch.setenv("OL_SOLR_BASE_URL", SOLR)
+
+    # Editions for whatever the index currently calls checked out, so the seed
+    # has real identifiers to resolve rather than an empty candidate list.
+    checked_out = json.load(
+        urllib.request.urlopen(
+            f"{FEED}/advancedsearch.php?q=lending___is_lendable%3Atrue+AND+lending___available_to_borrow%3Afalse"
+            f"+AND+lending___available_to_browse%3Afalse&rows=1000&page=1&output=json",
+            timeout=10,
+        )
+    )["response"]["docs"]
+    ocaids = sorted({d["identifier"] for d in checked_out if d.get("identifier")})
+    assert ocaids, "the index reported nothing checked out; the seed would be vacuous"
+
+    _post(
+        "update",
+        [
+            {
+                "key": f"{WORK_PREFIX}9{i}W",
+                "type": "work",
+                "title": f"Cold start {i}",
+                "editions": [{"key": f"{EDITION_PREFIX}9{i}M", "type": "edition", "work_key": [f"{WORK_PREFIX}9{i}W"], "ia": [ocaid]}],
+            }
+            for i, ocaid in enumerate(ocaids)
+        ],
+    )
+    urllib.request.urlopen(f"{SOLR}/update?commit=true", timeout=30).read()
+
+    head = (json.load(urllib.request.urlopen(f"{FEED}/services/loans/loan/?action=changes&after_uid=1&limit=1", timeout=10)).get("latest_uid")) or 0
+    assert head, "the feed reported no head; cannot judge where the cursor landed"
+
+    cursor = asyncio.run(_cold_start())
+
+    assert cursor >= head, f"cold start returned cursor {cursor}, behind the head {head} the overlap replay should have reached"
+
+    # Nothing may carry a value other than the marked sentinel. Cheap, and it
+    # catches a write path that puts something else in the field.
+    for i in range(len(ocaids)):
+        value = _edition(f"{EDITION_PREFIX}9{i}M").get("ebook_unavailable")
+        assert value in (0, 1, None), f"unexpected ebook_unavailable {value!r}"
+
+
+async def _cold_start() -> int:
+    """run_cold_start inside the same script request context main() sets up."""
+    if not config.get("plugin_openlibrary"):
+        load_config("conf/openlibrary.yml")
+    token = req_context.set(create_context_for_script())
+    try:
+        return await run_cold_start(poll_interval=2, dry_run=False)
+    finally:
+        req_context.reset(token)
