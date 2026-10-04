@@ -1,19 +1,21 @@
+from dataclasses import dataclass
 from datetime import datetime
-from typing import ClassVar, TypedDict, cast
+from typing import ClassVar
 
-from openlibrary.core.async_db import connection
+from openlibrary.core.async_db import class_row, connection
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 
-class YearlyReadingGoal(TypedDict):
+@dataclass(frozen=True, slots=True)
+class YearlyReadingGoal:
     """A row from the ``yearly_reading_goals`` table."""
 
     username: str
     year: int
     target: int
-    created: datetime
-    updated: datetime
+    created: datetime | None
+    updated: datetime | None
 
 
 class YearlyReadingGoals:
@@ -54,7 +56,6 @@ class YearlyReadingGoals:
                 f"INSERT INTO {cls.TABLENAME} (username, year, target) VALUES (%(username)s, %(year)s, %(target)s)",
                 {"username": username, "year": year, "target": target},
             )
-            await conn.commit()
 
     # Read methods:
     # web.db's `order=` kwarg is interpolated raw into the SQL string -- only
@@ -71,17 +72,17 @@ class YearlyReadingGoals:
         if order not in cls._ALLOWED_ORDERS:
             raise ValueError(f"Invalid order: {order!r}. Must be one of {list(cls._ALLOWED_ORDERS)}.")
 
-        query = f"SELECT * FROM {cls.TABLENAME} WHERE username = %(username)s ORDER BY {cls._ALLOWED_ORDERS[order]}"
-        async with connection() as conn:
-            cursor = await conn.execute(query, {"username": username})
-            return cast(list[YearlyReadingGoal], await cursor.fetchall())
+        query = f"SELECT username, year, target, created, updated FROM {cls.TABLENAME} WHERE username = %(username)s ORDER BY {cls._ALLOWED_ORDERS[order]}"
+        async with connection() as conn, conn.cursor(row_factory=class_row(YearlyReadingGoal)) as cursor:
+            await cursor.execute(query, {"username": username})
+            return await cursor.fetchall()
 
     @classmethod
     async def select_by_username_and_year(cls, username: str, year: int) -> list[YearlyReadingGoal]:
-        query = f"SELECT * FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
-        async with connection() as conn:
-            cursor = await conn.execute(query, {"username": username, "year": year})
-            return cast(list[YearlyReadingGoal], await cursor.fetchall())
+        query = f"SELECT username, year, target, created, updated FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
+        async with connection() as conn, conn.cursor(row_factory=class_row(YearlyReadingGoal)) as cursor:
+            await cursor.execute(query, {"username": username, "year": year})
+            return await cursor.fetchall()
 
     # Update methods:
     @classmethod
@@ -97,7 +98,6 @@ class YearlyReadingGoals:
                     "updated": datetime.now(),
                 },
             )
-            await conn.commit()
 
     # Delete methods:
     @classmethod
@@ -105,4 +105,3 @@ class YearlyReadingGoals:
         query = f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
         async with connection() as conn:
             await conn.execute(query, {"username": username, "year": year})
-            await conn.commit()

@@ -41,6 +41,8 @@ class FakePool:
         self.closed = False
         self.connections = []
         self.open_gate: asyncio.Event | None = None
+        self.close_gate: asyncio.Event | None = None
+        self.close_started: asyncio.Event | None = None
         self.wait_error: BaseException | None = None
         self.close_error: BaseException | None = None
 
@@ -54,6 +56,10 @@ class FakePool:
             raise self.wait_error
 
     async def close(self):
+        if self.close_started is not None:
+            self.close_started.set()
+        if self.close_gate is not None:
+            await self.close_gate.wait()
         if self.close_error is not None:
             error, self.close_error = self.close_error, None
             raise error
@@ -70,15 +76,19 @@ class RecordingPoolFactory:
 
     check_connection = staticmethod(FakePool.check_connection)
 
-    def __init__(self, *, open_gate=None, wait_error=None, close_error=None):
+    def __init__(self, *, open_gate=None, close_gate=None, close_started=None, wait_error=None, close_error=None):
         self.created: list[FakePool] = []
         self.open_gate = open_gate
+        self.close_gate = close_gate
+        self.close_started = close_started
         self.wait_error = wait_error
         self.close_error = close_error
 
     def __call__(self, **kwargs):
         pool = FakePool(**kwargs)
         pool.open_gate = self.open_gate
+        pool.close_gate = self.close_gate
+        pool.close_started = self.close_started
         pool.wait_error = self.wait_error
         pool.close_error = self.close_error
         self.created.append(pool)
@@ -153,11 +163,10 @@ async def test_no_db_config_skips_pool_and_connection_raises():
 
 
 @pytest.mark.asyncio
-async def test_init_pool_skips_when_psycopg_not_installed():
-    """When psycopg/psycopg_pool aren't installed, _open_pool returns None
-    and logs a warning instead of crashing the app."""
+async def test_init_pool_fails_when_psycopg_not_installed():
+    """A configured application fails startup if psycopg is unavailable."""
     web.config.db_parameters = DB_PARAMETERS
-    with patch("openlibrary.core.async_db.AsyncConnectionPool", None):
+    with patch("openlibrary.core.async_db.AsyncConnectionPool", None), pytest.raises(RuntimeError, match=r"psycopg\[binary,pool\] is required"):
         await async_db.init_pool()
     assert async_db.get_pool() is None
 
@@ -167,9 +176,8 @@ async def test_connection_raises_when_psycopg_not_installed():
     """connection() raises RuntimeError (not ModuleNotFoundError) when the
     pool can't be created because psycopg isn't installed."""
     web.config.db_parameters = DB_PARAMETERS
-    with patch("openlibrary.core.async_db.AsyncConnectionPool", None), pytest.raises(RuntimeError, match="No async database pool available"):
-        async with async_db.connection():
-            pass
+    with patch("openlibrary.core.async_db.AsyncConnectionPool", None), pytest.raises(RuntimeError, match=r"psycopg\[binary,pool\] is required"):
+        await async_db.init_pool()
 
 
 @pytest.mark.asyncio
@@ -424,6 +432,27 @@ async def test_close_pool_forgets_inflight_open():
 
     assert factory.created[0].closed
     assert async_db.get_pool() is None
+
+
+@pytest.mark.asyncio
+async def test_close_pool_rejects_new_pool_creation_until_shutdown_finishes():
+    """A pool created after shutdown starts must not survive that shutdown."""
+    web.config.db_parameters = DB_PARAMETERS
+    close_started = asyncio.Event()
+    close_gate = asyncio.Event()
+    factory = RecordingPoolFactory(close_gate=close_gate, close_started=close_started)
+    with patch("openlibrary.core.async_db.AsyncConnectionPool", factory):
+        await async_db.init_pool()
+        closing = asyncio.create_task(async_db.close_pool())
+        await close_started.wait()
+
+        with pytest.raises(RuntimeError, match="shutting down"):
+            async_bridge.run(async_db._pool_for_loop())
+
+        close_gate.set()
+        await closing
+
+    assert not async_db._entries
 
 
 @pytest.mark.asyncio

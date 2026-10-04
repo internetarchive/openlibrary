@@ -105,5 +105,15 @@ async def test_cache_per_event_loop_returns_distinct_values_per_loop():
     assert get_client() is main_client  # stable within the same loop
 
 
+def test_bridge_rejects_nested_run_from_its_own_loop():
+    bridge = AsyncBridge()
+
+    async def nested_run():
+        with pytest.raises(RuntimeError, match="own event loop"):
+            bridge.run(asyncio.sleep(0))
+
+    bridge.run(nested_run())
+
+
 async def _call(get_client):
     return get_client()

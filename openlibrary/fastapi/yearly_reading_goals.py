@@ -95,8 +95,8 @@ async def get_reading_goals_endpoint(
         records = await YearlyReadingGoals.select_by_username(user.username)
     goals = [
         ReadingGoalItem(
-            year=record["year"],
-            goal=record["target"],
+            year=record.year,
+            goal=record.target,
         )
         for record in records
     ]

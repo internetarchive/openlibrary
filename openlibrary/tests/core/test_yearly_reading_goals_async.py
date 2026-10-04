@@ -4,35 +4,65 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
+from psycopg.rows import TUPLES_OK
 
-from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoal, YearlyReadingGoals
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 
 class FakeCursor:
-    def __init__(self, rows=None):
+    class _Result:
+        status = TUPLES_OK
+        nfields = 5
+
+        @staticmethod
+        def fname(index):
+            return (b"username", b"year", b"target", b"created", b"updated")[index]
+
+    def __init__(self, connection, rows=None, row_factory=None):
+        self.connection = connection
         self.rows = rows or []
+        self.pgresult = self._Result()
+        self._encoding = "utf-8"
+        self._row_maker = row_factory(self) if row_factory is not None else None
         self.fetchall_calls = 0
         self.fetchone_calls = 0
 
     async def fetchall(self):
         self.fetchall_calls += 1
-        return self.rows
+        if self._row_maker is None:
+            return self.rows
+        return [self._row_maker(row) for row in self.rows]
 
     async def fetchone(self):
         self.fetchone_calls += 1
-        return self.rows[0] if self.rows else None
+        if not self.rows:
+            return None
+        return self._row_maker(self.rows[0]) if self._row_maker is not None else self.rows[0]
+
+    async def execute(self, query, params=None):
+        self.connection.executions.append((query, params))
+        return self
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
 
 
 class FakeConnection:
     def __init__(self, rows=None):
-        self.cursor = FakeCursor(rows)
         self.executions = []
         self.committed = False
+        self._cursor = FakeCursor(self, rows)
 
     async def execute(self, query, params=None):
         self.executions.append((query, params))
-        return self.cursor
+        return self._cursor
+
+    def cursor(self, **kwargs):
+        return FakeCursor(self, self._cursor.rows, kwargs.get("row_factory"))
 
     async def commit(self):
         self.committed = True
@@ -46,6 +76,8 @@ class FakeConnectionContext:
         return self.conn
 
     async def __aexit__(self, exc_type, exc, tb):
+        if exc_type is None:
+            await self.conn.commit()
         return False
 
 
@@ -61,11 +93,11 @@ def fake_connection():
 
 @pytest.mark.asyncio
 async def test_select_by_username(fake_connection):
-    fake_connection.cursor.rows = [{"username": "testuser", "year": 2026, "target": 25}]
+    fake_connection._cursor.rows = [("testuser", 2026, 25, datetime(2026, 1, 1), datetime(2026, 1, 2))]
 
     rows = await YearlyReadingGoals.select_by_username("testuser")
 
-    assert rows == [{"username": "testuser", "year": 2026, "target": 25}]
+    assert rows == [YearlyReadingGoal("testuser", 2026, 25, datetime(2026, 1, 1), datetime(2026, 1, 2))]
     ((query, params),) = fake_connection.executions
     assert "username = %(username)s" in query
     assert params == {"username": "testuser"}
@@ -122,7 +154,7 @@ async def test_delete_by_username_and_year(fake_connection):
 
 @pytest.mark.asyncio
 async def test_summary_counts_every_window_in_one_query(fake_connection):
-    fake_connection.cursor.rows = [{"total": 10, "month": 4, "week": 2}]
+    fake_connection._cursor.rows = [{"total": 10, "month": 4, "week": 2}]
 
     summary = await YearlyReadingGoals.summary()
 
@@ -131,5 +163,5 @@ async def test_summary_counts_every_window_in_one_query(fake_connection):
     assert "count(*) FILTER (WHERE updated >= %(month_ago)s)" in query
     assert "count(*) FILTER (WHERE updated >= %(week_ago)s)" in query
     assert params == {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO}
-    assert fake_connection.cursor.fetchone_calls == 1
-    assert fake_connection.cursor.fetchall_calls == 0
+    assert fake_connection._cursor.fetchone_calls == 1
+    assert fake_connection._cursor.fetchall_calls == 0

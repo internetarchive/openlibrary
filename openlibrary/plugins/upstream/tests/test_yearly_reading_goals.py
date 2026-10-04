@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from openlibrary.core.bookshelves_events import BookshelfEvent
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoal
 from openlibrary.plugins.upstream.models import User
 from openlibrary.plugins.upstream.yearly_reading_goals import (
     YearlyGoal,
@@ -24,7 +25,7 @@ async def test_get_reading_goals_async_builds_goal():
         patch(
             "openlibrary.plugins.upstream.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year",
             new_callable=AsyncMock,
-            return_value=[{"year": 2026, "target": 25}],
+            return_value=[YearlyReadingGoal("testuser", 2026, 25, None, None)],
         ) as mock_select,
         patch(
             "openlibrary.plugins.upstream.yearly_reading_goals.BookshelvesEvents.select_distinct_by_user_type_and_year_async",

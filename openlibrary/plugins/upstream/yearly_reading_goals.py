@@ -16,7 +16,7 @@ async def get_reading_goals_async(username: str, year: int) -> YearlyGoal | None
         return None
 
     books_read = await BookshelvesEvents.select_distinct_by_user_type_and_year_async(username, BookshelfEvent.FINISH, year)
-    return YearlyGoal(data[0]["year"], data[0]["target"], len(books_read))
+    return YearlyGoal(data[0].year, data[0].target, len(books_read))
 
 
 @public

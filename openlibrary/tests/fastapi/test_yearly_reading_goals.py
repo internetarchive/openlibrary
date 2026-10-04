@@ -2,9 +2,11 @@
 
 from unittest.mock import AsyncMock, patch
 
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoal
+
 
 def test_get_reading_goals_success(fastapi_client, mock_authenticated_user):
-    fake_records = [{"year": 2026, "target": 25}]
+    fake_records = [YearlyReadingGoal("testuser", 2026, 25, None, None)]
     with patch(
         "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.select_by_username",
         new_callable=AsyncMock,
@@ -17,7 +19,7 @@ def test_get_reading_goals_success(fastapi_client, mock_authenticated_user):
 
 
 def test_get_reading_goals_with_year(fastapi_client, mock_authenticated_user):
-    fake_records = [{"year": 2026, "target": 25}]
+    fake_records = [YearlyReadingGoal("testuser", 2026, 25, None, None)]
     with patch(
         "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year",
         new_callable=AsyncMock,
