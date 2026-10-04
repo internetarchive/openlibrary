@@ -50,6 +50,15 @@ export const roleYears = (person, currentYear) => {
 export const personMatchesYear = (person, year, currentYear) =>
     year === 'All' || roleYears(person, currentYear).has(Number(year));
 
+// Every distinct year anyone held a role, newest first — powers the Year facet.
+export const allRoleYears = (people, currentYear) => {
+    const years = new Set();
+    people.forEach((person) =>
+        roleYears(person, currentYear).forEach((y) => years.add(y))
+    );
+    return [...years].sort((a, b) => b - a);
+};
+
 // Substring match preserved for departments (string list); '' matches everything.
 const matchDepartment = (person, department) =>
     (person.departments || []).some((d) => d.includes(department));
@@ -94,29 +103,40 @@ export function initTeamFilter() {
     };
     sortByLastName(team);
 
-    // *************************************** Team sorted by role ***************************************
-    const { staffCurrent, staffEmeritus, currentFellows, pastFellows, volunteers } =
-    classifyTeam(team, currentYear);
-
     // *************************************** Selectors and eventListeners ***************************************
     const roleFilter = document.getElementById('role');
     const departmentFilter = document.getElementById('department');
+    const yearFilter = document.getElementById('year');
+    const initialYear = initialSearchParams.get('year') || 'All';
+
+    // Populate the Year dropdown from the data (newest first); "All" stays first.
+    if (yearFilter) {
+        allRoleYears(team, currentYear).forEach((year) => {
+            const option = document.createElement('option');
+            option.value = String(year);
+            option.textContent = String(year);
+            yearFilter.append(option);
+        });
+    }
+
+    const applyFilters = () => {
+        const role = roleFilter.value;
+        const department = departmentFilter.value;
+        const year = yearFilter ? yearFilter.value : 'All';
+        filterTeam(role, department, year);
+        updateURLParameters({ role, department, year });
+    };
+
     roleFilter.value = initialRole;
-    roleFilter.addEventListener('change', (e) =>   {
-        filterTeam(e.target.value, departmentFilter.value);
-        updateURLParameters({
-            role: e.target.value,
-            department: departmentFilter.value
-        });
-    });
     departmentFilter.value = initialDepartment;
-    departmentFilter.addEventListener('change', (e) => {
-        filterTeam(roleFilter.value, e.target.value);
-        updateURLParameters({
-            role: roleFilter.value,
-            department: departmentFilter.value
-        });
-    });
+    if (yearFilter) {
+        yearFilter.value = initialYear;
+    }
+    roleFilter.addEventListener('change', applyFilters);
+    departmentFilter.addEventListener('change', applyFilters);
+    if (yearFilter) {
+        yearFilter.addEventListener('change', applyFilters);
+    }
     const cardsContainer = document.querySelector('.teamCards_container');
 
     // *************************************** Functions ***************************************
@@ -221,84 +241,64 @@ export function initTeamFilter() {
         createCards(array);
     };
 
-    const filterTeam = (role, department) => {
+    const filterTeam = (role, department, year) => {
         cardsContainer.textContent = '';
-        // **************************************** default sort *****************************************
-        if (role === 'All' && department === 'All') {
-            createSectionHeading('Staff');
-            createsubSection(staffCurrent, 'Current');
-            createsubSection(staffEmeritus, 'Emeritus');
-
-            createSectionHeading('Fellows');
-            createsubSection(currentFellows, 'Current');
-            createsubSection(pastFellows, 'Past');
-
-            createSectionHeading('Volunteers');
-            createCards(volunteers);
+        // Year and department narrow the pool; role then chooses which sections show.
+        let people = team.filter((person) =>
+            personMatchesYear(person, year, currentYear)
+        );
+        if (department !== 'All') {
+            people = people.filter((person) => matchDepartment(person, department));
         }
-        // ************************************* sort by department ***************************************
-        else if (role === 'All' && department !== 'All') {
-            const filteredTeam = team.filter((person) =>
-                matchDepartment(person, department)
-            );
+        const groups = classifyTeam(people, currentYear);
+        const anyShown =
+      groups.staffCurrent.length ||
+      groups.staffEmeritus.length ||
+      groups.currentFellows.length ||
+      groups.pastFellows.length ||
+      groups.volunteers.length;
 
-            const groups = classifyTeam(filteredTeam, currentYear);
-
-            const staff = filteredTeam.filter(isStaff);
-            staff.length && createSectionHeading('Staff');
-            groups.staffCurrent.length &&
-        createsubSection(groups.staffCurrent, 'Current');
-            groups.staffEmeritus.length &&
-        createsubSection(groups.staffEmeritus, 'Emeritus');
-
-            const fellows = filteredTeam.filter(isFellow);
-            fellows.length && createSectionHeading('Fellows');
-            groups.currentFellows.length &&
-        createsubSection(groups.currentFellows, 'Current');
-            groups.pastFellows.length &&
-        createsubSection(groups.pastFellows, 'Past');
-
-            groups.volunteers.length && createSectionHeading('Volunteers');
-            createCards(groups.volunteers);
-        }
-        // ****************************** sort by role and/or department *******************************
-        else {
-            department === 'All' ? (department = '') : department;
+        if (role === 'All') {
+            if (groups.staffCurrent.length || groups.staffEmeritus.length) {
+                createSectionHeading('Staff');
+                groups.staffCurrent.length &&
+          createsubSection(groups.staffCurrent, 'Current');
+                groups.staffEmeritus.length &&
+          createsubSection(groups.staffEmeritus, 'Emeritus');
+            }
+            if (groups.currentFellows.length || groups.pastFellows.length) {
+                createSectionHeading('Fellows');
+                groups.currentFellows.length &&
+          createsubSection(groups.currentFellows, 'Current');
+                groups.pastFellows.length &&
+          createsubSection(groups.pastFellows, 'Past');
+            }
+            if (groups.volunteers.length) {
+                createSectionHeading('Volunteers');
+                createCards(groups.volunteers);
+            }
+            !anyShown && showError();
+        } else {
             createSectionHeading(capitalize(role));
             if (role === 'volunteer') {
-                const filteredVolunteers = volunteers.filter((person) =>
-                    matchDepartment(person, department)
-                );
-                filteredVolunteers.length !== 0
-                    ? createCards(filteredVolunteers)
+                groups.volunteers.length
+                    ? createCards(groups.volunteers)
                     : showError();
             } else if (role === 'staff') {
-                const filteredCurrentStaff = staffCurrent.filter((person) =>
-                    matchDepartment(person, department)
-                );
-                const filteredStaffEmeritus = staffEmeritus.filter((person) =>
-                    matchDepartment(person, department)
-                );
-                filteredCurrentStaff.length &&
-          createsubSection(filteredCurrentStaff, 'Current');
-                filteredStaffEmeritus.length &&
-          createsubSection(filteredStaffEmeritus, 'Emeritus');
-                !filteredCurrentStaff.length &&
-          !filteredStaffEmeritus.length &&
+                groups.staffCurrent.length &&
+          createsubSection(groups.staffCurrent, 'Current');
+                groups.staffEmeritus.length &&
+          createsubSection(groups.staffEmeritus, 'Emeritus');
+                !groups.staffCurrent.length &&
+          !groups.staffEmeritus.length &&
           showError();
             } else {
-                const filteredCurrentFellows = currentFellows.filter((person) =>
-                    matchDepartment(person, department)
-                );
-                const filteredPastFellows = pastFellows.filter((person) =>
-                    matchDepartment(person, department)
-                );
-                filteredCurrentFellows.length &&
-          createsubSection(filteredCurrentFellows, 'Current');
-                filteredPastFellows.length &&
-          createsubSection(filteredPastFellows, 'Past');
-                !filteredCurrentFellows.length &&
-          !filteredPastFellows.length &&
+                groups.currentFellows.length &&
+          createsubSection(groups.currentFellows, 'Current');
+                groups.pastFellows.length &&
+          createsubSection(groups.pastFellows, 'Past');
+                !groups.currentFellows.length &&
+          !groups.pastFellows.length &&
           showError();
             }
         }
@@ -314,5 +314,5 @@ export function initTeamFilter() {
     };
 
     // on page load
-    filterTeam(initialRole, initialDepartment);
+    filterTeam(initialRole, initialDepartment, initialYear);
 }

@@ -997,6 +997,10 @@ msgid "Librarianship"
 msgstr ""
 
 #: about/index.html
+msgid "Year:"
+msgstr ""
+
+#: about/index.html
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
 msgstr ""
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import team from '../../../openlibrary/templates/about/team.json';
 import {
+    initTeamFilter,
     hasKind,
     isStaff,
     isFellow,
@@ -9,6 +10,7 @@ import {
     isCurrentFellow,
     roleYears,
     personMatchesYear,
+    allRoleYears,
     classifyTeam,
 } from '../../../openlibrary/plugins/openlibrary/js/team.js';
 
@@ -79,6 +81,14 @@ describe('year facet', () => {
         expect(personMatchesYear(abbey, 2023, 2026)).toBe(true);
         expect(personMatchesYear(abbey, 2020, 2026)).toBe(false);
     });
+
+    it('lists every distinct role year, newest first, for the dropdown', () => {
+        const years = allRoleYears(team, 2026);
+        expect(years).toEqual([...years].sort((a, b) => b - a)); // descending
+        expect(new Set(years).size).toBe(years.length); // distinct
+        expect(years).toContain(2026);
+        expect(years.every((y) => typeof y === 'number')).toBe(true);
+    });
 });
 
 describe('classifyTeam', () => {
@@ -102,5 +112,41 @@ describe('hasKind', () => {
         const p = { roles: [{ kind: 'staff' }, { kind: 'fellow' }] };
         expect(hasKind(p, 'staff')).toBe(true);
         expect(hasKind(p, 'volunteer')).toBe(false);
+    });
+});
+
+describe('initTeamFilter (DOM wiring)', () => {
+    const mountPage = () => {
+        document.body.innerHTML = `
+      <select id="role"><option value="All">All</option>
+        <option value="staff">Staff</option><option value="fellow">Fellows</option>
+        <option value="volunteer">Volunteers</option></select>
+      <select id="department"><option value="All">All</option>
+        <option value="engineer">Engineering</option></select>
+      <select id="year"><option value="All">All</option></select>
+      <div class="teamCards_container"></div>`;
+    };
+
+    it('populates the Year dropdown from the data and renders cards', () => {
+        mountPage();
+        initTeamFilter();
+        const years = [...document.querySelectorAll('#year option')].map((o) => o.value);
+        expect(years[0]).toBe('All');
+        expect(years).toContain('2026');
+        expect(years.length).toBeGreaterThan(2);
+        expect(document.querySelectorAll('.teamCard').length).toBeGreaterThan(0);
+    });
+
+    it('narrows the roster when a year is chosen', () => {
+        mountPage();
+        initTeamFilter();
+        const all = document.querySelectorAll('.teamCard').length;
+        const year = document.getElementById('year');
+        year.value = '2023';
+        year.dispatchEvent(new Event('change'));
+        const in2023 = document.querySelectorAll('.teamCard').length;
+        expect(in2023).toBeGreaterThan(0);
+        expect(in2023).toBeLessThan(all);
+        expect(new URL(window.location.href).searchParams.get('year')).toBe('2023');
     });
 });
