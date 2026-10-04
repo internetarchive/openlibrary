@@ -5,7 +5,7 @@ import logging
 import re
 import time
 import urllib
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -564,6 +564,69 @@ def load_stopwords(lang: str = "en") -> set[str]:
 
 
 @dataclass
+class SpellCheckSuggestion:
+    """A single token Solr flagged as misspelled, plus the corrections it offered."""
+
+    original_token: str
+    """The misspelled token as it appeared in the user's query."""
+    suggestions: list[str]
+    """Correction words, best (most frequent) first, as ranked by Solr."""
+    start_offset: int | None = None
+    """Character offset of the token within the query, if Solr reported one."""
+    end_offset: int | None = None
+    original_freq: int | None = None
+    """How often the misspelling occurs in the index, if Solr reported it."""
+
+
+@dataclass
+class SpellCheckCollation:
+    """Solr's re-run of the whole query with corrections substituted.
+
+    Open Library sets `spellcheck.collate=false` (see `conf/solr/conf/solrconfig.xml`),
+    so Solr does not currently produce this. It is parsed anyway so the data survives
+    if that setting is ever turned on.
+    """
+
+    collation_query: str | None
+    hits: int | None
+    misspellings_and_corrections: list[str]
+
+
+@dataclass
+class SpellCheckResult:
+    """Parsed form of Solr's top-level `spellcheck` section."""
+
+    suggestions: list[SpellCheckSuggestion]
+    collations: list[SpellCheckCollation]
+    correctly_spelled: bool | None
+    """Solr's verdict, but only sent when `spellcheck.extendedResults` is set."""
+    raw: dict
+    """The untouched `spellcheck` dict, so parsing never loses information."""
+
+
+def _solr_flat_pairs(entries: Any) -> Iterator[tuple[str | None, dict]]:
+    """Walk one of Solr's flat spellcheck lists, yielding `(token, details)` pairs.
+
+    Solr sends `suggestions` and `collations` as a flat list alternating between the
+    text it is about and an object describing it, e.g.::
+
+        ['telivision', {'startOffset': 0, 'endOffset': 10, 'suggestion': [...]}]
+
+    >>> list(_solr_flat_pairs(['telivision', {'startOffset': 0}]))
+    [('telivision', {'startOffset': 0})]
+    >>> list(_solr_flat_pairs(None))
+    []
+    """
+    token: str | None = None
+    for entry in entries or []:
+        if isinstance(entry, str):
+            token = entry
+        elif isinstance(entry, dict):
+            yield token, entry
+            token = None
+
+
+@dataclass
 class SearchResponse:
     facet_counts: dict[str, list[tuple[str, str, int]]]
     sort: str
@@ -577,6 +640,13 @@ class SearchResponse:
     error: str = None
     time: float = None
     """Seconds to execute the query"""
+    spellcheck: SpellCheckResult | None = None
+    """Parsed Solr spellcheck output, or None when Solr offered no corrections.
+
+    Read from the top-level `spellcheck` section of the Solr response. This is data
+    carried internally only; no API response exposes it yet, and nothing consumes it
+    yet. Which of these suggestions is worth showing is deliberately undecided.
+    """
 
     @staticmethod
     def from_solr_result(
@@ -608,7 +678,77 @@ class SearchResponse:
                 highlighting=highlighting,
                 solr_select=solr_select,
                 time=time,
+                spellcheck=SearchResponse.parse_spellcheck(solr_result.get("spellcheck")),
             )
+
+    @staticmethod
+    def parse_spellcheck(spellcheck: dict | None) -> SpellCheckResult | None:
+        """
+        Parse Solr's top-level `spellcheck` section into a `SpellCheckResult`.
+
+        Returns None when there is nothing actionable, so callers can treat "Solr sent
+        no spellcheck data" and "Solr found nothing to suggest" the same way, and so a
+        response with no corrections never looks like a did-you-mean opportunity.
+
+        Solr formats `suggestions` as a flat list alternating between a token and its
+        details object, and each `suggestion` entry is either a bare word (default) or
+        a `{'word': ..., 'freq': ...}` object (when `extendedResults` is set); both are
+        handled here.
+
+        >>> SearchResponse.parse_spellcheck({'suggestions': [
+        ...     'telivision',
+        ...     {'startOffset': 0, 'endOffset': 10,
+        ...      'suggestion': [{'word': 'television', 'freq': 310}]},
+        ... ]}).suggestions[0]
+        SpellCheckSuggestion(original_token='telivision', suggestions=['television'], start_offset=0, end_offset=10, original_freq=None)
+
+        >>> SearchResponse.parse_spellcheck({'suggestions': [
+        ...     'telivision', {'startOffset': 0, 'suggestion': ['television', 'televise']}]}).suggestions[0].suggestions
+        ['television', 'televise']
+
+        >>> SearchResponse.parse_spellcheck({'correctlySpelled': True, 'suggestions': []}) is None
+        True
+        >>> SearchResponse.parse_spellcheck(None) is None
+        True
+        """
+        spellcheck = spellcheck or {}
+
+        def words(raw_suggestions: Any) -> list[str]:
+            found = []
+            for entry in raw_suggestions or []:
+                word = entry["word"] if isinstance(entry, dict) else entry
+                if word:
+                    found.append(word)
+            return found
+
+        suggestions = [
+            SpellCheckSuggestion(
+                original_token=details.get("originalToken") or token or "",
+                suggestions=words(details.get("suggestion")),
+                start_offset=details.get("startOffset"),
+                end_offset=details.get("endOffset"),
+                original_freq=details.get("origFreq"),
+            )
+            for token, details in _solr_flat_pairs(spellcheck.get("suggestions"))
+        ]
+        collations = [
+            SpellCheckCollation(
+                collation_query=details.get("collationQuery") or token,
+                hits=details.get("hits"),
+                misspellings_and_corrections=details.get("misspellingsAndCorrections") or [],
+            )
+            for token, details in _solr_flat_pairs(spellcheck.get("collations"))
+        ]
+
+        if not suggestions and not collations:
+            return None
+
+        return SpellCheckResult(
+            suggestions=suggestions,
+            collations=collations,
+            correctly_spelled=spellcheck.get("correctlySpelled"),
+            raw=spellcheck,
+        )
 
     @staticmethod
     def clean_highlighting(

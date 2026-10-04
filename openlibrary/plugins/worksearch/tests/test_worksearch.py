@@ -240,6 +240,181 @@ def test_prepare_solr_query_params_normal_q_unchanged_by_spellcheck_q():
     assert d["spellcheck.q"] == "harry potter"
 
 
+def _solr_result(**extra) -> dict:
+    """A minimal but realistic Solr /select payload, with optional extras merged in."""
+    result = {
+        "responseHeader": {"status": 0, "QTime": 3},
+        "response": {
+            "numFound": 2,
+            "start": 0,
+            "numFoundExact": True,
+            "docs": [
+                {"key": "/works/OL1W", "title": "Test Book", "edition_count": 3},
+                {"key": "/works/OL2W", "title": "Other Book", "edition_count": 1},
+            ],
+        },
+        "highlighting": {"OL1W": {"title": ["<em>Test</em> Book"]}},
+        # Solr returns facet_fields as a flat [val, count, ...] array. A neutral
+        # field is used so this stays independent of get_language_name/req_context.
+        "facet_counts": {"facet_fields": {"subject": ["science", 2]}},
+    }
+    result.update(extra)
+    return result
+
+
+def _response(**extra) -> SearchResponse:
+    """Parse `_solr_result(**extra)` through the real from_solr_result entry point."""
+    return SearchResponse.from_solr_result(_solr_result(**extra), sort="", solr_select="/select", time=0.01)
+
+
+def test_spellcheck_absent_leaves_response_untouched():
+    """A Solr response with no `spellcheck` section must behave exactly as before.
+
+    Every pre-existing field is asserted here, so the Phase 2 addition cannot
+    quietly change what callers read."""
+    result = _response()
+    assert result.spellcheck is None
+
+    # Pre-existing fields are unchanged.
+    assert result.num_found == 2
+    assert result.num_found_exact is True
+    assert len(result.docs) == 2
+    assert result.docs[0]["title"] == "Test Book"
+    assert result.sort == ""
+    assert result.spellcheck is None
+    assert result.highlighting == {"OL1W": {"title": ["<em>Test</em> Book"]}}
+    assert result.facet_counts == {"subject": [("science", "science", 2)]}
+    assert result.error is None
+    assert result.time == 0.01
+    # raw_resp keeps the whole Solr payload, spellcheck section included.
+    assert result.raw_resp == _solr_result()
+
+
+def test_spellcheck_suggestion_is_preserved():
+    """A single correction is preserved, including the token it corrects.
+
+    This is the flat shape Solr sends by default, as captured from a live
+    OL-shaped Solr index in Phase 1.
+    """
+    result = _response(
+        spellcheck={
+            "suggestions": [
+                "Nitrogenn",
+                {
+                    "numFound": 2,
+                    "startOffset": 0,
+                    "endOffset": 9,
+                    "suggestion": [
+                        {"word": "nitrogen", "freq": 1234},
+                        {"word": "nitrogenio", "freq": 12},
+                    ],
+                },
+            ]
+        }
+    )
+    assert result.spellcheck is not None
+    (suggestion,) = result.spellcheck.suggestions
+    assert suggestion.original_token == "Nitrogenn"
+    assert suggestion.suggestions == ["nitrogen", "nitrogenio"]
+    assert suggestion.start_offset == 0
+    assert suggestion.end_offset == 9
+    # Nothing else about the search moved.
+    assert result.num_found == 2
+    assert len(result.docs) == 2
+
+
+def test_spellcheck_multiple_suggestions_are_not_lost():
+    """Several misspelled tokens and several corrections each are all kept.
+
+    Also covers Solr's `extendedResults` shape, where corrections arrive as
+    `{'word': ..., 'freq': ...}` objects with an explicit `originalToken`.
+    """
+    result = _response(
+        spellcheck={
+            "correctlySpelled": False,
+            "suggestions": [
+                "telivision",
+                {
+                    "originalToken": "telivision",
+                    "startOffset": 0,
+                    "endOffset": 10,
+                    "origFreq": 7,
+                    "suggestion": [
+                        {"word": "television", "freq": 310},
+                        {"word": "televise", "freq": 22},
+                    ],
+                },
+                "bibliograpy",
+                {
+                    "originalToken": "bibliograpy",
+                    "startOffset": 11,
+                    "endOffset": 22,
+                    "origFreq": 2,
+                    "suggestion": [{"word": "bibliography", "freq": 88}],
+                },
+            ],
+        }
+    )
+    spellcheck = result.spellcheck
+    assert spellcheck is not None
+    assert [s.original_token for s in spellcheck.suggestions] == ["telivision", "bibliograpy"]
+    assert spellcheck.suggestions[0].suggestions == ["television", "televise"]
+    assert spellcheck.suggestions[0].original_freq == 7
+    assert spellcheck.suggestions[1].suggestions == ["bibliography"]
+    assert spellcheck.suggestions[1].start_offset == 11
+    assert spellcheck.correctly_spelled is False
+    # The untouched payload is retained, so nothing is lost by parsing.
+    assert spellcheck.raw["suggestions"][0] == "telivision"
+
+
+def test_spellcheck_no_suggestions_creates_no_dym_state():
+    """An empty spellcheck section must not look like a did-you-mean opportunity."""
+    assert _response(spellcheck={"suggestions": []}).spellcheck is None
+    assert _response(spellcheck={}).spellcheck is None
+    assert _response(spellcheck={"correctlySpelled": True, "suggestions": []}).spellcheck is None
+    # Results are still served normally.
+    assert _response(spellcheck={"suggestions": []}).num_found == 2
+
+
+def test_spellcheck_collations_are_preserved_when_present():
+    """Collation data is parsed even though OL sets `spellcheck.collate=false`.
+
+    If that config ever flips, the data still reaches the next phase.
+    """
+    result = _response(
+        spellcheck={
+            "suggestions": ["telivision", {"suggestion": [{"word": "television", "freq": 1}]}],
+            "collations": [
+                "television",
+                {
+                    "collationQuery": "television",
+                    "hits": 5,
+                    "misspellingsAndCorrections": [["telivision", "television"]],
+                },
+            ],
+        }
+    )
+    (collation,) = result.spellcheck.collations
+    assert collation.collation_query == "television"
+    assert collation.hits == 5
+    assert collation.misspellings_and_corrections == [["telivision", "television"]]
+
+
+def test_spellcheck_does_not_change_search_result_set():
+    """The central Phase 2 guarantee: the docs Solr returned are identical
+    whether or not a spellcheck section rides along."""
+    without = _response()
+    with_spellcheck = _response(spellcheck={"suggestions": ["harry", {"suggestion": [{"word": "harry", "freq": 1}]}]})
+    assert without.docs == with_spellcheck.docs
+    assert without.num_found == with_spellcheck.num_found
+    assert without.num_found_exact == with_spellcheck.num_found_exact
+    assert without.highlighting == with_spellcheck.highlighting
+    assert without.facet_counts == with_spellcheck.facet_counts
+    # Only the parsed spellcheck data differs.
+    assert with_spellcheck.spellcheck is not None
+    assert without.spellcheck is None
+
+
 def _with_req_context(fn):
     """Run `fn` with a req_context set (the readable-count query reads
     solr_editions off it)."""
