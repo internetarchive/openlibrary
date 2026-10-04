@@ -7,13 +7,13 @@ import time
 import urllib
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
+from html import escape as html_escape
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 from unicodedata import normalize
 
 import httpx
 import web
-from markupsafe import escape
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -976,9 +976,13 @@ def did_you_mean_link(dym: DidYouMean, param: dict) -> str:
     injection hole. The URL is urlencoded and then escaped for attribute context.
     Rendered as one `%(link)s` placeholder rather than link_start/link_end because the
     link text is dynamic -- translators still position the whole link themselves.
+
+    Uses stdlib `html.escape` rather than markupsafe: markupsafe is only a transitive
+    dependency here (via Jinja2), and this module is imported by the web.py worker at
+    boot, so an undeclared import would take the whole worker down.
     """
-    href = escape(did_you_mean_search_url(dym, param))
-    text = escape(dym.corrected_query)
+    href = html_escape(did_you_mean_search_url(dym, param))
+    text = html_escape(dym.corrected_query)
     return f'<a class="search-did-you-mean__link" href="{href}" data-ol-link-track="Search|DidYouMean">{text}</a>'
 
 
