@@ -67,14 +67,18 @@ describe('year facet', () => {
         expect(roleYears(byName('Abbey Ripstra'), 2026).has(2022)).toBe(false);
     });
 
-    it('expands an open-ended role up to the current year', () => {
-        // staff-active with no end -> ongoing; the helper fills through currentYear.
-        const years = roleYears(byName('Mek'), 2026);
-        // Mek's staff role carries no start year, so it contributes nothing; a dated
-        // role would. Assert the open-ended expansion on a dated+ongoing fixture instead:
+    it('expands an open-ended dated role through the current year', () => {
         const dated = { roles: [{ kind: 'staff', status: 'active', start: 2024, end: null }] };
         expect([...roleYears(dated, 2026)]).toEqual([2024, 2025, 2026]);
-        expect(years.size).toBeGreaterThanOrEqual(0);
+    });
+
+    it('counts undated, still-active members in the current year', () => {
+        // Current staff/volunteers carry an undated active role (no start year);
+        // they must still surface when the current year is chosen.
+        expect(personMatchesYear(byName('Mek'), 2026, 2026)).toBe(true);
+        expect(personMatchesYear(byName('Alex Arasawa'), 2026, 2026)).toBe(true);
+        // ...but an emeritus member with no dates is NOT assumed to be current.
+        expect(personMatchesYear(byName('Aaron Swartz'), 2026, 2026)).toBe(false);
     });
 
     it('matches "All" and specific years', () => {
@@ -176,12 +180,31 @@ describe('initTeamFilter (DOM wiring)', () => {
         expect(new URL(window.location.href).searchParams.get('year')).toBe('2023');
     });
 
+    it('labels fellows current/past relative to the selected year', () => {
+        mountPage('/?role=fellow&year=2023');
+        initTeamFilter();
+        const subs = [...document.querySelectorAll('.subsectionSeparator')].map(
+            (e) => e.textContent
+        );
+        // A 2023 fellow is "Current" when the view is scoped to 2023.
+        expect(subs).toContain('Current');
+    });
+
     it('deep-links to a person via ?person= and highlights them', () => {
         mountPage('/?person=ray-berger');
         initTeamFilter();
         const card = document.getElementById('ray-berger');
         expect(card).not.toBeNull();
         expect(card.classList.contains('teamCard__container--highlighted')).toBe(true);
+    });
+
+    it('ignores a deep-link that collides with a filter control id', () => {
+        mountPage('/?person=year');
+        initTeamFilter();
+        // #year is the dropdown, not a person card — it must not get highlighted.
+        expect(
+            document.getElementById('year').classList.contains('teamCard__container--highlighted')
+        ).toBe(false);
     });
 
     it('reveals a filtered-out person when deep-linked', () => {

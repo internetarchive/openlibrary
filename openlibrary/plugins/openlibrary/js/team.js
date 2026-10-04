@@ -38,7 +38,14 @@ export const isCurrentFellow = (person, year) =>
 export const roleYears = (person, currentYear) => {
     const years = new Set();
     (person.roles || []).forEach((role) => {
-        if (isNil(role.start)) return;
+        if (isNil(role.start)) {
+            // Undated but still-active/ongoing role (current staff, volunteers):
+            // count it as the current year so the Year facet shows current members.
+            if (isNil(role.end) && role.status === 'active') {
+                years.add(currentYear);
+            }
+            return;
+        }
         const end = isNil(role.end) ? currentYear : role.end;
         for (let y = role.start; y <= end; y++) {
             years.add(y);
@@ -279,7 +286,10 @@ export function initTeamFilter() {
         if (department !== 'All') {
             people = people.filter((person) => matchDepartment(person, department));
         }
-        const groups = classifyTeam(people, currentYear);
+        // When a specific year is chosen, "current" fellows are those current in
+        // that year, not today — so the Current/Past labels read correctly.
+        const classYear = year === 'All' ? currentYear : Number(year);
+        const groups = classifyTeam(people, classYear);
         const anyShown =
       groups.staffCurrent.length ||
       groups.staffEmeritus.length ||
@@ -352,7 +362,13 @@ export function initTeamFilter() {
         if (!target) {
             return;
         }
-        let card = document.getElementById(target);
+        // Only person cards are valid targets — ignore collisions with the
+        // filter <select> ids (?person=year would otherwise match the dropdown).
+        const findCard = () => {
+            const el = document.getElementById(target);
+            return el && el.classList.contains('teamCard__container') ? el : null;
+        };
+        let card = findCard();
         if (!card) {
             // The person may be hidden by an active filter; show everyone, then retry.
             roleFilter.value = 'All';
@@ -361,7 +377,7 @@ export function initTeamFilter() {
                 yearFilter.value = 'All';
             }
             filterTeam('All', 'All', 'All');
-            card = document.getElementById(target);
+            card = findCard();
         }
         if (card) {
             if (card.scrollIntoView) {
