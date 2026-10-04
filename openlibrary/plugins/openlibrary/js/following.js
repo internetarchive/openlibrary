@@ -2,7 +2,7 @@ import { PersistentToast } from './Toast';
 
 export async function initAsyncFollowing(followForms) {
     followForms.forEach(form => {
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener('submit', async(e) => {
             e.preventDefault();
             const url = form.action;
             const formData = new FormData(form);

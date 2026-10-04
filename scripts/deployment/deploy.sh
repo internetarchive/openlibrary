@@ -27,13 +27,22 @@ DEPLOY_DIR="/tmp/openlibrary_deploy"
 
 mkdir -p $DEPLOY_DIR
 
-WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2"
-ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 ol-solr0 ol-solr1 $WEB_HOSTNAMES"
+WEB_HOSTNAMES="ol-web0 ol-web2 ol-web3"
+# Note: ol-solr0 and ol-solr2 are currently excluded due to a version
+# upgrade pending full reindex
+ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
+SKIP_NGINX_CHECK=${SKIP_NGINX_CHECK:-""}
+# Set by check_nginx_config when the gate is skipped, so the end-of-deploy
+# summary can say so too; see the comment on SKIP_NGINX_CHECK there.
+NGINX_CHECK_SKIPPED=0
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
+# Convert "deploy-2026-05-19-at-19-10" to "2026-05-19T19:10" (replace "-at-" with "T" and the final "-" in the time with ":")
+LATEST_TAG_TIMESTAMP=$(echo "$LATEST_TAG" | sed 's/^deploy-//; s/-at-/T/; s/-\([0-9][0-9]\)$/:\1/')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
+RELEASE_MERGED_PRS_URL="https://github.com/internetarchive/openlibrary/pulls?q=is%3Apr++is%3Amerged+merged%3A$LATEST_TAG_TIMESTAMP..$(date -u +%Y-%m-%dT%H:%M)"
 DEPLOY_TAG="deploy-$(date -u +%Y-%m-%d-at-%H-%M)"
 
 # Install GNU parallel if not there
@@ -94,6 +103,18 @@ check_for_local_changes() {
     REPO_DIR=$2
 
     echo -n "   $SERVER ... "
+
+    # First check if it doesn't exist
+    if ! ssh $SERVER "test -d $REPO_DIR"; then
+        echo "✓ ($REPO_DIR doesn't exist, will be created on deploy)"
+        return
+    fi
+
+    # Not a git repo yet (e.g. partial failure before git init) -- skip check
+    if ! ssh $SERVER "test -d $REPO_DIR/.git"; then
+        echo "✓ ($REPO_DIR exists but is not a git repo yet)"
+        return
+    fi
 
     OUTPUT=$(ssh $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all")
 
@@ -218,6 +239,10 @@ deploy_olsystem() {
     check_server_access
     check_crons
 
+    while ! check_server_storage; do
+        read -p "Press Enter to retry..."
+    done
+
     cd $DEPLOY_DIR
 
     CLEANUP=${CLEANUP:-1}
@@ -262,7 +287,9 @@ deploy_olsystem() {
             sudo chmod -R g+rwX /opt/$REPO_NEW
 
             sudo rm -rf /opt/$REPO_PREVIOUS || true
-            sudo mv /opt/$REPO /opt/$REPO_PREVIOUS
+            if [ -d /opt/$REPO ]; then
+                sudo mv /opt/$REPO /opt/$REPO_PREVIOUS
+            fi
             sudo mv /opt/$REPO_NEW /opt/$REPO
         "); then
             echo "✓"
@@ -273,6 +300,23 @@ deploy_olsystem() {
             exit 1
         fi
     done
+
+    # Gate here, inside the function, NOT at the wizard's call site. A rule fix is
+    # an olsystem-only change, so it ships via `deploy.sh olsystem` rather than by
+    # running the whole weekly wizard -- and that CLI path would skip a gate that
+    # lived in deploy_wizard. The highest-risk deploy would have been the
+    # unguarded one. Keeping the call here means there is exactly one call site
+    # per deploy function and no way to reach the swap without it.
+    if [[ "$REPO" == "olsystem" ]]; then
+        check_nginx_config olsystem
+    fi
+
+    if [[ "$NGINX_CHECK_SKIPPED" == "1" ]]; then
+        echo ""
+        echo "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config"
+        echo "          was NOT validated. A bad ruleset will surface as an [emerg]"
+        echo "          the next time nginx restarts (olsystem#420)."
+    fi
 
     echo "Finished $REPO deployment at $(date)"
     echo "[Info] To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -302,30 +346,49 @@ date_to_timestamp() {
 }
 
 tag_deploy() {
-    # Check if tag does NOT exist
-    if ! git -C "${DEPLOY_DIR}/openlibrary" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
+    local REPO_DIR="${DEPLOY_DIR}/openlibrary"
+    if [ ! -d "$REPO_DIR/.git" ]; then
+        REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+        local HEAD_SHA
+        HEAD_SHA="$(git -C "$REPO_DIR" rev-parse --short HEAD)"
+        echo "[Warning] Deploy clone not found; fallback to local repo at $REPO_DIR"
+        echo "          Local HEAD is $HEAD_SHA — confirm this matches what was deployed."
+        read -p "Tag production as $HEAD_SHA from the local repo? [y/N]..." confirm
+        confirm=${confirm:-N}
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            echo "[Abort] Cancelled. Verify the correct commit is checked out before re-running."
+            return 1
+        fi
+    fi
+    if ! git -C "$REPO_DIR" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
         echo "[Info] Tagging deploy as $DEPLOY_TAG"
-        git -C "${DEPLOY_DIR}/openlibrary" tag "$DEPLOY_TAG"
-        git -C "${DEPLOY_DIR}/openlibrary" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
+        git -C "$REPO_DIR" tag "$DEPLOY_TAG"
+        git -C "$REPO_DIR" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
     else
         echo "[Info] Tag '$DEPLOY_TAG' already exists. Skipping creation."
     fi
 
     # Always update and push the 'production' tag
-    git -C "${DEPLOY_DIR}/openlibrary" tag -f production
-    git -C "${DEPLOY_DIR}/openlibrary" push -f git@github.com:internetarchive/openlibrary.git production
+    git -C "$REPO_DIR" tag -f production
+    git -C "$REPO_DIR" push -f git@github.com:internetarchive/openlibrary.git production
 }
 
 tag_release() {
-    LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
+    local REPO_DIR="${DEPLOY_DIR}/openlibrary"
+    if [ ! -d "$REPO_DIR/.git" ]; then
+        REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+        echo "[Warning] Deploy clone not found; reading tags from local repo at $REPO_DIR"
+    fi
+    LATEST_TAG_NAME=$(git -C "$REPO_DIR" describe --tags --abbrev=0)
     echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
 }
 
 check_olbase_image_up_to_date() {
+    local git_branch="${GIT_BRANCH:-master}"
     echo "[Now] Checking if Docker image is up-to-date"
 
     # Get latest commit timestamp from GitHub API
-    GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/master"
+    GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/$git_branch"
     GIT_LAST_UPDATED=$(curl -s "$GITHUB_COMMIT_API" | jq -r '.commit.committer.date')
     echo "Latest Git commit: $GIT_LAST_UPDATED"
 
@@ -351,6 +414,7 @@ check_olbase_image_up_to_date() {
 deploy_openlibrary() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+    local git_branch="${GIT_BRANCH:-master}"
 
     echo "[Now] Deploying openlibrary"
 
@@ -361,8 +425,12 @@ deploy_openlibrary() {
     if [ -d "$DEPLOY_DIR/openlibrary_new" ]; then
         cleanup "$DEPLOY_DIR/openlibrary_new"
     fi
-    echo -ne "Cloning openlibrary repo ... "
+    echo -ne "Cloning openlibrary repo (branch: $git_branch) ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
+    if [ -n "$git_branch" ]; then
+        git -C openlibrary fetch --depth=1 origin $git_branch
+        git -C openlibrary checkout FETCH_HEAD
+    fi
     GIT_SHA=$(git -C openlibrary rev-parse HEAD | cut -c -7)
     echo "✔ (SHA: $GIT_SHA)"
     echo ""
@@ -394,35 +462,87 @@ deploy_openlibrary() {
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
     tar -czf openlibrary_new.tar.gz openlibrary_new
-    if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
-        cleanup "${DEPLOY_DIR}/openlibrary"
-        exit 1
+
+    if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
+        if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary_new" "openlibrary_new"; then
+            cleanup "${DEPLOY_DIR}/openlibrary"
+            exit 1
+        fi
+
+        echo ""
+        echo "Final swap..."
+        for SERVER in $FQDNS; do
+            echo -n "   $SERVER ... "
+
+            # Fix file ownership, back up the current copy to openlibrary_previous, swap in the
+            # new one, then make it into a git repo so local mods are easy to track.
+            if OUTPUT=$(ssh $SERVER "
+                set -e
+                sudo chown -R root:staff /opt/openlibrary_new
+                sudo chmod -R g+rwX /opt/openlibrary_new
+
+                sudo rm -rf /opt/openlibrary_previous || true
+                if [ -d /opt/openlibrary ]; then
+                    sudo mv /opt/openlibrary /opt/openlibrary_previous
+                fi
+                sudo mv /opt/openlibrary_new /opt/openlibrary
+
+                cd /opt/openlibrary
+                sudo git init 2>&1 > /dev/null
+                sudo git add . > /dev/null
+                sudo git commit -m 'Deployed openlibrary' > /dev/null
+            "); then
+                echo "✓"
+            else
+                echo "⚠"
+                echo "$OUTPUT"
+                cleanup "${DEPLOY_DIR}/openlibrary"
+                exit 1
+            fi
+        done
+
+        if ! prune_docker image; then
+            cleanup "${DEPLOY_DIR}/openlibrary"
+            exit 1
+        fi
     fi
-    echo ""
 
-    # Fix file ownership + Make into a git repo so can easily track local mods
-    for SERVER in $FQDNS; do
-        ssh $SERVER "
-            set -e
-            sudo chown -R root:staff /opt/openlibrary
-            sudo chmod -R g+rwX /opt/openlibrary
-            cd /opt/openlibrary
-            sudo git init 2>&1 > /dev/null
-            sudo git add . > /dev/null
-            sudo git commit -m 'Deployed openlibrary' > /dev/null
-        "
-    done
-
-    if ! prune_docker image; then
-        cleanup "${DEPLOY_DIR}/openlibrary"
-        exit 1
+    if [[ "$SKIP_OL_TRANSFER_IMAGES" != "1" ]]; then
+        echo ""
+        echo "Pull the latest docker images..."
+        until deploy_images; do
+            read -p "Pulling images failed, retry? [Y/n] " choice
+            choice=${choice:-Y}
+            if [[ ! "$choice" =~ ^[Yy]$ ]]; then
+                echo "Aborting deployment."
+                clean_exit
+            fi
+        done
     fi
 
-    echo ""
-    echo "Pull the latest docker images..."
-    deploy_images
+    # Gate again, and this is not redundant with the one in deploy_olsystem.
+    # docker/nginx.conf and docker/web_nginx.conf are bind-mounted out of
+    # /opt/openlibrary, which is still PRE-deploy when the olsystem gate runs, so
+    # that gate validates new-olsystem against old-nginx.conf -- a combination
+    # that never actually serves. Coupled changes slip straight through it: an
+    # openlibrary PR adding `include /olsystem/etc/nginx/thing.conf` alongside an
+    # olsystem PR adding the file passes there (old conf, no include) and then
+    # [emerg]s at restart. Only here do both halves exist together.
+    #
+    # Runs before tag_deploy so a broken deploy is not tagged as good, and before
+    # recreate_services so the live containers are still serving the old config.
+    check_nginx_config openlibrary
 
-    tag_deploy
+    if [[ "$TAG_DEPLOY" == "1" ]]; then
+        tag_deploy
+    fi
+
+    if [[ "$NGINX_CHECK_SKIPPED" == "1" ]]; then
+        echo ""
+        echo "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config"
+        echo "          was NOT validated. A bad ruleset will surface as an [emerg]"
+        echo "          the next time nginx restarts (olsystem#420)."
+    fi
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -446,6 +566,23 @@ deploy_images() {
         IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
         OLBASE_DIGEST=$(echo "$IMAGE_META" | jq -r '.images[0].digest')
         echo "✓ ($OLBASE_DIGEST)"
+    fi
+
+    # Pull on one node first to warm the nexus cache, avoiding Docker Hub rate limits
+    # when all servers pull in parallel.
+    local FIRST_SERVER
+    FIRST_SERVER=$(echo "$HOSTNAMES" | awk '{print $1}')
+    echo -n "   Warming nexus cache on ${FIRST_SERVER} ... "
+    local WARM_OUTPUT
+    WARM_OUTPUT=$(ssh "${FIRST_SERVER}${SERVER_SUFFIX}" "docker pull openlibrary/olbase@${OLBASE_DIGEST}" 2>&1)
+    if [ $? -eq 0 ]; then
+        echo "✓"
+    else
+        echo "✗"
+        echo "Failed to warm nexus cache on ${FIRST_SERVER}"
+        echo "Output:"
+        echo "$WARM_OUTPUT"
+        return 1
     fi
 
     local pids=()
@@ -580,17 +717,217 @@ prune_docker () {
     return 0
 }
 
-clone_booklending_utils() {
-    :
-    #HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-    # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $HOSTNAMES ::: /opt/booklending_utils
+# Which compose service runs nginx on each host; the compose profile is the
+# hostname. Hosts absent from this list don't run nginx.
+#
+# All three belong here, even though ol-www0/web_nginx is the only one that loads
+# the ModSecurity ruleset (`modsecurity on` appears in docker/web_nginx.conf and
+# nowhere else). Every nginx service mounts the shared docker/nginx.conf, which
+# includes seven files out of /olsystem -- logging.conf, tagger.js, deny.conf,
+# is_blessed_ip.conf, is_blessed_ua.conf, is_sus_ip.conf, ua_rate_limit_key.conf
+# -- so a bad olsystem include crash-loops infobase_nginx and covers_nginx just
+# as readily. Narrowing this map to ol-www0 would leave those unguarded.
+nginx_service_for() {
+    case "$1" in
+        ol-www0)    echo "web_nginx" ;;
+        ol-home0)   echo "infobase_nginx" ;;
+        ol-covers0) echo "covers_nginx" ;;
+        *)          echo "" ;;
+    esac
+}
+
+# Validate the nginx config that the olsystem deploy just shipped.
+#
+# olsystem carries the ModSecurity ruleset and most of what nginx.conf includes,
+# none of which goes through CI -- so a bad rule is not a failed deploy, it is an
+# [emerg] the next time nginx starts, which takes the site down. See
+# internetarchive/olsystem#420. docker/ol-nginx-start.sh now runs `nginx -t` before
+# serving, so that failure is at least fast and legible rather than a crash loop,
+# but the container is still down either way. Catching it at deploy time is what
+# keeps it off the site: the running containers are still serving the previous
+# (good) config and nothing is user-visible yet.
+#
+# Called twice, from deploy_olsystem and from deploy_openlibrary, and neither
+# call alone is sufficient. The olsystem call runs while /opt/openlibrary is
+# still pre-deploy, so it sees new rules against the OLD nginx.conf; the
+# openlibrary call is the first point at which both halves of a coupled change
+# exist together. Each catches what the other cannot.
+#
+# This MUST use `run --rm`, not `exec`. A bind mount is resolved to an inode when
+# the container starts, and deploy_olsystem does not update /opt/olsystem in
+# place -- it does `mv /opt/olsystem /opt/olsystem_previous` followed by
+# `mv /opt/olsystem_new /opt/olsystem`. The running container keeps the old
+# inode, which is now reachable at /opt/olsystem_previous, so `exec ... nginx -t`
+# parses the PREVIOUS ruleset, passes, and the crash still arrives at restart.
+# Being visible live is a property of editing a file inside a mounted directory,
+# not of directory mounts as such: `mv` orphans a directory mount for exactly the
+# same reason it orphans the single-FILE mounts that copy_to_servers orphans one
+# function later. A fresh container re-resolves the path and sees the new rules.
+#
+# Never pass --service-ports here: it republishes the service's ports and fails
+# with "port is already allocated" against the live container on :80/:443.
+#
+# This depends on the nginx services declaring `command:` and not `entrypoint:`
+# (compose.production.yaml:132, 222, 260). `run ... nginx -t` overrides `command`,
+# so the test runs directly. Were that key `entrypoint:`, the start script would
+# run instead with `nginx -t` as ignored arguments, sail past its own check,
+# reach `nginx -g "daemon off;"` and block forever -- a hung deploy holding a
+# --rm container open. Converting command -> entrypoint looks like a harmless
+# refactor and would silently break this gate.
+#
+# `run` also sidesteps an `exec` edge case -- `exec` against a container that
+# happens to be down exits non-zero and would fail an otherwise healthy deploy.
+#
+# OLIMAGE is passed through for the same reason restart_servers.sh passes it: an
+# operator who exports OLIMAGE=<tag> for a deploy gets it honoured at restart, so
+# the gate has to resolve the same tag or it parses the config against one nginx
+# build while a different one serves it. Unset is the normal case and still
+# resolves ${OLIMAGE:-openlibrary/olbase:latest} -- the `:-` treats empty as
+# unset -- which is what the live containers resolve too.
+#
+# THIS CHECK IS NOT READ-ONLY. It can mutate the tree it is validating, and that
+# is worth knowing before you trust it. A fresh container resolves the
+# single-FILE mounts (../olsystem/etc/cron.d/certbot,
+# ../olsystem/etc/logrotate.d/nginx, and the per-service cron.d entries) against
+# the NEWLY deployed /opt/olsystem. Where the new olsystem no longer ships one of
+# those files, Docker creates an empty DIRECTORY at that host path, inside the
+# tree just deployed. Verified, not theoretical. `exec` never did this, because
+# it reused mounts resolved at the live container's start.
+#
+# Not a false-pass, and `recreate_services` does the same at restart, so the gate
+# makes it earlier rather than new. Left unfixed deliberately: every guard we
+# could see means parsing `docker compose config` over ssh to enumerate bind
+# sources, which is fragile machinery defending against a state that is already a
+# broken deploy -- if olsystem stopped shipping a file compose mounts, the live
+# containers break at the next restart regardless. If you are debugging this,
+# look for a zero-byte directory rather than a bad rule.
+#
+# It is also a standing argument for doing the test in ol-nginx-start.sh, where a
+# container is coming up anyway, rather than in a separate `run`.
+#
+# Known false-abort, distinct from a false-pass: `nginx -t` opens the certs named
+# in web_nginx.conf (ssl_certificate /etc/letsencrypt/...), which arrive via the
+# letsencrypt-data volume. On a host where certbot has never run, the test fails
+# on a missing cert and stops a deploy whose config is fine. If that happens,
+# confirm it is the cert and not a rule before reaching for SKIP_NGINX_CHECK.
+#
+# $1 is which deploy is calling -- "olsystem" (default) or "openlibrary". It only
+# steers the failure text, but it has to be passed: the two callers have just
+# swapped different trees, so they need different repos named and different
+# _previous paths offered for rollback. Telling an operator mid-deploy to roll
+# back the wrong directory is its own outage.
+check_nginx_config() {
+    local CALLER="${1:-olsystem}"
+
+    if [[ "$SKIP_NGINX_CHECK" == "1" ]]; then
+        echo "[Warning] Skipping nginx config test (SKIP_NGINX_CHECK=1)"
+        # Re-announced at the end of the deploy. A warning printed only at the
+        # moment it is set scrolls past during a 12-minute deploy, and the
+        # failure mode for this gate is someone setting the skip once under
+        # pressure and then keeping it set.
+        NGINX_CHECK_SKIPPED=1
+        return 0
+    fi
+
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    local COMPOSE_FILE="compose.yaml:compose.production.yaml"
+    local FAILED=0
+    local CHECKED=0
+    local SERVICE
+    local SERVER
+    local CERT_FAILURE=0
+    local RULE_FAILURE=0
+
+    if [[ "$CALLER" == "openlibrary" ]]; then
+        echo "[Now] Re-testing nginx config, now against the newly deployed docker/ configs..."
+    else
+        echo "[Now] Testing nginx config against the newly deployed olsystem rules..."
+    fi
+    for SERVER_NAME in $HOSTNAMES; do
+        SERVICE=$(nginx_service_for "$SERVER_NAME")
+        if [[ -z "$SERVICE" ]]; then
+            continue
+        fi
+        CHECKED=1
+
+        SERVER="${SERVER_NAME}${SERVER_SUFFIX}"
+        echo -n "   $SERVER ($SERVICE) ... "
+
+        if OUTPUT=$(ssh "$SERVER" "
+            set -e
+            cd /opt/openlibrary
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME OLIMAGE='$OLIMAGE' docker compose --profile $SERVER_NAME run --rm --no-deps -T $SERVICE nginx -t
+        " 2>&1); then
+            echo "✓"
+        else
+            echo "⚠"
+            echo "$OUTPUT"
+            FAILED=1
+            # Classify rather than making a human under time pressure do it. A
+            # missing cert is a false-abort on a host certbot has never run on;
+            # a bad rule is the thing this gate exists to catch. They need
+            # opposite responses and look alike in a wall of nginx output.
+            if echo "$OUTPUT" | grep -qE 'cannot load certificate|BIO_new_file'; then
+                CERT_FAILURE=1
+            else
+                RULE_FAILURE=1
+            fi
+        fi
+    done
+
+    if [ $CHECKED -eq 0 ]; then
+        echo "   No nginx hosts in this deploy; nothing to test."
+        return 0
+    fi
+
+    if [ $FAILED -eq 1 ]; then
+        echo ""
+        if [ $RULE_FAILURE -eq 1 ]; then
+            echo "[Error] nginx config test FAILED on one or more hosts (see output above)."
+            if [[ "$CALLER" == "openlibrary" ]]; then
+                echo "        openlibrary is already deployed, but the new config is invalid --"
+                echo "        restarting nginx now would take the site down (olsystem#420)."
+                echo "        The running containers are still serving the previous config."
+                echo ""
+                echo "        The olsystem rules passed on their own earlier in this deploy,"
+                echo "        so suspect docker/nginx.conf or docker/web_nginx.conf, which"
+                echo "        ship from the openlibrary repo -- most likely an include or a"
+                echo "        directive that expects an olsystem file that isn't there."
+                echo ""
+                echo "        Fix it in openlibrary and deploy again, or roll back using the"
+                echo "        copy left in /opt/openlibrary_previous on each host."
+            else
+                echo "        olsystem is already deployed, but the new config is invalid --"
+                echo "        restarting nginx now would take the site down (olsystem#420)."
+                echo "        The running containers are still serving the previous config."
+                echo ""
+                echo "        Fix the ruleset in olsystem and deploy it again, or roll back"
+                echo "        using the copy left in /opt/olsystem_previous on each host."
+            fi
+        fi
+        if [ $CERT_FAILURE -eq 1 ]; then
+            echo "[Error] nginx could not load a TLS certificate (see output above)."
+            if [ $RULE_FAILURE -eq 0 ]; then
+                echo "        No rule syntax error was reported -- this looks like a"
+                echo "        missing cert, not a bad ruleset. On a host where certbot"
+                echo "        has never issued one, /etc/letsencrypt is empty and this"
+                echo "        test aborts a deploy whose config is fine."
+                echo "        Confirm the cert exists before treating this as a rule bug."
+            fi
+        fi
+        echo ""
+        echo "        To proceed anyway (NOT recommended), set SKIP_NGINX_CHECK=1."
+        clean_exit
+    fi
+
+    return 0
 }
 
 recreate_services() {
     echo "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
     echo "- Grafana: https://grafana.us.archive.org/d/000000176/open-library-dev?orgId=1&refresh=1m&from=now-6h&to=now"
-    time SERVER_SUFFIX="$SERVER_SUFFIX" "$SCRIPT_DIR/restart_servers.sh"
+    time SERVER_SUFFIX="$SERVER_SUFFIX" SERVERS="${SERVERS:-$ALL_HOSTNAMES}" "$SCRIPT_DIR/restart_servers.sh"
 }
 
 deploy_wizard() {
@@ -606,7 +943,11 @@ deploy_wizard() {
     # Announce the deploy
     echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
     echo ""
-    echo "Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
+    echo "Open Library is in the process of deploying its weekly release."
+    echo ""
+    echo "See what's changed: $RELEASE_DIFF_URL"
+    echo "PRs going out: $RELEASE_MERGED_PRS_URL"
+    echo ""
     read -p "Once announced, press Enter to continue..."
     echo ""
 
@@ -621,6 +962,7 @@ deploy_wizard() {
     read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
+        # deploy_olsystem gates on `nginx -t` itself; see check_nginx_config.
         time deploy_olsystem
     fi
     echo ""
@@ -630,12 +972,36 @@ deploy_wizard() {
     done
     echo ""
 
-    read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
-    echo ""
-
-    read -p "[Now] Run openlibrary deploy & audit now? [Y/n]..." answer
+    # Y = run every step with its default; p = pick the steps individually.
+    read -p "[Now] Run openlibrary deploy? [Y/n/p]..." answer
     answer=${answer:-Y}
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
+    if [[ "$answer" =~ ^[YyPp]$ ]]; then
+        if [[ "$answer" =~ ^[Pp]$ ]]; then
+            read -p "[Now] Transfer codebase to servers? [Y/n]..." step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Nn]$ ]]; then
+                SKIP_OL_TRANSFER_CODE=1
+            fi
+
+            read -p "[Now] Deploy Docker Images? [Y/n]..." step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Nn]$ ]]; then
+                SKIP_OL_TRANSFER_IMAGES=1
+            fi
+
+            read -p "[Now] Tag deploy? [Y/n]..." step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Yy]$ ]]; then
+                TAG_DEPLOY=1
+            fi
+        else
+            # Full deploy. TAG_DEPLOY must be set explicitly here: it is otherwise
+            # only ever set by the "Tag deploy?" sub-prompt above, so without this
+            # line tagging silently stops happening while the deploy still reports
+            # success.
+            TAG_DEPLOY=1
+        fi
+
         time deploy_openlibrary
         echo ""
         time check_servers_in_sync
@@ -656,13 +1022,12 @@ deploy_wizard() {
         echo ""
     fi
 
-    read -p "[Now] Tag and announce release? [N/y]..." answer
+    read -p "[Now] Create and announce release? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time tag_release
         read -p "Press Enter to continue..."
 
-        LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
         echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
         echo ""
         echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please respond in this thread if anything seems broken or delightful!"
@@ -700,6 +1065,10 @@ elif [ "$1" == "" ]; then  # If this works to detect empty
 else
     echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
+    echo "Env vars: SKIP_OL_TRANSFER_CODE=1  skip SCP+git-init+prune step"
+    echo "          SKIP_OL_TRANSFER_IMAGES=1 skip docker image pull step"
+    echo "          TAG_DEPLOY=1              tag this commit as the deploy (set automatically by wizard)"
+    echo "          SKIP_NGINX_CHECK=1        skip the \`nginx -t\` test run after the olsystem deploy"
     exit 1
 fi
 

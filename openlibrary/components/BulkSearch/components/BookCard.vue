@@ -32,7 +32,10 @@
 <script>
 export default {
     props: {
-        doc: Object,
+        doc: {
+            type: Object,
+            required: true
+        },
         isPrimary: {
             type: Boolean,
             default: false
@@ -41,15 +44,15 @@ export default {
     computed: {
         coverImage() {
             if (!this.doc.cover_i) {
-                return ''
+                return '';
             }
-            return `https://covers.openlibrary.org/b/id/${this.doc.cover_i}-M.jpg`
+            return `https://covers.openlibrary.org/b/id/${this.doc.cover_i}-M.jpg`;
         },
         workUrl() {
-            return `https://openlibrary.org/${this.doc.key}`
+            return `https://openlibrary.org/${this.doc.key}`;
         }
     }
-}</script>
+};</script>
 
 
 <style>

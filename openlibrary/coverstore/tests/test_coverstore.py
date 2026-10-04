@@ -2,6 +2,7 @@ from os.path import abspath, dirname, exists, join, pardir
 
 import pytest
 import web
+from PIL import Image
 
 from openlibrary.coverstore import config, coverlib, utils
 
@@ -55,8 +56,6 @@ def test_bad_image(image_dir):
 
 def test_resize_image_aspect_ratio():
     """make sure the aspect-ratio is maintained"""
-    from PIL import Image
-
     img = Image.new("RGB", (100, 200))
 
     img2 = coverlib.resize_image(img, (40, 40))
@@ -137,6 +136,65 @@ def test_server_image(image_dir):
 def test_image_path(image_dir):
     assert coverlib.find_image_path("a.jpg") == config.data_root + "/localdisk/a.jpg"
     assert coverlib.find_image_path("covers_0000_00.tar:1234:10") == config.data_root + "/items/covers_0000/covers_0000_00.tar:1234:10"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        # archive.org download page images (with and without .jpg, cover and title)
+        "https://archive.org/download/goody/page/title",
+        "https://archive.org/download/goody/page/title.jpg",
+        "https://archive.org/download/goody/page/cover",
+        "https://archive.org/download/goody/page/cover.jpg",
+        "http://archive.org/download/goody/page/title.jpg",
+        # with optional size suffix
+        "https://archive.org/download/goody/page/cover_w500_h500",
+        "https://archive.org/download/goody/page/cover_w500.jpg",
+        "https://archive.org/download/goody/page/title_h800.jpg",
+        # archive.org IIIF image service
+        "https://archive.org/services/img/goody/full/pct:600/0/default.jpg",
+        "http://archive.org/services/img/some/nested/id/full/pct:100/0/default.jpg",
+        # covers.openlibrary.org
+        "https://covers.openlibrary.org/b/id/15082914.jpg",
+        "https://covers.openlibrary.org/b/id/15082914-M.jpg",
+        "http://covers.openlibrary.org/b/olid/OL123M-L.jpg",
+        # third-party hosts
+        "https://books.google.com/books?id=foo&printsec=frontcover",
+        "https://commons.wikimedia.org/wiki/File:Example.jpg",
+        "https://m.media-amazon.com/images/I/51abc123.jpg",
+    ],
+)
+def test_is_allowed_cover_url_allowed(url):
+    assert utils.is_allowed_cover_url(url) is True
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        # unrecognised domains
+        "https://evil.com/image.jpg",
+        "https://archive.org.evil.com/download/x/page/title",
+        # SSRF attempts
+        "file:///etc/passwd",
+        "http://localhost/image.jpg",
+        "http://169.254.169.254/latest/meta-data/",
+        # archive.org paths that don't match the allowed patterns
+        "https://archive.org/download/goody/page/script.php",
+        "https://archive.org/download/goody/notpage/title",
+        # ? and # injection into archive.org paths
+        "https://archive.org/download/goody?evil=1/page/title",
+        "https://archive.org/download/goody#evil/page/title",
+        "https://archive.org/services/img/goody?evil/full/pct:600/0/default.jpg",
+        "https://archive.org/services/img/goody#evil/full/pct:600/0/default.jpg",
+        # covers.openlibrary.org with wrong extension
+        "https://covers.openlibrary.org/b/id/15082914.png",
+        # empty string and bare domain
+        "",
+        "https://archive.org",
+    ],
+)
+def test_is_allowed_cover_url_rejected(url):
+    assert utils.is_allowed_cover_url(url) is False
 
 
 def test_urldecode():

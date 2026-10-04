@@ -1,5 +1,6 @@
-import Template from './template'
-import { isbnOverride } from '../../openlibrary/js/isbnOverride'
+import $ from 'jquery';
+import Template from './template';
+import { isbnOverride } from '../../openlibrary/js/isbnOverride';
 
 /**
  * jquery repeat: jquery plugin to handle repetitive inputs in a form.
@@ -20,7 +21,7 @@ export function init() {
             form: $(`${id}-form`),
             display: $(`${id}-display`),
             template: $(`${id}-template`)
-        }
+        };
 
         function createTemplate(selector) {
             code = $(selector).html()
@@ -110,5 +111,5 @@ export function init() {
         // Click handlers should apply to newly created add/remove selectors
         $(document).on('click', addSelector, onAdd);
         $(document).on('click', removeSelector, onRemove);
-    }
+    };
 }

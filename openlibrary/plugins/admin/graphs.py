@@ -61,9 +61,7 @@ class Series:
 
         :return: Returns self
         """
-        self.name = "{}({}, {})".format(
-            funcname, self.name, ", ".join(repr(a) for a in args)
-        )
+        self.name = "{}({}, {})".format(funcname, self.name, ", ".join(repr(a) for a in args))
         return self
 
     def alias(self, name):
@@ -81,6 +79,6 @@ class Series:
 def setup():
     web.template.Template.globals.update(
         {
-            'GraphiteGraph': GraphiteGraph,
+            "GraphiteGraph": GraphiteGraph,
         }
     )

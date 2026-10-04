@@ -15,7 +15,7 @@ describe('parseIsbn', () => {
     it('correctly parses ISBN 13 with dashes', () => {
         expect(parseIsbn('978-0-553-38168-9')).toBe('9780553381689');
     });
-})
+});
 
 // testing from examples listed here:
 // https://www.loc.gov/marc/lccn-namespace.html
@@ -44,7 +44,7 @@ describe('parseLccn', () => {
     it('correctly parses LCCN example 8', () => {
         expect(parseLccn(' 79139101 /AC/r932')).toBe('79139101');
     });
-})
+});
 
 describe('isChecksumValidIsbn10', () => {
     it('returns true with valid ISBN 10 (X check character)', () => {
@@ -60,7 +60,7 @@ describe('isChecksumValidIsbn10', () => {
     it('returns false with an invalid ISBN 10', () => {
         expect(isChecksumValidIsbn10('1234567890')).toBe(false);
     });
-})
+});
 
 describe('isChecksumValidIsbn13', () => {
     it('returns true with valid ISBN 13 (check 1)', () => {
@@ -76,7 +76,7 @@ describe('isChecksumValidIsbn13', () => {
     it('returns false with an invalid ISBN 13 (check 2)', () => {
         expect(isChecksumValidIsbn13('9790000000000')).toBe(false);
     });
-})
+});
 
 describe('isFormatValidIsbn10', () => {
     it('returns true with valid ISBN 10 (X check character)', () => {
@@ -92,7 +92,7 @@ describe('isFormatValidIsbn10', () => {
     it('returns false with blank value', () => {
         expect(isFormatValidIsbn10('')).toBe(false);
     });
-})
+});
 
 describe('isFormatValidIsbn13', () => {
     it('returns true with valid ISBN 13', () => {
@@ -108,7 +108,7 @@ describe('isFormatValidIsbn13', () => {
     it('returns false with invalis ISBN 13 (non-numeric)', () => {
         expect(isFormatValidIsbn13('979a430918002')).toBe(false);
     });
-})
+});
 
 // testing from examples listed here:
 // https://www.loc.gov/marc/lccn-namespace.html
@@ -154,4 +154,4 @@ describe('isValidLccn', () => {
     it('returns false for LCCN of length 13', () => {
         expect(isValidLccn('1250000000003')).toBe(false);
     });
-})
+});

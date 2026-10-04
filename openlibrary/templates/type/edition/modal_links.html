@@ -1,31 +1,48 @@
-$def with (work, edition, page_url, mobile=False)
+$def with (work, edition, page_url, mobile=False, user_note=None)
 
-$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+$def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=None, action_name=None, popover_trigger=False):
   $ href = 'javascript:;'
-  $if not ctx.user and login_redirect:
-    $# Change classname to avoid adding click listeners and redirect to login page:
-    $ href = '/account/login?redirect=%s' % ctx.path
-    $ link_class = '%s--redirect' % link_class
+  $ data_attr = ''
 
-  $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
-  <a href="$href" class="$link_class icon-link" $ga_attr>
-    <img class="icon-link__image" src="$img_src" alt="">
+  $ title = work.title if work else edition.get('title', '')
+  $ action = action_name if action_name else link_text
+  $ data_attr = get_preserve_intent_attrs(action, title, "book")
+
+  $if not ctx.user and login_redirect:
+    $ link_class = '%s--redirect js-login-intent' % link_class
+    $ href = '/account/login?redirect=%s' % ctx.path
+
+  <a href="$href" class="$link_class icon-link"
+    $if popover_trigger:
+      slot="trigger"
+    $if ga_data:
+      data-ol-link-track="$ga_data"
+    $:data_attr>
+    $:macros.icon(icon_name, size="lg", extra_class="icon-link__image")
     <div class="icon-link__text">$link_text</div>
   </a>
 
 <div class="modal-links $('mobile' if mobile else 'desktop')">
   $if work and work.get('key', ''):
-    $ review_content = icon_link("observations-modal-link", "/static/images/icons/reviews.svg", _("Review"), ga_data="ModalLinkClick|ReviewIcon")
+    $ review_content = icon_link("observations-modal-link", "message-square-text", _("Review"), ga_data="ModalLinkClick|ReviewIcon", action_name=_("reviewing"))
     $:macros.ObservationsModal(work, review_content, 'sidebar-review')
 
     $if mobile:
       $:macros.StarRatings(work, edition, id="--mobile")
 
-    $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon")
-    $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
+    $# A saved note marks its own link: the lined icon and the selected treatment
+    $# say the note is there without opening the dialog.
+    $ has_note = bool(user_note and user_note.notes)
+    $ notes_class = "notes-modal-link icon-link--has-note" if has_note else "notes-modal-link"
+    $ notes_icon = "sticky-note-text" if has_note else "sticky-note"
+    $ notes_content = icon_link(notes_class, notes_icon, _("Notes"), ga_data="ModalLinkClick|NoteIcon", action_name=_("adding notes to"))
+    $:macros.NotesModal(notes_content)
 
   $if ctx.get('share_links'):
-    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
+    $ share_content = icon_link("share-modal-link", "share-2", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon", popover_trigger=True)
     $ share_links = ctx.get('share_links')
     $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper")
 </div>
+
+$if work and work.get('key', ''):
+  $:macros.NotesModalDialog(work, edition, 'sidebar-notes', user_note)

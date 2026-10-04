@@ -13,7 +13,7 @@ def authorized_for(*expected_args):
         def wrapper_authorized(*args, **kwargs):
             user = get_current_user()
             if not user:
-                raise web.unauthorized(message='Requires log-in.')
+                raise web.unauthorized(message="Requires log-in.")
 
             authorized = False
             for usergroup in expected_args:
@@ -22,7 +22,7 @@ def authorized_for(*expected_args):
 
             if not authorized:
                 # Throw some authorization error
-                raise web.forbidden(message='Requires elevated permissions.')
+                raise web.forbidden(message="Requires elevated permissions.")
             return func(*args, *kwargs)
 
         return wrapper_authorized

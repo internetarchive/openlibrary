@@ -5,9 +5,6 @@
  */
 
 /* stylelint-disable selector-max-specificity */
-.borrow-table {
-  margin: 30px 0 25px;
-}
 .borrow-table table {
   width: 100%;
   font-family: var(--font-family-body);
@@ -15,9 +12,9 @@
 .borrow-table table th {
   border-bottom: 1px solid var(--beige-three);
   vertical-align: bottom;
-  padding-bottom: 10px;
+  padding-bottom: var(--spacing-inset-sm);
   font-family: var(--font-family-body);
-  color: var(--brown);
+  color: var(--color-text-heading);
   font-weight: 600;
   font-size: 0.6875em;
   text-transform: uppercase;
@@ -35,17 +32,17 @@
   background: var(--admin-row-background) !important;
 }
 .borrow-table tr.row-available .status-value {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
 }
 
 .borrow-table td.status,
 .borrow-table th.status {
-  padding: 15px;
+  padding: var(--spacing-inset-md);
   text-align: center;
 }
 
 .borrow-table td.serial {
-  padding: 15px 0;
+  padding: var(--spacing-inset-md) 0;
   text-align: right;
   width: 20px;
 }
@@ -55,19 +52,19 @@
 }
 
 .borrow-table .checkedout-elsewhere {
-  padding: 15px;
+  padding: var(--spacing-inset-md);
   background: var(--orange-four) !important;
   border: 1px solid var(--orange-five);
 }
 
 .borrow-table .available {
-  padding: 15px;
+  padding: var(--spacing-inset-md);
   background: var(--soft-green) !important;
   border: 1px solid var(--soft-green-two);
 }
 
 .borrow-table .section {
-  margin: 25px 0;
+  margin: var(--spacing-stack-lg) 0;
 }
 
 .borrow-table .section h3 {

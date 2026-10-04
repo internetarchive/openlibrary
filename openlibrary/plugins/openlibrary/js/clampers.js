@@ -14,18 +14,18 @@ export function initClampers(clampers) {
             */
 
             clamper.addEventListener('click', (event) => {
-                if (event.target instanceof HTMLAnchorElement) {
+                if (event.composedPath().some(el => el instanceof HTMLAnchorElement)) {
                     return;
                 }
 
-                clamper.style.display = clamper.style.display === '-webkit-box' || clamper.style.display === '' ? 'unset' : '-webkit-box'
+                clamper.style.display = clamper.style.display === '-webkit-box' || clamper.style.display === '' ? 'unset' : '-webkit-box';
 
                 if (clamper.getAttribute('data-before') === '\u25BE ') {
-                    clamper.setAttribute('data-before', '\u25B8 ')
+                    clamper.setAttribute('data-before', '\u25B8 ');
                 } else {
-                    clamper.setAttribute('data-before', '\u25BE ')
+                    clamper.setAttribute('data-before', '\u25BE ');
                 }
-            })
+            });
         }
     }
 }

@@ -15,6 +15,23 @@ def test_verify_hash():
     assert model.verify_hash(secret_key, b"foo", hash)
 
 
+@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
+def test_parse_s3_cookie_decrypts_a_valid_token(mock_secret_key):
+    token = model.encrypt_s3_keys("AKIA123", "secret456")
+
+    assert model.parse_s3_cookie(token) == {"access": "AKIA123", "secret": "secret456"}
+
+
+def test_parse_s3_cookie_returns_none_when_absent():
+    assert model.parse_s3_cookie(None) is None
+    assert model.parse_s3_cookie("") is None
+
+
+@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
+def test_parse_s3_cookie_returns_none_for_tampered_token(mock_secret_key):
+    assert model.parse_s3_cookie("not-a-real-token") is None
+
+
 def test_xauth_http_error_without_json(monkeypatch):
     xauth = InternetArchiveAccount.xauth
     resp = Response()
@@ -36,8 +53,10 @@ def test_xauth_http_error_with_json(monkeypatch):
     assert xauth("create", s3_key="_", s3_secret="_") == {"error": "Unknown Parameter Blah"}
 
 
+@mock.patch("openlibrary.accounts.model.site")
 @mock.patch("openlibrary.accounts.model.web")
-def test_get(mock_web):
+def test_get(mock_web, mock_site):
+    mock_site.get.return_value = mock_web.ctx.site
     test = True
     email = "test@example.com"
     account = OpenLibraryAccount.get_by_email(email)
@@ -97,3 +116,80 @@ def test_get(mock_web):
     key = f"test/{retrieved_username}"
     retrieved_account = OpenLibraryAccount.get_by_key(key)
     assert retrieved_account
+
+
+# --- InternetArchiveAccount.verify() ---
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_success(mock_xauth):
+    # activate response includes token; issue_key is called with it
+    mock_xauth.side_effect = [
+        {
+            "success": True,
+            "values": {
+                "email": "test@example.com",
+                "itemname": "@test",
+                "screenname": "test",
+                "token": "tok_abc123",
+            },
+        },
+        {"s3": {"access": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI"}, "ttl": 3600},
+    ]
+    result = InternetArchiveAccount.verify(token="sometoken")
+    assert "error" not in result
+    assert result["email"] == "test@example.com"
+    assert result["s3"]["access"] == "AKIAIOSFODNN7EXAMPLE"
+    assert result["s3"]["secret"] == "wJalrXUtnFEMI"
+    # Confirm token from activate was forwarded to issue_key as issuer_token
+    issue_key_call = mock_xauth.call_args_list[1]
+    assert issue_key_call.kwargs.get("issuer_token") == "tok_abc123"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_issue_key_failure_returns_error(mock_xauth):
+    """If issue_key fails after activation, verify() returns an error dict."""
+    mock_xauth.side_effect = [
+        {
+            "success": True,
+            "values": {"email": "test@example.com", "itemname": "@test", "screenname": "test"},
+        },
+        {"success": False, "error": "issue_key_failed"},
+    ]
+    result = InternetArchiveAccount.verify(token="sometoken")
+    assert result.get("error") == "s3_key_issue_failed"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_invalid_token(mock_xauth):
+    mock_xauth.return_value = {"success": False, "values": {"reason": "invalid_token"}}
+    result = InternetArchiveAccount.verify(token="badtoken")
+    assert result.get("error") == "invalid_token"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_already_activated(mock_xauth):
+    mock_xauth.return_value = {
+        "success": False,
+        "values": {"reason": "account_already_activated"},
+    }
+    result = InternetArchiveAccount.verify(token="usedtoken")
+    assert result.get("error") == "account_already_activated"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_xauth_failure_returns_generic_error(mock_xauth):
+    mock_xauth.return_value = {"success": False, "error": "server_error"}
+    result = InternetArchiveAccount.verify(token="anytoken")
+    assert result.get("error") == "server_error"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_xauth_sends_activate_op(mock_xauth):
+    """Confirm the xauthn activate op and token are forwarded correctly."""
+    mock_xauth.return_value = {"success": False, "values": {"reason": "invalid_token"}}
+    InternetArchiveAccount.verify(token="mytoken")
+    assert mock_xauth.called
+    call_kwargs = mock_xauth.call_args.kwargs
+    assert call_kwargs["op"] == "activate"
+    assert call_kwargs["token"] == "mytoken"

@@ -1,4 +1,4 @@
-$def with (status = {}, flags = {}, dev_merged_status=None)
+$def with (status = {}, features_table = [], dev_merged_status=None, is_maintainer=False, has_testing_state=False, show_testing=False, jenkins_job_url='')
 $# Template entry point for /status page
 $var title: $_("Open Library server status")
 
@@ -20,6 +20,17 @@ $var title: $_("Open Library server status")
   #show_changed:checked ~ table tr.tr-body {
     display: table-row;
   }
+
+  /* Testing Environment styles live in the TestingEnvironment.vue component's
+     shadow DOM, so the panel needs no page-level stylesheet. */
+
+  /* Maintainer-only notice shown in place of the testing panel. */
+  .testing-env-notice {
+    padding: 8px 12px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    background: #fff8e1;
+  }
 </style>
 
 <div id="contentHead">
@@ -27,8 +38,16 @@ $var title: $_("Open Library server status")
 </div>
 
 <div id="contentBody">
+
+  $if show_testing:
+    $:render_jinja_template("TestingEnvironment.html.jinja", is_maintainer=is_maintainer, jenkins_job_url=jenkins_job_url, render_component=render_component)
+  $elif has_testing_state:
+    <div class="notice testing-env-notice">
+      $_("The testing environment panel is only visible to maintainers.")
+    </div>
+
   $if dev_merged_status:
-      <h2> $_("Staged") </h2>
+      <h2> $_("Last Build Result") </h2>
       <pre>$dev_merged_status.git_status</pre>
 
       <br>
@@ -50,7 +69,7 @@ $var title: $_("Open Library server status")
         </thead>
         <tbody>
           $for pr_status in dev_merged_status.pr_statuses:
-            <tr class="$cond(pr_status.status.startswith('Automatic merge failed'), 'red')">
+            <tr class="$cond(pr_status.status.startswith('Automatic merge failed') or pr_status.status.startswith('Merge conflict for PR #'), 'red')">
               <td>
                 $if pr_status.link:
                   <a href="$pr_status.link">#$pr_status.pull_id: $pr_status.name</a>
@@ -78,20 +97,5 @@ $var title: $_("Open Library server status")
   </table>
 
   <h2> $_("Features enabled") </h2>
-  <table>
-    $for i in flags:
-        $if i != 'debug':
-           <tr>
-             <th>$i</th>
-             <td>
-                $if not isinstance(flags[i], str):
-                    <ul>
-                        $for j in flags[i]:
-                            <li> $j : $flags[i][j] </li>
-                    </ul>
-               $else:
-                   $flags[i]
-             </td>
-           </tr>
-  </table>
+$:render_jinja_template("FeaturesTable.html.jinja", features_table=features_table)
 </div>

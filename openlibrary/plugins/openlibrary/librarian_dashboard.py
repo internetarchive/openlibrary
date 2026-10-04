@@ -10,12 +10,8 @@ from openlibrary.i18n import gettext as _
 def get_quality_criteria():
     def build_url(query_fragment, for_ui=True):
         page_path = web.ctx.path
-        on_author_page = page_path.startswith('/authors/OL')
-        base_query = (
-            f"?q=author_key:{page_path.split('/')[2]}"
-            if on_author_page
-            else web.ctx.query
-        )
+        on_author_page = page_path.startswith("/authors/OL")
+        base_query = f"?q=author_key:{page_path.split('/')[2]}" if on_author_page else web.ctx.query
 
         parsed_query = urlparse(base_query)
         params = parse_qs(parsed_query.query)

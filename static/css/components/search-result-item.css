@@ -5,7 +5,8 @@
 
 /* Some preview rules are too specific and need to be rewritten */
 /* Preview button appears styled as a text link with a book icon */
-.bookcover .cta-btn.cta-btn--preview {
+.bookcover .cta-btn.cta-btn--preview,
+.bookcover .cta-btn.cta-btn--no-preview {
   color: var(--primary-blue);
   text-decoration: none;
   position: relative;
@@ -39,7 +40,19 @@
   mask: url(/static/images/icons/open-book.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
+}
+
+/* No Preview state - muted placeholder, shown in grid layout only */
+.bookcover .cta-btn.cta-btn--no-preview {
+  display: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  pointer-events: none;
+}
+
+.list-books--grid .bookcover .cta-btn.cta-btn--no-preview {
+  display: inline-block;
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -78,12 +91,23 @@
   display: block;
   margin: 0;
   padding: 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1.1em;
-  font-weight: 700;
+  font-weight: 600;
   font-family: var(--font-family-title);
-  overflow: auto;
   line-height: var(--line-height-heading);
+
+  /* Wrap unbreakable strings instead of the overflow: auto scroll
+     container that previously guarded #5810 (it grew a scrollbar
+     under Literata's taller glyph metrics). */
+  overflow-wrap: break-word;
+}
+
+.searchResultItem .bookyear {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  font-family: var(--font-family-body);
 }
 
 .searchResultItem .details {
@@ -97,7 +121,7 @@
 
 .searchResultItem .resultStats {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   display: block;
 }
@@ -123,21 +147,24 @@
   color: var(--black);
 }
 
-.searchResultItem .preview-covers {
-  display: block;
-  height: 45px;
-  overflow: hidden;
-  margin-top: var(--spacing-stack-sm);
-  margin-bottom: var(--spacing-stack-xs);
+.search-result-item__preview-covers {
+  display: flex;
+  align-items: center;
+  isolation: isolate;
 }
 
-.searchResultItem .preview-covers img {
+.search-result-item__preview-covers img {
   border-radius: var(--border-radius-thumbnail);
-  opacity: 0.7;
+  border: 2px solid var(--grey-fafafa);
+  opacity: 1;
 }
 
-.searchResultItem .preview-covers--blur img {
+.search-result-item__preview-covers--blur img {
   filter: blur(2px);
+}
+
+.searchResultItem .bookcover--blur img {
+  filter: blur(4px);
 }
 
 .searchResultItem .bookcover {
@@ -147,15 +174,15 @@
   text-align: center;
 }
 
+/* height stays auto so the img's width/height attributes reserve space pre-load.
+   Never declare aspect-ratio here — it overrides the real ratio and squashes covers. */
 .searchResultItem .bookcover img {
   border-radius: var(--border-radius-thumbnail);
   max-width: 100%;
   max-height: 300px;
   width: 175px;
-}
-
-.searchResultItem .bookcover--blur img {
-  filter: blur(4px);
+  height: auto;
+  object-fit: contain;
 }
 
 .searchResultItem .imageLg {
@@ -191,6 +218,44 @@
   font-style: normal;
 }
 
+.search-result-item__preview-covers-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  margin-top: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-xs);
+}
+
+.search-result-item__preview-covers > * {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.search-result-item__preview-covers :nth-child(n + 2) {
+  margin-left: -8px;
+}
+
+.search-result-item__preview-covers :nth-child(1) {
+  z-index: var(--z-index-local-5);
+}
+
+.search-result-item__preview-covers :nth-child(2) {
+  z-index: var(--z-index-local-4);
+}
+
+.search-result-item__preview-covers :nth-child(3) {
+  z-index: var(--z-index-local-3);
+}
+
+.search-result-item__preview-covers :nth-child(4) {
+  z-index: var(--z-index-local-2);
+}
+
+.search-result-item__preview-covers :nth-child(5) {
+  z-index: var(--z-index-local-1);
+}
+
 .srw__chapters {
   background: rgba(0, 124, 255, 0.2);
   border-radius: 4px;
@@ -212,7 +277,6 @@
   display: flex;
   gap: var(--spacing-inline-sm);
   line-height: 1.2em;
-  transition: background-color 0.2s;
 }
 
 .srw__chapters .srw__chapter em {
@@ -229,10 +293,9 @@
   border-top: 1px dashed currentColor;
   margin-top: var(--spacing-stack-sm);
   margin-bottom: calc(-1 * var(--spacing-stack-xs));
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: var(--spacing-inset-sm) 0;
   line-height: var(--line-height-meta);
-  transition: color 0.2s;
   text-decoration: dotted underline;
 }
 
@@ -240,8 +303,25 @@
   color: var(--primary-blue);
 }
 
-.preview-covers img:hover {
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .search-result-item__preview-covers :hover {
+    z-index: var(--z-index-local-5);
+  }
+
+  .search-result-item__preview-covers :hover img {
+    border-color: var(--color-primary);
+  }
+}
+
+.search-result-item__preview-covers :active img {
+  transform: scale(var(--press-scale-compact));
+}
+
+.search-result-item__preview-covers :focus-visible {
+  z-index: var(--z-index-local-5);
+  box-shadow: var(--box-shadow-focus);
+  border-radius: var(--border-radius-thumbnail);
+  outline: none;
 }
 
 /* Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists */
@@ -255,7 +335,7 @@
 
 .listDelete a span {
   margin-right: var(--spacing-inline-sm);
-  background-image: url(/images/back_list-trash.png);
+  background-image: url(/static/images/back_list-trash.png);
   background-repeat: no-repeat;
   background-position: 0 0;
   height: 28px;
@@ -304,4 +384,61 @@
     width: 175px;
     text-align: right;
   }
+
+  /* /search/inside has no facets sidebar; cap the cover at the ~105px it gets on /search. */
+  .search-results-container .searchResultItem .bookcover {
+    width: 105px;
+    flex-shrink: 0;
+  }
+
+  .search-results-container .searchResultItem .bookcover :where(img) {
+    width: auto;
+    max-width: 100%;
+    max-height: 170px;
+  }
+
+  /* Passages (.serp-extra) span a row under details/CTA. auto/1fr rows keep a
+     tall cover's extra height from opening a gap between details and passages. */
+  .list-books--fulltext .searchResultItem .sri__main {
+    display: grid;
+    grid-template:
+      "cover details cta" auto
+      "cover extra extra" 1fr
+      / auto minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .list-books--fulltext .searchResultItem .bookcover {
+    grid-area: cover;
+  }
+
+  .list-books--fulltext .searchResultItem .details {
+    grid-area: details;
+  }
+
+  .list-books--fulltext .searchResultItem .searchResultItemCTA {
+    grid-area: cta;
+  }
+
+  .list-books--fulltext .searchResultItem .serp-extra {
+    grid-area: extra;
+  }
+}
+
+/* Full width even in mobile's centered flex column. */
+.list-books--fulltext .serp-extra {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-xs) var(--spacing-inset-xs);
+}
+
+/* `width: auto` so the box hugs the drawn cover and the shelf badge in
+   .book-cover-wrapper lands on its corner, not in the letterbox. */
+.list-books--grid .searchResultItem .bookcover :where(img) {
+  height: 180px;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom;
+  display: block;
+  margin-bottom: var(--spacing-stack-sm);
 }

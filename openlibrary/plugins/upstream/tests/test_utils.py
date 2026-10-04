@@ -1,14 +1,16 @@
 from collections.abc import Sequence
-from unittest.mock import MagicMock, patch
+from typing import TYPE_CHECKING
 
 import pytest
 import web
 
 from infogami import config
 from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
-from openlibrary.mocks.mock_infobase import MockSite
 
 from .. import utils
+
+if TYPE_CHECKING:
+    from openlibrary.mocks.mock_infobase import MockSite
 
 
 def test_url_quote():
@@ -54,14 +56,20 @@ def test_set_share_links():
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.com",
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+            "text": "X (Twitter)",
+            "url": "https://x.com/intent/post?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.com&description=Check+this+out%3A+bar",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
 
@@ -78,14 +86,20 @@ def test_set_share_links_unicode():
         {
             "text": "Facebook",
             "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.%C3%A9",
+            "icon": "brand-facebook",
+            "track": "Facebook",
         },
         {
-            "text": "Twitter",
-            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81",
+            "text": "X (Twitter)",
+            "url": "https://x.com/intent/post?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81",
+            "icon": "brand-x",
+            "track": "Twitter",
         },
         {
             "text": "Pinterest",
             "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.%C3%A9&description=Check+this+out%3A+b%C4%81",
+            "icon": "brand-pinterest",
+            "track": "Pinterest",
         },
     ]
 
@@ -336,46 +350,6 @@ def test_commify_list(name: str, seq: Sequence[str], locale: str, expected: str,
     assert got == expected
 
 
-def test_render_cached_macro_evicts_cache_on_error(monkeypatch):
-    """
-    When a rendered macro returns `do_not_cache='True'` (e.g. because
-    `work_search` returned a Solr error in RawQueryCarousel), the bad result
-    must be evicted from memcache so subsequent requests get a fresh attempt.
-    """
-    # Simulate the rendered macro result indicating failure
-    error_page = {"do_not_cache": "True", "content": "<div></div>"}
-
-    mock_mc = MagicMock()
-    mock_mc.return_value = error_page  # mc(name, args, **kwargs) returns the error page
-
-    # Patch memcache_memoize to return our mock mc object and
-    # set up web.ctx with the minimum required attributes
-    monkeypatch.setattr(web, "ctx", web.storage(lang="en"))
-    web.ctx.env = {}
-
-    with (
-        patch(
-            "openlibrary.plugins.upstream.utils.cache.memcache_memoize",
-            return_value=mock_mc,
-        ),
-        patch(
-            "openlibrary.plugins.upstream.utils.render_macro",
-        ),
-        patch(
-            "openlibrary.plugins.openlibrary.code.is_bot",
-            return_value=False,
-        ),
-        patch(
-            "openlibrary.plugins.openlibrary.home.caching_prethread",
-            return_value=None,
-        ),
-    ):
-        utils.render_cached_macro("RawQueryCarousel", ("subject:fantasy",))
-
-    # The cache entry must have been evicted
-    mock_mc.memcache_delete_by_args.assert_called_once_with("RawQueryCarousel", ("subject:fantasy",))
-
-
 def test_get_language_name(add_languages):  # noqa: F811
     # Falls back to name when no name_translated field exists
     assert utils.get_language_name("/languages/fre", "fr") == "French"
@@ -383,3 +357,10 @@ def test_get_language_name(add_languages):  # noqa: F811
     assert utils.get_language_name("/languages/ger", "en") == "German"
     # Falls back to name when translation missing for requested language
     assert utils.get_language_name("/languages/ger", "fr") == "Deutsch"
+
+
+def test_json_encode():
+    assert utils.json_encode({"a": 1, "b": 2}) == '{"a": 1, "b": 2}'
+    assert utils.json_encode({"description": "</script><script>alert('xss')</script>"}) == (
+        '{"description": "\\u003c/script\\u003e\\u003cscript\\u003ealert(\'xss\')\\u003c/script\\u003e"}'
+    )

@@ -19,13 +19,13 @@
 
 .toc__entry .toc__dots {
   flex: 1;
-  border-bottom: 1px dotted var(--lighter-grey);
+  border-bottom: 1px dotted var(--color-border-subtle);
   height: 1.2em;
 }
 
 .toc__entry .toc__subtitle {
   font-style: oblique;
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
 }
 
 .toc__entry .toc__subtitle,
@@ -89,6 +89,6 @@ a.toc__main:hover::after {
 
   .toc__pagenum {
     font-size: var(--font-size-label-large);
-    color: var(--accessible-grey);
+    color: var(--color-text-muted);
   }
 }

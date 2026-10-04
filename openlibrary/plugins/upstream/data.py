@@ -7,17 +7,14 @@ from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public  # noqa: F401 side effects may be needed
 
-IA_BASE_URL = config.get('ia_base_url')
+IA_BASE_URL = config.get("ia_base_url")
 
 
 def get_ol_dumps():
     """Get list of all archive.org items in the ol_exports collection uploaded by archive.org staff."""
-    url = (
-        IA_BASE_URL
-        + '/advancedsearch.php?q=collection:ol_exports+AND+(ol_dump+OR+ol_cdump)&fl[]=identifier&output=json&rows=1000'
-    )
-    docs = requests.get(url).json()['response']['docs']
-    return sorted(doc['identifier'] for doc in docs)
+    url = IA_BASE_URL + "/advancedsearch.php?q=collection:ol_exports+AND+(ol_dump+OR+ol_cdump)&fl[]=identifier&output=json&rows=1000"
+    docs = requests.get(url).json()["response"]["docs"]
+    return sorted(doc["identifier"] for doc in docs)
 
 
 # cache the result for half an hour
@@ -31,19 +28,19 @@ def download_url(item, filename):
 
 # Should include openlibrary/data/dump.py split_dump's types at least
 DUMP_PREFIXES = (
-    '',
-    '_authors',
-    '_covers_metadata',
-    '_editions',
-    '_works',
-    '_redirects',
-    '_deletes',
-    '_lists',
-    '_other',
-    '_deworks',
-    '_ratings',
-    '_reading-log',
-    '_wikidata',
+    "",
+    "_authors",
+    "_covers_metadata",
+    "_editions",
+    "_works",
+    "_redirects",
+    "_deletes",
+    "_lists",
+    "_other",
+    "_deworks",
+    "_ratings",
+    "_reading-log",
+    "_wikidata",
 )
 
 

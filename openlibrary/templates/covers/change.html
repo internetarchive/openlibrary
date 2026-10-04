@@ -28,10 +28,8 @@ $else:
         $ size = "smallest"
 
 <!-- The below style is inlined to avoid repaints -->
-<div class="$size sansserif manageCoversContainer" style="position: absolute; bottom: 15px">
-  <a aria-controls="addImage-$imagesId" class="coverPop dialog--open" href="$(manage_url if doc.get_cover() else add_url)">
-    <div class="manageCovers" data-config="$dumps({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</div>
-  </a>
+<div class="$size manageCoversContainer" style="position: absolute; bottom: 15px">
+  <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers coverPop dialog--open" href="$(manage_url if doc.get_cover() else add_url)" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</ol-button>
 </div>
 
 <div class="hidden">
@@ -57,4 +55,3 @@ $else:
         </div>
     </div>
 </div>
-

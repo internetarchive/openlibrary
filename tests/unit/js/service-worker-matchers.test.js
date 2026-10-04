@@ -3,7 +3,7 @@ import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticIm
 
 // Helper function to create a URL object
 function _u(url) {
-    return { url: new URL(url) }
+    return { url: new URL(url) };
 }
 // Group related tests together
 describe('URL Matchers', () => {
@@ -46,7 +46,7 @@ describe('URL Matchers', () => {
     describe('matchStaticImages', () => {
         test('matches static images', () => {
             expect(matchStaticImages(_u('https://openlibrary.org/static/images/down-arrow.png'))).toBe(true);
-            expect(matchStaticImages(_u('https://testing.openlibrary.org/static/images/icons/barcode_scanner.svg'))).toBe(true);
+            expect(matchStaticImages(_u('https://testing.openlibrary.org/static/images/icons/open-book.svg'))).toBe(true);
         });
 
         test('does not match other URLs', () => {

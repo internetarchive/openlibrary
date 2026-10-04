@@ -11,12 +11,13 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    z-index: var(--z-index-level-5);
+    /* Legacy value: fixed chrome that has to clear page-level dropdowns. */
+    z-index: var(--z-index-dropdown);
     position: fixed;
     top: 0;
     height: var(--compact-title-height);
     width: calc(100% - var(--contentBody-padding));
-    padding: 0 14px;
+    padding: 0 var(--spacing-inset-md);
   }
 
   .compact-title__edit-btn {

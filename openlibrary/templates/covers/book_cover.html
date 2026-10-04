@@ -1,4 +1,4 @@
-$def with(book, preload=False)
+$def with(book, preload=False, overlay=None)
 
 $ title = book.title
 $ author_names = None
@@ -12,8 +12,8 @@ $ cover_lg = book.get_cover_url("L")
 $ cover_aspect_ratio = book.get_cover_aspect_ratio()
 $ cover_aspect_ratio_str = 'aspect-ratio: ' + str(cover_aspect_ratio) if cover_aspect_ratio else ""
 
-$ src = cover_url or '/images/icons/avatar_book.png'
-$ srcset = '%s 2x' % (cover_lg or '/images/icons/avatar_book-lg.png')
+$ src = cover_url or '/static/images/icons/avatar_book.png'
+$ srcset = '%s 2x' % (cover_lg or '/static/images/icons/avatar_book-lg.png')
 
 $if preload:
     $add_metatag(tag="link", **{'rel': 'preload', 'as': 'image', 'href': src, 'imagesrcset': srcset, 'fetchpriority': 'high'})
@@ -40,17 +40,20 @@ $if preload:
     </div>
     <div class="SRPCoverBlank" style="display: $cond(not cover_url, 'block', 'none');">
         <div class="innerBorder">
-            <div class="BookTitle">$:macros.TruncateString(title, 45)
-                <div class="Author">$:macros.TruncateString(author_names, 30)</div>
+            <div class="BookTitle">$:render_jinja_template("TruncateString.html.jinja", s=title, n=45)
+                <div class="Author">$:render_jinja_template("TruncateString.html.jinja", s=author_names, n=30)</div>
             </div>
         </div>
     </div>
+    $# Markup to float over the cover, inside the animated element so it moves with it.
+    $if overlay:
+        $:overlay
 </div>
 
 <div class="hidden">
     <div class="coverFloat" id="seeImage">
         <div class="coverFloatHead">
-            <h2>$:macros.TruncateString(title, 70)</h2>
+            <h2>$:render_jinja_template("TruncateString.html.jinja", s=title, n=70)</h2>
             <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
         <a class="dialog--close"><img src="$cover_lg" class="cover" alt="$title $_('by') $author_names"/></a>

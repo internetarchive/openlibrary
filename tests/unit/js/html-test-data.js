@@ -100,7 +100,7 @@ export const clamperSample = `
           <a>orphans</a>
           <a>fantasy fiction</a>
           <a>England in fiction</a>
-      </span>`
+      </span>`;
 
 export const readClassification = `
 <fieldset class="major" id="classifications" data-config="{&quot;Please select a classification.&quot;: &quot;Please select a classification.&quot;, &quot;You need to give a value to CLASS.&quot;: &quot;You need to give a value to CLASS.&quot;}">
@@ -193,4 +193,4 @@ export const readClassification = `
         </div>
     </div>
 </fieldset>
-`
+`;

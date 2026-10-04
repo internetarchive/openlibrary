@@ -28,7 +28,7 @@ class Client:
     def get_multi(self, keys):
         keys = [web.safestr(k) for k in keys]
         d = self._client.get_multi(keys)
-        return {web.safeunicode(k): self.decompress(v) for k, v in d.items()}
+        return {str(k): self.decompress(v) for k, v in d.items()}
 
     def set(self, key, val, time=0):
         return self._client.set(web.safestr(key), self.compress(val), time=time)

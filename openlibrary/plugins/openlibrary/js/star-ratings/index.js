@@ -1,12 +1,12 @@
+import { SHELF } from '../../../../components/lit/utils/books-api.js';
 import { FadingToast } from '../Toast.js';
-import { findDropperForWork } from '../my-books';
-import { ReadingLogShelves } from '../my-books/MyBooksDropper/ReadingLogForms';
+import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
         form.addEventListener('submit', function(e) {
             handleRatingSubmission(e, form);
-        })
+        });
     }
 }
 
@@ -19,8 +19,8 @@ function handleRatingSubmission(event, form) {
         const formData = new FormData(form);
         let rating;
         if (event.submitter.value) {
-            rating = Number(event.submitter.value)
-            formData.append('rating', event.submitter.value)
+            rating = Number(event.submitter.value);
+            formData.append('rating', event.submitter.value);
         }
 
         // Make AJAX call
@@ -33,10 +33,20 @@ function handleRatingSubmission(event, form) {
         })
             .then((response) => {
                 if (response.status === 401) {
-                    throw new Error('You must be logged in to rate books');
+                    if (event.submitter && event.submitter.id) {
+                        const label = form.querySelector(`label[for="${event.submitter.id}"]`);
+                        if (label) {
+                            const { action, title, type } = label.dataset;
+                            if (action && title && type) {
+                                queueAction(action, title, window.location.pathname + window.location.search, type);
+                            }
+                        }
+                    }
+                    window.location.href = `/account/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                    return;
                 }
                 if (!response.ok) {
-                    throw new Error('Ratings update failed')
+                    throw new Error('Ratings update failed');
                 }
                 // Update view to deselect all stars
                 form.querySelectorAll('.star-selected').forEach((elem) => {
@@ -44,7 +54,7 @@ function handleRatingSubmission(event, form) {
                     if (elem.hasAttribute('property')) {
                         elem.removeAttribute('property');
                     }
-                })
+                });
 
                 const clearButton = form.querySelector('.star-messaging');
                 if (rating) {  // A rating was added or updated
@@ -53,21 +63,28 @@ function handleRatingSubmission(event, form) {
                     form.querySelectorAll(`.star-${rating}`).forEach((elem) => {
                         elem.classList.add('star-selected');
                         if (elem.tagName === 'LABEL') {
-                            elem.setAttribute('property', 'ratingValue')
+                            elem.setAttribute('property', 'ratingValue');
                         }
-                    })
+                    });
 
-                    // Find dropper that is associated with this star rating affordance:
-                    const dropper = findDropperForWork(form.dataset.workKey)
-                    if (dropper) {
-                        dropper.updateShelfDisplay(ReadingLogShelves.ALREADY_READ)
-                    }
                 } else {  // A rating was deleted
                     clearButton.classList.add('hidden');
                 }
+                announceRating(form.dataset.workKey, rating ?? null);
             })
             .catch((error) => {
                 new FadingToast(error.message).show();
-            })
+            });
     }
+}
+
+/**
+ * Tell the page's shelf buttons. Mirrors the server, which auto-shelves a
+ * rated book as Already Read only when it is unshelved or on Want to Read.
+ */
+export function announceRating(workKey, rating) {
+    if (!workKey) return;
+    let shelf = document.querySelector(`ol-shelf-button[work-key="${workKey}"]`)?.shelf ?? null;
+    if (rating && (shelf === null || shelf === SHELF.WANT_TO_READ)) shelf = SHELF.ALREADY_READ;
+    document.dispatchEvent(new CustomEvent('ol-book-state-change', { detail: { key: workKey, shelf, rating } }));
 }

@@ -3,8 +3,8 @@
   line-height: 1.5em;
   background-color: var(--grey-fafafa);
   border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 3px;
+  padding: var(--spacing-inset-sm);
+  margin-bottom: var(--spacing-stack-xs);
   border-bottom: 1px solid var(--light-beige);
 }
 .infobox .illustration {
@@ -18,17 +18,17 @@
   background-color: transparent;
 }
 .infobox tr td:first-child {
-  padding-right: 5px;
+  padding-right: var(--spacing-inset-xs);
 }
 .infobox table {
   /* Without this page-user.css makes the table very compact */
   border-collapse: unset;
-  border-spacing: 3px;
+  border-spacing: var(--spacing-inset-xs);
 }
 .infobox .profile-icon-container {
   display: flex;
   justify-content: center;
-  gap: 0.25rem;
+  gap: var(--spacing-inline-sm);
   flex-wrap: wrap;
 }
 .infobox .profile-icon-container .profile-icon {
@@ -37,5 +37,5 @@
 }
 .infobox-name {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }

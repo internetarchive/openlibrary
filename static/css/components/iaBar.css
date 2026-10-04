@@ -50,7 +50,7 @@
   display: table-cell;
   vertical-align: middle;
   height: 30px;
-  padding-right: 8px;
+  padding-right: var(--spacing-inset-sm);
   text-decoration: none;
   color: var(--white);
 }
@@ -70,8 +70,8 @@
     font-size: 0.9em;
   }
   #topNotice .ghost-btn.iabar-mobile {
-    padding: 5px 7px;
-    margin-right: 10px;
-    margin-left: 10px;
+    padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+    margin-right: var(--spacing-inline-lg);
+    margin-left: var(--spacing-inline-lg);
   }
 }

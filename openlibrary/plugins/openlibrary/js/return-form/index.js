@@ -6,11 +6,11 @@
  */
 export function initReturnForms(returnForms) {
     for (const form of returnForms) {
-        const i18nStrings = JSON.parse(form.dataset.i18n)
+        const i18nStrings = JSON.parse(form.dataset.i18n);
         form.addEventListener('submit', (event) => {
             if (!confirm(i18nStrings['confirm_return'])) {
                 event.preventDefault();
             }
-        })
+        });
     }
 }

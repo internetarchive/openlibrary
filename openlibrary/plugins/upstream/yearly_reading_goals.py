@@ -15,16 +15,14 @@ def get_reading_goals(year=None):
     if not user:
         return None
 
-    username = user['key'].split('/')[-1]
+    username = user["key"].split("/")[-1]
     if not year:
         year = datetime.now().year
 
     if not (data := YearlyReadingGoals.select_by_username_and_year(username, year)):
         return None
 
-    books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(
-        username, BookshelfEvent.FINISH, year
-    )
+    books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(username, BookshelfEvent.FINISH, year)
     read_count = len(books_read)
     result = YearlyGoal(data[0].year, data[0].target, read_count)
 
@@ -37,6 +35,11 @@ class YearlyGoal:
         self.goal = goal
         self.books_read = books_read
         self.progress = floor((books_read / goal) * 100)
+
+    @property
+    def completed(self) -> int:
+        """Capped progress for the bar width (``reading_goal_progress.html.jinja:13``)."""
+        return min(self.progress, 100) if self.progress is not None else 0
 
     @classmethod
     def calc_progress(cls, books_read, goal):

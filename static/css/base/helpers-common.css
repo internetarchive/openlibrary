@@ -29,7 +29,7 @@
 
 #offline-info {
   text-align: center;
-  padding: 10px 5px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-xs);
   display: none;
   background-color: var(--grey);
   color: var(--white);
@@ -43,7 +43,7 @@
 .clearfix {
   width: 100%;
   clear: both;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 /* To be used for shifting content so its accessible to screen readers
    but not visible to anyone else. */
@@ -58,8 +58,7 @@ a.hoverlink {
 }
 
 .local-date-time {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
   font-size: var(--font-size-label-small);
   text-align: center;
-  padding: 5px 0 0;
 }

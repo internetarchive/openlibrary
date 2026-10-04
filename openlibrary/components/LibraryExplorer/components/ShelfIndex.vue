@@ -29,7 +29,10 @@
 <script>
 export default {
     props: {
-        node: Object,
+        node: {
+            type: Object,
+            required: true
+        },
     },
 
     computed: {

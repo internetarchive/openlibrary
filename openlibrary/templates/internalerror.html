@@ -8,10 +8,10 @@ $var title: $_("Internal Error")
 
 <div id="contentBody">
     <p>$_("We're sorry, a problem occurred while responding to your request:")</p>
-    <code>
-        $etype
-        $evalue
-    </code>
+    $# <code>
+    $#    $etype
+    $#    $evalue
+    $# </code>
     $if sentry_event_id:
         <p>$:_("The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able.", name_webpy_error, sentry_event_id)</p>
     $else:

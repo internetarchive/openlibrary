@@ -84,7 +84,7 @@ export function parseLccn(lccn) {
         .replace(/[/]+.*$/, '');
 
     // splitting at hyphen and padding the right hand value with zeros up to 6 characters
-    const groups = parsed.match(/(.+)-+([0-9]+)/)
+    const groups = parsed.match(/(.+)-+([0-9]+)/);
     if (groups && groups.length === 3) {
         return groups[1] + groups[2].padStart(6, '0');
     }

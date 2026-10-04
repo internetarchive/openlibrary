@@ -9,6 +9,11 @@
  */
 
 @import "components/admin-table.css";
+/* Import all common components */
+@import "legacy.css";
+/* Import styles specific to the BorrowTable for user pages */
+@import "legacy-borrowTable-adminUser.css";
+@import "components/pd-dashboard.css";
 
 .status--0 {
   color: var(--red);
@@ -32,7 +37,7 @@
 
 .sponsor th {
   background-color: var(--grey-fafafa);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   border-bottom: 1px solid var(--light-mid-grey);
   text-transform: uppercase;
   font-size: 0.65em;
@@ -50,10 +55,10 @@ table.services th {
   font-size: var(--font-size-label-small);
   font-weight: bold;
   text-transform: uppercase;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 table.services td {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   border-right: 1px solid var(--white);
   border-bottom: 1px solid var(--white);
 }
@@ -71,14 +76,14 @@ table.services td.node {
 #adminHistory th {
   background-color: var(--lightest-grey);
   border-bottom: 1px solid var(--admin-table-border);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: 0.8675em;
   font-weight: 700;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
 }
 #adminHistory td {
   border-bottom: 1px solid var(--admin-table-border);
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   font-size: 0.75em;
 }
 #adminHistory td.number {
@@ -107,7 +112,7 @@ div#prolific span {
   font-size: 0.5625em;
   font-family: var(--font-family-body);
   font-weight: normal;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
 }
 
@@ -131,7 +136,7 @@ div#background {
   width: 100%;
   /* desaturate(@beige, 100): hsl(48, 33%, 83%) fully desaturated */
   background-color: hsl(0, 0%, 83%);
-  padding-bottom: 15px;
+  padding-bottom: var(--spacing-inset-md);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
@@ -164,11 +169,6 @@ div.sparkDisplay {
   border-bottom: 1px solid var(--black);
   margin-right: 0 !important;
 }
-
-/* Import all common components */
-@import "legacy.css";
-/* Import styles specific to the BorrowTable for user pages */
-@import "legacy-borrowTable-adminUser.css";
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
@@ -213,5 +213,3 @@ div.sparkDisplay {
     height: 50px;
   }
 }
-
-@import "components/pd-dashboard.css";

@@ -1,24 +1,17 @@
-# NOTE: You have to use single-quoted strings in TOML for regular expressions.
-# It's the equivalent of r-strings in Python.  Multiline strings are treated as
-# verbose regular expressions by Black.  Use [ ] to denote a significant space
-# character.
-
 [project]
 name = "openlibrary"
 version = "1.0.0"
-requires-python = ">=3.12.2,<3.12.3"
-
-[tool.black]
-skip-string-normalization = true
-target-version = ["py311"]
+requires-python = ">=3.14.5,<3.14.6"
 
 [tool.codespell]
-ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
+ignore-words-list = "beng,curren,datas,furst,lightening,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
 skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.mypy]
 ignore_missing_imports = true
+local_partial_types = true
 pretty = true
+strict_bytes = true
 scripts_are_modules = true
 show_error_codes = true
 show_error_context = true
@@ -44,16 +37,16 @@ filterwarnings = [
     # Ignore warnings from webob, which doesn't have a fix.
     # It comes from webtest, which we will remove when fastapi is done
     'ignore::DeprecationWarning:webob',
-    # Ignore sqlite3 default timestamp converter warnings from web.py (Python 3.12 deprecation)
+    # Ignore sqlite3 default timestamp converter warnings from web.py (Python 3.14 deprecation)
     'ignore:The default timestamp converter is deprecated:DeprecationWarning:web',
 ]
-addopts = "-m 'not integration'"
+addopts = "-m 'not integration' --ignore=infogami --ignore=vendor --ignore=node_modules"
 markers = [
     "integration: marks tests as integration tests that require external services (deselect with '-m \"not integration\"')"
 ]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 extend-exclude = [
   "./.*",
   "vendor",
@@ -176,8 +169,6 @@ max-statements = 70
 "openlibrary/coverstore/code.py" = ["E722"]
 "openlibrary/i18n/__init__.py" = ["BLE001", "PLC0415"]
 "openlibrary/plugins/admin/code.py" = ["E722"]
-"openlibrary/plugins/admin/mem.py" = ["E722"]
-"openlibrary/plugins/admin/memory.py" = ["E722"]
 "openlibrary/plugins/admin/services.py" = ["BLE001"]
 "openlibrary/plugins/books/dynlinks.py" = ["E722"]
 "openlibrary/plugins/books/readlinks.py" = ["E722", "PLC0415"]
@@ -224,7 +215,6 @@ max-statements = 70
 "openlibrary/catalog/add_book/__init__.py" = ["PLC0415"]
 "openlibrary/code.py" = ["PLC0415"]
 "openlibrary/core/lists/model.py" = ["PLC0415"]
-"openlibrary/coverstore/tests/test_coverstore.py" = ["PLC0415"]
 "openlibrary/mocks/mock_infobase.py" = ["PLC0415"]
 "openlibrary/solr/data_provider.py" = ["PLC0415"]
 "openlibrary/views/showmarc.py" = ["PLC0415"]
@@ -236,6 +226,15 @@ max-statements = 70
 "scripts/utils/scheduler.py" = ["PLC0415"]
 "tests/test_docker_compose.py" = ["PLC0415"]
 
+
+[tool.djlint]
+# J018: "Internal links should use url_for()" — Open Library doesn't use url_for() anywhere.
+#       This is a Django/Flask convention that doesn't apply here.
+# H025: "Tag seems to be an orphan" — False positive when HTML tags are inside Jinja
+#       string literals like ``{{ _("earn a <a href='...'>small commission</a>.") | safe }}``.
+#       djLint's HTML parser can't match tags buried inside a Jinja expression.
+#       See https://github.com/djlint/djLint/issues/483
+ignore = "J018,H025"
 
 [tool.sqlfluff.core]
 dialect = "postgres"
@@ -267,7 +266,12 @@ dialect = "postgres"
 #          stable scripts where changing join syntax risks introducing bugs
 # Joins:
 #   JJ01 - explicit join type: bare JOIN (implicit INNER) is the codebase convention
-exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,AL09,RF04,ST06,AM05,JJ01"
+# Postgres:
+#   PG01 - CREATE INDEX without CONCURRENTLY: schema/index files create indexes
+#          on freshly created tables (issued concurrently is not appropriate here;
+#          tables are created in this same snapshot, so CONCURRENTLY is unnecessary
+#          and adds awkward syntax for edge-case workflows
+exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,AL09,RF04,ST06,AM05,JJ01,PG01"
 
 [tool.sqlfluff.indentation]
 tab_space_size = 4

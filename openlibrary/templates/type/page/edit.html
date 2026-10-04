@@ -24,9 +24,10 @@ $:render_template("lib/edit_head", page)
     <div class="clearfix"></div>
 
     <div class="formElement">
-        <div class="label"><label for="body">$_('Document Body:')</label></div>
+        <div class="label"><label for="page--body">$_('Document Body:')</label></div>
         <div class="input">
-            <textarea id="body" name="body" class="markdown" rows="15" cols="80">$page.body</textarea>
+            <textarea id="page--body" name="body">$page.body</textarea>
+            <ol-markdown-editor target-id="page--body" enable-html-block enable-code></ol-markdown-editor>
         </div>
     </div>
 

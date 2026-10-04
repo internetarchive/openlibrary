@@ -3,8 +3,6 @@
  * @module lists/ListService
  */
 
-import { buildPartialsUrl } from '../utils';
-
 /**
  * Submits request to create new list.  Returns Promise.
  *
@@ -60,14 +58,3 @@ export async function removeItem(listKey, seed) {
         body: JSON.stringify(body),
     });
 }
-
-// XXX : jsdoc
-export async function getListPartials() {
-    return await fetch(buildPartialsUrl('MyBooksDropperLists'), {
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-        },
-    });
-}
-

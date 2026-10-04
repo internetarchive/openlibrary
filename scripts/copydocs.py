@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""Copy docs from one Open Library instance to another (usually openlibrary.org
+into a local dev instance).
+
+Known dev-instance quirks (login is JSON-only, custom save headers require the
+right Opt decl_uri, and only *current* revisions are copied — no
+changeset/transaction history) are documented in docs/ai/README.md →
+Troubleshooting.
+"""
+
 from __future__ import annotations
 
 import json
@@ -7,6 +16,7 @@ import sys
 from collections import namedtuple
 from collections.abc import Iterator
 
+import requests
 import web
 
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -14,17 +24,17 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
 import scripts._init_path
 import scripts.tests.test_copydocs
-from openlibrary.api import OpenLibrary, marshal
+from openlibrary.api import OLError, OpenLibrary, marshal
 
 __version__ = "0.2"
 
 
 def find(server, prefix):
-    q = {'key~': prefix, 'limit': 1000}
+    q = {"key~": prefix, "limit": 1000}
 
     # until all properties and backreferences are deleted on production server
-    if prefix == '/type':
-        q['type'] = '/type/type'
+    if prefix == "/type":
+        q["type"] = "/type/type"
 
     return [str(x) for x in server.query(q)]
 
@@ -52,9 +62,7 @@ class Disk:
 
         return {k: f(k) for k in keys}
 
-    def save_many(
-        self, docs: list[dict | web.storage], comment: str | None = None
-    ) -> None:
+    def save_many(self, docs: list[dict | web.storage], comment: str | None = None) -> None:
         """
 
         :param typing.List[dict or web.storage] docs:
@@ -67,7 +75,7 @@ class Disk:
                 os.makedirs(dir)
 
             if isinstance(text, dict):
-                text = text['value']
+                text = text["value"]
 
             try:
                 print("writing", path)
@@ -77,13 +85,13 @@ class Disk:
                 print("failed", path)
 
         for doc in marshal(docs):
-            path = os.path.join(self.root, doc['key'][1:])
-            if doc['type']['key'] == '/type/template':
+            path = os.path.join(self.root, doc["key"][1:])
+            if doc["type"]["key"] == "/type/template":
                 path = path.replace(".tmpl", ".html")
-                write(path, doc['body'])
-            elif doc['type']['key'] == '/type/macro':
+                write(path, doc["body"])
+            elif doc["type"]["key"] == "/type/macro":
                 path = path + ".html"
-                write(path, doc['macro'])
+                write(path, doc["macro"])
             else:
                 path = path + ".json"
                 write(path, json.dumps(doc, indent=2))
@@ -101,7 +109,7 @@ def expand(server: Disk | OpenLibrary, keys: Iterator):
         yield from keys
     else:
         for key in keys:
-            if key.endswith('*'):
+            if key.endswith("*"):
                 yield from find(server, key)
             else:
                 yield key
@@ -122,15 +130,15 @@ def get_references(doc, result=None):
         for v in doc:
             get_references(v, result)
     elif isinstance(doc, dict):
-        if 'key' in doc and len(doc) == 1:
-            result.append(doc['key'])
+        if "key" in doc and len(doc) == 1:
+            result.append(doc["key"])
 
         for v in doc.values():
             get_references(v, result)
     return result
 
 
-class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
+class KeyVersionPair(namedtuple("KeyVersionPair", "key version")):
     """Helper class to store uri's like /works/OL1W?v=2"""
 
     __slots__ = ()
@@ -141,8 +149,8 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
         :param str uri: either something like /works/OL1W, /books/OL1M?v=3, etc.
         """
 
-        if '?v=' in uri:
-            key, version = uri.split('?v=')
+        if "?v=" in uri:
+            key, version = uri.split("?v=")
         else:
             key, version = uri, None
         return KeyVersionPair._make([key, version])
@@ -151,7 +159,7 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
         """ """
         uri = self.key
         if self.version:
-            uri += '?v=' + self.version
+            uri += "?v=" + self.version
         return uri
 
     def __str__(self):
@@ -165,8 +173,8 @@ def copy(
     comment: str,
     recursive: bool = False,
     editions: bool = False,
-    saved: set[str] | None = None,
     cache: dict | None = None,
+    seen: set[str] | None = None,
 ) -> None:
     """
     :param src: where we'll be copying form
@@ -174,23 +182,25 @@ def copy(
     :param comment: comment to writing when saving the documents
     :param recursive: Whether to recursively fetch an referenced docs
     :param editions: Whether to fetch editions of works as well
-    :param saved: keys saved so far
+    :param seen: keys already claimed for fetching/recursion; breaks reference
+        cycles (e.g. a user, its /usergroup, and its /permission all point
+        back to each other) that would otherwise recurse forever
     """
-    if saved is None:
-        saved = set()
     if cache is None:
         cache = {}
+    if seen is None:
+        seen = set()
 
     def get_many(keys):
         docs = marshal(src.get_many(keys).values())
         # work records may contain excerpts, which reference the author of the excerpt.
         # Deleting them to prevent loading the users.
         for doc in docs:
-            doc.pop('excerpts', None)
+            doc.pop("excerpts", None)
 
             # Authors are now with works. We don't need authors at editions.
-            if doc['type']['key'] == '/type/edition':
-                doc.pop('authors', None)
+            if doc["type"]["key"] == "/type/edition":
+                doc.pop("authors", None)
 
         return docs
 
@@ -207,7 +217,7 @@ def copy(
         if unversioned_keys:
             print("fetching", unversioned_keys)
             docs2 = get_many(unversioned_keys)
-            cache.update((doc['key'], doc) for doc in docs2)
+            cache.update((doc["key"], doc) for doc in docs2)
             docs.extend(docs2)
         # Do versioned second so they can overwrite if necessary
         if versioned_to_get:
@@ -215,11 +225,9 @@ def copy(
             # src is type Disk | OpenLibrary, and here must be OpenLibrary for the get()
             # method, But using isinstance(src, OpenLibrary) causes pytest to fail
             # because TestServer is type scripts.tests.test_copydocs.FakeServer.
-            assert isinstance(
-                src, (OpenLibrary, scripts.tests.test_copydocs.FakeServer)
-            ), "fetching editions only works with OL src"
+            assert isinstance(src, (OpenLibrary, scripts.tests.test_copydocs.FakeServer)), "fetching editions only works with OL src"
             docs2 = [src.get(pair.key, int(pair.version)) for pair in versioned_to_get]
-            cache.update((doc['key'], doc) for doc in docs2)
+            cache.update((doc["key"], doc) for doc in docs2)
             docs.extend(docs2)
 
         return docs
@@ -228,24 +236,23 @@ def copy(
         k
         for k in keys
         # Ignore /scan_record and /scanning_center ; they can cause infinite loops?
-        if k not in saved and not k.startswith('/scan')
+        if k not in seen and not k.startswith("/scan")
     ]
+    seen.update(keys)
     docs = fetch(keys)
 
     if editions:
-        work_keys = [key for key in keys if key.startswith('/works/')]
+        work_keys = [key for key in keys if key.startswith("/works/")]
 
         assert isinstance(src, OpenLibrary), "fetching editions only works with OL src"
         if work_keys:
             # eg https://openlibrary.org/search.json?q=key:/works/OL102584W
             resp = src.search(
-                'key:' + ' OR '.join(work_keys),
+                "key:" + " OR ".join(work_keys),
                 limit=len(work_keys),
-                fields=['edition_key'],
+                fields=["edition_key"],
             )
-            edition_keys = [
-                f"/books/{olid}" for doc in resp['docs'] for olid in doc['edition_key']
-            ]
+            edition_keys = [f"/books/{olid}" for doc in resp["docs"] for olid in doc["edition_key"] if f"/books/{olid}" not in seen]
             if edition_keys:
                 print("copying edition keys")
                 copy(
@@ -254,20 +261,18 @@ def copy(
                     edition_keys,
                     comment,
                     recursive=recursive,
-                    saved=saved,
                     cache=cache,
+                    seen=seen,
                 )
 
     if recursive:
         refs = get_references(docs)
-        refs = [r for r in set(refs) if not r.startswith(("/type/", "/languages/"))]
+        refs = [r for r in set(refs) if not r.startswith(("/type/", "/languages/")) and r not in seen]
         if refs:
             print("found references", refs)
-            copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
+            copy(src, dest, refs, comment, recursive=True, editions=editions, cache=cache, seen=seen)
 
-    docs = [doc for doc in docs if doc['key'] not in saved]
-
-    keys = [doc['key'] for doc in docs]
+    keys = [doc["key"] for doc in docs]
     print("saving", keys)
     # Sometimes saves in-explicably error ; check infobase logs
     # group things up to avoid a bad apple failing the batch
@@ -276,58 +281,33 @@ def copy(
             print(dest.save_many(group, comment=comment))
         except BaseException as e:
             print(f"Something went wrong saving this batch! {e}")
-    saved.update(keys)
 
 
-def copy_list(src, dest, list_key, comment):
-    keys = set()
+def person_root_key(key: str) -> str | None:
+    """
+    :return: the owning /people/<username> key if `key` is a person's root
+        account or one of its sub-resources (e.g. a list); None otherwise.
 
-    def jsonget(url):
-        url = url.encode("utf-8")
-        text = src._request(url).read()
-        return json.loads(text)
-
-    def get(key):
-        print("get", key)
-        return marshal(src.get(list_key))
-
-    def query(**q):
-        print("query", q)
-        return [x['key'] for x in marshal(src.query(q))]
-
-    def get_list_seeds(list_key):
-        d = jsonget(list_key + "/seeds.json")
-        return d['entries']  # [x['url'] for x in d['entries']]
-
-    def add_seed(seed):
-        if seed['type'] in ('edition', 'work'):
-            keys.add(seed['url'])
-        elif seed['type'] == 'subject':
-            doc = jsonget(seed['url'] + '.json')
-            keys.update(w['key'] for w in doc['works'])
-
-    seeds = get_list_seeds(list_key)
-    for seed in seeds:
-        add_seed(seed)
-
-    edition_keys = {k for k in keys if k.startswith("/books/")}
-    work_keys = {k for k in keys if k.startswith("/works/")}
-
-    for w in work_keys:
-        edition_keys.update(query(type='/type/edition', works=w, limit=500))
-
-    keys = list(edition_keys) + list(work_keys)
-    copy(src, dest, keys, comment=comment, recursive=True)
+    >>> person_root_key("/people/foo")
+    '/people/foo'
+    >>> person_root_key("/people/foo/lists/OL1L")
+    '/people/foo'
+    >>> person_root_key("/works/OL1W")
+    """
+    parts = key.split("?", maxsplit=1)[0].split("/")
+    if len(parts) >= 3 and parts[1] == "people" and parts[2]:
+        return f"/people/{parts[2]}"
+    return None
 
 
 def main(
     keys: list[str],
     src: str = "http://openlibrary.org/",
-    dest: str = "http://localhost:8080",
+    dest: str = "http://web:8080",
     comment: str = "",
     recursive: bool = True,
     editions: bool = True,
-    lists: list[str] | None = None,
+    infobase: str = "http://infobase:7000",
     search: str | None = None,
     search_limit: int = 10,
 ) -> None:
@@ -341,6 +321,9 @@ def main(
         ./scripts/copydocs.py --src http://openlibrary.org /templates/*
         # Copy specific records
         ./scripts/copydocs.py /authors/OL113592A /works/OL1098727W?v=2
+        # Copy a list (also copies its referenced seeds/authors/series, and
+        # stubs the owning account rather than copying it)
+        ./scripts/copydocs.py /people/foo/lists/OL1L
         # Copy search results
         ./scripts/copydocs.py --search "publisher:librivox" --search-limit 10
 
@@ -349,40 +332,51 @@ def main(
     :param dest: URL of the destination open library server
     :param recursive: Recursively fetch all the referred docs
     :param editions: Also fetch all the editions of works
-    :param lists: Copy docs from list(s)
+    :param infobase: URL of the destination's infobase server, used only to
+        create stub accounts for /people/<username> keys
     :param search: Run a search on open library and copy docs from the results
     """
 
     # Mypy doesn't handle union-ing types across if statements -_-
     # https://github.com/python/mypy/issues/6233
-    src_ol: Disk | OpenLibrary = (
-        OpenLibrary(src) if src.startswith("http://") else Disk(src)
-    )
-    dest_ol: Disk | OpenLibrary = (
-        OpenLibrary(dest) if dest.startswith("http://") else Disk(dest)
-    )
+    src_ol: Disk | OpenLibrary = OpenLibrary(src) if src.startswith("http://") else Disk(src)
+    dest_ol: Disk | OpenLibrary = OpenLibrary(dest) if dest.startswith("http://") else Disk(dest)
+
+    if search:
+        assert isinstance(src_ol, OpenLibrary), "Search only works with OL src"
+        keys += [doc["key"] for doc in src_ol.search(search, limit=search_limit, fields=["key"])["docs"]]
+
+    keys = list(expand(src_ol, ("/" + k.lstrip("/") for k in keys)))
 
     if isinstance(dest_ol, OpenLibrary):
-        section = "[%s]" % web.lstrips(dest, "http://").strip("/")
+        section = "[%s]" % dest.removeprefix("http://").strip("/")
         if section in read_lines(os.path.expanduser("~/.olrc")):
             dest_ol.autologin()
         else:
             dest_ol.login("openlibrary@example.com", "admin123")
 
-    for list_key in lists or []:
-        copy_list(src_ol, dest_ol, list_key, comment=comment)
-
-    if search:
-        assert isinstance(src_ol, OpenLibrary), "Search only works with OL src"
-        keys += [
-            doc['key']
-            for doc in src_ol.search(search, limit=search_limit, fields=['key'])['docs']
-        ]
-
-    keys = list(expand(src_ol, ('/' + k.lstrip('/') for k in keys)))
+        remaining_keys = []
+        for key in keys:
+            root = person_root_key(key)
+            if root:
+                try:
+                    dest_ol.get(root)
+                except OLError:
+                    username = root.rsplit("/", 1)[-1]
+                    print(f"creating empty stub account for {root}")
+                    for op, data in (
+                        ("register", {"username": username, "displayname": username, "email": f"{username}@example.com", "password": "password"}),
+                        ("activate", {"username": username}),
+                    ):
+                        requests.post(f"{infobase}/openlibrary.org/account/{op}", data=data).raise_for_status()
+                if root == key:
+                    # The stub account *is* the copy; there's nothing real to fetch.
+                    continue
+            remaining_keys.append(key)
+        keys = remaining_keys
 
     copy(src_ol, dest_ol, keys, comment=comment, recursive=recursive, editions=editions)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FnToCLI(main).run()

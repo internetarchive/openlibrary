@@ -28,11 +28,19 @@ $code:
         <strong>$_("Tag Body")</strong>
         $:sanitize(format(tag.body))
     </div>
+    $if tag.get('slugs'):
+        $ slugs_str = ', '.join(tag.slugs)
+        <div>
+            <strong>$_("URL Slugs")</strong>
+            <span>$slugs_str</span>
+        </div>
     $if tag.tag_type in get_subject_tag_types():
         $ subject_key = derive_subject_key(tag)
         <footer>
-            <a href="$subject_key">
-                $_('View subject page for %(name)s.', name=title)
-            </a>
+            <ol-chip-group gap="small">
+                <ol-chip size="small" href="$subject_key">
+                    $_('View subject page for %(name)s.', name=title)
+                </ol-chip>
+            </ol-chip-group>
         </footer>
 </div>

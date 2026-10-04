@@ -1,0 +1,80 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Variants", "Each pairs a tinted surface with a filled icon circle — the same icon treatment as ol-toast.", output_style="display: flex; flex-direction: column; gap: 12px;") %}
+        <ol-banner>
+            Open Library is a non-profit project of the Internet Archive.
+        </ol-banner>
+        <ol-banner variant="success">
+            Your import finished — 42 books added to your reading log.
+        </ol-banner>
+        <ol-banner variant="warning">
+            Open Library will be briefly unavailable on June 12 for maintenance.
+        </ol-banner>
+        <ol-banner variant="danger">
+            Search is currently degraded. Some results may be missing.
+        </ol-banner>
+    {% endcall %}
+    {% call ex.example("Appearance", "outlined (default) has a border and rounded corners. plain removes both — for banners that abut other UI, like the top of the page or a card.", output_style="display: flex; flex-direction: column; gap: 12px;") %}
+        <ol-banner variant="warning">
+            Outlined (default): border and rounded corners.
+        </ol-banner>
+        <ol-banner variant="warning" appearance="plain">
+            Plain: no border, no border radius.
+        </ol-banner>
+    {% endcall %}
+    {% call ex.example("Dismissible", "Without cookie-name, dismissal only lasts for the current page. Content comes from the page template, so links and emphasis work as usual.") %}
+        <ol-banner dismissible label-close="Close">
+            <a href="/collections">Explore our new collections</a>
+        </ol-banner>
+    {% endcall %}
+    {% call ex.example("Custom icon", "slot=\"icon\" replaces the variant's built-in glyph.",
+        code='<ol-banner>\n  <svg slot="icon" ...>...</svg>\n  Set your Yearly Reading Goal\n</ol-banner>') %}
+        <ol-banner>
+            <svg slot="icon"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="12"
+                 height="12"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="3"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+            </svg>
+            Set your Yearly Reading Goal
+        </ol-banner>
+    {% endcall %}
+    {% call ex.example("Persisted dismissal", "The component owns no persistence — it only fires ol-banner-dismiss with its dismiss-id. Two pieces of site plumbing make it stick: the page template guards rendering on the dismissal cookie, and a site-level listener (js/banner/index.js) POSTs dismissals to /hide_banner, which sets that cookie. Per-banner TTL rides on the element as data-cookie-duration-days — an OL convention, not component API.",
+        code="$if cookies().get('yrg26') != '1':\n  <ol-banner dismiss-id=\"yrg26\" data-cookie-duration-days=\"365\" dismissible>\n    <a href=\"/account/books/already-read/year/2026\">Set your 2026 Yearly Reading Goal</a>\n  </ol-banner>",
+        output_style="display: flex; flex-direction: column; gap: 12px;") %}
+        {# The real guard is server-side in the page template. This demo checks the
+           same cookie client-side so dismissal is still observable across reloads. #}
+        <ol-banner id="demo-banner-persisted" hidden dismiss-id="ol-banner-demo" data-cookie-duration-days="1" dismissible label-close="Close">
+            <a href="/account/books/already-read/year/2026">Set your 2026 Yearly Reading Goal</a>
+        </ol-banner>
+        <div>
+            <button id="demo-banner-reset" class="demo-btn">Reset dismissed demo banner</button>
+        </div>
+        <script>
+            (function () {
+                const banner = document.getElementById('demo-banner-persisted');
+                const dismissed = document.cookie.split('; ').some((entry) => entry === 'ol-banner-demo=1');
+                if (!dismissed) banner.hidden = false;
+                banner.addEventListener('ol-banner-dismiss', () => {
+                    document.cookie = 'ol-banner-demo=1; Max-Age=86400; path=/';
+                });
+                document.getElementById('demo-banner-reset').addEventListener('click', () => {
+                    document.cookie = 'ol-banner-demo=; Max-Age=0; path=/';
+                    location.reload();
+                });
+            })();
+        </script>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Dismiss event.</b> Fires <code>ol-banner-dismiss</code> once when dismissed, before removal from the DOM. Banners without a <code>dismiss-id</code> are page-only: they still fire, but the site listener ignores them.
+        </p>
+    </div>
+{% endmacro %}

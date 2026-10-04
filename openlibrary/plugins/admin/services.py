@@ -31,11 +31,9 @@ class Nagios:
             service_tr = service.findParents("tr")[2]
             status_td = service_tr.find(
                 "td",
-                attrs={
-                    "class": re.compile(r"status(OK|RECOVERY|UNKNOWN|WARNING|CRITICAL)")
-                },
+                attrs={"class": re.compile(r"status(OK|RECOVERY|UNKNOWN|WARNING|CRITICAL)")},
             )
-            return status_td['class'].replace("status", "")
+            return status_td["class"].replace("status", "")
         else:
             return "error-nosuchservice"
 
@@ -54,9 +52,7 @@ class Service:
         self.nagios = nagios.get_service_status(name)
 
     def __repr__(self):
-        return (
-            f"Service(name = '{self.name}', node = '{self.node}', logs = '{self.logs}')"
-        )
+        return f"Service(name = '{self.name}', node = '{self.node}', logs = '{self.logs}')"
 
 
 def load_all(config, nagios_url):
@@ -65,7 +61,7 @@ def load_all(config, nagios_url):
     d = defaultdict(list)
     nagios = Nagios(nagios_url)
     for node in config:
-        services = config[node].get('services', [])
+        services = config[node].get("services", [])
         if services:
             for service in services:
                 d[node].append(Service(node=node, name=service, nagios=nagios))

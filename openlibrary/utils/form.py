@@ -26,7 +26,7 @@ class AttributeList(dict):
         return " ".join(f'{k}="{web.websafe(v)}"' for k, v in self.items())
 
     def __repr__(self):
-        return '<attrs: %s>' % repr(str(self))
+        return "<attrs: %s>" % repr(str(self))
 
 
 class Input:
@@ -34,16 +34,16 @@ class Input:
         self.name = name
         self.description = description or ""
         self.value = value
-        self.validators = kw.pop('validators', [])
+        self.validators = kw.pop("validators", [])
 
-        self.help = kw.pop('help', None)
-        self.note = kw.pop('note', None)
+        self.help = kw.pop("help", None)
+        self.note = kw.pop("note", None)
 
-        self.id = kw.pop('id', name)
+        self.id = kw.pop("id", name)
         self.__dict__.update(kw)
 
-        if 'klass' in kw:
-            kw['class'] = kw.pop('klass')
+        if "klass" in kw:
+            kw["class"] = kw.pop("klass")
 
         self.attrs = AttributeList(kw)
 
@@ -55,12 +55,12 @@ class Input:
 
     def render(self):
         attrs = self.attrs.copy()
-        attrs['id'] = self.id
-        attrs['type'] = self.get_type()
-        attrs['name'] = self.name
-        attrs['value'] = self.value or ''
+        attrs["id"] = self.id
+        attrs["type"] = self.get_type()
+        attrs["name"] = self.name
+        attrs["value"] = self.value or ""
 
-        return '<input ' + str(attrs) + ' />'
+        return "<input " + str(attrs) + " />"
 
     def validate(self, value):
         self.value = value
@@ -76,11 +76,11 @@ class Textbox(Input):
 
     >>> t = Textbox("name", description='Name', value='joe')
     >>> t.render()
-    '<input type="text" id="name" value="joe" name="name" />'
+    '<input id="name" type="text" name="name" value="joe" />'
 
     >>> t = Textbox("name", description='Name', value='joe', id='name', klass='input', size=10)
     >>> t.render()
-    '<input name="name" value="joe" class="input" type="text" id="name" size="10" />'
+    '<input size="10" class="input" id="name" type="text" name="name" value="joe" />'
     """
 
     def get_type(self):
@@ -91,7 +91,7 @@ class Password(Input):
     """Password input.
 
     >>> Password("password", description='Password', value='secret').render()
-    '<input type="password" id="password" value="secret" name="password" />'
+    '<input id="password" type="password" name="password" value="secret" />'
     """
 
     def get_type(self):
@@ -102,7 +102,7 @@ class Email(Input):
     """Email input.
 
     >>> Email("email", value='joe@archive.org').render()
-    '<input type="email" id="email" value="joe@archive.org" name="email" />'
+    '<input id="email" type="email" name="email" value="joe@archive.org" />'
     """
 
     def get_type(self):
@@ -122,7 +122,7 @@ class Hidden(Input):
 class Form:
     def __init__(self, *inputs, **kw):
         self.inputs = inputs
-        self.validators = kw.pop('validators', [])
+        self.validators = kw.pop("validators", [])
         self.note = None
 
     def __call__(self):
@@ -139,7 +139,7 @@ class Form:
 
     def __getattr__(self, name):
         # don't interfere with deepcopy
-        inputs = self.__dict__.get('inputs') or []
+        inputs = self.__dict__.get("inputs") or []
         for x in inputs:
             if x.name == name:
                 return x

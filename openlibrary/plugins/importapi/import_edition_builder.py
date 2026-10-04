@@ -103,15 +103,13 @@ class import_edition_builder:
         if isinstance(val, dict):
             author_dict = val
             if "name" in author_dict:
-                author_dict['personal_name'] = author_dict['name']
-            self.add_list('authors', author_dict)
+                author_dict["personal_name"] = author_dict["name"]
+            self.add_list("authors", author_dict)
         else:
-            self.add_list(
-                'authors', {'personal_name': val, 'name': val, 'entity_type': 'person'}
-            )
+            self.add_list("authors", {"personal_name": val, "name": val, "entity_type": "person"})
 
     def add_illustrator(self, key, val):
-        self.add_list('contributions', val + ' (Illustrator)')
+        self.add_list("contributions", val + " (Illustrator)")
 
     def __init__(self, init_dict=None):
         init_dict = init_dict or {}
@@ -119,24 +117,24 @@ class import_edition_builder:
         self._validate()
 
         self.type_dict = {
-            'title': ['title', self.add_string],
-            'author': ['authors', self.add_author],
-            'publisher': ['publishers', self.add_list],
-            'publish_place': ['publish_places', self.add_list],
-            'publish_date': ['publish_date', self.add_string],
-            'pagination': ['pagination', self.add_string],
-            'subject': ['subjects', self.add_list],
-            'language': ['languages', self.add_list],
-            'description': ['description', self.add_string],
-            'lccn': ['lccn', self.add_list],
-            'oclc_number': ['oclc_numbers', self.add_list],
-            'isbn_10': ['isbn_10', self.add_list],
-            'isbn_13': ['isbn_13', self.add_list],
-            'ocaid': ['ocaid', self.add_string],
-            'illustrator': ['contributions', self.add_illustrator],
-            'source_record': ['source_records', self.add_list],
-            'dewey_decimal_class': ['dewey_decimal_class', self.add_list],
-            'lc_classification': ['lc_classifications', self.add_list],
+            "title": ["title", self.add_string],
+            "author": ["authors", self.add_author],
+            "publisher": ["publishers", self.add_list],
+            "publish_place": ["publish_places", self.add_list],
+            "publish_date": ["publish_date", self.add_string],
+            "pagination": ["pagination", self.add_string],
+            "subject": ["subjects", self.add_list],
+            "language": ["languages", self.add_list],
+            "description": ["description", self.add_string],
+            "lccn": ["lccn", self.add_list],
+            "oclc_number": ["oclc_numbers", self.add_list],
+            "isbn_10": ["isbn_10", self.add_list],
+            "isbn_13": ["isbn_13", self.add_list],
+            "ocaid": ["ocaid", self.add_string],
+            "illustrator": ["contributions", self.add_illustrator],
+            "source_record": ["source_records", self.add_list],
+            "dewey_decimal_class": ["dewey_decimal_class", self.add_list],
+            "lc_classification": ["lc_classifications", self.add_list],
         }
 
     def _validate(self):
@@ -147,7 +145,7 @@ class import_edition_builder:
 
     def add(self, key, val, restrict_keys=True):
         if restrict_keys and key not in self.type_dict:
-            print('import_edition_builder invalid key: ' + key)
+            print("import_edition_builder invalid key: " + key)
             return
 
         if key in self.type_dict:

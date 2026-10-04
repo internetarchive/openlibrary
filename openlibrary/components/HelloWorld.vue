@@ -49,7 +49,7 @@ export default {
         return {
             num1: 31,
             num2: 11,
-        }
+        };
     },
 
     // Essentially getters
@@ -61,7 +61,7 @@ export default {
     methods: {
 
     },
-}
+};
 </script>
 
 <style>

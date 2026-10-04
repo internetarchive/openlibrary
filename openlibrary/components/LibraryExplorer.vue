@@ -25,7 +25,7 @@ import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
 import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
-import maxBy from 'lodash/maxBy';
+import { maxBy } from '../plugins/openlibrary/js/nonjquery_utils.js';
 
 class FilterState {
     constructor() {
@@ -305,7 +305,7 @@ hr {
   margin-left: -100px;
 }
 .book-room.style--book--3d-spines .book:hover {
-  z-index: 1;
+  z-index: var(--z-index-local-1);
 }
 
 .book-room.style--book--3d-flat .css-box {

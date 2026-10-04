@@ -43,9 +43,7 @@ def main(
         start = datetime.datetime.fromisoformat(timestamp)
         start = start.replace(minute=5, second=0, microsecond=0)
         if not allow_old_timestamp and start < min_start:
-            print(
-                f"Timestamp {start.isoformat()} older than 7 days ago, using {min_start.isoformat()} instead."
-            )
+            print(f"Timestamp {start.isoformat()} older than 7 days ago, using {min_start.isoformat()} instead.")
             start = min_start
     else:
         start = min_start
@@ -58,17 +56,17 @@ def main(
             print(f"Running daily trending for {day_dt.isoformat()}")
             run_daily_update(timestamp=day_dt.isoformat(), dry_run=dry_run)
             if not dry_run and trending_offset_file:
-                trending_offset_file.write_text(day_dt.isoformat() + '\n')
+                trending_offset_file.write_text(day_dt.isoformat() + "\n")
 
         print(f"Running hourly trending for {cur_dt.isoformat()}")
         run_hourly_update(timestamp=cur_dt.isoformat(), dry_run=dry_run)
         if not dry_run and trending_offset_file:
-            trending_offset_file.write_text(cur_dt.isoformat() + '\n')
+            trending_offset_file.write_text(cur_dt.isoformat() + "\n")
 
         cur_dt += datetime.timedelta(hours=1)
 
     print("Caught up to current time, stopping.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FnToCLI(main).run()

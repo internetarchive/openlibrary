@@ -12,7 +12,7 @@
   left: 0;
   text-align: center;
   background-color: transparent;
-  background-image: url(/images/ajax-loader-bar.gif);
+  background-image: url(/static/images/ajax-loader-bar.gif);
   background-repeat: no-repeat;
 }
 

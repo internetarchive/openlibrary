@@ -36,5 +36,5 @@ export function renderBulkTagger() {
         <div class="submit-tags-section">
             <button type="submit" class="bulk-tagging-submit cta-btn cta-btn--primary" disabled>Submit</button>
         </div>
-    </form>`
+    </form>`;
 }

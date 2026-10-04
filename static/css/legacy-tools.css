@@ -23,15 +23,6 @@
   position: relative;
 }
 
-.Tools .btn-notice a.worldcat-link {
-  text-decoration: underline;
-}
-
-.Tools .btn-notice span.worldcat-attribution {
-  font-size: 0.8em;
-  display: block;
-}
-
 .Tools .btn-notice input {
   display: block;
   width: 100%;
@@ -59,7 +50,7 @@
 }
 
 .Tools .check-availability {
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   border-top: 1px solid var(--lightest-grey);
   border-radius: 3px;
 }
@@ -83,7 +74,7 @@
 }
 
 .Tools .cta-section {
-  padding: 5px 5px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   margin: 0;
 }
 
@@ -125,11 +116,11 @@
 }
 
 .Tools table td.price {
-  padding: 3px 0 0;
+  padding: var(--spacing-inset-xs) 0 0;
 }
 
 .Tools table td.vendor {
-  padding: 3px 10px 0 42px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm) 0 42px;
 }
 
 .Tools h3 {
@@ -150,7 +141,7 @@
   width: 32px;
   height: 32px;
   float: left;
-  background-image: url(/images/icons/icons_sprite.png);
+  background-image: url(/static/images/icons/icons_sprite.png);
   background-repeat: no-repeat;
 }
 
@@ -204,7 +195,7 @@
 }
 
 .Tools h3.closed span.head {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools h4 {
@@ -212,13 +203,13 @@
   font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-stack-sm);
   padding: 0;
   zoom: 1;
 }
 
 .Tools .panel {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .Tools .panel ul {
@@ -236,13 +227,13 @@
   list-style-type: none;
   font-size: 0.75em;
   margin-top: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools .panel p {
   font-size: 0.75em;
   margin-top: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools div.icon {
@@ -251,7 +242,7 @@
   left: 0;
   width: 32px;
   height: 32px;
-  background-image: url(/images/icons/icons_sprite.png);
+  background-image: url(/static/images/icons/icons_sprite.png);
   background-repeat: no-repeat;
 }
 
@@ -263,7 +254,7 @@
   font-size: 0.6875em;
   font-family: var(--font-family-body);
   padding-left: 42px;
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 .Tools #readBooks p {

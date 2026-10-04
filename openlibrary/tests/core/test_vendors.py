@@ -1,13 +1,18 @@
-from dataclasses import dataclass
+import importlib
+from dataclasses import dataclass, field
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
 
 from openlibrary.core.vendors import (
     AmazonAPI,
+    AmazonCreatorsAPI,
+    amazon_affiliate_url,
     betterworldbooks_fmt,
     clean_amazon_metadata_for_load,
     get_amazon_metadata,
+    get_amazon_metadata_async,
     is_dvd,
     split_amazon_title,
 )
@@ -243,6 +248,8 @@ def test_betterworldbooks_fmt():
     assert bad_data.get("price") is None
     assert bad_data.get("price_amt") is None
     assert bad_data.get("qlt") is None
+    assert bad_data.get("new_qty") is None
+    assert bad_data.get("used_price") is None
 
 
 # Test cases to add:
@@ -251,14 +258,12 @@ def test_betterworldbooks_fmt():
 
 def test_get_amazon_metadata() -> None:
     """
-    Mock a reply from the Amazon Products API so we can do a basic test for
-    get_amazon_metadata() and cached_get_amazon_metadata().
+    Mock a reply from the Amazon affiliate server so we can do a basic test for
+    get_amazon_metadata(), the sync async_bridge wrapper around the canonical
+    get_amazon_metadata_async().
     """
 
-    class MockRequests:
-        def get(self):
-            pass
-
+    class MockResponse:
         def raise_for_status(self):
             return True
 
@@ -303,12 +308,75 @@ def test_get_amazon_metadata() -> None:
         "physical_format": "paperback",
     }
     isbn = "059035342X"
+
+    async def mock_async_get(*args, **kwargs):
+        return MockResponse()
+
     with (
-        patch("requests.get", return_value=MockRequests()),
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
         assert got == expected
+
+
+@pytest.mark.asyncio
+async def test_get_amazon_metadata_async() -> None:
+    """
+    Async version of get_amazon_metadata: mock a reply from the affiliate
+    server via the shared httpx async session and verify the metadata is
+    returned without blocking.
+    """
+
+    class MockResponse:
+        def raise_for_status(self):
+            return True
+
+        def json(self):
+            return mock_response
+
+    captured_kwargs = {}
+
+    async def mock_async_get(*args, **kwargs):
+        captured_kwargs.update(kwargs)
+        return MockResponse()
+
+    mock_response = {
+        "status": "success",
+        "hit": {
+            "url": "https://www.amazon.com/dp/059035342X/?tag=internetarchi-20",
+            "source_records": ["amazon:059035342X"],
+            "isbn_10": ["059035342X"],
+            "isbn_13": ["9780590353427"],
+            "price": "$5.10",
+            "price_amt": 509,
+            "title": "Harry Potter and the Sorcerer's Stone",
+            "cover": "https://m.media-amazon.com/images/I/51Wbz5GypgL._SL500_.jpg",
+            "authors": [{"name": "Rowling, J.K."}, {"name": "GrandPr_, Mary"}],
+            "publishers": ["Scholastic"],
+            "number_of_pages": 309,
+            "edition_num": "1",
+            "publish_date": "Sep 02, 1998",
+            "product_group": "Book",
+            "physical_format": "paperback",
+        },
+    }
+    expected = mock_response["hit"]
+    # Use the ISBN-13 form of the same book for a distinct cache key.
+    isbn = "9780590353427"
+    with (
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
+        patch("openlibrary.core.vendors.affiliate_server_url", new=True),
+    ):
+        got = await get_amazon_metadata_async(id_=isbn, id_type="isbn", timeout=5.0)
+        assert got == expected
+        assert captured_kwargs["timeout"] == 5.0
 
 
 @dataclass
@@ -502,3 +570,400 @@ def test_is_dvd(physical_format, product_group, expected):
 
     got = is_dvd(book)
     assert got is expected
+
+
+# ---- Creators API dataclass fixtures ----------------------------------------
+# Minimal stand-ins for the objects returned by the python-amazon-paapi SDK.
+# Only attributes accessed by AmazonCreatorsAPI.serialize() are defined.
+
+
+@dataclass
+class CDisplayVal:
+    display_value: object
+
+
+@dataclass
+class CLangEntry:
+    display_value: str
+    type: str
+
+
+@dataclass
+class CLangs:
+    display_values: list
+
+
+@dataclass
+class CEans:
+    display_values: list  # list[str] — raw EAN strings
+
+
+@dataclass
+class CExtIds:
+    eans: object = None
+
+
+@dataclass
+class CContentInfo:
+    pages_count: object = None
+    publication_date: object = None
+    languages: object = None
+    edition: object = None
+
+
+@dataclass
+class CCreatorsContributor:
+    name: str
+    role: str
+
+
+@dataclass
+class CByLine:
+    contributors: list | None = None
+    brand: object = None
+    manufacturer: object = None
+
+
+@dataclass
+class CClassify:
+    product_group: object = None
+    binding: object = None
+
+
+@dataclass
+class CItemInfo:
+    title: object = None
+    by_line_info: object = None
+    classifications: CClassify | None = None
+    content_info: object = None
+    external_ids: CExtIds | None = None
+
+
+@dataclass
+class CImage:
+    url: str = ""
+
+
+@dataclass
+class CImgSizes:
+    large: object = None
+
+
+@dataclass
+class CImages:
+    primary: object = None
+    variants: list = field(default_factory=list)
+
+
+@dataclass
+class CMoney:
+    display_amount: str = ""
+    amount: float = 0.0
+
+
+@dataclass
+class CSavings:
+    percentage: float = 0.0
+
+
+@dataclass
+class CSavingBasis:
+    money: object = None
+
+
+@dataclass
+class CPrice:
+    money: object = None
+    savings: object = None
+    saving_basis: object = None
+
+
+@dataclass
+class CAvailability:
+    type: str = ""
+    message: str | None = None
+
+
+@dataclass
+class CCondition:
+    value: str | None = None
+    sub_condition: str | None = None
+
+
+@dataclass
+class CMerchantInfo:
+    name: str | None = None
+
+
+@dataclass
+class CDealDetails:
+    badge: str | None = None
+
+
+@dataclass
+class CListing:
+    price: object = None
+    availability: object = None
+    condition: object = None
+    merchant_info: object = None
+    deal_details: object = None
+
+
+@dataclass
+class COffersV2:
+    listings: list = field(default_factory=list)
+
+
+@dataclass
+class CBrowseNode:
+    context_free_name: str = ""
+    ancestor: object = None
+
+
+@dataclass
+class CBrowseNodeInfo:
+    browse_nodes: list = field(default_factory=list)
+
+
+@dataclass
+class CItem:
+    asin: str = ""
+    item_info: CItemInfo | None = None
+    images: object = None
+    offers_v2: object = None
+    browse_node_info: object = None
+
+
+def _make_creators_item() -> CItem:
+    """
+    Fully-populated Creators API item fixture modelling a real book
+    (The Sea Around Us by Rachel Carson, ISBN-10 0190906766).
+    """
+    return CItem(
+        asin="0190906766",
+        item_info=CItemInfo(
+            title=CDisplayVal("The Sea Around Us"),
+            by_line_info=CByLine(
+                contributors=[
+                    CCreatorsContributor("Rachel Carson", "Author"),
+                    CCreatorsContributor("Translator Name", "Translator"),
+                ],
+                manufacturer=CDisplayVal("Oxford University Press"),
+            ),
+            classifications=CClassify(
+                product_group=CDisplayVal("Book"),
+                binding=CDisplayVal("Paperback"),
+            ),
+            content_info=CContentInfo(
+                pages_count=CDisplayVal(256),
+                publication_date=CDisplayVal("2018-12-18T00:00:01Z"),
+                languages=CLangs(
+                    display_values=[
+                        CLangEntry("English", "Published"),
+                        CLangEntry("English", "Original Language"),
+                    ]
+                ),
+            ),
+            external_ids=CExtIds(eans=CEans(["9780190906764"])),
+        ),
+        images=CImages(
+            primary=CImgSizes(large=CImage("https://m.media-amazon.com/images/I/example.jpg")),
+            variants=[CImgSizes(large=CImage("https://m.media-amazon.com/images/I/variant1.jpg"))],
+        ),
+        offers_v2=COffersV2(
+            listings=[
+                CListing(
+                    price=CPrice(
+                        money=CMoney("$9.50", 9.50),
+                        savings=CSavings(10.0),
+                        saving_basis=CSavingBasis(money=CMoney("$10.56", 10.56)),
+                    ),
+                    availability=CAvailability("IN_STOCK", "In Stock"),
+                    condition=CCondition("New", "New"),
+                    merchant_info=CMerchantInfo("Amazon.com"),
+                    deal_details=CDealDetails("Limited time deal"),
+                )
+            ]
+        ),
+        browse_node_info=CBrowseNodeInfo(
+            browse_nodes=[
+                CBrowseNode("Science & Math", ancestor=CBrowseNode("Books")),
+                CBrowseNode("Oceans & Seas"),
+            ]
+        ),
+    )
+
+
+def test_amazon_creatorsapi_lazy_import_resolves() -> None:
+    """
+    `AmazonCreatorsAPI.__init__` does `from amazon_creatorsapi import ...` at call
+    time, so a missing dependency surfaces only when the affiliate server boots.
+
+    This matters more since #13277 removed the legacy PA-API fallback: there is no
+    longer a second client to degrade to, so a broken import is a total outage. The
+    module ships inside `python-amazon-paapi` (requirements.txt), which is not an
+    obvious place to look, so a dependency bump can break it with nothing else failing.
+    """
+    module = importlib.import_module("amazon_creatorsapi")
+    assert hasattr(module, "AmazonCreatorsApi")
+    assert hasattr(module.Country, "US")
+
+
+# ---- AmazonCreatorsAPI.serialize() tests ------------------------------------
+
+
+def test_creators_serialize_full_book() -> None:
+    """Golden path: all standard and Creators-API-specific fields serialize correctly."""
+    result = AmazonCreatorsAPI.serialize(_make_creators_item())
+
+    # Core identity fields
+    assert result["source_records"] == ["amazon:0190906766"]
+    assert result["isbn_10"] == ["0190906766"]
+    assert result["isbn_13"] == ["9780190906764"]
+    assert result["title"] == "The Sea Around Us"
+
+    # Contributors
+    assert result["authors"] == [{"name": "Rachel Carson"}]
+    assert result["contributors"] == [{"name": "Translator Name", "role": "Translator"}]
+    assert result["publishers"] == ["Oxford University Press"]
+
+    # Edition metadata
+    assert result["physical_format"] == "paperback"
+    assert result["product_group"] == "Book"
+    assert result["languages"] == ["English"]  # "Original Language" duplicate removed
+    assert result["number_of_pages"] == 256
+    assert result["publish_date"] == "Dec 18, 2018"
+
+    # Price (Creators API path: price.money.display_amount)
+    assert result["price"] == "$9.50"
+    assert result["price_amt"] == 950
+
+    # Cover image
+    assert result["cover"] == "https://m.media-amazon.com/images/I/example.jpg"
+
+    # Creators API additions absent from the legacy PA-API output
+    assert result["categories"] == ["Science & Math", "Oceans & Seas"]
+    assert result["availability"] == "IN_STOCK"
+    assert result["availability_message"] == "In Stock"
+    assert result["condition"] == "New"
+    assert result["sub_condition"] == "New"
+    assert result["merchant"] == "Amazon.com"
+    assert result["deal_badge"] == "Limited time deal"
+    assert result["price_savings_pct"] == 10.0
+    assert result["list_price"] == "$10.56"
+    assert result["image_variants"] == ["https://m.media-amazon.com/images/I/variant1.jpg"]
+
+
+def test_creators_serialize_isbn13_fallback_from_isbn10() -> None:
+    """When external_ids.eans is absent, ISBN-13 is computed from the ISBN-10 ASIN."""
+    item = _make_creators_item()
+    assert item.item_info is not None
+    item.item_info.external_ids = None
+    result = AmazonCreatorsAPI.serialize(item)
+    assert result["isbn_10"] == ["0190906766"]
+    assert result["isbn_13"] == ["9780190906764"]
+
+
+def test_creators_serialize_non_isbn_asin() -> None:
+    """An ASIN starting with 'B' (not an ISBN) produces empty isbn_10 and isbn_13."""
+    item = _make_creators_item()
+    item.asin = "B000KRRIZI"
+    assert item.item_info is not None
+    item.item_info.external_ids = None
+    result = AmazonCreatorsAPI.serialize(item)
+    assert result["isbn_10"] == []
+    assert result["isbn_13"] == []
+    assert result["source_records"] == ["amazon:B000KRRIZI"]
+
+
+def test_creators_serialize_dvd_returns_empty() -> None:
+    """Items whose binding is 'DVD' are filtered out and return an empty dict."""
+    item = _make_creators_item()
+    assert item.item_info is not None
+    assert item.item_info.classifications is not None
+    item.item_info.classifications.binding = CDisplayVal("DVD")
+    assert AmazonCreatorsAPI.serialize(item) == {}
+
+
+def test_creators_serialize_categories_filter_internal_nodes() -> None:
+    """UUID-named, ASIN-containing, promotional, and generic root nodes are excluded."""
+    item = _make_creators_item()
+    item.browse_node_info = CBrowseNodeInfo(
+        browse_nodes=[
+            CBrowseNode("Science & Math"),  # kept
+            CBrowseNode("1a2b3c4d-5e6f-7890-abcd-ef1234567890"),  # UUID → dropped
+            CBrowseNode("ASIN lookup"),  # contains 'ASIN' → dropped
+            CBrowseNode("Test node alpha"),  # matches ^Test node → dropped
+            CBrowseNode("Subjects"),  # generic root → dropped
+            CBrowseNode("Oceans & Seas"),  # kept
+        ]
+    )
+    result = AmazonCreatorsAPI.serialize(item)
+    assert result["categories"] == ["Science & Math", "Oceans & Seas"]
+
+
+@pytest.mark.parametrize(
+    ("product_group", "expected"),
+    [
+        ("dvd", {}),
+        ("DVD", {}),
+        ("Dvd", {}),
+    ],
+)
+def test_creators_serialize_does_not_load_dvds(product_group, expected) -> None:
+    """DVD product_group is filtered out regardless of case."""
+    item = _make_creators_item()
+    assert item.item_info is not None
+    assert item.item_info.classifications is not None
+    item.item_info.classifications.product_group = CDisplayVal(product_group)
+    item.item_info.classifications.binding = CDisplayVal(product_group)
+    assert AmazonCreatorsAPI.serialize(item) == expected
+
+
+def test_amazon_affiliate_url_978_isbn_uses_dp_route() -> None:
+    """978-prefix ISBN-13 converts to ISBN-10 -> /dp/ link is used."""
+    url = amazon_affiliate_url("9780590353427", None, "test-tag")  # -> 059035342X
+    assert url is not None
+    assert "/dp/059035342X/" in url
+    assert "/s?k=" not in url
+
+
+def test_amazon_affiliate_url_979_isbn_falls_back_to_search_url() -> None:
+    """979-prefix ISBN-13 has no ISBN-10 -> Amazon search URL is used (fix for #6572).
+
+    'Pickleball Soap Opera' (ISBN-13 9798776159572) previously produced a
+    broken /dp/ link because Amazon does not resolve 979-prefix ISBNs via /dp/.
+    """
+    url = amazon_affiliate_url("9798776159572", None, "test-tag")
+    assert url is not None
+    assert "/s?k=9798776159572" in url
+    assert "/dp/" not in url
+
+
+def test_amazon_affiliate_url_explicit_asin_overrides_isbn_conversion() -> None:
+    """Explicit ASIN takes priority over isbn_13_to_isbn_10 conversion."""
+    url = amazon_affiliate_url("9798776159572", "B09MJ3TKX3", "test-tag")
+    assert url is not None
+    assert "/dp/B09MJ3TKX3/" in url
+
+
+def test_amazon_affiliate_url_no_identifiers_returns_none() -> None:
+    """Without isbn or asin, function returns None."""
+    assert amazon_affiliate_url(None, None, "test-tag") is None
+
+
+def test_amazon_affiliate_url_falls_back_to_keyword_search() -> None:
+    """Without isbn or asin, a query searches Amazon's books for those keywords."""
+    url = amazon_affiliate_url(None, None, "test-tag", query="Dune Frank Herbert")
+    assert url == "https://www.amazon.com/s?k=Dune%20Frank%20Herbert&i=stripbooks&tag=test-tag"
+
+
+def test_amazon_affiliate_url_prefers_identifiers_over_query() -> None:
+    """An isbn or asin identifies the book exactly, so it wins over keywords."""
+    isbn_10_url = amazon_affiliate_url("9780590353427", None, "test-tag", query="Holes Louis Sachar")
+    assert isbn_10_url is not None
+    assert "/dp/059035342X/" in isbn_10_url
+
+    isbn_979_url = amazon_affiliate_url("9798776159572", None, "test-tag", query="Pickleball Soap Opera")
+    assert isbn_979_url is not None
+    assert "/s?k=9798776159572" in isbn_979_url

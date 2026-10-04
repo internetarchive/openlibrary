@@ -19,16 +19,17 @@
 /* Book cover overlay */
 @import "components/ui-tabs.css";
 
-/* Remove items from list */
-@import "components/ui-dialog.css";
-
-@import "components/wmd-prompt-dialog--js.css";
 @import "legacy-jquery-ui.css";
+
+/* openlibrary/plugins/openlibrary/js/graphs/plot.js */
+.chart-tooltip {
+  z-index: var(--z-index-dropdown);
+}
 
 /* openlibrary/plugins/openlibrary/js/subjects.js */
 .coverEbook {
   cursor: pointer;
-  z-index: var(--z-index-level-6);
+  z-index: var(--z-index-dropdown);
 }
 
 .coverEbook img {
@@ -49,7 +50,7 @@
 .tools a.on,
 .tools a.on:hover,
 .tools a.on:active {
-  color: var(--dark-grey);
+  color: var(--color-text);
   cursor: default;
   text-decoration: none;
 }

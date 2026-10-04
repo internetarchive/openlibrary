@@ -1,4 +1,4 @@
-$def with (page, h)
+$def with (page, h, page_num=1, total_pages=1)
 
 $putctx("robots", "noindex,nofollow")
 
@@ -14,68 +14,80 @@ $var title: $name
 
 $ rev = page.latest_revision or page.revision
 
+$ i18n_strings = {
+    $ "compare_label": _("Compare revisions %(a)s and %(b)s"),
+    $ }
+
 <div id="contentHead">
     $:macros.databarHistory(page)
     <span class="lightgreen smallest sansserif">$_("History of edits to")</span>
     <h1><a href="$page.key">$name</a></h1>
 </div>
 <div id="contentBody">
-        <form action="">
-        <table id="pageHistory">
+        $:macros.OlPagination(page_num, total_pages)
+
+        <div id="pageHistoryCompare" class="page-history-compare" role="region" aria-label="$_('Revision comparison')" aria-live="polite" hidden>
+            <a class="page-history-compare__submit is-disabled" data-compare-link aria-disabled="true" tabindex="-1"></a>
+            <button type="button" class="page-history-compare__clear" data-compare-clear aria-label="$_('Clear comparison')">&times;</button>
+        </div>
+
+        <table id="pageHistory" data-i18n="$json_encode(i18n_strings)">
         <thead>
             <tr>
-                <th class="numberhead" style="text-align:center;">$_("Revision")</th>
+                <th class="numberhead" style="text-align:center;">$_("Rev")</th>
                 <th class="historyheader">$_("When")</th>
                 <th class="historyheader">$_("Who")</th>
                 <th class="historyheader">$_("Comment")</th>
-                <th class="historyheader" colspan="2" style="text-align:center;">$_("Diff")</th>
+                <th class="historyheader" style="text-align:center;">$_("Diff")</th>
+                <th class="historyheader pick-ab-header">
+                    $code: pass  # NOTE: Column header labeling the "A" side (the earlier/left revision) of a revision comparison on a page's edit-history table. Keep extremely short; a single letter is ideal. Pairs with "B".
+                    <span class="pick-ab__option">$_("A")</span>
+                    $code: pass  # NOTE: Column header labeling the "B" side (the later/right revision) of a revision comparison on a page's edit-history table. Keep extremely short; a single letter is ideal. Pairs with "A".
+                    <span class="pick-ab__option">$_("B")</span>
+                </th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td colspan="4"></td>
-                <td colspan="1" style="text-align:center;">
-                    <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
-                </td>
-            </tr>
             $for v in h:
-                <tr>
-                    <td class="number">$v.revision</td>
-                    <td class="history"><a href="$page.get_url(v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
-                    $if v.author:
-                        <td class="displayname" style="vertical-align: top;"><div class="truncatedisplayname"><a href="$homepath()$v.author.key" class="truncate">$v.author.displayname</a></div></td>
-                    $elif v.ip and v.ip != '127.0.0.1':
-                        <td class="history" style="vertical-align: top;"><a href="/recentchanges?ip=$v.ip">$v.ip</a></td>
-                    $else:
-                        <td class="history" style="vertical-align: top;">$v.ip</td>
-                    <td class="comment">$:render_template("history/comment", v)</td>
-                    <td class="compare" style="text-align:center;">
-                        <input type="radio" id="a$v.revision" name="a" title="$_('Compare this version...')" value="$v.revision"
-                        $if v.revision == rev - 1:
-                            checked
-                        $elif v.revision == rev:
-                            checked
-                        />
-                        &nbsp;&nbsp;&nbsp;
-                        <input type="radio" id="b$v.revision" name="b" title="$_('...to this version')" value="$v.revision"
-                        $if v.revision == rev:
-                            checked
-                        />
+                $ row_class = "history-current-row" if v.revision == rev else ""
+                $ comment_class = "comment" if v.comment else "comment comment--empty"
+                <tr class="$row_class">
+                    <td class="number">
+                        <a href="$page.get_url(v=v.revision)" title="$_('View revision %s', v.revision)">$v.revision</a>
+                    </td>
+                    <td class="when">
+                        <a href="$page.get_url(v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a>
+                    </td>
+                    <td class="who">
+                        $if v.author:
+                            <a href="$homepath()$v.author.key">$v.author.displayname</a>
+                        $elif v.ip and v.ip != '127.0.0.1':
+                            <a href="/recentchanges?ip=$v.ip">$v.ip</a>
+                        $else:
+                            $v.ip
+                    </td>
+                    <td class="$comment_class">
+                        $if v.comment:
+                            $:render_template("history/comment", v)
+                    </td>
+                    <td class="compare-against">
+                        <a href="$page.key?m=diff&b=$v.revision">$_("Changes")</a>
+                        $if v.revision != rev:
+                            <a href="$page.key?m=diff&b=$rev&a=$v.revision" title="$_('Compare this revision with the current version')">$_("vs current")</a>
+                    </td>
+                    <td class="pick-ab">
+                        <fieldset class="pick-ab__radios">
+                            <legend class="shift">
+                                $_("Pick revision %s as A or B for comparison", v.revision)
+                            </legend>
+                            <label class="pick-ab__option"><input type="radio" name="a" value="$v.revision" /><span class="shift">$_("A")</span></label>
+                            <label class="pick-ab__option"><input type="radio" name="b" value="$v.revision" /><span class="shift">$_("B")</span></label>
+                        </fieldset>
                     </td>
                 </tr>
-            <tr>
-                <td colspan="4"></td>
-                <td colspan="1" style="text-align:center;">
-                    <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
-                </td>
-            </tr>
         </tbody>
         </table>
-        <input type="hidden" name="m" value="diff"/>
 
-        </form>
-
-        $ page_num = safeint(query_param("page", "0"))
-        $:macros.OlPaginationArrows(page_num + 1, len(h) == 20)
+        $:macros.OlPagination(page_num, total_pages)
 
 </div>

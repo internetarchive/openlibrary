@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-labels */
 javascript:(async()=> {
     const url = prompt('Enter the book URL you want to import:');
     if (!url) return;

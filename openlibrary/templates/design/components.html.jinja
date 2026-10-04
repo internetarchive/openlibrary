@@ -1,0 +1,33 @@
+{#
+  Components — the full write-ups, built from the COMPONENTS registry in
+  design.py plus each partial's `demos()` macro. Nothing here is hand-listed.
+#}
+{% import "design/_example.html.jinja" as ex %}
+{% macro nav() %}
+    {% for group, members in groups %}
+        <div class="ds__nav-group">
+            <a class="ds__nav-group-title"
+               href="#{{ group | lower | replace(' ', '-') }}">{{ group }}</a>
+            <ul class="ds__nav-list">
+                {% for component in members %}
+                    <li>
+                        <a href="#{{ component.id }}">{{ component.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+{% endmacro %}
+{% macro body() %}
+    {% for group, members in groups %}
+        <section class="ds-section" id="{{ group | lower | replace(' ', '-') }}">
+            <h2 class="ds-section__title ds-section__title--group">{{ group }}</h2>
+            {% for component in members %}
+                {% import component.partial as partial with context %}
+                {% call ex.component_article(component, api.get(component.tag) if component.tag and component.api_table else none) %}
+                    {{ partial.demos() }}
+                {% endcall %}
+            {% endfor %}
+        </section>
+    {% endfor %}
+{% endmacro %}
