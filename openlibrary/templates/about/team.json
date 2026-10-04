@@ -267,8 +267,8 @@
   },
   {
     "name": "Jim Champ",
-    "title": "Staff, Core Maintainer",
-    "roles": ["staff-active"],
+    "title": "Staff Engineer-Emeritus",
+    "roles": ["staff-emeritus"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Jim_Champ.png",
     "personal_url": "",
