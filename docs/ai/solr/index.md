@@ -456,16 +456,22 @@ docker compose run --rm home make reindex-solr
 #
 # The volume is per compose project, so name it from THIS project. A bare
 # `openlibrary_solr-data` is the main checkout's, and deleting it from inside a
-# worktree destroys an index that is not yours.
+# worktree destroys an index that is not yours. Measured on one dev machine
+# 2026-10-03: 66 `*_solr-data` volumes exist, one per worktree, and
+# `openlibrary_solr-data` is among them -- so the bare instruction names a real
+# volume and succeeds.
 #
-# Ask compose for the name rather than deriving it from the directory: measured
-# 2026-10-03, `basename "$PWD"` disagrees with what compose computes in 4 of 5
-# cases, because compose lowercases and strips dots, spaces and a leading
-# underscore. It agrees for our hyphenated lowercase worktree names, which is
-# why the wrong form reads as correct.
-PROJECT=$(docker compose config --format json | jq -r .name)
+# Ask docker which volume is yours. Do not reconstruct the name: measured
+# 2026-10-03, `basename "$PWD"` disagrees with the project name compose
+# computes in 4 of 5 shapes, because compose lowercases and strips dots,
+# spaces and a leading underscore. It agrees for our hyphenated lowercase
+# worktree names, which is why a wrong form reads as correct.
+#
+# This needs nothing but docker -- no jq, no parsing.
 docker compose stop solr
-docker volume rm "${PROJECT}_solr-data"
+docker volume rm $(docker volume ls -q \
+  --filter label=com.docker.compose.project="$(docker compose ps -a --format '{{.Project}}' | head -1)" \
+  --filter name=solr-data)
 docker compose up -d solr
 docker compose run --rm home make reindex-solr
 
@@ -506,7 +512,9 @@ docker compose run --rm home make reindex-solr
 # If schema changed: reset this project's volume first (not `openlibrary_...`,
 # which is the main checkout's — see the troubleshooting section above)
 docker compose stop solr
-docker volume rm "$(docker compose config --format json | jq -r .name)_solr-data"
+docker volume rm $(docker volume ls -q \
+  --filter label=com.docker.compose.project="$(docker compose ps -a --format '{{.Project}}' | head -1)" \
+  --filter name=solr-data)
 docker compose up -d solr
 docker compose run --rm home make reindex-solr
 ```
