@@ -1,0 +1,8 @@
+# PAM agent definition: authored, committed, hand-editable. This is i18n-lead's identity in
+# this Project. The running agent reads identity.md (beside this file) on startup.
+[agent]
+name = "i18n-lead"
+uuid = "01M440C813C0HE7RSFDBQPXVVA"
+type = "division_lead"
+reports_to = ""
+can_onboard = true

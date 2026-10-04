@@ -1,0 +1,35 @@
+# PAM Project config: authored, version-controlled, read live by PAM (never cached).
+# Scaffolded by `pam project init`. Edit freely; PAM reads it at call time.
+
+[project]
+name = "openlibrary"
+framework = "ada"
+
+# Roles beyond PAM's built-ins (project_lead / division_lead / ada_agent).
+# Define project-specific agent types here; each can carry an oracle bundle + onboarding recipe.
+# [[roles]]
+# key = "reviewer"
+# title = "Independent Reviewer"
+# permissions = []
+
+# How this Project's forge labels map to kanban states (Monitor-mode colors).
+[labels.state]
+"State: Icebox"      = "icebox"
+"State: In Progress" = "in_progress"
+"State: Blocked"     = "blocked"
+"State: Done"        = "done"
+
+# Which issue label marks an Epic, and how sub-issues reference it.
+[epics]
+epic_label = "Type: Epic"
+subtask_label = "Type: Subtask"
+
+# Oracle defaults for this Project's ADA agents (per-agent overridable).
+[oracle]
+default_bundle = "oracle.yml"
+
+# Pointers to this Project's PM sources (read live; never mirrored into PAM).
+[pm]
+# milestone = "current"
+# goals_doc = "docs/goals.md"
+# objectives_doc = "docs/objectives-{year}.md"
