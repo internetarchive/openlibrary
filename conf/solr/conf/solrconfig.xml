@@ -655,7 +655,19 @@
            passes an explicit qf, so this only matters for ad-hoc/debug
            queries against /select without one. -->
       <str name="df">title</str>
+      <!-- Run the spellchecker after the normal component chain so /select
+           returns a "spellcheck" section. Added as a last-component (not by
+           replacing "components") so ranking, facets and highlighting are
+           unaffected. Collation is disabled: it re-runs the user's query with
+           corrections substituted, which is expensive and unsafe against the
+           parent/child `editions:[subquery]` edismax query. Callers pass
+           spellcheck.q so the checker sees the raw user text rather than the
+           edismax wrapper in `q`. -->
+      <bool name="spellcheck.collate">false</bool>
     </lst>
+    <arr name="last-components">
+      <str>spellcheck</str>
+    </arr>
   </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->

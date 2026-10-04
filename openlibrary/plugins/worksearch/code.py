@@ -384,7 +384,11 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     if spellcheck_count is None:
         spellcheck_count = default_spellcheck_count
 
-    if spellcheck_count:
+    # Only request spellchecking when there is free text to spellcheck. A
+    # structured-only search (author/isbn/subject browse) has no `spellcheck.q`
+    # to send, so the checker would fall back to parsing the edismax wrapper in
+    # `q` and answer with corrections for OL's own field names.
+    if spellcheck_count and param.get("q"):
         params.append(("spellcheck", "true"))
         params.append(("spellcheck.count", spellcheck_count))
 
@@ -441,6 +445,14 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     q = None
     if param.get("q"):
         q = scheme.process_user_query(param["q"])
+        # Point the spellchecker at the raw free-text query instead of letting it
+        # fall back to the assembled `q` param, which is an edismax local-param
+        # wrapper. SpellCheckComponent parses the raw `q` as user text when
+        # `spellcheck.q` is absent, which makes OL's own field names (`lccn`,
+        # `chapter`, `subject`, ...) spellcheck candidates. Only the free-text
+        # part is spellcheckable -- `userWorkQuery` also carries structured terms
+        # like `author_name:(...)`, so it must not be used here.
+        params.append(("spellcheck.q", param["q"]))
 
     if params_q := scheme.build_q_from_params(param):
         q = f"{q} {params_q}" if q else params_q

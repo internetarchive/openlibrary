@@ -179,6 +179,67 @@ def test_prepare_solr_query_params_language_mirrored_into_editions_fq():
     assert 'language:("eng" OR "spa")' in editions_fq
 
 
+def _spellcheck_q(param: dict) -> str | None:
+    """Return the `spellcheck.q` param OL would send for `param`, if any."""
+    params, _ = _prepare_solr_query_params(WorkSearchScheme(), param)
+    values = [v for k, v in params if k == "spellcheck.q"]
+    assert len(values) <= 1, "spellcheck.q must not be sent more than once"
+    return values[0] if values else None
+
+
+def test_prepare_solr_query_params_spellcheck_q_is_raw_user_query():
+    """The spellchecker must be handed the raw free-text query.
+
+    SpellCheckComponent falls back to parsing the raw `q` request param when
+    `spellcheck.q` is absent, and OL's `q` is an edismax local-param wrapper
+    full of OL's own field names. Spellchecking that produced corrections for
+    `lccn`, `chapter`, `subject`, ... rather than anything the user typed."""
+    assert _spellcheck_q({"q": "harry potter"}) == "harry potter"
+    # Raw, i.e. not the luqum-processed/escaped form OL builds `q` from.
+    assert _spellcheck_q({"q": "the hobbit's tale"}) == "the hobbit's tale"
+
+
+def test_prepare_solr_query_params_spellcheck_q_excludes_structured_terms():
+    """`spellcheck.q` must carry only the free-text part, never `userWorkQuery`.
+
+    `userWorkQuery` merges free text with structured clauses, so reusing it
+    would feed `author_name` / `author_alternative_name` back in as
+    spellcheck candidates -- the same class of bug as spellchecking `q`."""
+    params, _ = _prepare_solr_query_params(WorkSearchScheme(), {"q": "tolkien ring", "author": "J. R. R."})
+    d = dict(params)
+    assert d["spellcheck.q"] == "tolkien ring"
+    # The structured terms are still in the search query, just not spellchecked.
+    assert "author_name" in d["userWorkQuery"]
+    assert "author_name" not in d["spellcheck.q"]
+
+
+def test_prepare_solr_query_params_no_spellcheck_q_without_free_text():
+    """Searches with no free-text query (author/isbn/subject browse) must not
+    ask for spellchecking at all. With no `spellcheck.q` to send, the checker
+    would fall back to the edismax wrapper in `q` and "correct" OL's field
+    names on every browse."""
+    scheme = WorkSearchScheme()
+    assert _spellcheck_q({"author": "Tolkien"}) is None
+    assert _spellcheck_q({"isbn": "9780261102217"}) is None
+    assert _spellcheck_q({}) is None
+    for param in ({"author": "Tolkien"}, {"isbn": "9780261102217"}, {}):
+        params, _ = _prepare_solr_query_params(scheme, param)
+        assert not [k for k, _ in params if k.startswith("spellcheck")]
+
+
+def test_prepare_solr_query_params_normal_q_unchanged_by_spellcheck_q():
+    """Adding spellcheck.q must not perturb the actual search: `q` stays the
+    edismax wrapper and `userWorkQuery` still carries the processed text."""
+    params, _ = _prepare_solr_query_params(WorkSearchScheme(), {"q": "harry potter"})
+    d = dict(params)
+    assert "{!edismax" in d["q"]
+    assert d["userWorkQuery"] == "harry potter"
+    # Spellcheck is requested as before, plus the new spellcheck.q.
+    assert d["spellcheck"] == "true"
+    assert d["spellcheck.count"] == 10
+    assert d["spellcheck.q"] == "harry potter"
+
+
 def _with_req_context(fn):
     """Run `fn` with a req_context set (the readable-count query reads
     solr_editions off it)."""
