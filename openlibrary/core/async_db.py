@@ -87,9 +87,6 @@ class _LoopPool:
 _entries: dict[asyncio.AbstractEventLoop, _LoopPool] = {}
 # Never held across an await.
 _entries_lock = threading.Lock()
-# True while close_pool() is closing pools, so pools opened mid-shutdown are
-# rejected rather than outliving the shutdown.
-_closing = False
 # Distinguishes pools from each other in logs and stats, one per pool.
 _pool_names = itertools.count(1)
 
@@ -172,8 +169,6 @@ async def _pool_for_loop() -> Pool | None:
         return entry.pool
     async with entry.lock:
         if entry.pool is None:
-            if _closing:
-                raise RuntimeError("Async database pool is shutting down")
             entry.pool = await _open_pool()
         return entry.pool
 
@@ -207,31 +202,24 @@ async def close_pool() -> None:
     The current loop's pool closes directly; other running loops' pools
     close by scheduling the close onto the owning loop. A stopped loop
     can't run a close, so its pool stays cached for reset_pools() or a
-    later close.
+    later close. A pool opened while this close runs may be missed; it
+    stays cached for a later close.
     """
-    global _closing
     current_loop = asyncio.get_running_loop()
     with _entries_lock:
-        if _closing:
-            raise RuntimeError("Async database pool is already shutting down")
-        _closing = True
         entries = list(_entries.items())
 
-    try:
-        for loop, entry in entries:
-            try:
-                if loop is current_loop:
-                    await _close_entry(entry)
-                elif loop.is_running() and not loop.is_closed():
-                    future = asyncio.run_coroutine_threadsafe(_close_entry(entry), loop)
-                    await asyncio.wait_for(asyncio.wrap_future(future), timeout=10)
-                else:
-                    logger.debug("Cannot close async DB pool for stopped event loop %s", loop)
-            except Exception:
-                logger.exception("Error closing async pool for event loop %s", loop)
-    finally:
-        with _entries_lock:
-            _closing = False
+    for loop, entry in entries:
+        try:
+            if loop is current_loop:
+                await _close_entry(entry)
+            elif loop.is_running() and not loop.is_closed():
+                future = asyncio.run_coroutine_threadsafe(_close_entry(entry), loop)
+                await asyncio.wait_for(asyncio.wrap_future(future), timeout=10)
+            else:
+                logger.debug("Cannot close async DB pool for stopped event loop %s", loop)
+        except Exception:
+            logger.exception("Error closing async pool for event loop %s", loop)
 
 
 def get_pool() -> Pool | None:

@@ -128,16 +128,15 @@ class BookshelvesEvents(db.CommonExtras):
         return list(oldb.select(cls.TABLENAME, where=where, vars=data))
 
     @classmethod
-    async def select_distinct_by_user_type_and_year_async(cls, username: str, event_type: int, year: int) -> list[dict]:
-        """Return the most recent check-in events with no repeating work IDs.
+    async def count_distinct_work_ids_by_user_type_and_year(cls, username: str, event_type: int, year: int) -> int:
+        """Number of distinct works with an event of ``event_type`` in ``year``.
 
         Used to calculate yearly reading goal progress.
         """
         query = (
-            f"SELECT DISTINCT ON (work_id) work_id, * FROM {cls.TABLENAME}"
+            f"SELECT count(DISTINCT work_id) FROM {cls.TABLENAME}"
             " WHERE username = %(username)s AND event_type = %(event_type)s"
             " AND event_date LIKE %(event_date)s"
-            " ORDER BY work_id, updated DESC"
         )
         async with connection() as conn:
             cursor = await conn.execute(
@@ -148,7 +147,9 @@ class BookshelvesEvents(db.CommonExtras):
                     "event_date": f"{year}%",
                 },
             )
-            return await cursor.fetchall()
+            row = await cursor.fetchone()
+        assert row is not None
+        return row["count"]
 
     # Update methods:
     @classmethod

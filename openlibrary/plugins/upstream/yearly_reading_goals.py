@@ -7,16 +7,14 @@ from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvent
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.utils.async_utils import async_bridge
 
-MAX_READING_GOAL = 10_000
-
 
 async def get_reading_goals_async(username: str, year: int) -> YearlyGoal | None:
     """Return the user's reading goal and progress for ``year``."""
     if not (data := await YearlyReadingGoals.select_by_username_and_year(username, year)):
         return None
 
-    books_read = await BookshelvesEvents.select_distinct_by_user_type_and_year_async(username, BookshelfEvent.FINISH, year)
-    return YearlyGoal(data[0].year, data[0].target, len(books_read))
+    books_read = await BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year(username, BookshelfEvent.FINISH, year)
+    return YearlyGoal(data[0].year, data[0].target, books_read)
 
 
 @public
@@ -41,10 +39,6 @@ class YearlyGoal:
     def completed(self) -> int:
         """Capped progress for the bar width (``reading_goal_progress.html.jinja:13``)."""
         return min(self.progress, 100) if self.progress is not None else 0
-
-    @classmethod
-    def calc_progress(cls, books_read, goal):
-        return floor((books_read / goal) * 100)
 
 
 def setup():

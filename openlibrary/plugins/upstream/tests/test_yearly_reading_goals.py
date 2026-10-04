@@ -28,9 +28,9 @@ async def test_get_reading_goals_async_builds_goal():
             return_value=[YearlyReadingGoal("testuser", 2026, 25, None, None)],
         ) as mock_select,
         patch(
-            "openlibrary.plugins.upstream.yearly_reading_goals.BookshelvesEvents.select_distinct_by_user_type_and_year_async",
+            "openlibrary.plugins.upstream.yearly_reading_goals.BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year",
             new_callable=AsyncMock,
-            return_value=[{"work_id": 1}, {"work_id": 2}, {"work_id": 3}],
+            return_value=3,
         ) as mock_events,
     ):
         goal = await get_reading_goals_async("testuser", 2026)

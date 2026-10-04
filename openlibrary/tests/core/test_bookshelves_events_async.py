@@ -11,8 +11,8 @@ class FakeCursor:
     def __init__(self, rows=None):
         self.rows = rows or []
 
-    async def fetchall(self):
-        return self.rows
+    async def fetchone(self):
+        return self.rows[0]
 
 
 class FakeConnection:
@@ -37,17 +37,17 @@ class FakeConnectionContext:
 
 
 @pytest.mark.asyncio
-async def test_select_distinct_by_user_type_and_year_async():
-    conn = FakeConnection(rows=[{"work_id": 1}, {"work_id": 2}])
+async def test_count_distinct_work_ids_by_user_type_and_year():
+    conn = FakeConnection(rows=[{"count": 3}])
     with patch(
         "openlibrary.core.bookshelves_events.connection",
         return_value=FakeConnectionContext(conn),
     ):
-        rows = await BookshelvesEvents.select_distinct_by_user_type_and_year_async("testuser", BookshelfEvent.FINISH, 2026)
+        count = await BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year("testuser", BookshelfEvent.FINISH, 2026)
 
-    assert rows == [{"work_id": 1}, {"work_id": 2}]
+    assert count == 3
     ((query, params),) = conn.executions
-    assert "DISTINCT ON (work_id)" in query
+    assert "count(DISTINCT work_id)" in query
     assert "event_date LIKE %(event_date)s" in query
     assert params == {
         "username": "testuser",
