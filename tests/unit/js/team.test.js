@@ -12,6 +12,8 @@ import {
     personMatchesYear,
     allRoleYears,
     classifyTeam,
+    slugify,
+    assignSlugs,
 } from '../../../openlibrary/plugins/openlibrary/js/team.js';
 
 const byName = (name) => team.find((p) => p.name === name);
@@ -115,8 +117,32 @@ describe('hasKind', () => {
     });
 });
 
+describe('slugs', () => {
+    it('makes URL-safe, diacritic-free slugs', () => {
+        expect(slugify('Ray Berger')).toBe('ray-berger');
+        expect(slugify('Minh Huỳnh Khánh')).toBe('minh-huynh-khanh');
+        expect(slugify('@Popcar')).toBe('popcar');
+    });
+
+    it('assigns a unique slug to every person', () => {
+        const people = JSON.parse(JSON.stringify(team));
+        assignSlugs(people);
+        const slugs = people.map((p) => p.slug);
+        expect(slugs.every(Boolean)).toBe(true);
+        expect(new Set(slugs).size).toBe(slugs.length);
+    });
+
+    it('dedupes colliding slugs', () => {
+        const people = [{ name: 'Sandy C.' }, { name: 'Sandy C' }];
+        assignSlugs(people);
+        expect(people[0].slug).toBe('sandy-c');
+        expect(people[1].slug).toBe('sandy-c-2');
+    });
+});
+
 describe('initTeamFilter (DOM wiring)', () => {
-    const mountPage = () => {
+    const mountPage = (search = '/') => {
+        window.history.replaceState({}, '', search);
         document.body.innerHTML = `
       <select id="role"><option value="All">All</option>
         <option value="staff">Staff</option><option value="fellow">Fellows</option>
@@ -148,5 +174,23 @@ describe('initTeamFilter (DOM wiring)', () => {
         expect(in2023).toBeGreaterThan(0);
         expect(in2023).toBeLessThan(all);
         expect(new URL(window.location.href).searchParams.get('year')).toBe('2023');
+    });
+
+    it('deep-links to a person via ?person= and highlights them', () => {
+        mountPage('/?person=ray-berger');
+        initTeamFilter();
+        const card = document.getElementById('ray-berger');
+        expect(card).not.toBeNull();
+        expect(card.classList.contains('teamCard__container--highlighted')).toBe(true);
+    });
+
+    it('reveals a filtered-out person when deep-linked', () => {
+        // Jordan is a past (2025) fellow; a year filter would hide him, but a
+        // deep-link should still surface and highlight him.
+        mountPage('/?person=jordan-frederick&year=2026');
+        initTeamFilter();
+        const card = document.getElementById('jordan-frederick');
+        expect(card).not.toBeNull();
+        expect(card.classList.contains('teamCard__container--highlighted')).toBe(true);
     });
 });

@@ -50,6 +50,31 @@ export const roleYears = (person, currentYear) => {
 export const personMatchesYear = (person, year, currentYear) =>
     year === 'All' || roleYears(person, currentYear).has(Number(year));
 
+// A URL-safe anchor slug for a person, e.g. "Minh Huỳnh Khánh" -> "minh-huynh-khanh".
+export const slugify = (name) =>
+    name
+        .normalize('NFKD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+// Assign each person a unique `slug` (deduping collisions) for deep-linking.
+export const assignSlugs = (people) => {
+    const seen = new Set();
+    people.forEach((person) => {
+        const base = slugify(person.name) || 'member';
+        let slug = base;
+        let n = 2;
+        while (seen.has(slug)) {
+            slug = `${base}-${n++}`;
+        }
+        seen.add(slug);
+        person.slug = slug;
+    });
+    return people;
+};
+
 // Every distinct year anyone held a role, newest first — powers the Year facet.
 export const allRoleYears = (people, currentYear) => {
     const years = new Set();
@@ -102,6 +127,7 @@ export function initTeamFilter() {
         });
     };
     sortByLastName(team);
+    assignSlugs(team);
 
     // *************************************** Selectors and eventListeners ***************************************
     const roleFilter = document.getElementById('role');
@@ -166,6 +192,9 @@ export function initTeamFilter() {
 
             //modify
             teamCardContainer.classList = 'teamCard__container';
+            if (member.slug) {
+                teamCardContainer.id = member.slug;
+            }
             teamCard.classList = 'teamCard';
 
             teamCardPhotoContainer.classList = 'teamCard__photoContainer';
@@ -313,6 +342,36 @@ export function initTeamFilter() {
         }
     };
 
+    // Deep-link: scroll to and highlight a specific person from ?person=<slug> or #<slug>.
+    const focusPerson = () => {
+        const target =
+      initialSearchParams.get('person') ||
+      (window.location.hash
+          ? decodeURIComponent(window.location.hash.slice(1))
+          : '');
+        if (!target) {
+            return;
+        }
+        let card = document.getElementById(target);
+        if (!card) {
+            // The person may be hidden by an active filter; show everyone, then retry.
+            roleFilter.value = 'All';
+            departmentFilter.value = 'All';
+            if (yearFilter) {
+                yearFilter.value = 'All';
+            }
+            filterTeam('All', 'All', 'All');
+            card = document.getElementById(target);
+        }
+        if (card) {
+            if (card.scrollIntoView) {
+                card.scrollIntoView({ block: 'center' });
+            }
+            card.classList.add('teamCard__container--highlighted');
+        }
+    };
+
     // on page load
     filterTeam(initialRole, initialDepartment, initialYear);
+    focusPerson();
 }

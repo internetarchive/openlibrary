@@ -60,6 +60,11 @@
   width: 280px;
   display: flex;
   align-items: flex-end;
+  scroll-margin-top: 120px;
+}
+.teamCard__container--highlighted .teamCard {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
 }
 .teamCard__photoContainer {
   position: absolute;
