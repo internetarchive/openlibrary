@@ -22,6 +22,10 @@ export const isFellow = (person) =>
 export const isVolunteer = (person) =>
     hasKind(person, 'volunteer') && !hasKind(person, 'fellow');
 
+// A current Lead = the person's most-recent (first) role carries the lead flag.
+// Leads surface as their own category rather than under Staff/Fellows/Volunteers.
+export const isLead = (person) => Boolean((person.roles || [])[0]?.lead);
+
 export const isStaffEmeritus = (person) =>
     isStaff(person) &&
     (person.roles || []).some(
@@ -96,14 +100,31 @@ const matchDepartment = (person, department) =>
     (person.departments || []).some((d) => d.includes(department));
 
 export const classifyTeam = (people, year) => {
-    const staff = people.filter(isStaff);
+    // Leads are pulled into their own category; everyone else falls through to
+    // their cohort (staff/fellow/volunteer).
+    const leads = people.filter(isLead);
+    const rest = people.filter((person) => !isLead(person));
+    const staff = rest.filter(isStaff);
     return {
+        leads,
         staffCurrent: staff.filter((p) => !isStaffEmeritus(p)),
         staffEmeritus: staff.filter(isStaffEmeritus),
-        currentFellows: people.filter((p) => isCurrentFellow(p, year)),
-        pastFellows: people.filter((p) => isFellow(p) && !isCurrentFellow(p, year)),
-        volunteers: people.filter(isVolunteer),
+        currentFellows: rest.filter((p) => isCurrentFellow(p, year)),
+        pastFellows: rest.filter((p) => isFellow(p) && !isCurrentFellow(p, year)),
+        volunteers: rest.filter(isVolunteer),
     };
+};
+
+// The year a member joined their current role, shown as "Since YYYY" on the card.
+// Only for still-current, non-emeritus roles — "since" shouldn't read as ongoing
+// for someone who has left or whose cohort year is in the past.
+export const tenureSince = (person, currentYear) => {
+    const role = (person.roles || [])[0];
+    if (!role || isNil(role.start) || role.status === 'emeritus') {
+        return null;
+    }
+    const current = isNil(role.end) || role.end >= currentYear;
+    return current ? role.start : null;
 };
 
 export function initTeamFilter() {
@@ -181,6 +202,42 @@ export function initTeamFilter() {
         cardsContainer.append(noResults);
     };
 
+    // Deep-link helpers. A contributor card has id=<slug>; ?contributor=<slug>
+    // (or #<slug>) jumps to it, revealing it past any active filter.
+    const findCard = (slug) => {
+        const el = slug ? document.getElementById(slug) : null;
+        return el && el.classList.contains('teamCard__container') ? el : null;
+    };
+    const revealCard = (slug) => {
+        let card = findCard(slug);
+        if (!card) {
+            // Hidden by an active filter — show everyone, then retry.
+            roleFilter.value = 'All';
+            departmentFilter.value = 'All';
+            if (yearFilter) {
+                yearFilter.value = 'All';
+            }
+            filterTeam('All', 'All', 'All');
+            card = findCard(slug);
+        }
+        return card;
+    };
+    const highlightCard = (card) => {
+        cardsContainer
+            .querySelectorAll('.teamCard__container--highlighted')
+            .forEach((el) => el.classList.remove('teamCard__container--highlighted'));
+        card.classList.add('teamCard__container--highlighted');
+        if (card.scrollIntoView) {
+            card.scrollIntoView({ block: 'center' });
+        }
+    };
+    const goToContributor = (slug) => {
+        const card = revealCard(slug);
+        if (card) {
+            highlightCard(card);
+        }
+    };
+
     const createCards = (array) => {
         array.map((member) => {
             // create
@@ -191,7 +248,7 @@ export function initTeamFilter() {
             const teamCardPhoto = document.createElement('img');
 
             const teamCardDescription = document.createElement('div');
-            const memberOlLink = document.createElement('a');
+            const nameLink = document.createElement('a');
             const memberName = document.createElement('h2');
             const memberTitle = document.createElement('h3');
 
@@ -210,10 +267,26 @@ export function initTeamFilter() {
                 member.photo_path ? member.photo_path : default_profile_image
             }`;
             teamCardPhoto.alt = member.name;
+            // The photo links to the member's Open Library profile; the name now
+            // deep-links within this page (see below).
+            if (member.ol_key) {
+                const olProfile = document.createElement('a');
+                olProfile.href = `https://openlibrary.org/people/${member.ol_key}`;
+                olProfile.append(teamCardPhoto);
+                teamCardPhotoContainer.append(olProfile);
+            } else {
+                teamCardPhotoContainer.append(teamCardPhoto);
+            }
 
             teamCardDescription.classList.add('teamCard__description');
-            if (member.ol_key) {
-                memberOlLink.href = `https://openlibrary.org/people/${member.ol_key}`;
+            // Clicking the name adds ?contributor=<slug> and jumps to this card.
+            if (member.slug) {
+                nameLink.href = `?contributor=${encodeURIComponent(member.slug)}`;
+                nameLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    updateURLParameters({ contributor: member.slug });
+                    goToContributor(member.slug);
+                });
             }
             member.name.length >= 18
                 ? (memberName.classList = 'description__name--length-long')
@@ -222,6 +295,29 @@ export function initTeamFilter() {
             memberName.textContent = `${member.name}`;
             memberTitle.classList = 'description__title';
             memberTitle.textContent = `${member.title}`;
+
+            // Latest project, then the join year ("Since YYYY").
+            const latestProject = (member.projects || [])[0];
+            let memberProject;
+            if (latestProject && latestProject.name) {
+                memberProject = document.createElement('h4');
+                memberProject.classList = 'description__project';
+                if (latestProject.url) {
+                    const projectLink = document.createElement('a');
+                    projectLink.href = latestProject.url;
+                    projectLink.textContent = latestProject.name;
+                    memberProject.append(projectLink);
+                } else {
+                    memberProject.textContent = latestProject.name;
+                }
+            }
+            const since = tenureSince(member, currentYear);
+            let memberTenure;
+            if (since) {
+                memberTenure = document.createElement('p');
+                memberTenure.classList = 'description__tenure';
+                memberTenure.textContent = `Since ${since}`;
+            }
 
             descriptionLinks.classList = 'description__links';
             if (member.personal_url) {
@@ -248,14 +344,16 @@ export function initTeamFilter() {
                 descriptionLinks.append(memberBookA);
             }
 
-            // append
-            teamCardPhotoContainer.append(teamCardPhoto);
-            memberOlLink.append(memberName);
-            teamCardDescription.append(
-                memberOlLink,
-                memberTitle,
-                descriptionLinks
-            );
+            // append (the photo was already placed in its container above)
+            nameLink.append(memberName);
+            teamCardDescription.append(nameLink, memberTitle);
+            if (memberProject) {
+                teamCardDescription.append(memberProject);
+            }
+            if (memberTenure) {
+                teamCardDescription.append(memberTenure);
+            }
+            teamCardDescription.append(descriptionLinks);
             teamCard.append(teamCardPhotoContainer, teamCardDescription);
             teamCardContainer.append(teamCard);
             cardsContainer.append(teamCardContainer);
@@ -291,6 +389,7 @@ export function initTeamFilter() {
         const classYear = year === 'All' ? currentYear : Number(year);
         const groups = classifyTeam(people, classYear);
         const anyShown =
+      groups.leads.length ||
       groups.staffCurrent.length ||
       groups.staffEmeritus.length ||
       groups.currentFellows.length ||
@@ -304,6 +403,10 @@ export function initTeamFilter() {
           createsubSection(groups.staffCurrent, 'Current');
                 groups.staffEmeritus.length &&
           createsubSection(groups.staffEmeritus, 'Emeritus');
+            }
+            if (groups.leads.length) {
+                createSectionHeading('Leads');
+                createCards(groups.leads);
             }
             if (groups.currentFellows.length || groups.pastFellows.length) {
                 createSectionHeading('Fellows');
@@ -319,7 +422,9 @@ export function initTeamFilter() {
             !anyShown && showError();
         } else {
             createSectionHeading(capitalize(role));
-            if (role === 'volunteer') {
+            if (role === 'lead') {
+                groups.leads.length ? createCards(groups.leads) : showError();
+            } else if (role === 'volunteer') {
                 groups.volunteers.length
                     ? createCards(groups.volunteers)
                     : showError();
@@ -345,49 +450,26 @@ export function initTeamFilter() {
 
     const capitalize = (text) => {
         const firstLetter = text[0].toUpperCase();
-        if (text === 'fellow' || text === 'volunteer') {
+        if (text === 'fellow' || text === 'volunteer' || text === 'lead') {
             return `${firstLetter + text.slice(1)}s`;
         } else {
             return firstLetter + text.slice(1);
         }
     };
 
-    // Deep-link: scroll to and highlight a specific person from ?person=<slug> or #<slug>.
-    const focusPerson = () => {
+    // Deep-link on load from ?contributor=<slug> or #<slug>.
+    const focusContributor = () => {
         const target =
-      initialSearchParams.get('person') ||
+      initialSearchParams.get('contributor') ||
       (window.location.hash
           ? decodeURIComponent(window.location.hash.slice(1))
           : '');
-        if (!target) {
-            return;
-        }
-        // Only person cards are valid targets — ignore collisions with the
-        // filter <select> ids (?person=year would otherwise match the dropdown).
-        const findCard = () => {
-            const el = document.getElementById(target);
-            return el && el.classList.contains('teamCard__container') ? el : null;
-        };
-        let card = findCard();
-        if (!card) {
-            // The person may be hidden by an active filter; show everyone, then retry.
-            roleFilter.value = 'All';
-            departmentFilter.value = 'All';
-            if (yearFilter) {
-                yearFilter.value = 'All';
-            }
-            filterTeam('All', 'All', 'All');
-            card = findCard();
-        }
-        if (card) {
-            if (card.scrollIntoView) {
-                card.scrollIntoView({ block: 'center' });
-            }
-            card.classList.add('teamCard__container--highlighted');
+        if (target) {
+            goToContributor(target);
         }
     };
 
     // on page load
     filterTeam(initialRole, initialDepartment, initialYear);
-    focusPerson();
+    focusContributor();
 }

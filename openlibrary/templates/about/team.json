@@ -168,7 +168,7 @@
     "name": "Drini Cami",
     "title": "Staff, Core Maintainer",
     "roles": [
-      {"kind": "staff", "status": "active"}
+      {"kind": "staff", "status": "active", "start": 2020, "end": null}
     ],
     "departments": ["engineering"],
     "projects": [
@@ -485,7 +485,7 @@
     "name": "Mek",
     "title": "Chief of Staff",
     "roles": [
-      {"kind": "staff", "status": "active"}
+      {"kind": "staff", "status": "active", "start": 2016, "end": null}
     ],
     "departments": ["engineering", "communications", "design", "librarians"],
     "photo_path": "../../../static/images/team/Mek.png",

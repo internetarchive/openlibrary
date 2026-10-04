@@ -118,6 +118,21 @@
   margin-top: 10px;
   text-align: center;
 }
+.description__project {
+  font-weight: 400;
+  font-size: 15px;
+  margin: 2px 0 0;
+  padding-left: 15px;
+  padding-right: 15px;
+  text-align: center;
+  color: var(--mid-grey);
+}
+.description__tenure {
+  font-size: 13px;
+  margin: 2px 0 0;
+  text-align: center;
+  color: var(--mid-grey);
+}
 .description__links {
   display: flex;
   height: 60px;

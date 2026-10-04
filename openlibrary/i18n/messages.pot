@@ -969,6 +969,10 @@ msgid "Staff"
 msgstr ""
 
 #: about/index.html
+msgid "Leads"
+msgstr ""
+
+#: about/index.html
 msgid "Fellows"
 msgstr ""
 

@@ -8,6 +8,8 @@ import {
     isVolunteer,
     isStaffEmeritus,
     isCurrentFellow,
+    isLead,
+    tenureSince,
     roleYears,
     personMatchesYear,
     allRoleYears,
@@ -61,6 +63,44 @@ describe('role classification', () => {
     });
 });
 
+describe('leads', () => {
+    it('treats a current lead role as the Lead category', () => {
+        expect(isLead(byName('Roni Bhakta'))).toBe(true); // Lenny Lead (current)
+        expect(isLead(byName('Elizabeth Mays'))).toBe(true); // Comms Lead
+        expect(isLead(byName('Bharat Kalluri'))).toBe(true); // Volunteer Lead
+    });
+
+    it('does not treat a PAST lead role as a current Lead', () => {
+        // Ray & Lokesh led before becoming staff; their current role is staff.
+        expect(isLead(byName('Ray Berger'))).toBe(false);
+        expect(isLead(byName('Lokesh Dhakar'))).toBe(false);
+        expect(isStaff(byName('Ray Berger'))).toBe(true);
+    });
+
+    it('pulls leads out of their cohort group in classifyTeam', () => {
+        const g = classifyTeam(team, 2026);
+        const leadNames = g.leads.map((p) => p.name);
+        expect(leadNames).toContain('Roni Bhakta');
+        expect(leadNames).toContain('Bharat Kalluri');
+        // A lead must not also appear under fellows or volunteers.
+        expect(g.currentFellows.map((p) => p.name)).not.toContain('Roni Bhakta');
+        expect(g.volunteers.map((p) => p.name)).not.toContain('Bharat Kalluri');
+    });
+});
+
+describe('tenureSince', () => {
+    it('reports the current-role start year for active members', () => {
+        expect(tenureSince(byName('Mek'), 2026)).toBe(2016);
+        expect(tenureSince(byName('Drini Cami'), 2026)).toBe(2020);
+        expect(tenureSince(byName('Ray Berger'), 2026)).toBe(2026); // staff as of 2026
+    });
+
+    it('omits a since-year for emeritus or past members', () => {
+        expect(tenureSince(byName('Rebecca Shoptaw'), 2026)).toBeNull(); // staff emeritus
+        expect(tenureSince(byName('Abbey Ripstra'), 2026)).toBeNull(); // 2023 fellow, past
+    });
+});
+
 describe('year facet', () => {
     it('expands a single-year role to that year', () => {
         expect(roleYears(byName('Abbey Ripstra'), 2026).has(2023)).toBe(true);
@@ -98,12 +138,22 @@ describe('year facet', () => {
 });
 
 describe('classifyTeam', () => {
-    it('partitions staff into current + emeritus and fellows into current + past', () => {
+    it('partitions non-leads into staff/fellow/volunteer groups', () => {
         const groups = classifyTeam(team, 2026);
-        const allStaff = team.filter(isStaff);
-        const allFellows = team.filter(isFellow);
-        expect(groups.staffCurrent.length + groups.staffEmeritus.length).toBe(allStaff.length);
-        expect(groups.currentFellows.length + groups.pastFellows.length).toBe(allFellows.length);
+        const nonLeads = team.filter((p) => !isLead(p));
+        const staff = nonLeads.filter(isStaff);
+        const fellows = nonLeads.filter(isFellow);
+        expect(groups.staffCurrent.length + groups.staffEmeritus.length).toBe(staff.length);
+        expect(groups.currentFellows.length + groups.pastFellows.length).toBe(fellows.length);
+        // Leads are disjoint from every cohort group.
+        const cohorts = [
+            ...groups.staffCurrent,
+            ...groups.staffEmeritus,
+            ...groups.currentFellows,
+            ...groups.pastFellows,
+            ...groups.volunteers,
+        ];
+        expect(cohorts.some((p) => groups.leads.includes(p))).toBe(false);
     });
 
     it('never lists the same person as both current and emeritus staff', () => {
@@ -149,7 +199,8 @@ describe('initTeamFilter (DOM wiring)', () => {
         window.history.replaceState({}, '', search);
         document.body.innerHTML = `
       <select id="role"><option value="All">All</option>
-        <option value="staff">Staff</option><option value="fellow">Fellows</option>
+        <option value="staff">Staff</option><option value="lead">Leads</option>
+        <option value="fellow">Fellows</option>
         <option value="volunteer">Volunteers</option></select>
       <select id="department"><option value="All">All</option>
         <option value="engineer">Engineering</option></select>
@@ -190,8 +241,50 @@ describe('initTeamFilter (DOM wiring)', () => {
         expect(subs).toContain('Current');
     });
 
-    it('deep-links to a person via ?person= and highlights them', () => {
-        mountPage('/?person=ray-berger');
+    it('renders a Leads section with the current leads', () => {
+        mountPage();
+        initTeamFilter();
+        const headings = [...document.querySelectorAll('.sectionSeparator')].map(
+            (e) => e.textContent
+        );
+        expect(headings).toContain('Leads');
+        // Roni (Lenny Lead) should sit under Leads, not Fellows.
+        const roni = document.getElementById('roni-bhakta');
+        expect(roni).not.toBeNull();
+    });
+
+    it('filters to just leads via ?role=lead', () => {
+        mountPage('/?role=lead');
+        initTeamFilter();
+        const headings = [...document.querySelectorAll('.sectionSeparator')].map(
+            (e) => e.textContent
+        );
+        expect(headings).toEqual(['Leads']);
+        expect(document.querySelectorAll('.teamCard').length).toBeGreaterThan(0);
+    });
+
+    it('shows each card\'s latest project and join year', () => {
+        mountPage();
+        initTeamFilter();
+        const mek = document.getElementById('mek');
+        expect(mek.querySelector('.description__tenure').textContent).toBe('Since 2016');
+        // A member with a project shows its name.
+        const roni = document.getElementById('roni-bhakta');
+        expect(roni.querySelector('.description__project').textContent).toContain('Lenny');
+    });
+
+    it('makes the name a ?contributor= deep-link', () => {
+        mountPage();
+        initTeamFilter();
+        const mek = document.getElementById('mek');
+        // The name link is the direct-child anchor of the description (the photo
+        // anchor lives in the photo container; the link icons are nested in a div).
+        const nameLink = mek.querySelector('.teamCard__description > a');
+        expect(nameLink.getAttribute('href')).toBe('?contributor=mek');
+    });
+
+    it('deep-links to a contributor via ?contributor= and highlights them', () => {
+        mountPage('/?contributor=ray-berger');
         initTeamFilter();
         const card = document.getElementById('ray-berger');
         expect(card).not.toBeNull();
@@ -199,7 +292,7 @@ describe('initTeamFilter (DOM wiring)', () => {
     });
 
     it('ignores a deep-link that collides with a filter control id', () => {
-        mountPage('/?person=year');
+        mountPage('/?contributor=year');
         initTeamFilter();
         // #year is the dropdown, not a person card — it must not get highlighted.
         expect(
@@ -210,7 +303,7 @@ describe('initTeamFilter (DOM wiring)', () => {
     it('reveals a filtered-out person when deep-linked', () => {
         // Jordan is a past (2025) fellow; a year filter would hide him, but a
         // deep-link should still surface and highlight him.
-        mountPage('/?person=jordan-frederick&year=2026');
+        mountPage('/?contributor=jordan-frederick&year=2026');
         initTeamFilter();
         const card = document.getElementById('jordan-frederick');
         expect(card).not.toBeNull();
