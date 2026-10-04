@@ -452,9 +452,12 @@ curl "http://localhost:8983/solr/openlibrary/select?q=*:*&rows=0"
 # Trigger a full reindex (wipes and rebuilds from DB — takes 10–30 min)
 docker compose run --rm home make reindex-solr
 
-# If schema mismatch after adding fields to managed-schema.xml:
+# If schema mismatch after adding fields to managed-schema.xml.
+# The volume is per compose project, so name it from THIS directory. A bare
+# `openlibrary_solr-data` is the main checkout's, and deleting it from inside a
+# worktree destroys an index that is not yours.
 docker compose stop solr
-docker volume rm openlibrary_solr-data
+docker volume rm "${COMPOSE_PROJECT_NAME:-$(basename "$PWD")}_solr-data"
 docker compose up -d solr
 docker compose run --rm home make reindex-solr
 
@@ -492,8 +495,11 @@ docker compose run --rm home python -m openlibrary.solr.update --config conf/ope
 # Full reindex from DB (10–30 min)
 docker compose run --rm home make reindex-solr
 
-# If schema changed: reset volume first
-docker compose stop solr && docker volume rm openlibrary_solr-data && docker compose up -d solr
+# If schema changed: reset this project's volume first (not `openlibrary_...`,
+# which is the main checkout's — see the troubleshooting section above)
+docker compose stop solr
+docker volume rm "${COMPOSE_PROJECT_NAME:-$(basename "$PWD")}_solr-data"
+docker compose up -d solr
 docker compose run --rm home make reindex-solr
 ```
 
