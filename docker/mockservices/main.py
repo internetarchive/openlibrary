@@ -709,6 +709,57 @@ async def availability(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# archive.org advancedsearch — the checked-out seed for the loan availability
+# updater's cold start
+# ---------------------------------------------------------------------------
+
+
+ADVANCEDSEARCH_MAX_ROWS = 10_000
+"""Where the real endpoint stops answering: `start + rows` may not exceed this."""
+
+
+@app.get("/advancedsearch.php")
+async def advancedsearch(request: Request) -> JSONResponse:
+    """Enough of advancedsearch to serve the cold-start seed query.
+
+    Answers from the same `_loan_changes` window the changes feed serves, so
+    the seed and the feed cannot disagree about who is checked out -- which is
+    the property the updater's cold start is built on and the one a static
+    fixture could not express.
+
+    Only the lending query the daemon actually sends is interpreted. Anything
+    else returns nothing rather than pretending: a mock that answers queries it
+    does not understand teaches a caller the wrong contract.
+    """
+    params = request.query_params
+    q = params.get("q", "")
+    rows = int(params.get("rows", "50") or 50)
+    page = int(params.get("page", "1") or 1)
+    start = (page - 1) * rows
+
+    if start + rows > ADVANCEDSEARCH_MAX_ROWS:
+        # What the real endpoint does past its window: HTTP 200 with the
+        # envelope simply missing. Reproduced because the daemon's seed treats
+        # it as an incomplete read rather than an empty one, and that branch
+        # is only reachable if the mock fails the same shape.
+        return JSONResponse({"responseHeader": {"status": 0}})
+
+    wants_checked_out = "available_to_borrow:false" in q and "available_to_browse:false" in q
+    if not wants_checked_out:
+        return JSONResponse({"response": {"numFound": 0, "start": start, "docs": []}})
+
+    async with _loan_changes_lock:
+        events = list(_loan_changes)
+
+    identifiers = sorted({event["identifier"] for event in events})
+    checked_out = [i for i in identifiers if not _availability_for(i, events)["available_to_borrow"]]
+
+    page_ids = checked_out[start : start + rows]
+    docs = [{"identifier": i, "openlibrary_edition": f"OL{abs(zlib.crc32(i.encode())) % 10_000_000}M"} for i in page_ids]
+    return JSONResponse({"response": {"numFound": len(checked_out), "start": start, "docs": docs}})
+
+
 @app.get("/services/borrow/{identifier}")
 async def borrow_status(identifier: str) -> JSONResponse:
     return JSONResponse({"status": "borrow_available", "identifier": identifier})

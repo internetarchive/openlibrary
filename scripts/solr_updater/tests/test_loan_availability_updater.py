@@ -3,24 +3,24 @@
 import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 import pytest
 
 from openlibrary.core import lending
 from openlibrary.core.lending import AVAILABILITY_BATCH_SIZE
 from openlibrary.utils.solr import Solr
 from scripts.solr_updater.loan_availability_updater import (
+    BATCH_SIZE,
     EBOOK_AVAILABLE,
     EBOOK_UNAVAILABLE,
+    LOAN_EVENTS_PER_DAY,
+    OVERLAP_EVENTS,
     RECHECK_INTERVAL,
     RECHECK_MAX_EDITIONS,
     SOLR_QUERY_CHUNK,
-    START_UID_TOLERANCE,
     build_recheck_updates,
     build_reconcile_updates,
     build_solr_updates,
     collect_dirty_identifiers,
-    find_start_uid,
     ia_until_to_epoch,
     is_releasing_event,
     main,
@@ -516,121 +516,6 @@ async def test_build_recheck_updates_dedupes_multi_ocaid_edition():
 
 
 # ---------------------------------------------------------------------------
-# find_start_uid
-# ---------------------------------------------------------------------------
-
-
-def _ts(days_ago: float) -> str:
-    dt = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=days_ago)
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-
-_FEED_HEAD = 463_000_000
-_EVENTS_PER_DAY = 240_000
-
-
-def _steady_feed(head=_FEED_HEAD, per_day=_EVENTS_PER_DAY, time=None):
-    """A changes feed advancing at a steady rate and ending at `head` now.
-    Returns (fake get_loan_changes, list of after_uids it was asked for)."""
-    probes = []
-
-    def changes(after_uid, limit):
-        probes.append(after_uid)
-        if after_uid >= head:
-            return {"status": "OK", "latest_uid": head, "rows": []}
-        row_time = time if time is not None else _ts((head - after_uid) / per_day)
-        return {"status": "OK", "latest_uid": head, "rows": [{"time": row_time, "uid": after_uid + 1}]}
-
-    return changes, probes
-
-
-async def _find_start_uid_against(changes, **kwargs):
-    with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
-        mock_lending.get_loan_changes = AsyncMock(side_effect=changes)
-        return await find_start_uid(**kwargs)
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("per_day", [_EVENTS_PER_DAY // 10, _EVENTS_PER_DAY, _EVENTS_PER_DAY * 10], ids=["slower", "as-estimated", "faster"])
-async def test_find_start_uid_lands_just_before_the_target_age(per_day):
-    """LOAN_EVENTS_PER_DAY only sizes the first step; a feed far off that rate
-    must still land in the same place."""
-    changes, _ = _steady_feed(per_day=per_day)
-    uid = await _find_start_uid_against(changes, target_age_days=14)
-    boundary = _FEED_HEAD - 14 * per_day
-    # Never after the boundary (that would skip loans still out), at most the
-    # tolerance before it. A few uids of slack for the clock moving mid-test.
-    assert boundary - START_UID_TOLERANCE - 10 <= uid <= boundary + 10
-
-
-@pytest.mark.asyncio
-async def test_find_start_uid_only_probes_back_as_far_as_it_needs():
-    """The feed holds years of history; bisecting all of it probed back to 2020
-    to find a uid days from the head."""
-    changes, probes = _steady_feed()
-    await _find_start_uid_against(changes, target_age_days=14)
-    head_probe, *search = probes
-    assert head_probe == 1, "the first call only reads the feed head"
-    assert min(search) >= _FEED_HEAD - 2 * 14 * _EVENTS_PER_DAY
-    assert len(search) <= 30
-
-
-@pytest.mark.asyncio
-async def test_find_start_uid_never_sends_after_uid_zero():
-    """IA answers after_uid=0 with HTTP 400 "No since or after_uid supplied."."""
-    changes, probes = _steady_feed(head=5_000, per_day=100)
-    await _find_start_uid_against(changes, target_age_days=14)
-    assert min(probes) >= 1
-
-
-@pytest.mark.asyncio
-async def test_find_start_uid_starts_from_the_beginning_of_a_short_history():
-    changes, _ = _steady_feed(per_day=100_000_000)  # the whole feed is a few days old
-    assert await _find_start_uid_against(changes, target_age_days=14) == 1
-
-
-@pytest.mark.asyncio
-async def test_find_start_uid_empty_feed():
-    assert await _find_start_uid_against(lambda **_: {"status": "OK", "latest_uid": 0, "rows": []}) == 1
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "fail_on_call",
-    [1, 5],
-    ids=["reading the head", "mid-search"],
-)
-async def test_find_start_uid_raises_rather_than_guessing_when_the_feed_fails(fail_on_call):
-    """There is no safe uid to fall back to: too low replays years of events,
-    too high leaves loans that are still out unmarked."""
-    changes, probes = _steady_feed()
-
-    def flaky(after_uid, limit):
-        if len(probes) + 1 == fail_on_call:
-            probes.append(after_uid)
-            raise httpx.ConnectError("boom")
-        return changes(after_uid, limit)
-
-    with pytest.raises(httpx.ConnectError):
-        await _find_start_uid_against(flaky)
-
-
-@pytest.mark.asyncio
-async def test_find_start_uid_raises_on_a_non_ok_answer():
-    with pytest.raises(RuntimeError, match="'error'"):
-        await _find_start_uid_against(lambda **_: {"status": "error"})
-
-
-@pytest.mark.asyncio
-async def test_find_start_uid_raises_on_an_unparsable_time():
-    """Read as "go earlier", a feed of bad timestamps galloped all the way down
-    to uid 1 and replayed its entire history."""
-    changes, _ = _steady_feed(time="garbage")
-    with pytest.raises(ValueError, match="garbage"):
-        await _find_start_uid_against(changes)
-
-
-# ---------------------------------------------------------------------------
 # main() — daemon error-handling integration tests
 #
 # Strategy: pre-seed the state file so read_state() returns 99 (skipping the
@@ -856,28 +741,29 @@ async def test_main_recheck_failure_is_non_fatal(mock_config, mock_infogami, moc
 
 @pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
-@patch("scripts.solr_updater.loan_availability_updater.find_start_uid")
 @patch("scripts.solr_updater.loan_availability_updater.query_solr_uid")
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-async def test_main_reset_ignores_stale_solr_loan_uid(
-    mock_config, mock_infogami, mock_lending, mock_sentry, mock_query_uid, mock_find_start, mock_get_solr, tmp_path
+async def test_main_reset_seeds_from_the_index_not_from_solrs_cursor(
+    mock_config, mock_infogami, mock_lending, mock_sentry, mock_query_uid, mock_get_solr, tmp_path
 ):
-    """--reset must rebuild via find_start_uid (searching back), never resume from a stale
-    loan_uid still in Solr. Regression: query_solr_uid() used to run even under --reset and
-    silently short-circuit the documented 14-day rebuild."""
+    """--reset must rebuild, never resume from a stale loan_uid still in Solr.
+
+    The mechanism changed: this used to assert a backwards search for a
+    14-day-old uid. The seed is now a single index query, so what must hold is
+    that --reset goes to the index and places its cursor from the feed head,
+    and that a stale Solr cursor cannot short-circuit it."""
     mock_query_uid.return_value = 200001  # stale high uid lingering in Solr
-    mock_find_start.return_value = 42
     solr = MagicMock(spec=Solr)
     mock_get_solr.return_value = solr
     solr.select_async.side_effect = _select_side_effect
-    # --reset is a cold start, so the collection pass runs before the event
-    # loop. Drain it empty (nothing to reconcile), then stop in steady state.
+    mock_lending.get_checked_out_candidates_async = AsyncMock(return_value=[])
     mock_lending.get_loan_changes = AsyncMock(
         side_effect=[
-            {"status": "OK", "rows": [], "latest_uid": 42},
+            {"status": "OK", "rows": [], "latest_uid": 42},  # head probe
+            {"status": "OK", "rows": [], "latest_uid": 42},  # overlap replay: nothing
             SystemExit(0),
         ]
     )
@@ -886,11 +772,9 @@ async def test_main_reset_ignores_stale_solr_loan_uid(
     with pytest.raises(SystemExit):
         await main("fake_config.yml", state_file=str(state_file), poll_interval=0, reset=True)
 
-    mock_lending.get_availability_async.assert_not_called()  # nothing was touched
-
+    mock_lending.get_checked_out_candidates_async.assert_awaited_once()
     mock_query_uid.assert_not_called()
-    mock_find_start.assert_called_once()
-    assert state_file.read_text().strip() == "42", "reset resumed from stale Solr loan_uid instead of binary-searching"
+    assert state_file.read_text().strip() == "42", "cursor should come from the feed head, not Solr"
 
 
 @pytest.mark.asyncio
@@ -918,33 +802,29 @@ async def test_main_survives_malformed_row(mock_config, mock_infogami, mock_lend
 
 @pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
-@patch("scripts.solr_updater.loan_availability_updater.find_start_uid", return_value=50)
 @patch("scripts.solr_updater.loan_availability_updater.query_solr_uid", return_value=0)
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-async def test_main_cold_start_reconciles_before_following_events(
-    mock_config, mock_infogami, mock_lending, mock_sentry, mock_uid, mock_start, mock_get_solr, tmp_path
-):
-    """Cold start must settle the window against ground truth FIRST.
+async def test_main_cold_start_reconciles_before_following_events(mock_config, mock_infogami, mock_lending, mock_sentry, mock_uid, mock_get_solr, tmp_path):
+    """The seed is the index, and ground truth still decides every mark.
 
-    Replaying ~14 days of events through the write path would mark every book
-    touched in that window unavailable -- including the many borrowed and
-    returned days ago -- and then wait for the re-check to walk them all back.
-    So the window is collected without writing, reconciled in one batched pass,
-    and only then does the event path take over from the head.
+    The index is a lagged view, so its identifiers are candidates only: they go
+    through the availability service before anything is written. What this pins
+    is the order -- seeded, settled and committed BEFORE the event path runs --
+    and that the index set is never written as-is.
     """
     solr = MagicMock(spec=Solr)
     mock_get_solr.return_value = solr
     solr.select_async.side_effect = _select_side_effect
     solr.update_in_place_async.return_value = _OK_RESPONSE
 
-    # Collection drains to the head, then the steady-state loop stops us.
+    mock_lending.get_checked_out_candidates_async = AsyncMock(return_value=["bookabc"])
     mock_lending.get_loan_changes = AsyncMock(
         side_effect=[
-            {"status": "OK", "rows": [_BORROW_ROW, _RETURN_ROW], "latest_uid": 100},
-            {"status": "OK", "rows": [], "latest_uid": 100},
+            {"status": "OK", "rows": [], "latest_uid": 100},  # head probe
+            {"status": "OK", "rows": [], "latest_uid": 100},  # overlap: nothing new
             SystemExit(0),
         ]
     )
@@ -955,26 +835,24 @@ async def test_main_cold_start_reconciles_before_following_events(
     with pytest.raises(SystemExit):
         await main("fake_config.yml", state_file=str(state_file), poll_interval=0, recheck_interval=10_000)
 
-    # The reconcile asked ground truth about the collected identifier...
+    mock_lending.get_checked_out_candidates_async.assert_awaited_once()
+    # Ground truth was consulted about the index's candidate...
     assert mock_lending.get_availability_async.called
-    # ...and marked it unavailable, committed, before following any events.
+    # ...and the mark was committed before any event was followed.
     first_write = solr.update_in_place_async.call_args_list[0]
     assert first_write.args[0] == [{"key": "/books/OL1M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}}]
     assert first_write.kwargs.get("commit") is True
-    assert state_file.read_text().strip() == "100"
+    assert state_file.read_text().strip() == "100", "cursor should sit at the feed head after the overlap"
 
 
 @pytest.mark.asyncio
 @patch("scripts.solr_updater.loan_availability_updater.get_solr")
-@patch("scripts.solr_updater.loan_availability_updater.find_start_uid", return_value=50)
 @patch("scripts.solr_updater.loan_availability_updater.query_solr_uid", return_value=0)
 @patch("scripts.solr_updater.loan_availability_updater.init_sentry")
 @patch("scripts.solr_updater.loan_availability_updater.lending")
 @patch("scripts.solr_updater.loan_availability_updater.infogami")
 @patch("scripts.solr_updater.loan_availability_updater.load_config")
-async def test_main_cold_start_refuses_to_start_without_ground_truth(
-    mock_config, mock_infogami, mock_lending, mock_sentry, mock_uid, mock_start, mock_get_solr, tmp_path
-):
+async def test_main_cold_start_refuses_to_start_without_ground_truth(mock_config, mock_infogami, mock_lending, mock_sentry, mock_uid, mock_get_solr, tmp_path):
     """The one place a ground-truth outage SHOULD stop us.
 
     Steady state deliberately carries on without the availability service. Cold
@@ -986,9 +864,10 @@ async def test_main_cold_start_refuses_to_start_without_ground_truth(
     mock_get_solr.return_value = solr
     solr.select_async.side_effect = _select_side_effect
 
+    mock_lending.get_checked_out_candidates_async = AsyncMock(return_value=["bookabc"])
     mock_lending.get_loan_changes = AsyncMock(
         side_effect=[
-            {"status": "OK", "rows": [_BORROW_ROW], "latest_uid": 100},
+            {"status": "OK", "rows": [], "latest_uid": 100},
             {"status": "OK", "rows": [], "latest_uid": 100},
             # Terminator. Without it, a regression that skipped the cold start
             # would drop into the steady-state loop, exhaust this mock, and have
@@ -1289,3 +1168,130 @@ def test_a_return_on_a_waitlisted_book_leaves_the_mark_alone():
 
     ret = {"identifier": "bookabc", "uid": 200, "event_type": "return", "extra": "{}"}
     assert build_solr_updates(collect_dirty_identifiers([ret]), ID_TO_EDITION) == []
+
+
+# ---------------------------------------------------------------------------
+# Index seed + overlap replay
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+async def test_the_index_set_is_never_written_without_ground_truth(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+    """The seed is a CANDIDATE set, not an answer.
+
+    The search index is a lagged view and has been observed disagreeing with
+    live availability on neighbouring lending fields. Writing it straight to
+    Solr would publish availability nothing had checked -- including the unsafe
+    direction, a book the index thinks is out that is actually borrowable.
+
+    Here the index offers two books and ground truth says one of them is free.
+    Only the other may be marked."""
+    solr = MagicMock(spec=Solr)
+    mock_get_solr.return_value = solr
+    solr.select_async.side_effect = _select_side_effect
+    solr.update_in_place_async.return_value = _OK_RESPONSE
+
+    mock_lending.get_checked_out_candidates_async = AsyncMock(return_value=["bookabc", "bookxyz"])
+    mock_lending.get_availability_async = AsyncMock(return_value={"bookabc": UNAVAILABLE, "bookxyz": AVAILABLE})
+    mock_lending.is_available_for_loan.side_effect = lambda a: bool(a.get("available_to_browse") or a.get("available_to_borrow"))
+    mock_lending.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": [], "latest_uid": 100},
+            {"status": "OK", "rows": [], "latest_uid": 100},
+            SystemExit(0),
+        ]
+    )
+
+    with pytest.raises(SystemExit):
+        await main("fake_config.yml", state_file=str(tmp_path / "state"), poll_interval=0, recheck_interval=10_000)
+
+    written = solr.update_in_place_async.call_args_list[0].args[0]
+    assert [u["key"] for u in written] == ["/books/OL1M"], "the index's candidate that ground truth cleared must not be marked"
+
+
+@pytest.mark.asyncio
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+async def test_the_overlap_replay_catches_a_borrow_the_snapshot_missed(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+    """The reason the overlap exists.
+
+    The index snapshot is computed at an unknown instant. A book borrowed just
+    after it is absent from the seed, so without a replay it stays unmarked and
+    is published as borrowable while it is out -- the direction nothing
+    recovers from, since the re-check only inspects books already marked."""
+    solr = MagicMock(spec=Solr)
+    mock_get_solr.return_value = solr
+    solr.select_async.side_effect = _select_side_effect
+    solr.update_in_place_async.return_value = _OK_RESPONSE
+
+    mock_lending.get_checked_out_candidates_async = AsyncMock(return_value=[])  # snapshot missed it
+    mock_lending.get_availability_async = AsyncMock(return_value={})
+    mock_lending.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": [], "latest_uid": 100},  # head probe
+            {"status": "OK", "rows": [_BORROW_ROW], "latest_uid": 100},  # the missed borrow
+            {"status": "OK", "rows": [], "latest_uid": 100},
+            SystemExit(0),
+        ]
+    )
+
+    with pytest.raises(SystemExit):
+        await main("fake_config.yml", state_file=str(tmp_path / "state"), poll_interval=0, recheck_interval=10_000)
+
+    marked = [u for call in solr.update_in_place_async.call_args_list for u in call.args[0]]
+    assert any(u["ebook_unavailable"] == {"set": EBOOK_UNAVAILABLE} for u in marked), "the overlap replay did not mark the borrow the snapshot missed"
+
+
+@pytest.mark.asyncio
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+async def test_the_overlap_replay_does_not_consult_availability(mock_config, mock_infogami, mock_lending, mock_sentry, mock_get_solr, tmp_path):
+    """The replay uses the event path on purpose.
+
+    Routing it through the reconcile instead would mean one availability
+    request per hundred identifiers in the window -- at the feed's rate that
+    reintroduces the unbounded cost the index seed exists to remove. The event
+    path only marks, so its error is the recoverable one."""
+    solr = MagicMock(spec=Solr)
+    mock_get_solr.return_value = solr
+    solr.select_async.side_effect = _select_side_effect
+    solr.update_in_place_async.return_value = _OK_RESPONSE
+
+    mock_lending.get_checked_out_candidates_async = AsyncMock(return_value=[])
+    mock_lending.get_availability_async = AsyncMock(return_value={})
+    mock_lending.get_loan_changes = AsyncMock(
+        side_effect=[
+            {"status": "OK", "rows": [], "latest_uid": 100},
+            {"status": "OK", "rows": [_BORROW_ROW], "latest_uid": 100},
+            {"status": "OK", "rows": [], "latest_uid": 100},
+            SystemExit(0),
+        ]
+    )
+
+    with pytest.raises(SystemExit):
+        await main("fake_config.yml", state_file=str(tmp_path / "state"), poll_interval=0, recheck_interval=10_000)
+
+    # The empty seed means the reconcile short-circuits without asking; the
+    # replay must not ask either.
+    mock_lending.get_availability_async.assert_not_called()
+
+
+def test_the_overlap_window_is_bounded_by_events_not_time():
+    """A time window converts to an unknown number of feed pages, which is the
+    unbounded shape the index seed was adopted to remove."""
+    assert isinstance(OVERLAP_EVENTS, int)
+    pages = OVERLAP_EVENTS / BATCH_SIZE
+    assert pages <= 100, f"{pages:.0f} feed pages is too much work for a startup overlap"
+    hours = 24 * OVERLAP_EVENTS / LOAN_EVENTS_PER_DAY
+    assert 1 <= hours <= 24, f"overlap of ~{hours:.1f}h is outside a sane range for index lag"

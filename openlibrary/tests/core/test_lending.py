@@ -1,3 +1,4 @@
+import asyncio
 import json
 from contextvars import ContextVar
 from types import SimpleNamespace
@@ -389,3 +390,100 @@ class TestIsAvailableForLoan:
 
     def test_missing_keys_are_unavailable(self):
         assert not lending.is_available_for_loan({})
+
+
+class TestGetCheckedOutCandidates:
+    """The cold-start seed. Its failure direction is asymmetric: a seed that is
+    short publishes checked-out books as borrowable, and nothing downstream
+    revisits them -- so every test here is about refusing to return a partial
+    set rather than about returning a set."""
+
+    @staticmethod
+    def _session(bodies):
+        """Patch the shared async session; each GET answers with the next body."""
+        mock_get = AsyncMock()
+        replies = []
+        for body in bodies:
+            reply = Mock()
+            reply.json = Mock(return_value=body)
+            reply.raise_for_status = Mock()
+            replies.append(reply)
+        mock_get.side_effect = replies
+        return patch("openlibrary.core.ia.get_async_session", return_value=SimpleNamespace(get=mock_get)), mock_get
+
+    @staticmethod
+    def _page(num_found, identifiers):
+        return {"response": {"numFound": num_found, "start": 0, "docs": [{"identifier": i} for i in identifiers]}}
+
+    def test_one_page_is_one_request(self):
+        """Today's set is ~600, so the loop must not page past the end of it."""
+        session, mock_get = self._session([self._page(600, [f"book{i}" for i in range(600)])])
+        with session:
+            got = asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert len(got) == 600
+        assert mock_get.call_count == 1
+
+    def test_it_pages_until_it_has_every_identifier(self):
+        pages = [
+            self._page(2500, [f"book{i}" for i in range(1000)]),
+            self._page(2500, [f"book{i}" for i in range(1000, 2000)]),
+            self._page(2500, [f"book{i}" for i in range(2000, 2500)]),
+        ]
+        session, mock_get = self._session(pages)
+        with session:
+            got = asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert len(got) == 2500
+        assert got[0] == "book0"
+        assert got[-1] == "book2499"
+        assert mock_get.call_count == 3
+        assert [dict(call.kwargs["params"])["page"] for call in mock_get.call_args_list] == ["1", "2", "3"]
+
+    def test_a_set_beyond_the_paging_window_raises_and_names_the_way_out(self):
+        """advancedsearch cannot answer past 10k at any page size, so no retry
+        fixes this; it is the trigger for the authenticated Scrape path."""
+        session, mock_get = self._session([self._page(12_000, [f"book{i}" for i in range(1000)])])
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert "12000" in str(excinfo.value)
+        assert "Scrape" in str(excinfo.value)
+        assert mock_get.call_count == 1, "should refuse on the first page rather than paging a set it cannot finish"
+
+    def test_a_short_read_raises_rather_than_returning_what_arrived(self):
+        pages = [
+            self._page(2500, [f"book{i}" for i in range(1000)]),
+            self._page(2500, [f"book{i}" for i in range(1000, 1400)]),
+        ]
+        session, _ = self._session(pages)
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert "2500" in str(excinfo.value)
+        assert "1400" in str(excinfo.value)
+
+    def test_a_missing_envelope_is_an_incomplete_read_not_an_empty_one(self):
+        """How the endpoint answers past its window: HTTP 200, no `response`.
+        Read as "no books are checked out" it would clear the whole seed."""
+        session, _ = self._session([{"responseHeader": {"status": 0}}])
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        # The downstream guards would also refuse this, so assert on the
+        # message: "no envelope" and "no numFound" send an operator to
+        # different places, and only this branch can say which happened.
+        assert "envelope" in str(excinfo.value)
+
+    def test_an_absent_numfound_raises_because_completeness_is_unknowable(self):
+        session, _ = self._session([{"response": {"docs": [{"identifier": "book0"}]}}])
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete):
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+
+    def test_identifiers_repeated_across_pages_do_not_count_toward_completeness(self):
+        """A paging window that slides under churn re-serves rows. Counting
+        those twice is how a short set passes the completeness check."""
+        pages = [
+            self._page(2000, [f"book{i}" for i in range(1000)]),
+            self._page(2000, [f"book{i}" for i in range(500, 1500)]),
+            self._page(2000, []),
+        ]
+        session, _ = self._session(pages)
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert "1500" in str(excinfo.value)

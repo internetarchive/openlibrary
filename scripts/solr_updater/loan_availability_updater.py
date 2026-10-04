@@ -148,7 +148,6 @@ import infogami
 from openlibrary.config import load_config
 from openlibrary.core import lending
 from openlibrary.plugins.worksearch.search import get_solr
-from openlibrary.utils.async_utils import gallop_back
 from openlibrary.utils.request_context import create_context_for_script, req_context
 from openlibrary.utils.sentry import init_sentry
 
@@ -196,10 +195,39 @@ def is_releasing_event(event_type: str) -> bool:
 _SEEN_ACQUIRING_EVENT_TYPES = frozenset({"borrow", "browse", "renew_borrow", "renew_browse", "renew"})
 
 LOAN_MAX_AGE_DAYS = 14
-START_UID_TOLERANCE = 1000
-"""How close to the target age the start-uid search gets -- minutes of events."""
+"""Nominal maximum loan length, in days.
+
+No longer used to seed a cold start -- the index query does that directly --
+and retained only for callers that still want the figure.
+
+Treat it as an UNVERIFIED assumption. It was chosen because 14 days is the
+standard borrow period, not because anyone confirmed it bounds how long a book
+can stay continuously unavailable. A renewal, a longer lending period, or a
+waitlist holding a book after an old return would all break that reading. The
+seed no longer depends on it being true; nothing else should start to.
+"""
+
+OVERLAP_EVENTS = 50_000
+"""Events replayed after the index seed, to cover the index's lag.
+
+The seed is a snapshot computed at an unknown instant, so a book borrowed just
+after it is absent from the seed -- unmarked, published as borrowable while it
+is out, and nothing recovers that. This window is the insurance.
+
+Counted in events rather than hours because a time window converts to an
+unknown number of feed pages. At the feed's measured ~240,000 uids/day this is
+roughly five hours, and 50 pages of work, once.
+
+Conservative on purpose: replaying too much only re-marks books that are
+already marked, while replaying too little leaves a gap of exactly the kind
+this exists to close. Tighten it when the index lag has actually been
+measured -- it has not been.
+"""
 LOAN_EVENTS_PER_DAY = 240_000
 """Roughly how far the changes feed's uid advances in a day (measured 2026-10).
+
+Now informs only OVERLAP_EVENTS -- it is how that event count is translated
+into a rough number of hours.
 Only sizes the start-uid search's first step back from the head, so being off
 in either direction costs a few probes, never accuracy."""
 BATCH_SIZE = lending.LOAN_CHANGES_MAX_LIMIT
@@ -250,38 +278,6 @@ def read_state(path: Path) -> int:
 
 def write_state(path: Path, uid: int) -> None:
     path.write_text(str(uid))
-
-
-async def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
-    """The uid to replay from so a cold start covers ~target_age_days of events.
-
-    Gallops back from the feed head, so it only probes as far back as it needs
-    to: the feed holds years of history, and the target is days from its head.
-    Raises if the feed cannot answer rather than guessing -- too low replays
-    years of events, too high leaves loans that are still out unmarked -- and
-    the start script's restart loop retries.
-    """
-    target_time = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=target_age_days)
-
-    async def changes_after(uid: int) -> dict:
-        resp = await lending.get_loan_changes(after_uid=uid, limit=1)
-        if resp.get("status") != "OK":
-            raise RuntimeError(f"Loan changes API answered {resp.get('status')!r} after uid {uid}: {resp.get('error')!r}")
-        return resp
-
-    async def next_event_is_older(uid: int) -> bool:
-        rows = (await changes_after(uid)).get("rows") or []
-        if not rows:
-            return False
-        return datetime.datetime.strptime(rows[0]["time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC) < target_time
-
-    # The feed rejects after_uid=0 as no cursor at all; 1 is the smallest it takes.
-    head = (await changes_after(1)).get("latest_uid") or 0
-    if head <= 1:
-        return 1
-    uid = await gallop_back(head, next_event_is_older, lowest=1, initial_step=target_age_days * LOAN_EVENTS_PER_DAY, tolerance=START_UID_TOLERANCE)
-    logger.info("Starting from uid %d (feed head %d)", uid, head)
-    return uid
 
 
 def collect_dirty_identifiers(rows: list[dict]) -> dict[str, dict]:
@@ -665,53 +661,101 @@ async def log_heartbeat(last_uid: int, latest_uid: object) -> None:
     logger.info("Heartbeat: cursor=%s lag=%s editions_marked_unavailable=%s", last_uid, lag, marked)
 
 
-async def run_cold_start(last_uid: int, poll_interval: int, dry_run: bool) -> int:
-    """Settle the replay window against ground truth, then return the new cursor.
+async def run_cold_start(poll_interval: int, dry_run: bool) -> int:
+    """Seed from the index, settle against ground truth, then return the cursor.
 
-    Replaying the window through the event path would mark every book touched in
-    the last LOAN_MAX_AGE_DAYS unavailable -- including the many borrowed and
-    returned days ago -- and leave the repairer to walk all of them back. So the
-    identifiers are collected without writing and settled in one batched pass.
+    Two steps, and the split is deliberate.
 
-    This is the one path that genuinely depends on the availability service.
-    Steady state deliberately does not, but a cold start has no prior state to
-    fall back on: beginning from the head against an index where nothing is
-    marked would publish every on-loan book as borrowable. So a service that
-    answers for fewer than MIN_RECONCILE_COVERAGE of the identifiers raises
-    here rather than degrading -- coverage, not mere non-emptiness, because
-    `get_availability_async` drops a failed chunk and carries on.
+    **Seed.** The archive.org search index is asked for books that are
+    lendable but currently neither borrowable nor browsable. That is the answer
+    set directly -- roughly 600 books -- where replaying days of loan events
+    only produced *candidates* to interrogate one at a time. The read is
+    complete or it raises: a short seed omits books that are then published as
+    borrowable while they are out, and nothing downstream revisits them. The
+    index is lagged and is never written to Solr as-is: the identifiers go
+    through :func:`build_reconcile_updates`, so the availability service still
+    decides every mark. Coverage below MIN_RECONCILE_COVERAGE raises rather
+    than half-applying, and the supervisor retries.
+
+    **Overlap.** The snapshot was computed at an unknown instant, so a book
+    borrowed just after it is missing from the seed -- unmarked, and published
+    as borrowable while it is out, which is the direction nothing recovers
+    from. So the most recent events are replayed through the ORDINARY event
+    path before steady state begins.
+
+    That replay deliberately does not consult ground truth. Feeding it through
+    the reconcile instead would mean one availability request per hundred
+    identifiers in the window, and at the feed's rate that reintroduces exactly
+    the unbounded cost this change removes. The event path only ever marks, so
+    its error is the recoverable one and the re-check clears it.
+
+    Bounded by event COUNT rather than elapsed time, because a time window
+    converts to an unknown number of feed pages.
     """
-    logger.info("Cold start: collecting identifiers from uid %d to the head", last_uid)
-    touched: set[str] = set()
-    while True:
-        try:
-            resp = await lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
-        except Exception:
-            logger.exception("Cold start: failed to fetch loan changes; retrying in %ds", poll_interval)
-            await asyncio.sleep(poll_interval)
-            continue
-        if resp.get("status") != "OK":
-            logger.error("Cold start: loan changes returned status=%r; retrying", resp.get("status"))
-            await asyncio.sleep(poll_interval)
-            continue
-        rows = resp.get("rows", [])
-        if not rows:
-            break
-        valid = [row for row in rows if isinstance(row.get("uid"), int)]
-        if not valid:
-            logger.warning("Cold start: batch of %d rows had no valid uid; stopping collection", len(rows))
-            break
-        touched.update(row["identifier"] for row in valid if row.get("identifier"))
-        last_uid = max(row["uid"] for row in valid)
-        if len(rows) < BATCH_SIZE:
-            break
+    logger.info("Cold start: seeding from the checked-out index")
+    try:
+        candidates = await lending.get_checked_out_candidates_async()
+    except lending.CheckedOutSeedIncomplete:
+        # Separated from a transport failure because it is the one the operator
+        # may have to act on: beyond the endpoint's paging window, no retry
+        # succeeds and the authenticated Scrape path has to be enabled.
+        logger.exception("Cold start: the checked-out index could not be read in full; NOT starting on a partial seed")
+        raise
+    except Exception:
+        logger.exception("Cold start: index seed failed; not starting")
+        raise
 
-    logger.info("Cold start: %d identifiers touched; reconciling against ground truth", len(touched))
-    if reconcile := await build_reconcile_updates(sorted(touched)):
+    logger.info("Cold start: %d candidates from the index; settling against ground truth", len(candidates))
+    if reconcile := await build_reconcile_updates(sorted(candidates)):
         logger.info("Cold start: marking %d editions unavailable", len(reconcile))
         if not dry_run:
             await solr_update_in_place(reconcile, commit=True)
-    return last_uid
+
+    return await replay_recent_events(poll_interval, dry_run)
+
+
+async def replay_recent_events(poll_interval: int, dry_run: bool) -> int:
+    """Replay the last OVERLAP_EVENTS events through the event path; return the cursor.
+
+    Covers the window between whenever the index snapshot was computed and now.
+    Marking-only, so it cannot publish a book as available that is not.
+    """
+    head_resp = await lending.get_loan_changes(after_uid=1, limit=1)
+    head = head_resp.get("latest_uid") or 0
+    if not head:
+        raise RuntimeError("Loan changes feed reported no latest_uid; cannot place the cursor")
+
+    uid = max(1, head - OVERLAP_EVENTS)
+    logger.info("Cold start: replaying events %d..%d to cover index lag", uid, head)
+
+    while uid < head:
+        resp = await lending.get_loan_changes(after_uid=uid, limit=BATCH_SIZE)
+        if resp.get("status") != "OK":
+            logger.error("Cold start overlap: feed answered %r; retrying", resp.get("status"))
+            await asyncio.sleep(poll_interval)
+            continue
+        rows = resp.get("rows") or []
+        if not rows:
+            # Caught up: the feed has nothing after `uid`, so the cursor
+            # belongs at the head. Leaving it where the window started would
+            # send steady state back to replay everything from there -- which
+            # is what happens when the window reaches past the feed's start.
+            uid = head
+            break
+        valid = [row for row in rows if isinstance(row.get("uid"), int)]
+        if not valid:
+            logger.warning("Cold start overlap: batch had no valid uid; stopping")
+            break
+        dirty = collect_dirty_identifiers(rows)
+        id_to_edition = await resolve_edition_keys(list(dirty))
+        if (updates := build_solr_updates(dirty, id_to_edition)) and not dry_run:
+            await solr_update_in_place(updates, commit=False)
+        uid = max(row["uid"] for row in valid)
+        if len(rows) < BATCH_SIZE:
+            break
+
+    logger.info("Cold start: complete, cursor at %d", uid)
+    return uid
 
 
 async def main(  # noqa: PLR0915, PLR0912
@@ -748,19 +792,13 @@ async def main(  # noqa: PLR0915, PLR0912
     cold_start = False
 
     if last_uid == 0:
-        # --reset forces a rebuild from the changes API; a stale loan_uid still in
-        # Solr must not short-circuit that (else reset never goes back ~14 days).
-        if not reset:
-            last_uid = await query_solr_uid()
-        if last_uid:
-            logger.info("Resuming from Solr loan_uid=%d", last_uid)
-            cold_start = True
-        else:
-            logger.info("No Solr uid; searching back for uid ~%d days ago", LOAN_MAX_AGE_DAYS)
-            last_uid = await find_start_uid()
-            cold_start = True
+        # No usable cursor: seed from the index rather than hunting a uid to
+        # replay from. The seed is one request and places the cursor itself, so
+        # there is nothing left for the old backwards search to decide -- and
+        # unlike a replay it does not care how long a book has been out.
+        cold_start = True
     if cold_start:
-        last_uid = await run_cold_start(last_uid, poll_interval, dry_run)
+        last_uid = await run_cold_start(poll_interval, dry_run)
         if not dry_run:
             try:
                 write_state(state_path, last_uid)

@@ -9,6 +9,7 @@ import os
 import time
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
+from urllib.parse import urljoin
 
 import httpx
 import requests
@@ -562,6 +563,164 @@ async def get_availability_async(
 
 
 get_availability = async_bridge.wrap(get_availability_async)
+
+
+CHECKED_OUT_INDEX_QUERY = "lending___is_lendable:true AND lending___available_to_borrow:false AND lending___available_to_browse:false"
+"""archive.org search-index query for "lendable, but you cannot get it right now".
+
+Covers a book whose copies are all on loan, and also one held by a waitlist --
+both are states where a patron cannot borrow or browse, which is exactly what
+`ebook_unavailable` records.
+
+Note this reads the SEARCH INDEX, not the lending service, so it is a lagged
+view and must never be written to Solr directly. It is a CANDIDATE set; ground
+truth still decides. Two different `lending___` spellings answer this
+(`is_lendable:true` and `status:is_lendable`) and agreed to within churn when
+measured; this is the one verified against live availability.
+"""
+
+CHECKED_OUT_INDEX_PAGE_ROWS = 1000
+"""Rows per advancedsearch page when assembling the seed."""
+
+CHECKED_OUT_INDEX_MAX_ROWS = 10_000
+"""How far advancedsearch will page before it stops answering.
+
+Measured 2026-10: `start + rows <= 10000` returns results, and a request
+beyond that comes back with no `response` key at all rather than an error
+status. So this is the endpoint's own ceiling, not a policy choice -- and a
+set larger than it cannot be assembled here at any page size.
+"""
+
+
+class CheckedOutSeedIncomplete(Exception):
+    """The checked-out index could not be read in full.
+
+    Raised rather than returning a short list, because a short seed is the
+    *unrecoverable* direction: the books it omits are published as borrowable
+    while they are out, and nothing downstream looks at them again -- the
+    re-check only inspects editions already marked. A caller that refuses to
+    start is loud and retried; a caller that starts on a truncated seed looks
+    healthy forever. Same choice, for the same reason, as refusing to reconcile
+    below MIN_RECONCILE_COVERAGE.
+    """
+
+
+async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PAGE_ROWS) -> list[str]:
+    """Every identifier the archive.org search index believes is checked out.
+
+    A *candidate* set for seeding a cold start: a handful of requests instead
+    of replaying days of loan events to infer the same thing. The caller must
+    settle these against the availability service before writing anything --
+    the index is a lagged view and has been observed disagreeing with ground
+    truth on other lending fields.
+
+    **Complete or raises.** It pages until it has as many identifiers as the
+    index said it had. The set measured ~600 in 2026-10, so today this is one
+    page and the loop never runs twice; it exists because the set grows with
+    traffic, and a silent cap would under-mark. :class:`CheckedOutSeedIncomplete`
+    separates the two ways that can fail -- a set larger than the endpoint can
+    page to, which no retry fixes and is the trigger for the authenticated
+    Scrape path, and a short read, which a retry usually does fix.
+
+    Note the strictness is deliberate on the growth case: if books are being
+    borrowed *while* this pages, the total climbs and the final count falls
+    short, and this raises. That is a spurious refusal -- and it happens
+    precisely when under-marking would matter most, so the supervisor's retry
+    is the right answer rather than accepting whatever arrived.
+
+    **If a multi-page seed ever becomes routine, do not reach for a flat
+    tolerance.** A shortfall has two causes with one symptom, and they need
+    opposite treatment:
+
+    (a) `numFound` grew because books were borrowed during paging. Benign --
+        the overlap replay is already the net for exactly those books, since
+        each one has a recent acquiring event.
+    (b) A page under-delivered relative to the rows it was asked for. A real
+        retrieval miss, of books that were unavailable the whole time and so
+        have *no* recent event. The overlap does not catch these.
+
+    A threshold like "assembled >= 90% of numFound" cannot tell (a) from (b),
+    so it would mask (b) -- the unrecoverable direction -- while buying relief
+    only for (a). It is strictly worse than refusing. The correct fix is to
+    distinguish them: tolerate pure growth, and raise when a page returns fewer
+    rows than it asked for while `start + len(docs) < numFound` says more were
+    there to give. Nothing here can distinguish that today, because a short
+    page is read as the end of the result set.
+
+    That read is not a hole as things stand, which is why this is a follow-up
+    and not a bug: an intermediate page under-delivering ends the loop early,
+    the assembled count then falls below numFound, and the strict check turns
+    it into a refusal rather than a silent miss. Pinned by
+    test_a_short_read_raises_rather_than_returning_what_arrived, whose second
+    page returns 400 of the 1000 it asked for.
+
+    Uses advancedsearch rather than the Scrape API deliberately. Scrape pages
+    further and is where a >10k set has to go, but it needs credentials, and
+    unauthenticated Scrape was measured silently ignoring its `q` -- returning
+    a per-client cached total for any query, including deliberate nonsense.
+    This endpoint is the one OL already uses elsewhere and its control behaves:
+    the same nonsense query returns nothing. Swapping endpoints means changing
+    this function and nothing else.
+    """
+    # Same host as the loan-changes feed, not `bookreader_host`. The seed and
+    # the feed describe the same lending state and must come from the same
+    # place -- and dev overrides only the loan endpoint, so deriving the host
+    # from `bookreader_host` would quietly send a local daemon to production
+    # archive.org for its seed while reading events from mockservices.
+    url = urljoin(config_ia_s3_loan_url or f"http://{config_bookreader_host}/", "/advancedsearch.php")
+    session = ia.get_async_session()
+    timeout = config_http_request_timeout or 30
+
+    identifiers: list[str] = []
+    seen: set[str] = set()
+    found: int | None = None
+    max_pages = max(1, CHECKED_OUT_INDEX_MAX_ROWS // page_rows)
+
+    for page in range(1, max_pages + 1):
+        params = [
+            ("q", CHECKED_OUT_INDEX_QUERY),
+            ("fl[]", "identifier"),
+            ("rows", str(page_rows)),
+            ("page", str(page)),
+            ("output", "json"),
+        ]
+        response = await session.get(url, params=params, timeout=timeout)
+        response.raise_for_status()
+        body = response.json()
+
+        if "response" not in body:
+            # How this endpoint reports a request past its window -- a 200 with
+            # the envelope missing, which is indistinguishable from a malformed
+            # answer and is treated the same way.
+            raise CheckedOutSeedIncomplete(f"Checked-out index returned no response envelope on page {page}")
+
+        envelope = body["response"]
+        if isinstance(envelope.get("numFound"), int):
+            found = envelope["numFound"]
+            if found > CHECKED_OUT_INDEX_MAX_ROWS:
+                raise CheckedOutSeedIncomplete(
+                    f"Checked-out index holds {found} identifiers, beyond the {CHECKED_OUT_INDEX_MAX_ROWS} "
+                    f"this endpoint can page to; an authenticated Scrape read is required to seed completely"
+                )
+
+        docs = envelope.get("docs") or []
+        for doc in docs:
+            identifier = doc.get("identifier")
+            if identifier and identifier not in seen:
+                seen.add(identifier)
+                identifiers.append(identifier)
+
+        if len(docs) < page_rows:
+            # A short page is the end of the result set.
+            break
+
+    if found is None:
+        raise CheckedOutSeedIncomplete("Checked-out index reported no numFound; cannot tell a complete seed from a short one")
+    if len(identifiers) < found:
+        raise CheckedOutSeedIncomplete(f"Checked-out index reported {found} identifiers but only {len(identifiers)} were read")
+
+    logger.info("Checked-out index: %d identifiers (numFound %d)", len(identifiers), found)
+    return identifiers
 
 
 async def get_checked_out_async(ocaids: Iterable[str]) -> set[str]:
