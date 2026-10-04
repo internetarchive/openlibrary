@@ -31,29 +31,28 @@ class FakePool:
     async def check_connection(conn):
         pass
 
-    def __init__(self, conninfo, kwargs=None, open=None, check=None, min_size=None, max_size=None):
-        self.conninfo = conninfo
+    def __init__(self, kwargs=None, open=None, check=None, min_size=None, max_size=None, name=None):
         self.kwargs = kwargs
         self.check = check
         self.min_size = min_size
         self.max_size = max_size
+        self.name = name
         self.opened = False
         self.closed = False
         self.connections = []
         self.open_gate: asyncio.Event | None = None
+        self.open_error: BaseException | None = None
         self.close_gate: asyncio.Event | None = None
         self.close_started: asyncio.Event | None = None
-        self.wait_error: BaseException | None = None
         self.close_error: BaseException | None = None
 
-    async def open(self):
+    async def open(self, wait=False):
         if self.open_gate is not None:
             await self.open_gate.wait()
+        if self.open_error is not None:
+            error, self.open_error = self.open_error, None
+            raise error
         self.opened = True
-
-    async def wait(self):
-        if self.wait_error is not None:
-            raise self.wait_error
 
     async def close(self):
         if self.close_started is not None:
@@ -76,20 +75,20 @@ class RecordingPoolFactory:
 
     check_connection = staticmethod(FakePool.check_connection)
 
-    def __init__(self, *, open_gate=None, close_gate=None, close_started=None, wait_error=None, close_error=None):
+    def __init__(self, *, open_gate=None, open_error=None, close_gate=None, close_started=None, close_error=None):
         self.created: list[FakePool] = []
         self.open_gate = open_gate
+        self.open_error = open_error
         self.close_gate = close_gate
         self.close_started = close_started
-        self.wait_error = wait_error
         self.close_error = close_error
 
     def __call__(self, **kwargs):
         pool = FakePool(**kwargs)
         pool.open_gate = self.open_gate
+        pool.open_error = self.open_error
         pool.close_gate = self.close_gate
         pool.close_started = self.close_started
-        pool.wait_error = self.wait_error
         pool.close_error = self.close_error
         self.created.append(pool)
         return pool
@@ -111,16 +110,17 @@ async def _wait_until(predicate, max_wait=5.0):
             await asyncio.sleep(0)
 
 
-def _lock_is_held(loop) -> bool:
-    entry = async_db._entries.get(loop)
+def _lock_is_held() -> bool:
+    entry = async_db._entries.get(asyncio.get_running_loop())
     return entry is not None and entry.lock.locked()
 
 
 def _cache_pool(loop, pool) -> async_db._LoopPool:
     """Seed the registry as if a pool had been opened on ``loop``."""
-    entry = async_db._LoopPool()
+    entry = async_db._entries.get(loop)
+    if entry is None:
+        entry = async_db._entries[loop] = async_db._LoopPool()
     entry.pool = pool
-    async_db._entries[loop] = entry
     return entry
 
 
@@ -193,8 +193,15 @@ async def test_init_pool_creates_and_reuses_the_pool():
     assert async_db.get_pool() is first_pool
     assert isinstance(first_pool, FakePool)
     assert first_pool.opened
-    assert first_pool.conninfo == "dbname=openlibrary user=openlibrary password=''"
-    assert "row_factory" in first_pool.kwargs
+    # Connection parameters reach psycopg through pool kwargs, merged into the
+    # connection info by connect(); no conninfo string is built.
+    assert first_pool.kwargs == {
+        "dbname": "openlibrary",
+        "user": "openlibrary",
+        "password": "",
+        "row_factory": async_db.dict_row,
+    }
+    assert first_pool.name.startswith("async-db-")
     assert first_pool.check is FakePool.check_connection
     assert first_pool.min_size == 4
     assert first_pool.max_size == 20
@@ -299,7 +306,7 @@ async def test_close_pool_closes_pools_on_other_loops():
 
         await async_db.close_pool()
         assert bridge_pool.closed
-        assert async_bridge._loop not in async_db._entries
+        assert async_db._entries[async_bridge._loop].pool is None
 
         async_bridge.run(_use())
         new_pool = async_db._entries[async_bridge._loop].pool
@@ -334,11 +341,10 @@ async def test_cancelled_waiter_does_not_affect_the_open():
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
-    loop = asyncio.get_running_loop()
     with patch("openlibrary.core.async_db.AsyncConnectionPool", side_effect=factory):
         opener = asyncio.create_task(async_db._pool_for_loop())
         waiter = asyncio.create_task(async_db._pool_for_loop())
-        await _wait_until(lambda: len(factory.created) == 1 and _lock_is_held(loop))
+        await _wait_until(lambda: len(factory.created) == 1 and _lock_is_held())
 
         waiter.cancel()
         with pytest.raises(asyncio.CancelledError):
@@ -358,10 +364,9 @@ async def test_cancelled_open_closes_pool_and_allows_retry():
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
-    loop = asyncio.get_running_loop()
     with patch("openlibrary.core.async_db.AsyncConnectionPool", side_effect=factory):
         opener = asyncio.create_task(async_db._pool_for_loop())
-        await _wait_until(lambda: len(factory.created) == 1 and _lock_is_held(loop))
+        await _wait_until(lambda: len(factory.created) == 1 and _lock_is_held())
 
         opener.cancel()
         with pytest.raises(asyncio.CancelledError):
@@ -382,8 +387,8 @@ async def test_cancelled_open_closes_pool_and_allows_retry():
 async def test_failed_open_closes_pool_and_does_not_cache():
     """A failed open leaves no half-open pool or cache entry."""
     web.config.db_parameters = DB_PARAMETERS
-    factory = RecordingPoolFactory(wait_error=RuntimeError("wait failed"))
-    with patch("openlibrary.core.async_db.AsyncConnectionPool", side_effect=factory), pytest.raises(RuntimeError, match="wait failed"):
+    factory = RecordingPoolFactory(open_error=RuntimeError("open failed"))
+    with patch("openlibrary.core.async_db.AsyncConnectionPool", side_effect=factory), pytest.raises(RuntimeError, match="open failed"):
         await async_db._pool_for_loop()
 
     assert factory.created[0].closed
@@ -415,22 +420,34 @@ async def test_mass_cancellation_does_not_leak_pools():
 
 
 @pytest.mark.asyncio
-async def test_close_pool_forgets_inflight_open():
-    """close_pool stops tracking an in-flight open; the opener closes the pool itself."""
+async def test_close_pool_waits_for_inflight_open_then_closes_it():
+    """A close during an in-flight open waits for the open, then closes the fresh pool.
+
+    Both hold the entry's lock, so they cannot interleave: the half-open pool
+    is never closed out from under the opener, and the fresh pool does not
+    survive the shutdown.
+    """
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
     with patch("openlibrary.core.async_db.AsyncConnectionPool", side_effect=factory):
         opener = asyncio.create_task(async_db._pool_for_loop())
-        await _wait_until(lambda: len(factory.created) == 1)
+        await _wait_until(lambda: len(factory.created) == 1 and _lock_is_held())
 
-        await async_db.close_pool()
-        assert not async_db._entries
+        closing = asyncio.create_task(async_db.close_pool())
+        # Let close_pool start: it must block on the entry lock while the
+        # open is still in flight, not close the half-open pool under it.
+        for _ in range(3):
+            await asyncio.sleep(0)
+        assert not closing.done()
+        assert not factory.created[0].closed
 
         gate.set()
-        assert await opener is None
+        pool = await opener
+        await closing
 
-    assert factory.created[0].closed
+    assert pool is factory.created[0]
+    assert pool.closed
     assert async_db.get_pool() is None
 
 
@@ -452,37 +469,37 @@ async def test_close_pool_rejects_new_pool_creation_until_shutdown_finishes():
         close_gate.set()
         await closing
 
-    assert not async_db._entries
+    assert async_db.get_pool() is None
+    assert async_db._entries[async_bridge._loop].pool is None
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("close_loop", "reason"), [(False, "not running"), (True, "is closed")])
-async def test_close_pool_drops_dead_loops_without_waiting(close_loop, reason, caplog):
-    """A stopped or closed loop can't run close, so close_pool drops it promptly and warns."""
+@pytest.mark.parametrize("close_loop", [False, True])
+async def test_close_pool_skips_stopped_loops_without_waiting(close_loop):
+    """A stopped or closed loop can't run a close: its entry is skipped
+    promptly instead of stalling shutdown, and left for reset_pools()."""
     loop = asyncio.new_event_loop()
     if close_loop:
         loop.close()
-    pool = FakePool(conninfo="dbname=openlibrary")
+    pool = FakePool(name="async-db-test")
     _cache_pool(loop, pool)
 
-    with caplog.at_level(logging.WARNING, logger="openlibrary.async_db"):
-        start = time.monotonic()
-        await async_db.close_pool()
-        elapsed = time.monotonic() - start
+    start = time.monotonic()
+    await async_db.close_pool()
+    elapsed = time.monotonic() - start
     if not close_loop:
         loop.close()
 
     assert elapsed < 0.5
-    assert loop not in async_db._entries
+    assert async_db._entries[loop].pool is pool
     assert not pool.closed, "nothing can run on a dead loop"
-    assert reason in caplog.text
 
 
 @pytest.mark.asyncio
-async def test_close_pool_keeps_entry_when_close_fails(caplog):
+async def test_close_pool_keeps_pool_when_close_fails(caplog):
     """A failed close leaves the pool cached so a later call can retry."""
     loop = asyncio.get_running_loop()
-    pool = FakePool(conninfo="dbname=openlibrary")
+    pool = FakePool(name="async-db-test")
     pool.close_error = RuntimeError("close failed")
     _cache_pool(loop, pool)
 
@@ -492,14 +509,14 @@ async def test_close_pool_keeps_entry_when_close_fails(caplog):
     assert not pool.closed
 
     await async_db.close_pool()
-    assert loop not in async_db._entries
+    assert async_db._entries[loop].pool is None
     assert pool.closed
 
 
 @pytest.mark.asyncio
 async def test_reset_pools_closes_pools_on_running_loops():
     """reset_pools can't await, so it schedules closes on running loops."""
-    pool = FakePool(conninfo="dbname=openlibrary")
+    pool = FakePool(name="async-db-test")
     _cache_pool(asyncio.get_running_loop(), pool)
 
     async_db.reset_pools()
@@ -509,8 +526,8 @@ async def test_reset_pools_closes_pools_on_running_loops():
 
 
 @pytest.mark.asyncio
-async def test_reset_pools_forgets_inflight_open():
-    """reset_pools drops the entry; the opener closes the pool it was building."""
+async def test_reset_pools_during_inflight_open_leaves_no_cached_pool():
+    """A caller cancelled mid-open after a reset closes its half-open pool; nothing is cached."""
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
@@ -521,8 +538,9 @@ async def test_reset_pools_forgets_inflight_open():
         async_db.reset_pools()
         assert not async_db._entries
 
-        gate.set()
-        assert await opener is None
+        opener.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await opener
 
     assert factory.created[0].closed
     assert async_db.get_pool() is None
@@ -553,9 +571,8 @@ async def test_real_pool_cancelled_open_is_closed_and_not_cached(monkeypatch):
     # _open_pool reads check_connection off the class.
     capturing_pool.check_connection = real_pool_class.check_connection
     monkeypatch.setattr(async_db, "AsyncConnectionPool", capturing_pool)
-    loop = asyncio.get_running_loop()
     opener = asyncio.create_task(async_db._pool_for_loop())
-    await _wait_until(lambda: len(created) == 1 and _lock_is_held(loop))
+    await _wait_until(lambda: len(created) == 1 and _lock_is_held())
 
     opener.cancel()
     with pytest.raises(asyncio.CancelledError):

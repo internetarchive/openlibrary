@@ -1,26 +1,32 @@
 """Async PostgreSQL access via Psycopg 3.
 
-This module holds the async connection pools used by FastAPI endpoints and by
-code bridged from the synchronous web.py stack through ``async_bridge``. An
-``AsyncConnectionPool`` binds its asyncio primitives and opened connections to
-the event loop that uses it. Using that pool from another loop raises
-``RuntimeError: ... bound to a different event loop``. The module therefore
-keeps one pool entry per event loop.
+One pool per event loop: an ``AsyncConnectionPool`` binds its lock, queue,
+scheduler, and background workers to the loop that opened it, so using that
+pool from another loop fails. Two loops use these pools in a process --
+FastAPI's and ``async_bridge``'s, each for the life of the process -- and
+anything else that calls :func:`connection` (e.g. a pytest-asyncio loop)
+gets its own pool the same way.
 
-The registry is shared by the FastAPI loop and the bridge loop. A thread lock
-protects registry access, while each entry's asyncio lock serializes lazy
-initialization on its own loop. Pools are created lazily so bridged model
-methods work in the legacy web.py process even when no FastAPI lifespan runs.
-``init_pool()`` pre-warms the current loop's pool at FastAPI startup.
-``close_pool()`` temporarily rejects new pool creation, then closes the
-cached pools on their owning loops. Call it before an owning loop is stopped;
-closed or stopped loops can only be removed from the registry with a warning.
-The registry holds strong references to its entries, so callers that create
-short-lived event loops must close or reset their pools explicitly.
+Pools are created lazily on first use so bridged model methods work in the
+legacy web.py process, where no FastAPI lifespan runs. ``init_pool()``
+pre-warms the current loop's pool at FastAPI startup. Each entry's asyncio
+lock is held across both opens and closes, so the two cannot interleave: a
+close during an in-flight open waits for the open to finish, then closes
+the fresh pool, and a cancelled opener leaves the pool unset for the next
+caller to retry. Entries are removed only by ``reset_pools()``; a closed
+pool sets ``entry.pool`` back to None so the entry (and its lock) is reused
+by a later open.
 
-When database configuration exists, missing psycopg dependencies raise during
-pool initialization rather than allowing a configured application to start
-and fail later on its first database request.
+``close_pool()`` closes the current loop's pool directly and other running
+loops' by scheduling the close onto the owning loop. A stopped loop can't
+run a close, so its entry stays cached for ``reset_pools()``. The registry
+is shared by the FastAPI loop's thread and the bridge loop's thread, so its
+structural changes go through a thread lock that is never held across an
+await.
+
+When database configuration exists, missing psycopg dependencies raise
+during pool initialization rather than allowing a configured application
+to start and fail later on its first database request.
 
 Async call sites acquire connections with :func:`connection`:
 
@@ -35,6 +41,7 @@ Legacy synchronous code that has not been bridged yet keeps using the
 from __future__ import annotations
 
 import asyncio
+import itertools
 import logging
 import threading
 from collections.abc import AsyncIterator
@@ -50,11 +57,9 @@ logger = logging.getLogger("openlibrary.async_db")
 # can still be imported without psycopg installed. A configured application
 # fails during startup in _open_pool() instead of failing on its first request.
 try:
-    from psycopg.conninfo import make_conninfo
     from psycopg.rows import class_row, dict_row
     from psycopg_pool import AsyncConnectionPool
 except ModuleNotFoundError:
-    make_conninfo = None  # type: ignore[assignment]
     class_row = None  # type: ignore[assignment]
     dict_row = None  # type: ignore[assignment]
     AsyncConnectionPool = None  # type: ignore
@@ -68,19 +73,25 @@ if TYPE_CHECKING:
 
 @dataclass
 class _LoopPool:
-    """One event loop's pool and the lock that opens it."""
+    """One event loop's pool and the lock that serializes opening and closing it."""
 
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     pool: Pool | None = None
 
 
-# Keyed by the event loop that owns the pool. The registry is shared by the
-# FastAPI loop and AsyncBridge's loop, so registry access must be protected by a
-# thread lock. Entries are removed by close_pool()/reset_pools(), never by
-# garbage collection.
+# Keyed by the event loop that owns the pool. Entries are created on the
+# owning loop and are removed only by reset_pools(); close_pool() closes a
+# pool and sets entry.pool back to None so the entry (and its lock) is reused
+# by a later open. The registry is touched from multiple threads (FastAPI's
+# loop and AsyncBridge's), so structural changes go through _entries_lock.
 _entries: dict[asyncio.AbstractEventLoop, _LoopPool] = {}
-_registry_lock = threading.RLock()
+# Never held across an await.
+_entries_lock = threading.Lock()
+# True while close_pool() is closing pools, so pools opened mid-shutdown are
+# rejected rather than outliving the shutdown.
 _closing = False
+# Distinguishes pools from each other in logs and stats, one per pool.
+_pool_names = itertools.count(1)
 
 
 def _connection_kwargs(db_parameters: dict) -> dict:
@@ -97,11 +108,6 @@ def _connection_kwargs(db_parameters: dict) -> dict:
     return kwargs
 
 
-def _conninfo(db_parameters: dict) -> str:
-    """Build a psycopg conninfo string from web.py ``db_parameters``."""
-    return make_conninfo(**_connection_kwargs(db_parameters))
-
-
 async def _open_pool() -> Pool | None:
     """Create and open a pool for the running loop.
 
@@ -113,14 +119,13 @@ async def _open_pool() -> Pool | None:
     if not db_parameters.get("db"):
         logger.info("db_parameters not configured; skipping async pool creation")
         return None
-    if AsyncConnectionPool is None or make_conninfo is None or class_row is None or dict_row is None:
+    if AsyncConnectionPool is None or dict_row is None:
         raise RuntimeError("psycopg[binary,pool] is required when async database access is configured")
 
     pool = cast(
         "Pool",
         AsyncConnectionPool(
-            conninfo=_conninfo(db_parameters),
-            kwargs={"row_factory": dict_row},
+            kwargs={**_connection_kwargs(db_parameters), "row_factory": dict_row},
             open=False,
             # 4 warm connections, grow to 20 under burst.
             min_size=4,
@@ -128,11 +133,11 @@ async def _open_pool() -> Pool | None:
             # Discard stale/dead connections before handing them out, e.g. after
             # a Postgres restart or a server-side idle_session_timeout.
             check=AsyncConnectionPool.check_connection,
+            name=f"async-db-{next(_pool_names)}",
         ),
     )
     try:
-        await pool.open()
-        await pool.wait()
+        await pool.open(wait=True)
     except BaseException:
         # close() is idempotent, so this covers a pool that opened before the
         # failure or cancellation. Suppress close-time cancellation so the
@@ -143,47 +148,33 @@ async def _open_pool() -> Pool | None:
     return pool
 
 
-async def _pool_for_loop() -> Pool | None:
-    """Return the running loop's pool, creating it lazily if needed.
-
-    The loop's lock serializes first callers, so the pool opens once. A
-    cancelled caller leaves the open to the others, and a pool that loses its
-    registry entry while opening closes itself.
-    """
+def _entry_for_loop() -> _LoopPool:
+    """Return the running loop's entry, creating it on first use."""
     loop = asyncio.get_running_loop()
-    with _registry_lock:
-        if _closing:
-            raise RuntimeError("Async database pool is shutting down")
+    with _entries_lock:
         entry = _entries.get(loop)
         if entry is None:
             entry = _entries[loop] = _LoopPool()
+    return entry
+
+
+async def _pool_for_loop() -> Pool | None:
+    """Return the running loop's pool, creating it lazily if needed.
+
+    The entry's lock serializes first callers AND close_pool's closes, so an
+    open can never interleave with a close of the same entry: a close during
+    an open waits for the open to finish, then closes the fresh pool. A
+    cancelled opener releases the lock with entry.pool unset, so the next
+    caller retries.
+    """
+    entry = _entry_for_loop()
     if entry.pool is not None:
         return entry.pool
-
     async with entry.lock:
         if entry.pool is None:
-            pool = await _open_pool()
-            with _registry_lock:
-                entry_is_current = not _closing and _entries.get(loop) is entry
-            if not entry_is_current:
-                # close_pool()/reset_pools() removed this entry mid-open.
-                if pool is not None:
-                    with suppress(Exception, asyncio.CancelledError):
-                        await pool.close()
-                return None
-            with _registry_lock:
-                # close_pool() cannot start a new close while this assignment
-                # is protected, and the identity check prevents replacing a
-                # newer entry after an await.
-                if not _closing and _entries.get(loop) is entry:
-                    entry.pool = pool
-                else:
-                    entry_is_current = False
-            if not entry_is_current:
-                if pool is not None:
-                    with suppress(Exception, asyncio.CancelledError):
-                        await pool.close()
-                return None
+            if _closing:
+                raise RuntimeError("Async database pool is shutting down")
+            entry.pool = await _open_pool()
         return entry.pool
 
 
@@ -196,46 +187,31 @@ async def init_pool() -> None:
     await _pool_for_loop()
 
 
-async def _close_loop_pool(loop: asyncio.AbstractEventLoop, expected_entry: _LoopPool) -> None:
-    """Close ``loop``'s pool. Must run on ``loop``.
+async def _close_entry(entry: _LoopPool) -> None:
+    """Close ``entry``'s pool. Must run on the entry's own loop.
 
-    If an open is in flight, its entry is removed so the opener closes the
-    pool itself. The pool stays cached unless close() succeeds, so a failed
-    close can be retried.
+    Waits out any in-flight open first (the opener holds the same lock). A
+    pool that fails to close stays cached, so a later close can retry.
     """
-    with _registry_lock:
-        entry = _entries.get(loop)
-        if entry is not expected_entry:
+    async with entry.lock:
+        pool = entry.pool
+        if pool is None:
             return
-    if entry.pool is None:
-        with _registry_lock:
-            if _entries.get(loop) is expected_entry:
-                _entries.pop(loop, None)
-        return
-    await entry.pool.close()
-    with _registry_lock:
-        if _entries.get(loop) is expected_entry:
-            _entries.pop(loop, None)
-
-
-def _drop_loop_entry(loop: asyncio.AbstractEventLoop, expected_entry: _LoopPool, reason: str) -> None:
-    """Forget a stopped or closed loop's entry. Nothing can run on a dead loop."""
-    with _registry_lock:
-        removed = _entries.pop(loop, None) if _entries.get(loop) is expected_entry else None
-    if removed is not None:
-        logger.warning("Dropping async DB pool for event loop %s without closing: %s", loop, reason)
+        await pool.close()
+        entry.pool = None
 
 
 async def close_pool() -> None:
     """Close every cached pool.
 
-    Each pool closes on its own loop; stopped or closed loops are dropped
-    with a warning instead of stalling shutdown. A pool that fails to close
-    stays cached for a retry.
+    The current loop's pool closes directly; other running loops' pools
+    close by scheduling the close onto the owning loop. A stopped loop
+    can't run a close, so its pool stays cached for reset_pools() or a
+    later close.
     """
     global _closing
     current_loop = asyncio.get_running_loop()
-    with _registry_lock:
+    with _entries_lock:
         if _closing:
             raise RuntimeError("Async database pool is already shutting down")
         _closing = True
@@ -245,16 +221,16 @@ async def close_pool() -> None:
         for loop, entry in entries:
             try:
                 if loop is current_loop:
-                    await _close_loop_pool(loop, entry)
+                    await _close_entry(entry)
                 elif loop.is_running() and not loop.is_closed():
-                    future = asyncio.run_coroutine_threadsafe(_close_loop_pool(loop, entry), loop)
+                    future = asyncio.run_coroutine_threadsafe(_close_entry(entry), loop)
                     await asyncio.wait_for(asyncio.wrap_future(future), timeout=10)
                 else:
-                    _drop_loop_entry(loop, entry, "event loop is closed" if loop.is_closed() else "event loop is not running")
+                    logger.debug("Cannot close async DB pool for stopped event loop %s", loop)
             except Exception:
                 logger.exception("Error closing async pool for event loop %s", loop)
     finally:
-        with _registry_lock:
+        with _entries_lock:
             _closing = False
 
 
@@ -264,7 +240,7 @@ def get_pool() -> Pool | None:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         return None
-    with _registry_lock:
+    with _entries_lock:
         entry = _entries.get(loop)
     return entry.pool if entry else None
 
@@ -274,18 +250,19 @@ def reset_pools() -> None:
 
     For callers that can't await, such as test fixtures: running loops get a
     scheduled close, dead loops are dropped where nothing can run. Prefer
-    ``await close_pool()``; it waits for cleanup.
+    ``await close_pool()``; it waits for cleanup. Must not race an in-flight
+    open: a pool opened while its entry is being reset is cached on the
+    removed entry, where no later close can find it.
     """
-    global _closing
-    with _registry_lock:
+    with _entries_lock:
         entries = list(_entries.items())
         _entries.clear()
-        _closing = False
     for loop, entry in entries:
-        if entry.pool is None:
+        pool = entry.pool
+        if pool is None:
             continue
         if loop.is_running() and not loop.is_closed():
-            asyncio.run_coroutine_threadsafe(entry.pool.close(), loop)
+            asyncio.run_coroutine_threadsafe(pool.close(), loop)
         else:
             logger.debug("Dropping async DB pool for inactive event loop %s without closing", loop)
 
