@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 import web
 
 from openlibrary.plugins.worksearch import code
@@ -7,6 +8,9 @@ from openlibrary.plugins.worksearch.code import (
     SearchResponse,
     _get_readable_count,
     _prepare_solr_query_params,
+    _primary_correction,
+    build_corrected_query,
+    find_did_you_mean_async,
     get_doc,
     process_facet,
 )
@@ -548,3 +552,203 @@ class TestSearchAvailabilityPreparedInPython:
         works_arg = render_args[2]
         assert works_arg == [get_doc(solr_doc)]
         assert works_arg is not get_doc
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: did-you-mean candidate validation
+# ---------------------------------------------------------------------------
+
+
+def _spellcheck(payload: dict):
+    """Parse a Solr spellcheck payload the way the pipeline would."""
+    return SearchResponse.parse_spellcheck(payload)
+
+
+_ONE_TYPO = {
+    "suggestions": [
+        "industril",
+        {"startOffset": 0, "endOffset": 9, "suggestion": ["industrial"]},
+    ]
+}
+_TWO_TYPOS = {
+    "suggestions": [
+        "competiton",
+        {"startOffset": 0, "endOffset": 10, "suggestion": ["competition"]},
+        "polciy",
+        {"startOffset": 11, "endOffset": 17, "suggestion": ["policy"]},
+    ]
+}
+
+
+def test_build_corrected_query_applies_every_correction():
+    """One pass over the query fixes every misspelled token Solr flagged."""
+    assert build_corrected_query("industril applications", _spellcheck(_ONE_TYPO)) == "industrial applications"
+    assert build_corrected_query("competiton polciy", _spellcheck(_TWO_TYPOS)) == "competition policy"
+
+
+def test_build_corrected_query_without_offsets_replaces_whole_words_only():
+    """With no offsets Solr reported, fall back to a word-boundary replacement.
+
+    Substring matches must survive: correcting `cat` may not wreck `concatenate`.
+    """
+    sc = _spellcheck({"suggestions": ["cat", {"suggestion": ["cart"]}]})
+    assert build_corrected_query("concatenate cat catalogue", sc) == "concatenate cart catalogue"
+
+
+def test_build_corrected_query_returns_none_when_nothing_to_do():
+    """Never return the query unchanged -- that would look like a usable suggestion."""
+    assert build_corrected_query("harry potter", None) is None
+    assert build_corrected_query("harry potter", _spellcheck({"suggestions": []})) is None
+    assert build_corrected_query("", _spellcheck(_ONE_TYPO)) is None
+    # A "correction" identical to the original token is not a correction.
+    same = _spellcheck({"suggestions": ["potter", {"startOffset": 6, "endOffset": 12, "suggestion": ["potter"]}]})
+    assert build_corrected_query("harry potter", same) is None
+
+
+def test_primary_correction_is_solrs_top_ranked():
+    sc = _spellcheck(_TWO_TYPOS)
+    assert _primary_correction(sc) == ("competiton", "competition")
+    assert _primary_correction(_spellcheck({"suggestions": []})) is None
+
+
+class _StubSolr:
+    """Captures the validation query and returns a fixed result count."""
+
+    def __init__(self, num_found: int):
+        self.num_found = num_found
+        self.calls: list[dict] = []
+
+    async def __call__(self, scheme, param=None, **kwargs):
+        self.calls.append({"scheme": scheme, "param": dict(param or {}), **kwargs})
+        return SearchResponse(facet_counts=None, sort="", docs=[], num_found=self.num_found, solr_select="/select")
+
+
+async def _run_dym(param, spellcheck, num_found):
+    stub = _StubSolr(num_found)
+    with patch.object(code, "run_solr_query_async", stub):
+        return await find_did_you_mean_async(param, spellcheck), stub
+
+
+@pytest.mark.asyncio
+async def test_dym_no_spellcheck_data_never_validates():
+    """No spellcheck section -> no candidate, and crucially no extra Solr query."""
+    dym, stub = await _run_dym({"q": "industril applications"}, None, 99)
+    assert dym is None
+    assert stub.calls == []
+
+
+@pytest.mark.asyncio
+async def test_dym_correct_query_never_becomes_a_candidate():
+    """A correctly-spelled query yields Solr's empty suggestion list, not a DYM."""
+    dym, stub = await _run_dym({"q": "competition policy"}, _spellcheck({"suggestions": []}), 99)
+    assert dym is None
+    assert stub.calls == []
+
+
+@pytest.mark.asyncio
+async def test_dym_candidate_with_results_is_accepted():
+    """A corrected query that matches documents is a proven-safe candidate."""
+    param = {"q": "industril applications"}
+    dym, stub = await _run_dym(param, _spellcheck(_ONE_TYPO), 2888)
+
+    assert dym is not None
+    assert dym.original_query == "industril applications"
+    assert dym.corrected_query == "industrial applications"
+    assert dym.original_token == "industril"
+    assert dym.suggestion == "industrial"
+    assert dym.num_found == 2888
+
+    # Validation must be a cheap count that cannot recurse into the spellchecker.
+    (call,) = stub.calls
+    assert call["rows"] == 0
+    assert call["spellcheck_count"] == 0
+    assert call["facet"] is False
+    assert call["request_label"] == "BOOK_SEARCH_DID_YOU_MEAN"
+    # "editions" keeps the edition block-join, so the count matches real results.
+    assert "editions" in call["fields"]
+
+
+@pytest.mark.asyncio
+async def test_dym_candidate_with_zero_results_is_rejected():
+    """A correction that matches nothing must not be offered."""
+    dym, _ = await _run_dym({"q": "industril applications"}, _spellcheck(_ONE_TYPO), 0)
+    assert dym is None
+
+
+@pytest.mark.asyncio
+async def test_dym_preserves_filters_and_structured_terms():
+    """Validation must re-run under the user's own filters and structured terms.
+
+    A correction that finds books, but none the user can actually see because of
+    their filters, is not a safe suggestion.
+    """
+    param = {
+        "q": "competiton polciy",
+        "language": ["eng", "spa"],
+        "author": "Tolkien",
+        "has_fulltext": "true",
+    }
+    original = dict(param)
+    dym, stub = await _run_dym(param, _spellcheck(_TWO_TYPOS), 12)
+
+    assert dym is not None
+    assert dym.corrected_query == "competition policy"
+    (call,) = stub.calls
+    assert call["param"]["q"] == "competition policy"
+    assert call["param"]["language"] == ["eng", "spa"]
+    assert call["param"]["author"] == "Tolkien"
+    assert call["param"]["has_fulltext"] == "true"
+    # The caller's params must not be mutated.
+    assert param == original
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "param",
+    [
+        {"author": "Tolkien"},
+        {"isbn": "9780261102217"},
+        {"subject": "science"},
+        {},
+    ],
+    ids=["author", "isbn", "subject", "empty"],
+)
+async def test_dym_structured_only_searches_are_never_candidates(param):
+    """author/isbn/subject browse has no free text to correct, so never a candidate.
+
+    It must not even reach Solr: Phase 1 already stopped asking for spellcheck on
+    these, and validation must not undo that by issuing its own query.
+    """
+    dym, stub = await _run_dym(param, _spellcheck(_ONE_TYPO), 500)
+    assert dym is None
+    assert stub.calls == []
+
+
+@pytest.mark.asyncio
+async def test_dym_rejected_candidate_leaves_the_search_response_untouched():
+    """The central Phase 3 guarantee.
+
+    When no valid candidate exists the search must be exactly what it was before
+    did-you-mean existed: same params, same parsed response.
+    """
+    param = {"q": "industril applications", "language": "eng"}
+    solr = _solr_result()
+    solr["spellcheck"] = _ONE_TYPO
+    response = SearchResponse.from_solr_result(solr, sort="", solr_select="/select", time=0.01)
+
+    before_docs = response.docs
+    before_num_found = response.num_found
+    before_params = dict(param)
+
+    # A correction that matches nothing -> rejected.
+    dym, _ = await _run_dym(param, response.spellcheck, 0)
+    assert dym is None
+
+    # Nothing about the search moved.
+    assert response.docs is before_docs
+    assert response.docs == before_docs
+    assert response.num_found == before_num_found
+    assert param == before_params
+    # The spellcheck data itself is still there for a later phase to use.
+    assert response.spellcheck is not None
+    assert response.spellcheck.suggestions[0].original_token == "industril"

@@ -806,6 +806,140 @@ class SearchResponse:
         return highlighting or None
 
 
+@dataclass
+class DidYouMean:
+    """A correction that has been *proven* to match documents.
+
+    Only ever constructed after the corrected query has been run against Solr and
+    matched at least one document under the same filters and structured terms as the
+    original search. Holding one of these means the correction is safe to offer.
+    """
+
+    original_query: str
+    corrected_query: str
+    original_token: str
+    """The misspelled word, as it appeared in the user's query."""
+    suggestion: str
+    """The word Solr proposed in its place."""
+    num_found: int
+    """How many documents the corrected query matches under the same filters."""
+
+
+def _primary_correction(spellcheck: SpellCheckResult | None) -> tuple[str, str] | None:
+    """Solr's highest-ranked correction, as `(original_token, suggestion)`.
+
+    Solr ranks suggestions by frequency in the index, so the first entry is its best
+    guess. Returns None when there is no spellcheck data or no flagged token came
+    with a usable correction.
+    """
+    for entry in spellcheck.suggestions if spellcheck else []:
+        if entry.original_token and entry.suggestions:
+            return entry.original_token, entry.suggestions[0]
+    return None
+
+
+def build_corrected_query(query: str, spellcheck: SpellCheckResult | None) -> str | None:
+    """Apply Solr's corrections to `query`, or None if there is nothing to apply.
+
+    Solr reports the character offsets of each misspelled token within `spellcheck.q`,
+    which Open Library sets to the user's raw query, so corrections are spliced in at
+    those offsets. This handles multi-word queries ("competiton polciy") in one pass,
+    which is what a user means by them.
+
+    Returns None -- never the unchanged query -- when there is no correction to make,
+    so a caller cannot mistake a no-op for a usable suggestion.
+    """
+    if not query or not spellcheck:
+        return None
+
+    corrections = [
+        (entry.original_token, entry.suggestions[0], entry.start_offset, entry.end_offset)
+        for entry in spellcheck.suggestions
+        if entry.original_token and entry.suggestions
+    ]
+    if not corrections:
+        return None
+
+    if all(start is not None and end is not None for _, _, start, end in corrections):
+        # Splice back-to-front so the offsets of the remaining edits stay valid.
+        corrected = query
+        for _, word, start, end in sorted(corrections, key=lambda c: c[2], reverse=True):
+            corrected = corrected[:start] + word + corrected[end:]
+    else:
+        # No offsets: fall back to replacing the token on word boundaries, which
+        # leaves other words containing it as a substring alone.
+        corrected = query
+        for token, word, _, _ in corrections:
+            corrected = re.sub(rf"\b{re.escape(token)}\b", word, corrected, flags=re.IGNORECASE)
+
+    return corrected if corrected != query else None
+
+
+async def find_did_you_mean_async(
+    param: dict,
+    spellcheck: SpellCheckResult | None,
+    solr_editions: bool = True,
+    request_label: SolrRequestLabel = "BOOK_SEARCH_DID_YOU_MEAN",
+) -> DidYouMean | None:
+    """Decide whether Solr's correction is safe to offer as a did-you-mean.
+
+    Returns a `DidYouMean` only when the corrected query actually matches documents;
+    otherwise None. Callers must treat None as "behave exactly as before", because a
+    search with no valid candidate has to look untouched.
+
+    `correctlySpelled` is deliberately not the gate: Open Library does not request
+    `extendedResults`, so Solr does not send it at all, and even when it is present it
+    only describes the query, not whether the correction finds anything.
+
+    Validation deliberately reuses the normal search pipeline -- same scheme, same
+    `param` with only `q` swapped -- so filters, sorting and structured clauses carry
+    over by construction instead of being reimplemented here. `spellcheck_count=0`
+    keeps the checker off so validation cannot recurse into another validation.
+    """
+    if not param.get("q"):
+        # A structured-only search (author/isbn/subject browse) has no free text to
+        # correct, and must never become a did-you-mean candidate.
+        return None
+
+    primary = _primary_correction(spellcheck)
+    if not primary:
+        return None
+
+    corrected = build_corrected_query(param["q"], spellcheck)
+    if not corrected:
+        return None
+
+    # Only `q` changes; every filter and structured term the user applied is kept.
+    validation_param = copy.deepcopy(param)
+    validation_param["q"] = corrected
+
+    response = await run_solr_query_async(
+        WorkSearchScheme(solr_editions=solr_editions),
+        validation_param,
+        rows=0,
+        spellcheck_count=0,  # never ask for spellcheck here: no recursion
+        facet=False,
+        # "editions" opts into the same edition block-join as /search, so the count
+        # reflects the parent/child filtering the real results are subject to.
+        fields=["key", "editions"],
+        request_label=request_label,
+    )
+    if not response.num_found:
+        return None
+
+    original_token, suggestion = primary
+    return DidYouMean(
+        original_query=param["q"],
+        corrected_query=corrected,
+        original_token=original_token,
+        suggestion=suggestion,
+        num_found=response.num_found,
+    )
+
+
+find_did_you_mean = async_bridge.wrap(find_did_you_mean_async, "find_did_you_mean")
+
+
 def get_doc(doc: SolrDocument):
     """
     Coerce a solr document to look more like an Open Library edition/work. Ish.
