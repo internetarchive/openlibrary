@@ -14,14 +14,14 @@ import { olAlert, olConfirm } from '../../../components/lit/alert-dialog.js';
 /**
  * @param {HTMLTemplateElement} template
  * @param {Object} [options]
+ * @param {Object} [options.i18n] - The template's data-i18n, if the caller has already parsed it.
  * @param {Node} [options.message] - Replaces the template's own content, e.g. a clone with a name filled in.
  * @param {String} [options.title] - Replaces the template's title, e.g. one with a count filled in.
  * @param {String} [options.confirmLabel] - Replaces the template's confirm label.
  * @param {Boolean} [options.destructive]
  * @returns {Promise<Boolean>}
  */
-export function confirmFromTemplate(template, { message = template, destructive = true, title, confirmLabel } = {}) {
-    const i18n = JSON.parse(template.dataset.i18n);
+export function confirmFromTemplate(template, { i18n = JSON.parse(template.dataset.i18n), message = template, destructive = true, title, confirmLabel } = {}) {
     return olConfirm({
         title: title ?? i18n.title,
         message,

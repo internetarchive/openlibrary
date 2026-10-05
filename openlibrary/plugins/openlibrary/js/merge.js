@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { fmt, plural } from '../../../components/lit/utils/labels.js';
 import { alertFromTemplate, confirmFromTemplate } from './confirm-template';
 import { declineRequest } from './merge-request-table/MergeRequestService';
 
@@ -82,19 +83,16 @@ export function initAuthorMergePage() {
             .filter((key) => key !== master.value)
             .map((key) => rows.get(key))
             .filter(Boolean);
-        // English pluralises on n !== 1, so a zero-duplicate merge reads correctly too.
         if (!duplicates.length) {
             await alertFromTemplate(document.getElementById('noDuplicates'));
             return;
         }
-        const plural = duplicates.length !== 1;
-        const fill = (text) => text
-            .replace('%(count)s', duplicates.length)
-            .replace('%(name)s', primary.name);
+        const vars = { count: duplicates.length, name: primary.name };
         const confirmed = await confirmFromTemplate(confirmTemplate, {
+            i18n,
             message: mergeSummary(primary, duplicates, i18n),
-            title: fill(plural ? i18n.titleMany : i18n.titleOne),
-            confirmLabel: fill(plural ? i18n.confirmMany : i18n.confirmOne),
+            title: fmt(plural(i18n.titleForCount, vars.count), vars),
+            confirmLabel: fmt(plural(i18n.confirmForCount, vars.count), vars),
             destructive: false,
         });
         if (confirmed) submitMerge();
