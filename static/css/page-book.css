@@ -64,7 +64,6 @@
 @import "components/share-popover.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
-@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
 @import "components/work--tablet.css" only screen and (min-width: 768px);
 @import "components/edit-toolbar--tablet.css" only screen and (min-width: 768px);
 
