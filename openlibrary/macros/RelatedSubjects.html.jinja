@@ -34,7 +34,8 @@
         </div>
     {% endfor %}
     {% if async_load %}
-        <span class="small async-partial-retry hidden">{{ _("Something went wrong.") }} <a href="#" class="retry-btn">{{ _("Retry") }}</a></span>
+        <span class="small async-partial-retry hidden">{{ _("Something went wrong.") }} <a href="#"
+    class="retry-btn">{{ _("Retry") }}</a></span>
     {% endif %}
     {# .contentQuarter floats on desktop widths (layout/index.css); clear it
        inside this wrapper so the wrapper's own box isn't collapsed to nothing. #}

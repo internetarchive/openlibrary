@@ -11,10 +11,7 @@ These are current-state constraints that affect new source adapters. Most are ad
 `catalog/add_book/__init__.py` has a hardcoded allowlist:
 
 ```python
-ALLOWED_COVER_HOSTS = (
-    "archive.org", "books.google.com", "commons.wikimedia.org",
-    "covers.openlibrary.org", "m.media-amazon.com"
-)
+ALLOWED_COVER_HOSTS = ("archive.org", "books.google.com", "commons.wikimedia.org", "covers.openlibrary.org", "m.media-amazon.com")
 ```
 
 If a source's cover URL host is not on this list, `check_cover_url_host()` returns `False` and the cover is silently set to `None` — the record imports fine but cover-less. No error or warning is raised. Most partner CDNs are not on the list. Options per source: (a) expand the allowlist via PR, (b) fetch and re-host the image on IA/covers.openlibrary.org before submitting, or (c) accept cover-less imports.

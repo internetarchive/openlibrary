@@ -5,8 +5,8 @@
 #}
 {% import "design/_example.html.jinja" as ex %}
 {% set CHECKS = [('control-alignment', 'Control alignment'), ('control-states', 'Control states'), ('density', 'Density'), ('long-content', 'Long content'), ('rtl', 'Right-to-left')] %}
-{% set SELECT_ITEMS = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"}]" %}
-{% set RTL_SELECT_ITEMS = "[{\"value\":\"ar\",\"label\":\"العربية\"},{\"value\":\"he\",\"label\":\"עברית\"},{\"value\":\"fa\",\"label\":\"فارسی\"},{\"value\":\"ur\",\"label\":\"اردو\"}]" %}
+{% set SELECT_ITEMS = '[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]' %}
+{% set RTL_SELECT_ITEMS = '[{"value":"ar","label":"العربية"},{"value":"he","label":"עברית"},{"value":"fa","label":"فارسی"},{"value":"ur","label":"اردو"}]' %}
 {% macro nav() %}
     <ul class="ds__nav-list">
         {% for id, title in CHECKS %}<li><a href="#{{ id }}">{{ title }}</a></li>{% endfor %}
@@ -381,7 +381,8 @@
                            value="ألف ليلة وليلة">
                 </div>
                 <div class="rtl-check__field">
-                    <label class="ds-demo-label" for="rtl-check-isbn">الرقم الدولي الموحد للكتاب <span class="rtl-check__hint">(ISBN)</span></label>
+                    <label class="ds-demo-label"
+                           for="rtl-check-isbn">الرقم الدولي الموحد للكتاب <span class="rtl-check__hint">(ISBN)</span></label>
                     <input id="rtl-check-isbn"
                            class="rtl-check__input"
                            type="text"
@@ -399,7 +400,9 @@
                 </div>
                 <div class="rtl-check__field">
                     <label class="ds-demo-label" for="rtl-check-notes">ملاحظات</label>
-                    <textarea id="rtl-check-notes" class="ds-demo-textarea" rows="3">نسخة مترجمة عن الطبعة الفرنسية، مع مقدمة للمترجم.</textarea>
+                    <textarea id="rtl-check-notes"
+                              class="ds-demo-textarea"
+                              rows="3">نسخة مترجمة عن الطبعة الفرنسية، مع مقدمة للمترجم.</textarea>
                 </div>
                 <div class="rtl-check__field">
                     <ol-toggle label="إشعاري عند تعديل هذا السجل" sublabel="بريد إلكتروني أسبوعي" checked>

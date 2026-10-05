@@ -203,29 +203,29 @@
                 <code>stroke</code> override needed.
             </p>
             {% call ex.example("", "", code='<span class="danger">$:macros.icon("trash")</span>') %}
-            <span class="ds-demo-danger">{{ draw('trash', 'lg') }}</span>
-{% endcall %}
-</div>
-<div class="ds-group" id="icon-stroke">
-    <h3 class="ds-group__title">Stroke weight</h3>
-    <p class="ds-group__blurb">
-        One weight across the whole set: <b>2 units on the 24×24 grid</b>, which the box scales down with
-        the geometry — 1.33px at <code>sm</code>, 1.67px at <code>md</code>. Carried through, <code>lg</code>
-        would land at a full 2px and read noticeably heavier than the same glyph one step down, so it is
-        corrected to 1.75. Absolute weight then stays near-constant across the scale
-        (1.33 / 1.67 / 1.75px) instead of growing with the box.
-    </p>
-    <p class="ds-group__blurb">
-        Weight is a per-step token — <code>--icon-stroke-sm</code>, <code>-md</code>, <code>-lg</code> — and
-        not baked into the sprite: the build strips <code>stroke-width</code> from each
-        <code>&lt;symbol&gt;</code> precisely so the value can be inherited from the referencing
-        <code>&lt;svg&gt;</code>. (A presentation attribute on the symbol would outrank any inherited value,
-        and CSS cannot select into a <code>&lt;use&gt;</code> shadow tree, so a baked weight would be
-        unoverridable.) Tune the set from those tokens; a component with a genuine reason can set
-        <code>stroke-width</code> on its own wrapper, but that is the exception.
-    </p>
-</div>
-</section>
+                <span class="ds-demo-danger">{{ draw('trash', 'lg') }}</span>
+            {% endcall %}
+        </div>
+        <div class="ds-group" id="icon-stroke">
+            <h3 class="ds-group__title">Stroke weight</h3>
+            <p class="ds-group__blurb">
+                One weight across the whole set: <b>2 units on the 24×24 grid</b>, which the box scales down with
+                the geometry — 1.33px at <code>sm</code>, 1.67px at <code>md</code>. Carried through, <code>lg</code>
+                would land at a full 2px and read noticeably heavier than the same glyph one step down, so it is
+                corrected to 1.75. Absolute weight then stays near-constant across the scale
+                (1.33 / 1.67 / 1.75px) instead of growing with the box.
+            </p>
+            <p class="ds-group__blurb">
+                Weight is a per-step token — <code>--icon-stroke-sm</code>, <code>-md</code>, <code>-lg</code> — and
+                not baked into the sprite: the build strips <code>stroke-width</code> from each
+                <code>&lt;symbol&gt;</code> precisely so the value can be inherited from the referencing
+                <code>&lt;svg&gt;</code>. (A presentation attribute on the symbol would outrank any inherited value,
+                and CSS cannot select into a <code>&lt;use&gt;</code> shadow tree, so a baked weight would be
+                unoverridable.) Tune the set from those tokens; a component with a genuine reason can set
+                <code>stroke-width</code> on its own wrapper, but that is the exception.
+            </p>
+        </div>
+    </section>
 {% endmacro %}
 {# Answers "why Lucide, and are we stuck with it?" — a source of geometry, never
    a dependency, and mixing sources is designed for. #}

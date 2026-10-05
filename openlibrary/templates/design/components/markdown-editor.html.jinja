@@ -49,27 +49,27 @@ code='<textarea id="my-input">\n  **Hello** world\n</textarea>\n<ol-markdown-edi
 </ol-markdown-editor>
 {% endcall %}
 {% call ex.example("Mixed Markdown and HTML", "enable-html-block exposes the HTML block button. HTML blocks render with a preview and an Edit button for the source.",
-    code='<ol-markdown-editor\n target-id="my-input"\n  enable-html-block>\n</ol-markdown-editor>') %}
-    <textarea id="demo-editor-html" hidden>{{ SEED_HTML }}</textarea>
-    <ol-markdown-editor target-id="demo-editor-html" enable-html-block>
-    </ol-markdown-editor>
+code='<ol-markdown-editor\n target-id="my-input"\n  enable-html-block>\n</ol-markdown-editor>') %}
+<textarea id="demo-editor-html" hidden>{{ SEED_HTML }}</textarea>
+<ol-markdown-editor target-id="demo-editor-html" enable-html-block>
+</ol-markdown-editor>
 {% endcall %}
 {% call ex.example("Code blocks and inline code", "enable-code exposes the inline-code and code-block buttons. Off by default because only the wiki page renderer is guaranteed to render fenced code blocks.",
-    code='<ol-markdown-editor\n target-id="my-input"\n  enable-code>\n</ol-markdown-editor>') %}
-    <textarea id="demo-editor-code" hidden>{{ SEED_CODE }}</textarea>
-    <ol-markdown-editor target-id="demo-editor-code" enable-code>
-    </ol-markdown-editor>
+code='<ol-markdown-editor\n target-id="my-input"\n  enable-code>\n</ol-markdown-editor>') %}
+<textarea id="demo-editor-code" hidden>{{ SEED_CODE }}</textarea>
+<ol-markdown-editor target-id="demo-editor-code" enable-code>
+</ol-markdown-editor>
 {% endcall %}
 {% call ex.example("Change event", "Fires ol-markdown-editor-change on every change, with the raw Markdown in event.detail.value.",
-    code='<ol-markdown-editor\n target-id="my-input"\n  height="100px">\n</ol-markdown-editor>\n\n<script>\n  editor.addEventListener(\'ol-markdown-editor-change\', (e) => {\n    console.log(e.detail.value);\n  });\n</script>') %}
-    <textarea id="demo-editor-event" hidden></textarea>
-    <ol-markdown-editor id="demo-editor-event-component" target-id="demo-editor-event" height="100px">
-    </ol-markdown-editor>
-    <pre id="demo-editor-event-output" class="ds-demo-output"></pre>
-    <script>
+code='<ol-markdown-editor\n target-id="my-input"\n  height="100px">\n</ol-markdown-editor>\n\n<script>\n  editor.addEventListener(\'ol-markdown-editor-change\', (e) => {\n    console.log(e.detail.value);\n  });\n</script>') %}
+<textarea id="demo-editor-event" hidden></textarea>
+<ol-markdown-editor id="demo-editor-event-component" target-id="demo-editor-event" height="100px">
+</ol-markdown-editor>
+<pre id="demo-editor-event-output" class="ds-demo-output"></pre>
+<script>
             document.getElementById('demo-editor-event-component').addEventListener('ol-markdown-editor-change', (e) => {
                 document.getElementById('demo-editor-event-output').textContent = e.detail.value;
             });
-    </script>
+</script>
 {% endcall %}
 {% endmacro %}
