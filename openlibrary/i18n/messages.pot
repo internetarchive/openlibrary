@@ -969,6 +969,10 @@ msgid "Staff"
 msgstr ""
 
 #: about/index.html
+msgid "Leads"
+msgstr ""
+
+#: about/index.html
 msgid "Fellows"
 msgstr ""
 
@@ -994,6 +998,10 @@ msgstr ""
 
 #: about/index.html
 msgid "Librarianship"
+msgstr ""
+
+#: about/index.html
+msgid "Year:"
 msgstr ""
 
 #: about/index.html
@@ -6610,14 +6618,6 @@ msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT 
 msgstr ""
 
 #: type/list/embed.html
-msgid "This book is checked out"
-msgstr ""
-
-#: type/list/embed.html
-msgid "Checked out"
-msgstr ""
-
-#: type/list/embed.html
 msgid "Borrow book"
 msgstr ""
 
@@ -7576,6 +7576,11 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
+msgid "Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
 msgid "Could not add PR %(num)s."
 msgstr ""
 
@@ -7593,6 +7598,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "PR"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Draft"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -8338,6 +8347,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Loading carousel"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "On the Same Shelf"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py
