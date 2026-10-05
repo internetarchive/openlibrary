@@ -44,8 +44,9 @@ npm run test:js
 # JavaScript component tests in a real browser (Vitest browser mode)
 npm run test:js:browser
 
-# i18n validation
+# i18n validation (.po syntax/placeholders, then HTML structure)
 make test-i18n
+pytest openlibrary/i18n/
 
 # All tests
 make test
@@ -284,7 +285,8 @@ Deep-dive references for major system domains. Each covers production architectu
 | Browser-mode component tests | `tests/browser/` |
 | Docker config | `docker/`, `compose.yaml` |
 | Solr config | `conf/solr/` |
-| i18n translations | `openlibrary/i18n/` |
+| i18n code and `messages.pot` | `openlibrary/i18n/` |
+| i18n translations (`.po`) | [internetarchive/openlibrary-i18n](https://github.com/internetarchive/openlibrary-i18n) `locale/<lang>/` (see [i18n.md](i18n.md#where-translations-live)) |
 | Infogami submodule | `vendor/infogami/` |
 | GitHub wiki (local clone) | `docs/wiki/` |
 

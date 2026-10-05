@@ -59,6 +59,13 @@ plugin_worksearch:
 
 http_request_timeout: 10
 
+# GitHub API token for the /status testing panel. When set, the panel uses
+# a single GraphQL request; when unset, it falls back to the REST API (which
+# tolerates unauthenticated requests at a lower rate limit).
+# Create a personal access token at https://github.com/settings/tokens
+# (a fine-grained token with public-repo read access is enough).
+github_api_token:
+
 features:
     debug: enabled
 

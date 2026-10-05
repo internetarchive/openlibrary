@@ -5,9 +5,9 @@ from __future__ import annotations  # Needed for 'Loan' return types early on
 import logging
 import os
 import time
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
-import eventer
 import httpx
 import requests
 import web
@@ -482,6 +482,17 @@ async def get_availability_async(
 get_availability = async_bridge.wrap(get_availability_async)
 
 
+async def get_checked_out_async(ocaids: Iterable[str]) -> set[str]:
+    """Returns the subset of ocaids whose lendable copies are all currently checked out."""
+    availabilities = await get_availability_async("identifier", list(set(ocaids)))
+    return {
+        ocaid
+        for ocaid, availability in availabilities.items()
+        # the error response mixes string values in with the per-id dicts
+        if isinstance(availability, dict) and availability.get("status") == "borrow_unavailable"
+    }
+
+
 def get_ocaid(item: dict) -> str | None:
     # Circular import otherwise
     from ..book_providers import is_non_ia_ocaid
@@ -601,36 +612,14 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
         return None
 
 
-def get_loan(identifier: str, user_key: str | None = None):
-    """Returns the loan object for given identifier, if a loan exists.
-
-    If user_key is specified, it returns the loan only if that user is
-    borrowed that book.
-    """
-    _loan = None
-    account = None
-    if user_key:
-        if user_key.startswith("@"):
-            account = OpenLibraryAccount.get_by_link(user_key)
-        else:
-            account = OpenLibraryAccount.get_by_key(user_key)
-
+def get_loan(identifier: str) -> Loan | None:
+    """Returns the loan object for given identifier, if a loan exists."""
     try:
-        _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
+        ia_loan = ia_lending_api.get_loan(identifier)
+        return ia_loan and Loan.from_ia_loan(ia_loan)
     except Exception:  # TODO: Narrow exception scope
-        logger.exception(f"get_loan({identifier}) 1 of 2")
-
-    try:
-        _loan = _get_ia_loan(identifier, account and account.itemname)
-    except Exception:  # TODO: Narrow exception scope
-        logger.exception(f"get_loan({identifier}) 2 of 2")
-
-    return _loan
-
-
-def _get_ia_loan(identifier: str, userid: str | None = None):
-    ia_loan = ia_lending_api.get_loan(identifier, userid)
-    return ia_loan and Loan.from_ia_loan(ia_loan)
+        logger.exception(f"get_loan({identifier})")
+        return None
 
 
 def get_loans_of_user(user_key: str) -> list[Loan]:
@@ -684,90 +673,6 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
     key_prefix="waitinglist.user_waiting_loans",
     timeout=10 * dateutil.MINUTE_SECS,
 )
-
-
-NOT_INITIALIZED = object()
-
-
-def sync_loan(identifier, loan=NOT_INITIALIZED):
-    """Updates the loan info stored in openlibrary.
-
-    The loan records are stored at the Internet Archive. There is no way for
-    OL to know when a loan is deleted. To handle that situation, the loan info
-    is stored in the ebook document and the deletion is detected by comparing
-    the current loan id and loan id stored in the ebook.
-
-    This function is called whenever the loan is updated.
-    """
-    logger.info("BEGIN sync_loan %s %s", identifier, loan)
-
-    if loan is NOT_INITIALIZED:
-        loan = get_loan(identifier)
-
-    # The data of the loan without the user info.
-    loan_data = loan and {
-        "uuid": loan["uuid"],
-        "loaned_at": loan["loaned_at"],
-        "resource_type": loan["resource_type"],
-        "ocaid": loan["ocaid"],
-        "book": loan["book"],
-    }
-
-    responses = get_availability("identifier", [identifier])
-    response = responses[identifier] if responses else {}
-    if response:
-        num_waiting = int(response.get("num_waitlist", 0) or 0)
-
-    ebook = EBookRecord.find(identifier)
-
-    # The loan known to us is deleted
-    is_loan_completed = ebook.get("loan") and ebook.get("loan") != loan_data
-
-    # Only remember the loan_data if we could resolve an OL user for it
-    if loan and loan["user"] is not None:
-        ebook_loan_data = loan_data
-    else:
-        ebook_loan_data = None
-
-    kwargs = {
-        "type": "ebook",
-        "identifier": identifier,
-        "loan": ebook_loan_data,
-        "borrowed": str(response["status"] not in ["open", "borrow_available"]).lower(),
-        "wl_size": num_waiting,
-    }
-    try:
-        ebook.update(**kwargs)
-    except Exception:  # TODO: Narrow exception scope
-        # updating ebook document is sometimes failing with
-        # "Document update conflict" error.
-        # Log the error in such cases, don't crash.
-        logger.exception("failed to update ebook for %s", identifier)
-
-    # fire loan-completed event
-    if is_loan_completed and ebook.get("loan"):
-        _d = dict(ebook["loan"], returned_at=time.time())
-        eventer.trigger("loan-completed", _d)
-    logger.info("END sync_loan %s", identifier)
-
-
-class EBookRecord(dict):
-    @staticmethod
-    def find(identifier: str) -> EBookRecord:
-        key = "ebooks/" + identifier
-        d = site.get().store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
-        return EBookRecord(d)
-
-    def update(self, **kwargs):
-        logger.info("updating %s %s", self["_key"], kwargs)
-        # Nothing to update if what we have is same as what is being asked to
-        # update.
-        d = {k: self.get(k) for k in kwargs}
-        if d == kwargs:
-            return
-
-        dict.update(self, **kwargs)
-        site.get().store[self["_key"]] = self
 
 
 class Loan(dict):

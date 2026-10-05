@@ -20,7 +20,7 @@ from openlibrary.plugins.openlibrary.status import (
     TestingStatus,
     add_prs,
     deploy_testing_status,
-    load_testing_status_async,
+    load_testing_status,
     pull_latest_prs,
     refresh_testing_status,
     remove_testing_prs,
@@ -51,7 +51,7 @@ async def testing_status() -> TestingStatus:
     Jenkins run is ground truth for deploy state; the state file's time-window
     guess stands in only when Jenkins is down.
     """
-    result, jenkins = await asyncio.gather(load_testing_status_async(), jenkins_deploy_status())
+    result, jenkins = await asyncio.gather(load_testing_status(), jenkins_deploy_status())
     if result is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No testing state file found")
     if jenkins:
@@ -104,6 +104,6 @@ def refresh_status() -> dict[str, bool]:
 
 
 @router.post("/status/deploy")
-def deploy_status() -> dict[str, bool | str]:
+async def deploy_status() -> dict[str, bool | str]:
     """Deploy the staged testing-environment changes."""
-    return deploy_testing_status()
+    return await deploy_testing_status()

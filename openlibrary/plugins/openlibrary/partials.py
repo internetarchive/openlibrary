@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
@@ -13,13 +14,13 @@ from markupsafe import Markup
 from pydantic import BaseModel, Field
 
 from infogami.utils.view import public
-from openlibrary.book_providers import get_book_provider, get_cover_url
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
-from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.fulltext import FulltextRow, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
 from openlibrary.core.helpers import affiliate_id, commify, datestr, datetimestr_utc
 from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import add_availability_async, compose_ia_url, get_available_async
+from openlibrary.core.reading_state import ReadingState, get_reading_state
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
@@ -34,6 +35,7 @@ from openlibrary.plugins.openlibrary.lists import (
     get_user_lists,
 )
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
+from openlibrary.plugins.upstream.mybooks import shelf_button_for
 from openlibrary.plugins.upstream.utils import (
     get_user_object,
     json_encode,
@@ -43,6 +45,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
+    get_solr_works,
     run_solr_query_async,
     work_search_async,
 )
@@ -55,6 +58,7 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -97,14 +101,11 @@ class ReadingGoalProgressPartial:
 
 
 class MyBooksDropperListsPartial:
-    """Handler for the MyBooks dropper list component."""
+    """The reader's lists with their members, for the popover's lists store and the book page's lists strip."""
 
     @classmethod
     def generate(cls) -> dict:
         user_lists = get_user_lists(None)
-
-        template = get_jinja_env().get_template("lists/dropper_lists.html.jinja")
-        dropper = template.render(lists=user_lists, json_encode=json_encode)
         list_data = {
             list_data["key"]: {
                 "members": list_data["list_items"],
@@ -112,11 +113,33 @@ class MyBooksDropperListsPartial:
             }
             for list_data in user_lists
         }
+        return {"listData": list_data}
 
-        return {
-            "dropper": dropper,
-            "listData": list_data,
-        }
+
+class WorkEditionsPartial:
+    """Every edition OLID of a work, so the popover can tell that a list holding one of them holds the book.
+
+    A list records whichever copy the reader was looking at, so the same book can sit on a
+    list under any of its editions. Matching only the key this button would write reads
+    those lists as empty and files the book a second time.
+
+    The answer is the same for every reader, so it is fetched per book on open rather than
+    for every member of every list up front, and carousels pay nothing for it.
+    """
+
+    @classmethod
+    def generate(cls, work_olid: str) -> dict[str, list[str]]:
+        doc = get_solr_works({f"/works/{work_olid}"}, fields={"key", "edition_key"}).get(f"/works/{work_olid}")
+        return {"editions": list(doc.get("edition_key") or []) if doc else []}
+
+
+class ReadingStatePartial:
+    """The opening state for `<ol-shelf-button>`s the server rendered without it (carousels); book-state.js asks here."""
+
+    @classmethod
+    def generate(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
+        work_ids = [int(extract_numeric_id_from_olid(olid)) for olid in work_olids]
+        return {f"OL{work_id}W": state for work_id, state in get_reading_state(username, work_ids).items()}
 
 
 class CarouselLoadMoreParams(BaseModel):
@@ -204,6 +227,7 @@ class CarouselCardData(TypedDict):
     loan_status_html: Markup
     return_confirm_i18n: str
     request_fullpath: str
+    shelf_button_html: Markup
 
 
 @public
@@ -251,6 +275,8 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, secondary_action=(secondary_action and not loan), key=key),
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
+        # No reader or state in the HTML: book-state.js fills both in.
+        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True)),
     }
 
 
@@ -276,6 +302,8 @@ class CarouselCardPartial:
             else:
                 book = editions.get("docs", [None])[0]
             book["authors"] = work.get("authors", [])
+            # An edition doc carries no work key; the shelf button needs it.
+            book["work_key"] = work.get("key")
             book = web.storage(book)
 
             try:
@@ -635,120 +663,42 @@ class FullTextSuggestionsPartialResult:
     has_error: bool = False
 
 
-def get_fulltext_suggestion_item_data(doc: Any) -> dict[str, Any]:
-    """Prepare display data for a full-text search suggestion item."""
-    doc_type = (
-        "infogami_work"
-        if doc.get("type", {}).get("key") == "/type/work"
-        else "infogami_edition"
-        if doc.get("type", {}).get("key") == "/type/edition"
-        else "solr_work"
-        if not doc.get("editions")
-        else "solr_edition"
+def render_fulltext_suggestion_row(query: str, row: FulltextRow, seq_index: int) -> Markup:
+    """One band row. SearchResultsWork remains Templetor (8 other callers), so it renders here as a bridge."""
+    phrase = phrase_query(query)
+    if not row.edition:
+        return Markup(render_jinja_template("FulltextResultIA.html.jinja", row=row, phrase=phrase))
+    macro = render_macro(
+        "SearchResultsWork",
+        (row.edition,),
+        cta=False,
+        availability=row.availability,
+        extra_row=render_jinja_template("FulltextSnippet.html.jinja", row=row, phrase=phrase),
+        seq_index=seq_index,
+        show_title_year=True,
     )
-    selected_ed = doc.get("editions")[0] if doc_type == "solr_edition" else doc
-    book_url = doc.url() if doc_type.startswith("infogami_") else doc.key
-
-    if doc_type == "solr_edition":
-        work_edition_url = book_url + "?edition=" + quote("key:" + selected_ed.key)
-    elif (book_provider := get_book_provider(doc)) and doc_type.endswith("_work"):
-        work_edition_url = book_url + "?edition=" + quote(book_provider.get_best_identifier_slug(doc))
-    else:
-        work_edition_url = book_url
-
-    edition_work = doc["works"][0] if doc_type == "infogami_edition" and "works" in doc else None
-    full_title = selected_ed.get("title", "") + (": " + selected_ed.subtitle if selected_ed.get("subtitle") else "")
-
-    authors = None
-    if doc_type == "infogami_work":
-        authors = doc.get_authors()
-    elif doc_type == "infogami_edition":
-        authors = edition_work.get_authors() if edition_work else doc.get_authors()
-    elif "authors" in doc:
-        authors = doc["authors"]
-    elif "author_key" in doc:
-        authors = [{"key": "/authors/" + key, "name": name} for key, name in zip(doc["author_key"], doc["author_name"])]
-
-    author_data = (
-        [
-            {
-                "name": author.get("name") or author.get("author", {}).get("name"),
-                "url": author.get("url") or author.get("key") or author.get("author", {}).get("url") or author.get("author", {}).get("key"),
-            }
-            for author in authors
-        ]
-        if authors
-        else None
-    )
-    byline_html = (
-        Markup(
-            str(
-                render_macro(
-                    "BookByline",
-                    (author_data,),
-                    limit=9,
-                    overflow_url=work_edition_url,
-                    attrs='class="results"',
-                )["__body__"]
-            )
-        )
-        if author_data
-        else None
-    )
-    return {
-        "author_data": author_data,
-        # BookByline remains Templetor, so render the bridge while the web.py
-        # macro registry is available and hand trusted HTML to Jinja.
-        "byline_html": byline_html,
-        "blur_cover": "",
-        "cover": get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png",
-        "full_title": full_title,
-        "work_edition_url": work_edition_url,
-    }
-
-
-def get_fulltext_suggestion_snippet_data(doc: dict[str, Any]) -> dict[str, str | Markup]:
-    """Prepare snippet display data returned by the full-text search service."""
-    page_nums = doc.get("fields", {}).get("page_num", [])
-    if len(page_nums) == 1 and isinstance(page_nums[0], list):
-        page_nums = page_nums[0]
-    snippet = doc.get("highlight", {}).get("text", [""])[0]
-    snippet_html = Markup(
-        snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>")
-    )
-    return {
-        "ia": doc.get("fields", {}).get("identifier", [""])[0],
-        "page": ", ".join(str(num) for num in page_nums),
-        "snippet_html": snippet_html,
-    }
+    return Markup(str(macro["__body__"]))
 
 
 class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     @classmethod
-    async def generate_async(cls, query: str) -> FullTextSuggestionsPartialResult:
-        data = await fulltext_search_async(query)
-        hits = data.get("hits", {})
-        if not hits.get("total"):
+    async def generate_async(cls, query: str, exclude: Iterable[str] = ()) -> FullTextSuggestionsPartialResult:
+        # The band shows at most 3; a few spares cover excluded or unhydrated hits.
+        # Every fetched hit costs availability + Infobase hydration.
+        data = await fulltext_search_async(query, limit=10)
+        rows, total = fulltext_page(data)
+        rows = exclude_ocaids(rows, exclude)
+        if not rows and not total:
             macro = "<div></div>"
         else:
-            suggestions = [
-                {
-                    "item": get_fulltext_suggestion_item_data(hit["edition"]),
-                    "snippet": get_fulltext_suggestion_snippet_data(hit),
-                }
-                for hit in hits.get("hits", [])[:4]
-                if hit.get("edition")
-            ]
             macro = render_jinja_template(
                 "FulltextSearchSuggestion.html.jinja",
-                # LoadingIndicator remains Templetor (10 other callers), so
-                # render the bridge before entering the Jinja environment.
-                loading_indicator_html=Markup(str(render_macro("LoadingIndicator", (_("Checking for Search Inside matches"),))["__body__"])),
-                num_found=commify(hits.get("total", 0)),
-                query_url="/search/inside?" + urlencode({"q": query}),
-                suggestions=suggestions,
+                num_found=commify(total),
+                results=[render_fulltext_suggestion_row(query, row, i) for i, row in enumerate(rows[:3])],
+                see_all_url="/search/inside?" + urlencode({"q": query}),
+                total=total,
             )
         return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
@@ -893,6 +843,8 @@ class CarouselPartial:
             loadjs=book_data["loadjs"],
             config_json=book_data["config_json"],
             cards=book_data["cards"],
+            count=book_data["count"],
+            shelf=book_data["shelf"],
         )
         return {"partials": render_jinja_template("RawQueryCarousel.html.jinja", **data)}
 
@@ -983,6 +935,9 @@ def _carousel_card_book(book: Any) -> Any:
     target = docs[0] if isinstance(docs, list) and docs else book
     card_book = target if hasattr(target, "key") else web.storage(target)
     card_book["authors"] = book.get("authors", [])
+    if target is not book:
+        # An edition doc carries no work key; the shelf button needs it.
+        card_book["work_key"] = book.get("key")
     if loan := book.get("loan"):
         card_book["loan"] = loan
     return card_book
@@ -1018,6 +973,8 @@ class BookCarouselData(CarouselCommonData):
     loadjs: str
     config_json: str
     cards: list[str]
+    count: int | None  # shown after the title; a shelf carousel's count is kept live by book-state.js
+    shelf: int | None
 
 
 class CarouselPlaceholderData(TypedDict):
@@ -1047,6 +1004,8 @@ def get_book_carousel_data(
     secondary_action: bool = False,
     layout: str = "carousel",
     full_path: str,
+    count: int | None = None,
+    shelf: int | None = None,
     **common: Unpack[CarouselCommonData],
 ) -> BookCarouselData:
     """Gather the data for books/custom_carousel.html.jinja.
@@ -1060,7 +1019,7 @@ def get_book_carousel_data(
     key = common.get("key", "")
     books = books or []
     if not (test or (books and len(books) >= min_books)):
-        return BookCarouselData(show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[])
+        return BookCarouselData(show=False, title=title, url=url, key=key, grid="", compact="", loadjs="", config_json="", cards=[], count=count, shelf=shelf)
 
     config = {
         "booksPerBreakpoint": [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
@@ -1111,6 +1070,8 @@ def get_book_carousel_data(
         loadjs="carousel--progressively-enhanced" if layout == "carousel" else "",
         config_json=json_encode(config),
         cards=cards,
+        count=count,
+        shelf=shelf,
     )
 
 

@@ -3,27 +3,12 @@
 
 import sys
 
-import web
 import yaml
 
-from openlibrary.coverstore import archive, code, config
+from openlibrary.coverstore import config
 from openlibrary.utils.sentry import init_sentry
 
-
-def runfcgi(func, addr=("localhost", 8000)):
-    """Runs a WSGI function as a FastCGI pre-fork server."""
-    config = dict(web.config.get("fastcgi", {}))
-
-    mode = config.pop("mode", None)
-    if mode == "prefork":
-        import flup.server.fcgi_fork as flups
-    else:
-        import flup.server.fcgi as flups
-
-    return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
-
-
-web.wsgi.runfcgi = runfcgi
+_setup_done = False
 
 
 def load_config(configfile):
@@ -32,27 +17,31 @@ def load_config(configfile):
     for k, v in d.items():
         setattr(config, k, v)
 
-    if "fastcgi" in d:
-        web.config.fastcgi = d["fastcgi"]
-
 
 def setup(configfile: str) -> None:
+    """Load config and init sentry. Idempotent: gunicorn imports the app factory
+    per worker, and code.py may already have loaded the config at import time."""
+    global _setup_done
+    if _setup_done:
+        return
+    _setup_done = True
+
     load_config(configfile)
 
     sentry = init_sentry(getattr(config, "sentry", {}))
     if sentry.enabled:
-        sentry.bind_to_webpy_app(code.app)
+        # The cover metadata still goes through web.py's db layer.
         sentry.bind_to_webpy_db()
 
 
 def main(configfile, *args):
-    setup(configfile)
+    from openlibrary.coverstore import archive
 
+    setup(configfile)
     if "--archive" in args:
         archive.archive()
     else:
-        sys.argv = [sys.argv[0]] + list(args)
-        code.app.run()
+        raise SystemExit("Serving is handled by openlibrary.coverstore.asgi_app; see scripts/coverstore-server")
 
 
 if __name__ == "__main__":
