@@ -70,13 +70,14 @@ export function initAuthorMergePage() {
             await alertFromTemplate(document.getElementById('noMaster'));
             return;
         }
-        if (!confirmTemplate) {
+        const rows = authorRows();
+        const primary = rows.get(master.value);
+        // Without a matching row there is nothing to summarize; submit as before.
+        if (!confirmTemplate || !primary) {
             submitMerge();
             return;
         }
         const i18n = JSON.parse(confirmTemplate.dataset.i18n);
-        const rows = authorRows();
-        const primary = rows.get(master.value);
         // Selecting a primary also ticks its own merge box, so drop it here.
         const duplicates = Array.from(document.querySelectorAll('#mergeForm input[name=merge_key]:checked'))
             .map((box) => box.value)
