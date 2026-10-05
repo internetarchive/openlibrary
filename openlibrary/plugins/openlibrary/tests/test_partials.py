@@ -1,18 +1,25 @@
 """Tests for partials.py functionality."""
 
-from unittest.mock import AsyncMock, patch
+import json
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 import web
+from pydantic import ValidationError
 
 from openlibrary.core.vendors import betterworldbooks_fmt
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
+    NearbyBooksParams,
+    NearbyBooksPartial,
     _solr_query_to_subject_key,
+    build_nearby_books_placeholder_config,
     build_stores,
+    gather_nearby_books_async,
 )
+from openlibrary.utils.solr import Solr
 
 
 class TestSolrQueryToSubjectKey:
@@ -46,6 +53,153 @@ class TestSolrQueryToSubjectKey:
         """Test invalid format raises ValueError."""
         with pytest.raises(ValueError, match="Unable to convert query to subject key"):
             _solr_query_to_subject_key("invalid:format")
+
+
+def _solr_result(docs):
+    result = Mock()
+    result.docs = docs
+    return result
+
+
+# Bypass the memcache memoization so results don't leak between tests.
+_gather_nearby_books = gather_nearby_books_async.__wrapped__
+
+
+class TestGatherNearbyBooksAsync:
+    """Tests for the "Nearby Books" (DDC shelf-adjacency) Solr queries."""
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_when_work_has_no_ddc_sort(self):
+        mock_solr = Mock()
+        mock_solr.escape = Solr.escape
+        mock_solr.select_async = AsyncMock(return_value=_solr_result([{"key": "/works/OL1W"}]))
+
+        with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=mock_solr):
+            docs = await _gather_nearby_books("/works/OL1W", language=None, limit=20)
+
+        assert docs == []
+        mock_solr.select_async.assert_awaited_once_with('key:"/works/OL1W"', fields=["ddc_sort"], rows=1)
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_for_non_numeric_ddc_sort(self):
+        """[Fic]/[E] etc. sort after every number and aren't a real shelf position."""
+        mock_solr = Mock()
+        mock_solr.escape = Solr.escape
+        mock_solr.select_async = AsyncMock(return_value=_solr_result([{"ddc_sort": "[Fic]"}]))
+
+        with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=mock_solr):
+            docs = await _gather_nearby_books("/works/OL1W", language=None, limit=20)
+
+        assert docs == []
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_solr_fails(self):
+        """None (unlike []) is not memoized, so a Solr blip isn't pinned for 5 minutes."""
+        mock_solr = Mock()
+        mock_solr.escape = Solr.escape
+        mock_solr.select_async = AsyncMock(side_effect=RuntimeError("solr down"))
+
+        with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=mock_solr):
+            docs = await _gather_nearby_books("/works/OL1W", language=None, limit=20)
+
+        assert docs is None
+
+    @pytest.mark.asyncio
+    async def test_anchors_on_the_works_indexed_ddc_sort_with_strict_bounds(self):
+        """The anchor is the work's own ddc_sort (fetched from Solr), not a
+        value recomputed from whichever edition happens to be viewed."""
+        mock_solr = Mock()
+        mock_solr.escape = Solr.escape
+        mock_solr.select_async = AsyncMock(
+            side_effect=[
+                _solr_result([{"ddc_sort": "813.54"}]),  # anchor
+                _solr_result([{"key": "/works/OL2W"}]),  # exact
+                _solr_result([{"key": "/works/OL3W"}]),  # before
+                _solr_result([{"key": "/works/OL4W"}]),  # after
+            ]
+        )
+
+        with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=mock_solr):
+            docs = await _gather_nearby_books("/works/OL1W", language="eng", limit=20)
+
+        assert [d["key"] for d in docs] == ["/works/OL3W", "/works/OL2W", "/works/OL4W"]
+
+        queries = [c.args[0] for c in mock_solr.select_async.call_args_list][1:]
+        assert 'ddc_sort:"813.54"' in queries[0]
+        assert 'ddc_sort:["000" TO "813.54"}' in queries[1]
+        assert 'ddc_sort:{"813.54" TO "999.99999"]' in queries[2]
+        assert all('-key:"/works/OL1W"' in q for q in queries)
+        assert all('language:"eng"' in q for q in queries)
+        assert all("content_warning:cover" in q for q in queries)
+        assert all(" AND ebook_access:[borrowable TO *]" in q for q in queries)
+        assert all("type:work" in q for q in queries)
+
+    @pytest.mark.asyncio
+    async def test_escapes_solr_syntax_in_params(self):
+        mock_solr = Mock()
+        mock_solr.escape = Solr.escape
+        mock_solr.select_async = AsyncMock(return_value=_solr_result([]))
+
+        with patch("openlibrary.plugins.worksearch.search.get_solr", return_value=mock_solr):
+            await _gather_nearby_books('/works/OL1W" OR key:"', language=None, limit=20)
+
+        assert mock_solr.select_async.call_args.args[0] == 'key:"/works/OL1W\\" OR key\\:\\""'
+
+
+class TestNearbyBooksParams:
+    @pytest.mark.parametrize(
+        "params",
+        [
+            {"work_key": "/works/OL1W", "language": 'eng" OR title:*'},
+            {"work_key": '/works/OL1W" OR key:"'},
+            {"work_key": "/books/OL1M"},
+            {"work_key": "/works/OL1W", "limit": 0},
+            {"work_key": "/works/OL1W", "limit": 999},
+        ],
+    )
+    def test_rejects_unsafe_or_out_of_range_params(self, params):
+        with pytest.raises(ValidationError):
+            NearbyBooksParams(**params)
+
+    def test_accepts_valid_params(self):
+        params = NearbyBooksParams(work_key="/works/OL1W", language="eng")
+        assert params.limit == 20
+
+
+class TestNearbyBooksPartial:
+    @pytest.mark.asyncio
+    async def test_generate_async_returns_empty_partial_when_no_neighbours(self):
+        with patch(
+            "openlibrary.plugins.openlibrary.partials.gather_nearby_books_async",
+            AsyncMock(return_value=[]),
+        ):
+            params = Mock(work_key="/works/OL1W", language=None, limit=20)
+            result = await NearbyBooksPartial.generate_async(params)
+
+        assert result == {"partials": ""}
+
+    @pytest.mark.asyncio
+    async def test_generate_async_attaches_availability_to_the_solr_docs(self):
+        """Raw Solr docs carry no lending state; the card badge needs it."""
+        docs = [{"key": "/works/OL2W", "title": "Neighbour", "ia": ["neighbour"]}]
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.gather_nearby_books_async", AsyncMock(return_value=docs)),
+            patch("openlibrary.plugins.openlibrary.partials.add_availability_async", AsyncMock()) as add_availability,
+            patch("openlibrary.plugins.openlibrary.partials.get_book_carousel_data", return_value={}),
+            patch("openlibrary.plugins.openlibrary.partials.render_jinja_template", return_value="<div/>"),
+        ):
+            params = Mock(work_key="/works/OL1W", language=None, limit=20)
+            result = await NearbyBooksPartial.generate_async(params)
+
+        add_availability.assert_awaited_once_with(docs)
+        assert result == {"partials": "<div/>"}
+
+
+def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial():
+    with patch("openlibrary.plugins.openlibrary.partials.render_macro", return_value={"__body__": "<div>loading</div>"}):
+        config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
+    assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
+    assert config["fallback"] is None
 
 
 def _community_card(title: str) -> dict:
