@@ -8350,7 +8350,7 @@ msgid "Loading carousel"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
-msgid "Nearby Books"
+msgid "On the Same Shelf"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py

@@ -1270,7 +1270,7 @@ class NearbyBooksPartial:
         # No query backs this carousel, so no title link and no load-more.
         data = get_book_carousel_data(
             books=[web.storage(b) for b in books],
-            title=_("Nearby Books"),
+            title=_("On the Same Shelf"),
             url=None,
             key="nearby-books",
             full_path=full_path,
