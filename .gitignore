@@ -77,3 +77,5 @@ test-results/
 # Local dev state for /status testing-environment (deploy table)
 /_testing-prs.json
 /_dev-merged_status.txt
+# Written by scripts/i18n-pull-translations.sh: which openlibrary-i18n commit olbase baked
+openlibrary/i18n/openlibrary-i18n.txt

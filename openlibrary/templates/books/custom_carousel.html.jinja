@@ -9,15 +9,19 @@
     {% set genre_row = subgenres is defined and subgenres is not none %}
     {% if show or sort_control or genre_row %}
         <div class="carousel-section">
-            {% if title and url %}
+            {% if title %}
                 <div class="carousel-section-header{% if sort_control %} carousel-section-header--sortable{% endif %}">
                     {% if genre_row %}
                         {# A genre row links from its footer instead, so the link can name the subgenre. #}
                         <h2 class="home-h2 carousel-heading--plain">{{ title }}</h2>
                     {% else %}
                         <h2 class="home-h2">
-                            <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
-                               href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
+                            {% if url %}
+                                <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
+                                   href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
+                            {% else %}
+                                {{ title }}{{ carousel_count(count, shelf) }}
+                            {% endif %}
                         </h2>
                     {% endif %}
                     {% if sort_control %}

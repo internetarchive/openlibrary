@@ -28,6 +28,8 @@ from openlibrary.plugins.openlibrary.partials import (
     HomeGenrePartial,
     LazyCarouselParams,
     MyBooksDropperListsPartial,
+    NearbyBooksParams,
+    NearbyBooksPartial,
     ReadingGoalProgressPartial,
     ReadingStatePartial,
     SearchFacetsPartial,
@@ -253,6 +255,17 @@ async def home_genre_partial(params: Annotated[HomeGenreParams, Query()]) -> dic
     the genre's carousel, with a control that narrows it to a subgenre.
     """
     return await HomeGenrePartial.generate_async(params=params)
+
+
+@router.get("/partials/NearbyBooks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def nearby_books_partial(
+    params: Annotated[NearbyBooksParams, Query()],
+    full_path: Annotated[str, Depends(get_fullpath)],
+) -> dict:
+    """
+    Get the book page's "Nearby Books" (DDC shelf-adjacency) carousel HTML.
+    """
+    return await NearbyBooksPartial.generate_async(params=params, full_path=full_path)
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

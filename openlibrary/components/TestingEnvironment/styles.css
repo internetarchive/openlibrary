@@ -311,6 +311,11 @@
   text-decoration: underline;
 }
 
+/* A draft PR's title is dimmed to signal it's not ready to merge. */
+.testing-env__pr-title--draft {
+  color: var(--color-text-muted);
+}
+
 /* Dot marks the PR's place in the last deploy: green when live now, gray when
    never deployed, red when the merge conflicted so it never landed. */
 .testing-env__live-dot {
