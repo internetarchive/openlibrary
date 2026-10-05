@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import time
 from unittest.mock import patch
 
 import pytest
@@ -14,11 +13,35 @@ from openlibrary.utils.async_utils import async_bridge
 DB_PARAMETERS = {"dbn": "postgres", "db": "openlibrary", "user": "openlibrary"}
 
 
+def _reset_pools() -> None:
+    """Synchronously drop every cached pool (test-only).
+
+    Moved out of ``async_db`` so the production module exposes only
+    ``init_pool`` / ``close_pool`` / ``connection``. Running loops get a
+    scheduled close; pools on dead loops are dropped where nothing can run.
+    """
+    with async_db._entries_lock:
+        entries = list(async_db._entries.items())
+        async_db._entries.clear()
+    for loop, entry in entries:
+        pool = entry.pool
+        if pool is None:
+            continue
+        if loop.is_running() and not loop.is_closed():
+            asyncio.run_coroutine_threadsafe(pool.close(), loop)
+
+
+def _current_pool():
+    """The running loop's cached pool, or None (test-local replacement for get_pool)."""
+    entry = async_db._entries.get(asyncio.get_running_loop())
+    return entry.pool if entry else None
+
+
 @pytest.fixture(autouse=True)
-def _reset_pools():
-    async_db.reset_pools()
+def _reset_pools_between_tests():
+    _reset_pools()
     yield
-    async_db.reset_pools()
+    _reset_pools()
 
 
 class FakePool:
@@ -146,7 +169,7 @@ async def test_no_db_config_skips_pool_and_connection_raises():
     with patch("openlibrary.core.async_db.AsyncConnectionPool") as mock_pool:
         await async_db.init_pool()
     mock_pool.assert_not_called()
-    assert async_db.get_pool() is None
+    assert _current_pool() is None
     with pytest.raises(RuntimeError, match="No async database pool available"):
         async with async_db.connection():
             pass
@@ -158,7 +181,7 @@ async def test_init_pool_fails_when_psycopg_not_installed():
     web.config.db_parameters = DB_PARAMETERS
     with patch("openlibrary.core.async_db.AsyncConnectionPool", None), pytest.raises(RuntimeError, match=r"psycopg\[binary,pool\] is required"):
         await async_db.init_pool()
-    assert async_db.get_pool() is None
+    assert _current_pool() is None
 
 
 @pytest.mark.asyncio
@@ -167,11 +190,11 @@ async def test_init_pool_creates_and_reuses_the_pool():
     factory = RecordingPoolFactory()
     with patch("openlibrary.core.async_db.AsyncConnectionPool", factory):
         await async_db.init_pool()
-        first_pool = async_db.get_pool()
+        first_pool = _current_pool()
         await async_db.init_pool()
 
     assert len(factory.created) == 1
-    assert async_db.get_pool() is first_pool
+    assert _current_pool() is first_pool
     assert isinstance(first_pool, FakePool)
     assert first_pool.opened
     # Connection parameters reach psycopg through pool kwargs, merged into the
@@ -196,7 +219,7 @@ async def test_connection_lazy_initializes_and_uses_the_pool():
         async with async_db.connection() as conn:
             assert isinstance(conn, FakeConnection)
 
-    pool = async_db.get_pool()
+    pool = _current_pool()
     assert isinstance(pool, FakePool)
     assert pool.opened
     assert len(pool.connections) == 1
@@ -209,7 +232,7 @@ def test_pools_are_cached_per_event_loop():
     async def _first_connection():
         async with async_db.connection():
             pass
-        return async_db.get_pool()
+        return _current_pool()
 
     with patch("openlibrary.core.async_db.AsyncConnectionPool", FakePool):
         loop_1 = asyncio.new_event_loop()
@@ -264,36 +287,11 @@ async def test_close_pool_closes_and_clears():
     with patch("openlibrary.core.async_db.AsyncConnectionPool", FakePool):
         await async_db.init_pool()
 
-    pool = async_db.get_pool()
+    pool = _current_pool()
     assert isinstance(pool, FakePool)
     await async_db.close_pool()
     assert pool.closed
-    assert async_db.get_pool() is None
-
-
-@pytest.mark.asyncio
-async def test_close_pool_closes_pools_on_other_loops():
-    """A pool created on the bridge loop closes there, and a later call opens a fresh one."""
-    web.config.db_parameters = DB_PARAMETERS
-
-    async def _use():
-        async with async_db.connection():
-            pass
-
-    with patch("openlibrary.core.async_db.AsyncConnectionPool", FakePool):
-        async_bridge.run(_use())
-        bridge_pool = async_db._entries[async_bridge._loop].pool
-        assert isinstance(bridge_pool, FakePool)
-
-        await async_db.close_pool()
-        assert bridge_pool.closed
-        assert async_db._entries[async_bridge._loop].pool is None
-
-        async_bridge.run(_use())
-        new_pool = async_db._entries[async_bridge._loop].pool
-
-    assert isinstance(new_pool, FakePool)
-    assert new_pool is not bridge_pool
+    assert _current_pool() is None
 
 
 # --- Concurrent first callers and cancellation ------------------------------
@@ -313,7 +311,7 @@ async def test_concurrent_first_callers_share_one_pool():
 
     assert len(factory.created) == 1
     assert all(pool is factory.created[0] for pool in pools)
-    assert async_db.get_pool() is factory.created[0]
+    assert _current_pool() is factory.created[0]
 
 
 @pytest.mark.asyncio
@@ -336,7 +334,7 @@ async def test_cancelled_waiter_does_not_affect_the_open():
 
     assert pool is factory.created[0]
     assert len(factory.created) == 1
-    assert async_db.get_pool() is pool
+    assert _current_pool() is pool
 
 
 @pytest.mark.asyncio
@@ -354,14 +352,14 @@ async def test_cancelled_open_closes_pool_and_allows_retry():
             await opener
 
         assert factory.created[0].closed
-        assert async_db.get_pool() is None
+        assert _current_pool() is None
 
         gate.set()
         pool = await async_db._pool_for_loop()
 
     assert len(factory.created) == 2
     assert pool is factory.created[1]
-    assert async_db.get_pool() is pool
+    assert _current_pool() is pool
 
 
 @pytest.mark.asyncio
@@ -373,7 +371,7 @@ async def test_failed_open_closes_pool_and_does_not_cache():
         await async_db._pool_for_loop()
 
     assert factory.created[0].closed
-    assert async_db.get_pool() is None
+    assert _current_pool() is None
 
 
 # --- Lifetime and close_pool edge cases -------------------------------------
@@ -408,25 +406,7 @@ async def test_close_pool_waits_for_inflight_open_then_closes_it():
 
     assert pool is factory.created[0]
     assert pool.closed
-    assert async_db.get_pool() is None
-
-
-@pytest.mark.asyncio
-async def test_close_pool_skips_stopped_loops_without_waiting():
-    """A stopped loop can't run a close: its entry is skipped promptly
-    instead of stalling shutdown, and left for reset_pools()."""
-    loop = asyncio.new_event_loop()
-    loop.close()
-    pool = FakePool(name="async-db-test")
-    _cache_pool(loop, pool)
-
-    start = time.monotonic()
-    await async_db.close_pool()
-    elapsed = time.monotonic() - start
-
-    assert elapsed < 0.5
-    assert async_db._entries[loop].pool is pool
-    assert not pool.closed, "nothing can run on a dead loop"
+    assert _current_pool() is None
 
 
 @pytest.mark.asyncio
@@ -453,7 +433,7 @@ async def test_reset_pools_closes_pools_on_running_loops():
     pool = FakePool(name="async-db-test")
     _cache_pool(asyncio.get_running_loop(), pool)
 
-    async_db.reset_pools()
+    _reset_pools()
 
     assert not async_db._entries
     await _wait_until(lambda: pool.closed)
@@ -469,7 +449,7 @@ async def test_reset_pools_during_inflight_open_leaves_no_cached_pool():
         opener = asyncio.create_task(async_db._pool_for_loop())
         await _wait_until(lambda: len(factory.created) == 1)
 
-        async_db.reset_pools()
+        _reset_pools()
         assert not async_db._entries
 
         opener.cancel()
@@ -477,7 +457,7 @@ async def test_reset_pools_during_inflight_open_leaves_no_cached_pool():
             await opener
 
     assert factory.created[0].closed
-    assert async_db.get_pool() is None
+    assert _current_pool() is None
 
 
 # --- Integration with the real psycopg pool ----------------------------------
@@ -513,4 +493,4 @@ async def test_real_pool_cancelled_open_is_closed_and_not_cached(monkeypatch):
         await opener
 
     assert created[0].closed
-    assert async_db.get_pool() is None
+    assert _current_pool() is None
