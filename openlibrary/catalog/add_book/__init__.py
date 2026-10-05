@@ -263,7 +263,8 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
             else:
                 a["key"] = f"/authors/__new__{uuid.uuid4()}"
             a["source_records"] = [source]
-            edits.append(a)
+        # Matched authors _may_ have been enriched in author_import_record_to_author(); append unconditionally so changes persist
+        edits.append(a)
         authors.append({"key": a["key"]})
         author_reply.append(
             {

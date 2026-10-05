@@ -624,6 +624,22 @@ class Test_From_MARC:
         assert isinstance(work["description"], Text)
         assert work["description"] == desc
 
+    def test_matched_author_gets_death_date(self, mock_site, add_languages, ia_writeback):
+        mock_site.save({
+            "key": "/authors/OL1A", "type": {"key": "/type/author"},
+            "name": "John Smith", "birth_date": "1900",
+        })
+        rec = {
+            "title": "Some New Book",
+            "source_records": ["ia:new_book"],
+            "authors": [{"name": "John Smith", "birth_date": "1900", "death_date": "1970"}],
+        }
+        reply = load(rec)
+        assert reply["authors"][0]["status"] == "matched"
+        assert reply["authors"][0]["key"] == "/authors/OL1A"
+        # Check whether new import Author data is saved to existing matched record:
+        assert mock_site.get("/authors/OL1A").death_date == "1970"
+
 
 def test_build_pool(mock_site):
     assert build_pool({"title": "test"}) == {}
