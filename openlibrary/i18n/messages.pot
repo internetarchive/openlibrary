@@ -5592,6 +5592,10 @@ msgid "%(count)d records modified."
 msgstr ""
 
 #: search/advancedsearch.html
+msgid "All fields"
+msgstr ""
+
+#: search/advancedsearch.html
 msgid "ISBN"
 msgstr ""
 
