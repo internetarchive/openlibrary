@@ -1,4 +1,5 @@
 import {initialzeCarousels} from './carousel';
+import { trackEvent } from './ol.analytics.js';
 import { buildPartialsUrl, whenVisible } from './utils';
 
 let relatedBooksTracked = false;
@@ -30,13 +31,17 @@ export function initLazyCarousel(elems) {
 }
 
 /**
- * Prepares and makes a request for carousel HTML
+ * Prepares and makes a request for carousel HTML.
  *
- * @param data {object}
+ * `config.partial` picks the partials endpoint (default: LazyCarousel);
+ * everything else in the config is sent as query params.
+ *
+ * @param config {object}
  * @returns {Promise<Response>}
  */
-async function fetchPartials(data) {
-    return fetch(buildPartialsUrl('LazyCarousel', {...data}));
+async function fetchPartials(config) {
+    const { partial = 'LazyCarousel', ...params } = config;
+    return fetch(buildPartialsUrl(partial, params));
 }
 
 /**
@@ -64,11 +69,14 @@ function doFetchAndUpdate(target) {
         .then(data => {
             const newElem = document.createElement('div');
             newElem.className = 'lazy-carousel-loaded';
-            newElem.innerHTML = data.partials.trim();
+            newElem.innerHTML = (data.partials || '').trim();
             const carouselElements = newElem.querySelectorAll('.carousel--progressively-enhanced');
             loadingIndicator.classList.add('hidden');
 
-            if (carouselElements.length === 0 && config.fallback) {
+            if (!newElem.innerHTML && !config.fallback) {
+                // Nothing to show (e.g. no Nearby Books); free the space.
+                target.remove();
+            } else if (carouselElements.length === 0 && config.fallback) {
                 // No results, disable filters
                 if (typeof config.fallback === 'string') {
                     config.query = config.fallback;
@@ -82,6 +90,7 @@ function doFetchAndUpdate(target) {
                 target.parentNode.insertBefore(newElem, target);
                 target.remove();
                 initialzeCarousels(carouselElements);
+                if (carouselElements.length) trackImpression(newElem, config.key);
 
                 // ==========================================
                 // EXPERIMENT TRACKING: Related Books Discovery
@@ -119,6 +128,18 @@ function doFetchAndUpdate(target) {
             const retryElem = target.querySelector('.lazy-carousel-retry');
             retryElem.classList.remove('hidden');
         });
+}
+
+/**
+ * Reports `BookCarousel|Impression|<key>` once, when at least half of a
+ * loaded carousel is on screen. Pairs with the carousel's click events.
+ *
+ * @param elem {HTMLElement}
+ * @param key {string}
+ */
+function trackImpression(elem, key) {
+    whenVisible(elem, { rootMargin: '0px', threshold: 0.5 })
+        .then(() => trackEvent('BookCarousel', 'Impression', key));
 }
 
 /**
