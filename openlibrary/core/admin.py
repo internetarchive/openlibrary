@@ -80,10 +80,8 @@ def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
 
 class LoanStats(Stats):
     """
-    Temporary (2020-03-19) override of Stats for loans, due to bug
-    which caused 1mo of loans stats to be missing from regular
-    stats db. This implementation uses graphite, but only on prod,
-    so that we don't forget.
+    Loan counts come from graphite; the daily counts docs don't track
+    loans, so the fallback (e.g. local dev) reports zero.
     """
 
     def get_counts(self, ndays=28, times=False):

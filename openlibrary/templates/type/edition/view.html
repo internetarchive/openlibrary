@@ -483,6 +483,21 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
   $:render_template("books/RelatedWorksCarousel", work)
   $ component_times['RelatedWorksCarousel'] = time() - component_times['RelatedWorksCarousel']
 
+  $# Nearby Books anchors on the *work's* indexed ddc_sort, which Solr
+  $# aggregates across every edition. The page only sees a slice of the
+  $# editions, so it can't gate on DDC itself; the partial answers empty
+  $# for works with no shelf position and the loader removes the box.
+  $code:
+    nearby_books_lang = None
+    if edition and edition.get("languages"):
+        lang_obj = edition.languages[0]
+        nearby_books_lang = (lang_obj.key if hasattr(lang_obj, "key") else str(lang_obj)).split("/")[-1]
+
+  $if work and work.key:
+    $ component_times['NearbyBooksCarousel'] = time()
+    $:render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **build_nearby_books_placeholder_config(work.key, nearby_books_lang))
+    $ component_times['NearbyBooksCarousel'] = time() - component_times['NearbyBooksCarousel']
+
   $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 

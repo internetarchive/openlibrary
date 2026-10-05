@@ -21,7 +21,7 @@ const payload = {
 const updatePayload = {
     ...payload,
     prs: [
-        { pr: 13269, title: 'First PR', author: 'one', assignee: '', commit: 'abc1234', head_sha: 'def5678', drift: 1, active: true },
+        { pr: 13269, title: 'First PR', author: 'one', assignee: '', commit: 'abc1234', head_sha: 'def5678', drift: 1, active: true, draft: true },
         { pr: 13270, title: 'Second PR', author: 'two', assignee: '', commit: 'abc1234', head_sha: 'def5678', drift: 1, active: true },
         { pr: 13271, title: 'Third PR', author: 'three', assignee: '', commit: 'abc1234', head_sha: 'def5678', drift: 1, active: true }
     ]
@@ -91,6 +91,14 @@ test('the Lit toast is removed after the Vue owner unmounts', async() => {
 
     app.unmount();
     await expect.poll(() => document.querySelector('ol-toast')).toBeNull();
+});
+
+test('marks draft pull requests in the testing table', async() => {
+    window.fetch = async() => ({ ok: true, json: async() => updatePayload });
+
+    await render(TestingEnvironment, { props: { maintainer: 'true' } });
+
+    await expect.element(page.getByRole('link', { name: /Draft/ })).toBeInTheDocument();
 });
 
 test('queues and batches rapid updates before deploying', async() => {
