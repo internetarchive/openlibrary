@@ -7250,10 +7250,6 @@ msgid "All copies are checked out."
 msgstr ""
 
 #: LoanStatus.html
-msgid "This book is currently checked out, please check back later."
-msgstr ""
-
-#: LoanStatus.html
 msgid "Checked Out"
 msgstr ""
 

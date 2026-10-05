@@ -18,18 +18,20 @@ a.cta-btn {
   font-family: var(--font-family-body);
   text-align: center;
   padding: var(--spacing-inset-sm);
-  white-space: nowrap;
+  /* An action never hides its verb: long labels wrap (balanced, hyphenated
+     where the page language allows) instead of ellipsizing. */
+  text-wrap: balance;
+  hyphens: auto;
+  overflow-wrap: anywhere;
   background-color: var(--grey);
   line-height: 1.5em;
   text-decoration: none;
 }
 
 /* Icons sit inline beside the label, as in ol-button's icon slots. The label
-   gives way first, so a narrow button ellipsizes text rather than the icon. */
+   is the part that wraps, so the icon keeps its size. */
 .cta-btn__label {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .cta-btn:link,
@@ -42,25 +44,24 @@ a.cta-btn:visited {
 
 /* The CTAs share ol-button's medium box (components/ol-button.css): control
    height, padding, type and radius. They stay full-width — that is the CTA's
-   job — so every state of the button lines up with the Buy trigger. */
+   job — so every state of the button lines up with the Buy trigger. The height
+   is a minimum so a long translation can take a second line. */
 .cta-btn--available,
 .cta-btn--primary,
 .cta-btn--unavailable,
 .cta-btn--preview,
-.cta-btn--missing,
 .cta-btn--shell,
 a.cta-btn--available,
 a.cta-btn--primary,
 a.cta-btn--unavailable,
 a.cta-btn--preview,
-a.cta-btn--missing,
 a.cta-btn--shell {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2xs);
-  height: var(--control-height-medium);
-  padding: 0 var(--spacing-md);
+  min-height: var(--control-height-medium);
+  padding: var(--spacing-2xs) var(--spacing-md);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
   line-height: var(--line-height-control);
@@ -223,17 +224,16 @@ a.cta-btn--delete:hover {
 
 /* Button inside carousel */
 /* Cards run as narrow as 130px on phones, so the inset drops to ol-button
-   small's to keep "Nearby Libraries" whole. */
+   small's to give the label as much of the card as it can. */
 .carousel-section .cta-btn {
-  padding: 0 var(--spacing-sm);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  padding-inline: var(--spacing-sm);
   font-size: var(--font-size-label-large);
   text-align: center;
 }
 
 /* Top margin to button coming after another button */
 .cta-btn + form input.cta-btn,
+.cta-btn + form button.cta-btn,
 .cta-btn + .cta-btn {
   margin-top: var(--spacing-stack-xs);
 }
@@ -263,10 +263,6 @@ a.cta-btn--delete:hover {
 
 .cta-button-group .cta-btn {
   margin: 0;
-
-  /* Avoid text wrapping */
-  text-overflow: ellipsis;
-  overflow: hidden;
 }
 
 .return-form {

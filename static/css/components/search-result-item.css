@@ -19,6 +19,8 @@
   flex-basis: content;
   flex-grow: 0;
   width: auto;
+  /* A text link, so no button inset: the cover column is all it gets. */
+  padding-inline: 0;
 }
 
 /* stylelint-disable selector-max-specificity */

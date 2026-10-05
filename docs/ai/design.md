@@ -59,6 +59,12 @@ The principles these rules serve — and the tensions between them — are on `/
 
 Headings share the body ink (`--color-text-heading` is `--color-text`); size and weight carry the hierarchy, not color.
 
+### Actions wrap; passive text truncates
+
+A button label never ellipsizes. "Присоедин…" in a 140px carousel card hides the one thing the button does, so action labels wrap instead: give the control a `min-height` (not `height`), `text-wrap: balance`, and `hyphens: auto` with `overflow-wrap: anywhere` for single long words. In a flex row, the label or the button's half of a split control needs `min-width: 0`, or a long label sets its minimum width and pushes its neighbour out of the column. Ellipsis stays for passive text — titles, author names, subject chips — where the full value is one click away.
+
+A state with nothing to act on ("Not in Library", "Checked Out") is status text, not a disabled-looking button. In a card it takes the button's slot: centred in `--control-height-medium`, which holds two lines at `--font-size-label-medium`, and clamped at two so the row stays one height.
+
 ## Visual Design
 
 ### Scroll Margins
@@ -569,6 +575,7 @@ What checks each rule today. "Review" means only a human or the Copilot UI check
 | Semantic tokens meet WCAG AA | `tests/unit/js/token-contrast.test.js` (palette matrix), `tests/unit/js/design-contrast.test.js` (design-page badges) |
 | Deprecated aliases | Review |
 | No font-weight change on hover | Review |
+| Action labels wrap, never ellipsize; status text instead of dead buttons | Review |
 | Hover is instant / border tracks fill / fill direction | Review |
 | Press feedback tiers | Review |
 | Motion via tokens, no raw curves or durations | Review |

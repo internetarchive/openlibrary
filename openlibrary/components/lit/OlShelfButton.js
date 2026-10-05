@@ -179,7 +179,8 @@ export class OlShelfButton extends LitElement {
             align-items: center;
             justify-content: center;
             gap: var(--spacing-icon-gap);
-            height: calc(var(--control-height-medium) - 2px);
+            /* A minimum, so a long shelf name can take a second line. */
+            min-height: calc(var(--control-height-medium) - 2px);
             border: 0;
             background: none;
             color: var(--color-text);
@@ -188,17 +189,20 @@ export class OlShelfButton extends LitElement {
             cursor: pointer;
         }
 
+        /* The label wraps rather than ellipsizing: an action never hides its
+           verb. Balanced, and hyphenated where the page language allows. */
         .main {
             flex: 1;
             min-width: 0;
-            padding: 0 var(--spacing-xs);
-            white-space: nowrap;
-            overflow: hidden;
+            padding: var(--spacing-3xs) var(--spacing-xs);
+            line-height: var(--line-height-control);
+            text-wrap: balance;
+            hyphens: auto;
+            overflow-wrap: anywhere;
         }
 
         .main span {
-            overflow: hidden;
-            text-overflow: ellipsis;
+            min-width: 0;
         }
 
         .main--on {

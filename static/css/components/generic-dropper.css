@@ -12,6 +12,12 @@
   transform: scale(var(--press-scale-wide));
 }
 
+/* Without this a long label sets the main half's minimum width, and it pushes
+   the caret out of a narrow column instead of wrapping. */
+.cta-dropper > .cta-btn {
+  min-width: 0;
+}
+
 .cta-dropper > .cta-btn:active {
   transform: none;
 }

@@ -4,8 +4,8 @@
  */
 
 .waitinglist-message {
-  white-space: nowrap;
   margin: 0 0 10px;
+  text-wrap: balance;
   font-size: var(--font-size-label-medium);
   width: 100%;
 }
