@@ -51,7 +51,7 @@ def _empty_state():
     return status_module.TestingState(last_deploy_at="", prs=[])
 
 
-def _gh_info(pr_number: int = 12914) -> status_module.GitHubPRInfo:
+def _gh_info(pr_number: int = 12914, draft: bool = False) -> status_module.GitHubPRInfo:
     """A successful GitHub PR lookup result."""
     return status_module.GitHubPRInfo(
         pr=pr_number,
@@ -59,11 +59,28 @@ def _gh_info(pr_number: int = 12914) -> status_module.GitHubPRInfo:
         head_sha="abc1234def5678901234567890123456789012345",
         author="author",
         assignee="assignee",
+        draft=draft,
     )
 
 
+_HEAD_SHA = "abc1234def5678901234567890123456789012345"
+
+
+def _graphql_pr(pr_number: int, head_sha: str = _HEAD_SHA, state: str = "OPEN", draft: bool = False, commits: list[str] | None = None) -> dict:
+    return {
+        "title": f"Test PR {pr_number}",
+        "state": state,
+        "isDraft": draft,
+        "mergedAt": "2026-08-01T00:00:00Z" if state == "MERGED" else None,
+        "headRefOid": head_sha,
+        "author": {"login": "author", "avatarUrl": "https://example.com/author.png"},
+        "assignees": {"nodes": [{"login": "assignee", "avatarUrl": "https://example.com/assignee.png"}]},
+        "commits": {"nodes": [{"commit": {"oid": oid}} for oid in (commits or [head_sha])]},
+    }
+
+
 async def _gh_lookup(pr_number: int) -> status_module.GitHubPRInfo:
-    """Stand-in for ``_get_pr_info_async``: describes the PR it was asked about."""
+    """Stand-in for ``get_pr_info``: describes the PR it was asked about."""
     return _gh_info(pr_number)
 
 
@@ -76,18 +93,18 @@ def _post_add(client, state, pr_value="12914", gh=None):
     """
     if isinstance(gh, BaseException):
         get_pr_info = patch(
-            "openlibrary.plugins.openlibrary.status._get_pr_info_async",
+            "openlibrary.plugins.openlibrary.status.get_pr_info",
             new_callable=AsyncMock,
             side_effect=gh,
         )
     elif gh is None:
         get_pr_info = patch(
-            "openlibrary.plugins.openlibrary.status._get_pr_info_async",
+            "openlibrary.plugins.openlibrary.status.get_pr_info",
             side_effect=_gh_lookup,
         )
     else:
         get_pr_info = patch(
-            "openlibrary.plugins.openlibrary.status._get_pr_info_async",
+            "openlibrary.plugins.openlibrary.status.get_pr_info",
             new_callable=AsyncMock,
             return_value=gh,
         )
@@ -149,42 +166,64 @@ def test_build_testing_status_has_pending(pr_kwargs, drift, last_deploy_at, expe
 
 
 @pytest.mark.asyncio
-async def test_get_drift_info_fetches_prs_concurrently():
-    """Per-PR GitHub fetches overlap (gather), not one-after-another."""
+async def test_get_drift_info_fetches_all_prs_in_one_graphql_request():
+    """A cache miss makes one GraphQL request for every tracked PR."""
     state = _make_state(prs=[_make_pr(pr_number=n) for n in (13269, 13238, 13240)])
-    info = {
-        "head_sha": "abc1234",
-        "drift": 0,
-        "merged": False,
-        "closed": False,
-        "title": "Test PR",
-        "author": "author",
-        "author_avatar": "",
-        "assignee": "assignee",
-        "assignee_avatar": "",
-    }
-    active = 0
-    peak = 0
+    calls = []
 
-    async def fake_drift(_pr):
-        nonlocal active, peak
-        active += 1
-        peak = max(peak, active)
-        await asyncio.sleep(0.01)  # yield so siblings can start
-        active -= 1
-        return info
+    async def fake_graphql(query):
+        calls.append(query)
+        return {"repository": {f"pr_{p.pr}": _graphql_pr(p.pr, head_sha=p.commit, commits=[p.commit]) for p in state.prs}}
 
     mc = MagicMock()
     mc.get.return_value = None
     with (
         patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_drift_async", side_effect=fake_drift),
+        patch("openlibrary.plugins.openlibrary.status.has_github_token", return_value=True),
+        patch("openlibrary.plugins.openlibrary.github.github_graphql", side_effect=fake_graphql),
     ):
-        drift, from_cache = await status_module._get_drift_info_async(state, persist=False)
+        drift, from_cache = await status_module._get_drift_info(state, persist=False)
 
     assert from_cache is False
-    assert peak > 1  # sequential awaits would never see overlap
-    assert drift == {p.pr: {"head_sha": "abc1234", "drift": 0, "merged": False, "closed": False} for p in state.prs}
+    assert len(calls) == 1
+    assert all(f"pr_{p.pr}: pullRequest(number: {p.pr})" in calls[0] for p in state.prs)
+    assert "isDraft" in calls[0]
+    assert drift == {p.pr: {"head_sha": p.commit[:7], "drift": 0, "merged": False, "closed": False} for p in state.prs}
+
+
+@pytest.mark.asyncio
+async def test_get_drift_info_falls_back_to_rest_without_token():
+    """A cache miss without a token uses the REST API, not GraphQL."""
+    state = _make_state(prs=[_make_pr(pr_number=n) for n in (13269, 13238)])
+    calls = []
+
+    async def fake_rest_drift(pr):
+        calls.append(pr.pr)
+        return {
+            "head_sha": pr.commit[:7],
+            "drift": 0,
+            "merged": False,
+            "closed": False,
+            "title": "Test PR",
+            "author": "author",
+            "author_avatar": "",
+            "assignee": "",
+            "assignee_avatar": "",
+            "draft": False,
+        }
+
+    mc = MagicMock()
+    mc.get.return_value = None
+    with (
+        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
+        patch("openlibrary.plugins.openlibrary.status.has_github_token", return_value=False),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_drift", side_effect=fake_rest_drift),
+    ):
+        drift, from_cache = await status_module._get_drift_info(state, persist=False)
+
+    assert from_cache is False
+    assert set(calls) == {13269, 13238}
+    assert drift == {p.pr: {"head_sha": p.commit[:7], "drift": 0, "merged": False, "closed": False} for p in state.prs}
 
 
 def test_build_testing_status_marks_merge_conflicts():
@@ -243,7 +282,7 @@ def test_merge_conflicted_prs_falls_back_to_pr_number_in_message():
         assert status_module._merge_conflicted_prs() == frozenset({13370})
 
 
-def test_load_testing_status_async_wires_merge_conflicts():
+def test_load_testing_status_wires_merge_conflicts():
     """The async loader passes the deploy-status conflicts into the built rows."""
     state = _make_state()
     dms = status_module.DevMergedStatus(
@@ -259,27 +298,29 @@ def test_load_testing_status_async_wires_merge_conflicts():
     )
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
         patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=dms),
     ):
-        result = asyncio.run(status_module.load_testing_status_async())
+        result = asyncio.run(status_module.load_testing_status())
 
     assert result.prs[0].merge_conflict is True
 
 
-def test_load_testing_status_returns_none_without_state():
+@pytest.mark.asyncio
+async def test_load_testing_status_returns_none_without_state():
     with patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=None):
-        assert status_module.load_testing_status() is None
+        assert await status_module.load_testing_status() is None
 
 
-def test_load_testing_status_composes_state_and_drift():
+@pytest.mark.asyncio
+async def test_load_testing_status_composes_state_and_drift():
     state = _make_state()
     drift_info = {state.prs[0].pr: {"head_sha": "abc1234", "drift": 2, "merged": False}}
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", return_value=(drift_info, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=(drift_info, False)),
     ):
-        result = status_module.load_testing_status()
+        result = await status_module.load_testing_status()
 
     assert result.prs[0].drift == 2
 
@@ -367,29 +408,7 @@ def test_build_testing_status_marks_closed_prs():
 
 
 @pytest.mark.asyncio
-async def test_pr_drift_distinguishes_closed_from_merged():
-    """Merging closes a PR too; only a close without a merge counts as closed."""
-
-    async def fake_get(path):
-        if path.startswith("pulls/"):
-            return {"state": "closed", "merged": False, "merged_at": None, "head": {"sha": "abc1234"}, "user": {}, "assignee": {}, "title": "Closed PR"}
-        return {}  # compare response; no ahead_by → drift unknown
-
-    with patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=fake_get):
-        assert (await status_module._get_pr_drift_async(_make_pr()))["closed"] is True
-
-    async def fake_get_merged(path):
-        if path.startswith("pulls/"):
-            return {"state": "closed", "merged": True, "merged_at": "2026-08-01", "head": {"sha": "abc1234"}, "user": {}, "assignee": {}, "title": "Merged PR"}
-        return {}
-
-    with patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=fake_get_merged):
-        info = await status_module._get_pr_drift_async(_make_pr())
-    assert info["closed"] is False
-    assert info["merged"] is True
-
-
-def test_deploy_drops_closed_prs():
+async def test_deploy_drops_closed_prs():
     """Deploying removes closed (not merged) PRs from the set, like merged ones."""
     pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
     state = _make_state(prs=[pr])
@@ -405,12 +424,13 @@ def test_deploy_drops_closed_prs():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        status_module.deploy_testing_status()
+        await status_module.deploy_testing_status()
 
     assert state.prs == []
 
 
-def test_deploy_drops_staged_removals():
+@pytest.mark.asyncio
+async def test_deploy_drops_staged_removals():
     """Deploying deletes rows whose removal is staged; the rest survive."""
     doomed = _make_pr(added_at="2026-08-01T10:00:00+00:00")
     doomed.pending_remove = True
@@ -426,7 +446,7 @@ def test_deploy_drops_staged_removals():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        status_module.deploy_testing_status()
+        await status_module.deploy_testing_status()
 
     assert [p.pr for p in state.prs] == [13238]
     assert state.deployed == {13238: survivor.title}
@@ -687,7 +707,7 @@ async def test_pull_latest_stages_the_new_head_sha():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=info),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
         response = await status_module.pull_latest_prs([pr.pr])
@@ -705,7 +725,7 @@ async def test_pull_latest_stages_the_new_head_sha():
 async def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
     """A GitHub failure leaves the row alone and still answers ok.
 
-    Regression guard: ``_get_pr_info`` used to signal failure with an empty
+    Regression guard: ``get_pr_info`` used to signal failure with an empty
     ``head_sha`` rather than raising. Now that it raises, this handler has to
     catch it — an uncaught error here would 500 the endpoint, where it has
     always been a silent no-op.
@@ -715,7 +735,7 @@ async def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, side_effect=error),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, side_effect=error),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
     ):
         response = await status_module.pull_latest_prs([pr.pr])
@@ -724,7 +744,8 @@ async def test_pull_latest_skips_a_pr_github_could_not_answer_for(error):
     assert pr.pull_latest_sha == ""
 
 
-def test_deploy_unconfigured_answers_error_but_advances_state():
+@pytest.mark.asyncio
+async def test_deploy_unconfigured_answers_error_but_advances_state():
     """Local dev (no Jenkins token): state advances so the UI is exercisable,
     but the response says nothing was actually deployed."""
     state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
@@ -738,7 +759,7 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        response = status_module.deploy_testing_status()
+        response = await status_module.deploy_testing_status()
 
     assert response == {"ok": False, "error": "deploy_unconfigured"}
     # No build was accepted, so no deploy window starts…
@@ -747,85 +768,9 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
     assert state.deployed == {13269: "Test PR"}
 
 
-def test_get_pr_info_raises_not_found_on_404():
-    """A 404 is its own failure mode, so callers can say "no such PR"."""
-    request = httpx.Request("GET", "https://api.github.com/repos/internetarchive/openlibrary/pulls/12914")
-    with (
-        patch(
-            "openlibrary.plugins.openlibrary.status._github_get_async",
-            side_effect=httpx.HTTPStatusError("Not Found", request=request, response=httpx.Response(404, request=request)),
-        ),
-        pytest.raises(status_module.PRNotFoundError),
-    ):
-        status_module._get_pr_info(12914)
-
-
-def test_get_pr_info_raises_unavailable_on_rate_limit():
-    """Anything that isn't a 404 is an outage, not a missing PR."""
-    request = httpx.Request("GET", "https://api.github.com/repos/internetarchive/openlibrary/pulls/12914")
-    with (
-        patch(
-            "openlibrary.plugins.openlibrary.status._github_get_async",
-            side_effect=httpx.HTTPStatusError("rate limit exceeded", request=request, response=httpx.Response(403, request=request)),
-        ),
-        pytest.raises(status_module.GitHubUnavailableError),
-    ):
-        status_module._get_pr_info(12914)
-
-
-def test_get_pr_info_raises_unavailable_on_network_error_and_bad_body():
-    """A network failure and a malformed payload are both outages, not absences."""
-    with (
-        patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=httpx.ConnectError("no route")),
-        pytest.raises(status_module.GitHubUnavailableError),
-    ):
-        status_module._get_pr_info(12914)
-
-    # A 200 whose body is missing "head" — the KeyError path.
-    with (
-        patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value={"title": "no head key"}),
-        pytest.raises(status_module.GitHubUnavailableError),
-    ):
-        status_module._get_pr_info(12914)
-
-
-def test_get_pr_info_returns_only_valid_data_on_success():
-    """A returned payload always carries real values — no error sentinel to check."""
-    body = {
-        "title": "A PR",
-        "head": {"sha": "abc1234def5678901234567890123456789012345"},
-        "user": {"login": "author", "avatar_url": "https://example.com/a.png"},
-        "assignee": None,
-    }
-    with patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value=body):
-        info = status_module._get_pr_info(12914)
-
-    assert info == status_module.GitHubPRInfo(
-        pr=12914,
-        title="A PR",
-        head_sha="abc1234def5678901234567890123456789012345",
-        author="author",
-        author_avatar="https://example.com/a.png",
-    )
-
-
-def test_get_pr_info_falls_back_when_the_title_is_empty():
-    """GitHub always sends a title, but an empty one shouldn't render a blank row."""
-    body = {
-        "title": "",
-        "head": {"sha": "abc1234def5678901234567890123456789012345"},
-        "user": {},
-        "assignee": None,
-    }
-    with patch("openlibrary.plugins.openlibrary.status._github_get_async", return_value=body):
-        info = status_module._get_pr_info(12914)
-
-    assert info.title == "PR #12914"
-
-
 def test_from_github_builds_a_row_from_the_lookup():
     """The DTO converts to a persisted row, stamped and credited."""
-    pr = status_module.TestingPR.from_github(_gh_info(13269), "mecha-kraken")
+    pr = status_module.TestingPR.from_github(_gh_info(13269, draft=True), "mecha-kraken")
 
     assert pr.pr == 13269
     assert pr.commit == "abc1234def5678901234567890123456789012345"
@@ -833,6 +778,7 @@ def test_from_github_builds_a_row_from_the_lookup():
     assert pr.added_by == "mecha-kraken"
     assert pr.author == "author"
     assert pr.assignee == "assignee"
+    assert pr.draft is True
     assert pr.active is True
     # Stamped with a real time, not the "" that legacy state files carry.
     assert pr.added_at
@@ -841,7 +787,8 @@ def test_from_github_builds_a_row_from_the_lookup():
     assert pr.pull_latest_sha == ""
 
 
-def test_deploy_failure_never_persists_staged_changes():
+@pytest.mark.asyncio
+async def test_deploy_failure_never_persists_staged_changes():
     """A failed Jenkins trigger must not write staged changes to disk.
 
     Regression: status_deploy used to call _get_drift_info(state) after staging
@@ -864,7 +811,7 @@ def test_deploy_failure_never_persists_staged_changes():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="failed"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
     ):
-        response = status_module.deploy_testing_status()
+        response = await status_module.deploy_testing_status()
 
     assert response == {"ok": False, "error": "deploy_failed"}
     # The drift read is a read, not a commit: it must not persist.
@@ -872,7 +819,8 @@ def test_deploy_failure_never_persists_staged_changes():
     mock_save.assert_not_called()
 
 
-def test_deploy_success_applies_staged_changes_then_saves_once():
+@pytest.mark.asyncio
+async def test_deploy_success_applies_staged_changes_then_saves_once():
     """A successful trigger lands the staged pins/toggles and saves exactly once."""
     state = _make_deploy_state()
     pinned, toggled = state.prs
@@ -892,7 +840,7 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
-        response = status_module.deploy_testing_status()
+        response = await status_module.deploy_testing_status()
 
     assert response == {"ok": True}
     # Pin applied and consumed.
@@ -908,7 +856,8 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
     mock_save.assert_called_once_with(state)
 
 
-def test_deploy_records_who_clicked_it():
+@pytest.mark.asyncio
+async def test_deploy_records_who_clicked_it():
     """A deploy records the OL username of the maintainer who clicked it."""
     state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
     user = MagicMock()
@@ -923,7 +872,7 @@ def test_deploy_records_who_clicked_it():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=user),
     ):
-        status_module.deploy_testing_status()
+        await status_module.deploy_testing_status()
 
     assert state.deployed_by == "mecha-kraken"
 
@@ -1004,6 +953,18 @@ def test_add_reports_a_missing_pr_as_not_found(fastapi_client, mock_authenticate
     assert state.prs == []
 
 
+def test_add_reports_token_invalid(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """A 401 from GitHub is its own error code so the panel can say the token is bad."""
+    mock_maintainer_user(is_maintainer=True)
+    state = _empty_state()
+
+    response = _post_add(fastapi_client, state, gh=status_module.GitHubTokenInvalidError("401"))
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": False, "error": "add_failed", "failed_prs": {"12914": "token_invalid"}}
+    assert state.prs == []
+
+
 def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     """Failures are per-PR: one bad number doesn't discard the good ones."""
     mock_maintainer_user(is_maintainer=True)
@@ -1016,7 +977,7 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", side_effect=lookup),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", side_effect=lookup),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
@@ -1048,7 +1009,7 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock) as mock_info,
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock) as mock_info,
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
@@ -1071,7 +1032,7 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
 
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=gh_info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
@@ -1174,16 +1135,22 @@ async def test_adding_a_pr_leaves_the_next_read_a_cache_hit():
     with (
         patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=_gh_info()),
+        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=_gh_info()),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
     ):
         assert await status_module.add_prs([12914], "testuser") == {"ok": True}
 
-        with patch(
-            "openlibrary.plugins.openlibrary.status._github_get_async",
-            side_effect=AssertionError("the read refetched from GitHub"),
+        with (
+            patch(
+                "openlibrary.plugins.openlibrary.github.github_graphql",
+                side_effect=AssertionError("the read refetched from GitHub"),
+            ),
+            patch(
+                "openlibrary.plugins.openlibrary.status.get_pr_drift",
+                side_effect=AssertionError("the read refetched from GitHub"),
+            ),
         ):
-            drift, from_cache = await status_module._get_drift_info_async(state, persist=False)
+            drift, from_cache = await status_module._get_drift_info(state, persist=False)
 
     assert from_cache is True
     assert drift[12914]["drift"] == 0
@@ -1196,7 +1163,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
     state = _make_state()
     result = status_module.build_testing_status(state, {13269: {"head_sha": "abc1234", "drift": 2, "merged": False}})
     with (
-        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)) as mock,
+        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=result)) as mock,
         patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -1227,6 +1194,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
                 "author_avatar": "",
                 "assignee": "assignee",
                 "assignee_avatar": "",
+                "draft": False,
                 "head_sha": "abc1234",
                 "drift": 2,
                 "merged": False,
@@ -1246,7 +1214,7 @@ def test_testing_status_endpoint_matches_response_model(fastapi_client, mock_aut
     mock_maintainer_user(is_maintainer=True)
     result = status_module.build_testing_status(_make_state(last_deploy_at=""), {})
     with (
-        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)),
+        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=result)),
         patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -1269,7 +1237,7 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
         "current_stage": "",
     }
     with (
-        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)),
+        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=result)),
         patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -1296,7 +1264,7 @@ def test_testing_status_endpoint_reports_deploy_stage(fastapi_client, mock_authe
         "current_stage": "components",
     }
     with (
-        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)),
+        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=result)),
         patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -1381,7 +1349,7 @@ async def test_jenkins_deploy_status_returns_none_on_error():
 def test_testing_status_endpoint_404_when_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     with (
-        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=None)),
+        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=None)),
         patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -1412,7 +1380,7 @@ def test_testing_status_fetches_github_and_jenkins_concurrently(fastapi_client, 
         active -= 1
 
     with (
-        patch("openlibrary.fastapi.status.load_testing_status_async", side_effect=fake_load),
+        patch("openlibrary.fastapi.status.load_testing_status", side_effect=fake_load),
         patch("openlibrary.fastapi.status.jenkins_deploy_status", side_effect=fake_jenkins),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -1429,7 +1397,7 @@ def test_testing_status_endpoint_requires_auth(fastapi_client):
 
 def test_testing_status_endpoint_forbidden_for_non_maintainer(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=False)
-    with patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock()) as mock:
+    with patch("openlibrary.fastapi.status.load_testing_status", AsyncMock()) as mock:
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 403
@@ -1504,7 +1472,7 @@ def test_deploy_status_endpoint_requires_auth(fastapi_client):
 
 def test_deploy_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.deploy_testing_status", return_value={"ok": True}) as mock:
+    with patch("openlibrary.fastapi.status.deploy_testing_status", new_callable=AsyncMock, return_value={"ok": True}) as mock:
         response = fastapi_client.post("/status/deploy", json={})
 
     assert response.status_code == 200

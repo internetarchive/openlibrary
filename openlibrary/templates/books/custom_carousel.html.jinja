@@ -7,11 +7,15 @@
        switch empties it, so the patron can see which row went quiet and switch back. #}
     {% if show or readable_filter %}
         <div class="carousel-section">
-            {% if title and url %}
+            {% if title %}
                 <div class="carousel-section-header{% if sort_control %} carousel-section-header--sortable{% endif %}">
                     <h2 class="home-h2">
-                        <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
-                           href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
+                        {% if url %}
+                            <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
+                               href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
+                        {% else %}
+                            {{ title }}{{ carousel_count(count, shelf) }}
+                        {% endif %}
                     </h2>
                     {% if sort_control %}
                         {# lazy-carousel.js refetches the row in place when this changes. The trigger is

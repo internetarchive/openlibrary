@@ -239,8 +239,6 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         with contextlib.suppress(lending.PatronAccessException):
             await lending.s3_loan_api_async(s3_keys, ocaid=edition.ocaid, action="return_loan")
 
-        edition.update_loan_status()
-        user.update_loan_status()
         title = edition.title or _("this book")
 
         flash: tuple[FlashType, str]
@@ -288,7 +286,6 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
             bookPath += "?_autoReadAloud=show"
 
         # Look for loans for this book
-        user.update_loan_status()
         loans = lending.get_loans_of_user(user.key)
         for loan in loans:
             if loan["book"] == edition.key:
@@ -358,7 +355,6 @@ class borrow_status(delegate.page):
         if not edition:
             raise web.notfound()
 
-        edition.update_loan_status()
         available_formats = [loan["resource_type"] for loan in edition.get_available_loans()]
         loan_available = len(available_formats) > 0
         subjects = set()

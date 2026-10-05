@@ -1246,7 +1246,6 @@ class my_follows(delegate.page):
 
 
 def get_account_loans_json(user: User) -> dict[str, Any]:
-    user.update_loan_status()
     loans = lending.get_loans_of_user(user.key)
     return {"loans": loans}
 
@@ -1273,7 +1272,6 @@ class account_loans(delegate.page):
         except ValueError:
             page = 1
         user = accounts.get_current_user()
-        user.update_loan_status()
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
         docs = get_loans_of_user(user.key)
