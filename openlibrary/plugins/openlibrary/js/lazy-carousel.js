@@ -1,4 +1,5 @@
 import {initialzeCarousels} from './carousel';
+import { trackEvent } from './ol.analytics.js';
 import { buildPartialsUrl, whenVisible } from './utils';
 
 let relatedBooksTracked = false;
@@ -89,6 +90,7 @@ function doFetchAndUpdate(target) {
                 target.parentNode.insertBefore(newElem, target);
                 target.remove();
                 initialzeCarousels(carouselElements);
+                if (carouselElements.length) trackImpression(newElem, config.key);
 
                 // ==========================================
                 // EXPERIMENT TRACKING: Related Books Discovery
@@ -126,6 +128,18 @@ function doFetchAndUpdate(target) {
             const retryElem = target.querySelector('.lazy-carousel-retry');
             retryElem.classList.remove('hidden');
         });
+}
+
+/**
+ * Reports `BookCarousel|Impression|<key>` once, when at least half of a
+ * loaded carousel is on screen. Pairs with the carousel's click events.
+ *
+ * @param elem {HTMLElement}
+ * @param key {string}
+ */
+function trackImpression(elem, key) {
+    whenVisible(elem, { rootMargin: '0px', threshold: 0.5 })
+        .then(() => trackEvent('BookCarousel', 'Impression', key));
 }
 
 /**
