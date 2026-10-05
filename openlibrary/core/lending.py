@@ -8,7 +8,6 @@ import time
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
-import eventer
 import httpx
 import requests
 import web
@@ -674,90 +673,6 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
     key_prefix="waitinglist.user_waiting_loans",
     timeout=10 * dateutil.MINUTE_SECS,
 )
-
-
-NOT_INITIALIZED = object()
-
-
-def sync_loan(identifier, loan=NOT_INITIALIZED):
-    """Updates the loan info stored in openlibrary.
-
-    The loan records are stored at the Internet Archive. There is no way for
-    OL to know when a loan is deleted. To handle that situation, the loan info
-    is stored in the ebook document and the deletion is detected by comparing
-    the current loan id and loan id stored in the ebook.
-
-    This function is called whenever the loan is updated.
-    """
-    logger.info("BEGIN sync_loan %s %s", identifier, loan)
-
-    if loan is NOT_INITIALIZED:
-        loan = get_loan(identifier)
-
-    # The data of the loan without the user info.
-    loan_data = loan and {
-        "uuid": loan["uuid"],
-        "loaned_at": loan["loaned_at"],
-        "resource_type": loan["resource_type"],
-        "ocaid": loan["ocaid"],
-        "book": loan["book"],
-    }
-
-    responses = get_availability("identifier", [identifier])
-    response = responses[identifier] if responses else {}
-    if response:
-        num_waiting = int(response.get("num_waitlist", 0) or 0)
-
-    ebook = EBookRecord.find(identifier)
-
-    # The loan known to us is deleted
-    is_loan_completed = ebook.get("loan") and ebook.get("loan") != loan_data
-
-    # Only remember the loan_data if we could resolve an OL user for it
-    if loan and loan["user"] is not None:
-        ebook_loan_data = loan_data
-    else:
-        ebook_loan_data = None
-
-    kwargs = {
-        "type": "ebook",
-        "identifier": identifier,
-        "loan": ebook_loan_data,
-        "borrowed": str(response["status"] not in ["open", "borrow_available"]).lower(),
-        "wl_size": num_waiting,
-    }
-    try:
-        ebook.update(**kwargs)
-    except Exception:  # TODO: Narrow exception scope
-        # updating ebook document is sometimes failing with
-        # "Document update conflict" error.
-        # Log the error in such cases, don't crash.
-        logger.exception("failed to update ebook for %s", identifier)
-
-    # fire loan-completed event
-    if is_loan_completed and ebook.get("loan"):
-        _d = dict(ebook["loan"], returned_at=time.time())
-        eventer.trigger("loan-completed", _d)
-    logger.info("END sync_loan %s", identifier)
-
-
-class EBookRecord(dict):
-    @staticmethod
-    def find(identifier: str) -> EBookRecord:
-        key = "ebooks/" + identifier
-        d = site.get().store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
-        return EBookRecord(d)
-
-    def update(self, **kwargs):
-        logger.info("updating %s %s", self["_key"], kwargs)
-        # Nothing to update if what we have is same as what is being asked to
-        # update.
-        d = {k: self.get(k) for k in kwargs}
-        if d == kwargs:
-            return
-
-        dict.update(self, **kwargs)
-        site.get().store[self["_key"]] = self
 
 
 class Loan(dict):
