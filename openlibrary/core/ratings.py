@@ -1,7 +1,7 @@
 from math import sqrt
 from typing import TypedDict
 
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import date_one_month_ago, date_one_week_ago
 
 from . import db
 
@@ -28,13 +28,13 @@ class Ratings(db.CommonExtras):
         return {
             "total_books_starred": {
                 "total": Ratings.total_num_books_rated(),
-                "month": Ratings.total_num_books_rated(since=DATE_ONE_MONTH_AGO),
-                "week": Ratings.total_num_books_rated(since=DATE_ONE_WEEK_AGO),
+                "month": Ratings.total_num_books_rated(since=date_one_month_ago()),
+                "week": Ratings.total_num_books_rated(since=date_one_week_ago()),
             },
             "total_star_raters": {
                 "total": Ratings.total_num_unique_raters(),
-                "month": Ratings.total_num_unique_raters(since=DATE_ONE_MONTH_AGO),
-                "week": Ratings.total_num_unique_raters(since=DATE_ONE_WEEK_AGO),
+                "month": Ratings.total_num_unique_raters(since=date_one_month_ago()),
+                "week": Ratings.total_num_unique_raters(since=date_one_week_ago()),
             },
         }
 

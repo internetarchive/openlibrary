@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import ClassVar
 
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import date_one_month_ago, date_one_week_ago
 
 from . import db
 
@@ -14,8 +14,8 @@ class YearlyReadingGoals:
         return {
             "total_yearly_reading_goals": {
                 "total": YearlyReadingGoals.total_yearly_reading_goals(),
-                "month": YearlyReadingGoals.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO),
-                "week": YearlyReadingGoals.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO),
+                "month": YearlyReadingGoals.total_yearly_reading_goals(since=date_one_month_ago()),
+                "week": YearlyReadingGoals.total_yearly_reading_goals(since=date_one_week_ago()),
             },
         }
 

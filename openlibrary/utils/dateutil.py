@@ -37,10 +37,22 @@ def date_n_days_ago(n: int | None = None, start=None) -> datetime.date | None:
     return (_start - datetime.timedelta(days=n)) if n else None
 
 
-DATE_ONE_YEAR_AGO = date_n_days_ago(n=365)
-DATE_ONE_MONTH_AGO = date_n_days_ago(n=days_in_current_month())
-DATE_ONE_WEEK_AGO = date_n_days_ago(n=7)
-DATE_ONE_DAY_AGO = date_n_days_ago(n=1)
+# These are functions, not module-level constants: a constant would be evaluated
+# once at import time and go stale in a long-running process.
+def date_one_year_ago() -> datetime.date:
+    return todays_date_minus(days=365)
+
+
+def date_one_month_ago() -> datetime.date:
+    return todays_date_minus(days=days_in_current_month())
+
+
+def date_one_week_ago() -> datetime.date:
+    return todays_date_minus(days=7)
+
+
+def date_one_day_ago() -> datetime.date:
+    return todays_date_minus(days=1)
 
 
 def parse_date(datestr: str) -> datetime.date:
