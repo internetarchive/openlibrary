@@ -55,7 +55,7 @@
     "@vitest/browser-playwright": "^5.0.0",
     "axe-core": "^4.13.0",
     "bundlesize2": "^0.0.35",
-    "chart.js": "2.9.4",
+    "chart.js": "4.5.1",
     "chartjs-plugin-datalabels": "0.7.0",
     "concurrently": "^10.0.0",
     "datatables.net-dt": "1.13.11",
