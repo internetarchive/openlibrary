@@ -130,10 +130,10 @@ div.merge .count {
   margin: 0;
   padding-bottom: var(--spacing-inset-xs);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
-  color: var(--color-text-secondary);
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
 }
 
 .merge-summary__list {
@@ -161,7 +161,7 @@ div.merge .count {
 }
 
 .merge-summary__name {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
 }
 
 .merge-summary__meta {
