@@ -12,7 +12,6 @@ from urllib.parse import urlencode
 
 from pydantic import BaseModel, Field, field_serializer
 
-from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
