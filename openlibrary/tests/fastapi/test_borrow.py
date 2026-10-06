@@ -74,6 +74,34 @@ class TestBorrowRoute:
 
         assert mock_core.call_args.kwargs["s3_cookie"] == "encrypted-token"
 
+    def test_post_body_action_is_honored(self, fastapi_client):
+        """Return/waitlist forms POST action in the body, not the query
+        string -- must match web.input() semantics (issue #13817)."""
+        outcome = BorrowRedirect("/books/OL1M/Some_Title")
+        with patch("openlibrary.fastapi.borrow.handle_borrow_async", return_value=outcome) as mock_core:
+            response = fastapi_client.post(
+                "/books/OL1M/x/borrow",
+                data={"action": "return", "redirect": "/books/OL1M/Some_Title"},
+                follow_redirects=False,
+            )
+
+        assert response.status_code == 303
+        params = mock_core.call_args.args[1]
+        assert params.action == "return"
+        assert params.redirect == "/books/OL1M/Some_Title"
+
+    def test_post_body_wins_over_query_params(self, fastapi_client):
+        """Body wins on conflict, matching web.input() merge order."""
+        outcome = BorrowRedirect("/some/target")
+        with patch("openlibrary.fastapi.borrow.handle_borrow_async", return_value=outcome) as mock_core:
+            fastapi_client.post(
+                "/books/OL1M/x/borrow?action=borrow",
+                data={"action": "return"},
+                follow_redirects=False,
+            )
+
+        assert mock_core.call_args.args[1].action == "return"
+
 
 class TestCheckoutWithOcaidRoute:
     def test_get_unresolvable_ocaid_returns_404(self, fastapi_client):
@@ -116,3 +144,22 @@ class TestCheckoutWithOcaidRoute:
         assert response.headers["location"] == "/some/target"
         called_key = mock_core.call_args.args[0]
         assert called_key == "/books/OL1M"
+
+    def test_post_body_action_is_honored(self, fastapi_client):
+        """ReturnForm posts action=return in the body to /borrow/ia/<ocaid>
+        -- must be forwarded, not fall back to action=borrow (issue #13817)."""
+        outcome = BorrowRedirect("/books/OL1M/Some_Title")
+        with (
+            patch("openlibrary.fastapi.borrow._resolve_ocaid_to_olid", return_value="OL1M"),
+            patch("openlibrary.fastapi.borrow.handle_borrow_async", return_value=outcome) as mock_core,
+        ):
+            response = fastapi_client.post(
+                "/borrow/ia/someocaid",
+                data={"action": "return", "redirect": "/books/OL1M/Some_Title"},
+                follow_redirects=False,
+            )
+
+        assert response.status_code == 303
+        params = mock_core.call_args.args[1]
+        assert params.action == "return"
+        assert params.redirect == "/books/OL1M/Some_Title"
