@@ -4,7 +4,10 @@ $ locateUrl = "/books/XXX/-/borrow?action=locate".replace('XXX', edition_key or 
 
 $# A lookup elsewhere, not the primary action, so it takes the secondary button
 $# like Preview and Search beside it. ol-button renders an <a> when given href.
-<ol-button variant="secondary" full-width href="$locateUrl" target="_blank" rel="noopener noreferrer" data-ol-link-track="CTAClick|Locate">
-  $_("Nearby Libraries")
-  $:macros.icon("external-link", size="sm", slot="icon-end")
-</ol-button>
+$# The group wrapper is what the read panel spaces its stack by (read-panel.css).
+<div class="cta-button-group">
+  <ol-button variant="secondary" full-width href="$locateUrl" target="_blank" rel="noopener noreferrer" data-ol-link-track="CTAClick|Locate">
+    $_("Nearby Libraries")
+    $:macros.icon("external-link", size="sm", slot="icon-end")
+  </ol-button>
+</div>
