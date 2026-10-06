@@ -722,6 +722,19 @@ relative-change guard does. Sized from measurement: a normal cycle clears 0-2
 against ~766 marked, well under 1%, so 10% never trips in ordinary operation
 while catching anything resembling a mass event. The absolute floor keeps a
 small marked set (a fresh install, a test) from tripping on routine movement.
+
+What this guard does and does not do:
+
+  * It does NOT decide that a large clear is wrong. It decides that a large
+    clear may not proceed on the index's word alone. A tripped breaker hands
+    the whole clear set to ground truth (:func:`confirm_mass_clear`), which
+    decides each edition on its own answer.
+  * So a legitimate mass-free -- a batch of same-day loans expiring together --
+    proceeds, and an index that has collapsed does not. The daemon recovers
+    from both without a human, which matters because the alternative resting
+    state is "availability-freeing is frozen until somebody notices".
+  * It does not protect the MARK direction, which needs no protection: marking
+    is the recoverable error, and the next poll unmarks.
 """
 
 
@@ -754,6 +767,74 @@ async def fetch_marked_editions() -> dict[str, dict]:
     return {doc["key"]: doc for doc in docs}
 
 
+async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: int, index_total: int) -> list[dict]:
+    """Settle a tripped clear-breaker against ground truth, or refuse.
+
+    The breaker alone cannot tell a degraded index from a legitimate mass-free:
+    a batch of same-day loans all expiring together and an ES mid-reindex both
+    present as "the clear set is suddenly huge". Refusing both is safe in the
+    sense that over-holding only hides a book, but it is NOT safe as a resting
+    state -- the clear set stays large on every subsequent cycle, so a real
+    mass-free leaves availability permanently frozen until a human notices. A
+    guard that is always tripped is one people learn to route around.
+
+    So the exceptional path asks the authority the index is only a view of. The
+    answer is per-edition, which is why this is not sampled: a sample that
+    comes back available supports "legitimate mass-free" without establishing
+    it, and the clear direction is where being wrong is unrecoverable. The
+    whole set is checked, each edition decided on its own answer, and anything
+    the service has no answer for stays marked.
+
+    Affordable because it is rare and bounded: the clear set is at most the
+    marked set, measured at 766 on 2026-10-05, which is ~8 batched requests at
+    AVAILABILITY_BATCH_SIZE. That is the cost v2's repairer paid every single
+    cycle; here it is paid only when the breaker trips.
+
+    This is two checks whose blind spots do not overlap -- the index is fast
+    and lagged, ground truth is slow and authoritative -- and a dangerous clear
+    needs both to agree.
+    """
+    identifiers = [ia for doc in to_clear for ia in (doc.get("ia") or [])]
+    logger.warning(
+        "Clear breaker tripped: %d of %d marked editions would clear (limit %d); the index returned %d identifiers. "
+        "Confirming %d identifiers against ground truth before clearing anything.",
+        len(to_clear),
+        marked_total,
+        allowed,
+        index_total,
+        len(identifiers),
+    )
+    if not identifiers:
+        raise PollRefused(
+            f"Clear breaker: {len(to_clear)} editions would clear but none carry an ocaid, so ground truth cannot be consulted. Keeping prior state."
+        )
+
+    availability = await lending.get_availability_async("identifier", identifiers, use_cache=False)
+
+    def is_free(ia_id: str) -> bool:
+        answer = availability.get(ia_id)
+        # No answer is not an answer: an edition the service skipped keeps its
+        # mark, because the clear direction is the unrecoverable one.
+        return answer is not None and lending.is_available_for_loan(answer)
+
+    confirmed = [doc for doc in to_clear if any(is_free(ia) for ia in (doc.get("ia") or []))]
+
+    if not confirmed:
+        # Every answer disagreed with the index, or the service gave none. The
+        # index is the thing that is wrong; hold everything.
+        raise PollRefused(
+            f"Clear breaker: ground truth confirmed 0 of {len(to_clear)} editions as available, "
+            f"so the index is wrong rather than the collection freeing. Keeping prior state."
+        )
+
+    logger.warning(
+        "Clear breaker: ground truth confirmed %d of %d editions as genuinely available; clearing those and holding the rest.",
+        len(confirmed),
+        len(to_clear),
+    )
+    return confirmed
+
+
 async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
     """Reconcile Solr's marked set to the index's unavailable set, in one pass.
 
@@ -775,11 +856,7 @@ async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
 
     allowed = max(CLEAR_BREAKER_FLOOR, int(len(marked) * CLEAR_BREAKER_FRACTION))
     if len(to_clear) > allowed:
-        raise PollRefused(
-            f"Clear-direction breaker: this poll would clear {len(to_clear)} of {len(marked)} marked editions, "
-            f"above the {allowed} allowed; the index returned {len(unavailable_identifiers)} identifiers. "
-            f"Keeping prior state -- a mass clear publishes checked-out books as borrowable."
-        )
+        to_clear = await confirm_mass_clear(to_clear, allowed, len(marked), len(unavailable_identifiers))
 
     updates = [{"key": info["key"], "_root_": info["root"], "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}} for info in to_mark]
     updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_clear]

@@ -1389,18 +1389,76 @@ async def test_an_unchanged_poll_writes_nothing():
     assert updates == []
 
 
+def _many_marked(n: int) -> dict[str, dict]:
+    return {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(n)}
+
+
 @pytest.mark.asyncio
-async def test_the_breaker_refuses_a_poll_that_would_clear_almost_everything():
+async def test_a_mass_clear_is_refused_when_ground_truth_says_the_books_are_still_out():
     """A degraded or mid-reindex ES returning a small-but-consistent set passes
-    every other guard we have -- the numFound check only catches a read shorter
-    than its OWN total. Without this, one such read publishes the whole
-    checked-out collection as borrowable."""
-    many = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(500)}
-    resolve, marked = _poll(["bookaaa"], many)
-    with resolve, marked, pytest.raises(PollRefused) as excinfo:
+    every other guard -- the numFound check only catches a read shorter than
+    its OWN total. Here ground truth disagrees with the index, so the index is
+    what is wrong, and nothing is cleared."""
+    resolve, marked = _poll(["bookaaa"], _many_marked(500))
+    with (
+        resolve,
+        marked,
+        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
+        pytest.raises(PollRefused) as excinfo,
+    ):
         await build_poll_updates(["bookaaa"])
-    assert "499" in str(excinfo.value)
+    assert "confirmed 0 of 499" in str(excinfo.value)
     assert "Keeping prior state" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_a_genuine_mass_free_proceeds_once_ground_truth_agrees():
+    """The breaker must not become a permanent refusal. A batch of same-day
+    loans expiring together is indistinguishable from a collapsed index BY
+    VOLUME, and if the clear set stays large every cycle, refusing on volume
+    alone freezes availability until a human notices. Ground truth tells them
+    apart, so the daemon recovers on its own."""
+    resolve, marked = _poll(["bookaaa"], _many_marked(500))
+    with (
+        resolve,
+        marked,
+        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": AVAILABLE for i in range(500)})),
+    ):
+        updates = await build_poll_updates(["bookaaa"])
+    _, clear = _sets(updates)
+    assert len(clear) == 499, "every edition ground truth calls available must clear"
+    assert "/books/OL0M" in clear
+
+
+@pytest.mark.asyncio
+async def test_a_mass_clear_keeps_the_editions_ground_truth_cannot_answer_for():
+    """Confirmation is per-edition, not a sample promoted to a universal: an
+    answer that never arrived is not an answer that said available, and the
+    clear direction is the unrecoverable one."""
+    answers: dict = {f"book{i}": AVAILABLE for i in range(100)}
+    answers.update({f"book{i}": UNAVAILABLE for i in range(100, 200)})
+    # books 200-499 get no answer at all
+    resolve, marked = _poll(["bookaaa"], _many_marked(500))
+    with resolve, marked, patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value=answers)):
+        updates = await build_poll_updates(["bookaaa"])
+    _, clear = _sets(updates)
+    # 99, not 100: the index still calls bookaaa unavailable, and bookaaa is
+    # /books/OL1M, so it is never a clear candidate in the first place.
+    assert len(clear) == 99, "only the editions with an explicit available answer may clear"
+    assert "/books/OL1M" not in clear, "the index still calls this one out"
+    assert "/books/OL150M" not in clear, "ground truth said still out"
+    assert "/books/OL300M" not in clear, "no answer is not an answer"
+
+
+@pytest.mark.asyncio
+async def test_a_mass_clear_without_ocaids_is_refused_rather_than_assumed():
+    """Ground truth is keyed by ocaid. With none to ask about, the check cannot
+    run -- and a check that cannot run must not read as a check that passed."""
+    no_ocaids = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [], "_root_": f"/works/OL{i}W"} for i in range(500)}
+    resolve, marked = _poll([], no_ocaids)
+    with resolve, marked, pytest.raises(PollRefused) as excinfo:
+        await build_poll_updates([])
+    assert "none carry an ocaid" in str(excinfo.value)
 
 
 @pytest.mark.asyncio
