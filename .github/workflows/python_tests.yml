@@ -59,6 +59,11 @@ jobs:
         run: |
           git fetch --no-tags --prune --depth=1 origin master
           make test-py
+      - name: Run integration tests
+        # ubuntu-latest has PostgreSQL pre-installed; pg_ctl is at
+        # /usr/lib/postgresql/*/bin/ (pytest-postgresql finds it via pg_config).
+        run: |
+          pytest -m integration openlibrary/tests/core/
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         env:
