@@ -840,7 +840,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html.jinja widget.html
+#: LoanStatus.html reading_goals/reading_goal_form.html.jinja widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -2802,8 +2802,8 @@ msgstr ""
 msgid "Listen to a reading from %s"
 msgstr ""
 
-#: book_providers/read_button.html
-msgid "Audiobook"
+#: ReadingOptionsMenu.html book_providers/read_button.html
+msgid "Listen"
 msgstr ""
 
 #: book_providers/read_button.html
@@ -7356,10 +7356,6 @@ msgstr ""
 
 #: ReadingOptionsMenu.html
 msgid "More reading options"
-msgstr ""
-
-#: ReadingOptionsMenu.html
-msgid "Listen"
 msgstr ""
 
 #: RecentChanges.html

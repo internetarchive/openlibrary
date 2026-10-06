@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, secondary_action=False, check_loan_status=False, user_lists=None, is_book_page=False, analytics_override=None, lending_state=None)
+$def with (doc, work_key=None, listen=True, secondary_action=False, check_loan_status=False, user_lists=None, is_book_page=False, analytics_override=None, lending_state=None, in_carousel=False)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -7,6 +7,8 @@ $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_loan_status - whether to check the user's loan status to determine read button
 $# * lending_state - pass in when already resolved (e.g. /works and /books
 $#     pages, via prepare_book_page()) to avoid recomputing it below
+$# * in_carousel - a carousel card: a book that can't be read here gets one
+$#     secondary "Learn More" to its page instead of a preview or library lookup
 
 $ loanstatus_start_time = time()
 
@@ -52,6 +54,13 @@ $def analytics_attr(action):
     data-ol-link-track="$(analytics_override.replace('{action}', action))"
   $else:
     data-ol-link-track="CTAClick|$action"
+
+$def learn_more():
+  $# Secondary, not primary: the book isn't readable here, so the card points
+  $# at the page where the options are, without competing with Read buttons.
+  <div class="cta-button-group">
+    <a href="$(work_key or doc.key)" class="cta-btn cta-btn--shell" $:analytics_attr('LearnMore')><span class="cta-btn__label">$_("Learn More")</span></a>
+  </div>
 
 $if lending_state == 'borrowed':
   $if secondary_action:
@@ -165,6 +174,8 @@ $elif lending_state == 'preview_only':
         <span>$_("Only a preview is available.")</span>
       </p>
     </div>
+  $elif in_carousel:
+    $:learn_more()
   $else:
     $:macros.BookPreview(ocaid, show_only=True)
 
@@ -173,6 +184,8 @@ $elif is_edition:
   $# action is to go to the book page and see what it offers.
   $if is_book_page or secondary_action:
       $:macros.CheckWorldcat(edition_key)
+  $elif in_carousel:
+      $:learn_more()
   $else:
       <div class="cta-button-group">
         <a
