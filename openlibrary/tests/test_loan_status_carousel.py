@@ -5,7 +5,6 @@ same lending states keep their own buttons and text.
 """
 
 import pytest
-
 import web
 from bs4 import BeautifulSoup
 
