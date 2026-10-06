@@ -624,7 +624,7 @@ class Test_From_MARC:
         assert isinstance(work["description"], Text)
         assert work["description"] == desc
 
-    def test_matched_author_gets_death_date(self, mock_site, add_languages, ia_writeback):
+    def test_matched_author_gets_modified(self, mock_site, add_languages, ia_writeback):
         mock_site.save(
             {
                 "key": "/authors/OL1A",
@@ -649,7 +649,6 @@ class Test_From_MARC:
         reply = load(rec)
         assert reply["authors"][0]["status"] == "modified"
         assert reply["authors"][0]["key"] == "/authors/OL1A"
-        # Check whether new import Author data is saved to existing matched record:
         existing = mock_site.get("/authors/OL1A")
         assert existing.death_date == "1970"
         assert existing.remote_ids.get("isni") == isni
