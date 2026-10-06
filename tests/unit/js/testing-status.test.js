@@ -1,5 +1,7 @@
 import {
+    ACTION_ERRORS,
     DEFAULT_STRINGS,
+    actionErrorMessage,
     canUpdate,
     decodeAndParseJSON,
     driftPill,
@@ -8,8 +10,8 @@ import {
     formatTime,
     getTestingStatus,
     postAction,
+    parsePrNumbers,
     sprintf,
-    testingStatusUrl,
     timeAgo
 } from '../../../openlibrary/components/TestingEnvironment/utils.js';
 
@@ -30,31 +32,25 @@ const pr = {
 
 describe('Testing Environment utils', () => {
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
         delete global.fetch;
-    });
-
-    test('uses the FastAPI proxy only on the testing host', () => {
-        expect(testingStatusUrl({ hostname: 'localhost' })).toBe('/status/testing.json');
-        expect(testingStatusUrl({ hostname: 'testing.openlibrary.org' })).toBe('/_fast/status/testing.json');
-        expect(testingStatusUrl({ hostname: 'openlibrary.org' })).toBe('/status/testing.json');
     });
 
     test('fetches JSON with same-origin credentials', async() => {
         const payload = { prs: [pr] };
-        const response = { ok: true, json: jest.fn().mockResolvedValue(payload) };
-        global.fetch = jest.fn().mockResolvedValue(response);
+        const response = { ok: true, json: vi.fn().mockResolvedValue(payload) };
+        global.fetch = vi.fn().mockResolvedValue(response);
 
-        await expect(getTestingStatus({ hostname: 'localhost' })).resolves.toBe(payload);
+        await expect(getTestingStatus()).resolves.toBe(payload);
         expect(global.fetch).toHaveBeenCalledWith('/status/testing.json', {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin'
         });
     });
 
-    test('posts actions form-encoded, repeating array fields', async() => {
+    test('posts remove actions as JSON', async() => {
         const body = { ok: true };
-        global.fetch = jest.fn().mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue(body) });
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
 
         await expect(postAction('/status/remove', { prs: [13269, 13270] })).resolves.toBe(body);
 
@@ -63,26 +59,69 @@ describe('Testing Environment utils', () => {
             expect.objectContaining({
                 method: 'POST',
                 credentials: 'same-origin',
-                body: new URLSearchParams([['prs', '13269'], ['prs', '13270']])
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({ prs: [13269, 13270] })
             })
         );
+    });
+
+    test('patches status activation as JSON', async() => {
+        const body = { ok: true };
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
+
+        await expect(postAction('/status/testing/prs', { prs: [13269], active: false }, 'PATCH')).resolves.toBe(body);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/status/testing/prs',
+            expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ prs: [13269], active: false }) })
+        );
+    });
+
+    test('posts add actions as JSON', async() => {
+        const body = { ok: true };
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) });
+
+        await expect(postAction('/status/add', { prs: [12914, 13269] })).resolves.toBe(body);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/status/add',
+            expect.objectContaining({
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({ prs: [12914, 13269] })
+            })
+        );
+    });
+
+    test('parses PR input before posting', () => {
+        expect(parsePrNumbers('12914, #13269 https://github.com/internetarchive/openlibrary/pull/13270')).toEqual([
+            12914,
+            13269,
+            13270
+        ]);
+        expect(parsePrNumbers('https://github.com/internetarchive/openlibrary/issues/123 bad')).toEqual([]);
     });
 
     test('resolves the JSON body of successful posts', async() => {
         // Business failures still resolve: {"ok": false, "error": "<code>"} is
         // a completed request, and the component turns the code into a toast.
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: jest.fn().mockResolvedValue({ ok: false, error: 'deploy_failed' })
+            json: vi.fn().mockResolvedValue({ ok: false, error: 'deploy_failed' })
         });
 
         await expect(postAction('/status/deploy', {})).resolves.toEqual({ ok: false, error: 'deploy_failed' });
     });
 
     test('rejects failed fetches and posts', async() => {
-        global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 });
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
 
-        await expect(getTestingStatus({ hostname: 'localhost' })).rejects.toThrow('500');
+        await expect(getTestingStatus()).rejects.toThrow('500');
         await expect(postAction('/status/remove', {})).rejects.toThrow('failed');
     });
 
@@ -90,6 +129,72 @@ describe('Testing Environment utils', () => {
         expect(sprintf('%s change will be applied', 3)).toBe('3 change will be applied');
         expect(sprintf('%s commits behind %s', 4, 'abc1234')).toBe('4 commits behind abc1234');
         expect(sprintf('%s selected', 2)).toBe('2 selected');
+    });
+
+    test('deploy-status strings carry the deployer username variant', () => {
+        expect(sprintf(DEFAULT_STRINGS.deployingStartedBy, '2 minutes ago', 'openlibrary'))
+            .toBe('Deploying, started 2 minutes ago by openlibrary');
+        expect(sprintf(DEFAULT_STRINGS.deploySucceededBy, '5 minutes ago', 'openlibrary'))
+            .toBe('Deploy succeeded 5 minutes ago by openlibrary');
+        expect(sprintf(DEFAULT_STRINGS.lastDeployBy, '5 minutes ago', 'openlibrary'))
+            .toBe('Last deploy 5 minutes ago by openlibrary');
+    });
+
+    test('names the PR an add could not find', () => {
+        const result = { ok: false, error: 'add_failed', failed_prs: { 9999: 'not_found' } };
+
+        expect(actionErrorMessage(result, DEFAULT_STRINGS)).toBe('PR 9999 does not exist.');
+    });
+
+    test('separates a GitHub outage from a missing PR', () => {
+        const result = { ok: false, error: 'add_failed', failed_prs: { 12914: 'unavailable' } };
+
+        expect(actionErrorMessage(result, DEFAULT_STRINGS))
+            .toBe('Could not check PR 12914 — GitHub is unavailable.');
+    });
+
+    test('lists every failed PR in numeric order', () => {
+        // Insertion order is deliberately unsorted: the server's dict order
+        // doesn't survive JSON (integer-like keys are re-sorted by the engine),
+        // so the message sorts rather than showing an order nobody chose.
+        const result = {
+            ok: false,
+            error: 'add_failed',
+            failed_prs: { 13269: 'unavailable', 9999: 'not_found', 12914: 'not_found' }
+        };
+
+        expect(actionErrorMessage(result, DEFAULT_STRINGS))
+            .toBe('PR 9999 does not exist. PR 12914 does not exist. Could not check PR 13269 — GitHub is unavailable.');
+    });
+
+    test('still names the PR when the reason is unrecognized', () => {
+        const result = { ok: false, error: 'add_failed', failed_prs: { 9999: 'something_new' } };
+
+        expect(actionErrorMessage(result, DEFAULT_STRINGS)).toBe('Could not add PR 9999.');
+    });
+
+    test('falls back to the generic string when an add carries no detail', () => {
+        expect(actionErrorMessage({ ok: false, error: 'add_failed' }, DEFAULT_STRINGS))
+            .toBe('Could not complete that action.');
+        expect(actionErrorMessage({ ok: false, error: 'add_failed', failed_prs: {} }, DEFAULT_STRINGS))
+            .toBe('Could not complete that action.');
+    });
+
+    test('maps the other action failures to their fixed strings', () => {
+        expect(actionErrorMessage({ ok: false, error: 'deploy_failed' }, DEFAULT_STRINGS))
+            .toBe('Could not start the deploy — Jenkins did not accept the build.');
+        expect(actionErrorMessage({ ok: false, error: 'deploy_unconfigured' }, DEFAULT_STRINGS))
+            .toBe('Deploy is not configured on this instance — nothing was deployed.');
+        expect(actionErrorMessage({ ok: false, error: 'who_knows' }, DEFAULT_STRINGS))
+            .toBe('Could not complete that action.');
+    });
+
+    test('every action error code has a string to show', () => {
+        // Guards a code being added to ACTION_ERRORS without its string, which
+        // would toast the bare key.
+        Object.entries(ACTION_ERRORS).forEach(([code, key]) => {
+            expect(DEFAULT_STRINGS[key], `${code} -> ${key}`).toBeTruthy();
+        });
     });
 
     test('detects the favicon environment', () => {

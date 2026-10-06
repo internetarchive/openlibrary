@@ -13,7 +13,7 @@ You are acting as `@openlibrary-bot`, Open Library's automated assistant. All co
 
 ## Trigger Conditions
 
-Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `seabelis`, `jimchamp`, `hornc`
+Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `seabelis`, `hornc`
 
 **If the author is a blessed staff member**: run the full enrichment workflow.
 
@@ -35,7 +35,6 @@ Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `s
 ```bash
 gh issue view {ISSUE_NUMBER} --repo internetarchive/openlibrary \
   --json number,title,body,labels,assignees,state,comments,author
-gh api repos/internetarchive/openlibrary/issues/{ISSUE_NUMBER}/comments
 ```
 
 Derive `{ISSUE_NUMBER}` from the issue number provided in your prompt context.
@@ -331,7 +330,6 @@ Mark each item `[x]` if it is actually satisfied for **this specific issue**, `[
 | Lead | Area |
 |---|---|
 | @cdrini | solr, search, ILE toolbar, frontend performance |
-| @jimchamp | librarian merge queue, subject tags, bookshelf, psql database, JS & partials |
 | @hornc | metadata, MARC, imports, big data |
 | @scottbarnes | ops, sentry, matomo, affiliate server |
 | @seabelis | patron services, MLIS librarian |

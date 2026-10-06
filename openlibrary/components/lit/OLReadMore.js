@@ -19,7 +19,7 @@ import './OlIcon.js';
  * @prop {String} moreText - Label for the expand toggle (default: "Read more")
  * @prop {String} lessText - Label for the collapse toggle (default: "Read less")
  * @prop {String} backgroundColor - Background color for the gradient fade (default: white)
- * @prop {String} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
+ * @prop {"medium" | "small"} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
  *
  * @slot - The collapsible content
  *
@@ -89,8 +89,17 @@ export class OLReadMore extends LitElement {
             margin-top: calc(-1 * var(--spacing-md));
         }
 
-        .toggle-btn:hover {
-            text-decoration: underline;
+        @media (hover: hover) and (pointer: fine) {
+            .toggle-btn:hover {
+                text-decoration: underline;
+            }
+        }
+
+        /* Inset ring: the toggle is full-bleed, so an outward offset would draw
+           outside the container it sits on. */
+        .toggle-btn:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
         }
 
         .toggle-btn.hidden {

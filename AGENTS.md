@@ -1,14 +1,22 @@
 # AGENTS.md
 
-> **Canonical guide:** [`docs/ai/README.md`](docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
+> **Canonical guide:** [`docs/ai/README.md`](/docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
 
 ## Quick Reference
 
-**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · webpack · Solr 10
+**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · Vite · Solr 10
 
-> 📖 **Guides:** [`docs/ai/i18n.md`](docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](docs/ai/README.md) — full architecture and data-model.
+> 📖 **Guides:** [`docs/ai/i18n.md`](/docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/design.md`](/docs/ai/design.md) — read before touching `static/css/`, templates, macros, or `openlibrary/components/`; [`docs/ai/web-components.md`](/docs/ai/web-components.md) — also read before touching `openlibrary/components/lit/`. [`docs/ai/README.md`](/docs/ai/README.md) — full architecture and data-model. [`docs/ai/database.md`](/docs/ai/database.md) — read before writing SQL or touching the DB models. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
 
 > 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
+>
+> 📄 **Jinja:** When touching Jinja files (`*.html.jinja`) — creating, editing, or converting from Templetor — read [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) first for syntax, conventions, and known conversion pitfalls. `docs/wiki/` is a separate repo (not a submodule), cloned automatically on container startup by `docker/ol-home-start.sh`. If it's missing (e.g. working outside Docker), clone it:
+> ```bash
+> git clone https://github.com/internetarchive/openlibrary.wiki.git docs/wiki
+> ```
+> (Inside the Docker container the same command runs with `/openlibrary/docs/wiki` — see `docker/ol-home-start.sh`.)
+>
+> 🗄️ **Databases:** New DB code goes through the async psycopg3 pool in `openlibrary/core/async_db.py`. Single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`) run one query each; `async with connection()` wraps multi-statement transactions. Legacy sync code keeps `openlibrary/core/db.py`; sync web.py callers reach async model methods via `async_bridge.run` (`_sync` suffix). Reference migration: `openlibrary/core/yearly_reading_goals.py` + `openlibrary/plugins/upstream/yearly_reading_goals.py`. Full guide: [`docs/ai/database.md`](/docs/ai/database.md).
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
@@ -40,6 +48,7 @@ make test-py-uv PYTEST_ARGS="openlibrary/tests/fastapi/"
 # Or directly: uv run --with-requirements requirements_test.txt pytest openlibrary/tests/fastapi/
 
 npm run test:js             # JS tests
+npm run test:js:browser     # JS component tests in real Chromium (browser mode)
 make lint                   # Python lint (ruff)
 npm run lint                # JS + CSS lint
 npm run lint-fix            # Auto-fix JS/CSS
@@ -64,6 +73,7 @@ npm run watch               # Dev mode with hot reload
 | Templates | `openlibrary/templates/` |
 | JS source | `openlibrary/plugins/openlibrary/js/` |
 | CSS source | `static/css/` |
+| DB access | **Async pool (new code):** `openlibrary/core/async_db.py` · Legacy sync: `openlibrary/core/db.py` |
 
 ### Testing Authenticated Endpoints with curl
 

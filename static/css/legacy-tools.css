@@ -23,15 +23,6 @@
   position: relative;
 }
 
-.Tools .btn-notice a.worldcat-link {
-  text-decoration: underline;
-}
-
-.Tools .btn-notice span.worldcat-attribution {
-  font-size: 0.8em;
-  display: block;
-}
-
 .Tools .btn-notice input {
   display: block;
   width: 100%;

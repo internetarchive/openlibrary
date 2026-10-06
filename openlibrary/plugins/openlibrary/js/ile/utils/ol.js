@@ -1,4 +1,4 @@
-import uniqBy from 'lodash/uniqBy';
+import { uniqBy } from '../../nonjquery_utils.js';
 
 /** @typedef {String} OLID @example OL123W */
 /** @typedef {OLID} WorkOLID */

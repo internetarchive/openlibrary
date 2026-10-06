@@ -1,31 +1,85 @@
+{% macro condition_label(offer) %}
+    {%- set conditions = {"new": _("New"), "used": _("Used"), "collectible": _("Collectible"), "refurbished": _("Refurbished")} -%}
+    {%- set sub_conditions = {"like_new": _("Like New"), "very_good": _("Very Good"), "good": _("Good"), "acceptable": _("Acceptable")} -%}
+    {%- set label = conditions.get(offer.condition, "") -%}
+    {%- if label and offer.sub_condition in sub_conditions and offer.sub_condition != offer.condition -%}
+        {{ _("%(condition)s – %(sub_condition)s", condition=label, sub_condition=sub_conditions[offer.sub_condition]) }}
+    {%- else -%}
+        {{ label }}
+    {%- endif -%}
+{% endmacro %}
+{% macro offer_summary(offer, several) %}
+    {#- Counts come as "12 used from $4.28"; a lone offer's price is already in the header -#}
+    {%- if offer.quantity and offer.condition == "new" -%}
+        {{ ngettext("%(num)d new from %(price)s", "%(num)d new from %(price)s", offer.quantity, price=offer.price) }}
+    {%- elif offer.quantity and offer.condition == "used" -%}
+        {{ ngettext("%(num)d used from %(price)s", "%(num)d used from %(price)s", offer.quantity, price=offer.price) }}
+    {%- elif several and offer.condition -%}
+        {{ _("%(condition)s from %(price)s", condition=condition_label(offer), price=offer.price) }}
+    {%- else -%}
+        {{ condition_label(offer) }}
+    {%- endif -%}
+{% endmacro %}
 {% macro affiliate_link(store) %}
-    <li class="prices-{{ store.key }}">
-        <a href="{{ store.link }}"
+    {#- Icons are presentation, so they live here rather than on AffiliateStore.
+        An unknown store falls back to a generic glyph. -#}
+    {% set store_icons = {"betterworldbooks": "recycle", "amazon": "box", "bookshop-org": "store"} %}
+    {% set lowest = store.lowest_offer %}
+    {% set several = store.offers | length > 1 %}
+    {% set has_details = store.offers | selectattr("condition") | list or (lowest and lowest.savings_pct) or store.out_of_stock or store.availability or store.seller or store.deal %}
+    <div class="buy-option prices-{{ store.key }}"
+         data-store="{{ store.key }}">
+        <a class="buy-option__link"
+           href="{{ store.link }}"
            title="{{ _('Look for this edition for sale at %(store)s', store=store.name) }}"
            data-ol-link-track="BuyLink|{{ store.analytics_key }}"
            target="_blank"
-           rel="noopener noreferrer">{{ store.name }}</a>
-        {% if store.price %}
-            <br>
-            <span name="price">{{ store.price }}{{ store.price_note }}</span>
-        {% endif %}
-    </li>
+           rel="noopener noreferrer">
+            {{ icon(store_icons.get(store.key, "link"), size="sm") }}
+            <span class="buy-option__body">
+                <span class="buy-option__header">
+                    <span class="buy-option__name">{{ store.name }}</span>
+                    {% if lowest %}
+                        <span class="buy-option__price">
+                            {% if lowest.list_price %}
+                                <s class="buy-option__list-price"
+                                   aria-label="{{ _('List price %(price)s', price=lowest.list_price) }}">{{ lowest.list_price }}</s>
+                            {% endif %}
+                            {{ lowest.price }}
+                        </span>
+                    {% endif %}
+                </span>
+                {% if has_details %}
+                    <span class="buy-option__details">
+                        {%- for offer in store.offers | sort(attribute="amount") if offer.condition -%}
+                            <span class="buy-option__detail">{{ offer_summary(offer, several) }}</span>
+                        {%- endfor -%}
+                        {%- if lowest and lowest.savings_pct -%}
+                            <span class="buy-option__detail buy-option__detail--savings">{{ _("Save %(percent)d%%", percent=lowest.savings_pct) }}</span>
+                        {%- endif -%}
+                        {%- if store.out_of_stock -%}
+                            <span class="buy-option__detail">{{ _("Out of stock") }}</span>
+                        {%- endif -%}
+                        {%- if store.availability -%}
+                            <span class="buy-option__detail">{{ store.availability }}</span>
+                        {%- endif -%}
+                        {%- if store.seller -%}
+                            <span class="buy-option__detail">{{ _("Sold by %(seller)s", seller=store.seller) }}</span>
+                        {%- endif -%}
+                        {%- if store.deal -%}
+                            <span class="buy-option__detail">{{ store.deal }}</span>
+                        {%- endif -%}
+                    </span>
+                {% endif %}
+            </span>
+        </a>
+    </div>
 {% endmacro %}
-<span class="affiliate-links-section">
-    <ul class="buy-options-table">
-        {% for store in primary_stores %}{{ affiliate_link(store) | safe }}{% endfor %}
-        {% if more_stores %}
-            <li class="more">
-                <details>
-                    <summary>{{ _("More") }}</summary>
-                    <ul>
-                        {% for store in more_stores %}{{ affiliate_link(store) | safe }}{% endfor %}
-                    </ul>
-                </details>
-            </li>
-        {% endif %}
-    </ul>
-    <small>
+{#- price_lookup marks a page-rendered section whose prices affiliate-links.js fills in later. -#}
+<div class="affiliate-links-section"
+     {%- if price_lookup %} data-title="{{ price_lookup.title }}" data-isbn="{{ price_lookup.isbn }}" data-asin="{{ price_lookup.asin }}"{% endif %}>
+    <div class="buy-options__list">{% for store in stores %}{{ affiliate_link(store) | safe }}{% endfor %}</div>
+    <small class="buy-options__disclaimer">
         {{ _("When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>.") | safe }}
     </small>
-</span>
+</div>

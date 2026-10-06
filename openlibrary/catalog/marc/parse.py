@@ -18,7 +18,15 @@ from openlibrary.catalog.utils import (
     tidy_isbn,
 )
 
-DNB_AGENCY_CODE = "DE-101"
+# National Bibliographic Agencies mapped to OL identfiers:
+AGENCY_MAPPING = {
+    "DE-101": "dnb",
+    "FR-751131015": "bnf",
+    "FrPBN": "bnf",
+    "GyFmDB": "dnb",
+    "PoLiBN": "bnp",
+}
+LEGACY_BNF_PREFIX = "FRBNF"  # bnf identifier expects the modern ark: id form (see url: in identifiers.yml)
 logger = logging.getLogger("openlibrary.catalog.marc")
 max_number_of_pages = 50000  # no monograph should be longer than 50,000 pages
 re_bad_char = re.compile("\ufffd")
@@ -74,7 +82,7 @@ FIELDS_WANTED = (
         "003",  # for OCLC
         "008",  # publish date, country and language
         "010",  # lccn
-        "016",  # National Bibliographic Agency Control Number (for DNB)
+        "016",  # National Bibliographic Agency Control Number
         "020",  # isbn
         "022",  # issn
         "035",  # oclc
@@ -111,14 +119,15 @@ FIELDS_WANTED = (
 )
 
 
-def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
+def read_agency_control_number(rec: MarcBase) -> dict[str, list[str]] | None:
     # 016: National Bibliographic Agency Control Number
     fields = rec.get_fields("016")
     for f in fields:
         (source,) = f.get_subfield_values("2") or [""]
         (control_number,) = f.get_subfield_values("a") or [""]
-        if source == DNB_AGENCY_CODE and control_number:
-            return {"dnb": [control_number]}
+        identifier = AGENCY_MAPPING.get(source)
+        if identifier and control_number and not control_number.startswith(LEGACY_BNF_PREFIX):
+            return {identifier: [control_number]}
     return None
 
 
@@ -605,10 +614,13 @@ def read_url(rec: MarcBase) -> list:
         contents = f.get_contents("uy3zx")
         if not contents.get("u"):
             continue
+        if f.ind1() in "0123":
+            # Exclude 0:Email, 1:FTP, 2:Telnet, 3:Dial-up as External links
+            continue
         parts = contents.get("y") or contents.get("3") or contents.get("z") or contents.get("x", ["External source"])
         if parts:
             title = parts[0].strip()
-            found += [{"url": u.strip(), "title": title} for u in contents["u"]]
+            found += [{"url": u.strip(), "title": title} for u in contents["u"] if "http" in u]
     return found
 
 
@@ -718,7 +730,7 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
             raise
 
     update_edition(rec, edition, read_lccn, "lccn")
-    update_edition(rec, edition, read_dnb, "identifiers")
+    update_edition(rec, edition, read_agency_control_number, "identifiers")
     update_edition(rec, edition, read_doi, "identifiers")
     update_edition(rec, edition, read_issn, "identifiers")
     update_edition(rec, edition, read_authors, "authors")

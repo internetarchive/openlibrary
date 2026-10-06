@@ -2,6 +2,8 @@
  * Page behaviour for the design system docs at /developers/design.
  * All progressive: the page is fully readable with this bundle absent.
  */
+import { olAlert, olConfirm } from '../../../../components/lit/alert-dialog.js';
+import { copyText } from '../copy-text.js';
 import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from './contrast.js';
 
 const CODE_VISIBLE_KEY = 'ol-design-show-code';
@@ -35,7 +37,7 @@ async function highlightCode(root) {
     highlighted = true;
     // The default build already carries markup, css, clike and javascript —
     // the only languages the snippets use — so no component imports are needed.
-    const { default: Prism } = await import(/* webpackChunkName: "prism" */ 'prismjs');
+    const { default: Prism } = await import('prismjs');
     Prism.highlightAllUnder(root);
 }
 
@@ -126,17 +128,6 @@ function initCodeToggle(root) {
     });
 }
 
-async function copyText(trigger, text) {
-    try {
-        await navigator.clipboard.writeText(text);
-    } catch {
-        return; // No clipboard permission — silently leave the page as it was.
-    }
-
-    trigger.classList.add('is-copied');
-    setTimeout(() => trigger.classList.remove('is-copied'), 1200);
-}
-
 /** Click-to-copy. `data-ds-copy-text`, else the nearest code block. */
 function initCopy(root) {
     root.addEventListener('click', (event) => {
@@ -153,7 +144,9 @@ function initCopy(root) {
  * Mark the sidebar link for whichever section is currently on screen.
  */
 function initScrollSpy(root) {
-    const links = [...root.querySelectorAll('.ds__sidebar a[href^="#"]')];
+    // Group titles are jumps, not positions: a section spans the whole viewport
+    // for most of a scroll, so observing it would starve the links beneath it.
+    const links = [...root.querySelectorAll('.ds__sidebar .ds__nav-list a[href^="#"]')];
     if (!links.length || !('IntersectionObserver' in window)) return;
 
     const linkById = new Map(links.map((link) => [decodeURIComponent(link.hash.slice(1)), link]));
@@ -175,6 +168,64 @@ function initScrollSpy(root) {
         { rootMargin: '-80px 0px -70% 0px' }
     );
     targets.forEach((target) => observer.observe(target));
+}
+
+/**
+ * Below 768px the contents list moves into a popover, which renders as a tray.
+ * The nav is moved, not duplicated, so the scroll spy keeps marking the same
+ * links and there is only ever one `#component` anchor per component.
+ */
+function initNavPopover(root) {
+    const sidebar = root.querySelector('.ds__sidebar');
+    const popover = root.querySelector('[data-ds-nav-popover]');
+    const nav = root.querySelector('[data-ds-nav]');
+    if (!sidebar || !popover || !nav) return;
+
+    // Matches the popover's own tray breakpoint, so the trigger and the tray
+    // appear together.
+    const mobile = window.matchMedia('(max-width: 767px)');
+
+    function apply() {
+        if (mobile.matches) {
+            popover.appendChild(nav);
+            sidebar.dataset.dsNavMode = 'popover';
+        } else {
+            popover.open = false;
+            sidebar.appendChild(nav);
+            delete sidebar.dataset.dsNavMode;
+        }
+    }
+
+    apply();
+    mobile.addEventListener('change', apply);
+
+    // Following a link leaves the tray sitting over what it jumped to.
+    nav.addEventListener('click', (event) => {
+        const link = event.target.closest('a[href^="#"]');
+        if (!link || !popover.open) return;
+        popover.open = false;
+        const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        if (target) jumpOnceUnpinned(target);
+    });
+}
+
+/**
+ * Scroll to `target` once the tray has unpinned <body>. The tray locks body
+ * scroll while open and restores the offset it captured on the way in, which
+ * lands after the browser's own jump to the anchor and undoes it — so the jump
+ * has to wait out the close. The URL still gets the hash from the click.
+ */
+function jumpOnceUnpinned(target) {
+    if (document.body.style.position !== 'fixed') {
+        target.scrollIntoView();
+        return;
+    }
+    const observer = new MutationObserver(() => {
+        if (document.body.style.position === 'fixed') return;
+        observer.disconnect();
+        target.scrollIntoView();
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
 }
 
 function iconSnippets(name) {
@@ -276,12 +327,29 @@ function initIconFilter(root) {
     });
 }
 
+/** The Dialog helper demos call the real olConfirm()/olAlert(), which inline page scripts can't import. */
+function initDialogHelperDemos(root) {
+    const helpers = { confirm: olConfirm, alert: olAlert };
+    root.querySelectorAll('[data-ds-dialog-helper]').forEach((trigger) => {
+        trigger.addEventListener('click', async() => {
+            const { dsDialogHelper, dsDialogOptions, dsDialogTemplate, dsDialogOut } = trigger.dataset;
+            const options = JSON.parse(dsDialogOptions);
+            if (dsDialogTemplate) options.message = root.querySelector(dsDialogTemplate);
+            const result = await helpers[dsDialogHelper](options);
+            const out = dsDialogOut && root.querySelector(dsDialogOut);
+            if (out) out.textContent = String(result);
+        });
+    });
+}
+
 export function initDesignSystem(root) {
     initCodeToggle(root);
     initCopy(root);
+    initNavPopover(root);
     initScrollSpy(root);
     initRampLabels(root);
     renderContrastBadges(root);
     initIconFilter(root);
     initIconPopover(root);
+    initDialogHelperDemos(root);
 }

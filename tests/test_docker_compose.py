@@ -1,5 +1,7 @@
 import os
+import re
 
+import pytest
 import yaml
 
 
@@ -34,3 +36,87 @@ class TestDockerCompose:
             prod_dc: dict = yaml.safe_load(f)
         for serv, opts in prod_dc["services"].items():
             assert "profiles" in opts, f"{serv} is missing 'profiles' field"
+
+    def test_web_services_set_deployment_name(self):
+        with open(p("..", "compose.staging.yaml")) as f:
+            staging_dc: dict = yaml.safe_load(f)
+        with open(p("..", "compose.production.yaml")) as f:
+            prod_dc: dict = yaml.safe_load(f)
+
+        for service_name in ("web", "fast_web"):
+            assert "OL_DEPLOYMENT_NAME=testing" in staging_dc["services"][service_name]["environment"]
+            assert "OL_DEPLOYMENT_NAME=production" in prod_dc["services"][service_name]["environment"]
+
+    def test_node_exporter_matches_across_environments(self):
+        """
+        node-exporter should be configured identically in staging and production
+        (aside from production's per-server 'profiles' field) so that the metrics
+        we collect are consistent across environments.
+        """
+        with open(p("..", "compose.staging.yaml")) as f:
+            staging_dc: dict = yaml.safe_load(f)
+        with open(p("..", "compose.production.yaml")) as f:
+            prod_dc: dict = yaml.safe_load(f)
+
+        staging_node_exporter = dict(staging_dc["services"]["node-exporter"])
+        prod_node_exporter = dict(prod_dc["services"]["node-exporter"])
+        del prod_node_exporter["profiles"]
+
+        assert staging_node_exporter == prod_node_exporter, "node-exporter config differs between staging and production"
+
+
+I18N_DIR = "/openlibrary/openlibrary/i18n"
+
+
+def _mount_targets(service: dict) -> list[str]:
+    targets = []
+    for volume in service.get("volumes", []):
+        if isinstance(volume, dict):
+            targets.append(volume["target"])
+        else:
+            # "source:target[:mode]"; a bare "target" is an anonymous volume.
+            # ${VAR:-default} in the source contains a colon, so blank it first.
+            parts = re.sub(r"\$\{[^}]*\}", "VAR", volume).split(":")
+            targets.append(parts[1] if len(parts) > 1 else parts[0])
+    return targets
+
+
+def _shadows_i18n(target: str) -> bool:
+    target = target.rstrip("/")
+    return target == I18N_DIR or I18N_DIR.startswith(target + "/") or target.startswith(I18N_DIR + "/")
+
+
+class TestTranslationsSource:
+    """
+    olbase bakes .po files from openlibrary-i18n into /openlibrary/openlibrary/i18n
+    (docker/Dockerfile.olbase). A compose file serves those baked translations only
+    if nothing is mounted over that directory; a checkout mounted over /openlibrary
+    serves the .po files committed in this repo instead.
+    """
+
+    def test_production_serves_baked_translations(self):
+        with open(p("..", "compose.production.yaml")) as f:
+            prod_dc: dict = yaml.safe_load(f)
+        for name, service in prod_dc["services"].items():
+            shadowing = [t for t in _mount_targets(service) if _shadows_i18n(t)]
+            assert not shadowing, f"production {name} mounts {shadowing} over the baked translations"
+
+    @pytest.mark.parametrize("compose_file", ["compose.override.yaml", "compose.staging.yaml", "compose.selinux.yaml"])
+    def test_checkout_mounted_files_serve_committed_translations(self, compose_file):
+        # The testing server (compose.staging.yaml) is one of these, so it cannot
+        # preview what production will serve.
+        with open(p("..", compose_file)) as f:
+            dc: dict = yaml.safe_load(f)
+        for name in ("web", "fast_web"):
+            assert "/openlibrary" in _mount_targets(dc["services"][name]), f"{compose_file} {name}"
+
+    def test_near_prod_serves_committed_translations(self):
+        # compose.near-prod.yaml is layered on compose.override.yaml (see its header):
+        # it keeps override's web/fast_web, and its own app services mount the checkout.
+        # Despite the name, it is not a path that serves baked translations.
+        with open(p("..", "compose.near-prod.yaml")) as f:
+            dc: dict = yaml.safe_load(f)
+        assert not {"web", "fast_web"} & set(dc["services"])
+        for name, service in dc["services"].items():
+            if "image" in service and "solr" not in service["image"]:
+                assert "/openlibrary" in _mount_targets(service), f"compose.near-prod.yaml {name}"

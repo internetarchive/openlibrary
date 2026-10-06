@@ -3,8 +3,8 @@
  *
  * Per the CSS spec, `@import` (and `@charset` / blockless `@layer`) must
  * precede all other statements in a stylesheet. Our Vite build silently drops
- * mid-file `@import`s (webpack's css-loader hoisted them), so this rule
- * catches them at lint time instead of losing styles at build time.
+ * mid-file `@import`s, so this rule catches them at lint time instead of
+ * losing styles at build time.
  *
  * See docs/ai/css-vite-migration.md for background.
  *

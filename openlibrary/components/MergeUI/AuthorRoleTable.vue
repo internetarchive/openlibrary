@@ -47,8 +47,6 @@
 </template>
 
 <script>
-import _ from 'lodash';
-
 export default {
     props: {
         roles: {
@@ -58,7 +56,7 @@ export default {
     },
     computed: {
         fields() {
-            return _.uniq(_.flatMap(this.roles, Object.keys)).sort();
+            return [...new Set(this.roles.flatMap(role => Object.keys(role)))].sort();
         }
     }
 };

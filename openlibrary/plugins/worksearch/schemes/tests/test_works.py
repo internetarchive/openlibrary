@@ -112,7 +112,15 @@ QUERY_PARSER_TESTS = {
         'lcc:"NC760 .B2813"',
         'lcc:"NC-0760.00000000.B2813"',
     ),
-    # TODO Add tests for DDC
+    # DDCs
+    "DDC: simple": ("ddc:65.8", "ddc:065.8"),
+    "DDC: integer, no padding needed": ("ddc:658", "ddc:658"),
+    "DDC: range": ("ddc:[61 TO 65]", "ddc:[061 TO 065]"),
+    "DDC: range, open end": ("ddc:[23.23 TO *]", "ddc:[023.23 TO *]"),
+    "DDC: wildcard": ("ddc:23.45*", "ddc:023.45*"),
+    "DDC: wildcard integer": ("ddc:2*", "ddc:2*"),
+    "DDC: ddc_sort": ("ddc_sort:65.8", "ddc_sort:065.8"),
+    "DDC: quotes preserved": ('ddc:"65.8"', 'ddc:"065.8"'),
 }
 
 
@@ -146,6 +154,22 @@ def test_q_to_solr_params_edition_key(query, edQuery):
     params_d = dict(params)
     assert params_d["userWorkQuery"] == query
     assert params_d["userEdQuery"] == edQuery
+
+
+def test_cover_dimensions_fetched_for_works_and_editions():
+    """Cover dimensions must reach both the work `fl` and the editions subquery,
+    since the search result macro reads them off the selected edition."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+    assert {"cover_width", "cover_height"} <= s.default_fetched_fields
+
+    solr_fields = (s.default_fetched_fields | {"editions:[subquery]"}) - {"editions"}
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params("harry potter", solr_fields, [])
+    editions_fl = dict(params)["editions.fl"].split(",")
+    assert "cover_width" in editions_fl
+    assert "cover_height" in editions_fl
 
 
 def test_q_to_solr_params_local_params_fq_not_rewritten_for_editions():

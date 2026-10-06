@@ -20,7 +20,8 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.lending import add_availability_async
+from openlibrary.core.fulltext import is_passage_query
+from openlibrary.core.lending import add_availability, add_availability_async
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
@@ -315,6 +316,10 @@ async def execute_solr_query_async(
 
 
 execute_solr_query = async_bridge.wrap(execute_solr_query_async)
+
+
+# Gates work_search.html's Search Inside band, mirroring the modal's gate.
+public(is_passage_query)
 
 
 @public
@@ -652,8 +657,6 @@ class SearchResponse:
 def get_doc(doc: SolrDocument):
     """
     Coerce a solr document to look more like an Open Library edition/work. Ish.
-
-    called from work_search template
     """
     result = web.storage(
         key=doc["key"],
@@ -695,6 +698,8 @@ def get_doc(doc: SolrDocument):
         subtitle=doc.get("subtitle", None),
         cover_edition_key=doc.get("cover_edition_key", None),
         cover_i=doc.get("cover_i", None),
+        cover_width=doc.get("cover_width", None),
+        cover_height=doc.get("cover_height", None),
         languages=doc.get("language", []),
         id_project_gutenberg=doc.get("id_project_gutenberg", []),
         id_project_runeberg=doc.get("id_project_runeberg", []),
@@ -885,10 +890,13 @@ class search(delegate.page):
         q_joined = " ".join(q_list)
         author_suggestions = derive_authors(search_response.docs, q_joined)
 
+        works = [get_doc(doc) for doc in search_response.docs]
+        add_availability([(w.get("editions") or [None])[0] or w for w in works])
+
         return render.work_search(
             q_joined,
             search_response,
-            get_doc,
+            works,
             param,
             page,
             rows,
@@ -959,7 +967,26 @@ class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        return render_template("search/advancedsearch.html")
+        # facets are only a fallback
+        i = web.input(
+            q="",
+            title="",
+            author="",
+            isbn="",
+            subject="",
+            place="",
+            person="",
+            publisher="",
+            subject_facet="",
+            publisher_facet="",
+            person_facet="",
+            place_facet="",
+        )
+        i.subject = i.subject or i.subject_facet
+        i.publisher = i.publisher or i.publisher_facet
+        i.person = i.person or i.person_facet
+        i.place = i.place or i.place_facet
+        return render_template("search/advancedsearch.html", i)
 
 
 @dataclass

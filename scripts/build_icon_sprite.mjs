@@ -6,7 +6,7 @@
  *      DOM, served as a static asset.
  *   2. openlibrary/components/lit/icons.generated.js — inline Lit templates for
  *      <ol-icon>, which can't reach the sprite from inside a shadow root.
- *      `make lit-components` builds it before bundling.
+ *      `make components` builds it before bundling.
  *
  * No dependencies, only Node built-ins, so `make icons` runs anywhere without an
  * npm install.

@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
  * Defines functions related to the compact title component.
  * @module compact-title/index

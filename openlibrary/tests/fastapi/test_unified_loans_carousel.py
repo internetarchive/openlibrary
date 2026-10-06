@@ -54,13 +54,9 @@ def test_unified_loans_carousel_merges_active_and_history():
     mock_mb.readlog = MagicMock()
     mock_mb.readlog.get_works.return_value = MagicMock(docs=[])
 
-    # Stub site.get().get to resolve the active books
+    # Stub site.get().get_many to batch-resolve the active books
     mock_site = MagicMock()
-    site_map = {
-        "/books/OL1M": active_loan_book_A,
-        "/books/OL2M": active_loan_book_B,
-    }
-    mock_site.get.side_effect = site_map.get
+    mock_site.get_many.return_value = [active_loan_book_A, active_loan_book_B]
 
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
@@ -144,7 +140,7 @@ def test_active_loan_ranks_above_recently_returned():
     mock_mb.readlog.get_works.return_value = MagicMock(docs=[])
 
     mock_site = MagicMock()
-    mock_site.get.side_effect = {"/books/OL1M": active_loan_book_A}.get
+    mock_site.get_many.return_value = [active_loan_book_A]
 
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
@@ -203,7 +199,7 @@ def _mb_for_viewer(*, is_my_page: bool):
 
 def _run_render(mb, mock_history_data):
     mock_site = MagicMock()
-    mock_site.get.side_effect = {}.get
+    mock_site.get_many.return_value = []
     mock_site_context = MagicMock()
     mock_site_context.get.return_value = mock_site
     with (

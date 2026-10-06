@@ -255,11 +255,6 @@ class Edition(models.Edition):
 
         return [{"resource_id": f"bookreader:{self.ocaid}", "resource_type": "bookreader", "size": None}]
 
-    def update_loan_status(self):
-        """Update the loan status"""
-        if self.ocaid:
-            lending.sync_loan(self.ocaid)
-
     def _process_identifiers(self, config_, names, values):
         id_map = {}
         for id in config_:
@@ -480,19 +475,18 @@ class Author(models.Author):
     def get_olid(self):
         return self.key.split("/")[-1]
 
-    def get_books(self, q=""):
-        i = web.input(sort="editions", page=1, rows=20, mode="")
+    def get_books(self, q="", sort="editions", page=1, rows=20, mode=""):
         try:
             # safeguard from passing zero/negative offsets to solr
-            page = max(1, int(i.page))
-        except ValueError:
+            page = max(1, int(page))
+        except ValueError, TypeError:
             page = 1
         return works_by_author(
             self.get_olid(),
-            sort=i.sort,
+            sort=sort,
             page=page,
-            rows=i.rows,
-            has_fulltext=i.mode == "ebooks",
+            rows=rows,
+            has_fulltext=mode == "ebooks",
             query=q,
             facet=True,
             request_label="AUTHOR_BOOKS_PAGE",
@@ -858,14 +852,7 @@ class User(models.User):
         return len(lending.get_loans_of_user(self.key))
 
     def get_loans(self):
-        self.update_loan_status()
         return lending.get_loans_of_user(self.key)
-
-    def update_loan_status(self):
-        """Update the status of this user's loans."""
-        loans = lending.get_loans_of_user(self.key)
-        for loan in loans:
-            lending.sync_loan(loan["ocaid"])
 
     def get_safe_mode(self):
         return (self.get_users_settings() or {}).get("safe_mode", "").lower()
