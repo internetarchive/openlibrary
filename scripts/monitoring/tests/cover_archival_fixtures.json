@@ -1,0 +1,68 @@
+{
+ "_comment": "Recorded 2026-09-29/30 from public responses. Listings are reduced to their ID range (both are contiguous: 0 gaps) plus verbatim lines of the real page (header, a row, the closing </table> and </html>); pointers are reduced to id and filename (data minimisation); heads are the status of HEAD /b/id/<id>-L.jpg?default=false; missing_item_metadata is archive.org/metadata/covers_0015, which answers HTTP 200.",
+ "listing_page_lines": [
+  "<link rel=\"SHORTCUT ICON\" href=\"https://archive.org/images/glogo.jpg\"/>",
+  "<tr><td><a href=\"//archive.org/download/covers_0014/covers_0014_62.zip/0014620000.jpg\">0014620000.jpg</a><td><td>2024-04-29 12:37<td id=\"size\">52631</tr>",
+  "</table>        </div><!--/.container-->",
+  "</html>"
+ ],
+ "listings": {
+  "covers_0014_61": [
+   14610000,
+   14619999
+  ],
+  "covers_0014_62": [
+   14620000,
+   14624072
+  ]
+ },
+ "pointers": [
+  {
+   "id": 14615000,
+   "filename": "covers_0014/covers_0014_61.zip"
+  },
+  {
+   "id": 14624073,
+   "filename": "covers_0014/covers_0014_62.zip"
+  },
+  {
+   "id": 14625555,
+   "filename": "2024/05/13/OL51693473M-JPnWV.jpg"
+  },
+  {
+   "id": 14627036,
+   "filename": "2024/05/16/OL51708530M-CeQxb.jpg"
+  },
+  {
+   "id": 14627720,
+   "filename": "covers_0014/covers_0014_62.zip"
+  },
+  {
+   "id": 14628517,
+   "filename": "covers_0014/covers_0014_62.zip"
+  },
+  {
+   "id": 14629999,
+   "filename": "covers_0014/covers_0014_62.zip"
+  }
+ ],
+ "heads": [
+  {
+   "id": 999999999,
+   "status": 404
+  },
+  {
+   "id": 14625555,
+   "status": 200
+  },
+  {
+   "id": 14627036,
+   "status": 200
+  },
+  {
+   "id": 14627720,
+   "status": 302
+  }
+ ],
+ "missing_item_metadata": {}
+}
