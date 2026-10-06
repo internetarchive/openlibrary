@@ -193,7 +193,8 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 `openlibrary/core/` contains the data layer:
 - `models.py` — Data models (Work, Edition, Author, etc.)
-- `db.py` — Database access
+- `async_db.py` — Async psycopg3 pool + single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`); **new DB code goes here**
+- `db.py` — Legacy sync web.py database handle; sync callers bridge to async models via `async_bridge.run` (`_sync` suffix)
 - `lending.py` — Book lending/availability
 - `bookshelves.py`, `ratings.py`, `booknotes.py` — User content features
 - `vendors.py` — External vendor integrations

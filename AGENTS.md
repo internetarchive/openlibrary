@@ -15,6 +15,8 @@
 > git clone https://github.com/internetarchive/openlibrary.wiki.git docs/wiki
 > ```
 > (Inside the Docker container the same command runs with `/openlibrary/docs/wiki` — see `docker/ol-home-start.sh`.)
+>
+> 🗄️ **Databases:** New DB code goes through the async psycopg3 pool in `openlibrary/core/async_db.py` — single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`) for one query, `async with connection()` for multi-statement transactions. Legacy sync code keeps `openlibrary/core/db.py`; sync web.py callers reach async model methods via `async_bridge.run` (`_sync` suffix). Reference migration: `openlibrary/core/yearly_reading_goals.py` + `openlibrary/plugins/upstream/yearly_reading_goals.py`.
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
@@ -71,6 +73,7 @@ npm run watch               # Dev mode with hot reload
 | Templates | `openlibrary/templates/` |
 | JS source | `openlibrary/plugins/openlibrary/js/` |
 | CSS source | `static/css/` |
+| DB access | **Async pool (new code):** `openlibrary/core/async_db.py` · Legacy sync: `openlibrary/core/db.py` |
 
 ### Testing Authenticated Endpoints with curl
 
