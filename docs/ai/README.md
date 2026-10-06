@@ -193,7 +193,8 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 `openlibrary/core/` contains the data layer:
 - `models.py` — Data models (Work, Edition, Author, etc.)
-- `db.py` — Database access
+- `async_db.py` — Async psycopg3 pool + single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`); **new DB code goes here**
+- `db.py` — Legacy sync web.py database handle; sync callers bridge to async models via `async_bridge.run` (`_sync` suffix)
 - `lending.py` — Book lending/availability
 - `bookshelves.py`, `ratings.py`, `booknotes.py` — User content features
 - `vendors.py` — External vendor integrations
@@ -253,6 +254,7 @@ These companion docs cover specific areas in depth:
 
 - [Accessibility](web-components.md#accessibility) — focus, ARIA across shadow roots, keyboard patterns for Lit components
 - [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
+- [Database](database.md) — Infobase vs. SQL tables, the async psycopg3 pool, the sync bridge, which driver to use when
 - [Design](design.md) — UI rules and their scope: typography, RTL, the component inventory (what to use, what to avoid), icons, design tokens, overlays, animations, mobile, and what enforces each rule
 - [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
 - [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings

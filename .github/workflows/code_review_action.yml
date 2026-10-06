@@ -1,5 +1,142 @@
 name: Code Review Action
 
+# Implements the Code Review Action from epic #13160:
+#   "an @openlibrary-bot-driven code review, triggered when staff request it as a PR reviewer
+#    or @-mention it directly in a PR comment (staff-only trigger, for security). Should post
+#    inline suggestion-style comments on specific code blocks/lines, similar to Copilot's
+#    review UX. On re-trigger, should review only the diff since its last pass."
+#
+# SECURITY -- the two-job split below is the whole design, read before editing.
+#
+# `analyze` reads untrusted PR content (diff, source) and holds NO write permission and NO PAT.
+# `post` holds the write permission and the scoped PAT, runs no model, and takes the analysis only as
+# a JSON artifact which it re-validates against the diff before posting. A prompt injection in
+# a PR can therefore change what the review *says*, but cannot reach a write API, because the
+# process that read it has nothing to write with.
+#
+# Do not "simplify" this into one job. Do not add any PAT to `analyze`. Do not add write
+# scopes to `analyze`'s permissions block.
+#
+# DISCLOSURE GATE -- a security finding is never published, per pm/workflows/code_review.md
+# ("do NOT post publicly. Follow security.md"). REVIEW_GATE_JS below is the one definition of
+# what may be published; both jobs evaluate that same text:
+#   - `analyze` runs it after the model and uploads ONLY what it returns: the allowlisted copy
+#     of the review if it passes, a {"withheld": true} stub if not. The model's own files never
+#     leave the runner -- not review.json, and not review.diff or review-range.json, which the
+#     model could have rewritten. Artifacts on a public repo are downloadable by any signed-in
+#     GitHub user, so anything unscanned in the artifact is a disclosure.
+#   - `post` runs it again on a fresh runner and is the enforcer: it publishes nothing unless
+#     the gate passes, whatever `analyze` claims, and renders only from the allowlisted copy.
+#     It re-fetches the diff itself from the range the pre-model step resolved.
+# The gate withholds the WHOLE review: a security finding suppresses every other finding too.
+# A withheld run fails with one fixed message whatever the reason -- a security finding, a
+# backstop hit, a malformed or missing review. Logs on a public repo are public, so the reason
+# is never written anywhere.
+#
+# Fork PRs: `pull_request` from a fork gets no secrets, so the review_requested path covers
+# same-repo PRs only. The `issue_comment` path runs in base-repo context WITH secrets and does
+# cover fork PRs -- which is why that path is staff-gated by an explicit allowlist below.
+# `analyze` never checks fork code into the working tree. It fetches the PR head into a ref and
+# extracts a copy into pr-head/ with executable bits, symlinks and agent config (.claude/,
+# .mcp.json, CLAUDE.md) removed; nothing runs it. The model has no shell, can read only inside
+# the workspace, and can write only review.json -- see the Review step.
+
+env:
+  # Evaluates to { dimensions, check(review) }. check() fails closed: anything not positively
+  # shaped as a publishable review is withheld. On success it returns `clean`, an allowlisted
+  # copy holding exactly the fields `post` renders -- that copy, never the model's own file, is
+  # what gets uploaded and posted, so no unscanned field or extra key reaches a public surface.
+  # The security dimension's note is not in `clean`: it is never published, so it is not scanned.
+  REVIEW_GATE_JS: |
+    ({
+      dimensions: {
+        correctness: 'Correctness', security: 'Security', accessibility: 'Accessibility',
+        test_coverage: 'Test coverage', styleguide: 'Styleguide',
+      },
+      severities: ['high', 'medium', 'low'],
+      // Non-model backstop for a security concern the model filed under another dimension or
+      // wrote into prose. It is best-effort -- it cannot recognise every phrasing -- and the
+      // primary control is the model's classification. False positives cost a withheld review;
+      // false negatives cost a disclosure.
+      terms: /\b(secur\w*|vulnerab\w*|exploit\w*|attack\w*|malicious\w*|inject\w*|xss|cross[- ]site|csrf|xsrf|ssrf|rce|remote code|code execution|open[- ]redirect|traversal|privilege\w*|escalat\w* (to|privilege\w*)|(un)?authori[sz]\w*|impersonat\w*|exfiltrat\w*|(auth\w*|permission|access|login|csrf|validation) bypass\w*|bypass\w* (the )?(auth\w*|permission|access|login|csrf|validation)|(credential|secret|password|pii|personal data)s? (are |is )?leak\w*|leak\w* (of )?(the )?(credential|secret|password|pii|personal data|patron|user|reader)\w*|secrets?|credentials?|passwords?|api[- _]?keys?|(auth|access|api|session|csrf|bearer|oauth|refresh)[- _]?tokens?|cve-\d+|ghsa-\w+|deserializ\w*|pickle|shell\s*=\s*true|sql\w* (string|injection)|(concatenat|interpolat|format|substitut)\w* into (the |a )?(sql|query|shell|command)|(missing|no|without( an?)?|lacks?( an?)?) (auth\w*|permission|access|ownership|owner|csrf|host|origin) (check|validation|verification)\w*|without (checking|validating|verifying) the (host|origin|domain|scheme|redirect|owner\w*)|another (patron|user|account|reader)'?s|yaml\.load|httponly|samesite|unsaniti[sz]ed|sanitiz\w*|unescaped|clickjack\w*|denial of service|redos)\b/i,
+      // Shapes that are not words, so they cannot sit inside the \b...\b list above.
+      patterns: /\|\s*safe\b|\beval\s*\(|\bexec\s*\(|\bos\.system\b|\bMarkup\s*\(|x-forwarded-for|rate[- ]limit\w* (is |are )?(missing|absent)|(no|missing|without) rate[- ]limit/i,
+      // Credential shapes, independent of the term list: a review must never carry one.
+      secrets: /sk-ant-[\w-]{20,}|\bgh[pousr]_[A-Za-z0-9]{30,}|\bgithub_pat_\w{30,}|\beyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{6,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/,
+      // What GitHub renders as plain text, so the scan sees the words a reader would: decode
+      // character references (an unrecognised named one returns null and withholds), drop HTML
+      // comments and tags, invisible format characters and combining marks, unwrap markdown
+      // links and emphasis/code marks, and split identifiers (snake_case, camelCase) into words.
+      // Every regex here is linear: model text is untrusted and can be large.
+      entities: { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', mdash: ' ', ndash: ' ', hellip: ' ', copy: ' ', reg: ' ', times: ' ', rarr: ' ', larr: ' ' },
+      plain(t) {
+        const cp = (n) => (Number.isInteger(n) && n >= 0 && n <= 0x10FFFF ? String.fromCodePoint(n) : ' ');
+        let unknown = false;
+        t = t.normalize('NFKC')
+          .replace(/&#x([0-9a-f]{1,8});?/gi, (_, h) => cp(parseInt(h, 16)))
+          .replace(/&#(\d{1,10});?/g, (_, d) => cp(Number(d)))
+          .replace(/&([a-z][a-z0-9]{0,31});/gi, (_, n) => (Object.hasOwn(this.entities, n.toLowerCase()) ? this.entities[n.toLowerCase()] : ((unknown = true), ' ')));
+        if (unknown) return null;
+        return t.replace(/<!--[\s\S]*?(-->|$)/g, '').replace(/<[^<>]*>/g, '')
+          .normalize('NFKD').replace(/[\p{Cf}\p{M}]/gu, '')
+          .replace(/\[([^\[\]]*)\]\([^()]*\)/g, '$1').replace(/[*`~]/g, '')
+          .normalize('NFKC');
+      },
+      // The same text with identifiers split into words. Scanned in addition to plain(), not
+      // instead: splitting would break shapes like HttpOnly or a token's mixed case.
+      words(t) {
+        return t.replace(/_/g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+      },
+      // Longer published text than this is withheld rather than scanned.
+      maxText: 65536,
+      // A repository-relative path: no spaces, markdown, absolute paths or `..` segments.
+      path: /^(?!.*(^|\/)\.\.(\/|$))[A-Za-z0-9_.][A-Za-z0-9_.\/-]*$/,
+      check(review) {
+        try { return this.evaluate(review); } catch (e) { return { publish: false }; }
+      },
+      evaluate(review) {
+        const no = { publish: false };
+        const str = (v) => typeof v === 'string';
+        const absent = (v) => v === undefined || v === null;
+        const line = (v) => absent(v) || (Number.isInteger(v) && v > 0);
+        if (!review || typeof review !== 'object' || Array.isArray(review)) return no;
+        const { dimensions: dims, findings } = review;
+        if (!str(review.summary) || !Array.isArray(findings) || !dims || typeof dims !== 'object') return no;
+        const clean = { summary: review.summary, dimensions: {}, findings: [] };
+        const counts = {};
+        for (const f of findings) {
+          if (!f || typeof f !== 'object' || !str(f.dimension) || !Object.hasOwn(this.dimensions, f.dimension)) return no;
+          if (!this.severities.includes(f.severity) || !str(f.title) || !f.title.trim() || !str(f.body) || !f.body.trim()) return no;
+          if (!line(f.line) || !line(f.start_line)) return no;
+          if (!absent(f.path) && !(str(f.path) && this.path.test(f.path))) return no;
+          if (!absent(f.suggestion) && !str(f.suggestion)) return no;
+          counts[f.dimension] = (counts[f.dimension] || 0) + 1;
+          const c = { dimension: f.dimension, severity: f.severity, title: f.title, body: f.body };
+          for (const k of ['path', 'start_line', 'line', 'suggestion']) if (!absent(f[k])) c[k] = f[k];
+          clean.findings.push(c);
+        }
+        for (const k of Object.keys(this.dimensions)) {
+          const d = dims[k], n = counts[k] || 0;
+          if (!d || typeof d !== 'object' || (d.status !== 'none' && d.status !== 'findings')) return no;
+          if ((d.status === 'none') !== (n === 0)) return no;
+          // The security note is never published, so it is neither required nor kept.
+          if (k !== 'security' && d.status === 'none' && !(str(d.note) && d.note.trim())) return no;
+          if (k !== 'security' && !absent(d.note) && !str(d.note)) return no;
+          clean.dimensions[k] = k === 'security' ? { status: d.status } : { status: d.status, note: d.note };
+        }
+        if (clean.dimensions.security.status !== 'none') return no;
+        const text = [clean.summary];
+        for (const [k, d] of Object.entries(clean.dimensions)) if (k !== 'security') text.push(d.note);
+        for (const f of clean.findings) text.push(f.title, f.body, f.suggestion, f.path);
+        const raw = text.filter((t) => t != null).join('\n');
+        if (raw.length > this.maxText) return no;
+        const plain = this.plain(raw);
+        if (plain === null || this.secrets.test(plain)) return no;
+        for (const t of [plain, this.words(plain)]) if (this.terms.test(t) || this.patterns.test(t)) return no;
+        return { publish: true, clean };
+      },
+    })
+
 on:
   pull_request:
     types: [review_requested, opened, ready_for_review]
@@ -8,41 +145,30 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "Debug: manually run the code review trigger on a specific existing PR"
+        description: "Debug: manually run the code reviewer on a specific existing PR"
         required: true
         type: string
-
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
 
 concurrency:
   group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
   cancel-in-progress: false
 
 jobs:
-  respond:
+  analyze:
     runs-on: ubuntu-latest
-    # Placeholder scaffold for #13163 -- trigger wiring only, no review logic yet.
-    #
     # Three trigger paths:
-    #   1. review_requested with openlibrary-bot as the reviewer -- covers both a
-    #      human manually requesting it, and auto_assign_reviewer.yml's automated
-    #      request. No staff-login check here: requesting *any* reviewer already
-    #      requires write/triage access on GitHub's side, so this isn't an open door.
-    #   2. opened / ready_for_review where the PR's own author is openlibrary-bot --
-    #      GitHub rejects requesting a PR's own author as a reviewer (422), so a
-    #      self-authored PR can never reach this workflow via path 1. This is the
-    #      direct substitute for "add openlibrary-bot as a reviewer on its own PR",
-    #      which is not literally possible.
-    #   3. issue_comment @-mention on a PR -- open to any commenter, including
-    #      external contributors with only read access, so this path keeps an
-    #      explicit staff allowlist (mirrors pr_autoresponder.yml / issue_enrichment.md).
-    #
-    # Draft PRs never trigger a review, on any path -- enforced again defensively
-    # inside the job itself (see Step 1), since issue_comment's payload has no
-    # PR draft field to check at the `if:` level.
+    #   1. review_requested with openlibrary-bot as the reviewer -- covers both a human manually
+    #      requesting it, and auto_assign_reviewer.yml's automated request. No staff-login check:
+    #      requesting any reviewer already requires write/triage access on GitHub's side.
+    #   2. opened / ready_for_review where the PR's own author is openlibrary-bot -- GitHub
+    #      rejects requesting a PR's own author as a reviewer (422), so a self-authored PR can
+    #      never reach this workflow via path 1.
+    #   3. issue_comment @-mention on a PR -- open to any commenter including external
+    #      contributors, and it runs with secrets in scope, so this path keeps an explicit
+    #      staff allowlist.
+    # Drafts: the three automatic paths above skip draft PRs -- no reviewing unfinished work.
+    # A manual workflow_dispatch reviews a draft deliberately; it is the staff debug path, and
+    # GitHub already requires write access to dispatch.
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
@@ -57,61 +183,337 @@ jobs:
         github.event.issue.pull_request != null &&
         contains(github.event.comment.body, '@openlibrary-bot') &&
         github.event.comment.user.login != 'openlibrary-bot' &&
-        contains(fromJSON('["mekarpeles","cdrini","jimchamp","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
+        contains(fromJSON('["mekarpeles","cdrini","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
       )
+    permissions:
+      contents: read
+      pull-requests: read
+      # Required by claude-code-action's OIDC fetch. GitHub accepts only `write` or `none`
+      # here; `none` breaks the token exchange. This is NOT repository write access -- see
+      # #13604, where removing it silently broke the PR auto-responder.
+      id-token: write
+    outputs:
+      pr: ${{ steps.range.outputs.pr }}
+      head_sha: ${{ steps.range.outputs.head_sha }}
+      base_sha: ${{ steps.range.outputs.base_sha }}
+      incremental: ${{ steps.range.outputs.incremental }}
+      skip: ${{ steps.range.outputs.skip }}
     steps:
-      - name: Acknowledge trigger (placeholder -- no review logic yet)
+      # The base commit, never the PR head: on `pull_request` the default ref would be the
+      # merge of the PR into base, so pin the base SHA; other events check out the default
+      # branch, which is the base. See the SECURITY note above.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Resolve review range (incremental since our last pass)
+        id: range
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+            const fs = require('fs');
+            const owner = context.repo.owner, repo = context.repo.repo;
             const prNumber = context.eventName === 'workflow_dispatch'
               ? Number(context.payload.inputs.pr_number)
               : (context.payload.pull_request
                   ? context.payload.pull_request.number
                   : context.payload.issue.number);
 
-            // Defensive draft check -- issue_comment's payload has no PR draft
-            // field, and this also re-confirms the pull_request-path checks
-            // above in case GitHub's payload state lagged the actual PR state.
-            const { data: pr } = await github.rest.pulls.get({
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            // Draft check for the automatic paths -- issue_comment's payload has no draft field.
+            // A manual dispatch reviews drafts on purpose (see the trigger comment above).
+            if (pr.draft && context.eventName !== 'workflow_dispatch') { core.info(`PR #${prNumber} is a draft -- skipping.`); core.setOutput('skip','true'); return; }
+            if (pr.state !== 'open') { core.info(`PR #${prNumber} is ${pr.state} -- skipping.`); core.setOutput('skip','true'); return; }
+
+            const head = pr.head.sha;
+
+            // Incremental: find the newest review WE submitted and diff from its commit.
+            // Epic #13160's cross-cutting rule -- ignore our own bot -- is why we look for our
+            // own reviews here rather than any review.
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner, repo, pull_number: prNumber, per_page: 100,
+            });
+            const ours = reviews.filter(r => r.user && r.user.login === 'openlibrary-bot' && r.commit_id);
+            const prior = ours.length ? ours[ours.length - 1] : null;
+
+            let base = pr.base.sha, incremental = false;
+            if (prior && prior.commit_id !== head) {
+              // Only trust the prior SHA if it is still reachable AND an ancestor of head; a
+              // force-push can leave a commit_id that no longer describes this PR's history,
+              // and diffing from it would silently mis-scope the review.
+              try {
+                const cmp = await github.rest.repos.compareCommitsWithBasehead({
+                  owner, repo, basehead: `${prior.commit_id}...${head}`,
+                });
+                if (cmp.data.status === 'ahead' && cmp.data.files && cmp.data.files.length) {
+                  base = prior.commit_id; incremental = true;
+                } else {
+                  core.info(`Prior review commit is ${cmp.data.status} -- falling back to a full review.`);
+                }
+              } catch (e) {
+                core.info(`Could not compare against the prior review commit (${e.message}) -- full review.`);
+              }
+            } else if (prior && prior.commit_id === head) {
+              core.info('Already reviewed this exact commit -- skipping.');
+              core.setOutput('skip','true'); return;
+            }
+
+            const { data: diff } = await github.rest.repos.compareCommitsWithBasehead({
+              owner, repo, basehead: `${base}...${head}`,
+              headers: { accept: 'application/vnd.github.v3.diff' },
+            });
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review.diff`, diff);
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/review-range.json`, JSON.stringify({
+              pr: prNumber, base_sha: base, head_sha: head,
+              incremental, prior_review_at: prior ? prior.submitted_at : null,
+            }, null, 2));
+
+            core.setOutput('pr', String(prNumber));
+            core.setOutput('head_sha', head);
+            // Job outputs, set before the model runs, are what `post` trusts for the range --
+            // not review-range.json, which the model can rewrite.
+            core.setOutput('base_sha', base);
+            core.setOutput('incremental', String(incremental));
+            core.setOutput('skip', 'false');
+            core.info(`PR #${prNumber}: ${incremental ? 'incremental' : 'full'} review, ${base.slice(0,8)}..${head.slice(0,8)}`);
+
+      - name: Fetch PR head into a ref (never into the working tree)
+        if: steps.range.outputs.skip == 'false'
+        env:
+          PR: ${{ steps.range.outputs.pr }}
+        run: |
+          git fetch --no-tags --depth=50 origin "pull/${PR}/head:refs/remotes/pr/head"
+
+      - name: Extract the PR head as inert files (the model has no shell to read git with)
+        if: steps.range.outputs.skip == 'false'
+        run: |
+          mkdir pr-head
+          # $GIT_DIR/info/attributes outranks the PR's own .gitattributes, so the PR cannot hide
+          # files (export-ignore), rewrite them (export-subst, ident) or run filters (filter).
+          ATTR="$(git rev-parse --git-path info/attributes)"
+          mkdir -p "$(dirname "$ATTR")"
+          printf '* -export-ignore -export-subst -ident -filter -text -eol\n' > "$ATTR"
+          git archive --format=tar refs/remotes/pr/head | tar -x -C pr-head --no-same-owner
+          rm -f "$ATTR"
+          # Symlinks could point Read at files outside the workspace; agent config in a PR
+          # could be picked up as instructions or settings.
+          find pr-head -type l -delete
+          find pr-head \( -iname .claude -o -iname .mcp.json -o -iname claude.md -o -iname claude.local.md \) -prune -exec rm -rf {} +
+          # Nothing is left executable. Not `chmod -R a-x,a+X`: `X` keys off the original
+          # mode, so that leaves executable files executable.
+          find pr-head -type f -exec chmod a-x {} +
+
+      - name: Review
+        if: steps.range.outputs.skip == 'false'
+        # Pinned deliberately -- do not restore the floating `@v1`. Same upstream regression as
+        # issue_enrichment.yml and pr_autoresponder.yml: from a later version every run reports
+        # success while producing nothing, in workflows that set `allowed_non_write_users`.
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
+        with:
+          prompt: |
+            @.github/workflows/code_review.md
+
+            Review PR #${{ steps.range.outputs.pr }}. Your range and diff are already on disk --
+            read `review-range.json` and `review.diff` rather than assuming anything from this line.
+          # No shell: `git log --output=` and friends write arbitrary files, and `rg --pre` /
+          # `git grep -O` run programs. Each tool is scoped to the workspace, and bare Grep/Glob
+          # are not -- they reach outside it. Spell the write scope `Edit(...)`: at this pin
+          # `Write(./review.json)` silently denies every write, including review.json, which
+          # would withhold every review while looking like the gate working.
+          claude_args: >-
+            --max-turns 40
+            --allowedTools "Edit(./review.json) Read(./**) Grep(./**) Glob(./**)"
+            --disallowedTools "Bash WebFetch WebSearch"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Deliberately the job's own read-only GITHUB_TOKEN, NOT secrets.OL_BOT_PAT. This job
+          # reads untrusted PR content; it must not hold a credential that can write. The PAT
+          # lives in the `post` job below, which runs no model.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Both are the defaults at this pin, stated because the disclosure gate depends on them:
+          # either one writes the model's text into the public run log or step summary.
+          show_full_output: false
+          display_report: false
+
+      - name: Gate the analysis before upload
+        id: analyze-gate
+        if: steps.range.outputs.skip == 'false'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('fs');
+            const file = `${process.env.GITHUB_WORKSPACE}/review.json`;
+            const gate = eval(process.env.REVIEW_GATE_JS);
+            let review = null;
+            try { review = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { review = null; }
+            // Upload the gate's allowlisted copy, never the model's file. Same log line either way:
+            // the run log is public, and a difference would say which.
+            const res = gate.check(review);
+            fs.writeFileSync(file, JSON.stringify(res.publish ? res.clean : { withheld: true }));
+            core.info('Gate evaluated; artifact prepared.');
+
+      - name: Upload analysis
+        if: steps.range.outputs.skip == 'false'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: code-review-${{ steps.range.outputs.pr }}
+          # review.json only, as rewritten by the gate step. review.diff and review-range.json
+          # were on disk while the model ran; `post` re-derives both from job outputs.
+          path: review.json
+          if-no-files-found: error
+          retention-days: 7
+
+  post:
+    needs: analyze
+    if: needs.analyze.outputs.skip == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # the diff fetch below, with the job's own GITHUB_TOKEN
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: code-review-${{ needs.analyze.outputs.pr }}
+
+      - name: Re-fetch the reviewed diff (anchors are validated against this, not analyze's copy)
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+        with:
+          script: |
+            const sha = /^[0-9a-f]{40}$/;
+            const { BASE_SHA: base, HEAD_SHA: head } = process.env;
+            if (!sha.test(base) || !sha.test(head)) { core.setFailed('Unexpected review range.'); return; }
+            const { data: diff } = await github.rest.repos.compareCommitsWithBasehead({
+              owner: context.repo.owner, repo: context.repo.repo, basehead: `${base}...${head}`,
+              headers: { accept: 'application/vnd.github.v3.diff' },
+            });
+            require('fs').writeFileSync('review.diff', diff);
+
+      - name: Validate anchors and post one batched review
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR: ${{ needs.analyze.outputs.pr }}
+          HEAD_SHA: ${{ needs.analyze.outputs.head_sha }}
+          BASE_SHA: ${{ needs.analyze.outputs.base_sha }}
+          INCREMENTAL: ${{ needs.analyze.outputs.incremental }}
+        with:
+          # Fine-grained PAT (openlibrary-bot) scoped to internetarchive/openlibrary only, with
+          # Pull requests: Read and write and nothing else. Deliberately NOT the broad
+          # OL_BOT_PAT, and deliberately not present in `analyze`.
+          github-token: ${{ secrets.OL_BOT_REVIEW_PAT }}
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const prNumber = Number(process.env.PR);
+            const headSha = process.env.HEAD_SHA;
+            const gate = eval(process.env.REVIEW_GATE_JS);
+
+            // --- The disclosure gate. Nothing below this block runs unless it passes. One fixed
+            // message for every reason, and no reason, count or text from the review in the log:
+            // the log is public.
+            let review = null;
+            try { review = JSON.parse(fs.readFileSync('review.json', 'utf8')); } catch (e) { review = null; }
+            const verdict = gate.check(review);
+            if (!verdict.publish) {
+              core.setFailed('Review not published: the analysis did not pass the pre-publication gate, '
+                + 'and this run does not retain it. A maintainer should re-run the review privately '
+                + 'before anything is posted -- see .github/workflows/code_review.md.');
+              return;
+            }
+            // Everything below renders from the allowlisted copy only.
+            review = verdict.clean;
+
+            // --- Anchorable lines: RIGHT-side (added + context) lines of the reviewed diff.
+            // GitHub documents no behaviour for an out-of-diff anchor, and this API surface is
+            // already known to no-op silently here, so we drop bad anchors rather than find out.
+            const anchorable = new Map();
+            {
+              let file = null, newLn = 0;
+              for (const raw of fs.readFileSync('review.diff', 'utf8').split('\n')) {
+                if (raw.startsWith('+++ ')) {
+                  const p = raw.slice(4).trim();
+                  file = p === '/dev/null' ? null : p.replace(/^b\//, '');
+                  if (file) anchorable.set(file, new Set());
+                  continue;
+                }
+                const h = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+                if (h) { newLn = Number(h[1]); continue; }
+                if (!file) continue;
+                if (raw.startsWith('+') || raw.startsWith(' ')) { anchorable.get(file).add(newLn++); }
+              }
+            }
+
+            const inline = [], orphaned = [];
+            for (const f of (review.findings || [])) {
+              const hasAnchor = f.path && f.line;
+              const start = f.start_line || f.line;
+              const ok = hasAnchor
+                && anchorable.has(f.path)
+                && anchorable.get(f.path).has(Number(f.line))
+                && anchorable.get(f.path).has(Number(start))
+                && Number(start) <= Number(f.line);
+              if (!ok) { orphaned.push(f); continue; }
+
+              let body = `**${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**\n\n${f.body}`;
+              if (f.suggestion != null) {
+                // A suggestion must replace exactly start..line or it cannot be applied.
+                const want = Number(f.line) - Number(start) + 1;
+                const got = String(f.suggestion).split('\n').length;
+                if (want === got) body += `\n\n\`\`\`suggestion\n${f.suggestion}\n\`\`\``;
+                else core.warning(`Dropped suggestion on ${f.path}:${start}-${f.line} (${got} lines for a ${want}-line range).`);
+              }
+              const c = { path: f.path, line: Number(f.line), side: 'RIGHT', body };
+              if (Number(start) !== Number(f.line)) { c.start_line = Number(start); c.start_side = 'RIGHT'; }
+              inline.push(c);
+            }
+
+            // --- Summary body. Findings with no honest in-diff anchor live here rather than
+            // being pinned to an approximate line: on a real review of #13548, 3 of 9 findings
+            // proved themselves in files the diff never touched.
+            let summary = review.summary || '';
+            // The range comes from analyze's job outputs, set before the model ran.
+            const sha = /^[0-9a-f]{40}$/, baseSha = process.env.BASE_SHA;
+            if (process.env.INCREMENTAL === 'true' && sha.test(baseSha) && sha.test(headSha)) {
+              summary = `*Reviewing only the ${baseSha.slice(0,8)}..${headSha.slice(0,8)} range — the commits pushed since my last pass.*\n\n${summary}`;
+            }
+
+            // --- Every dimension, stated. Silence on one reads identically to having checked it.
+            // Security is a fixed line: a review that reaches this point has none by construction.
+            const count = {};
+            for (const f of review.findings) count[f.dimension] = (count[f.dimension] || 0) + 1;
+            summary += '\n\n### Dimensions\n\n' + Object.entries(gate.dimensions).map(([k, label]) => {
+              if (k === 'security') return `- **${label}** — no findings in this range. This is not a security audit.`;
+              if (count[k]) return `- **${label}** — ${count[k]} finding${count[k] === 1 ? '' : 's'}`;
+              return `- **${label}** — no findings. ${review.dimensions[k].note}`;
+            }).join('\n');
+
+            if (orphaned.length) {
+              summary += `\n\n### Findings without an in-diff anchor\n\n` + orphaned.map(f =>
+                `- **${(f.severity || 'note').toUpperCase()} · ${gate.dimensions[f.dimension]} — ${f.title}**${f.path && anchorable.has(f.path) ? ` (\`${f.path}\`)` : ''}\n  ${String(f.body).replace(/\n/g, '\n  ')}`
+              ).join('\n\n');
+            }
+            summary += `\n\n---\n> [!NOTE]\n> Automated review by [@openlibrary-bot](https://github.com/internetarchive/openlibrary/blob/master/.github/workflows/code_review.md) on behalf of @mekarpeles. This is **not** an approval or a sign-off, and it does not satisfy a required review.\n\n<!-- ol-pr-review-bot -->`;
+
+            // --- One batched review. The per-comment endpoint (POST /pulls/{n}/comments) is
+            // documented but returns 422 `pull_request_review_thread.base` in practice
+            // (cli/cli#13358); the batched payload with identical anchors succeeds.
+            const { data: posted } = await github.rest.pulls.createReview({
               owner, repo, pull_number: prNumber,
+              commit_id: headSha,          // resolved at post time -- an older SHA silently outdates comments
+              event: 'COMMENT',            // never APPROVE or REQUEST_CHANGES
+              body: summary,
+              comments: inline,
             });
-            if (pr.draft) {
-              core.info(`PR #${prNumber} is a draft -- skipping.`);
+
+            // --- Verify. Step 4 of pr_autoresponder.md documents this API surface returning
+            // 2xx while changing nothing, so confirm rather than trusting the status code.
+            const after = await github.paginate(github.rest.pulls.listReviews, {
+              owner, repo, pull_number: prNumber, per_page: 100,
+            });
+            if (!after.some(r => r.id === posted.id)) {
+              core.setFailed(`createReview returned ${posted.id} but it is not present on the PR.`);
               return;
             }
-
-            // Idempotency: this workflow can be reached by multiple overlapping
-            // paths (e.g. opened -> auto-assign -> review_requested), so guard
-            // against posting more than one placeholder.
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner, repo, issue_number: prNumber, per_page: 100,
-            });
-            if (comments.some((c) => (c.body || '').includes('<!-- ol-pr-review-bot -->'))) {
-              core.info(`PR #${prNumber} already has a placeholder comment -- skipping.`);
-              return;
-            }
-
-            let trigger;
-            if (context.eventName === 'workflow_dispatch') {
-              trigger = 'a manual debug dispatch';
-            } else if (context.eventName === 'issue_comment') {
-              trigger = 'an @-mention';
-            } else if (pr.user.login === 'openlibrary-bot') {
-              trigger = 'its own PR being opened (self-authored, cannot request itself as reviewer)';
-            } else {
-              trigger = 'a reviewer request';
-            }
-
-            await github.rest.issues.createComment({
-              owner, repo, issue_number: prNumber,
-              body: [
-                `👀 Code review was requested via ${trigger}, but the automated reviewer isn't built yet — tracked in #13163.`,
-                '',
-                'This comment only confirms the trigger fired correctly. No review was performed.',
-                '',
-                '<!-- ol-pr-review-bot -->',
-              ].join('\n'),
-            });
+            core.info(`Posted review ${posted.id}: ${inline.length} inline, ${orphaned.length} in summary.`);
