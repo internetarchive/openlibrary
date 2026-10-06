@@ -14,10 +14,17 @@
         {# One row of tiles; the rail pages sideways. Order is shuffled per visit below. #}
         <ol-carousel id="browse-stacks-rail" class="browse-stacks__rail" label="{{ _('Browse the stacks') }}" gap="12">
             {% for genre in genres %}
+                {# data-shelf: what the shelf's skeleton shows before it loads (see the template below);
+                   the genre row's title is for the shelf's initial sort. HomeGenrePartial renders the same strings. #}
+                {% set shelf = {
+                    "name": genre.name,
+                    "title": _("Popular in %(genre)s", genre=genre.name),
+                    "subgenres": genre.subgenres | map(attribute="name") | list,
+                } %}
                 <button class="browse-stacks__tile"
                         type="button"
                         data-genre="{{ genre.slug }}"
-                        data-subgenres="{{ genre.subgenres | map(attribute='name') | list | tojson | forceescape }}"
+                        data-shelf="{{ shelf | tojson | forceescape }}"
                         aria-expanded="false"
                         aria-controls="browse-stacks-shelf">
                     <span class="browse-stacks__fan" aria-hidden="true">
@@ -38,8 +45,30 @@
                 </button>
             {% endfor %}
         </ol-carousel>
+        {# Shown in the shelf while browse-stacks.js fetches it: the shape of home/genre_shelf.html.jinja.
+           browse-stacks.js fills the header from the tile's data-shelf (the subgenre names go in the
+           "Jump to" line), titles the genre row, and repeats the second row once per subgenre.
+           The sort control is stubbed, so the header keeps its height. #}
+        <template class="browse-stacks__loading">
+            <div class="genre-shelf">
+                <div class="genre-shelf__header">
+                    <div class="genre-shelf__heading">
+                        <h2 class="genre-shelf__title"></h2>
+                        <div class="genre-shelf__jump genre-shelf__jump--loading">
+                            <span class="genre-shelf__jump-label">{{ _("Jump to") }}</span>
+                        </div>
+                    </div>
+                    <span class="skeleton genre-shelf__sort-skeleton"></span>
+                </div>
+                {{ carousel_skeleton(layout="ol-carousel", header=true, see_all=true) }}
+                {{ carousel_skeleton(layout="ol-carousel", header=true, see_all=true) }}
+            </div>
+        </template>
+        <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
         {# Shuffle the tiles before first paint, so every visit leads with a different shelf even
-           though the page itself is cached. Runs inline for that reason; no-JS keeps the server order. #}
+           though the page itself is cached. Then open the first tile's shelf as a skeleton, so the
+           shelf browse-stacks.js opens on load doesn't push the page down. Runs inline for both;
+           no-JS keeps the server order and a closed shelf. Builds what skeletonFor() in browse-stacks.js does. #}
         <script>
             (function () {
                 var rail = document.getElementById('browse-stacks-rail');
@@ -53,17 +82,27 @@
                 tiles.forEach(function (tile) {
                     rail.appendChild(tile);
                 });
+
+                var template = document.querySelector('.browse-stacks__loading');
+                var shelf = document.getElementById('browse-stacks-shelf');
+                if (!tiles.length || !template) return;
+                var data = JSON.parse(tiles[0].getAttribute('data-shelf'));
+                var skeleton = template.content.cloneNode(true);
+                skeleton.querySelector('.genre-shelf__title').textContent = data.name;
+                var jump = skeleton.querySelector('.genre-shelf__jump');
+                var rows = skeleton.querySelectorAll('.carousel-skeleton');
+                rows[0].querySelector('.carousel-skeleton__title').textContent = data.title;
+                data.subgenres.forEach(function (name) {
+                    var row = rows[1].cloneNode(true);
+                    row.querySelector('.carousel-skeleton__title').textContent = name;
+                    rows[1].parentNode.insertBefore(row, rows[1]);
+                    jump.appendChild(document.createElement('span')).textContent = name;
+                });
+                if (!data.subgenres.length) jump.remove();
+                rows[1].remove();
+                shelf.appendChild(skeleton);
+                shelf.hidden = false;
             })();
         </script>
-        {# Shown in the shelf while browse-stacks.js fetches it: the shape of home/genre_shelf.html.jinja.
-           browse-stacks.js names the genre row after the tile, lists its subgenres under the heading,
-           and repeats the second row once per subgenre. #}
-        <template class="browse-stacks__loading">
-            <div class="genre-shelf">
-                {{ carousel_skeleton(layout="ol-carousel", header=true, title_link=true, sortable=true, index=true) }}
-                {{ carousel_skeleton(layout="ol-carousel", header=true, title_link=true) }}
-            </div>
-        </template>
-        <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
     </section>
 {% endif %}

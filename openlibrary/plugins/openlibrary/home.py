@@ -230,25 +230,6 @@ def get_cached_featured_subjects():
 GENRE_TILE_COVERS = 3
 
 
-def subject_tile_labels() -> dict[str, str]:
-    """Translated names for the subject tiles in home_genres.json (keyed by slug). Genre names
-    come from the tags vocabulary and aren't translated yet."""
-    return {
-        "kids": _("Kids"),
-        "history": _("History"),
-        "biography": _("Biography"),
-        "philosophy": _("Philosophy"),
-        "psychology": _("Psychology"),
-        "poetry": _("Poetry"),
-        "travel": _("Travel"),
-        "science": _("Science"),
-        "cooking": _("Cooking"),
-        "religion": _("Religion"),
-        "art": _("Art"),
-        "textbooks": _("Textbooks"),
-    }
-
-
 def get_featured_genres():
     """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live readable counts,
     fanned with the covers hand-picked in home_genre_covers.json (no covers, no tile).
@@ -269,15 +250,13 @@ def get_featured_genres():
         *(("facet.query", query) for query in queries),
     ]
     counts = async_bridge.run(search.get_solr().raw_request("select", urlencode(params))).json()["facet_counts"]["facet_queries"]
-    labels = subject_tile_labels()
     genres = [
         {
             **genre,
-            "name": labels.get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"],
+            "name": home_genres.display_name(genre),
             "readable_count": counts[query],
             "readable_count_str": commify(counts[query]),
             "covers": picked[genre["slug"]][:GENRE_TILE_COVERS],
-            "url": home_genres.browse_url(genre),
         }
         for genre, query in zip(nodes, queries, strict=True)
     ]

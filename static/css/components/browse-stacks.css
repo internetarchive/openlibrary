@@ -265,6 +265,69 @@
   border-radius: var(--border-radius-sm);
 }
 
+/* The shelf's header: the genre's name over its "Jump to" line, with the sort control at the end.
+   On a narrow screen the control drops under the name. */
+.genre-shelf__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-stack-sm) var(--spacing-inline-lg);
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.genre-shelf__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+}
+
+.genre-shelf__title {
+  margin: 0;
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-heading);
+}
+
+.genre-shelf__jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
+}
+
+.genre-shelf__jump-label {
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-secondary);
+}
+
+.genre-shelf__jump-link:link,
+.genre-shelf__jump-link:visited {
+  color: var(--color-link);
+}
+
+/* The subgenre names are known before the shelf loads, so they show in place, muted. */
+.genre-shelf__jump--loading span + span {
+  color: var(--color-text-muted);
+}
+
+/* The control is a block the size of its trigger, from the start: the component injects the
+   trigger on upgrade, and the header shouldn't move when it does. */
+.genre-shelf__sort {
+  display: block;
+  min-height: var(--control-height-medium);
+}
+
+/* Stands in for the sort control while the shelf loads, so the header keeps its height. */
+.genre-shelf__sort-skeleton {
+  width: 110px;
+  height: var(--control-height-medium);
+  border-radius: var(--border-radius-button);
+}
+
 /* The shelf's carousels sit on the shelf surface, not the page's decorated band. */
 .genre-shelf .carousel-container-decorated {
   background: transparent;
@@ -281,26 +344,30 @@
   --ol-carousel-inset: var(--spacing-inset-md);
 }
 
-/* Covers on the shelf lighten under the pointer instead of ringing: the artwork goes
-   translucent over the shelf surface, which lifts a dark cover as much as a pale one. */
-.genre-shelf ol-book-cover {
-  --pointed-ring-width: 0;
-  --filter-pointed-dim: opacity(0.8);
+/* The shelf's own title names the genre, so the rows' headings are a step down from it. */
+.genre-shelf .home-h2 {
+  font-weight: var(--font-weight-semibold);
 }
 
 /* The shelf spaces its rows itself (below), so their headings drop the page rows' top margin. */
-.genre-shelf .carousel-section-header--sortable,
+.genre-shelf .carousel-section-header--inline,
 .genre-shelf .carousel-section-header > .home-h2 {
   margin-top: 0;
 }
 
-/* The genre row, then one row per subgenre, parted by hairlines. A subgenre link scrolls its
-   row just clear of the one above. */
+/* The genre row, then one row per subgenre, parted by hairlines. A "Jump to" link scrolls its
+   row just clear of the one above. The header spaces itself from the first row. */
 .genre-shelf > * + * {
   margin-top: var(--spacing-stack-md);
   padding-top: var(--spacing-stack-md);
   border-top: 1px solid var(--color-border-subtle);
   scroll-margin-top: var(--spacing-stack-md);
+}
+
+.genre-shelf > .genre-shelf__header + * {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .genre-shelf__error {

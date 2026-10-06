@@ -2,48 +2,30 @@
   Shows one book carousel. `count` and `shelf` are optional: see carousel_count.html.jinja.
 #}
 {% from "books/carousel_count.html.jinja" import carousel_count %}
-{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, sort="", sort_control=false, subgenres=none, layout="carousel") %}
-    {# A row with a sort control keeps its header when a choice empties it, so the patron can
-       see which row went quiet and pick something else. #}
-    {% if show or sort_control %}
+{% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, see_all=false, layout="carousel") %}
+    {% if show %}
         <div class="carousel-section">
             {% if title %}
-                <div class="carousel-section-header{% if sort_control %} carousel-section-header--sortable{% endif %}">
+                {# With a "See all" the header is one line: title, then the link at the end.
+                   `see_all` moves the row's link off the title to that link. #}
+                <div class="carousel-section-header{% if see_all %} carousel-section-header--inline{% endif %}">
                     <h2 class="home-h2">
-                        {% if url %}
+                        {% if url and not see_all %}
                             <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
                                href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
                         {% else %}
                             {{ title }}{{ carousel_count(count, shelf) }}
                         {% endif %}
                     </h2>
-                    {% if sort_control %}
-                        {# lazy-carousel.js refetches the row in place when this changes. The trigger is
-                           server-rendered so it doesn't shift while the component upgrades. #}
-                        {% set sort_items = [
-                            {"value": "trending", "label": _("Trending")},
-                            {"value": "new", "label": _("Newest")},
-                            {"value": "rating", "label": _("Top rated")},
-                        ] %}
-                        {% set current_sort = sort_items | selectattr("value", "equalto", sort) | first | default(sort_items[0]) %}
-                        <ol-menu-popover class="carousel-sort" label="{{ _('Sort by') }}" heading="{{ _('Sort by') }}" value="{{ current_sort.value }}" items="{{ sort_items | tojson | forceescape }}">
-                            <ol-button slot="trigger" aria-label="{{ _('Sort %(title)s', title=title) }}, {{ current_sort.label }}">
-                                {{ current_sort.label }}
-                            </ol-button>
-                        </ol-menu-popover>
+                    {% if see_all and url %}
+                        <a class="carousel-see-all"
+                           data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
+                           href="{{ url }}"
+                           aria-label="{{ _('See all %(title)s', title=title) }}">{{ _("See all") }}{{ icon("chevron-right", size="sm") }}</a>
                     {% endif %}
                 </div>
             {% endif %}
-            {% if subgenres %}
-                {# A genre row's subgenres (HomeGenrePartial): each has its own row further down the shelf. #}
-                <nav class="carousel-subgenres"
-                     aria-label="{{ _('%(genre)s subgenres', genre=title) }}">
-                    {% for subgenre in subgenres %}
-                        <a class="carousel-subgenres__link" href="{{ subgenre.href }}">{{ subgenre.name }}</a>
-                    {% endfor %}
-                </nav>
-            {% endif %}
-            {% if show and layout == "ol-carousel" %}
+            {% if layout == "ol-carousel" %}
                 {# The native carousel component sizes the cards itself: two to a page on a phone, seven at
                    full width, 12px apart. CarouselSkeleton's columns mirror these breakpoints (carousel.css);
                    carousel/native.js adds load-more and analytics from the same data-config the slick rows use. #}
@@ -54,7 +36,7 @@
                         {% endfor %}
                     </ol-carousel>
                 </div>
-            {% elif show %}
+            {% else %}
                 <div class="carousel-container carousel-container-decorated">
                     <div class="carousel {{ grid }} {{ compact }} {{ loadjs }}"
                          data-config="{{ config_json }}">
@@ -63,8 +45,6 @@
                         {% endfor %}
                     </div>
                 </div>
-            {% else %}
-                <p class="carousel-empty">{{ _("No books match these filters.") }}</p>
             {% endif %}
         </div>
     {% endif %}

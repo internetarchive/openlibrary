@@ -3115,30 +3115,13 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: books/custom_carousel.html.jinja openlibrary/plugins/openlibrary/nav.py search/sort_options.html
-msgid "Trending"
-msgstr ""
-
-#: books/custom_carousel.html.jinja merge_request_table/table_header.html
-msgid "Newest"
-msgstr ""
-
-#: books/custom_carousel.html.jinja
-msgid "Top rated"
-msgstr ""
-
-#: books/custom_carousel.html.jinja search/sort_options.html
-msgid "Sort by"
-msgstr ""
-
 #: books/custom_carousel.html.jinja
 #, python-format
-msgid "Sort %(title)s"
+msgid "See all %(title)s"
 msgstr ""
 
-#: books/custom_carousel.html.jinja
-#, python-format
-msgid "%(genre)s subgenres"
+#: CarouselSkeleton.html.jinja books/custom_carousel.html.jinja lists/carousel.html.jinja lists/home.html lists/showcase.html
+msgid "See all"
 msgstr ""
 
 #: books/custom_carousel.html.jinja
@@ -3161,10 +3144,6 @@ msgstr ""
 #: books/custom_carousel.html.jinja
 #, python-brace-format
 msgid "Page {page} of {total}"
-msgstr ""
-
-#: books/custom_carousel.html.jinja
-msgid "No books match these filters."
 msgstr ""
 
 #: books/custom_carousel_card.html.jinja
@@ -4202,12 +4181,42 @@ msgstr ""
 msgid "Browse the stacks"
 msgstr ""
 
+#: home/browse_stacks.html.jinja openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Popular in %(genre)s"
+msgstr ""
+
 #: home/browse_stacks.html.jinja
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
+
+#: home/browse_stacks.html.jinja home/genre_shelf.html.jinja
+msgid "Jump to"
+msgstr ""
+
+#: home/genre_shelf.html.jinja
+#, python-format
+msgid "%(genre)s subgenres"
+msgstr ""
+
+#: home/genre_shelf.html.jinja openlibrary/plugins/openlibrary/nav.py search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: home/genre_shelf.html.jinja merge_request_table/table_header.html
+msgid "Newest"
+msgstr ""
+
+#: home/genre_shelf.html.jinja
+msgid "Top rated"
+msgstr ""
+
+#: home/genre_shelf.html.jinja search/sort_options.html
+msgid "Sort by"
+msgstr ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
@@ -4431,7 +4440,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py
+#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "History"
 msgstr ""
 
@@ -4725,10 +4734,6 @@ msgstr ""
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
-
-#: lists/carousel.html.jinja lists/home.html lists/showcase.html
-msgid "See all"
 msgstr ""
 
 #: lists/export_as_html.html
@@ -8181,7 +8186,7 @@ msgstr ""
 msgid "Romance"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Kids"
 msgstr ""
 
@@ -8189,7 +8194,7 @@ msgstr ""
 msgid "Thrillers"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Textbooks"
 msgstr ""
 
@@ -8265,7 +8270,7 @@ msgstr ""
 msgid "Filipino"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Art"
 msgstr ""
 
@@ -8293,7 +8298,7 @@ msgstr ""
 msgid "Medicine"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Religion"
 msgstr ""
 
@@ -8309,31 +8314,31 @@ msgstr ""
 msgid "Music"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Science"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Biography"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Philosophy"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Psychology"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Poetry"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Travel"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Cooking"
 msgstr ""
 
@@ -8403,6 +8408,16 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Newest in %(genre)s"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Top rated in %(genre)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

@@ -195,26 +195,20 @@ function handleRetry(target) {
 }
 
 /**
- * A row's sort control (`sort_control` in its config; books/custom_carousel.html.jinja)
- * refetches that row in place with the chosen sort. In a "Browse the stacks" shelf the genre row's
- * control is the shelf's: every row refetches, and rows not loaded yet take the sort when they do.
+ * A "Browse the stacks" shelf's sort control (home/genre_shelf.html.jinja) re-sorts the shelf:
+ * every loaded row refetches in place, and rows not loaded yet take the sort when they do.
+ * The shelf keeps the current sort in `data-sort`.
  */
 document.addEventListener('ol-menu-popover-select', (e) => {
-    const control = e.target.closest?.('.carousel-sort');
-    const host = control?.closest('.lazy-carousel-loaded[data-config]');
-    if (!host) return;
-    const config = JSON.parse(host.dataset.config);
+    const shelf = e.target.closest?.('.genre-shelf__sort')?.closest('.genre-shelf');
+    if (!shelf) return;
     const sort = e.detail.value;
     // The menu fires for the current item too.
-    if (sort === config.sort) return;
-    trackEvent('CarouselSort', sort, config.key);
-    // The menu hands focus back to its trigger only once it finishes closing, which can be
-    // after the refetch lands, so name the control to refocus rather than reading focus.
-    refetch(host, { ...config, sort }, '.carousel-sort');
-    const shelf = host.closest('.genre-shelf');
-    if (!shelf) return;
+    if (sort === shelf.dataset.sort) return;
+    shelf.dataset.sort = sort;
+    trackEvent('CarouselSort', sort, `genre-${shelf.dataset.genre}`);
     shelf.querySelectorAll('.lazy-carousel-loaded[data-config]').forEach((row) => {
-        if (row !== host) refetch(row, { ...JSON.parse(row.dataset.config), sort });
+        refetch(row, { ...JSON.parse(row.dataset.config), sort });
     });
     shelf.querySelectorAll('.lazy-carousel[data-config]').forEach((placeholder) => {
         placeholder.dataset.config = JSON.stringify({ ...JSON.parse(placeholder.dataset.config), sort });
@@ -230,9 +224,8 @@ const latestRefetch = new WeakMap();
  *
  * @param host {HTMLElement}
  * @param config {object}
- * @param [refocus] {string} selector of the control to focus after the re-render
  */
-function refetch(host, config, refocus) {
+function refetch(host, config) {
     const previous = JSON.parse(host.dataset.config);
     const request = {};
     latestRefetch.set(host, request);
@@ -249,21 +242,13 @@ function refetch(host, config, refocus) {
         })
         .then(data => {
             if (latestRefetch.get(host) !== request) return;
-            // The header re-renders too; keep focus on the control that had it.
             host.innerHTML = data.partials.trim();
             initCarousels(host.querySelectorAll(CAROUSEL_SELECTOR));
-            const control = refocus ? host.querySelector(refocus) : null;
-            if (control?.matches('.carousel-sort')) {
-                const trigger = control.querySelector(':scope > [slot="trigger"]');
-                trigger?.updateComplete.then(() => trigger.focus());
-            }
         })
         .catch(() => {
             if (latestRefetch.get(host) !== request) return;
-            // Keep the current cards, and put the controls back to the state they show.
+            // Keep the current cards, and the config they show.
             host.dataset.config = JSON.stringify(previous);
-            const sort = host.querySelector('.carousel-sort');
-            if (sort) sort.value = previous.sort;
         })
         .finally(() => {
             if (latestRefetch.get(host) !== request) return;

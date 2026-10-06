@@ -10,6 +10,8 @@ import json
 from pathlib import Path
 from typing import NotRequired, TypedDict, cast
 
+from openlibrary.i18n import gettext as _
+
 GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
 # Hand-picked covers for the tiles' fans (see the file's _comment). Not generated.
 GENRE_COVERS_JSON_PATH = Path(__file__).parent / "home_genre_covers.json"
@@ -66,6 +68,30 @@ def load_tile_covers() -> dict[str, list[int]]:
     return {slug: [book["cover_id"] for book in books] for slug, books in data["covers"].items()}
 
 
+def subject_tile_labels() -> dict[str, str]:
+    """Translated names for the subject tiles in home_genres.json (keyed by slug). Genre names
+    come from the tags vocabulary and aren't translated yet."""
+    return {
+        "kids": _("Kids"),
+        "history": _("History"),
+        "biography": _("Biography"),
+        "philosophy": _("Philosophy"),
+        "psychology": _("Psychology"),
+        "poetry": _("Poetry"),
+        "travel": _("Travel"),
+        "science": _("Science"),
+        "cooking": _("Cooking"),
+        "religion": _("Religion"),
+        "art": _("Art"),
+        "textbooks": _("Textbooks"),
+    }
+
+
+def display_name(genre: Genre) -> str:
+    """The genre's name as the reader sees it: a subject tile's is translated."""
+    return subject_tile_labels().get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"]
+
+
 def find_genre(slug: str) -> Genre | None:
     return next((g for g in load_home_genres() if g["slug"] == slug), None)
 
@@ -96,8 +122,3 @@ def search_url(node: GenreNode, has_fulltext: bool = True, parent: GenreNode | N
     if has_fulltext:
         params["has_fulltext"] = "true"
     return "/search?" + urlencode(params)
-
-
-def browse_url(node: Genre) -> str:
-    """Where "Browse all …" goes: the subject page when there is one, else a search."""
-    return node.get("page") or search_url(node)

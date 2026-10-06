@@ -1,8 +1,8 @@
 /**
- * "Browse the stacks" on the home page: a rail of genre tiles that open a shelf (a carousel for the
- * genre, then one per subgenre) in place. The shelf HTML comes from /partials/HomeGenre.json with the
- * genre row already loaded and the subgenre rows as lazy placeholders; lazy-carousel.js loads those
- * and runs the genre row's sort control, which re-sorts the whole shelf. The first tile's shelf is open
+ * "Browse the stacks" on the home page: a rail of genre tiles that open a shelf (a header for the
+ * genre, its carousel, then one per subgenre) in place. The shelf HTML comes from /partials/HomeGenre.json
+ * with the genre row already loaded and the subgenre rows as lazy placeholders; lazy-carousel.js loads
+ * those and runs the header's sort control, which re-sorts the whole shelf. The first tile's shelf is open
  * on load; a caret on an open shelf points at its tile.
  */
 
@@ -90,8 +90,9 @@ export function initBrowseStacks(root) {
     }
 
     /**
-     * The shelf's skeleton: the genre row headed with the tile's genre, its subgenres listed under
-     * the heading, and a row per subgenre below, so the loaded shelf lands in the same shape.
+     * The shelf's skeleton: the header naming the tile's genre, its subgenres as the "Jump to" line and
+     * a stub for its sort control; then the genre row, titled; then a row per subgenre, so the loaded shelf
+     * lands in the same shape. The template's inline script builds the same for the shelf open on load.
      * @param {HTMLElement} tile
      * @returns {DocumentFragment}
      */
@@ -99,18 +100,19 @@ export function initBrowseStacks(root) {
         const fragment = skeleton ? skeleton.cloneNode(true) : document.createDocumentFragment();
         const [genreRow, subgenreRow] = fragment.querySelectorAll('.carousel-skeleton');
         if (!genreRow) return fragment;
-        const subgenres = JSON.parse(tile.dataset.subgenres || '[]');
+        const data = JSON.parse(tile.dataset.shelf);
         const entitle = (row, name) => {
             row.querySelector('.carousel-skeleton__title').textContent = name;
         };
-        entitle(genreRow, tile.querySelector('.browse-stacks__name').textContent);
-        const index = genreRow.querySelector('.carousel-skeleton__index');
-        if (subgenres.length) {
-            index.replaceChildren(...subgenres.map(name => Object.assign(document.createElement('span'), { textContent: name })));
+        fragment.querySelector('.genre-shelf__title').textContent = data.name;
+        const jump = fragment.querySelector('.genre-shelf__jump');
+        if (data.subgenres.length) {
+            jump.append(...data.subgenres.map(name => Object.assign(document.createElement('span'), { textContent: name })));
         } else {
-            index.remove();
+            jump.remove();
         }
-        subgenres.forEach(name => {
+        entitle(genreRow, data.title);
+        data.subgenres.forEach(name => {
             const row = subgenreRow.cloneNode(true);
             entitle(row, name);
             subgenreRow.before(row);
@@ -119,14 +121,21 @@ export function initBrowseStacks(root) {
         return fragment;
     }
 
-    async function load(slug) {
+    /**
+     * @param {string} slug
+     * @param {object} [options]
+     * @param {boolean} [options.initial] - the shelf opened on load, whose skeleton the template's inline script already drew
+     */
+    async function load(slug, { initial = false } = {}) {
         controller?.abort();
         controller = new AbortController();
         const { signal } = controller;
-        shelf.hidden = false;
-        shelf.replaceChildren(skeletonFor(tileFor(slug)));
         shelf.setAttribute('aria-busy', 'true');
-        shelf.classList.add('browse-stacks__shelf--loading');
+        if (!initial || shelf.hidden) {
+            shelf.hidden = false;
+            shelf.replaceChildren(skeletonFor(tileFor(slug)));
+            shelf.classList.add('browse-stacks__shelf--loading');
+        }
         try {
             const resp = await fetch(buildPartialsUrl('HomeGenre', { genre: slug }), { signal });
             if (!resp.ok) throw new Error('Failed to fetch genre shelf');
@@ -156,7 +165,7 @@ export function initBrowseStacks(root) {
     /**
      * @param {string} slug
      * @param {object} [options]
-     * @param {boolean} [options.initial] - the shelf opened on load, not by the reader: don't scroll, focus or track it
+     * @param {boolean} [options.initial] - the shelf opened on load, not by the reader: don't focus or track it
      */
     async function open(slug, { initial = false } = {}) {
         if (current === slug) {
@@ -166,10 +175,10 @@ export function initBrowseStacks(root) {
         current = slug;
         markExpanded(slug);
         if (!initial) trackEvent('BrowseStacks', 'Open', slug);
-        // The skeleton is already the loaded shelf's size, so point at and scroll to it while it loads.
-        const loading = load(slug);
+        // The skeleton is already the loaded shelf's size, so point at it while it loads.
+        // No scrolling: the shelf opens right under the rail, and the page stays where the reader is.
+        const loading = load(slug, { initial });
         anchor();
-        if (!initial) shelf.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         const ok = await loading;
         if (!ok || current !== slug) return;
         anchor();

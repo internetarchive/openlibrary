@@ -125,6 +125,8 @@ ol-carousel:not(:defined) {
   display: flex;
   gap: 8px;
   overflow: hidden;
+  /* The upgraded viewport's own padding; optional, so it needs the component's 0 default. */
+  padding-block: var(--ol-carousel-viewport-padding, 0);
 }
 
 ol-carousel:not(:defined) > * {

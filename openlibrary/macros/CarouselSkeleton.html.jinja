@@ -3,15 +3,14 @@
   without shifting. `layout` matches the row's ("carousel" for slick, "ol-carousel" for native).
   `title` shows the row's real heading (`title_link` when it links); `header` stubs one when
   the title isn't known yet.
-  `sortable` stubs a row's sort control; `index` leaves room for a genre row's subgenre links
-  (browse-stacks.js fills it with the names).
+  `see_all` stubs a row's "See all" link, so the header keeps its loaded shape.
 #}
-{% macro carousel_skeleton(layout="carousel", title="", title_link=false, header=false, sortable=false, index=false) %}
+{% macro carousel_skeleton(layout="carousel", title="", title_link=false, header=false, see_all=false) %}
     <div class="carousel-skeleton">
         <span class="shift">{{ _("Loading carousel") }}</span>
         <div class="carousel-section" aria-hidden="true">
             {% if title or header %}
-                <div class="carousel-section-header{% if sortable %} carousel-section-header--sortable{% endif %}">
+                <div class="carousel-section-header{% if see_all %} carousel-section-header--inline{% endif %}">
                     <h2 class="home-h2">
                         <span class="carousel-skeleton__title{% if title_link %} carousel-skeleton__title--link{% endif %}">
                             {% if title %}
@@ -21,10 +20,9 @@
                             {% endif %}
                         </span>
                     </h2>
-                    {% if sortable %}<span class="skeleton carousel-skeleton__control"></span>{% endif %}
+                    {% if see_all %}<span class="carousel-see-all carousel-skeleton__see-all">{{ _("See all") }}{{ icon("chevron-right", size="sm") }}</span>{% endif %}
                 </div>
             {% endif %}
-            {% if index %}<div class="carousel-subgenres carousel-skeleton__index"></div>{% endif %}
             <div class="carousel-container carousel-container-decorated">
                 <div class="carousel-skeleton__row{% if layout == 'ol-carousel' %} carousel--native{% endif %}">
                     {% for _card in range(8) %}

@@ -26,19 +26,40 @@
   margin-top: var(--spacing-stack-lg);
 }
 
-/* A row with a sort control (books/custom_carousel.html.jinja): the control sits at the end of
-   the heading line, and drops under the heading when there is no room. */
-.carousel-section-header--sortable {
+/* A row with a "See all" link (books/custom_carousel.html.jinja): the link sits at the end of
+   the heading's line, and drops under it when there is no room. */
+.carousel-section-header--inline {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
   margin: 1.75em 0 0.5em;
 }
 
-.carousel-section-header--sortable > .home-h2 {
+.carousel-section-header--inline > .home-h2 {
   margin: 0;
+}
+
+/* The row's link, at the end of its heading line. */
+.carousel-see-all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  margin-inline-start: auto;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
+  white-space: nowrap;
+}
+
+.carousel-see-all:link,
+.carousel-see-all:visited {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.carousel-see-all:hover {
+  text-decoration: underline;
 }
 
 /* Only headings that link somewhere read as links. */
@@ -50,15 +71,6 @@
 .carousel-container {
   margin: 0 calc(-1 * var(--spacing-page-gutter));
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
-}
-
-.carousel-empty {
-  margin: 0 0 var(--spacing-stack-md);
-  padding: var(--spacing-inset-lg);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
 }
 
 /* A carousel being re-fetched keeps its cards on screen, dimmed, until the new ones land. */
@@ -463,27 +475,6 @@
   padding: 0;
 }
 
-/* A genre row's subgenres, listed under its heading; each links to its own row down the shelf. */
-.carousel-subgenres {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
-  margin: calc(-1 * var(--spacing-stack-xs)) 0 var(--spacing-stack-sm);
-  font-size: var(--font-size-body-medium);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-body);
-}
-
-.carousel-subgenres__link:link,
-.carousel-subgenres__link:visited {
-  color: var(--color-link);
-  text-decoration: none;
-}
-
-.carousel-subgenres__link:hover {
-  text-decoration: underline;
-}
-
 /* A row's loading state (macros/CarouselSkeleton.html.jinja). It reuses the loaded row's
    section, container and card classes, so it takes the loaded row's size and nothing shifts. */
 .carousel-skeleton__title--link {
@@ -498,15 +489,8 @@
   vertical-align: middle;
 }
 
-/* Stands in for the sort control, so the header keeps its height. */
-.carousel-skeleton__control {
-  width: 110px;
-  height: var(--control-height-medium);
-  border-radius: var(--border-radius-button);
-}
-
-/* The subgenre names are known before the row loads, so they show in place, muted. */
-.carousel-skeleton__index {
+/* The link's text is known before the row loads, so it shows in place, muted. */
+.carousel-skeleton__see-all {
   color: var(--color-text-muted);
 }
 
