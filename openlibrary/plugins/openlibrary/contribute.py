@@ -317,7 +317,7 @@ class contribute_yours(delegate.page):
             _("Books you've read that need a hand"),
             tabs=_tabs("yours", user),
             heading=_("Your books"),
-            lede=_("Books from your reading log with a fact missing or in doubt. You've held these, so you're the right person to ask."),
+            lede=_("Books from your reading log."),
             rows=_rows(candidates, "points", "yours"),
             empty=empty,
             empty_link={"url": "/contribute/needed", "label": _("See the books that need help most")},

@@ -895,39 +895,72 @@
   color: var(--color-success-fg);
 }
 
-/* Tabs: the ways into the list. Links, so each tab is a URL. */
+/* Tabs: the ways into the list. Links, so each tab is a URL. Same look as the
+   design page's section tabs (.ds__tabs). Selectors carry the extra class to
+   outweigh the site-wide a:link / a:visited color and underline. */
 .fe-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-xl);
-  border-bottom: 1px solid var(--color-border-subtle);
-  font-weight: var(--font-weight-medium);
+  /* Out by the tab's own padding, so the first label lands on the page edge. */
+  margin-inline: calc(var(--spacing-md) * -1);
+  border-bottom: var(--border-divider);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-/* State is carried by color and the underline only, so no tab re-measures. */
-.fe-tabs__tab {
+.fe-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.fe-tabs .fe-tabs__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+  /* Transparent on every tab so the current one's bar shifts nothing. */
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-large);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* A hidden bold twin sizes the tab for its heaviest state, so the current
+   tab can go bold without the row reflowing. */
+.fe-tabs__ghost {
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: var(--font-weight-semibold);
+}
+
+.fe-tabs__label {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-inline-xs);
-  padding-block-end: var(--spacing-inset-sm);
-  margin-block-end: -1px;
-  border-bottom: 2px solid transparent;
-  color: var(--color-text-secondary);
-  text-decoration: none;
 }
 
-.fe-tabs__tab:focus-visible {
+.fe-tabs .fe-tabs__tab:focus-visible {
   outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 
-.fe-tabs__tab.is-on {
-  color: var(--color-link);
-  border-bottom-color: var(--color-link);
+.fe-tabs .fe-tabs__tab.is-on {
+  border-bottom-color: var(--color-text);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
 }
 
-.fe-tabs__tab--locked {
+.fe-tabs .fe-tabs__tab--locked {
   color: var(--color-text-muted);
+}
+
+/* A lighter bar than the current tab's, which outweighs this and keeps its own. */
+@media (hover: hover) and (pointer: fine) {
+  .fe-tabs a:hover {
+    border-bottom-color: var(--color-border-muted);
+    color: var(--color-text);
+  }
 }
 
 /* What a fill is worth, on the task row and the receipt. */

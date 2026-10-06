@@ -51,11 +51,16 @@
     <nav class="fe-tabs" aria-label="{{ _('Ways to find a book') }}">
         {% for tab in tabs %}
             {% if tab.locked %}
-                <span class="fe-tabs__tab fe-tabs__tab--locked" title="{{ tab.locked }}">{{ tab.label }} {{ icon("lock", size="sm") }}</span>
+                <span class="fe-tabs__tab fe-tabs__tab--locked" title="{{ tab.locked }}">
+                    <span class="fe-tabs__label">{{ tab.label }} {{ icon("lock", size="sm") }}</span>
+                </span>
             {% else %}
                 <a href="{{ tab.url }}"
                    class="fe-tabs__tab{{ ' is-on' if tab.on else '' }}"
-                   {% if tab.on %}aria-current="page"{% endif %}>{{ tab.label }}</a>
+                   {% if tab.on %}aria-current="page"{% endif %}>
+                    <span>{{ tab.label }}</span>
+                    <span class="fe-tabs__ghost" aria-hidden="true">{{ tab.label }}</span>
+                </a>
             {% endif %}
         {% endfor %}
     </nav>
