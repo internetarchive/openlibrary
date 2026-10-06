@@ -271,12 +271,12 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         /* Primary — opt-in via variant="primary". */
         :host([variant="primary"]) .control {
             background-color: var(--color-primary);
-            border-color: var(--color-primary);
+            border-color: var(--color-primary-border);
             color: var(--white);
             /* Tone the specular highlight to the blue fill instead of pure white, and
                soften it — the white edge reads much louder on a dark fill than on white. */
             --control-surface: var(--color-primary);
-            --control-highlight-strength: 18%;
+            --control-highlight-strength: var(--control-highlight-strength-filled);
         }
 
         /* Secondary is the default (already set above). Explicit selector for clarity. */
@@ -294,7 +294,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             color: var(--white);
             /* Tone the specular highlight to the red fill and soften it, matching primary. */
             --control-surface: var(--color-destructive);
-            --control-highlight-strength: 18%;
+            --control-highlight-strength: var(--control-highlight-strength-filled);
         }
 
         /* Ghost — text and icon only, no fill, border, or lift at rest; picks up the
