@@ -208,6 +208,29 @@ class TestGetLendingState:
             assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "open"
 
 
+@pytest.mark.asyncio
+async def test_get_checked_out_async(monkeypatch):
+    availabilities = {
+        "out00": {"status": "borrow_unavailable"},
+        "in00": {"status": "borrow_available"},
+        "open00": {"status": "open"},
+        "error": "request_timeout",
+    }
+    monkeypatch.setattr(lending, "get_availability_async", AsyncMock(return_value=availabilities))
+
+    assert await lending.get_checked_out_async(["out00", "in00", "open00"]) == {"out00"}
+
+
+def test_get_loan_queries_ia_once(monkeypatch):
+    mock_api = Mock()
+    mock_api.get_loan.return_value = {"identifier": "foo00bar"}
+    monkeypatch.setattr(lending, "ia_lending_api", mock_api)
+    monkeypatch.setattr(lending.Loan, "from_ia_loan", staticmethod(lambda d: ("loan", d)))
+
+    assert lending.get_loan("foo00bar") == ("loan", {"identifier": "foo00bar"})
+    mock_api.get_loan.assert_called_once_with("foo00bar")
+
+
 @pytest.mark.usefixtures("request_context_fixture")
 class TestGetLoanHistoryData:
     """parse_s3_cookie() is annotated `dict | None` and legitimately returns

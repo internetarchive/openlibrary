@@ -39,9 +39,8 @@
 @import "components/mybooks.css";
 @import "components/readinglog-stats.css";
 @import "components/tagging-menu.css";
-@import "components/shareLinks.css";
+@import "components/share-popover.css";
 @import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
 @import "components/subNav.css";
 @import "components/book.css";
 
@@ -81,7 +80,6 @@
 @import "components/librarian-dashboard.css";
 @import "components/cover.css";
 @import "components/readerStats.css";
-@import "components/check-in.css";
 @import "components/reading-goal.css";
 @import "components/work-title-and-author.css";
 @import "components/work.css";
@@ -441,7 +439,6 @@ input.highlight {
   margin-top: var(--spacing-stack-xs);
 }
 
-/* openlibrary/templates/search/inside.html */
 .search-results-stats {
   display: flex;
   gap: 10px;
@@ -932,6 +929,33 @@ div#searchResults .SRPCoverBlank a {
 .authorList .cover {
   max-width: 120px;
   border-radius: 4px;
+}
+
+/* Search empty-state card. */
+/* openlibrary/templates/work_search.html, openlibrary/templates/search/inside.html */
+.search-no-direct-match,
+.search-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* No button here, so give the text more room. */
+.search-no-results {
+  padding: var(--spacing-inset-lg) var(--spacing-inset-md);
+}
+
+.search-no-direct-match__message {
+  margin: 0;
+  color: var(--color-text-muted);
 }
 
 /* Section labels ("Authors"/"Books") shown above the work search result */
@@ -1511,7 +1535,6 @@ ul.list-books span.resultType {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   margin: 0;
 }
 
@@ -1528,7 +1551,6 @@ ul.list-books span.resultType {
   width: 100%;
 }
 
-.list-books--grid .searchResultItem .check-in-prompt,
 .list-books--grid .searchResultItem .star-rating-form {
   display: none;
 }
@@ -1559,28 +1581,6 @@ div.popAlert {
   font-size: 1.25em;
   color: var(--red);
   text-align: center;
-}
-
-/* openlibrary/templates/type/edition/view.html */
-#wikicode textarea {
-  width: 400px;
-  height: 200px;
-  padding: var(--spacing-inset-sm);
-  margin: 10px;
-  font-family: var(--font-family-body);
-  font-size: 0.75em;
-  overflow: auto;
-  outline: none;
-  white-space: pre-line;
-  word-break: break-all;
-  word-wrap: break-word;
-}
-
-#wikicode p {
-  margin: 10px 10px 0;
-  padding: 0;
-  font-family: var(--font-family-body);
-  font-size: 0.75em;
 }
 
 /* PAGE HISTORY */

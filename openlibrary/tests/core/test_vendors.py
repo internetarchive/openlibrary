@@ -950,3 +950,20 @@ def test_amazon_affiliate_url_explicit_asin_overrides_isbn_conversion() -> None:
 def test_amazon_affiliate_url_no_identifiers_returns_none() -> None:
     """Without isbn or asin, function returns None."""
     assert amazon_affiliate_url(None, None, "test-tag") is None
+
+
+def test_amazon_affiliate_url_falls_back_to_keyword_search() -> None:
+    """Without isbn or asin, a query searches Amazon's books for those keywords."""
+    url = amazon_affiliate_url(None, None, "test-tag", query="Dune Frank Herbert")
+    assert url == "https://www.amazon.com/s?k=Dune%20Frank%20Herbert&i=stripbooks&tag=test-tag"
+
+
+def test_amazon_affiliate_url_prefers_identifiers_over_query() -> None:
+    """An isbn or asin identifies the book exactly, so it wins over keywords."""
+    isbn_10_url = amazon_affiliate_url("9780590353427", None, "test-tag", query="Holes Louis Sachar")
+    assert isbn_10_url is not None
+    assert "/dp/059035342X/" in isbn_10_url
+
+    isbn_979_url = amazon_affiliate_url("9798776159572", None, "test-tag", query="Pickleball Soap Opera")
+    assert isbn_979_url is not None
+    assert "/s?k=9798776159572" in isbn_979_url

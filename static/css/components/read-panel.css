@@ -14,7 +14,7 @@
 .read-options,
 .btn-notice {
   font-size: 1em;
-  padding: 15px;
+  padding: var(--spacing-md);
   margin-bottom: 10px;
   background-color: var(--white);
   border-radius: 5px;
@@ -25,10 +25,12 @@
 .read-options .cta-btn,
 .read-options .cta-button-group,
 .read-options .cta-btn.cta-btn--no-pointer,
+.read-options .cta-dropper__menu,
 .btn-notice .cta-btn,
 .btn-notice .cta-button-group,
-.btn-notice .cta-btn.cta-btn--no-pointer {
-  margin-bottom: 10px;
+.btn-notice .cta-btn.cta-btn--no-pointer,
+.btn-notice .cta-dropper__menu {
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* Some preview rules are too specific and need to be rewritten */
@@ -40,7 +42,6 @@
   position: relative;
   margin: 0 auto;
   background-color: transparent;
-  transition: background-color 0.2s;
 
   /* When Preview button is a text link, have it take up only the width
    of the content (not full 100% width) */

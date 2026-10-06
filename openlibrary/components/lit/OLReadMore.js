@@ -89,8 +89,17 @@ export class OLReadMore extends LitElement {
             margin-top: calc(-1 * var(--spacing-md));
         }
 
-        .toggle-btn:hover {
-            text-decoration: underline;
+        @media (hover: hover) and (pointer: fine) {
+            .toggle-btn:hover {
+                text-decoration: underline;
+            }
+        }
+
+        /* Inset ring: the toggle is full-bleed, so an outward offset would draw
+           outside the container it sits on. */
+        .toggle-btn:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
         }
 
         .toggle-btn.hidden {

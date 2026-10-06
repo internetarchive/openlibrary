@@ -127,6 +127,7 @@ a.list-follow-card__username-link {
 .list-follow-card__follow-button .cta-btn {
   font-size: var(--font-size-label-medium); /* Override base size */
   padding: 1px 10px; /* Less padding */
+  height: auto; /* A pill on the card, not a control on the button scale */
   border-radius: 4px; /* Custom radius */
   box-shadow: none; /* Remove default shadow if present */
   margin: 0;

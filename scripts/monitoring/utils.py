@@ -53,6 +53,11 @@ class GraphiteEvent:
         message = header + payload
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            # Jobs run on a 60s interval with max_instances=1. A blackholed port
+            # already fails connect() in ~127s (tcp_syn_retries), costing two
+            # ticks; this also bounds the case that actually hangs forever -- a
+            # peer that accepts the connection and never reads.
+            sock.settimeout(10)
             sock.connect(graphite_address_tuple)
             sock.sendall(message)
 

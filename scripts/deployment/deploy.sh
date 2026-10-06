@@ -34,6 +34,10 @@ ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
+SKIP_NGINX_CHECK=${SKIP_NGINX_CHECK:-""}
+# Set by check_nginx_config when the gate is skipped, so the end-of-deploy
+# summary can say so too; see the comment on SKIP_NGINX_CHECK there.
+NGINX_CHECK_SKIPPED=0
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
 # Convert "deploy-2026-05-19-at-19-10" to "2026-05-19T19:10" (replace "-at-" with "T" and the final "-" in the time with ":")
 LATEST_TAG_TIMESTAMP=$(echo "$LATEST_TAG" | sed 's/^deploy-//; s/-at-/T/; s/-\([0-9][0-9]\)$/:\1/')
@@ -297,6 +301,23 @@ deploy_olsystem() {
         fi
     done
 
+    # Gate here, inside the function, NOT at the wizard's call site. A rule fix is
+    # an olsystem-only change, so it ships via `deploy.sh olsystem` rather than by
+    # running the whole weekly wizard -- and that CLI path would skip a gate that
+    # lived in deploy_wizard. The highest-risk deploy would have been the
+    # unguarded one. Keeping the call here means there is exactly one call site
+    # per deploy function and no way to reach the swap without it.
+    if [[ "$REPO" == "olsystem" ]]; then
+        check_nginx_config olsystem
+    fi
+
+    if [[ "$NGINX_CHECK_SKIPPED" == "1" ]]; then
+        echo ""
+        echo "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config"
+        echo "          was NOT validated. A bad ruleset will surface as an [emerg]"
+        echo "          the next time nginx restarts (olsystem#420)."
+    fi
+
     echo "Finished $REPO deployment at $(date)"
     echo "[Info] To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
     if [ $CLEANUP -eq 1 ]; then
@@ -499,8 +520,28 @@ deploy_openlibrary() {
         done
     fi
 
+    # Gate again, and this is not redundant with the one in deploy_olsystem.
+    # docker/nginx.conf and docker/web_nginx.conf are bind-mounted out of
+    # /opt/openlibrary, which is still PRE-deploy when the olsystem gate runs, so
+    # that gate validates new-olsystem against old-nginx.conf -- a combination
+    # that never actually serves. Coupled changes slip straight through it: an
+    # openlibrary PR adding `include /olsystem/etc/nginx/thing.conf` alongside an
+    # olsystem PR adding the file passes there (old conf, no include) and then
+    # [emerg]s at restart. Only here do both halves exist together.
+    #
+    # Runs before tag_deploy so a broken deploy is not tagged as good, and before
+    # recreate_services so the live containers are still serving the old config.
+    check_nginx_config openlibrary
+
     if [[ "$TAG_DEPLOY" == "1" ]]; then
         tag_deploy
+    fi
+
+    if [[ "$NGINX_CHECK_SKIPPED" == "1" ]]; then
+        echo ""
+        echo "[Warning] This deploy ran with SKIP_NGINX_CHECK=1. The nginx config"
+        echo "          was NOT validated. A bad ruleset will surface as an [emerg]"
+        echo "          the next time nginx restarts (olsystem#420)."
     fi
 
     echo "Finished production deployment at $(date)"
@@ -678,6 +719,14 @@ prune_docker () {
 
 # Which compose service runs nginx on each host; the compose profile is the
 # hostname. Hosts absent from this list don't run nginx.
+#
+# All three belong here, even though ol-www0/web_nginx is the only one that loads
+# the ModSecurity ruleset (`modsecurity on` appears in docker/web_nginx.conf and
+# nowhere else). Every nginx service mounts the shared docker/nginx.conf, which
+# includes seven files out of /olsystem -- logging.conf, tagger.js, deny.conf,
+# is_blessed_ip.conf, is_blessed_ua.conf, is_sus_ip.conf, ua_rate_limit_key.conf
+# -- so a bad olsystem include crash-loops infobase_nginx and covers_nginx just
+# as readily. Narrowing this map to ol-www0 would leave those unguarded.
 nginx_service_for() {
     case "$1" in
         ol-www0)    echo "web_nginx" ;;
@@ -689,24 +738,94 @@ nginx_service_for() {
 
 # Validate the nginx config that the olsystem deploy just shipped.
 #
-# olsystem carries the ModSecurity ruleset, and docker/ol-nginx-start.sh execs
-# `nginx -g` with no prior `nginx -t` -- so a bad rule is not a failed deploy, it
-# is an [emerg] at startup that crash-loops the container and takes the site
-# down. See internetarchive/olsystem#420. Catching it here, immediately after the
-# olsystem deploy, means the running containers are still serving the previous
+# olsystem carries the ModSecurity ruleset and most of what nginx.conf includes,
+# none of which goes through CI -- so a bad rule is not a failed deploy, it is an
+# [emerg] the next time nginx starts, which takes the site down. See
+# internetarchive/olsystem#420. docker/ol-nginx-start.sh now runs `nginx -t` before
+# serving, so that failure is at least fast and legible rather than a crash loop,
+# but the container is still down either way. Catching it at deploy time is what
+# keeps it off the site: the running containers are still serving the previous
 # (good) config and nothing is user-visible yet.
 #
-# `exec` against the live container is the right call at THIS point in the
-# deploy: olsystem is bind-mounted as a directory (../olsystem:/olsystem), so the
-# running container already sees the freshly deployed rules. Do not reuse this
-# after an openlibrary code transfer -- copy_to_servers replaces /opt/openlibrary
-# wholesale (rm -rf + mv), which leaves the single-FILE bind mounts
-# (nginx.conf, web_nginx.conf) as orphaned inodes still holding the previous
-# deploy's config. A check there would need `run --rm --no-deps` instead, and
-# never --service-ports, which would contend for :80/:443 with the live container.
+# Called twice, from deploy_olsystem and from deploy_openlibrary, and neither
+# call alone is sufficient. The olsystem call runs while /opt/openlibrary is
+# still pre-deploy, so it sees new rules against the OLD nginx.conf; the
+# openlibrary call is the first point at which both halves of a coupled change
+# exist together. Each catches what the other cannot.
+#
+# This MUST use `run --rm`, not `exec`. A bind mount is resolved to an inode when
+# the container starts, and deploy_olsystem does not update /opt/olsystem in
+# place -- it does `mv /opt/olsystem /opt/olsystem_previous` followed by
+# `mv /opt/olsystem_new /opt/olsystem`. The running container keeps the old
+# inode, which is now reachable at /opt/olsystem_previous, so `exec ... nginx -t`
+# parses the PREVIOUS ruleset, passes, and the crash still arrives at restart.
+# Being visible live is a property of editing a file inside a mounted directory,
+# not of directory mounts as such: `mv` orphans a directory mount for exactly the
+# same reason it orphans the single-FILE mounts that copy_to_servers orphans one
+# function later. A fresh container re-resolves the path and sees the new rules.
+#
+# Never pass --service-ports here: it republishes the service's ports and fails
+# with "port is already allocated" against the live container on :80/:443.
+#
+# This depends on the nginx services declaring `command:` and not `entrypoint:`
+# (compose.production.yaml:132, 222, 260). `run ... nginx -t` overrides `command`,
+# so the test runs directly. Were that key `entrypoint:`, the start script would
+# run instead with `nginx -t` as ignored arguments, sail past its own check,
+# reach `nginx -g "daemon off;"` and block forever -- a hung deploy holding a
+# --rm container open. Converting command -> entrypoint looks like a harmless
+# refactor and would silently break this gate.
+#
+# `run` also sidesteps an `exec` edge case -- `exec` against a container that
+# happens to be down exits non-zero and would fail an otherwise healthy deploy.
+#
+# OLIMAGE is passed through for the same reason restart_servers.sh passes it: an
+# operator who exports OLIMAGE=<tag> for a deploy gets it honoured at restart, so
+# the gate has to resolve the same tag or it parses the config against one nginx
+# build while a different one serves it. Unset is the normal case and still
+# resolves ${OLIMAGE:-openlibrary/olbase:latest} -- the `:-` treats empty as
+# unset -- which is what the live containers resolve too.
+#
+# THIS CHECK IS NOT READ-ONLY. It can mutate the tree it is validating, and that
+# is worth knowing before you trust it. A fresh container resolves the
+# single-FILE mounts (../olsystem/etc/cron.d/certbot,
+# ../olsystem/etc/logrotate.d/nginx, and the per-service cron.d entries) against
+# the NEWLY deployed /opt/olsystem. Where the new olsystem no longer ships one of
+# those files, Docker creates an empty DIRECTORY at that host path, inside the
+# tree just deployed. Verified, not theoretical. `exec` never did this, because
+# it reused mounts resolved at the live container's start.
+#
+# Not a false-pass, and `recreate_services` does the same at restart, so the gate
+# makes it earlier rather than new. Left unfixed deliberately: every guard we
+# could see means parsing `docker compose config` over ssh to enumerate bind
+# sources, which is fragile machinery defending against a state that is already a
+# broken deploy -- if olsystem stopped shipping a file compose mounts, the live
+# containers break at the next restart regardless. If you are debugging this,
+# look for a zero-byte directory rather than a bad rule.
+#
+# It is also a standing argument for doing the test in ol-nginx-start.sh, where a
+# container is coming up anyway, rather than in a separate `run`.
+#
+# Known false-abort, distinct from a false-pass: `nginx -t` opens the certs named
+# in web_nginx.conf (ssl_certificate /etc/letsencrypt/...), which arrive via the
+# letsencrypt-data volume. On a host where certbot has never run, the test fails
+# on a missing cert and stops a deploy whose config is fine. If that happens,
+# confirm it is the cert and not a rule before reaching for SKIP_NGINX_CHECK.
+#
+# $1 is which deploy is calling -- "olsystem" (default) or "openlibrary". It only
+# steers the failure text, but it has to be passed: the two callers have just
+# swapped different trees, so they need different repos named and different
+# _previous paths offered for rollback. Telling an operator mid-deploy to roll
+# back the wrong directory is its own outage.
 check_nginx_config() {
+    local CALLER="${1:-olsystem}"
+
     if [[ "$SKIP_NGINX_CHECK" == "1" ]]; then
         echo "[Warning] Skipping nginx config test (SKIP_NGINX_CHECK=1)"
+        # Re-announced at the end of the deploy. A warning printed only at the
+        # moment it is set scrolls past during a 12-minute deploy, and the
+        # failure mode for this gate is someone setting the skip once under
+        # pressure and then keeping it set.
+        NGINX_CHECK_SKIPPED=1
         return 0
     fi
 
@@ -716,8 +835,14 @@ check_nginx_config() {
     local CHECKED=0
     local SERVICE
     local SERVER
+    local CERT_FAILURE=0
+    local RULE_FAILURE=0
 
-    echo "[Now] Testing nginx config against the newly deployed olsystem rules..."
+    if [[ "$CALLER" == "openlibrary" ]]; then
+        echo "[Now] Re-testing nginx config, now against the newly deployed docker/ configs..."
+    else
+        echo "[Now] Testing nginx config against the newly deployed olsystem rules..."
+    fi
     for SERVER_NAME in $HOSTNAMES; do
         SERVICE=$(nginx_service_for "$SERVER_NAME")
         if [[ -z "$SERVICE" ]]; then
@@ -731,13 +856,22 @@ check_nginx_config() {
         if OUTPUT=$(ssh "$SERVER" "
             set -e
             cd /opt/openlibrary
-            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER_NAME exec -T $SERVICE nginx -t
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME OLIMAGE='$OLIMAGE' docker compose --profile $SERVER_NAME run --rm --no-deps -T $SERVICE nginx -t
         " 2>&1); then
             echo "✓"
         else
             echo "⚠"
             echo "$OUTPUT"
             FAILED=1
+            # Classify rather than making a human under time pressure do it. A
+            # missing cert is a false-abort on a host certbot has never run on;
+            # a bad rule is the thing this gate exists to catch. They need
+            # opposite responses and look alike in a wall of nginx output.
+            if echo "$OUTPUT" | grep -qE 'cannot load certificate|BIO_new_file'; then
+                CERT_FAILURE=1
+            else
+                RULE_FAILURE=1
+            fi
         fi
     done
 
@@ -748,13 +882,40 @@ check_nginx_config() {
 
     if [ $FAILED -eq 1 ]; then
         echo ""
-        echo "[Error] nginx config test FAILED on one or more hosts (see output above)."
-        echo "        olsystem is already deployed, but the new config is invalid --"
-        echo "        restarting nginx now would take the site down (olsystem#420)."
-        echo "        The running containers are still serving the previous config."
+        if [ $RULE_FAILURE -eq 1 ]; then
+            echo "[Error] nginx config test FAILED on one or more hosts (see output above)."
+            if [[ "$CALLER" == "openlibrary" ]]; then
+                echo "        openlibrary is already deployed, but the new config is invalid --"
+                echo "        restarting nginx now would take the site down (olsystem#420)."
+                echo "        The running containers are still serving the previous config."
+                echo ""
+                echo "        The olsystem rules passed on their own earlier in this deploy,"
+                echo "        so suspect docker/nginx.conf or docker/web_nginx.conf, which"
+                echo "        ship from the openlibrary repo -- most likely an include or a"
+                echo "        directive that expects an olsystem file that isn't there."
+                echo ""
+                echo "        Fix it in openlibrary and deploy again, or roll back using the"
+                echo "        copy left in /opt/openlibrary_previous on each host."
+            else
+                echo "        olsystem is already deployed, but the new config is invalid --"
+                echo "        restarting nginx now would take the site down (olsystem#420)."
+                echo "        The running containers are still serving the previous config."
+                echo ""
+                echo "        Fix the ruleset in olsystem and deploy it again, or roll back"
+                echo "        using the copy left in /opt/olsystem_previous on each host."
+            fi
+        fi
+        if [ $CERT_FAILURE -eq 1 ]; then
+            echo "[Error] nginx could not load a TLS certificate (see output above)."
+            if [ $RULE_FAILURE -eq 0 ]; then
+                echo "        No rule syntax error was reported -- this looks like a"
+                echo "        missing cert, not a bad ruleset. On a host where certbot"
+                echo "        has never issued one, /etc/letsencrypt is empty and this"
+                echo "        test aborts a deploy whose config is fine."
+                echo "        Confirm the cert exists before treating this as a rule bug."
+            fi
+        fi
         echo ""
-        echo "        Fix the ruleset in olsystem and deploy it again, or roll back"
-        echo "        using the copy left in /opt/olsystem_previous on each host."
         echo "        To proceed anyway (NOT recommended), set SKIP_NGINX_CHECK=1."
         clean_exit
     fi
@@ -801,11 +962,8 @@ deploy_wizard() {
     read -p "[Now] Run olsystem deploy now? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
+        # deploy_olsystem gates on `nginx -t` itself; see check_nginx_config.
         time deploy_olsystem
-        # Gate on `nginx -t` here, not at restart time: olsystem ships the
-        # ModSecurity ruleset, and a bad rule only surfaces as an nginx [emerg]
-        # once something restarts. Fail now, while the site is still up.
-        check_nginx_config
     fi
     echo ""
 

@@ -21,11 +21,12 @@
 }
 
 /* Buy options popover content. Rows follow the Browse popover's menu rows
-   (header-bar.css): a 4px panel gutter, pill hover fill, muted leading icon. */
+   (header-bar.css): a 4px gutter on all four sides so the corner rows stay
+   concentric with the panel, pill hover fill, muted leading icon. */
 .buy-options {
   box-sizing: border-box;
   width: 100%;
-  padding: var(--spacing-inset-sm) var(--menu-row-inset);
+  padding: var(--menu-row-inset);
   background-color: var(--color-surface);
   border-radius: var(--border-radius-overlay);
   text-align: left;
@@ -46,7 +47,7 @@
   box-sizing: border-box;
   min-height: var(--menu-row-height);
   padding: var(--spacing-sm) var(--menu-row-padding-inline);
-  border-radius: var(--border-radius-button);
+  border-radius: var(--border-radius-menu-row);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
   text-decoration: none;

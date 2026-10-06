@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import '../jquery-ui-dialog';
+import { confirmFromTemplate } from '../confirm-template';
 /**
  * Defines functions used in the 'lists' and 'view_body' templates for Lists.
  * @module lists/ListViewBody
@@ -68,105 +68,29 @@ function get_seed_count() {
     return $('ul#listResults').children().length;
 }
 
-/**
- * Get the i18n 'cancel' text label passed from data attribute; this is set in the view_body.html template file
- * @returns {string} i18n cancel text
- */
-const getCancelButtonLabelText = () => {
-    return $('.listDelete a').data('cancel-text');
-};
-
-/**
- * Get the i18n 'confirm' text label passed from data attribute; this is set in the view_body.html template file
- * @returns {string} i18n confirmation text
- */
-const getConfirmButtonLabelText = () => {
-    return $('.listDelete a').data('confirm-text');
-};
-
 // Add listeners to each .listDelete link element
 // Sometimes .listDelete is dynamically added to the DOM, so we'll add the listener to a parent element
-$('#listResults').on('click', '.listDelete a', function() {
+$('#listResults').on('click', '.listDelete a', async function() {
+    const listKey = $(this).closest('[data-list-key]').data('list-key');
+
     if (get_seed_count() > 1 && !$(this).parent().hasClass('listDelete--myLists')) {
-        $('#remove-seed-dialog')
-            .data('seed-key', $(this).closest('[data-seed-key]').data('seed-key'))
-            .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
-            .dialog('open');
-        $('#remove-seed-dialog').removeClass('hidden');
-    }
-    else {
-        $('#delete-list-dialog')
-            .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
-            .dialog('open');
-        $('#delete-list-dialog').removeClass('hidden');
-    }
-});
+        const seedKey = $(this).closest('[data-seed-key]').data('seed-key');
+        const template = document.getElementById('remove-seed-dialog');
+        if (template && await confirmFromTemplate(template)) {
+            remove_seed(listKey, seedKey, function() {
+                $(`[data-seed-key='${seedKey}']`).remove();
+                // update seed count
+                $('#list-items-count').load(`${location.href} #list-items-count`);
 
-// Set up 'Remove Seed' dialog; force user to confirm the destructive action of removing a seed
-$('#remove-seed-dialog').dialog({
-    autoOpen: false,
-    width: 400,
-    modal: true,
-    resizable: false,
-    buttons: {
-        ConfirmRemoveSeed: {
-            text: getConfirmButtonLabelText(),
-            id: 'remove-seed-dialog--confirm',
-            click: function() {
-                var list_key = $(this).data('list-key');
-                var seed_key = $(this).data('seed-key');
-
-                var _this = this;
-
-                remove_seed(list_key, seed_key, function() {
-                    $(`[data-seed-key='${seed_key}']`).remove();
-                    // update seed count
-                    $('#list-items-count').load(`${location.href} #list-items-count`);
-
-                    // TODO: update edition count
-
-                    $(_this).dialog('close');
-                    $('#remove-seed-dialog').addClass('hidden');
-                });
-            }
-        },
-        CancelRemoveSeed: {
-            text: getCancelButtonLabelText(),
-            id: 'remove-seed-dialog--cancel',
-            click: function() {
-                $(this).dialog('close');
-                $('#remove-seed-dialog').addClass('hidden');
-            }
+                // TODO: update edition count
+            });
         }
-    }
-});
-
-// Set up 'Delete List' dialog; force user to confirm the destructive action of deleting a list
-$('#delete-list-dialog').dialog({
-    autoOpen: false,
-    width: 400,
-    modal: true,
-    resizable: false,
-    buttons: {
-        ConfirmDeleteList: {
-            text: getConfirmButtonLabelText(),
-            id: 'delete-list-dialog--confirm',
-            click: function() {
-                var list_key = $(this).data('list-key');
-                var _this = this;
-
-                $.post(`${list_key}/delete.json`, function() {
-                    $(_this).dialog('close');
-                    window.location.reload();
-                });
-            }
-        },
-        CancelDeleteList: {
-            text: getCancelButtonLabelText(),
-            id: 'delete-list-dialog--cancel',
-            click: function() {
-                $(this).dialog('close');
-            }
+    } else {
+        const template = document.getElementById('delete-list-dialog');
+        if (template && await confirmFromTemplate(template)) {
+            $.post(`${listKey}/delete.json`, function() {
+                window.location.reload();
+            });
         }
     }
 });

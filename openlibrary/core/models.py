@@ -277,7 +277,6 @@ class Edition(Thing):
 
         * read_url - url to read the book
         * borrow_url - url to borrow the book
-        * borrowed - True if the book is already borrowed
         * daisy_url - url to access the daisy format of the book
         * daisy_only - a boolean indicating whether book avail
                        exclusively as daisy
@@ -291,8 +290,7 @@ class Edition(Thing):
 
             {
                 "daisy_url": "/books/OL1M/foo/daisy",
-                "borrow_url": "/books/OL1M/foo/borrow",
-                "borrowed": False
+                "borrow_url": "/books/OL1M/foo/borrow"
             }
 
         """
@@ -307,10 +305,6 @@ class Edition(Thing):
 
             if borrowable:
                 d["borrow_url"] = self.url("/borrow")
-                key = "ebooks" + self.key
-                doc = self._site.store.get(key) or {}
-                # caution, solr borrow status may be stale!
-                d["borrowed"] = doc.get("borrowed") == "true"
                 d["daisy_only"] = False
             elif "printdisabled" not in collections:
                 d["read_url"] = f"https://archive.org/stream/{self.ocaid}"
@@ -690,7 +684,6 @@ class Work(Thing):
 
         * read_url - url to read the book
         * borrow_url - url to borrow the book
-        * borrowed - True if the book is already borrowed
         * daisy_url - url to access the daisy format of the book
 
         Sample return values:
@@ -702,8 +695,7 @@ class Work(Thing):
 
             {
                 "daisy_url": "/books/OL1M/foo/daisy",
-                "borrow_url": "/books/OL1M/foo/borrow",
-                "borrowed": False
+                "borrow_url": "/books/OL1M/foo/borrow"
             }
         """
         solrdata = web.storage(self._solr_data or {})
@@ -902,6 +894,21 @@ class Author(Thing):
 
 
 class User(Thing):
+    #: Preference keys that may be written via :meth:`save_preferences`.
+    #: ``type`` is managed internally and always forced to ``preferences``.
+    PREFERENCE_KEYS = frozenset(
+        {
+            "notify",
+            "pda",
+            "public_readlog",
+            "rpd",
+            "safe_mode",
+            "update",
+            "updates",
+            "yrg_banner_pref",
+        }
+    )
+
     def get_default_preferences(self) -> dict[str, str]:
         return {"update": "no", "public_readlog": "no", "type": "preferences"}
         # New users are now public by default for new patrons
@@ -938,7 +945,7 @@ class User(Thing):
     def save_preferences(self, new_prefs) -> None:
         key = f"{self.key}/preferences"
         prefs = self.preferences()
-        prefs.update(new_prefs)
+        prefs.update({k: v for k, v in new_prefs.items() if k in self.PREFERENCE_KEYS})
         prefs["_rev"] = None
         prefs["type"] = "preferences"
         site.get().store[key] = prefs

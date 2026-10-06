@@ -305,7 +305,7 @@ class patrons_observations(delegate.page):
 
         data = json.loads(web.data())
 
-        Observations.persist_observation(data["username"], work_id, data["observation"], data["action"])
+        Observations.persist_observation(user.key.split("/")[-1], work_id, data["observation"], data["action"])
 
         def response(msg, status="success"):
             return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
@@ -314,11 +314,11 @@ class patrons_observations(delegate.page):
 
     def DELETE(self, work_id):
         user = accounts.get_current_user()
-        username = user.key.split("/")[2]
 
         if not user:
             raise web.seeother("/account/login")
 
+        username = user.key.split("/")[2]
         Observations.remove_observations(username, work_id)
 
         def response(msg, status="success"):
