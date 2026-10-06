@@ -189,7 +189,6 @@ export class Carousel {
             subject: loadMore.subject,
             pageMode: loadMore.pageMode,
             hasFulltextOnly: loadMore.hasFulltextOnly,
-            secondaryAction: loadMore.secondaryAction,
             key: loadMore.key,
             ...loadMore.extraParams
         });
