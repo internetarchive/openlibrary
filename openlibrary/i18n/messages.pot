@@ -840,7 +840,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html.jinja widget.html
+#: LoanStatus.html reading_goals/reading_goal_form.html.jinja widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -2802,8 +2802,8 @@ msgstr ""
 msgid "Listen to a reading from %s"
 msgstr ""
 
-#: book_providers/read_button.html
-msgid "Audiobook"
+#: ReadingOptionsMenu.html book_providers/read_button.html
+msgid "Listen"
 msgstr ""
 
 #: book_providers/read_button.html
@@ -5011,15 +5011,25 @@ msgid "You must select a primary record to point the duplicates toward."
 msgstr ""
 
 #: merge/authors.html
-msgid "Merge these authors?"
-msgstr ""
+#, python-format
+msgid "Merge %(count)s author into %(name)s?"
+msgid_plural "Merge %(count)s authors into %(name)s?"
+msgstr[0] ""
+msgstr[1] ""
 
-#: merge/authors.html search/authors.html
-msgid "Merge authors"
+#: merge/authors.html
+#, python-format
+msgid "Merge %(count)s author"
+msgid_plural "Merge %(count)s authors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: merge/authors.html
+msgid "Keep"
 msgstr ""
 
 #: merge/authors.html
-msgid "The duplicate records will be redirected to the primary record."
+msgid "Merge in and redirect"
 msgstr ""
 
 #: merge/authors.html recentchanges/merge/view.html
@@ -5669,6 +5679,10 @@ msgid "%(count)d records modified."
 msgstr ""
 
 #: search/advancedsearch.html
+msgid "All fields"
+msgstr ""
+
+#: search/advancedsearch.html
 msgid "ISBN"
 msgstr ""
 
@@ -5703,6 +5717,10 @@ msgstr ""
 
 #: search/authors.html
 msgid "Is the same author listed twice?"
+msgstr ""
+
+#: search/authors.html
+msgid "Merge authors"
 msgstr ""
 
 #: search/authors.html
@@ -7157,14 +7175,6 @@ msgstr[1] ""
 msgid "by an <em>unknown author</em>"
 msgstr ""
 
-#: BookPreview.html
-msgid "Preview Only"
-msgstr ""
-
-#: BookPreview.html
-msgid "No Preview"
-msgstr ""
-
 #: BookPreviewFloater.html
 msgid "Preview Book"
 msgstr ""
@@ -7175,6 +7185,10 @@ msgstr ""
 
 #: BookPreviewFloater.html
 msgid "See more about this book on Archive.org"
+msgstr ""
+
+#: CheckWorldcat.html ReadingOptionsMenu.html
+msgid "Nearby Libraries"
 msgstr ""
 
 #: DisplayCode.html
@@ -7264,19 +7278,7 @@ msgid "All copies are checked out."
 msgstr ""
 
 #: LoanStatus.html
-msgid "This book is currently checked out, please check back later."
-msgstr ""
-
-#: LoanStatus.html
 msgid "Checked Out"
-msgstr ""
-
-#: LoanStatus.html
-msgid "Only a preview is available."
-msgstr ""
-
-#: LocateButton.html ReadingOptionsMenu.html
-msgid "Nearby Libraries"
 msgstr ""
 
 #: NotInLibrary.html
@@ -7362,10 +7364,6 @@ msgstr ""
 
 #: ReadingOptionsMenu.html
 msgid "More reading options"
-msgstr ""
-
-#: ReadingOptionsMenu.html
-msgid "Listen"
 msgstr ""
 
 #: RecentChanges.html
