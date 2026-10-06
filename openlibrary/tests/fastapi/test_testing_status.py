@@ -7,9 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
+from fastapi.sse import ServerSentEvent
 
+import openlibrary.fastapi.status as fastapi_status
 import openlibrary.plugins.openlibrary.jenkins as jenkins_module
 import openlibrary.plugins.openlibrary.status as status_module
+from openlibrary.fastapi.status import _current_status, _stream_events
 
 
 @pytest.fixture
@@ -112,7 +115,6 @@ def _post_add(client, state, pr_value="12914", gh=None):
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         get_pr_info,
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
         if isinstance(pr_value, list):
             prs = pr_value
@@ -167,7 +169,7 @@ def test_build_testing_status_has_pending(pr_kwargs, drift, last_deploy_at, expe
 
 @pytest.mark.asyncio
 async def test_get_drift_info_fetches_all_prs_in_one_graphql_request():
-    """A cache miss makes one GraphQL request for every tracked PR."""
+    """One GraphQL request covers every tracked PR."""
     state = _make_state(prs=[_make_pr(pr_number=n) for n in (13269, 13238, 13240)])
     calls = []
 
@@ -175,16 +177,12 @@ async def test_get_drift_info_fetches_all_prs_in_one_graphql_request():
         calls.append(query)
         return {"repository": {f"pr_{p.pr}": _graphql_pr(p.pr, head_sha=p.commit, commits=[p.commit]) for p in state.prs}}
 
-    mc = MagicMock()
-    mc.get.return_value = None
     with (
-        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
         patch("openlibrary.plugins.openlibrary.status.has_github_token", return_value=True),
         patch("openlibrary.plugins.openlibrary.github.github_graphql", side_effect=fake_graphql),
     ):
-        drift, from_cache = await status_module._get_drift_info(state, persist=False)
+        drift = await status_module._get_drift_info(state)
 
-    assert from_cache is False
     assert len(calls) == 1
     assert all(f"pr_{p.pr}: pullRequest(number: {p.pr})" in calls[0] for p in state.prs)
     assert "isDraft" in calls[0]
@@ -193,7 +191,7 @@ async def test_get_drift_info_fetches_all_prs_in_one_graphql_request():
 
 @pytest.mark.asyncio
 async def test_get_drift_info_falls_back_to_rest_without_token():
-    """A cache miss without a token uses the REST API, not GraphQL."""
+    """Without a token the REST API is used, not GraphQL."""
     state = _make_state(prs=[_make_pr(pr_number=n) for n in (13269, 13238)])
     calls = []
 
@@ -212,18 +210,44 @@ async def test_get_drift_info_falls_back_to_rest_without_token():
             "draft": False,
         }
 
-    mc = MagicMock()
-    mc.get.return_value = None
     with (
-        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
         patch("openlibrary.plugins.openlibrary.status.has_github_token", return_value=False),
         patch("openlibrary.plugins.openlibrary.status.get_pr_drift", side_effect=fake_rest_drift),
     ):
-        drift, from_cache = await status_module._get_drift_info(state, persist=False)
+        drift = await status_module._get_drift_info(state)
 
-    assert from_cache is False
     assert set(calls) == {13269, 13238}
     assert drift == {p.pr: {"head_sha": p.commit[:7], "drift": 0, "merged": False, "closed": False} for p in state.prs}
+
+
+@pytest.mark.asyncio
+async def test_get_drift_info_refreshes_metadata_in_place_without_writing_the_state_file():
+    """The drift read is a read, not a commit — structurally.
+
+    Fresh metadata is refreshed onto the in-memory TestingPRs (callers build
+    the panel from those objects), but the state file is never written by the
+    read path: the file's metadata is a seed, refreshed in-memory before every
+    use, and its only writers are mutation paths. This also keeps the read
+    pure, the contract cache.singleflight_cache requires of its compute.
+    """
+    state = _make_state(prs=[_make_pr(pr_number=13269)])
+    state.prs[0].title = "A staler title"
+
+    async def fake_graphql(query):
+        return {"repository": {"pr_13269": _graphql_pr(13269, head_sha=state.prs[0].commit, commits=[state.prs[0].commit])}}
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status.has_github_token", return_value=True),
+        patch("openlibrary.plugins.openlibrary.github.github_graphql", side_effect=fake_graphql),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+    ):
+        drift = await status_module._get_drift_info(state)
+
+    # The stale seed was refreshed in memory for the caller to build from...
+    assert state.prs[0].title == "Test PR 13269"
+    assert drift == {13269: {"head_sha": state.prs[0].commit[:7], "drift": 0, "merged": False, "closed": False}}
+    # ...but the read never reached the disk.
+    mock_save.assert_not_called()
 
 
 def test_build_testing_status_marks_merge_conflicts():
@@ -298,7 +322,7 @@ def test_load_testing_status_wires_merge_conflicts():
     )
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value={}),
         patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=dms),
     ):
         result = asyncio.run(status_module.load_testing_status())
@@ -318,7 +342,7 @@ async def test_load_testing_status_composes_state_and_drift():
     drift_info = {state.prs[0].pr: {"head_sha": "abc1234", "drift": 2, "merged": False}}
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=(drift_info, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=drift_info),
     ):
         result = await status_module.load_testing_status()
 
@@ -417,11 +441,10 @@ async def test_deploy_drops_closed_prs():
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
             "openlibrary.plugins.openlibrary.status._get_drift_info",
-            return_value=({pr.pr: {"head_sha": "", "drift": 0, "merged": False, "closed": True}}, False),
+            return_value={pr.pr: {"head_sha": "", "drift": 0, "merged": False, "closed": True}},
         ),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
         await status_module.deploy_testing_status()
@@ -440,10 +463,9 @@ async def test_deploy_drops_staged_removals():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value={}),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
         await status_module.deploy_testing_status()
@@ -753,10 +775,9 @@ async def test_deploy_unconfigured_answers_error_but_advances_state():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value={}),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
         response = await status_module.deploy_testing_status()
@@ -793,8 +814,8 @@ async def test_deploy_failure_never_persists_staged_changes():
 
     Regression: status_deploy used to call _get_drift_info(state) after staging
     changes, and that helper's metadata refresh saved the file — persisting
-    pins/toggles before Jenkins accepted the build. The drift read is now
-    persist=False, and the only save happens after a successful trigger.
+    pins/toggles before Jenkins accepted the build. The drift read can no
+    longer write at all; the only save happens after a successful trigger.
     """
     state = _make_deploy_state()
 
@@ -803,10 +824,7 @@ async def test_deploy_failure_never_persists_staged_changes():
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
             "openlibrary.plugins.openlibrary.status._get_drift_info",
-            return_value=(
-                {13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
-                False,
-            ),
+            return_value={13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
         ) as mock_drift,
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="failed"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
@@ -814,8 +832,8 @@ async def test_deploy_failure_never_persists_staged_changes():
         response = await status_module.deploy_testing_status()
 
     assert response == {"ok": False, "error": "deploy_failed"}
-    # The drift read is a read, not a commit: it must not persist.
-    mock_drift.assert_called_once_with(state, persist=False)
+    # The drift read is a read, not a commit — structurally: it cannot persist.
+    mock_drift.assert_called_once_with(state)
     mock_save.assert_not_called()
 
 
@@ -830,14 +848,10 @@ async def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
             "openlibrary.plugins.openlibrary.status._get_drift_info",
-            return_value=(
-                {13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
-                False,
-            ),
+            return_value={13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
         ),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
         response = await status_module.deploy_testing_status()
@@ -866,10 +880,9 @@ async def test_deploy_records_who_clicked_it():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value={}),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=user),
     ):
         await status_module.deploy_testing_status()
@@ -979,7 +992,6 @@ def test_add_keeps_the_prs_that_succeeded_and_names_the_one_that_failed(fastapi_
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status.get_pr_info", side_effect=lookup),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._extend_drift_cache"),
     ):
         response = fastapi_client.post("/status/add", json={"prs": [12914, 9999]})
 
@@ -1011,7 +1023,6 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock) as mock_info,
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-        patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
         response = fastapi_client.post("/status/add", json={"prs": [13269]})
 
@@ -1021,11 +1032,9 @@ def test_add_cancels_a_staged_removal(fastapi_client, mock_authenticated_user, m
     assert state.prs[0].pending_remove is False
     # Already in the set: no GitHub fetch, no fresh row.
     mock_info.assert_not_called()
-    # Nothing was added, so nothing about the cached drift changed.
-    mock_extend.assert_called_once_with({})
 
 
-def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+def test_add_persists_the_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     state = _empty_state()
     gh_info = _gh_info()
@@ -1034,14 +1043,11 @@ def test_add_persists_the_state_and_caches_the_new_pr(fastapi_client, mock_authe
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=gh_info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        patch("openlibrary.plugins.openlibrary.status._extend_drift_cache") as mock_extend,
     ):
         response = fastapi_client.post("/status/add", json={"prs": [12914]})
 
     assert response.status_code == 200
     mock_save.assert_called_once_with(state)
-    # The new PR is handed to the cache so the panel's next read needn't refetch.
-    mock_extend.assert_called_once_with({12914: gh_info})
 
 
 def test_add_requires_auth(fastapi_client):
@@ -1062,100 +1068,39 @@ def test_add_forbidden_for_non_maintainer(fastapi_client, mock_authenticated_use
 
 
 def _dict_memcache(store: dict) -> MagicMock:
-    """A memcache stub backed by ``store``, so get/set/delete round-trip like memcached.
+    """A memcache stub backed by ``store``, so get/set/add/delete round-trip like memcached.
 
-    ``delete`` really clears the entry, so a test using this stub fails if the
-    code under test evicts the cache instead of extending it.
+    ``add`` fails when the key exists, so exactly one concurrent acquirer
+    wins the singleflight lease; ``delete`` really clears the entry, so a
+    test using this stub fails if the code under test evicts a cache it
+    should have extended.
     """
     mc = MagicMock()
     mc.get.side_effect = store.get
     mc.set.side_effect = lambda key, value, expires=0: store.__setitem__(key, value)
+
+    def _add(key, value, expires=0):
+        if key in store:
+            return False
+        store[key] = value
+        return True
+
+    mc.add.side_effect = _add
     mc.delete.side_effect = lambda key: store.pop(key, None)
     return mc
 
 
-def test_extend_drift_cache_keeps_the_rows_already_cached():
-    """A new PR is recorded in the cached drift; the existing rows survive.
+@pytest.fixture(autouse=True)
+def fresh_memcache():
+    """A fresh in-memory memcache per test.
 
-    Regression: the add path used to evict the whole cache, forcing the next
-    read to refetch every row — the cost is the fan-out, not the added row.
+    Without configured servers the real client is an in-memory mock shared
+    across this whole session — one test's singleflight entry would be
+    served fresh to the next. Tests that patch ``get_memcache`` explicitly
+    override this within their own ``with`` block.
     """
-    existing = {"13269": {"head_sha": "1d23364", "drift": 3, "merged": False, "closed": False}}
-    store = {status_module._DRIFT_CACHE_KEY: existing}
-    mc = _dict_memcache(store)
-
-    with patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc):
-        status_module._extend_drift_cache({12914: _gh_info()})
-
-    written = store[status_module._DRIFT_CACHE_KEY]
-    assert written["13269"] == existing["13269"]
-    # Pinned to its current head, so it is 0 behind by construction.
-    assert written["12914"] == {"head_sha": "abc1234", "drift": 0, "merged": False, "closed": False}
-    assert mc.set.call_args.kwargs == {"expires": status_module._DRIFT_CACHE_TTL}
-
-
-def test_extend_drift_cache_is_a_noop_when_nothing_is_cached():
-    """A cold cache needs no patching: the next read fetches the full set anyway."""
-    store = {}
-    mc = _dict_memcache(store)
-
-    with patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc):
-        status_module._extend_drift_cache({12914: _gh_info()})
-
-    assert mc.set.call_count == 0
-
-
-def test_extend_drift_cache_is_a_noop_with_no_new_prs():
-    """A pure undo (re-adding an existing PR) adds nothing, so nothing is written."""
-    store = {status_module._DRIFT_CACHE_KEY: {"13269": {"head_sha": "1d23364", "drift": 3, "merged": False, "closed": False}}}
-    mc = _dict_memcache(store)
-
-    with patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc):
-        status_module._extend_drift_cache({})
-
-    assert mc.set.call_count == 0
-
-
-@pytest.mark.asyncio
-async def test_adding_a_pr_leaves_the_next_read_a_cache_hit():
-    """The read after an add is served from cache, including the new row.
-
-    This is the point of updating the cache instead of evicting it: the panel
-    GETs /status/testing.json right after POSTing /status/add, and that read
-    must not fan out to GitHub again.
-    """
-    store = {
-        status_module._DRIFT_CACHE_KEY: {
-            "13269": {"head_sha": "1d23364", "drift": 3, "merged": False, "closed": False},
-        }
-    }
-    mc = _dict_memcache(store)
-    state = _empty_state()
-
-    with (
-        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status.get_pr_info", new_callable=AsyncMock, return_value=_gh_info()),
-        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
-    ):
-        assert await status_module.add_prs([12914], "testuser") == {"ok": True}
-
-        with (
-            patch(
-                "openlibrary.plugins.openlibrary.github.github_graphql",
-                side_effect=AssertionError("the read refetched from GitHub"),
-            ),
-            patch(
-                "openlibrary.plugins.openlibrary.status.get_pr_drift",
-                side_effect=AssertionError("the read refetched from GitHub"),
-            ),
-        ):
-            drift, from_cache = await status_module._get_drift_info(state, persist=False)
-
-    assert from_cache is True
-    assert drift[12914]["drift"] == 0
-    assert drift[12914]["head_sha"] == "abc1234"
-    assert drift[13269]["drift"] == 3  # the pre-existing row is still there
+    with patch("openlibrary.core.cache.get_memcache", return_value=_dict_memcache({})):
+        yield
 
 
 def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
@@ -1163,8 +1108,8 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
     state = _make_state()
     result = status_module.build_testing_status(state, {13269: {"head_sha": "abc1234", "drift": 2, "merged": False}})
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=result)) as mock,
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
+        patch("openlibrary.plugins.openlibrary.status.load_testing_status", AsyncMock(return_value=result)) as mock,
+        patch("openlibrary.plugins.openlibrary.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -1214,8 +1159,8 @@ def test_testing_status_endpoint_matches_response_model(fastapi_client, mock_aut
     mock_maintainer_user(is_maintainer=True)
     result = status_module.build_testing_status(_make_state(last_deploy_at=""), {})
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=result)),
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
+        patch("openlibrary.plugins.openlibrary.status.load_testing_status", AsyncMock(return_value=result)),
+        patch("openlibrary.plugins.openlibrary.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -1237,8 +1182,8 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
         "current_stage": "",
     }
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=result)),
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
+        patch("openlibrary.plugins.openlibrary.status.load_testing_status", AsyncMock(return_value=result)),
+        patch("openlibrary.plugins.openlibrary.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -1264,8 +1209,8 @@ def test_testing_status_endpoint_reports_deploy_stage(fastapi_client, mock_authe
         "current_stage": "components",
     }
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=result)),
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
+        patch("openlibrary.plugins.openlibrary.status.load_testing_status", AsyncMock(return_value=result)),
+        patch("openlibrary.plugins.openlibrary.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -1349,8 +1294,8 @@ async def test_jenkins_deploy_status_returns_none_on_error():
 def test_testing_status_endpoint_404_when_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", AsyncMock(return_value=None)),
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
+        patch("openlibrary.plugins.openlibrary.status.load_testing_status", AsyncMock(return_value=None)),
+        patch("openlibrary.plugins.openlibrary.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -1380,8 +1325,8 @@ def test_testing_status_fetches_github_and_jenkins_concurrently(fastapi_client, 
         active -= 1
 
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", side_effect=fake_load),
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", side_effect=fake_jenkins),
+        patch("openlibrary.plugins.openlibrary.status.load_testing_status", side_effect=fake_load),
+        patch("openlibrary.plugins.openlibrary.status.jenkins_deploy_status", side_effect=fake_jenkins),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -1397,7 +1342,7 @@ def test_testing_status_endpoint_requires_auth(fastapi_client):
 
 def test_testing_status_endpoint_forbidden_for_non_maintainer(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=False)
-    with patch("openlibrary.fastapi.status.load_testing_status", AsyncMock()) as mock:
+    with patch("openlibrary.plugins.openlibrary.status.load_testing_status", AsyncMock()) as mock:
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 403
@@ -1455,13 +1400,14 @@ def test_refresh_status_endpoint_requires_auth(fastapi_client):
 
 
 def test_refresh_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """Refresh = invalidate: the next read recomputes from GitHub."""
     mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.refresh_testing_status", return_value={"ok": True}) as mock:
+    with patch("openlibrary.fastapi.status._invalidate_cached_snapshot") as invalidate:
         response = fastapi_client.post("/status/refresh", json={})
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
-    mock.assert_called_once_with()
+    invalidate.assert_called_once_with()
 
 
 def test_deploy_status_endpoint_requires_auth(fastapi_client):
@@ -1560,3 +1506,77 @@ def test_remove_prs_endpoint_e2e_deletes_never_deployed_pr(fastapi_client, mock_
     assert response.json() == {"ok": True, "staged_prs": [], "removed_prs": [13269]}
     assert state.prs == []
     mock_save.assert_called_once_with(state)
+
+
+# --- SSE stream endpoint --------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_current_status_shares_one_fleet_wide_compute():
+    """The port onto cache.singleflight_cache: within the TTL every tab
+    on every worker shares one compute; a mutation invalidates it."""
+    payload = status_module.build_testing_status(_make_state(), {}).model_dump()
+    with (
+        patch("openlibrary.fastapi.status.compute_testing_status", new_callable=AsyncMock, return_value=payload) as compute,
+        patch("openlibrary.core.cache.get_memcache", return_value=_dict_memcache({})),
+    ):
+        assert await _current_status() == payload
+        assert await _current_status() == payload
+        assert compute.await_count == 1  # fresh: the fleet-wide cache served both
+
+        fastapi_status._invalidate_cached_snapshot()  # a mutation landed, somewhere
+        assert await _current_status() == payload
+        assert compute.await_count == 2  # invalidated despite a fresh TTL
+
+
+@pytest.mark.asyncio
+async def test_status_stream_frames_only_changed_payloads(monkeypatch):
+    monkeypatch.setattr("openlibrary.fastapi.status._STREAM_TICK_SECONDS", 0.01)
+    first = {"deploying": False, "prs": []}
+    changed = {"deploying": True, "prs": []}
+    with patch("openlibrary.fastapi.status._current_status", new_callable=AsyncMock, side_effect=[first, first, changed]):
+        events = _stream_events()
+        assert (await anext(events)).data == first
+        # The second tick returned an identical payload — no frame for it, so
+        # this anext can only resolve on the third tick's changed payload.
+        assert (await anext(events)).data == changed
+        await events.aclose()
+
+
+def test_status_stream_endpoint_serves_the_route_as_event_stream(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """The route wiring: registered, maintainer-gated, framed as SSE.
+
+    The generator tests bound the stream body directly; this pins the part
+    they bypass — route registration, the response class, and the SSE
+    framing — which a FastAPI/SSE upgrade would otherwise break silently.
+    The stream is bounded to one frame because the TestClient buffers whole
+    responses: an infinite stream could never be drained through it.
+    """
+    mock_maintainer_user(is_maintainer=True)
+    payload = {"deploying": False, "prs": []}
+
+    async def one_frame():
+        yield ServerSentEvent(data=payload, event="status")
+
+    with patch("openlibrary.fastapi.status._stream_events", return_value=one_frame()), fastapi_client.stream("GET", "/status/testing/stream") as response:
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/event-stream")
+        lines = list(response.iter_lines())
+    assert "event: status" in lines
+    data_line = next(line for line in lines if line.startswith("data:"))
+    assert json.loads(data_line[len("data:") :]) == payload
+
+
+def test_remove_endpoint_invalidates_the_cached_snapshot(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """A mutation bumps the snapshot's version key, invalidating it fleet-wide."""
+    mock_maintainer_user(is_maintainer=True)
+    store: dict = {}
+    with (
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=_make_state()),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.core.cache.get_memcache", return_value=_dict_memcache(store)),
+    ):
+        response = fastapi_client.post("/status/remove", json={"prs": [13269]})
+
+    assert response.json()["ok"] is True
+    assert store[f"{fastapi_status._SNAPSHOT_KEY}.v"] == 1

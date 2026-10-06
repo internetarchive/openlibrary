@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field, field_serializer
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
-from openlibrary.core import cache, stats
+from openlibrary.core import stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.openlibrary.github import (
     GitHubAPIError,
@@ -29,14 +29,12 @@ from openlibrary.plugins.openlibrary.github import (
     has_github_token,
     parse_pr_drift,
 )
-from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, trigger_rebuild
+from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, jenkins_deploy_status, trigger_rebuild
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
 
 TESTING_STATE_FILE = Path("./_testing-prs.json")
-_DRIFT_CACHE_KEY = "status.github_pr_drift"
-_DRIFT_CACHE_TTL = 60  # 1 minute
 # Jenkins never calls back, so a triggered deploy is only ever presumed to be
 # running. After this long we stop claiming it is, without claiming it worked.
 _DEPLOY_WINDOW = 10 * 60  # 10 minutes
@@ -150,9 +148,9 @@ async def deploy_testing_status() -> dict[str, bool | str]:
     if not state:
         return {"ok": True}
     # Drop staged removals and merged/closed PRs on the unmutated state. The
-    # drift metadata refresh must not write staged changes before Jenkins
-    # accepts the build.
-    drift_info, _ = await _get_drift_info(state, persist=False)
+    # drift read cannot write, so it can never persist staged-but-untriggered
+    # changes before Jenkins accepts the build.
+    drift_info = await _get_drift_info(state)
     state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
     # Apply all pending changes before deploying.
     for p in state.prs:
@@ -176,18 +174,11 @@ async def deploy_testing_status() -> dict[str, bool | str]:
     if outcome == "triggered":
         state.deploy_started_at = state.last_deploy_at
     _save_testing_state(state)
-    _evict_drift_cache()
     if outcome == "triggered":
         return {"ok": True}
     # Local development and instances without Jenkins still advance state, but
     # the response tells the UI that no real deploy happened.
     return {"ok": False, "error": "deploy_unconfigured"}
-
-
-def refresh_testing_status() -> dict[str, bool]:
-    """Evict cached testing-environment drift data."""
-    _evict_drift_cache()
-    return {"ok": True}
 
 
 def _is_deploying(state: TestingState) -> bool:
@@ -571,8 +562,30 @@ async def load_testing_status() -> TestingStatus | None:
     """
     if (state := _load_testing_state()) is None:
         return None
-    drift_info, _ = await _get_drift_info(state)
+    drift_info = await _get_drift_info(state)
     return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
+
+
+async def compute_testing_status() -> dict[str, Any] | None:
+    """The full panel snapshot as a JSON-able dict: testing state plus
+    drift, with the latest Jenkins run overriding the deploy fields (the
+    state file's time-window guess stands in only when Jenkins is down).
+    None means no state file.
+    """
+    result, jenkins = await asyncio.gather(load_testing_status(), jenkins_deploy_status())
+    if result is None:
+        return None
+    if jenkins:
+        result = result.model_copy(
+            update={
+                "deploying": jenkins["status"] == "IN_PROGRESS",
+                "deploy_started_at": jenkins["start_time"],
+                "deploy_result": jenkins["status"],
+                "deploy_finished_at": jenkins["end_time"],
+                "deploy_stage": jenkins.get("current_stage", ""),
+            }
+        )
+    return result.model_dump()
 
 
 def _parse_pr_number(value: str) -> int:
@@ -614,7 +627,6 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
         if p.pr in pr_numbers:
             p.pending_remove = False
     failed: dict[int, str] = {}
-    added: dict[int, GitHubPRInfo] = {}
 
     for pr_number in pr_numbers:
         if pr_number in existing:
@@ -635,9 +647,7 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
             continue
         state.prs.append(TestingPR.from_github(info, username))
         existing.add(pr_number)
-        added[pr_number] = info
     _save_testing_state(state)
-    _extend_drift_cache(added)
     if failed:
         return {"ok": False, "error": "add_failed", "failed_prs": failed}
     return {"ok": True}
@@ -698,27 +708,22 @@ def _is_maintainer() -> bool:
     return bool(user and user.is_maintainer())
 
 
-async def _get_drift_info(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
-    """Return (drift_dict, from_cache). Checks memcache first; fetches GitHub on miss.
+async def _get_drift_info(state: TestingState) -> dict:
+    """Return live drift info per PR (keys are int PR numbers), fetched from GitHub.
 
-    Keys are int PR numbers. JSON round-trip via memcache stringifies keys, so we
-    re-cast on read.
-
-    On a cache miss, also refreshes title/author/assignee on each TestingPR in-place
-    and, unless ``persist=False``, saves the state file if anything changed. The
-    deploy path passes ``persist=False`` so its metadata refresh can never write
-    staged-but-untriggered changes to disk.
+    Also refreshes title/author/assignee on each TestingPR in-place — callers
+    build the panel from those refreshed objects — but never writes the state
+    file. The file's metadata is a seed, refreshed in-memory before every use;
+    its only writers are mutation paths, which keeps this a pure read — the
+    contract ``cache.singleflight_cache`` requires of its compute.
 
     Per-PR fetches run concurrently (asyncio.gather) — with a handful of PRs,
     sequential awaits would stack each GitHub round-trip. When a
     ``github_api_token`` is configured, one GraphQL request replaces the fan-out;
     otherwise the REST API is used (which tolerates unauthenticated requests).
+    Fetch failures fail soft — unknown drift, "?" — never an error.
     """
-    mc = cache.get_memcache()
-    if (cached := mc.get(_DRIFT_CACHE_KEY)) is not None:
-        return {int(k): v for k, v in cached.items()}, True
     drift = {}
-    state_changed = False
     if has_github_token():
         try:
             payloads = await fetch_prs_graphql([p.pr for p in state.prs])
@@ -733,44 +738,7 @@ async def _get_drift_info(state: TestingState, persist: bool = True) -> tuple[di
             new_val = info.get(attr, "")
             if (new_val or (attr == "draft" and new_val is not None)) and getattr(p, attr) != new_val:
                 setattr(p, attr, new_val)
-                state_changed = True
-    if state_changed and persist:
-        _save_testing_state(state)
-    mc.set(_DRIFT_CACHE_KEY, drift, expires=_DRIFT_CACHE_TTL)
-    return drift, False
-
-
-def _evict_drift_cache() -> None:
-    cache.get_memcache().delete(_DRIFT_CACHE_KEY)
-
-
-def _extend_drift_cache(new_prs: dict[int, GitHubPRInfo]) -> None:
-    """Record freshly added PRs in the drift cache, leaving the rest of it intact.
-
-    Adding a PR says nothing about the drift of the PRs already in the set, so
-    evicting the whole cache would make the panel's next read refetch every row
-    over GitHub — the cost is in the fan-out, not the added row. Each new PR is
-    pinned to its current head, so its drift is already known: 0 behind, not
-    merged. ``merged``/``closed`` are defaults rather than observations —
-    ``get_pr_info`` doesn't report them — and the next fetch replaces
-    them within ``_DRIFT_CACHE_TTL``, the same staleness window every other
-    cached row already lives with.
-
-    A cold cache is a no-op: the next read fetches the full set anyway.
-    """
-    if not new_prs:
-        return
-    mc = cache.get_memcache()
-    if (cached := mc.get(_DRIFT_CACHE_KEY)) is None:
-        return
-    for pr_number, info in new_prs.items():
-        cached[str(pr_number)] = {
-            "head_sha": info.head_sha[:7],
-            "drift": 0,
-            "merged": False,
-            "closed": False,
-        }
-    mc.set(_DRIFT_CACHE_KEY, cached, expires=_DRIFT_CACHE_TTL)
+    return drift
 
 
 @public

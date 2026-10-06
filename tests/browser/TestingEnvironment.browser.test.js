@@ -130,3 +130,42 @@ test('queues and batches rapid updates before deploying', async() => {
 
     pendingPosts.shift().resolve();
 });
+
+test('applies status pushed over the event stream', async() => {
+    const fetchUrls = [];
+    window.fetch = async(url) => {
+        fetchUrls.push(url);
+        // Only ever serves the pre-stream payload: updatePayload can only
+        // arrive through the stream, so the assertion below proves it did.
+        return { ok: true, json: async() => payload };
+    };
+
+    let statusListener;
+    class FakeEventSource {
+        constructor(url) {
+            this.url = url;
+            this.readyState = 0;
+        }
+        addEventListener(type, listener) {
+            if (type === 'status') statusListener = listener;
+        }
+        close() {
+            this.readyState = 2;
+        }
+    }
+    const realEventSource = window.EventSource;
+    window.EventSource = FakeEventSource;
+
+    try {
+        await render(TestingEnvironment, { props: { maintainer: 'true' } });
+        await expect.element(page.getByText('A client-rendered testing panel')).toBeInTheDocument();
+
+        statusListener({ data: JSON.stringify(updatePayload) });
+        await expect.element(page.getByRole('img', { name: 'Draft' })).toBeInTheDocument();
+
+        expect(fetchUrls.length).toBeGreaterThan(0);
+        expect(fetchUrls.every((url) => url === '/status/testing.json')).toBe(true);
+    } finally {
+        window.EventSource = realEventSource;
+    }
+});
