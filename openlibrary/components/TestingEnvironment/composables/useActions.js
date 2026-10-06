@@ -10,12 +10,13 @@ const RECENT_HIGHLIGHT_MS = 10000;
  *
  * @param {object}  opts
  * @param {import('vue').ShallowRef<boolean>} opts.busy       — whether the action queue is processing
+ * @param {import('vue').Ref<object|null>} [opts.payload]     — panel payload; toggle/remove/restore flip it optimistically
  * @param {Function} opts.loadStatus — re-fetch after each action
  * @param {Function} opts.setToast   — show an error toast
  * @param {object}  opts.strings     — translated strings (plain object, set once at setup)
  * @returns {object} action flags and methods
  */
-export function useActions({ busy, loadStatus, setToast, strings }) {
+export function useActions({ busy, payload, loadStatus, setToast, strings }) {
     const refreshing = shallowRef(false);
     const adding = shallowRef(false);
     const deploying = shallowRef(false);
@@ -84,13 +85,32 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         return waiter;
     }
 
+    /**
+     * Apply `patch` to a row now, send the action, revert on network
+     * failure. Success reconciles via the post-action re-fetch.
+     */
+    function optimisticRow(prNumber, patch, action, fields, method = 'POST') {
+        const row = payload?.value?.prs?.find((r) => r.pr === prNumber);
+        const snapshot = row ? { ...row } : null;
+        if (row) Object.assign(row, typeof patch === 'function' ? patch(row) : patch);
+        const waiter = enqueue(action, fields, 'action', method);
+        if (snapshot) {
+            waiter.then((result) => {
+                if (result === false) {
+                    const current = payload?.value?.prs?.find((r) => r.pr === prNumber);
+                    if (current) Object.assign(current, snapshot);
+                }
+            });
+        }
+        return waiter;
+    }
+
     function togglePr(pr) {
-        enqueue(
-            '/status/testing/prs',
-            { prs: [pr.pr], active: !effectiveActive(pr) },
-            'action',
-            'PATCH'
-        );
+        const row = payload?.value?.prs?.find((r) => r.pr === pr.pr);
+        const target = !effectiveActive(row ?? pr);
+        // Mirror the server: staging back to the live state clears the flag.
+        const patch = (r) => ({ pending_active: target === r.active ? null : target });
+        return optimisticRow(pr.pr, patch, '/status/testing/prs', { prs: [pr.pr], active: target }, 'PATCH');
     }
 
     function updatePr(pr) {
@@ -98,13 +118,14 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     }
 
     function removePr(pr) {
-        enqueue('/status/remove', { prs: [pr.pr] });
+        // Not-live rows vanish on re-fetch; staged ones keep the flag.
+        return optimisticRow(pr.pr, { pending_remove: true }, '/status/remove', { prs: [pr.pr] });
     }
 
     // Undo a staged removal: the server just clears the flag, so the row's
     // pinned commit and toggle state come back untouched.
     function restorePr(pr) {
-        enqueue('/status/restore', { prs: [pr.pr] });
+        return optimisticRow(pr.pr, { pending_remove: false }, '/status/restore', { prs: [pr.pr] });
     }
 
     async function deploy() {

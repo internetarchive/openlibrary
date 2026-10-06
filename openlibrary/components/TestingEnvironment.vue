@@ -47,6 +47,7 @@ const busy = shallowRef(false);
 const { view, payload, now, loadStatus, retry } = useTestingStatus(busy);
 const { refreshing, adding, deploying, addInput, recentlyAdded, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
     busy,
+    payload,
     loadStatus,
     setToast,
     strings
