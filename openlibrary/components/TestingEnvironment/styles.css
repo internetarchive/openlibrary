@@ -200,6 +200,10 @@
 }
 
 .testing-env__input {
+  /* The page's `* { box-sizing: border-box }` reset cannot cross the shadow
+     boundary, so it is declared here: without it the input's height is its
+     content box plus the border, leaving it 2px taller than the buttons. */
+  box-sizing: border-box;
   flex: 1;
   min-width: 0;
   height: var(--control-height-medium);
