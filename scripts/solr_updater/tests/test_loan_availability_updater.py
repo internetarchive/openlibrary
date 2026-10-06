@@ -1,5 +1,6 @@
 """Tests for loan_availability_updater.py"""
 
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -7,6 +8,7 @@ import pytest
 from openlibrary.core import lending
 from openlibrary.core.lending import CheckedOutSeedIncomplete
 from openlibrary.utils.solr import Solr
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from scripts.solr_updater.loan_availability_updater import (
     CLEAR_BREAKER_FLOOR,
     CLEAR_BREAKER_FRACTION,
@@ -394,11 +396,10 @@ async def test_a_mass_clear_is_refused_when_ground_truth_says_the_books_are_stil
         resolve,
         marked,
         patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
-        pytest.raises(PollRefused) as excinfo,
     ):
-        await build_poll_updates(["bookaaa"])
-    assert "confirmed 0 of 499" in str(excinfo.value)
-    assert "Keeping prior state" in str(excinfo.value)
+        updates = await build_poll_updates(["bookaaa"])
+    _, clear = _sets(updates)
+    assert clear == set(), "ground truth contradicted the index, so no clear may proceed"
 
 
 @pytest.mark.asyncio
@@ -446,9 +447,10 @@ async def test_a_mass_clear_without_ocaids_is_refused_rather_than_assumed():
     run -- and a check that cannot run must not read as a check that passed."""
     no_ocaids = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [], "_root_": f"/works/OL{i}W"} for i in range(500)}
     resolve, marked = _poll([], no_ocaids)
-    with resolve, marked, pytest.raises(PollRefused) as excinfo:
-        await build_poll_updates([])
-    assert "none carry an ocaid" in str(excinfo.value)
+    with resolve, marked:
+        updates = await build_poll_updates([])
+    _, clear = _sets(updates)
+    assert clear == set(), "ground truth could not be consulted, so no clear may proceed"
 
 
 @pytest.mark.asyncio
@@ -600,3 +602,84 @@ async def test_main_writes_nothing_on_a_dry_run(mock_config, mock_infogami, mock
         await _run_poll_once(solr, mock_lending, ["bookabc"], dry_run=True)
 
     assert not solr.update_in_place_async.called
+
+
+# ---------------------------------------------------------------------------
+# Defects found by adversarial review 2026-10-06. Each test below exists
+# because the thing it pins was broken and shipped, not because it seemed
+# worth asserting.
+# ---------------------------------------------------------------------------
+
+
+def test_the_shipped_launcher_invocation_matches_mains_signature():
+    """The launcher passed --state-file long after main() stopped taking it.
+
+    argparse exits 2 before the first poll, the supervisor sleeps 60s and tries
+    again, and the container stays healthy while the feature is completely
+    inert -- the only symptom is a usage string in the log once a minute. No
+    test caught it because every other test calls main() as a Python function
+    and never goes through the CLI the deployment actually uses.
+    """
+    script = (Path(__file__).parents[2] / "solr_updater" / ".." / ".." / "docker" / "ol-solr-updater-start.sh").resolve()
+    text = script.read_text()
+    assert "loan_availability_updater.py" in text, f"launcher not found at {script}"
+
+    # The invocation, joined across backslash continuations.
+    invocation = ""
+    for line in text.replace("\\\n", " ").splitlines():
+        if "loan_availability_updater.py" in line:
+            invocation = line
+            break
+    flags = [token for token in invocation.split() if token.startswith("--")]
+
+    parser = FnToCLI(main).parser
+    known = {action.option_strings[0] for action in parser._actions if action.option_strings}
+    unknown = [f for f in flags if f not in known]
+    assert not unknown, f"launcher passes {unknown} which main() does not accept; known flags are {sorted(known)}"
+
+
+@pytest.mark.asyncio
+async def test_a_truncated_marked_read_is_refused_rather_than_cleared():
+    """Solr returns HTTP 200 with a short `docs` list in two ways -- more
+    matched than `rows` asked for, and `timeAllowed` cutting the query short.
+    The reconcile turns ABSENCE into a clear, so either one is a mass clear by
+    a quiet route that stays under the breaker's threshold."""
+    mock_solr = MagicMock(spec=Solr)
+    result = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}], num_found=500, response_header={})
+    mock_solr.select_async.return_value = result
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
+        await fetch_marked_editions()
+    assert "500" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_a_partial_solr_read_is_refused_rather_than_cleared():
+    """`partialResults` is the only signal that `timeAllowed` tripped; numFound
+    can look consistent with the short list it returned."""
+    mock_solr = MagicMock(spec=Solr)
+    result = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}], num_found=1, response_header={"partialResults": True})
+    mock_solr.select_async.return_value = result
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
+        await fetch_marked_editions()
+    assert "partialResults" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_a_refused_mass_clear_still_marks_the_newly_unavailable():
+    """Holding the marks alongside a refused clear reaches the unrecoverable
+    failure from the other side: while the index is degraded, real borrows keep
+    happening and nothing records them, so checked-out books are published as
+    borrowable for the length of the outage. Marking needs no confirmation."""
+    marked = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(500)}
+    resolved = {"bookaaa": {"key": "/books/OL9001M", "root": "/works/OL9001W"}}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        # Ground truth says every candidate clear is still checked out: the
+        # index is wrong, so no clear may proceed.
+        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
+    ):
+        updates = await build_poll_updates(["bookaaa"])
+    mark, clear = _sets(updates)
+    assert mark == {"/books/OL9001M"}, "a newly-unavailable book must still be marked"
+    assert clear == set(), "no clear may proceed when ground truth contradicts the index"

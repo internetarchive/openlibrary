@@ -10,8 +10,8 @@ them again:
     CANDIDATES, each needing an availability call to settle, which made a
     restart's cost scale with feed volume. Unbounded in the one place a daemon
     must not be.
-  * **v2 - seed from the index once, then follow the changes feed** (this
-    file's follower/repairer below, plus MR 6634). Abandoned on Ximm's finding
+  * **v2 - seed from the index once, then follow the changes feed** (a
+    follower/repairer split, plus MR 6634). Abandoned on Ximm's finding
     that the changes API **cannot report loan EXPIRY** -- only initiation -- so
     the feed can never free a book on its own, and the per-item Lending Status
     Endpoint that would have covered the gap is too slow (>10s/item) to sustain
@@ -310,6 +310,28 @@ class PollRefused(Exception):
     """
 
 
+def refuse_if_incomplete(result, returned: int, what: str) -> None:
+    """Raise unless a Solr read returned everything it was asked for.
+
+    Two ways a select comes back short with HTTP 200 and no error: more
+    documents matched than `rows` asked for, and `timeAllowed` (10s by default
+    in :meth:`Solr.select_async`) tripping mid-query, which sets
+    `responseHeader.partialResults`. Both are invisible unless looked for.
+
+    This matters because the reconcile turns ABSENCE into a clear. An edition
+    missing from a truncated read is indistinguishable from one the index no
+    longer calls unavailable, so a short read is a mass-clear by another route
+    -- and, unlike the breaker's case, a quiet one that stays under the
+    threshold.
+    """
+    num_found = getattr(result, "num_found", None)
+    if isinstance(num_found, int) and num_found > returned:
+        raise PollRefused(f"{what}: Solr matched {num_found} documents but returned {returned}; refusing to treat a truncated read as the set")
+    header = getattr(result, "response_header", None) or {}
+    if isinstance(header, dict) and header.get("partialResults"):
+        raise PollRefused(f"{what}: Solr reported partialResults, so the read timed out mid-query; refusing to treat it as the set")
+
+
 async def fetch_marked_editions() -> dict[str, dict]:
     """Every edition Solr currently has marked unavailable, or refuse.
 
@@ -325,6 +347,7 @@ async def fetch_marked_editions() -> dict[str, dict]:
     docs = result.docs
     if len(docs) >= MARKED_SET_MAX:
         raise PollRefused(f"Marked set reached the {MARKED_SET_MAX}-edition read cap; cannot tell a complete read from a truncated one")
+    refuse_if_incomplete(result, len(docs), "marked-set read")
     return {doc["key"]: doc for doc in docs}
 
 
@@ -366,9 +389,8 @@ async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: i
         len(identifiers),
     )
     if not identifiers:
-        raise PollRefused(
-            f"Clear breaker: {len(to_clear)} editions would clear but none carry an ocaid, so ground truth cannot be consulted. Keeping prior state."
-        )
+        logger.error("Clear breaker: %d editions would clear but none carry an ocaid; holding every clear this cycle", len(to_clear))
+        return []
 
     availability = await lending.get_availability_async("identifier", identifiers, use_cache=False)
 
@@ -381,12 +403,17 @@ async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: i
     confirmed = [doc for doc in to_clear if any(is_free(ia) for ia in (doc.get("ia") or []))]
 
     if not confirmed:
-        # Every answer disagreed with the index, or the service gave none. The
-        # index is the thing that is wrong; hold everything.
-        raise PollRefused(
-            f"Clear breaker: ground truth confirmed 0 of {len(to_clear)} editions as available, "
-            f"so the index is wrong rather than the collection freeing. Keeping prior state."
+        # Every answer disagreed with the index, or the service gave none, so
+        # the index is what is wrong. Hold every CLEAR -- and let the marks
+        # through: an index that has stopped listing returned books is still
+        # listing borrowed ones, and refusing to mark those would publish
+        # checked-out books as borrowable for the length of the outage.
+        logger.error(
+            "Clear breaker: ground truth confirmed 0 of %d editions as available, so the index is wrong "
+            "rather than the collection freeing; holding every clear this cycle",
+            len(to_clear),
         )
+        return []
 
     logger.warning(
         "Clear breaker: ground truth confirmed %d of %d editions as genuinely available; clearing those and holding the rest.",
@@ -417,6 +444,11 @@ async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
 
     allowed = max(CLEAR_BREAKER_FLOOR, int(len(marked) * CLEAR_BREAKER_FRACTION))
     if len(to_clear) > allowed:
+        # Only the CLEAR set is ever held back. Marking needs no confirmation --
+        # it is the recoverable direction -- and dropping the marks alongside a
+        # refused clear would publish newly-borrowed books as available for as
+        # long as the index stayed degraded: the same failure this guard
+        # exists to prevent, reached from the other side.
         to_clear = await confirm_mass_clear(to_clear, allowed, len(marked), len(unavailable_identifiers))
 
     updates = [{"key": info["key"], "_root_": info["root"], "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}} for info in to_mark]
@@ -436,13 +468,29 @@ async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
     return updates
 
 
-async def log_heartbeat(marked: int | None) -> None:
+async def count_marked_editions() -> int | None:
+    """How many editions carry the mark, without fetching them.
+
+    `rows=0` so Solr returns the count and no documents; the heartbeat wants a
+    number, and the marked set is up to MARKED_SET_MAX documents to drag back
+    for a `len()`.
+    """
+    try:
+        result = await get_solr().select_async(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0)
+        return result.num_found
+    except OSError, ValueError, KeyError, RuntimeError:
+        # A heartbeat must never be the thing that stops the daemon.
+        logger.debug("Heartbeat could not count marked editions", exc_info=True)
+        return None
+
+
+async def log_heartbeat() -> None:
     """Proof of life, because the absence of errors is also what a stall looks like.
 
     Deliberately a log line and not a metrics integration: the requirement is
     that the question be answerable from outside, not dashboarded.
     """
-    logger.info("Heartbeat: editions_marked_unavailable=%s", marked)
+    logger.info("Heartbeat: editions_marked_unavailable=%s", await count_marked_editions())
 
 
 async def main(
@@ -482,6 +530,21 @@ async def main(
         try:
             unavailable = await lending.get_checked_out_candidates_async()
             updates = await build_poll_updates(unavailable)
+            if updates and not dry_run:
+                # Never a hard commit. One opens a new searcher and invalidates
+                # every Solr cache on the instance serving openlibrary.org, and
+                # at this cadence that is thousands a day. autoSoftCommit makes
+                # the write visible within a second and autoCommit persists it;
+                # neither needs asking. The small write set is not the reason --
+                # commit cost tracks searcher churn, not document count.
+                await solr_update_in_place(updates, commit=False)
+            elif updates:
+                logger.info("Dry run: %d updates not written", len(updates))
+
+            now = time.monotonic()
+            if now - last_heartbeat >= HEARTBEAT_INTERVAL:
+                await log_heartbeat()
+                last_heartbeat = now
         except lending.CheckedOutSeedIncomplete, PollRefused:
             # Both mean "this cycle's inputs are not trustworthy". Prior state
             # stands, which is the safe direction: an over-held book is hidden
@@ -489,24 +552,14 @@ async def main(
             # it is out and nothing revisits it.
             logger.exception("Poll refused; prior state stands")
         except Exception:
+            # EVERYTHING the cycle does is inside this try, the Solr write
+            # included. A Solr error used to escape and kill the process: the
+            # main solr_updater can rewrite an edition between this poll's read
+            # and its write, which makes the in-place update 400 under
+            # `requireInPlace` -- and at OL's merge rate that is a recurring
+            # 60-second outage, not a one-off, with the whole batch's other
+            # marks and clears discarded alongside it.
             logger.exception("Poll failed; prior state stands")
-        else:
-            if updates and not dry_run:
-                # Never a hard commit. One opens a new searcher and invalidates
-                # every Solr cache on the instance serving openlibrary.org, and
-                # at this cadence that is ~5,760 of them a day. autoSoftCommit
-                # makes the write visible within a second and autoCommit
-                # persists it; neither needs asking. The small write set is not
-                # the reason -- commit cost tracks searcher churn, not the
-                # number of documents.
-                await solr_update_in_place(updates, commit=False)
-            elif updates:
-                logger.info("Dry run: %d updates not written", len(updates))
-
-            now = time.monotonic()
-            if now - last_heartbeat >= HEARTBEAT_INTERVAL:
-                await log_heartbeat(len(await fetch_marked_editions()))
-                last_heartbeat = now
 
         await asyncio.sleep(poll_interval)
 

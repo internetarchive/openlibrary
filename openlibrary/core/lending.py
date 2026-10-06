@@ -667,7 +667,11 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
     # place -- and dev overrides only the loan endpoint, so deriving the host
     # from `bookreader_host` would quietly send a local daemon to production
     # archive.org for its seed while reading events from mockservices.
-    url = urljoin(config_ia_s3_loan_url or f"http://{config_bookreader_host}/", "/advancedsearch.php")
+    # https, not http. `ia.get_async_session()` is built with
+    # follow_redirects=False, and archive.org 301s http -> https, so an http
+    # fallback makes `raise_for_status()` raise on the redirect -- every poll,
+    # forever, in exactly the environment where the dev override is absent.
+    url = urljoin(config_ia_s3_loan_url or f"https://{config_bookreader_host}/", "/advancedsearch.php")
     session = ia.get_async_session()
     timeout = config_http_request_timeout or 30
 
@@ -680,6 +684,13 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
         params = [
             ("q", CHECKED_OUT_INDEX_QUERY),
             ("fl[]", "identifier"),
+            # A stable total order, or deep paging is incoherent. Without it the
+            # index is free to re-serve and skip rows between pages -- and the
+            # set being paged is defined as "the things changing right now", so
+            # it does. Above one page the dedup below would then never reach
+            # numFound and EVERY poll would refuse: a permanent wedge rather
+            # than the transient refusal the guard is meant to be.
+            ("sort[]", "identifier asc"),
             ("rows", str(page_rows)),
             ("page", str(page)),
             ("output", "json"),

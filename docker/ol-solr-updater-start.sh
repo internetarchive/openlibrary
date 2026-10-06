@@ -26,9 +26,7 @@ python scripts/solr_updater/trending_updater.py \
 echo "Starting loan availability updater"
 (
   while true; do
-    python -u scripts/solr_updater/loan_availability_updater.py \
-        "$OL_CONFIG" \
-        --state-file /solr-updater-data/$LOAN_STATE_FILE
+    python -u scripts/solr_updater/loan_availability_updater.py "$OL_CONFIG"
     echo "loan availability updater exited ($?); restarting in 60s"
     sleep 60
   done
