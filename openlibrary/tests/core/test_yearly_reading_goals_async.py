@@ -4,86 +4,19 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
-from psycopg.rows import TUPLES_OK
 
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoal, YearlyReadingGoals
+from openlibrary.tests.core.async_db_fakes import FakeConnection, FakeConnectionContext
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
-
-class FakeCursor:
-    class _Result:
-        status = TUPLES_OK
-        nfields = 5
-
-        @staticmethod
-        def fname(index):
-            return (b"username", b"year", b"target", b"created", b"updated")[index]
-
-    def __init__(self, connection, rows=None, row_factory=None):
-        self.connection = connection
-        self.rows = rows or []
-        self.pgresult = self._Result()
-        self._encoding = "utf-8"
-        self._row_maker = row_factory(self) if row_factory is not None else None
-        self.fetchall_calls = 0
-        self.fetchone_calls = 0
-
-    async def fetchall(self):
-        self.fetchall_calls += 1
-        if self._row_maker is None:
-            return self.rows
-        return [self._row_maker(row) for row in self.rows]
-
-    async def fetchone(self):
-        self.fetchone_calls += 1
-        if not self.rows:
-            return None
-        return self._row_maker(self.rows[0]) if self._row_maker is not None else self.rows[0]
-
-    async def execute(self, query, params=None):
-        self.connection.executions.append((query, params))
-        return self
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc, tb):
-        return False
-
-
-class FakeConnection:
-    def __init__(self, rows=None):
-        self.executions = []
-        self.committed = False
-        self._cursor = FakeCursor(self, rows)
-
-    async def execute(self, query, params=None):
-        self.executions.append((query, params))
-        return self._cursor
-
-    def cursor(self, **kwargs):
-        return FakeCursor(self, self._cursor.rows, kwargs.get("row_factory"))
-
-    async def commit(self):
-        self.committed = True
-
-
-class FakeConnectionContext:
-    def __init__(self, conn):
-        self.conn = conn
-
-    async def __aenter__(self):
-        return self.conn
-
-    async def __aexit__(self, exc_type, exc, tb):
-        if exc_type is None:
-            await self.conn.commit()
-        return False
+# Column order of the model's SELECT ... FROM yearly_reading_goals queries,
+# for class_row to map row values onto YearlyReadingGoal fields.
+YEARLY_READING_GOAL_COLUMNS = ("username", "year", "target", "created", "updated")
 
 
 @pytest.fixture
 def fake_connection():
-    conn = FakeConnection()
+    conn = FakeConnection(columns=YEARLY_READING_GOAL_COLUMNS)
     with patch(
         "openlibrary.core.yearly_reading_goals.connection",
         return_value=FakeConnectionContext(conn),

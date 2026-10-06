@@ -5,35 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
-
-
-class FakeCursor:
-    def __init__(self, rows=None):
-        self.rows = rows or []
-
-    async def fetchone(self):
-        return self.rows[0]
-
-
-class FakeConnection:
-    def __init__(self, rows=None):
-        self.cursor = FakeCursor(rows)
-        self.executions = []
-
-    async def execute(self, query, params=None):
-        self.executions.append((query, params))
-        return self.cursor
-
-
-class FakeConnectionContext:
-    def __init__(self, conn):
-        self.conn = conn
-
-    async def __aenter__(self):
-        return self.conn
-
-    async def __aexit__(self, exc_type, exc, tb):
-        return False
+from openlibrary.tests.core.async_db_fakes import FakeConnection, FakeConnectionContext
 
 
 @pytest.mark.asyncio
