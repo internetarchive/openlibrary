@@ -1,0 +1,8 @@
+# PAM agent definition: authored, committed, hand-editable. This is solr-lead's identity in
+# this Project. The running agent reads identity.md (beside this file) on startup.
+[agent]
+name = "solr-lead"
+uuid = "01M440C82M29CWZ4ZSR3KBSKFS"
+type = "division_lead"
+reports_to = ""
+can_onboard = true

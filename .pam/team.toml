@@ -1,0 +1,35 @@
+# Open Library division leads: the team chart (who leads what).
+# Each lead has a full definition in .pam/agents/<lead>/. Scopes are first-draft and get
+# refined from the real domain docs.
+
+project = "openlibrary"
+
+[[division]]
+name = "i18n"
+lead = "i18n-lead"
+scope = "Internationalization and localization: translations, locale handling, i18n tooling."
+
+[[division]]
+name = "solr"
+lead = "solr-lead"
+scope = "Search: the Solr index, query/indexing pipeline, search relevance and performance."
+
+[[division]]
+name = "covers"
+lead = "covers-lead"
+scope = "The covers service: cover image storage, serving, and ingestion."
+
+[[division]]
+name = "imports"
+lead = "imports-lead"
+scope = "The import pipeline: ingesting catalog records and bulk data into Open Library."
+
+[[division]]
+name = "tags"
+lead = "tags-lead"
+scope = "Tagging: subject/tag data model, tag UI, and tag-driven discovery."
+
+[[division]]
+name = "lenny"
+lead = "lenny-lead"
+scope = "Lenny for Libraries: the Lenny product surface and its integration with Open Library."

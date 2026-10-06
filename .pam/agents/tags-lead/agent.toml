@@ -1,0 +1,8 @@
+# PAM agent definition: authored, committed, hand-editable. This is tags-lead's identity in
+# this Project. The running agent reads identity.md (beside this file) on startup.
+[agent]
+name = "tags-lead"
+uuid = "01M440C8776FCGVYGR2T018MQN"
+type = "division_lead"
+reports_to = ""
+can_onboard = true
