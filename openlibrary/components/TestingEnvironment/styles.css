@@ -2,6 +2,19 @@
   display: block;
 }
 
+/* The page-level `.shift` helper cannot cross the shadow boundary, so the
+   component carries its own. Mirrors `.sr-only` in the Lit components. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* One card in two bands: the staged set on top, the apply step below. */
 .testing-env {
   position: relative;
@@ -29,7 +42,7 @@
   align-items: center;
   justify-content: space-between;
   /* Padding matches the table cells', so the title lines up with column one. */
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-inset-sm);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
@@ -196,7 +209,7 @@
   gap: var(--spacing-sm);
   align-items: center;
   margin: 0;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-inset-sm);
 }
 
 .testing-env__input {
@@ -230,8 +243,11 @@
   font-size: 0.85rem;
 }
 
+/* Column labels. They wrap, so a two-word header ("Next deploy") sizes the
+   column to its longest word rather than its whole width — the labels, not
+   the cells, were what set these columns' widths. */
 .testing-env__table th {
-  padding: var(--spacing-xs) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-inset-sm);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   color: var(--color-text-muted);
   font-size: 0.7rem;
@@ -239,11 +255,11 @@
   letter-spacing: 0.06em;
   text-align: left;
   text-transform: uppercase;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .testing-env__table td {
-  padding: var(--spacing-xs) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-inset-sm);
   border: 0;
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   vertical-align: middle;
@@ -385,15 +401,15 @@
    the cell out of the table layout; grid the wrapper inside instead. */
 .testing-env__cell-stack {
   display: grid;
-  grid-template-columns: 3.25em 28px 1.1em;
-  gap: var(--spacing-xs);
+  grid-template-columns: 2.5em 28px 1em;
+  gap: var(--spacing-2xs);
   align-items: center;
 }
 
 /* Plain-text verdict — no chip. min-width keeps "?" aligned with "-12". */
 .testing-env__pill {
   display: inline-block;
-  min-width: 3.25em;
+  min-width: 2.5em;
   font-size: 0.78rem;
   text-align: center;
   white-space: nowrap;
@@ -483,7 +499,7 @@ a.testing-env__pill:focus-visible {
 /* ── Empty state ────────────────────────────────────────────── */
 
 .testing-env__blank {
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-inset-sm);
   color: var(--color-text-muted);
 }
 
@@ -497,7 +513,7 @@ a.testing-env__pill:focus-visible {
   gap: var(--spacing-md);
   align-items: flex-start;
   margin: 0;
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-inset-sm);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
   background: var(--color-surface);

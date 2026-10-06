@@ -163,7 +163,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
                   scope="col"
                   class="testing-env__col-actions"
                 >
-                  <span class="shift">{{ strings.actions }}</span>
+                  <span class="sr-only">{{ strings.actions }}</span>
                 </th>
               </tr>
             </thead>
