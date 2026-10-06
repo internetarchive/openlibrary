@@ -193,13 +193,9 @@ wipe auto-detection) are a maintainer follow-up, out of scope here.
 """
 
 import asyncio
-import contextlib
-import datetime
 import itertools
-import json
 import logging
 import time
-from pathlib import Path
 
 import infogami
 from openlibrary.config import load_config
@@ -214,20 +210,6 @@ logger = logging.getLogger("openlibrary.loan-availability-updater")
 EBOOK_AVAILABLE = 0
 EBOOK_UNAVAILABLE = 1
 
-# Event types that RELEASE capacity. Everything else is treated as acquiring
-# it, including a type we have never seen.
-#
-# The asymmetry is deliberate and it is the safety property of this design.
-# Acquiring is written straight from the event with no ground-truth call, so an
-# unknown type errs toward `unavailable` -- which the re-check corrects against
-# ground truth within RECHECK_INTERVAL. Erring the other way would publish a
-# book as borrowable when it is not, and nothing would correct it.
-#
-# The row shape is documented (lending.get_loan_changes) but IA's set of
-# event_type VALUES is not, anywhere we can see. So this set is what we have
-# observed, not what we have been told, and an unseen type is logged at WARNING
-# precisely so production tells us what is missing from it.
-RELEASING_EVENT_STEMS = ("return", "expire", "cancel")
 """Substrings that identify a capacity-RELEASING event type.
 
 Matched as substrings rather than compared to a fixed set, because the
@@ -240,18 +222,6 @@ safe direction.
 """
 
 
-def is_releasing_event(event_type: str) -> bool:
-    """Whether this event type frees capacity. Unknown verbs are not releasing."""
-    lowered = (event_type or "").lower()
-    return any(stem in lowered for stem in RELEASING_EVENT_STEMS)
-
-
-# Acquiring types we have actually seen. Used ONLY to decide whether to log a
-# surprise -- behaviour is identical for a type in this set and one outside it,
-# so adding to it changes nothing except the log line.
-_SEEN_ACQUIRING_EVENT_TYPES = frozenset({"borrow", "browse", "renew_borrow", "renew_browse", "renew"})
-
-LOAN_MAX_AGE_DAYS = 14
 """Nominal maximum loan length, in days.
 
 No longer used to seed a cold start -- the index query does that directly --
@@ -264,7 +234,6 @@ waitlist holding a book after an old return would all break that reading. The
 seed no longer depends on it being true; nothing else should start to.
 """
 
-OVERLAP_EVENTS = 50_000
 """Events replayed after the index seed, to cover the index's lag.
 
 The seed is a snapshot computed at an unknown instant, so a book borrowed just
@@ -280,18 +249,15 @@ already marked, while replaying too little leaves a gap of exactly the kind
 this exists to close. Tighten it when the index lag has actually been
 measured -- it has not been.
 """
-LOAN_EVENTS_PER_DAY = 240_000
 """Roughly how far the changes feed's uid advances in a day (measured 2026-10).
 
 Now informs only OVERLAP_EVENTS -- it is how that event count is translated
 into a rough number of hours.
 Only sizes the start-uid search's first step back from the head, so being off
 in either direction costs a few probes, never accuracy."""
-BATCH_SIZE = lending.LOAN_CHANGES_MAX_LIMIT
 """Rows per feed page. Pinned to IA's own ceiling rather than restated: asking
 for more is silently capped, so a larger number here would quietly mean fewer
 events per request than the code claims."""
-MIN_RECONCILE_COVERAGE = 0.9
 """Fraction of cold-start identifiers that must get a ground-truth answer.
 
 Below this the reconcile is refused rather than half-applied: an unmarked
@@ -305,10 +271,7 @@ One clause per identifier, against `solr.max.booleanClauses=30000` in
 production. 500 leaves a wide margin and keeps each query small; the cost of
 more round trips is irrelevant next to a query that fails outright.
 """
-POLL_INTERVAL = 30  # seconds between polls when caught up
 HEARTBEAT_INTERVAL = 300  # seconds between proof-of-life log lines
-RECHECK_INTERVAL = 600  # seconds between ground-truth re-checks of the unavailable set
-RECHECK_MAX_EDITIONS = 2000
 """Editions re-checked per pass. Sized so a pass fits inside RECHECK_INTERVAL.
 
 `get_availability_async` sends AVAILABILITY_BATCH_SIZE (100) ids per request,
@@ -323,63 +286,6 @@ finishing before the next pass is due. Nothing is lost by the smaller window
 because the select rotates (`sort=loan_uid asc`), so successive passes advance
 through the marked set rather than re-reading one prefix.
 """
-
-
-def read_state(path: Path) -> int:
-    """Return last processed uid, or 0 if the state file is absent/corrupt."""
-    try:
-        return int(path.read_text().strip())
-    except (OSError, ValueError):  # fmt: skip
-        return 0
-
-
-def write_state(path: Path, uid: int) -> None:
-    path.write_text(str(uid))
-
-
-def collect_dirty_identifiers(rows: list[dict]) -> dict[str, dict]:
-    """Reduce a batch of rows to the set of identifiers needing a ground-truth check.
-
-    Returns {identifier: {"uid": int, "until": str|None, "event_type": str}}
-    for the highest-uid row seen per identifier. "until" is the loan-expiry
-    string from that row, kept as advisory display data.
-
-    The event type IS interpreted now, by :func:`build_solr_updates` -- an
-    earlier revision of this module deliberately did not, because a borrow of
-    a multi-copy item does not imply unavailable and a return of a waitlisted
-    item does not imply available. Those two facts are still true; what changed
-    is where they are handled. Acquiring events are written optimistically and
-    the periodic ground-truth re-check corrects them, which keeps the event
-    path free of any dependency on the availability service.
-    """
-    latest: dict[str, dict] = {}
-    for row in rows:
-        # Defensive: a single malformed row (missing identifier/uid, or a non-int
-        # uid) must not crash the whole updater -- skip it and keep going.
-        identifier = row.get("identifier")
-        uid = row.get("uid")
-        if not identifier or not isinstance(uid, int):
-            logger.warning("Skipping malformed loan-change row: %r", row)
-            continue
-        if identifier in latest and latest[identifier]["uid"] >= uid:
-            continue
-        until = None
-        with contextlib.suppress(json.JSONDecodeError, TypeError, AttributeError):
-            until = json.loads(row.get("extra") or "{}").get("until")
-        latest[identifier] = {"uid": uid, "until": until, "event_type": row.get("event_type") or ""}
-    return latest
-
-
-def ia_until_to_epoch(until: str | None) -> int | None:
-    """Convert IA 'until' string ("2026-05-01 15:42:43", implicitly UTC) to epoch seconds."""
-    if not until:
-        return None
-    try:
-        dt = datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC)
-        return int(dt.timestamp())
-    except ValueError:
-        logger.debug("Could not parse 'until' value: %r", until)
-        return None
 
 
 async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
@@ -423,25 +329,6 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     return resolved
 
 
-async def query_solr_uid() -> int:
-    """Return the highest loan_uid written to Solr, or 0 if none."""
-    try:
-        result = await get_solr().select_async(
-            # Constrain by the indexed `type:edition` predicate to seed the candidate
-            # set; without it, `loan_uid:[* TO *]` (indexed=false, docValues only) is
-            # an unbounded full-collection docValues scan.
-            query="type:edition AND loan_uid:[* TO *]",
-            fields=["loan_uid"],
-            rows=1,
-            sort="loan_uid desc",
-        )
-        if result.docs:
-            return result.docs[0].get("loan_uid") or 0
-    except Exception:
-        logger.exception("Failed to query Solr for max loan_uid; will search back from the feed head")
-    return 0
-
-
 async def solr_update_in_place(request: list[dict], commit: bool = False) -> None:
     """Call Solr.update_in_place_async and raise if Solr reports failure.
 
@@ -454,235 +341,7 @@ async def solr_update_in_place(request: list[dict], commit: bool = False) -> Non
         raise RuntimeError(f"Solr in-place update error: {resp}")
 
 
-def build_solr_updates(
-    dirty: dict[str, dict],
-    id_to_edition: dict[str, dict],
-) -> list[dict]:
-    """Build Solr atomic-update documents from the events alone.
-
-    Write-only, in one direction: an acquiring event sets
-    ``ebook_unavailable=1``; a releasing event writes NOTHING. All clearing is
-    done by :func:`build_recheck_updates` against ground truth.
-
-    That split is the whole design, and the releasing case is the reason for it.
-    A return does not mean available -- if anyone is queued, the freed copy goes
-    to the head of the waitlist and the book stays unborrowable. Clearing on a
-    return event would therefore publish a book as borrowable when it is not,
-    and nothing would correct it, because the re-check only ever flips
-    unavailable -> available. Declining to write is what keeps every clear on
-    the path that has actually checked.
-
-    The converse error is harmless and self-correcting: marking a multi-copy
-    item unavailable when one of several copies was borrowed is wrong, and the
-    re-check frees it within RECHECK_INTERVAL. So this path never consults the
-    availability service, and the updater keeps following the changes feed even
-    while that service is down.
-
-    An identifier with no Solr edition is skipped -- a new item, or its work is
-    mid-reindex. There is no doc to mark, so the event is skipped while last_uid
-    still advances; the book is missed until its next event or a --reset
-    rebuild. Accepted as v1: an unindexed book has no searchable doc anyway.
-
-    ebook_becomes_available is written only alongside ebook_unavailable=1, and
-    only when the row carried a parsable expiry. It is never cleared when a book
-    frees up (requireInPlace rejects "set": null), so it is advisory and
-    meaningful only while ebook_unavailable is 1.
-    """
-    updates = []
-    unrecognized: dict[str, int] = {}
-    for identifier, state in dirty.items():
-        edition = id_to_edition.get(identifier)
-        if not edition:
-            continue
-
-        event_type = state.get("event_type") or ""
-        if is_releasing_event(event_type):
-            # Deliberately nothing. See the docstring: the re-check frees it.
-            continue
-        if event_type not in _SEEN_ACQUIRING_EVENT_TYPES:
-            # Collected, not logged per identifier: one new IA verb at feed
-            # volume would emit a warning per event per batch and flood both the
-            # log and Sentry.
-            unrecognized[event_type] = unrecognized.get(event_type, 0) + 1
-
-        update: dict = {
-            "key": edition["key"],
-            "_root_": edition["root"],
-            "ebook_unavailable": {"set": EBOOK_UNAVAILABLE},
-            "loan_uid": {"set": state["uid"]},
-        }
-        becomes_available = ia_until_to_epoch(state.get("until"))
-        if becomes_available is not None:
-            update["ebook_becomes_available"] = {"set": becomes_available}
-        updates.append(update)
-
-    if unrecognized:
-        # Not an error -- IA's event_type vocabulary is not published, so this is
-        # how we learn of one. Treated as acquiring, the safe direction.
-        logger.warning("Unrecognized loan event_types treated as acquiring: %r", unrecognized)
-    return updates
-
-
-async def build_reconcile_updates(identifiers: list[str]) -> list[dict]:
-    """Mark the genuinely-unavailable members of `identifiers` from ground truth.
-
-    The cold-start half of the design. Replaying ~LOAN_MAX_AGE_DAYS of events
-    tells us which books were *touched*, not which are unavailable now -- a book
-    borrowed and returned twelve days ago is touched and available. So on a cold
-    start the identifiers are collected without writing, and settled here in one
-    batched pass against the availability service.
-
-    One direction only, like the event path: it sets `ebook_unavailable=1` and
-    never clears. Solr's default is available and :func:`build_recheck_updates`
-    owns clearing, so the two together converge without either needing to write
-    both ways.
-    """
-    if not identifiers:
-        return []
-    id_to_edition = await resolve_edition_keys(identifiers)
-    resolved = [identifier for identifier in identifiers if identifier in id_to_edition]
-    if not resolved:
-        return []
-
-    # Logged before the call, not after, because this is the slowest thing the
-    # daemon does and it is otherwise silent. Cold start does not enter steady
-    # state until it finishes, so an operator running --reset needs to know
-    # what they have started: the requests are sequential, so the wall clock is
-    # roughly this count times per-request latency, and much worse while
-    # archive.org is degraded.
-    expected_requests = -(-len(resolved) // lending.AVAILABILITY_BATCH_SIZE)
-    logger.info(
-        "Reconciling %d of %d feed identifiers that have an Open Library edition: ~%d sequential availability requests",
-        len(resolved),
-        len(identifiers),
-        expected_requests,
-    )
-    started = time.monotonic()
-    availability = await lending.get_availability_async("identifier", resolved, use_cache=False, drop_errors=True)
-    logger.info(
-        "Reconcile answered %d/%d in %.0fs",
-        len(availability),
-        len(resolved),
-        time.monotonic() - started,
-    )
-    # Coverage, not mere non-emptiness. `get_availability_async` drops a
-    # failed chunk and continues, so with ~800 sequential requests a widespread
-    # timeout still returns a non-empty dict -- and an earlier version of this
-    # guard passed on it, leaving most genuinely-on-loan books unmarked. The
-    # re-check cannot correct that, because it only inspects books already
-    # marked. So this insists on most of what it asked for.
-    covered = len(availability) / len(resolved)
-    if covered < MIN_RECONCILE_COVERAGE:
-        raise RuntimeError(f"Availability covered only {len(availability)}/{len(resolved)} identifiers ({covered:.0%}); refusing to reconcile")
-
-    updates = []
-    for identifier, avail in availability.items():
-        edition = id_to_edition.get(identifier)
-        if not edition or lending.is_available_for_loan(avail):
-            continue
-        updates.append(
-            {
-                "key": edition["key"],
-                "_root_": edition["root"],
-                "ebook_unavailable": {"set": EBOOK_UNAVAILABLE},
-            }
-        )
-    return updates
-
-
-async def build_recheck_updates(marked_during_pass: set[str] | None = None) -> list[dict]:
-    """Re-check the known-unavailable editions against ground truth.
-
-    Safety net for availability changes the changes feed never reports: missed
-    return/expire events, a waitlist draining, copies being added, an item
-    leaving lending. Scoped to editions currently marked unavailable.
-
-    That set is not small: it is roughly the books on loan plus every
-    multi-copy item the follower has over-marked, and it can exceed
-    RECHECK_MAX_EDITIONS. Sorted by `loan_uid` so the window rotates
-    oldest-mark-first; unsorted, the same prefix came back every pass and the
-    tail was reached only as fast as the head freed.
-
-    Only flips unavailable -> available. Editions the service has no answer for
-    keep their current value.
-
-    `marked_during_pass` is the set of edition keys the follower wrote while
-    this pass was in flight; they are never cleared here, because the answers
-    below may predate those marks.
-    """
-    marked_during_pass = marked_during_pass or set()
-    result = await get_solr().select_async(
-        query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}",
-        # loan_uid, for two reasons. Sorted, it rotates the window: unsorted the
-        # select returns the same lowest-docid prefix every pass, so once more
-        # than RECHECK_MAX_EDITIONS are marked the tail is re-checked only as
-        # fast as the head frees -- measured at roughly five editions a pass,
-        # which strands an over-marked book for months. Oldest-marked-first also
-        # happens to be the right priority.
-        #
-        # Selected as a field so the clear can be guarded against a mark that
-        # landed after the availability snapshot was taken. See below.
-        fields=["key", "ia", "_root_", "loan_uid"],
-        sort="loan_uid asc",
-        rows=RECHECK_MAX_EDITIONS,
-    )
-    docs = result.docs
-    if len(docs) >= RECHECK_MAX_EDITIONS:
-        logger.warning(
-            "Re-check hit the %d-edition cap; the rest rotate in on later passes (sorted by loan_uid)",
-            RECHECK_MAX_EDITIONS,
-        )
-
-    # One edition can carry several ocaids; map each back to its doc.
-    id_to_doc: dict[str, dict] = {}
-    for doc in docs:
-        for ia_id in doc.get("ia", []):
-            id_to_doc[ia_id] = doc
-    if not id_to_doc:
-        return []
-
-    availability = await lending.get_availability_async("identifier", list(id_to_doc), use_cache=False, drop_errors=True)
-    if not availability:
-        # Visible during an archive.org outage. Nothing to do -- the follower
-        # keeps running and the marks simply persist until ground truth returns.
-        logger.warning("Re-check got no availability answers for %d identifiers; nothing freed this pass", len(id_to_doc))
-        return []
-
-    updates = []
-    seen_keys = set()
-    for identifier, avail in availability.items():
-        doc = id_to_doc.get(identifier)
-        if not doc or not lending.is_available_for_loan(avail):
-            continue
-        if doc["key"] in seen_keys:
-            continue
-        # Refuse to clear anything the follower marked while this pass was
-        # running. `get_availability_async` is ~100 sequential requests and
-        # takes tens of seconds to minutes; the follower keeps consuming events
-        # throughout. Without this, a book borrowed during that window gets
-        # marked by the follower and then cleared by a snapshot that predates
-        # the borrow -- published as borrowable while on loan, with the event
-        # already behind the cursor and the re-check unable to re-mark it. That
-        # is the one direction this design calls unrecoverable.
-        #
-        # Checked in process rather than by re-reading Solr: follower writes use
-        # commit=False, so a re-select can lag them by a soft-commit window and
-        # would miss exactly the marks this needs to see.
-        if doc["key"] in marked_during_pass:
-            logger.info("Not clearing %s: the follower marked it during this pass", doc["key"])
-            continue
-        seen_keys.add(doc["key"])
-        updates.append(
-            {
-                "key": doc["key"],
-                "_root_": doc["_root_"],
-                "ebook_unavailable": {"set": EBOOK_AVAILABLE},
-            }
-        )
-    return updates
-
-
-POLL_INTERVAL = 30
+POLL_INTERVAL = 15
 """Seconds between polls of the index's unavailable set.
 
 Measured 2026-10-05 against live archive.org: the set moved by 4 books across
@@ -875,321 +534,78 @@ async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
     return updates
 
 
-def clamp_cursor_to_feed(last_uid: int, latest_uid: object) -> int:
-    """Pull a cursor that has overshot the feed back to its head.
-
-    A cursor ahead of the feed is a permanent stall, and it used to be a silent
-    one: zero rows come back forever and nothing above DEBUG is logged, so the
-    daemon looks healthy while doing nothing. Reachable from a Solr `loan_uid`
-    left by another environment, or a feed rebuilt behind us. `latest_uid` is on
-    every response and was only ever read at startup.
-    """
-    if isinstance(latest_uid, int) and latest_uid and last_uid > latest_uid:
-        logger.warning(
-            "Cursor %d is ahead of the feed head %d; clamping. The feed was probably rebuilt, or this state came from another environment.",
-            last_uid,
-            latest_uid,
-        )
-        return latest_uid
-    return last_uid
-
-
-async def log_heartbeat(last_uid: int, latest_uid: object) -> None:
+async def log_heartbeat(marked: int | None) -> None:
     """Proof of life, because the absence of errors is also what a stall looks like.
 
-    Cursor lag answers "is it keeping up"; the marked count answers "is it doing
-    anything". Deliberately a log line and not a metrics integration: the
-    requirement is that the question be answerable from outside, not dashboarded.
+    Deliberately a log line and not a metrics integration: the requirement is
+    that the question be answerable from outside, not dashboarded.
     """
-    lag = (latest_uid - last_uid) if isinstance(latest_uid, int) and latest_uid else None
-    try:
-        marked = (await get_solr().select_async(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0)).num_found
-    except OSError, ValueError, KeyError, RuntimeError:
-        # A heartbeat must never be the thing that stops the daemon.
-        logger.debug("Heartbeat could not count marked editions", exc_info=True)
-        marked = None
-    logger.info("Heartbeat: cursor=%s lag=%s editions_marked_unavailable=%s", last_uid, lag, marked)
+    logger.info("Heartbeat: editions_marked_unavailable=%s", marked)
 
 
-async def run_cold_start(poll_interval: int, dry_run: bool) -> int:
-    """Seed from the index, settle against ground truth, then return the cursor.
-
-    Two steps, and the split is deliberate.
-
-    **Seed.** The archive.org search index is asked for books that are
-    lendable but currently neither borrowable nor browsable. That is the answer
-    set directly -- roughly 600 books -- where replaying days of loan events
-    only produced *candidates* to interrogate one at a time. The read is
-    complete or it raises: a short seed omits books that are then published as
-    borrowable while they are out, and nothing downstream revisits them. The
-    index is lagged and is never written to Solr as-is: the identifiers go
-    through :func:`build_reconcile_updates`, so the availability service still
-    decides every mark. Coverage below MIN_RECONCILE_COVERAGE raises rather
-    than half-applying, and the supervisor retries.
-
-    **Overlap.** The snapshot was computed at an unknown instant, so a book
-    borrowed just after it is missing from the seed -- unmarked, and published
-    as borrowable while it is out, which is the direction nothing recovers
-    from. So the most recent events are replayed through the ORDINARY event
-    path before steady state begins.
-
-    That replay deliberately does not consult ground truth. Feeding it through
-    the reconcile instead would mean one availability request per hundred
-    identifiers in the window, and at the feed's rate that reintroduces exactly
-    the unbounded cost this change removes. The event path only ever marks, so
-    its error is the recoverable one and the re-check clears it.
-
-    Bounded by event COUNT rather than elapsed time, because a time window
-    converts to an unknown number of feed pages.
-    """
-    logger.info("Cold start: seeding from the checked-out index")
-    try:
-        candidates = await lending.get_checked_out_candidates_async()
-    except lending.CheckedOutSeedIncomplete:
-        # Separated from a transport failure because it is the one the operator
-        # may have to act on: beyond the endpoint's paging window, no retry
-        # succeeds and the authenticated Scrape path has to be enabled.
-        logger.exception("Cold start: the checked-out index could not be read in full; NOT starting on a partial seed")
-        raise
-    except Exception:
-        logger.exception("Cold start: index seed failed; not starting")
-        raise
-
-    logger.info("Cold start: %d candidates from the index; settling against ground truth", len(candidates))
-    if reconcile := await build_reconcile_updates(sorted(candidates)):
-        logger.info("Cold start: marking %d editions unavailable", len(reconcile))
-        if not dry_run:
-            await solr_update_in_place(reconcile, commit=True)
-
-    return await replay_recent_events(poll_interval, dry_run)
-
-
-async def replay_recent_events(poll_interval: int, dry_run: bool) -> int:
-    """Replay the last OVERLAP_EVENTS events through the event path; return the cursor.
-
-    Covers the window between whenever the index snapshot was computed and now.
-    Marking-only, so it cannot publish a book as available that is not.
-    """
-    head_resp = await lending.get_loan_changes(after_uid=1, limit=1)
-    head = head_resp.get("latest_uid") or 0
-    if not head:
-        raise RuntimeError("Loan changes feed reported no latest_uid; cannot place the cursor")
-
-    uid = max(1, head - OVERLAP_EVENTS)
-    logger.info("Cold start: replaying events %d..%d to cover index lag", uid, head)
-
-    while uid < head:
-        resp = await lending.get_loan_changes(after_uid=uid, limit=BATCH_SIZE)
-        if resp.get("status") != "OK":
-            logger.error("Cold start overlap: feed answered %r; retrying", resp.get("status"))
-            await asyncio.sleep(poll_interval)
-            continue
-        rows = resp.get("rows") or []
-        if not rows:
-            # Caught up: the feed has nothing after `uid`, so the cursor
-            # belongs at the head. Leaving it where the window started would
-            # send steady state back to replay everything from there -- which
-            # is what happens when the window reaches past the feed's start.
-            uid = head
-            break
-        valid = [row for row in rows if isinstance(row.get("uid"), int)]
-        if not valid:
-            logger.warning("Cold start overlap: batch had no valid uid; stopping")
-            break
-        dirty = collect_dirty_identifiers(rows)
-        id_to_edition = await resolve_edition_keys(list(dirty))
-        if (updates := build_solr_updates(dirty, id_to_edition)) and not dry_run:
-            await solr_update_in_place(updates, commit=False)
-        uid = max(row["uid"] for row in valid)
-        if len(rows) < BATCH_SIZE:
-            break
-
-    logger.info("Cold start: complete, cursor at %d", uid)
-    return uid
-
-
-async def main(  # noqa: PLR0915, PLR0912
+async def main(
     ol_config: str,
-    state_file: str = "loan-availability-update.state",
     poll_interval: int = POLL_INTERVAL,
-    recheck_interval: int = RECHECK_INTERVAL,
     dry_run: bool = False,
-    reset: bool = False,
 ):
-    """Follow IA loan changes; repair against bulk availability on an interval.
+    """Mirror the index's unavailable set into Solr, forever.
 
     Useful environment variables:
     - OL_SOLR_BASE_URL: Override the Solr base URL
 
     :param ol_config: Path to openlibrary.yml config file.
-    :param state_file: Path to state file storing last processed uid (integer).
-    :param poll_interval: Seconds to sleep when caught up with the event stream.
-    :param recheck_interval: Seconds between ground-truth re-checks of the
-                             known-unavailable set.
-    :param dry_run: Fetch and log updates but do not write to Solr.
-    :param reset: Ignore existing state and search back for the start uid.
+    :param poll_interval: Seconds between polls.
+    :param dry_run: Compute and log updates but do not write to Solr.
+
+    There is no cursor, no state file and no --reset. Each poll is a complete
+    statement of what should be marked, so the first one after any start IS the
+    cold start, and a reindex that wipes the field self-heals on the next one.
+    The operator step that used to exist is gone rather than automated, which
+    is the point: nothing can be forgotten if there is nothing to remember.
+
+    Every failure resolves the same way -- log, keep prior state, try again
+    next cycle -- because at this cadence an exception is a crash loop and the
+    previous poll's marks are always a better answer than no marks at all.
     """
     logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(levelname)s %(message)s")
-    logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s", dry_run, reset)
+    logger.info("BEGIN loan_availability_updater poll_interval=%ds dry_run=%s", poll_interval, dry_run)
 
     load_config(ol_config)
     lending.setup(infogami.config)
     req_context.set(create_context_for_script())
     init_sentry(getattr(infogami.config, "sentry", {}))
 
-    state_path = Path(state_file)
-    last_uid = 0 if reset else read_state(state_path)
-    cold_start = False
-
-    if last_uid == 0:
-        # No usable cursor: seed from the index rather than hunting a uid to
-        # replay from. The seed is one request and places the cursor itself, so
-        # there is nothing left for the old backwards search to decide -- and
-        # unlike a replay it does not care how long a book has been out.
-        cold_start = True
-    if cold_start:
-        last_uid = await run_cold_start(poll_interval, dry_run)
-        if not dry_run:
-            try:
-                write_state(state_path, last_uid)
-            except OSError:
-                logger.exception("Failed to write post-reconcile state file %s", state_path)
-
-    last_recheck = 0.0
     last_heartbeat = 0.0
-    # Edition keys the follower marked since the last re-check pass. The re-check
-    # must not clear these: its availability answers may predate the mark.
-    marked_this_pass: set[str] = set()
-
     while True:
         try:
-            resp = await lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
+            unavailable = await lending.get_checked_out_candidates_async()
+            updates = await build_poll_updates(unavailable)
+        except lending.CheckedOutSeedIncomplete, PollRefused:
+            # Both mean "this cycle's inputs are not trustworthy". Prior state
+            # stands, which is the safe direction: an over-held book is hidden
+            # for one cycle, an under-held one is published as borrowable while
+            # it is out and nothing revisits it.
+            logger.exception("Poll refused; prior state stands")
         except Exception:
-            logger.exception("Failed to fetch loan changes; will retry in %ds", poll_interval)
-            await asyncio.sleep(poll_interval)
-            continue
+            logger.exception("Poll failed; prior state stands")
+        else:
+            if updates and not dry_run:
+                # Never a hard commit. One opens a new searcher and invalidates
+                # every Solr cache on the instance serving openlibrary.org, and
+                # at this cadence that is ~5,760 of them a day. autoSoftCommit
+                # makes the write visible within a second and autoCommit
+                # persists it; neither needs asking. The small write set is not
+                # the reason -- commit cost tracks searcher churn, not the
+                # number of documents.
+                await solr_update_in_place(updates, commit=False)
+            elif updates:
+                logger.info("Dry run: %d updates not written", len(updates))
 
-        if resp.get("status") != "OK":
-            logger.error("Loan changes API returned status=%r; sleeping", resp.get("status"))
-            await asyncio.sleep(poll_interval)
-            continue
+            now = time.monotonic()
+            if now - last_heartbeat >= HEARTBEAT_INTERVAL:
+                await log_heartbeat(len(await fetch_marked_editions()))
+                last_heartbeat = now
 
-        # A cursor ahead of the feed is a permanent stall, and it used to be a
-        # silent one: zero rows come back forever and nothing above DEBUG is
-        # logged, so the daemon looks healthy while doing nothing. Reachable
-        # from a Solr `loan_uid` left by a different environment, or a restored
-        # index. `latest_uid` is on every response and was only ever read at
-        # startup; clamp to it and say so.
-        latest_uid = resp.get("latest_uid")
-        last_uid = clamp_cursor_to_feed(last_uid, latest_uid)
-
-        rows = resp.get("rows", [])
-        did_updates = False
-        write_blocked = False
-
-        if rows:
-            # Advance the cursor using only rows with a valid int uid, so one malformed
-            # row can neither crash here nor stall the cursor (collect_dirty_identifiers
-            # skips it too).
-            valid_uids = [r["uid"] for r in rows if isinstance(r.get("uid"), int)]
-            if not valid_uids:
-                logger.warning("Batch of %d rows had no valid uid; sleeping", len(rows))
-                await asyncio.sleep(poll_interval)
-                continue
-            new_uid = max(valid_uids)
-            if new_uid <= last_uid:
-                # The feed answered with nothing newer. Without this the cursor
-                # can move BACKWARDS, and a page whose uids never pass the
-                # cursor spins the loop with no sleep -- measured at 201 API
-                # calls in 0.21s, hammering IA, Solr and the commit path.
-                logger.warning("Feed returned %d rows but none past uid %d; sleeping", len(rows), last_uid)
-                await asyncio.sleep(poll_interval)
-                continue
-            dirty = collect_dirty_identifiers(rows)
-            try:
-                id_to_edition = await resolve_edition_keys(list(dirty))
-            except Exception:
-                logger.exception("Failed to resolve edition keys; skipping batch")
-                await asyncio.sleep(poll_interval)
-                continue
-
-            # No availability call here, deliberately. The steady-state path
-            # writes from the events alone, so the updater keeps following the
-            # feed while the availability service is slow or down -- an earlier
-            # revision consulted it per batch and stalled the cursor whenever it
-            # answered nothing, which made a lagging dependency stop ingestion.
-            updates = build_solr_updates(dirty, id_to_edition)
-            if updates:
-                logger.info(
-                    "%d Solr updates from %d loan events over %d ocaids (uid %d→%d)",
-                    len(updates),
-                    len(rows),
-                    len(dirty),
-                    last_uid,
-                    new_uid,
-                )
-                if not dry_run:
-                    try:
-                        await solr_update_in_place(updates, commit=False)
-                    except Exception:
-                        # Do not `continue`: that skipped the re-check below, so
-                        # one rejected follower batch stopped the repairer too
-                        # and both loops wedged together.
-                        logger.exception("Solr update failed; state not advanced")
-                        write_blocked = True
-                    else:
-                        marked_this_pass.update(u["key"] for u in updates)
-                        did_updates = True
-
-            if not write_blocked:
-                last_uid = new_uid
-
-        now = time.monotonic()
-        if now - last_recheck >= recheck_interval:
-            try:
-                rechecks = await build_recheck_updates(marked_this_pass)
-            except Exception:
-                logger.exception("Failed to build re-check updates")
-                rechecks = []
-
-            if rechecks:
-                logger.info("Freeing %d editions whose ground truth is now available", len(rechecks))
-                if not dry_run:
-                    try:
-                        await solr_update_in_place(rechecks, commit=False)
-                    except Exception:
-                        logger.exception("Solr re-check update failed; skipped this pass")
-                        rechecks = []
-                did_updates = did_updates or bool(rechecks)
-            last_recheck = now
-            marked_this_pass = set()
-
-        # No explicit commit. An earlier revision hard-committed every cycle to
-        # keep the state file behind a durable write, but it did not achieve
-        # that -- last_uid advances in memory before any commit -- and a hard
-        # commit opens a new searcher and invalidates every Solr cache, up to
-        # once every poll interval, on the Solr serving openlibrary.org. The
-        # documents are in the tlog and Solr's own autoCommit (120s) persists
-        # them; autoSoftCommit (60s) makes them visible. Replaying a few events
-        # after a crash is harmless -- marks are idempotent.
-        if not dry_run:
-            try:
-                write_state(state_path, last_uid)
-            except OSError:
-                logger.exception("Failed to write state file %s; will retry next cycle", state_path)
-
-        if len(rows) >= BATCH_SIZE:
-            continue
-
-        # Periodic proof of life. Without it the only evidence the daemon is
-        # working is the absence of errors, which is also what a stall looks
-        # like. Cursor lag answers "is it keeping up"; the marked count answers
-        # "is it doing anything", and both are cheap.
-        if now - last_heartbeat >= HEARTBEAT_INTERVAL:
-            await log_heartbeat(last_uid, latest_uid)
-            last_heartbeat = now
-
-        logger.debug("Caught up at uid=%d; sleeping %ds", last_uid, poll_interval)
         await asyncio.sleep(poll_interval)
 
 
