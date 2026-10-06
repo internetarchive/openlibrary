@@ -266,10 +266,6 @@ def find_entity(author: AuthorImportDict) -> Author | None:
     """
     assert isinstance(author, dict)
     things = find_author(author)
-    if "remote_ids" in author:
-        for index, t in enumerate(things):
-            t.remote_ids, _ = t.merge_remote_ids(author["remote_ids"])
-            things[index] = t
     return things[0] if things else None
 
 
