@@ -109,13 +109,21 @@ function text(key, ...args) {
             class="testing-env__pr-num"
             :href="prUrl"
           >#{{ pr.pr }}</a>
+          <ol-icon
+            v-if="pr.draft"
+            class="testing-env__draft"
+            name="git-pull-request-draft"
+            size="sm"
+            :label="strings.draft"
+            :title="strings.draft"
+          />
         </span>
         <a
           class="testing-env__pr-title"
           :class="{ 'testing-env__pr-title--draft': pr.draft }"
           :href="prUrl"
           :title="pr.title"
-        >{{ pr.draft ? `[${strings.draft}] ` : '' }}{{ pr.title }}</a>
+        >{{ pr.title }}</a>
       </div>
     </td>
     <td class="testing-env__col-person">

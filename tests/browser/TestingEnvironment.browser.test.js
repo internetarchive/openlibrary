@@ -9,6 +9,7 @@ import { expect, test } from 'vitest';
 import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-vue';
 import TestingEnvironment from '../../openlibrary/components/TestingEnvironment.vue';
+import '../../openlibrary/components/lit/OlIcon.js';
 import '../../openlibrary/components/lit/OlToastRegion.js';
 
 const payload = {
@@ -98,7 +99,9 @@ test('marks draft pull requests in the testing table', async() => {
 
     await render(TestingEnvironment, { props: { maintainer: 'true' } });
 
-    await expect.element(page.getByRole('link', { name: /Draft/ })).toBeInTheDocument();
+    // The draft mark is an icon named "Draft", not a "[Draft]" text prefix.
+    await expect.element(page.getByRole('img', { name: 'Draft' })).toBeInTheDocument();
+    await expect.element(page.getByRole('link', { name: 'First PR' })).toBeInTheDocument();
 });
 
 test('queues and batches rapid updates before deploying', async() => {

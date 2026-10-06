@@ -291,20 +291,27 @@
 }
 
 /* Fixed rail so titles line up regardless of PR-number width; the number and
-   dot centre against a title that wraps. */
+   dot centre against a title that wraps. Wide enough for the draft mark too. */
 .testing-env__pr-line {
   display: grid;
-  grid-template-columns: 4.25em minmax(0, 1fr);
+  grid-template-columns: 5.5em minmax(0, 1fr);
   gap: var(--spacing-sm);
   align-items: center;
 }
 
-/* Number and live dot share the fixed rail, so the dot never shifts the title. */
+/* Number, live dot and draft mark share the fixed rail, so neither the dot nor
+   the draft mark shifts the title. */
 .testing-env__pr-ref {
   display: inline-flex;
   gap: var(--spacing-2xs);
   align-items: center;
   min-width: 0;
+}
+
+/* A draft's pull-request glyph; its title attribute spells out "Draft" on
+   hover, replacing the old "[Draft]" text prefix. */
+.testing-env__draft {
+  color: var(--color-text-muted);
 }
 
 /* The plain class covers :link and :visited — author rules outrank the UA's,
