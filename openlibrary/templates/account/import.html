@@ -32,10 +32,13 @@ $def with (books=None, books_wo_isbns=None)
           </form>
         </div>
       </div>
+    </div>
 
+    <h3 class="data-transfer-section-heading">$_("Help us decide which importers to build next.")</h3>
+
+    <div class="data-transfer-grid" style="margin-top: var(--spacing-md);">
       <div class="data-transfer-card">
         <h3>$_("LibraryThing")</h3>
-        <span class="data-transfer-card__badge">$_("Coming Soon")</span>
         <p>$_("Import your books and catalogs from LibraryThing.")</p>
         <button class="cta-btn cta-btn--available" data-ol-link-track="ImportInterest|LibraryThing" onclick="alert('Interest recorded, thank you!')">
           $_("Express interest in this")
@@ -44,13 +47,11 @@ $def with (books=None, books_wo_isbns=None)
 
       <div class="data-transfer-card">
         <h3>$_("StoryGraph")</h3>
-        <span class="data-transfer-card__badge">$_("Coming Soon")</span>
         <p>$_("Import your reading logs and challenges from StoryGraph.")</p>
         <button class="cta-btn cta-btn--available" data-ol-link-track="ImportInterest|StoryGraph" onclick="alert('Interest recorded, thank you!')">
           $_("Express interest in this")
         </button>
       </div>
-
     </div>
 
     <script>

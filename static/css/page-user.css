@@ -189,6 +189,14 @@ div#editHistory {
   grid-column: 1 / -1;
 }
 
+.data-transfer-section-heading {
+  margin-top: var(--spacing-2xl);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.25rem;
+  font-weight: 600;
+  width: 100%;
+}
+
 .data-transfer-card h3 {
   margin: 0;
 }
