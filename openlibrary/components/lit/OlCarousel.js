@@ -13,11 +13,14 @@ import './OlIcon.js';
  * Off-page items are deliberately not `inert` — in a scroll container they
  * are legitimately reachable by tab, screen reader and find-in-page.
  *
- * Deferring off-page images is the browser's job: put the real URL in `src`
- * and mark it `loading="lazy"`. A scroll container clips its overflow, so
- * off-page items never intersect the viewport and are never fetched. Do not
- * pass a placeholder `src` with the real URL parked in a data attribute —
- * that is a pre-`loading` carousel-library convention and it defeats this.
+ * Off-page images load one page ahead. `loading="lazy"` alone doesn't hold
+ * them back: browsers fetch lazy images a fixed distance (Chrome ~1250px)
+ * past a scroller's edge, which is three pages ahead on a phone. So an item
+ * can mark what should wait with a `deferred` attribute (`<ol-book-cover
+ * deferred>`), and the carousel removes it once the item is within a page of
+ * view. Leave the first page undeferred so it never waits on this script, and
+ * keep `loading="lazy"`: the carousel only judges sideways distance, so the
+ * browser still decides for a rail that is far down the page.
  *
  * @element ol-carousel
  *
@@ -450,6 +453,8 @@ export class OlCarousel extends LitElement {
         this._itemObserver = null;
         /** @type {Set<Element>} items currently intersecting the viewport */
         this._inView = new Set();
+        /** @type {IntersectionObserver|null} releases `deferred` within a page of view */
+        this._nearObserver = null;
 
         // Mouse-drag state. Touch and trackpad scrolling stay native.
         this._dragging = false;
@@ -466,6 +471,7 @@ export class OlCarousel extends LitElement {
         this._onScrollEnd = this._onScrollEnd.bind(this);
         this._onIndicatorKeydown = this._onIndicatorKeydown.bind(this);
         this._onItemIntersect = this._onItemIntersect.bind(this);
+        this._onItemNear = this._onItemNear.bind(this);
         this._onDragPointerDown = this._onDragPointerDown.bind(this);
         this._onDragPointerMove = this._onDragPointerMove.bind(this);
         this._onDragPointerUp = this._onDragPointerUp.bind(this);
@@ -510,6 +516,8 @@ export class OlCarousel extends LitElement {
         clearTimeout(this._scrollEndTimer);
         this._itemObserver?.disconnect();
         this._itemObserver = null;
+        this._nearObserver?.disconnect();
+        this._nearObserver = null;
         this._inView.clear();
         this._endDrag();
         this._scroller?.classList.remove('settling');
@@ -768,6 +776,29 @@ export class OlCarousel extends LitElement {
         this._itemObserver.disconnect();
         this._inView.clear();
         this._items.forEach((item) => this._itemObserver.observe(item));
+
+        if (!this._nearObserver) {
+            // Percentages are of the viewport's width, so 100% reaches one page either side.
+            this._nearObserver = new IntersectionObserver(this._onItemNear, {
+                root: scroller,
+                rootMargin: '0px 100%',
+            });
+        }
+        this._nearObserver.disconnect();
+        this._items
+            .filter((item) => item.matches('[deferred]') || item.querySelector('[deferred]'))
+            .forEach((item) => this._nearObserver.observe(item));
+    }
+
+    /** Releasing is one-way: once an item's images may load, it stops being watched. */
+    _onItemNear(entries) {
+        for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const item = entry.target;
+            item.removeAttribute('deferred');
+            item.querySelectorAll('[deferred]').forEach((el) => el.removeAttribute('deferred'));
+            this._nearObserver.unobserve(item);
+        }
     }
 
     _onItemIntersect(entries) {

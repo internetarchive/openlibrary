@@ -105,3 +105,31 @@ test('breakpoints pick the columns at narrow widths too', async() => {
 
     await expect.poll(() => el.totalPages).toBe(3);
 });
+
+test('deferred items are released one page ahead, and further as the rail pages', async() => {
+    await page.viewport(1280, 800);
+    render(html`
+        <ol-carousel label="Trending" style="width: 1200px">
+            ${Array.from({ length: 32 }, (_, i) => html`
+                <div style="height: 120px"><span ?deferred=${i >= 8}>Card ${i}</span></div>
+            `)}
+        </ol-carousel>
+    `);
+    const el = document.querySelector('ol-carousel');
+    await el.updateComplete;
+    await expect.poll(() => el.totalPages).toBe(4);
+    const deferred = i => el.children[i].firstElementChild.hasAttribute('deferred');
+
+    // Eight columns: page 1 shows, page 2 is the page ahead, page 4 waits.
+    await expect.poll(() => deferred(8)).toBe(false);
+    await expect.poll(() => deferred(15)).toBe(false);
+    expect(deferred(31)).toBe(true);
+
+    // On page 2, page 3 becomes the page ahead; the last card is still more than a page away.
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect.poll(() => deferred(23)).toBe(false);
+    expect(deferred(31)).toBe(true);
+
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect.poll(() => deferred(31)).toBe(false);
+});

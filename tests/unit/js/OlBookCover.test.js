@@ -147,3 +147,25 @@ describe('ol-book-cover overlay', () => {
         expect(tip.disabled).toBe(false);
     });
 });
+
+describe('ol-book-cover deferred', () => {
+    test('a deferred cover holds the image back, keeping its name', async() => {
+        const el = await mount({ src: '/covers/1-M.jpg', deferred: true });
+        expect(q(el, '.img')).toBeNull();
+        expect(q(el, '.blank')).toBeNull();
+        expect(q(el, '.pending').getAttribute('aria-label')).toBe('The Two Towers by J.R.R. Tolkien');
+    });
+
+    test('removing the attribute loads the image', async() => {
+        const el = await mount({ src: '/covers/1-M.jpg', deferred: true });
+        el.removeAttribute('deferred');
+        await el.updateComplete;
+        expect(q(el, '.img').getAttribute('src')).toBe('/covers/1-M.jpg');
+        expect(q(el, '.pending')).toBeNull();
+    });
+
+    test('a deferred cover with no artwork still draws the blank cover', async() => {
+        const el = await mount({ deferred: true });
+        expect(q(el, '.blank')).not.toBeNull();
+    });
+});

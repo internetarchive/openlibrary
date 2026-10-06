@@ -33,6 +33,9 @@ export const DEFAULT_LABELS = {
  * @prop {String} href - Link target; empty renders the cover unlinked
  * @prop {String} size - "medium" (default) or "small"; small drops the author
  *     from the blank cover, which has no room for it
+ * @prop {Boolean} deferred - Holds the artwork back, drawing only the cover's surface, until
+ *     the attribute is removed. ol-carousel removes it as the cover comes within a page of
+ *     view; anything else that sets it has to remove it too
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @slot overlay - Pinned to the cover's top-right corner, over the artwork
@@ -47,6 +50,7 @@ export class OlBookCover extends LitElement {
         year: { type: String },
         href: { type: String },
         size: { type: String, reflect: true },
+        deferred: { type: Boolean, reflect: true },
         labels: { type: Object },
     };
 
@@ -103,6 +107,12 @@ export class OlBookCover extends LitElement {
             border-radius: var(--border-radius-thumbnail);
             outline: var(--border-width-media) solid var(--color-border-media);
             outline-offset: calc(-1 * var(--border-width-media));
+        }
+
+        /* A deferred cover: the host's own surface shows through until the artwork loads. */
+        .pending {
+            display: block;
+            height: 100%;
         }
 
         .blank {
@@ -185,6 +195,7 @@ export class OlBookCover extends LitElement {
         this.year = '';
         this.href = '';
         this.size = 'medium';
+        this.deferred = false;
         this.labels = {};
     }
 
@@ -232,6 +243,9 @@ export class OlBookCover extends LitElement {
     }
 
     _renderArt() {
+        if (this.src && this.deferred) {
+            return html`<span class="pending" role="img" aria-label=${this._alt}></span>`;
+        }
         if (this.src) {
             return html`<img class="img" src=${this.src} alt=${this._alt} loading="lazy" />`;
         }
