@@ -142,7 +142,7 @@ When mocking HTTP calls, mock `pyopds2_openlibrary._get_http_client` — not `ht
 
 ```python
 mock_client.get.return_value = resp  # correct
-mocker.patch("httpx.get")            # wrong — won't intercept
+mocker.patch("httpx.get")  # wrong — won't intercept
 ```
 
 ### opds.openlibrary.org (no Docker needed)

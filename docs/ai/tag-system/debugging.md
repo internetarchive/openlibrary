@@ -71,6 +71,7 @@ AssertionError: audience/mappings.json values that are not valid slugs in vocabu
 
 ```python
 from tags import load_all
+
 tt_map = {tt.name: tt for tt in load_all()}
 result = tt_map["genres"].classify({"subjects": ["My mystery novel"]})
 # returns []
@@ -81,15 +82,17 @@ result = tt_map["genres"].classify({"subjects": ["My mystery novel"]})
 1. **Check normalize output** — the mapping lookup is case-insensitive and strips whitespace, but also NFC-normalizes Unicode:
    ```python
    from tags.tag_type import normalize
-   print(normalize("My mystery novel"))   # "my mystery novel"
+
+   print(normalize("My mystery novel"))  # "my mystery novel"
    # is this key in mappings.json?
    ```
 
 2. **Check the mappings file directly:**
    ```python
    import json
+
    m = json.load(open("tag_types/genres/mappings.json"))
-   print(m.get("my mystery novel"))   # None = not mapped
+   print(m.get("my mystery novel"))  # None = not mapped
    ```
 
 3. **Check if the type has a classify.py plugin** — if so, the plugin runs INSTEAD of the default mapping lookup for subjects it handles. Read `tag_types/<type>/classify.py` to see if your subject would be caught or fall through.
@@ -97,6 +100,7 @@ result = tt_map["genres"].classify({"subjects": ["My mystery novel"]})
 4. **Check droppable.json** — if the subject appears in `tag_types/droppable.json`, it's silently discarded before classification:
    ```python
    import json
+
    droppable = set(json.load(open("tag_types/droppable.json")))
    print(normalize("My mystery novel") in droppable)
    ```
@@ -111,7 +115,7 @@ If `classify()` returns a slug that doesn't match `vocabulary.json`, the most li
 
 ```python
 result = tt.classify({"subjects": ["Children: Grades 1-2"]})
-print(result[0].value)   # should be "children", not "Children"
+print(result[0].value)  # should be "children", not "Children"
 ```
 
 **Fix:** Update the `classify.py` to return the slug from `vocabulary.json` (`"children"`, `"young-adult"`, etc.) not the display name.
@@ -127,6 +131,7 @@ The `literary_form/classify.py` conflict resolution fires only when **both** `fi
 To inspect:
 ```python
 from tags import load_all
+
 tt = {t.name: t for t in load_all()}["literary_form"]
 result = tt.classify({"subjects": ["Historical fiction", "Biography"]})
 print([(m.value, m.reason) for m in result])

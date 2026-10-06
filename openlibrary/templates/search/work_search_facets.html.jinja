@@ -8,10 +8,11 @@
     <h3 class="collapse">{{ _("Zoom In") }}</h3>
     {# djlint:off H021 #}
     <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">
-        {{ _("Focus your results using these <a href=\"/search/howto\">filters</a>") | safe }}
+        {{ _('Focus your results using these <a href="/search/howto">filters</a>') | safe }}
     </div>
     {# djlint:on #}
-    <p class="search-facets-error ui-helper-hidden" role="status">{{ _("Search filters are temporarily unavailable. Please try again later.") }}</p>
+    <p class="search-facets-error ui-helper-hidden"
+       role="status">{{ _("Search filters are temporarily unavailable. Please try again later.") }}</p>
     {% for f in facets %}
         <div class="facet {{ f.header }}">
             <h4 class="facetHead">

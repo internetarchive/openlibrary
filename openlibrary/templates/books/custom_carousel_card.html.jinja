@@ -26,7 +26,7 @@
                         {% endif %}
                         {% if not is_bookreader %}
                             <div class="loan-overlay-badge__not-bookreader">
-                                {% if loan.get('expiry') is none %}
+                                {% if loan.get("expiry") is none %}
                                     <span class="loan-overlay-badge__not-downloaded">{{ _("Not yet downloaded.") }}</span>
                                     <br />
                                     <a href="{{ loan.get('loan_link') }}"
@@ -65,7 +65,7 @@
     </div>
     <div class="ol-action-row">
         <div class="ol-macro-wrapper">{{ loan_status_html }}</div>
-        {% if loan and loan.get('resource_type') == 'bookreader' %}
+        {% if loan and loan.get("resource_type") == "bookreader" %}
             <div class="ol-return-wrapper cta-button-group">
                 <form action="/borrow/ia/{{ loan.get('ocaid') }}"
                       method="post"
