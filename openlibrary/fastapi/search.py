@@ -230,7 +230,9 @@ async def search_json(
         # We do not support returning facets from /search.json,
         # so disable it. This makes it much faster.
         facet=False,
-        spellcheck_count=params.spellcheck_count,
+        # Spellcheck results are not exposed by this endpoint.
+        # Keep the parameter accepted for existing callers, but skip the Solr work.
+        spellcheck_count=0,
         request_label="BOOK_SEARCH_API",
         lang=request.state.lang,
         solr_internals_params=solr_internals_params,
@@ -438,6 +440,7 @@ async def search_facets_json(
         fields=["key", "editions"],  # opt into the same edition block-join as /search
         facet=list(params.field),
         highlight=False,
+        spellcheck_count=0,  # Facet counts do not use spellcheck results.
         request_label="BOOK_SEARCH_FACETS",
         solr_internals_params=solr_internals_params,
     )
