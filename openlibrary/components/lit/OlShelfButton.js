@@ -139,7 +139,10 @@ export class OlShelfButton extends LitElement {
 
         /* The two halves are one fused shape, so the container carries the
            secondary ol-button treatment: raised shadow, inset specular edge,
-           and the press-scale (:active propagates up from either half). */
+           and the press-scale (:active propagates up from either half). The
+           split stretches to its column (a result row, the book sidebar), so
+           it takes the wide tier, like ol-button[full-width] and the Buy and
+           CTA buttons it sits beside. */
         .split {
             display: flex;
             border: 1px solid var(--color-control-border);
@@ -160,7 +163,7 @@ export class OlShelfButton extends LitElement {
         }
 
         .split:active {
-            transform: scale(var(--press-scale));
+            transform: scale(var(--press-scale-wide));
         }
 
         .split--on {
@@ -176,7 +179,8 @@ export class OlShelfButton extends LitElement {
             align-items: center;
             justify-content: center;
             gap: var(--spacing-icon-gap);
-            height: calc(var(--control-height-medium) - 2px);
+            /* A minimum, so a long shelf name can take a second line. */
+            min-height: calc(var(--control-height-medium) - 2px);
             border: 0;
             background: none;
             color: var(--color-text);
@@ -185,17 +189,20 @@ export class OlShelfButton extends LitElement {
             cursor: pointer;
         }
 
+        /* The label wraps rather than ellipsizing: an action never hides its
+           verb. Balanced, and hyphenated where the page language allows. */
         .main {
             flex: 1;
             min-width: 0;
-            padding: 0 var(--spacing-xs);
-            white-space: nowrap;
-            overflow: hidden;
+            padding: var(--spacing-3xs) var(--spacing-xs);
+            line-height: var(--line-height-control);
+            text-wrap: balance;
+            hyphens: auto;
+            overflow-wrap: anywhere;
         }
 
         .main span {
-            overflow: hidden;
-            text-overflow: ellipsis;
+            min-width: 0;
         }
 
         .main--on {
@@ -220,6 +227,21 @@ export class OlShelfButton extends LitElement {
         .split--on .more {
             border-left-color: var(--color-control-selected-border);
             color: var(--color-link);
+        }
+
+        /* Flips while the menu is open, as ol-button's disclosure chevron does. */
+        .more ol-icon {
+            transition: transform var(--duration-fast) var(--ease-enter);
+        }
+
+        :host([open]) .more ol-icon {
+            transform: rotate(180deg);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .more ol-icon {
+                transition: none;
+            }
         }
 
         .main:hover,
@@ -394,7 +416,7 @@ export class OlShelfButton extends LitElement {
         }
 
         :host([variant="outline"]) .save:active {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         :host([variant="outline"]) .save:focus-visible {
@@ -480,6 +502,8 @@ export class OlShelfButton extends LitElement {
     /**
      * Wrap a trigger in the actions popover when there is a reader to act for.
      * Signed out the trigger stands alone and its click goes to login.
+     * The split's panel anchors to the host (a block the split fills), so the
+     * menu lines up under the whole button rather than hanging off the caret.
      */
     _withActions(trigger) {
         if (!this.userKey) return trigger;
@@ -493,6 +517,7 @@ export class OlShelfButton extends LitElement {
                 .labels=${this.labels}
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}
+                .anchorElement=${this._glyphShaped ? null : this}
                 ?hide-rating=${this.hideRating}
                 ?lists-only=${this.listsOnly}
                 ?pending=${this.pending}
