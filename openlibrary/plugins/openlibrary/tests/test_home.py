@@ -165,6 +165,20 @@ class TestFeaturedGenres:
         assert payload.count("facet.query=") == 1
         assert [g["slug"] for g in genres] == ["horror"]
 
+    def test_names_are_translated_per_page_not_in_the_cache(self):
+        # The cache is shared across languages, so a subject tile's name is translated after it.
+        genres, _ = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0})
+        assert [g["name"] for g in genres] == ["Horror", "History"]
+        with (
+            patch.object(home, "get_cached_featured_genres", return_value=genres),
+            patch.object(home.home_genres, "subject_tile_labels", return_value={"history": "Histoire"}),
+            patch.object(home.admin, "get_stats", return_value=None),
+            patch.object(home, "get_blog_feeds", return_value=[]),
+            patch.object(home, "render_template", return_value={}) as render,
+        ):
+            home.get_homepage(devmode=False)
+        assert [g["name"] for g in render.call_args.kwargs["featured_genres"]] == ["Horror", "Histoire"]
+
     def test_solr_failure_costs_the_rail_not_the_page(self):
         with (
             patch.object(home, "get_cached_featured_genres", side_effect=RuntimeError("solr down")),

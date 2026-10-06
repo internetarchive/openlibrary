@@ -36,7 +36,8 @@ def get_homepage(devmode):
     # The template shuffles the tiles per visit, so the cached order doesn't matter.
     # A Solr failure costs the rail, not the page; it isn't cached, so the next render retries.
     try:
-        featured_genres = get_cached_featured_genres()
+        # The cache is shared across languages, so the names are translated here, per page.
+        featured_genres = [{**genre, "name": home_genres.display_name(genre)} for genre in get_cached_featured_genres()]
     except Exception:
         logger.error("Error in getting featured genres", exc_info=True)
         featured_genres = []
@@ -233,7 +234,8 @@ GENRE_TILE_COVERS = 3
 def get_featured_genres():
     """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live readable counts,
     fanned with the covers hand-picked in home_genre_covers.json (no covers, no tile).
-    One faceted Solr query counts them all, cached for a day."""
+    One faceted Solr query counts them all, cached for a day. Names are left untranslated:
+    the cache is shared across languages, and get_homepage translates them per page."""
     if "env" not in web.ctx:
         delegate.fakeload()
     picked = home_genres.load_tile_covers()
@@ -253,7 +255,6 @@ def get_featured_genres():
     genres = [
         {
             **genre,
-            "name": home_genres.display_name(genre),
             "readable_count": counts[query],
             "readable_count_str": commify(counts[query]),
             "covers": picked[genre["slug"]][:GENRE_TILE_COVERS],
