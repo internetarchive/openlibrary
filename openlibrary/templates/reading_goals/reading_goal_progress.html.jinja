@@ -1,23 +1,31 @@
 {# Renders a collection of reading goals progress components.
-   `entries` are YearlyGoal objects (year, goal, books_read, progress,
-   completed) from yearly_reading_goals.py — the template composes the
+   `goals` are YearlyGoal objects (year, goal, books_read, progress)
+   from yearly_reading_goals.py — the template composes the
    nested macros, no HTML is passed down. #}
 {% from "reading_goals/reading_goal_form.html.jinja" import goal_form %}
 {% from "native_dialog.html.jinja" import dialog %}
-<div class="reading-goal-progress-container">
-    {% for entry in entries %}
-        <div class="reading-goal-progress">
+<div class="reading-goal-progress-container" style="padding: 0;">
+    {% for goal in goals %}
+        <div class="reading-goal-progress" style="margin-bottom: 0;">
             <div class="reading-goal-progress__body">
+                
                 <div class="reading-goal-progress__progress-bar">
-                    <span class="reading-goal-progress__completed"
-                          style="width: {{ entry.completed }}%"></span>
+                    {% set completed = 100 if goal.progress > 100 else goal.progress %}
+                    <span class="reading-goal-progress__completed" style="width: {{ completed }}%;"></span>
                 </div>
+                
                 <div class="reading-goal-progress__details">
-                    <a href="/account/books/already-read/year/{{ entry.year }}"
-                       data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">{{ _('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> Books', books_read=entry.books_read, goal=entry.goal) | safe }}</a>
-                    <a class="edit-reading-goal-link" href="javascript:;">{{ _("Edit") }}</a>
+                    <a href="/account/books/already-read/year/{{ goal.year }}" data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">
+                        {{ _('<span class="reading-goal-progress__books-read">%(books_read)d</span> / <span class="reading-goal-progress__goal">%(goal)d</span> books', books_read=goal.books_read, goal=goal.goal) | safe }}
+                    </a>
                 </div>
-                {{ dialog(id="yearly-goal-modal-" ~ loop.index, title=_("Edit %(year)d Reading Goal", year=entry.year), content=goal_form(entry.goal, entry.year, true)) }}
+
+                <!-- Edit Goal Modal -->
+                {% set reading_goal_form = goal_form(goal.goal, goal.year, true) %}
+                {% set id = 'yearly-goal-modal-' ~ loop.index %}
+                {% set title = _('Edit %(year)d Reading Goal', year=goal.year) %}
+                {{ dialog(id=id, title=title, content=reading_goal_form) }}
+                
             </div>
         </div>
     {% endfor %}

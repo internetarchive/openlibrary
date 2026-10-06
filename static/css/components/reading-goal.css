@@ -130,7 +130,8 @@
 .reading-goal-progress__details {
   display: flex;
   justify-content: space-between;
-  width: 97%;
+  align-items: center;
+  width: 85%;
   margin: auto;
 }
 
@@ -142,7 +143,24 @@
   .reading-goal-progress__details {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     width: 85%;
     margin: auto;
   }
+}
+
+.edit-reading-goal-link {
+  display: inline-block;
+  background-color: var(--link-blue);
+  color: var(--white) !important;
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 0.85em;
+  font-weight: bold;
+  text-decoration: none !important;
+  transition: background-color 0.15s ease;
+}
+
+.edit-reading-goal-link:hover {
+  background-color: var(--dark-blue);
 }
