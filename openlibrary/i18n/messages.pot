@@ -1153,6 +1153,18 @@ msgid "Load Books"
 msgstr ""
 
 #: account/import.html
+msgid "Barcode Scanner"
+msgstr ""
+
+#: account/import.html
+msgid "Scan book barcodes using your device camera to quickly add books to your reading log."
+msgstr ""
+
+#: account/import.html
+msgid "Launch Barcode Scanner"
+msgstr ""
+
+#: account/import.html
 msgid "Help us decide which importers to build next."
 msgstr ""
 
