@@ -57,7 +57,7 @@ class TestHomeGenreNarrow:
         params = self.narrow()
         assert params.query == "subject_key:(horror* OR fiction_horror*)"
         assert params.subgenre is None
-        assert params.title == "Popular in Horror"
+        assert params.title == "Trending in Horror"
         assert self.narrow(sort="new").title == "Newest in Horror"
         assert self.narrow(sort="rating").title == "Top rated in Horror"
 

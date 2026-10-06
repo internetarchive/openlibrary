@@ -18,7 +18,7 @@
                    the genre row's title is for the shelf's initial sort. HomeGenrePartial renders the same strings. #}
                 {% set shelf = {
                     "name": genre.name,
-                    "title": _("Popular in %(genre)s", genre=genre.name),
+                    "title": _("Trending in %(genre)s", genre=genre.name),
                     "subgenres": genre.subgenres | map(attribute="name") | list,
                 } %}
                 <button class="browse-stacks__tile"

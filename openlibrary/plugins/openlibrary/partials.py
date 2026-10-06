@@ -1122,7 +1122,7 @@ class SubgenreOption(TypedDict):
 class HomeGenrePartial:
     """The shelf that opens under a "Browse the stacks" tile: a header naming the genre, with a link to
     each subgenre's row and the shelf's one sort control, then the genre's row, loaded, and a row per
-    subgenre as lazy placeholders. The genre row is titled for the shelf's sort ("Popular in Horror");
+    subgenre as lazy placeholders. The genre row is titled for the shelf's sort ("Trending in Horror");
     changing the control re-sorts every row (lazy-carousel.js).
     Fetched by browse-stacks.js; CarouselPartial calls `narrow` to build a row's query."""
 
@@ -1144,7 +1144,7 @@ class HomeGenrePartial:
             return _("Newest in %(genre)s", genre=name)
         if sort == "rating":
             return _("Top rated in %(genre)s", genre=name)
-        return _("Popular in %(genre)s", genre=name)
+        return _("Trending in %(genre)s", genre=name)
 
     @classmethod
     def jump_links(cls, genre: home_genres.Genre) -> list[SubgenreOption]:

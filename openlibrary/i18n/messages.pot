@@ -4183,7 +4183,7 @@ msgstr ""
 
 #: home/browse_stacks.html.jinja openlibrary/plugins/openlibrary/partials.py
 #, python-format
-msgid "Popular in %(genre)s"
+msgid "Trending in %(genre)s"
 msgstr ""
 
 #: home/browse_stacks.html.jinja
