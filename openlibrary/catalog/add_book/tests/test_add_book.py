@@ -625,20 +625,26 @@ class Test_From_MARC:
         assert work["description"] == desc
 
     def test_matched_author_gets_death_date(self, mock_site, add_languages, ia_writeback):
-        mock_site.save({
-            "key": "/authors/OL1A", "type": {"key": "/type/author"},
-            "name": "John Smith", "birth_date": "1900",
-        })
+        mock_site.save(
+            {
+                "key": "/authors/OL1A",
+                "type": {"key": "/type/author"},
+                "name": "John Smith",
+                "birth_date": "1900",
+            }
+        )
         isni = "000000000000000X"
         rec = {
             "title": "Some New Book",
             "source_records": ["ia:new_book"],
-            "authors": [{
-                "name": "John Smith",
-                "birth_date": "1900",
-                "death_date": "1970",
-                "remote_ids": {"isni": isni},
-            }],
+            "authors": [
+                {
+                    "name": "John Smith",
+                    "birth_date": "1900",
+                    "death_date": "1970",
+                    "remote_ids": {"isni": isni},
+                }
+            ],
         }
         reply = load(rec)
         assert reply["authors"][0]["status"] == "matched"
