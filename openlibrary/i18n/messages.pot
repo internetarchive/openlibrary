@@ -7168,7 +7168,7 @@ msgid "See more about this book on Archive.org"
 msgstr ""
 
 #: CheckWorldcat.html ReadingOptionsMenu.html
-msgid "Check WorldCat"
+msgid "Nearby Libraries"
 msgstr ""
 
 #: DisplayCode.html
