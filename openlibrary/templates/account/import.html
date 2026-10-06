@@ -42,18 +42,12 @@ $def with (books=None, books_wo_isbns=None)
         </div>
       </div>
 
-      <div class="data-transfer-card data-transfer-card--primary data-transfer-card--flex">
-        <div>
-          <div class="data-transfer-card-header">
-            <h3 class="data-transfer-card-title">$_("Scan barcodes")</h3>
-          </div>
-          <p>$_("Instantly add physical books to your reading log by scanning their barcodes with your device's camera.")</p>
-          <div class="data-transfer-illustration">
-            <svg class="data-transfer-illustration__icon" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7V5a2 2 0 0 1 2-2h2"/><path d="M18 3h2a2 2 0 0 1 2 2v2"/><path d="M22 17v2a2 2 0 0 1-2 2h-2"/><path d="M6 21H4a2 2 0 0 1-2-2v-2"/><path d="M6 7v10"/><path d="M10 7.5v9" stroke-width="3"/><path d="M14 7v10"/><path d="M18 7v10"/></svg>
-          </div>
-        </div>
+      <div class="data-transfer-card data-transfer-card--full-width">
+        <h3>$_("Barcode Scanner")</h3>
+        <p>$_("Scan book barcodes using your device camera to quickly add books to your reading log.")</p>
         <div class="data-transfer-card__action">
           <a href="/barcodescanner?returnTo=/account/books" class="cta-btn cta-btn--available" data-ol-link-track="PatronImports|BarcodeScanner">
+            $:macros.icon("scan-barcode", size="md", extra_class="icon-link__image")
             $_("Launch Barcode Scanner")
           </a>
         </div>
@@ -64,27 +58,22 @@ $def with (books=None, books_wo_isbns=None)
       <a href="/account/export" data-ol-link-track="ImportPage|ExportLink">$_("Looking for exports? They've moved to a separate page - click here to export your data.")</a>
     </p>
 
-    <div class="data-transfer-section-header">
-      <h3 class="data-transfer-section-heading">$_("Help us decide which importers to build next")</h3>
-      <p>$_("Tell us where your books live now. We count requests when we plan the next importer.")</p>
-    </div>
-
-    <div class="data-transfer-grid data-transfer-grid--spaced">
+    <div class="data-transfer-grid" style="margin-top: var(--spacing-md);">
       <div class="data-transfer-card data-transfer-card--subdued">
-        <h3 class="data-transfer-card-title">$_("LibraryThing")</h3>
+        <h3>$_("LibraryThing")</h3>
         <p>$_("Import your books and catalogs from LibraryThing.")</p>
         <div class="data-transfer-card__action">
-          <button class="cta-btn cta-btn--available cta-btn--small express-interest-btn" data-service="LibraryThing" data-ol-link-track="ImportInterest|LibraryThing" onclick="alert('Interest recorded, thank you!')">
+          <button class="cta-btn cta-btn--available cta-btn--small" data-ol-link-track="ImportInterest|LibraryThing" onclick="alert('Interest recorded, thank you!')">
             $_("Express interest in this")
           </button>
         </div>
       </div>
 
       <div class="data-transfer-card data-transfer-card--subdued">
-        <h3 class="data-transfer-card-title">$_("StoryGraph")</h3>
+        <h3>$_("StoryGraph")</h3>
         <p>$_("Import your reading logs and challenges from StoryGraph.")</p>
         <div class="data-transfer-card__action">
-          <button class="cta-btn cta-btn--available cta-btn--small express-interest-btn" data-service="StoryGraph" data-ol-link-track="ImportInterest|StoryGraph" onclick="alert('Interest recorded, thank you!')">
+          <button class="cta-btn cta-btn--available cta-btn--small" data-ol-link-track="ImportInterest|StoryGraph" onclick="alert('Interest recorded, thank you!')">
             $_("Express interest in this")
           </button>
         </div>
