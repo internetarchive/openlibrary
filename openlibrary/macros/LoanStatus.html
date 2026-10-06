@@ -170,16 +170,12 @@ $elif lending_state == 'checkedout':
 
 $elif lending_state == 'preview_only':
   $# PreviewSearchInside already provides a Preview button, so the book page
-  $# leads with a library lookup and explains why there's no Read/Borrow.
+  $# leads with a library lookup. The nav-bar banner says why there's no
+  $# Read/Borrow, so no note repeats it here.
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
     $if edition_key:
       $:macros.CheckWorldcat(edition_key)
-    <div class="cta-button-group">
-      <p class="waitinglist-message">
-        <span>$_("Only a preview is available.")</span>
-      </p>
-    </div>
   $else:
     $:learn_more()
 

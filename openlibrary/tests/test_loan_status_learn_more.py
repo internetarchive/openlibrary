@@ -75,7 +75,8 @@ def test_book_page_preview_only_keeps_the_library_lookup(render_template, reques
     soup = _render(render_template, monkeypatch, "preview_only", book_page=True)
     assert not _learn_more(soup)
     assert "action=locate" in str(soup)
-    assert "Only a preview is available." in soup.get_text()
+    # The nav-bar banner explains the missing Read/Borrow; no note under the buttons.
+    assert soup.find(class_="waitinglist-message") is None
 
 
 def test_book_page_unavailable_edition_keeps_the_library_lookup(render_template, request_context_fixture, monkeypatch):
