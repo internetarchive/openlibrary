@@ -189,10 +189,40 @@ onBeforeUnmount(() => syncDeployFavicon(false));
         >
           {{ strings.noPrs }}
         </p>
+
+        <form
+          v-if="isMaintainer"
+          method="post"
+          class="testing-env__add"
+          data-add-form
+          @submit.prevent="addPrs"
+        >
+          <input
+            id="testing-env-add"
+            v-model="addInput"
+            type="text"
+            name="pr"
+            class="testing-env__input"
+            autocomplete="off"
+            :placeholder="strings.addPlaceholder"
+            :aria-label="strings.addPrs"
+          >
+          <button
+            type="submit"
+            class="testing-env__btn"
+            :disabled="adding"
+          >
+            <span
+              v-if="adding"
+              class="testing-env__btn-icon testing-env__spinner"
+              aria-hidden="true"
+            />
+            {{ strings.add }}
+          </button>
+        </form>
       </div>
 
       <DeploySection
-        v-model:add-input="addInput"
         :payload="payload"
         :now="now"
         :maintainer="isMaintainer"
@@ -200,10 +230,8 @@ onBeforeUnmount(() => syncDeployFavicon(false));
         :jenkins-url="jenkinsUrl"
         :refreshing="refreshing"
         :deploying="deploying"
-        :adding="adding"
         @deploy="deploy"
         @refresh="refresh"
-        @add="addPrs"
       />
     </div>
   </section>

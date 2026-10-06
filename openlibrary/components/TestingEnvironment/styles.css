@@ -184,15 +184,15 @@
 
 /* ── Add-PR form ────────────────────────────────────────────── */
 
-/* Right of the header bar; grows into the space the title leaves. */
+/* Its own row at the foot of the list band, directly beneath the table: the
+   input grows to fill the width, so a long URL paste has room. Editing the
+   list lives here, apart from the deploy controls in the band below. */
 .testing-env__add {
   display: flex;
-  flex: 1 1 20rem;
   gap: var(--spacing-sm);
   align-items: center;
-  justify-content: flex-end;
-  max-width: 32rem;
   margin: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .testing-env__input {
@@ -506,13 +506,12 @@ a.testing-env__pill:focus-visible {
   border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-/* Deploy, Refresh, and the Add PRs form share this row; it spans the card so
-   the form has room, and wraps to its own line when it runs out. */
+/* Deploy and Refresh: the execution step, in their own row below the list
+   controls. */
 .testing-env__deploy-action {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
-  align-self: stretch;
   align-items: center;
   margin: 0;
 }
@@ -531,8 +530,11 @@ a.testing-env__pill:focus-visible {
   animation: testing-env-pulse 1.6s ease-in-out infinite;
 }
 
-/* While a deploy runs, the panel border pulses. The card is two stacked
-   elements, so both borders animate together to read as one edge. */
+/* While a deploy runs, the panel border pulses amber — the colour of the
+   deploying status dot — with a soft glow, so a running deploy is hard to
+   miss. The card is two stacked elements, so both borders animate together
+   to read as one edge. The glow takes the brighter -object ramp: -fg is tuned
+   for text ink and reads muddy spread over an area. */
 .testing-env--deploying .testing-env__main,
 .testing-env--deploying .testing-env__deploy {
   animation: testing-env-border-pulse var(--duration-slower) var(--ease-state)
@@ -541,7 +543,9 @@ a.testing-env__pill:focus-visible {
 
 @keyframes testing-env-border-pulse {
   to {
-    border-color: var(--color-primary);
+    border-color: var(--color-warning-fg);
+    box-shadow: 0 0 12px
+      color-mix(in srgb, var(--color-warning-object) 55%, transparent);
   }
 }
 
