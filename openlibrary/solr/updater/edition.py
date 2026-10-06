@@ -432,6 +432,12 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 "author_key": self._solr_work.author_key,
                 "author_alternative_name": list(self._solr_work.author_alternative_name),
                 "author_facet": self._solr_work.author_facet,
+                "genre_name": self._solr_work.genre_name,
+                "genre_key": self._solr_work.genre_key,
+                "subgenre_name": self._solr_work.subgenre_name,
+                "subgenre_key": self._solr_work.subgenre_key,
+                "audience_name": self._solr_work.audience_name,
+                "audience_key": self._solr_work.audience_key,
             }
         elif self._solr_work and isinstance(self._solr_work, dict):
             author_fields = {
@@ -439,6 +445,12 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 "author_key": self._solr_work.get("author_key") or [],
                 "author_alternative_name": self._solr_work.get("author_alternative_name") or [],
                 "author_facet": self._solr_work.get("author_facet") or [],
+                "genre_name": self._solr_work.get("genre_name") or [],
+                "genre_key": self._solr_work.get("genre_key") or [],
+                "subgenre_name": self._solr_work.get("subgenre_name") or [],
+                "subgenre_key": self._solr_work.get("subgenre_key") or [],
+                "audience_name": self._solr_work.get("audience_name") or [],
+                "audience_key": self._solr_work.get("audience_key") or [],
             }
         else:
             author_fields = {}

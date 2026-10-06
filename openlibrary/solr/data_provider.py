@@ -34,6 +34,7 @@ logger = logging.getLogger("openlibrary.solr.data_provider")
 
 IA_METADATA_FIELDS = ("identifier", "boxid", "collection", "access-restricted-item")
 OCAID_PATTERN = re.compile(r"^[^\s&#?/]+$")
+SUPPORTED_TAG_TYPES = ("genres", "subgenres", "audience")
 
 
 def get_data_provider(type="default"):
@@ -377,6 +378,7 @@ class DatabaseDataProvider(DataProvider):
         self.preload_documents0(keys2)
         self._preload_works()
         self._preload_authors()
+        self._preload_tags()
         self._preload_editions()
         await self._preload_metadata_of_editions()
         self.preload_cover_dimensions()
@@ -428,6 +430,15 @@ class DatabaseDataProvider(DataProvider):
                 keys.extend(a["author"]["key"] for a in doc["authors"])
             if doc and doc["type"]["key"] == "/type/edition" and doc.get("authors"):
                 keys.extend(a["key"] for a in doc["authors"])
+        self.preload_documents0(list(set(keys)))
+
+    def _preload_tags(self):
+        """Preloads tags (genres, subgenres, audience) for all works in the cache."""
+        keys = []
+        for doc in self.cache.values():
+            if doc and doc["type"]["key"] == "/type/work":
+                for field in SUPPORTED_TAG_TYPES:
+                    keys.extend(t["key"] if isinstance(t, dict) else t for t in doc.get(field, []))
         self.preload_documents0(list(set(keys)))
 
     def find_redirects(self, key):

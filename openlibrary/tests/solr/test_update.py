@@ -16,6 +16,23 @@ if TYPE_CHECKING:
 author_counter = 0
 edition_counter = 0
 work_counter = 0
+tag_counter = 0
+
+
+def make_tag(**kw):
+    """
+    Create a fake tag (a genre, subgenre, or audience record)
+
+    :param kw: tag data
+    :rtype: dict
+    """
+    global tag_counter
+    tag_counter += 1
+    kw.setdefault("key", "/tags/OL%dT" % tag_counter)
+    kw.setdefault("type", {"key": "/type/tag"})
+    kw.setdefault("name", "Foo Tag")
+    kw.setdefault("tag_type", "genres")
+    return kw
 
 
 def make_author(**kw):
