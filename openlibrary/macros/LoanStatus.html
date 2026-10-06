@@ -7,8 +7,9 @@ $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_loan_status - whether to check the user's loan status to determine read button
 $# * lending_state - pass in when already resolved (e.g. /works and /books
 $#     pages, via prepare_book_page()) to avoid recomputing it below
-$# * in_carousel - a carousel card: a book that can't be read here gets one
-$#     secondary "Learn More" to its page instead of a preview or library lookup
+$# * in_carousel - a carousel card always ends in a button: a book that can't
+$#     be read here gets one secondary "Learn More" to its page instead of a
+$#     preview, a library lookup, or a status line
 
 $ loanstatus_start_time = time()
 
@@ -58,8 +59,9 @@ $def analytics_attr(action):
 $def learn_more():
   $# Secondary, not primary: the book isn't readable here, so the card points
   $# at the page where the options are, without competing with Read buttons.
+  $# ol-button renders an <a> when given href; full-width fills the card's slot.
   <div class="cta-button-group">
-    <a href="$(work_key or doc.key)" class="cta-btn cta-btn--shell" $:analytics_attr('LearnMore')><span class="cta-btn__label">$_("Learn More")</span></a>
+    <ol-button variant="secondary" full-width href="$(work_key or doc.key)" $:analytics_attr('LearnMore')>$_("Learn More")</ol-button>
   </div>
 
 $if lending_state == 'borrowed':
@@ -155,6 +157,8 @@ $elif lending_state == 'checkedout':
     $# Book page: nothing to borrow, so the library lookup takes the button.
     $:macros.CheckWorldcat(edition_key)
     <p class="waitinglist-message">$_("All copies are checked out.")</p>
+  $elif in_carousel:
+    $:learn_more()
   $else:
     $# Nothing to act on until a copy comes back, so this is a status line, not
     $# a button (see NotInLibrary.html).
@@ -195,6 +199,8 @@ $elif is_edition:
         ><span class="cta-btn__label">$_("Check Options")</span></a>
       </div>
 
+$elif in_carousel:
+  $:learn_more()
 $else:
   $:macros.NotInLibrary(None, analytics_attr)
 
