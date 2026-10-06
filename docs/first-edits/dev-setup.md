@@ -41,6 +41,25 @@ real editions of each work from production the same way; the importer attaches
 them to the existing local work by title and author. Skip editions whose
 publisher is "Independently Published": the importer rejects them.
 
+## 2b. Seed the reading log (for the Your books tab)
+
+`/contribute/yours` reads the logged-in user's shelves, so put a few demo works
+on them, with the demo edition so the tab asks about that printing. Work and
+edition keys come from the demo books' pages (`/books/OL…M.json` → `works[0].key`):
+
+```bash
+# bookshelf_id: 1 want to read, 2 currently reading, 3 already read
+curl -s -b /tmp/cookies.txt -X POST http://localhost:8080/works/OL200W/bookshelves.json \
+  -d 'bookshelf_id=3&edition_id=OL2300M&dont_remove=true'      # Gatsby, read
+curl -s -b /tmp/cookies.txt -X POST http://localhost:8080/works/OL1924W/bookshelves.json \
+  -d 'bookshelf_id=2&edition_id=OL2302M&dont_remove=true'      # Ruptured Histories, reading
+curl -s -b /tmp/cookies.txt -X POST http://localhost:8080/works/OL180W/bookshelves.json \
+  -d 'bookshelf_id=1&edition_id=OL2299M&dont_remove=true'      # Fantastic Mr Fox, want to read
+```
+
+The reading log queries Solr, so the `solr` container must be up (it exits with
+code 134 under memory pressure; `docker compose up -d solr` brings it back).
+
 ## 3. Gate
 
 Every page except `/contribute/start` requires a beta tester or admin. The dev

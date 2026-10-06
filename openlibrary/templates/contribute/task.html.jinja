@@ -2,7 +2,7 @@
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="fe-page fe-page--task" data-contribute-task>
     <header class="fe-task__head">
-        <a class="fe-back" href="/contribute">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
+        <a class="fe-back" href="{{ data.list_url }}">{{ icon("chevron-left", size="sm") }}{{ data.list_label }}</a>
         <div class="fe-block fe-question">
             <h1 class="fe-question__text">{{ data.question }}</h1>
             {% if data.identifier %}
@@ -43,9 +43,9 @@
     </div>
     <section class="fe-section fe-section--answer fe-task__answer">
         {% if data.identifier %}
-            {{ parts.id_answer_form(data.task, data.identifier, data.playbook, data.note, data.wait_days) }}
+            {{ parts.id_answer_form(data.task, data.identifier, data.playbook, data.note, data.wait_days, data.list_url) }}
         {% else %}
-            {{ parts.answer_form(data.task, data.evidence, data.playbook, data.note, data.wait_days) }}
+            {{ parts.answer_form(data.task, data.evidence, data.playbook, data.note, data.wait_days, data.list_url) }}
         {% endif %}
     </section>
 </div>

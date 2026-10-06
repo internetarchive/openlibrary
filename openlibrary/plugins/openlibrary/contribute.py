@@ -1,7 +1,19 @@
 """First Edits pages at /contribute: a guided first contribution.
 
-Phase 1 is a click-through walkthrough. Book records and sibling editions
-are live; outside evidence and the demo set come from fixtures in
+Three separable parts, kept in three places:
+
+- **Supply**: which books are candidates. ``first_edits.supply``.
+- **Ranking**: which to show first. ``first_edits.ranking``.
+- **The task page**: the context to decide one field on one book. The
+  handlers below build it from the task's evidence, the work's other editions
+  and the playbook.
+
+The tabs on the list pages are different supplies through the same ranking:
+"Most needed" is the demo set (popular books with gaps) ordered by readers
+helped times value; "Your books" is the reader's shelves ordered by value.
+
+Phase 1 is a click-through walkthrough. Book records, sibling editions and the
+reading log are live; outside evidence and the demo set come from fixtures in
 openlibrary/first_edits/fixtures; nothing is saved. Every page except the
 start page is for beta testers and librarians while it is tried out.
 """
@@ -14,24 +26,27 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.first_edits import fixtures, identifiers, tasks
+from openlibrary.first_edits import fixtures, identifiers, ranking, supply, tasks
 from openlibrary.first_edits.playbooks import get_playbooks, link_outs
 from openlibrary.first_edits.scope import load_scope
 from openlibrary.first_edits.siblings import edition_field_values, sibling_counts
 from openlibrary.first_edits.sources import get_sources
 from openlibrary.i18n import gettext as _
-from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
 DENIED = "First Edits is being tried out with a small group"
 
 # The Jinja page for each handler. Listed in full so template usage is greppable.
 PAGES = {
     "start": "contribute/start.html.jinja",
-    "index": "contribute/index.html.jinja",
+    "list": "contribute/list.html.jinja",
     "task": "contribute/task.html.jinja",
     "nothing": "contribute/nothing.html.jinja",
     "done": "contribute/done.html.jinja",
 }
+
+# The list tabs. The id is the URL segment and the ``back`` query value a task page carries home.
+LISTS = ("needed", "yours")
+DEFAULT_LIST = "needed"
 
 
 def setup():
@@ -60,6 +75,34 @@ def _allowed(user) -> bool:
 
 def _denied(path: str):
     return render_template("permission_denied", path, DENIED)
+
+
+def _list_id(raw: str) -> str:
+    return raw if raw in LISTS else DEFAULT_LIST
+
+
+def _list_url(list_id: str) -> str:
+    return f"/contribute/{_list_id(list_id)}"
+
+
+def _list_label(list_id: str) -> str:
+    return _("Back to your books") if _list_id(list_id) == "yours" else _("Back to the list")
+
+
+def _tabs(active: str, user) -> list[dict]:
+    """The ways into the list. A tab the reader can't open yet says why instead of 403ing."""
+    allowed = _allowed(user)
+    if allowed:
+        locked = ""
+    elif user:
+        locked = _("Being tried out with a small group for now")
+    else:
+        locked = _("Log in to see this")
+    return [
+        {"id": "start", "label": _("Start here"), "url": "/contribute", "on": active == "start", "locked": ""},
+        {"id": "yours", "label": _("Your books"), "url": "/contribute/yours", "on": active == "yours", "locked": locked},
+        {"id": "needed", "label": _("Most needed"), "url": "/contribute/needed", "on": active == "needed", "locked": locked},
+    ]
 
 
 def _language_names(codes: set[str]) -> dict[str, str]:
@@ -107,7 +150,7 @@ def _cover_url(edition, isbn: str | None) -> str | None:
     return edition.get_cover_url("M")
 
 
-def _book(edition, readers: int | None = None) -> dict:
+def _book(edition, readers: int | None = None, reason: str = "") -> dict:
     """What the book header shows. Live from the local record."""
     work = edition.works[0] if edition.works else None
     year = edition.get_publish_year()
@@ -130,28 +173,8 @@ def _book(edition, readers: int | None = None) -> dict:
         "edition_count": work.get_edition_count() if work else 1,
         "work_key": work.key if work else None,
         "readers": readers if readers is not None else fixtures.demo_readers(isbn),
+        "reason": reason,
     }
-
-
-def _edition_by_isbn(isbn13: str):
-    for fld, value in (("isbn_13", isbn13), ("isbn_10", isbn_13_to_isbn_10(isbn13))):
-        if value and (keys := web.ctx.site.things({"type": "/type/edition", fld: value, "limit": 1})):
-            return web.ctx.site.get(keys[0])
-    return None
-
-
-def _demo_editions() -> list:
-    """Resolve by the production key in one batch; fall back to ISBN where the key is absent or another book (dev)."""
-    entries = fixtures.load_demo_books()
-    by_key = {ed.key: ed for ed in web.ctx.site.get_many([e["key"] for e in entries if e.get("key")])}
-    out = []
-    for entry in entries:
-        ed = by_key.get(entry.get("key"))
-        if not ed or ed.get_isbn13() != entry["isbn13"]:
-            ed = _edition_by_isbn(entry["isbn13"])
-        if ed:
-            out.append((ed, entry.get("readers", 0)))
-    return out
 
 
 def _level_label(level: str) -> str:
@@ -197,7 +220,12 @@ def _evidence_view(ev, sources) -> dict:
     }
 
 
-def _task_summary(task: tasks.Task, playbooks) -> dict:
+def _task_url(task: tasks.Task, back: str) -> str:
+    url = f"/contribute/task/{task.olid}/{task.field}"
+    return f"{url}?back={back}" if back != DEFAULT_LIST else url
+
+
+def _task_summary(task: tasks.Task, playbooks, back: str = DEFAULT_LIST, scope=None) -> dict:
     return {
         "key": task.key,
         "field": task.field,
@@ -206,25 +234,28 @@ def _task_summary(task: tasks.Task, playbooks) -> dict:
         "mode": task.mode,
         "level": task.evidence.level,
         "level_label": _level_label(task.evidence.level),
-        "url": f"/contribute/task/{task.olid}/{task.field}",
+        "points": ranking.task_points(task, scope),
+        "url": _task_url(task, back),
     }
 
 
-def _rows(editions: list) -> list[dict]:
+def _rows(candidates: list[supply.Candidate], order: ranking.Ordering, back: str) -> list[dict]:
+    """Candidates → open tasks → ordered rows for the list page. Books with nothing to check drop out."""
     playbooks = get_playbooks()
     scope = load_scope()
-    rows = []
-    for edition, readers in editions:
-        names = _language_names_for(edition, tasks.evidence_for_edition(edition))
-        ts = tasks.tasks_for_edition(edition, scope, names)
-        if not ts:
-            continue
-        rows.append({"book": _book(edition, readers), "tasks": [_task_summary(t, playbooks) for t in ts]})
-    return rows
+    pairs = []
+    for cand in candidates:
+        names = _language_names_for(cand.edition, tasks.evidence_for_edition(cand.edition))
+        if ts := tasks.tasks_for_edition(cand.edition, scope, names):
+            pairs.append((cand, ts))
+    return [
+        {"book": _book(cand.edition, cand.readers, cand.reason), "tasks": [_task_summary(t, playbooks, back, scope) for t in ts]}
+        for cand, ts in ranking.order_rows(pairs, order, scope)
+    ]
 
 
-class contribute_start(delegate.page):
-    path = "/contribute/start"
+class contribute_index(delegate.page):
+    path = "/contribute"
 
     def GET(self):
         user = _user()
@@ -234,17 +265,64 @@ class contribute_start(delegate.page):
             wait_days=load_scope().review_wait_days,
             allowed=_allowed(user),
             logged_in=bool(user),
+            tabs=_tabs("start", user),
         )
 
 
-class contribute_index(delegate.page):
-    path = "/contribute"
+class contribute_start(delegate.page):
+    """The orientation moved to /contribute itself; keep the old link working."""
+
+    path = "/contribute/start"
+
+    def GET(self):
+        raise web.seeother("/contribute")
+
+
+class contribute_needed(delegate.page):
+    path = "/contribute/needed"
 
     def GET(self):
         user = _user()
         if not _allowed(user):
             return _denied(self.path)
-        return _render("index", _("Books that need a hand"), rows=_rows(_demo_editions()))
+        return _render(
+            "list",
+            _("Books that need a hand"),
+            tabs=_tabs("needed", user),
+            heading=_("Books that need a hand"),
+            lede=_("Popular books with a fact missing or in doubt. The ones at the top help the most readers."),
+            rows=_rows(supply.demo_candidates(), "impact", "needed"),
+            empty=_("You've been through everything here. Thank you."),
+            empty_link={"url": "/contribute/yours", "label": _("Try the books you've read")},
+            sort_note=_("Sorted by readers helped, times what the fix is worth."),
+        )
+
+
+class contribute_yours(delegate.page):
+    path = "/contribute/yours"
+
+    def GET(self):
+        user = _user()
+        if not user:
+            raise web.seeother(f"/account/login?redirect={self.path}")
+        if not _allowed(user):
+            return _denied(self.path)
+        candidates = supply.shelf_candidates(user)
+        if candidates:
+            empty = _("Your shelves are in good shape. Nothing on them needs a check right now.")
+        else:
+            empty = _("Nothing on your shelves yet. Mark a few books as read and they'll show up here.")
+        return _render(
+            "list",
+            _("Books you've read that need a hand"),
+            tabs=_tabs("yours", user),
+            heading=_("Your books"),
+            lede=_("Books from your reading log with a fact missing or in doubt. You've held these, so you're the right person to ask."),
+            rows=_rows(candidates, "points", "yours"),
+            empty=empty,
+            empty_link={"url": "/contribute/needed", "label": _("See the books that need help most")},
+            sort_note=_("Read shelves first, then what you're reading, then Want to Read. Within each, the most valuable fix first."),
+        )
 
 
 # A passing check is reassurance, not an alert: it stays a quiet line. Only a
@@ -292,7 +370,7 @@ def _identifier_context(edition, task: tasks.Task, names: dict[str, str]) -> dic
     }
 
 
-def _task_context(edition, task: tasks.Task, names: dict[str, str]) -> dict:
+def _task_context(edition, task: tasks.Task, names: dict[str, str], back: str) -> dict:
     playbooks = get_playbooks()
     playbook = playbooks[task.field]
     others = _sibling_editions(edition)
@@ -306,7 +384,7 @@ def _task_context(edition, task: tasks.Task, names: dict[str, str]) -> dict:
     return {
         "identifier": ident,
         "book": book,
-        "task": {"key": task.key, "field": task.field, "mode": task.mode, "url": f"/contribute/task/{task.olid}/{task.field}"},
+        "task": {"key": task.key, "field": task.field, "mode": task.mode, "url": _task_url(task, back), "points": ranking.task_points(task)},
         "playbook": playbook,
         "question": playbook.question(task.mode),
         "evidence": _evidence_view(ev, sources),
@@ -315,6 +393,8 @@ def _task_context(edition, task: tasks.Task, names: dict[str, str]) -> dict:
         "link_outs": link_outs(book["isbn13"], book["title"]),
         "note": note,
         "wait_days": load_scope().review_wait_days,
+        "list_url": _list_url(back),
+        "list_label": _list_label(back),
     }
 
 
@@ -341,39 +421,44 @@ def _prefilled_note(ev, sources, sibling_top: str) -> str:
     return " ".join(parts)
 
 
+TASK_PATH = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|subtitle|publish_date|lccn|oclc_numbers)"
+
+
 class contribute_task(delegate.page):
-    path = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|subtitle|publish_date|lccn|oclc_numbers)"
+    path = TASK_PATH
 
     def GET(self, olid, fld):
         user = _user()
         if not _allowed(user):
             return _denied(f"/contribute/task/{olid}/{fld}")
+        back = _list_id(query_param("back", DEFAULT_LIST))
         edition = web.ctx.site.get(f"/books/{olid}")
         if not edition or edition.type.key != "/type/edition":
             raise web.notfound()
         names = _language_names_for(edition, tasks.evidence_for_edition(edition))
         task = tasks.task_for(edition, fld, language_names=names)
         if not task:
-            return _render("nothing", _("Nothing to check here"), book=_book(edition), field_label=get_playbooks()[fld].label)
-        return _render("task", get_playbooks()[fld].question(task.mode), **_task_context(edition, task, names))
+            return _render("nothing", _("Nothing to check here"), book=_book(edition), field_label=get_playbooks()[fld].label, list_url=_list_url(back))
+        return _render("task", get_playbooks()[fld].question(task.mode), **_task_context(edition, task, names, back))
 
     def POST(self, olid, fld):
         user = _user()
         if not _allowed(user):
             return _denied(f"/contribute/task/{olid}/{fld}")
-        i = web.input(choice="", value="", note="")
+        i = web.input(choice="", value="", note="", back=DEFAULT_LIST)
         # Phase 1: nothing is saved. The receipt is rendered from what was posted.
-        query = urlencode({"choice": i.choice, "value": i.value.strip(), "note": i.note.strip()})
+        query = urlencode({"choice": i.choice, "value": i.value.strip(), "note": i.note.strip(), "back": _list_id(i.back)})
         raise web.seeother(f"/contribute/task/{olid}/{fld}/done?{query}")
 
 
 class contribute_done(delegate.page):
-    path = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|subtitle|publish_date|lccn|oclc_numbers)/done"
+    path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
         user = _user()
         if not _allowed(user):
             return _denied(f"/contribute/task/{olid}/{fld}/done")
+        back = _list_id(query_param("back", DEFAULT_LIST))
         edition = web.ctx.site.get(f"/books/{olid}")
         if not edition:
             raise web.notfound()
@@ -391,7 +476,7 @@ class contribute_done(delegate.page):
             new_value = ""
         else:
             new_value = value
-        same_book = [_task_summary(t, playbooks) for t in tasks.tasks_for_edition(edition, language_names=names) if t.field != fld]
+        same_book = [_task_summary(t, playbooks, back) for t in tasks.tasks_for_edition(edition, language_names=names) if t.field != fld]
         return _render(
             "done",
             _("Sent to a librarian"),
@@ -404,4 +489,5 @@ class contribute_done(delegate.page):
             same_book=same_book,
             wait_days=load_scope().review_wait_days,
             task_key=f"{olid}/{fld}",
+            list_url=_list_url(back),
         )

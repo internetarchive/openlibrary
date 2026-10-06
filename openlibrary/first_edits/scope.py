@@ -21,6 +21,7 @@ class FieldScope:
     enabled: bool
     modes: tuple[str, ...]
     min_level: str
+    points: int = 0  # Edition Scorecard weight; what a fill is worth to readers
 
     def allows(self, mode: str, level: str) -> bool:
         return self.enabled and mode in self.modes and LEVELS.index(level) >= LEVELS.index(self.min_level)
@@ -46,7 +47,10 @@ def parse_scope(raw: dict) -> Scope:
         level = cfg.get("min_level", "fair")
         if level not in LEVELS:
             raise ValueError(f"unknown min_level for {name}: {level}")
-        fields[name] = FieldScope(name, bool(cfg.get("enabled", False)), modes, level)
+        points = cfg.get("points", 0)
+        if not isinstance(points, int) or points < 0:
+            raise ValueError(f"points for {name} must be a non-negative integer: {points!r}")
+        fields[name] = FieldScope(name, bool(cfg.get("enabled", False)), modes, level, points)
     return Scope(int(raw.get("review_wait_days", 3)), fields)
 
 

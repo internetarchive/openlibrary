@@ -5,7 +5,7 @@
     <section class="fe-section">
         <h1 class="fe-question__text">{{ _("Nothing to check for %(field)s on this edition", field=data.field_label) }}</h1>
         <p>{{ _("Either the catalogs have nothing to say about it, or they disagree with each other and a librarian will settle it.") }}</p>
-        <ol-button href="/contribute">
+        <ol-button href="{{ data.list_url }}">
             {{ _("Back to the list") }}
         </ol-button>
     </section>

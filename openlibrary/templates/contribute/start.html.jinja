@@ -1,10 +1,12 @@
-{#- /contribute/start — orientation in sixty seconds. -#}
+{#- /contribute — orientation in sixty seconds, and the ways into the list. -#}
+{% import "contribute/parts.html.jinja" as parts %}
 <div class="fe-page fe-page--start">
     <header class="fe-hero">
         <p class="fe-overline">{{ _("First edits") }}</p>
         <h1 class="fe-title">{{ _("Make your first edit") }}</h1>
         <p class="fe-lede">{{ _("Most people finish their first one in about five minutes. You will check one fact about one book, with the evidence laid out beside it.") }}</p>
     </header>
+    {{ parts.tabs(data.tabs) }}
     <div class="fe-cards">
         <section class="fe-card">
             <span class="fe-card__icon">{{ icon("book-open-text", size="lg") }}</span>
@@ -24,13 +26,16 @@
     </div>
     <div class="fe-hero__actions">
         {% if data.allowed %}
-            <ol-button variant="primary" href="/contribute">
-                {{ _("Show me a book") }}
+            <ol-button variant="primary" href="/contribute/needed">
+                {{ _("Show me a book that needs help") }}
+            </ol-button>
+            <ol-button href="/contribute/yours">
+                {{ _("Start with books I've read") }}
             </ol-button>
         {% elif data.logged_in %}
             <p class="fe-callout">{{ _("First edits is being tried out with a small group. Ask in the volunteers channel to be added, and this page will open up.") }}</p>
         {% else %}
-            <ol-button variant="primary" href="/account/login?redirect=/contribute/start">
+            <ol-button variant="primary" href="/account/login?redirect=/contribute">
                 {{ _("Log in to start") }}
             </ol-button>
             <p class="fe-muted">{{ _("You need an Open Library account so your suggestions have a name on them.") }}</p>

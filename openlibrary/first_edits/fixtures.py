@@ -30,6 +30,12 @@ def load_evidence(isbn13: str) -> dict | None:
     return _load(path) if path.exists() else None
 
 
+@cache
+def evidence_isbns() -> frozenset[str]:
+    """Every ISBN we hold outside evidence for. Lets a supply filter candidates before loading records."""
+    return frozenset(p.stem for p in (FIXTURES / "evidence").glob("*.json"))
+
+
 def _demo_entry(isbn13: str | None) -> dict | None:
     if not isbn13:
         return None

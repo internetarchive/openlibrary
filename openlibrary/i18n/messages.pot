@@ -3984,16 +3984,12 @@ msgstr ""
 msgid "Pick a different book"
 msgstr ""
 
-#: contribute/index.html.jinja openlibrary/plugins/openlibrary/contribute.py
-msgid "Books that need a hand"
+#: contribute/list.html.jinja contribute/start.html.jinja
+msgid "First edits"
 msgstr ""
 
-#: contribute/index.html.jinja
-msgid "You've been through everything here. Thank you."
-msgstr ""
-
-#: contribute/index.html.jinja
-msgid "Books are sorted by how many readers a fix would help. Skip any you're unsure about."
+#: contribute/list.html.jinja
+msgid "Skip any you're unsure about."
 msgstr ""
 
 #: contribute/nothing.html.jinja
@@ -4005,12 +4001,8 @@ msgstr ""
 msgid "Either the catalogs have nothing to say about it, or they disagree with each other and a librarian will settle it."
 msgstr ""
 
-#: contribute/nothing.html.jinja contribute/task.html.jinja
+#: contribute/nothing.html.jinja openlibrary/plugins/openlibrary/contribute.py
 msgid "Back to the list"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "First edits"
 msgstr ""
 
 #: contribute/start.html.jinja openlibrary/plugins/openlibrary/contribute.py
@@ -4047,7 +4039,11 @@ msgid "Nothing. Suggestions don't change the book until a librarian accepts them
 msgstr ""
 
 #: contribute/start.html.jinja
-msgid "Show me a book"
+msgid "Show me a book that needs help"
+msgstr ""
+
+#: contribute/start.html.jinja
+msgid "Start with books I've read"
 msgstr ""
 
 #: contribute/start.html.jinja
@@ -7985,6 +7981,14 @@ msgid "Why this book: on about %(count)s readers' shelves."
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "What this fix is worth to readers, on the Edition Scorecard"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Ways to find a book"
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "What other catalogs say"
 msgstr ""
 
@@ -8823,6 +8827,26 @@ msgstr ""
 msgid "Other editions on Open Library"
 msgstr ""
 
+#: openlibrary/first_edits/supply.py
+msgid "You've read this one."
+msgstr ""
+
+#: openlibrary/first_edits/supply.py
+msgid "You've read this; we picked the most common edition."
+msgstr ""
+
+#: openlibrary/first_edits/supply.py
+msgid "You're reading this edition."
+msgstr ""
+
+#: openlibrary/first_edits/supply.py
+msgid "You're reading this; we picked the most common edition."
+msgstr ""
+
+#: openlibrary/first_edits/supply.py
+msgid "On your Want to Read shelf."
+msgstr ""
+
 #: openlibrary/first_edits/tasks.py
 #, python-format
 msgid "Strong: the record this number points at matches this edition on all %(count)s details we can compare."
@@ -8913,6 +8937,30 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "Back to your books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Being tried out with a small group for now"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Log in to see this"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Start here"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Your books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Most needed"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Strong evidence"
 msgstr ""
 
@@ -8938,6 +8986,50 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid " and "
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Books that need a hand"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Popular books with a fact missing or in doubt. The ones at the top help the most readers."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "You've been through everything here. Thank you."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Try the books you've read"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Sorted by readers helped, times what the fix is worth."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Your shelves are in good shape. Nothing on them needs a check right now."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Nothing on your shelves yet. Mark a few books as read and they'll show up here."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Books you've read that need a hand"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Books from your reading log with a fact missing or in doubt. You've held these, so you're the right person to ask."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "See the books that need help most"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Read shelves first, then what you're reading, then Want to Read. Within each, the most valuable fix first."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

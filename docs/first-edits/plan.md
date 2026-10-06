@@ -6,6 +6,22 @@
 
 **Identifiers (2026-09-23):** `lccn` and `oclc_numbers` are now in scope as a walkable first pass, in answer to Lisa's "non-ia identifiers". They do not fit the evidence model the other fields use, and the measured supply is thin. Both are written up in [`identifiers.md`](identifiers.md), which is the document to bring to librarians.
 
+**Tabs (2026-10-06):** `/contribute` is now the orientation page with three tabs: *Start here*, *Your books* (`/contribute/yours`, the reader's shelves) and *Most needed* (`/contribute/needed`, the former list). `/contribute/start` redirects. Task rows show what a fix is worth (`points` in `scope.json`, mirroring the Edition Scorecard), and a task page remembers which tab it came from (`?back=`). See [section 0](#0-three-parts) for the split this introduces.
+
+## 0. Three parts
+
+The project is three separable problems, and the code now keeps them apart so each can change on its own:
+
+| Part | Question | Module | Today |
+|---|---|---|---|
+| **Supply** | Which books are candidates? | `first_edits/supply.py` — `demo_candidates()`, `shelf_candidates(user)` | Demo set (stands in for "popular with gaps") and the live reading log |
+| **Ranking** | Which to show first? | `first_edits/ranking.py` — `order_rows(rows, "impact" \| "points")` | *Most needed*: readers × most valuable task. *Your books*: shelf order (read, reading, want), then value |
+| **The task page** | What context does one decision need? | `first_edits/tasks.py`, `evidence.py`, `siblings.py`; rendered by `contribute.py` | Evidence from outside catalogs, sibling editions, link-outs, playbook notes |
+
+Two consequences. First, the task page's context is also what *defines* a task: `tasks_for_edition` only yields a task when the evidence supports a fill or a check, so supply and ranking can only operate over editions whose evidence is loaded. In phase 1 that is the fixture set; in phase 2 the memcache-backed live lookup makes any edition a possible candidate, at the cost of one lookup per candidate. Second, a tab is just a supply plus an ordering, so the tabs deferred for now (by author, by subject, by task type, an organizer's saved query) are each a new `*_candidates()` function and no new page.
+
+The task page itself stays one unit whether it is reached from a tab or, later, from the book page: the dict `_task_context` builds is what a book-page dialog would render too.
+
 ## 1. Constraints this plan honors
 
 | Constraint | How |
