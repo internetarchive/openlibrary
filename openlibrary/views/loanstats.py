@@ -39,7 +39,7 @@ def reading_log_summary():
         delegate.fakeload()
 
     stats = Bookshelves.summary()
-    stats.update(YearlyReadingGoals.summary())
+    stats.update(YearlyReadingGoals.summary_sync())
     stats.update(Ratings.summary())
     stats.update(Observations.summary())
     stats.update(Booknotes.summary())
