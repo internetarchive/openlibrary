@@ -629,16 +629,24 @@ class Test_From_MARC:
             "key": "/authors/OL1A", "type": {"key": "/type/author"},
             "name": "John Smith", "birth_date": "1900",
         })
+        isni = "000000000000000X"
         rec = {
             "title": "Some New Book",
             "source_records": ["ia:new_book"],
-            "authors": [{"name": "John Smith", "birth_date": "1900", "death_date": "1970"}],
+            "authors": [{
+                "name": "John Smith",
+                "birth_date": "1900",
+                "death_date": "1970",
+                "remote_ids": {"isni": isni},
+            }],
         }
         reply = load(rec)
         assert reply["authors"][0]["status"] == "matched"
         assert reply["authors"][0]["key"] == "/authors/OL1A"
         # Check whether new import Author data is saved to existing matched record:
-        assert mock_site.get("/authors/OL1A").death_date == "1970"
+        existing = mock_site.get("/authors/OL1A")
+        assert existing.death_date == "1970"
+        assert existing.remote_ids.get("isni") == isni
 
 
 def test_build_pool(mock_site):

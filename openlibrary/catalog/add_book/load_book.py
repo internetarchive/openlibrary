@@ -324,6 +324,10 @@ def author_import_record_to_author(author_import_record_dict: dict, eastern=Fals
         new = existing
         if "death_date" in author_import_record and "death_date" not in existing:
             new["death_date"] = author_import_record["death_date"]
+        # Merge incoming author identifiers (like ISNI)
+        if "remote_ids" in author_import_record:
+            remote_ids, n = new.merge_remote_ids(author_import_record["remote_ids"])
+            new["remote_ids"] = remote_ids
         return new
     a: dict[str, Any] = {"type": {"key": "/type/author"}}
     for f in (
