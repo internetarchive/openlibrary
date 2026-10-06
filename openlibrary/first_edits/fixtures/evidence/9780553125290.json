@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780553125290",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/siddhartha00",
+      "fields": {
+        "publishers": [
+          "[Bantam Books]"
+        ],
+        "publish_date": "1957",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

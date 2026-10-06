@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780330343589",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/artistswayspirit0000came_a9x4",
+      "fields": {
+        "publishers": [
+          "Pan"
+        ],
+        "publish_date": "1995",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

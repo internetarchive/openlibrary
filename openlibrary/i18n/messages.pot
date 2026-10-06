@@ -3984,10 +3984,6 @@ msgstr ""
 msgid "Pick a different book"
 msgstr ""
 
-#: contribute/list.html.jinja contribute/start.html.jinja
-msgid "First edits"
-msgstr ""
-
 #: contribute/list.html.jinja
 msgid "Skip any you're unsure about."
 msgstr ""
@@ -4010,7 +4006,7 @@ msgid "Make your first edit"
 msgstr ""
 
 #: contribute/start.html.jinja
-msgid "Most people finish their first one in about five minutes. You will check one fact about one book, with the evidence laid out beside it."
+msgid "Most people finish their first one in about five minutes."
 msgstr ""
 
 #: contribute/start.html.jinja
@@ -8824,6 +8820,14 @@ msgid "Library of Congress"
 msgstr ""
 
 #: openlibrary/first_edits/sources.py
+msgid "HathiTrust"
+msgstr ""
+
+#: openlibrary/first_edits/sources.py
+msgid "Internet Archive scan"
+msgstr ""
+
+#: openlibrary/first_edits/sources.py
 msgid "Other editions on Open Library"
 msgstr ""
 
@@ -9021,7 +9025,7 @@ msgid "Books you've read that need a hand"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Books from your reading log with a fact missing or in doubt. You've held these, so you're the right person to ask."
+msgid "Books from your reading log."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

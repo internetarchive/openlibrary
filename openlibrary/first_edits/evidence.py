@@ -98,7 +98,7 @@ def build_field_evidence(fld: str, ol_values: dict, evidence_doc: dict, language
     # Do the sources agree with each other? Two sources is the phase 1 ceiling.
     first_raw = present[0][1]
     all_agree = all(values_agree(fld, first_raw, raw) for _src, raw in present[1:])
-    exact = all(src.get("match", "isbn13") in ("isbn13", "isbn10", "lccn", "oclc") for src, _raw in present)
+    exact = all(src.get("match", "isbn13") in ("isbn13", "isbn10", "lccn", "oclc", "ocaid") for src, _raw in present)
     names = [sources[src["id"]].name if src["id"] in sources else src["id"] for src, _raw in present]
 
     if not all_agree:

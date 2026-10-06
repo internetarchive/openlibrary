@@ -5,6 +5,21 @@ database whose ISBNs match the evidence fixtures in
 `openlibrary/first_edits/fixtures/evidence/`. Nothing else is required: outside
 evidence and the demo set are fixtures, and nothing is saved.
 
+## 0. Or build real fixtures and seed in one go
+
+`scripts/first_edits/build_fixtures.py` finds popular editions on
+openlibrary.org with real gaps, asks HathiTrust (and Google Books when a key or
+quota allows) what they say, keeps the ones that make a task under the current
+scope, writes the fixtures, and with `--import-local` imports those editions
+plus a few siblings into the local site as the dev user:
+
+```bash
+docker compose exec web python scripts/first_edits/build_fixtures.py --count 50 --import-local
+```
+
+Set `GOOGLE_BOOKS_API_KEY` to get a second source; the keyless quota is shared
+and often spent. Steps 1 and 2 below are the manual version of the same thing.
+
 ## 1. Seed the demo editions
 
 The demo set is `openlibrary/first_edits/fixtures/demo_books.json`. Each entry is

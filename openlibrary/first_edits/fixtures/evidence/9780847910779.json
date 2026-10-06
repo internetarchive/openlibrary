@@ -1,0 +1,23 @@
+{
+  "isbn13": "9780847910779",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/tokillmockingbir0000unse_i8m4",
+      "fields": {
+        "publishers": [
+          "Grand Central Publishing"
+        ],
+        "publish_date": "1982",
+        "languages": [
+          "eng"
+        ],
+        "oclc_numbers": [
+          "234175833"
+        ]
+      }
+    }
+  ]
+}

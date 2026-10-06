@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780553276640",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/surelyyourejokin00rich_0",
+      "fields": {
+        "publishers": [
+          "Bantam Books (Mm)"
+        ],
+        "publish_date": "1988-06-00",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

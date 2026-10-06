@@ -1,0 +1,23 @@
+{
+  "isbn13": "9780894341243",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/heidi400spyr",
+      "fields": {
+        "publishers": [
+          "J.G. Ferguson"
+        ],
+        "publish_date": "1992",
+        "languages": [
+          "eng"
+        ],
+        "oclc_numbers": [
+          "26536960"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "isbn13": "9780316017930",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/outliers00malc",
+      "fields": {
+        "publishers": [
+          "Back Bay Books"
+        ],
+        "publish_date": "2011",
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "2008032824"
+        ],
+        "oclc_numbers": [
+          "548634233",
+          "752205877",
+          "755695885",
+          "858050213",
+          "868955557",
+          "873843189",
+          "879531502"
+        ]
+      }
+    }
+  ]
+}

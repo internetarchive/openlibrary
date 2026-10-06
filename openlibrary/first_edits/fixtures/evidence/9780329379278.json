@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780329379278",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/isbn_9780329379278",
+      "fields": {
+        "publishers": [
+          "Scholastic"
+        ],
+        "publish_date": "2004",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

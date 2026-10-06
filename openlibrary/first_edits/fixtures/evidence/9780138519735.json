@@ -1,0 +1,27 @@
+{
+  "isbn13": "9780138519735",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "hathitrust",
+      "match": "isbn13",
+      "url": "https://catalog.hathitrust.org/Record/007052597",
+      "fields": {
+        "languages": [
+          "eng"
+        ],
+        "number_of_pages": 862,
+        "publishers": [
+          "Prentice-Hall"
+        ],
+        "publish_date": "1991",
+        "lccn": [
+          "90007712"
+        ],
+        "oclc_numbers": [
+          "21975123"
+        ]
+      }
+    }
+  ]
+}

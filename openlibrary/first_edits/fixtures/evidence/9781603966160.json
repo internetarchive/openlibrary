@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781603966160",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/outliersfuerasde0000glad",
+      "fields": {
+        "publishers": [
+          "Taurus"
+        ],
+        "publish_date": "2009",
+        "languages": [
+          "spa"
+        ]
+      }
+    }
+  ]
+}

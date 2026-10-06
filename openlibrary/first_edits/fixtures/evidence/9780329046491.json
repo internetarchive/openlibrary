@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780329046491",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/isbn_9780329046491",
+      "fields": {
+        "publishers": [
+          "New York Ballantine Books"
+        ],
+        "publish_date": "1982",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

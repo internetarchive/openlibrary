@@ -1,0 +1,44 @@
+{
+  "isbn13": "9781250012579",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "hathitrust",
+      "match": "isbn13",
+      "url": "https://catalog.hathitrust.org/Record/012394490",
+      "fields": {
+        "languages": [
+          "eng"
+        ],
+        "number_of_pages": 328,
+        "publishers": [
+          "St. Martin's Griffin"
+        ],
+        "publish_date": "2013",
+        "lccn": [
+          "2012042136"
+        ],
+        "oclc_numbers": [
+          "819860760"
+        ]
+      }
+    },
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/bwb_Y0-BVF-643",
+      "fields": {
+        "publishers": [
+          "St. Martin's Griffin"
+        ],
+        "publish_date": "2013",
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "2012042136"
+        ]
+      }
+    }
+  ]
+}

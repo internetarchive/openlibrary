@@ -1,0 +1,50 @@
+{
+  "isbn13": "9780807059807",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "hathitrust",
+      "match": "isbn13",
+      "url": "https://catalog.hathitrust.org/Record/000005160",
+      "fields": {
+        "languages": [
+          "eng"
+        ],
+        "number_of_pages": 528,
+        "publishers": [
+          "Beacon Press"
+        ],
+        "subtitle": "the story of my experiments with truth",
+        "publish_date": "1957",
+        "lccn": [
+          "57004446"
+        ],
+        "oclc_numbers": [
+          "362500"
+        ]
+      }
+    },
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/autobiographysto02gand",
+      "fields": {
+        "publishers": [
+          "Boston, Beacon Press"
+        ],
+        "publish_date": "1957",
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "57004446"
+        ],
+        "oclc_numbers": [
+          "251659116",
+          "362500",
+          "439451953"
+        ]
+      }
+    }
+  ]
+}

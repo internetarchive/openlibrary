@@ -1,61 +1,5 @@
 [
   {
-    "isbn13": "9780743273565",
-    "key": "/books/OL23109860M",
-    "readers": 3340,
-    "note": "Gatsby: language missing (strong fill); publishers conflict between sources.",
-    "cover_id": 13028546
-  },
-  {
-    "isbn13": "9780060935467",
-    "key": "/books/OL37027463M",
-    "readers": 6364,
-    "note": "Mockingbird: one source, publisher differs (fair check).",
-    "cover_id": 15153357
-  },
-  {
-    "isbn13": "9780385474542",
-    "key": "/books/OL51242967M",
-    "readers": 1997,
-    "note": "Things Fall Apart: language missing (strong fill); publisher conflict is the imprint case.",
-    "cover_id": 14595726
-  },
-  {
-    "isbn13": "9780394535975",
-    "key": "/books/OL37067491M",
-    "readers": 1708,
-    "note": "Beloved: publisher agrees (strong confirm).",
-    "cover_id": 12638483
-  },
-  {
-    "isbn13": "9780140186390",
-    "key": "/books/OL1710270M",
-    "readers": 1299,
-    "note": "East of Eden: publisher from one source, agrees (fair confirm).",
-    "cover_id": 12449298
-  },
-  {
-    "isbn13": "9780140328721",
-    "key": "/books/OL7353617M",
-    "readers": 1499,
-    "note": "Fantastic Mr Fox: page count missing, one source (fair fill).",
-    "cover_id": 15152634
-  },
-  {
-    "isbn13": "9780226458083",
-    "key": "/books/OL976099M",
-    "readers": 300,
-    "note": "Structure of Scientific Revolutions: publisher from one source, agrees (fair confirm).",
-    "cover_id": 6773735
-  },
-  {
-    "isbn13": "9780674024700",
-    "key": "/books/OL17986974M",
-    "readers": 0,
-    "note": "Ruptured Histories: publisher missing, both sources agree (strong fill).",
-    "cover_id": 5396475
-  },
-  {
     "isbn13": "9781847941831",
     "key": "/books/OL57360656M",
     "readers": 63234,
@@ -266,6 +210,13 @@
     "cover_id": 15157479
   },
   {
+    "isbn13": "9780847910779",
+    "key": "/books/OL60972977M",
+    "readers": 6406,
+    "note": "To Kill a Mockingbird: publisher differs (fair check)",
+    "cover_id": 15153376
+  },
+  {
     "isbn13": "9781417795123",
     "key": "/books/OL45621089M",
     "readers": 6380,
@@ -273,11 +224,25 @@
     "cover_id": 13283435
   },
   {
+    "isbn13": "9780060935467",
+    "key": "/books/OL37027463M",
+    "readers": 6364,
+    "note": "Mockingbird: one source, publisher differs (fair check).",
+    "cover_id": 15153357
+  },
+  {
     "isbn13": "9780593340479",
     "key": "/books/OL28273643M",
     "readers": 6327,
     "note": "A Good Girl's Guide to Murder: languages:fill/fair.",
     "cover_id": 10201105
+  },
+  {
+    "isbn13": "9780141033570",
+    "key": "/books/OL62456765M",
+    "readers": 6171,
+    "note": "Thinking, fast and slow: language missing (fair fill); page count missing (fair fill)",
+    "cover_id": 13290711
   },
   {
     "isbn13": "9788467037593",
@@ -299,6 +264,13 @@
     "readers": 5988,
     "note": "SAPIENS : A GRAPHIC HISTORY: languages:fill/fair.",
     "cover_id": 13775631
+  },
+  {
+    "isbn13": "9780545010221",
+    "key": "/books/OL61041694M",
+    "readers": 5988,
+    "note": "Harry Potter and the Deathly Hallows: page count missing (fair fill); LCCN missing (strong fill)",
+    "cover_id": 15156796
   },
   {
     "isbn13": "9788380082236",
@@ -357,6 +329,13 @@
     "cover_id": 15233817
   },
   {
+    "isbn13": "9780345339683",
+    "key": "/books/OL61640017M",
+    "readers": 5193,
+    "note": "The Hobbit: language missing (fair fill); publisher differs (fair check)",
+    "cover_id": 14627509
+  },
+  {
     "isbn13": "9786176642145",
     "key": "/books/OL62190138M",
     "readers": 5134,
@@ -369,5 +348,376 @@
     "readers": 5129,
     "note": "Ikigai: languages:fill/fair, publishers:check/fair.",
     "cover_id": 8779011
+  },
+  {
+    "isbn13": "9780329379278",
+    "key": "/books/OL61068707M",
+    "readers": 4622,
+    "note": "Harry Potter and the Order of the Phoeni: publisher differs (fair check)",
+    "cover_id": 15160021
+  },
+  {
+    "isbn13": "9780329046491",
+    "key": "/books/OL49829462M",
+    "readers": 4419,
+    "note": "Fahrenheit 451: publisher differs (fair check)",
+    "cover_id": 12993656
+  },
+  {
+    "isbn13": "9780340765906",
+    "key": "/books/OL10630547M",
+    "readers": 4402,
+    "note": "Dune: publisher differs (fair check)",
+    "cover_id": 11481354
+  },
+  {
+    "isbn13": "9780743273565",
+    "key": "/books/OL23109860M",
+    "readers": 3340,
+    "note": "Gatsby: language missing (strong fill); publishers conflict between sources.",
+    "cover_id": 13028546
+  },
+  {
+    "isbn13": "9781489802941",
+    "key": "/books/OL61140700M",
+    "readers": 3002,
+    "note": "The Kite Runner: publisher differs (fair check)",
+    "cover_id": 15162782
+  },
+  {
+    "isbn13": "9780329578411",
+    "key": "/books/OL57896816M",
+    "readers": 3002,
+    "note": "The Kite Runner: publisher differs (fair check)",
+    "cover_id": 14846893
+  },
+  {
+    "isbn13": "9780385474542",
+    "key": "/books/OL51242967M",
+    "readers": 1997,
+    "note": "Things Fall Apart: language missing (strong fill); publisher conflict is the imprint case.",
+    "cover_id": 14595726
+  },
+  {
+    "isbn13": "9780394535975",
+    "key": "/books/OL37067491M",
+    "readers": 1708,
+    "note": "Beloved: publisher agrees (strong confirm).",
+    "cover_id": 12638483
+  },
+  {
+    "isbn13": "9780394892184",
+    "key": "/books/OL7464598M",
+    "readers": 1519,
+    "note": "The Cat in the Hat: publisher differs (fair check)",
+    "cover_id": 255086
+  },
+  {
+    "isbn13": "9780140328721",
+    "key": "/books/OL7353617M",
+    "readers": 1499,
+    "note": "Fantastic Mr Fox: page count missing, one source (fair fill).",
+    "cover_id": 15152634
+  },
+  {
+    "isbn13": "9780553125290",
+    "key": "/books/OL7817923M",
+    "readers": 1340,
+    "note": "Siddhartha: publisher missing (fair fill)",
+    "cover_id": 8339980
+  },
+  {
+    "isbn13": "9780140186390",
+    "key": "/books/OL1710270M",
+    "readers": 1299,
+    "note": "East of Eden: publisher from one source, agrees (fair confirm).",
+    "cover_id": 12449298
+  },
+  {
+    "isbn13": "9780500976180",
+    "key": "/books/OL7654994M",
+    "readers": 1138,
+    "note": "Leonardo: publisher differs (fair check)",
+    "cover_id": 1261404
+  },
+  {
+    "isbn13": "9781603966160",
+    "key": "/books/OL26078206M",
+    "readers": 1049,
+    "note": "Outliers: language missing (fair fill)",
+    "cover_id": 7684282
+  },
+  {
+    "isbn13": "9780316017930",
+    "key": "/books/OL24652736M",
+    "readers": 1049,
+    "note": "Outliers: language missing (fair fill)",
+    "cover_id": 6762464
+  },
+  {
+    "isbn13": "9782761341394",
+    "key": "/books/OL32898330M",
+    "readers": 1022,
+    "note": "Microbiology: language missing (fair fill); publisher differs (fair check)",
+    "cover_id": 11528028
+  },
+  {
+    "isbn13": "9782724290738",
+    "key": "/books/OL32064510M",
+    "readers": 995,
+    "note": "Sofies verden: language missing (fair fill)",
+    "cover_id": 10721160
+  },
+  {
+    "isbn13": "9781877767760",
+    "key": "/books/OL8658165M",
+    "readers": 983,
+    "note": "Das Kapital: language missing (fair fill); publisher differs (fair check)",
+    "cover_id": 12775354
+  },
+  {
+    "isbn13": "9780853450191",
+    "key": "/books/OL38632808M",
+    "readers": 975,
+    "note": "Manifest der Kommunistischen Partei: page count missing (fair fill)",
+    "cover_id": 11048623
+  },
+  {
+    "isbn13": "9780321778307",
+    "key": "/books/OL30096455M",
+    "readers": 970,
+    "note": "Biology: language missing (fair fill)",
+    "cover_id": 10424811
+  },
+  {
+    "isbn13": "9781250012579",
+    "key": "/books/OL61146885M",
+    "readers": 936,
+    "note": "Eleanor & Park: page count missing (fair fill); LCCN missing (strong fill)",
+    "cover_id": 15216441
+  },
+  {
+    "isbn13": "9780099499381",
+    "key": "/books/OL28434444M",
+    "readers": 924,
+    "note": "Le Deuxième Sexe: publisher differs (fair check)",
+    "cover_id": 15220634
+  },
+  {
+    "isbn13": "9783775719223",
+    "key": "/books/OL22751277M",
+    "readers": 905,
+    "note": "Picasso: page count missing (fair fill)",
+    "cover_id": 2238306
+  },
+  {
+    "isbn13": "9780330343589",
+    "key": "/books/OL10490489M",
+    "readers": 904,
+    "note": "The Artist's Way: language missing (fair fill)",
+    "cover_id": 2386641
+  },
+  {
+    "isbn13": "9780812415698",
+    "key": "/books/OL9484179M",
+    "readers": 852,
+    "note": "Go Ask Alice: language missing (fair fill)",
+    "cover_id": 8749018
+  },
+  {
+    "isbn13": "9781567310108",
+    "key": "/books/OL8673330M",
+    "readers": 807,
+    "note": "How to Read a Book: publisher differs (fair check)",
+    "cover_id": 7885535
+  },
+  {
+    "isbn13": "9780670001576",
+    "key": "/books/OL7640926M",
+    "readers": 782,
+    "note": "The Crucible: language missing (fair fill); page count missing (fair fill); publisher differs (fair check)",
+    "cover_id": 8431392
+  },
+  {
+    "isbn13": "9781853262739",
+    "key": "/books/OL8978629M",
+    "readers": 742,
+    "note": "Le fantôme de l'opéra: publisher differs (fair check)",
+    "cover_id": 902232
+  },
+  {
+    "isbn13": "9780307719218",
+    "key": "/books/OL25370229M",
+    "readers": 714,
+    "note": "Why Nations Fail: page count missing (fair fill); LCCN missing (strong fill); OCLC missing (strong fill)",
+    "cover_id": 7150615
+  },
+  {
+    "isbn13": "9781846684302",
+    "key": "/books/OL27591884M",
+    "readers": 714,
+    "note": "Why Nations Fail: language missing (fair fill)",
+    "cover_id": 9044522
+  },
+  {
+    "isbn13": "9781509854424",
+    "key": "/books/OL28138412M",
+    "readers": 658,
+    "note": "The Immortal Life of Henrietta Lacks: language missing (fair fill)",
+    "cover_id": 10081300
+  },
+  {
+    "isbn13": "9780230748699",
+    "key": "/books/OL28213879M",
+    "readers": 658,
+    "note": "The Immortal Life of Henrietta Lacks: language missing (fair fill); publisher differs (fair check)",
+    "cover_id": 10593119
+  },
+  {
+    "isbn13": "9780007441556",
+    "key": "/books/OL26113541M",
+    "readers": 602,
+    "note": "Fox in Socks: language missing (fair fill)",
+    "cover_id": 7750500
+  },
+  {
+    "isbn13": "9780007661381",
+    "key": "/books/OL7264687M",
+    "readers": 602,
+    "note": "Fox in Socks: language missing (fair fill); publisher differs (fair check)",
+    "cover_id": 10593663
+  },
+  {
+    "isbn13": "9781492974031",
+    "key": "/books/OL45615621M",
+    "readers": 598,
+    "note": "White Fang: language missing (fair fill)",
+    "cover_id": 14534829
+  },
+  {
+    "isbn13": "9787206028045",
+    "key": "/books/OL13013287M",
+    "readers": 583,
+    "note": "Walden: publisher differs (fair check)",
+    "cover_id": 9255121
+  },
+  {
+    "isbn13": "9780136446835",
+    "key": "/books/OL10091894M",
+    "readers": 579,
+    "note": "Organizational Behavior: language missing (strong fill); page count missing (fair fill)",
+    "cover_id": 10043867
+  },
+  {
+    "isbn13": "9780894341243",
+    "key": "/books/OL8248392M",
+    "readers": 575,
+    "note": "Heidi: language missing (fair fill)",
+    "cover_id": 9950465
+  },
+  {
+    "isbn13": "9780671456528",
+    "key": "/books/OL11072033M",
+    "readers": 575,
+    "note": "Heidi: language missing (fair fill); publisher differs (fair check)",
+    "cover_id": 15125562
+  },
+  {
+    "isbn13": "9780434002627",
+    "key": "/books/OL9411531M",
+    "readers": 545,
+    "note": "Mindhunter: language missing (fair fill)",
+    "cover_id": 14325049
+  },
+  {
+    "isbn13": "9780671528904",
+    "key": "/books/OL25446790M",
+    "readers": 545,
+    "note": "Mindhunter: language missing (fair fill); publisher differs (fair check)",
+    "cover_id": 12189673
+  },
+  {
+    "isbn13": "9780553276640",
+    "key": "/books/OL7824174M",
+    "readers": 533,
+    "note": "\"Surely You're Joking, Mr. Feynman\": language missing (fair fill)",
+    "cover_id": 9912067
+  },
+  {
+    "isbn13": "9788983710444",
+    "key": "/books/OL25416284M",
+    "readers": 533,
+    "note": "\"Surely You're Joking, Mr. Feynman\": language missing (fair fill); publisher differs (fair check)",
+    "cover_id": 7239740
+  },
+  {
+    "isbn13": "9780060887322",
+    "key": "/books/OL24237821M",
+    "readers": 524,
+    "note": "Pretty Little Liars: language missing (fair fill)",
+    "cover_id": 13123887
+  },
+  {
+    "isbn13": "9781907410710",
+    "key": "/books/OL28461660M",
+    "readers": 524,
+    "note": "Pretty Little Liars: publisher differs (fair check)",
+    "cover_id": 10348416
+  },
+  {
+    "isbn13": "9780807059807",
+    "key": "/books/OL7944930M",
+    "readers": 523,
+    "note": "An autobiography: page count missing (fair fill); LCCN missing (strong fill); OCLC missing (strong fill)",
+    "cover_id": 9995896
+  },
+  {
+    "isbn13": "9780007797127",
+    "key": "/books/OL43338144M",
+    "readers": 516,
+    "note": "A Long Way Gone: publisher differs (fair check)",
+    "cover_id": 14538589
+  },
+  {
+    "isbn13": "9780671679491",
+    "key": "/books/OL24203169M",
+    "readers": 512,
+    "note": "Chicka chicka boom boom: language missing (fair fill)",
+    "cover_id": 6471744
+  },
+  {
+    "isbn13": "9780349106533",
+    "key": "/books/OL24374871M",
+    "readers": 496,
+    "note": "Long Walk to Freedom: language missing (fair fill)",
+    "cover_id": 10782743
+  },
+  {
+    "isbn13": "9780138519735",
+    "key": "/books/OL9365222M",
+    "readers": 477,
+    "note": "Statistics for management: page count missing (fair fill)",
+    "cover_id": 14425600
+  },
+  {
+    "isbn13": "9780965078498",
+    "key": "/books/OL11732794M",
+    "readers": 466,
+    "note": "Into Thin Air: language missing (fair fill)",
+    "cover_id": 9999682
+  },
+  {
+    "isbn13": "9780226458083",
+    "key": "/books/OL976099M",
+    "readers": 300,
+    "note": "Structure of Scientific Revolutions: publisher from one source, agrees (fair confirm).",
+    "cover_id": 6773735
+  },
+  {
+    "isbn13": "9780674024700",
+    "key": "/books/OL17986974M",
+    "readers": 0,
+    "note": "Ruptured Histories: publisher missing, both sources agree (strong fill).",
+    "cover_id": 5396475
   }
 ]

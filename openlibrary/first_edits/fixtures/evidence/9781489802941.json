@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781489802941",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/isbn_9781489802941",
+      "fields": {
+        "publishers": [
+          "Riverhead Books"
+        ],
+        "publish_date": "2013",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

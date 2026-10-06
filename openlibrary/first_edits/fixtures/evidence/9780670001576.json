@@ -1,0 +1,28 @@
+{
+  "isbn13": "9780670001576",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "hathitrust",
+      "match": "isbn13",
+      "url": "https://catalog.hathitrust.org/Record/004517395",
+      "fields": {
+        "languages": [
+          "eng"
+        ],
+        "number_of_pages": 152,
+        "publishers": [
+          "Viking Press"
+        ],
+        "subtitle": "a play in four acts",
+        "publish_date": "1954",
+        "lccn": [
+          "53006724"
+        ],
+        "oclc_numbers": [
+          "5464289"
+        ]
+      }
+    }
+  ]
+}

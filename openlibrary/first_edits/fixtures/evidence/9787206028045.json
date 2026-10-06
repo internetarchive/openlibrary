@@ -1,0 +1,20 @@
+{
+  "isbn13": "9787206028045",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/waerdenghu0001unse",
+      "fields": {
+        "publishers": [
+          "Ji lin ren min chu ban she"
+        ],
+        "publish_date": "1997",
+        "languages": [
+          "chi"
+        ]
+      }
+    }
+  ]
+}

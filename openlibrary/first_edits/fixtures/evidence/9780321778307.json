@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780321778307",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/campbellbiology0000reec",
+      "fields": {
+        "publishers": [
+          "Pearson Canada"
+        ],
+        "publish_date": "2014",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

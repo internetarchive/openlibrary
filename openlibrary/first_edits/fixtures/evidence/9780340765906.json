@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780340765906",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/isbn_9780340765906",
+      "fields": {
+        "publishers": [
+          "Coronet Australia"
+        ],
+        "publish_date": "1965-01-01",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

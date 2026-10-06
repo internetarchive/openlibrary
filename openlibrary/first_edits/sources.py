@@ -20,6 +20,8 @@ def get_sources() -> dict[str, Source]:
     """Built per request so the strings pick up the visitor's language."""
     return {
         "loc": Source("loc", _("Library of Congress"), "library"),
+        "hathitrust": Source("hathitrust", _("HathiTrust"), "library"),
+        "ia": Source("ia", _("Internet Archive scan"), "scan"),
         "googlebooks": Source("googlebooks", _("Google Books"), "bookseller"),
         "siblings": Source("siblings", _("Other editions on Open Library"), "openlibrary"),
     }

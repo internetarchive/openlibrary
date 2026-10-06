@@ -1,0 +1,23 @@
+{
+  "isbn13": "9780007661381",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/foxinsocks0000seus_i8f2",
+      "fields": {
+        "publishers": [
+          "HarperCollins Children's Books"
+        ],
+        "publish_date": "2010",
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "00171124"
+        ]
+      }
+    }
+  ]
+}

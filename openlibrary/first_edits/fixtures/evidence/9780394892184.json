@@ -1,0 +1,37 @@
+{
+  "isbn13": "9780394892184",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/catinhatbegin00drse",
+      "fields": {
+        "publishers": [
+          "Beginner Books"
+        ],
+        "publish_date": "1987",
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "56005470",
+          "00033034"
+        ],
+        "oclc_numbers": [
+          "18408972",
+          "220807081",
+          "30130257",
+          "416174669",
+          "423776262",
+          "429560218",
+          "756805759",
+          "759885472",
+          "778948340",
+          "798225863",
+          "859867355"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781907410710",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/prettylittleliar0000shep",
+      "fields": {
+        "publishers": [
+          "Atom"
+        ],
+        "publish_date": "2010",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "isbn13": "9780307719218",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "hathitrust",
+      "match": "isbn13",
+      "url": "https://catalog.hathitrust.org/Record/011485837",
+      "fields": {
+        "languages": [
+          "eng"
+        ],
+        "number_of_pages": 529,
+        "subtitle": "the origins of power, prosperity, and poverty",
+        "publish_date": "2012",
+        "lccn": [
+          "2011023538"
+        ],
+        "oclc_numbers": [
+          "729065001"
+        ]
+      }
+    },
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/whynationsfailor00acem",
+      "fields": {
+        "publishers": [
+          "Crown Publishers"
+        ],
+        "publish_date": "2012",
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "2011023538"
+        ],
+        "oclc_numbers": [
+          "729065001",
+          "774908853",
+          "777951185",
+          "780157971",
+          "784293747",
+          "798640867",
+          "800733870",
+          "803353763",
+          "805356561",
+          "807325443",
+          "820944192",
+          "821129108",
+          "838519368",
+          "848255849",
+          "849035873",
+          "856620363",
+          "859943226"
+        ]
+      }
+    }
+  ]
+}

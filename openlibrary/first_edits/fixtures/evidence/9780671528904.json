@@ -1,0 +1,23 @@
+{
+  "isbn13": "9780671528904",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/mindhunterinside0000doug_g2d8",
+      "fields": {
+        "publishers": [
+          "Scribner"
+        ],
+        "publish_date": "1995",
+        "languages": [
+          "eng"
+        ],
+        "lccn": [
+          "95033410"
+        ]
+      }
+    }
+  ]
+}

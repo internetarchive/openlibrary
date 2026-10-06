@@ -1,0 +1,20 @@
+{
+  "isbn13": "9781509854424",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/immortallifeofhe0000sklo_d9g5",
+      "fields": {
+        "publishers": [
+          "Pan Books"
+        ],
+        "publish_date": "2011",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}

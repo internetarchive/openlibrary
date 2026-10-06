@@ -1,0 +1,20 @@
+{
+  "isbn13": "9780812415698",
+  "built": "2026-10-06",
+  "sources": [
+    {
+      "id": "ia",
+      "match": "ocaid",
+      "url": "https://archive.org/details/isbn_0812415698",
+      "fields": {
+        "publishers": [
+          "Perfection Learning Prebound"
+        ],
+        "publish_date": "July 1977",
+        "languages": [
+          "eng"
+        ]
+      }
+    }
+  ]
+}
