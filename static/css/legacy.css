@@ -903,15 +903,6 @@ div#searchResults .SRPCoverBlank a {
   text-decoration: none;
 }
 
-/* openlibrary/macros/AvailabilityButton.html */
-.waitlist-msg {
-  font-family: var(--font-family-body);
-  font-size: 0.7em;
-  margin-bottom: -1.5em;
-  color: var(--color-text-secondary);
-  padding: 0.2em;
-}
-
 /* Results on /search/authors */
 /* openlibrary/templates/search/authors.html */
 .authorList {

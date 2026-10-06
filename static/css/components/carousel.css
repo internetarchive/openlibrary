@@ -455,6 +455,30 @@
 .ol-action-row .ol-macro-wrapper .cta-button-group {
   width: 100%;
 }
+
+/* A status line ("Not in Library", "Checked Out") takes the button's slot. The
+   control height holds two lines, so it wraps, clamps at two, and the row of
+   cards stays one height. Mirrored in searchResultItemCta.css. */
+.ol-action-row .waitinglist-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--control-height-medium);
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-control);
+  text-align: center;
+  text-wrap: balance;
+  hyphens: auto;
+}
+.ol-action-row .waitinglist-message > span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 .ol-return-wrapper {
   flex: 0 0 39px;
 }
