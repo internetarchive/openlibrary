@@ -8,7 +8,6 @@
 .bookcover .cta-btn.cta-btn--preview {
   color: var(--primary-blue);
   text-decoration: none;
-  position: relative;
   background-color: transparent;
   margin: -5px auto;
   font-size: var(--font-size-label-large);

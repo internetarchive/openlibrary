@@ -144,26 +144,6 @@ a.cta-btn--unavailable:disabled {
   cursor: default;
 }
 
-/* Preview is filled by inheritance only — every surface that shows it (the read
-   panel, search results) repaints it as a text link — so it keeps the flat fill
-   rather than the raised primary box. */
-.cta-btn--preview,
-a.cta-btn--preview {
-  background-color: var(--color-primary);
-  color: var(--white);
-}
-
-.cta-btn--preview:hover,
-a.cta-btn--preview:hover {
-  background-color: hsl(211, 92%, 17%);
-}
-
-.cta-btn--preview:disabled,
-a.cta-btn--preview:disabled {
-  background-color: var(--grey);
-  cursor: default;
-}
-
 .cta-btn--shell,
 .cta-btn--shell:link,
 .cta-btn--shell:visited,

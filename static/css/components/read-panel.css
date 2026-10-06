@@ -38,29 +38,6 @@
   margin-bottom: 0;
 }
 
-/* Some preview rules are too specific and need to be rewritten */
-/* Preview button appears styled as a text link, led by its book icon */
-.read-options .cta-btn.cta-btn--preview,
-.btn-notice .cta-btn.cta-btn--preview {
-  color: var(--primary-blue);
-  text-decoration: none;
-  position: relative;
-  margin: 0 auto;
-  background-color: transparent;
-
-  /* When Preview button is a text link, have it take up only the width
-   of the content (not full 100% width) */
-  width: auto;
-}
-
-/* stylelint-disable selector-max-specificity */
-.read-options .cta-btn.cta-btn--preview:hover,
-.btn-notice .cta-btn.cta-btn--preview:hover {
-  background-color: hsla(202, 96%, 37%, 0.1);
-}
-
-/* stylelint-enable selector-max-specificity */
-
 .read-options .cta-section,
 .btn-notice .cta-section {
   font-size: 0.78em;

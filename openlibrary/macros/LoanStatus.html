@@ -118,7 +118,6 @@ $elif lending_state == 'waitlist':
         <button
           type="submit"
           class="cta-btn"
-          id="unwaitlist_ebook"
           $:analytics_attr('LeaveWaitlist')
         >$_('Leave waiting list')</button>
         $if show_menu:
@@ -136,7 +135,6 @@ $elif lending_state == 'waitlist':
         <button
           type="submit"
           class="cta-btn cta-btn--unavailable $(login_class)"
-          id="waitlist_ebook"
           $:analytics_attr('JoinWaitlist')
           $:data_attr
         >$_('Join Waitlist')</button>

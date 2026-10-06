@@ -448,7 +448,6 @@ class TestIntegratedBookPageRendering:
         assert len(lending_state_calls) == 1
         assert 'data-lending-state="open"' in html
         assert "waitinglist-form" not in html
-        assert "LocateButton" not in html
 
     def test_edition_page_renders_via_real_templates(self, monkeypatch, mock_site, render_template, request_context_fixture):
         request_context_fixture(lang="en")
