@@ -269,7 +269,7 @@ a.cta-btn--delete:hover {
   margin-bottom: var(--spacing-stack-sm);
 }
 
-form.return-form .cta-btn {
+form.return-form > ol-button {
   margin-bottom: var(--spacing-stack-xs);
 }
 
