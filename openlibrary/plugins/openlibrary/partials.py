@@ -193,7 +193,7 @@ def _resolve_carousel_card_author_names(book) -> list[str]:
     return []
 
 
-def _render_carousel_card_loan_status(book, *, work_key: str, secondary_action: bool, key: str) -> Markup:
+def _render_carousel_card_loan_status(book, *, work_key: str, key: str) -> Markup:
     """Bridge call into the still-Templetor LoanStatus macro (183 lines, 8
     other callers; out of scope for this conversion per issue #13570).
     TODO: Convert LoanStatus to jinja and remove this bridge.
@@ -203,7 +203,6 @@ def _render_carousel_card_loan_status(book, *, work_key: str, secondary_action: 
         (book,),
         work_key=work_key,
         listen=False,
-        secondary_action=secondary_action,
         analytics_override="BookCarousel|{action}Click|%s" % key,
     )
     return Markup(str(macro["__body__"]))
@@ -230,7 +229,7 @@ class CarouselCardData(TypedDict):
 
 
 @public
-def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_path: str, secondary_action: bool = False) -> CarouselCardData:
+def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_path: str) -> CarouselCardData:
     """Gather data for books/custom_carousel_card.html.jinja.
 
     Like ReadingGoalProgressPartial.generate_async: Python gathers
@@ -271,7 +270,7 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "key": key,
         "lazy": lazy,
         "layout": layout,
-        "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, secondary_action=(secondary_action and not loan), key=key),
+        "loan_status_html": _render_carousel_card_loan_status(book, work_key=url, key=key),
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
         # No reader or state in the HTML: book-state.js fills both in.
@@ -1000,7 +999,6 @@ def get_book_carousel_data(
     load_more: dict | None = None,
     test: bool = False,
     compact_mode: bool = False,
-    secondary_action: bool = False,
     layout: str = "carousel",
     full_path: str,
     count: int | None = None,
@@ -1034,7 +1032,6 @@ def get_book_carousel_data(
                 "layout": layout,
                 "key": key,
                 "subject": load_more.get("subject", ""),
-                "secondaryAction": secondary_action,
                 "sorts": load_more.get("sorts", ""),
                 "hasFulltextOnly": load_more.get("hasFulltextOnly", True),
             }
@@ -1054,7 +1051,6 @@ def get_book_carousel_data(
                 layout,
                 key,
                 full_path,
-                secondary_action=secondary_action,
             )
             cards.append(render_jinja_template("books/custom_carousel_card.html.jinja", **data))
         except Exception:  # noqa: BLE001  # one bad card does not stop the full carousel
