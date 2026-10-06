@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import IntEnum
 
-from openlibrary.core.async_db import connection
+from openlibrary.core.async_db import fetch_val
 
 from . import db
 
@@ -139,18 +139,14 @@ class BookshelvesEvents(db.CommonExtras):
             " WHERE username = %(username)s AND event_type = %(event_type)s"
             " AND event_date LIKE %(event_date)s"
         )
-        async with connection() as conn:
-            cursor = await conn.execute(
-                query,
-                {
-                    "username": username,
-                    "event_type": event_type,
-                    "event_date": f"{year}%",
-                },
-            )
-            row = await cursor.fetchone()
-        assert row is not None
-        return row["count"]
+        return await fetch_val(
+            query,
+            {
+                "username": username,
+                "event_type": event_type,
+                "event_date": f"{year}%",
+            },
+        )
 
     # Update methods:
     @classmethod

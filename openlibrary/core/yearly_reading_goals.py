@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import ClassVar
 
-from openlibrary.core.async_db import class_row, connection
+from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -29,12 +29,7 @@ class YearlyReadingGoals:
             f" count(*) FILTER (WHERE updated >= %(week_ago)s) AS week"
             f" FROM {cls.TABLENAME}"
         )
-        async with connection() as conn:
-            cursor = await conn.execute(
-                query,
-                {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO},
-            )
-            row = await cursor.fetchone()
+        row = await fetch_one(query, {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO})
         assert row is not None
         return {
             "total_yearly_reading_goals": {
@@ -51,11 +46,10 @@ class YearlyReadingGoals:
     # Create methods:
     @classmethod
     async def create(cls, username: str, year: int, target: int) -> None:
-        async with connection() as conn:
-            await conn.execute(
-                f"INSERT INTO {cls.TABLENAME} (username, year, target) VALUES (%(username)s, %(year)s, %(target)s)",
-                {"username": username, "year": year, "target": target},
-            )
+        await execute(
+            f"INSERT INTO {cls.TABLENAME} (username, year, target) VALUES (%(username)s, %(year)s, %(target)s)",
+            {"username": username, "year": year, "target": target},
+        )
 
     # Read methods:
     # web.db's `order=` kwarg is interpolated raw into the SQL string -- only
@@ -73,35 +67,29 @@ class YearlyReadingGoals:
             raise ValueError(f"Invalid order: {order!r}. Must be one of {list(cls._ALLOWED_ORDERS)}.")
 
         query = f"SELECT username, year, target, created, updated FROM {cls.TABLENAME} WHERE username = %(username)s ORDER BY {cls._ALLOWED_ORDERS[order]}"
-        async with connection() as conn, conn.cursor(row_factory=class_row(YearlyReadingGoal)) as cursor:
-            await cursor.execute(query, {"username": username})
-            return await cursor.fetchall()
+        return await fetch_all(query, {"username": username}, row_factory=class_row(YearlyReadingGoal))
 
     @classmethod
     async def select_by_username_and_year(cls, username: str, year: int) -> list[YearlyReadingGoal]:
         query = f"SELECT username, year, target, created, updated FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
-        async with connection() as conn, conn.cursor(row_factory=class_row(YearlyReadingGoal)) as cursor:
-            await cursor.execute(query, {"username": username, "year": year})
-            return await cursor.fetchall()
+        return await fetch_all(query, {"username": username, "year": year}, row_factory=class_row(YearlyReadingGoal))
 
     # Update methods:
     @classmethod
     async def update_target(cls, username: str, year: int, new_target: int) -> None:
         query = f"UPDATE {cls.TABLENAME} SET target = %(target)s, updated = %(updated)s WHERE username = %(username)s AND year = %(year)s"
-        async with connection() as conn:
-            await conn.execute(
-                query,
-                {
-                    "username": username,
-                    "year": year,
-                    "target": new_target,
-                    "updated": datetime.now(),
-                },
-            )
+        await execute(
+            query,
+            {
+                "username": username,
+                "year": year,
+                "target": new_target,
+                "updated": datetime.now(),
+            },
+        )
 
     # Delete methods:
     @classmethod
     async def delete_by_username_and_year(cls, username: str, year: int) -> None:
         query = f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
-        async with connection() as conn:
-            await conn.execute(query, {"username": username, "year": year})
+        await execute(query, {"username": username, "year": year})

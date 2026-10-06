@@ -27,11 +27,23 @@ When database configuration exists, missing psycopg dependencies raise
 during pool initialization rather than allowing a configured application
 to start and fail later on its first database request.
 
-Async call sites acquire connections with :func:`connection`:
+Async call sites use the single-statement helpers, each of which takes
+one connection from the pool, runs one query, and gives the connection
+back when the query completes:
+
+    await execute("INSERT ...", params)
+    rows = await fetch_all("SELECT ...", params)
+    row = await fetch_one("SELECT ...", params)
+    count = await fetch_val("SELECT count(*) ...", params)
+
+``fetch_all`` and ``fetch_one`` map their rows through ``row_factory``
+when one is passed, e.g. ``class_row(Model)``, and give back the pool's
+default dict rows otherwise. A method that needs several statements in
+one transaction acquires the connection explicitly instead:
 
     async with connection() as conn:
-        cursor = await conn.execute("SELECT ...", params)
-        rows = await cursor.fetchall()
+        await conn.execute(...)
+        await conn.execute(...)
 
 Legacy synchronous code that has not been bridged yet keeps using the
 ``web.database`` handle in ``openlibrary/core/db.py``.
@@ -56,15 +68,17 @@ logger = logging.getLogger("openlibrary.async_db")
 # can still be imported without psycopg installed. A configured application
 # fails during startup in _open_pool() instead of failing on its first request.
 try:
-    from psycopg.rows import class_row, dict_row
+    from psycopg.rows import class_row, dict_row, tuple_row
     from psycopg_pool import AsyncConnectionPool
 except ModuleNotFoundError:
     class_row = None  # type: ignore[assignment]
     dict_row = None  # type: ignore[assignment]
+    tuple_row = None  # type: ignore[assignment]
     AsyncConnectionPool = None  # type: ignore
 
 if TYPE_CHECKING:
-    from psycopg import AsyncConnection
+    from psycopg import AsyncConnection, AsyncCursor
+    from psycopg.rows import BaseRowFactory
     from psycopg_pool import AsyncConnectionPool as _PoolClass
 
     Pool = _PoolClass[AsyncConnection[dict[str, Any]]]
@@ -229,3 +243,77 @@ async def connection() -> AsyncIterator[AsyncConnection[dict[str, Any]]]:
         raise RuntimeError("No async database pool available; ensure web.config.db_parameters has a 'db' key configured (or call init_pool() during app startup)")
     async with pool.connection() as conn:
         yield conn
+
+
+async def _run(
+    conn: AsyncConnection[dict[str, Any]],
+    query: str,
+    params: dict[str, Any] | None,
+    row_factory: BaseRowFactory[Any] | None,
+) -> AsyncCursor[Any]:
+    """Execute ``query`` on ``conn`` and return the cursor to fetch from.
+
+    Without a ``row_factory`` the cursor inherits the connection's dict
+    rows; with one, e.g. ``class_row(Model)``, the cursor maps rows
+    through it instead.
+    """
+    if row_factory is None:
+        return await conn.execute(query, params)
+    cursor = conn.cursor(row_factory=row_factory)
+    await cursor.execute(query, params)
+    return cursor
+
+
+async def execute(query: str, params: dict[str, Any] | None = None) -> None:
+    """Run one statement on its own pooled connection.
+
+    The connection commits when the statement completes and rolls back if
+    it raises, the same transaction semantics an explicit ``async with
+    connection()`` block gives. Use that form instead when a method needs
+    several statements in one transaction.
+    """
+    async with connection() as conn:
+        await conn.execute(query, params)
+
+
+async def fetch_all(
+    query: str,
+    params: dict[str, Any] | None = None,
+    *,
+    row_factory: BaseRowFactory[Any] | None = None,
+) -> list[Any]:
+    """Every row of one query, on its own pooled connection.
+
+    Without ``row_factory``, rows are the pool's default dicts; with one,
+    e.g. ``class_row(Model)``, rows are whatever it builds. The
+    connection commits when the query completes, like :func:`execute`.
+    """
+    async with connection() as conn:
+        cursor = await _run(conn, query, params, row_factory)
+        return await cursor.fetchall()
+
+
+async def fetch_one(
+    query: str,
+    params: dict[str, Any] | None = None,
+    *,
+    row_factory: BaseRowFactory[Any] | None = None,
+) -> Any:
+    """The first row of one query, or None if it matched nothing.
+
+    Rows map through ``row_factory`` the same way :func:`fetch_all` maps
+    them. The connection commits when the query completes.
+    """
+    async with connection() as conn:
+        cursor = await _run(conn, query, params, row_factory)
+        return await cursor.fetchone()
+
+
+async def fetch_val(query: str, params: dict[str, Any] | None = None) -> Any:
+    """The first column of the first row, or None if there were no rows.
+
+    For one-column queries -- ``SELECT count(*) ...`` and other scalars.
+    The connection commits when the query completes.
+    """
+    row = await fetch_one(query, params, row_factory=tuple_row)
+    return row[0] if row is not None else None

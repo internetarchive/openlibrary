@@ -1,9 +1,10 @@
-"""Shared fakes for testing model methods that use ``async_db.connection()``.
+"""Connection and cursor fakes for the ``async_db`` helper tests.
 
-One copy of the connection/cursor scaffolding for every model's async
-tests, instead of each test module hand-rolling its own. (These began as
-two private copies -- yearly reading goals and bookshelves events -- that
-had already drifted: one fake committed at block exit, the other didn't.)
+Model tests patch the helpers themselves (``fetch_all``, ``fetch_one``,
+``execute``, ``fetch_val``) and assert the query and params they pass, so
+they never see a connection. These fakes are for the tests one level
+down -- what the helpers themselves do with a connection: record executed
+queries, hand back canned rows, and commit on clean block exit.
 
 ``FakeConnectionContext`` is what ``patch(..., return_value=...)`` needs to
 stand in for the ``async with connection() as conn`` block. It commits when
