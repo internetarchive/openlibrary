@@ -1153,11 +1153,11 @@ msgid "Load Books"
 msgstr ""
 
 #: account/import.html
-msgid "LibraryThing"
+msgid "Help us decide which importers to build next."
 msgstr ""
 
 #: account/import.html
-msgid "Coming Soon"
+msgid "LibraryThing"
 msgstr ""
 
 #: account/import.html
