@@ -107,6 +107,8 @@ async def test_create_and_select(self, pg_db):
 
 Add integration tests when a method uses postgres-specific SQL (aggregates, `FILTER`, `DISTINCT`, date/time, `json`/`jsonb`, `ARRAY`). Trivial CRUD is covered by the unit tests; a column typo surfaces immediately in dev. The `pg_db` fixture (from `openlibrary/tests/core/conftest.py`) handles the rest — just use it as a fixture argument and it points `web.config.db_parameters` at a fresh database.
 
+Run them with `make test-py-integration` (needs `pg_ctl` on `PATH` — `brew install postgresql@14` on macOS).
+
 ## Rules of thumb
 
 - **New table or new query?** Async helpers from the start.
