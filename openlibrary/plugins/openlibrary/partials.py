@@ -796,8 +796,8 @@ class LazyCarouselParams(BaseModel):
     safe_mode: bool = True
     # Shows a Trending / Newest / Top rated control in the row's header; it refetches in place.
     sort_control: bool = False
-    # A "Browse the stacks" shelf row (HomeGenrePartial): the genre's subgenres show as a control under
-    # the heading, and `subgenre` narrows the row to one of them. The server rebuilds the query.
+    # A "Browse the stacks" shelf row (HomeGenrePartial): the genre's row, or one subgenre's within it.
+    # The server rebuilds the query from these, so the config needn't carry it.
     genre: str | None = None
     subgenre: str | None = None
 
@@ -1120,32 +1120,56 @@ class HomeGenreParams(BaseModel):
 
 
 class SubgenreOption(TypedDict):
-    slug: str
     name: str
-    selected: bool
+    href: str  # the subgenre's row, further down the shelf
 
 
 class HomeGenrePartial:
-    """The shelf that opens under a "Browse the stacks" tile: one row for the genre, with its
-    subgenres as a control that narrows it. Fetched by browse-stacks.js; lazy-carousel.js refetches
-    the row when a subgenre or sort is picked, and CarouselPartial calls `narrow` to build it."""
+    """The shelf that opens under a "Browse the stacks" tile: the genre's row, loaded, then a row per
+    subgenre as lazy placeholders. The genre row lists the subgenres under its heading, each linking
+    to its row, and carries the shelf's one sort control: changing it re-sorts every row (lazy-carousel.js).
+    Fetched by browse-stacks.js; CarouselPartial calls `narrow` to build a row's query."""
 
     @staticmethod
     def query(genre: home_genres.Genre, subgenre: home_genres.GenreNode | None, lang: str | None) -> str:
         node, parent = (subgenre, genre) if subgenre else (genre, None)
         return home_genres.solr_query(node, parent) + home_genres.user_language_clause(lang)
 
+    @staticmethod
+    def row_key(genre: home_genres.Genre, subgenre: home_genres.GenreNode | None = None) -> str:
+        """The row's carousel key; also its element id, so the genre row's subgenre links can jump to it."""
+        return f"genre-{genre['slug']}" + (f"-{subgenre['slug']}" if subgenre else "")
+
     @classmethod
-    def narrow(cls, params: LazyCarouselParams, genre: home_genres.Genre) -> tuple[LazyCarouselParams, list[SubgenreOption]]:
-        """`params` with the query and header link for `params.subgenre` within `genre`, and the subgenre options."""
+    def narrow(cls, params: LazyCarouselParams, genre: home_genres.Genre) -> tuple[LazyCarouselParams, list[SubgenreOption] | None]:
+        """`params` with the query and header link for `params.subgenre` within `genre`, and the genre
+        row's subgenre links (None for a subgenre row)."""
         subgenre = home_genres.find_subgenre(genre, params.subgenre)
         query = cls.query(genre, subgenre, get_request_lang())
         # As build_carousel_placeholder_config does for the row's first load.
         if params.safe_mode:
             query = f"{query} {_SAFE_MODE_FILTER}"
-        url = home_genres.search_url(subgenre, parent=genre) if subgenre else home_genres.search_url(genre)
-        options = [SubgenreOption(slug=s["slug"], name=s["name"], selected=s is subgenre) for s in genre["subgenres"]]
-        return params.model_copy(update={"query": query, "url": url, "subgenre": subgenre and subgenre["slug"]}), options
+        # Every row's link follows the shelf's sort, whichever row carries the control.
+        url = _with_sort(home_genres.search_url(subgenre, parent=genre) if subgenre else home_genres.search_url(genre), params.sort)
+        links = None if subgenre else [SubgenreOption(name=s["name"], href=f"#{cls.row_key(genre, s)}") for s in genre["subgenres"]]
+        return params.model_copy(update={"query": query, "url": url, "subgenre": subgenre and subgenre["slug"]}), links
+
+    @classmethod
+    def row(cls, genre: home_genres.Genre, subgenre: home_genres.GenreNode | None = None) -> LazyCarouselParams:
+        """A shelf row's config. `narrow` fills in the query and link when the row is fetched."""
+        return LazyCarouselParams(
+            title=(subgenre or genre)["name"],
+            sort="trending",
+            key=cls.row_key(genre, subgenre),
+            limit=20,
+            has_fulltext_only=True,
+            # The shelf rows pilot the native carousel component; the other home rows are still slick.
+            layout="ol-carousel",
+            # One control for the whole shelf, on the genre row; the subgenre rows follow it.
+            sort_control=subgenre is None,
+            genre=genre["slug"],
+            subgenre=subgenre["slug"] if subgenre else None,
+        )
 
     @classmethod
     async def generate_async(cls, params: HomeGenreParams) -> dict:
@@ -1153,24 +1177,30 @@ class HomeGenrePartial:
         if not genre:
             return {"partials": ""}
 
-        row = LazyCarouselParams(
-            query=cls.query(genre, None, get_request_lang()),
-            title=genre["name"],
-            sort="trending",
-            key=f"genre-{genre['slug']}",
-            limit=20,
-            has_fulltext_only=True,
-            url=home_genres.search_url(genre),
-            # The shelf rows pilot the native carousel component; the other home rows are still slick.
-            layout="ol-carousel",
-            sort_control=True,
-            genre=genre["slug"],
+        # The genre row is rendered in this response rather than as a lazy placeholder, so opening a
+        # shelf shows books in one request; the subgenre rows load as they scroll into view.
+        genre_row = cls.row(genre)
+        carousel = await CarouselPartial.generate_async(genre_row)
+        subgenre_rows = [
+            render_jinja_template(
+                "RawQueryCarouselPlaceholder.html.jinja",
+                lazy_config_json=json_encode(row.model_dump(exclude_none=True)),
+                id=row.key,
+                title=row.title,
+                title_link=True,
+                layout=row.layout,
+                fallback=None,
+            )
+            for row in (cls.row(genre, s) for s in genre["subgenres"])
+        ]
+        html = render_jinja_template(
+            "home/genre_shelf.html.jinja",
+            genre=genre,
+            carousel=carousel["partials"],
+            # The row's controls refetch it from this config, as for a lazy-loaded row (lazy-carousel.js).
+            config_json=json_encode(genre_row.model_dump(exclude_none=True)),
+            subgenre_rows=subgenre_rows,
         )
-        # Rendered in this response rather than as a lazy placeholder, so opening a shelf is one request.
-        carousel = await CarouselPartial.generate_async(row)
-        # The row's controls refetch it from this config, as for a lazy-loaded row (lazy-carousel.js).
-        config_json = json_encode(row.model_dump(exclude_none=True))
-        html = render_jinja_template("home/genre_shelf.html.jinja", genre=genre, carousel=carousel["partials"], config_json=config_json)
         return {"partials": html}
 
 

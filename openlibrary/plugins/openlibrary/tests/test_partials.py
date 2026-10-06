@@ -1,6 +1,7 @@
 """Tests for partials.py functionality."""
 
 import json
+import re
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -41,28 +42,38 @@ HORROR = {
 
 
 class TestHomeGenreNarrow:
-    """A genre row's subgenre control narrows it to books in both the genre and the subgenre."""
+    """A shelf row's query is built from its genre and subgenre: a subgenre row is books in both."""
 
-    def narrow(self, subgenre=None):
-        params = LazyCarouselParams(query="stale", genre="horror", subgenre=subgenre, safe_mode=False)
+    def narrow(self, subgenre=None, sort="trending"):
+        params = LazyCarouselParams(query="stale", genre="horror", subgenre=subgenre, sort=sort, safe_mode=False)
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_request_lang", return_value=None),
             patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
         ):
             return HomeGenrePartial.narrow(params, HORROR)
 
-    def test_no_subgenre_is_the_whole_genre(self):
-        params, options = self.narrow()
+    def test_genre_row_lists_its_subgenres(self):
+        params, links = self.narrow()
         assert params.query == "subject_key:(horror* OR fiction_horror*)"
         assert params.subgenre is None
-        assert [o["selected"] for o in options] == [False, False]
+        assert links == [
+            {"name": "Gothic", "href": "#genre-horror-gothic"},
+            {"name": "Psychological", "href": "#genre-horror-psychological"},
+        ]
 
-    def test_subgenre_is_scoped_to_its_genre(self):
-        params, options = self.narrow("gothic")
+    def test_subgenre_row_is_scoped_to_its_genre(self):
+        params, links = self.narrow("gothic")
         assert params.query == "subject_key:(horror* OR fiction_horror*) AND subject_key:gothic_fiction*"
         assert "gothic_fiction" in params.url
         assert "horror" in params.url
-        assert [(o["slug"], o["selected"]) for o in options] == [("gothic", True), ("psychological", False)]
+        assert links is None
+
+    def test_every_row_links_with_the_shelf_sort(self):
+        """The shelf has one sort control, on the genre row, so a subgenre row's link follows it too."""
+        for subgenre in (None, "gothic"):
+            params, _ = self.narrow(subgenre, sort="rating")
+            assert "sort=rating" in params.url
+            assert "sort=trending" not in params.url
 
     def test_unknown_subgenre_falls_back_to_the_genre(self):
         params, _ = self.narrow("romance")
@@ -71,14 +82,15 @@ class TestHomeGenreNarrow:
 
 
 class TestHomeGenreShelf:
-    """Opening a shelf is one request: the row comes back loaded, with the config its controls refetch from."""
+    """Opening a shelf is one request: the genre row comes back loaded, with the config the shelf's one
+    sort control refetches from, and a lazy placeholder per subgenre row follows it."""
 
     @pytest.fixture(autouse=True)
     def setup_context(self, request_context_fixture):
         request_context_fixture(lang="en")
 
     @pytest.mark.asyncio
-    async def test_row_is_rendered_in_the_response(self):
+    async def test_genre_row_is_rendered_and_subgenre_rows_are_lazy(self):
         render = AsyncMock(return_value={"partials": "<ol-carousel></ol-carousel>"})
         with (
             patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=HORROR),
@@ -87,10 +99,17 @@ class TestHomeGenreShelf:
         ):
             html = (await HomeGenrePartial.generate_async(HomeGenreParams(genre="horror")))["partials"]
         row = render.call_args.args[0]
-        assert (row.genre, row.layout, row.sort, row.sort_control) == ("horror", "ol-carousel", "trending", True)
+        assert (row.genre, row.subgenre, row.key, row.layout, row.sort, row.sort_control) == ("horror", None, "genre-horror", "ol-carousel", "trending", True)
         assert "<ol-carousel></ol-carousel>" in html
         assert 'class="lazy-carousel-loaded"' in html
-        assert "&#34;genre&#34;: &#34;horror&#34;" in html or "&quot;genre&quot;: &quot;horror&quot;" in html
+        assert html.count('class="lazy-carousel"') == 2
+        # Only the genre row carries the control: the subgenre rows' configs and skeletons have none.
+        assert re.findall(r"sort_control(?:&#34;|&quot;|\"): (true|false)", html) == ["true", "false", "false"]
+        assert "carousel-skeleton__control" not in html
+        assert 'id="genre-horror-gothic"' in html
+        assert 'id="genre-horror-psychological"' in html
+        # The placeholders' configs name their subgenre, so CarouselPartial scopes them when they load.
+        assert "subgenre&#34;: &#34;gothic" in html or "subgenre&quot;: &quot;gothic" in html
 
     @pytest.mark.asyncio
     async def test_unknown_genre_is_empty(self):

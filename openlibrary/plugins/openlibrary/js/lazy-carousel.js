@@ -78,7 +78,8 @@ async function fetchPartials(config) {
  * @param target {HTMLElement} A placeholder element for a carousel
  */
 function doFetchAndUpdate(target) {
-    const config = JSON.parse(target.dataset.config);
+    const requested = target.dataset.config;
+    const config = JSON.parse(requested);
     const skeleton = target.querySelector('.carousel-skeleton');
 
     fetchPartials(config)
@@ -89,6 +90,11 @@ function doFetchAndUpdate(target) {
             return resp.json();
         })
         .then(data => {
+            // The config changed while this was in flight (a shelf's sort): fetch again for the new one.
+            if (target.dataset.config !== requested) {
+                doFetchAndUpdate(target);
+                return;
+            }
             const newElem = document.createElement('div');
             newElem.className = 'lazy-carousel-loaded';
             newElem.innerHTML = (data.partials || '').trim();
@@ -113,8 +119,10 @@ function doFetchAndUpdate(target) {
                 // announcing an empty shelf the patron never asked for.
                 target.remove();
             } else {
-                // The loaded wrapper keeps the config so its header controls can refetch in place.
+                // The loaded wrapper keeps the config so its header controls can refetch in place,
+                // and the placeholder's id so links to the row still land on it.
                 newElem.dataset.config = JSON.stringify(config);
+                if (target.id) newElem.id = target.id;
                 target.parentNode.insertBefore(newElem, target);
                 target.remove();
                 initCarousels(carouselElements);
@@ -188,33 +196,29 @@ function handleRetry(target) {
 
 /**
  * A row's sort control (`sort_control` in its config; books/custom_carousel.html.jinja)
- * refetches that row in place with the chosen sort.
+ * refetches that row in place with the chosen sort. In a "Browse the stacks" shelf the genre row's
+ * control is the shelf's: every row refetches, and rows not loaded yet take the sort when they do.
  */
 document.addEventListener('ol-menu-popover-select', (e) => {
     const control = e.target.closest?.('.carousel-sort');
     const host = control?.closest('.lazy-carousel-loaded[data-config]');
     if (!host) return;
     const config = JSON.parse(host.dataset.config);
+    const sort = e.detail.value;
     // The menu fires for the current item too.
-    if (e.detail.value === config.sort) return;
-    trackEvent('CarouselSort', e.detail.value, config.key);
+    if (sort === config.sort) return;
+    trackEvent('CarouselSort', sort, config.key);
     // The menu hands focus back to its trigger only once it finishes closing, which can be
     // after the refetch lands, so name the control to refocus rather than reading focus.
-    refetch(host, { ...config, sort: e.detail.value }, '.carousel-sort');
-});
-
-/**
- * A genre row's subgenre control (`genre` in its config; HomeGenrePartial) narrows the row to
- * one subgenre, or widens it back with "All".
- */
-document.addEventListener('ol-tabs-change', (e) => {
-    const control = e.target.closest?.('.carousel-subgenres');
-    const host = control?.closest('.lazy-carousel-loaded[data-config]');
-    if (!host) return;
-    const config = JSON.parse(host.dataset.config);
-    const subgenre = e.detail.value === 'all' ? '' : e.detail.value;
-    trackEvent('CarouselSubgenre', subgenre || 'All', config.key);
-    refetch(host, { ...config, subgenre });
+    refetch(host, { ...config, sort }, '.carousel-sort');
+    const shelf = host.closest('.genre-shelf');
+    if (!shelf) return;
+    shelf.querySelectorAll('.lazy-carousel-loaded[data-config]').forEach((row) => {
+        if (row !== host) refetch(row, { ...JSON.parse(row.dataset.config), sort });
+    });
+    shelf.querySelectorAll('.lazy-carousel[data-config]').forEach((placeholder) => {
+        placeholder.dataset.config = JSON.stringify({ ...JSON.parse(placeholder.dataset.config), sort });
+    });
 });
 
 // The latest refetch per carousel, so a slower earlier response can't overwrite a newer one.
@@ -246,15 +250,12 @@ function refetch(host, config, refocus) {
         .then(data => {
             if (latestRefetch.get(host) !== request) return;
             // The header re-renders too; keep focus on the control that had it.
-            const focusedControl = refocus || (host.querySelector('.carousel-subgenres')?.matches(':focus-within') && '.carousel-subgenres');
             host.innerHTML = data.partials.trim();
             initCarousels(host.querySelectorAll(CAROUSEL_SELECTOR));
-            const control = focusedControl ? host.querySelector(focusedControl) : null;
+            const control = refocus ? host.querySelector(refocus) : null;
             if (control?.matches('.carousel-sort')) {
                 const trigger = control.querySelector(':scope > [slot="trigger"]');
                 trigger?.updateComplete.then(() => trigger.focus());
-            } else if (control) {
-                control.updateComplete.then(() => control.renderRoot.querySelector('.tab[aria-selected="true"]')?.focus());
             }
         })
         .catch(() => {
@@ -263,8 +264,6 @@ function refetch(host, config, refocus) {
             host.dataset.config = JSON.stringify(previous);
             const sort = host.querySelector('.carousel-sort');
             if (sort) sort.value = previous.sort;
-            const subgenres = host.querySelector('.carousel-subgenres');
-            if (subgenres) subgenres.value = previous.subgenre || 'all';
         })
         .finally(() => {
             if (latestRefetch.get(host) !== request) return;

@@ -132,46 +132,48 @@ TILE_GENRES = [
 ]
 
 
-class TestFeaturedGenres:
-    """The stacks' tiles come from one grouped Solr query, one group per genre."""
+PICKED_COVERS = {"horror": [10, 11, 12, 13], "history": [20, 21, 22], "absurd": [30, 31, 32]}
 
-    def featured(self, grouped, picked=None):
+
+class TestFeaturedGenres:
+    """The stacks' tiles come from one faceted Solr query, one facet query per genre."""
+
+    def featured(self, counts, picked=PICKED_COVERS):
         solr = MagicMock()
-        solr.raw_request = AsyncMock(return_value=MagicMock(json=lambda: {"grouped": grouped}))
+        solr.raw_request = AsyncMock(return_value=MagicMock(json=lambda: {"facet_counts": {"facet_queries": counts}}))
         with (
             patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),
-            patch.object(home.home_genres, "load_tile_covers", return_value=picked or {}),
+            patch.object(home.home_genres, "load_tile_covers", return_value=picked),
             patch.object(home.search, "get_solr", return_value=solr),
         ):
             web.ctx.env = {}
             return home.get_featured_genres(), solr.raw_request.call_args.args[1]
 
     def test_one_query_for_every_tile(self):
-        genres, payload = self.featured(
-            {
-                "subject_key:horror*": {"doclist": {"numFound": 1200, "docs": [{"cover_i": 1}, {}, {"cover_i": 2}, {"cover_i": 3}, {"cover_i": 4}]}},
-                "subject_key:history*": {"doclist": {"numFound": 5, "docs": []}},
-                "subject_key:absurd*": {"doclist": {"numFound": 0, "docs": []}},
-            }
-        )
-        assert payload.count("group.query=") == 3
+        genres, payload = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0})
+        assert payload.count("facet.query=") == 3
+        # Counts only: no grouping, which sorted every genre's matches and timed out on the full index.
+        assert "group" not in payload
         # Counted, and nothing readable means no tile.
         assert [(g["slug"], g["readable_count"]) for g in genres] == [("horror", 1200), ("history", 5)]
-        # Docs without a cover are skipped, and the fan takes three.
-        assert genres[0]["covers"] == [1, 2, 3]
-
-    def test_hand_picked_covers_beat_trending(self):
-        genres, _ = self.featured(
-            {
-                "subject_key:horror*": {"doclist": {"numFound": 1200, "docs": [{"cover_i": 1}, {"cover_i": 2}, {"cover_i": 3}]}},
-                "subject_key:history*": {"doclist": {"numFound": 5, "docs": [{"cover_i": 4}]}},
-                "subject_key:absurd*": {"doclist": {"numFound": 0, "docs": []}},
-            },
-            picked={"horror": [10, 11, 12, 13]},
-        )
-        # A curated tile ignores the trending docs (and still takes three); the rest keep them.
+        # The fan takes three of the picked covers.
         assert genres[0]["covers"] == [10, 11, 12]
-        assert genres[1]["covers"] == [4]
+
+    def test_no_picked_covers_no_tile(self):
+        genres, payload = self.featured({"subject_key:horror*": 1200}, picked={"horror": [10, 11, 12]})
+        # Genres without covers aren't even counted.
+        assert payload.count("facet.query=") == 1
+        assert [g["slug"] for g in genres] == ["horror"]
+
+    def test_solr_failure_costs_the_rail_not_the_page(self):
+        with (
+            patch.object(home, "get_cached_featured_genres", side_effect=RuntimeError("solr down")),
+            patch.object(home.admin, "get_stats", return_value=None),
+            patch.object(home, "get_blog_feeds", return_value=[]),
+            patch.object(home, "render_template", return_value={}) as render,
+        ):
+            home.get_homepage(devmode=False)
+        assert render.call_args.kwargs["featured_genres"] == []
 
     def test_picked_covers_file_matches_the_tiles(self):
         picked = home.home_genres.load_tile_covers()

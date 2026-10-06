@@ -1,7 +1,13 @@
-{# Shows a carousel placeholder: a skeleton of the row until lazy-carousel.js swaps the row in. #}
+{#
+  Shows a carousel placeholder: a skeleton of the row until lazy-carousel.js swaps the row in.
+  `id`, when given, moves to the loaded row, so links to the row keep working. `sortable` stubs
+  the row's sort control.
+#}
 {% from "CarouselSkeleton.html.jinja" import carousel_skeleton %}
-<div class="lazy-carousel" data-config="{{ lazy_config_json }}">
-    {{ carousel_skeleton(layout=layout, title=title, title_link=title_link) }}
+<div class="lazy-carousel"
+     {% if id | default("") %}id="{{ id }}"{% endif %}
+     data-config="{{ lazy_config_json }}">
+    {{ carousel_skeleton(layout=layout, title=title, title_link=title_link, sortable=sortable | default(false)) }}
     <div class="lazy-carousel-retry hidden">
         {{ _("Failed to fetch carousel.") }} <a href="#" class="retry-btn">{{ _("Retry?") }}</a>
     </div>

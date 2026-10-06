@@ -1,8 +1,9 @@
 {#
   The shelf that opens under a "Browse the stacks" tile. Rendered by HomeGenrePartial;
-  `carousel` is the genre's row, already loaded. Its wrapper carries the row's config, as a
-  lazy-loaded row's does, so the subgenre and sort controls refetch it in place (lazy-carousel.js).
-  The row carries the heading; the tile that opened it names the shelf.
+  `carousel` is the genre's row, already loaded, and `subgenre_rows` are lazy placeholders for one
+  row per subgenre, stacked beneath it. The genre row's wrapper carries its config, as a lazy-loaded
+  row's does. Its sort control is the shelf's: lazy-carousel.js re-sorts every row from it. The genre
+  row carries the heading and, under it, a link to each subgenre's row.
 #}
 {% if genre is defined %}
     <div class="genre-shelf"
@@ -11,5 +12,8 @@
          aria-label="{{ genre.name }}"
          tabindex="-1">
         <div class="lazy-carousel-loaded" data-config="{{ config_json }}">{{ carousel | safe }}</div>
+        {% for row in subgenre_rows %}
+            {{ row | safe }}
+        {% endfor %}
     </div>
 {% endif %}

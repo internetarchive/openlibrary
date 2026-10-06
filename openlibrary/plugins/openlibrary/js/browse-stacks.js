@@ -1,8 +1,9 @@
 /**
- * "Browse the stacks" on the home page: a rail of genre tiles that open a shelf
- * (a carousel for the genre, with a subgenre control that narrows it) in place. The shelf HTML comes from
- * /partials/HomeGenre.json with its row already loaded; lazy-carousel.js sets it up and runs its controls.
- * The first tile's shelf is open on load; a caret on an open shelf points at its tile.
+ * "Browse the stacks" on the home page: a rail of genre tiles that open a shelf (a carousel for the
+ * genre, then one per subgenre) in place. The shelf HTML comes from /partials/HomeGenre.json with the
+ * genre row already loaded and the subgenre rows as lazy placeholders; lazy-carousel.js loads those
+ * and runs the genre row's sort control, which re-sorts the whole shelf. The first tile's shelf is open
+ * on load; a caret on an open shelf points at its tile.
  */
 
 import { trackEvent } from './ol.analytics.js';
@@ -89,21 +90,32 @@ export function initBrowseStacks(root) {
     }
 
     /**
-     * The shelf's skeleton, headed with the tile's genre and a tab per subgenre plus "All",
-     * so the loaded shelf lands in the same shape.
+     * The shelf's skeleton: the genre row headed with the tile's genre, its subgenres listed under
+     * the heading, and a row per subgenre below, so the loaded shelf lands in the same shape.
      * @param {HTMLElement} tile
      * @returns {DocumentFragment}
      */
     function skeletonFor(tile) {
         const fragment = skeleton ? skeleton.cloneNode(true) : document.createDocumentFragment();
-        const title = fragment.querySelector('.carousel-skeleton__title');
-        if (title) title.textContent = tile.querySelector('.browse-stacks__name').textContent;
-        const tabs = fragment.querySelector('.carousel-skeleton__tabs');
-        const subgenres = Number(tile.dataset.subgenres);
-        if (tabs && !subgenres) tabs.remove();
-        for (let i = 0; tabs && i < subgenres; i++) {
-            tabs.append(tabs.firstElementChild.cloneNode());
+        const [genreRow, subgenreRow] = fragment.querySelectorAll('.carousel-skeleton');
+        if (!genreRow) return fragment;
+        const subgenres = JSON.parse(tile.dataset.subgenres || '[]');
+        const entitle = (row, name) => {
+            row.querySelector('.carousel-skeleton__title').textContent = name;
+        };
+        entitle(genreRow, tile.querySelector('.browse-stacks__name').textContent);
+        const index = genreRow.querySelector('.carousel-skeleton__index');
+        if (subgenres.length) {
+            index.replaceChildren(...subgenres.map(name => Object.assign(document.createElement('span'), { textContent: name })));
+        } else {
+            index.remove();
         }
+        subgenres.forEach(name => {
+            const row = subgenreRow.cloneNode(true);
+            entitle(row, name);
+            subgenreRow.before(row);
+        });
+        subgenreRow.remove();
         return fragment;
     }
 
@@ -122,6 +134,7 @@ export function initBrowseStacks(root) {
             if (signal.aborted) return false;
             shelf.innerHTML = data.partials;
             lazyCarousel.initLoadedCarousels(shelf);
+            lazyCarousel.initLazyCarousel(shelf.querySelectorAll('.lazy-carousel'));
             return true;
         } catch (e) {
             if (e.name === 'AbortError') return false;

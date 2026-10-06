@@ -23,6 +23,7 @@
 .home-h2--lead {
   font-size: var(--font-size-headline-small);
   font-weight: var(--font-weight-heading);
+  margin-top: var(--spacing-stack-lg);
 }
 
 /* A row with a sort control (books/custom_carousel.html.jinja): the control sits at the end of
@@ -38,39 +39,6 @@
 
 .carousel-section-header--sortable > .home-h2 {
   margin: 0;
-}
-
-/* A heading that isn't a link (genre rows link from their footer instead). */
-.home-h2.carousel-heading--plain {
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-title-large);
-  font-weight: var(--font-weight-heading);
-  line-height: var(--line-height-heading);
-  color: var(--color-text-heading);
-}
-
-/* "See more in …", at the end of the row. */
-.carousel-section-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--spacing-stack-xs);
-}
-
-.carousel-more {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-  font-size: var(--font-size-body-medium);
-  font-weight: var(--font-weight-medium);
-}
-
-.carousel-more:link,
-.carousel-more:visited {
-  text-decoration: none;
-}
-
-.carousel-more:hover {
-  text-decoration: underline;
 }
 
 /* Only headings that link somewhere read as links. */
@@ -495,6 +463,27 @@
   padding: 0;
 }
 
+/* A genre row's subgenres, listed under its heading; each links to its own row down the shelf. */
+.carousel-subgenres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
+  margin: calc(-1 * var(--spacing-stack-xs)) 0 var(--spacing-stack-sm);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
+}
+
+.carousel-subgenres__link:link,
+.carousel-subgenres__link:visited {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.carousel-subgenres__link:hover {
+  text-decoration: underline;
+}
+
 /* A row's loading state (macros/CarouselSkeleton.html.jinja). It reuses the loaded row's
    section, container and card classes, so it takes the loaded row's size and nothing shifts. */
 .carousel-skeleton__title--link {
@@ -516,30 +505,9 @@
   border-radius: var(--border-radius-button);
 }
 
-/* Stands in for ol-tabs: same height and rule, with a bar per tab. */
-.carousel-skeleton__tabs {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-inline-xl);
-  height: var(--control-height-large);
-  padding-inline: var(--spacing-inset-sm);
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.carousel-skeleton__tab {
-  width: 72px;
-  height: 0.75em;
-}
-
-.carousel-skeleton__tab:first-child {
-  width: 88px;
-}
-
-/* The "See more" link is as tall as its arrow icon. */
-.carousel-skeleton__more {
-  width: 9em;
-  font-size: var(--font-size-body-medium);
-  margin-block: calc((var(--icon-size-md) - 1em) / 2);
+/* The subgenre names are known before the row loads, so they show in place, muted. */
+.carousel-skeleton__index {
+  color: var(--color-text-muted);
 }
 
 .carousel-skeleton__row {

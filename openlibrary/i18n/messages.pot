@@ -3142,11 +3142,6 @@ msgid "%(genre)s subgenres"
 msgstr ""
 
 #: books/custom_carousel.html.jinja
-#, python-format
-msgid "All %(genre)s"
-msgstr ""
-
-#: books/custom_carousel.html.jinja
 msgid "Previous page"
 msgstr ""
 
@@ -3170,11 +3165,6 @@ msgstr ""
 
 #: books/custom_carousel.html.jinja
 msgid "No books match these filters."
-msgstr ""
-
-#: books/custom_carousel.html.jinja
-#, python-format
-msgid "See more in %(name)s"
 msgstr ""
 
 #: books/custom_carousel_card.html.jinja

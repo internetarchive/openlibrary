@@ -1,5 +1,5 @@
 {
-  "_comment": "Hand-picked covers fanned on each \"Browse the stacks\" tile, keyed by the slug in home_genres.json. Representative, recognisable works whose covers read at 44x66; a tile with no entry falls back to trending covers.",
+  "_comment": "Hand-picked covers fanned on each \"Browse the stacks\" tile, keyed by the slug in home_genres.json. Representative, recognisable works whose covers read at 44x66; a genre with no entry gets no tile.",
   "covers": {
     "action": [
       {

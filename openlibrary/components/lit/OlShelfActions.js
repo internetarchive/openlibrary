@@ -201,6 +201,9 @@ export class OlShelfActions extends LitElement {
             padding-block: var(--spacing-inset-xs);
             color: var(--color-text);
             font-size: var(--font-size-body-medium);
+            /* text-align inherits through the shadow boundary; don't pick up
+               a centered host context (e.g. carousel captions). */
+            text-align: start;
             /* clip, not hidden: focusing the off-screen pane must not scroll
                the panel (that would double up with the track's translate). */
             overflow: clip;

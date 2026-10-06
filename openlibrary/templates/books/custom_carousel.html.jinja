@@ -3,27 +3,20 @@
 #}
 {% from "books/carousel_count.html.jinja" import carousel_count %}
 {% macro book_carousel(show, title, url, key, grid, compact, loadjs, config_json, cards, count=none, shelf=none, sort="", sort_control=false, subgenres=none, layout="carousel") %}
-    {# A row with controls keeps its header when a choice empties it, so the patron can
+    {# A row with a sort control keeps its header when a choice empties it, so the patron can
        see which row went quiet and pick something else. #}
-    {# A "Browse the stacks" genre row gets a list of subgenres, empty when the genre has none. #}
-    {% set genre_row = subgenres is defined and subgenres is not none %}
-    {% if show or sort_control or genre_row %}
+    {% if show or sort_control %}
         <div class="carousel-section">
             {% if title %}
                 <div class="carousel-section-header{% if sort_control %} carousel-section-header--sortable{% endif %}">
-                    {% if genre_row %}
-                        {# A genre row links from its footer instead, so the link can name the subgenre. #}
-                        <h2 class="home-h2 carousel-heading--plain">{{ title }}</h2>
-                    {% else %}
-                        <h2 class="home-h2">
-                            {% if url %}
-                                <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
-                                   href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
-                            {% else %}
-                                {{ title }}{{ carousel_count(count, shelf) }}
-                            {% endif %}
-                        </h2>
-                    {% endif %}
+                    <h2 class="home-h2">
+                        {% if url %}
+                            <a data-ol-link-track="BookCarousel|HeaderClick|{{ key }}"
+                               href="{{ url }}">{{ title }}{{ carousel_count(count, shelf) }}</a>
+                        {% else %}
+                            {{ title }}{{ carousel_count(count, shelf) }}
+                        {% endif %}
+                    </h2>
                     {% if sort_control %}
                         {# lazy-carousel.js refetches the row in place when this changes. The trigger is
                            server-rendered so it doesn't shift while the component upgrades. #}
@@ -42,18 +35,13 @@
                 </div>
             {% endif %}
             {% if subgenres %}
-                {# A genre row's subgenres (HomeGenrePartial): picking one narrows the row, "All <genre>"
-                   widens it again. lazy-carousel.js refetches in place. #}
-                <ol-tabs class="carousel-subgenres" value="{{ subgenres | selectattr('selected') | map(attribute='slug') | first | default('all') }}" accessible-label="{{ _('%(genre)s subgenres', genre=title) }}">
-                    <ol-tab value="all">
-                        {{ _("All %(genre)s", genre=title) }}
-                    </ol-tab>
+                {# A genre row's subgenres (HomeGenrePartial): each has its own row further down the shelf. #}
+                <nav class="carousel-subgenres"
+                     aria-label="{{ _('%(genre)s subgenres', genre=title) }}">
                     {% for subgenre in subgenres %}
-                        <ol-tab value="{{ subgenre.slug }}">
-                            {{ subgenre.name }}
-                        </ol-tab>
+                        <a class="carousel-subgenres__link" href="{{ subgenre.href }}">{{ subgenre.name }}</a>
                     {% endfor %}
-                </ol-tabs>
+                </nav>
             {% endif %}
             {% if show and layout == "ol-carousel" %}
                 {# The native carousel component sizes the cards itself: two to a page on a phone, seven at
@@ -77,17 +65,6 @@
                 </div>
             {% else %}
                 <p class="carousel-empty">{{ _("No books match these filters.") }}</p>
-            {% endif %}
-            {% if show and genre_row and url %}
-                {# `url` follows the picked subgenre and sort, so this opens the same books, in the same order. #}
-                <div class="carousel-section-footer">
-                    <a class="carousel-more"
-                       data-ol-link-track="BookCarousel|MoreClick|{{ key }}"
-                       href="{{ url }}">
-                        {{ _("See more in %(name)s", name=subgenres | selectattr("selected") | map(attribute="name") | first | default(title)) }}
-                        {{ icon("arrow-right") }}
-                    </a>
-                </div>
             {% endif %}
         </div>
     {% endif %}

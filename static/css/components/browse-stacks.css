@@ -281,13 +281,26 @@
   --ol-carousel-inset: var(--spacing-inset-md);
 }
 
-.genre-shelf .carousel-section-header--sortable {
+/* Covers on the shelf lighten under the pointer instead of ringing: the artwork goes
+   translucent over the shelf surface, which lifts a dark cover as much as a pale one. */
+.genre-shelf ol-book-cover {
+  --pointed-ring-width: 0;
+  --filter-pointed-dim: opacity(0.8);
+}
+
+/* The shelf spaces its rows itself (below), so their headings drop the page rows' top margin. */
+.genre-shelf .carousel-section-header--sortable,
+.genre-shelf .carousel-section-header > .home-h2 {
   margin-top: 0;
 }
 
-/* The genre's subgenre tabs, under its heading: they narrow the row beneath them. */
-.genre-shelf .carousel-subgenres {
-  margin-bottom: var(--spacing-stack-sm);
+/* The genre row, then one row per subgenre, parted by hairlines. A subgenre link scrolls its
+   row just clear of the one above. */
+.genre-shelf > * + * {
+  margin-top: var(--spacing-stack-md);
+  padding-top: var(--spacing-stack-md);
+  border-top: 1px solid var(--color-border-subtle);
+  scroll-margin-top: var(--spacing-stack-md);
 }
 
 .genre-shelf__error {

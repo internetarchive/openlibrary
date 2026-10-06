@@ -15,12 +15,10 @@ GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
 GENRE_COVERS_JSON_PATH = Path(__file__).parent / "home_genre_covers.json"
 
 # Genres and subgenres with fewer readable books than these (counted at generation time,
-# against production) are left off: a tile needs a shelf worth browsing, a subgenre chip needs
+# against production) are left off: a tile needs a shelf worth browsing, a subgenre row needs
 # about a carousel's worth. A subgenre's count is for books in both it and its parent.
 MIN_GENRE_READABLE = 1000
 MIN_SUBGENRE_READABLE = 20
-# The shelf picks a subgenre with a segmented control; with "All" that keeps it at four options.
-MAX_SUBGENRES = 3
 
 # "Readable" as the carousels' has_fulltext filter means it for most patrons: borrowable or public.
 # The raw `has_fulltext` field also counts print-disabled-only books, which most patrons can't open.
@@ -51,8 +49,8 @@ def load_home_genres() -> list[Genre]:
             {
                 **node,
                 "kind": kind,
-                # The generator sorts subgenres largest first, so the cap keeps the biggest.
-                "subgenres": [s for s in node["subgenres"] if s["readable_count"] >= MIN_SUBGENRE_READABLE][:MAX_SUBGENRES],
+                # The generator sorts subgenres largest first, so the shelf's rows run biggest first.
+                "subgenres": [s for s in node["subgenres"] if s["readable_count"] >= MIN_SUBGENRE_READABLE],
             },
         )
         for kind, nodes in (("genre", data["genres"]), ("subject", data["subjects"]))
@@ -63,7 +61,7 @@ def load_home_genres() -> list[Genre]:
 
 @functools.cache
 def load_tile_covers() -> dict[str, list[int]]:
-    """Cover ids to fan on each tile, keyed by slug. Tiles without an entry use trending covers."""
+    """Cover ids to fan on each tile, keyed by slug. A genre without an entry gets no tile."""
     data = json.loads(GENRE_COVERS_JSON_PATH.read_text())
     return {slug: [book["cover_id"] for book in books] for slug, books in data["covers"].items()}
 

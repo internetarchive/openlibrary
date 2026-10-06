@@ -34,7 +34,12 @@ def get_homepage(devmode):
         stats = None
     blog_posts = get_blog_feeds()
     # The template shuffles the tiles per visit, so the cached order doesn't matter.
-    featured_genres = get_cached_featured_genres()
+    # A Solr failure costs the rail, not the page; it isn't cached, so the next render retries.
+    try:
+        featured_genres = get_cached_featured_genres()
+    except Exception:
+        logger.error("Error in getting featured genres", exc_info=True)
+        featured_genres = []
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
@@ -245,43 +250,37 @@ def subject_tile_labels() -> dict[str, str]:
 
 
 def get_featured_genres():
-    """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live readable counts
-    and three covers per genre, hand-picked in home_genre_covers.json or else the most trending.
-    One grouped Solr query for all of them, cached for a day."""
+    """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live readable counts,
+    fanned with the covers hand-picked in home_genre_covers.json (no covers, no tile).
+    One faceted Solr query counts them all, cached for a day."""
     if "env" not in web.ctx:
         delegate.fakeload()
-    nodes = home_genres.load_home_genres()
+    picked = home_genres.load_tile_covers()
+    nodes = [genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"])]
     queries = [home_genres.solr_query(genre) for genre in nodes]
-    # One group per genre: its numFound is the readable count, its docs the most trending covers.
+    # One facet query per genre: its count is the readable count. Facet queries only count, where
+    # grouping also collected and sorted every genre's matches, which took over 10s on the full index.
     params = [
         ("q", "*:*"),
         ("fq", home_genres.READABLE_CLAUSE),
-        ("fq", '-subject:"content_warning:cover"'),
-        ("fl", "cover_i"),
         ("rows", 0),
-        ("group", "true"),
-        ("group.limit", GENRE_TILE_COVERS * 2),
-        ("group.sort", "def(trending_z_score,0) desc"),
+        ("facet", "true"),
         ("wt", "json"),
-        *(("group.query", query) for query in queries),
+        *(("facet.query", query) for query in queries),
     ]
-    grouped = async_bridge.run(search.get_solr().raw_request("select", urlencode(params))).json()["grouped"]
+    counts = async_bridge.run(search.get_solr().raw_request("select", urlencode(params))).json()["facet_counts"]["facet_queries"]
     labels = subject_tile_labels()
-    picked = home_genres.load_tile_covers()
-    genres = []
-    for genre, query in zip(nodes, queries, strict=True):
-        doclist = grouped[query]["doclist"]
-        covers = picked.get(genre["slug"]) or [doc["cover_i"] for doc in doclist["docs"] if doc.get("cover_i")]
-        genres.append(
-            {
-                **genre,
-                "name": labels.get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"],
-                "readable_count": doclist["numFound"],
-                "readable_count_str": commify(doclist["numFound"]),
-                "covers": covers[:GENRE_TILE_COVERS],
-                "url": home_genres.browse_url(genre),
-            }
-        )
+    genres = [
+        {
+            **genre,
+            "name": labels.get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"],
+            "readable_count": counts[query],
+            "readable_count_str": commify(counts[query]),
+            "covers": picked[genre["slug"]][:GENRE_TILE_COVERS],
+            "url": home_genres.browse_url(genre),
+        }
+        for genre, query in zip(nodes, queries, strict=True)
+    ]
     # Nothing readable, no tile. Order is decided at render time.
     return [g for g in genres if g["readable_count"]]
 
