@@ -7863,6 +7863,10 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
+#: openlibrary/core/edits.py
+msgid "Only super librarians and admins can modify 'What work is this an edition of?'."
+msgstr ""
+
 #: openlibrary/edition_scorecard.py
 msgid "Can be accessed in full online (read / borrowed)"
 msgstr ""
