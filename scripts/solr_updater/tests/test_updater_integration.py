@@ -29,6 +29,25 @@ check locally. To run it:
       -e SOLR_URL=http://solr:8983/solr/openlibrary \\
       -e MOCKSERVICES_URL=http://mockservices:8090 \\
       home python -m pytest scripts/solr_updater/tests/test_updater_integration.py
+
+If Solr will not start because host port 8983 is taken by another project, do
+not treat that as a blocker and do not go looking for whoever took it. Nothing
+here needs the host port -- these tests run inside the compose network, where
+8983 is per-container. Drop the publish and start it again:
+
+    printf 'services:\\n  solr:\\n    ports: !reset []\\n' > .solr-noport.yaml
+    docker compose -f compose.yaml -f .solr-noport.yaml up -d --no-build solr
+
+And if the `solr` HOSTNAME resolves to a container from somewhere else -- any
+container attached to this project's network can hold that alias -- address
+your own by its IP instead of hunting for the name:
+
+    docker inspect <project>-solr-1 --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+
+Both of these cost one line. Confirm which Solr you actually reached before
+believing a green run: a document count in your own core is the control, and
+an earlier revision of this file reported three passes against a different
+project's Solr entirely.
 """
 
 import asyncio
