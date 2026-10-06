@@ -4022,20 +4022,20 @@ msgid "Pick a book. We show one fact that is missing or in doubt, next to what o
 msgstr ""
 
 #: contribute/start.html.jinja
-msgid "Who checks it"
+msgid "How it's checked"
 msgstr ""
 
 #: contribute/start.html.jinja
 #, python-format
-msgid "A volunteer librarian reviews every suggestion, usually within %(days)s days."
+msgid "Nothing changes on the book right away. A volunteer librarian reviews your suggestion against the same evidence, usually within %(days)s days, and accepts it, corrects it, or declines it with a note."
 msgstr ""
 
 #: contribute/start.html.jinja
-msgid "What you can't break"
+msgid "When you're not sure"
 msgstr ""
 
 #: contribute/start.html.jinja
-msgid "Nothing. Suggestions don't change the book until a librarian accepts them, and every change on Open Library can be undone."
+msgid "Say so. “I'm not sure” sends the question to a librarian instead of a guess, which is more useful than a wrong answer and never counts against you."
 msgstr ""
 
 #: contribute/start.html.jinja

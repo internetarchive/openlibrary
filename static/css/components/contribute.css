@@ -104,6 +104,7 @@
   border-radius: var(--border-radius-card);
   padding: var(--spacing-inset-md);
   display: grid;
+  align-content: start; /* cards share a height; keep each one's icon, title and text pinned to the top so they line up across the row */
   gap: var(--spacing-stack-sm);
   background: var(--color-surface);
 }
