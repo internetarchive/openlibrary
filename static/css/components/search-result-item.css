@@ -5,8 +5,7 @@
 
 /* Some preview rules are too specific and need to be rewritten */
 /* Preview button appears styled as a text link, led by its book icon */
-.bookcover .cta-btn.cta-btn--preview,
-.bookcover .cta-btn.cta-btn--no-preview {
+.bookcover .cta-btn.cta-btn--preview {
   color: var(--primary-blue);
   text-decoration: none;
   position: relative;
@@ -28,20 +27,10 @@
   text-decoration: underline;
 }
 
-/* No Preview state - muted placeholder, shown in grid layout only */
-.bookcover .cta-btn.cta-btn--no-preview {
+/* A grid tile is a carousel card: cover, then one button row. The Preview
+   link belongs to the list row, where the details column gives it room. */
+.list-books--grid .bookcover .cta-btn.cta-btn--preview {
   display: none;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-label-medium);
-  pointer-events: none;
-}
-
-/* Same box as the Preview link it stands in for, so the CTA below lines up. */
-.list-books--grid .bookcover .cta-btn.cta-btn--no-preview {
-  display: flex;
-  align-items: center;
-  height: var(--control-height-medium);
-  padding-block: 0;
 }
 /* stylelint-enable selector-max-specificity */
 

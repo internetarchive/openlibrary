@@ -63,7 +63,7 @@ Headings share the body ink (`--color-text-heading` is `--color-text`); size and
 
 A button label never ellipsizes. "Присоедин…" in a 140px carousel card hides the one thing the button does, so action labels wrap instead: give the control a `min-height` (not `height`), `text-wrap: balance`, and `hyphens: auto` with `overflow-wrap: anywhere` for single long words. In a flex row, the label or the button's half of a split control needs `min-width: 0`, or a long label sets its minimum width and pushes its neighbour out of the column. Ellipsis stays for passive text — titles, author names, subject chips — where the full value is one click away.
 
-A state with nothing to act on ("Not in Library", "Checked Out") is status text, not a disabled-looking button. In a card it takes the button's slot: centred in `--control-height-medium`, which holds two lines at `--font-size-label-medium`, and clamped at two so the row stays one height.
+A state with nothing to act on ("Not in Library", "Checked Out") is status text, not a disabled-looking button. That is a book-page rule: off the book page (carousel cards, search results in list or grid, lists, the reading log) every entry ends in a button, and a book that can't be read here gets one secondary "Learn More" to its page instead of a preview, a library lookup, or status text. Where status text does stand in a card it takes the button's slot: centred in `--control-height-medium`, which holds two lines at `--font-size-label-medium`, and clamped at two so the row stays one height.
 
 ## Visual Design
 

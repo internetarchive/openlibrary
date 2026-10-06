@@ -1,5 +1,0 @@
-$def with (doc, lending_state, in_carousel)
-$# Test-only: render LoanStatus the way a carousel card does, with the lending
-$# state already resolved so nothing is looked up. See
-$# openlibrary/tests/test_loan_status_carousel.py.
-$:macros.LoanStatus(doc, work_key="/works/OL1W", listen=False, lending_state=lending_state, in_carousel=in_carousel, analytics_override="BookCarousel|{action}Click|test")

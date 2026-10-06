@@ -287,7 +287,6 @@ class TestLoanStatusNoLongerDoesNetworkIO:
             source = f.read()
         assert "get_cached_groundtruth_availability" not in source
         assert "allow_expensive_availability_check" not in source
-        assert "macros.BookPreview(ocaid, show_only=True)" in source
 
     def test_databar_work_template_has_no_expensive_check(self):
         with open("openlibrary/macros/databarWork.html") as f:

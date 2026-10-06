@@ -1,6 +1,7 @@
-$def with (ocaid, show_only=False)
+$def with (ocaid)
 $# :param str ocaid:
-$# :param bool show_only: If True, label reads "Preview Only" instead of "Preview"
+$# A text-link Preview under a result's cover. Without an ocaid there is
+$# nothing to preview, so nothing is shown.
 
 $if ocaid:
   <div class="cta-button-group">
@@ -9,13 +10,7 @@ $if ocaid:
       data-book-preview
       data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
       data-iframe-link="https://archive.org/details/$ocaid"
-      data-ol-link-track="CTAClick|Preview">$:macros.icon("book-open", size="sm")<span class="cta-btn__label">$(_('Preview Only') if show_only else _('Preview'))</span></a>
-  </div>
-$else:
-  <div class="cta-button-group">
-    <span class="cta-btn cta-btn--no-preview">
-      $_("No Preview")
-    </span>
+      data-ol-link-track="CTAClick|Preview">$:macros.icon("book-open", size="sm")<span class="cta-btn__label">$_('Preview')</span></a>
   </div>
 
 $:macros.BookPreviewFloater()
