@@ -10,7 +10,6 @@ from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core import admin, cache, env
-from openlibrary.core.carousels import get_carousel_data
 from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary import home_genres
@@ -40,13 +39,11 @@ def get_homepage(devmode):
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    carousel_data = get_carousel_data()
     page = render_template(
         "home/index",
         stats=stats,
         blog_posts=blog_posts,
         featured_genres=featured_genres,
-        carousel_data=carousel_data,
     )
     # Convert to a dict so it can be cached
     return dict(page)
@@ -249,7 +246,8 @@ def subject_tile_labels() -> dict[str, str]:
 
 def get_featured_genres():
     """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live readable counts
-    and a few trending covers per genre. One grouped Solr query for all of them, cached for a day."""
+    and three covers per genre, hand-picked in home_genre_covers.json or else the most trending.
+    One grouped Solr query for all of them, cached for a day."""
     if "env" not in web.ctx:
         delegate.fakeload()
     nodes = home_genres.load_home_genres()
@@ -269,16 +267,18 @@ def get_featured_genres():
     ]
     grouped = async_bridge.run(search.get_solr().raw_request("select", urlencode(params))).json()["grouped"]
     labels = subject_tile_labels()
+    picked = home_genres.load_tile_covers()
     genres = []
     for genre, query in zip(nodes, queries, strict=True):
         doclist = grouped[query]["doclist"]
+        covers = picked.get(genre["slug"]) or [doc["cover_i"] for doc in doclist["docs"] if doc.get("cover_i")]
         genres.append(
             {
                 **genre,
                 "name": labels.get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"],
                 "readable_count": doclist["numFound"],
                 "readable_count_str": commify(doclist["numFound"]),
-                "covers": [doc["cover_i"] for doc in doclist["docs"] if doc.get("cover_i")][:GENRE_TILE_COVERS],
+                "covers": covers[:GENRE_TILE_COVERS],
                 "url": home_genres.browse_url(genre),
             }
         )

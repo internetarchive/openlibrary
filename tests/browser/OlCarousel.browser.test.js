@@ -71,3 +71,37 @@ test('Next really scrolls the rail, settles it, and announces the page', async()
     // The reported page agrees with where the rail actually is.
     expect(el.page).toBe(1);
 });
+
+test('breakpoints override the default columns', async() => {
+    await page.viewport(1280, 800);
+    render(html`
+        <ol-carousel label="Trending" breakpoints="[[480, 2], [null, 7]]" style="width: 1200px">
+            ${Array.from({ length: 18 }, (_, i) => html`
+                <div style="height: 120px">Card ${i}</div>
+            `)}
+        </ol-carousel>
+    `);
+    const el = document.querySelector('ol-carousel');
+    await el.updateComplete;
+
+    // The default would show eight at this width; these breakpoints show seven, so pages start every 7th card.
+    await expect.poll(() => el.totalPages).toBe(3);
+    const items = Array.from(el.children);
+    expect(items[7].style.scrollSnapAlign).toBe('start');
+    expect(items[8].style.scrollSnapAlign).toBe('');
+});
+
+test('breakpoints pick the columns at narrow widths too', async() => {
+    await page.viewport(1280, 800);
+    render(html`
+        <ol-carousel label="Trending" breakpoints="[[480, 2], [null, 7]]" style="width: 400px">
+            ${Array.from({ length: 6 }, (_, i) => html`
+                <div style="height: 120px">Card ${i}</div>
+            `)}
+        </ol-carousel>
+    `);
+    const el = document.querySelector('ol-carousel');
+    await el.updateComplete;
+
+    await expect.poll(() => el.totalPages).toBe(3);
+});

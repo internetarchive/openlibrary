@@ -217,6 +217,7 @@ class CarouselCardData(TypedDict):
     title: str
     byline: str
     author_names: list[str]
+    year: str
     cover_url: str | Literal[False]
     loan: dict[str, Any] | None
     expiry_utc: str
@@ -230,6 +231,7 @@ class CarouselCardData(TypedDict):
     return_confirm_i18n: str
     request_fullpath: str
     shelf_button_html: Markup
+    book_cover: bool
 
 
 @public
@@ -251,6 +253,9 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
     if loan and hasattr(book, "get_waitinglist_size"):
         waitlist_size = book.get_waitinglist_size()
 
+    # The native row draws its covers with <ol-book-cover>; a loan card keeps the overlay badge it needs.
+    book_cover = layout == "ol-carousel" and not loan
+
     expiry = loan.get("expiry") if loan else None
     if expiry:
         expiry_dt = datetime_from_isoformat(expiry)
@@ -265,6 +270,7 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "title": title,
         "byline": byline,
         "author_names": author_names,
+        "year": str(book.get("first_publish_year") or ""),
         "cover_url": _resolve_carousel_card_cover_url(book),
         "loan": loan,
         "expiry_utc": expiry_utc,
@@ -278,7 +284,8 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
         "return_confirm_i18n": json_encode({"confirm_return": _("Really return this book?")}),
         "request_fullpath": full_path,
         # No reader or state in the HTML: book-state.js fills both in.
-        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True)),
+        "shelf_button_html": Markup(shelf_button_for(book, variant="icon", async_load=True, slot="overlay" if book_cover else None)),
+        "book_cover": book_cover,
     }
 
 
@@ -296,19 +303,8 @@ class CarouselCardPartial:
         cards = []
         for index, work in enumerate(search_results):
             lazy = index > cls.MAX_VISIBLE_CARDS
-            editions = work.get("editions", {})
-            if not editions:
-                book = work
-            elif isinstance(editions, list):
-                book = editions[0]
-            else:
-                book = editions.get("docs", [None])[0]
-            book["authors"] = work.get("authors", [])
-            # An edition doc carries no work key; the shelf button needs it.
-            book["work_key"] = work.get("key")
-            book = web.storage(book)
-
             try:
+                book = _carousel_card_book(work)
                 data = get_carousel_card_data(book, lazy, params.layout, params.key, full_path)
                 cards.append(render_jinja_template("books/custom_carousel_card.html.jinja", **data))
             except Exception:  # noqa: BLE001  # per-card isolation: one bad card should not break whole carousel
@@ -336,6 +332,7 @@ class CarouselCardPartial:
             "title",
             "subtitle",
             "author_name",
+            "first_publish_year",
             "cover_i",
             "ia",
             "availability",
@@ -873,6 +870,7 @@ _CAROUSEL_FIELDS = [
     "subtitle",
     "editions",
     "author_name",
+    "first_publish_year",
     "availability",
     "cover_i",
     "ia",
@@ -951,9 +949,9 @@ CAROUSEL_EAGER_COVERS = 6  # cards past the first six lazy-load their cover imag
 
 def _carousel_card_book(book: Any) -> Any:
     """The record a card renders for ``book``: its first edition (Solr gives them
-    as a list, or as a dict with ``docs``) else the book itself, with the authors
-    and loan of the work. Things are kept as-is, dicts become web.storage so the
-    card can use attribute access. Verbatim from books/custom_carousel.html.
+    as a list, or as a dict with ``docs``) else the book itself, with the authors,
+    year and loan of the work. Things are kept as-is, dicts become web.storage so
+    the card can use attribute access. Shared by the eager rows and load-more.
     """
     editions = book.get("editions") or {}
     docs = editions.get("docs") if isinstance(editions, dict) else editions
@@ -963,6 +961,10 @@ def _carousel_card_book(book: Any) -> Any:
     if target is not book:
         # An edition doc carries no work key; the shelf button needs it.
         card_book["work_key"] = book.get("key")
+        # Nor the work's author names or first year, which the byline and hover card show.
+        for field in ("author_name", "first_publish_year"):
+            if not card_book.get(field) and (value := book.get(field)):
+                card_book[field] = value
     if loan := book.get("loan"):
         card_book["loan"] = loan
     return card_book
@@ -1008,8 +1010,11 @@ class CarouselPlaceholderData(TypedDict):
     """Data for the lazy placeholder. Shows config JSON for lazy-carousel.js."""
 
     lazy_config_json: str
-    loading_indicator_html: str
     fallback: str | bool | None
+    # For the loading skeleton (macros/CarouselSkeleton.html.jinja).
+    title: str
+    title_link: bool
+    layout: str
 
 
 class EagerQueryCarouselData(BookCarouselData):
@@ -1194,10 +1199,11 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
     }
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),
-        # LoadingIndicator stays Templetor (10 other callers), so it is bridged
-        # here and passed in, like the card's loan_status_html.
-        loading_indicator_html=str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
         fallback=params.get("fallback"),
+        title=config.get("title", ""),
+        # CarouselPartial links the title, to the search when no url is given.
+        title_link=True,
+        layout=config["layout"],
     )
 
 
@@ -1243,8 +1249,11 @@ def build_nearby_books_placeholder_config(work_key: str, language: str | None = 
     config = {"partial": "NearbyBooks", "work_key": work_key, **({"language": language} if language else {})}
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),
-        loading_indicator_html=str(render_macro("LoadingIndicator", (_("Loading carousel"),), hidden=False)["__body__"]),
         fallback=None,
+        # NearbyBooksPartial's heading.
+        title=_("On the Same Shelf"),
+        title_link=False,
+        layout="carousel",
     )
 
 

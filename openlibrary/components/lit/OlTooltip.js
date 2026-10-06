@@ -266,6 +266,12 @@ export class OlTooltip extends LitElement {
 
     // ── Show / Hide ──
 
+    /** Closes the panel now; the next hover or keyboard focus can open it again. */
+    hide() {
+        this._clearTimers();
+        this._hide();
+    }
+
     _show() {
         if (this._visible) return;
 

@@ -21,6 +21,8 @@
 
 .browse-stacks__header .home-h2 {
   margin: 0;
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-heading);
 }
 
 /* One row of tiles; the rail pages sideways. The viewport padding leaves room for the
@@ -78,7 +80,10 @@
   height: 66px;
   object-fit: cover;
   border-radius: var(--border-radius-thumbnail);
-  box-shadow: var(--box-shadow-floating);
+  /* Tight contact shadow + soft halo so each cover separates from the one behind it. */
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ink-overlay) 30%, transparent),
+    0 2px 8px color-mix(in srgb, var(--ink-overlay) 28%, transparent);
   background: var(--color-surface-sunken);
   transition: transform var(--duration-base) var(--ease-move);
 }
@@ -149,9 +154,17 @@
   animation: browse-stacks-open var(--duration-base) var(--ease-enter);
 }
 
-.browse-stacks__shelf--loading {
-  min-height: 120px;
-  opacity: 0.6;
+/* The skeleton holds the shelf's size at once, but only shows once a load runs past a beat,
+   so a quick one goes straight to the books. */
+.browse-stacks__shelf--loading .carousel-skeleton {
+  animation: browse-stacks-skeleton-in var(--duration-base) var(--ease-enter)
+    var(--duration-fast) backwards;
+}
+
+@keyframes browse-stacks-skeleton-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* A caret under the open tile, so the shelf reads as that tile's, not a box below the rail.
@@ -320,7 +333,8 @@
     transition: none;
   }
 
-  .browse-stacks__shelf {
+  .browse-stacks__shelf,
+  .browse-stacks__shelf--loading .carousel-skeleton {
     animation: none;
   }
 

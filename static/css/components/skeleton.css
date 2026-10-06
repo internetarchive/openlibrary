@@ -1,0 +1,46 @@
+/**
+ * Skeleton — a block standing in for content that is still loading.
+ * Size it to the content it replaces, so the page doesn't shift when that content lands.
+ * Used by:
+ *  - openlibrary/macros/CarouselSkeleton.html.jinja
+ */
+
+/* The highlight is fixed to the viewport, so one band sweeps every block on screen together
+   rather than each block running its own. */
+.skeleton {
+  display: block;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-skeleton);
+  background-image: linear-gradient(
+    100deg,
+    transparent 35%,
+    var(--color-skeleton-highlight) 50%,
+    transparent 65%
+  );
+  background-size: 100vw 100%;
+  background-attachment: fixed;
+  background-repeat: repeat-x;
+  animation: skeleton-shimmer var(--duration-shimmer) linear infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position-x: -100vw;
+  }
+
+  to {
+    background-position-x: 0;
+  }
+}
+
+/* The band follows the reading direction. */
+.skeleton:dir(rtl) {
+  animation-direction: reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background-image: none;
+  }
+}

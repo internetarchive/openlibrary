@@ -451,6 +451,7 @@ Every duration and easing comes from `tokens/motion.css`. Choose by what the ele
 | A control changes state (checked, selected, loading, focused) | `--ease-state` | `--duration-fast` (150ms), `--duration-base` for a crossfade |
 | Press | none needed | `--duration-press` (80ms), `transform` only |
 | A spinner | `linear` | `--duration-spin` (700ms) per revolution |
+| A loading skeleton's shimmer (`components/skeleton.css`) | `linear` | `--duration-shimmer` (1600ms) per sweep |
 
 Never write a raw `cubic-bezier()` or a bare `200ms` in a component. If a surface needs a different curve, add a named primitive to `motion.css` and a semantic token that references it — the codebase had reached five hand-written curves and three spinner speeds before these tokens existed.
 

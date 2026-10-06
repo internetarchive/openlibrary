@@ -79,7 +79,7 @@ async function fetchPartials(config) {
  */
 function doFetchAndUpdate(target) {
     const config = JSON.parse(target.dataset.config);
-    const loadingIndicator = target.querySelector('.loadingIndicator');
+    const skeleton = target.querySelector('.carousel-skeleton');
 
     fetchPartials(config)
         .then(resp => {
@@ -93,7 +93,7 @@ function doFetchAndUpdate(target) {
             newElem.className = 'lazy-carousel-loaded';
             newElem.innerHTML = (data.partials || '').trim();
             const carouselElements = newElem.querySelectorAll(CAROUSEL_SELECTOR);
-            loadingIndicator.classList.add('hidden');
+            skeleton.classList.add('hidden');
 
             if (!newElem.innerHTML && !config.fallback) {
                 // Nothing to show (e.g. no Nearby Books); free the space.
@@ -152,7 +152,7 @@ function doFetchAndUpdate(target) {
             }
         })
         .catch(() => {
-            loadingIndicator.classList.add('hidden');
+            skeleton.classList.add('hidden');
             const retryElem = target.querySelector('.lazy-carousel-retry');
             retryElem.classList.remove('hidden');
         });
@@ -177,7 +177,7 @@ function trackImpression(elem, key) {
  * @param target {Element}
  */
 function handleRetry(target) {
-    target.querySelector('.loadingIndicator').classList.remove('hidden');
+    target.querySelector('.carousel-skeleton').classList.remove('hidden');
     target.querySelector('.lazy-carousel-retry').classList.add('hidden');
     const carouselFallbackElem = target.querySelector('.lazy-carousel-fallback');
     if (carouselFallbackElem) {

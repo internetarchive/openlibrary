@@ -2,7 +2,7 @@
  * "Browse the stacks" on the home page: a rail of genre tiles that open a shelf
  * (a carousel for the genre, with a subgenre control that narrows it) in place. The shelf HTML comes from
  * /partials/HomeGenre.json with its row already loaded; lazy-carousel.js sets it up and runs its controls.
- * No shelf is open on load; a caret on an open shelf points at its tile.
+ * The first tile's shelf is open on load; a caret on an open shelf points at its tile.
  */
 
 import { trackEvent } from './ol.analytics.js';
@@ -16,7 +16,7 @@ export function initBrowseStacks(root) {
     const shelf = root.querySelector('.browse-stacks__shelf');
     const tiles = Array.from(root.querySelectorAll('.browse-stacks__tile'));
     const i18n = JSON.parse(root.dataset.i18n || '{}');
-    const loadingHtml = root.querySelector('.browse-stacks__loading')?.innerHTML || '';
+    const skeleton = root.querySelector('.browse-stacks__loading')?.content;
     let current = null;
     let controller = null;
     let scroller = null;
@@ -88,12 +88,31 @@ export function initBrowseStacks(root) {
         if (returnFocus) tile?.focus();
     }
 
+    /**
+     * The shelf's skeleton, headed with the tile's genre and a tab per subgenre plus "All",
+     * so the loaded shelf lands in the same shape.
+     * @param {HTMLElement} tile
+     * @returns {DocumentFragment}
+     */
+    function skeletonFor(tile) {
+        const fragment = skeleton ? skeleton.cloneNode(true) : document.createDocumentFragment();
+        const title = fragment.querySelector('.carousel-skeleton__title');
+        if (title) title.textContent = tile.querySelector('.browse-stacks__name').textContent;
+        const tabs = fragment.querySelector('.carousel-skeleton__tabs');
+        const subgenres = Number(tile.dataset.subgenres);
+        if (tabs && !subgenres) tabs.remove();
+        for (let i = 0; tabs && i < subgenres; i++) {
+            tabs.append(tabs.firstElementChild.cloneNode());
+        }
+        return fragment;
+    }
+
     async function load(slug) {
         controller?.abort();
         controller = new AbortController();
         const { signal } = controller;
         shelf.hidden = false;
-        shelf.innerHTML = loadingHtml;
+        shelf.replaceChildren(skeletonFor(tileFor(slug)));
         shelf.setAttribute('aria-busy', 'true');
         shelf.classList.add('browse-stacks__shelf--loading');
         try {
@@ -123,23 +142,31 @@ export function initBrowseStacks(root) {
 
     /**
      * @param {string} slug
+     * @param {object} [options]
+     * @param {boolean} [options.initial] - the shelf opened on load, not by the reader: don't scroll, focus or track it
      */
-    async function open(slug) {
+    async function open(slug, { initial = false } = {}) {
         if (current === slug) {
             close();
             return;
         }
         current = slug;
         markExpanded(slug);
-        trackEvent('BrowseStacks', 'Open', slug);
-        const ok = await load(slug);
+        if (!initial) trackEvent('BrowseStacks', 'Open', slug);
+        // The skeleton is already the loaded shelf's size, so point at and scroll to it while it loads.
+        const loading = load(slug);
+        anchor();
+        if (!initial) shelf.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        const ok = await loading;
         if (!ok || current !== slug) return;
         anchor();
-        shelf.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-        shelf.querySelector('.genre-shelf')?.focus({ preventScroll: true });
+        if (!initial) shelf.querySelector('.genre-shelf')?.focus({ preventScroll: true });
     }
 
     tiles.forEach(tile => tile.addEventListener('click', () => open(tile.dataset.genre)));
+
+    // Lead with the first tile's shelf open (the rail is shuffled per visit, so a different one each time).
+    if (tiles.length) open(tiles[0].dataset.genre, { initial: true });
 
     // The scroller is inside ol-carousel's shadow root; scroll events don't cross it.
     customElements.whenDefined('ol-carousel').then(() => rail.updateComplete).then(() => {

@@ -167,6 +167,10 @@
   --color-control-track: var(--neutral-100);
   /* Drag handle on a sheet or tray — see-through ink, like --color-hover-overlay. */
   --color-drag-handle: color-mix(in srgb, var(--ink-overlay) 20%, transparent);
+  /* Loading skeleton blocks — see-through ink, so a block reads a step darker on any
+     surface — and the light band that sweeps across them (components/skeleton.css). */
+  --color-skeleton: color-mix(in srgb, var(--ink-overlay) 8%, transparent);
+  --color-skeleton-highlight: color-mix(in srgb, var(--white) 40%, transparent);
 
   /* Selected look for neutral controls. Shared by ol-button[selected] and
      ol-toggle[variant="button"][checked] so the two can't drift apart. */
@@ -184,6 +188,10 @@
   --color-border: var(--neutral-500);
   --color-border-hover: var(--neutral-600);
   --color-border-focused: var(--blue-500);
+  --color-border-pointed: var(--blue-500); /* ring on the item under the pointer, e.g. a hovered book cover */
+  --filter-pointed-dim: brightness(0.88); /* artwork under the pointer dims so the ring reads as the active edge */
+  /* Edge of an image, e.g. a book cover: see-through ink, so a pale cover gets a line and a dark one keeps its own. */
+  --color-border-media: color-mix(in srgb, var(--ink-overlay) 15%, transparent);
   --color-border-error: var(--red-500);
   --color-border-muted: var(--neutral-300); /* dividers — decorative, 1.6:1 on white */
   --color-border-subtle: var(--neutral-200);

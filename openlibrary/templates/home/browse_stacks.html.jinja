@@ -1,8 +1,9 @@
 {#
   "Browse the stacks": one tile per genre, fanned with a few trending covers. A tile opens
   the genre's shelf (home/genre_shelf.html.jinja) in place; browse-stacks.js does the fetching.
-  `genres` comes from home.get_cached_featured_genres(); `loading_html` is the LoadingIndicator macro.
+  `genres` comes from home.get_cached_featured_genres().
 #}
+{% from "CarouselSkeleton.html.jinja" import carousel_skeleton %}
 {% if genres is defined and genres %}
     <section class="browse-stacks"
              aria-labelledby="browse-stacks-title"
@@ -16,6 +17,7 @@
                 <button class="browse-stacks__tile"
                         type="button"
                         data-genre="{{ genre.slug }}"
+                        data-subgenres="{{ genre.subgenres | length }}"
                         aria-expanded="false"
                         aria-controls="browse-stacks-shelf">
                     <span class="browse-stacks__fan" aria-hidden="true">
@@ -53,8 +55,11 @@
                 });
             })();
         </script>
-        {# Shown in the shelf while browse-stacks.js fetches it. #}
-        <template class="browse-stacks__loading">{{ loading_html | safe }}</template>
+        {# Shown in the shelf while browse-stacks.js fetches it: the shape of home/genre_shelf.html.jinja.
+           browse-stacks.js fills in the tile's name and one tab per subgenre. #}
+        <template class="browse-stacks__loading">
+            <div class="genre-shelf">{{ carousel_skeleton(layout="ol-carousel", header=true, sortable=true, tabs=1, footer=true) }}</div>
+        </template>
         <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
     </section>
 {% endif %}

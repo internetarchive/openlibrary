@@ -23,6 +23,9 @@ import './OlIcon.js';
  *
  * @prop {Number} peek - Fraction of item width visible at edges (0–0.5, default: 0.03)
  * @prop {Number} gap - Gap between items in px (default: 8)
+ * @prop {Array} breakpoints - Items per page by component width, as `[maxWidth, columns]`
+ *                             pairs in ascending order; `null` for the last width means
+ *                             "and wider". Default: [[480, 3], [600, 4], [768, 5], [1024, 7], [null, 8]]
  * @prop {String} label - Accessible label for the carousel region (default: "Carousel")
  * @prop {String} labelPrevious - Aria-label for previous arrow (default: "Previous page")
  * @prop {String} labelNext - Aria-label for next arrow (default: "Next page")
@@ -89,6 +92,7 @@ export class OlCarousel extends LitElement {
     static properties = {
         peek: { type: Number },
         gap: { type: Number },
+        breakpoints: { type: Array },
         label: { type: String },
         labelPrevious: { type: String, attribute: 'label-previous' },
         labelNext: { type: String, attribute: 'label-next' },
@@ -369,13 +373,13 @@ export class OlCarousel extends LitElement {
 
     static _rightArrow = html`<ol-icon name="chevron-right"></ol-icon>`;
 
-    /** Breakpoints: [maxWidth, columns] sorted ascending. Last entry is the default. */
+    /** Default breakpoints: [maxWidth, columns] sorted ascending. Last entry is the default. */
     static _breakpoints = [
         [480, 3],
         [600, 4],
         [768, 5],
         [1024, 7],
-        [Infinity, 8],
+        [null, 8],
     ];
 
     /** Safari only got `scrollend` in 26.2; without it we debounce `scroll`. */
@@ -409,6 +413,7 @@ export class OlCarousel extends LitElement {
         super();
         this.peek = 0.03;
         this.gap = 8;
+        this.breakpoints = OlCarousel._breakpoints;
         // Translatable label defaults (English). Consumers pass $_() values in.
         this.label = 'Carousel';
         this.labelPrevious = 'Previous page';
@@ -523,6 +528,13 @@ export class OlCarousel extends LitElement {
         this._scroller?.addEventListener('click', this._onViewportClickCapture, true);
     }
 
+    willUpdate(changedProperties) {
+        // Breakpoints set after the first measure re-pick the columns at the current width.
+        if (changedProperties.has('breakpoints') && this.hasUpdated) {
+            this._updateColumns(this.clientWidth);
+        }
+    }
+
     updated(changedProperties) {
         if (changedProperties.has('_columns') || changedProperties.has('_itemCount')
             || changedProperties.has('peek') || changedProperties.has('gap')) {
@@ -594,8 +606,8 @@ export class OlCarousel extends LitElement {
     }
 
     _updateColumns(width) {
-        for (const [maxWidth, cols] of OlCarousel._breakpoints) {
-            if (width <= maxWidth) {
+        for (const [maxWidth, cols] of this.breakpoints) {
+            if (maxWidth === null || width <= maxWidth) {
                 if (cols !== this._columns) {
                     this._columns = cols;
                 }

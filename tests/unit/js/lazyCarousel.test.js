@@ -29,7 +29,7 @@ function makePlaceholder(config) {
     elem.className = 'lazy-carousel';
     elem.dataset.config = JSON.stringify(config);
     elem.innerHTML = `
-        <div class="loadingIndicator"></div>
+        <div class="carousel-skeleton"></div>
         <div class="lazy-carousel-retry hidden"><a class="retry-btn"></a></div>
         <div class="lazy-carousel-fallback hidden"></div>`;
     document.body.replaceChildren(elem);

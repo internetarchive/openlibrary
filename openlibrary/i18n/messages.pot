@@ -742,7 +742,7 @@ msgstr ""
 msgid "All Time"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+#: openlibrary/plugins/openlibrary/api.py trending.html
 msgid "Trending Books"
 msgstr ""
 
@@ -1295,7 +1295,7 @@ msgstr ""
 msgid "Looking for a book to borrow? Check out our staff picks:"
 msgstr ""
 
-#: account/loans.html home/index.html
+#: account/loans.html
 msgid "Books We Love"
 msgstr ""
 
@@ -4223,44 +4223,8 @@ msgstr[1] ""
 msgid "Welcome to Open Library"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Classic Books"
-msgstr ""
-
-#: home/index.html
-msgid "Recently Returned"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Romance"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Kids"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Thrillers"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
-msgid "Textbooks"
-msgstr ""
-
-#: home/index.html
-msgid "Authors Alliance & MIT Press"
-msgstr ""
-
-#: home/index.html
-msgid "Books in Local Environment"
-msgstr ""
-
 #: home/index.html
 msgid "Couldn't load this shelf. Try again?"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/partials.py
-msgid "Loading carousel"
 msgstr ""
 
 #: home/stats.html
@@ -8213,6 +8177,26 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Classic Books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+msgid "Kids"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+msgid "Textbooks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py

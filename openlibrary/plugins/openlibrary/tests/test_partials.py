@@ -18,6 +18,7 @@ from openlibrary.plugins.openlibrary.partials import (
     LazyCarouselParams,
     NearbyBooksParams,
     NearbyBooksPartial,
+    _carousel_card_book,
     _solr_query_to_subject_key,
     build_nearby_books_placeholder_config,
     build_stores,
@@ -95,6 +96,28 @@ class TestHomeGenreShelf:
     async def test_unknown_genre_is_empty(self):
         with patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=None):
             assert await HomeGenrePartial.generate_async(HomeGenreParams(genre="nope")) == {"partials": ""}
+
+
+class TestCarouselCardBook:
+    def test_edition_takes_the_works_byline_and_year(self):
+        work = {
+            "key": "/works/OL1W",
+            "author_name": ["Robert A. Heinlein"],
+            "first_publish_year": 1959,
+            "editions": {"docs": [{"key": "/books/OL1M", "title": "Starship Troopers"}]},
+        }
+        card = _carousel_card_book(work)
+        assert card.key == "/books/OL1M"
+        assert card.work_key == "/works/OL1W"
+        assert card.author_name == ["Robert A. Heinlein"]
+        assert card.first_publish_year == 1959
+
+    def test_work_without_editions_is_its_own_card(self):
+        work = {"key": "/works/OL1W", "author_name": ["A"], "first_publish_year": 2000}
+        card = _carousel_card_book(work)
+        assert card.key == "/works/OL1W"
+        assert card.author_name == ["A"]
+        assert "work_key" not in card
 
 
 class TestSolrQueryToSubjectKey:
@@ -271,10 +294,11 @@ class TestNearbyBooksPartial:
 
 
 def test_build_nearby_books_placeholder_config_targets_the_nearby_books_partial():
-    with patch("openlibrary.plugins.openlibrary.partials.render_macro", return_value={"__body__": "<div>loading</div>"}):
-        config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
+    config = build_nearby_books_placeholder_config("/works/OL1W", "eng")
     assert json.loads(config["lazy_config_json"]) == {"partial": "NearbyBooks", "work_key": "/works/OL1W", "language": "eng"}
     assert config["fallback"] is None
+    # The skeleton stands in for NearbyBooksPartial's slick row and its unlinked heading.
+    assert (config["layout"], config["title_link"]) == ("carousel", False)
 
 
 def _community_card(title: str) -> dict:

@@ -114,39 +114,12 @@ class TestHomeTemplates:
 
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
 
-        carousel_data = {
-            "staff_picks": {
-                "books": [],
-                "url": "/search?q=staff_picks",
-                "load_more": {
-                    "queryType": "BROWSE",
-                    "q": "test_query",
-                    "subject": "test_subject",
-                    "sorts": "test_sort",
-                    "mode": "page",
-                    "limit": 18,
-                },
-            },
-            "recently_returned": {
-                "books": [],
-                "url": "/search?q=recently_returned",
-                "load_more": {
-                    "queryType": "BROWSE",
-                    "q": "test_query",
-                    "subject": "",
-                    "sorts": "test_sort",
-                    "mode": "page",
-                    "limit": 18,
-                },
-            },
-        }
-
         macros = web.template.Template.globals.setdefault("macros", web.storage())
         macros.BookPreview = lambda *args, **kwargs: '<div id="bookPreview"></div>'
         macros.BookPreviewFloater = lambda *args, **kwargs: '<div id="bookPreview"></div>'
-        html = str(render_template("home/index", stats=stats, test=True, carousel_data=carousel_data))
+        macros.LoadingIndicator = lambda *args, **kwargs: '<div class="loadingIndicator"></div>'
+        html = str(render_template("home/index", stats=stats, test=True))
 
-        assert "Recently Returned" in html
         assert "bookPreview" in html
         assert "Around the Library" in html
         assert "About the Project" in html
@@ -162,11 +135,12 @@ TILE_GENRES = [
 class TestFeaturedGenres:
     """The stacks' tiles come from one grouped Solr query, one group per genre."""
 
-    def featured(self, grouped):
+    def featured(self, grouped, picked=None):
         solr = MagicMock()
         solr.raw_request = AsyncMock(return_value=MagicMock(json=lambda: {"grouped": grouped}))
         with (
             patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),
+            patch.object(home.home_genres, "load_tile_covers", return_value=picked or {}),
             patch.object(home.search, "get_solr", return_value=solr),
         ):
             web.ctx.env = {}
@@ -185,6 +159,25 @@ class TestFeaturedGenres:
         assert [(g["slug"], g["readable_count"]) for g in genres] == [("horror", 1200), ("history", 5)]
         # Docs without a cover are skipped, and the fan takes three.
         assert genres[0]["covers"] == [1, 2, 3]
+
+    def test_hand_picked_covers_beat_trending(self):
+        genres, _ = self.featured(
+            {
+                "subject_key:horror*": {"doclist": {"numFound": 1200, "docs": [{"cover_i": 1}, {"cover_i": 2}, {"cover_i": 3}]}},
+                "subject_key:history*": {"doclist": {"numFound": 5, "docs": [{"cover_i": 4}]}},
+                "subject_key:absurd*": {"doclist": {"numFound": 0, "docs": []}},
+            },
+            picked={"horror": [10, 11, 12, 13]},
+        )
+        # A curated tile ignores the trending docs (and still takes three); the rest keep them.
+        assert genres[0]["covers"] == [10, 11, 12]
+        assert genres[1]["covers"] == [4]
+
+    def test_picked_covers_file_matches_the_tiles(self):
+        picked = home.home_genres.load_tile_covers()
+        slugs = {g["slug"] for g in home.home_genres.load_home_genres()}
+        assert set(picked) == slugs
+        assert all(len(covers) == home.GENRE_TILE_COVERS for covers in picked.values())
 
 
 class Test_format_book_data:

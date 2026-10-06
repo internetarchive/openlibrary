@@ -1,3 +1,5 @@
+@import "skeleton.css";
+
 :root {
   --height-blank-cover: 200px;
   --height-cover-compact: 125px;
@@ -15,6 +17,12 @@
   color: var(--color-text-heading);
   margin-bottom: 0.5em;
   margin-top: 1.75em;
+}
+
+/* The page's lead heading (home/welcome.html). */
+.home-h2--lead {
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-heading);
 }
 
 /* A row with a sort control (books/custom_carousel.html.jinja): the control sits at the end of
@@ -71,8 +79,7 @@
 }
 
 /* Bleeds to the edge of #contentBody. */
-.carousel-container,
-.lazy-carousel {
+.carousel-container {
   margin: 0 calc(-1 * var(--spacing-page-gutter));
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
 }
@@ -150,10 +157,67 @@
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
 }
 
+/* The component's gap is the only space between cards, and the cover rings
+   (OlBookCover.js) draw past the card's edge into the viewport padding. */
 .carousel--native > .carousel__item {
   float: none;
   margin: 0;
+  padding: 0;
+  overflow: visible;
   text-align: center;
+}
+
+/* Every cover is the same 2:3 box, as wide as its card. */
+.carousel--native .book .book-cover {
+  display: block;
+  height: auto;
+}
+
+.carousel--native ol-book-cover {
+  width: 100%;
+}
+
+/* Touch has no hover card, so the title and author sit under the cover.
+   The title is held to one line, so the buttons under it line up across the row. */
+.carousel-caption {
+  display: none;
+  margin-top: var(--spacing-stack-xs);
+  text-align: start;
+}
+
+.carousel-caption:link,
+.carousel-caption:visited {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .carousel-caption {
+    display: block;
+  }
+}
+
+.carousel-caption__title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+}
+
+/* The author line is held when missing, so the buttons still line up. */
+.carousel-caption__meta {
+  display: block;
+  overflow: hidden;
+  min-height: calc(1em * var(--line-height-tight));
+  margin-top: var(--spacing-3xs);
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .carousel.carousel--grid .carousel__item {
@@ -270,6 +334,15 @@
   font-style: oblique;
 }
 
+/* Carousel covers sit flat and share a baseline, so a row of mixed sizes reads as a shelf. */
+.book.carousel__item .book-cover {
+  align-items: flex-end;
+}
+
+.book.carousel__item .bookcover {
+  box-shadow: none;
+}
+
 .carousel--compact .book .book-cover {
   height: var(--height-cover-compact);
   position: relative;
@@ -294,29 +367,11 @@
   margin: 0 auto;
 }
 
-/* Styles for lazy-loading carousel placeholder element */
-.lazy-carousel {
-  /* Same height as the loaded carousel to avoid layout shift */
-  height: 278.6px;
-  background: var(--book-cover-carousel-background);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.lazy-carousel .loadingIndicator {
-  border: 1px var(--grey) solid;
-  background: var(--lightest-grey);
-  margin: 0 auto;
-  padding: var(--spacing-inset-lg);
-}
-
 .lazy-carousel-retry,
 .lazy-carousel-fallback {
-  border: 1px var(--grey) solid;
-  background: var(--lightest-grey);
-  margin: 0 auto;
+  margin: var(--spacing-stack-md) auto;
   padding: var(--spacing-inset-lg);
+  text-align: center;
 }
 
 .loan-overlay-badge {
@@ -367,6 +422,18 @@
   .book-cover-wrapper > ol-shelf-button[open] {
     opacity: 1;
   }
+
+  /* The same, for the native row's <ol-book-cover> (its overlay slot). */
+  .carousel__item ol-book-cover > ol-shelf-button:not([shelf]) {
+    opacity: 0;
+  }
+
+  .carousel__item ol-book-cover:hover > ol-shelf-button,
+  .carousel__item ol-book-cover[link-focus] > ol-shelf-button,
+  .carousel__item ol-book-cover > ol-shelf-button:focus-within,
+  .carousel__item ol-book-cover > ol-shelf-button[open] {
+    opacity: 1;
+  }
 }
 
 .loan-overlay-badge__waitlist {
@@ -412,26 +479,6 @@
   flex: 0 0 39px;
 }
 
-/* A phone fits three cards in ~330px, so the card gives up its slick-era inset
-   (the component gap alone separates the covers) and the cover box shrinks to
-   the narrower covers. The CTA's phone size is in buttonCta.css. */
-/* --width-breakpoint-tablet */
-@media (max-width: 767px) {
-  .carousel--native > .carousel__item {
-    padding: 0;
-    overflow: visible;
-  }
-
-  .carousel--native .book .book-cover {
-    height: 160px;
-  }
-
-  .carousel--native .book .bookcover,
-  .carousel--native .carousel__item__blankcover {
-    max-height: 160px;
-  }
-}
-
 /* Stretch the return button to whatever height the Read/Borrow button beside it
    works out to, rather than pinning a number that drifts out of step with it. */
 .ol-return-wrapper .return-form {
@@ -446,4 +493,179 @@
   justify-content: center;
   margin-bottom: 0;
   padding: 0;
+}
+
+/* A row's loading state (macros/CarouselSkeleton.html.jinja). It reuses the loaded row's
+   section, container and card classes, so it takes the loaded row's size and nothing shifts. */
+.carousel-skeleton__title--link {
+  color: var(--color-link);
+}
+
+/* A heading not known yet: a bar one line tall. */
+.carousel-skeleton__line {
+  display: inline-block;
+  width: 8em;
+  height: 1em;
+  vertical-align: middle;
+}
+
+/* Stands in for the sort control, so the header keeps its height. */
+.carousel-skeleton__control {
+  width: 110px;
+  height: var(--control-height-medium);
+  border-radius: var(--border-radius-button);
+}
+
+/* Stands in for ol-tabs: same height and rule, with a bar per tab. */
+.carousel-skeleton__tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-xl);
+  height: var(--control-height-large);
+  padding-inline: var(--spacing-inset-sm);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.carousel-skeleton__tab {
+  width: 72px;
+  height: 0.75em;
+}
+
+.carousel-skeleton__tab:first-child {
+  width: 88px;
+}
+
+/* The "See more" link is as tall as its arrow icon. */
+.carousel-skeleton__more {
+  width: 9em;
+  font-size: var(--font-size-body-medium);
+  margin-block: calc((var(--icon-size-md) - 1em) / 2);
+}
+
+.carousel-skeleton__row {
+  display: flex;
+  overflow: hidden;
+}
+
+/* The slick row: slick shows 6/5/4/3/2 cards at these viewport widths (carousel/Carousel.js),
+   each with the slick slide's inline margin. */
+.carousel-skeleton__row:not(.carousel--native) {
+  padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
+  --skeleton-columns: 6;
+}
+
+/* A slick row is as tall as its tallest card, and nearly every row has a Preview button,
+   which is 5px taller than the others there. */
+.carousel-skeleton__row:not(.carousel--native) .ol-action-row {
+  padding-bottom: 5px;
+}
+
+.carousel-skeleton__row:not(.carousel--native) > .carousel__item {
+  flex: 0 0 auto;
+  float: none;
+  width: calc(100% / var(--skeleton-columns) - 2 * var(--spacing-inline-md));
+}
+
+@media (max-width: 1200px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    --skeleton-columns: 5;
+  }
+}
+
+@media (max-width: 1024px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    --skeleton-columns: 4;
+  }
+}
+
+@media (max-width: 600px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    --skeleton-columns: 3;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    --skeleton-columns: 2;
+  }
+}
+
+/* --width-breakpoint-tablet: edge to edge, as .carousel is. */
+@media (max-width: 767px) {
+  .carousel-skeleton__row:not(.carousel--native) {
+    padding-inline: var(--spacing-page-gutter);
+  }
+}
+
+/* The native row: ol-carousel's track, columns and edge peek (OlCarousel.js). The container
+   is as wide as the component would be, and the columns step at the component's own widths. */
+.carousel-skeleton .carousel-container {
+  container-type: inline-size;
+}
+
+.carousel-skeleton__row.carousel--native {
+  gap: 12px;
+  padding-block: var(--ol-carousel-viewport-padding);
+  padding-inline: var(--ol-carousel-inset, 0);
+  /* The book row's own breakpoints (books/custom_carousel.html.jinja), not the component defaults. */
+  --skeleton-columns: 7;
+}
+
+.carousel-skeleton__row.carousel--native > .carousel__item {
+  flex: 0 0 auto;
+  width: calc(
+    (100cqi - 2 * var(--ol-carousel-inset, 0px)) * 0.94 /
+      var(--skeleton-columns) - 12px + 12px / var(--skeleton-columns)
+  );
+}
+
+@container (max-width: 1024px) {
+  .carousel-skeleton__row.carousel--native {
+    --skeleton-columns: 6;
+  }
+}
+
+@container (max-width: 768px) {
+  .carousel-skeleton__row.carousel--native {
+    --skeleton-columns: 4;
+  }
+}
+
+@container (max-width: 600px) {
+  .carousel-skeleton__row.carousel--native {
+    --skeleton-columns: 3;
+  }
+}
+
+@container (max-width: 480px) {
+  .carousel-skeleton__row.carousel--native {
+    --skeleton-columns: 2;
+  }
+}
+
+/* A line of caption text: a 1em bar centred in its line box. */
+.carousel-skeleton__text {
+  width: 90%;
+  height: 1em;
+  margin-block: calc((var(--line-height-tight) - 1) * 0.5em);
+}
+
+.carousel-skeleton__text--short {
+  width: 60%;
+}
+
+/* A 2:3 cover, centred in the cover's box as a loaded card's is. */
+.carousel-skeleton__cover {
+  width: 100%;
+  max-height: 100%;
+  aspect-ratio: 2 / 3;
+  margin-inline: auto;
+  border-radius: var(--border-radius-thumbnail);
+}
+
+.carousel-skeleton__button {
+  flex: 1;
+  height: var(--control-height-medium);
+  margin-top: var(--spacing-stack-sm);
+  border-radius: var(--border-radius-button);
 }

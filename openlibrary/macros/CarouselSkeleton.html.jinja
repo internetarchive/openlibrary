@@ -1,0 +1,56 @@
+{#
+  A book row's loading state: blank covers in the row's own card boxes, so the loaded row lands
+  without shifting. `layout` matches the row's ("carousel" for slick, "ol-carousel" for native).
+  `title` shows the row's real heading (`title_link` when it links); `header` stubs one when
+  the title isn't known yet.
+  `sortable`, `tabs` (how many subgenre tabs) and `footer` stub the genre row's controls.
+#}
+{% macro carousel_skeleton(layout="carousel", title="", title_link=false, header=false, sortable=false, tabs=0, footer=false) %}
+    <div class="carousel-skeleton">
+        <span class="shift">{{ _("Loading carousel") }}</span>
+        <div class="carousel-section" aria-hidden="true">
+            {% if title or header %}
+                <div class="carousel-section-header{% if sortable %} carousel-section-header--sortable{% endif %}">
+                    <h2 class="home-h2{% if sortable %} carousel-heading--plain{% endif %}">
+                        {% if title %}
+                            <span class="carousel-skeleton__title{% if title_link %} carousel-skeleton__title--link{% endif %}">{{ title }}</span>
+                        {% else %}
+                            <span class="carousel-skeleton__title"><span class="skeleton carousel-skeleton__line"></span></span>
+                        {% endif %}
+                    </h2>
+                    {% if sortable %}<span class="skeleton carousel-skeleton__control"></span>{% endif %}
+                </div>
+            {% endif %}
+            {% if tabs %}
+                <div class="carousel-subgenres carousel-skeleton__tabs">
+                    {% for _tab in range(tabs) %}<span class="skeleton carousel-skeleton__tab"></span>{% endfor %}
+                </div>
+            {% endif %}
+            <div class="carousel-container carousel-container-decorated">
+                <div class="carousel-skeleton__row{% if layout == 'ol-carousel' %} carousel--native{% endif %}">
+                    {% for _card in range(8) %}
+                        <div class="book carousel__item">
+                            <div class="book-cover">
+                                <span class="skeleton carousel-skeleton__cover"></span>
+                            </div>
+                            {% if layout == 'ol-carousel' %}
+                                <span class="carousel-caption">
+                                    <span class="carousel-caption__title"><span class="skeleton carousel-skeleton__text"></span></span>
+                                    <span class="carousel-caption__meta"><span class="skeleton carousel-skeleton__text carousel-skeleton__text--short"></span></span>
+                                </span>
+                            {% endif %}
+                            <div class="ol-action-row">
+                                <span class="skeleton carousel-skeleton__button"></span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if footer %}
+                <div class="carousel-section-footer">
+                    <span class="skeleton carousel-skeleton__line carousel-skeleton__more"></span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}

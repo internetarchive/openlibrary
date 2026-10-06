@@ -19,6 +19,10 @@ export const DEFAULT_LABELS = {
  * `ol-tooltip` arms on the same media query a cover-card layout uses to
  * hide that text below the cover, so exactly one of the two shows.
  *
+ * A linked cover gets a ring on hover and on keyboard focus, reaching 4px outside
+ * the cover — leave that much room around it (e.g. ol-carousel's viewport padding).
+ * Hover also dims the artwork under the ring.
+ *
  * @element ol-book-cover
  *
  * @prop {String} src - Cover image URL; empty draws the generated blank cover
@@ -60,19 +64,45 @@ export class OlBookCover extends LitElement {
         .link {
             display: block;
             height: 100%;
+            outline: none;
         }
 
-        /* Wraps the cover link only, keeping the overlay out of the trigger area. */
+        /* Both rings sit outside the cover, which clips anything inside it. The
+           host's surface needs 4px of room around it for them: the focus ring
+           is 2px with a 2px gap, the hover ring 4px hugging the edge. */
+        :host([link-focus]) {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            :host([href]:hover) {
+                outline: var(--pointed-ring-width) solid var(--color-border-pointed);
+                outline-offset: 0;
+            }
+
+            :host([href]:hover) .link {
+                filter: var(--filter-pointed-dim);
+            }
+        }
+
+        /* Wraps the overlay too, so pointing at the save button keeps the card
+           up. The link stays the trigger: it alone is described by the card. */
         ol-tooltip {
             display: block;
             height: 100%;
         }
 
+        /* The edge line is an inset outline, drawn over the artwork, so a pale
+           cover still separates from a pale page. */
         .img {
             display: block;
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: var(--border-radius-thumbnail);
+            outline: var(--border-width-media) solid var(--color-border-media);
+            outline-offset: calc(-1 * var(--border-width-media));
         }
 
         .blank {
@@ -168,12 +198,37 @@ export class OlBookCover extends LitElement {
 
     render() {
         const art = this.href
-            ? html`<a class="link" href=${this.href} @click=${this._onClick}>${this._renderArt()}</a>`
+            ? html`<a class="link" href=${this.href} @click=${this._onClick} @focus=${this._onFocus} @blur=${this._onBlur}>${this._renderArt()}</a>`
             : this._renderArt();
         return html`
-            <ol-tooltip placement="top" arrow>${art}${this._renderTip()}</ol-tooltip>
-            <slot name="overlay"></slot>
+            <ol-tooltip placement="top" arrow>
+                ${art}${this._renderTip()}
+                <slot
+                    name="overlay"
+                    @pointerdown=${this._hideTip}
+                    @ol-popover-open=${this._onOverlayOpen}
+                    @ol-popover-close=${this._onOverlayClose}
+                ></slot>
+            </ol-tooltip>
         `;
+    }
+
+    get _tooltip() {
+        return this.renderRoot.querySelector('ol-tooltip');
+    }
+
+    /** Pressing the overlay's button acts on the book; the card would only cover its menu. */
+    _hideTip() {
+        this._tooltip?.hide();
+    }
+
+    _onOverlayOpen() {
+        this._tooltip.disabled = true;
+        this._tooltip.hide();
+    }
+
+    _onOverlayClose(e) {
+        if (!e.defaultPrevented) this._tooltip.disabled = false;
     }
 
     _renderArt() {
@@ -198,6 +253,15 @@ export class OlBookCover extends LitElement {
                 ${this.authors ? html`<div class="tip__byline">${this.authors}</div>` : nothing}
             </div>
         `;
+    }
+
+    /** Reflects keyboard focus on the link to the host, which draws the ring. */
+    _onFocus(e) {
+        this.toggleAttribute('link-focus', e.target.matches(':focus-visible'));
+    }
+
+    _onBlur() {
+        this.removeAttribute('link-focus');
     }
 
     _onClick() {

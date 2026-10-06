@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import NotRequired, TypedDict, cast
 
 GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
+# Hand-picked covers for the tiles' fans (see the file's _comment). Not generated.
+GENRE_COVERS_JSON_PATH = Path(__file__).parent / "home_genre_covers.json"
 
 # Genres and subgenres with fewer readable books than these (counted at generation time,
 # against production) are left off: a tile needs a shelf worth browsing, a subgenre chip needs
@@ -57,6 +59,13 @@ def load_home_genres() -> list[Genre]:
         for node in nodes
         if node["readable_count"] >= MIN_GENRE_READABLE
     ]
+
+
+@functools.cache
+def load_tile_covers() -> dict[str, list[int]]:
+    """Cover ids to fan on each tile, keyed by slug. Tiles without an entry use trending covers."""
+    data = json.loads(GENRE_COVERS_JSON_PATH.read_text())
+    return {slug: [book["cover_id"] for book in books] for slug, books in data["covers"].items()}
 
 
 def find_genre(slug: str) -> Genre | None:

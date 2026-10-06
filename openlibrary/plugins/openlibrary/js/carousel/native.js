@@ -19,6 +19,12 @@ export function initNativeCarousels(elems) {
             if (e.detail.page > e.detail.previousPage) trackEvent(category, 'Next', key);
         });
 
+        // The cover link is in ol-book-cover's shadow root, out of reach of `data-ol-link-track`.
+        carousel.addEventListener('ol-book-cover-click', (e) => {
+            const track = e.target.closest('[data-cover-track]')?.dataset.coverTrack;
+            if (track) trackEvent(...track.split('|'));
+        });
+
         const loadMore = config.loadMore;
         if (!loadMore?.queryType) return;
         let locked = false;
