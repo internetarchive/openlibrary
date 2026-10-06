@@ -647,7 +647,7 @@ class Test_From_MARC:
             ],
         }
         reply = load(rec)
-        assert reply["authors"][0]["status"] == "matched"
+        assert reply["authors"][0]["status"] == "modified"
         assert reply["authors"][0]["key"] == "/authors/OL1A"
         # Check whether new import Author data is saved to existing matched record:
         existing = mock_site.get("/authors/OL1A")
