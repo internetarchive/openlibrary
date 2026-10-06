@@ -7,6 +7,7 @@ from openlibrary.core.db import get_db
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.core.read_history import ReadHistory
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 READING_LOG_DDL = """
@@ -502,3 +503,52 @@ class TestYearlyReadingGoals:
         assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 2
         YearlyReadingGoals.delete_by_username("@billy_pilgrim")
         assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 0
+
+
+READ_HISTORY_DDL = """
+CREATE TABLE read_history (
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    edition_id integer default null,
+    created timestamp,
+    updated timestamp,
+    PRIMARY KEY (username, work_id)
+);
+"""
+
+
+class TestReadHistory:
+    @classmethod
+    def setup_class(cls):
+        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+        db = get_db()
+        db.query(READ_HISTORY_DDL)
+
+    def setup_method(self):
+        self.db = get_db()
+        self.db.insert("read_history", username="@testuser", work_id=1, edition_id=10)
+
+    def teardown_method(self):
+        self.db.query("delete from read_history;")
+
+    def test_get_history(self):
+        history = ReadHistory.get_history("@testuser")
+        assert len(history) == 1
+        assert history[0]["work_id"] == 1
+        assert history[0]["edition_id"] == 10
+
+    def test_update_work_id_simple(self):
+        ReadHistory.update_work_id(1, 2)
+        history = ReadHistory.get_history("@testuser")
+        assert len(history) == 1
+        assert history[0]["work_id"] == 2
+
+    def test_update_work_id_collision(self):
+        self.db.insert("read_history", username="@testuser", work_id=2, edition_id=20)
+        assert len(ReadHistory.get_history("@testuser")) == 2
+
+        ReadHistory.update_work_id(1, 2)
+        history = ReadHistory.get_history("@testuser")
+        assert len(history) == 1
+        assert history[0]["work_id"] == 2
+
