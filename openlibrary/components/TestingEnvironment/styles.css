@@ -4,7 +4,11 @@
 
 /* One card in two bands: the staged set on top, the apply step below. */
 .testing-env {
+  position: relative;
   margin-bottom: var(--spacing-xl);
+  /* One blink speed for the panel: the deploying status dot and the panel
+     border share it, so they pulse in step. */
+  --testing-env-pulse: 1.6s;
 }
 
 /* Top band: square bottom corners, where the deploy section joins. */
@@ -527,22 +531,32 @@ a.testing-env__pill:focus-visible {
 }
 
 .testing-env__status--deploying .testing-env__dot {
-  animation: testing-env-pulse 1.6s ease-in-out infinite;
+  animation: testing-env-pulse var(--testing-env-pulse) ease-in-out infinite;
 }
 
-/* While a deploy runs, the panel border pulses amber — the colour of the
-   deploying status dot — with a soft glow, so a running deploy is hard to
-   miss. The card is two stacked elements, so both borders animate together
-   to read as one edge. The glow takes the brighter -object ramp: -fg is tuned
-   for text ink and reads muddy spread over an area. */
-.testing-env--deploying .testing-env__main,
-.testing-env--deploying .testing-env__deploy {
-  animation: testing-env-border-pulse var(--duration-slower) var(--ease-state)
-    infinite alternate;
+/* While a deploy runs, the panel's outer border pulses amber — the colour of
+   the deploying status dot — with a soft glow. Drawn as an overlay on the
+   panel root rather than on the two bands' own borders, so only the card's
+   outside edge animates: the rule between the bands stays put. The glow takes
+   the brighter -object ramp, since -fg is tuned for text ink and reads muddy
+   spread over an area. */
+.testing-env::after {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--border-radius-card);
+  pointer-events: none;
+  content: "";
+}
+
+.testing-env--deploying::after {
+  animation: testing-env-border-pulse var(--testing-env-pulse) ease-in-out
+    infinite;
 }
 
 @keyframes testing-env-border-pulse {
-  to {
+  50% {
     border-color: var(--color-warning-fg);
     box-shadow: 0 0 12px
       color-mix(in srgb, var(--color-warning-object) 55%, transparent);
@@ -563,8 +577,7 @@ a.testing-env__pill:focus-visible {
 
   .testing-env__status--deploying .testing-env__dot,
   .testing-env__spinner,
-  .testing-env--deploying .testing-env__main,
-  .testing-env--deploying .testing-env__deploy {
+  .testing-env--deploying::after {
     animation: none;
   }
 }
