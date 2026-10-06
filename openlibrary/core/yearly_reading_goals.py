@@ -43,7 +43,6 @@ class YearlyReadingGoals:
     def summary_sync(cls) -> dict[str, dict[str, int]]:
         return async_bridge.run(cls.summary())
 
-    # Create methods:
     @classmethod
     async def create(cls, username: str, year: int, target: int) -> None:
         await execute(
@@ -52,10 +51,8 @@ class YearlyReadingGoals:
         )
 
     # Read methods:
-    # web.db's `order=` kwarg is interpolated raw into the SQL string -- only
-    # `vars=` substitutions are parameterized -- so any caller passing a
-    # user-controlled `order` would have a SQLi sink in the same shape as the
-    # /merges bug fixed in PR #12460. Restrict callers to a known set.
+    # web.db's `order=` is raw SQL, only `vars=` is parameterized. Limit
+    # callers to a known set to avoid a SQLi sink like the /merges bug in PR #12460.
     _ALLOWED_ORDERS: ClassVar[dict[str, str]] = {
         "year ASC": "year ASC",
         "year DESC": "year DESC",
@@ -71,14 +68,10 @@ class YearlyReadingGoals:
 
     @classmethod
     async def select_by_username_and_year(cls, username: str, year: int) -> YearlyReadingGoal | None:
-        """The user's goal for ``year``, or None if they haven't set one.
-
-        ``(username, year)`` is the table's primary key, so this is 0 or 1 row.
-        """
+        """The user's goal for ``year``, or None if they have not set one."""
         query = f"SELECT username, year, target, created, updated FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
         return await fetch_one(query, {"username": username, "year": year}, row_factory=class_row(YearlyReadingGoal))
 
-    # Update methods:
     @classmethod
     async def update_target(cls, username: str, year: int, new_target: int) -> None:
         query = f"UPDATE {cls.TABLENAME} SET target = %(target)s, updated = %(updated)s WHERE username = %(username)s AND year = %(year)s"
@@ -92,7 +85,6 @@ class YearlyReadingGoals:
             },
         )
 
-    # Delete methods:
     @classmethod
     async def delete_by_username_and_year(cls, username: str, year: int) -> None:
         query = f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"

@@ -15,7 +15,6 @@ from openlibrary.plugins.upstream.yearly_reading_goals import (
 
 
 def _make_user(key: str = "/people/testuser") -> User:
-    """The real User model. ``get_username`` only reads ``key``, so the site is unused."""
     return User(object(), key)
 
 
@@ -60,7 +59,6 @@ async def test_get_reading_goals_async_returns_none_without_goal():
 
 
 def test_get_reading_goals_bridges_to_async(monkeypatch):
-    """The web.py adapter reads the username off the real User model and bridges."""
     user = _make_user()
     assert user.get_username() == "testuser"
     monkeypatch.setattr(

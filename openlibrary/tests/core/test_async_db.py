@@ -1,4 +1,4 @@
-"""Tests for the async psycopg connection pool (openlibrary/core/async_db.py)."""
+"""Tests for the async psycopg pool (openlibrary/core/async_db.py)."""
 
 import asyncio
 import logging
@@ -14,12 +14,7 @@ DB_PARAMETERS = {"dbn": "postgres", "db": "openlibrary", "user": "openlibrary"}
 
 
 def _reset_pools() -> None:
-    """Synchronously drop every cached pool (test-only).
-
-    Moved out of ``async_db`` so the production module exposes only
-    ``init_pool`` / ``close_pool`` / ``connection``. Running loops get a
-    scheduled close; pools on dead loops are dropped where nothing can run.
-    """
+    """Drop every cached pool."""
     with async_db._entries_lock:
         entries = list(async_db._entries.items())
         async_db._entries.clear()
@@ -32,7 +27,6 @@ def _reset_pools() -> None:
 
 
 def _current_pool():
-    """The running loop's cached pool, or None (test-local replacement for get_pool)."""
     entry = async_db._entries.get(asyncio.get_running_loop())
     return entry.pool if entry else None
 
@@ -45,10 +39,7 @@ def _reset_pools_between_tests():
 
 
 class FakePool:
-    """Minimal stand-in for ``psycopg_pool.AsyncConnectionPool``.
-
-    :class:`RecordingPoolFactory` sets the optional hooks used by tests.
-    """
+    """Stand-in for ``psycopg_pool.AsyncConnectionPool``."""
 
     @staticmethod
     async def check_connection(conn):
@@ -88,7 +79,7 @@ class FakePool:
 
 
 class RecordingPoolFactory:
-    """Callable ``AsyncConnectionPool`` replacement that records instances."""
+    """``AsyncConnectionPool`` replacement that records instances."""
 
     check_connection = staticmethod(FakePool.check_connection)
 
@@ -116,9 +107,7 @@ class FakeConnection:
 
 
 async def _wait_until(predicate, max_wait=5.0):
-    """Yield to the event loop until ``predicate()`` becomes true."""
     async with asyncio.timeout(max_wait):
-        # ASYNC110: a generic predicate doesn't fit asyncio.Event.
         while not predicate():  # noqa: ASYNC110
             await asyncio.sleep(0)
 
@@ -129,7 +118,6 @@ def _lock_is_held() -> bool:
 
 
 def _cache_pool(loop, pool) -> async_db._LoopPool:
-    """Seed the registry as if a pool had been opened on ``loop``."""
     entry = async_db._entries.get(loop)
     if entry is None:
         entry = async_db._entries[loop] = async_db._LoopPool()
@@ -177,7 +165,6 @@ async def test_no_db_config_skips_pool_and_connection_raises():
 
 @pytest.mark.asyncio
 async def test_init_pool_fails_when_psycopg_not_installed():
-    """A configured application fails startup if psycopg is unavailable."""
     web.config.db_parameters = DB_PARAMETERS
     with patch("openlibrary.core.async_db.AsyncConnectionPool", None), pytest.raises(RuntimeError, match=r"psycopg\[binary,pool\] is required"):
         await async_db.init_pool()
@@ -197,8 +184,6 @@ async def test_init_pool_creates_and_reuses_the_pool():
     assert _current_pool() is first_pool
     assert isinstance(first_pool, FakePool)
     assert first_pool.opened
-    # Connection parameters reach psycopg through pool kwargs, merged into the
-    # connection info by connect(); no conninfo string is built.
     assert first_pool.kwargs == {
         "dbname": "openlibrary",
         "user": "openlibrary",
@@ -213,7 +198,6 @@ async def test_init_pool_creates_and_reuses_the_pool():
 
 @pytest.mark.asyncio
 async def test_connection_lazy_initializes_and_uses_the_pool():
-    """No lifespan/init_pool needed: first connection() call creates the pool."""
     web.config.db_parameters = DB_PARAMETERS
     with patch("openlibrary.core.async_db.AsyncConnectionPool", FakePool):
         async with async_db.connection() as conn:
@@ -226,7 +210,6 @@ async def test_connection_lazy_initializes_and_uses_the_pool():
 
 
 def test_pools_are_cached_per_event_loop():
-    """Each event loop gets its own pool, reused across calls on that loop."""
     web.config.db_parameters = DB_PARAMETERS
 
     async def _first_connection():
@@ -248,19 +231,15 @@ def test_pools_are_cached_per_event_loop():
         finally:
             loop_2.close()
 
-    # A second, independent loop gets a different pool...
     assert loop_1_pool_1 is not None
     assert loop_2_pool is not None
     assert loop_1_pool_1 is not loop_2_pool
-    # ...reused for later connections on that same loop.
     assert loop_1_pool_2 is loop_1_pool_1
 
 
 def test_connection_works_via_async_bridge():
-    """async_bridge runs its coroutine on a persistent background loop; that
-    loop must get its own pool rather than reusing the caller's loop's pool.
-    This is the collision that blocked using the async model methods from
-    web.py code."""
+    # The bridge runs on its own loop, so it needs its own pool. Sharing the
+    # caller loop pool is what blocked async models from web.py code.
     web.config.db_parameters = DB_PARAMETERS
 
     async def _use():
@@ -271,7 +250,6 @@ def test_connection_works_via_async_bridge():
         async_bridge.run(_use())
         pool_on_bridge_loop = async_db._entries[async_bridge._loop].pool
 
-        # A connection from a different (non-bridge) loop must not reuse it.
         with asyncio.Runner() as runner:
             runner.run(_use())
             pools = [entry.pool for entry in async_db._entries.values()]
@@ -299,7 +277,6 @@ async def test_close_pool_closes_and_clears():
 
 @pytest.mark.asyncio
 async def test_concurrent_first_callers_share_one_pool():
-    """Ten simultaneous first callers must open exactly one pool."""
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
@@ -316,7 +293,6 @@ async def test_concurrent_first_callers_share_one_pool():
 
 @pytest.mark.asyncio
 async def test_cancelled_waiter_does_not_affect_the_open():
-    """Cancelling a caller that is waiting on the lock doesn't lose the pool."""
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
@@ -339,7 +315,6 @@ async def test_cancelled_waiter_does_not_affect_the_open():
 
 @pytest.mark.asyncio
 async def test_cancelled_open_closes_pool_and_allows_retry():
-    """Cancelling the opener closes the half-open pool and lets the next caller retry."""
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
@@ -364,7 +339,6 @@ async def test_cancelled_open_closes_pool_and_allows_retry():
 
 @pytest.mark.asyncio
 async def test_failed_open_closes_pool_and_does_not_cache():
-    """A failed open leaves no half-open pool or cache entry."""
     web.config.db_parameters = DB_PARAMETERS
     factory = RecordingPoolFactory(open_error=RuntimeError("open failed"))
     with patch("openlibrary.core.async_db.AsyncConnectionPool", side_effect=factory), pytest.raises(RuntimeError, match="open failed"):
@@ -379,12 +353,6 @@ async def test_failed_open_closes_pool_and_does_not_cache():
 
 @pytest.mark.asyncio
 async def test_close_pool_waits_for_inflight_open_then_closes_it():
-    """A close during an in-flight open waits for the open, then closes the fresh pool.
-
-    Both hold the entry's lock, so they cannot interleave: the half-open pool
-    is never closed out from under the opener, and the fresh pool does not
-    survive the shutdown.
-    """
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
@@ -393,8 +361,6 @@ async def test_close_pool_waits_for_inflight_open_then_closes_it():
         await _wait_until(lambda: len(factory.created) == 1 and _lock_is_held())
 
         closing = asyncio.create_task(async_db.close_pool())
-        # Let close_pool start: it must block on the entry lock while the
-        # open is still in flight, not close the half-open pool under it.
         for _ in range(3):
             await asyncio.sleep(0)
         assert not closing.done()
@@ -411,7 +377,6 @@ async def test_close_pool_waits_for_inflight_open_then_closes_it():
 
 @pytest.mark.asyncio
 async def test_close_pool_keeps_pool_when_close_fails(caplog):
-    """A failed close leaves the pool cached so a later call can retry."""
     loop = asyncio.get_running_loop()
     pool = FakePool(name="async-db-test")
     pool.close_error = RuntimeError("close failed")
@@ -429,7 +394,7 @@ async def test_close_pool_keeps_pool_when_close_fails(caplog):
 
 @pytest.mark.asyncio
 async def test_reset_pools_closes_pools_on_running_loops():
-    """reset_pools can't await, so it schedules closes on running loops."""
+    # Sync helper, so it schedules the close instead of awaiting it.
     pool = FakePool(name="async-db-test")
     _cache_pool(asyncio.get_running_loop(), pool)
 
@@ -441,7 +406,6 @@ async def test_reset_pools_closes_pools_on_running_loops():
 
 @pytest.mark.asyncio
 async def test_reset_pools_during_inflight_open_leaves_no_cached_pool():
-    """A caller cancelled mid-open after a reset closes its half-open pool; nothing is cached."""
     web.config.db_parameters = DB_PARAMETERS
     gate = asyncio.Event()
     factory = RecordingPoolFactory(open_gate=gate)
@@ -465,7 +429,6 @@ async def test_reset_pools_during_inflight_open_leaves_no_cached_pool():
 
 @pytest.mark.asyncio
 async def test_real_pool_cancelled_open_is_closed_and_not_cached(monkeypatch):
-    """A real pool cancelled while opening against an unreachable server closes and caches nothing."""
     pytest.importorskip("psycopg_pool")
     web.config.db_parameters = {
         "dbn": "postgres",

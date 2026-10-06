@@ -1,10 +1,4 @@
-"""Tests for the single-statement helpers in async_db.
-
-Model tests patch these helpers and assert on the queries and params they
-pass; these tests pin what the helpers themselves do with a connection --
-query recording, commit-on-clean-exit, and row mapping through a real
-psycopg row factory.
-"""
+"""Tests for the single-statement helpers in async_db."""
 
 from dataclasses import dataclass
 from unittest.mock import patch
@@ -17,19 +11,15 @@ from openlibrary.tests.core.async_db_fakes import FakeConnection, FakeConnection
 
 @dataclass
 class FakeGoal:
-    """A stand-in model, so the tests run the real class_row mapping."""
-
     username: str
     year: int
     target: int
 
 
-# Column order of the SELECT below, for class_row to map by name.
 GOAL_COLUMNS = ("username", "year", "target")
 
 
 def _patched_connection(conn: FakeConnection):
-    """Patch async_db's connection() so helpers run against ``conn``."""
     return patch("openlibrary.core.async_db.connection", return_value=FakeConnectionContext(conn))
 
 

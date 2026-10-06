@@ -1,26 +1,8 @@
-"""Tests for the async yearly reading goals model methods.
+"""Unit and integration tests for the async yearly reading goals model.
 
-Two layers of coverage:
-
-1. **Unit tests** (below, no ``@pytest.mark.integration``): the ``helpers``
-   fixture patches the ``async_db`` single-statement helpers, so each test
-   sets a plain return value and asserts the query and params the method
-   passes. These are fast (no postgres) and catch logic bugs — wrong params,
-   wrong helper called, wrong query shape.
-
-2. **Integration tests** (``TestYearlyReadingGoalsIntegration``, marked
-   ``@pytest.mark.integration``): run the model methods against a real
-   postgres started by ``pytest-postgresql``. These catch SQL bugs — syntax
-   errors, wrong column names, ``%(foo)s`` placeholder mismatches — that the
-   unit tests can't, because the unit tests never execute the SQL.
-
-Run just the unit tests (default, no postgres required)::
-
-    pytest openlibrary/tests/core/test_yearly_reading_goals_async.py
-
-Run the integration tests too (requires ``pg_ctl`` on ``PATH``)::
-
-    pytest -m integration openlibrary/tests/core/test_yearly_reading_goals_async.py
+Unit tests patch the ``async_db`` helpers and check query text and params.
+Integration tests (``TestYearlyReadingGoalsIntegration``) run the same
+methods against real postgres. See ``docs/ai/database.md`` for the pattern.
 """
 
 from datetime import datetime, timedelta
@@ -36,11 +18,6 @@ from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 @pytest.fixture
 def helpers():
-    """Patch the async_db helpers this model imports.
-
-    Tests set ``return_value`` on the helper their method uses and assert
-    its call through ``await_args``.
-    """
     with (
         patch("openlibrary.core.yearly_reading_goals.fetch_all", new_callable=AsyncMock) as fetch_all,
         patch("openlibrary.core.yearly_reading_goals.fetch_one", new_callable=AsyncMock) as fetch_one,
@@ -145,15 +122,6 @@ async def test_summary_counts_every_window_in_one_query(helpers):
 
 @pytest.mark.integration
 class TestYearlyReadingGoalsIntegration:
-    """Round-trip the async model methods against a real postgres.
-
-    The unit tests above verify the query text and params but never execute
-    the SQL. These tests run the same methods against a real database (the
-    ``pg_db`` fixture from ``conftest.py``), so a syntax error, a wrong column
-    name, or a ``%(foo)s`` placeholder mismatch is caught here instead of in
-    production.
-    """
-
     @pytest.mark.asyncio
     async def test_create_and_select_by_username(self, pg_db):
         await YearlyReadingGoals.create("alice", 2026, 25)
@@ -164,12 +132,10 @@ class TestYearlyReadingGoalsIntegration:
         assert len(rows) == 2
         assert {r.year for r in rows} == {2025, 2026}
         assert all(isinstance(r, YearlyReadingGoal) for r in rows)
-        # Default order is year ASC.
         assert [r.year for r in rows] == [2025, 2026]
 
     @pytest.mark.asyncio
     async def test_select_by_username_and_year_returns_one_row(self, pg_db):
-        """(username, year) is the primary key, so this is 0 or 1 row."""
         await YearlyReadingGoals.create("alice", 2026, 25)
         await YearlyReadingGoals.create("alice", 2025, 12)
         await YearlyReadingGoals.create("bob", 2026, 30)
@@ -214,18 +180,16 @@ class TestYearlyReadingGoalsIntegration:
 
     @pytest.mark.asyncio
     async def test_summary_counts_across_windows(self, pg_db):
-        """The FILTER counts: total, month, week in one query."""
         now = datetime.now()
         async with async_db.connection() as conn:
-            # Row 1: updated NULL -> total only. (schema.sql defaults updated
-            # to current_timestamp, so set it explicitly.)
+            # updated defaults to now, so set it explicitly. NULL counts for total only.
             await conn.execute("INSERT INTO yearly_reading_goals (username, year, target, updated) VALUES ('a', 2026, 1, NULL)")
-            # Row 2: updated 3 days ago -> total, month, week.
+            # 3 days ago counts for total, month, week.
             await conn.execute(
                 "INSERT INTO yearly_reading_goals (username, year, target, updated) VALUES ('b', 2026, 2, %(d)s)",
                 {"d": now - timedelta(days=3)},
             )
-            # Row 3: updated 10 days ago -> total, month (not week).
+            # 10 days ago counts for total and month.
             await conn.execute(
                 "INSERT INTO yearly_reading_goals (username, year, target, updated) VALUES ('c', 2026, 3, %(d)s)",
                 {"d": now - timedelta(days=10)},
@@ -234,5 +198,5 @@ class TestYearlyReadingGoalsIntegration:
         summary = await YearlyReadingGoals.summary()
         counts = summary["total_yearly_reading_goals"]
         assert counts["total"] == 3
-        assert counts["month"] == 2  # rows b and c
-        assert counts["week"] == 1  # row b only
+        assert counts["month"] == 2
+        assert counts["week"] == 1

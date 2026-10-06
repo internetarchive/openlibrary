@@ -9,7 +9,7 @@ from openlibrary.utils.async_utils import async_bridge
 
 
 async def get_reading_goals_async(username: str, year: int) -> YearlyGoal | None:
-    """Return the user's reading goal and progress for ``year``."""
+    """User's reading goal and progress for ``year``."""
     goal = await YearlyReadingGoals.select_by_username_and_year(username, year)
     if goal is None:
         return None
@@ -20,7 +20,6 @@ async def get_reading_goals_async(username: str, year: int) -> YearlyGoal | None
 
 @public
 def get_reading_goals(year=None):
-    """web.py adapter: resolve the current user, then run the async path on the bridge."""
     user = get_current_user()
     if not user:
         return None
@@ -38,7 +37,7 @@ class YearlyGoal:
 
     @property
     def completed(self) -> int:
-        """Capped progress for the bar width (``reading_goal_progress.html.jinja:13``)."""
+        """Progress capped at 100 for the bar width."""
         return min(self.progress, 100) if self.progress is not None else 0
 
 

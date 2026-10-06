@@ -130,10 +130,7 @@ class BookshelvesEvents(db.CommonExtras):
 
     @classmethod
     async def count_distinct_work_ids_by_user_type_and_year(cls, username: str, event_type: int, year: int) -> int:
-        """Number of distinct works with an event of ``event_type`` in ``year``.
-
-        Used to calculate yearly reading goal progress.
-        """
+        """Distinct works with an event of ``event_type`` in ``year``."""
         query = (
             f"SELECT count(DISTINCT work_id) FROM {cls.TABLENAME}"
             " WHERE username = %(username)s AND event_type = %(event_type)s"
