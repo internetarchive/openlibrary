@@ -551,4 +551,3 @@ class TestReadHistory:
         history = ReadHistory.get_history("@testuser")
         assert len(history) == 1
         assert history[0]["work_id"] == 2
-
