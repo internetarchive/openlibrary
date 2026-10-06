@@ -9,7 +9,7 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend \
+.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend test test-py test-py-uv test-py-integration test-i18n \
 	e2e-up e2e-stack e2e-assets e2e-index e2e-reindex test-e2e
 
 all: git frontend i18n
@@ -77,6 +77,12 @@ test-py:
 
 test-py-uv:
 	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
+
+# Integration tests run the async DB models against a real PostgreSQL started
+# by pytest-postgresql. Requires pg_ctl on PATH (brew install postgresql@14).
+# Skipped by default (pyproject.toml: -m 'not integration'); this target opts in.
+test-py-integration:
+	uv run --with-requirements requirements_test.txt pytest -m integration openlibrary/tests/core/
 
 test-i18n:
 	python ./scripts/i18n-messages validate

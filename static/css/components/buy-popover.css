@@ -11,13 +11,12 @@
  * Keep this file out of legacy.css.
  */
 
-/* Buy popover: full-width trigger button */
+/* Buy popover: full-width trigger button. Same stack gap as the panel's
+   other buttons (read-panel.css); no top margin, or the gaps double up. */
 .buy-popover {
   display: block;
   width: 100%;
-  margin-top: var(--spacing-stack-xs);
-  /* Same gap the panel's other buttons get from `.read-options .cta-btn`. */
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* Buy options popover content. Rows follow the Browse popover's menu rows
