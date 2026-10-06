@@ -2,5 +2,9 @@ $def with(edition_key)
 
 $ locateUrl = "/books/XXX/-/borrow?action=locate".replace('XXX', edition_key or '')
 
-<a class="cta-btn cta-btn--available" href="$locateUrl" target="_blank" rel="noopener noreferrer"
-  data-ol-link-track="CTAClick|Locate"><span class="cta-btn__label">$_("Nearby Libraries")</span>$:macros.icon("external-link", size="sm")</a>
+$# A lookup elsewhere, not the primary action, so it takes the secondary button
+$# like Preview and Search beside it. ol-button renders an <a> when given href.
+<ol-button variant="secondary" full-width href="$locateUrl" target="_blank" rel="noopener noreferrer" data-ol-link-track="CTAClick|Locate">
+  $_("Nearby Libraries")
+  $:macros.icon("external-link", size="sm", slot="icon-end")
+</ol-button>
