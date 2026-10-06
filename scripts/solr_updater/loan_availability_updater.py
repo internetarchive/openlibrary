@@ -61,79 +61,45 @@ New to this file? The 30-second version
 ---------------------------------------
 This is a small standalone daemon -- not a cron, not part of the web app. It
 runs as a backgrounded process inside the solr-updater container (launched by
-docker/ol-solr-updater-start.sh, next to the main solr_updater). Every ~30s it:
+docker/ol-solr-updater-start.sh, next to the main solr_updater). Every
+POLL_INTERVAL seconds it:
 
-  1. Asks IA's loan-changes API which books had a loan event since last time
-     (lending.get_loan_changes -> GET services/loans/loan/?action=changes).
-  2. Looks up the Solr EDITION document for each of those books (by ocaid).
-  3. Marks the ones whose latest event TOOK capacity (borrow, browse, renew)
-     as unavailable. Releasing events (return, expire, cancel) write nothing.
-  4. Separately, every ~10 minutes, re-checks the books currently marked
-     unavailable against IA's bulk availability API
-     (lending.get_availability_async -> GET services/availability/) and frees
-     the ones that are actually borrowable.
-  5. Saves a "uid" cursor to a state file so it resumes where it left off; on
-     a cold start it collects the last ~14 days of loan changes and settles
-     them in one batched availability pass before following events.
+  1. Asks archive.org's search index which books are lendable but currently
+     neither borrowable nor browsable -- i.e. who is checked out right now
+     (lending.get_checked_out_candidates_async -> GET advancedsearch.php).
+  2. Looks up the Solr EDITION document for each of those identifiers (by
+     ocaid), and reads back which editions Solr currently has marked.
+  3. Issues ONE bulk in-place update: `ebook_unavailable` set to 1 on the
+     newly-unavailable, 0 on the ones that have been returned or expired.
 
-Nothing reads these Solr fields yet -- wiring search/pages to them is a
-follow-up.
+That is the whole loop. There is no cursor, no state file and no --reset,
+because each poll is a complete statement of what should be marked rather than
+an increment on top of what came before.
 
-Two independent halves
-----------------------
-The design is two loops that share only the Solr field, and the split is what
-makes each one simple:
+Nothing reads this Solr field yet -- wiring search/pages to it is a follow-up.
 
-  * The FOLLOWER writes from events alone and only ever sets `unavailable`. It
-    has no dependency on the availability service, so it keeps consuming the
-    feed while that service is lagging or down. An earlier revision joined
-    every batch against availability and held the cursor whenever the service
-    answered nothing -- which meant a lagging dependency stopped ingestion
-    entirely.
-  * The REPAIRER reads ground truth and only ever clears `unavailable`. It is
-    scoped to the editions currently marked -- not a small set, so it is capped
-    per pass and rotated oldest-mark-first rather than re-reading one prefix.
+Why there is no cold start
+--------------------------
+The first poll after any start IS the cold start, and it costs exactly what
+every other poll costs. A restart needs no catch-up, a lost state file is not a
+concept, and a reindex that wipes the field self-heals on the next cycle. The
+operator step that used to exist is deleted rather than automated: nothing can
+be forgotten if there is nothing to remember.
 
-Neither half can undo the other's direction, so they converge instead of
-fighting. Everything published as available has been checked; nothing is
-published as available on the strength of an event.
+The asymmetry that shapes everything here
+-----------------------------------------
+Marking a book unavailable when it is not is RECOVERABLE -- the book is hidden
+until the next poll corrects it. Clearing a book that is actually out is NOT:
+it is published as borrowable while someone has it, and nothing revisits it.
 
-What each half gets wrong, and why that is the right way round
---------------------------------------------------------------
-The feed carries loan *events*; availability is lending *state* that only IA
-can compute. Two facts make the events insufficient on their own:
+Every guard in this file follows from that. The mark direction is unguarded on
+purpose; the clear direction is the one that refuses, holds and asks for a
+second opinion. See CLEAR_BREAKER_FRACTION and :func:`confirm_mass_clear`.
 
-  - Multi-copy items: an item may own several copies of a book. A borrow of
-    one copy leaves the others borrowable, so a borrow event does not mean
-    unavailable.
-  - Waitlists: a return does not mean available. If people are queued, the
-    freed copy goes to the head of the queue and the book stays unborrowable.
-  - Neither copy counts nor queue depth appear anywhere in a changes row
-    ({time, identifier, username, loan_id, event_type, extra, uid}), and Open
-    Library does not track them either.
-
-So each fact is handled on the side that can be wrong safely:
-
-  - Multi-copy: the follower marks the book unavailable even though a copy is
-    still free. Wrong, but it hides a borrowable book rather than offering an
-    unborrowable one, and the repairer frees it within RECHECK_INTERVAL.
-  - Waitlist: the follower must NOT clear on a return, because the repairer
-    only ever clears. A wrongly-cleared waitlisted book would be published as
-    borrowable with nothing to correct it. So releasing events write nothing
-    and the clear waits for a ground-truth answer.
-
-The asymmetry is the whole point: the recoverable error is allowed to happen
-often, and the unrecoverable one is made as hard as this design can make it.
-Not impossible: an availability snapshot takes minutes to gather and can
-outlive the mark it would clear, so the re-check refuses to clear anything the
-follower marked while that snapshot was in flight.
-
-Known gap: a book whose acquiring event we never see -- a feed gap, or a
-reindex that wipes the field (see below) -- stays published as available. The
-repairer cannot catch that, because it only looks at books already marked. A
-cold start (or --reset) is the recovery, and it is why the cold-start path
-refuses to begin when the availability service is silent rather than starting
-from the head against an unmarked index.
+It is also why the index is read as a candidate set and never written through
+verbatim. The index is a lagged view, and a sibling lending field was measured
+disagreeing with live availability in both directions -- so where a dangerous
+clear is at stake, the availability service decides, per edition.
 
 Default-available, exceptions only
 ----------------------------------
@@ -169,27 +135,25 @@ last (now stale) value. ebook_becomes_available is advisory display data
 
 Recovering from drift
 ---------------------
-Because the changes feed only tells us which books to look at, a book whose
-availability changes without a loan event (lending policy change, copies added
-or removed, item going dark) is never noticed. As a partial safety net, the
-known-unavailable set -- editions currently carrying ebook_unavailable:1, a
-bounded and small population -- is re-checked against ground truth every
-RECHECK_INTERVAL seconds and flipped to 0 when it frees up. That covers missed
-return/expire events and hold fulfillment, but it can only re-check editions we
-still know about.
+Nothing here infers availability from events, so there is no class of change
+the daemon can miss by not seeing one. A lending policy change, copies added or
+removed, an item going dark, a hold being fulfilled -- each simply changes
+whether the index returns that identifier, and the next poll reflects it. The
+previous design needed a separate re-check loop as a partial safety net for
+exactly these; the poll has no blind spot for it to cover.
 
-Reindex coordination (known limitation): a full Solr reindex of a work rebuilds
-its edition children WITHOUT these loan fields -- the main indexer is unaware of
-them -- so every reindex WIPES ebook_unavailable/loan_uid on the affected
-editions. Under a default-available field that means a borrowed book silently
-reads as available, and because the wipe also destroys the known-unavailable
-list, the re-check above cannot repair it. This updater does NOT auto-detect a
-reindex, and a *plain restart does not recover*: the state file persists in the
-solr-updater-data volume, so on restart it resumes from the surviving last_uid
-and skips reconstruction entirely. Recovery requires --reset (or deleting the
-state file), which rebuilds the last ~14 days from the changes API. Stronger
-guarantees (indexer-side field preservation, a reindex-triggered re-apply, or
-wipe auto-detection) are a maintainer follow-up, out of scope here.
+Reindex coordination: a full Solr reindex of a work rebuilds its edition
+children WITHOUT this field -- the main indexer is unaware of it -- so every
+reindex WIPES `ebook_unavailable` on the affected editions, and a borrowed book
+momentarily reads as available.
+
+Under the design this replaced, that was unrecoverable without an operator: the
+wipe also destroyed the known-unavailable list the re-check worked from, and a
+plain restart resumed from a surviving cursor rather than reconstructing, so
+recovery needed --reset and a 14-day replay. **The poll removes the problem
+rather than handling it.** Each poll states the whole answer, so a wiped field
+is simply re-marked on the next cycle, within POLL_INTERVAL and with nothing to
+run by hand. The window of exposure is one poll.
 """
 
 import asyncio
@@ -210,59 +174,6 @@ logger = logging.getLogger("openlibrary.loan-availability-updater")
 EBOOK_AVAILABLE = 0
 EBOOK_UNAVAILABLE = 1
 
-"""Substrings that identify a capacity-RELEASING event type.
-
-Matched as substrings rather than compared to a fixed set, because the
-vocabulary is compound and we have only seen part of it: the shapes in hand
-include `return`, `expire_browse` and `expire_borrow`, so an exact-match set
-built from `{"return", "expire"}` would read `expire_browse` as an acquiring
-event and mark a just-expired loan unavailable. The stems survive a suffix we
-have not seen; a whole new verb still falls through to acquiring, which is the
-safe direction.
-"""
-
-
-"""Nominal maximum loan length, in days.
-
-No longer used to seed a cold start -- the index query does that directly --
-and retained only for callers that still want the figure.
-
-Treat it as an UNVERIFIED assumption. It was chosen because 14 days is the
-standard borrow period, not because anyone confirmed it bounds how long a book
-can stay continuously unavailable. A renewal, a longer lending period, or a
-waitlist holding a book after an old return would all break that reading. The
-seed no longer depends on it being true; nothing else should start to.
-"""
-
-"""Events replayed after the index seed, to cover the index's lag.
-
-The seed is a snapshot computed at an unknown instant, so a book borrowed just
-after it is absent from the seed -- unmarked, published as borrowable while it
-is out, and nothing recovers that. This window is the insurance.
-
-Counted in events rather than hours because a time window converts to an
-unknown number of feed pages. At the feed's measured ~240,000 uids/day this is
-roughly five hours, and 50 pages of work, once.
-
-Conservative on purpose: replaying too much only re-marks books that are
-already marked, while replaying too little leaves a gap of exactly the kind
-this exists to close. Tighten it when the index lag has actually been
-measured -- it has not been.
-"""
-"""Roughly how far the changes feed's uid advances in a day (measured 2026-10).
-
-Now informs only OVERLAP_EVENTS -- it is how that event count is translated
-into a rough number of hours.
-Only sizes the start-uid search's first step back from the head, so being off
-in either direction costs a few probes, never accuracy."""
-"""Rows per feed page. Pinned to IA's own ceiling rather than restated: asking
-for more is silently capped, so a larger number here would quietly mean fewer
-events per request than the code claims."""
-"""Fraction of cold-start identifiers that must get a ground-truth answer.
-
-Below this the reconcile is refused rather than half-applied: an unmarked
-on-loan book is published as borrowable and nothing corrects it.
-"""
 
 SOLR_QUERY_CHUNK = 500
 """Identifiers per `ia:(...)` disjunction.
@@ -271,20 +182,11 @@ One clause per identifier, against `solr.max.booleanClauses=30000` in
 production. 500 leaves a wide margin and keeps each query small; the cost of
 more round trips is irrelevant next to a query that fails outright.
 """
-HEARTBEAT_INTERVAL = 300  # seconds between proof-of-life log lines
-"""Editions re-checked per pass. Sized so a pass fits inside RECHECK_INTERVAL.
+HEARTBEAT_INTERVAL = 300
+"""Seconds between proof-of-life log lines.
 
-`get_availability_async` sends AVAILABILITY_BATCH_SIZE (100) ids per request,
-sequentially. At 10000 that is 100 requests; if archive.org is slow or down and
-each hits the HTTP timeout, a single pass runs far longer than the 600s interval
--- so the re-check would run back to back forever and, being in the same
-single-threaded loop, starve the follower completely. The feed would stop being
-consumed for the length of the outage.
-
-At 2000 it is 20 requests: a few seconds healthy, a few minutes at worst, always
-finishing before the next pass is due. Nothing is lost by the smaller window
-because the select rotates (`sort=loan_uid asc`), so successive passes advance
-through the marked set rather than re-reading one prefix.
+The absence of errors is also what a stall looks like, so the daemon says the
+marked count out loud on an interval rather than only when something breaks.
 """
 
 
