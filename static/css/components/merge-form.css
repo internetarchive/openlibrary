@@ -123,6 +123,51 @@ div.merge .count {
   background-color: var(--red-two);
 }
 
+/* Confirmation dialog body, built by merge.js. Names the record being kept and
+   the records redirected into it, so the decision does not depend on the page
+   behind the dialog. */
+.merge-summary__label {
+  margin: 0;
+  padding-bottom: var(--spacing-inset-xs);
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+}
+
+.merge-summary__list {
+  margin: 0 0 var(--spacing-stack-md);
+  padding: 0;
+  list-style: none;
+}
+
+.merge-summary__list:last-child {
+  margin-bottom: 0;
+}
+
+.merge-summary__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inset-sm);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--spacing-inset-sm) 0;
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.merge-summary__row:last-child {
+  border-bottom: 0;
+}
+
+.merge-summary__name {
+  font-weight: var(--font-weight-bold);
+}
+
+.merge-summary__meta {
+  color: var(--color-text-secondary);
+}
+
 /* @width-breakpoint-desktop: 960px */
 @media all and (min-width: 960px) {
   div.merge .record {

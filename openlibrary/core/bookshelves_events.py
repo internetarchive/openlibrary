@@ -1,6 +1,8 @@
 from datetime import datetime
 from enum import IntEnum
 
+from openlibrary.core.async_db import fetch_val
+
 from . import db
 
 
@@ -127,43 +129,21 @@ class BookshelvesEvents(db.CommonExtras):
         return list(oldb.select(cls.TABLENAME, where=where, vars=data))
 
     @classmethod
-    def select_by_user_type_and_year(cls, username, event_type, year):
-        oldb = db.get_db()
-
-        data = {
-            "username": username,
-            "event_type": event_type,
-            "event_date": f"{year}%",
-        }
-
-        where = """
-            username=$username AND
-            event_type=$event_type AND
-            event_date LIKE $event_date
-        """
-
-        return list(oldb.select(cls.TABLENAME, where=where, vars=data))
-
-    @classmethod
-    def select_distinct_by_user_type_and_year(cls, username, event_type, year):
-        """Returns a list of the most recent check-in events, with no repeating
-        work IDs.  Useful for calculating one's yearly reading goal progress.
-        """
-        oldb = db.get_db()
-
-        data = {
-            "username": username,
-            "event_type": event_type,
-            "event_date": f"{year}%",
-        }
+    async def count_distinct_work_ids_by_user_type_and_year(cls, username: str, event_type: int, year: int) -> int:
+        """Distinct works with an event of ``event_type`` in ``year``."""
         query = (
-            f"select distinct on (work_id) work_id, * from {cls.TABLENAME} "
-            "where username=$username and event_type=$event_type and "
-            "event_date LIKE $event_date "
-            "order by work_id, updated desc"
+            f"SELECT count(DISTINCT work_id) FROM {cls.TABLENAME}"
+            " WHERE username = %(username)s AND event_type = %(event_type)s"
+            " AND event_date LIKE %(event_date)s"
         )
-
-        return list(oldb.query(query, vars=data))
+        return await fetch_val(
+            query,
+            {
+                "username": username,
+                "event_type": event_type,
+                "event_date": f"{year}%",
+            },
+        )
 
     # Update methods:
     @classmethod

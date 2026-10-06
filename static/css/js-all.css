@@ -13,9 +13,6 @@
 @import "components/manage-covers.css";
 @import "components/throbber.css";
 
-/* Loading indicators */
-@import "components/buttonCta--js.css";
-
 /* Book cover overlay */
 @import "components/ui-tabs.css";
 
