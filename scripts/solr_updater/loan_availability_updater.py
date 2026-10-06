@@ -1,5 +1,62 @@
 """Near-realtime loan availability updater for Solr.
 
+How this design arrived here (v1 -> v2 -> v3)
+--------------------------------------------
+Three approaches, each abandoned for a measured reason. Recorded because the
+two superseded ones look reasonable on paper and the next person will think of
+them again:
+
+  * **v1 - replay 14 days of loan changes on every cold start.** Produced only
+    CANDIDATES, each needing an availability call to settle, which made a
+    restart's cost scale with feed volume. Unbounded in the one place a daemon
+    must not be.
+  * **v2 - seed from the index once, then follow the changes feed** (this
+    file's follower/repairer below, plus MR 6634). Abandoned on Ximm's finding
+    that the changes API **cannot report loan EXPIRY** -- only initiation -- so
+    the feed can never free a book on its own, and the per-item Lending Status
+    Endpoint that would have covered the gap is too slow (>10s/item) to sustain
+    at traffic.
+  * **v3 - poll the index and reconcile** (`build_poll_updates`). The ES index
+    ALREADY reflects expiry, through IA's own LENDING-EXPIRE followers, and
+    AdvancedSearch reads that finished answer fast. So the index publishes the
+    snapshot the previous two designs were reconstructing. One read of "who is
+    unavailable now", one read of what Solr has marked, one bulk update
+    carrying both directions. A first poll is a cold start; a reindex wipe
+    self-heals on the next one.
+
+Credit for the v2 blockers is Ximm's (ES lead); they are what moved this.
+
+What v3 gives up, deliberately
+------------------------------
+The per-search Bulk Availability call being removed returns rich per-book
+lending data -- browsable, has-14-day-borrow, waitlistable, waitlist DEPTH --
+and the poll keeps only binary `ebook_unavailable`. Being precise about what is
+lost versus merely relocated, because the two get conflated:
+
+  * **Static capability** (browsable / 14-day-borrow / waitlistable) is item
+    CONFIG, not loan state, and is already partly in the index as lending flags
+    (`lending___status` carries `is_browsable`). It belongs in the MAIN indexer
+    for ALL books, not in this daemon, so it is not blocked by this design --
+    it is a separate additive workstream.
+  * **Genuinely lost**: waitlist DEPTH and the real-time reason a book is
+    unavailable. Both are dynamic, neither is in the index. Note they only
+    matter for the currently-unavailable set -- a waitlist is irrelevant while
+    a book is on the shelf -- which is exactly the ~766-book set this polls, so
+    they are cheaply recoverable later within this model for that small subset,
+    NOT at 25k/min across every search.
+  * The coarse Read-vs-Borrow control on search results comes from
+    `ebook_access` (main indexer) and is unaffected. The fine-grained choice
+    within borrowable is resolved at the book page, which already fetches live.
+
+So: search is served from Solr; rich, authoritative, real-time data is fetched
+at the book page. What is given up is rich DYNAMIC data in search RESULTS for
+every book -- which is precisely the 25k/min load being removed.
+
+Scale, for why exceptions-only is right rather than a limitation: 4.5M browse,
+860k borrowable, 24k waitlistable, and a currently-unavailable set measured at
+766 on 2026-10-05. Browse books are never "unavailable", so the set is drawn
+from the borrowable 860k. The poll never touches the 4.5M.
+
 New to this file? The 30-second version
 ---------------------------------------
 This is a small standalone daemon -- not a cron, not part of the web app. It
@@ -622,6 +679,122 @@ async def build_recheck_updates(marked_during_pass: set[str] | None = None) -> l
                 "ebook_unavailable": {"set": EBOOK_AVAILABLE},
             }
         )
+    return updates
+
+
+POLL_INTERVAL = 30
+"""Seconds between polls of the index's unavailable set.
+
+Measured 2026-10-05 against live archive.org: the set moved by 4 books across
+several minutes, so it changes per-minute rather than per-second. At two pages
+per poll, 10s is ~17,000 requests/day and 30s is ~5,700, for no freshness any
+measurement here could distinguish.
+"""
+
+MARKED_SET_MAX = 50_000
+"""Ceiling on the marked set read back from Solr.
+
+Not a working limit -- the live unavailable set measured 766 on 2026-10-05 --
+but the read must be COMPLETE or the reconcile is wrong in the dangerous
+direction: an edition outside a capped window is indistinguishable from one the
+index no longer calls unavailable, and would be cleared.
+"""
+
+CLEAR_BREAKER_FRACTION = 0.10
+CLEAR_BREAKER_FLOOR = 25
+"""Clear-direction circuit breaker: refuse a poll that clears implausibly many.
+
+The poll's clear direction rests entirely on ABSENCE from a lagged index, with
+no ground-truth call anywhere -- the single largest change from the design this
+replaced, where the follower could only mark and the repairer could only clear
+against ground truth.
+
+The existing seed guards catch a result larger than the paging window and a
+read shorter than its own numFound. Neither can catch a result that is SMALL
+BUT INTERNALLY CONSISTENT: a mid-reindex or partially degraded index honestly
+reporting numFound 5 and returning 5 passes every check, and the reconcile then
+clears the rest -- publishing hundreds of checked-out books as borrowable,
+which is the failure mode that must never ship.
+
+Consecutive-absence hysteresis does not fix that, because a degraded index
+stays degraded; it delays the mass clear by N cycles and then performs it. A
+relative-change guard does. Sized from measurement: a normal cycle clears 0-2
+against ~766 marked, well under 1%, so 10% never trips in ordinary operation
+while catching anything resembling a mass event. The absolute floor keeps a
+small marked set (a fresh install, a test) from tripping on routine movement.
+"""
+
+
+class PollRefused(Exception):
+    """This cycle's inputs were not trustworthy, so prior state stands.
+
+    Every untrustworthy-input case resolves the same way -- skip the cycle,
+    keep what Solr already has, alarm -- because at poll cadence the
+    alternative is a crash loop during routine index churn. Raising was right
+    when the read happened once at startup; it is wrong at cadence, and the
+    predicate changing is what makes the old response stale.
+    """
+
+
+async def fetch_marked_editions() -> dict[str, dict]:
+    """Every edition Solr currently has marked unavailable, or refuse.
+
+    Complete or raises, for the reason in MARKED_SET_MAX: a truncated read
+    makes absent-from-the-window look identical to absent-from-the-index, and
+    the reconcile clears on absence.
+    """
+    result = await get_solr().select_async(
+        query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}",
+        fields=["key", "ia", "_root_"],
+        rows=MARKED_SET_MAX,
+    )
+    docs = result.docs
+    if len(docs) >= MARKED_SET_MAX:
+        raise PollRefused(f"Marked set reached the {MARKED_SET_MAX}-edition read cap; cannot tell a complete read from a truncated one")
+    return {doc["key"]: doc for doc in docs}
+
+
+async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
+    """Reconcile Solr's marked set to the index's unavailable set, in one pass.
+
+    This is the whole daemon. `unavailable_identifiers` is what the index says
+    is checked out right now; everything Solr has marked that is not in it has
+    been returned or expired. One bulk in-place update carries both directions.
+
+    It replaces a cold start, a follower, a repairer, a cursor and an overlap
+    replay, because every one of those existed to approximate a snapshot the
+    index already publishes. A first poll is a cold start. A reindex wipe
+    self-heals on the next poll, with nothing to re-run by hand.
+    """
+    resolved = await resolve_edition_keys(unavailable_identifiers)
+    should_be_marked = {info["key"]: info for info in resolved.values()}
+    marked = await fetch_marked_editions()
+
+    to_mark = [info for key, info in should_be_marked.items() if key not in marked]
+    to_clear = [doc for key, doc in marked.items() if key not in should_be_marked]
+
+    allowed = max(CLEAR_BREAKER_FLOOR, int(len(marked) * CLEAR_BREAKER_FRACTION))
+    if len(to_clear) > allowed:
+        raise PollRefused(
+            f"Clear-direction breaker: this poll would clear {len(to_clear)} of {len(marked)} marked editions, "
+            f"above the {allowed} allowed; the index returned {len(unavailable_identifiers)} identifiers. "
+            f"Keeping prior state -- a mass clear publishes checked-out books as borrowable."
+        )
+
+    updates = [{"key": info["key"], "_root_": info["root"], "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}} for info in to_mark]
+    updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_clear]
+
+    # Counts, every cycle, so write volume is observable without a profiler --
+    # the disk-growth investigation needs this and a rate is invisible in a
+    # per-event log.
+    logger.info(
+        "Poll: index=%d resolved=%d marked=%d mark=%d clear=%d",
+        len(unavailable_identifiers),
+        len(should_be_marked),
+        len(marked),
+        len(to_mark),
+        len(to_clear),
+    )
     return updates
 
 

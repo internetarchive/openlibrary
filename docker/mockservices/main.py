@@ -55,6 +55,7 @@ logger = logging.getLogger(__name__)
 async def _lifespan(app: FastAPI):
     await _ensure_solr_editions()
     await _seed_loan_changes()
+    await _seed_unavailable()
     task = asyncio.create_task(_loan_changes_ongoing_loop())
     yield
     task.cancel()
@@ -719,14 +720,66 @@ ADVANCEDSEARCH_MAX_ROWS = 10_000
 """Where the real endpoint stops answering: `start + rows` may not exceed this."""
 
 
+_unavailable: set[str] = set()
+_unavailable_lock = asyncio.Lock()
+"""The set advancedsearch reports as checked out.
+
+The spine of the poll-and-reconcile fixture. The daemon's whole input is "which
+identifiers does the index call unavailable right now", so the only thing a
+test needs in order to drive it is the ability to CHANGE that set between
+polls -- a book returned, a book borrowed, the index going briefly empty. It is
+seeded from the loan-changes window at startup so the set is realistic and
+non-empty, and is replaced wholesale through /_test/unavailable thereafter.
+"""
+
+
+async def _seed_unavailable() -> None:
+    """Initial unavailable set, derived once from the seeded loan events."""
+    async with _loan_changes_lock:
+        events = list(_loan_changes)
+    identifiers = sorted({event["identifier"] for event in events})
+    async with _unavailable_lock:
+        _unavailable.clear()
+        _unavailable.update(i for i in identifiers if not _availability_for(i, events)["available_to_borrow"])
+
+
+@app.get("/_test/unavailable")
+async def get_unavailable() -> JSONResponse:
+    """Read the current unavailable set. Test control surface, not IA."""
+    async with _unavailable_lock:
+        return JSONResponse({"identifiers": sorted(_unavailable)})
+
+
+@app.put("/_test/unavailable")
+async def put_unavailable(request: Request) -> JSONResponse:
+    """Replace the unavailable set. Test control surface, not IA.
+
+    Wholesale replacement rather than add/remove, because a poll reads the set
+    as a snapshot and the interesting cases are all "what does the WHOLE set
+    look like on the next read" -- including the empty set, which is the one
+    that must trip the daemon's clear-direction circuit breaker rather than
+    clearing everything.
+    """
+    body = await request.json()
+    identifiers = body.get("identifiers")
+    if not isinstance(identifiers, list):
+        return JSONResponse({"error": "body must be {'identifiers': [...]}"}, status_code=400)
+    async with _unavailable_lock:
+        _unavailable.clear()
+        _unavailable.update(str(i) for i in identifiers)
+        return JSONResponse({"identifiers": sorted(_unavailable)})
+
+
 @app.get("/advancedsearch.php")
 async def advancedsearch(request: Request) -> JSONResponse:
-    """Enough of advancedsearch to serve the cold-start seed query.
+    """Enough of advancedsearch to answer "who is checked out right now".
 
-    Answers from the same `_loan_changes` window the changes feed serves, so
-    the seed and the feed cannot disagree about who is checked out -- which is
-    the property the updater's cold start is built on and the one a static
-    fixture could not express.
+    Answers from `_unavailable`, which a test replaces between polls. It used
+    to derive the answer from the loan-changes window instead; that coupling
+    was right while the daemon followed events and is wrong now that the index
+    IS the source -- a fixture that computes the answer from events cannot
+    express an index that disagrees with them, which is the whole class of
+    failure the poll design has to survive.
 
     Only the lending query the daemon actually sends is interpreted. Anything
     else returns nothing rather than pretending: a mock that answers queries it
@@ -749,11 +802,8 @@ async def advancedsearch(request: Request) -> JSONResponse:
     if not wants_checked_out:
         return JSONResponse({"response": {"numFound": 0, "start": start, "docs": []}})
 
-    async with _loan_changes_lock:
-        events = list(_loan_changes)
-
-    identifiers = sorted({event["identifier"] for event in events})
-    checked_out = [i for i in identifiers if not _availability_for(i, events)["available_to_borrow"]]
+    async with _unavailable_lock:
+        checked_out = sorted(_unavailable)
 
     page_ids = checked_out[start : start + rows]
     docs = [{"identifier": i, "openlibrary_edition": f"OL{abs(zlib.crc32(i.encode())) % 10_000_000}M"} for i in page_ids]

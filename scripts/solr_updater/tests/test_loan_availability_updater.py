@@ -10,17 +10,23 @@ from openlibrary.core.lending import AVAILABILITY_BATCH_SIZE
 from openlibrary.utils.solr import Solr
 from scripts.solr_updater.loan_availability_updater import (
     BATCH_SIZE,
+    CLEAR_BREAKER_FLOOR,
+    CLEAR_BREAKER_FRACTION,
     EBOOK_AVAILABLE,
     EBOOK_UNAVAILABLE,
     LOAN_EVENTS_PER_DAY,
+    MARKED_SET_MAX,
     OVERLAP_EVENTS,
     RECHECK_INTERVAL,
     RECHECK_MAX_EDITIONS,
     SOLR_QUERY_CHUNK,
+    PollRefused,
+    build_poll_updates,
     build_recheck_updates,
     build_reconcile_updates,
     build_solr_updates,
     collect_dirty_identifiers,
+    fetch_marked_editions,
     ia_until_to_epoch,
     is_releasing_event,
     main,
@@ -1295,3 +1301,144 @@ def test_the_overlap_window_is_bounded_by_events_not_time():
     assert pages <= 100, f"{pages:.0f} feed pages is too much work for a startup overlap"
     hours = 24 * OVERLAP_EVENTS / LOAN_EVENTS_PER_DAY
     assert 1 <= hours <= 24, f"overlap of ~{hours:.1f}h is outside a sane range for index lag"
+
+
+# ---------------------------------------------------------------------------
+# Poll-and-reconcile (v3). One read of the index's unavailable set, one read of
+# what Solr has marked, one bulk update carrying both directions.
+#
+# `resolve_edition_keys` and `fetch_marked_editions` are patched out: they have
+# their own tests, and what these pin is the set arithmetic and the guard --
+# which is where a defect publishes a checked-out book as borrowable.
+# ---------------------------------------------------------------------------
+
+POLL_EDITIONS = {
+    "bookaaa": {"key": "/books/OL1M", "root": "/works/OL1W"},
+    "bookbbb": {"key": "/books/OL2M", "root": "/works/OL2W"},
+    "bookccc": {"key": "/books/OL3M", "root": "/works/OL3W"},
+}
+
+
+def _marked(*keys: str) -> dict[str, dict]:
+    by_key = {info["key"]: (ia, info) for ia, info in POLL_EDITIONS.items()}
+    return {key: {"key": key, "ia": [by_key[key][0]], "_root_": by_key[key][1]["root"]} for key in keys}
+
+
+def _poll(identifiers: list[str], marked: dict[str, dict]):
+    resolved = {ia: POLL_EDITIONS[ia] for ia in identifiers if ia in POLL_EDITIONS}
+    return (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+    )
+
+
+def _sets(updates: list[dict]) -> tuple[set[str], set[str]]:
+    """(keys set to unavailable, keys set to available)."""
+    mark = {u["key"] for u in updates if u["ebook_unavailable"] == {"set": EBOOK_UNAVAILABLE}}
+    clear = {u["key"] for u in updates if u["ebook_unavailable"] == {"set": EBOOK_AVAILABLE}}
+    return mark, clear
+
+
+@pytest.mark.asyncio
+async def test_a_poll_marks_a_newly_unavailable_book():
+    resolve, marked = _poll(["bookaaa", "bookbbb"], _marked("/books/OL1M"))
+    with resolve, marked:
+        updates = await build_poll_updates(["bookaaa", "bookbbb"])
+    mark, clear = _sets(updates)
+    assert mark == {"/books/OL2M"}, "the book the index newly calls unavailable must be marked"
+    assert clear == set(), "nothing freed up, so nothing may be cleared"
+    assert all("_root_" in u for u in updates), "an in-place update on a nested child needs its parent key"
+
+
+@pytest.mark.asyncio
+async def test_a_poll_clears_a_book_the_index_no_longer_calls_unavailable():
+    """The case the repairer used to own. The index reflects expiry directly,
+    so a book dropping out of the set is a return or an expiry."""
+    resolve, marked = _poll(["bookaaa"], _marked("/books/OL1M", "/books/OL2M"))
+    with resolve, marked:
+        updates = await build_poll_updates(["bookaaa"])
+    mark, clear = _sets(updates)
+    assert clear == {"/books/OL2M"}
+    assert mark == set()
+
+
+@pytest.mark.asyncio
+async def test_a_wiped_field_is_re_marked_by_the_next_poll():
+    """HEADLINE. A reindex rewrites edition documents and drops
+    `ebook_unavailable` entirely, which under the previous design stranded
+    every checked-out book as borrowable until someone re-ran a cold start by
+    hand. Here the next poll sees an empty marked set, and the whole
+    unavailable set is simply marked again. No operator step exists to forget.
+    """
+    resolve, marked = _poll(list(POLL_EDITIONS), {})
+    with resolve, marked:
+        updates = await build_poll_updates(list(POLL_EDITIONS))
+    mark, clear = _sets(updates)
+    assert mark == {"/books/OL1M", "/books/OL2M", "/books/OL3M"}
+    assert clear == set(), "an empty marked set has nothing to clear -- and must not invent any"
+
+
+@pytest.mark.asyncio
+async def test_an_unchanged_poll_writes_nothing():
+    """Idempotence is what makes a 30-second cadence affordable: a steady state
+    costs one read and zero writes, so write volume tracks real lending churn
+    rather than the poll rate."""
+    resolve, marked = _poll(["bookaaa", "bookbbb"], _marked("/books/OL1M", "/books/OL2M"))
+    with resolve, marked:
+        updates = await build_poll_updates(["bookaaa", "bookbbb"])
+    assert updates == []
+
+
+@pytest.mark.asyncio
+async def test_the_breaker_refuses_a_poll_that_would_clear_almost_everything():
+    """A degraded or mid-reindex ES returning a small-but-consistent set passes
+    every other guard we have -- the numFound check only catches a read shorter
+    than its OWN total. Without this, one such read publishes the whole
+    checked-out collection as borrowable."""
+    many = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(500)}
+    resolve, marked = _poll(["bookaaa"], many)
+    with resolve, marked, pytest.raises(PollRefused) as excinfo:
+        await build_poll_updates(["bookaaa"])
+    assert "499" in str(excinfo.value)
+    assert "Keeping prior state" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_the_breaker_does_not_trip_on_ordinary_churn():
+    """Measured 2026-10-05, a normal cycle clears 0-2 against ~766 marked --
+    under 1%. A guard that fires in ordinary operation gets routed around."""
+    many = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(766)}
+    still_out = [f"book{i}" for i in range(2, 766)]
+    resolved = {ia: {"key": f"/books/OL{ia.removeprefix('book')}M", "root": f"/works/OL{ia.removeprefix('book')}W"} for ia in still_out}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=many)),
+    ):
+        updates = await build_poll_updates(still_out)
+    _, clear = _sets(updates)
+    assert clear == {"/books/OL0M", "/books/OL1M"}, "two returns is ordinary and must go through"
+
+
+@pytest.mark.asyncio
+async def test_the_breaker_floor_protects_a_small_marked_set():
+    """10% of a 3-edition set is 0, which would refuse every single clear on a
+    fresh install. The absolute floor is what keeps the guard from being
+    nonsense at small N."""
+    assert int(3 * CLEAR_BREAKER_FRACTION) == 0
+    resolve, marked = _poll([], _marked("/books/OL1M", "/books/OL2M", "/books/OL3M"))
+    with resolve, marked:
+        updates = await build_poll_updates([])
+    _, clear = _sets(updates)
+    assert len(clear) == 3
+    assert CLEAR_BREAKER_FLOOR >= 3
+
+
+@pytest.mark.asyncio
+async def test_a_truncated_marked_read_is_refused_rather_than_treated_as_the_set():
+    """An edition outside a capped read is indistinguishable from one the index
+    no longer calls unavailable, and the reconcile clears on absence."""
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(docs=[{"key": f"/books/OL{i}M", "ia": [], "_root_": "/works/OL1W"} for i in range(MARKED_SET_MAX)])
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
+        await fetch_marked_editions()
+    assert "cap" in str(excinfo.value)
