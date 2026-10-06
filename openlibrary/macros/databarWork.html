@@ -40,7 +40,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
 
         $ render_times['databarWork: LoanStatus'] = time()
-        $:macros.LoanStatus(page, secondary_action=editions_page, check_loan_status=editions_page, lending_state=lending_state)
+        $:macros.LoanStatus(page, secondary_action=editions_page, check_loan_status=editions_page, lending_state=lending_state, is_book_page=editions_page)
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
 
         $if editions_page:

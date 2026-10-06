@@ -42,7 +42,7 @@ from openlibrary.plugins.upstream.utils import (
     render_macro,
     urlencode,
 )
-from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
+from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals_async
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
     get_solr_works,
@@ -93,10 +93,9 @@ class ReadingGoalProgressPartial:
     """Handler for reading goal progress."""
 
     @classmethod
-    def generate(cls, year: int) -> dict:
-        goal = get_reading_goals(year=year)
-        entries = [goal] if goal else []
-        component = render_jinja_template("reading_goals/reading_goal_progress.html.jinja", entries=entries)
+    async def generate_async(cls, username: str, year: int) -> dict:
+        goal = await get_reading_goals_async(username, year)
+        component = render_jinja_template("reading_goals/reading_goal_progress.html.jinja", entries=[goal] if goal else [])
         return {"partials": component}
 
 
@@ -234,9 +233,9 @@ class CarouselCardData(TypedDict):
 def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_path: str, secondary_action: bool = False) -> CarouselCardData:
     """Gather data for books/custom_carousel_card.html.jinja.
 
-    Like ReadingGoalProgressPartial.generate: Python gathers (hasattr/DB),
-    Jinja only renders. No HTML is built here except loan_status_html which
-    bridges the still-Templetor LoanStatus.
+    Like ReadingGoalProgressPartial.generate_async: Python gathers
+    (hasattr/DB), Jinja only renders. No HTML is built here except
+    loan_status_html which bridges the still-Templetor LoanStatus.
     """
 
     url = book.get("key") or book.url

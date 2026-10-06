@@ -144,7 +144,7 @@ $elif lending_state == 'checkedout':
     $:macros.PreviewSearchInside(ocaid)
   $if secondary_action and edition_key:
     $# Book page: nothing to borrow, so the library lookup takes the button.
-    $:macros.LocateButton(edition_key)
+    $:macros.CheckWorldcat(edition_key)
     <p class="waitinglist-message">$_("All copies are checked out.")</p>
   $else:
     $# Nothing to act on until a copy comes back, so this is a status line, not
@@ -159,7 +159,7 @@ $elif lending_state == 'preview_only':
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
     $if edition_key:
-      $:macros.LocateButton(edition_key)
+      $:macros.CheckWorldcat(edition_key)
     <div class="cta-button-group">
       <p class="waitinglist-message">
         <span>$_("Only a preview is available.")</span>
@@ -168,19 +168,22 @@ $elif lending_state == 'preview_only':
   $else:
     $:macros.BookPreview(ocaid, show_only=True)
 
-$else:
-  $# Only render LocateButton instead of NotInLibrary when not on an edition's page, for that specific edition.
-  $# secondary_action means we're on a book page and it's the button under the cover image.
-  $ edition_key = doc.key.split('/')[2]
-  $if secondary_action:
-      $:macros.LocateButton(edition_key)
-  $elif is_edition:
-      $# Wrapper if locate button is not in read panel
-      <div class="cta-button-group">
-        $:macros.LocateButton(edition_key)
-      </div>
+$elif is_edition:
+  $# On the book page the library lookup takes the button; anywhere else the
+  $# action is to go to the book page and see what it offers.
+  $if is_book_page or secondary_action:
+      $:macros.CheckWorldcat(edition_key)
   $else:
-      $:macros.NotInLibrary(None, analytics_attr)
+      <div class="cta-button-group">
+        <a
+            href="$(work_key or doc.key)"
+            class="cta-btn cta-btn--unavailable"
+            title="$_('Check options for this book.')"
+        ><span class="cta-btn__label">$_("Check Options")</span></a>
+      </div>
+
+$else:
+  $:macros.NotInLibrary(None, analytics_attr)
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
