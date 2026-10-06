@@ -10,11 +10,12 @@ from openlibrary.utils.async_utils import async_bridge
 
 async def get_reading_goals_async(username: str, year: int) -> YearlyGoal | None:
     """Return the user's reading goal and progress for ``year``."""
-    if not (data := await YearlyReadingGoals.select_by_username_and_year(username, year)):
+    goal = await YearlyReadingGoals.select_by_username_and_year(username, year)
+    if goal is None:
         return None
 
     books_read = await BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year(username, BookshelfEvent.FINISH, year)
-    return YearlyGoal(data[0].year, data[0].target, books_read)
+    return YearlyGoal(goal.year, goal.target, books_read)
 
 
 @public

@@ -90,7 +90,8 @@ async def get_reading_goals_endpoint(
 ) -> ReadingGoalsResponse:
     """Get reading goals for the authenticated user."""
     if year:
-        records = await YearlyReadingGoals.select_by_username_and_year(user.username, year)
+        goal = await YearlyReadingGoals.select_by_username_and_year(user.username, year)
+        records = [goal] if goal else []
     else:
         records = await YearlyReadingGoals.select_by_username(user.username)
     goals = [

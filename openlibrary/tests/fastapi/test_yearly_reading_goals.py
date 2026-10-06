@@ -19,16 +19,28 @@ def test_get_reading_goals_success(fastapi_client, mock_authenticated_user):
 
 
 def test_get_reading_goals_with_year(fastapi_client, mock_authenticated_user):
-    fake_records = [YearlyReadingGoal("testuser", 2026, 25, None, None)]
+    record = YearlyReadingGoal("testuser", 2026, 25, None, None)
     with patch(
         "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year",
         new_callable=AsyncMock,
-        return_value=fake_records,
+        return_value=record,
     ):
         response = fastapi_client.get("/reading-goal.json?year=2026")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "goal": [{"year": 2026, "goal": 25}]}
+
+
+def test_get_reading_goals_with_year_without_goal(fastapi_client, mock_authenticated_user):
+    with patch(
+        "openlibrary.fastapi.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year",
+        new_callable=AsyncMock,
+        return_value=None,
+    ):
+        response = fastapi_client.get("/reading-goal.json?year=2026")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "goal": []}
 
 
 def test_get_reading_goals_invalid_year(fastapi_client, mock_authenticated_user):

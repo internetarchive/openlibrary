@@ -25,7 +25,7 @@ async def test_get_reading_goals_async_builds_goal():
         patch(
             "openlibrary.plugins.upstream.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year",
             new_callable=AsyncMock,
-            return_value=[YearlyReadingGoal("testuser", 2026, 25, None, None)],
+            return_value=YearlyReadingGoal("testuser", 2026, 25, None, None),
         ) as mock_select,
         patch(
             "openlibrary.plugins.upstream.yearly_reading_goals.BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year",
@@ -43,12 +43,20 @@ async def test_get_reading_goals_async_builds_goal():
 
 @pytest.mark.asyncio
 async def test_get_reading_goals_async_returns_none_without_goal():
-    with patch(
-        "openlibrary.plugins.upstream.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year",
-        new_callable=AsyncMock,
-        return_value=[],
+    with (
+        patch(
+            "openlibrary.plugins.upstream.yearly_reading_goals.YearlyReadingGoals.select_by_username_and_year",
+            new_callable=AsyncMock,
+            return_value=None,
+        ),
+        patch(
+            "openlibrary.plugins.upstream.yearly_reading_goals.BookshelvesEvents.count_distinct_work_ids_by_user_type_and_year",
+            new_callable=AsyncMock,
+        ) as mock_events,
     ):
         assert await get_reading_goals_async("testuser", 2026) is None
+
+    mock_events.assert_not_awaited()
 
 
 def test_get_reading_goals_bridges_to_async(monkeypatch):

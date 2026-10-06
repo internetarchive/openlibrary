@@ -70,9 +70,13 @@ class YearlyReadingGoals:
         return await fetch_all(query, {"username": username}, row_factory=class_row(YearlyReadingGoal))
 
     @classmethod
-    async def select_by_username_and_year(cls, username: str, year: int) -> list[YearlyReadingGoal]:
+    async def select_by_username_and_year(cls, username: str, year: int) -> YearlyReadingGoal | None:
+        """The user's goal for ``year``, or None if they haven't set one.
+
+        ``(username, year)`` is the table's primary key, so this is 0 or 1 row.
+        """
         query = f"SELECT username, year, target, created, updated FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
-        return await fetch_all(query, {"username": username, "year": year}, row_factory=class_row(YearlyReadingGoal))
+        return await fetch_one(query, {"username": username, "year": year}, row_factory=class_row(YearlyReadingGoal))
 
     # Update methods:
     @classmethod

@@ -57,16 +57,24 @@ async def test_select_by_username_invalid_order(helpers):
 
 @pytest.mark.asyncio
 async def test_select_by_username_and_year(helpers):
-    helpers.fetch_all.return_value = []
+    goal = YearlyReadingGoal("testuser", 2026, 25, None, None)
+    helpers.fetch_one.return_value = goal
 
-    rows = await YearlyReadingGoals.select_by_username_and_year("testuser", 2026)
+    row = await YearlyReadingGoals.select_by_username_and_year("testuser", 2026)
 
-    assert rows == []
-    (query, params), _kwargs = helpers.fetch_all.await_args
+    assert row is goal
+    (query, params), _kwargs = helpers.fetch_one.await_args
     assert query.startswith("SELECT username, year, target, created, updated FROM yearly_reading_goals")
     assert "username = %(username)s" in query
     assert "year = %(year)s" in query
     assert params == {"username": "testuser", "year": 2026}
+
+
+@pytest.mark.asyncio
+async def test_select_by_username_and_year_without_goal(helpers):
+    helpers.fetch_one.return_value = None
+
+    assert await YearlyReadingGoals.select_by_username_and_year("testuser", 2026) is None
 
 
 @pytest.mark.asyncio
