@@ -407,6 +407,10 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         const btn = document.createElement('ol-button');
         btn.setAttribute('slot', 'trigger');
         btn.setAttribute('variant', 'secondary');
+        // This is an "+ Add …" action trigger, not a value-selection dropdown:
+        // the "+" is the affordance, so suppress ol-button's disclosure chevron
+        // (which otherwise reads as a cramped "+ Add …⌄" beside the plus).
+        btn.setAttribute('no-chevron', '');
         btn.textContent = this._triggerLabel;
         this._defaultTrigger = btn;
         this.appendChild(btn);
