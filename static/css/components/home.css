@@ -49,11 +49,6 @@ div.tutorial__item img {
 }
 
 /* stylelint-disable selector-max-specificity */
-#home-resource {
-  font-size: 13px;
-  text-align: left;
-}
-
 #home-about {
   display: flex;
   flex-wrap: wrap;
