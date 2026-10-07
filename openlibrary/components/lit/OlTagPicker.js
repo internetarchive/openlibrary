@@ -30,9 +30,17 @@ function fetchTagsOfType(tagType) {
     if (!_tagCache.has(tagType)) {
         const url = `/query.json?type=/type/tag&tag_type=${encodeURIComponent(tagType)}&name=&key=&limit=1000`;
         const promise = fetch(url)
-            .then((r) => (r.ok ? r.json() : []))
+            .then((r) => {
+                if (!r.ok) throw new Error(`query.json returned ${r.status}`);
+                return r.json();
+            })
             .then((rows) => (Array.isArray(rows) ? rows : []).map((t) => ({ key: t.key, name: t.name })))
-            .catch(() => []);
+            .catch(() => {
+                // Don't cache a failure: evict so a later open retries rather than
+                // serving an empty list for the page's whole lifetime.
+                _tagCache.delete(tagType);
+                return [];
+            });
         _tagCache.set(tagType, promise);
     }
     return _tagCache.get(tagType);
@@ -317,20 +325,32 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
         // role="group" permits aria-label on the host (axe: aria-prohibited-attr).
         if (!this.getAttribute('role')) this.setAttribute('role', 'group');
         if (!this._hasConsumerTrigger() && !this._defaultTrigger) this._createDefaultTrigger();
-        // Capture the authored default selection for <form>.reset().
-        if (this._defaultValue === undefined) this._defaultValue = [...(this.value || [])];
     }
 
     firstUpdated() {
+        // Capture the authored default selection for <form>.reset() here rather
+        // than in connectedCallback: the common init order sets `value` as a
+        // property right AFTER insertion (synchronously, before this first
+        // render), and connectedCallback would have captured the empty default.
+        if (this._defaultValue === undefined) this._defaultValue = [...(this.value || [])];
         this._resolveOptions();
         this._syncFormValue();
+    }
+
+    willUpdate(changed) {
+        super.willUpdate?.(changed);
+        // A runtime switch to a *different* type must drop selections from the old
+        // type — those keys may not belong to the new type. Done here (before
+        // render) rather than in updated() so it lands in this same update cycle.
+        // The initial set (old value falsy) must not clear an authored initial value.
+        if (changed.has('tagType') && changed.get('tagType')) this.value = [];
     }
 
     updated(changed) {
         super.updated?.(changed);
         if (changed.has('options') || changed.has('tagType')) this._resolveOptions();
         if (changed.has('label') || changed.has('tagType')) this._updateDefaultTriggerLabel();
-        if (changed.has('value')) this._syncFormValue();
+        if (changed.has('value') || changed.has('tagType')) this._syncFormValue();
     }
 
     // ── Selection model ──────────────────────────────────────────
@@ -380,11 +400,15 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
     _resolveOptions() {
         if (Array.isArray(this.options)) return; // direct options win; no fetch
         if (!this.tagType || this._fetchedType === this.tagType) return;
-        this._fetchedType = this.tagType;
+        const type = this.tagType;
+        this._fetchedType = type;
         this.loading = true;
-        fetchTagsOfType(this.tagType).then((rows) => {
+        fetchTagsOfType(type).then((rows) => {
             this._resolvedOptions = rows;
             this.loading = false;
+            // fetchTagsOfType evicts the cache on failure; if it's gone, the fetch
+            // failed, so clear our guard to let the next open retry.
+            if (!_tagCache.has(type)) this._fetchedType = null;
         });
     }
 
@@ -562,11 +586,15 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
             }
             return;
         }
-        // Escape is left to ol-popover, which closes and restores focus to the
-        // trigger (and manages nested-popover Escape ordering).
-        const count = this._filteredOptions.length;
+        // Only the vertical arrows move the active option. Home/End/PageUp/etc.
+        // are deliberately left to the text input's native caret editing — the
+        // WAI-ARIA list-autocomplete combobox pattern reserves them for the
+        // textbox, so intercepting them would break "jump to start/end of query".
+        // Escape is likewise left to ol-popover, which closes and restores focus
+        // to the trigger (and manages nested-popover Escape ordering).
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
         const next = getNextKeyboardFocusIndex(e.key, {
-            count,
+            count: this._filteredOptions.length,
             current: this._activeIndex,
             orientation: 'vertical',
             wrap: true,

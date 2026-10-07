@@ -56,6 +56,9 @@ async function type(el, text) {
     await el.updateComplete;
 }
 
+/** Drain the microtask queue (lets a fetch().then() chain settle). */
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
 afterEach(() => {
     document.body.innerHTML = '';
 });
@@ -268,5 +271,143 @@ describe('ol-tag-picker never creates tags', () => {
         await el.updateComplete;
         expect(chipEls(el)).toHaveLength(0);
         expect(changes).not.toHaveBeenCalled();
+    });
+});
+
+describe('ol-tag-picker fetch-and-cache (requirement 7)', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    // Each test uses a UNIQUE tag-type so the module-level per-type cache
+    // (shared across the file) does not leak a prior test's result.
+    async function mountFetching(tagType, fetchImpl) {
+        vi.stubGlobal('fetch', fetchImpl);
+        const el = document.createElement('ol-tag-picker');
+        el.setAttribute('tag-type', tagType); // no .options → triggers the fetch path
+        document.body.appendChild(el);
+        await el.updateComplete; // firstUpdated → _resolveOptions → fetch()
+        return el;
+    }
+
+    test('fetches the type once, with the documented query.json params, and parses {key,name}', async() => {
+        const fetchMock = vi.fn(() => Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve([{ key: '/tags/OL900T', name: 'Zeta', tag_type: 'x' }]),
+        }));
+        const el = await mountFetching('fetch_type_parse', fetchMock);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        const url = fetchMock.mock.calls[0][0];
+        expect(url).toContain('type=/type/tag');
+        expect(url).toContain('tag_type=fetch_type_parse');
+        expect(url).toContain('limit=1000');
+
+        await flush();
+        await el.updateComplete;
+        expect(el.loading).toBe(false);
+        expect(optionNames(el)).toEqual(['Zeta']); // parsed from the {key,name} object
+    });
+
+    test('toggles `loading` around the request', async() => {
+        let resolveFetch;
+        const fetchMock = vi.fn(() => new Promise((res) => {
+            resolveFetch = () => res({ ok: true, json: () => Promise.resolve([{ key: '/tags/OL901T', name: 'Eta' }]) });
+        }));
+        const el = await mountFetching('fetch_type_loading', fetchMock);
+        expect(el.loading).toBe(true); // request in flight
+        resolveFetch();
+        await flush();
+        await el.updateComplete;
+        expect(el.loading).toBe(false);
+    });
+
+    test('two pickers of the same type share a single request (cache)', async() => {
+        const fetchMock = vi.fn(() => Promise.resolve({
+            ok: true, json: () => Promise.resolve([{ key: '/tags/OL902T', name: 'Theta' }]),
+        }));
+        vi.stubGlobal('fetch', fetchMock);
+        const a = document.createElement('ol-tag-picker');
+        a.setAttribute('tag-type', 'fetch_type_shared');
+        const b = document.createElement('ol-tag-picker');
+        b.setAttribute('tag-type', 'fetch_type_shared');
+        document.body.append(a, b);
+        await a.updateComplete;
+        await b.updateComplete;
+        await flush();
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    test('a failed fetch yields an empty list (not a crash), and reopening retries', async() => {
+        const fetchMock = vi.fn()
+            .mockImplementationOnce(() => Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve([]) }))
+            .mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve([{ key: '/tags/OL903T', name: 'Iota' }]) }));
+        const el = await mountFetching('fetch_type_fail', fetchMock);
+        await flush();
+        await el.updateComplete;
+        expect(el.loading).toBe(false);
+        expect(optionNames(el)).toEqual([]); // empty, degraded gracefully
+
+        // The failure was evicted from the cache, so reopening re-fetches
+        // (reopening the popover calls _resolveOptions; call it directly here to
+        // avoid _onPopoverOpen's matchMedia focus path, which jsdom lacks).
+        el._resolveOptions();
+        await el.updateComplete;
+        await flush();
+        await el.updateComplete;
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(optionNames(el)).toEqual(['Iota']);
+    });
+});
+
+describe('ol-tag-picker keyboard: Home/End and Escape are left to the input/popover', () => {
+    test('Home and End are NOT intercepted (native text-caret editing preserved)', async() => {
+        const el = await mount();
+        await type(el, 'a'); // some options present, active index 0
+        const field = input(el);
+        const home = new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true });
+        field.dispatchEvent(home);
+        await el.updateComplete;
+        expect(home.defaultPrevented).toBe(false);
+        const end = new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true });
+        field.dispatchEvent(end);
+        expect(end.defaultPrevented).toBe(false);
+    });
+
+    test('Escape is not consumed by the combobox (so ol-popover can close it)', async() => {
+        const el = await mount();
+        const esc = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        input(el).dispatchEvent(esc);
+        expect(esc.defaultPrevented).toBe(false);
+    });
+});
+
+describe('ol-tag-picker reset with a property-initialised default (demo init order)', () => {
+    test('reset restores a value set as a property AFTER insertion', async() => {
+        const el = document.createElement('ol-tag-picker');
+        el.setAttribute('name', 'content_formats');
+        el.options = CONTENT_FORMATS;
+        document.body.appendChild(el); // connectedCallback runs with value still []
+        el.value = ['/tags/OL120T']; // set synchronously after insert, before first render
+        await el.updateComplete; // firstUpdated captures ['/tags/OL120T'] as the default
+        el._selectKey('/tags/OL134T');
+        await el.updateComplete;
+        expect(chipNames(el).sort()).toEqual(['Almanac', 'Manga'].sort());
+        el.formAssociatedReset();
+        await el.updateComplete;
+        expect(chipNames(el)).toEqual(['Almanac']); // restored, not emptied
+    });
+});
+
+describe('ol-tag-picker runtime tag-type switch', () => {
+    test('switching tag-type drops selections made under the old type', async() => {
+        const el = await mount({ attrs: { 'tag-type': 'content_formats' }, props: { value: ['/tags/OL120T'] } });
+        expect(chipNames(el)).toEqual(['Almanac']);
+        el.options = [{ key: '/tags/OL169T', name: 'Fantasy' }];
+        el.tagType = 'genres';
+        await el.updateComplete;
+        expect(chipNames(el)).toEqual([]);
+    });
+
+    test('the initial tag-type set does NOT clear an authored initial value', async() => {
+        const el = await mount({ attrs: { 'tag-type': 'content_formats' }, props: { value: ['/tags/OL120T'] } });
+        expect(chipNames(el)).toEqual(['Almanac']);
     });
 });
