@@ -4,6 +4,8 @@
  * A curated set of spacing values based on a 4px grid.
  * Rarely used directly in components — use semantic tokens instead.
  */
+/* Keep these columns aligned (lookup table). */
+/* prettier-ignore */
 :root {
   --spacing-0: 0;
   --spacing-3xs: 2px;       /*  2px – hairline gaps (px intentional) */
@@ -32,6 +34,7 @@
  *   - Inset:   internal padding of containers
  *   - Layout:  large-scale page/section spacing
  */
+/* prettier-ignore */
 :root {
   /* ---- Inline: horizontal gaps between sibling elements ----
    *

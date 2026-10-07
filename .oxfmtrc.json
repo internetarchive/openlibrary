@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "tabWidth": 4,
+  "arrowParens": "avoid",
+  "trailingComma": "none",
+  "printWidth": 160,
+  "embeddedLanguageFormatting": "off",
+  "overrides": [
+    { "files": ["*.css"], "options": { "tabWidth": 2, "singleQuote": false, "trailingComma": "all", "printWidth": 80 } },
+    { "files": ["**/tokens/*.css"], "options": { "printWidth": 320 } }
+  ]
+}

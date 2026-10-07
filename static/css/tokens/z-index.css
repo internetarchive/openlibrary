@@ -55,6 +55,8 @@
  * 10000 (--z-index-level-14) has no band; its few legacy uses carry an
  * inline note. There is no zero token: use `isolation: isolate` instead.
  */
+/* Keep these columns aligned (lookup table). */
+/* prettier-ignore */
 :root {
   --z-index-behind:   var(--z-index-level-negative); /* -1      – behind parent (e.g. .editionCover animation) */
   --z-index-base:     var(--z-index-level-1);        /*  1      – e.g. chevrons, sticky compare card */
