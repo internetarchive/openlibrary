@@ -147,8 +147,8 @@ class TestHomeGenreShelf:
     async def test_header_names_the_genre_and_links_to_its_rows(self):
         html, _row = await self.shelf()
         assert '<h2 class="genre-shelf__title">Horror</h2>' in html
-        assert 'href="#genre-horror-gothic">Gothic</a>' in html
-        assert 'href="#genre-horror-psychological">Psychological</a>' in html
+        assert 'href="#genre-horror-gothic"\n                               data-ol-link-track="BrowseStacks|JumpTo|genre-horror-gothic">Gothic</a>' in html
+        assert 'data-ol-link-track="BrowseStacks|JumpTo|genre-horror-psychological">Psychological</a>' in html
         assert "Browse all" not in html
         assert html.index("genre-shelf__header") < html.index("genre-shelf__sort") < html.index("lazy-carousel-loaded")
 
