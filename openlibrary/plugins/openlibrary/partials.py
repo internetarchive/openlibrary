@@ -1135,6 +1135,9 @@ class HomeGenrePartial:
     def genre_row_title(genre: home_genres.Genre, sort: str) -> str:
         """The genre row's title says how it's sorted, since the shelf's sort control changes it."""
         name = home_genres.display_name(genre)
+        if genre["kind"] == "trending":
+            # The shelf is already "Trending": its row says how the trending books are ordered.
+            return {"new": _("Newest"), "rating": _("Top rated")}.get(sort, _("Trending now"))
         if sort == "new":
             return _("Newest in %(genre)s", genre=name)
         if sort == "rating":

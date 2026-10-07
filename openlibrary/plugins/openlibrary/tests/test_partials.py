@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.vendors import betterworldbooks_fmt
-from openlibrary.plugins.openlibrary import code  # noqa: F401  # code.setup() imports partials; import it first
+from openlibrary.plugins.openlibrary import code, home_genres  # noqa: F401  # code.setup() imports partials; import it first
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateOffer,
     AffiliateStoreBuildContext,
@@ -78,6 +78,17 @@ class TestHomeGenreNarrow:
             params = self.narrow(subgenre, sort="rating")
             assert "sort=rating" in params.url
             assert "sort=trending" not in params.url
+
+    def test_trending_stack_rows_say_only_their_order(self):
+        """The Trending shelf's row isn't "Trending in Trending"."""
+        trending = home_genres.TRENDING
+        with patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=" language:eng"):
+            params = HomeGenrePartial.narrow(LazyCarouselParams(query="stale", genre="trending", sort="trending", safe_mode=False), trending)
+        assert params.query == f"{trending['query']} language:eng"
+        assert params.title == "Trending now"
+        assert HomeGenrePartial.genre_row_title(trending, "new") == "Newest"
+        assert HomeGenrePartial.genre_row_title(trending, "rating") == "Top rated"
+        assert HomeGenrePartial.jump_links(trending) == []
 
     def test_unknown_subgenre_falls_back_to_the_genre(self):
         params = self.narrow("romance")

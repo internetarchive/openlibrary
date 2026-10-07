@@ -1,5 +1,6 @@
 import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
+from urllib.parse import quote_plus
 
 import pytest
 import web
@@ -134,16 +135,20 @@ TILE_GENRES = [
 
 PICKED_COVERS = {"horror": [10, 11, 12, 13], "history": [20, 21, 22], "absurd": [30, 31, 32]}
 
+TRENDING = home.home_genres.TRENDING
+TRENDING_QUERY = home.home_genres.solr_query(TRENDING)
+
 
 class TestFeaturedGenres:
-    """The stacks' tiles come from one faceted Solr query, one facet query per genre."""
+    """The stacks' tiles come from one faceted Solr query, one facet query per genre, led by Trending."""
 
-    def featured(self, counts, picked=PICKED_COVERS):
+    def featured(self, counts, picked=PICKED_COVERS, trending_covers=(1, 2, 3)):
         solr = MagicMock()
-        solr.raw_request = AsyncMock(return_value=MagicMock(json=lambda: {"facet_counts": {"facet_queries": counts}}))
+        solr.raw_request = AsyncMock(return_value=MagicMock(json=lambda: {"facet_counts": {"facet_queries": {TRENDING_QUERY: 900, **counts}}}))
         with (
             patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),
             patch.object(home.home_genres, "load_tile_covers", return_value=picked),
+            patch.object(home, "get_trending_tile_covers", return_value=list(trending_covers)),
             patch.object(home.search, "get_solr", return_value=solr),
         ):
             web.ctx.env = {}
@@ -151,24 +156,47 @@ class TestFeaturedGenres:
 
     def test_one_query_for_every_tile(self):
         genres, payload = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0})
-        assert payload.count("facet.query=") == 3
+        assert payload.count("facet.query=") == 4
         # Counts only: no grouping, which sorted every genre's matches and timed out on the full index.
         assert "group" not in payload
         # Counted, and nothing readable means no tile.
-        assert [(g["slug"], g["readable_count"]) for g in genres] == [("horror", 1200), ("history", 5)]
+        assert [(g["slug"], g["readable_count"]) for g in genres] == [("trending", 900), ("horror", 1200), ("history", 5)]
         # The fan takes three of the picked covers.
-        assert genres[0]["covers"] == [10, 11, 12]
+        assert genres[1]["covers"] == [10, 11, 12]
+
+    def test_trending_leads_with_live_covers(self):
+        """Trending is the first tile, always: the template keeps it there while shuffling the rest.
+        Its fan is the covers its shelf would open with, not hand-picked ones."""
+        genres, payload = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0}, trending_covers=[7, 8, 9])
+        assert genres[0]["slug"] == "trending"
+        assert genres[0]["kind"] == "trending"
+        assert genres[0]["covers"] == [7, 8, 9]
+        # Its count is a whole Solr clause, not a subject_key facet.
+        assert "subject_key" not in TRENDING_QUERY
+        assert f"facet.query={quote_plus(TRENDING_QUERY)}" in payload
+
+    def test_trending_without_covers_still_gets_a_tile(self):
+        genres, _ = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0}, trending_covers=[])
+        assert (genres[0]["slug"], genres[0]["covers"]) == ("trending", [])
+
+    def test_trending_tile_covers_come_from_its_row_query(self):
+        docs = [{"cover_i": 5}, {}, {"cover_i": 6}, {"cover_i": 7}, {"cover_i": 8}]
+        with patch.object(home, "work_search_async", new=AsyncMock(return_value={"docs": docs})) as search:
+            assert home.get_trending_tile_covers() == [5, 6, 7]
+        query, kwargs = search.call_args.args[0], search.call_args.kwargs
+        # The same books the shelf shows: readable, in trending order.
+        assert (query["q"], query["has_fulltext"], kwargs["sort"]) == (TRENDING_QUERY, "true", "trending")
 
     def test_no_picked_covers_no_tile(self):
         genres, payload = self.featured({"subject_key:horror*": 1200}, picked={"horror": [10, 11, 12]})
         # Genres without covers aren't even counted.
-        assert payload.count("facet.query=") == 1
-        assert [g["slug"] for g in genres] == ["horror"]
+        assert payload.count("facet.query=") == 2
+        assert [g["slug"] for g in genres] == ["trending", "horror"]
 
     def test_names_are_translated_per_page_not_in_the_cache(self):
         # The cache is shared across languages, so a subject tile's name is translated after it.
         genres, _ = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0})
-        assert [g["name"] for g in genres] == ["Horror", "History"]
+        assert [g["name"] for g in genres] == ["Trending", "Horror", "History"]
         with (
             patch.object(home, "get_cached_featured_genres", return_value=genres),
             patch.object(home.home_genres, "subject_tile_labels", return_value={"history": "Histoire"}),
@@ -177,7 +205,7 @@ class TestFeaturedGenres:
             patch.object(home, "render_template", return_value={}) as render,
         ):
             home.get_homepage(devmode=False)
-        assert [g["name"] for g in render.call_args.kwargs["featured_genres"]] == ["Horror", "Histoire"]
+        assert [g["name"] for g in render.call_args.kwargs["featured_genres"]] == ["Trending", "Horror", "Histoire"]
 
     def test_solr_failure_costs_the_rail_not_the_page(self):
         with (
@@ -194,6 +222,25 @@ class TestFeaturedGenres:
         slugs = {g["slug"] for g in home.home_genres.load_home_genres()}
         assert set(picked) == slugs
         assert all(len(covers) == home.GENRE_TILE_COVERS for covers in picked.values())
+
+
+class TestTrendingStack:
+    """The Trending stack isn't in the vocabulary: it's one clause across every genre."""
+
+    def test_is_found_by_slug_but_not_a_vocabulary_genre(self):
+        assert home.home_genres.find_genre("trending") is TRENDING
+        assert "trending" not in {g["slug"] for g in home.home_genres.load_home_genres()}
+
+    def test_query_is_the_clause_itself(self):
+        assert home.home_genres.solr_query(TRENDING) == "trending_score_hourly_sum:[1 TO *] AND readinglog_count:[4 TO *]"
+        assert (
+            home.home_genres.search_url(TRENDING)
+            == "/search?q=trending_score_hourly_sum%3A%5B1+TO+%2A%5D+AND+readinglog_count%3A%5B4+TO+%2A%5D&sort=trending&has_fulltext=true"
+        )
+
+    def test_name_is_translated(self):
+        with patch.object(home.home_genres, "_", side_effect=lambda text: f"<{text}>"):
+            assert home.home_genres.display_name(TRENDING) == "<Trending>"
 
 
 class Test_format_book_data:

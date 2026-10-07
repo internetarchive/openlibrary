@@ -4182,6 +4182,10 @@ msgid "Browse the stacks"
 msgstr ""
 
 #: home/browse_stacks.html.jinja openlibrary/plugins/openlibrary/partials.py
+msgid "Trending now"
+msgstr ""
+
+#: home/browse_stacks.html.jinja openlibrary/plugins/openlibrary/partials.py
 #, python-format
 msgid "Trending in %(genre)s"
 msgstr ""
@@ -4202,15 +4206,15 @@ msgstr ""
 msgid "%(genre)s subgenres"
 msgstr ""
 
-#: home/genre_shelf.html.jinja openlibrary/plugins/openlibrary/nav.py search/sort_options.html
+#: home/genre_shelf.html.jinja openlibrary/plugins/openlibrary/home_genres.py openlibrary/plugins/openlibrary/nav.py search/sort_options.html
 msgid "Trending"
 msgstr ""
 
-#: home/genre_shelf.html.jinja merge_request_table/table_header.html
+#: home/genre_shelf.html.jinja merge_request_table/table_header.html openlibrary/plugins/openlibrary/partials.py
 msgid "Newest"
 msgstr ""
 
-#: home/genre_shelf.html.jinja
+#: home/genre_shelf.html.jinja openlibrary/plugins/openlibrary/partials.py
 msgid "Top rated"
 msgstr ""
 

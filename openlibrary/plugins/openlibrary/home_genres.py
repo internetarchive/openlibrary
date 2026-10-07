@@ -36,9 +36,23 @@ class GenreNode(TypedDict):
 
 
 class Genre(GenreNode):
-    kind: str  # "genre" from the vocabulary, or "subject" for the nonfiction/kids tiles
+    kind: str  # "genre" from the vocabulary, "subject" for the nonfiction/kids tiles, or "trending"
     page: NotRequired[str]  # subject page to browse, when there is one
     subgenres: list[GenreNode]
+
+
+# The stack that always leads the rail, open by default: what's trending across every genre.
+# Its query is a whole Solr clause (the home page's old Trending carousel), not a subject_key value,
+# so solr_query() passes it through. Its counts and tile covers are live (home.get_featured_genres).
+TRENDING: Genre = {
+    "name": "Trending",
+    "slug": "trending",
+    "kind": "trending",
+    "query": "trending_score_hourly_sum:[1 TO *] AND readinglog_count:[4 TO *]",
+    "work_count": 0,
+    "readable_count": 0,
+    "subgenres": [],
+}
 
 
 @functools.cache
@@ -89,10 +103,14 @@ def subject_tile_labels() -> dict[str, str]:
 
 def display_name(genre: Genre) -> str:
     """The genre's name as the reader sees it: a subject tile's is translated."""
+    if genre["kind"] == "trending":
+        return _("Trending")
     return subject_tile_labels().get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"]
 
 
 def find_genre(slug: str) -> Genre | None:
+    if slug == TRENDING["slug"]:
+        return TRENDING
     return next((g for g in load_home_genres() if g["slug"] == slug), None)
 
 
@@ -102,6 +120,8 @@ def find_subgenre(genre: Genre, slug: str | None) -> GenreNode | None:
 
 def solr_query(node: GenreNode, parent: GenreNode | None = None) -> str:
     """A subgenre is searched within its parent: Psychological under Horror is psychological horror."""
+    if node.get("kind") == "trending":
+        return node["query"]
     query = f"subject_key:{node['query']}"
     return f"subject_key:{parent['query']} AND {query}" if parent else query
 

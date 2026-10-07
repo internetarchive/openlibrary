@@ -19,6 +19,7 @@ from openlibrary.plugins.upstream.utils import (
     get_populated_languages,
 )
 from openlibrary.plugins.worksearch import search, subjects
+from openlibrary.plugins.worksearch.code import work_search_async
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import caching_prethread, req_context
@@ -231,15 +232,32 @@ def get_cached_featured_subjects():
 GENRE_TILE_COVERS = 3
 
 
+def get_trending_tile_covers() -> list[int]:
+    """The Trending tile's fan: the covers of the first readable books its shelf would show. Live, where
+    the other tiles' are hand-picked; cached with the rest of the rail."""
+    results = async_bridge.run(
+        work_search_async(
+            {"q": home_genres.solr_query(home_genres.TRENDING), "has_fulltext": "true"},
+            sort="trending",
+            fields="cover_i",
+            limit=GENRE_TILE_COVERS * 2,
+            facet=False,
+            request_label="BOOK_CAROUSEL",
+        )
+    )
+    return [doc["cover_i"] for doc in results.get("docs", []) if doc.get("cover_i")][:GENRE_TILE_COVERS]
+
+
 def get_featured_genres():
     """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live readable counts,
-    fanned with the covers hand-picked in home_genre_covers.json (no covers, no tile).
-    One faceted Solr query counts them all, cached for a day. Names are left untranslated:
+    fanned with the covers hand-picked in home_genre_covers.json (no covers, no tile), led by the
+    Trending stack. One faceted Solr query counts them all, cached for a day. Names are left untranslated:
     the cache is shared across languages, and get_homepage translates them per page."""
     if "env" not in web.ctx:
         delegate.fakeload()
-    picked = home_genres.load_tile_covers()
-    nodes = [genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"])]
+    picked = {home_genres.TRENDING["slug"]: get_trending_tile_covers(), **home_genres.load_tile_covers()}
+    # Trending leads; the template shuffles the rest.
+    nodes = [home_genres.TRENDING, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
     queries = [home_genres.solr_query(genre) for genre in nodes]
     # One facet query per genre: its count is the readable count. Facet queries only count, where
     # grouping also collected and sorted every genre's matches, which took over 10s on the full index.
