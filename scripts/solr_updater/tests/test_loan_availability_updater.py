@@ -15,14 +15,14 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from scripts.solr_updater.loan_availability_updater import (
     EBOOK_AVAILABLE,
     EBOOK_UNAVAILABLE,
-    MARKED_SET_MAX,
     SOLR_QUERY_CHUNK,
+    SOLR_UNAVAILABLE_MAX,
     PollRefused,
     SolrWriteFailed,
     build_poll_updates,
-    fetch_marked_editions,
-    gate_clears_on_index_currency,
+    fetch_solr_unavailable,
     main,
+    older_than_es,
     resolve_edition_keys,
     solr_update_in_place,
 )
@@ -121,13 +121,6 @@ async def test_resolve_edition_keys_escapes_quotes():
     query = mock_get_solr.return_value.select_async.call_args.kwargs["query"]
     assert '\\"' in query  # embedded quote backslash-escaped
     assert "\\\\" in query  # embedded backslash escaped
-
-
-@pytest.mark.asyncio
-async def test_solr_update_in_place_success_does_not_raise():
-    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=MagicMock(spec=Solr)) as mock_get_solr:
-        mock_get_solr.return_value.update_in_place_async.return_value = {"responseHeader": {"status": 0}}
-        await solr_update_in_place([{"key": "/books/OL1M"}], commit=True)  # no exception
 
 
 @pytest.mark.asyncio
@@ -274,18 +267,6 @@ def _select_side_effect(*args, **kwargs):
     return _EMPTY_RESULT
 
 
-def _wire_lending(lending_mock, first_batch_rows, availability=None):
-    """Give the patched lending module realistic behaviour for main()."""
-    lending_mock.get_loan_changes = AsyncMock(
-        side_effect=[
-            {"status": "OK", "rows": first_batch_rows, "latest_uid": 100},
-            SystemExit(0),  # stop the loop on the second iteration
-        ]
-    )
-    lending_mock.get_availability_async = AsyncMock(return_value={"bookabc": AVAILABLE} if availability is None else availability)
-    lending_mock.is_available_for_loan.side_effect = lambda a: bool(a.get("available_to_browse") or a.get("available_to_borrow"))
-
-
 # ---------------------------------------------------------------------------
 # Cold start inside main()
 # ---------------------------------------------------------------------------
@@ -349,14 +330,6 @@ WAITLISTED = {
 }
 
 
-def test_a_waitlisted_book_is_not_available():
-    """The predicate both loops share. `available_to_waitlist` means you may
-    join a QUEUE, not that you may read the book -- counting it as available
-    here is the single edit that would break everything below."""
-    assert lending.is_available_for_loan(WAITLISTED) is False
-    assert lending.is_available_for_loan(AVAILABLE) is True
-
-
 # ---------------------------------------------------------------------------
 # Index seed + overlap replay
 # ---------------------------------------------------------------------------
@@ -366,7 +339,7 @@ def test_a_waitlisted_book_is_not_available():
 # Poll-and-reconcile (v3). One read of the index's unavailable set, one read of
 # what Solr has marked, one bulk update carrying both directions.
 #
-# `resolve_edition_keys` and `fetch_marked_editions` are patched out: they have
+# `resolve_edition_keys` and `fetch_solr_unavailable` are patched out: they have
 # their own tests, and what these pin is the set arithmetic and the guard --
 # which is where a defect publishes a checked-out book as borrowable.
 # ---------------------------------------------------------------------------
@@ -406,7 +379,7 @@ def _poll(identifiers: list[str], marked: dict[str, dict]):
     resolved = {ia: POLL_EDITIONS[ia] for ia in identifiers if ia in POLL_EDITIONS}
     return (
         patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
-        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_solr_unavailable", AsyncMock(return_value=marked)),
     )
 
 
@@ -476,9 +449,9 @@ async def test_a_truncated_marked_read_is_refused_rather_than_treated_as_the_set
     """An edition outside a capped read is indistinguishable from one the index
     no longer calls unavailable, and the reconcile clears on absence."""
     mock_solr = MagicMock(spec=Solr)
-    mock_solr.select_async.return_value = MagicMock(docs=[{"key": f"/books/OL{i}M", "ia": [], "_root_": "/works/OL1W"} for i in range(MARKED_SET_MAX)])
+    mock_solr.select_async.return_value = MagicMock(docs=[{"key": f"/books/OL{i}M", "ia": [], "_root_": "/works/OL1W"} for i in range(SOLR_UNAVAILABLE_MAX)])
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
-        await fetch_marked_editions()
+        await fetch_solr_unavailable()
     assert "cap" in str(excinfo.value)
 
 
@@ -496,7 +469,7 @@ def _marked_at(key: str, ocaid: str, stamp: int | None) -> dict:
 
 @pytest.mark.asyncio
 async def test_a_mark_newer_than_the_index_is_held_not_cleared():
-    """THE SEAM. The index's snapshot is current only up to its newest loan
+    """THE SEAM. The index's snapshot is current only up to its newest_es_event loan
     event. A mark newer than that is absent from the result set because the
     index has not caught up -- not because the book came back. Clearing it
     publishes a checked-out book as borrowable and nothing revisits it.
@@ -504,7 +477,7 @@ async def test_a_mark_newer_than_the_index_is_held_not_cleared():
     marked = {"/books/OL2M": _marked_at("/books/OL2M", "bookbbb", EVENT_EPOCH + 60)}
     with (
         patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={"bookaaa": POLL_EDITIONS["bookaaa"]})),
-        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_solr_unavailable", AsyncMock(return_value=marked)),
     ):
         updates = await build_poll_updates({"bookaaa": EVENT_EPOCH})
     _, clear = _sets(updates)
@@ -518,7 +491,7 @@ async def test_a_mark_older_than_the_index_is_cleared():
     marked = {"/books/OL2M": _marked_at("/books/OL2M", "bookbbb", EVENT_EPOCH - 60)}
     with (
         patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={"bookaaa": POLL_EDITIONS["bookaaa"]})),
-        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_solr_unavailable", AsyncMock(return_value=marked)),
     ):
         updates = await build_poll_updates({"bookaaa": EVENT_EPOCH})
     _, clear = _sets(updates)
@@ -529,7 +502,7 @@ def test_a_mark_exactly_at_the_index_currency_is_held():
     """Strict `<`. The index is current up to and INCLUDING that instant, so a
     mark at the same second is the ambiguous case, and ambiguity holds."""
     doc = _marked_at("/books/OL2M", "bookbbb", EVENT_EPOCH)
-    clearable, held = gate_clears_on_index_currency([doc], EVENT_EPOCH)
+    clearable, held = older_than_es([doc], EVENT_EPOCH)
     assert clearable == []
     assert held == [doc]
 
@@ -539,7 +512,7 @@ def test_no_index_horizon_clears_nothing():
     INFORMATION -- never "everything was returned". This is what makes a
     collapsed index safe rather than catastrophic."""
     doc = _marked_at("/books/OL2M", "bookbbb", 1)
-    clearable, held = gate_clears_on_index_currency([doc], None)
+    clearable, held = older_than_es([doc], None)
     assert clearable == []
     assert held == [doc]
 
@@ -551,7 +524,7 @@ def test_a_mark_with_no_stamp_is_treated_as_very_old_and_clears():
     rather than lingering stampless. Those marks really are old, and holding
     them forever is the worse failure."""
     doc = _marked_at("/books/OL2M", "bookbbb", None)
-    clearable, held = gate_clears_on_index_currency([doc], EVENT_EPOCH)
+    clearable, held = older_than_es([doc], EVENT_EPOCH)
     assert clearable == [doc]
     assert held == []
 
@@ -623,7 +596,7 @@ def test_an_unparsable_event_time_is_skipped_rather_than_raised_on():
 async def test_a_book_with_no_event_time_is_stamped_with_the_newest_in_the_batch():
     """About a THIRD of the live unavailable set carries neither field
     (measured 2026-10-07: 268 of 857). Those need an answer, and it is the
-    newest loan event anywhere in this result set -- in range by construction,
+    newest_es_event loan event anywhere in this result set -- in range by construction,
     and the conservative end of that range.
 
     Conservative matters: the stamp exists so a lagged poll can refuse to clear
@@ -633,11 +606,11 @@ async def test_a_book_with_no_event_time_is_stamped_with_the_newest_in_the_batch
     """
     resolve, marked = _poll(["bookaaa", "bookbbb"], {})
     with resolve, marked:
-        # bookbbb has no event time; bookaaa is the newest thing in the batch.
+        # bookbbb has no event time; bookaaa is the newest_es_event thing in the batch.
         updates = await build_poll_updates({"bookaaa": EVENT_EPOCH, "bookbbb": None})
     stamps = {u["key"]: u["ebook_unavailable_ts"]["set"] for u in updates}
     assert stamps["/books/OL1M"] == EVENT_EPOCH, "the dated book keeps its own event time"
-    assert stamps["/books/OL2M"] == EVENT_EPOCH, "and the undated one takes the newest in the batch"
+    assert stamps["/books/OL2M"] == EVENT_EPOCH, "and the undated one takes the newest_es_event in the batch"
 
 
 @pytest.mark.asyncio
@@ -646,11 +619,11 @@ async def test_the_fallback_is_the_NEWEST_in_the_batch_not_the_oldest():
     separately from the fallback existing at all. The earliest value would also
     be "in range" and would make every undated book immediately clearable."""
     resolve, marked = _poll(["bookaaa", "bookbbb", "bookccc"], {})
-    oldest, newest = EVENT_EPOCH - 86_400, EVENT_EPOCH
+    oldest, newest_es_event = EVENT_EPOCH - 86_400, EVENT_EPOCH
     with resolve, marked:
-        updates = await build_poll_updates({"bookaaa": oldest, "bookbbb": newest, "bookccc": None})
+        updates = await build_poll_updates({"bookaaa": oldest, "bookbbb": newest_es_event, "bookccc": None})
     undated = next(u for u in updates if u["key"] == "/books/OL3M")
-    assert undated["ebook_unavailable_ts"]["set"] == newest, "the undated book must take the NEWEST event in the batch"
+    assert undated["ebook_unavailable_ts"]["set"] == newest_es_event, "the undated book must take the NEWEST event in the batch"
     assert undated["ebook_unavailable_ts"]["set"] != oldest, "the oldest would be in range too, and would clear it immediately"
 
 
@@ -823,12 +796,12 @@ async def test_a_truncated_marked_read_is_refused_rather_than_cleared():
     """Solr returns HTTP 200 with a short `docs` list in two ways -- more
     matched than `rows` asked for, and `timeAllowed` cutting the query short.
     The reconcile turns ABSENCE into a clear, so either one is a mass clear by
-    a quiet route that stays under the breaker's threshold."""
+    a quiet route."""
     mock_solr = MagicMock(spec=Solr)
     result = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}], num_found=500, response_header={})
     mock_solr.select_async.return_value = result
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
-        await fetch_marked_editions()
+        await fetch_solr_unavailable()
     assert "500" in str(excinfo.value)
 
 
@@ -840,7 +813,7 @@ async def test_a_partial_solr_read_is_refused_rather_than_cleared():
     result = MagicMock(docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}], num_found=1, response_header={"partialResults": True})
     mock_solr.select_async.return_value = result
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
-        await fetch_marked_editions()
+        await fetch_solr_unavailable()
     assert "partialResults" in str(excinfo.value)
 
 
@@ -884,13 +857,13 @@ async def test_a_clear_does_not_touch_the_timestamp():
 async def test_a_truncated_edition_resolve_is_refused_rather_than_cleared():
     """The other half of the comparison that turns absence into a clear.
 
-    `fetch_marked_editions` carried this guard and `resolve_edition_keys` did
+    `fetch_solr_unavailable` carried this guard and `resolve_edition_keys` did
     not, though an identifier that fails to resolve is indistinguishable from
     one the index no longer calls unavailable. A Solr slowdown tripping
     `timeAllowed` returns HTTP 200 with a short `docs` list and
     `partialResults`, and without this the editions that fell off the end are
-    cleared -- checked-out books published as borrowable, below the breaker's
-    threshold so no ground truth is consulted, and nothing above INFO logged.
+    cleared -- checked-out books published as borrowable, with nothing above
+    INFO in the log.
     It needs a slow Solr, not an index incident.
     """
     mock_solr = MagicMock(spec=Solr)

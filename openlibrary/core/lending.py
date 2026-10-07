@@ -234,18 +234,6 @@ async def get_loan_changes(
 AVAILABILITY_BATCH_SIZE = 100
 
 
-def is_available_for_loan(availability: AvailabilityStatus) -> bool:
-    """Is this book borrowable/browsable right now, per ground truth?
-
-    Mirrors the borrowable branch of get_lending_state(): a book is available
-    when the service says it can be browsed or borrowed. Everything else --
-    checked out, all copies out, waitlist-blocked, not lendable at all -- is
-    unavailable for our purposes. Note that a `return` event does NOT imply
-    available: with a waitlist, the copy goes to the head of the queue.
-    """
-    return bool(availability.get("available_to_browse") or availability.get("available_to_borrow"))
-
-
 async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
@@ -581,19 +569,11 @@ measured; this is the one verified against live availability.
 """
 
 CHECKED_OUT_INDEX_EVENT_FIELDS = ("lending___last_borrow", "lending___last_browse")
-"""The index's own record of when a book's current loan began.
+"""When a book's current loan began, per ES. The LATER of the two wins.
 
-Two fields, not one, and the LATER of the two is the answer: a book can have
-been browsed and borrowed, and the current unavailability dates from whichever
-happened last.
-
-Coverage is partial and that is the important part. Measured 2026-10-07 against
-the live unavailable set of 857: `lending___last_browse` on 582 (68%),
-`lending___last_borrow` on 41 (4.8%), **either on ~580 -- so roughly a third
-carry neither.** A caller must have an answer for that third rather than
-assuming a value will be there. Both fields exist and are queryable (controls:
-a nonsense field name matches 0 documents, `lending___status` matches 8.8M), so
-the gap is sparsity in the data, not a missing field.
+Coverage is partial, and that is the part callers must handle: measured
+2026-10-07 on the 857-book unavailable set, `last_browse` 582, `last_borrow`
+41, and **about a third carry neither**.
 """
 
 CHECKED_OUT_INDEX_PAGE_ROWS = 1000
@@ -623,10 +603,10 @@ class CheckedOutSeedIncomplete(Exception):
 
 
 def _index_event_epoch(doc: dict) -> int | None:
-    """When this book's current unavailability began, per the index.
+    """When this book's current unavailability began, per ES.
 
     The LATER of `lending___last_borrow` and `lending___last_browse`, as epoch
-    seconds, or None when the index carries neither -- which it does for about
+    seconds, or None when ES carries neither -- which it does for about
     a third of the unavailable set (see CHECKED_OUT_INDEX_EVENT_FIELDS).
 
     IA returns these as ISO-8601 Z strings, and search-index fields are
@@ -636,7 +616,7 @@ def _index_event_epoch(doc: dict) -> int | None:
     the maximum across both fields taken.
 
     Anything unparsable is skipped rather than raised on: a malformed date from
-    the index must not take the daemon down, and the caller already has a
+    ES must not take the daemon down, and the caller already has a
     defined answer for "no timestamp".
     """
     epochs: list[int] = []
@@ -668,11 +648,11 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
     A *candidate* set for seeding a cold start: a handful of requests instead
     of replaying days of loan events to infer the same thing. The caller must
     settle these against the availability service before writing anything --
-    the index is a lagged view and has been observed disagreeing with ground
+    ES is a lagged view and has been observed disagreeing with live
     truth on other lending fields.
 
     Returns `{identifier: epoch_seconds_or_None}`. The value is the LATER of
-    the index's two loan-event times (CHECKED_OUT_INDEX_EVENT_FIELDS), and it
+    ES's two loan-event times (CHECKED_OUT_INDEX_EVENT_FIELDS), and it
     is **None for roughly a third of the set**, which carries neither. Callers
     that stamp a timestamp must decide what that third gets; `None` is a real
     answer meaning "the index does not know when", not a missing value to be

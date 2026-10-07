@@ -375,23 +375,6 @@ class TestGetLoanHistoryData:
         assert result["docs"] == []
 
 
-class TestIsAvailableForLoan:
-    def test_browsable_or_borrowable_is_available(self):
-        assert lending.is_available_for_loan({"available_to_browse": True, "available_to_borrow": False})
-        assert lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": True})
-
-    def test_neither_is_unavailable(self):
-        assert not lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": False})
-
-    def test_waitlistable_is_still_unavailable(self):
-        """A book you may queue for is not a book you may read: available_to_waitlist
-        must not be mistaken for availability."""
-        assert not lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": False, "available_to_waitlist": True})
-
-    def test_missing_keys_are_unavailable(self):
-        assert not lending.is_available_for_loan({})
-
-
 class TestGetCheckedOutCandidates:
     """The cold-start seed. Its failure direction is asymmetric: a seed that is
     short publishes checked-out books as borrowable, and nothing downstream

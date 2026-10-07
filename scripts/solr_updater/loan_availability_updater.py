@@ -4,14 +4,14 @@ A standalone daemon -- not a cron, not part of the web app -- backgrounded
 inside the solr-updater container by docker/ol-solr-updater-start.sh. Every
 POLL_INTERVAL seconds it:
 
-  1. asks archive.org's search index which books are lendable but currently
+  1. asks ES (archive.org's AdvancedSearch) which books are lendable but currently
      neither borrowable nor browsable (lending.get_checked_out_candidates_async);
   2. resolves those identifiers to Solr EDITION documents and reads back which
-     editions Solr has marked;
+     editions Solr currently has unavailable;
   3. writes one batched in-place update: `ebook_unavailable` 1 on the newly
      unavailable, 0 on the returned.
 
-Each poll is a complete statement of what should be marked, not an increment,
+Each poll is a complete statement of what should be unavailable, not an increment,
 so the first poll after any start IS the cold start and a reindex that wipes
 the field self-heals on the next cycle. There is no cursor, no state file and
 nothing to re-run by hand.
@@ -26,7 +26,7 @@ published as borrowable while someone has it, and nothing revisits it.
 
 So the mark direction is unguarded on purpose and the clear direction refuses,
 holds, and asks for a second opinion. In order: the clear-gate
-(gate_clears_on_index_currency) drops anything the index is too stale to
+(older_than_es) drops anything ES is too stale to
 contradict. Sets are written before unsets, so a partially-landed batch errs
 toward hiding.
 
@@ -48,12 +48,12 @@ THE TRAPS, so they are not re-introduced
   it; `pdate` is rejected outright. The schema deploy must carry BOTH, or Solr
   rejects every document, forever, while the container looks healthy.
 * `requireInPlace` cannot set a field to null, so "available" is written as 0
-  and a clear leaves `ebook_unavailable_ts` behind. The stamp is meaningful
+  and a clear leaves `ebook_unavailable_ts` behind. The timestamp is meaningful
   only while `ebook_unavailable` is 1.
 * Edition updates must carry `_root_`; Solr needs it to target a child
   document rather than create a root-level one.
 * A truncated read is a mass-clear by another route -- absent-from-a-short-read
-  is indistinguishable from absent-from-the-index -- so reads refuse rather
+  is indistinguishable from absent-from-Solr -- so reads refuse rather
   than return what arrived. See refuse_if_incomplete.
 
 Design history, the measurements behind these numbers, and the deploy
@@ -90,7 +90,7 @@ HEARTBEAT_INTERVAL = 300
 """Seconds between proof-of-life log lines.
 
 The absence of errors is also what a stall looks like, so the daemon says the
-marked count out loud on an interval rather than only when something breaks.
+count out loud on an interval rather than only when something breaks.
 """
 
 
@@ -101,7 +101,7 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
 
     The ocaid is carried in the value as well as the key because callers re-key
     this by edition and would otherwise lose the identifier -- and the
-    identifier is what the index's loan-event time is keyed by.
+    identifier is what ES's loan-event time is keyed by.
 
     Editions are nested children of their work in Solr; "_root_" (the parent
     work's key) must accompany any atomic update targeting the edition, so
@@ -132,12 +132,12 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
             fields=["key", "ia", "_root_"],
             rows=len(chunk) * 2,
         )
-        # The SAME guard fetch_marked_editions uses, and for the same reason:
+        # The SAME guard fetch_solr_unavailable uses, and for the same reason:
         # this is the other half of the comparison that turns absence into a
         # clear. An identifier that fails to RESOLVE is indistinguishable from
-        # one the index no longer calls unavailable, so a truncated or
+        # one ES no longer calls unavailable, so a truncated or
         # timeAllowed-cut read here silently clears checked-out books -- under
-        # the breaker's threshold, with nothing above INFO in the log.
+        # nothing above INFO in the log.
         #
         # It does not fire on the ordinary case of an identifier having no OL
         # edition: `num_found` counts MATCHING documents, so 3 matches out of
@@ -153,7 +153,7 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
 
 class SolrWriteFailed(RuntimeError):
     """The batch did not land. Distinct from a bad READ (PollRefused) because
-    the operator response differs: a refused read is usually transient index
+    the operator response differs: a refused read is usually transient Solr
     churn, a refused write is usually this batch being unacceptable to Solr.
 
     Subclasses RuntimeError deliberately: this narrowed what used to be a bare
@@ -162,7 +162,7 @@ class SolrWriteFailed(RuntimeError):
     that want to distinguish, it does not take one away."""
 
 
-def _describe(request: list[dict]) -> str:
+def _batch_summary(request: list[dict]) -> str:
     """What a batch contains, in one line, for a log that has to be actionable.
 
     A `requireInPlace` rejection names no document -- Solr answers 400 for the
@@ -178,24 +178,11 @@ def _describe(request: list[dict]) -> str:
 
 
 async def solr_update_in_place(request: list[dict], commit: bool = False) -> None:
-    """Write the updates in batches, or raise with enough detail to act on.
+    """Write the updates in batches, or raise saying which batch failed.
 
-    **Batched because one request for the whole cycle reliably timed out, even
-    at a 60s limit.** A cold start marks the entire unavailable set in one go,
-    and an atomic in-place update is not free per document: Solr reads, merges
-    and re-writes each one. The request size, not the daemon, was the problem.
-
-    MARKS ARE WRITTEN BEFORE CLEARS, and that ordering is the safety property
-    once writes can partially land. If the run stops halfway, having marked and
-    not yet cleared leaves books hidden -- recoverable, and the next poll
-    clears them. The reverse would publish checked-out books as borrowable.
-    `build_poll_updates` already emits marks first; this preserves that order
-    rather than re-deriving it, and the batches are written in sequence rather
-    than concurrently for the same reason.
-
-    A failure raises, but says how many batches had already landed, because
-    "nothing was written" and "most of it was written" need different
-    responses from whoever reads the log.
+    Sets before unsets, in sequence rather than concurrently: once a write can
+    partially land, stopping halfway must leave books hidden (recoverable)
+    rather than published (not).
     """
     if not request:
         return
@@ -205,30 +192,21 @@ async def solr_update_in_place(request: list[dict], commit: bool = False) -> Non
             await _write_one_batch(list(batch), commit=commit)
         except SolrWriteFailed as exc:
             raise SolrWriteFailed(f"batch {number} of {len(batches)} failed after {number - 1} had already been written -- {exc}") from exc
-    if len(batches) > 1:
-        logger.info("Solr write OK: %d updates across %d batches", len(request), len(batches))
+    logger.info("Solr write OK: %d updates in %d batch(es)", len(request), len(batches))
 
 
 async def _write_one_batch(request: list[dict], commit: bool = False) -> None:
-    """One request. See solr_update_in_place for why there is more than one.
+    """One request, with the two failure shapes logged differently.
 
-    update_in_place_async returns the parsed response without checking status
-    -- other callers (trending_updater_daily/hourly) rely on that and just log
-    it, so the check is done here rather than changing the shared method.
+    Unreachable is infrastructure and the next poll rebuilds the batch;
+    a non-zero status means Solr refused THIS batch -- usually one document the
+    main solr_updater rewrote mid-poll, and Solr names none of them, which is
+    why the log carries the field list and sample keys.
 
-    Both failure shapes are caught and described, because they have different
-    causes and a bare traceback distinguishes them poorly:
-
-    * **No response at all** -- Solr unreachable, connection reset, timeout.
-      Infrastructure; the batch is untouched and the next poll rebuilds it.
-    * **A response carrying a non-zero status** -- Solr understood and refused.
-      Under `update.partial.requireInPlace` the usual cause is a document that
-      no longer satisfies in-place rules, typically because the main
-      solr_updater rewrote that edition between this poll's read and its
-      write. The whole batch is rejected over one such document, so the field
-      list and sample keys are how the offending one gets found.
+    `update_in_place_async` returns the body without checking status, and other
+    callers rely on that, so the check lives here.
     """
-    described = _describe(request)
+    described = _batch_summary(request)
     try:
         resp = await get_solr().update_in_place_async(request, commit=commit, _timeout=SOLR_WRITE_TIMEOUT)
     except Exception as exc:
@@ -247,48 +225,34 @@ async def _write_one_batch(request: list[dict], commit: bool = False) -> None:
 
 
 POLL_INTERVAL = 30
-"""Seconds between polls of the index's unavailable set.
+"""Seconds between polls.
 
-Measured 2026-10-05 against live archive.org: the set moved by 4 books across
-several minutes, so it changes per-minute rather than per-second. At two pages
-per poll, 10s is ~17,000 requests/day and 30s is ~5,700, for no freshness any
-measurement here could distinguish -- so this is sized to the rate the data
-actually changes, not to the smallest interval the daemon could sustain.
+Measured: the set moved by 4 books across several minutes, so it changes
+per-minute. Sized to that, not to the shortest interval we could sustain.
 """
 
 SOLR_WRITE_BATCH = 100
 """Updates per Solr request.
 
-One request for the whole cycle reliably timed out even at SOLR_WRITE_TIMEOUT,
-and a cold start marks the entire unavailable set -- ~860 documents -- at once.
-An atomic in-place update costs real work per document (Solr reads, merges and
-re-writes each), so the fix is fewer documents per request rather than a longer
-wait for the same request.
-
-Small enough that a batch finishes well inside the timeout, large enough that
-a cold start is ~9 requests rather than hundreds.
+One request for the whole cycle reliably timed out even at 60s: an in-place
+update costs real work per document, and a cold start writes ~860. Fewer
+documents per request, not a longer wait for the same one.
 """
 
 SOLR_WRITE_TIMEOUT = 60
 """Seconds to wait for Solr to accept a batch.
 
-Six times the shared client default, on purpose. This is one bulk in-place
-update carrying the whole cycle's marks and clears, and it contends with the
-main solr_updater on the same cores -- so the tail is the interesting case
-here, not the median. Timing out mid-write costs the entire batch and the next
-poll has to rebuild it; waiting is the cheaper failure.
-
-Comfortably inside POLL_INTERVAL * 2, so a slow write cannot stack cycles up
-behind it.
+Six times the shared default: this contends with the main solr_updater, so the
+tail matters more than the median, and a timeout costs the whole batch.
 """
 
-MARKED_SET_MAX = 50_000
-"""Ceiling on the marked set read back from Solr.
+SOLR_UNAVAILABLE_MAX = 50_000
+"""Ceiling on the unavailable set read back from Solr.
 
 Not a working limit -- the live unavailable set measured 766 on 2026-10-05 --
 but the read must be COMPLETE or the reconcile is wrong in the dangerous
 direction: an edition outside a capped window is indistinguishable from one the
-index no longer calls unavailable, and would be cleared.
+ES no longer calls unavailable, and would be unset.
 """
 
 
@@ -297,7 +261,7 @@ class PollRefused(Exception):
 
     Every untrustworthy-input case resolves the same way -- skip the cycle,
     keep what Solr already has, alarm -- because at poll cadence the
-    alternative is a crash loop during routine index churn. Raising was right
+    alternative is a crash loop during routine churn. Raising was right
     when the read happened once at startup; it is wrong at cadence, and the
     predicate changing is what makes the old response stale.
     """
@@ -312,10 +276,9 @@ def refuse_if_incomplete(result, returned: int, what: str) -> None:
     `responseHeader.partialResults`. Both are invisible unless looked for.
 
     This matters because the reconcile turns ABSENCE into a clear. An edition
-    missing from a truncated read is indistinguishable from one the index no
+    missing from a truncated Solr read is indistinguishable from one ES no
     longer calls unavailable, so a short read is a mass-clear by another route
-    -- and, unlike the breaker's case, a quiet one that stays under the
-    threshold.
+    -- a quiet one.
     """
     num_found = getattr(result, "num_found", None)
     if isinstance(num_found, int) and num_found > returned:
@@ -325,178 +288,126 @@ def refuse_if_incomplete(result, returned: int, what: str) -> None:
         raise PollRefused(f"{what}: Solr reported partialResults, so the read timed out mid-query; refusing to treat it as the set")
 
 
-async def fetch_marked_editions() -> dict[str, dict]:
-    """Every edition Solr currently has marked unavailable, or refuse.
+async def fetch_solr_unavailable() -> dict[str, dict]:
+    """Every edition Solr currently has flagged unavailable, or refuse.
 
-    Complete or raises, for the reason in MARKED_SET_MAX: a truncated read
-    makes absent-from-the-window look identical to absent-from-the-index, and
+    Complete or raises, for the reason in SOLR_UNAVAILABLE_MAX: a truncated read
+    makes absent-from-the-window look identical to absent-from-ES, and
     the reconcile clears on absence.
     """
     result = await get_solr().select_async(
         query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}",
         fields=["key", "ia", "_root_", "ebook_unavailable_ts"],
-        rows=MARKED_SET_MAX,
+        rows=SOLR_UNAVAILABLE_MAX,
     )
     docs = result.docs
-    if len(docs) >= MARKED_SET_MAX:
-        raise PollRefused(f"Marked set reached the {MARKED_SET_MAX}-edition read cap; cannot tell a complete read from a truncated one")
-    refuse_if_incomplete(result, len(docs), "marked-set read")
+    if len(docs) >= SOLR_UNAVAILABLE_MAX:
+        raise PollRefused(f"Solr unavailable set reached the {SOLR_UNAVAILABLE_MAX}-edition read cap; cannot tell a complete read from a truncated one")
+    refuse_if_incomplete(result, len(docs), "Solr unavailable-set read")
     return {doc["key"]: doc for doc in docs}
 
 
-def mark_update(key: str, root: str, at: int) -> dict:
-    """One atomic update carrying both the mark and its timestamp.
+def set_unavailable(key: str, root: str, started: int) -> dict:
+    """One atomic update: the flag, and when the loan began.
 
-    `at` is WHEN THE LOAN BEGAN, from the index's own event fields -- not when
-    the daemon noticed, which is a different and much later fact. See
-    :func:`stamp_for`.
-
-    Both fields go in one update rather than two writes: separately, a mark and
-    its stamp can interleave with a clear and leave a mark carrying a stamp
-    from a different write, which the clear-gate would then judge on.
+    Both fields in one write, not two. Separately they can interleave with an
+    unset and leave a flag whose timestamp came from a different write -- and
+    older_than_es decides from that timestamp.
     """
     return {
         "key": key,
         "_root_": root,
         "ebook_unavailable": {"set": EBOOK_UNAVAILABLE},
-        "ebook_unavailable_ts": {"set": at},
+        "ebook_unavailable_ts": {"set": started},
     }
 
 
-def gate_clears_on_index_currency(absent: list[dict], newest: int | None) -> tuple[list[dict], list[dict]]:
-    """Absence from the index means "returned" only for marks OLDER than it.
+def older_than_es(marks: list[dict], newest_es_event: int | None) -> tuple[list[dict], list[dict]]:
+    """Split marks into (older than ES, newer than ES).
 
-    The index's snapshot is current only up to its newest loan event. A mark
-    newer than that is absent because the index has not caught up, NOT because
-    the book came back -- clearing it publishes a checked-out book as
-    borrowable. So `newest` is the horizon: an absent mark clears only if its
-    stamp is STRICTLY older. Returns (clearable, held).
-
-    Three edges, each decided rather than inherited:
-
-    * Strict `<`. The index is current up to and INCLUDING that instant, so a
-      mark at the same second is the ambiguous case, and ambiguity holds.
-    * No horizon at all -- empty result set, or nothing carrying an event time
-      -- clears NOTHING. This is what makes a collapsed index safe: the set
-      going empty is no information, never "everything was returned".
-    * A mark with no stamp is treated as very old and clears. Only reachable
-      for marks written between the schema deploy and this code shipping, since
-      a reindex that wipes the stamp wipes `ebook_unavailable` with it.
-
-    Near-inert on this branch -- every clear candidate is older than the
-    horizon -- so it is pinned by mutation rather than by passing. It earns its
-    place in the feed-plus-poll design that follows, which marks books the
-    index has not seen. THE SEAM for that: `newest` is optimistic, since shards
-    lag non-uniformly, and the follower subtracts a margin here.
+    A mark newer than ES's own latest event is missing from ES's answer
+    because ES has not caught up, not because the book came back. A mark with
+    no timestamp counts as older, which is how pre-timestamp cruft is cleaned
+    up. With no ES event at all, nothing counts as older.
     """
-    if newest is None:
-        if absent:
-            logger.warning(
-                "Index gave no loan-event time to judge against, so none of the %d absent marks can be "
-                "cleared this cycle; absence is being read as no information rather than as returned",
-                len(absent),
-            )
-        return [], absent
+    if newest_es_event is None:
+        if marks:
+            logger.warning("ES reported no loan-event times, so none of the %d absent marks can be unset this cycle", len(marks))
+        return [], marks
 
-    clearable: list[dict] = []
-    held: list[dict] = []
-    for doc in absent:
-        stamp = doc.get("ebook_unavailable_ts")
-        stamp = stamp if isinstance(stamp, int) else 0
-        (clearable if stamp < newest else held).append(doc)
-    if held:
-        logger.info(
-            "Gate: holding %d of %d absent marks newer than the index's currency (%d); they are lag, not returns",
-            len(held),
-            len(absent),
-            newest,
-        )
-    return clearable, held
+    older: list[dict] = []
+    newer: list[dict] = []
+    for doc in marks:
+        started = doc.get("ebook_unavailable_ts")
+        started = started if isinstance(started, int) else 0
+        (older if started < newest_es_event else newer).append(doc)
+    if newer:
+        logger.info("Keeping %d of %d absent marks that are newer than ES (%d) -- ES lag, not returns", len(newer), len(marks), newest_es_event)
+    return older, newer
 
 
-def stamp_for(ocaid: str, es_unavailable: dict[str, int | None], newest: int | None) -> int:
-    """When to say this book's unavailability began.
-
-    THE LOAN EVENT, not the daemon's clock, which can be arbitrarily later
-    after a restart and would make every mark look as fresh as the poll that
-    saw it.
-
-    The index knows for only about two thirds of the set
-    (CHECKED_OUT_INDEX_EVENT_FIELDS); the rest fall back to `newest`, the
-    latest event anywhere in this result set. Deliberately the latest in range,
-    not the earliest: an over-estimate hides a book briefly and corrects itself
-    within a minute or so, an under-estimate makes a checked-out book clearable
-    and nothing revisits it.
-
-    With no event time anywhere, there is nothing better than the clock; the
-    caller logs that.
-    """
-    return es_unavailable.get(ocaid) or newest or int(time.time())
+def loan_started_at(ocaid: str, es_unavailable: dict[str, int | None], newest_es_event: int | None) -> int:
+    """The loan event, not the clock. No event time -> the batch's latest,
+    since over-estimating hides a book for a cycle and under-estimating makes
+    a checked-out one eligible to be unset."""
+    return es_unavailable.get(ocaid) or newest_es_event or int(time.time())
 
 
 async def build_poll_updates(es_unavailable: dict[str, int | None]) -> list[dict]:
-    """Reconcile Solr's marked set to the index's unavailable set, in one pass.
+    """Diff what ES says is unavailable against what Solr has, and write it.
 
-    This is the whole daemon. `unavailable` is what the index says is checked
-    out right now, mapped to when each loan began; everything Solr has marked
-    that is not in it has been returned or expired. One bulk in-place update
-    carries both directions.
-
-    It replaces a cold start, a follower, a repairer, a cursor and an overlap
-    replay, because every one of those existed to approximate a snapshot the
-    index already publishes. A first poll is a cold start. A reindex wipe
-    self-heals on the next poll, with nothing to re-run by hand.
+    `es_unavailable` maps each checked-out ocaid to when its loan began. Every
+    poll states the whole answer, so the first poll after any start is also the
+    cold start and a reindex wipe self-heals on the next one.
     """
     es_identifiers = list(es_unavailable)
-    resolved = await resolve_edition_keys(es_identifiers)
-    should_be_marked = {info["key"]: info for info in resolved.values()}
-    marked = await fetch_marked_editions()
+    es_editions = {info["key"]: info for info in (await resolve_edition_keys(es_identifiers)).values()}
+    solr_unavailable = await fetch_solr_unavailable()
 
-    # THE INDEX'S CURRENCY. The newest loan event it reported anywhere in this
-    # result set, and therefore the instant up to which its snapshot can be
-    # trusted. Two things read it: the gate below, and the fallback stamp for
-    # books the index gave no event time for. Computed once, here, because the
-    # gate needs it before any clear is decided.
+    # How current ES is: the newest loan event anywhere in its answer. Read by
+    # older_than_es below, and used as the fallback for books ES gave no event
+    # time for.
     dated = [epoch for epoch in es_unavailable.values() if epoch is not None]
-    newest = max(dated) if dated else None
+    newest_es_event = max(dated) if dated else None
 
-    to_set = [info for key, info in should_be_marked.items() if key not in marked]
-    absent = [doc for key, doc in marked.items() if key not in should_be_marked]
-    # LAYER 1 of two on the clear path, and it runs FIRST so the breaker below
-    # sizes itself against the gated set rather than the raw one.
-    to_unset, held = gate_clears_on_index_currency(absent, newest)
+    to_set = [info for key, info in es_editions.items() if key not in solr_unavailable]
+    gone_from_es = [doc for key, doc in solr_unavailable.items() if key not in es_editions]
+    to_unset, newer_than_es = older_than_es(gone_from_es, newest_es_event)
 
-    if newest is None and to_set:
+    if newest_es_event is None and to_set:
         logger.warning(
-            "Checked-out index returned no loan-event time for any of its %d identifiers; "
-            "stamping this cycle's %d marks with the daemon clock instead, which dates them to "
-            "when the daemon looked rather than when the loans began",
+            "ES returned no loan-event time for any of its %d identifiers; dating this cycle's %d "
+            "updates from the daemon clock instead, which says when we looked, not when the loans began",
             len(es_unavailable),
             len(to_set),
         )
-    updates = [mark_update(info["key"], info["root"], stamp_for(info["ocaid"], es_unavailable, newest)) for info in to_set]
+    updates = [set_unavailable(info["key"], info["root"], loan_started_at(info["ocaid"], es_unavailable, newest_es_event)) for info in to_set]
     updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_unset]
 
     # Counts, every cycle, so write volume is observable without a profiler --
     # the disk-growth investigation needs this and a rate is invisible in a
     # per-event log.
     logger.info(
-        "Poll: index=%d resolved=%d marked=%d mark=%d clear=%d held_newer_than_index=%d",
+        # The same set= / unset= counts repeating across polls is expected, not
+        # a stall: writes are not visible to this query until Solr soft-commits
+        # (60s in dev), so a change is re-issued a couple of times before the
+        # next read reflects it. Harmless; the write is idempotent.
+        "Poll: es=%d resolved=%d solr=%d set=%d unset=%d kept_newer_than_es=%d",
         len(es_identifiers),
-        len(should_be_marked),
-        len(marked),
+        len(es_editions),
+        len(solr_unavailable),
         len(to_set),
         len(to_unset),
-        len(held),
+        len(newer_than_es),
     )
     return updates
 
 
-async def count_marked_editions() -> int | None:
+async def count_solr_unavailable() -> int | None:
     """How many editions carry the mark, without fetching them.
 
     `rows=0` so Solr returns the count and no documents; the heartbeat wants a
-    number, and the marked set is up to MARKED_SET_MAX documents to drag back
+    number, and the set is up to SOLR_UNAVAILABLE_MAX documents to drag back
     for a `len()`.
     """
     try:
@@ -509,17 +420,13 @@ async def count_marked_editions() -> int | None:
         # prior state stands" AFTER a poll that had in fact succeeded and
         # written. A heartbeat must never stop the daemon, and must never
         # misreport one either.
-        logger.debug("Heartbeat could not count marked editions", exc_info=True)
+        logger.debug("Heartbeat could not count unavailable editions", exc_info=True)
         return None
 
 
 async def log_heartbeat() -> None:
-    """Proof of life, because the absence of errors is also what a stall looks like.
-
-    Deliberately a log line and not a metrics integration: the requirement is
-    that the question be answerable from outside, not dashboarded.
-    """
-    logger.info("Heartbeat: editions_marked_unavailable=%s", await count_marked_editions())
+    """Proof of life -- no errors looks the same as a stall from outside."""
+    logger.info("Heartbeat: solr_unavailable=%s", await count_solr_unavailable())
 
 
 async def main(
@@ -527,7 +434,7 @@ async def main(
     poll_interval: int = POLL_INTERVAL,
     dry_run: bool = False,
 ):
-    """Mirror the index's unavailable set into Solr, forever.
+    """Mirror ES's unavailable set into Solr, forever.
 
     Useful environment variables:
     - OL_SOLR_BASE_URL: Override the Solr base URL
@@ -537,7 +444,7 @@ async def main(
     :param dry_run: Compute and log updates but do not write to Solr.
 
     There is no cursor, no state file and no --reset. Each poll is a complete
-    statement of what should be marked, so the first one after any start IS the
+    statement of what should be unavailable, so the first after any start IS the
     cold start, and a reindex that wipes the field self-heals on the next one.
     The operator step that used to exist is gone rather than automated, which
     is the point: nothing can be forgotten if there is nothing to remember.
@@ -577,7 +484,7 @@ async def main(
         except SolrWriteFailed:
             # Already logged with the batch's shape and Solr's own words. This
             # exists so a write failure is not reported as "poll failed", which
-            # points an operator at the READ path -- the index, the network,
+            # points an operator at the READ path -- ES, the network,
             # the query -- when the read in fact succeeded and the daemon has
             # an answer it simply could not store.
             logger.exception("Solr write failed; prior state stands and the next poll rebuilds this batch")
