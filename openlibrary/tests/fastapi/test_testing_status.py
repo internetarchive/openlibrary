@@ -339,14 +339,34 @@ async def test_load_testing_status_returns_none_without_state():
 @pytest.mark.asyncio
 async def test_load_testing_status_composes_state_and_drift():
     state = _make_state()
-    drift_info = {state.prs[0].pr: {"head_sha": "abc1234", "drift": 2, "merged": False}}
+    infos = {state.prs[0].pr: {**status_module.unknown_pr_drift(), "head_sha": "abc1234", "drift": 2}}
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=drift_info),
+        patch("openlibrary.plugins.openlibrary.status._fetch_drift_infos", new_callable=AsyncMock, return_value=infos),
     ):
         result = await status_module.load_testing_status()
 
     assert result.prs[0].drift == 2
+
+
+@pytest.mark.asyncio
+async def test_load_testing_status_rereads_the_file_after_the_drift_fetch():
+    """A mutation landing mid-fetch must win: staged flags come from the
+    second read, drift from the fetch."""
+    old = _make_state(prs=[_make_pr()])
+    new = _make_state(prs=[_make_pr()])
+    new.prs[0].pending_active = False
+    infos = {13269: {**status_module.unknown_pr_drift(), "head_sha": "f" * 40, "drift": 0}}
+    with (
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", side_effect=[old, new]),
+        patch("openlibrary.plugins.openlibrary.status._fetch_drift_infos", new_callable=AsyncMock, return_value=infos),
+    ):
+        result = await status_module.load_testing_status()
+
+    assert result is not None
+    (row,) = result.prs
+    assert row.pending_active is False  # the mid-fetch mutation, not the pre-fetch read
+    assert (row.drift, row.head_sha) == (0, "f" * 40)  # ...joined with the fetched drift
 
 
 def test_pending_changes_itemizes_every_staged_edit():

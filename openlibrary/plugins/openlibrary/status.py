@@ -28,6 +28,7 @@ from openlibrary.plugins.openlibrary.github import (
     get_pr_info,
     has_github_token,
     parse_pr_drift,
+    unknown_pr_drift,
 )
 from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, jenkins_deploy_status, trigger_rebuild
 from openlibrary.utils import get_software_version
@@ -568,12 +569,21 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
 async def load_testing_status() -> TestingStatus | None:
     """Load the state file and live drift info; None if there is no state file.
 
+    The file is read twice: staged flags must come from *after* the slow
+    GitHub fetch, not before — otherwise a mutation landing mid-fetch is
+    missing from the snapshot, and the stream would flip rows back until the
+    next tick. Drift is matched by PR number, so rows added mid-fetch simply
+    show unknown drift until the next refresh.
+
     Async so the FastAPI endpoint can await it: the GitHub drift fetch below
     runs on the event loop instead of blocking it.
     """
     if (state := _load_testing_state()) is None:
         return None
-    drift_info = await _get_drift_info(state)
+    infos = await _fetch_drift_infos(state.prs)
+    if (state := _load_testing_state()) is None:
+        return None
+    drift_info = _apply_drift_infos(state, infos)
     return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
 
 
@@ -719,6 +729,41 @@ def _is_maintainer() -> bool:
     return bool(user and user.is_maintainer())
 
 
+async def _fetch_drift_infos(prs: list[TestingPR]) -> dict[int, dict]:
+    """Fetch live drift payloads per PR from GitHub, keyed by PR number.
+
+    Pure network: needs only each row's number and pinned commit, and touches
+    no state — so callers can fetch first and read the file after.
+    Fetch failures fail soft — unknown drift, "?" — never an error.
+    """
+    if has_github_token():
+        try:
+            payloads = await fetch_prs_graphql([p.pr for p in prs])
+        except GitHubAPIError:
+            payloads = {}
+        return {p.pr: parse_pr_drift(p, payloads.get(p.pr)) for p in prs}
+    infos = await asyncio.gather(*(get_pr_drift(p) for p in prs))
+    return {p.pr: info for p, info in zip(prs, infos)}
+
+
+def _apply_drift_infos(state: TestingState, infos: dict[int, dict]) -> dict:
+    """Merge fetched drift into state rows (matched by PR number).
+
+    Also refreshes title/author/assignee on each TestingPR in-place — callers
+    build the panel from those refreshed objects — but never writes the state
+    file. Rows added after the fetch have no info yet and fail soft.
+    """
+    drift = {}
+    for p in state.prs:
+        info = infos.get(p.pr) or unknown_pr_drift()
+        drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged", "closed")}
+        for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar", "draft"):
+            new_val = info.get(attr, "")
+            if (new_val or (attr == "draft" and new_val is not None)) and getattr(p, attr) != new_val:
+                setattr(p, attr, new_val)
+    return drift
+
+
 async def _get_drift_info(state: TestingState) -> dict:
     """Return live drift info per PR (keys are int PR numbers), fetched from GitHub.
 
@@ -734,22 +779,7 @@ async def _get_drift_info(state: TestingState) -> dict:
     otherwise the REST API is used (which tolerates unauthenticated requests).
     Fetch failures fail soft — unknown drift, "?" — never an error.
     """
-    drift = {}
-    if has_github_token():
-        try:
-            payloads = await fetch_prs_graphql([p.pr for p in state.prs])
-        except GitHubAPIError:
-            payloads = {}
-        infos = [parse_pr_drift(p, payloads.get(p.pr)) for p in state.prs]
-    else:
-        infos = await asyncio.gather(*(get_pr_drift(p) for p in state.prs))
-    for p, info in zip(state.prs, infos):
-        drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged", "closed")}
-        for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar", "draft"):
-            new_val = info.get(attr, "")
-            if (new_val or (attr == "draft" and new_val is not None)) and getattr(p, attr) != new_val:
-                setattr(p, attr, new_val)
-    return drift
+    return _apply_drift_infos(state, await _fetch_drift_infos(state.prs))
 
 
 @public
