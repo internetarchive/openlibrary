@@ -122,11 +122,6 @@
   display: none;
 }
 
-.header-bar .header-dropdown .header-dropdown__icon {
-  width: 40px;
-  height: 40px;
-}
-
 /* Avatar inside the account/menu ghost button. Circular to match the glyph it
    falls back to; object-fit crops rather than squashes, since archive.org serves
    portraits and landscapes too. flex-shrink keeps it whole beside the glyph. */
@@ -255,9 +250,9 @@
 }
 
 /* stylelint-disable selector-max-specificity */
-/* No `display` here: the two nav items (My Books, Browse) are `.nav-ghost-btn`s
-   that need the class's own `inline-flex` centering, and this selector outranks
-   it. */
+/* No `display` here: the two nav items (My Books, Browse) are ghost
+   `.ol-button-static`s that need the class's own `inline-flex` centering, and
+   this selector outranks it. */
 .header-bar .navigation-component li button,
 .header-bar .navigation-component li a {
   color: var(--color-text);
@@ -314,7 +309,7 @@
   background: none;
   color: var(--color-text);
   cursor: pointer;
-  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  /* Hover is instant (see docs/frontend/design.md); only the :active press animates. */
   transition: transform var(--duration-press);
 }
 
@@ -349,16 +344,6 @@
 .logo-component a {
   color: var(--black);
   text-decoration: none !important;
-}
-
-.logo-component .logo-org {
-  text-align: left;
-  font-weight: 300;
-  font-size: 0.9em;
-  color: var(--color-text-secondary);
-  margin: var(--spacing-stack-xs);
-  padding: 0;
-  line-height: 0;
 }
 
 @media only screen and (max-width: 25em) {
@@ -501,8 +486,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .header-bar .nav-ghost-btn,
-  .header-bar .nav-primary-btn,
   .navigation-component .browse-popover__trigger .down-arrow {
     transition: none;
   }
