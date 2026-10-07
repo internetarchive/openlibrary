@@ -171,24 +171,6 @@ div#editHistory {
   display: none;
 }
 /* stylelint-enable selector-max-specificity */
-div#subjectsPage {
-  columns: 2;
-}
-
-/* @width-breakpoint-tablet = 768px */
-@media only screen and (min-width: 768px) {
-  div#subjectsPage {
-    columns: 4;
-  }
-}
-
-div#subjectsPage h3 {
-  break-after: avoid;
-}
-
-div#subjectsPage ul {
-  display: inline-block;
-}
 
 div.lists {
   display: flex;
@@ -285,22 +267,6 @@ tr.table-row.selected {
   border: 2px solid var(--lightest-grey);
   padding: 20px;
   border-radius: 5px;
-}
-
-.login-big-or {
-  display: flex;
-  gap: 10px;
-  margin-top: var(--spacing-stack-sm);
-  max-width: 600px;
-}
-
-.login-big-or::before,
-.login-big-or::after {
-  content: "";
-  display: block;
-  flex: 1;
-  border-bottom: 1px solid currentColor;
-  transform: translateY(-50%);
 }
 
 textarea.toc-editor {

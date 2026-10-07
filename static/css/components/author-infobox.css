@@ -35,7 +35,3 @@
   max-height: 1.5em;
   width: 1.5em;
 }
-.infobox-name {
-  text-align: center;
-  margin-bottom: var(--spacing-stack-sm);
-}

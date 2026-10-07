@@ -1,5 +1,6 @@
 """Caching utilities."""
 
+import asyncio
 import functools
 import hashlib
 import inspect
@@ -8,7 +9,7 @@ import random
 import string
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any, Literal, ParamSpec, TypeVar, cast
 
 import memcache
@@ -19,6 +20,7 @@ from infogami.infobase.client import Nothing
 from infogami.utils import stats
 from openlibrary.core.helpers import NothingEncoder
 from openlibrary.utils import olmemcache
+from openlibrary.utils.async_utils import cache_per_event_loop
 from openlibrary.utils.dateutil import MINUTE_SECS
 
 __all__ = [
@@ -26,8 +28,10 @@ __all__ = [
     "MemcacheCache",
     "MemoryCache",
     "get_memcache",
+    "invalidate",
     "memcache_memoize",
     "memoize",
+    "singleflight_cache",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -531,3 +535,89 @@ def build_memcache_key(prefix: str, *args, **kw) -> str:
         key += "-" + json.dumps(kw, separators=(",", ":"), sort_keys=True)
 
     return key
+
+
+# ── Fleet-wide single-flight cache ──────────────────────────────────────
+#
+# Entries are {"v": <version at compute time>, "at": <completion>, "value"}:
+# wrapped, so None is cacheable and distinguishable from a missing key.
+# Freshness runs on app clocks; the lock lease runs on memcached's, so app
+# clock skew can cost an early or late refresh, never broken exclusion.
+
+
+@cache_per_event_loop
+def _sf_local_locks() -> dict[str, asyncio.Lock]:
+    """One lock per key, per running loop: same-worker callers share one poller."""
+    return {}
+
+
+def _sf_fresh(entry: Any, version: int, ttl: float) -> bool:
+    """Whether a cache entry may be served without a recompute."""
+    return entry is not None and entry["v"] == version and time.time() - entry["at"] < ttl
+
+
+def invalidate(key: str) -> None:
+    """Invalidate every ``singleflight_cache`` entry for ``key``, fleet-wide.
+
+    Bumps the version key; the first reader to notice recomputes and publishes.
+    Get-then-set rather than INCR (the wrapper exposes none), so simultaneous
+    bumps can collide — benign: the version only has to move, never to count,
+    and a lost bump costs one TTL window of staleness.
+    """
+    mc = get_memcache()
+    # No expiry: an expired version key would read as 0, and an entry
+    # computed under 0 would look fresh again — a lost invalidation.
+    mc.set(f"{key}.v", (mc.get(f"{key}.v") or 0) + 1)
+
+
+async def singleflight_cache[T](
+    key: str,
+    compute: Callable[[], Awaitable[T]],
+    *,
+    ttl: float,
+    lock_ttl: int = 30,
+    poll: float = 0.05,
+) -> T:
+    """A TTL cache whose refreshes are single-flight, fleet-wide.
+
+    Fresh → served from the cache, no lock, no upstream I/O. Stale or
+    missing → one winner fleet-wide — ``add`` is atomic on the memcached
+    server — computes and publishes; same-worker callers await the local
+    lock, callers on other workers poll the cache until the value lands
+    (memcache has no push primitive, so every cross-process wait is a poll
+    behind an ``await``).
+
+    Unlike stale-while-revalidate, no caller is ever served a stale value:
+    a stale entry is recomputed before it is returned. The lock is a lease,
+    not a mutex — a holder that outlives ``lock_ttl`` or a memcache restart
+    can overlap with the next winner — safe **only** because ``compute``
+    must be idempotent and side-effect-free: this coordinates *reads*,
+    never writes. Overlap costs one redundant fetch; last set wins; readers
+    converge on the next check. Invalidation is versioned (see
+    ``invalidate``) so a winner that raced a mutation publishes a version
+    no reader treats as current.
+    """
+    mc = get_memcache()
+    local_lock = _sf_local_locks().setdefault(key, asyncio.Lock())
+    async with local_lock:
+        while True:
+            version = mc.get(f"{key}.v") or 0
+            if _sf_fresh((entry := mc.get(key)), version, ttl):
+                return entry["value"]
+            if mc.add(f"{key}.lock", 1, expires=lock_ttl):
+                # We hold the fleet-wide lease: compute, publish, release.
+                try:
+                    value = await compute()
+                    mc.set(key, {"v": version, "at": time.time(), "value": value})
+                    return value
+                finally:
+                    mc.delete(f"{key}.lock")
+            # Another worker holds the lease: poll until its value lands or
+            # the lease lapses, then try to acquire it ourselves.
+            while True:
+                await asyncio.sleep(poll)
+                version = mc.get(f"{key}.v") or 0
+                if _sf_fresh((entry := mc.get(key)), version, ttl):
+                    return entry["value"]
+                if mc.get(f"{key}.lock") is None:
+                    break

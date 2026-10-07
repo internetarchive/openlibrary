@@ -181,19 +181,6 @@ div.floaterHead h2 {
   flex: 1;
 }
 
-div.floaterHead.right-justify {
-  justify-content: right;
-}
-
-div.floaterBody {
-  padding: var(--spacing-inset-md);
-  font-size: var(--font-size-label-large);
-}
-
-div.floaterBody p {
-  margin-bottom: var(--spacing-stack-md);
-}
-
 .floatform,
 .ol-cover-form {
   font-family: var(--font-family-body);
@@ -330,15 +317,6 @@ div#covers.input {
   text-align: center;
 }
 
-.floatform__body {
-  width: 100%;
-  position: relative;
-}
-
-.floatform__body .carousel-section {
-  padding: 0 var(--spacing-inset-md);
-}
-
 div.imageIntro {
   margin: 0 0 var(--spacing-stack-sm);
 }
@@ -401,10 +379,6 @@ div.floaterAdd form.floatform textarea {
 
   div.imageIntro {
     margin: var(--spacing-stack-sm);
-  }
-
-  .floatform__body > div {
-    margin: 0 80px;
   }
 
   div.floaterAdd .input,
