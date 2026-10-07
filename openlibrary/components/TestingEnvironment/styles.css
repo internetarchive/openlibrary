@@ -591,7 +591,8 @@ a.testing-env__pill:focus-visible {
 }
 
 @keyframes testing-env-pulse {
-  50% {
+  0%,
+  100% {
     opacity: 0.25;
   }
 }
