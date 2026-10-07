@@ -54,6 +54,7 @@ import asyncio
 import datetime
 import json
 import os
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -186,6 +187,21 @@ def test_a_poll_marks_what_the_index_calls_unavailable(seeded_editions, monkeypa
     marked = {key for key in keys if _edition(key).get("ebook_unavailable") == 1}
     assert marked == set(keys[:3]), "exactly the editions the index calls unavailable must be marked"
 
+    # The only COMMITTED check that `ebook_unavailable_ts` survives a real
+    # round trip. The unit tests mock Solr out, so nothing else would catch a
+    # schema/code field-name mismatch, a type the schema rejects, or the field
+    # silently not being declared -- and on THIS branch that last one is not
+    # merely a lost diagnostic: the gate reads the stamp, so an undeclared
+    # field turns every mark into an unstamped one and the whole clear-side
+    # protection degrades without a word. Bounded against the clock for the
+    # same reason the unit test is: milliseconds and a frozen value both read
+    # as "a number" otherwise.
+    now = int(time.time())
+    for key in marked:
+        ts = _edition(key).get("ebook_unavailable_ts")
+        assert ts is not None, f"{key} is marked but carries no ebook_unavailable_ts; is the field declared in the schema?"
+        assert now - 300 <= ts <= now + 60, f"{key} ts={ts} is not epoch seconds near now ({now})"
+
 
 def test_a_poll_clears_a_book_the_index_has_released(seeded_editions, monkeypatch):
     """The direction the repairer used to own, now in the same operation."""
@@ -202,6 +218,11 @@ def test_a_poll_clears_a_book_the_index_has_released(seeded_editions, monkeypatc
     assert _edition(keys[0]).get("ebook_unavailable") == 1, "still out"
     assert _edition(keys[1]).get("ebook_unavailable") == 0, "returned, so freed"
     assert _edition(keys[2]).get("ebook_unavailable") == 0, "returned, so freed"
+
+    # requireInPlace cannot null a field, so a clear leaves the stamp behind.
+    # Verified here rather than only in a unit test, because the claim is about
+    # what SOLR does, not about what the daemon sends.
+    assert _edition(keys[1]).get("ebook_unavailable_ts") is not None, "a clear must leave the old stamp in place, not remove it"
 
 
 def test_a_reindex_wipe_is_repaired_by_the_next_poll(seeded_editions, monkeypatch):
@@ -372,7 +393,11 @@ def test_a_fresh_feed_mark_survives_a_poll_that_would_otherwise_clear_it(monkeyp
     spy = asyncio.run(_poll_once(margin=1))
     _commit()
     assert spy.call_count == 1, "the gate must have let this one through to the confirmation stage"
-    assert [doc["key"] for doc in spy.call_args.args[0]] == [FRESH_EDITION], "and it is this edition that was proposed for clearing"
+    # MEMBERSHIP, not equality. These tests share one Solr core, so marks left
+    # by the others are still there and the poll legitimately proposes clearing
+    # them too. An equality assertion here passed or failed on test ORDER --
+    # measured flaking about one run in four.
+    assert FRESH_EDITION in [doc["key"] for doc in spy.call_args.args[0]], "and this edition is among those proposed for clearing"
     # The two together are the finding: the clear WAS proposed and the book is
     # STILL marked, so the confirmation stage is what held it.
     assert _edition(FRESH_EDITION).get("ebook_unavailable") == 1, "a book borrowed five seconds ago stays marked, whichever layer says so"

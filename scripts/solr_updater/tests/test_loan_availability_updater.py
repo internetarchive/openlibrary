@@ -1016,6 +1016,25 @@ async def test_a_truncated_edition_resolve_is_refused_rather_than_cleared():
 
 
 @pytest.mark.asyncio
+async def test_a_clear_does_not_touch_the_timestamp():
+    """`requireInPlace` cannot set a field to null, so a clear leaves the old
+    value behind -- and this branch's prose leans on that: a cleared edition
+    keeps the stamp of a mark it no longer has, which is harmless only because
+    the stamp is read for exactly one purpose (is this MARKED edition old
+    enough to clear?) and a re-mark overwrites it.
+
+    If a clear ever started writing the stamp, that reasoning quietly stops
+    holding. So the invariant is pinned rather than described.
+    """
+    resolve, marked, rtg = _poll([], _marked("/books/OL1M"))
+    with resolve, marked, rtg, _free("bookaaa"):
+        updates = await build_poll_updates([], _NOW)
+    assert len(updates) == 1
+    assert updates[0]["ebook_unavailable"] == {"set": EBOOK_AVAILABLE}
+    assert "ebook_unavailable_ts" not in updates[0], "a clear must not write the stamp, in either direction"
+
+
+@pytest.mark.asyncio
 async def test_identifiers_with_no_edition_are_not_mistaken_for_a_truncated_read():
     """THE DISTINCTION THE GUARD HAS TO MAKE. Most IA identifiers have no OL
     edition, so a chunk of 500 resolving to 3 documents is the normal case, not
