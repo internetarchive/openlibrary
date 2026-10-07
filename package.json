@@ -26,8 +26,6 @@
     "lint-fix": "npm run lint-fix:js && npm run lint-fix:css",
     "lint-fix:js": "eslint --fix .",
     "lint-fix:css": "stylelint --fix \"static/**/*.css\" \"openlibrary/**/*.css\"",
-    "format": "oxfmt \"static/**/*.css\" \"openlibrary/**/*.css\"",
-    "format:check": "oxfmt --check \"static/**/*.css\" \"openlibrary/**/*.css\"",
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
     "pretest:js": "node scripts/build_icon_sprite.mjs",

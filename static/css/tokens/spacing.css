@@ -34,6 +34,7 @@
  *   - Inset:   internal padding of containers
  *   - Layout:  large-scale page/section spacing
  */
+/* Keep these columns aligned (lookup table). */
 /* prettier-ignore */
 :root {
   /* ---- Inline: horizontal gaps between sibling elements ----
