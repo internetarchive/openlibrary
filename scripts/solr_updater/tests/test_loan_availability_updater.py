@@ -147,6 +147,55 @@ async def test_solr_update_in_place_raises_on_nonzero_status():
 
 
 @pytest.mark.asyncio
+async def test_a_large_write_is_split_into_batches():
+    """One request for the whole cycle reliably timed out even at 60s. A cold
+    start marks the entire unavailable set, and an atomic in-place update
+    costs real work per document, so the fix is fewer documents per request."""
+    request = [{"key": f"/books/OL{i}M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}} for i in range(250)]
+    solr = MagicMock(spec=Solr)
+    solr.update_in_place_async = AsyncMock(return_value={"responseHeader": {"status": 0}})
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=solr):
+        await solr_update_in_place(request)
+    sizes = [len(call.args[0]) for call in solr.update_in_place_async.call_args_list]
+    assert sizes == [100, 100, 50], f"250 updates should go as three batches, got {sizes}"
+    assert sum(sizes) == 250, "and every update must be written exactly once"
+
+
+@pytest.mark.asyncio
+async def test_marks_are_written_before_clears_so_a_partial_run_is_safe():
+    """Once a write can partially land, order IS the safety property: stopping
+    after the marks hides books, which the next poll fixes. Stopping after the
+    clears publishes checked-out books as borrowable."""
+    marks = [{"key": f"/books/OL{i}M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}} for i in range(120)]
+    clears = [{"key": f"/books/OL{i}M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for i in range(120, 140)]
+    solr = MagicMock(spec=Solr)
+    solr.update_in_place_async = AsyncMock(return_value={"responseHeader": {"status": 0}})
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=solr):
+        await solr_update_in_place(marks + clears)
+    written = [doc for call in solr.update_in_place_async.call_args_list for doc in call.args[0]]
+    assert len(written) == 140, "every update written exactly once"
+    positions = [i for i, d in enumerate(written) if d["ebook_unavailable"] == {"set": EBOOK_AVAILABLE}]
+    # EVERY mark before EVERY clear. Asserting only that nothing precedes the
+    # FIRST clear is satisfied by any order whose first document is a mark --
+    # a reversed batch sequence passed it.
+    assert positions == list(range(140 - 20, 140)), f"all 20 clears must come last, found them at {positions[:5]}..."
+
+
+@pytest.mark.asyncio
+async def test_a_failure_says_how_many_batches_had_already_landed(caplog):
+    """ "Nothing was written" and "most of it was written" need different
+    responses from whoever reads the log, so the message distinguishes them."""
+    request = [{"key": f"/books/OL{i}M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}} for i in range(250)]
+    solr = MagicMock(spec=Solr)
+    solr.update_in_place_async = AsyncMock(side_effect=[{"responseHeader": {"status": 0}}, {"responseHeader": {"status": 400}}])
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=solr),
+        pytest.raises(SolrWriteFailed, match="batch 2 of 3 failed after 1 had already been written"),
+    ):
+        await solr_update_in_place(request)
+
+
+@pytest.mark.asyncio
 async def test_a_refused_write_is_logged_with_the_batch_it_refused(caplog):
     """Solr answers 400 for the whole request and names no document, so the
     batch's shape and a sample key are what make it diagnosable."""

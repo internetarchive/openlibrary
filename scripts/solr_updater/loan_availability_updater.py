@@ -300,7 +300,39 @@ def _describe(request: list[dict]) -> str:
 
 
 async def solr_update_in_place(request: list[dict], commit: bool = False) -> None:
-    """Write the batch, or raise with enough detail to act on.
+    """Write the updates in batches, or raise with enough detail to act on.
+
+    **Batched because one request for the whole cycle reliably timed out, even
+    at a 60s limit.** A cold start marks the entire unavailable set in one go,
+    and an atomic in-place update is not free per document: Solr reads, merges
+    and re-writes each one. The request size, not the daemon, was the problem.
+
+    MARKS ARE WRITTEN BEFORE CLEARS, and that ordering is the safety property
+    once writes can partially land. If the run stops halfway, having marked and
+    not yet cleared leaves books hidden -- recoverable, and the next poll
+    clears them. The reverse would publish checked-out books as borrowable.
+    `build_poll_updates` already emits marks first; this preserves that order
+    rather than re-deriving it, and the batches are written in sequence rather
+    than concurrently for the same reason.
+
+    A failure raises, but says how many batches had already landed, because
+    "nothing was written" and "most of it was written" need different
+    responses from whoever reads the log.
+    """
+    if not request:
+        return
+    batches = list(itertools.batched(request, SOLR_WRITE_BATCH, strict=False))
+    for number, batch in enumerate(batches, start=1):
+        try:
+            await _write_one_batch(list(batch), commit=commit)
+        except SolrWriteFailed as exc:
+            raise SolrWriteFailed(f"batch {number} of {len(batches)} failed after {number - 1} had already been written -- {exc}") from exc
+    if len(batches) > 1:
+        logger.info("Solr write OK: %d updates across %d batches", len(request), len(batches))
+
+
+async def _write_one_batch(request: list[dict], commit: bool = False) -> None:
+    """One request. See solr_update_in_place for why there is more than one.
 
     update_in_place_async returns the parsed response without checking status
     -- other callers (trending_updater_daily/hourly) rely on that and just log
@@ -333,7 +365,7 @@ async def solr_update_in_place(request: list[dict], commit: bool = False) -> Non
         logger.error("Solr REFUSED the write (status=%s) -- %s -- %s", header.get("status"), described, error)
         raise SolrWriteFailed(f"Solr rejected the in-place update (status={header.get('status')}): {described}")
 
-    logger.info("Solr write OK: %s in %sms", described, header.get("QTime", "?"))
+    logger.debug("Solr batch OK: %s in %sms", described, header.get("QTime", "?"))
 
 
 POLL_INTERVAL = 30
@@ -344,6 +376,19 @@ several minutes, so it changes per-minute rather than per-second. At two pages
 per poll, 10s is ~17,000 requests/day and 30s is ~5,700, for no freshness any
 measurement here could distinguish -- so this is sized to the rate the data
 actually changes, not to the smallest interval the daemon could sustain.
+"""
+
+SOLR_WRITE_BATCH = 100
+"""Updates per Solr request.
+
+One request for the whole cycle reliably timed out even at SOLR_WRITE_TIMEOUT,
+and a cold start marks the entire unavailable set -- ~860 documents -- at once.
+An atomic in-place update costs real work per document (Solr reads, merges and
+re-writes each), so the fix is fewer documents per request rather than a longer
+wait for the same request.
+
+Small enough that a batch finishes well inside the timeout, large enough that
+a cold start is ~9 requests rather than hundreds.
 """
 
 SOLR_WRITE_TIMEOUT = 60
