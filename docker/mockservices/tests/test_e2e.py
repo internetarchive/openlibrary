@@ -334,6 +334,16 @@ class TestGroundtruthAvailability:
             assert bulk == groundtruth, f"{item_id}: bulk={bulk} groundtruth={groundtruth}"
 
 
+def test_availability_get_answers_the_verb_ol_actually_uses():
+    """lending.get_availability_async() issues a GET; the endpoint used to be
+    POST-only, so dev silently resolved every book to status="error"."""
+    resp = _get("/services/availability/", params={"identifier": "mockbook_0,mockbook_1"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    assert set(body["responses"]) == {"mockbook_0", "mockbook_1"}
+
+
 def test_borrow_status():
     resp = _get("/services/borrow/someocaid")
     body = resp.json()
@@ -347,7 +357,7 @@ class TestLoanChangesFeed:
     get_loan_changes() in openlibrary/core/lending.py)."""
 
     def test_catchup_seeds_events_in_increasing_uid_order(self):
-        resp = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 0, "limit": 2000})
+        resp = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 1, "limit": 2000})
         body = resp.json()
         assert body["status"] == "OK"
         assert body["rows"], "expected at least some seeded rows"
@@ -355,7 +365,7 @@ class TestLoanChangesFeed:
         assert uids == sorted(uids), "rows must be in monotonically increasing uid order"
 
     def test_pagination_respects_after_uid(self):
-        first = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 0, "limit": 1}).json()
+        first = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 1, "limit": 1}).json()
         first_uid = first["rows"][0]["uid"]
         second = _get(
             "/services/loans/loan/",
@@ -364,10 +374,33 @@ class TestLoanChangesFeed:
         assert second["rows"][0]["uid"] > first_uid
 
     def test_row_shape_matches_get_loan_changes_contract(self):
-        resp = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 0, "limit": 1})
+        resp = _get("/services/loans/loan/", params={"action": "changes", "after_uid": 1, "limit": 1})
         row = resp.json()["rows"][0]
         for key in ("time", "identifier", "username", "loan_id", "event_type", "extra", "uid"):
             assert key in row
+
+    def test_a_literal_zero_after_uid_is_still_an_error(self):
+        """A caller passing 0 has failed to read its own state rather than asked
+        for the tail, and answering those two intentions identically would hide
+        it. IA treats 0 and absent alike; the mock deliberately does not."""
+        resp = _get("/services/loans/loan/", params={"action": "changes", "limit": 1, "after_uid": 0})
+        assert resp.status_code == 400
+        assert resp.json() == {"status": "ERROR", "error": "No since or after_uid supplied."}
+
+    def test_no_after_uid_returns_the_tail(self):
+        """CONTRACT CHANGE. This used to be a 400, and the daemon's cursor
+        bootstrap depends on it no longer being one: with no cursor to resume
+        from, it reads the most recent rows and starts at the index's currency.
+
+        Mirrors an external petabox change to the changes API. Until that lands
+        in production the daemon falls back to the feed head, which leaves the
+        lag gap uncovered until the next borrow rather than failing unsafely.
+        """
+        resp = _get("/services/loans/loan/", params={"action": "changes", "limit": 3})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "OK"
+        assert len(body["rows"]) <= 3
 
     def test_unsupported_action_returns_400(self):
         resp = _get("/services/loans/loan/", params={"action": "bogus"})

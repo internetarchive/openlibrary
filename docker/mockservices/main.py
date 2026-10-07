@@ -7,7 +7,7 @@ provides mocks for external services that do not have dev interceptors:
   - IA S3 auth (was /internal/fake/s3auth)
   - IA loans   (was /internal/fake/loans)
   - IA loans "changes" feed (needed by the near-realtime loan availability updater)
-  - IA availability v2 (was not mocked — pointed at real archive.org)
+  - IA availability v2 (derived from the loans "changes" window)
   - IA borrow status (was hardcoded in lending.py)
   - reCAPTCHA siteverify
   - be-api full-text search
@@ -38,6 +38,7 @@ import json as jsonlib
 import logging
 import random
 import time
+import zlib
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
@@ -52,7 +53,9 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    await _ensure_solr_editions()
     await _seed_loan_changes()
+    await _seed_unavailable()
     task = asyncio.create_task(_loan_changes_ongoing_loop())
     yield
     task.cancel()
@@ -296,7 +299,7 @@ AVAILABILITY_VARIANTS = [
         "available_to_borrow": False,
         "available_to_browse": False,
         "available_to_waitlist": True,
-        "num_waitlist": 3,
+        "num_waitlist": "3",
         "is_previewable": True,
     },
     # 4. "Checked Out" (All copies on loan, waitlist closed)
@@ -334,9 +337,36 @@ AVAILABILITY_VARIANTS = [
 ]
 
 
+# Every field OL reads off an availability response. The variants above are
+# deliberately sparse -- each names only what distinguishes it -- so they are
+# overlaid onto this. Without it a variant silently omits fields the site
+# reads: `is_printdisabled` gates the print-disabled path, `last_loan_date`
+# and `last_waitlist_date` render in the admin loans table, and
+# `num_waitlist` is typed `str | None` in lending.py (it was emitted as an
+# int here, which the tolerant `int(... or 0)` at lending.py:719 absorbed
+# rather than surfaced).
+_AVAILABILITY_DEFAULTS: dict[str, Any] = {
+    "status": "error",
+    "available_to_browse": False,
+    "available_to_borrow": False,
+    "available_to_waitlist": False,
+    "is_printdisabled": False,
+    "is_readable": False,
+    "is_lendable": False,
+    "is_previewable": False,
+    "isbn": None,
+    "oclc": None,
+    "openlibrary_work": None,
+    "openlibrary_edition": None,
+    "last_loan_date": None,
+    "num_waitlist": "0",
+    "last_waitlist_date": None,
+}
+
+
 def _deterministic_availability(item_id: str) -> dict[str, Any]:
     idx = int(hashlib.md5(item_id.encode("utf-8")).hexdigest(), 16) % len(AVAILABILITY_VARIANTS)
-    res = AVAILABILITY_VARIANTS[idx].copy()
+    res = _AVAILABILITY_DEFAULTS | AVAILABILITY_VARIANTS[idx]
     res["identifier"] = item_id
     return res
 
@@ -458,6 +488,8 @@ _LOAN_CHANGES_INTERVAL_SECONDS = 60
 
 _loan_changes: list[dict] = []
 _loan_changes_lock = asyncio.Lock()
+_loan_changes_frozen = False
+"""Set by PUT /_test/unavailable's sibling, to stop the dev generator mutating a staged window."""
 _next_loan_uid = itertools.count(1)
 
 
@@ -497,6 +529,26 @@ def _make_loan_event(identifier: str, when: datetime, event_type: str) -> dict:
     }
 
 
+async def _ensure_solr_editions() -> None:
+    """Dev bootstrap: on an empty Solr, seed the fallback ocaids as nested edition docs
+    so the loan-availability updater has real editions to resolve. No-op when Solr already
+    has ia-bearing editions (real data present). Fail-soft."""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(_SOLR_URL, params={"q": "ia:*", "rows": 0, "wt": "json"})
+            resp.raise_for_status()
+            if resp.json()["response"]["numFound"]:
+                return  # real editions already present; don't pollute the index
+            docs = [
+                {"key": f"/works/OL_MOCK{i}W", "type": "work", "editions": [{"key": f"/books/OL_MOCK{i}M", "type": "edition", "ia": [ocaid]}]}
+                for i, ocaid in enumerate(_FALLBACK_IA_IDS)
+            ]
+            await client.post(_SOLR_URL.replace("/select", "/update"), params={"commit": "true"}, json=docs)
+            logger.info("loan changes: seeded %d dev editions into empty Solr for loan-availability testing", len(docs))
+    except (httpx.HTTPError, KeyError, ValueError):  # fmt: skip
+        logger.warning("loan changes: could not seed dev editions into Solr; loop may resolve nothing")
+
+
 async def _seed_loan_changes() -> None:
     ids = await _fetch_real_ia_ids()
     now = datetime.now(UTC)
@@ -516,31 +568,183 @@ async def _seed_loan_changes() -> None:
 
 
 async def _loan_changes_ongoing_loop() -> None:
+    """Generates lifelike churn for dev -- and stands down once a test stages a window."""
     ids = await _fetch_real_ia_ids()
     while True:
         await asyncio.sleep(_LOAN_CHANGES_INTERVAL_SECONDS)
         now = datetime.now(UTC)
         new_events = [_make_loan_event(random.choice(ids), now, "borrow" if i % 2 == 0 else "return") for i in range(_LOAN_CHANGES_BATCH_SIZE)]
+        if _loan_changes_frozen:
+            continue
         async with _loan_changes_lock:
             _loan_changes.extend(new_events)
             del _loan_changes[:_LOAN_CHANGES_BATCH_SIZE]
         logger.info("loan changes: added %d, evicted %d oldest", len(new_events), _LOAN_CHANGES_BATCH_SIZE)
 
 
+@app.post("/_test/loan_changes/reset")
+async def reset_loan_changes() -> JSONResponse:
+    """Unfreeze and re-seed the feed. Test control surface, not IA.
+
+    The freeze exists so a staged window holds still, which means a test that
+    stages one leaves the container in a state no later test expects -- a
+    single hand-written row where the next test wants a realistic feed. Staging
+    is therefore only half the control surface; this is the other half, and a
+    test that stages should call it when it is done.
+    """
+    global _loan_changes_frozen
+    async with _loan_changes_lock:
+        _loan_changes.clear()
+    _loan_changes_frozen = False
+    await _seed_loan_changes()
+    async with _loan_changes_lock:
+        return JSONResponse({"rows": len(_loan_changes), "frozen": False})
+
+
 @app.get("/services/loans/loan/")
-async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JSONResponse:
+async def loan_changes(action: str, after_uid: int | None = None, limit: int = 1000) -> JSONResponse:
+    """The changes feed, including the DEFAULT behaviour a cursor bootstrap needs.
+
+    With no `after_uid`, this returns the most recent `limit` rows rather than
+    an error. That is how a daemon places its cursor without already having
+    one: read the tail, find the event at the index's currency, follow from
+    there. It mirrors an external petabox change; before that landed, a missing
+    `after_uid` was an error, which is why the old branch here said so.
+
+    `after_uid=0` is kept as an ERROR deliberately. IA treats 0 and absent the
+    same, and a caller passing a literal 0 has almost certainly failed to read
+    its own state rather than asked for the tail -- those two intentions should
+    not be answered identically.
+    """
     if action != "changes":
         return JSONResponse({"status": "error", "error": f"unsupported action: {action}"}, status_code=400)
+    if after_uid == 0:
+        return JSONResponse({"status": "ERROR", "error": "No since or after_uid supplied."}, status_code=400)
+
     async with _loan_changes_lock:
-        rows = [event for event in _loan_changes if event["uid"] > after_uid][:limit]
+        if after_uid is None:
+            rows = list(_loan_changes)[-limit:]
+        else:
+            rows = [event for event in _loan_changes if event["uid"] > after_uid][:limit]
         latest_uid = _loan_changes[-1]["uid"] if _loan_changes else 0
     return JSONResponse({"status": "OK", "latest_uid": latest_uid, "rows": rows})
 
 
+@app.put("/_test/loan_changes")
+async def put_loan_changes(request: Request) -> JSONResponse:
+    """Replace the feed's window wholesale. Test control surface, not IA.
+
+    Rows are taken as given, including their `time`, so a test can stage a feed
+    whose events sit at chosen offsets from the index's currency -- which is
+    the only way to exercise a cursor bootstrap or a timestamp gate without
+    waiting on a real clock.
+
+    Independent of the AdvancedSearch set on purpose: the whole point of the
+    hybrid is that the feed and the index DISAGREE, with the feed ahead. A
+    fixture that derived one from the other could not express that.
+    """
+    global _loan_changes_frozen
+    body = await request.json()
+    rows = body.get("rows")
+    if not isinstance(rows, list):
+        return JSONResponse({"error": "body must be {'rows': [...]}"}, status_code=400)
+    async with _loan_changes_lock:
+        _loan_changes.clear()
+        _loan_changes.extend(rows)
+        # Staging a window FREEZES the dev event generator. Without this the
+        # background loop keeps appending and trimming, so a staged row is gone
+        # within seconds and the test it was staged for sees someone else's
+        # events -- observed as "1 rows over 1 ocaids, 0 marks" with a cursor
+        # that had jumped past the staged uid entirely. A fixture you cannot
+        # hold still is not a fixture.
+        _loan_changes_frozen = True
+        return JSONResponse({"rows": len(_loan_changes), "frozen": True})
+
+
 # ---------------------------------------------------------------------------
 # IA Availability API v2
-# GET/POST /services/availability/
+# GET/POST /services/availability/?identifier=a,b,c
+#
+# Two answer sources, and which one applies depends on the identifier.
+#
+# An identifier the loan-changes window knows about gets an EVENT-DERIVED
+# answer, so /services/availability/ and the changes feed agree about it. The
+# loan availability updater is tested against exactly that agreement.
+#
+# Any other identifier falls through to the variant matrix
+# (_deterministic_availability), which sweeps the full CTA state space so every
+# state stays previewable in dev. That is what test_every_variant_is_reachable
+# pins, and an event-derived answer cannot satisfy it -- it only ever produces
+# three shapes.
+#
+# Within the event-derived path two buckets diverge from the events on purpose,
+# because they are the states an event stream cannot predict:
+#
+#   - MULTI-COPY ids report available even while a borrow is active (the item
+#     owns several copies, so one loan does not exhaust it).
+#   - WAITLISTED ids report unavailable even after a return, and carry a
+#     non-zero num_waitlist (the freed copy goes to the head of the queue).
 # ---------------------------------------------------------------------------
+
+_AVAILABILITY_BUCKETS = 5
+_MULTI_COPY_BUCKET = 0
+_WAITLISTED_BUCKET = 1
+_ACTIVE_LOAN_EVENTS = ("borrow", "browse", "renew_borrow", "renew_browse")
+
+
+def _availability_bucket(identifier: str) -> int:
+    """Stable per-identifier bucket. crc32, not hash(): str hashing is salted
+    per process, which would make the mock's answers change on every restart."""
+    return zlib.crc32(identifier.encode()) % _AVAILABILITY_BUCKETS
+
+
+def _latest_event_for(identifier: str, events: list[dict]) -> dict | None:
+    latest = None
+    for event in events:
+        if event["identifier"] == identifier and (latest is None or event["uid"] > latest["uid"]):
+            latest = event
+    return latest
+
+
+def _availability_for(identifier: str, events: list[dict]) -> dict:
+    bucket = _availability_bucket(identifier)
+    latest = _latest_event_for(identifier, events)
+
+    on_loan = False
+    if latest and latest["event_type"] in _ACTIVE_LOAN_EVENTS:
+        until = jsonlib.loads(latest["extra"] or "{}").get("until")
+        on_loan = not until or datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC) > datetime.now(UTC)
+
+    if identifier in _test_controlled:
+        # See _test_controlled: for a staged identifier the checked-out set is
+        # the authority, so this endpoint and advancedsearch agree.
+        available = identifier not in _unavailable
+    elif bucket == _MULTI_COPY_BUCKET:
+        available = True
+    elif bucket == _WAITLISTED_BUCKET:
+        available = False
+    else:
+        available = not on_loan
+
+    num_waitlist = 3 if (not available and bucket == _WAITLISTED_BUCKET) else 0
+    return {
+        "status": "borrow_available" if available else "borrow_unavailable",
+        "available_to_browse": available,
+        "available_to_borrow": available,
+        "available_to_waitlist": bool(num_waitlist),
+        "is_printdisabled": True,
+        "is_readable": False,
+        "is_lendable": True,
+        "is_previewable": True,
+        "identifier": identifier,
+        "isbn": None,
+        "oclc": None,
+        "openlibrary_work": None,
+        "openlibrary_edition": None,
+        "last_loan_date": latest["time"] if latest else None,
+        "num_waitlist": str(num_waitlist),
+        "last_waitlist_date": None,
+    }
 
 
 @app.api_route("/services/availability/", methods=["GET", "POST"])
@@ -564,7 +768,24 @@ async def availability(
     else:
         ids = [i.strip() for i in str(raw_ids).split(",") if i.strip()]
 
-    responses = {item_id: _deterministic_availability(item_id) for item_id in ids}
+    async with _loan_changes_lock:
+        events = list(_loan_changes)
+    known = {event["identifier"] for event in events}
+
+    # Three sources, most authoritative first. A test-staged identifier follows
+    # the checked-out set (see _test_controlled) so this endpoint and
+    # advancedsearch cannot disagree -- and that branch must come FIRST, because
+    # a staged identifier need never appear in the changes window at all, and
+    # would otherwise fall through to the variant matrix and contradict the
+    # index. Then event-derived for whatever the window knows about, so this
+    # endpoint and the changes feed cannot disagree either. Then the variant
+    # matrix for everything else.
+    def _answer(item_id: str) -> dict:
+        if item_id in _test_controlled or item_id in known:
+            return _availability_for(item_id, events)
+        return _deterministic_availability(item_id)
+
+    responses = {item_id: _answer(item_id) for item_id in ids}
     return JSONResponse({"success": True, "responses": responses})
 
 
@@ -572,6 +793,128 @@ async def availability(
 # IA Borrow Status  (was hardcoded in lending.py line 599)
 # GET /services/borrow/{identifier}
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# archive.org advancedsearch — the checked-out seed for the loan availability
+# updater's cold start
+# ---------------------------------------------------------------------------
+
+
+ADVANCEDSEARCH_MAX_ROWS = 10_000
+"""Where the real endpoint stops answering: `start + rows` may not exceed this."""
+
+
+_unavailable: set[str] = set()
+_unavailable_lock = asyncio.Lock()
+"""The set advancedsearch reports as checked out.
+
+The spine of the poll-and-reconcile fixture. The daemon's whole input is "which
+identifiers does the index call unavailable right now", so the only thing a
+test needs in order to drive it is the ability to CHANGE that set between
+polls -- a book returned, a book borrowed, the index going briefly empty. It is
+seeded from the loan-changes window at startup so the set is realistic and
+non-empty, and is replaced wholesale through /_test/unavailable thereafter.
+"""
+
+_test_controlled: set[str] = set()
+"""Identifiers a test has ever staged through /_test/unavailable.
+
+For these, `_unavailable` is the authority for loan state in
+/services/availability/ too, so the two endpoints cannot contradict each other.
+
+That coherence is load-bearing now that the daemon confirms EVERY clear against
+the availability service rather than only an implausibly large one. Before that,
+a test staging "the index released this book" never reached availability and the
+disagreement was invisible; the first run after always-confirm landed showed
+advancedsearch calling a book returned while availability still called it out,
+and the poll correctly held the clear. The mock was wrong, not the daemon: in
+reality the two are views of the same loan state, differing only by lag.
+
+Identifiers a test has NOT staged keep the bucket-and-event behaviour untouched,
+so the CTA state-space sweep every other consumer of this mock relies on is
+unaffected.
+"""
+
+
+async def _seed_unavailable() -> None:
+    """Initial unavailable set, derived once from the seeded loan events."""
+    async with _loan_changes_lock:
+        events = list(_loan_changes)
+    identifiers = sorted({event["identifier"] for event in events})
+    async with _unavailable_lock:
+        _unavailable.clear()
+        _unavailable.update(i for i in identifiers if not _availability_for(i, events)["available_to_borrow"])
+
+
+@app.get("/_test/unavailable")
+async def get_unavailable() -> JSONResponse:
+    """Read the current unavailable set. Test control surface, not IA."""
+    async with _unavailable_lock:
+        return JSONResponse({"identifiers": sorted(_unavailable)})
+
+
+@app.put("/_test/unavailable")
+async def put_unavailable(request: Request) -> JSONResponse:
+    """Replace the unavailable set. Test control surface, not IA.
+
+    Wholesale replacement rather than add/remove, because a poll reads the set
+    as a snapshot and the interesting cases are all "what does the WHOLE set
+    look like on the next read" -- including the empty set, which is the one
+    that must trip the daemon's clear-direction circuit breaker rather than
+    clearing everything.
+    """
+    body = await request.json()
+    identifiers = body.get("identifiers")
+    if not isinstance(identifiers, list):
+        return JSONResponse({"error": "body must be {'identifiers': [...]}"}, status_code=400)
+    async with _unavailable_lock:
+        _unavailable.clear()
+        _unavailable.update(str(i) for i in identifiers)
+        # Accumulates rather than tracking the current set: an identifier the
+        # test REMOVED is exactly the one availability must now call free.
+        _test_controlled.update(_unavailable)
+        return JSONResponse({"identifiers": sorted(_unavailable)})
+
+
+@app.get("/advancedsearch.php")
+async def advancedsearch(request: Request) -> JSONResponse:
+    """Enough of advancedsearch to answer "who is checked out right now".
+
+    Answers from `_unavailable`, which a test replaces between polls. It used
+    to derive the answer from the loan-changes window instead; that coupling
+    was right while the daemon followed events and is wrong now that the index
+    IS the source -- a fixture that computes the answer from events cannot
+    express an index that disagrees with them, which is the whole class of
+    failure the poll design has to survive.
+
+    Only the lending query the daemon actually sends is interpreted. Anything
+    else returns nothing rather than pretending: a mock that answers queries it
+    does not understand teaches a caller the wrong contract.
+    """
+    params = request.query_params
+    q = params.get("q", "")
+    rows = int(params.get("rows", "50") or 50)
+    page = int(params.get("page", "1") or 1)
+    start = (page - 1) * rows
+
+    if start + rows > ADVANCEDSEARCH_MAX_ROWS:
+        # What the real endpoint does past its window: HTTP 200 with the
+        # envelope simply missing. Reproduced because the daemon's seed treats
+        # it as an incomplete read rather than an empty one, and that branch
+        # is only reachable if the mock fails the same shape.
+        return JSONResponse({"responseHeader": {"status": 0}})
+
+    wants_checked_out = "available_to_borrow:false" in q and "available_to_browse:false" in q
+    if not wants_checked_out:
+        return JSONResponse({"response": {"numFound": 0, "start": start, "docs": []}})
+
+    async with _unavailable_lock:
+        checked_out = sorted(_unavailable)
+
+    page_ids = checked_out[start : start + rows]
+    docs = [{"identifier": i, "openlibrary_edition": f"OL{abs(zlib.crc32(i.encode())) % 10_000_000}M"} for i in page_ids]
+    return JSONResponse({"response": {"numFound": len(checked_out), "start": start, "docs": docs}})
 
 
 @app.get("/services/borrow/{identifier}")

@@ -1,6 +1,10 @@
+import asyncio
+import json
+from contextvars import ContextVar
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
+import httpx
 import pytest
 
 from openlibrary.core import lending
@@ -35,6 +39,19 @@ class TestAddAvailability:
         r = f([{"ocaid": "foo"}])
         print(r)
         assert r[0]["availability"]["status"] == "error"
+
+
+class _FakeMemcache:
+    """The two methods `get_availability_async` uses, backed by a dict."""
+
+    def __init__(self):
+        self._store: dict = {}
+
+    def get_multi(self, keys):
+        return {k: self._store[k] for k in keys if k in self._store}
+
+    def set_multi(self, mapping, expires=None):
+        self._store.update(mapping)
 
 
 class TestGetAvailability:
@@ -106,6 +123,99 @@ class TestGetAvailability:
             assert mock_get.call_count == 2
             assert mock_get.call_args[1]["params"]["identifier"] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}
+
+    @staticmethod
+    def _session(responses_per_call):
+        """Patch the shared async session; each GET answers with the next dict of `responses`."""
+        mock_get = AsyncMock()
+        replies = []
+        for responses in responses_per_call:
+            reply = Mock()
+            reply.json = Mock(return_value={"success": True, "responses": responses})
+            reply.raise_for_status = Mock()
+            replies.append(reply)
+        mock_get.side_effect = replies
+        return patch("openlibrary.core.ia.get_async_session", return_value=SimpleNamespace(get=mock_get)), mock_get
+
+    @pytest.mark.asyncio
+    async def test_use_cache_false_always_asks_and_leaves_the_cache_alone(self):
+        session, mock_get = self._session([{"nocache1": {"status": "open"}}] * 2)
+        with session, patch("openlibrary.core.lending.cache.get_memcache", side_effect=AssertionError("cache touched")):
+            await lending.get_availability_async("identifier", ["nocache1"], use_cache=False)
+            await lending.get_availability_async("identifier", ["nocache1"], use_cache=False)
+        assert mock_get.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_batches_requests(self):
+        ids = [f"batched{i}" for i in range(5)]
+        session, mock_get = self._session([{}, {}, {}])
+        with session:
+            await lending.get_availability_async("identifier", ids, use_cache=False, batch_size=2)
+        sent = [call.kwargs["params"]["identifier"].split(",") for call in mock_get.call_args_list]
+        assert sent == [ids[0:2], ids[2:4], ids[4:5]]
+
+    @pytest.mark.asyncio
+    async def test_a_failed_batch_only_errors_its_own_ids(self):
+        session, mock_get = self._session([{"failbatch2": {"status": "open"}}])
+        mock_get.side_effect = [httpx.ConnectError("boom"), *mock_get.side_effect]
+        with session:
+            r = await lending.get_availability_async("identifier", ["failbatch1", "failbatch2"], use_cache=False, batch_size=1)
+        assert r["failbatch1"]["status"] == "error"
+        assert r["failbatch2"]["status"] == "open"
+        assert r["error"] == "request_timeout"
+
+    @pytest.mark.asyncio
+    async def test_drop_errors_leaves_errors_out_of_the_response(self):
+        """A caller deciding availability from this must not mistake a failed
+        lookup for an answer: no placeholder, no top-level error keys."""
+        session, mock_get = self._session([{"dropok": {"status": "open"}, "droperr": {"status": "error"}}])
+        mock_get.side_effect = [*mock_get.side_effect, httpx.ReadTimeout("boom")]
+        with session:
+            r = await lending.get_availability_async("identifier", ["dropok", "droperr", "dropfailed"], use_cache=False, batch_size=2, drop_errors=True)
+        assert list(r) == ["dropok"]
+
+    @pytest.mark.asyncio
+    async def test_a_service_level_failure_only_loses_its_own_batch(self):
+        """A `success: false` batch used to make the whole call return {},
+        discarding the other batches' answers and even the cached ones."""
+        session, mock_get = self._session([])
+        busy = Mock(raise_for_status=Mock(), json=Mock(return_value={"success": False, "error": "busy"}))
+        ok = Mock(raise_for_status=Mock(), json=Mock(return_value={"success": True, "responses": {"svcok": {"status": "open"}}}))
+        mock_get.side_effect = [busy, ok]
+        with session:
+            r = await lending.get_availability_async("identifier", ["svcfail", "svcok"], use_cache=False, batch_size=1)
+        assert list(r) == ["svcok"]
+
+    @pytest.mark.asyncio
+    async def test_a_non_json_body_is_a_failed_batch(self):
+        session, mock_get = self._session([])
+        bad = Mock(raise_for_status=Mock(), json=Mock(side_effect=json.JSONDecodeError("Expecting value", "<html>", 0)))
+        mock_get.side_effect = [bad]
+        with session:
+            r = await lending.get_availability_async("identifier", ["htmlbody"], use_cache=False)
+        assert r["htmlbody"]["status"] == "error"
+
+    @pytest.mark.asyncio
+    async def test_a_missing_request_context_raises_rather_than_reading_as_no_answer(self):
+        """Under drop_errors a swallowed LookupError is indistinguishable from the
+        service answering nothing -- a daemon would free nothing, forever."""
+        session, _ = self._session([{"noctx": {"status": "open"}}])
+        with session, patch("openlibrary.core.lending.req_context", ContextVar("unset")), pytest.raises(LookupError):
+            await lending.get_availability_async("identifier", ["noctx"], use_cache=False, drop_errors=True)
+
+    @pytest.mark.asyncio
+    async def test_drop_errors_leaves_out_a_cached_error_without_refetching(self):
+        # The only test here that exercises the cache, so it supplies its own
+        # rather than relying on the process-wide memcache client. That client
+        # is whatever the last load_config() left behind -- running after
+        # scripts/solr_updater/tests/test_trending_updater_init.py, which calls
+        # main() against the real conf, leaves one that silently caches
+        # nothing, and this test then saw two fetches instead of one.
+        session, mock_get = self._session([{"cachederr": {"status": "error"}}])
+        with session, patch("openlibrary.core.lending.cache.get_memcache", return_value=_FakeMemcache()):
+            assert (await lending.get_availability_async("identifier", ["cachederr"]))["cachederr"]["status"] == "error"
+            assert await lending.get_availability_async("identifier", ["cachederr"], drop_errors=True) == {}
+        assert mock_get.call_count == 1
 
 
 @pytest.mark.usefixtures("request_context_fixture")
@@ -282,3 +392,117 @@ class TestGetLoanHistoryData:
 
         mock_api.assert_called_once()
         assert result["docs"] == []
+
+
+class TestIsAvailableForLoan:
+    def test_browsable_or_borrowable_is_available(self):
+        assert lending.is_available_for_loan({"available_to_browse": True, "available_to_borrow": False})
+        assert lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": True})
+
+    def test_neither_is_unavailable(self):
+        assert not lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": False})
+
+    def test_waitlistable_is_still_unavailable(self):
+        """A book you may queue for is not a book you may read: available_to_waitlist
+        must not be mistaken for availability."""
+        assert not lending.is_available_for_loan({"available_to_browse": False, "available_to_borrow": False, "available_to_waitlist": True})
+
+    def test_missing_keys_are_unavailable(self):
+        assert not lending.is_available_for_loan({})
+
+
+class TestGetCheckedOutCandidates:
+    """The cold-start seed. Its failure direction is asymmetric: a seed that is
+    short publishes checked-out books as borrowable, and nothing downstream
+    revisits them -- so every test here is about refusing to return a partial
+    set rather than about returning a set."""
+
+    @staticmethod
+    def _session(bodies):
+        """Patch the shared async session; each GET answers with the next body."""
+        mock_get = AsyncMock()
+        replies = []
+        for body in bodies:
+            reply = Mock()
+            reply.json = Mock(return_value=body)
+            reply.raise_for_status = Mock()
+            replies.append(reply)
+        mock_get.side_effect = replies
+        return patch("openlibrary.core.ia.get_async_session", return_value=SimpleNamespace(get=mock_get)), mock_get
+
+    @staticmethod
+    def _page(num_found, identifiers):
+        return {"response": {"numFound": num_found, "start": 0, "docs": [{"identifier": i} for i in identifiers]}}
+
+    def test_one_page_is_one_request(self):
+        """Today's set is ~600, so the loop must not page past the end of it."""
+        session, mock_get = self._session([self._page(600, [f"book{i}" for i in range(600)])])
+        with session:
+            got = asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert len(got) == 600
+        assert mock_get.call_count == 1
+
+    def test_it_pages_until_it_has_every_identifier(self):
+        pages = [
+            self._page(2500, [f"book{i}" for i in range(1000)]),
+            self._page(2500, [f"book{i}" for i in range(1000, 2000)]),
+            self._page(2500, [f"book{i}" for i in range(2000, 2500)]),
+        ]
+        session, mock_get = self._session(pages)
+        with session:
+            got = asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert len(got) == 2500
+        assert got[0] == "book0"
+        assert got[-1] == "book2499"
+        assert mock_get.call_count == 3
+        assert [dict(call.kwargs["params"])["page"] for call in mock_get.call_args_list] == ["1", "2", "3"]
+
+    def test_a_set_beyond_the_paging_window_raises_and_names_the_way_out(self):
+        """advancedsearch cannot answer past 10k at any page size, so no retry
+        fixes this; it is the trigger for the authenticated Scrape path."""
+        session, mock_get = self._session([self._page(12_000, [f"book{i}" for i in range(1000)])])
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert "12000" in str(excinfo.value)
+        assert "Scrape" in str(excinfo.value)
+        assert mock_get.call_count == 1, "should refuse on the first page rather than paging a set it cannot finish"
+
+    def test_a_short_read_raises_rather_than_returning_what_arrived(self):
+        pages = [
+            self._page(2500, [f"book{i}" for i in range(1000)]),
+            self._page(2500, [f"book{i}" for i in range(1000, 1400)]),
+        ]
+        session, _ = self._session(pages)
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert "2500" in str(excinfo.value)
+        assert "1400" in str(excinfo.value)
+
+    def test_a_missing_envelope_is_an_incomplete_read_not_an_empty_one(self):
+        """How the endpoint answers past its window: HTTP 200, no `response`.
+        Read as "no books are checked out" it would clear the whole seed."""
+        session, _ = self._session([{"responseHeader": {"status": 0}}])
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        # The downstream guards would also refuse this, so assert on the
+        # message: "no envelope" and "no numFound" send an operator to
+        # different places, and only this branch can say which happened.
+        assert "envelope" in str(excinfo.value)
+
+    def test_an_absent_numfound_raises_because_completeness_is_unknowable(self):
+        session, _ = self._session([{"response": {"docs": [{"identifier": "book0"}]}}])
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete):
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+
+    def test_identifiers_repeated_across_pages_do_not_count_toward_completeness(self):
+        """A paging window that slides under churn re-serves rows. Counting
+        those twice is how a short set passes the completeness check."""
+        pages = [
+            self._page(2000, [f"book{i}" for i in range(1000)]),
+            self._page(2000, [f"book{i}" for i in range(500, 1500)]),
+            self._page(2000, []),
+        ]
+        session, _ = self._session(pages)
+        with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
+            asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
+        assert "1500" in str(excinfo.value)

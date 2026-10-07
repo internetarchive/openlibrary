@@ -245,6 +245,10 @@ class Solr:
 
         d = web.storage()
         d.num_found = response["numFound"]
+        # Carried so callers can tell a complete read from one `timeAllowed`
+        # cut short: Solr reports that only here, as `partialResults`, with an
+        # otherwise ordinary 200 and a short `docs` list.
+        d.response_header = result.get("responseHeader") or {}
         d.docs = [doc_wrapper(doc) for doc in response["docs"]]
 
         if "facet_counts" in result:

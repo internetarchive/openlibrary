@@ -2,11 +2,14 @@
 
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
+import itertools
+import json
 import logging
 import os
 import time
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
+from urllib.parse import urljoin
 
 import httpx
 import requests
@@ -183,6 +186,73 @@ def compose_ia_url(
 @cache.memoize(engine="memcache", key="gt-availability", expires=5 * dateutil.MINUTE_SECS)
 def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
+
+
+LOAN_CHANGES_MAX_LIMIT = 1000
+"""Rows per page the loan-changes API will return. A hard ceiling on IA's side:
+a larger `limit` is silently capped, not honoured."""
+
+
+async def get_loan_changes(
+    after_uid: int | None = None,
+    limit: int = LOAN_CHANGES_MAX_LIMIT,
+    s3_keys: dict | None = None,
+) -> dict:
+    """Fetch loan events with uid > after_uid from IA's loan changes API.
+
+    Returns a dict with 'status', 'latest_uid', and 'rows'.
+    Each row: {'time', 'identifier', 'username', 'loan_id', 'event_type', 'extra', 'uid'}.
+    The 'extra' field is a JSON string; parse it for 'until' (loan expiry).
+
+    :param after_uid: Return events with uid strictly greater than this value.
+                      **None omits the parameter**, which asks the API for its
+                      most recent `limit` rows. That is how a cursor is placed
+                      without already having one -- see
+                      `loan_availability_updater.bootstrap_feed_cursor`. It
+                      depends on an EXTERNAL petabox change (the changes-API
+                      default-limit behaviour); until that ships the endpoint
+                      may answer differently, and the caller degrades to
+                      starting at the feed head rather than to anything unsafe.
+    :param limit: Max rows per page; see LOAN_CHANGES_MAX_LIMIT.
+    :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
+                    defaults to config_ia_ol_metadata_write_s3.
+    """
+    url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
+    params: dict[str, str] = {"action": "changes", "limit": str(limit)}
+    if after_uid is not None:
+        params["after_uid"] = str(after_uid)
+
+    if s3_keys:
+        auth = "LOW {access}:{secret}".format(**s3_keys)
+    elif config_ia_ol_metadata_write_s3:
+        auth = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+    else:
+        auth = None
+
+    headers = {"Authorization": auth} if auth else {}
+    response = await ia.get_async_session().get(
+        url,
+        params=params,
+        headers=headers,
+        timeout=config_http_request_timeout or 10,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+AVAILABILITY_BATCH_SIZE = 100
+
+
+def is_available_for_loan(availability: AvailabilityStatus) -> bool:
+    """Is this book borrowable/browsable right now, per ground truth?
+
+    Mirrors the borrowable branch of get_lending_state(): a book is available
+    when the service says it can be browsed or borrowed. Everything else --
+    checked out, all copies out, waitlist-blocked, not lendable at all -- is
+    unavailable for our purposes. Note that a `return` event does NOT imply
+    available: with a waitlist, the copy goes to the head of the queue.
+    """
+    return bool(availability.get("available_to_browse") or availability.get("available_to_borrow"))
 
 
 async def get_groundtruth_availability_async(ocaid, s3_keys=None):
@@ -403,7 +473,20 @@ def update_availability_schema_to_v2(
 async def get_availability_async(
     id_type: Literal["identifier", "openlibrary_work", "openlibrary_edition"],
     ids: list[str],
+    use_cache: bool = True,
+    batch_size: int = AVAILABILITY_BATCH_SIZE,
+    drop_errors: bool = False,
 ) -> dict[str, AvailabilityStatusV2]:
+    """
+    :param use_cache: Read and write the 5-minute memcache. False always asks
+                      the availability service, and leaves the cache alone.
+    :param batch_size: Max ids per request to the availability service.
+    :param drop_errors: Leave every `status: "error"` entry -- whether the
+                        service said so, a request failed, or it came from the
+                        cache -- and the top-level error keys out of the
+                        response. For callers that must tell "no answer" apart
+                        from "unavailable".
+    """
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
         return {}
@@ -411,75 +494,254 @@ async def get_availability_async(
     def key_func(_id: str) -> str:
         return cache.build_memcache_key("lending.get_availability", id_type, _id)
 
-    mc = cache.get_memcache()
+    mc = cache.get_memcache() if use_cache else None
 
-    cached_values = cast(dict[str, AvailabilityStatusV2], mc.get_multi([key_func(_id) for _id in ids]))
-    availabilities = {_id: cached_values[key] for _id in ids if (key := key_func(_id)) in cached_values}
-    ids_to_fetch = set(ids) - set(availabilities)
+    availabilities: dict[str, AvailabilityStatusV2] = {}
+    if mc is not None:
+        cached_values = cast(dict[str, AvailabilityStatusV2], mc.get_multi([key_func(_id) for _id in ids]))
+        availabilities = {_id: cached_values[key] for _id in ids if (key := key_func(_id)) in cached_values}
+    ids_to_fetch = list(dict.fromkeys(_id for _id in ids if _id not in availabilities))
 
-    if not ids_to_fetch:
-        return availabilities
-
-    try:
-        headers = {
-            "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
-            "x-preferred-client-useragent": req_context.get().user_agent or "",
-            "x-application-id": "openlibrary",
-            "user-agent": "Open Library Site",
-        }
-        if config_ia_ol_metadata_write_s3:
-            headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
-        resp = await ia.get_async_session().get(
-            config_ia_availability_api_v2_url,
-            params={
-                id_type: ",".join(ids_to_fetch),
-                "scope": "printdisabled",
-            },
-            headers=headers,
-            timeout=config_http_request_timeout,
-        )
-
-        # This API should always return 200
-        resp.raise_for_status()
-
-        response = cast(AvailabilityServiceResponse, resp.json())
-
-        if not response["success"]:
-            logger.warning(f"AvailabilityServiceError: {response['error']}")
-            stats.increment("ol.availability.service_error", rate=0.01)
-            return {}
-
-        uncached_values = {
-            _id: update_availability_schema_to_v2(
-                availability,
-                ocaid=(_id if id_type == "identifier" else availability.get("identifier")),
-            )
-            for _id, availability in response["responses"].items()
-        }
-        availabilities |= uncached_values
-        mc.set_multi(
-            {key_func(_id): availability for _id, availability in uncached_values.items()},
-            expires=5 * dateutil.MINUTE_SECS,
-        )
-        return availabilities
-    except Exception as e:  # TODO: Narrow exception scope
-        logger.exception("lending.get_availability", extra={"ids": ids})
-        availabilities.update(
-            {
-                _id: update_availability_schema_to_v2(
-                    cast(AvailabilityStatus, {"status": "error"}),
-                    ocaid=_id if id_type == "identifier" else None,
-                )
-                for _id in ids_to_fetch
+    error = None
+    for batch in itertools.batched(ids_to_fetch, batch_size, strict=False):
+        try:
+            headers = {
+                "x-preferred-client-id": req_context.get().x_forwarded_for or "ol-internal",
+                "x-preferred-client-useragent": req_context.get().user_agent or "",
+                "x-application-id": "openlibrary",
+                "user-agent": "Open Library Site",
             }
-        )
+            if config_ia_ol_metadata_write_s3:
+                headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+            resp = await ia.get_async_session().get(
+                config_ia_availability_api_v2_url,
+                params={
+                    id_type: ",".join(batch),
+                    "scope": "printdisabled",
+                },
+                headers=headers,
+                timeout=config_http_request_timeout,
+            )
+
+            # This API should always return 200
+            resp.raise_for_status()
+
+            response = cast(AvailabilityServiceResponse, resp.json())
+
+            if not response["success"]:
+                logger.warning(f"AvailabilityServiceError: {response['error']}")
+                stats.increment("ol.availability.service_error", rate=0.01)
+                continue
+
+            uncached_values = {
+                _id: update_availability_schema_to_v2(
+                    availability,
+                    ocaid=(_id if id_type == "identifier" else availability.get("identifier")),
+                )
+                for _id, availability in response["responses"].items()
+            }
+            availabilities |= uncached_values
+            if mc is not None:
+                mc.set_multi(
+                    {key_func(_id): availability for _id, availability in uncached_values.items()},
+                    expires=5 * dateutil.MINUTE_SECS,
+                )
+        except (httpx.HTTPError, json.JSONDecodeError) as e:
+            # Only the service failing to answer. Anything else -- a missing
+            # req_context, a malformed response -- is a bug, and under
+            # drop_errors would otherwise vanish into an empty result.
+            logger.exception("lending.get_availability", extra={"ids": batch})
+            error = e
+            availabilities.update(
+                {
+                    _id: update_availability_schema_to_v2(
+                        cast(AvailabilityStatus, {"status": "error"}),
+                        ocaid=_id if id_type == "identifier" else None,
+                    )
+                    for _id in batch
+                }
+            )
+
+    if drop_errors:
+        return {_id: availability for _id, availability in availabilities.items() if availability.get("status") != "error"}
+    if error:
         return availabilities | {
             "error": "request_timeout",
-            "details": str(e),
+            "details": str(error),
         }  # type: ignore
+    return availabilities
 
 
 get_availability = async_bridge.wrap(get_availability_async)
+
+
+CHECKED_OUT_INDEX_QUERY = "lending___is_lendable:true AND lending___available_to_borrow:false AND lending___available_to_browse:false"
+"""archive.org search-index query for "lendable, but you cannot get it right now".
+
+Covers a book whose copies are all on loan, and also one held by a waitlist --
+both are states where a patron cannot borrow or browse, which is exactly what
+`ebook_unavailable` records.
+
+Note this reads the SEARCH INDEX, not the lending service, so it is a lagged
+view and must never be written to Solr directly. It is a CANDIDATE set; ground
+truth still decides. Two different `lending___` spellings answer this
+(`is_lendable:true` and `status:is_lendable`) and agreed to within churn when
+measured; this is the one verified against live availability.
+"""
+
+CHECKED_OUT_INDEX_PAGE_ROWS = 1000
+"""Rows per advancedsearch page when assembling the seed."""
+
+CHECKED_OUT_INDEX_MAX_ROWS = 10_000
+"""How far advancedsearch will page before it stops answering.
+
+Measured 2026-10: `start + rows <= 10000` returns results, and a request
+beyond that comes back with no `response` key at all rather than an error
+status. So this is the endpoint's own ceiling, not a policy choice -- and a
+set larger than it cannot be assembled here at any page size.
+"""
+
+
+class CheckedOutSeedIncomplete(Exception):
+    """The checked-out index could not be read in full.
+
+    Raised rather than returning a short list, because a short seed is the
+    *unrecoverable* direction: the books it omits are published as borrowable
+    while they are out, and nothing downstream looks at them again -- the
+    re-check only inspects editions already marked. A caller that refuses to
+    start is loud and retried; a caller that starts on a truncated seed looks
+    healthy forever. Same choice, for the same reason, as holding every clear when
+    the availability service cannot confirm one.
+    """
+
+
+async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PAGE_ROWS) -> list[str]:
+    """Every identifier the archive.org search index believes is checked out.
+
+    A *candidate* set for seeding a cold start: a handful of requests instead
+    of replaying days of loan events to infer the same thing. The caller must
+    settle these against the availability service before writing anything --
+    the index is a lagged view and has been observed disagreeing with ground
+    truth on other lending fields.
+
+    **Complete or raises.** It pages until it has as many identifiers as the
+    index said it had. The set measured ~600 in 2026-10, so today this is one
+    page and the loop never runs twice; it exists because the set grows with
+    traffic, and a silent cap would under-mark. :class:`CheckedOutSeedIncomplete`
+    separates the two ways that can fail -- a set larger than the endpoint can
+    page to, which no retry fixes and is the trigger for the authenticated
+    Scrape path, and a short read, which a retry usually does fix.
+
+    Note the strictness is deliberate on the growth case: if books are being
+    borrowed *while* this pages, the total climbs and the final count falls
+    short, and this raises. That is a spurious refusal -- and it happens
+    precisely when under-marking would matter most, so the supervisor's retry
+    is the right answer rather than accepting whatever arrived.
+
+    **If a multi-page seed ever becomes routine, do not reach for a flat
+    tolerance.** A shortfall has two causes with one symptom, and they need
+    opposite treatment:
+
+    (a) `numFound` grew because books were borrowed during paging. Benign --
+        the overlap replay is already the net for exactly those books, since
+        each one has a recent acquiring event.
+    (b) A page under-delivered relative to the rows it was asked for. A real
+        retrieval miss, of books that were unavailable the whole time and so
+        have *no* recent event. The overlap does not catch these.
+
+    A threshold like "assembled >= 90% of numFound" cannot tell (a) from (b),
+    so it would mask (b) -- the unrecoverable direction -- while buying relief
+    only for (a). It is strictly worse than refusing. The correct fix is to
+    distinguish them: tolerate pure growth, and raise when a page returns fewer
+    rows than it asked for while `start + len(docs) < numFound` says more were
+    there to give. Nothing here can distinguish that today, because a short
+    page is read as the end of the result set.
+
+    That read is not a hole as things stand, which is why this is a follow-up
+    and not a bug: an intermediate page under-delivering ends the loop early,
+    the assembled count then falls below numFound, and the strict check turns
+    it into a refusal rather than a silent miss. Pinned by
+    test_a_short_read_raises_rather_than_returning_what_arrived, whose second
+    page returns 400 of the 1000 it asked for.
+
+    Uses advancedsearch rather than the Scrape API deliberately. Scrape pages
+    further and is where a >10k set has to go, but it needs credentials, and
+    unauthenticated Scrape was measured silently ignoring its `q` -- returning
+    a per-client cached total for any query, including deliberate nonsense.
+    This endpoint is the one OL already uses elsewhere and its control behaves:
+    the same nonsense query returns nothing. Swapping endpoints means changing
+    this function and nothing else.
+    """
+    # Same host as the loan-changes feed, not `bookreader_host`. The seed and
+    # the feed describe the same lending state and must come from the same
+    # place -- and dev overrides only the loan endpoint, so deriving the host
+    # from `bookreader_host` would quietly send a local daemon to production
+    # archive.org for its seed while reading events from mockservices.
+    # https, not http. `ia.get_async_session()` is built with
+    # follow_redirects=False, and archive.org 301s http -> https, so an http
+    # fallback makes `raise_for_status()` raise on the redirect -- every poll,
+    # forever, in exactly the environment where the dev override is absent.
+    url = urljoin(config_ia_s3_loan_url or f"https://{config_bookreader_host}/", "/advancedsearch.php")
+    session = ia.get_async_session()
+    timeout = config_http_request_timeout or 30
+
+    identifiers: list[str] = []
+    seen: set[str] = set()
+    found: int | None = None
+    max_pages = max(1, CHECKED_OUT_INDEX_MAX_ROWS // page_rows)
+
+    for page in range(1, max_pages + 1):
+        params = [
+            ("q", CHECKED_OUT_INDEX_QUERY),
+            ("fl[]", "identifier"),
+            # A stable total order, or deep paging is incoherent. Without it the
+            # index is free to re-serve and skip rows between pages -- and the
+            # set being paged is defined as "the things changing right now", so
+            # it does. Above one page the dedup below would then never reach
+            # numFound and EVERY poll would refuse: a permanent wedge rather
+            # than the transient refusal the guard is meant to be.
+            ("sort[]", "identifier asc"),
+            ("rows", str(page_rows)),
+            ("page", str(page)),
+            ("output", "json"),
+        ]
+        response = await session.get(url, params=params, timeout=timeout)
+        response.raise_for_status()
+        body = response.json()
+
+        if "response" not in body:
+            # How this endpoint reports a request past its window -- a 200 with
+            # the envelope missing, which is indistinguishable from a malformed
+            # answer and is treated the same way.
+            raise CheckedOutSeedIncomplete(f"Checked-out index returned no response envelope on page {page}")
+
+        envelope = body["response"]
+        if isinstance(envelope.get("numFound"), int):
+            found = envelope["numFound"]
+            if found > CHECKED_OUT_INDEX_MAX_ROWS:
+                raise CheckedOutSeedIncomplete(
+                    f"Checked-out index holds {found} identifiers, beyond the {CHECKED_OUT_INDEX_MAX_ROWS} "
+                    f"this endpoint can page to; an authenticated Scrape read is required to seed completely"
+                )
+
+        docs = envelope.get("docs") or []
+        for doc in docs:
+            identifier = doc.get("identifier")
+            if identifier and identifier not in seen:
+                seen.add(identifier)
+                identifiers.append(identifier)
+
+        if len(docs) < page_rows:
+            # A short page is the end of the result set.
+            break
+
+    if found is None:
+        raise CheckedOutSeedIncomplete("Checked-out index reported no numFound; cannot tell a complete seed from a short one")
+    if len(identifiers) < found:
+        raise CheckedOutSeedIncomplete(f"Checked-out index reported {found} identifiers but only {len(identifiers)} were read")
+
+    logger.info("Checked-out index: %d identifiers (numFound %d)", len(identifiers), found)
+    return identifiers
 
 
 async def get_checked_out_async(ocaids: Iterable[str]) -> set[str]:
