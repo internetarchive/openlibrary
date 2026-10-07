@@ -435,7 +435,8 @@ class people_edits:
         i = web.input(changesets=[], comment="Revert", action="revert")
         if i.action == "revert" and i.changesets:
             revert_changesets(i.changesets, i.comment)
-        raise web.redirect(web.ctx.path)
+        # fullpath keeps the query string, so a revert on ?page=N returns to page N
+        raise web.seeother(web.ctx.fullpath)
 
 
 class ipaddress:

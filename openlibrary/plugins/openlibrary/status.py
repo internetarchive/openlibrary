@@ -10,42 +10,37 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
-import httpx
 from pydantic import BaseModel, Field, field_serializer
 
-from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
-from openlibrary.core import cache, stats
+from openlibrary.core import stats
 from openlibrary.core.env import get_ol_env
-from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, trigger_rebuild
+from openlibrary.plugins.openlibrary.github import (
+    GitHubAPIError,
+    GitHubPRInfo,
+    GitHubTokenInvalidError,
+    GitHubUnavailableError,
+    PRNotFoundError,
+    fetch_prs_graphql,
+    get_pr_drift,
+    get_pr_info,
+    has_github_token,
+    parse_pr_drift,
+    unknown_pr_drift,
+)
+from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, jenkins_deploy_status, trigger_rebuild
 from openlibrary.utils import get_software_version
-from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 
 status_info: dict[str, Any] = {}
 
 TESTING_STATE_FILE = Path("./_testing-prs.json")
-_GITHUB_API_BASE = "https://api.github.com/repos/internetarchive/openlibrary"
-_DRIFT_CACHE_KEY = "status.github_pr_drift"
-_DRIFT_CACHE_TTL = 60  # 1 minute
 # Jenkins never calls back, so a triggered deploy is only ever presumed to be
 # running. After this long we stop claiming it is, without claiming it worked.
 _DEPLOY_WINDOW = 10 * 60  # 10 minutes
 # Reading order for the pending-change plan: additions first, removals last.
 _CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
-
-
-class GitHubAPIError(Exception):
-    """A GitHub lookup failed. Base for the failure modes callers act on."""
-
-
-class PRNotFoundError(GitHubAPIError):
-    """GitHub answered 404: the PR number doesn't exist, or isn't visible."""
-
-
-class GitHubUnavailableError(GitHubAPIError):
-    """Rate limits, network outages, timeouts, or an unparsable response."""
 
 
 class status(delegate.page):
@@ -56,7 +51,6 @@ class status(delegate.page):
         return render_template(
             "status",
             status_info,
-            features_table=get_features_table(),
             dev_merged_status=get_dev_merged_status(),
             is_maintainer=is_maintainer_user,
             has_testing_state=has_testing_state,
@@ -81,51 +75,61 @@ def _json_error(error: str) -> delegate.RawText:
 
 
 def remove_testing_prs(prs: list[int]) -> dict[str, Any]:
-    """Remove PRs from the testing state."""
+    """Remove PRs from the testing state.
+
+    Always staged, never outright: the row survives read-only until the
+    deploy drops it, so undo (restore) works the same whether or not the PR
+    ever reached the box. ``removed_prs`` stays in the contract but is now
+    always empty.
+    """
     to_remove = {int(p) for p in prs}
     state = _load_testing_state()
     if not state or not to_remove:
-        return {"ok": True, "staged_prs": [], "removed_prs": []}
+        return {"ok": True, "staged_prs": [], "removed_prs": [], "prs": []}
     staged_prs = []
-    removed_prs = []
-    kept = []
     for p in state.prs:
         if p.pr in to_remove:
-            if not _live_now(state, p):
-                removed_prs.append(p.pr)
-                continue
             p.pending_remove = True
             staged_prs.append(p.pr)
-        kept.append(p)
-    state.prs = kept
     _save_testing_state(state)
-    return {"ok": True, "staged_prs": staged_prs, "removed_prs": removed_prs}
+    return {"ok": True, "staged_prs": staged_prs, "removed_prs": [], "prs": _staged_rows(state)}
 
 
-def restore_prs(prs: list[int]) -> dict[str, bool]:
+def restore_prs(prs: list[int]) -> dict[str, Any]:
     """Clear staged removals for PRs in the testing set."""
     state = _load_testing_state()
     if not state:
-        return {"ok": True}
+        return {"ok": True, "prs": []}
     requested = set(prs)
     for p in state.prs:
         if p.pr in requested:
             p.pending_remove = False
     _save_testing_state(state)
-    return {"ok": True}
+    return {"ok": True, "prs": _staged_rows(state)}
 
 
-def set_prs_active(prs: list[int], active: bool) -> dict[str, bool]:
+def set_prs_active(prs: list[int], active: bool) -> dict[str, Any]:
     """Stage an active-state change for PRs in the testing set."""
     state = _load_testing_state()
     if not state:
-        return {"ok": True}
+        return {"ok": True, "prs": []}
     requested = set(prs)
     for p in state.prs:
         if p.pr in requested:
             p.pending_active = active
     _save_testing_state(state)
-    return {"ok": True}
+    return {"ok": True, "prs": _staged_rows(state)}
+
+
+def _staged_rows(state: TestingState) -> list[dict[str, Any]]:
+    """The staged flags per row, cheap and sync: no GitHub/Jenkins reads.
+
+    Mutation responses echo these so the panel can confirm queued actions
+    from the last response instead of refetching. ``pending_active`` is the
+    normalized staged direction (None when it matches live), mirroring the
+    snapshot rows.
+    """
+    return [{"pr": p.pr, "pending_active": p.pending_toggle, "pending_remove": p.pending_remove} for p in state.prs]
 
 
 async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
@@ -138,7 +142,7 @@ async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
 
     async def get_info(pr: TestingPR) -> tuple[TestingPR, GitHubPRInfo | None]:
         try:
-            return pr, await _get_pr_info_async(pr.pr)
+            return pr, await get_pr_info(pr.pr)
         except GitHubAPIError:
             return pr, None
 
@@ -149,15 +153,15 @@ async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
     return {"ok": True}
 
 
-def deploy_testing_status() -> dict[str, bool | str]:
+async def deploy_testing_status() -> dict[str, bool | str]:
     """Apply staged changes and trigger a testing deploy."""
     state = _load_testing_state()
     if not state:
         return {"ok": True}
     # Drop staged removals and merged/closed PRs on the unmutated state. The
-    # drift metadata refresh must not write staged changes before Jenkins
-    # accepts the build.
-    drift_info, _ = _get_drift_info(state, persist=False)
+    # drift read cannot write, so it can never persist staged-but-untriggered
+    # changes before Jenkins accepts the build.
+    drift_info = await _get_drift_info(state)
     state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
     # Apply all pending changes before deploying.
     for p in state.prs:
@@ -181,18 +185,11 @@ def deploy_testing_status() -> dict[str, bool | str]:
     if outcome == "triggered":
         state.deploy_started_at = state.last_deploy_at
     _save_testing_state(state)
-    _evict_drift_cache()
     if outcome == "triggered":
         return {"ok": True}
     # Local development and instances without Jenkins still advance state, but
     # the response tells the UI that no real deploy happened.
     return {"ok": False, "error": "deploy_unconfigured"}
-
-
-def refresh_testing_status() -> dict[str, bool]:
-    """Evict cached testing-environment drift data."""
-    _evict_drift_cache()
-    return {"ok": True}
 
 
 def _is_deploying(state: TestingState) -> bool:
@@ -350,23 +347,6 @@ class PRStatus:
         return PRStatus(pull_line=lines[0], status=lines[-1], body="\n".join(lines[1:]))
 
 
-class GitHubPRInfo(BaseModel):
-    """The PR metadata fetched from GitHub.
-
-    A transport shape, not persisted state: it carries only what GitHub
-    reports, so a value here is always real data (``_get_pr_info_async`` raises
-    rather than returning placeholders).
-    """
-
-    pr: int
-    title: str
-    head_sha: str
-    author: str = ""
-    author_avatar: str = ""
-    assignee: str = ""
-    assignee_avatar: str = ""
-
-
 class TestingPR(BaseModel):
     pr: int
     commit: str  # pinned commit SHA (full)
@@ -383,6 +363,7 @@ class TestingPR(BaseModel):
     author_avatar: str = ""  # GitHub avatar URL (append &s=N for sizing)
     assignee: str = ""  # GitHub login of assignee, empty if unassigned
     assignee_avatar: str = ""  # GitHub avatar URL for assignee
+    draft: bool = False  # whether GitHub currently marks the PR as a draft
 
     @field_serializer("pending_active")
     def _serialize_pending_active(self, value: bool | None) -> bool | None:
@@ -410,6 +391,7 @@ class TestingPR(BaseModel):
             author_avatar=info.author_avatar,
             assignee=info.assignee,
             assignee_avatar=info.assignee_avatar,
+            draft=info.draft,
         )
 
     @property
@@ -583,17 +565,47 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
     )
 
 
-async def load_testing_status_async() -> TestingStatus | None:
+async def load_testing_status() -> TestingStatus | None:
     """Load the state file and live drift info; None if there is no state file.
 
+    The file is read twice: staged flags must come from *after* the slow
+    GitHub fetch, not before — otherwise a mutation landing mid-fetch is
+    missing from the snapshot, and the stream would flip rows back until the
+    next tick. Drift is matched by PR number, so rows added mid-fetch simply
+    show unknown drift until the next refresh.
+
     Async so the FastAPI endpoint can await it: the GitHub drift fetch below
-    runs on the event loop instead of blocking it. Sync callers use the
-    ``load_testing_status`` bridge wrapper instead.
+    runs on the event loop instead of blocking it.
     """
     if (state := _load_testing_state()) is None:
         return None
-    drift_info, _ = await _get_drift_info_async(state)
+    infos = await _fetch_drift_infos(state.prs)
+    if (state := _load_testing_state()) is None:
+        return None
+    drift_info = _apply_drift_infos(state, infos)
     return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
+
+
+async def compute_testing_status() -> dict[str, Any] | None:
+    """The full panel snapshot as a JSON-able dict: testing state plus
+    drift, with the latest Jenkins run overriding the deploy fields (the
+    state file's time-window guess stands in only when Jenkins is down).
+    None means no state file.
+    """
+    result, jenkins = await asyncio.gather(load_testing_status(), jenkins_deploy_status())
+    if result is None:
+        return None
+    if jenkins:
+        result = result.model_copy(
+            update={
+                "deploying": jenkins["status"] == "IN_PROGRESS",
+                "deploy_started_at": jenkins["start_time"],
+                "deploy_result": jenkins["status"],
+                "deploy_finished_at": jenkins["end_time"],
+                "deploy_stage": jenkins.get("current_stage", ""),
+            }
+        )
+    return result.model_dump()
 
 
 def _parse_pr_number(value: str) -> int:
@@ -635,15 +647,17 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
         if p.pr in pr_numbers:
             p.pending_remove = False
     failed: dict[int, str] = {}
-    added: dict[int, GitHubPRInfo] = {}
 
     for pr_number in pr_numbers:
         if pr_number in existing:
             continue
         try:
-            info = await _get_pr_info_async(pr_number)
+            info = await get_pr_info(pr_number)
         except PRNotFoundError:
             failed[pr_number] = "not_found"
+            continue
+        except GitHubTokenInvalidError:
+            failed[pr_number] = "token_invalid"
             continue
         except GitHubUnavailableError:
             # GitHub unreachable or rate-limited — never pretend the add landed.
@@ -653,9 +667,7 @@ async def add_prs(pr_numbers: list[int], username: str) -> dict:
             continue
         state.prs.append(TestingPR.from_github(info, username))
         existing.add(pr_number)
-        added[pr_number] = info
     _save_testing_state(state)
-    _extend_drift_cache(added)
     if failed:
         return {"ok": False, "error": "add_failed", "failed_prs": failed}
     return {"ok": True}
@@ -716,198 +728,62 @@ def _is_maintainer() -> bool:
     return bool(user and user.is_maintainer())
 
 
-# One pooled client per event loop. The drift fan-out makes up to two GitHub
-# calls per PR, and a fresh AsyncClient per call would pay a TCP + TLS
-# handshake every time. cache_per_event_loop keeps a separate pool per loop,
-# since AsyncBridge's background loop and FastAPI's can't share one.
-get_github_client = cache_per_event_loop(lambda: httpx.AsyncClient(timeout=5.0))
+async def _fetch_drift_infos(prs: list[TestingPR]) -> dict[int, dict]:
+    """Fetch live drift payloads per PR from GitHub, keyed by PR number.
+
+    Pure network: needs only each row's number and pinned commit, and touches
+    no state — so callers can fetch first and read the file after.
+    Fetch failures fail soft — unknown drift, "?" — never an error.
+    """
+    if has_github_token():
+        try:
+            payloads = await fetch_prs_graphql([p.pr for p in prs])
+        except GitHubAPIError:
+            payloads = {}
+        return {p.pr: parse_pr_drift(p, payloads.get(p.pr)) for p in prs}
+    infos = await asyncio.gather(*(get_pr_drift(p) for p in prs))
+    return {p.pr: info for p, info in zip(prs, infos)}
 
 
-async def _github_get_async(path: str) -> dict:
-    """GET a GitHub API path; raises httpx.HTTPError (network or non-2xx) on failure."""
-    url = f"{_GITHUB_API_BASE}/{path}"
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "openlibrary-status",
-    }
-    if token := getattr(config, "github_api_token", None):
-        headers["Authorization"] = f"Bearer {token}"
-    resp = await get_github_client().get(url, headers=headers)
-    resp.raise_for_status()
-    return resp.json()
+def _apply_drift_infos(state: TestingState, infos: dict[int, dict]) -> dict:
+    """Merge fetched drift into state rows (matched by PR number).
+
+    Also refreshes title/author/assignee on each TestingPR in-place — callers
+    build the panel from those refreshed objects — but never writes the state
+    file. Rows added after the fetch have no info yet and fail soft.
+    """
+    drift = {}
+    for p in state.prs:
+        info = infos.get(p.pr) or unknown_pr_drift()
+        drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged", "closed")}
+        for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar", "draft"):
+            new_val = info.get(attr, "")
+            if (new_val or (attr == "draft" and new_val is not None)) and getattr(p, attr) != new_val:
+                setattr(p, attr, new_val)
+    return drift
 
 
-async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
-    """Return (drift_dict, from_cache). Checks memcache first; fetches GitHub on miss.
+async def _get_drift_info(state: TestingState) -> dict:
+    """Return live drift info per PR (keys are int PR numbers), fetched from GitHub.
 
-    Keys are int PR numbers. JSON round-trip via memcache stringifies keys, so we
-    re-cast on read.
-
-    On a cache miss, also refreshes title/author/assignee on each TestingPR in-place
-    and, unless ``persist=False``, saves the state file if anything changed. The
-    deploy path passes ``persist=False`` so its metadata refresh can never write
-    staged-but-untriggered changes to disk.
+    Also refreshes title/author/assignee on each TestingPR in-place — callers
+    build the panel from those refreshed objects — but never writes the state
+    file. The file's metadata is a seed, refreshed in-memory before every use;
+    its only writers are mutation paths, which keeps this a pure read — the
+    contract ``cache.singleflight_cache`` requires of its compute.
 
     Per-PR fetches run concurrently (asyncio.gather) — with a handful of PRs,
-    sequential awaits would stack each GitHub round-trip.
+    sequential awaits would stack each GitHub round-trip. When a
+    ``github_api_token`` is configured, one GraphQL request replaces the fan-out;
+    otherwise the REST API is used (which tolerates unauthenticated requests).
+    Fetch failures fail soft — unknown drift, "?" — never an error.
     """
-    mc = cache.get_memcache()
-    if (cached := mc.get(_DRIFT_CACHE_KEY)) is not None:
-        return {int(k): v for k, v in cached.items()}, True
-    drift = {}
-    state_changed = False
-    infos = await asyncio.gather(*(_get_pr_drift_async(p) for p in state.prs))
-    for p, info in zip(state.prs, infos):
-        drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged", "closed")}
-        for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar"):
-            new_val = info.get(attr, "")
-            if new_val and getattr(p, attr) != new_val:
-                setattr(p, attr, new_val)
-                state_changed = True
-    if state_changed and persist:
-        _save_testing_state(state)
-    mc.set(_DRIFT_CACHE_KEY, drift, expires=_DRIFT_CACHE_TTL)
-    return drift, False
-
-
-def _evict_drift_cache() -> None:
-    cache.get_memcache().delete(_DRIFT_CACHE_KEY)
-
-
-def _extend_drift_cache(new_prs: dict[int, GitHubPRInfo]) -> None:
-    """Record freshly added PRs in the drift cache, leaving the rest of it intact.
-
-    Adding a PR says nothing about the drift of the PRs already in the set, so
-    evicting the whole cache would make the panel's next read refetch every row
-    over GitHub — the cost is in the fan-out, not the added row. Each new PR is
-    pinned to its current head, so its drift is already known: 0 behind, not
-    merged. ``merged``/``closed`` are defaults rather than observations —
-    ``_get_pr_info_async`` doesn't report them — and the next fetch replaces
-    them within ``_DRIFT_CACHE_TTL``, the same staleness window every other
-    cached row already lives with.
-
-    A cold cache is a no-op: the next read fetches the full set anyway.
-    """
-    if not new_prs:
-        return
-    mc = cache.get_memcache()
-    if (cached := mc.get(_DRIFT_CACHE_KEY)) is None:
-        return
-    for pr_number, info in new_prs.items():
-        cached[str(pr_number)] = {
-            "head_sha": info.head_sha[:7],
-            "drift": 0,
-            "merged": False,
-            "closed": False,
-        }
-    mc.set(_DRIFT_CACHE_KEY, cached, expires=_DRIFT_CACHE_TTL)
-
-
-async def _get_pr_info_async(pr_number: int) -> GitHubPRInfo:
-    """Fetch title, HEAD SHA, author, and assignee for a PR from GitHub.
-
-    Raises ``PRNotFoundError`` on a 404 and ``GitHubUnavailableError`` for rate
-    limits, network failures, or an unparsable body — so callers can tell a bad
-    PR number from a GitHub outage, and a returned value is always real data.
-    """
-    try:
-        pr = await _github_get_async(f"pulls/{pr_number}")
-        user = pr.get("user") or {}
-        assignee = pr.get("assignee") or {}
-        return GitHubPRInfo(
-            pr=pr_number,
-            title=pr.get("title") or f"PR #{pr_number}",
-            head_sha=pr["head"]["sha"],
-            author=user.get("login", ""),
-            author_avatar=user.get("avatar_url", ""),
-            assignee=assignee.get("login", ""),
-            assignee_avatar=assignee.get("avatar_url", ""),
-        )
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
-            raise PRNotFoundError(f"PR #{pr_number} not found") from e
-        raise GitHubUnavailableError(f"GitHub returned {e.response.status_code} for PR #{pr_number}") from e
-    except (httpx.HTTPError, KeyError, ValueError) as e:
-        raise GitHubUnavailableError(f"Could not fetch PR #{pr_number}") from e
-
-
-async def _get_pr_drift_async(pr: TestingPR) -> dict:
-    """Fetch live drift info + metadata for a PR from GitHub.
-
-    Returns head_sha, drift, merged plus title/author/assignee so callers can
-    refresh state without a second API call.
-    """
-    try:
-        gh = await _github_get_async(f"pulls/{pr.pr}")
-        head_sha = gh["head"]["sha"]
-        merged = bool(gh.get("merged") or gh.get("merged_at"))
-        stored = pr.commit.strip()
-        if head_sha == stored or (len(stored) < 40 and head_sha.startswith(stored)):
-            drift = 0
-        else:
-            try:
-                cmp = await _github_get_async(f"compare/{stored}...{head_sha}")
-                drift = cmp.get("ahead_by", -1)
-            except httpx.HTTPError, ValueError:
-                drift = -1
-        user = gh.get("user") or {}
-        assignee = gh.get("assignee") or {}
-        return {
-            "head_sha": head_sha[:7],
-            "drift": drift,
-            "merged": merged,
-            # A merge is itself a close, so "closed" means closed without merging.
-            "closed": gh.get("state") == "closed" and not merged,
-            "title": gh.get("title", f"PR #{pr.pr}"),
-            "author": user.get("login", ""),
-            "author_avatar": user.get("avatar_url", ""),
-            "assignee": assignee.get("login", ""),
-            "assignee_avatar": assignee.get("avatar_url", ""),
-        }
-    except httpx.HTTPError, KeyError, ValueError:
-        return {
-            "head_sha": "",
-            "drift": -1,
-            "merged": False,
-            "closed": False,
-            "title": "",
-            "author": "",
-            "author_avatar": "",
-            "assignee": "",
-            "assignee_avatar": "",
-        }
-
-
-# Sync bridge wrappers: the remaining web.py action handlers reach the async
-# implementations above through AsyncBridge's background event loop instead of
-# duplicating them. FastAPI should call the ``*_async`` versions directly and
-# await them (see openlibrary/utils/async_utils.py).
-_get_pr_info = async_bridge.wrap(_get_pr_info_async)
-_get_drift_info = async_bridge.wrap(_get_drift_info_async)
-load_testing_status = async_bridge.wrap(load_testing_status_async)
+    return _apply_drift_infos(state, await _fetch_drift_infos(state.prs))
 
 
 @public
 def get_git_revision_short_hash():
     return status_info.get("Software version") if status_info and isinstance(status_info, dict) else None
-
-
-def get_features_enabled():
-    return config.features
-
-
-def get_features_table() -> list[dict[str, str]]:
-    """Build a list of enabled feature flags."""
-    infogami_dict = config.features  # type: ignore[attr-defined]
-    features_table = []
-    for feature in sorted(infogami_dict.keys()):
-        infogami_value = infogami_dict.get(feature)
-        if isinstance(infogami_value, dict):
-            infogami_str = f"usergroup: {infogami_value.get('usergroup', '?')}"
-        else:
-            infogami_str = str(infogami_value) if infogami_value is not None else ""
-        features_table.append({"feature": feature, "infogami": infogami_str})
-    return features_table
 
 
 def setup():

@@ -278,7 +278,6 @@ class Edition(Thing):
 
         * read_url - url to read the book
         * borrow_url - url to borrow the book
-        * borrowed - True if the book is already borrowed
         * daisy_url - url to access the daisy format of the book
         * daisy_only - a boolean indicating whether book avail
                        exclusively as daisy
@@ -292,8 +291,7 @@ class Edition(Thing):
 
             {
                 "daisy_url": "/books/OL1M/foo/daisy",
-                "borrow_url": "/books/OL1M/foo/borrow",
-                "borrowed": False
+                "borrow_url": "/books/OL1M/foo/borrow"
             }
 
         """
@@ -308,10 +306,6 @@ class Edition(Thing):
 
             if borrowable:
                 d["borrow_url"] = self.url("/borrow")
-                key = "ebooks" + self.key
-                doc = self._site.store.get(key) or {}
-                # caution, solr borrow status may be stale!
-                d["borrowed"] = doc.get("borrowed") == "true"
                 d["daisy_only"] = False
             elif "printdisabled" not in collections:
                 d["read_url"] = f"https://archive.org/stream/{self.ocaid}"
@@ -691,7 +685,6 @@ class Work(Thing):
 
         * read_url - url to read the book
         * borrow_url - url to borrow the book
-        * borrowed - True if the book is already borrowed
         * daisy_url - url to access the daisy format of the book
 
         Sample return values:
@@ -703,8 +696,7 @@ class Work(Thing):
 
             {
                 "daisy_url": "/books/OL1M/foo/daisy",
-                "borrow_url": "/books/OL1M/foo/borrow",
-                "borrowed": False
+                "borrow_url": "/books/OL1M/foo/borrow"
             }
         """
         solrdata = web.storage(self._solr_data or {})
@@ -902,6 +894,8 @@ class Author(Thing):
                     raise AuthorRemoteIdConflictError(f"Conflicting remote IDs for author {self.key}: {output[identifier]} vs {incoming_ids[identifier]}")
                 else:
                     matches = matches + 1
+            elif identifier in incoming_ids:  # Do the merge
+                output[identifier] = incoming_ids[identifier]
         return output, matches
 
 

@@ -44,6 +44,11 @@
      background-color so the specular highlight tones to that fill, not white. */
   --control-surface: var(--white);
 
+  /* Specular edge strength on a saturated fill (primary, danger, a selected
+     chip). White reads much louder on a dark fill than on the neutral one's 35%,
+     so this is tuned to land as quietly as the neutral edge does. */
+  --control-highlight-strength-filled: 8%;
+
   /* Raised-control drop shadow — the surface-independent half of the lift. The
      matching inset highlight is deliberately not in this token: a :root custom
      property resolves its var()s against :root, so --control-surface would bake

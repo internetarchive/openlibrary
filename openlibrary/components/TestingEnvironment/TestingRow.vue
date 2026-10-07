@@ -23,6 +23,14 @@ const props = defineProps({
     strings: {
         type: Object,
         required: true
+    },
+    recent: {
+        type: Boolean,
+        default: false
+    },
+    updating: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -66,7 +74,10 @@ function text(key, ...args) {
 </script>
 
 <template>
-  <tr class="testing-env__row">
+  <tr
+    class="testing-env__row"
+    :class="{ 'testing-env__row--recent': recent }"
+  >
     <td
       v-if="maintainer"
       class="testing-env__col-toggle"
@@ -102,9 +113,18 @@ function text(key, ...args) {
             class="testing-env__pr-num"
             :href="prUrl"
           >#{{ pr.pr }}</a>
+          <ol-icon
+            v-if="pr.draft"
+            class="testing-env__draft"
+            name="git-pull-request-draft"
+            size="sm"
+            :label="strings.draft"
+            :title="strings.draft"
+          />
         </span>
         <a
           class="testing-env__pr-title"
+          :class="{ 'testing-env__pr-title--draft': pr.draft }"
           :href="prUrl"
           :title="pr.title"
         >{{ pr.title }}</a>
@@ -142,9 +162,16 @@ function text(key, ...args) {
             class="testing-env__row-action"
             :title="strings.update"
             :aria-label="strings.update"
+            :disabled="updating"
             @click="emit('update', pr)"
           >
+            <span
+              v-if="updating"
+              class="testing-env__btn-icon testing-env__spinner"
+              aria-hidden="true"
+            />
             <svg
+              v-else
               class="testing-env__btn-icon"
               width="16"
               height="16"

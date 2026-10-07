@@ -29,7 +29,7 @@ $ menu_items = [listen, edition_key]
 $ is_carousel = "BookCarousel" in str(analytics_attr(analytics_action))
 $if any(menu_items) and not is_carousel:
   <div class="cta-dropper cta-button-group">
-    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) $(login_class)"
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--available cta-btn--$(action) $(login_class)"
         $:analytics_attr(analytics_action)
         $:data_attr
         $if loan:
@@ -40,7 +40,7 @@ $if any(menu_items) and not is_carousel:
   </div>
 $else:
   <div class="cta-button-group">
-    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) $(login_class)"
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--available cta-btn--$(action) $(login_class)"
         $:analytics_attr(analytics_action)
         $:data_attr
         $if loan:

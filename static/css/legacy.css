@@ -20,7 +20,6 @@
 @import "legacy-tools.css";
 
 @import "components/read-panel.css";
-@import "components/preview.css";
 @import "components/diff.css";
 @import "components/carousel.css";
 @import "components/category-item.css";
@@ -904,15 +903,6 @@ div#searchResults .SRPCoverBlank a {
   text-decoration: none;
 }
 
-/* openlibrary/macros/AvailabilityButton.html */
-.waitlist-msg {
-  font-family: var(--font-family-body);
-  font-size: 0.7em;
-  margin-bottom: -1.5em;
-  color: var(--color-text-secondary);
-  padding: 0.2em;
-}
-
 /* Results on /search/authors */
 /* openlibrary/templates/search/authors.html */
 .authorList {
@@ -1786,10 +1776,6 @@ div#subjectLists p {
 @media only screen and (min-width: 768px) {
   span.count {
     white-space: nowrap;
-  }
-  /* inlined from components/page-banner--tablet.css */
-  .page-banner .btn {
-    display: inline;
   }
   /* inlined from components/work--tablet.css */
   /* workDetails is the parent element.

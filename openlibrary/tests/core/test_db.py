@@ -73,15 +73,6 @@ CREATE TABLE bookshelves_events (
 );
 """
 
-YEARLY_READING_GOALS_DDL = """
-CREATE TABLE yearly_reading_goals (
-    username text not null,
-    year integer not null,
-    target integer not null,
-    updated timestamp
-);
-"""
-
 
 class TestUpdateWorkID:
     @classmethod
