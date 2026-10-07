@@ -41,8 +41,6 @@
                         {% endfor %}
                     </span>
                     <span class="browse-stacks__name">{{ genre.name }}</span>
-                    {# The stacks only ever show readable books, so the count is the readable count. #}
-                    <span class="browse-stacks__count">{{ ngettext("%(count)s Book", "%(count)s Books", genre.readable_count, count=genre.readable_count_str) }}</span>
                 </button>
             {% endfor %}
         </ol-carousel>
@@ -71,7 +69,8 @@
            (?stack=horror, which browse-stacks.js sets as the reader opens one, so it's back when they return
            from a book) goes right after the pinned tiles, where it's in view, and is the one that opens.
            Then draw that tile's shelf as a skeleton, so the shelf browse-stacks.js opens on load doesn't push
-           the page down. Runs inline for both; no-JS keeps the server order and a closed shelf.
+           the page down, and start fetching it (as shelf.prefetch). Covers on the first page of tiles load eagerly.
+           Runs inline for all of it; no-JS keeps the server order and a closed shelf.
            Builds what skeletonFor() in browse-stacks.js does. #}
         <script>
             (function () {
@@ -92,14 +91,28 @@
                     rest.unshift(requested);
                 }
                 tiles = pinned.concat(rest);
-                tiles.forEach(function (tile) {
+                tiles.forEach(function (tile, index) {
                     rail.appendChild(tile);
+                    // The rail's first page (8 tiles at its widest) is above the fold.
+                    if (index < 8) {
+                        tile.querySelectorAll('img').forEach(function (img) { img.loading = 'eager'; });
+                    }
                 });
 
                 var template = document.querySelector('.browse-stacks__loading');
                 var shelf = document.getElementById('browse-stacks-shelf');
                 if (!tiles.length || !template) return;
-                var data = JSON.parse((requested || tiles[0]).getAttribute('data-shelf'));
+                var open = requested || tiles[0];
+                // Fetch the open shelf now rather than after main.js loads browse-stacks.js, which takes it from here.
+                var params = new URLSearchParams({ genre: open.getAttribute('data-genre') });
+                var lang = new URLSearchParams(location.search).get('lang');
+                if (lang) params.set('lang', lang);
+                shelf.prefetch = {
+                    slug: open.getAttribute('data-genre'),
+                    response: fetch('/partials/HomeGenre.json?' + params),
+                };
+                shelf.prefetch.response.catch(function () {});
+                var data = JSON.parse(open.getAttribute('data-shelf'));
                 var skeleton = template.content.cloneNode(true);
                 skeleton.querySelector('.genre-shelf__title').textContent = data.name;
                 var jump = skeleton.querySelector('.genre-shelf__jump');

@@ -4186,13 +4186,6 @@ msgstr ""
 msgid "Trending in %(genre)s"
 msgstr ""
 
-#: home/browse_stacks.html.jinja
-#, python-format
-msgid "%(count)s Book"
-msgid_plural "%(count)s Books"
-msgstr[0] ""
-msgstr[1] ""
-
 #: home/browse_stacks.html.jinja home/genre_shelf.html.jinja
 msgid "Jump to"
 msgstr ""

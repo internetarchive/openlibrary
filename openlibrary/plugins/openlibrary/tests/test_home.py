@@ -1,6 +1,5 @@
 import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
-from urllib.parse import quote_plus
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import web
@@ -140,43 +139,32 @@ TRENDING_QUERY = home.home_genres.solr_query(TRENDING)
 
 
 class TestFeaturedGenres:
-    """The stacks' tiles come from one faceted Solr query, one facet query per genre, led by Trending."""
+    """The stacks' tiles: the vocabulary's genres with hand-picked covers, led by Trending."""
 
-    def featured(self, counts, picked=PICKED_COVERS, trending_covers=(1, 2, 3)):
-        solr = MagicMock()
-        solr.raw_request = AsyncMock(return_value=MagicMock(json=lambda: {"facet_counts": {"facet_queries": {TRENDING_QUERY: 900, **counts}}}))
+    def featured(self, picked=PICKED_COVERS, trending_covers=(1, 2, 3)):
         with (
             patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),
             patch.object(home.home_genres, "load_tile_covers", return_value=picked),
             patch.object(home, "get_trending_tile_covers", return_value=list(trending_covers)),
-            patch.object(home.search, "get_solr", return_value=solr),
         ):
             web.ctx.env = {}
-            return home.get_featured_genres(), solr.raw_request.call_args.args[1]
+            return home.get_featured_genres()
 
-    def test_one_query_for_every_tile(self):
-        genres, payload = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0})
-        assert payload.count("facet.query=") == 4
-        # Counts only: no grouping, which sorted every genre's matches and timed out on the full index.
-        assert "group" not in payload
-        # Counted, and nothing readable means no tile.
-        assert [(g["slug"], g["readable_count"]) for g in genres] == [("trending", 900), ("horror", 1200), ("history", 5)]
-        # The fan takes three of the picked covers.
+    def test_tiles_fan_three_picked_covers(self):
+        genres = self.featured()
+        assert [g["slug"] for g in genres] == ["trending", "horror", "history", "absurd"]
         assert genres[1]["covers"] == [10, 11, 12]
 
     def test_trending_leads_with_live_covers(self):
         """Trending is the first tile, always: the template keeps it there while shuffling the rest.
         Its fan is the covers its shelf would open with, not hand-picked ones."""
-        genres, payload = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0}, trending_covers=[7, 8, 9])
+        genres = self.featured(trending_covers=[7, 8, 9])
         assert genres[0]["slug"] == "trending"
         assert genres[0]["kind"] == "trending"
         assert genres[0]["covers"] == [7, 8, 9]
-        # Its count is a whole Solr clause, not a subject_key facet.
-        assert "subject_key" not in TRENDING_QUERY
-        assert f"facet.query={quote_plus(TRENDING_QUERY)}" in payload
 
     def test_trending_without_covers_still_gets_a_tile(self):
-        genres, _ = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0}, trending_covers=[])
+        genres = self.featured(trending_covers=[])
         assert (genres[0]["slug"], genres[0]["covers"]) == ("trending", [])
 
     def test_trending_tile_covers_come_from_its_row_query(self):
@@ -188,17 +176,13 @@ class TestFeaturedGenres:
         assert (query["q"], query["has_fulltext"], kwargs["sort"]) == (TRENDING_QUERY, "true", "trending")
 
     def test_no_picked_covers_no_tile(self):
-        genres, payload = self.featured({"subject_key:horror*": 1200}, picked={"horror": [10, 11, 12]})
-        # Genres without covers aren't even counted.
-        assert payload.count("facet.query=") == 2
+        genres = self.featured(picked={"horror": [10, 11, 12]})
         assert [g["slug"] for g in genres] == ["trending", "horror"]
 
-    def test_names_and_counts_are_localized_per_page_not_in_the_cache(self):
-        # The cache is shared across languages, so a subject tile's name is translated, and its
-        # count formatted (commify reads the request language), after it.
-        genres, _ = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0})
-        assert [g["name"] for g in genres] == ["Trending", "Horror", "History"]
-        assert all("readable_count_str" not in g for g in genres)
+    def test_names_are_localized_per_page_not_in_the_cache(self):
+        # The cache is shared across languages, so a subject tile's name is translated after it.
+        genres = self.featured()
+        assert [g["name"] for g in genres] == ["Trending", "Horror", "History", "Absurd"]
         with (
             patch.object(home, "get_cached_featured_genres", return_value=genres),
             patch.object(home.home_genres, "subject_tile_labels", return_value={"history": "Histoire"}),
@@ -208,8 +192,7 @@ class TestFeaturedGenres:
         ):
             home.get_homepage(devmode=False)
         featured = render.call_args.kwargs["featured_genres"]
-        assert [g["name"] for g in featured] == ["Trending", "Horror", "Histoire"]
-        assert [g["readable_count_str"] for g in featured] == ["900", "1,200", "5"]
+        assert [g["name"] for g in featured] == ["Trending", "Horror", "Histoire", "Absurd"]
 
     def test_solr_failure_costs_the_rail_not_the_page(self):
         with (

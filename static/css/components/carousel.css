@@ -93,16 +93,12 @@
   padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
 }
 
-/* On a phone the row runs edge to edge: the first cover sits at the page gutter
-   instead of 40px of container and track padding in from it. */
+/* On a phone a native row runs edge to edge. Slick rows keep the inset: their arrows
+   hang 25px past the track and would push the page wide. */
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
-  .carousel-container {
+  .carousel-container:has(> .carousel--native) {
     padding-inline: 0;
-  }
-
-  .carousel {
-    padding-inline: var(--spacing-page-gutter);
   }
 }
 
@@ -558,13 +554,6 @@
 @media (max-width: 480px) {
   .carousel-skeleton__row:not(.carousel--native) {
     --skeleton-columns: 2;
-  }
-}
-
-/* --width-breakpoint-tablet: edge to edge, as .carousel is. */
-@media (max-width: 767px) {
-  .carousel-skeleton__row:not(.carousel--native) {
-    padding-inline: var(--spacing-page-gutter);
   }
 }
 

@@ -161,10 +161,16 @@ export function initBrowseStacks(root) {
             shelf.replaceChildren(skeletonFor(tileFor(slug)));
             shelf.classList.add('browse-stacks__shelf--loading');
         }
+        const lazyCarouselModule = import('./lazy-carousel');
+        // The template's inline script already started the fetch for the shelf open on load.
+        const prefetch = shelf.prefetch;
+        delete shelf.prefetch;
         try {
-            const resp = await fetch(buildPartialsUrl('HomeGenre', { genre: slug }), { signal });
+            const resp = await (initial && prefetch?.slug === slug
+                ? prefetch.response
+                : fetch(buildPartialsUrl('HomeGenre', { genre: slug }), { signal }));
             if (!resp.ok) throw new Error('Failed to fetch genre shelf');
-            const [data, lazyCarousel] = await Promise.all([resp.json(), import('./lazy-carousel')]);
+            const [data, lazyCarousel] = await Promise.all([resp.json(), lazyCarouselModule]);
             if (signal.aborted) return false;
             shelf.innerHTML = data.partials;
             lazyCarousel.initLoadedCarousels(shelf);
@@ -229,10 +235,11 @@ export function initBrowseStacks(root) {
     rail.addEventListener('ol-carousel-page-change', anchor);
     window.addEventListener('resize', anchor);
 
-    // Document-level so Escape still works after a carousel refetch drops focus to <body>.
+    // Only Escape from inside the stacks, so dismissing the header search or a menu leaves the shelf open.
     // A popover inside the shelf owns its own Escape (its host is the retargeted event target).
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape' || !current || e.defaultPrevented) return;
+        if (!e.composedPath().includes(root)) return;
         if (e.target.closest?.('ol-menu-popover, ol-popover, ol-select-popover, ol-options-popover')) return;
         close();
     });
