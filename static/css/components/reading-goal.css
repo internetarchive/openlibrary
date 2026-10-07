@@ -166,9 +166,6 @@
   height: 100%;
   padding: 0 8px;
   box-sizing: border-box;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   z-index: 1;
   pointer-events: none;
   color: var(--color-text);
@@ -176,18 +173,30 @@
 }
 
 .reading-goal-progress__books-read {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: var(--font-size-label-small);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .reading-goal-progress__separator {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   font-size: var(--font-size-label-small);
   font-weight: 400;
   opacity: 0.8;
 }
 
 .reading-goal-progress__goal {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: var(--font-size-label-small);
   font-weight: 600;
   white-space: nowrap;
