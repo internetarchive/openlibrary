@@ -95,7 +95,14 @@ def get_jinja_env() -> Environment:
     def _safe_ngettext(context: Any, singular: str, plural: str, n: int, **variables: Any) -> str:
         if not variables:
             rv = context.call(_jinja_ngettext, singular, plural, n)
-            if "%%" in rv:
+            if "%(num)" in rv:
+                # Jinja's newstyle ngettext always %-formats with an implicit
+                # num: a bare ngettext('%(num)d book', '%(num)d books', 3)
+                # rendered "3 books" before these wrappers. Restore that for
+                # %(num) strings; everything else stays raw above so
+                # client-side sprintf strings keep their %s placeholders.
+                rv = rv % {"num": n}
+            elif "%%" in rv:
                 rv = rv.replace("%%", "%")
             return Markup(rv) if context.eval_ctx.autoescape else rv
         return original_ngettext(context, singular, plural, n, **variables)

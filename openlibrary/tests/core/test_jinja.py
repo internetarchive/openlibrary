@@ -98,7 +98,10 @@ def _create_validation_env() -> jinja2.Environment:
     def _safe_ngettext(context: Any, singular: str, plural: str, n: int, **variables: Any) -> str:
         if not variables:
             rv = context.call(_ngettext, singular, plural, n)
-            if "%%" in rv:
+            if "%(num)" in rv:
+                # Keep in sync with openlibrary/core/jinja.py's _safe_ngettext.
+                rv = rv % {"num": n}
+            elif "%%" in rv:
                 rv = rv.replace("%%", "%")
             return Markup(rv) if context.eval_ctx.autoescape else rv
         return original_ngettext(context, singular, plural, n, **variables)
@@ -444,6 +447,26 @@ class TestGetJinjaEnv:
         request_context_fixture(lang="de")
         tpl = env.from_string("{% trans %}Hello{% endtrans %}")
         assert tpl.render() == "Hello"
+
+
+def test_bare_ngettext_substitutes_implicit_num(request_context_fixture):
+    """Bare ngettext calls keep Jinja's implicit ``num`` substitution.
+
+    Before the _safe_* wrappers, newstyle ngettext always %-formatted with
+    an implicit num: ``{{ ngettext('%(num)d book', '%(num)d books', 3) }}``
+    rendered "3 books" with no explicit ``num=`` argument. The wrapper skips
+    formatting to keep client-side sprintf strings raw; it must still
+    substitute %(num) strings so bare calls keep rendering counts.
+    """
+    request_context_fixture(lang="en")
+    env = get_jinja_env()
+    # implicit num restored:
+    assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 3) }}").render() == "3 books"
+    assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 1) }}").render() == "1 book"
+    # explicit variables interpolate through the original path:
+    assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 3, num=7) }}").render() == "7 books"
+    # sprintf-style strings without variables stay raw (the wrappers' purpose):
+    assert env.from_string("{{ ngettext('%s book', '%s books', 3) }}").render() == "%s books"
 
 
 def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests):
