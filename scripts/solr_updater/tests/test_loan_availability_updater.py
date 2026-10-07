@@ -319,8 +319,15 @@ POLL_EDITIONS = {
 
 
 def _marked(*keys: str) -> dict[str, dict]:
+    """Marked editions as Solr actually returns them -- WITH a stamp.
+
+    An unstamped doc is a real but transitional state (marked before a daemon
+    that writes stamps) and the poll handles it separately, so a fixture
+    without one is not a realistic marked edition. The stamp here is old enough
+    to be clearable, which is what these tests are about.
+    """
     by_key = {info["key"]: (ia, info) for ia, info in POLL_EDITIONS.items()}
-    return {key: {"key": key, "ia": [by_key[key][0]], "_root_": by_key[key][1]["root"]} for key in keys}
+    return {key: {"key": key, "ia": [by_key[key][0]], "_root_": by_key[key][1]["root"], "ebook_unavailable_ts": 1} for key in keys}
 
 
 def _poll(identifiers: list[str], marked: dict[str, dict]):
@@ -389,7 +396,7 @@ async def test_an_unchanged_poll_writes_nothing():
 
 
 def _many_marked(n: int) -> dict[str, dict]:
-    return {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(n)}
+    return {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W", "ebook_unavailable_ts": 1} for i in range(n)}
 
 
 @pytest.mark.asyncio
@@ -464,7 +471,7 @@ async def test_a_mass_clear_without_ocaids_is_refused_rather_than_assumed():
 async def test_the_breaker_does_not_trip_on_ordinary_churn():
     """Measured 2026-10-05, a normal cycle clears 0-2 against ~766 marked --
     under 1%. A guard that fires in ordinary operation gets routed around."""
-    many = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(766)}
+    many = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W", "ebook_unavailable_ts": 1} for i in range(766)}
     still_out = [f"book{i}" for i in range(2, 766)]
     resolved = {ia: {"key": f"/books/OL{ia.removeprefix('book')}M", "root": f"/works/OL{ia.removeprefix('book')}W"} for ia in still_out}
     with (
@@ -677,7 +684,7 @@ async def test_a_refused_mass_clear_still_marks_the_newly_unavailable():
     failure from the other side: while the index is degraded, real borrows keep
     happening and nothing records them, so checked-out books are published as
     borrowable for the length of the outage. Marking needs no confirmation."""
-    marked = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(500)}
+    marked = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W", "ebook_unavailable_ts": 1} for i in range(500)}
     resolved = {"bookaaa": {"key": "/books/OL9001M", "root": "/works/OL9001W"}}
     with (
         patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
@@ -751,14 +758,6 @@ async def test_the_gate_clears_a_mark_older_than_the_index_currency(age_hours):
 
 
 @pytest.mark.asyncio
-async def test_a_mark_with_no_timestamp_is_clearable():
-    """A doc that predates this daemon, or survived a reindex, carries no stamp.
-    The index is the better authority on those, so they clear normally."""
-    _, clear = await _poll_against([], _marked_doc(None), _MARKED_RECENTLY)
-    assert clear == {"/books/OL1M"}
-
-
-@pytest.mark.asyncio
 async def test_a_poll_mark_carries_a_timestamp_so_the_next_poll_cannot_clear_it():
     """Marks from the POLL need the stamp as much as marks from the feed --
     without it the next poll reads epoch 0 and is free to clear immediately."""
@@ -769,7 +768,14 @@ async def test_a_poll_mark_carries_a_timestamp_so_the_next_poll_cannot_clear_it(
         patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value={})),
     ):
         updates = await build_poll_updates(["bookaaa"], _MARKED_RECENTLY)
-    assert updates[0]["ebook_unavailable_ts"]["set"] > 0, "a mark without a timestamp is clearable by the next poll"
+    ts = updates[0]["ebook_unavailable_ts"]["set"]
+    # Bounded against the clock, not "> 0". A review of #12689 proved the loose
+    # form green against both a milliseconds mutation and a frozen constant --
+    # and here either is worse than there, because this gate COMPARES the stamp
+    # against a wall-clock currency. A ms stamp is always greater, so no clear
+    # would ever proceed and availability would freeze.
+    now = int(time.time())
+    assert now - 5 <= ts <= now + 5, f"ts={ts} is not epoch SECONDS near now ({now})"
 
 
 def test_a_feed_mark_is_stamped_with_the_event_time_not_the_read_time():
@@ -907,3 +913,34 @@ async def test_an_empty_feed_falls_back_to_the_head_and_says_so(caplog):
         cursor = await bootstrap_feed_cursor(3600)
     assert cursor == 777
     assert "uncovered" in caplog.text.lower()
+
+
+@pytest.mark.asyncio
+async def test_a_mark_with_no_stamp_is_neither_cleared_nor_left_unknown():
+    """The third state. An edition marked before a daemon that writes stamps
+    has no stamp, and BOTH obvious defaults are wrong: read it as 0 and the gate
+    clears a mark that might be recent, publishing a checked-out book as
+    borrowable with no event to follow until the loan ends; read it as now and
+    nothing ever clears it OR stamps it, so the book is hidden forever.
+
+    So the poll stamps it instead of judging it: no clear this cycle, a known
+    and conservative age from the next one.
+    """
+    resolve, marked = _poll([], _marked_doc(None))
+    with resolve, marked:
+        updates = await build_poll_updates([], _MARKED_RECENTLY)
+    mark, clear = _sets(updates)
+    assert clear == set(), "an unknown age must not be resolved by clearing"
+    assert mark == {"/books/OL1M"}, "it must be stamped, or it stays unknown forever"
+    assert updates[0]["ebook_unavailable_ts"]["set"] > 0
+
+
+@pytest.mark.asyncio
+async def test_a_stamped_mark_is_still_judged_normally_afterwards():
+    """The stamp must not become permanent protection -- that is the failure
+    mode of reading absent as 'now'. One margin later the ordinary rule applies."""
+    resolve, marked = _poll([], _marked_doc(_MARKED_RECENTLY - 100_000))
+    with resolve, marked:
+        updates = await build_poll_updates([], _MARKED_RECENTLY)
+    _, clear = _sets(updates)
+    assert clear == {"/books/OL1M"}

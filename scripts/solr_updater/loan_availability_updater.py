@@ -691,6 +691,23 @@ def mark_update(key: str, root: str, at: int) -> dict:
     index is entitled to contradict it; a mark with no timestamp would read as
     epoch 0 and be clearable immediately, which is the exact failure the stamp
     exists to prevent.
+    **Read the semantics precisely, because the obvious paraphrase is a trap.**
+    This is *when the current unbroken run of unavailability began*, not "when
+    the mark was last re-asserted". The poll skips editions already in the
+    marked set, so a book's stamp is frozen for the life of its mark and is
+    refreshed only when it is cleared and marked again, or when the FEED sees a
+    fresh acquiring event for it.
+
+    Re-stamping every marked edition each cycle would put the stamp at roughly
+    `now` forever, so `stamp > index_currency` would always hold, no clear would
+    ever proceed, and availability would freeze permanently. If you are tempted
+    to "fix" the skip, that is the bug you are adding.
+
+    The stamp is the daemon host's wall clock, and it is compared against a
+    currency derived from archive.org's index: the same UNIT, not the same
+    CLOCK. ES_LAG_MARGIN is generous enough to absorb ordinary skew, but a
+    margin tightened toward the measured lag tail must leave room for it rather
+    than assuming the two agree to the second.
     """
     return {
         "key": key,
@@ -700,16 +717,44 @@ def mark_update(key: str, root: str, at: int) -> dict:
     }
 
 
-def _marked_at(doc: dict) -> int:
-    """When this edition was marked, or 0 if the field is missing.
+def stamp_unstamped(doc: dict, at: int) -> dict:
+    """Give a marked-but-unstamped edition a stamp, without changing the mark.
 
-    0 means "clearable", which is deliberate and is the safe default HERE: a
-    doc with no stamp predates this daemon or survived a reindex, so the index
-    is the better authority on it. Fresh marks always carry a stamp because
-    :func:`mark_update` is the only way one is written.
+    These exist for one window only: documents marked before a daemon that
+    writes the stamp. The poll will not clear them, because it refuses to judge
+    an unknown age -- so left alone they would be hidden forever. One write
+    turns each into an ordinary recent mark, which the next margin's worth of
+    polls then handles by the normal rule.
+
+    It writes `ebook_unavailable` as well as the stamp, deliberately: these
+    documents ARE marked, so re-asserting the value is a no-op, and sending
+    both keeps every write in this daemon going through the same two-field
+    shape -- which is the shape the schema and `requireInPlace` were verified
+    against.
+    """
+    return mark_update(doc["key"], doc["_root_"], at)
+
+
+def _marked_at(doc: dict) -> int | None:
+    """When this edition was marked, or None if Solr has no stamp for it.
+
+    None, not 0. An unset docValues field is OMITTED from a Solr response
+    rather than returned as zero, so "missing" is a real third state and the
+    caller has to decide about it rather than inherit a number.
+
+    Both obvious defaults are wrong, which is why there is no default:
+
+    * Treat it as 0 (very old) and the gate clears it immediately. If that mark
+      is in fact recent, the book is published as borrowable while someone has
+      it, and no event follows until the loan ends -- the unrecoverable
+      direction.
+    * Treat it as now (protected) and the gate NEVER clears it. Nothing would
+      ever give it a stamp either, so the book stays hidden permanently.
+
+    See :func:`stamp_unstamped` for what the poll does instead.
     """
     value = doc.get("ebook_unavailable_ts")
-    return value if isinstance(value, int) else 0
+    return value if isinstance(value, int) else None
 
 
 async def build_poll_updates(unavailable_identifiers: list[str], index_current_as_of: int) -> list[dict]:
@@ -741,8 +786,15 @@ async def build_poll_updates(unavailable_identifiers: list[str], index_current_a
     # it. Old marks are covered by the breaker below, which is a different
     # population and not a backup for this one.
     candidates = [doc for key, doc in marked.items() if key not in should_be_marked]
-    to_clear = [doc for doc in candidates if _marked_at(doc) <= index_current_as_of]
-    too_fresh = len(candidates) - len(to_clear)
+    # A mark with no stamp is not aged, it is UNKNOWN, and the gate refuses to
+    # decide on unknown. Stamping it converts the unknown into a known and
+    # deliberately conservative age -- the book is then protected for one
+    # margin and judged normally after that, so the situation resolves itself
+    # within a bounded time instead of being guessed at now.
+    unstamped = [doc for doc in candidates if _marked_at(doc) is None]
+    datable = [doc for doc in candidates if _marked_at(doc) is not None]
+    to_clear = [doc for doc in datable if (_marked_at(doc) or 0) <= index_current_as_of]
+    too_fresh = len(datable) - len(to_clear)
 
     allowed = max(CLEAR_BREAKER_FLOOR, int(len(marked) * CLEAR_BREAKER_FRACTION))
     if len(to_clear) > allowed:
@@ -756,20 +808,23 @@ async def build_poll_updates(unavailable_identifiers: list[str], index_current_a
     # Marks the POLL makes are stamped now, not with the index's currency: this
     # book is unavailable as of this read, and the stamp is what protects it
     # from the next poll.
-    updates = [mark_update(info["key"], info["root"], int(time.time())) for info in to_mark]
+    now = int(time.time())
+    updates = [mark_update(info["key"], info["root"], now) for info in to_mark]
+    updates += [stamp_unstamped(doc, now) for doc in unstamped]
     updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_clear]
 
     # Counts, every cycle, so write volume is observable without a profiler --
     # the disk-growth investigation needs this and a rate is invisible in a
     # per-event log.
     logger.info(
-        "Poll: index=%d resolved=%d marked=%d mark=%d clear=%d held_too_fresh=%d",
+        "Poll: index=%d resolved=%d marked=%d mark=%d clear=%d held_too_fresh=%d stamped_unknown=%d",
         len(unavailable_identifiers),
         len(should_be_marked),
         len(marked),
         len(to_mark),
         len(to_clear),
         too_fresh,
+        len(unstamped),
     )
     return updates
 
