@@ -183,6 +183,32 @@ div#editHistory {
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-card);
   padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.data-transfer-card--flex {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.data-transfer-card--flex > div:first-child {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: flex-start;
+}
+
+.data-transfer-illustration {
+  text-align: center;
+  margin: auto auto;
+  padding: var(--spacing-lg) 0;
+}
+
+.data-transfer-illustration__icon {
+  color: var(--color-icon-muted, #666);
 }
 
 .data-transfer-card--full-width {
