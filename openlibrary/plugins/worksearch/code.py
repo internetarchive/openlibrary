@@ -377,9 +377,13 @@ def _prepare_solr_query_params(  # noqa: PLR0912
         ("wt", param.get("wt", "json")),
     ] + (extra_params or [])
 
-    if list_terms_fq := param.get("list_terms_fq"):
-        # Set by rewrite_list_query: a {!terms f=key} filter for list carousels.
-        params.append(("fq", list_terms_fq))
+    # Callers (e.g. rewrite_list_query) may supply pre-built fq filters. These
+    # bypass query processing, which would mangle local-params syntax such as
+    # `{!terms f=key}`.
+    fq_params = param.get("fq") or []
+    if isinstance(fq_params, str):
+        fq_params = [fq_params]
+    params += [("fq", fq) for fq in fq_params]
 
     if spellcheck_count is None:
         spellcheck_count = default_spellcheck_count
@@ -1129,9 +1133,9 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
     can use the solr API to fetch list works and render them in
     carousels in the right format.
 
-    The filter goes into `params["list_terms_fq"]`, not into the query
-    itself: inside the main query the keys would be parsed by edismax as
-    user text, which is expensive for long key lists and does not support
+    The filter goes into `params["fq"]`, not into the query itself:
+    inside the main query the keys would be parsed by edismax as user
+    text, which is expensive for long key lists and does not support
     `{!terms}` syntax.
     """
     from openlibrary.core.lists.model import List
@@ -1151,8 +1155,13 @@ def rewrite_list_query(q: str, page, offset, limit, params: dict):
         book_keys = cache.memcache_memoize(cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60)(list_key_match.group(0), offset, limit)
 
         # {!terms} avoids parsing every key as a BooleanQuery clause; an
-        # empty list must match nothing.
-        params["list_terms_fq"] = "{!terms f=key}" + ",".join(book_keys) if book_keys else "-key:*"
+        # empty list must match nothing. Append rather than overwrite so any
+        # fq filters already present on the query are preserved.
+        existing_fq = params.get("fq") or []
+        if isinstance(existing_fq, str):
+            existing_fq = [existing_fq]
+        fq_filter = "{!terms f=key}" + ",".join(book_keys) if book_keys else "-key:*"
+        params["fq"] = [*existing_fq, fq_filter]
         q = "*:*"
 
         # We've applied the offset to fetching get_list_editions to
