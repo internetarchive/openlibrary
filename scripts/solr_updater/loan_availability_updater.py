@@ -128,8 +128,9 @@ written, at any volume. See :func:`confirm_clears`.
 
 It is also why the index is read as a candidate set and never written through
 verbatim. The index is a lagged view, and a sibling lending field was measured
-disagreeing with live availability in both directions -- so where a dangerous
-clear is at stake, the availability service decides, per edition.
+disagreeing with live availability in both directions -- so the availability
+service decides every clear, per edition. "Where a dangerous clear is at stake"
+used to qualify that sentence; there is no longer a clear that is not.
 
 **Operational consequence, stated plainly: an availability-service outage stops
 CLEARS, daemon-wide.** Confirming every clear is what removed the sustained
