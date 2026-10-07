@@ -157,8 +157,10 @@ def _record_read_history(user, edition):
     from openlibrary.core.models import User
 
     # If user preferences disable read history tracking, do not record
-    if isinstance(user, User) and not user.get_preference("track_read_history", "yes") == "yes":
-        return
+    if isinstance(user, User):
+        track = user.preferences().get("track_read_history", "yes")
+        if track != "yes":
+            return
 
     username = None
     if hasattr(user, "key") and user.key:
