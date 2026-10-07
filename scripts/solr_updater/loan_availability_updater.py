@@ -131,6 +131,17 @@ verbatim. The index is a lagged view, and a sibling lending field was measured
 disagreeing with live availability in both directions -- so where a dangerous
 clear is at stake, the availability service decides, per edition.
 
+**Operational consequence, stated plainly: an availability-service outage stops
+CLEARS, daemon-wide.** Confirming every clear is what removed the sustained
+sub-threshold drain (see :func:`confirm_clears`), and the price is that the
+service is now on the path of every clear rather than only of a large one. With
+it down, no answers arrive, nothing is confirmed, and every clear is held:
+returned books stay hidden from search until it recovers. That is the safe
+direction and it is the intended behaviour -- but it is a REST STATE, not a
+blip, so an outage long enough to matter wants an alarm rather than patience.
+Marking is unaffected: the follower keeps marking borrows throughout, so the
+daemon degrades to "slow to free" and never to "publishes a book that is out".
+
 Default-available, exceptions only
 ----------------------------------
 An `ebook_access:borrowable` edition is assumed AVAILABLE. Solr stores only
@@ -687,7 +698,8 @@ def build_solr_updates(
     item unavailable when one of several copies was borrowed is wrong, and the
     next poll frees it once the index agrees. So this path never consults the
     availability service, and the follower keeps up with the changes feed even
-    while that service is down.
+    while that service is down -- which is what keeps an availability outage to
+    "clears stop" rather than "the daemon stops".
 
     An identifier with no Solr edition is skipped -- a new item, or its work is
     mid-reindex. There is no doc to mark, so the event is skipped while the
