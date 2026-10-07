@@ -8,9 +8,15 @@ const RECENT_HIGHLIGHT_MS = 10000;
 /**
  * PR toggle, update, remove, restore, deploy, refresh, and add actions.
  *
+ * Clicks flip their row instantly; the queue sends POSTs in order and the
+ * last response of a drain carries the staged flags, which are copied over
+ * the rows. Earlier responses predate still-queued requests, so only the
+ * last one is applied — anything without rows (deploy, refresh, add,
+ * pull-latest) confirms via the stream instead.
+ *
  * @param {object}  opts
  * @param {import('vue').ShallowRef<boolean>} opts.busy       — whether the action queue is processing
- * @param {import('vue').Ref<object|null>} [opts.payload]     — panel payload; toggle/remove/restore flip it optimistically
+ * @param {import('vue').Ref<object|null>} opts.payload       — server snapshot rows (mutated optimistically, confirmed at drain end)
  * @param {Function} opts.setToast   — show an error toast
  * @param {object}  opts.strings     — translated strings (plain object, set once at setup)
  * @returns {object} action flags and methods
@@ -31,10 +37,9 @@ export function useActions({ busy, payload, setToast, strings }) {
         return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
     }
 
-    // No re-fetch here: the SSE stream delivers the confirmed snapshot
-    // within ~1s (polling covers a dead stream), so a GET per action would
-    // only duplicate it — and an intermediate GET predating queued requests
-    // is exactly what flickered rapid toggles.
+    // No re-fetch here: toggle/remove/restore responses carry the staged
+    // rows, and the drain applies only the last one; anything else confirms
+    // via the stream (polling covers a dead stream).
     async function executeAction(action, fields, method = 'POST') {
         try {
             const result = await postAction(action, fields, method);
@@ -61,6 +66,11 @@ export function useActions({ busy, payload, setToast, strings }) {
                 const item = queue.shift();
                 const result = await executeAction(item.action, item.fields, item.method);
                 item.waiters.forEach(({ resolve }) => resolve(result));
+                // Only the last response of a drain is applied: it was
+                // computed from state including every queued save, so it is
+                // the truth. Earlier ones predate queued requests and would
+                // clobber their optimistic flips (the rapid-toggle flicker).
+                if (!queue.length) applyConfirmedState(result);
             }
         } finally {
             draining = false;
@@ -87,12 +97,26 @@ export function useActions({ busy, payload, setToast, strings }) {
         return waiter;
     }
 
-    /**
-     * Apply `patch` to a row now, send the action, revert when the server
-     * rejects it. Success needs no handling: the stream delivers the
-     * confirmed snapshot, and stream events landing mid-queue are dropped
-     * while `busy`, so nothing can clobber a newer optimistic flip.
-     */
+    // ── Optimistic rows, confirmed at drain end ───────────────────────
+    // Copy the staged flags from a mutation response over our rows. Merges
+    // flags only — never adds or drops rows (removals land via the stream),
+    // so a partial or empty response is always safe to apply or skip.
+    function applyConfirmedState(result) {
+        const rows = result?.prs;
+        const current = payload?.value?.prs;
+        if (!Array.isArray(rows) || !Array.isArray(current)) return;
+        for (const update of rows) {
+            const row = current.find((r) => r.pr === update.pr);
+            if (row) {
+                row.pending_active = update.pending_active ?? null;
+                row.pending_remove = update.pending_remove ?? false;
+            }
+        }
+    }
+
+    // Flip a row instantly and send the action; a rejected send restores the
+    // snapshot. (A same-row rapid re-toggle supersedes the snapshot, and the
+    // drain-end apply corrects it — transient by construction.)
     function optimisticRow(prNumber, patch, action, fields, method = 'POST') {
         const row = payload?.value?.prs?.find((r) => r.pr === prNumber);
         const snapshot = row ? { ...row } : null;
@@ -122,7 +146,7 @@ export function useActions({ busy, payload, setToast, strings }) {
     }
 
     function removePr(pr) {
-        // Not-live rows vanish on re-fetch; staged ones keep the flag.
+        // Not-live rows vanish on confirm; staged ones keep the flag.
         return optimisticRow(pr.pr, { pending_remove: true }, '/status/remove', { prs: [pr.pr] });
     }
 

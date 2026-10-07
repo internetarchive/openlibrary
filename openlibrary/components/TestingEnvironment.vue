@@ -42,7 +42,8 @@ try {
 // ── Composables ─────────────────────────────────────────────────────
 const { setToast } = useToast();
 
-// busy marks the action queue as processing and pauses background refreshes.
+// busy marks the action queue as processing: pushes and polls pause while
+// it drains, and the drain-end response confirms everything queued.
 const busy = shallowRef(false);
 const { view, payload, now, retry } = useTestingStatus(busy);
 const { refreshing, adding, deploying, addInput, recentlyAdded, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({

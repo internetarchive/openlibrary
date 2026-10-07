@@ -136,7 +136,7 @@ async def pull_latest(data: PRsRequest) -> dict[str, bool]:
 
 
 @router.patch("/status/testing/prs")
-def set_prs_active_endpoint(data: ActivePRsRequest) -> dict[str, bool]:
+def set_prs_active_endpoint(data: ActivePRsRequest) -> dict[str, Any]:
     """Stage PRs to be enabled or disabled on the next testing deploy."""
     result = set_prs_active(data.prs, data.active)
     _invalidate_cached_snapshot()

@@ -681,7 +681,7 @@ def test_remove_stages_a_removal_for_a_live_pr():
     ):
         result = status_module.remove_testing_prs([13269])
 
-    assert result == {"ok": True, "staged_prs": [13269], "removed_prs": []}
+    assert result == {"ok": True, "staged_prs": [13269], "removed_prs": [], "prs": [{"pr": 13269, "pending_active": None, "pending_remove": True}]}
     assert [p.pr for p in state.prs] == [13269]
     assert state.prs[0].pending_remove is True
     assert state.prs[0].pull_latest_sha == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
@@ -700,8 +700,28 @@ def test_remove_deletes_a_never_deployed_pr_outright():
     ):
         result = status_module.remove_testing_prs([13269])
 
-    assert result == {"ok": True, "staged_prs": [], "removed_prs": [13269]}
+    assert result == {"ok": True, "staged_prs": [], "removed_prs": [13269], "prs": []}
     assert state.prs == []
+
+
+def test_mutation_responses_echo_the_staged_rows():
+    """Toggle/remove/restore answers carry the staged flags so the panel can
+    confirm from the last queued response instead of refetching."""
+    state = _make_state(prs=[_make_pr()])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+    ):
+        assert status_module.set_prs_active([13269], False) == {
+            "ok": True,
+            "prs": [{"pr": 13269, "pending_active": False, "pending_remove": False}],
+        }
+        # Staging back to the live state normalizes away, like the snapshot.
+        assert status_module.set_prs_active([13269], True) == {
+            "ok": True,
+            "prs": [{"pr": 13269, "pending_active": None, "pending_remove": False}],
+        }
 
 
 def test_restore_clears_a_staged_removal():
@@ -715,7 +735,7 @@ def test_restore_clears_a_staged_removal():
     ):
         response = status_module.restore_prs([13269])
 
-    assert response == {"ok": True}
+    assert response == {"ok": True, "prs": [{"pr": 13269, "pending_active": None, "pending_remove": False}]}
     assert state.prs[0].pending_remove is False
     mock_save.assert_called_once_with(state)
 
@@ -1483,7 +1503,7 @@ def test_remove_prs_endpoint_e2e_stages_live_pr(fastapi_client, mock_authenticat
         response = fastapi_client.post("/status/remove", json={"prs": [13269]})
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": []}
+    assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": [], "prs": [{"pr": 13269, "pending_active": None, "pending_remove": True}]}
     assert [p.pr for p in state.prs] == [13269]
     assert state.prs[0].pending_remove is True
     assert state.prs[0].pull_latest_sha == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
@@ -1503,7 +1523,7 @@ def test_remove_prs_endpoint_e2e_deletes_never_deployed_pr(fastapi_client, mock_
         response = fastapi_client.post("/status/remove", json={"prs": [13269]})
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True, "staged_prs": [], "removed_prs": [13269]}
+    assert response.json() == {"ok": True, "staged_prs": [], "removed_prs": [13269], "prs": []}
     assert state.prs == []
     mock_save.assert_called_once_with(state)
 

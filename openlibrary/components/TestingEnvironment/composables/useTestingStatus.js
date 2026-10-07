@@ -16,12 +16,16 @@ const FALLBACK_POLL_SECONDS = 5;
  * ticker refreshes data on :05 boundaries — the panel's original polling
  * behavior, which is the worst case this design can degrade to.
  *
+ * Pushes and polls pause while the action queue drains: a snapshot sampled
+ * between two queued saves predates the later ones, and applying it would
+ * clobber their optimistic flips. The drain-end response reconciles
+ * everything instead.
+ *
  * @param {import('vue').ShallowRef<boolean>} busy — action queue state shared with useActions
  * @returns {{
- *   view:   import('vue').ShallowRef<string>,
- *   payload: import('vue').ShallowRef<object|null>,
+ *   view:   import('vue').Ref<string>,
+ *   payload: import('vue').Ref<object|null>,
  *   now:    import('vue').ShallowRef<number>,
- *   loadStatus: (showLoading?: boolean, renderError?: boolean, manageBusy?: boolean) => Promise<boolean>,
  *   retry: () => void,
  * }}
  */
@@ -34,8 +38,8 @@ export function useTestingStatus(busy) {
     const { streaming } = useEventStream(STREAM_URL, {
         event: 'status',
         onPayload(streamed) {
-            // While actions are in flight their optimistic updates own the
-            // UI; the first stream event after the queue drains reconciles.
+            // Dropped while the queue drains; the drain-end response is the
+            // confirmation for everything queued.
             if (busy.value) return;
             applyPayload(streamed);
         }
@@ -53,8 +57,7 @@ export function useTestingStatus(busy) {
         view.value = 'ready';
     }
 
-    async function loadStatus(showLoading = false, renderError = true, manageBusy = true) {
-        if (manageBusy) busy.value = true;
+    async function loadStatus(showLoading = false, renderError = true) {
         if (showLoading && !payload.value) view.value = 'loading';
         try {
             applyPayload(await getTestingStatus());
@@ -62,16 +65,14 @@ export function useTestingStatus(busy) {
         } catch {
             if (renderError && !payload.value) view.value = 'error';
             return false;
-        } finally {
-            if (manageBusy) busy.value = false;
         }
     }
 
-    // Re-fetch quietly: no loading view, no error takeover, no busy flag.
-    // Skipped while an action is in flight.
+    // Re-fetch quietly: no loading view, no error takeover.
+    // Skipped while the queue drains, for the same reason as pushes.
     function silentRefresh() {
         if (busy.value) return;
-        loadStatus(false, false, false);
+        loadStatus(false, false);
     }
 
     function onVisibilityChange() {
@@ -108,5 +109,5 @@ export function useTestingStatus(busy) {
         document.removeEventListener('visibilitychange', onVisibilityChange);
     });
 
-    return { view, payload, now, loadStatus, retry };
+    return { view, payload, now, retry };
 }

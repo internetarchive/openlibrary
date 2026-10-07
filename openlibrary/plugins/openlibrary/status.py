@@ -78,7 +78,7 @@ def remove_testing_prs(prs: list[int]) -> dict[str, Any]:
     to_remove = {int(p) for p in prs}
     state = _load_testing_state()
     if not state or not to_remove:
-        return {"ok": True, "staged_prs": [], "removed_prs": []}
+        return {"ok": True, "staged_prs": [], "removed_prs": [], "prs": []}
     staged_prs = []
     removed_prs = []
     kept = []
@@ -92,33 +92,44 @@ def remove_testing_prs(prs: list[int]) -> dict[str, Any]:
         kept.append(p)
     state.prs = kept
     _save_testing_state(state)
-    return {"ok": True, "staged_prs": staged_prs, "removed_prs": removed_prs}
+    return {"ok": True, "staged_prs": staged_prs, "removed_prs": removed_prs, "prs": _staged_rows(state)}
 
 
-def restore_prs(prs: list[int]) -> dict[str, bool]:
+def restore_prs(prs: list[int]) -> dict[str, Any]:
     """Clear staged removals for PRs in the testing set."""
     state = _load_testing_state()
     if not state:
-        return {"ok": True}
+        return {"ok": True, "prs": []}
     requested = set(prs)
     for p in state.prs:
         if p.pr in requested:
             p.pending_remove = False
     _save_testing_state(state)
-    return {"ok": True}
+    return {"ok": True, "prs": _staged_rows(state)}
 
 
-def set_prs_active(prs: list[int], active: bool) -> dict[str, bool]:
+def set_prs_active(prs: list[int], active: bool) -> dict[str, Any]:
     """Stage an active-state change for PRs in the testing set."""
     state = _load_testing_state()
     if not state:
-        return {"ok": True}
+        return {"ok": True, "prs": []}
     requested = set(prs)
     for p in state.prs:
         if p.pr in requested:
             p.pending_active = active
     _save_testing_state(state)
-    return {"ok": True}
+    return {"ok": True, "prs": _staged_rows(state)}
+
+
+def _staged_rows(state: TestingState) -> list[dict[str, Any]]:
+    """The staged flags per row, cheap and sync: no GitHub/Jenkins reads.
+
+    Mutation responses echo these so the panel can confirm queued actions
+    from the last response instead of refetching. ``pending_active`` is the
+    normalized staged direction (None when it matches live), mirroring the
+    snapshot rows.
+    """
+    return [{"pr": p.pr, "pending_active": p.pending_toggle, "pending_remove": p.pending_remove} for p in state.prs]
 
 
 async def pull_latest_prs(prs: list[int]) -> dict[str, bool]:
