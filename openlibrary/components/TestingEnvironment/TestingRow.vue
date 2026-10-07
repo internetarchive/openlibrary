@@ -27,6 +27,10 @@ const props = defineProps({
     recent: {
         type: Boolean,
         default: false
+    },
+    updating: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -158,9 +162,16 @@ function text(key, ...args) {
             class="testing-env__row-action"
             :title="strings.update"
             :aria-label="strings.update"
+            :disabled="updating"
             @click="emit('update', pr)"
           >
+            <span
+              v-if="updating"
+              class="testing-env__btn-icon testing-env__spinner"
+              aria-hidden="true"
+            />
             <svg
+              v-else
               class="testing-env__btn-icon"
               width="16"
               height="16"

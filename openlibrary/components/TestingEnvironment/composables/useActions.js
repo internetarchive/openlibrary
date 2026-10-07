@@ -1,4 +1,4 @@
-import { shallowRef } from 'vue';
+import { ref, shallowRef } from 'vue';
 import { actionErrorMessage, effectiveActive, parsePrNumbers, postAction } from '../utils.js';
 
 // How long a newly added row stays highlighted. Purely client-side: a page
@@ -26,6 +26,9 @@ export function useActions({ busy, payload, setToast, strings }) {
     const adding = shallowRef(false);
     const deploying = shallowRef(false);
     const addInput = shallowRef('');
+    // PRs with a pull-latest request in flight. Plain numbers, so direct
+    // add/delete on a ref-wrapped Set stays reactive (no copy dance needed).
+    const updating = ref(new Set());
     // PR numbers added within the last RECENT_HIGHLIGHT_MS. Replaced rather
     // than mutated, because shallowRef does not track changes inside a Set.
     const recentlyAdded = shallowRef(new Set());
@@ -142,7 +145,10 @@ export function useActions({ busy, payload, setToast, strings }) {
     }
 
     function updatePr(pr) {
-        enqueue('/status/pull-latest', { prs: [pr.pr] }, 'pull-latest');
+        updating.value.add(pr.pr);
+        const waiter = enqueue('/status/pull-latest', { prs: [pr.pr] }, 'pull-latest');
+        waiter.then(() => updating.value.delete(pr.pr));
+        return waiter;
     }
 
     function removePr(pr) {
@@ -206,6 +212,7 @@ export function useActions({ busy, payload, setToast, strings }) {
         refreshing,
         adding,
         deploying,
+        updating,
         addInput,
         recentlyAdded,
         togglePr,

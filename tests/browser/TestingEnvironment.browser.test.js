@@ -131,6 +131,23 @@ test('queues and batches rapid updates before deploying', async() => {
     pendingPosts.shift().resolve();
 });
 
+test('shows a spinner on the row while its update is in flight', async() => {
+    const { pendingPosts } = stubQueuedActions();
+    await render(TestingEnvironment, { props: { maintainer: 'true' } });
+
+    await expect.element(page.getByRole('button', { name: 'Update' }).first()).toBeInTheDocument();
+    await page.getByRole('button', { name: 'Update' }).first().click();
+
+    // The arrow swaps for a spinner and the button disables until done.
+    const updateButton = () => document.querySelector('button[aria-label="Update"]');
+    await expect.poll(() => updateButton()?.disabled).toBe(true);
+    expect(document.querySelector('.testing-env__row-action .testing-env__spinner')).not.toBeNull();
+
+    pendingPosts.shift().resolve();
+    await expect.poll(() => updateButton()?.disabled).toBe(false);
+    expect(document.querySelector('.testing-env__row-action .testing-env__spinner')).toBeNull();
+});
+
 test('applies status pushed over the event stream', async() => {
     const fetchUrls = [];
     window.fetch = async(url) => {

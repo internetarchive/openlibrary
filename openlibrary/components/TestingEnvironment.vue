@@ -46,7 +46,7 @@ const { setToast } = useToast();
 // it drains, and the drain-end response confirms everything queued.
 const busy = shallowRef(false);
 const { view, payload, now, retry } = useTestingStatus(busy);
-const { refreshing, adding, deploying, addInput, recentlyAdded, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
+const { refreshing, adding, deploying, updating, addInput, recentlyAdded, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
     busy,
     payload,
     setToast,
@@ -176,6 +176,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
                 :maintainer="isMaintainer"
                 :strings="strings"
                 :recent="recentlyAdded.has(pr.pr)"
+                :updating="updating.has(pr.pr)"
                 @toggle="togglePr"
                 @update="updatePr"
                 @remove="removePr"
