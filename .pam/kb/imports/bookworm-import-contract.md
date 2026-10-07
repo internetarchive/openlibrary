@@ -600,7 +600,7 @@ Every search anyone would run — worktrees of `openlibrary`, branches matching
 `bookworm`, the `12844/*` family — misses it, because it is *a different
 repository in a different GitHub organisation*. The first instance was a schema
 on an unmerged branch. This is an entire service one org sideways. The
-`git ls-remote` check proposed in [[imports-plan-2026-09]] would **also** have
+`git ls-remote` check proposed for the import pipeline would **also** have
 missed it, which is the more useful half of the finding: **the check has to
 enumerate repos, not just branches.**
 
@@ -779,5 +779,4 @@ Worth knowing before push time, since GitHub reports missing access as
 
 ---
 
-*See [[features/feed-registry-import-system]] · [[imports]] ·
-[[imports-plan-2026-09]] · [[METHODOLOGY]]*
+*See [[features/feed-registry-import-system]] · [[imports]] · [[METHODOLOGY]]*

@@ -1,0 +1,8 @@
+# PAM agent definition: authored, committed, hand-editable. This is libra's identity in
+# this Project. The running agent reads identity.md (beside this file) on startup.
+[agent]
+name = "libra"
+uuid = "01M46XQFNZ58NNKMQFDF89KXV3"
+type = "division_lead"
+reports_to = ""
+can_onboard = false

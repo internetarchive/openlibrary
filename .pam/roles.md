@@ -3,17 +3,18 @@
 The standard roles PAM seeds for a Project: the shared vocabulary for who does what.
 This file reads on its own; you do not need to run pam or cmux to use it as a team standard.
 
-## project_lead: Project Lead
+## lead: Lead
 
-Owns the Project: settings, docs, configuration; allocates reviewers; settles inter-lead disputes.
+Owns a part of the Project — the whole thing, a division, or an epic — and coordinates and unblocks
+the agents under it. **Seniority is the reporting tree (reports_to), not the role:** the coordinator
+is simply the Lead at the root, a division lead is a Lead that reports to it, and so on. For a
+Project's `.pam` Team, "Lead" is what we mean — we don't distinguish Project Lead from Division Lead
+as separate roles.
 
 Permissions: manage_project, manage_epics, onboard_agents, allocate_reviewers.
 
-## division_lead: Division / Epic Lead
-
-Domain expert and epic manager for a set of Epics; unblocks agents as a consultant.
-
-Permissions: manage_epics, onboard_agents.
+(`project_lead` and `division_lead` remain as deprecated aliases of `lead` so older records resolve;
+new members should be onboarded as `lead`.)
 
 ## ada_agent: ADA agent
 

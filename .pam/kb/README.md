@@ -7,8 +7,7 @@ you do not need to run pam or cmux to use it.
 This KB consolidates what used to live in three places — the in-repo `docs/ai/` guides, the external
 `mekarpeles/openlibrary-kb` repo, and `.pam/kb` — into one in-repo source of truth. Staff/fleet-only
 operational material (the old `openlibrary-kb/internal/`) is intentionally **not** here; it belongs in
-`olsystem`'s private `.pam`. See [`decisions/kb-reconciliation.md`](decisions/kb-reconciliation.md) for
-the background.
+`olsystem`'s private `.pam` — tracked in mekarpeles/PAM#58.
 
 Start here:
 

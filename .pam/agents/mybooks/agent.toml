@@ -1,0 +1,8 @@
+# PAM agent definition: authored, committed, hand-editable. This is mybooks's identity in
+# this Project. The running agent reads identity.md (beside this file) on startup.
+[agent]
+name = "mybooks"
+uuid = "01M459DD00981HDGFZ7279VVP8"
+type = "division_lead"
+reports_to = ""
+can_onboard = false

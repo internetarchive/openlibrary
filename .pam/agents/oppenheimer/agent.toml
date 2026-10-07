@@ -1,0 +1,8 @@
+# PAM agent definition: authored, committed, hand-editable. This is oppenheimer's identity in
+# this Project. The running agent reads identity.md (beside this file) on startup.
+[agent]
+name = "oppenheimer"
+uuid = "01M459DCYCDP8PNVJ2SJQ1ZWFC"
+type = "division_lead"
+reports_to = ""
+can_onboard = false
