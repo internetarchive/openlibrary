@@ -27,39 +27,6 @@ from scripts.solr_updater.loan_availability_updater import (
     solr_update_in_place,
 )
 
-BORROW_ROW = {
-    "identifier": "bookabc",
-    "uid": 100,
-    "event_type": "borrow",
-    "extra": '{"until": "2026-05-15 10:00:00"}',
-}
-RETURN_ROW = {
-    "identifier": "bookabc",
-    "uid": 200,
-    "event_type": "return",
-    "extra": "{}",
-}
-BROWSE_ROW = {
-    "identifier": "bookxyz",
-    "uid": 150,
-    "event_type": "browse",
-    "extra": '{"until": "2026-05-02 12:00:00"}',
-}
-EXPIRE_ROW = {
-    "identifier": "bookxyz",
-    "uid": 300,
-    "event_type": "expire_browse",
-    "extra": "{}",
-}
-ID_TO_EDITION = {
-    "bookabc": {"key": "/books/OL1M", "root": "/works/OL1W"},
-    "bookxyz": {"key": "/books/OL2M", "root": "/works/OL2W"},
-}
-
-AVAILABLE = {"status": "borrow_available", "available_to_browse": True, "available_to_borrow": True}
-UNAVAILABLE = {"status": "borrow_unavailable", "available_to_browse": False, "available_to_borrow": False}
-
-
 # ---------------------------------------------------------------------------
 # Solr plumbing
 # ---------------------------------------------------------------------------
@@ -183,33 +150,10 @@ async def test_solr_update_in_place_propagates_transport_errors():
             await solr_update_in_place([{"key": "/books/OL1M"}])
 
 
-def _recheck_docs():
-    mock_result = MagicMock()
-    mock_result.docs = [
-        {"key": "/books/OL99M", "ia": ["freed"], "_root_": "/works/OL99W"},
-        {"key": "/books/OL100M", "ia": ["stillout"], "_root_": "/works/OL100W"},
-    ]
-    return mock_result
-
-
-_RETURN_ROW = {
-    "identifier": "bookabc",
-    "uid": 100,
-    "event_type": "return",
-    "extra": "{}",
-}
-_BORROW_ROW = {
-    "identifier": "bookabc",
-    "uid": 100,
-    "event_type": "borrow",
-    "extra": '{"until": "2026-05-15 10:00:00"}',
-}
 _RESOLVE_RESULT = MagicMock()
 _RESOLVE_RESULT.docs = [{"key": "/books/OL1M", "ia": ["bookabc"], "_root_": "/works/OL1W"}]
 _EMPTY_RESULT = MagicMock()
 _EMPTY_RESULT.docs = []
-_RECHECK_RESULT = MagicMock()
-_RECHECK_RESULT.docs = [{"key": "/books/OL99M", "ia": ["stale"], "_root_": "/works/OL99W"}]
 
 _OK_RESPONSE = {"responseHeader": {"status": 0}}
 
@@ -262,15 +206,6 @@ async def test_resolve_edition_keys_still_resolves_across_chunks():
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
         resolved = await resolve_edition_keys(identifiers)
     assert set(resolved) == {first, last}
-
-
-WAITLISTED = {
-    "status": "borrow_unavailable",
-    "available_to_browse": False,
-    "available_to_borrow": False,
-    "available_to_waitlist": True,
-    "num_waitlist": "3",
-}
 
 
 # ---------------------------------------------------------------------------
