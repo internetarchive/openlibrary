@@ -334,14 +334,15 @@
   border: 0;
 }
 
-/* The row bleeds to the shelf's edges rather than the page's, but rests inset from them. */
+/* The row's viewport bleeds to the shelf's edges, so scrolled cards run under them, but the cards
+   rest at the shelf's inset: the first cover lines up with the headings above it. */
 .genre-shelf .carousel-container {
   margin-inline: calc(-1 * var(--shelf-inset));
   padding-inline: 0;
 }
 
 .genre-shelf .carousel--native {
-  --ol-carousel-inset: var(--spacing-inset-md);
+  --ol-carousel-inset: var(--shelf-inset);
 }
 
 /* The shelf's own title names the genre, so the rows' headings are a step down from it. */
