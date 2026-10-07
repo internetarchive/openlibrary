@@ -681,3 +681,38 @@ async def test_a_refused_mass_clear_still_marks_the_newly_unavailable():
     mark, clear = _sets(updates)
     assert mark == {"/books/OL9001M"}, "a newly-unavailable book must still be marked"
     assert clear == set(), "no clear may proceed when ground truth contradicts the index"
+
+
+@pytest.mark.asyncio
+async def test_a_mark_carries_the_timestamp_in_the_same_update():
+    """`ebook_unavailable_ts` ships ahead of the code that reads it.
+
+    Nothing in this daemon consults it -- the poll restates the whole set every
+    cycle and needs no history. It exists so the feed/poll hybrid that follows
+    is a code-only change rather than a second schema special-deploy, and its
+    semantics are fixed by what that hybrid needs: when the mark was last
+    asserted.
+
+    Asserted on the SAME update dict rather than as a second write, because a
+    mark and its timestamp arriving separately could interleave with a clear.
+    """
+    resolve, marked = _poll(["bookaaa"], {})
+    with resolve, marked:
+        updates = await build_poll_updates(["bookaaa"])
+    assert len(updates) == 1
+    assert updates[0]["ebook_unavailable"] == {"set": EBOOK_UNAVAILABLE}
+    assert updates[0]["ebook_unavailable_ts"]["set"] > 1_700_000_000, "a mark with no timestamp is useless to the hybrid's gate"
+
+
+@pytest.mark.asyncio
+async def test_a_clear_does_not_touch_the_timestamp():
+    """`requireInPlace` cannot set a field to null, so a clear leaves the old
+    value behind -- verified against a live Solr, not assumed. The field is
+    therefore meaningful only while `ebook_unavailable` is 1, and a re-mark
+    overwrites it."""
+    resolve, marked = _poll([], _marked("/books/OL1M"))
+    with resolve, marked:
+        updates = await build_poll_updates([])
+    assert len(updates) == 1
+    assert updates[0]["ebook_unavailable"] == {"set": EBOOK_AVAILABLE}
+    assert "ebook_unavailable_ts" not in updates[0]

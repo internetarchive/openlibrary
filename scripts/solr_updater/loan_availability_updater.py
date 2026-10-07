@@ -439,6 +439,35 @@ async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: i
     return confirmed
 
 
+def mark_update(key: str, root: str, at: int) -> dict:
+    """One edition marked unavailable, and when the mark was set.
+
+    `ebook_unavailable_ts` is written here and read by nothing in this daemon:
+    the poll restates the whole set every cycle, so it needs no history of its
+    own marks. It ships now because the field has to exist in Solr before any
+    code can use it, and a schema change is a special deploy -- so carrying it
+    here makes the feed/poll hybrid that follows a **code-only** change rather
+    than a second deploy with its own coordination.
+
+    Its semantics are fixed by what that hybrid needs: *when was this mark last
+    asserted*. The hybrid gates clearing on it -- a mark newer than the index's
+    currency is a borrow the index has not seen yet, and clearing it would
+    publish a checked-out book as borrowable. So it is set on every mark, and
+    both writers must go through here; a mark without a timestamp would read as
+    epoch 0 and be clearable immediately, which is exactly backwards.
+
+    A clear leaves the old value in place -- `requireInPlace` cannot set a field
+    to null -- so it is meaningful only while `ebook_unavailable` is 1. Nothing
+    reads it otherwise, and a re-mark overwrites it.
+    """
+    return {
+        "key": key,
+        "_root_": root,
+        "ebook_unavailable": {"set": EBOOK_UNAVAILABLE},
+        "ebook_unavailable_ts": {"set": at},
+    }
+
+
 async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
     """Reconcile Solr's marked set to the index's unavailable set, in one pass.
 
@@ -467,7 +496,8 @@ async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
         # exists to prevent, reached from the other side.
         to_clear = await confirm_mass_clear(to_clear, allowed, len(marked), len(unavailable_identifiers))
 
-    updates = [{"key": info["key"], "_root_": info["root"], "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}} for info in to_mark]
+    marked_at = int(time.time())
+    updates = [mark_update(info["key"], info["root"], marked_at) for info in to_mark]
     updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_clear]
 
     # Counts, every cycle, so write volume is observable without a profiler --

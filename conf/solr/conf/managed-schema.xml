@@ -170,6 +170,14 @@
     <!-- numeric + stored/indexed=false is required by update.partial.requireInPlace. -->
     <!-- See docs/ai/solr/index.md "Near-realtime loan availability" before changing any of this. -->
     <field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <!-- When ebook_unavailable was last SET to 1, epoch seconds. Written by the same -->
+    <!-- in-place update, read by nothing here: the poll reconciles the whole set each -->
+    <!-- cycle and needs no history. It ships now so the feed/poll hybrid is a code-only -->
+    <!-- change later rather than a second schema deploy. -->
+    <!-- plong, not pdate: requireInPlace rejects pdate regardless of docValues config. -->
+    <!-- Meaningful only while ebook_unavailable=1; a clear leaves it at its last value, -->
+    <!-- because requireInPlace cannot set a field to null. -->
+    <field name="ebook_unavailable_ts" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 
     <!-- Usefulness scores -->
     <field name="usefulness_score" type="pint" multiValued="false"/>
