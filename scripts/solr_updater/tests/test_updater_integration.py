@@ -225,6 +225,71 @@ def test_a_poll_clears_a_book_the_index_has_released(seeded_editions, monkeypatc
     assert _edition(keys[2]).get("ebook_unavailable") == 0, "returned, so freed"
 
 
+def test_accumulated_cruft_is_reconciled_away_in_one_poll(monkeypatch):
+    """THE PRODUCTION CASE, 2026-10-07. Solr held 3493 marks while a healthy ES
+    returned its usual 845, and the breaker blocked the reconcile for being
+    large -- then wedged, because confirming thousands of identifiers one
+    service call at a time never completed. Solr stayed polluted indefinitely.
+
+    **Sized to exceed the breaker's floor on purpose.** A six-edition version
+    of this test passed with the breaker restored: five stale marks is under
+    the absolute floor of 25, so the guard never tripped and the test proved
+    nothing. The stale set here is 49, which is both over the floor and over
+    10% of the marked set -- the same shape as production.
+    """
+    monkeypatch.setenv("OL_SOLR_BASE_URL", SOLR)
+    count = 50
+    ocaids = [f"cruft{i:03d}" for i in range(count)]
+    keys = [f"/books/OL7800{i}M" for i in range(count)]
+    _post(
+        "update",
+        [
+            {
+                "key": f"/works/OL7800{i}W",
+                "type": "work",
+                "title": f"Cruft {i}",
+                "editions": [{"key": keys[i], "type": "edition", "work_key": [f"/works/OL7800{i}W"], "ia": [ocaids[i]]}],
+            }
+            for i in range(count)
+        ],
+    )
+    _commit()
+
+    # Everything marked -- the state the cruft was in.
+    _set_index(ocaids)
+    asyncio.run(_one_poll())
+    _commit()
+    assert sum(_edition(k).get("ebook_unavailable") == 1 for k in keys) == count, "precondition: all marked"
+
+    # ES now reports one. The other 49 are cruft and must all go in ONE poll.
+    _set_index(ocaids[:1])
+    asyncio.run(_one_poll())
+    _commit()
+
+    assert _edition(keys[0]).get("ebook_unavailable") == 1, "the one ES still reports stays marked"
+    still_marked = [k for k in keys[1:] if _edition(k).get("ebook_unavailable") != 0]
+    assert still_marked == [], f"{len(still_marked)} of 49 stale marks survived the reconcile"
+
+
+def test_a_mark_with_no_timestamp_is_still_reconciled_away(seeded_editions, monkeypatch):
+    """The cruft in production predates the timestamp field, so most of it
+    carries no `ebook_unavailable_ts` at all. If a stampless mark were held,
+    the reconcile would never reach the very documents it exists to clean."""
+    monkeypatch.setenv("OL_SOLR_BASE_URL", SOLR)
+    keys = seeded_editions()
+
+    # A mark written the way the old code wrote it: the flag, no stamp.
+    _post("update", [{"key": keys[1], "_root_": f"{WORK_PREFIX}1W", "ebook_unavailable": {"set": 1}}])
+    _commit()
+    assert _edition(keys[1]).get("ebook_unavailable") == 1
+    assert _edition(keys[1]).get("ebook_unavailable_ts") is None, "precondition: no stamp, as the old code left it"
+
+    _set_index(OCAIDS[:1])
+    asyncio.run(_one_poll())
+    _commit()
+    assert _edition(keys[1]).get("ebook_unavailable") == 0, "a stampless mark ES does not report must be unset"
+
+
 def test_a_reindex_wipe_is_repaired_by_the_next_poll(seeded_editions, monkeypatch):
     """HEADLINE. A reindex rewrites edition documents and drops
     `ebook_unavailable` entirely. Under the design this replaces, every
