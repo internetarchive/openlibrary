@@ -42,9 +42,31 @@ $def with (books=None, books_wo_isbns=None)
         </div>
       </div>
 
-      <div class="data-transfer-card data-transfer-card--full-width">
-        <h3>$_("Barcode Scanner")</h3>
-        <p>$_("Scan book barcodes using your device camera to quickly add books to your reading log.")</p>
+      $# ========================================================================
+      $# FOLLOW-UP REMINDER: Barcode Scanner placement & metrics
+      $# ------------------------------------------------------------------------
+      $# Once we have barcode scanner on My Books home "Build your library" feature,
+      $# add analytics and monitor for significant drop in barcode clicks from the
+      $# import page. If drop is significant, discuss with community & consider
+      $# removing barcode scanner from import page.
+      $#
+      $# TODO:
+      $#   1. Add barcode scanner on "Build your library" feature (My Books home)
+      $#   2. Ensure patrons have a way to scan barcodes after onboarding too
+      $#   3. Check metrics on whether to keep barcode scanner here or remove
+      $#
+      $# Stakeholder: @sadashii
+      $# ========================================================================
+      <div class="data-transfer-card data-transfer-card--primary data-transfer-card--flex">
+        <div>
+          <div class="data-transfer-card-header">
+            <h3 class="data-transfer-card-title">$_("Scan barcodes")</h3>
+          </div>
+          <p>$_("Instantly add physical books to your reading log by scanning their barcodes with your device's camera.")</p>
+          <div class="data-transfer-illustration">
+            <svg class="data-transfer-illustration__icon" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7V5a2 2 0 0 1 2-2h2"/><path d="M18 3h2a2 2 0 0 1 2 2v2"/><path d="M22 17v2a2 2 0 0 1-2 2h-2"/><path d="M6 21H4a2 2 0 0 1-2-2v-2"/><path d="M6 7v10"/><path d="M10 7.5v9" stroke-width="3"/><path d="M14 7v10"/><path d="M18 7v10"/></svg>
+          </div>
+        </div>
         <div class="data-transfer-card__action">
           <a href="/barcodescanner?returnTo=/account/books" class="cta-btn cta-btn--available" data-ol-link-track="PatronImports|BarcodeScanner">
             $:macros.icon("scan-barcode", size="md", extra_class="icon-link__image")
