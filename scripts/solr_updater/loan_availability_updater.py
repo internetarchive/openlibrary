@@ -27,9 +27,20 @@ published as borrowable while someone has it, and nothing revisits it.
 So the mark direction is unguarded on purpose and the clear direction refuses,
 holds, and asks for a second opinion. In order: the clear-gate
 (gate_clears_on_index_currency) drops anything the index is too stale to
-contradict, the breaker (CLEAR_BREAKER_FRACTION, confirm_mass_clear) sends an
-implausibly large clear to ground truth, and marks are written before clears so
-a partially-landed batch errs toward hiding.
+contradict. Sets are written before unsets, so a partially-landed batch errs
+toward hiding.
+
+THERE IS NO GUARD AGAINST A SHORT ES ANSWER, deliberately. If ES returns fewer
+identifiers than it should, the books missing from its answer are unset and
+show as borrowable for one cycle, then the next poll re-sets them. That is a
+30-second error that fixes itself. The guard that used to sit here -- confirming
+large unsets per-edition against services/availability -- made the opposite,
+permanent mistake: it could not tell a degraded ES from a legitimate reconcile,
+so it blocked the reconcile and left Solr holding stale marks indefinitely.
+Transient over-clearing beats permanent pollution.
+
+NOTHING HERE CALLS THE AVAILABILITY SERVICE. AdvancedSearch is the only
+external source.
 
 THE TRAPS, so they are not re-introduced
 ----------------------------------------
@@ -280,43 +291,6 @@ direction: an edition outside a capped window is indistinguishable from one the
 index no longer calls unavailable, and would be cleared.
 """
 
-CLEAR_BREAKER_FRACTION = 0.10
-CLEAR_BREAKER_FLOOR = 25
-"""Clear-direction circuit breaker: refuse a poll that clears implausibly many.
-
-The poll's clear direction rests entirely on ABSENCE from a lagged index, with
-no ground-truth call anywhere -- the single largest change from the design this
-replaced, where the follower could only mark and the repairer could only clear
-against ground truth.
-
-The existing seed guards catch a result larger than the paging window and a
-read shorter than its own numFound. Neither can catch a result that is SMALL
-BUT INTERNALLY CONSISTENT: a mid-reindex or partially degraded index honestly
-reporting numFound 5 and returning 5 passes every check, and the reconcile then
-clears the rest -- publishing hundreds of checked-out books as borrowable,
-which is the failure mode that must never ship.
-
-Consecutive-absence hysteresis does not fix that, because a degraded index
-stays degraded; it delays the mass clear by N cycles and then performs it. A
-relative-change guard does. Sized from measurement: a normal cycle clears 0-2
-against ~766 marked, well under 1%, so 10% never trips in ordinary operation
-while catching anything resembling a mass event. The absolute floor keeps a
-small marked set (a fresh install, a test) from tripping on routine movement.
-
-What this guard does and does not do:
-
-  * It does NOT decide that a large clear is wrong. It decides that a large
-    clear may not proceed on the index's word alone. A tripped breaker hands
-    the whole clear set to ground truth (:func:`confirm_mass_clear`), which
-    decides each edition on its own answer.
-  * So a legitimate mass-free -- a batch of same-day loans expiring together --
-    proceeds, and an index that has collapsed does not. The daemon recovers
-    from both without a human, which matters because the alternative resting
-    state is "availability-freeing is frozen until somebody notices".
-  * It does not protect the MARK direction, which needs no protection: marking
-    is the recoverable error, and the next poll unmarks.
-"""
-
 
 class PollRefused(Exception):
     """This cycle's inputs were not trustworthy, so prior state stands.
@@ -368,78 +342,6 @@ async def fetch_marked_editions() -> dict[str, dict]:
         raise PollRefused(f"Marked set reached the {MARKED_SET_MAX}-edition read cap; cannot tell a complete read from a truncated one")
     refuse_if_incomplete(result, len(docs), "marked-set read")
     return {doc["key"]: doc for doc in docs}
-
-
-async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: int, index_total: int) -> list[dict]:
-    """Settle a tripped clear-breaker against ground truth, or refuse.
-
-    The breaker alone cannot tell a degraded index from a legitimate mass-free:
-    a batch of same-day loans all expiring together and an ES mid-reindex both
-    present as "the clear set is suddenly huge". Refusing both is safe in the
-    sense that over-holding only hides a book, but it is NOT safe as a resting
-    state -- the clear set stays large on every subsequent cycle, so a real
-    mass-free leaves availability permanently frozen until a human notices. A
-    guard that is always tripped is one people learn to route around.
-
-    So the exceptional path asks the authority the index is only a view of. The
-    answer is per-edition, which is why this is not sampled: a sample that
-    comes back available supports "legitimate mass-free" without establishing
-    it, and the clear direction is where being wrong is unrecoverable. The
-    whole set is checked, each edition decided on its own answer, and anything
-    the service has no answer for stays marked.
-
-    Affordable because it is rare and bounded: the clear set is at most the
-    marked set, measured at 766 on 2026-10-05, which is ~8 batched requests at
-    AVAILABILITY_BATCH_SIZE. That is the cost v2's repairer paid every single
-    cycle; here it is paid only when the breaker trips.
-
-    This is two checks whose blind spots do not overlap -- the index is fast
-    and lagged, ground truth is slow and authoritative -- and a dangerous clear
-    needs both to agree.
-    """
-    identifiers = [ia for doc in to_clear for ia in (doc.get("ia") or [])]
-    logger.warning(
-        "Clear breaker tripped: %d of %d marked editions would clear (limit %d); the index returned %d identifiers. "
-        "Confirming %d identifiers against ground truth before clearing anything.",
-        len(to_clear),
-        marked_total,
-        allowed,
-        index_total,
-        len(identifiers),
-    )
-    if not identifiers:
-        logger.error("Clear breaker: %d editions would clear but none carry an ocaid; holding every clear this cycle", len(to_clear))
-        return []
-
-    availability = await lending.get_availability_async("identifier", identifiers, use_cache=False)
-
-    def is_free(ia_id: str) -> bool:
-        answer = availability.get(ia_id)
-        # No answer is not an answer: an edition the service skipped keeps its
-        # mark, because the clear direction is the unrecoverable one.
-        return answer is not None and lending.is_available_for_loan(answer)
-
-    confirmed = [doc for doc in to_clear if any(is_free(ia) for ia in (doc.get("ia") or []))]
-
-    if not confirmed:
-        # Every answer disagreed with the index, or the service gave none, so
-        # the index is what is wrong. Hold every CLEAR -- and let the marks
-        # through: an index that has stopped listing returned books is still
-        # listing borrowed ones, and refusing to mark those would publish
-        # checked-out books as borrowable for the length of the outage.
-        logger.error(
-            "Clear breaker: ground truth confirmed 0 of %d editions as available, so the index is wrong "
-            "rather than the collection freeing; holding every clear this cycle",
-            len(to_clear),
-        )
-        return []
-
-    logger.warning(
-        "Clear breaker: ground truth confirmed %d of %d editions as genuinely available; clearing those and holding the rest.",
-        len(confirmed),
-        len(to_clear),
-    )
-    return confirmed
 
 
 def mark_update(key: str, root: str, at: int) -> dict:
@@ -512,7 +414,7 @@ def gate_clears_on_index_currency(absent: list[dict], newest: int | None) -> tup
     return clearable, held
 
 
-def stamp_for(ocaid: str, unavailable: dict[str, int | None], newest: int | None) -> int:
+def stamp_for(ocaid: str, es_unavailable: dict[str, int | None], newest: int | None) -> int:
     """When to say this book's unavailability began.
 
     THE LOAN EVENT, not the daemon's clock, which can be arbitrarily later
@@ -529,10 +431,10 @@ def stamp_for(ocaid: str, unavailable: dict[str, int | None], newest: int | None
     With no event time anywhere, there is nothing better than the clock; the
     caller logs that.
     """
-    return unavailable.get(ocaid) or newest or int(time.time())
+    return es_unavailable.get(ocaid) or newest or int(time.time())
 
 
-async def build_poll_updates(unavailable: dict[str, int | None]) -> list[dict]:
+async def build_poll_updates(es_unavailable: dict[str, int | None]) -> list[dict]:
     """Reconcile Solr's marked set to the index's unavailable set, in one pass.
 
     This is the whole daemon. `unavailable` is what the index says is checked
@@ -545,8 +447,8 @@ async def build_poll_updates(unavailable: dict[str, int | None]) -> list[dict]:
     index already publishes. A first poll is a cold start. A reindex wipe
     self-heals on the next poll, with nothing to re-run by hand.
     """
-    unavailable_identifiers = list(unavailable)
-    resolved = await resolve_edition_keys(unavailable_identifiers)
+    es_identifiers = list(es_unavailable)
+    resolved = await resolve_edition_keys(es_identifiers)
     should_be_marked = {info["key"]: info for info in resolved.values()}
     marked = await fetch_marked_editions()
 
@@ -555,45 +457,36 @@ async def build_poll_updates(unavailable: dict[str, int | None]) -> list[dict]:
     # trusted. Two things read it: the gate below, and the fallback stamp for
     # books the index gave no event time for. Computed once, here, because the
     # gate needs it before any clear is decided.
-    dated = [epoch for epoch in unavailable.values() if epoch is not None]
+    dated = [epoch for epoch in es_unavailable.values() if epoch is not None]
     newest = max(dated) if dated else None
 
-    to_mark = [info for key, info in should_be_marked.items() if key not in marked]
+    to_set = [info for key, info in should_be_marked.items() if key not in marked]
     absent = [doc for key, doc in marked.items() if key not in should_be_marked]
     # LAYER 1 of two on the clear path, and it runs FIRST so the breaker below
     # sizes itself against the gated set rather than the raw one.
-    to_clear, held = gate_clears_on_index_currency(absent, newest)
+    to_unset, held = gate_clears_on_index_currency(absent, newest)
 
-    allowed = max(CLEAR_BREAKER_FLOOR, int(len(marked) * CLEAR_BREAKER_FRACTION))
-    if len(to_clear) > allowed:
-        # Only the CLEAR set is ever held back. Marking needs no confirmation --
-        # it is the recoverable direction -- and dropping the marks alongside a
-        # refused clear would publish newly-borrowed books as available for as
-        # long as the index stayed degraded: the same failure this guard
-        # exists to prevent, reached from the other side.
-        to_clear = await confirm_mass_clear(to_clear, allowed, len(marked), len(unavailable_identifiers))
-
-    if newest is None and to_mark:
+    if newest is None and to_set:
         logger.warning(
             "Checked-out index returned no loan-event time for any of its %d identifiers; "
             "stamping this cycle's %d marks with the daemon clock instead, which dates them to "
             "when the daemon looked rather than when the loans began",
-            len(unavailable),
-            len(to_mark),
+            len(es_unavailable),
+            len(to_set),
         )
-    updates = [mark_update(info["key"], info["root"], stamp_for(info["ocaid"], unavailable, newest)) for info in to_mark]
-    updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_clear]
+    updates = [mark_update(info["key"], info["root"], stamp_for(info["ocaid"], es_unavailable, newest)) for info in to_set]
+    updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_unset]
 
     # Counts, every cycle, so write volume is observable without a profiler --
     # the disk-growth investigation needs this and a rate is invisible in a
     # per-event log.
     logger.info(
         "Poll: index=%d resolved=%d marked=%d mark=%d clear=%d held_newer_than_index=%d",
-        len(unavailable_identifiers),
+        len(es_identifiers),
         len(should_be_marked),
         len(marked),
-        len(to_mark),
-        len(to_clear),
+        len(to_set),
+        len(to_unset),
         len(held),
     )
     return updates
@@ -664,8 +557,8 @@ async def main(
     last_heartbeat = 0.0
     while True:
         try:
-            unavailable = await lending.get_checked_out_candidates_async()
-            updates = await build_poll_updates(unavailable)
+            es_unavailable = await lending.get_checked_out_candidates_async()
+            updates = await build_poll_updates(es_unavailable)
             if updates and not dry_run:
                 # Never a hard commit. One opens a new searcher and invalidates
                 # every Solr cache on the instance serving openlibrary.org, and

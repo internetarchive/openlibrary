@@ -13,8 +13,6 @@ from openlibrary.core.lending import CheckedOutSeedIncomplete
 from openlibrary.utils.solr import Solr
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from scripts.solr_updater.loan_availability_updater import (
-    CLEAR_BREAKER_FLOOR,
-    CLEAR_BREAKER_FRACTION,
     EBOOK_AVAILABLE,
     EBOOK_UNAVAILABLE,
     MARKED_SET_MAX,
@@ -474,106 +472,6 @@ def _many_marked(n: int) -> dict[str, dict]:
 
 
 @pytest.mark.asyncio
-async def test_a_mass_clear_is_refused_when_ground_truth_says_the_books_are_still_out():
-    """A degraded or mid-reindex ES returning a small-but-consistent set passes
-    every other guard -- the numFound check only catches a read shorter than
-    its OWN total. Here ground truth disagrees with the index, so the index is
-    what is wrong, and nothing is cleared."""
-    resolve, marked = _poll(["bookaaa"], _many_marked(500))
-    with (
-        resolve,
-        marked,
-        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
-    ):
-        updates = await build_poll_updates(_index("bookaaa"))
-    _, clear = _sets(updates)
-    assert clear == set(), "ground truth contradicted the index, so no clear may proceed"
-
-
-@pytest.mark.asyncio
-async def test_a_genuine_mass_free_proceeds_once_ground_truth_agrees():
-    """The breaker must not become a permanent refusal. A batch of same-day
-    loans expiring together is indistinguishable from a collapsed index BY
-    VOLUME, and if the clear set stays large every cycle, refusing on volume
-    alone freezes availability until a human notices. Ground truth tells them
-    apart, so the daemon recovers on its own."""
-    resolve, marked = _poll(["bookaaa"], _many_marked(500))
-    with (
-        resolve,
-        marked,
-        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": AVAILABLE for i in range(500)})),
-    ):
-        updates = await build_poll_updates(_index("bookaaa"))
-    _, clear = _sets(updates)
-    assert len(clear) == 499, "every edition ground truth calls available must clear"
-    assert "/books/OL0M" in clear
-
-
-@pytest.mark.asyncio
-async def test_a_mass_clear_keeps_the_editions_ground_truth_cannot_answer_for():
-    """Confirmation is per-edition, not a sample promoted to a universal: an
-    answer that never arrived is not an answer that said available, and the
-    clear direction is the unrecoverable one."""
-    answers: dict = {f"book{i}": AVAILABLE for i in range(100)}
-    answers.update({f"book{i}": UNAVAILABLE for i in range(100, 200)})
-    # books 200-499 get no answer at all
-    resolve, marked = _poll(["bookaaa"], _many_marked(500))
-    with resolve, marked, patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value=answers)):
-        updates = await build_poll_updates(_index("bookaaa"))
-    _, clear = _sets(updates)
-    # 99, not 100: the index still calls bookaaa unavailable, and bookaaa is
-    # /books/OL1M, so it is never a clear candidate in the first place.
-    assert len(clear) == 99, "only the editions with an explicit available answer may clear"
-    assert "/books/OL1M" not in clear, "the index still calls this one out"
-    assert "/books/OL150M" not in clear, "ground truth said still out"
-    assert "/books/OL300M" not in clear, "no answer is not an answer"
-
-
-@pytest.mark.asyncio
-async def test_a_mass_clear_without_ocaids_is_refused_rather_than_assumed():
-    """Ground truth is keyed by ocaid. With none to ask about, the check cannot
-    run -- and a check that cannot run must not read as a check that passed."""
-    no_ocaids = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [], "_root_": f"/works/OL{i}W"} for i in range(500)}
-    resolve, marked = _poll([], no_ocaids)
-    with resolve, marked:
-        updates = await build_poll_updates({})
-    _, clear = _sets(updates)
-    assert clear == set(), "ground truth could not be consulted, so no clear may proceed"
-
-
-@pytest.mark.asyncio
-async def test_the_breaker_does_not_trip_on_ordinary_churn():
-    """Measured 2026-10-05, a normal cycle clears 0-2 against ~766 marked --
-    under 1%. A guard that fires in ordinary operation gets routed around."""
-    many = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(766)}
-    still_out = [f"book{i}" for i in range(2, 766)]
-    resolved = {ia: {"key": f"/books/OL{ia.removeprefix('book')}M", "root": f"/works/OL{ia.removeprefix('book')}W"} for ia in still_out}
-    with (
-        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
-        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=many)),
-    ):
-        updates = await build_poll_updates(_index(*still_out))
-    _, clear = _sets(updates)
-    assert clear == {"/books/OL0M", "/books/OL1M"}, "two returns is ordinary and must go through"
-
-
-@pytest.mark.asyncio
-async def test_the_breaker_floor_protects_a_small_marked_set():
-    """10% of a 3-edition set is 0, which would refuse every single clear on a
-    fresh install. The absolute floor is what keeps the guard from being
-    nonsense at small N."""
-    assert int(3 * CLEAR_BREAKER_FRACTION) == 0
-    # The index still reports one book, so the gate has a horizon to judge
-    # against; the other three are absent from it and old enough to clear.
-    resolve, marked = _poll(["bookaaa"], _marked("/books/OL2M", "/books/OL3M"))
-    with resolve, marked:
-        updates = await build_poll_updates(_index("bookaaa"))
-    _, clear = _sets(updates)
-    assert len(clear) == 2
-    assert CLEAR_BREAKER_FLOOR >= 2
-
-
-@pytest.mark.asyncio
 async def test_a_truncated_marked_read_is_refused_rather_than_treated_as_the_set():
     """An edition outside a capped read is indistinguishable from one the index
     no longer calls unavailable, and the reconcile clears on absence."""
@@ -944,27 +842,6 @@ async def test_a_partial_solr_read_is_refused_rather_than_cleared():
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
         await fetch_marked_editions()
     assert "partialResults" in str(excinfo.value)
-
-
-@pytest.mark.asyncio
-async def test_a_refused_mass_clear_still_marks_the_newly_unavailable():
-    """Holding the marks alongside a refused clear reaches the unrecoverable
-    failure from the other side: while the index is degraded, real borrows keep
-    happening and nothing records them, so checked-out books are published as
-    borrowable for the length of the outage. Marking needs no confirmation."""
-    marked = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(500)}
-    resolved = {"bookaaa": {"key": "/books/OL9001M", "root": "/works/OL9001W", "ocaid": "bookaaa"}}
-    with (
-        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
-        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
-        # Ground truth says every candidate clear is still checked out: the
-        # index is wrong, so no clear may proceed.
-        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
-    ):
-        updates = await build_poll_updates(_index("bookaaa"))
-    mark, clear = _sets(updates)
-    assert mark == {"/books/OL9001M"}, "a newly-unavailable book must still be marked"
-    assert clear == set(), "no clear may proceed when ground truth contradicts the index"
 
 
 @pytest.mark.asyncio
