@@ -743,6 +743,46 @@ async def _seed_unavailable() -> None:
         _unavailable.update(i for i in identifiers if not _availability_for(i, events)["available_to_borrow"])
 
 
+_loan_event_times: dict[str, dict[str, str]] = {}
+"""Per-identifier `lending___last_borrow` / `lending___last_browse`, test-controlled.
+
+The real index carries these on only part of the unavailable set -- measured
+2026-10-07, browse on 68% and borrow on 4.8%, with about a third carrying
+NEITHER. A fixture that always supplies a timestamp cannot express the case the
+daemon most needs to get right, so this defaults to EMPTY: an identifier staged
+through /_test/unavailable has no event time until one is set here explicitly.
+
+Staged through PUT /_test/loan_event_times as
+{"identifier": {"lending___last_borrow": "...", "lending___last_browse": "..."}}.
+"""
+
+
+@app.get("/_test/loan_event_times")
+async def get_loan_event_times() -> JSONResponse:
+    """Read the staged loan-event times. Test control surface, not IA."""
+    return JSONResponse(_loan_event_times)
+
+
+@app.put("/_test/loan_event_times")
+async def put_loan_event_times(request: Request) -> JSONResponse:
+    """Replace the staged loan-event times. Test control surface, not IA.
+
+    Wholesale replacement, like /_test/unavailable: the interesting cases are
+    all about what the WHOLE result set looks like on the next read, including
+    the set where nothing carries a time.
+    """
+    body = await request.json()
+    if not isinstance(body, dict):
+        return JSONResponse({"error": "body must be {identifier: {field: iso8601}}"}, status_code=400)
+    allowed = {"lending___last_borrow", "lending___last_browse"}
+    for identifier, fields in body.items():
+        if not isinstance(fields, dict) or set(fields) - allowed:
+            return JSONResponse({"error": f"{identifier}: fields must be a subset of {sorted(allowed)}"}, status_code=400)
+    _loan_event_times.clear()
+    _loan_event_times.update({str(k): dict(v) for k, v in body.items()})
+    return JSONResponse(_loan_event_times)
+
+
 @app.get("/_test/unavailable")
 async def get_unavailable() -> JSONResponse:
     """Read the current unavailable set. Test control surface, not IA."""
@@ -806,7 +846,13 @@ async def advancedsearch(request: Request) -> JSONResponse:
         checked_out = sorted(_unavailable)
 
     page_ids = checked_out[start : start + rows]
-    docs = [{"identifier": i, "openlibrary_edition": f"OL{abs(zlib.crc32(i.encode())) % 10_000_000}M"} for i in page_ids]
+    docs = []
+    for i in page_ids:
+        doc = {"identifier": i, "openlibrary_edition": f"OL{abs(zlib.crc32(i.encode())) % 10_000_000}M"}
+        # Only present when staged -- absence is the realistic majority case
+        # for last_borrow and a third of the set for both. See _loan_event_times.
+        doc.update(_loan_event_times.get(i, {}))
+        docs.append(doc)
     return JSONResponse({"response": {"numFound": len(checked_out), "start": start, "docs": docs}})
 
 

@@ -219,7 +219,11 @@ marked count out loud on an interval rather than only when something breaks.
 async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     """Batch-resolve IA identifiers to Solr edition keys + parent work key via the ia field.
 
-    Returns {identifier: {"key": "/books/OL1M", "root": "/works/OL1W"}}.
+    Returns {identifier: {"key": "/books/OL1M", "root": "/works/OL1W", "ocaid": identifier}}.
+
+    The ocaid is carried in the value as well as the key because callers re-key
+    this by edition and would otherwise lose the identifier -- and the
+    identifier is what the index's loan-event time is keyed by.
 
     Editions are nested children of their work in Solr; "_root_" (the parent
     work's key) must accompany any atomic update targeting the edition, so
@@ -265,7 +269,7 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
         for doc in result.docs:
             for ia_id in doc.get("ia", []):
                 if ia_id in id_set:
-                    resolved[ia_id] = {"key": doc["key"], "root": doc["_root_"]}
+                    resolved[ia_id] = {"key": doc["key"], "root": doc["_root_"], "ocaid": ia_id}
     return resolved
 
 
@@ -572,18 +576,50 @@ def mark_update(key: str, root: str, at: int) -> dict:
     }
 
 
-async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
+def stamp_for(ocaid: str, unavailable: dict[str, int | None], newest: int | None) -> int:
+    """When to say this book's unavailability began.
+
+    THE LOAN EVENT, not the daemon's clock. `ebook_unavailable_ts` answers
+    "when did this book become unavailable", and the daemon noticing is a
+    different fact -- minutes later in a steady state, arbitrarily later after
+    a restart. Stamping the read time makes every mark look as fresh as the
+    poll that saw it, which is backwards for a field whose whole job is to
+    tell a recent mark from an old one.
+
+    The index does not know for about a third of the set
+    (CHECKED_OUT_INDEX_EVENT_FIELDS), and those fall back to `newest` -- the
+    latest loan event anywhere in this poll's result set. Deliberately the
+    LATEST in range rather than the earliest:
+
+    * It is the conservative end. An over-estimate hides a book briefly and
+      corrects itself; an under-estimate makes a checked-out book clearable,
+      and nothing revisits it.
+    * It corrects quickly. Measured 2026-10-07, the newest event in the live
+      unavailable set was 90 seconds old with twelve in the preceding seven
+      minutes, so this horizon advances every half-minute or so.
+    * It stays inside the batch's own range, so it can never claim a book was
+      borrowed later than anything the index actually reports.
+
+    When the index gives no event time ANYWHERE in the set, `newest` is None
+    and there is nothing better than the clock. The caller logs that.
+    """
+    return unavailable.get(ocaid) or newest or int(time.time())
+
+
+async def build_poll_updates(unavailable: dict[str, int | None]) -> list[dict]:
     """Reconcile Solr's marked set to the index's unavailable set, in one pass.
 
-    This is the whole daemon. `unavailable_identifiers` is what the index says
-    is checked out right now; everything Solr has marked that is not in it has
-    been returned or expired. One bulk in-place update carries both directions.
+    This is the whole daemon. `unavailable` is what the index says is checked
+    out right now, mapped to when each loan began; everything Solr has marked
+    that is not in it has been returned or expired. One bulk in-place update
+    carries both directions.
 
     It replaces a cold start, a follower, a repairer, a cursor and an overlap
     replay, because every one of those existed to approximate a snapshot the
     index already publishes. A first poll is a cold start. A reindex wipe
     self-heals on the next poll, with nothing to re-run by hand.
     """
+    unavailable_identifiers = list(unavailable)
     resolved = await resolve_edition_keys(unavailable_identifiers)
     should_be_marked = {info["key"]: info for info in resolved.values()}
     marked = await fetch_marked_editions()
@@ -600,8 +636,19 @@ async def build_poll_updates(unavailable_identifiers: list[str]) -> list[dict]:
         # exists to prevent, reached from the other side.
         to_clear = await confirm_mass_clear(to_clear, allowed, len(marked), len(unavailable_identifiers))
 
-    marked_at = int(time.time())
-    updates = [mark_update(info["key"], info["root"], marked_at) for info in to_mark]
+    # What the no-event-time third falls back to: the latest loan event
+    # anywhere in this result set. See stamp_for.
+    dated = [epoch for epoch in unavailable.values() if epoch is not None]
+    newest = max(dated) if dated else None
+    if newest is None and to_mark:
+        logger.warning(
+            "Checked-out index returned no loan-event time for any of its %d identifiers; "
+            "stamping this cycle's %d marks with the daemon clock instead, which dates them to "
+            "when the daemon looked rather than when the loans began",
+            len(unavailable),
+            len(to_mark),
+        )
+    updates = [mark_update(info["key"], info["root"], stamp_for(info["ocaid"], unavailable, newest)) for info in to_mark]
     updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_clear]
 
     # Counts, every cycle, so write volume is observable without a profiler --

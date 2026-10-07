@@ -1,5 +1,6 @@
 """Tests for loan_availability_updater.py"""
 
+import datetime
 import logging
 import time
 from pathlib import Path
@@ -97,8 +98,8 @@ async def test_resolve_edition_keys_basic():
         result = await resolve_edition_keys(["bookabc", "bookxyz"])
 
     assert result == {
-        "bookabc": {"key": "/books/OL1M", "root": "/works/OL1W"},
-        "bookxyz": {"key": "/books/OL2M", "root": "/works/OL2W"},
+        "bookabc": {"key": "/books/OL1M", "root": "/works/OL1W", "ocaid": "bookabc"},
+        "bookxyz": {"key": "/books/OL2M", "root": "/works/OL2W", "ocaid": "bookxyz"},
     }
     call_args = str(mock_get_solr.return_value.select_async.call_args)
     # Must scope to edition docs -- a flat ia:(...) query would also match the
@@ -323,10 +324,25 @@ def test_a_waitlisted_book_is_not_available():
 # ---------------------------------------------------------------------------
 
 POLL_EDITIONS = {
-    "bookaaa": {"key": "/books/OL1M", "root": "/works/OL1W"},
-    "bookbbb": {"key": "/books/OL2M", "root": "/works/OL2W"},
-    "bookccc": {"key": "/books/OL3M", "root": "/works/OL3W"},
+    "bookaaa": {"key": "/books/OL1M", "root": "/works/OL1W", "ocaid": "bookaaa"},
+    "bookbbb": {"key": "/books/OL2M", "root": "/works/OL2W", "ocaid": "bookbbb"},
+    "bookccc": {"key": "/books/OL3M", "root": "/works/OL3W", "ocaid": "bookccc"},
 }
+
+# A loan-event time the index could plausibly return, fixed so assertions can
+# name it. 2026-10-07T20:00:00Z, verified against the parser rather than
+# arithmetic -- the first value written here was a day out.
+EVENT_EPOCH = 1791403200
+
+
+def _index(*identifiers: str, at: int | None = None) -> dict[str, int | None]:
+    """What the index now returns: identifier -> loan-event epoch, or None.
+
+    `at=None` is the realistic majority case -- about a third of the live
+    unavailable set carries neither event field -- so it is the DEFAULT here
+    rather than something a test has to opt into.
+    """
+    return dict.fromkeys(identifiers, at)
 
 
 def _marked(*keys: str) -> dict[str, dict]:
@@ -353,7 +369,7 @@ def _sets(updates: list[dict]) -> tuple[set[str], set[str]]:
 async def test_a_poll_marks_a_newly_unavailable_book():
     resolve, marked = _poll(["bookaaa", "bookbbb"], _marked("/books/OL1M"))
     with resolve, marked:
-        updates = await build_poll_updates(["bookaaa", "bookbbb"])
+        updates = await build_poll_updates(_index("bookaaa", "bookbbb"))
     mark, clear = _sets(updates)
     assert mark == {"/books/OL2M"}, "the book the index newly calls unavailable must be marked"
     assert clear == set(), "nothing freed up, so nothing may be cleared"
@@ -366,7 +382,7 @@ async def test_a_poll_clears_a_book_the_index_no_longer_calls_unavailable():
     so a book dropping out of the set is a return or an expiry."""
     resolve, marked = _poll(["bookaaa"], _marked("/books/OL1M", "/books/OL2M"))
     with resolve, marked:
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(_index("bookaaa"))
     mark, clear = _sets(updates)
     assert clear == {"/books/OL2M"}
     assert mark == set()
@@ -382,7 +398,7 @@ async def test_a_wiped_field_is_re_marked_by_the_next_poll():
     """
     resolve, marked = _poll(list(POLL_EDITIONS), {})
     with resolve, marked:
-        updates = await build_poll_updates(list(POLL_EDITIONS))
+        updates = await build_poll_updates(_index(*POLL_EDITIONS))
     mark, clear = _sets(updates)
     assert mark == {"/books/OL1M", "/books/OL2M", "/books/OL3M"}
     assert clear == set(), "an empty marked set has nothing to clear -- and must not invent any"
@@ -395,7 +411,7 @@ async def test_an_unchanged_poll_writes_nothing():
     rather than the poll rate."""
     resolve, marked = _poll(["bookaaa", "bookbbb"], _marked("/books/OL1M", "/books/OL2M"))
     with resolve, marked:
-        updates = await build_poll_updates(["bookaaa", "bookbbb"])
+        updates = await build_poll_updates(_index("bookaaa", "bookbbb"))
     assert updates == []
 
 
@@ -415,7 +431,7 @@ async def test_a_mass_clear_is_refused_when_ground_truth_says_the_books_are_stil
         marked,
         patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
     ):
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(_index("bookaaa"))
     _, clear = _sets(updates)
     assert clear == set(), "ground truth contradicted the index, so no clear may proceed"
 
@@ -433,7 +449,7 @@ async def test_a_genuine_mass_free_proceeds_once_ground_truth_agrees():
         marked,
         patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": AVAILABLE for i in range(500)})),
     ):
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(_index("bookaaa"))
     _, clear = _sets(updates)
     assert len(clear) == 499, "every edition ground truth calls available must clear"
     assert "/books/OL0M" in clear
@@ -449,7 +465,7 @@ async def test_a_mass_clear_keeps_the_editions_ground_truth_cannot_answer_for():
     # books 200-499 get no answer at all
     resolve, marked = _poll(["bookaaa"], _many_marked(500))
     with resolve, marked, patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value=answers)):
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(_index("bookaaa"))
     _, clear = _sets(updates)
     # 99, not 100: the index still calls bookaaa unavailable, and bookaaa is
     # /books/OL1M, so it is never a clear candidate in the first place.
@@ -466,7 +482,7 @@ async def test_a_mass_clear_without_ocaids_is_refused_rather_than_assumed():
     no_ocaids = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [], "_root_": f"/works/OL{i}W"} for i in range(500)}
     resolve, marked = _poll([], no_ocaids)
     with resolve, marked:
-        updates = await build_poll_updates([])
+        updates = await build_poll_updates({})
     _, clear = _sets(updates)
     assert clear == set(), "ground truth could not be consulted, so no clear may proceed"
 
@@ -482,7 +498,7 @@ async def test_the_breaker_does_not_trip_on_ordinary_churn():
         patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
         patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=many)),
     ):
-        updates = await build_poll_updates(still_out)
+        updates = await build_poll_updates(_index(*still_out))
     _, clear = _sets(updates)
     assert clear == {"/books/OL0M", "/books/OL1M"}, "two returns is ordinary and must go through"
 
@@ -495,7 +511,7 @@ async def test_the_breaker_floor_protects_a_small_marked_set():
     assert int(3 * CLEAR_BREAKER_FRACTION) == 0
     resolve, marked = _poll([], _marked("/books/OL1M", "/books/OL2M", "/books/OL3M"))
     with resolve, marked:
-        updates = await build_poll_updates([])
+        updates = await build_poll_updates({})
     _, clear = _sets(updates)
     assert len(clear) == 3
     assert CLEAR_BREAKER_FLOOR >= 3
@@ -513,12 +529,127 @@ async def test_a_truncated_marked_read_is_refused_rather_than_treated_as_the_set
 
 
 # ---------------------------------------------------------------------------
+# The timestamp: WHEN THE LOAN STARTED, not when the daemon noticed.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_a_mark_is_stamped_with_the_loan_event_not_the_clock():
+    """THE POINT OF THE FIELD. `ebook_unavailable_ts` answers "when did this
+    book become unavailable", and the daemon seeing it is a different fact --
+    minutes later in a steady state, arbitrarily later after a restart.
+
+    Stamping the read time makes every mark look as fresh as the poll that
+    observed it, which is exactly backwards for a gate whose job is to tell a
+    recent mark from an old one.
+    """
+    resolve, marked = _poll(["bookaaa"], {})
+    with resolve, marked:
+        updates = await build_poll_updates({"bookaaa": EVENT_EPOCH})
+    assert len(updates) == 1
+    assert updates[0]["ebook_unavailable_ts"]["set"] == EVENT_EPOCH, "the stamp must be the loan event time"
+    assert abs(updates[0]["ebook_unavailable_ts"]["set"] - int(time.time())) > 60, "and must NOT be the daemon's clock"
+
+
+@pytest.mark.parametrize(
+    ("borrow", "browse", "expected"),
+    [
+        (EVENT_EPOCH, None, EVENT_EPOCH),
+        (None, EVENT_EPOCH, EVENT_EPOCH),
+        (EVENT_EPOCH, EVENT_EPOCH - 3600, EVENT_EPOCH),
+        (EVENT_EPOCH - 3600, EVENT_EPOCH, EVENT_EPOCH),
+    ],
+    ids=["borrow-only", "browse-only", "borrow-is-later", "browse-is-later"],
+)
+def test_the_index_event_time_is_the_LATER_of_borrow_and_browse(borrow, browse, expected):
+    """A book can have been both browsed and borrowed. The current spell of
+    unavailability dates from whichever happened LAST, so min() or first-wins
+    would date a fresh borrow to an old browse and make it clearable early."""
+    doc = {"identifier": "bookaaa"}
+    if borrow is not None:
+        doc["lending___last_borrow"] = datetime.datetime.fromtimestamp(borrow, datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if browse is not None:
+        doc["lending___last_browse"] = datetime.datetime.fromtimestamp(browse, datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    assert lending._index_event_epoch(doc) == expected
+
+
+def test_a_multi_valued_event_field_does_not_crash_the_parse():
+    """Search-index fields are routinely multi-valued -- `lending___status`
+    comes back as a list -- so a bare fromisoformat(doc[field]) raises on
+    ordinary data. The latest value across the list is the answer."""
+    doc = {
+        "identifier": "bookaaa",
+        "lending___last_browse": ["2026-10-07T19:00:00Z", "2026-10-07T20:00:00Z"],
+    }
+    assert lending._index_event_epoch(doc) == EVENT_EPOCH
+
+
+def test_an_unparsable_event_time_is_skipped_rather_than_raised_on():
+    """A malformed date from the index must not take the daemon down; the
+    caller already has a defined answer for "no timestamp"."""
+    assert lending._index_event_epoch({"identifier": "b", "lending___last_browse": "not-a-date"}) is None
+    assert lending._index_event_epoch({"identifier": "b", "lending___last_browse": ["nope", "2026-10-07T20:00:00Z"]}) == EVENT_EPOCH
+
+
+@pytest.mark.asyncio
+async def test_a_book_with_no_event_time_is_stamped_with_the_newest_in_the_batch():
+    """About a THIRD of the live unavailable set carries neither field
+    (measured 2026-10-07: 268 of 857). Those need an answer, and it is the
+    newest loan event anywhere in this result set -- in range by construction,
+    and the conservative end of that range.
+
+    Conservative matters: the stamp exists so a lagged poll can refuse to clear
+    a mark it is too stale to contradict. Over-estimating hides a book briefly
+    and corrects itself; under-estimating publishes a checked-out book and
+    nothing revisits it.
+    """
+    resolve, marked = _poll(["bookaaa", "bookbbb"], {})
+    with resolve, marked:
+        # bookbbb has no event time; bookaaa is the newest thing in the batch.
+        updates = await build_poll_updates({"bookaaa": EVENT_EPOCH, "bookbbb": None})
+    stamps = {u["key"]: u["ebook_unavailable_ts"]["set"] for u in updates}
+    assert stamps["/books/OL1M"] == EVENT_EPOCH, "the dated book keeps its own event time"
+    assert stamps["/books/OL2M"] == EVENT_EPOCH, "and the undated one takes the newest in the batch"
+
+
+@pytest.mark.asyncio
+async def test_the_fallback_is_the_NEWEST_in_the_batch_not_the_oldest():
+    """The choice of end is the whole safety property, so it is pinned
+    separately from the fallback existing at all. The earliest value would also
+    be "in range" and would make every undated book immediately clearable."""
+    resolve, marked = _poll(["bookaaa", "bookbbb", "bookccc"], {})
+    oldest, newest = EVENT_EPOCH - 86_400, EVENT_EPOCH
+    with resolve, marked:
+        updates = await build_poll_updates({"bookaaa": oldest, "bookbbb": newest, "bookccc": None})
+    undated = next(u for u in updates if u["key"] == "/books/OL3M")
+    assert undated["ebook_unavailable_ts"]["set"] == newest, "the undated book must take the NEWEST event in the batch"
+    assert undated["ebook_unavailable_ts"]["set"] != oldest, "the oldest would be in range too, and would clear it immediately"
+
+
+@pytest.mark.asyncio
+async def test_a_batch_with_no_event_times_at_all_falls_back_to_the_clock_and_says_so(caplog):
+    """The degenerate case: the index gives no event time for anything. There
+    is nothing better than the daemon clock then -- but it must be LOUD, since
+    it means every mark this cycle is dated to when the daemon looked rather
+    than when the loans began."""
+    resolve, marked = _poll(["bookaaa"], {})
+    with resolve, marked, caplog.at_level(logging.WARNING, logger="openlibrary.loan-availability-updater"):
+        updates = await build_poll_updates({"bookaaa": None})
+    assert abs(updates[0]["ebook_unavailable_ts"]["set"] - int(time.time())) <= 5, "nothing better than the clock is available"
+    assert "no loan-event time" in caplog.text
+    assert "daemon clock" in caplog.text
+
+
+# ---------------------------------------------------------------------------
 # main() as the poll loop. One iteration, then SystemExit out of the sleep.
 # ---------------------------------------------------------------------------
 
 
-async def _run_poll_once(solr_mock, lending_mock, unavailable: list[str], dry_run: bool = False) -> None:
-    lending_mock.get_checked_out_candidates_async = AsyncMock(return_value=unavailable)
+async def _run_poll_once(solr_mock, lending_mock, unavailable: list[str] | dict[str, int | None], dry_run: bool = False) -> None:
+    # Accepts the list form for brevity at call sites that do not care about
+    # loan-event times; the seed itself returns the mapping.
+    seed = unavailable if isinstance(unavailable, dict) else _index(*unavailable)
+    lending_mock.get_checked_out_candidates_async = AsyncMock(return_value=seed)
     lending_mock.CheckedOutSeedIncomplete = CheckedOutSeedIncomplete
     with (
         patch("scripts.solr_updater.loan_availability_updater.asyncio.sleep", AsyncMock(side_effect=SystemExit)),
@@ -543,7 +674,8 @@ async def test_main_writes_through_update_in_place_not_bare_update(mock_config, 
     solr.update_in_place_async.return_value = _OK_RESPONSE
 
     with patch(
-        "scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={"bookabc": {"key": "/books/OL1M", "root": "/works/OL1W"}})
+        "scripts.solr_updater.loan_availability_updater.resolve_edition_keys",
+        AsyncMock(return_value={"bookabc": {"key": "/books/OL1M", "root": "/works/OL1W", "ocaid": "bookabc"}}),
     ):
         await _run_poll_once(solr, mock_lending, ["bookabc"])
 
@@ -570,7 +702,8 @@ async def test_main_never_hard_commits(mock_config, mock_infogami, mock_lending,
     solr.update_in_place_async.return_value = _OK_RESPONSE
 
     with patch(
-        "scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={"bookabc": {"key": "/books/OL1M", "root": "/works/OL1W"}})
+        "scripts.solr_updater.loan_availability_updater.resolve_edition_keys",
+        AsyncMock(return_value={"bookabc": {"key": "/books/OL1M", "root": "/works/OL1W", "ocaid": "bookabc"}}),
     ):
         await _run_poll_once(solr, mock_lending, ["bookabc"])
 
@@ -615,7 +748,8 @@ async def test_main_writes_nothing_on_a_dry_run(mock_config, mock_infogami, mock
     solr.select_async.side_effect = _select_side_effect
 
     with patch(
-        "scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={"bookabc": {"key": "/books/OL1M", "root": "/works/OL1W"}})
+        "scripts.solr_updater.loan_availability_updater.resolve_edition_keys",
+        AsyncMock(return_value={"bookabc": {"key": "/books/OL1M", "root": "/works/OL1W", "ocaid": "bookabc"}}),
     ):
         await _run_poll_once(solr, mock_lending, ["bookabc"], dry_run=True)
 
@@ -689,7 +823,7 @@ async def test_a_refused_mass_clear_still_marks_the_newly_unavailable():
     happening and nothing records them, so checked-out books are published as
     borrowable for the length of the outage. Marking needs no confirmation."""
     marked = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W"} for i in range(500)}
-    resolved = {"bookaaa": {"key": "/books/OL9001M", "root": "/works/OL9001W"}}
+    resolved = {"bookaaa": {"key": "/books/OL9001M", "root": "/works/OL9001W", "ocaid": "bookaaa"}}
     with (
         patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
         patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
@@ -697,7 +831,7 @@ async def test_a_refused_mass_clear_still_marks_the_newly_unavailable():
         # index is wrong, so no clear may proceed.
         patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
     ):
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(_index("bookaaa"))
     mark, clear = _sets(updates)
     assert mark == {"/books/OL9001M"}, "a newly-unavailable book must still be marked"
     assert clear == set(), "no clear may proceed when ground truth contradicts the index"
@@ -718,7 +852,7 @@ async def test_a_mark_carries_the_timestamp_in_the_same_update():
     """
     resolve, marked = _poll(["bookaaa"], {})
     with resolve, marked:
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(_index("bookaaa"))
     assert len(updates) == 1
     assert updates[0]["ebook_unavailable"] == {"set": EBOOK_UNAVAILABLE}
     ts = updates[0]["ebook_unavailable_ts"]["set"]
@@ -741,7 +875,7 @@ async def test_a_clear_does_not_touch_the_timestamp():
     overwrites it."""
     resolve, marked = _poll([], _marked("/books/OL1M"))
     with resolve, marked:
-        updates = await build_poll_updates([])
+        updates = await build_poll_updates({})
     assert len(updates) == 1
     assert updates[0]["ebook_unavailable"] == {"set": EBOOK_AVAILABLE}
     assert "ebook_unavailable_ts" not in updates[0]
@@ -804,7 +938,7 @@ async def test_identifiers_with_no_edition_are_not_mistaken_for_a_truncated_read
     )
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
         resolved = await resolve_edition_keys(["bookaaa", "bookbbb", "bookccc"])
-    assert resolved == {"bookaaa": {"key": "/books/OL1M", "root": "/works/OL1W"}}
+    assert resolved == {"bookaaa": {"key": "/books/OL1M", "root": "/works/OL1W", "ocaid": "bookaaa"}}
 
 
 @pytest.mark.asyncio

@@ -433,8 +433,10 @@ class TestGetCheckedOutCandidates:
         with session:
             got = asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
         assert len(got) == 2500
-        assert got[0] == "book0"
-        assert got[-1] == "book2499"
+        # Insertion-ordered, so the index's sort order survives the mapping.
+        identifiers = list(got)
+        assert identifiers[0] == "book0"
+        assert identifiers[-1] == "book2499"
         assert mock_get.call_count == 3
         assert [dict(call.kwargs["params"])["page"] for call in mock_get.call_args_list] == ["1", "2", "3"]
 

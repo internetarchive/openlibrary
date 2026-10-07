@@ -2,6 +2,7 @@
 
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
+import datetime
 import itertools
 import json
 import logging
@@ -579,6 +580,22 @@ truth still decides. Two different `lending___` spellings answer this
 measured; this is the one verified against live availability.
 """
 
+CHECKED_OUT_INDEX_EVENT_FIELDS = ("lending___last_borrow", "lending___last_browse")
+"""The index's own record of when a book's current loan began.
+
+Two fields, not one, and the LATER of the two is the answer: a book can have
+been browsed and borrowed, and the current unavailability dates from whichever
+happened last.
+
+Coverage is partial and that is the important part. Measured 2026-10-07 against
+the live unavailable set of 857: `lending___last_browse` on 582 (68%),
+`lending___last_borrow` on 41 (4.8%), **either on ~580 -- so roughly a third
+carry neither.** A caller must have an answer for that third rather than
+assuming a value will be there. Both fields exist and are queryable (controls:
+a nonsense field name matches 0 documents, `lending___status` matches 8.8M), so
+the gap is sparsity in the data, not a missing field.
+"""
+
 CHECKED_OUT_INDEX_PAGE_ROWS = 1000
 """Rows per advancedsearch page when assembling the seed."""
 
@@ -605,14 +622,61 @@ class CheckedOutSeedIncomplete(Exception):
     """
 
 
-async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PAGE_ROWS) -> list[str]:
-    """Every identifier the archive.org search index believes is checked out.
+def _index_event_epoch(doc: dict) -> int | None:
+    """When this book's current unavailability began, per the index.
+
+    The LATER of `lending___last_borrow` and `lending___last_browse`, as epoch
+    seconds, or None when the index carries neither -- which it does for about
+    a third of the unavailable set (see CHECKED_OUT_INDEX_EVENT_FIELDS).
+
+    IA returns these as ISO-8601 Z strings, and search-index fields are
+    routinely MULTI-VALUED -- `lending___status` comes back as a list -- so a
+    bare `datetime.fromisoformat(doc[field])` would raise on perfectly normal
+    data. Each field is read as "one value or several", every value parsed, and
+    the maximum across both fields taken.
+
+    Anything unparsable is skipped rather than raised on: a malformed date from
+    the index must not take the daemon down, and the caller already has a
+    defined answer for "no timestamp".
+    """
+    epochs: list[int] = []
+    for field in CHECKED_OUT_INDEX_EVENT_FIELDS:
+        raw = doc.get(field)
+        if raw is None:
+            continue
+        for value in raw if isinstance(raw, list) else [raw]:
+            if not isinstance(value, str):
+                continue
+            try:
+                # fromisoformat handles the trailing "Z" directly on 3.11+;
+                # replacing it with "+00:00" first is the pre-3.11 idiom and
+                # ruff flags it (FURB162).
+                parsed = datetime.datetime.fromisoformat(value)
+            except ValueError:
+                logger.warning("Checked-out index: unparsable %s=%r on %s", field, value, doc.get("identifier"))
+                continue
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=datetime.UTC)
+            epochs.append(int(parsed.timestamp()))
+    return max(epochs) if epochs else None
+
+
+async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PAGE_ROWS) -> dict[str, int | None]:
+    """Every identifier the archive.org search index believes is checked out,
+    mapped to when that loan began.
 
     A *candidate* set for seeding a cold start: a handful of requests instead
     of replaying days of loan events to infer the same thing. The caller must
     settle these against the availability service before writing anything --
     the index is a lagged view and has been observed disagreeing with ground
     truth on other lending fields.
+
+    Returns `{identifier: epoch_seconds_or_None}`. The value is the LATER of
+    the index's two loan-event times (CHECKED_OUT_INDEX_EVENT_FIELDS), and it
+    is **None for roughly a third of the set**, which carries neither. Callers
+    that stamp a timestamp must decide what that third gets; `None` is a real
+    answer meaning "the index does not know when", not a missing value to be
+    filled in with a default that happens to be at hand.
 
     **Complete or raises.** It pages until it has as many identifiers as the
     index said it had. The set measured ~600 in 2026-10, so today this is one
@@ -675,8 +739,9 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
     session = ia.get_async_session()
     timeout = config_http_request_timeout or 30
 
-    identifiers: list[str] = []
-    seen: set[str] = set()
+    # Insertion-ordered, so `list(...)` still yields the identifiers in the
+    # index's sort order and every existing completeness check reads the same.
+    identifiers: dict[str, int | None] = {}
     found: int | None = None
     max_pages = max(1, CHECKED_OUT_INDEX_MAX_ROWS // page_rows)
 
@@ -684,6 +749,7 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
         params = [
             ("q", CHECKED_OUT_INDEX_QUERY),
             ("fl[]", "identifier"),
+            *[("fl[]", field) for field in CHECKED_OUT_INDEX_EVENT_FIELDS],
             # A stable total order, or deep paging is incoherent. Without it the
             # index is free to re-serve and skip rows between pages -- and the
             # set being paged is defined as "the things changing right now", so
@@ -717,9 +783,8 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
         docs = envelope.get("docs") or []
         for doc in docs:
             identifier = doc.get("identifier")
-            if identifier and identifier not in seen:
-                seen.add(identifier)
-                identifiers.append(identifier)
+            if identifier and identifier not in identifiers:
+                identifiers[identifier] = _index_event_epoch(doc)
 
         if len(docs) < page_rows:
             # A short page is the end of the result set.
@@ -730,7 +795,14 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
     if len(identifiers) < found:
         raise CheckedOutSeedIncomplete(f"Checked-out index reported {found} identifiers but only {len(identifiers)} were read")
 
-    logger.info("Checked-out index: %d identifiers (numFound %d)", len(identifiers), found)
+    dated = sum(1 for epoch in identifiers.values() if epoch is not None)
+    logger.info(
+        "Checked-out index: %d identifiers (numFound %d), %d with a loan-event time, %d without",
+        len(identifiers),
+        found,
+        dated,
+        len(identifiers) - dated,
+    )
     return identifiers
 
 
