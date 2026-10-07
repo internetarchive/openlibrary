@@ -768,6 +768,15 @@ async def test_a_poll_mark_carries_a_timestamp_so_the_next_poll_cannot_clear_it(
         _free("bookaaa"),
     ):
         updates = await build_poll_updates(["bookaaa"], _MARKED_RECENTLY)
+
+    # ONE write carrying BOTH fields, not two writes. #12689 pinned this and
+    # the equivalence was nearly lost here: reading the stamp off updates[0]
+    # without bounding the update COUNT let a second, stamp-less write for the
+    # same edition through all 59 tests. The hazard is ordering -- a mark and
+    # its stamp landing separately can interleave with a clear, and the gate
+    # then judges an edition whose stamp belongs to a different write.
+    assert len(updates) == 1, "a mark and its stamp must arrive as one update, not two"
+    assert updates[0]["ebook_unavailable"] == {"set": EBOOK_UNAVAILABLE}, "and the mark must be on that same update"
     ts = updates[0]["ebook_unavailable_ts"]["set"]
     # Bounded against the clock, not "> 0". A review of #12689 proved the loose
     # form green against both a milliseconds mutation and a frozen constant --
