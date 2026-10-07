@@ -53,6 +53,7 @@ project's Solr entirely.
 import asyncio
 import json
 import os
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -159,6 +160,19 @@ def test_a_poll_marks_what_the_index_calls_unavailable(seeded_editions, monkeypa
     marked = {key for key in keys if _edition(key).get("ebook_unavailable") == 1}
     assert marked == set(keys[:3]), "exactly the editions the index calls unavailable must be marked"
 
+    # The only COMMITTED check that `ebook_unavailable_ts` survives a real
+    # round trip. The unit tests mock Solr out, so nothing else would catch a
+    # schema/code field-name mismatch, a type the schema rejects, or the field
+    # silently not being declared -- and that last one is the deploy failure
+    # this field newly makes possible. Bounded against the clock for the same
+    # reason the unit test is: milliseconds and a frozen value both read as
+    # "a number" otherwise.
+    now = int(time.time())
+    for key in marked:
+        ts = _edition(key).get("ebook_unavailable_ts")
+        assert ts is not None, f"{key} is marked but carries no ebook_unavailable_ts; is the field declared in the schema?"
+        assert now - 300 <= ts <= now + 60, f"{key} ts={ts} is not epoch seconds near now ({now})"
+
 
 def test_a_poll_clears_a_book_the_index_has_released(seeded_editions, monkeypatch):
     """The direction the repairer used to own, now in the same operation."""
@@ -174,6 +188,10 @@ def test_a_poll_clears_a_book_the_index_has_released(seeded_editions, monkeypatc
 
     assert _edition(keys[0]).get("ebook_unavailable") == 1, "still out"
     assert _edition(keys[1]).get("ebook_unavailable") == 0, "returned, so freed"
+    # requireInPlace cannot null a field, so a clear leaves the stamp behind.
+    # Verified here rather than only in a unit test, because the claim is about
+    # what SOLR does, not about what the daemon sends.
+    assert _edition(keys[1]).get("ebook_unavailable_ts") is not None, "a clear must leave the old stamp in place, not remove it"
     assert _edition(keys[2]).get("ebook_unavailable") == 0, "returned, so freed"
 
 

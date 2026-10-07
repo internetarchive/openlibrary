@@ -186,11 +186,12 @@ The enum is **sortable** — Solr can range-query it. This is how availability f
 
 Written to **edition** documents by `scripts/solr_updater/loan_availability_updater.py`, a daemon that follows Internet Archive's loan-changes feed. See that module's docstring for the two-loop design; this section covers the schema side.
 
-Three fields, all `pint`/`plong`, all `docValues=true stored=false indexed=false`:
+Two fields, both numeric, both `docValues=true stored=false indexed=false`:
 
 | Field | Meaning |
 |---|---|
 | `ebook_unavailable` | `1` = no borrowing capacity right now. Absent or `0` = available. |
+| `ebook_unavailable_ts` | Epoch seconds when `ebook_unavailable` was last set to `1`. Read by nothing here; it ships so the feed/poll hybrid is a code-only change. |
 
 **These record exceptions, not state.** An `ebook_access:borrowable` edition is assumed AVAILABLE unless `ebook_unavailable=1` says otherwise, so the common case writes nothing. Consumers must query:
 
@@ -221,7 +222,9 @@ So an edition-level filter such as `genre_key:X AND ebook_access:borrowable AND 
 
 The fields stay absent from `EditionSearchScheme.all_fields`. That governs whether a bare `field:value` typed by an end user is treated as a Solr field — a separate question from whether internal code may build an `fq` on them, which it may.
 
-**A field cannot be cleared in place, which is why there is only one.** `requireInPlace` rejects `"set": null` unconditionally — a value can be set or incremented, never removed. "Available" is therefore written as `0` rather than by deleting the field. It is also why this carries no timestamp: an earlier revision had `ebook_becomes_available` ("available in N days"), which went stale the moment a loan was renewed and could not be cleared when it did. Two fields, `ebook_becomes_available` and `loan_uid` (the changes-feed cursor), were carried through earlier revisions and removed before merge — neither is in the schema.
+**A field cannot be cleared in place.** `requireInPlace` rejects `"set": null` unconditionally — a value can be set or incremented, never removed. "Available" is therefore written as `0` rather than by deleting the field, and `ebook_unavailable_ts` keeps its last value through a clear, which is why it is meaningful only while `ebook_unavailable` is `1`.
+
+That same constraint is why `ebook_becomes_available` ("available in N days") was dropped: it went stale the moment a loan was renewed, and could not be cleared when it did. The distinction worth keeping is that a stale *mark time* is inert — nothing reads it unless the book is marked, and a re-mark overwrites it — whereas a stale *expiry time* was shown to users. `loan_uid`, the changes-feed cursor, was dropped with the feed.
 
 **There is no cold start to operate.** Each poll is a complete statement of what should be marked, so the first poll after any start performs the whole job and a reindex that wipes the field self-heals on the next cycle. There is no cursor, no state file and no `--reset`. What follows describes the single step a poll takes:
 
@@ -622,16 +625,26 @@ These PRs add new Solr fields and have schema-first deployment requirements. Rev
 > needed `docValues="true"`. None of that applies: the PR now adds **one**
 > field.
 
-**Schema addition:**
+**Schema addition — BOTH fields, or the daemon is inert.**
 
 ```xml
 <field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
+<field name="ebook_unavailable_ts" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 ```
 
-`pint` with `docValues=true`, `stored=false`, `indexed=false` is exactly the
-shape `update.partial.requireInPlace` demands — verified against a live Solr
-10.0.0 core, where a stored+indexed field and an unknown field are both
-rejected with HTTP 400 while this one is accepted.
+`docValues=true`, `stored=false`, `indexed=false` on a numeric type is exactly
+the shape `update.partial.requireInPlace` demands — verified against a live
+Solr 10.0.0 core, where a stored+indexed field and an unknown field are both
+rejected with HTTP 400 while these are accepted, singly and together.
+
+**Applying only the first field is worse than applying neither.** The daemon
+writes both in one atomic update, so an undeclared `ebook_unavailable_ts` makes
+Solr reject the whole document with HTTP 400 — the same rejection that control
+experiment demonstrates. The daemon catches that, logs "Poll failed; prior
+state stands", and loops forever: alive, healthy-looking, marking nothing. And
+because marks are ordered ahead of clears in the batch, the clears never land
+either. The result is every checked-out book published as borrowable, which is
+the exact failure this field exists to prevent.
 
 The other two fields were dropped because the poll cannot honestly maintain
 them: there is no cursor to record, and the index exposes no due date from
@@ -693,11 +706,11 @@ The prices/acquisition data lands in the OL PostgreSQL DB (via TBP feed). The pa
 ### Conflict Analysis
 
 No field name conflicts among the three PR sets. All three add distinct fields:
-- #12689: `ebook_unavailable` (one field; `ebook_becomes_available` and `loan_uid` were removed before merge)
+- #12689: `ebook_unavailable`, `ebook_unavailable_ts` (two fields; `ebook_becomes_available` and `loan_uid` were removed before merge)
 - #12916: `cover_i`, `cover_width`, `cover_height`
 - #12852/#12846: no Solr fields
 
-Both #12689 and #12916 modify `managed-schema.xml`. They can be applied to the production schema in a single operation (one Solr schema update with all four fields), or sequentially in any order.
+Both #12689 and #12916 modify `managed-schema.xml`. They can be applied to the production schema in a single operation (one Solr schema update with all five fields), or sequentially in any order.
 
 **Recommended deploy sequence (all three):**
 

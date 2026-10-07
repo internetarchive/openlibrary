@@ -1,5 +1,6 @@
 """Tests for loan_availability_updater.py"""
 
+import time
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -701,7 +702,16 @@ async def test_a_mark_carries_the_timestamp_in_the_same_update():
         updates = await build_poll_updates(["bookaaa"])
     assert len(updates) == 1
     assert updates[0]["ebook_unavailable"] == {"set": EBOOK_UNAVAILABLE}
-    assert updates[0]["ebook_unavailable_ts"]["set"] > 1_700_000_000, "a mark with no timestamp is useless to the hybrid's gate"
+    ts = updates[0]["ebook_unavailable_ts"]["set"]
+    # Bounded against the clock, not just "greater than some constant". A
+    # review proved the looser assertion green against BOTH a milliseconds
+    # mutation (int(time.time() * 1000)) and a frozen constant -- either of
+    # which would make the hybrid's `ts > index_currency` true for every mark
+    # forever, blocking every clear and freezing availability, with no test
+    # anywhere going red. The unit and the liveness are the whole value of
+    # this field, and nothing else in the repo defends them: it is unread.
+    now = int(time.time())
+    assert now - 5 <= ts <= now + 5, f"ts={ts} is not epoch SECONDS near now ({now}); milliseconds or a frozen value would both pass a looser bound"
 
 
 @pytest.mark.asyncio

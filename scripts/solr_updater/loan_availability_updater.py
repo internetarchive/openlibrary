@@ -135,19 +135,29 @@ fall back to delete-and-re-add.
 
 Solr also rejects `"set": null` under requireInPlace: a value can be set or
 incremented in place, never cleared. That is why "available" is written as 0
-rather than by removing the field, and why there is no field here holding a
-timestamp -- there would be no way to clear one when it went stale.
+rather than by removing the field.
 
-One field, deliberately
------------------------
-Two others were carried through earlier revisions and are gone. `loan_uid` was
-the changes-feed cursor, and there is no feed and no cursor. `ebook_becomes_available`
-held "available in N days", which the poll cannot know -- the index exposes no
-due date (probed with controls: every plausible date field returns 0 documents,
-and the one that exists, `loans__status__last_loan_date`, carries 2020 values
-on 4% of the unavailable set) -- and which could not be kept honest anyway,
-because a renewal moves the date with no event to observe and `"set": null`
-cannot clear a stale one.
+Two fields, and why not three
+-----------------------------
+`ebook_unavailable` is the answer. `ebook_unavailable_ts` records when the
+current run of unavailability began; nothing here reads it, and it ships so the
+feed/poll hybrid is a code-only change rather than a second schema deploy. See
+:func:`mark_update` for its exact semantics, which are narrower than the name
+suggests.
+
+The un-clearable-field constraint above is why a THIRD field was dropped rather
+than a reason there can only be one. `ebook_becomes_available` held "available
+in N days", which the poll cannot know -- the index exposes no due date (probed
+with controls: every plausible date field matches 0 documents, and the one that
+exists, `loans__status__last_loan_date`, carries 2020 values on 4% of the
+unavailable set) -- and which could not be kept honest anyway, because a
+renewal moves the date with no event to observe.
+
+The distinction that lets `ebook_unavailable_ts` survive the same objection: a
+stale MARK TIME is inert, because nothing reads it unless the book is marked
+and a re-mark overwrites it. A stale EXPIRY time was shown to patrons.
+
+`loan_uid` was the changes-feed cursor, and there is no feed and no cursor.
 
 Recovering from drift
 ---------------------
@@ -440,25 +450,42 @@ async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: i
 
 
 def mark_update(key: str, root: str, at: int) -> dict:
-    """One edition marked unavailable, and when the mark was set.
+    """One edition marked unavailable, and when that mark began.
 
     `ebook_unavailable_ts` is written here and read by nothing in this daemon:
     the poll restates the whole set every cycle, so it needs no history of its
-    own marks. It ships now because the field has to exist in Solr before any
-    code can use it, and a schema change is a special deploy -- so carrying it
-    here makes the feed/poll hybrid that follows a **code-only** change rather
-    than a second deploy with its own coordination.
+    own marks. It ships because a schema change is a special deploy and a code
+    change is not -- carrying the field now makes the feed/poll hybrid that
+    follows a CODE-ONLY change rather than a second deploy with its own date.
 
-    Its semantics are fixed by what that hybrid needs: *when was this mark last
-    asserted*. The hybrid gates clearing on it -- a mark newer than the index's
-    currency is a borrow the index has not seen yet, and clearing it would
-    publish a checked-out book as borrowable. So it is set on every mark, and
-    both writers must go through here; a mark without a timestamp would read as
-    epoch 0 and be clearable immediately, which is exactly backwards.
+    **Read the semantics precisely, because the obvious paraphrase is a trap.**
+    This is *when the current unbroken run of unavailability began*, not "when
+    the mark was last re-asserted". The poll skips editions already in the
+    marked set, so a book's ts is frozen for the whole life of its mark and is
+    refreshed only when it is cleared and marked again.
 
-    A clear leaves the old value in place -- `requireInPlace` cannot set a field
-    to null -- so it is meaningful only while `ebook_unavailable` is 1. Nothing
-    reads it otherwise, and a re-mark overwrites it.
+    That is the behaviour the hybrid's gate needs, and the paraphrase is the
+    thing that breaks it: re-stamping every marked edition each cycle would put
+    `ts` at roughly `now` forever, so `ts > index_currency` would always hold,
+    no clear would ever proceed, and availability would freeze permanently.
+    If you are tempted to "fix" the skip, that is the bug you are adding.
+
+    Two consequences worth knowing before building on it:
+
+    * An edition already marked when this code first deploys never acquires a
+      ts -- it is not in `to_mark` -- until it is cleared and re-marked or a
+      reindex wipes it. A consumer must treat ABSENT as "unknown", not as a
+      low timestamp. Solr omits an unset docValues field from the response
+      entirely rather than returning 0, so the value a reader sees is `None`.
+    * A book returned and re-borrowed BETWEEN two polls never leaves the marked
+      set, so it keeps the earlier loan's ts. In the hybrid the changes feed
+      marks that re-borrow and refreshes the stamp -- which is why the feed's
+      mark path must NOT inherit this skip.
+
+    The timestamp is the daemon host's wall clock. It will be compared against
+    a currency derived from archive.org's index, so the two are the same UNIT
+    but not the same CLOCK; a consumer should reserve a skew allowance rather
+    than assume they agree to the second.
     """
     return {
         "key": key,
