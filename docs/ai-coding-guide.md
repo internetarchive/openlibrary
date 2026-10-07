@@ -1,0 +1,299 @@
+# AI Coding Guide for Open Library
+
+This is the canonical AI-agent reference for the Open Library codebase. Tool-specific bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) point here. If you update project guidance, update **this file** and leave the bridges alone.
+
+## Project Overview
+
+Open Library (openlibrary.org) is an open, editable library catalog by the Internet Archive. It's built on **Infogami**, a wiki framework using **web.py**, with a gradual migration to **FastAPI**. The frontend uses server-rendered templates (Templetor), jQuery, Vue 3 components, and Lit web components.
+
+## Development Setup
+
+Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. FastAPI is the primary entry point on port 8080; unmatched requests are proxied to the legacy web.py app by `openlibrary/fastapi/proxy.py` (the old web.py-on-8080 / FastAPI-on-18080 layout was swapped in #13423).
+
+On startup, the `home` container runs `docker/ol-home-start.sh`, which clones the [GitHub wiki](https://github.com/internetarchive/openlibrary.wiki) into `docs/wiki/` (gitignored). The wiki holds operational/how-to documentation that is **not** in this repo — search `docs/wiki/` locally before turning to a web search.
+
+## Build Commands
+
+Build targets are in the `Makefile`. Key dev workflow commands:
+
+```bash
+make all                    # Build everything (frontend, i18n)
+npm run watch               # Dev mode with hot reload (CSS + JS + components)
+npm run watch:components     # Watch components only
+```
+
+## Testing
+
+```bash
+# Python tests (excludes integration tests by default)
+# Preferred: run outside Docker with uv (faster)
+make test-py-uv
+
+# Alternative: run inside Docker
+docker compose run --rm home make test-py
+
+# Run a single Python test file
+pytest openlibrary/core/tests/test_models.py
+
+# Run a specific test
+pytest openlibrary/core/tests/test_models.py::test_function_name -xvs
+
+# JavaScript tests
+npm run test:js
+
+# JavaScript component tests in a real browser (Vitest browser mode)
+npm run test:js:browser
+
+# i18n validation
+make test-i18n
+
+# All tests
+make test
+```
+
+## Troubleshooting
+
+### Books not appearing in search
+
+**Symptom:** You can view a book at `/books/OL1M` (DB has the record) but search returns no results.
+
+**Diagnosis:**
+```bash
+# Check DB record count
+docker compose exec db psql -U openlibrary -t -c "select count(*) from thing"
+
+# Check Solr index count
+curl "http://localhost:8983/solr/openlibrary/select?q=*:*&rows=0"
+```
+
+**Common cause:** New Solr fields were added to `conf/solr/conf/managed-schema.xml` but the local Solr core still has the old schema. The `solr-updater` fails silently when trying to index new field types.
+
+**Manual fix:**
+```bash
+# Option 1: Re-run the reindex
+docker compose run --rm home make reindex-solr
+
+# Option 2: If schema mismatch persists, fully reset Solr volume
+docker compose stop solr
+docker volume rm openlibrary_solr-data
+docker compose up -d solr
+docker compose run --rm home make reindex-solr
+```
+
+### API writes silently drop `action`/`comment`/`data` or 500
+
+The infogami write API (`/api/save_many`, `/api/write`) only applies custom
+`action`, `comment`, and `data` headers when the request's `Opt` header
+matches the app's configured `http_ext_header_uri`. The dev app sets this to
+`http://openlibrary.org/dev/docs/api` (`openlibrary/plugins/openlibrary/code.py`),
+**not** the infogami default (`http://infogami.org/api`).
+
+- **Mismatch symptom:** saves succeed but are recorded as `default-bulk-update`
+  with no comment or data (silent — action-tagged saves like merges lose their
+  metadata), or `api/save_many` 500s when the custom headers come back `None`.
+- **Fix:** send the matching declaration, e.g.
+  `Opt: "http://openlibrary.org/dev/docs/api"; ns=12` plus
+  `X-12-action: merge-authors`, `X-12-comment: ...`, `X-12-data: {...}`.
+- **Prefer FastAPI endpoints instead:** they share the session auth and need
+  no custom headers — e.g. author merges via
+  `POST http://localhost:8080/authors/merge.json`.
+
+### Scripts must log in via the JSON endpoint
+
+`POST /account/login` with a form body returns **200 but does not set a
+session cookie** — scripts that use it appear logged in but their writes are
+unauthenticated. Always POST JSON to `/account/login.json`:
+
+```bash
+curl -s -c /tmp/ck.txt -X POST http://localhost:8080/account/login.json \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"openlibrary","password":"openlibrary"}'
+```
+
+The dev user `openlibrary` / `openlibrary` is a member of `/usergroup/admin`
+(see `scripts/dev-instance/dev_db.pg_dump`), i.e. a super-librarian.
+`scripts/copydocs.py`'s `~/.olrc` autologin hits the form-POST trap — see its
+docstring.
+
+### copydocs copies current revisions only
+
+`scripts/copydocs.py` copies the *current* revision of each document and
+follows *current* references. It does **not** copy changesets/transactions,
+version history (`?v=`), or references that only exist in older revisions,
+and it deliberately strips `authors` from editions.
+
+If you need older revisions:
+
+- **Fetch one revision directly:** `GET /api/get?key=<key>&v=<revision>`
+  (e.g. `curl 'http://localhost:8080/api/get?key=/books/OL1M&v=2'`). On
+  openlibrary.org the same works via `<key>.json?v=<revision>`.
+- **List a doc's revisions:** `GET /api/versions?query=<url-encoded JSON>` —
+  each entry includes the revision number, changeset id, action, and comment.
+  The `query` JSON must be URL-encoded, e.g.
+  `curl -G 'http://localhost:8080/api/versions' --data-urlencode 'query={"key": "/books/OL1M", "limit": 5}'`.
+- **copydocs `?v=N` keys** (`./scripts/copydocs.py /works/OL1W?v=2`) copy an
+  old revision's *content*, but it is saved as a fresh local revision — local
+  revision numbering and changeset history are still not preserved.
+- **Reproductions that depend on history** (e.g. undo, which fetches
+  `revision − 1`) need the local infobase rows
+  (`transaction`/`thing`/`data`/`version`) to match production — either
+  reconstruct them via `psql` in the `db` container (fetch R and R−1 from
+  production), or — usually simpler — build a synthetic scenario through the
+  API instead of copying history at all (the #5664 reproduction work is a
+  worked example of the API approach).
+
+## Linting
+
+```bash
+# Python (ruff)
+make lint
+
+# JavaScript + CSS
+npm run lint
+npm run lint:js              # ESLint only
+npm run lint:css             # Stylelint only
+
+# Auto-fix
+npm run lint-fix
+```
+
+Pre-commit hooks are configured. Install with `pre-commit install`.
+
+## Architecture
+
+### Backend: Infogami + web.py (legacy) → FastAPI (new)
+
+The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the main entry point, which loads plugins from `openlibrary/plugins/`. Each plugin's `code.py` registers routes, templates, and macros.
+
+**Routes (web.py/Infogami):** Defined as classes extending `delegate.page` in plugin `code.py` files. The class attribute `path` is a regex pattern, and `GET`/`POST` methods handle requests.
+
+**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`.
+
+**Key plugins:**
+- `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
+- `plugins/upstream/` — Core features: book editing, accounts, borrowing, models
+- `plugins/worksearch/` — Solr search integration
+- `plugins/books/` — Books API (JSON/RDF)
+- `plugins/importapi/` — Book import API
+- `plugins/admin/` — Admin panel
+
+### Templates (Templetor)
+
+Templates live in `openlibrary/templates/` and use web.py's Templetor syntax (not Jinja2):
+- `$def with (arg1, arg2)` — template arguments
+- `$variable` or `$:variable` (unescaped) — variable interpolation
+- `$if`, `$for`, `$while` — control flow
+- `$code:` — inline Python blocks
+- Macros in `openlibrary/macros/` extend templates
+
+Route handlers render templates via `render_template("path/name", args)` which maps to `templates/path/name.html`.
+
+### Core Business Logic
+
+`openlibrary/core/` contains the data layer:
+- `models.py` — Data models (Work, Edition, Author, etc.)
+- `db.py` — Database access
+- `lending.py` — Book lending/availability
+- `bookshelves.py`, `ratings.py`, `booknotes.py` — User content features
+- `vendors.py` — External vendor integrations
+- `ia.py` — Internet Archive integration
+
+### Frontend
+
+- **CSS:** CSS files in `static/css/`, compiled via `scripts/vite/build.mjs` (`--only css`) to `static/build/css/`. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
+- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via `scripts/vite/build.mjs` (`--only js`) to `static/build/js/`.
+- **Vue components:** `openlibrary/components/*.vue`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
+- **Lit web components:** `openlibrary/components/lit/`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
+- **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
+
+### Browser Support
+
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 11.1, iOS ≥ 11.3, Android ≥ 5. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+
+What the toolchain guarantees:
+
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari11.1', 'ios11.3']` in `scripts/vite/build.mjs`, matching `browserslist`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/main.js`. `all.js` is a `<script type="module">`, so the floor is Safari/iOS 11.x plus evergreen Chrome/Edge/Firefox per `browserslist`.
+- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `scripts/vite/build.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
+
+Rules for new code:
+
+- **Do not add polyfills or legacy fallback bundles.** IE11-era polyfills were removed deliberately (#12685).
+- **Web platform APIs are not auto-polyfilled anywhere** — feature-detect (`if ('IntersectionObserver' in window)`) or verify the API is within the floor before using it unguarded.
+- Browsers below the floor get the server-rendered experience: content stays readable, JS enhancements are untested. Don't deliberately break them, but don't spend effort on them either.
+
+### Search
+
+Apache Solr 10 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
+
+### Data Model
+
+Open Library uses a wiki-style versioned data store (Infobase) via the `vendor/infogami/` git submodule. The core entities are:
+- **Works** (`/works/OL123W`) — Abstract representation of a book (title, author associations)
+- **Editions** (`/books/OL456M`) — A specific publication of a Work (ISBN, publisher, format)
+- **Authors** (`/authors/OL789A`) — Author records linked from Works
+
+A Work has many Editions. This is the central relationship in the data model.
+
+## Pull Requests
+
+When creating PRs, use the template in `.github/pull_request_template.md` for the PR body. Before pushing code, run `npm run lint` to catch issues early.
+
+## Code Style
+
+- **Python:** Ruff for linting and `ruff format` for formatting. Line length 162. Target Python 3.14.
+- **JavaScript:** ESLint with single quotes, `prefer-template`, `eqeqeq`. No jQuery in new code.
+- **CSS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
+- **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)
+
+## Topic Guides
+
+These companion docs cover specific areas in depth:
+
+- [Accessibility](frontend/a11y.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
+- [CSS](frontend/css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
+- [Design](frontend/design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
+- [Web Component Standards](frontend/web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
+- [Internationalization](i18n/i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
+
+## Domain Knowledge Bases
+
+Deep-dive references for major system domains. Each covers production architecture, key files, how it works, endpoints/APIs, debug playbook, open issues, and PR review expectations.
+
+- [Solr](search/index.md) — search index, solr-updater, schema, search endpoints, facets
+- [Imports](imports/index.md) — import pipeline, DataProvider/DataProviderRecord pattern, batch import, importapi endpoints, adding new sources
+- [Tags](tags/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
+- [OPDS](opds/index.md) — OPDS 2.0 feed service (opds.openlibrary.org), pyopds2_openlibrary library, reader.archive.org integration, local dev setup
+
+## Key File Locations
+
+| What | Where |
+|---|---|
+| Python app entry | `openlibrary/code.py` |
+| FastAPI app | `openlibrary/asgi_app.py` |
+| Plugin route handlers | `openlibrary/plugins/*/code.py` |
+| HTML templates | `openlibrary/templates/` |
+| Template macros | `openlibrary/macros/` |
+| Core models & logic | `openlibrary/core/` |
+| JS source | `openlibrary/plugins/openlibrary/js/` |
+| CSS source | `static/css/` |
+| Vue components | `openlibrary/components/*.vue` |
+| Lit components | `openlibrary/components/lit/` |
+| Python tests | `tests/`, `openlibrary/**/tests/` |
+| JS tests | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
+| Browser-mode component tests | `tests/browser/` |
+| Docker config | `docker/`, `compose.yaml` |
+| Solr config | `conf/solr/` |
+| i18n translations | `openlibrary/i18n/` |
+| Infogami submodule | `vendor/infogami/` |
+| GitHub wiki (local clone) | `docs/wiki/` |
+
+## Contributing to These Docs
+
+The `docs/` knowledge base is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the KB conventions (one topic = one directory).
+
+**To add a new topic:** create a directory under `docs/` with a `README.md` overview, and link it from the KB index ([`docs/README.md`](README.md)). No changes to the bridge files are needed — agents follow links from the KB.
+
+**To update general guidance:** edit this file (`docs/ai-coding-guide.md`). Only update the bridge files if a key command or style rule changes, since those are inlined in the bridges for quick reference.
+
+**To remove a tool's bridge:** delete the bridge file when the team stops using that tool.

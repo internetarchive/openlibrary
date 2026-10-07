@@ -229,9 +229,10 @@ def find_matching_work(e):
     for a in e["authors"]:
         q = {"type": "/type/work", "authors": {"author": {"key": a["key"]}}}
         work_keys = list(site.get().things(q))
+        works = {w.key: w for w in site.get().get_many(work_keys)}
         for wkey in work_keys:
-            w = site.get().get(wkey)
-            if wkey in seen:
+            w = works.get(wkey)
+            if w is None or wkey in seen:
                 continue
             seen.add(wkey)
             if not w.get("title"):
@@ -257,18 +258,27 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
     for a in authors_in:
         new_author = "key" not in a
         if new_author:
+            status = "created"
             if save:
                 a["key"] = site.get().new_key("/type/author")
             else:
                 a["key"] = f"/authors/__new__{uuid.uuid4()}"
             a["source_records"] = [source]
+        else:
+            stored = web.ctx.site.get(a["key"])  # Fresh read to check for modifications
+            if a.dict() != stored.dict():
+                edits.append(a.dict())
+                status = "modified"
+            else:
+                status = "matched"
+        if status in ("created", "modified"):
             edits.append(a)
         authors.append({"key": a["key"]})
         author_reply.append(
             {
                 "key": a["key"],
                 "name": a["name"],
-                "status": ("created" if new_author else "matched"),
+                "status": status,
             }
         )
     return (authors, author_reply)

@@ -4,7 +4,7 @@ into a local dev instance).
 
 Known dev-instance quirks (login is JSON-only, custom save headers require the
 right Opt decl_uri, and only *current* revisions are copied — no
-changeset/transaction history) are documented in docs/ai/README.md →
+changeset/transaction history) are documented in docs/ai-coding-guide.md →
 Troubleshooting.
 """
 

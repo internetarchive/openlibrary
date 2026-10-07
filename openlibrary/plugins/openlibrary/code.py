@@ -1153,7 +1153,6 @@ def setup():
     from openlibrary.plugins.importapi import import_ui
     from openlibrary.plugins.openlibrary import (
         authors,
-        borrow_home,
         design,
         events,
         home,
@@ -1174,7 +1173,6 @@ def setup():
     sentry.setup()
     home.setup()
     design.setup()
-    borrow_home.setup()
     stats.setup()
     events.setup()
     status.setup()

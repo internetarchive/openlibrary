@@ -26,6 +26,8 @@ from openlibrary.plugins.openlibrary.partials import (
     FullTextSuggestionsPartial,
     LazyCarouselParams,
     MyBooksDropperListsPartial,
+    NearbyBooksParams,
+    NearbyBooksPartial,
     ReadingGoalProgressPartial,
     ReadingStatePartial,
     SearchFacetsPartial,
@@ -144,8 +146,10 @@ async def reading_goal_progress_partial(
 
     The year parameter is optional; defaults to the current year.
     """
-    # Despite the face we are not yet using the user, it gives us faster auth checking and api documentation.
-    return ReadingGoalProgressPartial.generate(year=year or datetime.now().year)
+    return await ReadingGoalProgressPartial.generate_async(
+        username=user.username,
+        year=year or datetime.now().year,
+    )
 
 
 @router.get("/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -242,6 +246,17 @@ async def lazy_carousel_partial(
     TODO: Drop the lazy naming. Partials always load later.
     """
     return await CarouselPartial.generate_async(params=params, full_path=full_path)
+
+
+@router.get("/partials/NearbyBooks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def nearby_books_partial(
+    params: Annotated[NearbyBooksParams, Query()],
+    full_path: Annotated[str, Depends(get_fullpath)],
+) -> dict:
+    """
+    Get the book page's "Nearby Books" (DDC shelf-adjacency) carousel HTML.
+    """
+    return await NearbyBooksPartial.generate_async(params=params, full_path=full_path)
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

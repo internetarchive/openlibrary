@@ -174,11 +174,15 @@ def _include_routers(app: FastAPI) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
-    # Startup
     if os.environ.get("LOCAL_DEV", "false").lower() == "true":
         setup_debugpy()
-    yield
-    # Shutdown (if needed in the future)
+    from openlibrary.core.async_db import close_pool, init_pool
+
+    await init_pool()
+    try:
+        yield
+    finally:
+        await close_pool()
 
 
 def create_app() -> FastAPI | None:

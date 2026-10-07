@@ -311,7 +311,7 @@ class TestPrecedence:
         links = self._stitch(monkeypatch, {"key": "/books/OL999M"}, [provider_acquisition(provider_name="standard_ebooks")], {})
         assert [link["provider_name"] for link in links] == ["standard_ebooks"]
 
-    def test_an_unparseable_key_does_not_raise(self, acquisitions_db, monkeypatch):
+    def test_an_unparsable_key_does_not_raise(self, acquisitions_db, monkeypatch):
         links = self._stitch(monkeypatch, {"key": "/books/OL"}, [provider_acquisition(provider_name="standard_ebooks")], {})
         assert [link["provider_name"] for link in links] == ["standard_ebooks"]
 
