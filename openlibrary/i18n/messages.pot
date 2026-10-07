@@ -686,10 +686,6 @@ msgstr ""
 msgid "System information"
 msgstr ""
 
-#: status.html
-msgid "Features enabled"
-msgstr ""
-
 #: subjects.html
 msgid "Edit tag for this subject"
 msgstr ""

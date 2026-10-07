@@ -40,7 +40,7 @@ permissions:
   pull-requests: write
   issues: write
   # Must be `write`: GitHub accepts only `write` or `none` here, so `read` made the whole
-  # file unparseable, and `none` would break the OIDC fetch described above.
+  # file unparsable, and `none` would break the OIDC fetch described above.
   id-token: write
 
 concurrency:

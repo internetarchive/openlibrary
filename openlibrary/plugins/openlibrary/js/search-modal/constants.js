@@ -459,7 +459,7 @@ export function removeRecentSearch(query) {
 
 /**
  * Read the language list from sessionStorage. Guards against missing values,
- * unparseable JSON, and values that parse to a non-array (e.g. a previously
+ * unparsable JSON, and values that parse to a non-array (e.g. a previously
  * stored object or string), any of which would otherwise leave callers with a
  * non-iterable or character-iterable value. Non-string entries are dropped so a
  * corrupt value can't surface as a bogus `language=<n>` filter.
