@@ -778,6 +778,59 @@ def _marked_at(doc: dict) -> int | None:
     return value if isinstance(value, int) else None
 
 
+async def drop_clears_overtaken_by_a_mark(to_clear: list[dict], index_current_as_of: int) -> list[dict]:
+    """Re-read the clear set's stamps and drop any the feed has just marked.
+
+    The gate above decides from a snapshot taken at the start of the cycle, and
+    the write lands seconds later. The feed loop writes to these same editions
+    throughout. So a book returned days ago, legitimately clearable, can be
+    RE-BORROWED during the poll: the feed stamps it, and then the poll's
+    already-decided clear lands on top and publishes a checked-out book as
+    borrowable. Nothing revisits it until the index notices the new borrow,
+    which is a lag window away -- the unrecoverable direction, and the one
+    every guard in this file exists for.
+
+    Read through Solr's REAL-TIME GET rather than a select, which is the whole
+    reason this works: the feed writes with `commit=False`, so a searcher-based
+    read would not see a mark made inside the soft-commit window -- exactly the
+    marks that are most likely to be racing. `/get` returns the latest version
+    including uncommitted updates.
+
+    This narrows the window from the poll's whole duration to the gap between
+    this read and the write. It does not close it. Closing it needs optimistic
+    concurrency on `_version_`, which Solr supports and the in-place update
+    path here does not currently carry; narrowing is what is cheap and correct
+    today, and the residue is bounded by a few milliseconds rather than by how
+    long a poll takes.
+    """
+    if not to_clear:
+        return to_clear
+    keys = [doc["key"] for doc in to_clear]
+    fresh = await get_solr().get_many_async(keys, fields=["key", "ebook_unavailable", "ebook_unavailable_ts"])
+    by_key = {doc["key"]: doc for doc in fresh}
+
+    kept, overtaken = [], 0
+    for doc in to_clear:
+        latest = by_key.get(doc["key"])
+        if latest is None:
+            # It vanished between the two reads -- a reindex, most likely.
+            # Nothing to clear, and writing to it would 400 under
+            # requireInPlace anyway.
+            overtaken += 1
+            continue
+        at = _marked_at(latest)
+        if at is None or at > index_current_as_of:
+            # Re-stamped since the snapshot, or its stamp disappeared. Either
+            # way this is no longer a clear we are entitled to make.
+            overtaken += 1
+            continue
+        kept.append(doc)
+
+    if overtaken:
+        logger.info("Dropped %d clears overtaken by a fresh mark during the poll", overtaken)
+    return kept
+
+
 async def build_poll_updates(unavailable_identifiers: list[str], index_current_as_of: int) -> list[dict]:
     """Reconcile Solr's marked set to the index's unavailable set, in one pass.
 
@@ -836,6 +889,10 @@ async def build_poll_updates(unavailable_identifiers: list[str], index_current_a
     # book is unavailable as of this read, and the stamp is what protects it
     # from the next poll.
     now = int(time.time())
+    # Last thing before the write: the feed may have marked one of these while
+    # this poll was running. See drop_clears_overtaken_by_a_mark.
+    to_clear = await drop_clears_overtaken_by_a_mark(to_clear, index_current_as_of)
+
     updates = [mark_update(info["key"], info["root"], now) for info in to_mark]
     updates += [stamp_unstamped(doc, now) for doc in unstamped]
     updates += [{"key": doc["key"], "_root_": doc["_root_"], "ebook_unavailable": {"set": EBOOK_AVAILABLE}} for doc in to_clear]
