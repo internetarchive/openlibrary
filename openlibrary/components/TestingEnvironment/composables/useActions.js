@@ -11,12 +11,11 @@ const RECENT_HIGHLIGHT_MS = 10000;
  * @param {object}  opts
  * @param {import('vue').ShallowRef<boolean>} opts.busy       — whether the action queue is processing
  * @param {import('vue').Ref<object|null>} [opts.payload]     — panel payload; toggle/remove/restore flip it optimistically
- * @param {Function} opts.loadStatus — re-fetch after each action
  * @param {Function} opts.setToast   — show an error toast
  * @param {object}  opts.strings     — translated strings (plain object, set once at setup)
  * @returns {object} action flags and methods
  */
-export function useActions({ busy, payload, loadStatus, setToast, strings }) {
+export function useActions({ busy, payload, setToast, strings }) {
     const refreshing = shallowRef(false);
     const adding = shallowRef(false);
     const deploying = shallowRef(false);
@@ -32,10 +31,13 @@ export function useActions({ busy, payload, loadStatus, setToast, strings }) {
         return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
     }
 
+    // No re-fetch here: the SSE stream delivers the confirmed snapshot
+    // within ~1s (polling covers a dead stream), so a GET per action would
+    // only duplicate it — and an intermediate GET predating queued requests
+    // is exactly what flickered rapid toggles.
     async function executeAction(action, fields, method = 'POST') {
         try {
             const result = await postAction(action, fields, method);
-            await loadStatus(false, false, false);
             // A business failure ({"ok": false, "error": "<code>"}) is a
             // completed request, not a thrown fetch — say why instead of
             // pretending the action landed.
@@ -86,8 +88,10 @@ export function useActions({ busy, payload, loadStatus, setToast, strings }) {
     }
 
     /**
-     * Apply `patch` to a row now, send the action, revert on network
-     * failure. Success reconciles via the post-action re-fetch.
+     * Apply `patch` to a row now, send the action, revert when the server
+     * rejects it. Success needs no handling: the stream delivers the
+     * confirmed snapshot, and stream events landing mid-queue are dropped
+     * while `busy`, so nothing can clobber a newer optimistic flip.
      */
     function optimisticRow(prNumber, patch, action, fields, method = 'POST') {
         const row = payload?.value?.prs?.find((r) => r.pr === prNumber);
@@ -96,7 +100,7 @@ export function useActions({ busy, payload, loadStatus, setToast, strings }) {
         const waiter = enqueue(action, fields, 'action', method);
         if (snapshot) {
             waiter.then((result) => {
-                if (result === false) {
+                if (result === false || result?.ok === false) {
                     const current = payload?.value?.prs?.find((r) => r.pr === prNumber);
                     if (current) Object.assign(current, snapshot);
                 }

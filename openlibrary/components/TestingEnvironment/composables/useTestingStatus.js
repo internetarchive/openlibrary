@@ -34,8 +34,8 @@ export function useTestingStatus(busy) {
     const { streaming } = useEventStream(STREAM_URL, {
         event: 'status',
         onPayload(streamed) {
-            // While an action is in flight, its own re-fetch covers this
-            // window; the next stream event catches up anything newer.
+            // While actions are in flight their optimistic updates own the
+            // UI; the first stream event after the queue drains reconciles.
             if (busy.value) return;
             applyPayload(streamed);
         }

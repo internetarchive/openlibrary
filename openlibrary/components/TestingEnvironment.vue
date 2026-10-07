@@ -44,11 +44,10 @@ const { setToast } = useToast();
 
 // busy marks the action queue as processing and pauses background refreshes.
 const busy = shallowRef(false);
-const { view, payload, now, loadStatus, retry } = useTestingStatus(busy);
+const { view, payload, now, retry } = useTestingStatus(busy);
 const { refreshing, adding, deploying, addInput, recentlyAdded, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
     busy,
     payload,
-    loadStatus,
     setToast,
     strings
 });
