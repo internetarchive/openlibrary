@@ -232,7 +232,7 @@ describe('recent searches (localStorage)', () => {
             expect(readRecentSearches()).toEqual(stored.slice(0, RECENT_SEARCHES_MAX));
         });
 
-        test('returns [] on unparseable JSON', () => {
+        test('returns [] on unparsable JSON', () => {
             localStorage.setItem(LS_RECENT_SEARCHES_KEY, '{not json');
             expect(readRecentSearches()).toEqual([]);
         });
@@ -322,7 +322,7 @@ describe('readStoredLanguages (sessionStorage)', () => {
         expect(readStoredLanguages()).toEqual(['eng', 'spa']);
     });
 
-    test('returns [] on unparseable JSON', () => {
+    test('returns [] on unparsable JSON', () => {
         sessionStorage.setItem(SS_LANGUAGES_KEY, '{nope');
         expect(readStoredLanguages()).toEqual([]);
     });

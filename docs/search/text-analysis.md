@@ -125,7 +125,7 @@ Measured against `solr:10.0.0` running OL's configset, comparing three variants 
 Placing `stop` after `porterStem` means stopwords are matched against **stemmed** tokens, while `stopwords_en.txt` is unstemmed. Four of the 33 entries then fail to match their own list and survive filtering:
 
 ```
-are -> ar      they -> thei      this -> thi      was -> wa
+are -> ar      they -> thei      this -> thi      was -> wa  <!-- codespell:ignore thei,thi -->
 ```
 
 So this placement fixes the position bug but silently weakens stopword removal by ~12%. Options not yet evaluated: stem the stopword list to match, place `stop` between `flattenGraph` and `porterStem`, or use `CommonGramsFilter` instead. **This is the open question**, not a solved problem.
