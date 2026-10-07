@@ -8,8 +8,8 @@ Dropdown menu or singleton link component.
         {% set link = props.links[0] %}
         {% set tracker_value = (track_prefix ~ '|' ~ link.track) if (track_prefix and link.get('track')) else '' %}
         <a href="{{ link.href }}"
-           {% if props.get('link-class') %}class="{{ props.get('link-class') }}"{% endif %}
-           {% if tracker_value %}data-ol-link-track="{{ tracker_value }}"{% endif %}>
+           {% if props.get('link-class') %} class="{{ props.get('link-class') }}"{% endif %}
+           {% if tracker_value %} data-ol-link-track="{{ tracker_value }}"{% endif %}>
             {% if props.get('icon') %}
                 {{ icon(props.icon, size="sm", extra_class="ol-button-static__icon") }}
             {% endif %}
