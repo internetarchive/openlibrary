@@ -243,6 +243,13 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
             fields=["key", "ia", "_root_"],
             rows=len(chunk) * 2,
         )
+        # The SAME guard fetch_marked_editions uses, and for the same reason:
+        # this is the other half of the comparison that turns absence into a
+        # clear. An identifier that fails to resolve is indistinguishable from
+        # one the index no longer calls unavailable, so a truncated or
+        # timeAllowed-cut read here silently clears checked-out books -- under
+        # the breaker's threshold, with nothing above INFO in the log.
+        refuse_if_incomplete(result, len(result.docs), "edition resolve")
         for doc in result.docs:
             for ia_id in doc.get("ia", []):
                 if ia_id in id_set:
@@ -611,9 +618,23 @@ def event_epoch(state: dict) -> int | None:
     if not isinstance(raw, str):
         return None
     try:
-        return int(datetime.datetime.fromisoformat(raw.replace("Z", "+00:00").replace(" ", "T")).timestamp())
+        parsed = datetime.datetime.fromisoformat(raw.replace("Z", "+00:00").replace(" ", "T"))
     except ValueError:
         return None
+    if parsed.tzinfo is None:
+        # IA's rows carry "YYYY-MM-DD HH:MM:SS" with NO offset, and a naive
+        # datetime's .timestamp() silently applies the HOST's local zone. The
+        # result is compared against a UTC epoch currency, so off UTC every
+        # feed mark is stamped hours wrong -- and in which direction depends on
+        # the sign of the offset, which nothing pins.
+        #
+        # A day-sized margin absorbs it today. It stops absorbing it the moment
+        # ES_LAG_MARGIN is tightened toward the measured lag tail, which is the
+        # documented plan: at an hour-sized margin a mark stamped seven hours
+        # in the past is clearable by the very next poll, so a borrow would be
+        # marked and unmarked within seconds.
+        parsed = parsed.replace(tzinfo=datetime.UTC)
+    return int(parsed.timestamp())
 
 
 def build_solr_updates(
@@ -796,7 +817,13 @@ async def build_poll_updates(unavailable_identifiers: list[str], index_current_a
     to_clear = [doc for doc in datable if (_marked_at(doc) or 0) <= index_current_as_of]
     too_fresh = len(datable) - len(to_clear)
 
-    allowed = max(CLEAR_BREAKER_FLOOR, int(len(marked) * CLEAR_BREAKER_FRACTION))
+    # Sized against the CANDIDATES -- the editions the index actually dropped --
+    # not against everything marked. The gate removes fresh marks from
+    # `to_clear` before this comparison, so measuring against `len(marked)`
+    # lowered the numerator while leaving the denominator alone: a degraded
+    # index could drop hundreds, have most of them held as too-fresh, and slip
+    # the remainder past a threshold computed as though nothing had been held.
+    allowed = max(CLEAR_BREAKER_FLOOR, int(len(candidates) * CLEAR_BREAKER_FRACTION))
     if len(to_clear) > allowed:
         # Only the CLEAR set is ever held back. Marking needs no confirmation --
         # it is the recoverable direction -- and dropping the marks alongside a
@@ -839,8 +866,13 @@ async def count_marked_editions() -> int | None:
     try:
         result = await get_solr().select_async(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0)
         return result.num_found
-    except OSError, ValueError, KeyError, RuntimeError:
-        # A heartbeat must never be the thing that stops the daemon.
+    except Exception:
+        # Deliberately broad. This was OSError/ValueError/KeyError/RuntimeError,
+        # and httpx.HTTPError is NOT an OSError -- so a Solr timeout here
+        # escaped into the poll loop's handler and was logged as "Poll failed;
+        # prior state stands" AFTER a poll that had in fact succeeded and
+        # written. A heartbeat must never stop the daemon, and must never
+        # misreport one either.
         logger.debug("Heartbeat could not count marked editions", exc_info=True)
         return None
 
@@ -875,6 +907,11 @@ async def bootstrap_feed_cursor(margin: int = ES_LAG_MARGIN) -> int:
     """
     target = int(time.time()) - margin
     resp = await lending.get_loan_changes(limit=BATCH_SIZE)
+    if resp.get("status") != "OK":
+        # follow_feed_once checks this and the bootstrap did not, so a 200
+        # carrying {"status": "ERROR"} fell into the no-rows branch below and
+        # printed a confident, wrong "starting at the head 0".
+        raise PollRefused(f"Feed returned status={resp.get('status')!r} to the cursor bootstrap")
     rows = resp.get("rows") or []
     head = resp.get("latest_uid") or 0
 
@@ -1006,13 +1043,45 @@ async def main(
     try:
         cursor = await bootstrap_feed_cursor(es_lag_margin)
     except Exception:
-        logger.exception("Could not bootstrap the feed cursor; the marking half starts at 0 and the poll still runs")
-        cursor = 0
+        # NOT 0. `after_uid=0` is itself an error on this API, so a zero cursor
+        # makes every single feed read raise -- the marking half permanently
+        # inert, the daemon silently degraded to the poll-only design this
+        # exists to replace, and an exception every FEED_INTERVAL seconds into
+        # logs and Sentry while the heartbeat still reports healthy because it
+        # only counts marked editions.
+        #
+        # This is the expected state until the petabox changes-API default
+        # behaviour ships, so it has to degrade well rather than loudly.
+        logger.exception("Could not bootstrap the feed cursor; falling back to the feed head")
+        cursor = await feed_head()
+
+    if not cursor:
+        logger.error(
+            "No feed cursor could be established, so the marking half will not run and this is a POLL-ONLY daemon for now. "
+            "Books borrowed since the index's last update stay unmarked until it catches up. Said once, here, rather than every cycle."
+        )
+        await _poll_loop(poll_interval, es_lag_margin, dry_run)
+        return
 
     await asyncio.gather(
         _feed_loop(cursor, feed_interval, dry_run),
         _poll_loop(poll_interval, es_lag_margin, dry_run),
     )
+
+
+async def feed_head() -> int:
+    """The newest uid the feed will admit to, or 0 if it will not say.
+
+    Asked with `after_uid=1` rather than with no parameter, because the
+    no-parameter form is the thing that may not exist yet -- this is the
+    fallback for when it does not.
+    """
+    try:
+        resp = await lending.get_loan_changes(after_uid=1, limit=1)
+        return resp.get("latest_uid") or 0
+    except Exception:
+        logger.exception("Could not read the feed head either")
+        return 0
 
 
 async def _feed_loop(cursor: int, feed_interval: int, dry_run: bool) -> None:

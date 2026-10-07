@@ -944,3 +944,99 @@ async def test_a_stamped_mark_is_still_judged_normally_afterwards():
         updates = await build_poll_updates([], _MARKED_RECENTLY)
     _, clear = _sets(updates)
     assert clear == {"/books/OL1M"}
+
+
+@pytest.mark.asyncio
+async def test_the_breaker_is_sized_against_what_the_index_dropped():
+    """The gate filters `to_clear` before the breaker measures it, so sizing
+    the threshold against the whole marked set lowered the numerator and left
+    the denominator alone -- a degraded index could drop hundreds, have most
+    held as too fresh, and slip the rest through a threshold computed as though
+    nothing had been held.
+
+    Here the index drops 300 of 1000 marked. 280 are too fresh to clear, 20 are
+    not. Against `len(marked)` the limit is 100 and 20 sails through with no
+    ground-truth call; against the 300 it actually dropped the limit is 30, so
+    20 still passes -- but the shape is now proportional to the event rather
+    than to the collection.
+    """
+    fresh, old_ = 280, 20
+    marked = {}
+    for i in range(1000):
+        stamp = _MARKED_RECENTLY if i < fresh else 1
+        marked[f"/books/OL{i}M"] = {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W", "ebook_unavailable_ts": stamp}
+    # The index still calls everything from 300 up unavailable; it dropped 0-299.
+    resolved = {f"book{i}": {"key": f"/books/OL{i}M", "root": f"/works/OL{i}W"} for i in range(300, 1000)}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": AVAILABLE for i in range(1000)})),
+    ):
+        updates = await build_poll_updates([f"book{i}" for i in range(300, 1000)], _MARKED_RECENTLY - 1)
+    _, clear = _sets(updates)
+    assert len(clear) == old_, "only the marks old enough to judge may clear"
+    assert "/books/OL0M" not in clear, "a fresh mark must never clear regardless of the breaker"
+
+
+@pytest.mark.asyncio
+async def test_a_truncated_edition_resolve_is_refused_rather_than_cleared():
+    """The other half of the comparison that turns absence into a clear.
+
+    `fetch_marked_editions` had this guard and `resolve_edition_keys` did not,
+    even though an identifier that fails to resolve is indistinguishable from
+    one the index no longer calls unavailable. A Solr slowdown tripping
+    `timeAllowed` returns HTTP 200 with a short `docs` list and
+    `partialResults`, and without this the editions that fell off the end are
+    cleared -- checked-out books published as borrowable, under the breaker's
+    threshold, with nothing above INFO in the log. It needs a slow Solr, not an
+    index incident, which is what makes it the likeliest path in the file.
+    """
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(
+        docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}],
+        num_found=766,
+        response_header={},
+    )
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
+        await resolve_edition_keys(["bookaaa", "bookbbb"])
+    assert "resolve" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_a_partial_edition_resolve_is_refused_rather_than_cleared():
+    """`partialResults` is the only signal that `timeAllowed` cut the query
+    short; numFound can look perfectly consistent with the short list."""
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(
+        docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}],
+        num_found=1,
+        response_header={"partialResults": True},
+    )
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused):
+        await resolve_edition_keys(["bookaaa"])
+
+
+@pytest.mark.asyncio
+async def test_the_breaker_threshold_tracks_the_drop_not_the_collection():
+    """Sized against the whole marked set, a threshold scales with how many
+    books are on loan rather than with how many the index just dropped -- so a
+    big collection buys a big allowance for a small, wrong drop.
+
+    1000 marked, the index drops 100, 50 of those are old enough to judge.
+    Against the collection the limit is 100 and all 50 clear with no
+    ground-truth call. Against the drop it is 25, the breaker trips, ground
+    truth is asked, and it says the books are still out -- so none clear.
+    """
+    marked = {
+        f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W", "ebook_unavailable_ts": (1 if i < 50 else _MARKED_RECENTLY)}
+        for i in range(1000)
+    }
+    resolved = {f"book{i}": {"key": f"/books/OL{i}M", "root": f"/works/OL{i}W"} for i in range(100, 1000)}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(1000)})),
+    ):
+        updates = await build_poll_updates([f"book{i}" for i in range(100, 1000)], _MARKED_RECENTLY - 1)
+    _, clear = _sets(updates)
+    assert clear == set(), "the breaker must trip on the drop's size and ground truth must then hold every clear"
