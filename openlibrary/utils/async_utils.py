@@ -27,9 +27,6 @@ class AsyncBridge:
         self._thread.start()
 
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
-        if threading.current_thread() is self._thread:
-            coro.close()
-            raise RuntimeError("AsyncBridge.run() cannot be called from its own event loop")
         ctx = contextvars.copy_context()
 
         async def _in_ctx() -> T:

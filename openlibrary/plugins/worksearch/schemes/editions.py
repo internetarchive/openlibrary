@@ -21,8 +21,6 @@ class EditionSearchScheme(SearchScheme):
             "alternative_subtitle",
             "cover_i",
             "ebook_access",
-            # ebook_unavailable is deliberately absent;
-            # see docs/ai/solr/index.md "Near-realtime loan availability".
             "publish_date",
             "lccn",
             "ia",
