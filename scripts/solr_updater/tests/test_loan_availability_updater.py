@@ -1,5 +1,6 @@
 """Tests for loan_availability_updater.py"""
 
+import time
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -17,7 +18,10 @@ from scripts.solr_updater.loan_availability_updater import (
     MARKED_SET_MAX,
     SOLR_QUERY_CHUNK,
     PollRefused,
+    _poll_loop,
     build_poll_updates,
+    build_solr_updates,
+    collect_dirty_identifiers,
     fetch_marked_editions,
     main,
     resolve_edition_keys,
@@ -302,6 +306,8 @@ def test_a_waitlisted_book_is_not_available():
 # which is where a defect publishes a checked-out book as borrowable.
 # ---------------------------------------------------------------------------
 
+_NOW = 2_000_000_000  # an index currency far in the future: nothing is 'too fresh' to clear
+
 POLL_EDITIONS = {
     "bookaaa": {"key": "/books/OL1M", "root": "/works/OL1W"},
     "bookbbb": {"key": "/books/OL2M", "root": "/works/OL2W"},
@@ -333,7 +339,7 @@ def _sets(updates: list[dict]) -> tuple[set[str], set[str]]:
 async def test_a_poll_marks_a_newly_unavailable_book():
     resolve, marked = _poll(["bookaaa", "bookbbb"], _marked("/books/OL1M"))
     with resolve, marked:
-        updates = await build_poll_updates(["bookaaa", "bookbbb"])
+        updates = await build_poll_updates(["bookaaa", "bookbbb"], _NOW)
     mark, clear = _sets(updates)
     assert mark == {"/books/OL2M"}, "the book the index newly calls unavailable must be marked"
     assert clear == set(), "nothing freed up, so nothing may be cleared"
@@ -346,7 +352,7 @@ async def test_a_poll_clears_a_book_the_index_no_longer_calls_unavailable():
     so a book dropping out of the set is a return or an expiry."""
     resolve, marked = _poll(["bookaaa"], _marked("/books/OL1M", "/books/OL2M"))
     with resolve, marked:
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(["bookaaa"], _NOW)
     mark, clear = _sets(updates)
     assert clear == {"/books/OL2M"}
     assert mark == set()
@@ -362,7 +368,7 @@ async def test_a_wiped_field_is_re_marked_by_the_next_poll():
     """
     resolve, marked = _poll(list(POLL_EDITIONS), {})
     with resolve, marked:
-        updates = await build_poll_updates(list(POLL_EDITIONS))
+        updates = await build_poll_updates(list(POLL_EDITIONS), _NOW)
     mark, clear = _sets(updates)
     assert mark == {"/books/OL1M", "/books/OL2M", "/books/OL3M"}
     assert clear == set(), "an empty marked set has nothing to clear -- and must not invent any"
@@ -375,7 +381,7 @@ async def test_an_unchanged_poll_writes_nothing():
     rather than the poll rate."""
     resolve, marked = _poll(["bookaaa", "bookbbb"], _marked("/books/OL1M", "/books/OL2M"))
     with resolve, marked:
-        updates = await build_poll_updates(["bookaaa", "bookbbb"])
+        updates = await build_poll_updates(["bookaaa", "bookbbb"], _NOW)
     assert updates == []
 
 
@@ -395,7 +401,7 @@ async def test_a_mass_clear_is_refused_when_ground_truth_says_the_books_are_stil
         marked,
         patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
     ):
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(["bookaaa"], _NOW)
     _, clear = _sets(updates)
     assert clear == set(), "ground truth contradicted the index, so no clear may proceed"
 
@@ -413,7 +419,7 @@ async def test_a_genuine_mass_free_proceeds_once_ground_truth_agrees():
         marked,
         patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": AVAILABLE for i in range(500)})),
     ):
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(["bookaaa"], _NOW)
     _, clear = _sets(updates)
     assert len(clear) == 499, "every edition ground truth calls available must clear"
     assert "/books/OL0M" in clear
@@ -429,7 +435,7 @@ async def test_a_mass_clear_keeps_the_editions_ground_truth_cannot_answer_for():
     # books 200-499 get no answer at all
     resolve, marked = _poll(["bookaaa"], _many_marked(500))
     with resolve, marked, patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value=answers)):
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(["bookaaa"], _NOW)
     _, clear = _sets(updates)
     # 99, not 100: the index still calls bookaaa unavailable, and bookaaa is
     # /books/OL1M, so it is never a clear candidate in the first place.
@@ -446,7 +452,7 @@ async def test_a_mass_clear_without_ocaids_is_refused_rather_than_assumed():
     no_ocaids = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [], "_root_": f"/works/OL{i}W"} for i in range(500)}
     resolve, marked = _poll([], no_ocaids)
     with resolve, marked:
-        updates = await build_poll_updates([])
+        updates = await build_poll_updates([], _NOW)
     _, clear = _sets(updates)
     assert clear == set(), "ground truth could not be consulted, so no clear may proceed"
 
@@ -462,7 +468,7 @@ async def test_the_breaker_does_not_trip_on_ordinary_churn():
         patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
         patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=many)),
     ):
-        updates = await build_poll_updates(still_out)
+        updates = await build_poll_updates(still_out, _NOW)
     _, clear = _sets(updates)
     assert clear == {"/books/OL0M", "/books/OL1M"}, "two returns is ordinary and must go through"
 
@@ -475,7 +481,7 @@ async def test_the_breaker_floor_protects_a_small_marked_set():
     assert int(3 * CLEAR_BREAKER_FRACTION) == 0
     resolve, marked = _poll([], _marked("/books/OL1M", "/books/OL2M", "/books/OL3M"))
     with resolve, marked:
-        updates = await build_poll_updates([])
+        updates = await build_poll_updates([], _NOW)
     _, clear = _sets(updates)
     assert len(clear) == 3
     assert CLEAR_BREAKER_FLOOR >= 3
@@ -504,7 +510,7 @@ async def _run_poll_once(solr_mock, lending_mock, unavailable: list[str], dry_ru
         patch("scripts.solr_updater.loan_availability_updater.asyncio.sleep", AsyncMock(side_effect=SystemExit)),
         pytest.raises(SystemExit),
     ):
-        await main("fake_config.yml", poll_interval=0, dry_run=dry_run)
+        await _poll_loop(poll_interval=0, es_lag_margin=0, dry_run=dry_run)
 
 
 @pytest.mark.asyncio
@@ -578,7 +584,7 @@ async def test_main_keeps_prior_state_when_the_index_read_is_refused(mock_config
         patch("scripts.solr_updater.loan_availability_updater.asyncio.sleep", AsyncMock(side_effect=SystemExit)),
         pytest.raises(SystemExit),
     ):
-        await main("fake_config.yml", poll_interval=0)
+        await _poll_loop(poll_interval=0, es_lag_margin=0, dry_run=False)
 
     assert not solr.update_in_place_async.called, "a refused poll must write nothing"
 
@@ -677,7 +683,151 @@ async def test_a_refused_mass_clear_still_marks_the_newly_unavailable():
         # index is wrong, so no clear may proceed.
         patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(500)})),
     ):
-        updates = await build_poll_updates(["bookaaa"])
+        updates = await build_poll_updates(["bookaaa"], _NOW)
     mark, clear = _sets(updates)
     assert mark == {"/books/OL9001M"}, "a newly-unavailable book must still be marked"
     assert clear == set(), "no clear may proceed when ground truth contradicts the index"
+
+
+# ---------------------------------------------------------------------------
+# The hybrid's seams. Each of these exists because the wiring between two
+# correct pieces is where this design can go wrong -- the restored follower and
+# the poll were both already tested; what was not was them disagreeing.
+# ---------------------------------------------------------------------------
+
+_HOUR = 3600
+_MARKED_RECENTLY = 1_000_000_000
+_EDITION = {"key": "/books/OL1M", "root": "/works/OL1W"}
+
+
+def _marked_doc(marked_at: int | None) -> dict[str, dict]:
+    doc = {"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}
+    if marked_at is not None:
+        doc["ebook_unavailable_at"] = marked_at
+    return {"/books/OL1M": doc}
+
+
+async def _poll_against(index_says: list[str], marked: dict, index_current_as_of: int) -> tuple[set, set]:
+    resolved = {"bookaaa": _EDITION} if "bookaaa" in index_says else {}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value=resolved)),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+    ):
+        return _sets(await build_poll_updates(index_says, index_current_as_of))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("margin_hours", [1, 6, 24, 72])
+async def test_the_gate_holds_a_mark_the_index_is_too_stale_to_contradict(margin_hours):
+    """THE SEAM. The feed marked a borrow; the index has not seen it yet, so the
+    book is absent from the unavailable set. Absence must not read as "returned".
+
+    The margin is SWEPT rather than fixed, and that is the point of the test
+    rather than thoroughness: a margin that is silently ignored -- which is a
+    bug this code actually had, where the parameter was cancelled out by
+    arithmetic and the module constant was used instead -- passes any test that
+    holds the margin constant. Varying it is what makes the parameter
+    observable.
+    """
+    index_current_as_of = _MARKED_RECENTLY - margin_hours * _HOUR
+    mark, clear = await _poll_against([], _marked_doc(_MARKED_RECENTLY), index_current_as_of)
+    assert clear == set(), f"a mark {margin_hours}h newer than the index's currency must not be cleared"
+    assert mark == set()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("age_hours", [2, 25, 100])
+async def test_the_gate_clears_a_mark_older_than_the_index_currency(age_hours):
+    """The boundary, and it matters as much as the gate: a guard that blocks
+    everything looks identical to a guard that works, until a book is never
+    freed. A mark older than the index's currency IS cleared."""
+    index_current_as_of = _MARKED_RECENTLY + _HOUR
+    marked_at = _MARKED_RECENTLY - age_hours * _HOUR
+    mark, clear = await _poll_against([], _marked_doc(marked_at), index_current_as_of)
+    assert clear == {"/books/OL1M"}, f"a mark {age_hours}h older than the index's currency must be cleared"
+
+
+@pytest.mark.asyncio
+async def test_a_mark_with_no_timestamp_is_clearable():
+    """A doc that predates this daemon, or survived a reindex, carries no stamp.
+    The index is the better authority on those, so they clear normally."""
+    _, clear = await _poll_against([], _marked_doc(None), _MARKED_RECENTLY)
+    assert clear == {"/books/OL1M"}
+
+
+@pytest.mark.asyncio
+async def test_a_poll_mark_carries_a_timestamp_so_the_next_poll_cannot_clear_it():
+    """Marks from the POLL need the stamp as much as marks from the feed --
+    without it the next poll reads epoch 0 and is free to clear immediately."""
+    mark, _ = await _poll_against(["bookaaa"], {}, _MARKED_RECENTLY)
+    assert mark == {"/books/OL1M"}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={"bookaaa": _EDITION})),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value={})),
+    ):
+        updates = await build_poll_updates(["bookaaa"], _MARKED_RECENTLY)
+    assert updates[0]["ebook_unavailable_at"]["set"] > 0, "a mark without a timestamp is clearable by the next poll"
+
+
+def test_a_feed_mark_is_stamped_with_the_event_time_not_the_read_time():
+    """A batch read at 10:00 can carry an event from 09:58. Stamping it 10:00
+    would claim two minutes of protection the mark has not earned."""
+    rows = [{"identifier": "bookaaa", "uid": 5, "event_type": "borrow", "extra": "{}", "time": "2001-09-09 01:46:40"}]
+    dirty = collect_dirty_identifiers(rows)
+    updates = build_solr_updates(dirty, {"bookaaa": _EDITION})
+    assert updates[0]["ebook_unavailable_at"]["set"] == _MARKED_RECENTLY
+
+
+def test_a_feed_mark_with_an_unreadable_time_falls_back_to_now():
+    """Over-protect by seconds rather than under-protect: an unparsable row must
+    not produce a mark stamped epoch 0, which the next poll would clear."""
+    rows = [{"identifier": "bookaaa", "uid": 5, "event_type": "borrow", "extra": "{}", "time": "not-a-date"}]
+    updates = build_solr_updates(collect_dirty_identifiers(rows), {"bookaaa": _EDITION})
+    assert updates[0]["ebook_unavailable_at"]["set"] > _MARKED_RECENTLY
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("margin", "expect_cleared"),
+    [
+        (10, True),  # the index's currency is well past the mark: clear it
+        (10_000_000, False),  # the margin reaches back before the mark: hold it
+    ],
+)
+async def test_the_margin_parameter_reaches_the_gate(margin, expect_cleared):
+    """Exercises _poll_loop, not build_poll_updates, and that is the entire point.
+
+    An earlier revision computed the currency as
+    `poll_started_at - es_lag_margin + ES_LAG_MARGIN`, which cancels out: the
+    --es-lag-margin flag was silently ignored in favour of the module constant.
+    A flag a tool quietly ignores is worse than one it rejects, because the
+    operator believes they have changed something.
+
+    The first attempt at covering this swept the margin in tests that called
+    build_poll_updates DIRECTLY with an already-computed currency -- so they
+    never executed the conversion where the bug lived, and the mutation
+    survived all of them. Verified: re-introducing the cancelled arithmetic
+    leaves those sweeps green and reddens only this test. The margin has to
+    enter through the same door the operator's flag does.
+    """
+    marked = {"/books/OL1M": {"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W", "ebook_unavailable_at": int(time.time()) - 1000}}
+    solr = MagicMock(spec=Solr)
+    solr.update_in_place_async.return_value = _OK_RESPONSE
+    written: list[dict] = []
+
+    async def capture(request, commit=False):
+        written.extend(request)
+
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=solr),
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={})),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        patch("scripts.solr_updater.loan_availability_updater.solr_update_in_place", AsyncMock(side_effect=capture)),
+        patch("openlibrary.core.lending.get_checked_out_candidates_async", AsyncMock(return_value=[])),
+        patch("scripts.solr_updater.loan_availability_updater.asyncio.sleep", AsyncMock(side_effect=SystemExit)),
+        pytest.raises(SystemExit),
+    ):
+        await _poll_loop(poll_interval=0, es_lag_margin=margin, dry_run=False)
+
+    cleared = [u for u in written if u.get("ebook_unavailable") == {"set": EBOOK_AVAILABLE}]
+    assert bool(cleared) is expect_cleared, f"margin={margin} should {'clear' if expect_cleared else 'hold'} a mark 1000s old"

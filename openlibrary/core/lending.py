@@ -194,7 +194,7 @@ a larger `limit` is silently capped, not honoured."""
 
 
 async def get_loan_changes(
-    after_uid: int,
+    after_uid: int | None = None,
     limit: int = LOAN_CHANGES_MAX_LIMIT,
     s3_keys: dict | None = None,
 ) -> dict:
@@ -205,12 +205,22 @@ async def get_loan_changes(
     The 'extra' field is a JSON string; parse it for 'until' (loan expiry).
 
     :param after_uid: Return events with uid strictly greater than this value.
+                      **None omits the parameter**, which asks the API for its
+                      most recent `limit` rows. That is how a cursor is placed
+                      without already having one -- see
+                      `loan_availability_updater.bootstrap_feed_cursor`. It
+                      depends on an EXTERNAL petabox change (the changes-API
+                      default-limit behaviour); until that ships the endpoint
+                      may answer differently, and the caller degrades to
+                      starting at the feed head rather than to anything unsafe.
     :param limit: Max rows per page; see LOAN_CHANGES_MAX_LIMIT.
     :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
                     defaults to config_ia_ol_metadata_write_s3.
     """
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
-    params: dict[str, str] = {"action": "changes", "after_uid": str(after_uid), "limit": str(limit)}
+    params: dict[str, str] = {"action": "changes", "limit": str(limit)}
+    if after_uid is not None:
+        params["after_uid"] = str(after_uid)
 
     if s3_keys:
         auth = "LOW {access}:{secret}".format(**s3_keys)

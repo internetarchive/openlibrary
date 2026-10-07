@@ -170,6 +170,10 @@
     <!-- numeric + stored/indexed=false is required by update.partial.requireInPlace. -->
     <!-- See docs/ai/solr/index.md "Near-realtime loan availability" before changing any of this. -->
     <field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <!-- When this edition was last marked unavailable, epoch seconds. plong, not pdate: -->
+    <!-- requireInPlace rejects pdate outright regardless of docValues config. -->
+    <!-- Lets a lagged index poll tell a mark it is too stale to contradict from one it is not. -->
+    <field name="ebook_unavailable_at" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 
     <!-- Usefulness scores -->
     <field name="usefulness_score" type="pint" multiValued="false"/>
