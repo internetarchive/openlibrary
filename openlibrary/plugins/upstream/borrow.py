@@ -32,10 +32,9 @@ from openlibrary.core import (
 )
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
-from openlibrary.utils import dateutil
+from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
-from openlibrary.utils import extract_numeric_id_from_olid
 
 if TYPE_CHECKING:
     from openlibrary.fastapi.shared.utils import FlashType
