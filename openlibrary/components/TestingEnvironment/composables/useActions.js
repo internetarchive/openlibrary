@@ -70,9 +70,10 @@ export function useActions({ busy, payload, setToast, strings }) {
                 const result = await executeAction(item.action, item.fields, item.method);
                 item.waiters.forEach(({ resolve }) => resolve(result));
                 // Only the last response of a drain is applied: it was
-                // computed from state including every queued save, so it is
-                // the truth. Earlier ones predate queued requests and would
-                // clobber their optimistic flips (the rapid-toggle flicker).
+                // computed from state including every queued save, so it
+                // reflects them all. Earlier ones predate queued requests
+                // and would clobber their optimistic flips (the
+                // rapid-toggle flicker).
                 if (!queue.length) applyConfirmedState(result);
             }
         } finally {
@@ -125,8 +126,8 @@ export function useActions({ busy, payload, setToast, strings }) {
     }
 
     // Flip a row instantly and send the action; a rejected send restores the
-    // snapshot. (A same-row rapid re-toggle supersedes the snapshot, and the
-    // drain-end apply corrects it — transient by construction.)
+    // snapshot. (A same-row rapid re-toggle supersedes the snapshot; the
+    // drain-end apply corrects it.)
     function optimisticRow(prNumber, patch, action, fields, method = 'POST') {
         const row = payload?.value?.prs?.find((r) => r.pr === prNumber);
         const snapshot = row ? { ...row } : null;
