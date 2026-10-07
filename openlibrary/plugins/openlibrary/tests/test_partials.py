@@ -7,7 +7,6 @@ import pytest
 import web
 from pydantic import ValidationError
 
-from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.vendors import betterworldbooks_fmt
 from openlibrary.plugins.openlibrary import code, home_genres  # noqa: F401  # code.setup() imports partials; import it first
 from openlibrary.plugins.openlibrary.partials import (
@@ -118,8 +117,9 @@ class TestHomeGenreShelf:
             patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=HORROR),
             patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
             patch.object(CarouselPartial, "generate_async", render),
-            # The "See all" chevron: the Jinja `icon` global renders a Templetor macro, not loaded here.
-            patch.dict(get_jinja_env().globals, {"icon": lambda *a, **kw: ""}),
+            # The "See all" chevron: the Jinja `icon` global renders a Templetor macro, not loaded here. Stub the
+            # macro, not the global: imported Jinja macros (CarouselSkeleton) snapshot globals when first imported.
+            patch.dict(web.template.Template.globals, {"macros": {"icon": lambda *a, **kw: ""}}),
         ):
             html = (await HomeGenrePartial.generate_async(HomeGenreParams(genre="horror")))["partials"]
         return html, render.call_args.args[0]
