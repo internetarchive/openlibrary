@@ -72,26 +72,26 @@ def can_show_librarian_tools(path: str, user: User | None) -> bool:
     return user.is_librarian_or_higher()
 
 
-def _extract_body_classes() -> list[str]:
+def _extract_body_classes(user: User | None) -> list[str]:
     from infogami.utils.context import context as _ctx
 
     bodyclass = list(_ctx.get("bodyclass", [])) if isinstance(_ctx.get("bodyclass"), (list, tuple)) else []
     show_ol_shell = _ctx.get("show_ol_shell", True)
     path = getattr(_ctx, "path", "") or _ctx.get("path", "")
 
-    if show_ol_shell and can_show_librarian_tools(path, _safe(get_current_user, None)):
+    if show_ol_shell and can_show_librarian_tools(path, user):
         bodyclass.append("show-librarian-tools")
 
     return bodyclass
 
 
-def _extract_body_attrs() -> list[str]:
+def _extract_body_attrs(user: User | None) -> list[str]:
     """Extract body attributes from the request context."""
     from infogami.utils.context import context as _ctx
 
     bodyattrs = list(_ctx.get("bodyattrs", [])) if isinstance(_ctx.get("bodyattrs"), (list, tuple)) else []
     # For book-state.js: carousel shelf buttons are rendered without a reader.
-    if user := get_current_user():
+    if user:
         bodyattrs.append(f'data-user-key="{user.key}"')
     return bodyattrs
 
@@ -166,8 +166,7 @@ class HeaderUser:
     open_merges_count: int
 
 
-def _extract_header_user() -> HeaderUser | None:
-    user = _safe(get_current_user, None)
+def _extract_header_user(user: User | None) -> HeaderUser | None:
     if not user:
         return None
 
@@ -337,6 +336,7 @@ class LayoutContext:
 
         homepath = _extract_homepath()
         all_browse, featured_browse, simple_browse = _extract_browse_links()
+        user = _safe(get_current_user, None)
 
         return cls(
             show_ol_shell=_safe(lambda: _infogami_context.get("show_ol_shell", True), True),
@@ -348,11 +348,11 @@ class LayoutContext:
             lang=_safe(get_request_lang, "en"),
             stats_summary=_safe(_extract_stats_summary, {}),
             stats_details=_safe(_extract_stats_details, []),
-            body_classes=_extract_body_classes(),
-            body_attrs=_extract_body_attrs(),
+            body_classes=_extract_body_classes(user),
+            body_attrs=_extract_body_attrs(user),
             donate_script_url=_safe(_extract_donate_script_url, "/cdn/archive.org/donate.js"),
             flash_messages=_extract_flash_messages(),
-            user=_extract_header_user(),
+            user=_extract_header_user(user),
             ol_env=_extract_ol_env(),
             page_status_url=_extract_page_status_url(),
             is_recognized_bot=_extract_is_recognized_bot(),
