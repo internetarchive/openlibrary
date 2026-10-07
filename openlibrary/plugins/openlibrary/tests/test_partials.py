@@ -85,6 +85,8 @@ class TestHomeGenreNarrow:
         with patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=" language:eng"):
             params = HomeGenrePartial.narrow(LazyCarouselParams(query="stale", genre="trending", sort="trending", safe_mode=False), trending)
         assert params.query == f"{trending['query']} language:eng"
+        # The row's "See all" shows the same books, so it carries the same language clause.
+        assert "language%3Aeng" in params.url
         assert params.title == "Trending now"
         assert HomeGenrePartial.genre_row_title(trending, "new") == "Newest"
         assert HomeGenrePartial.genre_row_title(trending, "rating") == "Top rated"

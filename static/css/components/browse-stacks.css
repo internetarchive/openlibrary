@@ -123,6 +123,8 @@
 }
 
 .browse-stacks__count {
+  /* Pull the count up so the tile's gap reads as stack-xs under the name. */
+  margin-top: calc(var(--spacing-stack-xs) - var(--spacing-stack-sm));
   font-size: var(--font-size-label-medium);
   color: var(--color-text-muted);
   line-height: var(--line-height-tight);

@@ -193,10 +193,12 @@ class TestFeaturedGenres:
         assert payload.count("facet.query=") == 2
         assert [g["slug"] for g in genres] == ["trending", "horror"]
 
-    def test_names_are_translated_per_page_not_in_the_cache(self):
-        # The cache is shared across languages, so a subject tile's name is translated after it.
+    def test_names_and_counts_are_localized_per_page_not_in_the_cache(self):
+        # The cache is shared across languages, so a subject tile's name is translated, and its
+        # count formatted (commify reads the request language), after it.
         genres, _ = self.featured({"subject_key:horror*": 1200, "subject_key:history*": 5, "subject_key:absurd*": 0})
         assert [g["name"] for g in genres] == ["Trending", "Horror", "History"]
+        assert all("readable_count_str" not in g for g in genres)
         with (
             patch.object(home, "get_cached_featured_genres", return_value=genres),
             patch.object(home.home_genres, "subject_tile_labels", return_value={"history": "Histoire"}),
@@ -205,7 +207,9 @@ class TestFeaturedGenres:
             patch.object(home, "render_template", return_value={}) as render,
         ):
             home.get_homepage(devmode=False)
-        assert [g["name"] for g in render.call_args.kwargs["featured_genres"]] == ["Trending", "Horror", "Histoire"]
+        featured = render.call_args.kwargs["featured_genres"]
+        assert [g["name"] for g in featured] == ["Trending", "Horror", "Histoire"]
+        assert [g["readable_count_str"] for g in featured] == ["900", "1,200", "5"]
 
     def test_solr_failure_costs_the_rail_not_the_page(self):
         with (

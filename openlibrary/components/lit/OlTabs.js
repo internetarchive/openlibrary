@@ -154,7 +154,9 @@ export class OlTabs extends LitElement {
     _onKeydown(e) {
         if (e.repeat) return;
         const flip = { ArrowLeft: 'ArrowRight', ArrowRight: 'ArrowLeft' };
-        const key = this.matches(':dir(rtl)') ? flip[e.key] ?? e.key : e.key;
+        // Read, not `matches(':dir(rtl)')`: that selector throws on Safari < 16.4 and Chrome < 120.
+        const rtl = getComputedStyle(this).direction === 'rtl';
+        const key = rtl ? flip[e.key] ?? e.key : e.key;
         const target = getNextKeyboardFocusIndex(key, {
             count: this._tabs.length,
             current: this._tabs.findIndex((t) => t.value === this.value),

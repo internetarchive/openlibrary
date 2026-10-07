@@ -8,6 +8,8 @@ let bannerClicked = false;
 
 // A loaded row is either a slick carousel or the native component (books/custom_carousel.html.jinja).
 const CAROUSEL_SELECTOR = '.carousel--progressively-enhanced, ol-carousel';
+// Any row with books, including a grid row, which has cards but nothing to initialize.
+const ROW_SELECTOR = '.carousel, ol-carousel';
 
 function initCarousels(elems) {
     const slick = [];
@@ -99,12 +101,13 @@ function doFetchAndUpdate(target) {
             newElem.className = 'lazy-carousel-loaded';
             newElem.innerHTML = (data.partials || '').trim();
             const carouselElements = newElem.querySelectorAll(CAROUSEL_SELECTOR);
+            const hasRow = newElem.querySelector(ROW_SELECTOR) !== null;
             skeleton.classList.add('hidden');
 
             if (!newElem.innerHTML && !config.fallback) {
                 // Nothing to show (e.g. no Nearby Books); free the space.
                 target.remove();
-            } else if (carouselElements.length === 0 && config.fallback) {
+            } else if (!hasRow && config.fallback) {
                 // No results, disable filters
                 if (typeof config.fallback === 'string') {
                     config.query = config.fallback;
@@ -114,7 +117,7 @@ function doFetchAndUpdate(target) {
                 target.dataset.config = JSON.stringify(config);
 
                 target.querySelector('.lazy-carousel-fallback').classList.remove('hidden');
-            } else if (carouselElements.length === 0) {
+            } else if (!hasRow) {
                 // Nothing to show on first load: drop the row (with its controls) rather than
                 // announcing an empty shelf the patron never asked for.
                 target.remove();

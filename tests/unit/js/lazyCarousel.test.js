@@ -79,3 +79,35 @@ describe('lazy carousel impressions', () => {
         expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 });
+
+describe('lazy carousel empty rows', () => {
+    const originalFetch = global.fetch;
+    const originalIntersectionObserver = global.IntersectionObserver;
+
+    beforeEach(() => {
+        global.IntersectionObserver = ImmediatelyVisibleObserver;
+    });
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+        global.IntersectionObserver = originalIntersectionObserver;
+    });
+
+    test('drops a row that loads with nothing to show', async() => {
+        respondWith('<div class="carousel-section"></div>');
+        initLazyCarousel([makePlaceholder({key: 'genre-horror-gothic'})]);
+        await flushPromises();
+
+        expect(document.querySelector('.lazy-carousel')).toBeNull();
+        expect(document.querySelector('.lazy-carousel-loaded')).toBeNull();
+    });
+
+    test('keeps a grid row, which has cards but no carousel to initialize', async() => {
+        respondWith('<div class="carousel carousel--grid"></div>');
+        initLazyCarousel([makePlaceholder({key: 'grid-row', layout: 'grid'})]);
+        await flushPromises();
+
+        expect(document.querySelector('.lazy-carousel')).toBeNull();
+        expect(document.querySelector('.lazy-carousel-loaded .carousel--grid')).not.toBeNull();
+    });
+});

@@ -1122,11 +1122,6 @@ class HomeGenrePartial:
     Fetched by browse-stacks.js; CarouselPartial calls `narrow` to build a row's query."""
 
     @staticmethod
-    def query(genre: home_genres.Genre, subgenre: home_genres.GenreNode | None, lang: str | None) -> str:
-        node, parent = (subgenre, genre) if subgenre else (genre, None)
-        return home_genres.solr_query(node, parent) + home_genres.user_language_clause(lang)
-
-    @staticmethod
     def row_key(genre: home_genres.Genre, subgenre: home_genres.GenreNode | None = None) -> str:
         """The row's carousel key; also its element id, so the shelf header's subgenre links can jump to it."""
         return f"genre-{genre['slug']}" + (f"-{subgenre['slug']}" if subgenre else "")
@@ -1153,12 +1148,15 @@ class HomeGenrePartial:
     def narrow(cls, params: LazyCarouselParams, genre: home_genres.Genre) -> LazyCarouselParams:
         """`params` with the query, title and header link for `params.subgenre` within `genre`."""
         subgenre = home_genres.find_subgenre(genre, params.subgenre)
-        query = cls.query(genre, subgenre, get_request_lang())
+        node, parent = (subgenre, genre) if subgenre else (genre, None)
+        lang_clause = home_genres.user_language_clause(get_request_lang())
+        query = home_genres.solr_query(node, parent) + lang_clause
         # As build_carousel_placeholder_config does for the row's first load.
         if params.safe_mode:
             query = f"{query} {_SAFE_MODE_FILTER}"
-        # Every row's link follows the shelf's sort, whichever row carries the control.
-        url = _with_sort(home_genres.search_url(subgenre, parent=genre) if subgenre else home_genres.search_url(genre), params.sort)
+        # Every row's link follows the shelf's sort, whichever row carries the control, and shows the
+        # same books as the row: the same language restriction.
+        url = _with_sort(home_genres.search_url(node, parent=parent, lang_clause=lang_clause), params.sort)
         title = subgenre["name"] if subgenre else cls.genre_row_title(genre, params.sort)
         return params.model_copy(update={"query": query, "url": url, "title": title, "subgenre": subgenre and subgenre["slug"]})
 

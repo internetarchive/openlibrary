@@ -135,10 +135,11 @@ def user_language_clause(lang: str | None) -> str:
     return f" language:{marc}" if marc and marc in get_populated_languages() else ""
 
 
-def search_url(node: GenreNode, has_fulltext: bool = True, parent: GenreNode | None = None) -> str:
+def search_url(node: GenreNode, has_fulltext: bool = True, parent: GenreNode | None = None, lang_clause: str = "") -> str:
+    """The search page for `node`. `lang_clause` (user_language_clause) keeps it to the books a shelf row shows."""
     from openlibrary.plugins.upstream.utils import urlencode
 
-    params = {"q": solr_query(node, parent), "sort": "trending"}
+    params = {"q": solr_query(node, parent) + lang_clause, "sort": "trending"}
     if has_fulltext:
         params["has_fulltext"] = "true"
     return "/search?" + urlencode(params)

@@ -27,10 +27,10 @@
             {% endif %}
             {% if layout == "ol-carousel" %}
                 {# The native carousel component sizes the cards itself: two to a page on a phone, seven at
-                   full width, 12px apart. CarouselSkeleton's columns mirror these breakpoints (carousel.css);
+                   full width, 20px apart. CarouselSkeleton's columns mirror these breakpoints (carousel.css);
                    carousel/native.js adds load-more and analytics from the same data-config the slick rows use. #}
                 <div class="carousel-container carousel-container-decorated">
-                    <ol-carousel class="carousel--native" breakpoints="[[480, 2], [600, 3], [768, 4], [1024, 6], [null, 7]]" gap="12" label="{{ title }}" label-previous="{{ _('Previous page') }}" label-next="{{ _('Next page') }}" label-pages="{{ _('Carousel pages') }}" label-go-to-page="{{ _('Go to page {page} of {total}') }}" label-page-announcement="{{ _('Page {page} of {total}') }}" data-config="{{ config_json }}">
+                    <ol-carousel class="carousel--native" breakpoints="[[480, 2], [600, 3], [768, 4], [1024, 6], [null, 7]]" gap="20" label="{{ title }}" label-previous="{{ _('Previous page') }}" label-next="{{ _('Next page') }}" label-pages="{{ _('Carousel pages') }}" label-go-to-page="{{ _('Go to page {page} of {total}') }}" label-page-announcement="{{ _('Page {page} of {total}') }}" data-config="{{ config_json }}">
                         {% for card in cards %}
                             {{ card | safe }}
                         {% endfor %}

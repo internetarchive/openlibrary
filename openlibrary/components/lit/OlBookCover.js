@@ -74,6 +74,21 @@ export class OlBookCover extends LitElement {
         /* Both rings sit outside the cover, which clips anything inside it. The
            host's surface needs 4px of room around it for them: the focus ring
            is 2px with a 2px gap, the hover ring 4px hugging the edge. */
+        @media (hover: hover) and (pointer: fine) {
+            /* At rest the hover ring is there at zero width, so hovering grows it out from the edge.
+               It tucks one media-border width under the cover's edge, covering the light seam two
+               antialiased curves leave at the corners; the extra width keeps its 4px reach outside. */
+            :host([href]) {
+                outline: 0 solid var(--color-border-pointed);
+                outline-offset: calc(-1 * var(--border-width-media));
+                transition: outline-width var(--duration-fast) var(--ease-exit);
+            }
+
+            :host([href]) .link {
+                transition: filter var(--duration-fast) var(--ease-exit);
+            }
+        }
+
         :host([link-focus]) {
             outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
@@ -81,12 +96,21 @@ export class OlBookCover extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             :host([href]:hover) {
-                outline: var(--pointed-ring-width) solid var(--color-border-pointed);
-                outline-offset: 0;
+                outline: calc(var(--pointed-ring-width) + var(--border-width-media)) solid var(--color-border-pointed);
+                outline-offset: calc(-1 * var(--border-width-media));
+                transition-timing-function: var(--ease-enter);
             }
 
             :host([href]:hover) .link {
                 filter: var(--filter-pointed-dim);
+                transition-timing-function: var(--ease-enter);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            :host([href]),
+            :host([href]) .link {
+                transition: none;
             }
         }
 
