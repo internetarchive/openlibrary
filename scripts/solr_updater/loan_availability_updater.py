@@ -250,6 +250,18 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
             fields=["key", "ia", "_root_"],
             rows=len(chunk) * 2,
         )
+        # The SAME guard fetch_marked_editions uses, and for the same reason:
+        # this is the other half of the comparison that turns absence into a
+        # clear. An identifier that fails to RESOLVE is indistinguishable from
+        # one the index no longer calls unavailable, so a truncated or
+        # timeAllowed-cut read here silently clears checked-out books -- under
+        # the breaker's threshold, with nothing above INFO in the log.
+        #
+        # It does not fire on the ordinary case of an identifier having no OL
+        # edition: `num_found` counts MATCHING documents, so 3 matches out of
+        # 500 requested ids is 3 found and 3 returned, which is complete. What
+        # it catches is Solr matching more than it handed back.
+        refuse_if_incomplete(result, len(result.docs), "edition resolve")
         for doc in result.docs:
             for ia_id in doc.get("ia", []):
                 if ia_id in id_set:
@@ -551,8 +563,13 @@ async def count_marked_editions() -> int | None:
     try:
         result = await get_solr().select_async(query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}", fields=["key"], rows=0)
         return result.num_found
-    except OSError, ValueError, KeyError, RuntimeError:
-        # A heartbeat must never be the thing that stops the daemon.
+    except Exception:
+        # Deliberately broad. This was OSError/ValueError/KeyError/RuntimeError,
+        # and httpx.HTTPError is NOT an OSError -- so a Solr timeout here
+        # escaped into the poll loop's handler and was logged as "Poll failed;
+        # prior state stands" AFTER a poll that had in fact succeeded and
+        # written. A heartbeat must never stop the daemon, and must never
+        # misreport one either.
         logger.debug("Heartbeat could not count marked editions", exc_info=True)
         return None
 

@@ -726,3 +726,86 @@ async def test_a_clear_does_not_touch_the_timestamp():
     assert len(updates) == 1
     assert updates[0]["ebook_unavailable"] == {"set": EBOOK_AVAILABLE}
     assert "ebook_unavailable_ts" not in updates[0]
+
+
+@pytest.mark.asyncio
+async def test_a_truncated_edition_resolve_is_refused_rather_than_cleared():
+    """The other half of the comparison that turns absence into a clear.
+
+    `fetch_marked_editions` carried this guard and `resolve_edition_keys` did
+    not, though an identifier that fails to resolve is indistinguishable from
+    one the index no longer calls unavailable. A Solr slowdown tripping
+    `timeAllowed` returns HTTP 200 with a short `docs` list and
+    `partialResults`, and without this the editions that fell off the end are
+    cleared -- checked-out books published as borrowable, below the breaker's
+    threshold so no ground truth is consulted, and nothing above INFO logged.
+    It needs a slow Solr, not an index incident.
+    """
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(
+        docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}],
+        num_found=766,
+        response_header={},
+    )
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
+        await resolve_edition_keys(["bookaaa", "bookbbb"])
+    assert "resolve" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_a_partial_edition_resolve_is_refused_rather_than_cleared():
+    """`partialResults` is the only signal that `timeAllowed` cut the query
+    short; `numFound` can look perfectly consistent with the short list."""
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(
+        docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}],
+        num_found=1,
+        response_header={"partialResults": True},
+    )
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused):
+        await resolve_edition_keys(["bookaaa"])
+
+
+@pytest.mark.asyncio
+async def test_identifiers_with_no_edition_are_not_mistaken_for_a_truncated_read():
+    """THE DISTINCTION THE GUARD HAS TO MAKE. Most IA identifiers have no OL
+    edition, so a chunk of 500 resolving to 3 documents is the normal case, not
+    a short read -- and a guard that refused it would halt the daemon
+    permanently on ordinary data.
+
+    `num_found` counts MATCHING documents, so 3 matched and 3 returned is
+    complete. The guard fires on Solr matching more than it handed back, which
+    is a different thing entirely.
+    """
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(
+        docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}],
+        num_found=1,
+        response_header={},
+    )
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
+        resolved = await resolve_edition_keys(["bookaaa", "bookbbb", "bookccc"])
+    assert resolved == {"bookaaa": {"key": "/books/OL1M", "root": "/works/OL1W"}}
+
+
+@pytest.mark.asyncio
+async def test_more_editions_than_identifiers_is_not_mistaken_for_a_truncated_read():
+    """The other direction of the same distinction, and the one that would halt
+    the daemon rather than silently clear.
+
+    Two editions can share an ocaid, so a chunk of 2 identifiers legitimately
+    matches 3 documents. A guard comparing `num_found` against the number of
+    IDENTIFIERS requested — rather than against the documents returned — reads
+    that as a short read and raises, every poll, forever. The comparison has to
+    be returned-versus-matched, not requested-versus-matched.
+    """
+    docs = [
+        {"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"},
+        {"key": "/books/OL2M", "ia": ["bookaaa"], "_root_": "/works/OL2W"},
+        {"key": "/books/OL3M", "ia": ["bookbbb"], "_root_": "/works/OL3W"},
+    ]
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(docs=docs, num_found=3, response_header={})
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
+        resolved = await resolve_edition_keys(["bookaaa", "bookbbb"])
+    assert set(resolved) == {"bookaaa", "bookbbb"}
