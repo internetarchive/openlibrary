@@ -49,7 +49,8 @@ export function initBrowseStacks(root) {
      */
     function anchor() {
         const tile = tileFor(current);
-        if (!tile || shelf.hidden) {
+        // Until ol-carousel upgrades there's no viewport to measure against; drawing early parks the caret top-left.
+        if (!tile || shelf.hidden || !scroller) {
             shelf.classList.remove('browse-stacks__shelf--anchored');
             return;
         }

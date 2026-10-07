@@ -26,17 +26,20 @@
 
 /* Viewport padding leaves room for the tile's hover lift and shadow. */
 /* The margin and the viewport padding together match the header's own gap. */
+/* Bleeds to #contentBody's edges; the inset rests the first tile on the heading's left edge. */
 .browse-stacks__rail {
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
+  --ol-carousel-inset: var(--spacing-page-gutter);
 
   margin-top: var(--spacing-stack-xs);
+  margin-inline: calc(-1 * var(--spacing-page-gutter));
 }
 
 .browse-stacks__tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-stack-sm);
+  gap: var(--spacing-md);
   width: 100%;
   padding: var(--spacing-inset-md);
   border: var(--border-card);
@@ -367,22 +370,27 @@
   }
 
   .browse-stacks__fan {
-    height: 60px;
-    width: 76px;
+    height: 76px;
+    width: 88px;
   }
 
   .browse-stacks__fan img,
   .browse-stacks__blank {
-    width: 36px;
-    height: 54px;
+    width: 40px;
+    height: 60px;
   }
 
   .browse-stacks__fan > :nth-child(2) {
-    inset-inline-start: 18px;
+    inset-inline-start: 24px;
+    transform: translateY(calc(-10px - 4px * var(--fan-spread)));
   }
 
   .browse-stacks__fan > :nth-child(3) {
-    inset-inline-start: 36px;
+    inset-inline-start: 48px;
+  }
+
+  .browse-stacks__name {
+    font-size: var(--font-size-title-medium);
   }
 
   .browse-stacks__shelf {
