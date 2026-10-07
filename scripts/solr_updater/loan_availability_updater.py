@@ -118,20 +118,36 @@ authoritative while covering a tiny, biased slice of the index.
 
 Solr mechanics
 --------------
-ebook_unavailable and ebook_becomes_available are numeric so writes qualify for
-Solr's update.partial.requireInPlace: string and pdate fields are rejected by
-Solr for in-place updates regardless of docValues/stored/indexed config, and a
+`ebook_unavailable` is numeric so writes qualify for Solr's
+`update.partial.requireInPlace`: string and pdate fields are rejected for
+in-place updates regardless of docValues/stored/indexed config, and a
 *non*-in-place atomic update to a nested child document reindexes the entire
-work + all its editions rather than just the one document, which would defeat
-the point of a near-realtime updater. Edition updates therefore always include
-"_root_" (the parent work's key) -- Solr requires this to target a child
-document rather than create/replace a root-level one.
+work plus all its editions rather than the one document -- which would defeat
+the point of a near-realtime updater. Edition updates therefore always carry
+`_root_` (the parent work's key); Solr requires it to target a child document
+rather than create or replace a root-level one.
 
-Solr also rejects "set": null under requireInPlace -- a value can be set or
-incremented in-place, but not cleared, even on a field with no prior value.
-So a book freeing up never clears ebook_becomes_available; it's left at its
-last (now stale) value. ebook_becomes_available is advisory display data
-("available in N days") and is meaningful only while ebook_unavailable is 1.
+Measured 2026-10-06 against Solr 10.0.0 with this configset: the flag is
+genuinely enforced on these nested child docs -- a stored+indexed field and an
+unknown field are both rejected with HTTP 400 while `ebook_unavailable` is
+accepted -- so an accepted write IS an in-place write rather than a silent
+fall back to delete-and-re-add.
+
+Solr also rejects `"set": null` under requireInPlace: a value can be set or
+incremented in place, never cleared. That is why "available" is written as 0
+rather than by removing the field, and why there is no field here holding a
+timestamp -- there would be no way to clear one when it went stale.
+
+One field, deliberately
+-----------------------
+Two others were carried through earlier revisions and are gone. `loan_uid` was
+the changes-feed cursor, and there is no feed and no cursor. `ebook_becomes_available`
+held "available in N days", which the poll cannot know -- the index exposes no
+due date (probed with controls: every plausible date field returns 0 documents,
+and the one that exists, `loans__status__last_loan_date`, carries 2020 values
+on 4% of the unavailable set) -- and which could not be kept honest anyway,
+because a renewal moves the date with no event to observe and `"set": null`
+cannot clear a stale one.
 
 Recovering from drift
 ---------------------

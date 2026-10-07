@@ -24,7 +24,7 @@ Last updated: 2026-06-23
 
 **Why it matters:** Every OL search result currently requires a separate bulk call to `archive.org/services/availability` to fold in realtime availability (is this copy borrowable right now?). That's an expensive N+1 join on a hot path — every search page, every subject page, every OPDS feed. The standalone `loan_availability_updater.py` polls IA's loan changes API and atomically updates `ebook_availability` on work docs so Solr can serve availability without any external join.
 
-**Current state:** Open, P2, MERGEABLE. `Needs: Special Deploy` label now present. Author still needs to add `docValues="true"` to `ebook_becomes_available` (pdate field). No reviewer assigned. 32+ days open.
+**Current state:** Open, MERGEABLE, CI green, division-lead signed off. `Needs: Special Deploy` label present — one field (`ebook_unavailable`). The old open item here, adding `docValues` to `ebook_becomes_available`, is moot: that field and `loan_uid` were removed before merge.
 
 **Owner:** PR by mekarpeles + bendeitch collaborating.
 

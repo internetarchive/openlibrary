@@ -199,8 +199,6 @@ _OK_RESPONSE = {"responseHeader": {"status": 0}}
 def _select_side_effect(*args, **kwargs):
     """Route Solr select calls to the right fixture by query content."""
     query = kwargs.get("query", "") or (args[0] if args else "")
-    if "loan_uid" in query:
-        return _EMPTY_RESULT
     if "ia:" in query:
         return _RESOLVE_RESULT
     # ebook_unavailable:1 → re-check candidates (empty unless overridden)

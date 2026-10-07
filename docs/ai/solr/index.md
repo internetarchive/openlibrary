@@ -191,8 +191,6 @@ Three fields, all `pint`/`plong`, all `docValues=true stored=false indexed=false
 | Field | Meaning |
 |---|---|
 | `ebook_unavailable` | `1` = no borrowing capacity right now. Absent or `0` = available. |
-| `ebook_becomes_available` | Epoch seconds the current loan expires. Advisory display data only. |
-| `loan_uid` | The changes-feed cursor that produced the last write. Also the daemon's resume point. |
 
 **These record exceptions, not state.** An `ebook_access:borrowable` edition is assumed AVAILABLE unless `ebook_unavailable=1` says otherwise, so the common case writes nothing. Consumers must query:
 
@@ -223,9 +221,9 @@ So an edition-level filter such as `genre_key:X AND ebook_access:borrowable AND 
 
 The fields stay absent from `EditionSearchScheme.all_fields`. That governs whether a bare `field:value` typed by an end user is treated as a Solr field — a separate question from whether internal code may build an `fq` on them, which it may.
 
-**`ebook_becomes_available` is never cleared.** `requireInPlace` rejects `"set": null` unconditionally — you cannot clear a field in place, even one that has no value. So when a book frees up the timestamp is left at its last value rather than removed. It is meaningful **only** while `ebook_unavailable=1`; read at any other time it is stale.
+**A field cannot be cleared in place, which is why there is only one.** `requireInPlace` rejects `"set": null` unconditionally — a value can be set or incremented, never removed. "Available" is therefore written as `0` rather than by deleting the field. It is also why this carries no timestamp: an earlier revision had `ebook_becomes_available` ("available in N days"), which went stale the moment a loan was renewed and could not be cleared when it did. Two fields, `ebook_becomes_available` and `loan_uid` (the changes-feed cursor), were carried through earlier revisions and removed before merge — neither is in the schema.
 
-**Operating a cold start, and `--reset`.** The daemon cold-starts whenever it has no cursor (first deploy, lost state file, or `--reset`). Two steps:
+**There is no cold start to operate.** Each poll is a complete statement of what should be marked, so the first poll after any start performs the whole job and a reindex that wipes the field self-heals on the next cycle. There is no cursor, no state file and no `--reset`. What follows describes the single step a poll takes:
 
 1. **Seed.** The archive.org search index is asked for books that are lendable but currently neither borrowable nor browsable — `lending___is_lendable:true AND lending___available_to_borrow:false AND lending___available_to_browse:false`. That is the answer set directly, measured at ~600 books in 2026-10. It replaced a replay of `LOAN_MAX_AGE_DAYS` of loan events, which produced only *candidates* and cost one availability request per hundred of them — the daemon's last unbounded path.
 2. **Overlap.** The most recent `OVERLAP_EVENTS` events are replayed through the ordinary event path before steady state starts, then the cursor sits at the feed head.
@@ -613,46 +611,36 @@ These PRs add new Solr fields and have schema-first deployment requirements. Rev
 
 ---
 
-### PR #12689 — Near-Realtime Loan Availability (`ebook_availability`, `ebook_becomes_available`, `loan_uid`)
+### PR #12689 — Near-Realtime Loan Availability (`ebook_unavailable`)
 
-**Branch:** `7450/loan-availability-updater`  
-**Status:** Open, P2, ~32 days stale. No `Needs: Special Deploy` label — this is **a gap** (see below).
+**Branch:** `7450/loan-availability-updater`
 
-**Schema additions in `managed-schema.xml`:**
+> The review that stood here was written in June 2026 against a design that no
+> longer exists. It described three fields — `ebook_availability`,
+> `ebook_becomes_available` and `loan_uid` — a `pdate` type, and a cursor used
+> as a resume watermark, and its open item was that `ebook_becomes_available`
+> needed `docValues="true"`. None of that applies: the PR now adds **one**
+> field.
+
+**Schema addition:**
 
 ```xml
-<field name="ebook_availability" type="string" multiValued="false" docValues="true"/>
-<field name="ebook_becomes_available" type="pdate" multiValued="false"/>
-<field name="loan_uid" type="plong" multiValued="false" docValues="true"/>
+<field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
 ```
 
-**Analysis:**
+`pint` with `docValues=true`, `stored=false`, `indexed=false` is exactly the
+shape `update.partial.requireInPlace` demands — verified against a live Solr
+10.0.0 core, where a stored+indexed field and an unknown field are both
+rejected with HTTP 400 while this one is accepted.
 
-1. `ebook_availability` (`string`, `docValues=true`):
-   - Valid values from `loan_availability_updater.py`: `"available"` / `"unavailable"`
-   - Naming caution: this sits next to `ebook_access` (the enum `ebookAccessLevel`) and `ebook_provider`. The trio (`ebook_access`, `ebook_availability`, `ebook_provider`) is potentially confusing for API consumers. `ebook_access` answers "what's the highest-tier access level?" (static, updated on work reindex). `ebook_availability` answers "is it borrowable right now?" (near-realtime, updated by the standalone updater). These are complementary but distinct semantics.
-   - Using `string` (not the `ebookAccessLevel` enum) means the schema doesn't enforce value constraints. Since this field has only two runtime values (`"available"` / `"unavailable"`), the loose type is acceptable but worth noting in the PR.
-   - `docValues=true` explicit — correct for a field used in filter queries.
+The other two fields were dropped because the poll cannot honestly maintain
+them: there is no cursor to record, and the index exposes no due date from
+which to compute "available in N days" (probed with controls — every plausible
+date field matches 0 documents). A renewal would move such a date with no event
+to observe, and `"set": null` cannot clear a stale one.
 
-2. `ebook_becomes_available` (`pdate`):
-   - Populated only when a borrowed copy's loan returns. The standalone updater queries `ebook_becomes_available:[* TO NOW]` to catch missed return events. This requires `indexed=true` (the default for point types — fine).
-   - Missing `docValues="true"`. For `pdate`, docValues are NOT on by default at the field level (unlike numeric types). Without docValues you cannot sort on this field or use it in function queries. The current code only uses it as a range filter (`[* TO NOW]`), which only needs indexing — so functionally OK today. But if anyone later adds `sort=ebook_becomes_available asc`, they'll get a Solr error. Recommend adding `docValues="true"`.
-
-3. `loan_uid` (`plong`, `docValues=true`):
-   - Used as a cursor / watermark for `loan_availability_updater.py`: query `loan_uid:[* TO *]` sorted `loan_uid desc` to find the highest processed UID, enabling resume-from-last.
-   - Operational metadata stored on the work document — an unusual design pattern (the work record becomes its own updater checkpoint). Pragmatic: avoids an external state store. But it means every work document that has ever been borrowed carries this field permanently. Not harmful for search; just unusual.
-   - `docValues=true` is required for `sort=loan_uid desc` to work — correctly declared.
-
-**Deployment ordering:**
-
-> **⚠️ Missing `Needs: Special Deploy` label.** This PR has the same deployment risk as #12916: schemaless mode (`update.autoCreateFields=true`) is ON. If the app code deploys before the schema is updated, Solr auto-creates `ebook_availability` as `text_general` (analyzed/tokenized) instead of `string` (exact match). This would silently break all `ebook_availability:available` filter queries. The label should be added.
-
-Correct deploy sequence:
-1. Apply the three new field declarations to production Solr schema
-2. Deploy the app code (adds fields during normal work updates)
-3. Run `loan_availability_updater.py` (standalone, can be run after app is deployed)
-
----
+**Deploy note:** this is still a schema change and still needs the special
+deploy, but it is now one field rather than three.
 
 ### PR #12916 — Cover Dimensions in Solr (`cover_i`, `cover_width`, `cover_height`)
 
@@ -705,11 +693,11 @@ The prices/acquisition data lands in the OL PostgreSQL DB (via TBP feed). The pa
 ### Conflict Analysis
 
 No field name conflicts among the three PR sets. All three add distinct fields:
-- #12689: `ebook_availability`, `ebook_becomes_available`, `loan_uid`
+- #12689: `ebook_unavailable` (one field; `ebook_becomes_available` and `loan_uid` were removed before merge)
 - #12916: `cover_i`, `cover_width`, `cover_height`
 - #12852/#12846: no Solr fields
 
-Both #12689 and #12916 modify `managed-schema.xml`. They can be applied to the production schema in a single operation (one Solr schema update with all six fields), or sequentially in any order.
+Both #12689 and #12916 modify `managed-schema.xml`. They can be applied to the production schema in a single operation (one Solr schema update with all four fields), or sequentially in any order.
 
 **Recommended deploy sequence (all three):**
 

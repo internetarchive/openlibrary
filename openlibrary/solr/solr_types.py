@@ -42,8 +42,6 @@ class SolrDocument(TypedDict):
     ebook_access: Optional[Literal['no_ebook', 'unclassified', 'printdisabled', 'borrowable', 'public']]
     ebook_provider: Optional[list[str]]
     ebook_unavailable: Optional[int]
-    ebook_becomes_available: Optional[int]
-    loan_uid: Optional[int]
     usefulness_score: Optional[int]
     usefulness_score_normalized: Optional[int]
     access_score: Optional[int]
