@@ -185,6 +185,7 @@
   width: fit-content;
 }
 
+/* Applied at runtime via typeBadgeClasses in bulk-tagger/BulkTagger/MenuOption.js */
 .selected-tag .selected-tag__type--place {
   background-color: var(--dark-red);
 }
