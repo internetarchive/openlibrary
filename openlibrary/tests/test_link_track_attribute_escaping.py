@@ -75,7 +75,7 @@ def _render_return_form(render_template, analytics_track):
     web.ctx.fullpath = "/account/loans"
     web.template.Template.globals["request"] = web.ctx
     html = str(render_template("tests/return_form_track_check", analytics_track=analytics_track))
-    return BeautifulSoup(html, "lxml").find("input", attrs={"type": "submit"})
+    return BeautifulSoup(html, "lxml").find("ol-button", attrs={"type": "submit"})
 
 
 def test_return_form_blocks_attribute_injection(render_template, request_context_fixture):
