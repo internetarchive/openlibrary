@@ -59,6 +59,7 @@ from openlibrary.plugins.worksearch.subjects import (
     get_subject_async,
 )
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.request_context import site
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -144,7 +145,7 @@ class ReadingStatePartial:
 class CarouselLoadMoreParams(BaseModel):
     """Parameters for the carousel load-more partial."""
 
-    queryType: Literal["SEARCH", "BROWSE", "TRENDING", "SUBJECTS"]
+    queryType: Literal["SEARCH", "BROWSE", "TRENDING", "SUBJECTS", "LIST"]
     q: str = ""
     limit: int = 18
     page: int = 1
@@ -286,7 +287,13 @@ class CarouselCardPartial:
     @classmethod
     async def generate_async(cls, params: CarouselLoadMoreParams, full_path: str) -> dict:
         # Do search
-        search_results = await cls._make_book_query(params)
+        next_offset = None
+        if params.queryType == "LIST":
+            list_data = await gather_list_carousel_data_async(params.q, params.page, params.limit, params.hasFulltextOnly)
+            search_results = list_data["docs"]
+            next_offset = list_data["next_offset"]
+        else:
+            search_results = await cls._make_book_query(params)
 
         # Render cards — gather data in Python, render in Jinja (like ReadingGoalProgressPartial)
         cards = []
@@ -310,6 +317,9 @@ class CarouselCardPartial:
             except Exception:  # noqa: BLE001  # per-card isolation: one bad card should not break whole carousel
                 continue
 
+        if params.queryType == "LIST":
+            # The client resumes from here instead of counting the cards it has.
+            return {"partials": cards, "nextOffset": next_offset}
         return {"partials": cards}
 
     @classmethod
@@ -793,6 +803,7 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
+    by_seed: bool = False
 
 
 class CarouselPartial:
@@ -803,28 +814,46 @@ class CarouselPartial:
 
     @classmethod
     async def generate_async(cls, params: LazyCarouselParams, full_path: str = "/") -> dict:
-        books = await gather_lazy_carousel_data_async(
-            query=params.query,
-            sort=params.sort,
-            limit=params.limit,
-            has_fulltext_only=params.has_fulltext_only,
-            safe_mode=params.safe_mode,
-        )
         # Build eager data here. Keep lazy logic in build_carousel_placeholder_config.
         # Apply safe_mode to the query for the book carousel as build_carousel_placeholder_config does for lazy.
         effective_query = f"{params.query} {_SAFE_MODE_FILTER}" if params.safe_mode else params.query
-        book_data = get_book_carousel_data(
-            books=[web.storage(b) for b in books["docs"]],
-            title=params.title,
-            url=params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort}),
-            key=params.key,
-            load_more={
+        if params.by_seed and LIST_KEY_RE.match(effective_query):
+            list_data = await gather_list_carousel_data_async(effective_query, 0, params.limit, params.has_fulltext_only)
+            docs = list_data["docs"]
+            load_more = (
+                None
+                if list_data["next_offset"] is None
+                else {
+                    "queryType": "LIST",
+                    "q": effective_query,
+                    "limit": params.limit,
+                    "hasFulltextOnly": params.has_fulltext_only,
+                    "mode": "cursor",
+                    "page": list_data["next_offset"],
+                }
+            )
+        else:
+            books = await gather_lazy_carousel_data_async(
+                query=params.query,
+                sort=params.sort,
+                limit=params.limit,
+                has_fulltext_only=params.has_fulltext_only,
+                safe_mode=params.safe_mode,
+            )
+            docs = books["docs"]
+            load_more = {
                 "queryType": "SEARCH",
                 "q": effective_query,
                 "limit": params.limit,
                 "sorts": params.sort,
                 "hasFulltextOnly": params.has_fulltext_only,
-            },
+            }
+        book_data = get_book_carousel_data(
+            books=[web.storage(b) for b in docs],
+            title=params.title,
+            url=params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort}),
+            key=params.key,
+            load_more=load_more,
             layout=params.layout,
             full_path=full_path,
         )
@@ -916,6 +945,82 @@ async def gather_lazy_carousel_data_async(
     return return_dict
 
 
+LIST_KEY_RE = re.compile(r"^(/people/[^/]+)?/lists/OL\d+L")
+
+
+class ListCarouselData(TypedDict):
+    """Return type of gather_list_carousel_data_async."""
+
+    docs: list[dict]
+    next_offset: int | None
+    error: NotRequired[bool]
+
+
+@cache.memoize(
+    engine="memcache",
+    key=lambda query, offset, limit, has_fulltext_only: "ListCarouselData-" + md5(f"{query}-{offset}-{limit}-{has_fulltext_only}".encode()).hexdigest(),
+    expires=300,
+    cacheable=lambda key, value: "error" not in value,
+)
+async def gather_list_carousel_data_async(
+    query: str,
+    offset: int,
+    limit: int,
+    has_fulltext_only: bool,
+) -> ListCarouselData:
+    """Fetch the carousel docs for ``limit`` seeds of the list that ``query`` starts with,
+    beginning at seed ``offset``. Whatever follows the list key in ``query`` filters the docs.
+
+    There is one doc per work or edition seed that Solr has, in list order; an edition
+    seed's doc carries that edition in ``editions.docs``. ``next_offset`` is the seed to
+    resume from, or None at the end of the list. It counts seeds, not docs, so seeds that
+    have no doc (unreadable, not indexed, subjects, ...) can't make a later page repeat.
+    """
+    if not (list_match := LIST_KEY_RE.match(query)):
+        return {"docs": [], "next_offset": None}
+    list_key = list_match.group(0)
+    extra_query = query.removeprefix(list_key)
+    lst = site.get().get(list_key)
+    seeds = lst.get_seeds() if lst else []
+    seed_keys = [seed.key for seed in seeds[offset : offset + limit]]
+    end = offset + len(seed_keys)
+    next_offset = None if end >= len(seeds) else end
+
+    async def search(term: str, count: int) -> dict:
+        search_params = {"q": f"{term}{extra_query}"}
+        if has_fulltext_only:
+            search_params["has_fulltext"] = "true"
+        return await work_search_async(
+            search_params,
+            fields=",".join(_CAROUSEL_FIELDS),
+            limit=count,
+            facet=False,
+            request_label="BOOK_CAROUSEL",
+        )
+
+    docs_by_seed: dict[str, dict] = {}
+    error = False
+
+    if work_keys := [key for key in seed_keys if key.startswith("/works/")]:
+        results = await search(f"key:({' OR '.join(work_keys)})", len(work_keys))
+        error |= "error" in results
+        docs_by_seed.update({doc["key"]: doc for doc in results.get("docs", [])})
+
+    # Solr gives one edition per work, so editions of the same work need a query each
+    pending = [key for key in seed_keys if key.startswith("/books/")]
+    while pending and not error:
+        olids = [key.removeprefix("/books/") for key in pending]
+        results = await search(f"edition_key:({' OR '.join(olids)})", len(pending))
+        error |= "error" in results
+        found = {doc["editions"]["docs"][0]["key"]: doc for doc in results.get("docs", []) if doc.get("editions", {}).get("docs")}
+        docs_by_seed.update(found)
+        pending = [key for key in pending if key not in found] if found else []
+
+    if error:
+        return {"docs": [], "next_offset": None, "error": True}
+    return {"docs": [docs_by_seed[key] for key in seed_keys if key in docs_by_seed], "next_offset": next_offset}
+
+
 # Query carousels. Was macros/RawQueryCarousel.html + books/custom_carousel.html;
 # the logic those two Templetor files carried lives here now.
 
@@ -960,6 +1065,7 @@ class CarouselQueryParams(CarouselCommonData):
     layout: str
     fallback: str | bool | None
     safe_mode: bool
+    by_seed: NotRequired[bool]
 
 
 class BookCarouselData(CarouselCommonData):
@@ -1028,6 +1134,7 @@ def get_book_carousel_data(
                 "queryType": load_more.get("queryType", ""),
                 "q": load_more.get("q", ""),
                 "pageMode": load_more.get("mode", "offset"),
+                "page": load_more.get("page", 1),
                 "limit": load_more.get("limit", 18),
                 "layout": layout,
                 "key": key,
@@ -1090,6 +1197,7 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "has_fulltext_only": params.get("has_fulltext_only", True),
         "layout": params.get("layout", "carousel"),
         "fallback": params.get("fallback"),
+        **({"by_seed": True} if params.get("by_seed") else {}),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
     }
