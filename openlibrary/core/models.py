@@ -915,6 +915,7 @@ class User(Thing):
             "public_readlog",
             "rpd",
             "safe_mode",
+            "track_read_history",
             "update",
             "updates",
             "yrg_banner_pref",
@@ -922,7 +923,7 @@ class User(Thing):
     )
 
     def get_default_preferences(self) -> dict[str, str]:
-        return {"update": "no", "public_readlog": "no", "type": "preferences"}
+        return {"update": "no", "public_readlog": "no", "track_read_history": "yes", "type": "preferences"}
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.

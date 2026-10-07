@@ -17,6 +17,7 @@ $def selected(value, value2):
 
 $ public_readlog = d.get('public_readlog', 'no')
 $ safe_mode = d.get('safe_mode', 'no')
+$ track_read_history = d.get('track_read_history', 'yes')
 
 <div id="contentBody">
     <form method="post" class="olform" action="" id="privacy">
@@ -31,14 +32,12 @@ $ safe_mode = d.get('safe_mode', 'no')
                 <div class="sansserif larger">
                     <input type="radio" name="public_readlog" id="r0" value="yes" $selected(public_readlog, "yes")/>
                     <label for="r0">$_("Yes")</label>
-                    <br/><br/>
                 </div>
             </div>
             <div class="input radio">
                 <div class="sansserif larger">
                     <input type="radio" name="public_readlog" id="r1" value="no" $selected(public_readlog, "no")/>
                     <label for="r1">$_("No")</label>
-                    <br/><br/>
                 </div>
             </div>
         </div>
@@ -52,14 +51,32 @@ $ safe_mode = d.get('safe_mode', 'no')
                 <div class="sansserif larger">
                     <input type="radio" name="safe_mode" id="r2" value="yes" $selected(safe_mode, "yes")/>
                     <label for="r2">$_("Yes")</label>
-                    <br/><br/>
                 </div>
             </div>
             <div class="input radio">
                 <div class="sansserif larger">
                     <input type="radio" name="safe_mode" id="r3" value="no" $selected(safe_mode, "no")/>
                     <label for="r3">$_("No")</label>
-                    <br/><br/>
+                </div>
+            </div>
+        </div>
+        <br/>
+        <div class="formElement">
+            <h3 class="collapse">$_("Track my reading history")</h3>
+            <p>$_("When enabled, books you read are saved to your Continue Reading history and account settings. Turning this off will clear your existing reading history.")</p>
+        </div>
+        <br/>
+        <div class="formElement">
+            <div class="input radio">
+                <div class="sansserif larger">
+                    <input type="radio" name="track_read_history" id="r4" value="yes" $selected(track_read_history, "yes")/>
+                    <label for="r4">$_("Yes")</label>
+                </div>
+            </div>
+            <div class="input radio">
+                <div class="sansserif larger">
+                    <input type="radio" name="track_read_history" id="r5" value="no" $selected(track_read_history, "no")/>
+                    <label for="r5">$_("No")</label>
                 </div>
             </div>
         </div>
