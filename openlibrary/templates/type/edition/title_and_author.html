@@ -34,11 +34,12 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
             $_("Book %s", primary_series.position)
         </div>
     $ book_title = edition.get('title', '') or (work.title if work else '')
-    <h1 class="work-title" itemprop="name">$book_title</h1>
+    $ title_lang = get_lang_tag(edition.languages, book_title) if edition else None
+    <h1 class="work-title" itemprop="name" $:cond(title_lang, 'lang="%s"' % title_lang)>$book_title</h1>
 
     $if edition:
       $if edition.subtitle:
-        <h2 class="work-subtitle">
+        <h2 class="work-subtitle" $:cond(title_lang, 'lang="%s"' % title_lang)>
           $edition.subtitle
         </h2>
       $if edition.edition_name:

@@ -125,7 +125,8 @@ $ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 
               $if series_edge.get('position'):
                 <span class="bookseries__position">$_('Book %(position)s', position=series_edge.get('position'))</span>
             </span>
-          <h3 itemprop="name" class="booktitle">
+          $ title_lang = get_lang_tag(selected_ed.get('languages') or selected_ed.get('language'), full_title)
+          <h3 itemprop="name" class="booktitle" $:cond(title_lang, 'lang="%s"' % title_lang)>
             <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
           </h3>
         </div>
