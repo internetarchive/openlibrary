@@ -4189,6 +4189,50 @@ msgstr ""
 msgid "Books in Local Environment"
 msgstr ""
 
+#: home/library_row.html.jinja
+msgid "A library owned by the people who use it."
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Not a store, not a feed. A catalog of every book ever published, written and corrected by readers, with every byte of it free for anyone to take."
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Editable"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "By anyone, like Wikipedia"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Public"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Every record, free to download"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Nonprofit"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Run by the Internet Archive"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "See how librarians help"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Around the Library"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "28 days"
+msgstr ""
+
 #: home/welcome.html
 msgid "Read Free Library Books Online"
 msgstr ""
@@ -4227,14 +4271,6 @@ msgstr ""
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
-
-#: home/welcome.html
-msgid "Be an Open Librarian"
-msgstr ""
-
-#: home/welcome.html
-msgid "Dozens of ways you can help improve the library"
 msgstr ""
 
 #: home/welcome.html
