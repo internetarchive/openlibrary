@@ -72,7 +72,9 @@ def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
                 "tz": "UTC",
                 "format": "json",
             },
+            timeout=5,
         )
+        r.raise_for_status()
         return r.json()[0]["datapoints"]
     except requests.exceptions.RequestException, ValueError, AttributeError:
         return None
