@@ -18,17 +18,24 @@
   box-sizing: border-box;
   border: var(--border-card);
   border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-card);
   box-shadow: var(--box-shadow-raised);
 }
 
 /* The call-out ---------------------------------------------------------- */
 
+/* Headline, body and button on the left; the three facts stacked on the right. */
 .librarian-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: var(--spacing-inline-xl);
+  background: var(--color-surface-sunken);
+}
+
+.librarian-card__main {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-stack-md);
-  padding: var(--spacing-inset-xl);
-  background: var(--color-surface-sunken);
 }
 
 .librarian-card__title {
@@ -51,24 +58,20 @@
   color: var(--color-text-secondary);
 }
 
-/* The three facts, then the button at the end of the line; on a narrow card the
-   button wraps under them. */
-.librarian-card__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
-  margin-top: var(--spacing-stack-sm);
+/* The button sits at the bottom of the column, level with the facts' last line. */
+.librarian-card__cta {
+  align-self: flex-start;
+  margin-top: auto;
 }
 
-/* base/dl.css floats every dt/dd into a two-column definition list; these are a grid of cells. */
+/* base/dl.css floats every dt/dd into a two-column definition list; these are
+   stacked rows, each an icon beside a term and its line. */
 .librarian-card__facts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-inline-xl);
-  flex: 1 1 360px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-lg);
   margin: 0;
+  padding-top: var(--spacing-stack-xs);
 }
 
 .librarian-card__facts::after {
@@ -76,8 +79,15 @@
 }
 
 .librarian-card__fact {
-  padding-top: var(--spacing-stack-sm);
-  border-top: 1px solid var(--color-border-muted);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
+}
+
+.librarian-card__fact-icon {
+  grid-row: 1 / 3;
+  margin-top: 1px;
+  color: var(--color-primary);
 }
 
 .librarian-card__fact dt,
@@ -85,21 +95,19 @@
   float: none;
   width: auto;
   max-width: none;
+  margin: 0;
   padding: 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
 }
 
 .librarian-card__fact dt {
-  font-size: var(--font-size-overline);
-  font-weight: var(--font-weight-overline);
-  letter-spacing: var(--letter-spacing-overline);
-  text-transform: var(--text-transform-overline);
-  color: var(--color-text-muted);
+  font-weight: var(--font-weight-subheading);
+  color: var(--color-text-heading);
 }
 
 .librarian-card__fact dd {
-  margin: var(--spacing-stack-xs) 0 0;
-  font-size: var(--font-size-body-medium);
-  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
 }
 
 /* The arrow points forward in both reading directions. */
@@ -113,15 +121,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-stack-lg);
-  padding: var(--spacing-inset-lg);
   background: var(--color-surface);
-}
-
-.library-stats__header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--spacing-inline-lg);
 }
 
 .library-stats__title {
@@ -131,16 +131,6 @@
   letter-spacing: var(--letter-spacing-overline);
   text-transform: var(--text-transform-overline);
   color: var(--color-text-secondary);
-}
-
-/* :link/:visited so these outrank the base anchor rules. */
-.library-stats__range:link,
-.library-stats__range:visited {
-  font-size: var(--font-size-label-large);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-link);
-  text-decoration: none;
-  white-space: nowrap;
 }
 
 .library-stats__grid {
@@ -165,7 +155,7 @@
   font-family: var(--font-family-title);
   font-size: var(--font-size-headline-medium);
   font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-tight);
+  line-height: var(--line-height-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -223,16 +213,28 @@
     gap: var(--spacing-stack-md);
   }
 
+  /* One column: title, body, facts, then the button still ends the card. */
   .librarian-card {
-    padding: var(--spacing-inset-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-stack-md);
+  }
+
+  .librarian-card__main {
+    display: contents;
   }
 
   .librarian-card__title {
     font-size: var(--font-size-headline-small);
   }
 
+  .librarian-card__cta {
+    order: 1;
+    margin-top: var(--spacing-stack-sm);
+  }
+
   .librarian-card__facts {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--spacing-stack-sm);
+    gap: var(--spacing-stack-md);
+    padding-top: var(--spacing-stack-sm);
   }
 }

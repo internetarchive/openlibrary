@@ -4198,6 +4198,10 @@ msgid "Not a store, not a feed. A catalog of every book ever published, written 
 msgstr ""
 
 #: home/library_row.html.jinja
+msgid "See how librarians help"
+msgstr ""
+
+#: home/library_row.html.jinja
 msgid "Editable"
 msgstr ""
 
@@ -4222,15 +4226,7 @@ msgid "Run by the Internet Archive"
 msgstr ""
 
 #: home/library_row.html.jinja
-msgid "See how librarians help"
-msgstr ""
-
-#: home/library_row.html.jinja
 msgid "Around the Library"
-msgstr ""
-
-#: home/library_row.html.jinja
-msgid "28 days"
 msgstr ""
 
 #: home/welcome.html
