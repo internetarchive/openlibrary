@@ -84,10 +84,6 @@
   gap: var(--spacing-inline-md);
 }
 
-.observation-instructions {
-  margin: 1em 2em;
-}
-
 /* --width-breakpoint-tablet: 768px */
 @media screen and (max-width: 768px) {
   .notes-modal__actions {
