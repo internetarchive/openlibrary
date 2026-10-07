@@ -120,7 +120,7 @@ def remove_prs(data: PRsRequest) -> dict[str, Any]:
 
 
 @router.post("/status/restore")
-def restore_status(data: PRsRequest) -> dict[str, bool]:
+def restore_status(data: PRsRequest) -> dict[str, Any]:
     """Restore PRs with staged removals."""
     result = restore_prs(data.prs)
     _invalidate_cached_snapshot()

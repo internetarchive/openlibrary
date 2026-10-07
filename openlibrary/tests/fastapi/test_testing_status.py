@@ -1500,6 +1500,27 @@ def test_restore_endpoint(fastapi_client, mock_authenticated_user, mock_maintain
     mock.assert_called_once_with([13269])
 
 
+def test_restore_endpoint_e2e_clears_a_staged_removal(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """The real function through the real endpoint: unstages and echoes the
+    staged rows. Guards the response contract — FastAPI 500s on a shape the
+    annotation doesn't allow, after the write already landed."""
+    mock_maintainer_user(is_maintainer=True)
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_remove = True
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+    ):
+        response = fastapi_client.post("/status/restore", json={"prs": [13269]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True, "prs": [{"pr": 13269, "pending_active": None, "pending_remove": False}]}
+    assert state.prs[0].pending_remove is False
+    mock_save.assert_called_once_with(state)
+
+
 def test_remove_prs_endpoint_accepts_multiple_prs(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     with patch("openlibrary.fastapi.status.remove_testing_prs") as mock:
