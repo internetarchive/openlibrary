@@ -184,13 +184,20 @@ The enum is **sortable** — Solr can range-query it. This is how availability f
 
 ### Near-realtime loan availability (`ebook_unavailable`)
 
-Written to **edition** documents by `scripts/solr_updater/loan_availability_updater.py`, a daemon that follows Internet Archive's loan-changes feed. See that module's docstring for the two-loop design; this section covers the schema side.
+Written to **edition** documents by `scripts/solr_updater/loan_availability_updater.py`, a daemon with two loops: a loan-changes feed that only ever MARKS a book unavailable, and a poll of the archive.org search index that only ever CLEARS. A timestamp decides which wins when they disagree. See that module's docstring for the design; this section covers the schema side.
 
-Three fields, all `pint`/`plong`, all `docValues=true stored=false indexed=false`:
+> The feed is back, but doing LESS than it once did. An early revision had it
+> both mark and clear, which fails because the changes API cannot report loan
+> **expiry** — so a feed can never free a book on its own. Here it only marks;
+> the index poll does all the clearing. If you find language suggesting the
+> feed frees anything, it is stale.
+
+Two fields, both numeric, both `docValues=true stored=false indexed=false`:
 
 | Field | Meaning |
 |---|---|
 | `ebook_unavailable` | `1` = no borrowing capacity right now. Absent or `0` = available. |
+| `ebook_unavailable_ts` | Epoch seconds when `ebook_unavailable` was last set to `1`. Read by nothing here; it ships so the feed/poll hybrid is a code-only change. |
 
 **These record exceptions, not state.** An `ebook_access:borrowable` edition is assumed AVAILABLE unless `ebook_unavailable=1` says otherwise, so the common case writes nothing. Consumers must query:
 
@@ -200,7 +207,7 @@ ebook_access:borrowable AND -ebook_unavailable:1
 
 Treating a missing value as "unknown" is wrong — absent means available.
 
-**Why the field flags are what they are.** `stored=false indexed=false` is *required* for `update.partial.requireInPlace` to work, and in-place updates are what make a per-loan-event write cheap enough to run every 30 seconds — a normal atomic update reindexes the whole document. Solr additionally requires the field be **numeric**: a `pdate` field returns `HTTP 400 — Can not satisfy 'update.partial.requireInPlace'`, verified against both `last_modified` and a dynamic `*_dt`. Both of those are `indexed=true stored=true`, so that test does not isolate the type from the flags — what it establishes is that **`plong`/`pint` with `docValues=true stored=false indexed=false` demonstrably works and `pdate` as configured here does not.** Use epoch `plong` for timestamps, not `pdate`.
+**Why the field flags are what they are.** `stored=false indexed=false` is *required* for `update.partial.requireInPlace` to work, and in-place updates are what keep each poll's writes cheap — a normal atomic update to a nested edition reindexes the parent work and every edition under it, which at poll cadence would be ruinous. The write set is small (the delta between polls, measured at 0–2 editions against ~766 marked); the saving is in not rewriting a whole work block per edition touched. Solr additionally requires the field be **numeric**: a `pdate` field returns `HTTP 400 — Can not satisfy 'update.partial.requireInPlace'`, verified against both `last_modified` and a dynamic `*_dt`. Both of those are `indexed=true stored=true`, so that test does not isolate the type from the flags — what it establishes is that **`plong`/`pint` with `docValues=true stored=false indexed=false` demonstrably works and `pdate` as configured here does not.** Use epoch `plong` for timestamps, not `pdate`.
 
 **Filtering on them is cheap — measured, not assumed.** With `indexed=false` these are a docValues scan rather than an index lookup, which sounds expensive and is not: sparse docValues iterate only the documents that *have* the field.
 
@@ -221,14 +228,16 @@ So an edition-level filter such as `genre_key:X AND ebook_access:borrowable AND 
 
 The fields stay absent from `EditionSearchScheme.all_fields`. That governs whether a bare `field:value` typed by an end user is treated as a Solr field — a separate question from whether internal code may build an `fq` on them, which it may.
 
-**A field cannot be cleared in place, which is why there is only one.** `requireInPlace` rejects `"set": null` unconditionally — a value can be set or incremented, never removed. "Available" is therefore written as `0` rather than by deleting the field. It is also why this carries no timestamp: an earlier revision had `ebook_becomes_available` ("available in N days"), which went stale the moment a loan was renewed and could not be cleared when it did. Two fields, `ebook_becomes_available` and `loan_uid` (the changes-feed cursor), were carried through earlier revisions and removed before merge — neither is in the schema.
+**A field cannot be cleared in place.** `requireInPlace` rejects `"set": null` unconditionally — a value can be set or incremented, never removed. "Available" is therefore written as `0` rather than by deleting the field, and `ebook_unavailable_ts` keeps its last value through a clear, which is why it is meaningful only while `ebook_unavailable` is `1`.
 
-**There is no cold start to operate.** Each poll is a complete statement of what should be marked, so the first poll after any start performs the whole job and a reindex that wipes the field self-heals on the next cycle. There is no cursor, no state file and no `--reset`. What follows describes the single step a poll takes:
+That same constraint is why `ebook_becomes_available` ("available in N days") was dropped: it went stale the moment a loan was renewed, and could not be cleared when it did. The distinction worth keeping is that a stale *mark time* is inert — nothing reads it unless the book is marked, and a re-mark overwrites it — whereas a stale *expiry time* was shown to users. `loan_uid`, the changes-feed cursor, was dropped with the feed.
+
+**There is no cold start to operate.** Each poll is a complete statement of what should be marked, so the first poll after any start performs the whole job and a reindex that wipes the field self-heals on the next cycle. There is no state file and no `--reset`; the feed's cursor is placed at the index's currency on startup and is not persisted. What follows describes the step a poll takes:
 
 1. **Seed.** The archive.org search index is asked for books that are lendable but currently neither borrowable nor browsable — `lending___is_lendable:true AND lending___available_to_borrow:false AND lending___available_to_browse:false`. That is the answer set directly, measured at ~600 books in 2026-10. It replaced a replay of `LOAN_MAX_AGE_DAYS` of loan events, which produced only *candidates* and cost one availability request per hundred of them — the daemon's last unbounded path.
-2. **Overlap.** The most recent `OVERLAP_EVENTS` events are replayed through the ordinary event path before steady state starts, then the cursor sits at the feed head.
+2. **Reconcile.** Solr's currently-marked set is read back, and one bulk in-place update marks what the index newly calls unavailable and clears what it no longer does. That is the whole cycle; there is no second mechanism.
 
-**The seed is complete or the daemon refuses to start.** The set grows with traffic, so a fixed `rows` would silently cap it — and a short seed *under*-marks, which is the direction nothing recovers from: the omitted books are published as borrowable while they are out, and the re-check only inspects editions already marked. So the read pages to completeness (`CHECKED_OUT_INDEX_PAGE_ROWS` at a time) and compares what it assembled against the `numFound` the index reported. Any shortfall raises `CheckedOutSeedIncomplete` and the supervisor retries. Measured 2026-10, `advancedsearch.php` answers while `start + rows <= 10000` and returns HTTP 200 with no `response` envelope past that, so `CHECKED_OUT_INDEX_MAX_ROWS` is the endpoint's own ceiling rather than a policy choice.
+**The seed is complete or the daemon refuses to start.** The set grows with traffic, so a fixed `rows` would silently cap it — and a short seed *under*-marks: the omitted books look returned, so the reconcile clears them and they are published as borrowable while they are out. The next poll would re-mark them, but only if the next seed is complete — a persistently short read is persistently wrong, which is why this refuses rather than accepting what arrived. So the read pages to completeness (`CHECKED_OUT_INDEX_PAGE_ROWS` at a time) and compares what it assembled against the `numFound` the index reported. Any shortfall raises `CheckedOutSeedIncomplete` and the supervisor retries. Measured 2026-10, `advancedsearch.php` answers while `start + rows <= 10000` and returns HTTP 200 with no `response` envelope past that, so `CHECKED_OUT_INDEX_MAX_ROWS` is the endpoint's own ceiling rather than a policy choice.
 
 **A set larger than that ceiling is the one failure no retry fixes**, and it is the trigger for the authenticated Scrape API — which pages further but needs credentials, and which unauthenticated was measured silently ignoring its `q`, returning a per-client cached total for any query including deliberate nonsense. The error names Scrape for that reason. Swapping endpoints means changing `get_checked_out_candidates_async` and nothing else.
 
@@ -238,13 +247,15 @@ Note one deliberate strictness: if books are borrowed *while* the seed pages, `n
 
 **The index is never written to Solr as-is.** It is a lagged view, and a sibling lending field (`loans__status__status`) was measured disagreeing with live availability in *both* directions. So the seed is a candidate set: identifiers go through the availability service, `MIN_RECONCILE_COVERAGE` still applies, and a degraded service raises rather than half-applying. Sampling in 2026-10 found the two fields used here agreeing with live availability 80/80 across two independent samples, but that is a spot check, not a guarantee — hence ground truth still decides.
 
-**Why the overlap exists, and why it is event-count bounded.** The snapshot is computed at an unknown instant, so a book borrowed just after it is absent from the seed: unmarked, published as borrowable while it is out, and nothing recovers that, because the re-check only inspects books already marked. The replay closes that window. It deliberately uses the *event* path rather than ground truth — routing it through the reconcile would mean one availability request per hundred identifiers in the window, reintroducing the cost the seed removed — and the event path only ever marks, so its error is the recoverable one.
+**The clear direction is the dangerous one, and it is guarded twice.** Marking wrongly hides a book until the next poll — recoverable. Clearing wrongly publishes a checked-out book as borrowable, and nothing revisits it. So a poll that would clear more than `CLEAR_BREAKER_FRACTION` of the marked set (or more than an absolute floor) does not proceed on the index's word: the whole clear set goes to the bulk availability service and each edition is decided on its own answer. Available → cleared. Still out, or no answer → keeps its mark. Zero confirmed → the index is what is wrong, and every clear is held.
 
-`OVERLAP_EVENTS` counts events, not elapsed time, because a time window converts to an unknown number of feed pages. At the feed's measured ~240,000 uids/day the default is roughly five hours and 50 pages, once.
+That is deliberately not sampled. A sample that comes back still-unavailable disproves a mass-free; one that comes back available only *supports* it, and promoting that to a universal licenses the unrecoverable action. Checking the full set is affordable because it is rare and bounded — at most the marked set, ~766, about 8 batched requests.
 
-> **The index lag has never been measured, and it is the one number this sizing depends on.** To take it: pull acquiring events from the loan-changes feed with timestamps, and find the newest one *absent* from the index's checked-out set. That is the lag; set the overlap comfortably above it. Until then the default is deliberately generous, because over-replaying only re-marks books that are already marked.
+> **The index's own lag has never been measured.** It bounds how stale a poll can be, and it is the number the follow-on hybrid's margin must be sized from. To take it: pull acquiring events from the loan-changes feed with timestamps and find the newest one *absent* from the index's checked-out set. That needs feed credentials and the production box. A partial measurement from outside, 2026-10-06: of 60 identifiers the index called unavailable, 3 were already free in live ground truth, and a watch on those three saw one leave the index's set after 15 minutes while two had not after an hour and forty. That is a staleness rate and a tail, not a distribution.
 
-**Reindex wipes these fields.** They live on nested edition children, and reindexing a work rewrites its children from the indexer's own view, which has no knowledge of them. This is not limited to a full reindex — the main `solr_updater` reindexes a work on any change to it or its editions, continuously, from the infobase changelog. The daemon's re-check cannot repair it, because that only inspects editions already marked. A cold start (or `--reset`) is the recovery.
+**Reindex wipes these fields.** They live on nested edition children, and reindexing a work rewrites its children from the indexer's own view, which has no knowledge of them. This is not limited to a full reindex — the main `solr_updater` reindexes a work on any change to it or its editions, continuously, from the infobase changelog.
+
+The poll **removes** that problem rather than handling it. Each cycle restates the whole answer, so a wiped field is simply re-marked on the next poll and the exposure is one cycle, with nothing to run by hand. The design this replaced needed an operator to notice and re-run a cold start, because the wipe also destroyed the list its re-check worked from.
 
 ### Trending fields
 
@@ -619,25 +630,37 @@ These PRs add new Solr fields and have schema-first deployment requirements. Rev
 > longer exists. It described three fields — `ebook_availability`,
 > `ebook_becomes_available` and `loan_uid` — a `pdate` type, and a cursor used
 > as a resume watermark, and its open item was that `ebook_becomes_available`
-> needed `docValues="true"`. None of that applies: the PR now adds **one**
-> field.
+> needed `docValues="true"`. None of that applies.
 
-**Schema addition:**
+**Schema addition — BOTH fields, or the daemon is inert.**
 
 ```xml
 <field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
+<field name="ebook_unavailable_ts" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 ```
 
-`pint` with `docValues=true`, `stored=false`, `indexed=false` is exactly the
-shape `update.partial.requireInPlace` demands — verified against a live Solr
-10.0.0 core, where a stored+indexed field and an unknown field are both
-rejected with HTTP 400 while this one is accepted.
+`docValues=true`, `stored=false`, `indexed=false` on a numeric type is exactly
+the shape `update.partial.requireInPlace` demands — verified against a live
+Solr 10.0.0 core, where a stored+indexed field and an unknown field are both
+rejected with HTTP 400 while these are accepted, singly and together.
 
-The other two fields were dropped because the poll cannot honestly maintain
-them: there is no cursor to record, and the index exposes no due date from
-which to compute "available in N days" (probed with controls — every plausible
-date field matches 0 documents). A renewal would move such a date with no event
-to observe, and `"set": null` cannot clear a stale one.
+**Applying only the first field is worse than applying neither.** The daemon
+writes both in one atomic update, so an undeclared `ebook_unavailable_ts` makes
+Solr reject the whole document with HTTP 400 — the same rejection that control
+experiment demonstrates. The daemon catches it, logs "Poll failed; prior state
+stands", and loops forever: alive, healthy-looking, marking nothing. And
+because marks are ordered ahead of clears in the batch, the clears never land
+either, so every checked-out book is published as borrowable.
+
+Both fields ship in #12689. **This PR adds no schema at all once rebased onto a
+master that has it** — that is the point of carrying the timestamp early, and
+it is what makes this a code-only change.
+
+Two further fields were dropped earlier and are not coming back: there is no
+cursor to record, and the index exposes no due date from which to compute
+"available in N days" (probed with controls — every plausible date field
+matches 0 documents). A renewal would move such a date with no event to
+observe, and `"set": null` cannot clear a stale one.
 
 **Deploy note:** this is still a schema change and still needs the special
 deploy, but it is now one field rather than three.
