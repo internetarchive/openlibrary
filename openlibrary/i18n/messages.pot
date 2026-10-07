@@ -1458,6 +1458,14 @@ msgstr ""
 msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
 msgstr ""
 
+#: account/privacy.html
+msgid "Track my reading history"
+msgstr ""
+
+#: account/privacy.html
+msgid "When enabled, books you read are saved to your Continue Reading history and account settings. Turning this off will clear your existing reading history."
+msgstr ""
+
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s is reading"

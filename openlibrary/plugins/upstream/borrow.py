@@ -153,8 +153,8 @@ BorrowOutcome = BorrowRedirect | BorrowNotFound | str  # str = rendered intersti
 def _record_read_history(user, edition):
     if not user or not edition:
         return
-    from openlibrary.core.read_history import ReadHistory
     from openlibrary.core.models import User
+    from openlibrary.core.read_history import ReadHistory
 
     # If user preferences disable read history tracking, do not record
     if isinstance(user, User):
