@@ -114,7 +114,7 @@
   background: var(--grey-fafafa);
 }
 
-#list-edit .mia__input main {
+#list-edit .mia__input .mia__main {
   flex: 1;
 }
 

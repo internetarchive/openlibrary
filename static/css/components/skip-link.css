@@ -1,0 +1,31 @@
+/**
+ * Skip link — the first focusable element on every page (site.html.jinja).
+ * Hidden off-screen until keyboard focus brings it into view. WCAG 2.4.1.
+ */
+.skip-link {
+  position: absolute;
+  top: var(--spacing-inset-sm);
+  inset-inline-start: var(--spacing-inset-sm);
+  z-index: var(--z-index-dropdown);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-link);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  border: var(--border-overlay);
+  border-radius: var(--border-radius-button);
+  box-shadow: var(--box-shadow-overlay);
+  transform: translateY(calc(-100% - var(--spacing-inset-md)));
+}
+
+.skip-link:focus {
+  transform: none;
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-width);
+}
+
+/* The skip link focuses <main> (tabindex="-1") so reading starts there;
+   it's a landmark, not a control, so it gets no ring of its own. */
+main:focus {
+  outline: none;
+}
