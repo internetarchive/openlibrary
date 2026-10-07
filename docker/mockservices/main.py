@@ -715,7 +715,11 @@ def _availability_for(identifier: str, events: list[dict]) -> dict:
         until = jsonlib.loads(latest["extra"] or "{}").get("until")
         on_loan = not until or datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC) > datetime.now(UTC)
 
-    if bucket == _MULTI_COPY_BUCKET:
+    if identifier in _test_controlled:
+        # See _test_controlled: for a staged identifier the checked-out set is
+        # the authority, so this endpoint and advancedsearch agree.
+        available = identifier not in _unavailable
+    elif bucket == _MULTI_COPY_BUCKET:
         available = True
     elif bucket == _WAITLISTED_BUCKET:
         available = False
@@ -768,10 +772,20 @@ async def availability(
         events = list(_loan_changes)
     known = {event["identifier"] for event in events}
 
-    # Event-derived for identifiers the changes window knows about, so this
-    # endpoint and the changes feed cannot disagree about them; the variant
+    # Three sources, most authoritative first. A test-staged identifier follows
+    # the checked-out set (see _test_controlled) so this endpoint and
+    # advancedsearch cannot disagree -- and that branch must come FIRST, because
+    # a staged identifier need never appear in the changes window at all, and
+    # would otherwise fall through to the variant matrix and contradict the
+    # index. Then event-derived for whatever the window knows about, so this
+    # endpoint and the changes feed cannot disagree either. Then the variant
     # matrix for everything else.
-    responses = {item_id: (_availability_for(item_id, events) if item_id in known else _deterministic_availability(item_id)) for item_id in ids}
+    def _answer(item_id: str) -> dict:
+        if item_id in _test_controlled or item_id in known:
+            return _availability_for(item_id, events)
+        return _deterministic_availability(item_id)
+
+    responses = {item_id: _answer(item_id) for item_id in ids}
     return JSONResponse({"success": True, "responses": responses})
 
 
@@ -801,6 +815,25 @@ test needs in order to drive it is the ability to CHANGE that set between
 polls -- a book returned, a book borrowed, the index going briefly empty. It is
 seeded from the loan-changes window at startup so the set is realistic and
 non-empty, and is replaced wholesale through /_test/unavailable thereafter.
+"""
+
+_test_controlled: set[str] = set()
+"""Identifiers a test has ever staged through /_test/unavailable.
+
+For these, `_unavailable` is the authority for loan state in
+/services/availability/ too, so the two endpoints cannot contradict each other.
+
+That coherence is load-bearing now that the daemon confirms EVERY clear against
+the availability service rather than only an implausibly large one. Before that,
+a test staging "the index released this book" never reached availability and the
+disagreement was invisible; the first run after always-confirm landed showed
+advancedsearch calling a book returned while availability still called it out,
+and the poll correctly held the clear. The mock was wrong, not the daemon: in
+reality the two are views of the same loan state, differing only by lag.
+
+Identifiers a test has NOT staged keep the bucket-and-event behaviour untouched,
+so the CTA state-space sweep every other consumer of this mock relies on is
+unaffected.
 """
 
 
@@ -838,6 +871,9 @@ async def put_unavailable(request: Request) -> JSONResponse:
     async with _unavailable_lock:
         _unavailable.clear()
         _unavailable.update(str(i) for i in identifiers)
+        # Accumulates rather than tracking the current set: an identifier the
+        # test REMOVED is exactly the one availability must now call free.
+        _test_controlled.update(_unavailable)
         return JSONResponse({"identifiers": sorted(_unavailable)})
 
 

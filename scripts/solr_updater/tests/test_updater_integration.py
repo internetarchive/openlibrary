@@ -57,7 +57,7 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -65,7 +65,7 @@ from infogami import config
 from openlibrary.config import load_config
 from openlibrary.core import lending
 from openlibrary.utils.request_context import create_context_for_script, req_context
-from scripts.solr_updater.loan_availability_updater import _poll_loop, follow_feed_once
+from scripts.solr_updater.loan_availability_updater import _poll_loop, confirm_clears, follow_feed_once
 
 SOLR = os.environ.get("SOLR_URL", "http://localhost:8984/solr/openlibrary")
 FEED = os.environ.get("MOCKSERVICES_URL", "http://localhost:8090")
@@ -282,14 +282,24 @@ async def _feed_once(cursor: int = 1) -> int:
     return await follow_feed_once(cursor, dry_run=False)
 
 
-async def _poll_once(margin: int) -> None:
-    """One cycle of the REAL poll loop, stopped by its own sleep."""
+async def _poll_once(margin: int) -> MagicMock:
+    """One cycle of the REAL poll loop, stopped by its own sleep.
+
+    Returns a spy wrapping `confirm_clears`, so a caller can tell WHICH layer
+    held a clear: never called means the timestamp gate removed it before the
+    confirmation stage, called means the gate let it through and ground truth
+    decided. `wraps` keeps the real implementation, so this observes without
+    changing what runs.
+    """
     _ensure_config()
+    spy = MagicMock(wraps=confirm_clears)
     with (
+        patch("scripts.solr_updater.loan_availability_updater.confirm_clears", spy),
         patch("scripts.solr_updater.loan_availability_updater.asyncio.sleep", AsyncMock(side_effect=SystemExit)),
         pytest.raises(SystemExit),
     ):
         await _poll_loop(poll_interval=0, es_lag_margin=margin, dry_run=False)
+    return spy
 
 
 def test_a_fresh_feed_mark_survives_a_poll_that_would_otherwise_clear_it(monkeypatch):
@@ -304,9 +314,25 @@ def test_a_fresh_feed_mark_survives_a_poll_that_would_otherwise_clear_it(monkeyp
     Staged rather than raced: the index is set to say nothing is checked out
     and the feed is set to a borrow timestamped now, so the disagreement is
     deterministic. Then the SAME daemon code is run with two margins — a day,
-    under which the mark is too fresh to contradict, and one second, under which
-    it is not. The second half is what proves the gate is a gate rather than a
-    blanket refusal to clear.
+    under which the mark is too fresh to contradict, and one second, under
+    which it is not.
+
+    **The book stays marked under BOTH margins, and the margins are what make
+    them different cases.** Under the day margin the timestamp gate holds it
+    and ground truth is never consulted. Under the one-second margin the gate
+    lets it through and ground truth holds it instead — correctly, because the
+    book genuinely IS on loan: a borrow five seconds old is checked out, and
+    the index is simply late. So this asserts WHICH LAYER held it each time,
+    from the daemon's own logs, rather than asserting an outcome both layers
+    produce.
+
+    That the tight-margin half can no longer show a clear going through is a
+    real consequence of confirming every clear, not a weakened test: in this
+    scenario nothing SHOULD clear. The gate's permissiveness is isolated in the
+    unit tests, where ground truth can be told to agree the book is free
+    (test_the_gate_clears_a_mark_older_than_the_index_currency). It is also
+    direct evidence for the open question of whether the gate is now redundant
+    — see the PR's clear-direction section.
     """
     monkeypatch.setenv("OL_SOLR_BASE_URL", SOLR)
     _seed_one_edition()
@@ -335,15 +361,21 @@ def test_a_fresh_feed_mark_survives_a_poll_that_would_otherwise_clear_it(monkeyp
     assert doc.get("ebook_unavailable_ts"), "a mark with no stamp cannot be protected by the gate"
 
     # A day-sized margin: the mark is far newer than the index's currency.
-    asyncio.run(_poll_once(margin=86_400))
+    spy = asyncio.run(_poll_once(margin=86_400))
     _commit()
     assert _edition(FRESH_EDITION).get("ebook_unavailable") == 1, "a poll must not clear a mark the index is too stale to contradict"
+    assert spy.call_count == 0, "the gate must have removed it before the confirmation stage, so ground truth was never asked"
 
-    # One second: the index is treated as current, so the same absence now
-    # means "returned" and the clear proceeds.
-    asyncio.run(_poll_once(margin=1))
+    # One second: the index is treated as current, so the gate stops protecting
+    # the mark and the clear reaches ground truth -- which says the book is
+    # still out, because it is.
+    spy = asyncio.run(_poll_once(margin=1))
     _commit()
-    assert _edition(FRESH_EDITION).get("ebook_unavailable") == 0, "with a current index the gate must let the clear through"
+    assert spy.call_count == 1, "the gate must have let this one through to the confirmation stage"
+    assert [doc["key"] for doc in spy.call_args.args[0]] == [FRESH_EDITION], "and it is this edition that was proposed for clearing"
+    # The two together are the finding: the clear WAS proposed and the book is
+    # STILL marked, so the confirmation stage is what held it.
+    assert _edition(FRESH_EDITION).get("ebook_unavailable") == 1, "a book borrowed five seconds ago stays marked, whichever layer says so"
 
     # Put the shared fixture back: a staged window is frozen, and leaving it
     # frozen poisons every later test against this container.

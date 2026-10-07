@@ -123,7 +123,8 @@ it is published as borrowable while someone has it, and nothing revisits it.
 
 Every guard in this file follows from that. The mark direction is unguarded on
 purpose; the clear direction is the one that refuses, holds and asks for a
-second opinion. See CLEAR_BREAKER_FRACTION and :func:`confirm_mass_clear`.
+second opinion: every clear is confirmed against ground truth before it is
+written, at any volume. See :func:`confirm_clears`.
 
 It is also why the index is read as a candidate set and never written through
 verbatim. The index is a lagged view, and a sibling lending field was measured
@@ -290,8 +291,9 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
         # this is the other half of the comparison that turns absence into a
         # clear. An identifier that fails to resolve is indistinguishable from
         # one the index no longer calls unavailable, so a truncated or
-        # timeAllowed-cut read here silently clears checked-out books -- under
-        # the breaker's threshold, with nothing above INFO in the log.
+        # timeAllowed-cut read here proposes clearing checked-out books. Ground
+        # truth would hold them, but a read known to be short is not evidence
+        # of anything: skip the cycle rather than spend a call discovering it.
         refuse_if_incomplete(result, len(result.docs), "edition resolve")
         for doc in result.docs:
             for ia_id in doc.get("ia", []):
@@ -389,43 +391,6 @@ direction: an edition outside a capped window is indistinguishable from one the
 index no longer calls unavailable, and would be cleared.
 """
 
-CLEAR_BREAKER_FRACTION = 0.10
-CLEAR_BREAKER_FLOOR = 25
-"""Clear-direction circuit breaker: refuse a poll that clears implausibly many.
-
-The poll's clear direction rests entirely on ABSENCE from a lagged index, with
-no ground-truth call anywhere -- the single largest change from the design this
-replaced, where the follower could only mark and the repairer could only clear
-against ground truth.
-
-The existing seed guards catch a result larger than the paging window and a
-read shorter than its own numFound. Neither can catch a result that is SMALL
-BUT INTERNALLY CONSISTENT: a mid-reindex or partially degraded index honestly
-reporting numFound 5 and returning 5 passes every check, and the reconcile then
-clears the rest -- publishing hundreds of checked-out books as borrowable,
-which is the failure mode that must never ship.
-
-Consecutive-absence hysteresis does not fix that, because a degraded index
-stays degraded; it delays the mass clear by N cycles and then performs it. A
-relative-change guard does. Sized from measurement: a normal cycle clears 0-2
-against ~766 marked, well under 1%, so 10% never trips in ordinary operation
-while catching anything resembling a mass event. The absolute floor keeps a
-small marked set (a fresh install, a test) from tripping on routine movement.
-
-What this guard does and does not do:
-
-  * It does NOT decide that a large clear is wrong. It decides that a large
-    clear may not proceed on the index's word alone. A tripped breaker hands
-    the whole clear set to ground truth (:func:`confirm_mass_clear`), which
-    decides each edition on its own answer.
-  * So a legitimate mass-free -- a batch of same-day loans expiring together --
-    proceeds, and an index that has collapsed does not. The daemon recovers
-    from both without a human, which matters because the alternative resting
-    state is "availability-freeing is frozen until somebody notices".
-  * It does not protect the MARK direction, which needs no protection: marking
-    is the recoverable error, and the next poll unmarks.
-"""
-
 
 class PollRefused(Exception):
     """This cycle's inputs were not trustworthy, so prior state stands.
@@ -448,9 +413,10 @@ def refuse_if_incomplete(result, returned: int, what: str) -> None:
 
     This matters because the reconcile turns ABSENCE into a clear. An edition
     missing from a truncated read is indistinguishable from one the index no
-    longer calls unavailable, so a short read is a mass-clear by another route
-    -- and, unlike the breaker's case, a quiet one that stays under the
-    threshold.
+    longer calls unavailable, so a short read is a mass-clear by another route.
+    Ground truth would now hold those clears, but refusing here is still right:
+    a read known to be short is not evidence of anything, and spending a
+    ground-truth call to discover that is worse than skipping the cycle.
     """
     num_found = getattr(result, "num_found", None)
     if isinstance(num_found, int) and num_found > returned:
@@ -479,45 +445,52 @@ async def fetch_marked_editions() -> dict[str, dict]:
     return {doc["key"]: doc for doc in docs}
 
 
-async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: int, index_total: int) -> list[dict]:
-    """Settle a tripped clear-breaker against ground truth, or refuse.
+async def confirm_clears(to_clear: list[dict], marked_total: int, index_total: int) -> list[dict]:
+    """Settle EVERY proposed clear against ground truth, or hold it.
 
-    The breaker alone cannot tell a degraded index from a legitimate mass-free:
-    a batch of same-day loans all expiring together and an ES mid-reindex both
-    present as "the clear set is suddenly huge". Refusing both is safe in the
-    sense that over-holding only hides a book, but it is NOT safe as a resting
-    state -- the clear set stays large on every subsequent cycle, so a real
-    mass-free leaves availability permanently frozen until a human notices. A
-    guard that is always tripped is one people learn to route around.
+    The poll proposes; ground truth disposes. Nothing is cleared on the index's
+    word alone, at any volume. This is the only guard in the clear direction
+    that a sustained fault cannot walk past, and it is unconditional for a
+    measured reason.
 
-    So the exceptional path asks the authority the index is only a view of. The
-    answer is per-edition, which is why this is not sampled: a sample that
-    comes back available supports "legitimate mass-free" without establishing
-    it, and the clear direction is where being wrong is unrecoverable. The
-    whole set is checked, each edition decided on its own answer, and anything
-    the service has no answer for stays marked.
+    **What this replaced, and why it had to go.** This used to run only when a
+    relative-change breaker tripped -- a clear set larger than
+    `max(25, 10% of the editions the index dropped)`. Three facts composed into
+    a complete bypass. The 10% only binds above 250 dropped editions, so below
+    that the absolute floor WAS the entire guard; the floor was a per-poll
+    allowance with no memory across polls; and the poll runs every
+    POLL_INTERVAL = 15 seconds. An index degraded such that it dropped ~24
+    identifiers per cycle therefore never tripped it and never made a single
+    ground-truth call -- and against the measured live unavailable set of 766,
+    31 such polls is 465 seconds. The whole marked set could be cleared
+    unconfirmed in under eight minutes, 25 at a time, with nothing above INFO
+    in the log. That is precisely the event the breaker existed to prevent,
+    reached by staying just underneath it, in the direction nothing undoes.
 
-    Affordable because it is rare and bounded: the clear set is at most the
-    marked set, measured at 766 on 2026-10-05, which is ~8 batched requests at
-    AVAILABILITY_BATCH_SIZE. That is the cost v2's repairer paid every single
-    cycle; here it is paid only when the breaker trips.
+    Neither other layer covers it: the timestamp gate is silent about old marks
+    by design, and a breaker that never trips never confirms.
 
-    This is two checks whose blind spots do not overlap -- the index is fast
-    and lagged, ground truth is slow and authoritative -- and a dangerous clear
-    needs both to agree.
+    **Why always-confirm is affordable.** The clear set is bounded by the
+    borrow-return rate, not by the collection -- a normal cycle clears 0-2 out
+    of ~766 marked (measured 2026-10-05) -- and `get_availability_async`
+    batches at AVAILABILITY_BATCH_SIZE. So the steady-state cost is about one
+    bulk request per poll, ~4/min, against the ~25,000/min this project
+    removes. Even a top-of-hour clump of expiring browses is a handful of
+    batched requests. This is the FAST bulk endpoint, not the per-item Lending
+    Status Endpoint whose >10s/item is what killed v2.
+
+    The answer is per-edition and never sampled: a sample that comes back
+    available supports "legitimate mass-free" without establishing it. Each
+    edition is decided on its own answer, and anything the service has no
+    answer for keeps its mark.
+
+    Two checks whose blind spots do not overlap -- the index is fast and
+    lagged, ground truth is slow and authoritative -- and every clear needs
+    both to agree.
     """
     identifiers = [ia for doc in to_clear for ia in (doc.get("ia") or [])]
-    logger.warning(
-        "Clear breaker tripped: %d of %d marked editions would clear (limit %d); the index returned %d identifiers. "
-        "Confirming %d identifiers against ground truth before clearing anything.",
-        len(to_clear),
-        marked_total,
-        allowed,
-        index_total,
-        len(identifiers),
-    )
     if not identifiers:
-        logger.error("Clear breaker: %d editions would clear but none carry an ocaid; holding every clear this cycle", len(to_clear))
+        logger.error("Clear: %d editions would clear but none carry an ocaid; holding every clear this cycle", len(to_clear))
         return []
 
     availability = await lending.get_availability_async("identifier", identifiers, use_cache=False)
@@ -537,17 +510,29 @@ async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: i
         # listing borrowed ones, and refusing to mark those would publish
         # checked-out books as borrowable for the length of the outage.
         logger.error(
-            "Clear breaker: ground truth confirmed 0 of %d editions as available, so the index is wrong "
-            "rather than the collection freeing; holding every clear this cycle",
+            "Clear: ground truth confirmed 0 of %d editions as available against %d marked and %d returned by the index, "
+            "so the index is wrong rather than the collection freeing; holding every clear this cycle",
             len(to_clear),
+            marked_total,
+            index_total,
         )
         return []
 
-    logger.warning(
-        "Clear breaker: ground truth confirmed %d of %d editions as genuinely available; clearing those and holding the rest.",
-        len(confirmed),
-        len(to_clear),
-    )
+    # Disagreement is the signal worth paging on, not volume: the index saying
+    # "returned" while ground truth says "still out" is what a degraded index
+    # looks like, at any size. A clean cycle stays at INFO.
+    held = len(to_clear) - len(confirmed)
+    if held:
+        logger.warning(
+            "Clear: ground truth confirmed %d of %d editions as genuinely available against %d marked; holding the other %d, "
+            "which the index called returned and ground truth did not",
+            len(confirmed),
+            len(to_clear),
+            marked_total,
+            held,
+        )
+    else:
+        logger.info("Clear: ground truth confirmed all %d proposed editions as available", len(confirmed))
     return confirmed
 
 
@@ -896,8 +881,8 @@ async def build_poll_updates(unavailable_identifiers: list[str], index_current_a
     # This protects RECENT marks only, and that is the whole of what it does. A
     # book ten days into a fourteen-day loan has a mark far older than the
     # margin, so it is eligible to be cleared and this guard is silent about
-    # it. Old marks are covered by the breaker below, which is a different
-    # population and not a backup for this one.
+    # it. Old marks are covered by the ground-truth confirmation below, which
+    # is a different population and not a backup for this one.
     candidates = [doc for key, doc in marked.items() if key not in should_be_marked]
     # A mark with no stamp is not aged, it is UNKNOWN, and the gate refuses to
     # decide on unknown. Stamping it converts the unknown into a known and
@@ -909,20 +894,18 @@ async def build_poll_updates(unavailable_identifiers: list[str], index_current_a
     to_clear = [doc for doc in datable if (_marked_at(doc) or 0) <= index_current_as_of]
     too_fresh = len(datable) - len(to_clear)
 
-    # Sized against the CANDIDATES -- the editions the index actually dropped --
-    # not against everything marked. The gate removes fresh marks from
-    # `to_clear` before this comparison, so measuring against `len(marked)`
-    # lowered the numerator while leaving the denominator alone: a degraded
-    # index could drop hundreds, have most of them held as too-fresh, and slip
-    # the remainder past a threshold computed as though nothing had been held.
-    allowed = max(CLEAR_BREAKER_FLOOR, int(len(candidates) * CLEAR_BREAKER_FRACTION))
-    if len(to_clear) > allowed:
-        # Only the CLEAR set is ever held back. Marking needs no confirmation --
-        # it is the recoverable direction -- and dropping the marks alongside a
-        # refused clear would publish newly-borrowed books as available for as
-        # long as the index stayed degraded: the same failure this guard
-        # exists to prevent, reached from the other side.
-        to_clear = await confirm_mass_clear(to_clear, allowed, len(marked), len(unavailable_identifiers))
+    # LAYER 3 of three, and the only one a sustained fault cannot walk past.
+    # EVERY proposed clear is confirmed against ground truth, at any volume --
+    # there is no threshold to stay underneath. :func:`confirm_clears` records
+    # what the threshold version let through and why it is gone.
+    #
+    # Only the CLEAR set is ever held back. Marking needs no confirmation -- it
+    # is the recoverable direction -- and dropping the marks alongside a held
+    # clear would publish newly-borrowed books as available for as long as the
+    # index stayed degraded: the same failure this exists to prevent, reached
+    # from the other side.
+    if to_clear:
+        to_clear = await confirm_clears(to_clear, len(marked), len(unavailable_identifiers))
 
     # Marks the POLL makes are stamped now, not with the index's currency: this
     # book is unavailable as of this read, and the stamp is what protects it
