@@ -579,15 +579,54 @@ async def _loan_changes_ongoing_loop() -> None:
 
 @app.get("/services/loans/loan/")
 async def loan_changes(action: str, after_uid: int | None = None, limit: int = 1000) -> JSONResponse:
+    """The changes feed, including the DEFAULT behaviour a cursor bootstrap needs.
+
+    With no `after_uid`, this returns the most recent `limit` rows rather than
+    an error. That is how a daemon places its cursor without already having
+    one: read the tail, find the event at the index's currency, follow from
+    there. It mirrors an external petabox change; before that landed, a missing
+    `after_uid` was an error, which is why the old branch here said so.
+
+    `after_uid=0` is kept as an ERROR deliberately. IA treats 0 and absent the
+    same, and a caller passing a literal 0 has almost certainly failed to read
+    its own state rather than asked for the tail -- those two intentions should
+    not be answered identically.
+    """
     if action != "changes":
         return JSONResponse({"status": "error", "error": f"unsupported action: {action}"}, status_code=400)
-    if not after_uid:
-        # IA treats after_uid=0 the same as a missing one.
+    if after_uid == 0:
         return JSONResponse({"status": "ERROR", "error": "No since or after_uid supplied."}, status_code=400)
+
     async with _loan_changes_lock:
-        rows = [event for event in _loan_changes if event["uid"] > after_uid][:limit]
+        if after_uid is None:
+            rows = list(_loan_changes)[-limit:]
+        else:
+            rows = [event for event in _loan_changes if event["uid"] > after_uid][:limit]
         latest_uid = _loan_changes[-1]["uid"] if _loan_changes else 0
     return JSONResponse({"status": "OK", "latest_uid": latest_uid, "rows": rows})
+
+
+@app.put("/_test/loan_changes")
+async def put_loan_changes(request: Request) -> JSONResponse:
+    """Replace the feed's window wholesale. Test control surface, not IA.
+
+    Rows are taken as given, including their `time`, so a test can stage a feed
+    whose events sit at chosen offsets from the index's currency -- which is
+    the only way to exercise a cursor bootstrap or a timestamp gate without
+    waiting on a real clock.
+
+    Independent of the AdvancedSearch set on purpose: the whole point of the
+    hybrid is that the feed and the index DISAGREE, with the feed ahead. A
+    fixture that derived one from the other could not express that.
+    """
+    body = await request.json()
+    rows = body.get("rows")
+    if not isinstance(rows, list):
+        return JSONResponse({"error": "body must be {'rows': [...]}"}, status_code=400)
+    async with _loan_changes_lock:
+        _loan_changes.clear()
+        _loan_changes.extend(rows)
+        return JSONResponse({"rows": len(_loan_changes)})
 
 
 # ---------------------------------------------------------------------------

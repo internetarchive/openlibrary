@@ -153,3 +153,85 @@ def test_a_query_the_mock_does_not_understand_answers_nothing(base_url):
 def test_a_malformed_control_request_is_rejected(base_url):
     response = requests.put(f"{base_url}/_test/unavailable", json={"identifiers": "not-a-list"}, timeout=10)
     assert response.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# The changes feed, and specifically the DEFAULT behaviour a cursor bootstrap
+# depends on. Both mocks are driven from this module because the hybrid's whole
+# premise is that they DISAGREE -- the feed ahead, the index behind -- and a
+# test can only stage that if it can set each independently.
+# ---------------------------------------------------------------------------
+
+
+def _set_rows(base_url: str, rows: list[dict]) -> None:
+    response = requests.put(f"{base_url}/_test/loan_changes", json={"rows": rows}, timeout=10)
+    response.raise_for_status()
+
+
+def _feed(base_url: str, **params) -> dict:
+    query = urllib.parse.urlencode({"action": "changes", **params})
+    response = requests.get(f"{base_url}/services/loans/loan/?{query}", timeout=10)
+    return response.json() if response.ok else {"_status_code": response.status_code, **response.json()}
+
+
+def _rows(n: int, start_uid: int = 1) -> list[dict]:
+    return [
+        {
+            "identifier": f"feedbook{i:03d}",
+            "uid": start_uid + i,
+            "event_type": "borrow",
+            "extra": "{}",
+            "time": f"2026-10-06 0{i // 10}:{i % 60:02d}:00",
+        }
+        for i in range(n)
+    ]
+
+
+def test_no_after_uid_returns_the_tail_rather_than_an_error(base_url):
+    """The behaviour a cursor bootstrap rests on. Without it there is no way to
+    place a cursor at the index's currency without already having one, and the
+    daemon falls back to the feed head -- leaving the lag gap uncovered until
+    the next borrow."""
+    _set_rows(base_url, _rows(50))
+    body = _feed(base_url, limit=10)
+    assert body["status"] == "OK"
+    assert len(body["rows"]) == 10
+    assert [r["uid"] for r in body["rows"]] == list(range(41, 51)), "the TAIL, not the head"
+
+
+def test_after_uid_zero_is_still_an_error(base_url):
+    """0 and absent are the same to IA, but a caller passing a literal 0 has
+    almost certainly failed to read its own state rather than asked for the
+    tail. Answering those two identically would hide that."""
+    _set_rows(base_url, _rows(5))
+    body = _feed(base_url, after_uid=0)
+    assert body.get("_status_code") == 400
+    assert body["status"] == "ERROR"
+
+
+def test_after_uid_returns_only_what_follows_it(base_url):
+    _set_rows(base_url, _rows(20))
+    body = _feed(base_url, after_uid=15, limit=100)
+    assert [r["uid"] for r in body["rows"]] == [16, 17, 18, 19, 20]
+
+
+def test_the_feed_and_the_index_can_be_set_to_disagree(base_url):
+    """The property the hybrid exists for, and the one a fixture deriving one
+    from the other could not express: the feed knows about a borrow the index
+    has not caught up with."""
+    _set_rows(base_url, [{"identifier": "freshborrow", "uid": 99, "event_type": "borrow", "extra": "{}", "time": "2026-10-06 09:00:00"}])
+    _set_unavailable(base_url, ["somethingelse"])
+
+    feed_ids = {r["identifier"] for r in _feed(base_url, limit=100)["rows"]}
+    index_ids = {d["identifier"] for d in _search(base_url, rows=100, page=1)["response"]["docs"]}
+    assert feed_ids == {"freshborrow"}
+    assert index_ids == {"somethingelse"}
+    assert not (feed_ids & index_ids), "the two mocks must be independently settable"
+
+
+def test_rows_keep_the_timestamps_a_test_gives_them(base_url):
+    """A mark is stamped from the event's own time, so a test has to be able to
+    choose it -- otherwise the gate can only be exercised against the wall
+    clock, which means waiting."""
+    _set_rows(base_url, [{"identifier": "timed", "uid": 7, "event_type": "borrow", "extra": "{}", "time": "2001-09-09 01:46:40"}])
+    assert _feed(base_url, limit=10)["rows"][0]["time"] == "2001-09-09 01:46:40"

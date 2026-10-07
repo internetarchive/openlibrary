@@ -304,13 +304,30 @@ The real number is the changes feed's event timestamps compared against when
 the index reflects them, which needs feed credentials and the production box.
 Until then: a day, deliberately.
 
-**The one real cost of a large margin**, so it is not a surprise: a mark cannot
-be cleared until it is older than the margin, so a loan SHORTER than the margin
-is over-held by up to (margin - loan duration). Ordinary multi-day loans pay
-nothing -- by the time the index reflects their return, the mark is days old --
-so this falls entirely on short loans, it is bounded by the margin, and it is
-in the safe direction: the book is briefly hidden from search while the borrow
-click still works.
+**The margin is not free, and the target is not "as large as possible".** A
+mark cannot be cleared until it is older than the margin, so a returned book is
+over-held by:
+
+    over_hold = max(0, margin - loan_duration - lag)
+
+A fourteen-day borrow pays nothing: by the time the index reflects its return
+the mark is days old, far past any sane margin. A two-hour browse session under
+a day-sized margin with an hour of lag is over-held about 21 hours -- hidden
+from search while still borrowable, which is the safe direction and a real
+freshness cost all the same. Short sessions pay the whole bill.
+
+So the target is **just above the measured lag tail**: large enough that a
+recent borrow can never be cleared, and no larger, because every second beyond
+the tail is over-hold on short loans and buys nothing. 86,400 is a conservative
+START chosen with no upper bound on the tail in hand. The box measurement
+should size it DOWN, and that tightening is the whole of what reduces the cost.
+
+**Versus the poll-only design this descends from:** that one has no margin, so
+it clears short returns promptly -- and can wrongly clear a recent borrow the
+index has not seen, publishing a checked-out book as borrowable, which nothing
+corrects. This moves that error into the safe direction and pays for it in
+over-held short loans. The margin is the dial between the two, and measuring
+the tail is what lets it be set honestly rather than guessed.
 """
 
 MARKED_SET_MAX = 50_000
@@ -402,7 +419,7 @@ async def fetch_marked_editions() -> dict[str, dict]:
     """
     result = await get_solr().select_async(
         query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}",
-        fields=["key", "ia", "_root_", "ebook_unavailable_at"],
+        fields=["key", "ia", "_root_", "ebook_unavailable_ts"],
         rows=MARKED_SET_MAX,
     )
     docs = result.docs
@@ -679,7 +696,7 @@ def mark_update(key: str, root: str, at: int) -> dict:
         "key": key,
         "_root_": root,
         "ebook_unavailable": {"set": EBOOK_UNAVAILABLE},
-        "ebook_unavailable_at": {"set": at},
+        "ebook_unavailable_ts": {"set": at},
     }
 
 
@@ -691,7 +708,7 @@ def _marked_at(doc: dict) -> int:
     is the better authority on it. Fresh marks always carry a stamp because
     :func:`mark_update` is the only way one is written.
     """
-    value = doc.get("ebook_unavailable_at")
+    value = doc.get("ebook_unavailable_ts")
     return value if isinstance(value, int) else 0
 
 

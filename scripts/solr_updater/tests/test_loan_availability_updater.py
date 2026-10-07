@@ -1,5 +1,7 @@
 """Tests for loan_availability_updater.py"""
 
+import datetime
+import logging
 import time
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -19,6 +21,7 @@ from scripts.solr_updater.loan_availability_updater import (
     SOLR_QUERY_CHUNK,
     PollRefused,
     _poll_loop,
+    bootstrap_feed_cursor,
     build_poll_updates,
     build_solr_updates,
     collect_dirty_identifiers,
@@ -701,9 +704,9 @@ _EDITION = {"key": "/books/OL1M", "root": "/works/OL1W"}
 
 
 def _marked_doc(marked_at: int | None) -> dict[str, dict]:
-    doc = {"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}
+    doc: dict = {"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}
     if marked_at is not None:
-        doc["ebook_unavailable_at"] = marked_at
+        doc["ebook_unavailable_ts"] = marked_at
     return {"/books/OL1M": doc}
 
 
@@ -743,7 +746,7 @@ async def test_the_gate_clears_a_mark_older_than_the_index_currency(age_hours):
     freed. A mark older than the index's currency IS cleared."""
     index_current_as_of = _MARKED_RECENTLY + _HOUR
     marked_at = _MARKED_RECENTLY - age_hours * _HOUR
-    mark, clear = await _poll_against([], _marked_doc(marked_at), index_current_as_of)
+    _, clear = await _poll_against([], _marked_doc(marked_at), index_current_as_of)
     assert clear == {"/books/OL1M"}, f"a mark {age_hours}h older than the index's currency must be cleared"
 
 
@@ -766,7 +769,7 @@ async def test_a_poll_mark_carries_a_timestamp_so_the_next_poll_cannot_clear_it(
         patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value={})),
     ):
         updates = await build_poll_updates(["bookaaa"], _MARKED_RECENTLY)
-    assert updates[0]["ebook_unavailable_at"]["set"] > 0, "a mark without a timestamp is clearable by the next poll"
+    assert updates[0]["ebook_unavailable_ts"]["set"] > 0, "a mark without a timestamp is clearable by the next poll"
 
 
 def test_a_feed_mark_is_stamped_with_the_event_time_not_the_read_time():
@@ -775,7 +778,7 @@ def test_a_feed_mark_is_stamped_with_the_event_time_not_the_read_time():
     rows = [{"identifier": "bookaaa", "uid": 5, "event_type": "borrow", "extra": "{}", "time": "2001-09-09 01:46:40"}]
     dirty = collect_dirty_identifiers(rows)
     updates = build_solr_updates(dirty, {"bookaaa": _EDITION})
-    assert updates[0]["ebook_unavailable_at"]["set"] == _MARKED_RECENTLY
+    assert updates[0]["ebook_unavailable_ts"]["set"] == _MARKED_RECENTLY
 
 
 def test_a_feed_mark_with_an_unreadable_time_falls_back_to_now():
@@ -783,7 +786,7 @@ def test_a_feed_mark_with_an_unreadable_time_falls_back_to_now():
     not produce a mark stamped epoch 0, which the next poll would clear."""
     rows = [{"identifier": "bookaaa", "uid": 5, "event_type": "borrow", "extra": "{}", "time": "not-a-date"}]
     updates = build_solr_updates(collect_dirty_identifiers(rows), {"bookaaa": _EDITION})
-    assert updates[0]["ebook_unavailable_at"]["set"] > _MARKED_RECENTLY
+    assert updates[0]["ebook_unavailable_ts"]["set"] > _MARKED_RECENTLY
 
 
 @pytest.mark.asyncio
@@ -810,7 +813,7 @@ async def test_the_margin_parameter_reaches_the_gate(margin, expect_cleared):
     leaves those sweeps green and reddens only this test. The margin has to
     enter through the same door the operator's flag does.
     """
-    marked = {"/books/OL1M": {"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W", "ebook_unavailable_at": int(time.time()) - 1000}}
+    marked = {"/books/OL1M": {"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W", "ebook_unavailable_ts": int(time.time()) - 1000}}
     solr = MagicMock(spec=Solr)
     solr.update_in_place_async.return_value = _OK_RESPONSE
     written: list[dict] = []
@@ -831,3 +834,76 @@ async def test_the_margin_parameter_reaches_the_gate(margin, expect_cleared):
 
     cleared = [u for u in written if u.get("ebook_unavailable") == {"set": EBOOK_AVAILABLE}]
     assert bool(cleared) is expect_cleared, f"margin={margin} should {'clear' if expect_cleared else 'hold'} a mark 1000s old"
+
+
+# ---------------------------------------------------------------------------
+# The cursor bootstrap. The follower exists to cover one gap -- borrows the
+# index has not seen -- so it must START at the index's currency. Too far back
+# replays days to no purpose; too far forward leaves the gap open until the
+# next borrow.
+# ---------------------------------------------------------------------------
+
+
+def _feed_response(rows: list[dict], latest_uid: int | None = None) -> dict:
+    return {"status": "OK", "latest_uid": latest_uid if latest_uid is not None else (rows[-1]["uid"] if rows else 0), "rows": rows}
+
+
+def _row(uid: int, epoch: int) -> dict:
+    stamp = datetime.datetime.fromtimestamp(epoch, datetime.UTC).strftime("%Y-%m-%d %H:%M:%S")
+    return {"identifier": f"book{uid}", "uid": uid, "event_type": "borrow", "extra": "{}", "time": stamp}
+
+
+@pytest.mark.asyncio
+async def test_the_bootstrap_starts_at_the_index_currency_not_the_feed_head():
+    """THE SEAM. The cursor must land on the last event the index can be assumed
+    to know about, so the follower replays exactly the lag gap."""
+    now = int(time.time())
+    margin = 3600
+    # uids 1..5 at hourly steps; the index's currency is now-3600, so events
+    # older than that are already reflected and 3 is the last of them.
+    rows = [_row(1, now - 10800), _row(2, now - 7200), _row(3, now - 5400), _row(4, now - 1800), _row(5, now - 60)]
+    with patch("openlibrary.core.lending.get_loan_changes", AsyncMock(return_value=_feed_response(rows))):
+        cursor = await bootstrap_feed_cursor(margin)
+    assert cursor == 3, "the cursor must sit at the newest event the index already knows about"
+
+
+@pytest.mark.asyncio
+async def test_the_bootstrap_does_not_replay_the_whole_window():
+    """Starting at the oldest row is safe but wasteful -- it re-marks books the
+    index already covers, every restart."""
+    now = int(time.time())
+    rows = [_row(i, now - 86_400 + i * 60) for i in range(1, 60)]
+    with patch("openlibrary.core.lending.get_loan_changes", AsyncMock(return_value=_feed_response(rows))):
+        cursor = await bootstrap_feed_cursor(3600)
+    assert cursor > 1, "the cursor must not fall back to the start of the window"
+
+
+@pytest.mark.asyncio
+async def test_a_feed_window_too_short_bootstraps_at_its_oldest_row_and_says_so(caplog):
+    """The window does not reach back as far as the index's currency, so part of
+    the lag gap cannot be covered at all. Starting at the oldest row covers as
+    much as the feed will show -- and the shortfall is LOGGED rather than
+    silently accepted, because an uncovered gap looks exactly like a healthy
+    daemon."""
+    now = int(time.time())
+    rows = [_row(90, now - 120), _row(91, now - 60), _row(92, now - 30)]
+    with (
+        patch("openlibrary.core.lending.get_loan_changes", AsyncMock(return_value=_feed_response(rows))),
+        caplog.at_level(logging.WARNING),
+    ):
+        cursor = await bootstrap_feed_cursor(86_400)
+    assert cursor == 90, "with nothing old enough, start at the oldest row the window shows"
+    assert "uncovered" in caplog.text.lower()
+
+
+@pytest.mark.asyncio
+async def test_an_empty_feed_falls_back_to_the_head_and_says_so(caplog):
+    """Degrades to 'the gap is uncovered until the next borrow' rather than to
+    anything unsafe -- and says which."""
+    with (
+        patch("openlibrary.core.lending.get_loan_changes", AsyncMock(return_value=_feed_response([], latest_uid=777))),
+        caplog.at_level(logging.WARNING),
+    ):
+        cursor = await bootstrap_feed_cursor(3600)
+    assert cursor == 777
+    assert "uncovered" in caplog.text.lower()
