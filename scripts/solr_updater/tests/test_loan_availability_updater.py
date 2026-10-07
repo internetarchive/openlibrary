@@ -1016,6 +1016,51 @@ async def test_a_truncated_edition_resolve_is_refused_rather_than_cleared():
 
 
 @pytest.mark.asyncio
+async def test_identifiers_with_no_edition_are_not_mistaken_for_a_truncated_read():
+    """THE DISTINCTION THE GUARD HAS TO MAKE. Most IA identifiers have no OL
+    edition, so a chunk of 500 resolving to 3 documents is the normal case, not
+    a short read -- and a guard that refused it would halt the daemon
+    permanently on ordinary data.
+
+    `num_found` counts MATCHING documents, so 3 matched and 3 returned is
+    complete. The guard fires on Solr matching more than it handed back, which
+    is a different thing entirely.
+    """
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(
+        docs=[{"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"}],
+        num_found=1,
+        response_header={},
+    )
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
+        resolved = await resolve_edition_keys(["bookaaa", "bookbbb", "bookccc"])
+    assert resolved == {"bookaaa": {"key": "/books/OL1M", "root": "/works/OL1W"}}
+
+
+@pytest.mark.asyncio
+async def test_more_editions_than_identifiers_is_not_mistaken_for_a_truncated_read():
+    """The other direction of the same distinction, and the one that would halt
+    the daemon rather than silently clear.
+
+    Two editions can share an ocaid, so a chunk of 2 identifiers legitimately
+    matches 3 documents. A guard comparing `num_found` against the number of
+    IDENTIFIERS requested -- rather than against the documents returned -- reads
+    that as a short read and raises, every poll, forever. The comparison has to
+    be returned-versus-matched, not requested-versus-matched.
+    """
+    docs = [
+        {"key": "/books/OL1M", "ia": ["bookaaa"], "_root_": "/works/OL1W"},
+        {"key": "/books/OL2M", "ia": ["bookaaa"], "_root_": "/works/OL2W"},
+        {"key": "/books/OL3M", "ia": ["bookbbb"], "_root_": "/works/OL3W"},
+    ]
+    mock_solr = MagicMock(spec=Solr)
+    mock_solr.select_async.return_value = MagicMock(docs=docs, num_found=3, response_header={})
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr):
+        resolved = await resolve_edition_keys(["bookaaa", "bookbbb"])
+    assert set(resolved) == {"bookaaa", "bookbbb"}
+
+
+@pytest.mark.asyncio
 async def test_a_partial_edition_resolve_is_refused_rather_than_cleared():
     """`partialResults` is the only signal that `timeAllowed` cut the query
     short; numFound can look perfectly consistent with the short list."""
@@ -1027,6 +1072,58 @@ async def test_a_partial_edition_resolve_is_refused_rather_than_cleared():
     )
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused):
         await resolve_edition_keys(["bookaaa"])
+
+
+@pytest.mark.asyncio
+async def test_an_availability_outage_holds_every_clear_and_says_so_loudly(caplog):
+    """A held clear is invisible by construction -- nothing is written -- so an
+    availability outage looks exactly like a quiet collection: the daemon keeps
+    polling, keeps marking, logs its ordinary INFO line, and availability stops
+    moving for the duration. Confirming every clear is what put the service on
+    this path, so the freeze it can cause has to be said out loud.
+
+    The two causes must also be distinguishable in the message. "Ground truth
+    says still out" is a degraded INDEX; "nobody answered" is an outage of the
+    availability service. Investigating one as the other wastes the outage.
+    """
+    marked = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W", "ebook_unavailable_ts": 1} for i in range(3)}
+    # What a failed batch actually returns: an error status per identifier,
+    # plus the top-level key. Not a missing entry.
+    outage = {f"book{i}": {"status": "error", "identifier": f"book{i}"} for i in range(3)}
+    outage["error"] = "request_timeout"
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={})),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        _rtg(marked),
+        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value=outage)),
+        caplog.at_level(logging.ERROR, logger="openlibrary.loan-availability-updater"),
+    ):
+        updates = await build_poll_updates([], _NOW)
+    _, clear = _sets(updates)
+    assert clear == set(), "an unanswered identifier keeps its mark"
+    assert "0 of 3 identifiers" in caplog.text, "the count of unanswered identifiers must be stated"
+    assert "outage rather than a disagreement" in caplog.text, "and the cause must be named, not left to be inferred"
+
+
+@pytest.mark.asyncio
+async def test_a_degraded_index_is_reported_as_disagreement_not_as_an_outage(caplog):
+    """The control for the test above: the service IS answering, and answering
+    'still out'. Same held clears, different cause, and the message has to
+    distinguish them or an index incident gets investigated as an outage."""
+    marked = {f"/books/OL{i}M": {"key": f"/books/OL{i}M", "ia": [f"book{i}"], "_root_": f"/works/OL{i}W", "ebook_unavailable_ts": 1} for i in range(3)}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={})),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+        _rtg(marked),
+        patch("openlibrary.core.lending.get_availability_async", AsyncMock(return_value={f"book{i}": UNAVAILABLE for i in range(3)})),
+        caplog.at_level(logging.ERROR, logger="openlibrary.loan-availability-updater"),
+    ):
+        updates = await build_poll_updates([], _NOW)
+    _, clear = _sets(updates)
+    assert clear == set()
+    assert "ground truth disagreed with the index" in caplog.text
+    assert "outage rather than a disagreement" not in caplog.text, "the service answered, so this is not an outage"
+    assert "identifiers;" not in caplog.text, "and nothing went unanswered, so no unanswered-count line"
 
 
 @pytest.mark.asyncio

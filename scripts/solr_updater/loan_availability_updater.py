@@ -142,6 +142,14 @@ blip, so an outage long enough to matter wants an alarm rather than patience.
 Marking is unaffected: the follower keeps marking borrows throughout, so the
 daemon degrades to "slow to free" and never to "publishes a book that is out".
 
+Note where that floor sits, because the widening is easy to read as a
+regression and is not one. Search TODAY calls this same bulk service once per
+request -- the ~25,000/min this project removes -- so an availability outage
+already breaks today's availability annotations outright. Under the hybrid,
+search is served from Solr's last-known state throughout and only the CLEARING
+stops. The dependency moved from every page load to one daemon loop, so the bad
+case degrades to something strictly better than where it degrades to now.
+
 Default-available, exceptions only
 ----------------------------------
 An `ebook_access:borrowable` edition is assumed AVAILABLE. Solr stores only
@@ -305,6 +313,15 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
         # timeAllowed-cut read here proposes clearing checked-out books. Ground
         # truth would hold them, but a read known to be short is not evidence
         # of anything: skip the cycle rather than spend a call discovering it.
+        #
+        # It does not fire on the ordinary case of an identifier having no OL
+        # edition: `num_found` counts MATCHING documents, so 3 matches out of
+        # 500 requested ids is 3 found and 3 returned, which is complete. What
+        # it catches is Solr matching more than it handed back. The comparison
+        # is returned-versus-matched, never requested-versus-matched -- two
+        # editions can share an ocaid, so matches can legitimately EXCEED the
+        # identifiers asked for, and a guard sized against the request halts
+        # the daemon every poll, forever.
         refuse_if_incomplete(result, len(result.docs), "edition resolve")
         for doc in result.docs:
             for ia_id in doc.get("ia", []):
@@ -506,26 +523,57 @@ async def confirm_clears(to_clear: list[dict], marked_total: int, index_total: i
 
     availability = await lending.get_availability_async("identifier", identifiers, use_cache=False)
 
-    def is_free(ia_id: str) -> bool:
+    def answered(ia_id: str) -> bool:
         answer = availability.get(ia_id)
+        # A failed batch comes back as an "error" status per identifier rather
+        # than as a missing key, so both shapes mean the same thing: nobody
+        # told us anything about this book.
+        return isinstance(answer, dict) and answer.get("status") != "error"
+
+    def is_free(ia_id: str) -> bool:
         # No answer is not an answer: an edition the service skipped keeps its
         # mark, because the clear direction is the unrecoverable one.
-        return answer is not None and lending.is_available_for_loan(answer)
+        return answered(ia_id) and lending.is_available_for_loan(availability[ia_id])
+
+    # SAY SO WHEN THE SERVICE IS NOT ANSWERING. Holding clears is the right
+    # response to an outage, but it is also indistinguishable from a quiet
+    # collection: the daemon keeps polling, keeps marking, logs its ordinary
+    # INFO line, and availability silently stops moving for the duration. A
+    # held clear is invisible by construction -- nothing is written -- so if
+    # this is not said loudly, nothing says it at all.
+    if unanswered := [ia for ia in identifiers if not answered(ia)]:
+        logger.error(
+            "Clear: the availability service answered for only %d of %d identifiers; %d unanswered, so every clear "
+            "resting on one is HELD this cycle. A run of these is an outage, and clears stay frozen for its whole "
+            "length while the daemon otherwise looks healthy. Marking is unaffected.",
+            len(identifiers) - len(unanswered),
+            len(identifiers),
+            len(unanswered),
+        )
 
     confirmed = [doc for doc in to_clear if any(is_free(ia) for ia in (doc.get("ia") or []))]
 
     if not confirmed:
-        # Every answer disagreed with the index, or the service gave none, so
-        # the index is what is wrong. Hold every CLEAR -- and let the marks
-        # through: an index that has stopped listing returned books is still
-        # listing borrowed ones, and refusing to mark those would publish
-        # checked-out books as borrowable for the length of the outage.
+        # Hold every CLEAR -- and let the marks through: an index that has
+        # stopped listing returned books is still listing borrowed ones, and
+        # refusing to mark those would publish checked-out books as borrowable
+        # for the length of the outage.
+        #
+        # Two different causes reach here and the message has to say which, or
+        # an outage reads as a degraded index and gets investigated in the
+        # wrong place: either the service answered and disagreed with the
+        # index, or it never answered at all.
+        cause = (
+            "the availability service answered for none of them, so this is an outage rather than a disagreement"
+            if len(unanswered) == len(identifiers)
+            else "ground truth disagreed with the index, so the index is wrong rather than the collection freeing"
+        )
         logger.error(
-            "Clear: ground truth confirmed 0 of %d editions as available against %d marked and %d returned by the index, "
-            "so the index is wrong rather than the collection freeing; holding every clear this cycle",
+            "Clear: confirmed 0 of %d editions as available against %d marked and %d returned by the index -- %s; holding every clear this cycle",
             len(to_clear),
             marked_total,
             index_total,
+            cause,
         )
         return []
 
