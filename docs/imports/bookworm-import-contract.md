@@ -253,7 +253,7 @@ Two distinct hazards:
 
 **1. One bad row kills the whole migration.** `ALTER TABLE … USING` is
 atomic — on a table the epic itself describes as holding millions of rows, it
-scans everything and then rolls the lot back on the first unparseable value.
+scans everything and then rolls the lot back on the first unparsable value.
 The likely culprit is not garbage but the **empty string**: `data text`
 permits `''` and `data jsonb` does not. Nothing in today's writers obviously
 produces `''` — `add_items` writes `json.dumps(...)`, `set_status` writes
