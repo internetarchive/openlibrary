@@ -337,14 +337,8 @@ AVAILABILITY_VARIANTS = [
 ]
 
 
-# Every field OL reads off an availability response. The variants above are
-# deliberately sparse -- each names only what distinguishes it -- so they are
-# overlaid onto this. Without it a variant silently omits fields the site
-# reads: `is_printdisabled` gates the print-disabled path, `last_loan_date`
-# and `last_waitlist_date` render in the admin loans table, and
-# `num_waitlist` is typed `str | None` in lending.py (it was emitted as an
-# int here, which the tolerant `int(... or 0)` at lending.py:719 absorbed
-# rather than surfaced).
+# Every field OL reads off an availability response. The sparse variants above
+# are overlaid onto this so none of them omits a field the site reads.
 _AVAILABILITY_DEFAULTS: dict[str, Any] = {
     "status": "error",
     "available_to_browse": False,
@@ -594,25 +588,15 @@ async def loan_changes(action: str, after_uid: int | None = None, limit: int = 1
 # IA Availability API v2
 # GET/POST /services/availability/?identifier=a,b,c
 #
-# Two answer sources, and which one applies depends on the identifier.
+# Identifiers in the loan-changes window get an answer derived from their
+# events, so this endpoint and the changes feed agree. Everything else gets the
+# variant matrix (_deterministic_availability), so every CTA state stays
+# previewable in dev.
 #
-# An identifier the loan-changes window knows about gets an EVENT-DERIVED
-# answer, so /services/availability/ and the changes feed agree about it. The
-# loan availability updater is tested against exactly that agreement.
-#
-# Any other identifier falls through to the variant matrix
-# (_deterministic_availability), which sweeps the full CTA state space so every
-# state stays previewable in dev. That is what test_every_variant_is_reachable
-# pins, and an event-derived answer cannot satisfy it -- it only ever produces
-# three shapes.
-#
-# Within the event-derived path two buckets diverge from the events on purpose,
-# because they are the states an event stream cannot predict:
-#
-#   - MULTI-COPY ids report available even while a borrow is active (the item
-#     owns several copies, so one loan does not exhaust it).
-#   - WAITLISTED ids report unavailable even after a return, and carry a
-#     non-zero num_waitlist (the freed copy goes to the head of the queue).
+# Two event-derived buckets deliberately disagree with the events:
+#   - MULTI-COPY ids stay available during a borrow (other copies remain).
+#   - WAITLISTED ids stay unavailable after a return, with a non-zero
+#     num_waitlist (the freed copy goes to the queue).
 # ---------------------------------------------------------------------------
 
 _AVAILABILITY_BUCKETS = 5
@@ -697,9 +681,7 @@ async def availability(
         events = list(_loan_changes)
     known = {event["identifier"] for event in events}
 
-    # Event-derived for identifiers the changes window knows about, so this
-    # endpoint and the changes feed cannot disagree about them; the variant
-    # matrix for everything else.
+    # Event-derived where the changes window knows the id; the variant matrix otherwise.
     responses = {item_id: (_availability_for(item_id, events) if item_id in known else _deterministic_availability(item_id)) for item_id in ids}
     return JSONResponse({"success": True, "responses": responses})
 
@@ -711,8 +693,8 @@ async def availability(
 
 
 # ---------------------------------------------------------------------------
-# archive.org advancedsearch — the checked-out seed for the loan availability
-# updater's cold start
+# archive.org advancedsearch — the checked-out set the loan availability
+# updater polls
 # ---------------------------------------------------------------------------
 
 
@@ -722,15 +704,8 @@ ADVANCEDSEARCH_MAX_ROWS = 10_000
 
 _unavailable: set[str] = set()
 _unavailable_lock = asyncio.Lock()
-"""The set advancedsearch reports as checked out.
-
-The spine of the poll-and-reconcile fixture. The daemon's whole input is "which
-identifiers does the index call unavailable right now", so the only thing a
-test needs in order to drive it is the ability to CHANGE that set between
-polls -- a book returned, a book borrowed, the index going briefly empty. It is
-seeded from the loan-changes window at startup so the set is realistic and
-non-empty, and is replaced wholesale through /_test/unavailable thereafter.
-"""
+"""The set advancedsearch reports as checked out. Seeded from the loan-changes
+window at startup; tests replace it between polls via /_test/unavailable."""
 
 
 async def _seed_unavailable() -> None:
@@ -744,16 +719,11 @@ async def _seed_unavailable() -> None:
 
 
 _loan_event_times: dict[str, dict[str, str]] = {}
-"""Per-identifier `lending___last_borrow` / `lending___last_browse`, test-controlled.
+"""Per-identifier `lending___last_borrow` / `lending___last_browse`, staged via
+PUT /_test/loan_event_times as {"identifier": {"lending___last_borrow": "...", ...}}.
 
-The real index carries these on only part of the unavailable set -- measured
-2026-10-07, browse on 68% and borrow on 4.8%, with about a third carrying
-NEITHER. A fixture that always supplies a timestamp cannot express the case the
-daemon most needs to get right, so this defaults to EMPTY: an identifier staged
-through /_test/unavailable has no event time until one is set here explicitly.
-
-Staged through PUT /_test/loan_event_times as
-{"identifier": {"lending___last_borrow": "...", "lending___last_browse": "..."}}.
+Empty by default: the real index lacks both on part of the unavailable set, and
+that case must be expressible.
 """
 
 
@@ -765,12 +735,7 @@ async def get_loan_event_times() -> JSONResponse:
 
 @app.put("/_test/loan_event_times")
 async def put_loan_event_times(request: Request) -> JSONResponse:
-    """Replace the staged loan-event times. Test control surface, not IA.
-
-    Wholesale replacement, like /_test/unavailable: the interesting cases are
-    all about what the WHOLE result set looks like on the next read, including
-    the set where nothing carries a time.
-    """
+    """Replace the staged loan-event times wholesale. Test control surface, not IA."""
     body = await request.json()
     if not isinstance(body, dict):
         return JSONResponse({"error": "body must be {identifier: {field: iso8601}}"}, status_code=400)
@@ -792,14 +757,8 @@ async def get_unavailable() -> JSONResponse:
 
 @app.put("/_test/unavailable")
 async def put_unavailable(request: Request) -> JSONResponse:
-    """Replace the unavailable set. Test control surface, not IA.
-
-    Wholesale replacement rather than add/remove, because a poll reads the set
-    as a snapshot and the interesting cases are all "what does the WHOLE set
-    look like on the next read" -- including the empty set, which is the one
-    that must trip the daemon's clear-direction circuit breaker rather than
-    clearing everything.
-    """
+    """Replace the unavailable set wholesale, as a poll reads it as a snapshot.
+    Test control surface, not IA."""
     body = await request.json()
     identifiers = body.get("identifiers")
     if not isinstance(identifiers, list):
@@ -812,19 +771,9 @@ async def put_unavailable(request: Request) -> JSONResponse:
 
 @app.get("/advancedsearch.php")
 async def advancedsearch(request: Request) -> JSONResponse:
-    """Enough of advancedsearch to answer "who is checked out right now".
-
-    Answers from `_unavailable`, which a test replaces between polls. It used
-    to derive the answer from the loan-changes window instead; that coupling
-    was right while the daemon followed events and is wrong now that the index
-    IS the source -- a fixture that computes the answer from events cannot
-    express an index that disagrees with them, which is the whole class of
-    failure the poll design has to survive.
-
-    Only the lending query the daemon actually sends is interpreted. Anything
-    else returns nothing rather than pretending: a mock that answers queries it
-    does not understand teaches a caller the wrong contract.
-    """
+    """Enough of advancedsearch to answer "who is checked out right now", from
+    `_unavailable`. Only the daemon's checked-out query is interpreted; anything
+    else gets no results rather than a made-up answer."""
     params = request.query_params
     q = params.get("q", "")
     rows = int(params.get("rows", "50") or 50)
@@ -832,10 +781,8 @@ async def advancedsearch(request: Request) -> JSONResponse:
     start = (page - 1) * rows
 
     if start + rows > ADVANCEDSEARCH_MAX_ROWS:
-        # What the real endpoint does past its window: HTTP 200 with the
-        # envelope simply missing. Reproduced because the daemon's seed treats
-        # it as an incomplete read rather than an empty one, and that branch
-        # is only reachable if the mock fails the same shape.
+        # As the real endpoint does past its window: HTTP 200 with no
+        # "response", which the daemon must treat as incomplete, not empty.
         return JSONResponse({"responseHeader": {"status": 0}})
 
     wants_checked_out = "available_to_borrow:false" in q and "available_to_browse:false" in q
@@ -849,8 +796,7 @@ async def advancedsearch(request: Request) -> JSONResponse:
     docs = []
     for i in page_ids:
         doc = {"identifier": i, "openlibrary_edition": f"OL{abs(zlib.crc32(i.encode())) % 10_000_000}M"}
-        # Only present when staged -- absence is the realistic majority case
-        # for last_borrow and a third of the set for both. See _loan_event_times.
+        # Only present when staged; see _loan_event_times.
         doc.update(_loan_event_times.get(i, {}))
         docs.append(doc)
     return JSONResponse({"response": {"numFound": len(checked_out), "start": start, "docs": docs}})

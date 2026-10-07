@@ -190,8 +190,7 @@ def get_cached_groundtruth_availability(ocaid):
 
 
 LOAN_CHANGES_MAX_LIMIT = 1000
-"""Rows per page the loan-changes API will return. A hard ceiling on IA's side:
-a larger `limit` is silently capped, not honoured."""
+"""IA's per-page cap on the loan-changes API; a larger `limit` is silently capped."""
 
 
 async def get_loan_changes(
@@ -199,16 +198,12 @@ async def get_loan_changes(
     limit: int = LOAN_CHANGES_MAX_LIMIT,
     s3_keys: dict | None = None,
 ) -> dict:
-    """Fetch loan events with uid > after_uid from IA's loan changes API.
+    """Loan events with uid > after_uid from IA's loan-changes API.
 
-    Returns a dict with 'status', 'latest_uid', and 'rows'.
-    Each row: {'time', 'identifier', 'username', 'loan_id', 'event_type', 'extra', 'uid'}.
-    The 'extra' field is a JSON string; parse it for 'until' (loan expiry).
+    Returns {'status', 'latest_uid', 'rows'}; each row is
+    {'time', 'identifier', 'username', 'loan_id', 'event_type', 'extra', 'uid'}.
 
-    :param after_uid: Return events with uid strictly greater than this value.
-    :param limit: Max rows per page; see LOAN_CHANGES_MAX_LIMIT.
-    :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
-                    defaults to config_ia_ol_metadata_write_s3.
+    :param s3_keys: {'access', 'secret'}; defaults to config_ia_ol_metadata_write_s3.
     """
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
     params: dict[str, str] = {"action": "changes", "after_uid": str(after_uid), "limit": str(limit)}
@@ -457,14 +452,10 @@ async def get_availability_async(
     drop_errors: bool = False,
 ) -> dict[str, AvailabilityStatusV2]:
     """
-    :param use_cache: Read and write the 5-minute memcache. False always asks
-                      the availability service, and leaves the cache alone.
+    :param use_cache: Read and write the 5-minute memcache.
     :param batch_size: Max ids per request to the availability service.
-    :param drop_errors: Leave every `status: "error"` entry -- whether the
-                        service said so, a request failed, or it came from the
-                        cache -- and the top-level error keys out of the
-                        response. For callers that must tell "no answer" apart
-                        from "unavailable".
+    :param drop_errors: Omit `status: "error"` entries and the top-level error keys,
+                        for callers that must tell "no answer" from "unavailable".
     """
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
@@ -526,9 +517,7 @@ async def get_availability_async(
                     expires=5 * dateutil.MINUTE_SECS,
                 )
         except (httpx.HTTPError, json.JSONDecodeError) as e:
-            # Only the service failing to answer. Anything else -- a missing
-            # req_context, a malformed response -- is a bug, and under
-            # drop_errors would otherwise vanish into an empty result.
+            # Only the service failing to answer; anything else is a bug and should raise.
             logger.exception("lending.get_availability", extra={"ids": batch})
             error = e
             availabilities.update(
@@ -555,69 +544,34 @@ get_availability = async_bridge.wrap(get_availability_async)
 
 
 CHECKED_OUT_INDEX_QUERY = "lending___is_lendable:true AND lending___available_to_borrow:false AND lending___available_to_browse:false"
-"""archive.org search-index query for "lendable, but you cannot get it right now".
-
-Covers a book whose copies are all on loan, and also one held by a waitlist --
-both are states where a patron cannot borrow or browse, which is exactly what
-`ebook_unavailable` records.
-
-Note this reads the SEARCH INDEX, not the lending service, so it is a lagged
-view and must never be written to Solr directly. It is a CANDIDATE set; ground
-truth still decides. Two different `lending___` spellings answer this
-(`is_lendable:true` and `status:is_lendable`) and agreed to within churn when
-measured; this is the one verified against live availability.
-"""
+"""archive.org search-index query for lendable books that can't be borrowed or
+browsed right now: all copies out, or held for a waitlist."""
 
 CHECKED_OUT_INDEX_EVENT_FIELDS = ("lending___last_borrow", "lending___last_browse")
-"""When a book's current loan began, per ES. The LATER of the two wins.
-
-Coverage is partial, and that is the part callers must handle: measured
-2026-10-07 on the 857-book unavailable set, `last_browse` 582, `last_borrow`
-41, and **about a third carry neither**.
-"""
+"""When a book's current loan began; the later of the two wins. About a third of
+unavailable books carry neither."""
 
 CHECKED_OUT_INDEX_PAGE_ROWS = 1000
-"""Rows per advancedsearch page when assembling the seed."""
+"""Rows per advancedsearch page."""
 
 CHECKED_OUT_INDEX_MAX_ROWS = 10_000
-"""How far advancedsearch will page before it stops answering.
-
-Measured 2026-10: `start + rows <= 10000` returns results, and a request
-beyond that comes back with no `response` key at all rather than an error
-status. So this is the endpoint's own ceiling, not a policy choice -- and a
-set larger than it cannot be assembled here at any page size.
-"""
+"""advancedsearch's paging ceiling: past `start + rows = 10000` it answers with no
+`response` key, so a larger set can't be read here at any page size."""
 
 
 class CheckedOutSeedIncomplete(Exception):
     """The checked-out index could not be read in full.
 
-    Raised rather than returning a short list, because a short seed is the
-    *unrecoverable* direction: the books it omits are published as borrowable
-    while they are out, and nothing downstream looks at them again -- the
-    re-check only inspects editions already marked. A caller that refuses to
-    start is loud and retried; a caller that starts on a truncated seed looks
-    healthy forever. Same choice, for the same reason, as refusing to reconcile
-    below MIN_RECONCILE_COVERAGE.
+    Raised rather than returning a short set: every book a short set omits would
+    be published as borrowable while it is out.
     """
 
 
 def _index_event_epoch(doc: dict) -> int | None:
-    """When this book's current unavailability began, per ES.
+    """The latest of the doc's CHECKED_OUT_INDEX_EVENT_FIELDS as epoch seconds, or None.
 
-    The LATER of `lending___last_borrow` and `lending___last_browse`, as epoch
-    seconds, or None when ES carries neither -- which it does for about
-    a third of the unavailable set (see CHECKED_OUT_INDEX_EVENT_FIELDS).
-
-    IA returns these as ISO-8601 Z strings, and search-index fields are
-    routinely MULTI-VALUED -- `lending___status` comes back as a list -- so a
-    bare `datetime.fromisoformat(doc[field])` would raise on perfectly normal
-    data. Each field is read as "one value or several", every value parsed, and
-    the maximum across both fields taken.
-
-    Anything unparsable is skipped rather than raised on: a malformed date from
-    ES must not take the daemon down, and the caller already has a
-    defined answer for "no timestamp".
+    Fields may be single ISO-8601 strings or lists of them; unparsable values
+    are skipped, since None is already a valid answer.
     """
     epochs: list[int] = []
     for field in CHECKED_OUT_INDEX_EVENT_FIELDS:
@@ -628,9 +582,6 @@ def _index_event_epoch(doc: dict) -> int | None:
             if not isinstance(value, str):
                 continue
             try:
-                # fromisoformat handles the trailing "Z" directly on 3.11+;
-                # replacing it with "+00:00" first is the pre-3.11 idiom and
-                # ruff flags it (FURB162).
                 parsed = datetime.datetime.fromisoformat(value)
             except ValueError:
                 logger.warning("Checked-out index: unparsable %s=%r on %s", field, value, doc.get("identifier"))
@@ -642,85 +593,26 @@ def _index_event_epoch(doc: dict) -> int | None:
 
 
 async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PAGE_ROWS) -> dict[str, int | None]:
-    """Every identifier the archive.org search index believes is checked out,
-    mapped to when that loan began.
+    """Every identifier the archive.org search index lists as checked out, mapped
+    to when its loan began (None when the index doesn't say).
 
-    A *candidate* set for seeding a cold start: a handful of requests instead
-    of replaying days of loan events to infer the same thing. The caller must
-    settle these against the availability service before writing anything --
-    ES is a lagged view and has been observed disagreeing with live
-    truth on other lending fields.
+    The search index lags the lending service slightly.
 
-    Returns `{identifier: epoch_seconds_or_None}`. The value is the LATER of
-    ES's two loan-event times (CHECKED_OUT_INDEX_EVENT_FIELDS), and it
-    is **None for roughly a third of the set**, which carries neither. Callers
-    that stamp a timestamp must decide what that third gets; `None` is a real
-    answer meaning "the index does not know when", not a missing value to be
-    filled in with a default that happens to be at hand.
+    Complete or raises :class:`CheckedOutSeedIncomplete`: a short read would
+    leave the missing books published as borrowable. Pages are sorted so deep
+    paging is stable, and a set that grows mid-read also raises; the caller
+    retries.
 
-    **Complete or raises.** It pages until it has as many identifiers as the
-    index said it had. The set measured ~600 in 2026-10, so today this is one
-    page and the loop never runs twice; it exists because the set grows with
-    traffic, and a silent cap would under-mark. :class:`CheckedOutSeedIncomplete`
-    separates the two ways that can fail -- a set larger than the endpoint can
-    page to, which no retry fixes and is the trigger for the authenticated
-    Scrape path, and a short read, which a retry usually does fix.
-
-    Note the strictness is deliberate on the growth case: if books are being
-    borrowed *while* this pages, the total climbs and the final count falls
-    short, and this raises. That is a spurious refusal -- and it happens
-    precisely when under-marking would matter most, so the supervisor's retry
-    is the right answer rather than accepting whatever arrived.
-
-    **If a multi-page seed ever becomes routine, do not reach for a flat
-    tolerance.** A shortfall has two causes with one symptom, and they need
-    opposite treatment:
-
-    (a) `numFound` grew because books were borrowed during paging. Benign --
-        the overlap replay is already the net for exactly those books, since
-        each one has a recent acquiring event.
-    (b) A page under-delivered relative to the rows it was asked for. A real
-        retrieval miss, of books that were unavailable the whole time and so
-        have *no* recent event. The overlap does not catch these.
-
-    A threshold like "assembled >= 90% of numFound" cannot tell (a) from (b),
-    so it would mask (b) -- the unrecoverable direction -- while buying relief
-    only for (a). It is strictly worse than refusing. The correct fix is to
-    distinguish them: tolerate pure growth, and raise when a page returns fewer
-    rows than it asked for while `start + len(docs) < numFound` says more were
-    there to give. Nothing here can distinguish that today, because a short
-    page is read as the end of the result set.
-
-    That read is not a hole as things stand, which is why this is a follow-up
-    and not a bug: an intermediate page under-delivering ends the loop early,
-    the assembled count then falls below numFound, and the strict check turns
-    it into a refusal rather than a silent miss. Pinned by
-    test_a_short_read_raises_rather_than_returning_what_arrived, whose second
-    page returns 400 of the 1000 it asked for.
-
-    Uses advancedsearch rather than the Scrape API deliberately. Scrape pages
-    further and is where a >10k set has to go, but it needs credentials, and
-    unauthenticated Scrape was measured silently ignoring its `q` -- returning
-    a per-client cached total for any query, including deliberate nonsense.
-    This endpoint is the one OL already uses elsewhere and its control behaves:
-    the same nonsense query returns nothing. Swapping endpoints means changing
-    this function and nothing else.
+    Uses advancedsearch rather than the Scrape API, which pages further but
+    needs credentials and ignores `q` when unauthenticated.
     """
-    # Same host as the loan-changes feed, not `bookreader_host`. The seed and
-    # the feed describe the same lending state and must come from the same
-    # place -- and dev overrides only the loan endpoint, so deriving the host
-    # from `bookreader_host` would quietly send a local daemon to production
-    # archive.org for its seed while reading events from mockservices.
-    # https, not http. `ia.get_async_session()` is built with
-    # follow_redirects=False, and archive.org 301s http -> https, so an http
-    # fallback makes `raise_for_status()` raise on the redirect -- every poll,
-    # forever, in exactly the environment where the dev override is absent.
+    # Derived from the loan endpoint, which dev points at mockservices, so a
+    # local daemon never reads production. https: the session doesn't follow
+    # archive.org's http -> https redirect.
     url = urljoin(config_ia_s3_loan_url or f"https://{config_bookreader_host}/", "/advancedsearch.php")
     session = ia.get_async_session()
     timeout = config_http_request_timeout or 30
 
-    # Insertion-ordered, so `list(...)` still yields the identifiers in the
-    # index's sort order and every existing completeness check reads the same.
     identifiers: dict[str, int | None] = {}
     found: int | None = None
     max_pages = max(1, CHECKED_OUT_INDEX_MAX_ROWS // page_rows)
@@ -730,12 +622,7 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
             ("q", CHECKED_OUT_INDEX_QUERY),
             ("fl[]", "identifier"),
             *[("fl[]", field) for field in CHECKED_OUT_INDEX_EVENT_FIELDS],
-            # A stable total order, or deep paging is incoherent. Without it the
-            # index is free to re-serve and skip rows between pages -- and the
-            # set being paged is defined as "the things changing right now", so
-            # it does. Above one page the dedup below would then never reach
-            # numFound and EVERY poll would refuse: a permanent wedge rather
-            # than the transient refusal the guard is meant to be.
+            # A total order, or the index may repeat and skip rows across pages.
             ("sort[]", "identifier asc"),
             ("rows", str(page_rows)),
             ("page", str(page)),
@@ -746,9 +633,7 @@ async def get_checked_out_candidates_async(page_rows: int = CHECKED_OUT_INDEX_PA
         body = response.json()
 
         if "response" not in body:
-            # How this endpoint reports a request past its window -- a 200 with
-            # the envelope missing, which is indistinguishable from a malformed
-            # answer and is treated the same way.
+            # How the endpoint answers past its paging ceiling, or when malformed.
             raise CheckedOutSeedIncomplete(f"Checked-out index returned no response envelope on page {page}")
 
         envelope = body["response"]

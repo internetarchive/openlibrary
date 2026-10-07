@@ -1,29 +1,13 @@
 """The mock IA availability endpoint over real HTTP, with no container required.
 
-``test_e2e.py`` next door covers this endpoint too, but skips unless the
-mockservices *container* is reachable -- and GitHub CI runs ``make test-py`` with
-no containers, so those tests catch nothing there. This module closes that gap
-the same way ``test_matomo_inprocess.py`` does: it serves the *same* mock app
-in-process on an ephemeral loopback port and makes real HTTP requests against it.
+``test_e2e.py`` covers this endpoint too, but skips without the mockservices
+container, as in CI. Like ``test_matomo_inprocess.py``, this serves the same app
+in-process and makes real HTTP requests, so it also catches verb mismatches that
+calling the handler directly would miss.
 
-That matters for this endpoint specifically. The previous stub accepted only
-POST while ``lending.get_availability_async()`` issues a GET, so in dev the route
-405'd, ``get_availability()`` swallowed the error, and every book resolved to
-status="error" -- an endpoint that was silently answering nothing rather than
-failing in a way anyone would notice. A test that calls the handler function
-directly cannot see a verb mismatch. This can.
-
-The app is served with ``lifespan="off"``, so the loan-changes window starts
-empty and nothing calls Solr. The endpoint has two answer sources and which one
-applies depends on the identifier, so the tests below seed events explicitly
-when they mean to exercise the event-derived path:
-
-* an identifier the loan-changes window knows about gets an event-derived
-  answer, which is the one the loan availability updater is built against;
-* any other identifier falls through to the variant matrix, which sweeps the
-  full CTA state space for dev (``test_every_variant_is_reachable`` in
-  ``test_e2e.py`` pins that, and an event-derived answer cannot satisfy it --
-  it only ever produces three shapes).
+Served with ``lifespan="off"``, so the loan-changes window starts empty and
+nothing calls Solr; tests seed events when they mean to exercise the
+event-derived answers (see the endpoint's comment in main.py).
 """
 
 import importlib.util
@@ -37,9 +21,8 @@ import requests
 
 MOCKSERVICES_MAIN = pathlib.Path(__file__).parents[1] / "main.py"
 
-# The fields OL reads off an availability response. Spelled out here rather than
-# read from the mock: they are the contract with the real service, and a mock
-# that quietly stopped sending one should fail this.
+# The fields OL reads off an availability response -- the contract with the real
+# service, so spelled out rather than read from the mock.
 REQUIRED_FIELDS = {
     "status",
     "available_to_browse",
@@ -124,7 +107,7 @@ def _ids_in_bucket(mock_module, bucket, count):
 
 class TestVerbs:
     def test_get_is_answered(self, availability_url):
-        """The bug this endpoint had: OL calls GET, the stub only allowed POST."""
+        """OL calls this endpoint with GET."""
         resp = requests.get(availability_url, params={"identifier": "mockbook_0"}, timeout=10)
         assert resp.status_code == 200
         body = resp.json()
@@ -162,9 +145,7 @@ class TestResponseShape:
         assert set(body["responses"]) == set(ids)
 
     def test_status_agrees_with_the_availability_booleans(self, mock_module, availability_url):
-        """Event-derived answers only. The variant matrix also carries `open`
-        (open access is readable without a loan) and `error`, so this two-state
-        invariant is not true of it and must not be asserted there."""
+        """Event-derived answers only; the variant matrix also has `open` and `error`."""
         ids = [f"statusbook_{i}" for i in range(25)]
         for identifier in ids:
             _seed(mock_module, identifier)
@@ -176,13 +157,7 @@ class TestResponseShape:
 
 
 class TestTwoAnswerSources:
-    """Which source answers is decided per identifier, and both must survive.
-
-    Collapsing them either way breaks something real: event-derived everywhere
-    makes most CTA states unreachable in dev (only three shapes exist), and
-    variant-matrix everywhere makes the endpoint disagree with the changes feed,
-    which is the agreement the loan availability updater is tested against.
-    """
+    """Which source answers is decided per identifier, and both must survive."""
 
     def test_an_identifier_with_no_events_gets_a_variant_answer(self, mock_module, availability_url):
         identifier = "no_events_here_0"
@@ -190,8 +165,7 @@ class TestTwoAnswerSources:
         assert body["responses"][identifier] == mock_module._deterministic_availability(identifier)
 
     def test_seeding_an_event_switches_that_identifier_to_the_event_source(self, mock_module, availability_url):
-        """Same identifier, before and after. The variant matrix is static, so
-        any change at all can only have come from the event path."""
+        """The variant matrix is static, so any change must come from the event path."""
         identifier = "switches_source_0"
         before = requests.get(availability_url, params={"identifier": identifier}, timeout=10).json()["responses"][identifier]
         assert before == mock_module._deterministic_availability(identifier)
@@ -228,9 +202,7 @@ class TestBuckets:
         assert states == {"borrow_available", "borrow_unavailable"}
 
     def test_multi_copy_ids_are_available(self, mock_module, availability_url):
-        """The whole point of the bucket: a borrow is active and the item is
-        still available, because it owns more than one copy. Asserting this
-        without an active borrow would pass for a book nobody had borrowed."""
+        """Available despite an active borrow, since the item has more copies."""
         ids = _ids_in_bucket(mock_module, mock_module._MULTI_COPY_BUCKET, 3)
         for identifier in ids:
             _seed(mock_module, identifier, "borrow")
@@ -239,9 +211,7 @@ class TestBuckets:
             assert body["responses"][identifier]["available_to_borrow"] is True, identifier
 
     def test_waitlisted_ids_are_unavailable_and_have_a_queue(self, mock_module, availability_url):
-        """Unavailable even after a RETURN -- the freed copy goes to the head of
-        the queue rather than back on the shelf. Seeding a return is what makes
-        this distinguishable from a book that is merely on loan."""
+        """Unavailable even after a return, since the freed copy goes to the queue."""
         ids = _ids_in_bucket(mock_module, mock_module._WAITLISTED_BUCKET, 3)
         for identifier in ids:
             _seed(mock_module, identifier, "return")
@@ -302,7 +272,6 @@ class TestEventWindowJoin:
         assert body["responses"][identifier]["available_to_borrow"] is True
 
     def test_a_multi_copy_book_stays_available_under_an_active_borrow(self, mock_module, availability_url):
-        """The whole reason this bucket exists: an event stream cannot predict it."""
         identifier = _ids_in_bucket(mock_module, mock_module._MULTI_COPY_BUCKET, 1)[0]
         mock_module._loan_changes.append(self._borrow_event(identifier, "2099-01-01 00:00:00"))
         try:

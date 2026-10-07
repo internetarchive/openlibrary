@@ -335,8 +335,7 @@ class TestGroundtruthAvailability:
 
 
 def test_availability_get_answers_the_verb_ol_actually_uses():
-    """lending.get_availability_async() issues a GET; the endpoint used to be
-    POST-only, so dev silently resolved every book to status="error"."""
+    """The endpoint answers GET, which is what lending.get_availability_async() sends."""
     resp = _get("/services/availability/", params={"identifier": "mockbook_0,mockbook_1"})
     assert resp.status_code == 200
     body = resp.json()

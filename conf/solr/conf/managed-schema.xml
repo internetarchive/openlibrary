@@ -165,18 +165,12 @@
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
-    <!-- Near-realtime loan availability, written to EDITION docs by loan_availability_updater. -->
-    <!-- Exceptions, not state: absent/0 means available, so query -ebook_unavailable:1. -->
-    <!-- numeric + stored/indexed=false is required by update.partial.requireInPlace. -->
-    <!-- See docs/ai/solr/index.md "Near-realtime loan availability" before changing any of this. -->
+    <!-- Loan availability on edition docs, written by loan_availability_updater; see docs/search/index.md. -->
+    <!-- Absent or 0 means available: query -ebook_unavailable:1. -->
+    <!-- Numeric with stored/indexed=false, as update.partial.requireInPlace requires. -->
     <field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
-    <!-- When ebook_unavailable was last SET to 1, epoch seconds. Written by the same -->
-    <!-- in-place update, read by nothing here: the poll reconciles the whole set each -->
-    <!-- cycle and needs no history. It ships now so the feed/poll hybrid is a code-only -->
-    <!-- change later rather than a second schema deploy. -->
-    <!-- plong, not pdate: requireInPlace rejects pdate regardless of docValues config. -->
-    <!-- Meaningful only while ebook_unavailable=1; a clear leaves it at its last value, -->
-    <!-- because requireInPlace cannot set a field to null. -->
+    <!-- Epoch seconds the current loan began. plong, not pdate: requireInPlace rejects pdate. -->
+    <!-- Only meaningful while ebook_unavailable=1; requireInPlace can't null it on clear. -->
     <field name="ebook_unavailable_ts" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 
     <!-- Usefulness scores -->

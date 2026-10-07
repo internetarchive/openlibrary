@@ -17,12 +17,8 @@ python scripts/solr_updater/trending_updater.py \
     "$OL_CONFIG" \
     --trending-offset-file /solr-updater-data/$TRENDING_OFFSET_FILE &
 
-# Supervised, unlike its neighbours. This one can exit deliberately -- it
-# refuses to start when it cannot establish ground truth, rather than following
-# events against an index where nothing is marked. Backgrounded with `&` behind
-# the foreground solr_updater, an exit would otherwise be permanent and
-# invisible: the container stays healthy, `restart: unless-stopped` never fires,
-# and the field silently freezes. The loop turns every fatal path into a retry.
+# Restarted on exit: as a background job, a dead daemon would never trigger the
+# container's restart policy.
 echo "Starting loan availability updater"
 (
   while true; do

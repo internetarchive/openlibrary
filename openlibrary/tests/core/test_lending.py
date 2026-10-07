@@ -153,8 +153,7 @@ class TestGetAvailability:
 
     @pytest.mark.asyncio
     async def test_drop_errors_leaves_errors_out_of_the_response(self):
-        """A caller deciding availability from this must not mistake a failed
-        lookup for an answer: no placeholder, no top-level error keys."""
+        """No error placeholders and no top-level error keys, so a failed lookup never reads as an answer."""
         session, mock_get = self._session([{"dropok": {"status": "open"}, "droperr": {"status": "error"}}])
         mock_get.side_effect = [*mock_get.side_effect, httpx.ReadTimeout("boom")]
         with session:
@@ -163,8 +162,7 @@ class TestGetAvailability:
 
     @pytest.mark.asyncio
     async def test_a_service_level_failure_only_loses_its_own_batch(self):
-        """A `success: false` batch used to make the whole call return {},
-        discarding the other batches' answers and even the cached ones."""
+        """A `success: false` batch drops only its own ids, not other batches' or cached answers."""
         session, mock_get = self._session([])
         busy = Mock(raise_for_status=Mock(), json=Mock(return_value={"success": False, "error": "busy"}))
         ok = Mock(raise_for_status=Mock(), json=Mock(return_value={"success": True, "responses": {"svcok": {"status": "open"}}}))
@@ -184,8 +182,7 @@ class TestGetAvailability:
 
     @pytest.mark.asyncio
     async def test_a_missing_request_context_raises_rather_than_reading_as_no_answer(self):
-        """Under drop_errors a swallowed LookupError is indistinguishable from the
-        service answering nothing -- a daemon would free nothing, forever."""
+        """Swallowed under drop_errors, it would be indistinguishable from the service answering nothing."""
         session, _ = self._session([{"noctx": {"status": "open"}}])
         with session, patch("openlibrary.core.lending.req_context", ContextVar("unset")), pytest.raises(LookupError):
             await lending.get_availability_async("identifier", ["noctx"], use_cache=False, drop_errors=True)
@@ -376,10 +373,7 @@ class TestGetLoanHistoryData:
 
 
 class TestGetCheckedOutCandidates:
-    """The cold-start seed. Its failure direction is asymmetric: a seed that is
-    short publishes checked-out books as borrowable, and nothing downstream
-    revisits them -- so every test here is about refusing to return a partial
-    set rather than about returning a set."""
+    """A short set publishes checked-out books as borrowable, so a partial read must raise."""
 
     @staticmethod
     def _session(bodies):
@@ -399,7 +393,7 @@ class TestGetCheckedOutCandidates:
         return {"response": {"numFound": num_found, "start": 0, "docs": [{"identifier": i} for i in identifiers]}}
 
     def test_one_page_is_one_request(self):
-        """Today's set is ~600, so the loop must not page past the end of it."""
+        """A set that fits on one page takes one request."""
         session, mock_get = self._session([self._page(600, [f"book{i}" for i in range(600)])])
         with session:
             got = asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
@@ -424,8 +418,7 @@ class TestGetCheckedOutCandidates:
         assert [dict(call.kwargs["params"])["page"] for call in mock_get.call_args_list] == ["1", "2", "3"]
 
     def test_a_set_beyond_the_paging_window_raises_and_names_the_way_out(self):
-        """advancedsearch cannot answer past 10k at any page size, so no retry
-        fixes this; it is the trigger for the authenticated Scrape path."""
+        """advancedsearch cannot page past 10k, so this raises rather than retrying."""
         session, mock_get = self._session([self._page(12_000, [f"book{i}" for i in range(1000)])])
         with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
             asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
@@ -445,14 +438,11 @@ class TestGetCheckedOutCandidates:
         assert "1400" in str(excinfo.value)
 
     def test_a_missing_envelope_is_an_incomplete_read_not_an_empty_one(self):
-        """How the endpoint answers past its window: HTTP 200, no `response`.
-        Read as "no books are checked out" it would clear the whole seed."""
+        """HTTP 200 with no `response` (as past the paging window) must not read as "nothing checked out"."""
         session, _ = self._session([{"responseHeader": {"status": 0}}])
         with session, pytest.raises(lending.CheckedOutSeedIncomplete) as excinfo:
             asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
-        # The downstream guards would also refuse this, so assert on the
-        # message: "no envelope" and "no numFound" send an operator to
-        # different places, and only this branch can say which happened.
+        # Other guards would also refuse this; the message says which case it was.
         assert "envelope" in str(excinfo.value)
 
     def test_an_absent_numfound_raises_because_completeness_is_unknowable(self):
@@ -461,8 +451,7 @@ class TestGetCheckedOutCandidates:
             asyncio.run(lending.get_checked_out_candidates_async(page_rows=1000))
 
     def test_identifiers_repeated_across_pages_do_not_count_toward_completeness(self):
-        """A paging window that slides under churn re-serves rows. Counting
-        those twice is how a short set passes the completeness check."""
+        """Rows re-served as the set shifts between pages must not inflate the count."""
         pages = [
             self._page(2000, [f"book{i}" for i in range(1000)]),
             self._page(2000, [f"book{i}" for i in range(500, 1500)]),
