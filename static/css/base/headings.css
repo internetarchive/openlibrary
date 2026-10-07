@@ -28,13 +28,6 @@ h2.author {
   font-size: var(--font-size-title-medium);
   font-weight: normal;
 }
-h2.authorEdition {
-  color: var(--color-text-heading);
-  font-size: var(--font-size-title-small);
-  font-weight: normal;
-  margin: 0;
-  padding: 0;
-}
 h2.publisher {
   background-color: var(--lightest-grey);
 }
@@ -67,22 +60,11 @@ h2.edition {
 h3 {
   font-size: var(--font-size-title-large);
 }
-/* TODO: Check if this class is still used. */
-h3.Question {
-  font-family: var(--font-family-serif);
-  font-size: var(--font-size-title-large);
-  font-weight: normal;
-  color: var(--color-text-heading);
-  margin-top: var(--spacing-stack-sm);
-  padding-top: var(--spacing-inset-sm);
-  border-top: 1px dotted var(--color-border-subtle);
-}
 
 h4 {
   font-size: var(--font-size-title-medium);
 }
-h4.publisher,
-h4.observer-count {
+h4.publisher {
   font-family: var(--font-family-body);
   font-weight: normal;
 }
@@ -97,10 +79,6 @@ h4.facetHead {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-inline-sm);
-}
-h4.facetHead .facet-icon {
-  flex-shrink: 0;
-  color: var(--mid-grey);
 }
 h4.facetHead span.merge {
   font-family: var(--font-family-body);
@@ -155,11 +133,6 @@ h6.title {
   padding: 0;
 }
 
-.titleSmall {
-  font-family: var(--font-family-body);
-  font-size: var(--font-size-label-small);
-  font-weight: 600;
-}
 .heading span.count {
   font-size: var(--font-size-label-large) !important;
 }
