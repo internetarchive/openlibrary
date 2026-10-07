@@ -27,6 +27,10 @@ function initCarousels(elems) {
  */
 export function initLoadedCarousels(root) {
     initCarousels(root.querySelectorAll(CAROUSEL_SELECTOR));
+    // Counted like a lazy row's, which reports once it's loaded.
+    root.querySelectorAll('.lazy-carousel-loaded[data-config]').forEach((row) => {
+        if (row.querySelector(CAROUSEL_SELECTOR)) trackImpression(row, JSON.parse(row.dataset.config).key);
+    });
 }
 
 document.addEventListener('click', (e) => {

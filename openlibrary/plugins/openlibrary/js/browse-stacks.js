@@ -104,6 +104,7 @@ export function initBrowseStacks(root) {
 
     function close({ returnFocus = true } = {}) {
         controller?.abort();
+        trackEvent('BrowseStacks', 'Close', current);
         const tile = tileFor(current);
         current = null;
         markExpanded(null);
@@ -178,9 +179,11 @@ export function initBrowseStacks(root) {
             return true;
         } catch (e) {
             if (e.name === 'AbortError') return false;
+            trackEvent('BrowseStacks', 'LoadError', slug);
             shelf.innerHTML = `<p class="genre-shelf__error"><a href="#" class="genre-shelf__retry">${i18n.error || 'Try again?'}</a></p>`;
             shelf.querySelector('.genre-shelf__retry').addEventListener('click', (ev) => {
                 ev.preventDefault();
+                trackEvent('BrowseStacks', 'Retry', slug);
                 load(slug);
             });
             return false;
@@ -232,7 +235,11 @@ export function initBrowseStacks(root) {
         scroller?.addEventListener('scroll', track, { passive: true });
         anchor();
     });
-    rail.addEventListener('ol-carousel-page-change', anchor);
+    rail.addEventListener('ol-carousel-page-change', (e) => {
+        anchor();
+        // Labelled with the page reached (1-based), to see how far into the genres readers look.
+        if (e.detail.page > e.detail.previousPage) trackEvent('BrowseStacks', 'RailNext', String(e.detail.page + 1));
+    });
     window.addEventListener('resize', anchor);
 
     // Only Escape from inside the stacks, so dismissing the header search or a menu leaves the shelf open.

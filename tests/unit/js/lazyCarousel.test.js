@@ -1,4 +1,4 @@
-import { initLazyCarousel } from '../../../openlibrary/plugins/openlibrary/js/lazy-carousel.js';
+import { initLazyCarousel, initLoadedCarousels } from '../../../openlibrary/plugins/openlibrary/js/lazy-carousel.js';
 
 // Must be `mock`-prefixed: vitest hoists the factory above the declarations.
 const mockTrackEvent = vi.fn();
@@ -77,6 +77,34 @@ describe('lazy carousel impressions', () => {
         await flushPromises();
 
         expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+});
+
+describe('pre-loaded row impressions', () => {
+    const originalIntersectionObserver = global.IntersectionObserver;
+
+    beforeEach(() => {
+        mockTrackEvent.mockClear();
+        global.IntersectionObserver = ImmediatelyVisibleObserver;
+    });
+
+    afterEach(() => {
+        global.IntersectionObserver = originalIntersectionObserver;
+    });
+
+    test('reports an impression for a row that arrives loaded', async() => {
+        const shelf = document.createElement('div');
+        shelf.innerHTML = `
+            <div class="lazy-carousel-loaded" data-config='{"key": "genre-horror"}'>
+                <div class="carousel carousel--progressively-enhanced"></div>
+            </div>
+            <div class="lazy-carousel-loaded" data-config='{"key": "genre-horror-empty"}'></div>`;
+        document.body.replaceChildren(shelf);
+        initLoadedCarousels(shelf);
+        await flushPromises();
+
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        expect(mockTrackEvent).toHaveBeenCalledWith('BookCarousel', 'Impression', 'genre-horror');
     });
 });
 

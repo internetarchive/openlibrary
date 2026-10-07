@@ -33,6 +33,7 @@ export function initNativeCarousels(elems) {
         carousel.addEventListener('ol-carousel-near-end', async(e) => {
             if (locked || allDone) return;
             locked = true;
+            trackEvent(category, 'LoadMore', key);
             carousel.setAttribute('aria-busy', 'true');
             try {
                 const cards = await fetchMoreCards(loadMore, e.detail.itemCount);

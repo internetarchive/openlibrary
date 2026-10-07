@@ -21,7 +21,10 @@
                          aria-label="{{ _('%(genre)s subgenres', genre=name) }}">
                         <span class="genre-shelf__jump-label">{{ _("Jump to") }}</span>
                         {% for link in jump_links %}
-                            <a class="genre-shelf__jump-link" href="{{ link.href }}">{{ link.name }}</a>
+                            {# The href is the row's id, so the label is its carousel key. #}
+                            <a class="genre-shelf__jump-link"
+                               href="{{ link.href }}"
+                               data-ol-link-track="BrowseStacks|JumpTo|{{ link.href[1:] }}">{{ link.name }}</a>
                         {% endfor %}
                     </nav>
                 {% endif %}
