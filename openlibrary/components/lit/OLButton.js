@@ -183,7 +183,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             cursor: pointer;
             user-select: none;
             text-decoration: none;
-            /* Hover color changes are instant (see docs/ai/design.md); only the
+            /* Hover color changes are instant (see .pam/kb/frontend/design.md); only the
                :active press-scale animates. */
             transition: transform var(--duration-press);
         }

@@ -1,6 +1,10 @@
 # KB reconciliation (decision needed)
 
-Status: **DECISION NEEDED**. Do not execute the migration until Mek decides how to proceed.
+Status: **PUBLIC MIGRATION EXECUTED** (2026-10-06). The public parts of this reconciliation have been
+carried out in-repo: `docs/ai/` was dissolved into `.pam/kb/`, and the public content of
+`mekarpeles/openlibrary-kb` (everything except its `internal/` directory) was imported here. The
+remaining open item is the long-term home for the admin/staff-only `internal/` material (olsystem's
+private `.pam`). The problem statement and direction below are retained as the original record.
 Captured 2026-10-04.
 
 ## The problem

@@ -11,7 +11,7 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  * containing block is always the viewport (so a transformed ancestor can't
  * displace it), and the rest of the document is inerted for assistive tech —
  * which is what makes the `aria-modal` claim honest. See the overlay table in
- * `docs/ai/web-components.md`.
+ * `.pam/kb/frontend/web-components.md`.
  *
  * The `<dialog>` itself fills the viewport and is transparent; the scrim and
  * the sliding panel are ordinary children of it. That costs one extra element
@@ -36,7 +36,7 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  * @cssprop [--ol-drawer-scrim-color=var(--overlay-backdrop-color)] - Scrim color.
  * @cssprop [--ol-drawer-scrim-blur=var(--overlay-backdrop-blur)] - Blur radius
  *     applied to the page behind the scrim. The drawer is modal, so it blurs;
- *     see docs/ai/design.md#blur-follows-modality-not-viewport-width.
+ *     see .pam/kb/frontend/design.md#blur-follows-modality-not-viewport-width.
  * @cssprop [--ol-drawer-enter-duration=var(--duration-slower)] - Slide-in duration.
  * @cssprop [--ol-drawer-exit-duration=var(--duration-slow)] - Slide-out duration.
  * @cssprop [--ol-drawer-scroll-padding=0] - Inset kept clear when Tab scrolls a

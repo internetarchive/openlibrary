@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-> **Canonical guide:** [`docs/ai/README.md`](../docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
+> **Canonical guide:** [`.pam/kb/ai-coding-guide.md`](../.pam/kb/ai-coding-guide.md) — read that file for full architecture, templates, data-model, and file-location details.
 
 ## Quick Reference
 

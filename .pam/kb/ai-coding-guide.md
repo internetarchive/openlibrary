@@ -250,19 +250,19 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 
 These companion docs cover specific areas in depth:
 
-- [Accessibility](a11y/index.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
-- [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
-- [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
-- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
-- [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
+- [Accessibility](frontend/a11y.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
+- [CSS](frontend/css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
+- [Design](frontend/design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
+- [Web Component Standards](frontend/web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
+- [Internationalization](i18n/i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
 
 ## Domain Knowledge Bases
 
 Deep-dive references for major system domains. Each covers production architecture, key files, how it works, endpoints/APIs, debug playbook, open issues, and PR review expectations.
 
-- [Solr](solr/index.md) — search index, solr-updater, schema, search endpoints, facets
+- [Solr](search/index.md) — search index, solr-updater, schema, search endpoints, facets
 - [Imports](imports/index.md) — import pipeline, DataProvider/DataProviderRecord pattern, batch import, importapi endpoints, adding new sources
-- [Tags](tag-system/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
+- [Tags](tags/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
 - [OPDS](opds/index.md) — OPDS 2.0 feed service (opds.openlibrary.org), pyopds2_openlibrary library, reader.archive.org integration, local dev setup
 
 ## Key File Locations
@@ -290,13 +290,10 @@ Deep-dive references for major system domains. Each covers production architectu
 
 ## Contributing to These Docs
 
-This `docs/ai/` directory is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating.
+The `.pam/kb/` knowledge base is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the KB conventions (one topic = one directory).
 
-**To add a new topic:**
-1. Create `docs/ai/<topic>.md` (one domain per file, e.g., `solr.md`, `templates.md`).
-2. Add a link to it in the **Topic Guides** section above.
-3. No changes to the bridge files are needed — agents follow links from this README.
+**To add a new topic:** create a directory under `.pam/kb/` with a `README.md` overview, and link it from the KB index ([`.pam/kb/README.md`](README.md)). No changes to the bridge files are needed — agents follow links from the KB.
 
-**To update general guidance:** edit this file (`docs/ai/README.md`). Only update the bridge files if a key command or style rule changes, since those are inlined in the bridges for quick reference.
+**To update general guidance:** edit this file (`.pam/kb/ai-coding-guide.md`). Only update the bridge files if a key command or style rule changes, since those are inlined in the bridges for quick reference.
 
 **To remove a tool's bridge:** delete the bridge file when the team stops using that tool.

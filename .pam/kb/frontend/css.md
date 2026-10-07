@@ -92,6 +92,6 @@ Your changes exceeded the CSS payload limit. Options:
 
 ## Browser Support
 
-See [Browser Support in the AI guide](README.md#browser-support) for the canonical policy (MediaWiki Grade A; `browserslist` in `package.json` is the source of truth).
+See [Browser Support in the AI guide](../ai-coding-guide.md#browser-support) for the canonical policy (MediaWiki Grade A; `browserslist` in `package.json` is the source of truth).
 
 The CSS-specific gotcha: **CSS is not transpiled** — the Vite build runs PostCSS only for `@import` resolution and the `url()` passthrough, not for feature transpilation (no autoprefixer), so anything you write ships verbatim. Before using a newer CSS feature, check [caniuse](https://caniuse.com) against the Safari floor in `browserslist`. JS gets transpiled to the floor automatically; CSS does not.

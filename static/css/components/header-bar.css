@@ -314,7 +314,7 @@
   background: none;
   color: var(--color-text);
   cursor: pointer;
-  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  /* Hover is instant (see .pam/kb/frontend/design.md); only the :active press animates. */
   transition: transform var(--duration-press);
 }
 

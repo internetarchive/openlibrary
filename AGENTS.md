@@ -1,12 +1,12 @@
 # AGENTS.md
 
-> **Canonical guide:** [`docs/ai/README.md`](/docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
+> **Canonical guide:** [`.pam/kb/ai-coding-guide.md`](/.pam/kb/ai-coding-guide.md) — read that file for full architecture, templates, data-model, and file-location details.
 
 ## Quick Reference
 
 **Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · Vite · Solr 10
 
-> 📖 **Guides:** [`docs/ai/i18n.md`](/docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](/docs/ai/README.md) — full architecture and data-model. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
+> 📖 **Guides:** [`.pam/kb/i18n/i18n.md`](/.pam/kb/i18n/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`.pam/kb/ai-coding-guide.md`](/.pam/kb/ai-coding-guide.md) — full architecture and data-model. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
 
 > 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
 >

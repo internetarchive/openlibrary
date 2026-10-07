@@ -375,7 +375,7 @@ export class SearchModal extends LitElement {
             padding: var(--spacing-sm) var(--spacing-lg);
             color: inherit;
             text-decoration: none;
-            /* Hover background is instant (see docs/ai/design.md); only the
+            /* Hover background is instant (see .pam/kb/frontend/design.md); only the
                result fade-in and press-transform animate. */
             transition:
                 opacity 160ms ease,

@@ -6,7 +6,7 @@
  * mid-file `@import`s, so this rule catches them at lint time instead of
  * losing styles at build time.
  *
- * See docs/ai/css-vite-migration.md for background.
+ * See .pam/kb/frontend/css-vite-migration.md for background.
  *
  * This is CommonJS (not ESM) deliberately: the pre-commit stylelint hook runs
  * in an isolated node env with no repo `node_modules` (pre-commit.ci sandbox)
