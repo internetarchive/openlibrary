@@ -1,185 +1,52 @@
-"""Near-realtime loan availability updater for Solr.
+"""Near-realtime loan availability for Solr.
 
-How this design arrived here (v1 -> v2 -> v3)
---------------------------------------------
-Three approaches, each abandoned for a measured reason. Recorded because the
-two superseded ones look reasonable on paper and the next person will think of
-them again:
-
-  * **v1 - replay 14 days of loan changes on every cold start.** Produced only
-    CANDIDATES, each needing an availability call to settle, which made a
-    restart's cost scale with feed volume. Unbounded in the one place a daemon
-    must not be.
-  * **v2 - seed from the index once, then follow the changes feed** (a
-    follower/repairer split, plus MR 6634). Abandoned on Ximm's finding
-    that the changes API **cannot report loan EXPIRY** -- only initiation -- so
-    the feed can never free a book on its own, and the per-item Lending Status
-    Endpoint that would have covered the gap is too slow (>10s/item) to sustain
-    at traffic.
-  * **v3 - poll the index and reconcile** (`build_poll_updates`). The ES index
-    ALREADY reflects expiry, through IA's own LENDING-EXPIRE followers, and
-    AdvancedSearch reads that finished answer fast. So the index publishes the
-    snapshot the previous two designs were reconstructing. One read of "who is
-    unavailable now", one read of what Solr has marked, one bulk update
-    carrying both directions. A first poll is a cold start; a reindex wipe
-    self-heals on the next one.
-
-Credit for the v2 blockers is Ximm's (ES lead); they are what moved this.
-
-What v3 gives up, deliberately
-------------------------------
-The per-search Bulk Availability call being removed returns rich per-book
-lending data -- browsable, has-14-day-borrow, waitlistable, waitlist DEPTH --
-and the poll keeps only binary `ebook_unavailable`. Being precise about what is
-lost versus merely relocated, because the two get conflated:
-
-  * **Static capability** (browsable / 14-day-borrow / waitlistable) is item
-    CONFIG, not loan state, and is already partly in the index as lending flags
-    (`lending___status` carries `is_browsable`). It belongs in the MAIN indexer
-    for ALL books, not in this daemon, so it is not blocked by this design --
-    it is a separate additive workstream.
-  * **Genuinely lost**: waitlist DEPTH and the real-time reason a book is
-    unavailable. Both are dynamic, neither is in the index. Note they only
-    matter for the currently-unavailable set -- a waitlist is irrelevant while
-    a book is on the shelf -- which is exactly the ~766-book set this polls, so
-    they are cheaply recoverable later within this model for that small subset,
-    NOT at 25k/min across every search.
-  * The coarse Read-vs-Borrow control on search results comes from
-    `ebook_access` (main indexer) and is unaffected. The fine-grained choice
-    within borrowable is resolved at the book page, which already fetches live.
-
-So: search is served from Solr; rich, authoritative, real-time data is fetched
-at the book page. What is given up is rich DYNAMIC data in search RESULTS for
-every book -- which is precisely the 25k/min load being removed.
-
-Scale, for why exceptions-only is right rather than a limitation: 4.5M browse,
-860k borrowable, 24k waitlistable, and a currently-unavailable set measured at
-766 on 2026-10-05. Browse books are never "unavailable", so the set is drawn
-from the borrowable 860k. The poll never touches the 4.5M.
-
-New to this file? The 30-second version
----------------------------------------
-This is a small standalone daemon -- not a cron, not part of the web app. It
-runs as a backgrounded process inside the solr-updater container (launched by
-docker/ol-solr-updater-start.sh, next to the main solr_updater). Every
+A standalone daemon -- not a cron, not part of the web app -- backgrounded
+inside the solr-updater container by docker/ol-solr-updater-start.sh. Every
 POLL_INTERVAL seconds it:
 
-  1. Asks archive.org's search index which books are lendable but currently
-     neither borrowable nor browsable -- i.e. who is checked out right now
-     (lending.get_checked_out_candidates_async -> GET advancedsearch.php).
-  2. Looks up the Solr EDITION document for each of those identifiers (by
-     ocaid), and reads back which editions Solr currently has marked.
-  3. Issues ONE bulk in-place update: `ebook_unavailable` set to 1 on the
-     newly-unavailable, 0 on the ones that have been returned or expired.
+  1. asks archive.org's search index which books are lendable but currently
+     neither borrowable nor browsable (lending.get_checked_out_candidates_async);
+  2. resolves those identifiers to Solr EDITION documents and reads back which
+     editions Solr has marked;
+  3. writes one batched in-place update: `ebook_unavailable` 1 on the newly
+     unavailable, 0 on the returned.
 
-That is the whole loop. There is no cursor, no state file and no --reset,
-because each poll is a complete statement of what should be marked rather than
-an increment on top of what came before.
+Each poll is a complete statement of what should be marked, not an increment,
+so the first poll after any start IS the cold start and a reindex that wipes
+the field self-heals on the next cycle. There is no cursor, no state file and
+nothing to re-run by hand.
 
-Nothing reads this Solr field yet -- wiring search/pages to it is a follow-up.
+Nothing reads the field yet; wiring search to it is a follow-up.
 
-Why there is no cold start
---------------------------
-The first poll after any start IS the cold start, and it costs exactly what
-every other poll costs. A restart needs no catch-up, a lost state file is not a
-concept, and a reindex that wipes the field self-heals on the next cycle. The
-operator step that used to exist is deleted rather than automated: nothing can
-be forgotten if there is nothing to remember.
-
-The asymmetry that shapes everything here
+THE ASYMMETRY THAT SHAPES EVERYTHING HERE
 -----------------------------------------
-Marking a book unavailable when it is not is RECOVERABLE -- the book is hidden
-until the next poll corrects it. Clearing a book that is actually out is NOT:
-it is published as borrowable while someone has it, and nothing revisits it.
+Marking a book unavailable when it is not is RECOVERABLE -- it is hidden until
+the next poll corrects it. Clearing a book that is actually out is NOT: it is
+published as borrowable while someone has it, and nothing revisits it.
 
-Every guard in this file follows from that. The mark direction is unguarded on
-purpose; the clear direction is the one that refuses, holds and asks for a
-second opinion. See CLEAR_BREAKER_FRACTION and :func:`confirm_mass_clear`.
+So the mark direction is unguarded on purpose and the clear direction refuses,
+holds, and asks for a second opinion. In order: the clear-gate
+(gate_clears_on_index_currency) drops anything the index is too stale to
+contradict, the breaker (CLEAR_BREAKER_FRACTION, confirm_mass_clear) sends an
+implausibly large clear to ground truth, and marks are written before clears so
+a partially-landed batch errs toward hiding.
 
-It is also why the index is read as a candidate set and never written through
-verbatim. The index is a lagged view, and a sibling lending field was measured
-disagreeing with live availability in both directions -- so where a dangerous
-clear is at stake, the availability service decides, per edition.
+THE TRAPS, so they are not re-introduced
+----------------------------------------
+* Both fields are numeric and docValues-only because `requireInPlace` demands
+  it; `pdate` is rejected outright. The schema deploy must carry BOTH, or Solr
+  rejects every document, forever, while the container looks healthy.
+* `requireInPlace` cannot set a field to null, so "available" is written as 0
+  and a clear leaves `ebook_unavailable_ts` behind. The stamp is meaningful
+  only while `ebook_unavailable` is 1.
+* Edition updates must carry `_root_`; Solr needs it to target a child
+  document rather than create a root-level one.
+* A truncated read is a mass-clear by another route -- absent-from-a-short-read
+  is indistinguishable from absent-from-the-index -- so reads refuse rather
+  than return what arrived. See refuse_if_incomplete.
 
-Default-available, exceptions only
-----------------------------------
-An `ebook_access:borrowable` edition is assumed AVAILABLE. Solr stores only
-the exceptions: `ebook_unavailable` is 1 for books with no borrowing capacity
-right now, 0 once they free up, and absent for the overwhelming majority that
-have never had a loan event. Absent and 0 therefore mean the same thing, and a
-consumer must query
-
-    ebook_access:borrowable AND -ebook_unavailable:1
-
-rather than treating a missing value as unknown. Writing "available" for the
-whole borrowable corpus would be both enormous and pointless; writing it only
-for recently-returned books (the previous design) produced a value that looked
-authoritative while covering a tiny, biased slice of the index.
-
-Solr mechanics
---------------
-`ebook_unavailable` is numeric so writes qualify for Solr's
-`update.partial.requireInPlace`: string and pdate fields are rejected for
-in-place updates regardless of docValues/stored/indexed config, and a
-*non*-in-place atomic update to a nested child document reindexes the entire
-work plus all its editions rather than the one document -- which would defeat
-the point of a near-realtime updater. Edition updates therefore always carry
-`_root_` (the parent work's key); Solr requires it to target a child document
-rather than create or replace a root-level one.
-
-Measured 2026-10-06 against Solr 10.0.0 with this configset: the flag is
-genuinely enforced on these nested child docs -- a stored+indexed field and an
-unknown field are both rejected with HTTP 400 while `ebook_unavailable` is
-accepted -- so an accepted write IS an in-place write rather than a silent
-fall back to delete-and-re-add.
-
-Solr also rejects `"set": null` under requireInPlace: a value can be set or
-incremented in place, never cleared. That is why "available" is written as 0
-rather than by removing the field.
-
-Two fields, and why not three
------------------------------
-`ebook_unavailable` is the answer. `ebook_unavailable_ts` records when the
-current run of unavailability began; nothing here reads it, and it ships so the
-feed/poll hybrid is a code-only change rather than a second schema deploy. See
-:func:`mark_update` for its exact semantics, which are narrower than the name
-suggests.
-
-The un-clearable-field constraint above is why a THIRD field was dropped rather
-than a reason there can only be one. `ebook_becomes_available` held "available
-in N days", which the poll cannot know -- the index exposes no due date (probed
-with controls: every plausible date field matches 0 documents, and the one that
-exists, `loans__status__last_loan_date`, carries 2020 values on 4% of the
-unavailable set) -- and which could not be kept honest anyway, because a
-renewal moves the date with no event to observe.
-
-The distinction that lets `ebook_unavailable_ts` survive the same objection: a
-stale MARK TIME is inert, because nothing reads it unless the book is marked
-and a re-mark overwrites it. A stale EXPIRY time was shown to patrons.
-
-`loan_uid` was the changes-feed cursor, and there is no feed and no cursor.
-
-Recovering from drift
----------------------
-Nothing here infers availability from events, so there is no class of change
-the daemon can miss by not seeing one. A lending policy change, copies added or
-removed, an item going dark, a hold being fulfilled -- each simply changes
-whether the index returns that identifier, and the next poll reflects it. The
-previous design needed a separate re-check loop as a partial safety net for
-exactly these; the poll has no blind spot for it to cover.
-
-Reindex coordination: a full Solr reindex of a work rebuilds its edition
-children WITHOUT this field -- the main indexer is unaware of it -- so every
-reindex WIPES `ebook_unavailable` on the affected editions, and a borrowed book
-momentarily reads as available.
-
-Under the design this replaced, that was unrecoverable without an operator: the
-wipe also destroyed the known-unavailable list the re-check worked from, and a
-plain restart resumed from a surviving cursor rather than reconstructing, so
-recovery needed --reset and a 14-day replay. **The poll removes the problem
-rather than handling it.** Each poll states the whole answer, so a wiped field
-is simply re-marked on the next cycle, within POLL_INTERVAL and with nothing to
-run by hand. The window of exposure is one poll.
+Design history, the measurements behind these numbers, and the deploy
+procedure are in docs/search/index.md; they are not repeated here.
 """
 
 import asyncio
@@ -576,42 +443,15 @@ async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: i
 
 
 def mark_update(key: str, root: str, at: int) -> dict:
-    """One edition marked unavailable, and when that mark began.
+    """One atomic update carrying both the mark and its timestamp.
 
-    `ebook_unavailable_ts` is written here and read by nothing in this daemon:
-    the poll restates the whole set every cycle, so it needs no history of its
-    own marks. It ships because a schema change is a special deploy and a code
-    change is not -- carrying the field now makes the feed/poll hybrid that
-    follows a CODE-ONLY change rather than a second deploy with its own date.
+    `at` is WHEN THE LOAN BEGAN, from the index's own event fields -- not when
+    the daemon noticed, which is a different and much later fact. See
+    :func:`stamp_for`.
 
-    **Read the semantics precisely, because the obvious paraphrase is a trap.**
-    This is *when the current unbroken run of unavailability began*, not "when
-    the mark was last re-asserted". The poll skips editions already in the
-    marked set, so a book's ts is frozen for the whole life of its mark and is
-    refreshed only when it is cleared and marked again.
-
-    That is the behaviour the hybrid's gate needs, and the paraphrase is the
-    thing that breaks it: re-stamping every marked edition each cycle would put
-    `ts` at roughly `now` forever, so `ts > index_currency` would always hold,
-    no clear would ever proceed, and availability would freeze permanently.
-    If you are tempted to "fix" the skip, that is the bug you are adding.
-
-    Two consequences worth knowing before building on it:
-
-    * An edition already marked when this code first deploys never acquires a
-      ts -- it is not in `to_mark` -- until it is cleared and re-marked or a
-      reindex wipes it. A consumer must treat ABSENT as "unknown", not as a
-      low timestamp. Solr omits an unset docValues field from the response
-      entirely rather than returning 0, so the value a reader sees is `None`.
-    * A book returned and re-borrowed BETWEEN two polls never leaves the marked
-      set, so it keeps the earlier loan's ts. In the hybrid the changes feed
-      marks that re-borrow and refreshes the stamp -- which is why the feed's
-      mark path must NOT inherit this skip.
-
-    The timestamp is the daemon host's wall clock. It will be compared against
-    a currency derived from archive.org's index, so the two are the same UNIT
-    but not the same CLOCK; a consumer should reserve a skew allowance rather
-    than assume they agree to the second.
+    Both fields go in one update rather than two writes: separately, a mark and
+    its stamp can interleave with a clear and leave a mark carrying a stamp
+    from a different write, which the clear-gate would then judge on.
     """
     return {
         "key": key,
@@ -622,42 +462,30 @@ def mark_update(key: str, root: str, at: int) -> dict:
 
 
 def gate_clears_on_index_currency(absent: list[dict], newest: int | None) -> tuple[list[dict], list[dict]]:
-    """Absence from the index means "returned" only for marks OLDER than the index.
+    """Absence from the index means "returned" only for marks OLDER than it.
 
     The index's snapshot is current only up to its newest loan event. A mark
-    newer than that is absent from the result set because the index has not
-    caught up, NOT because the book came back -- so clearing it publishes a
-    checked-out book as borrowable, and nothing revisits it.
-
-    So `newest` is the horizon: a marked edition absent from the result set may
-    be cleared only if its stamp is STRICTLY older. Returns (clearable, held).
+    newer than that is absent because the index has not caught up, NOT because
+    the book came back -- clearing it publishes a checked-out book as
+    borrowable. So `newest` is the horizon: an absent mark clears only if its
+    stamp is STRICTLY older. Returns (clearable, held).
 
     Three edges, each decided rather than inherited:
 
-    * **Strict `<`.** A mark exactly at the horizon is held. The index is
-      current *up to and including* that instant, so a mark at the same second
-      is precisely the ambiguous case, and ambiguity resolves toward holding.
-    * **No horizon at all** -- an empty result set, or one where no record
-      carries an event time. Nothing can be judged against nothing, so NOTHING
-      is cleared this cycle. This is also what makes a collapsed index safe:
-      the set going empty reads as "no information", never as "everything was
-      returned".
-    * **A mark with no stamp of its own** is treated as very old, so it
-      clears. Reachable only for a mark written between the schema deploy and
-      this code shipping -- a reindex that wipes the stamp wipes
-      `ebook_unavailable` with it, so such a document leaves the marked set
-      entirely rather than lingering without a stamp. Those marks really are
-      from before the field existed, and holding them forever would be the
-      worse failure.
+    * Strict `<`. The index is current up to and INCLUDING that instant, so a
+      mark at the same second is the ambiguous case, and ambiguity holds.
+    * No horizon at all -- empty result set, or nothing carrying an event time
+      -- clears NOTHING. This is what makes a collapsed index safe: the set
+      going empty is no information, never "everything was returned".
+    * A mark with no stamp is treated as very old and clears. Only reachable
+      for marks written between the schema deploy and this code shipping, since
+      a reindex that wipes the stamp wipes `ebook_unavailable` with it.
 
-    On this branch the gate is near-inert: every clear candidate was marked by
-    an earlier poll and is older than the current horizon. It earns its place
-    because the feed-plus-poll design that follows marks books the index has
-    not seen yet, which is exactly the case this refuses to clear.
-
-    THE SEAM for that follower: `newest` is an optimistic horizon, since index
-    shards lag non-uniformly. The follower subtracts a safety margin here
-    rather than restructuring the gate.
+    Near-inert on this branch -- every clear candidate is older than the
+    horizon -- so it is pinned by mutation rather than by passing. It earns its
+    place in the feed-plus-poll design that follows, which marks books the
+    index has not seen. THE SEAM for that: `newest` is optimistic, since shards
+    lag non-uniformly, and the follower subtracts a margin here.
     """
     if newest is None:
         if absent:
@@ -687,29 +515,19 @@ def gate_clears_on_index_currency(absent: list[dict], newest: int | None) -> tup
 def stamp_for(ocaid: str, unavailable: dict[str, int | None], newest: int | None) -> int:
     """When to say this book's unavailability began.
 
-    THE LOAN EVENT, not the daemon's clock. `ebook_unavailable_ts` answers
-    "when did this book become unavailable", and the daemon noticing is a
-    different fact -- minutes later in a steady state, arbitrarily later after
-    a restart. Stamping the read time makes every mark look as fresh as the
-    poll that saw it, which is backwards for a field whose whole job is to
-    tell a recent mark from an old one.
+    THE LOAN EVENT, not the daemon's clock, which can be arbitrarily later
+    after a restart and would make every mark look as fresh as the poll that
+    saw it.
 
-    The index does not know for about a third of the set
-    (CHECKED_OUT_INDEX_EVENT_FIELDS), and those fall back to `newest` -- the
-    latest loan event anywhere in this poll's result set. Deliberately the
-    LATEST in range rather than the earliest:
+    The index knows for only about two thirds of the set
+    (CHECKED_OUT_INDEX_EVENT_FIELDS); the rest fall back to `newest`, the
+    latest event anywhere in this result set. Deliberately the latest in range,
+    not the earliest: an over-estimate hides a book briefly and corrects itself
+    within a minute or so, an under-estimate makes a checked-out book clearable
+    and nothing revisits it.
 
-    * It is the conservative end. An over-estimate hides a book briefly and
-      corrects itself; an under-estimate makes a checked-out book clearable,
-      and nothing revisits it.
-    * It corrects quickly. Measured 2026-10-07, the newest event in the live
-      unavailable set was 90 seconds old with twelve in the preceding seven
-      minutes, so this horizon advances every half-minute or so.
-    * It stays inside the batch's own range, so it can never claim a book was
-      borrowed later than anything the index actually reports.
-
-    When the index gives no event time ANYWHERE in the set, `newest` is None
-    and there is nothing better than the clock. The caller logs that.
+    With no event time anywhere, there is nothing better than the clock; the
+    caller logs that.
     """
     return unavailable.get(ocaid) or newest or int(time.time())
 
