@@ -41,6 +41,19 @@ class TestAddAvailability:
         assert r[0]["availability"]["status"] == "error"
 
 
+class _FakeMemcache:
+    """The two methods `get_availability_async` uses, backed by a dict."""
+
+    def __init__(self):
+        self._store: dict = {}
+
+    def get_multi(self, keys):
+        return {k: self._store[k] for k in keys if k in self._store}
+
+    def set_multi(self, mapping, expires=None):
+        self._store.update(mapping)
+
+
 class TestGetAvailability:
     @pytest.fixture(autouse=True)
     def setup_context(self):
@@ -192,8 +205,14 @@ class TestGetAvailability:
 
     @pytest.mark.asyncio
     async def test_drop_errors_leaves_out_a_cached_error_without_refetching(self):
+        # The only test here that exercises the cache, so it supplies its own
+        # rather than relying on the process-wide memcache client. That client
+        # is whatever the last load_config() left behind -- running after
+        # scripts/solr_updater/tests/test_trending_updater_init.py, which calls
+        # main() against the real conf, leaves one that silently caches
+        # nothing, and this test then saw two fetches instead of one.
         session, mock_get = self._session([{"cachederr": {"status": "error"}}])
-        with session:
+        with session, patch("openlibrary.core.lending.cache.get_memcache", return_value=_FakeMemcache()):
             assert (await lending.get_availability_async("identifier", ["cachederr"]))["cachederr"]["status"] == "error"
             assert await lending.get_availability_async("identifier", ["cachederr"], drop_errors=True) == {}
         assert mock_get.call_count == 1

@@ -610,8 +610,8 @@ class CheckedOutSeedIncomplete(Exception):
     while they are out, and nothing downstream looks at them again -- the
     re-check only inspects editions already marked. A caller that refuses to
     start is loud and retried; a caller that starts on a truncated seed looks
-    healthy forever. Same choice, for the same reason, as refusing to reconcile
-    below MIN_RECONCILE_COVERAGE.
+    healthy forever. Same choice, for the same reason, as holding every clear when
+    the availability service cannot confirm one.
     """
 
 

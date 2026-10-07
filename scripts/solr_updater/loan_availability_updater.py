@@ -15,7 +15,8 @@ them again:
     that the changes API **cannot report loan EXPIRY** -- only initiation -- so
     the feed can never free a book on its own, and the per-item Lending Status
     Endpoint that would have covered the gap is too slow (>10s/item) to sustain
-    at traffic.
+    at traffic. Its follower is RESTORED in v4 below, for marks only, which is
+    the direction the blocker never touched.
   * **v3 - poll the index and reconcile** (`build_poll_updates`). The ES index
     ALREADY reflects expiry, through IA's own LENDING-EXPIRE followers, and
     AdvancedSearch reads that finished answer fast. So the index publishes the
@@ -23,6 +24,19 @@ them again:
     unavailable now", one read of what Solr has marked, one bulk update
     carrying both directions. A first poll is a cold start; a reindex wipe
     self-heals on the next one.
+
+  * **v4 - the poll, plus v2's follower for MARKS only.** This branch. v3 is
+    correct but only ever as current as the index, and the index lags: borrows
+    were measured taking minutes to appear, with a tail still missing at 1h40m.
+    Through that window v3 shows a just-borrowed book as borrowable. The
+    changes feed sees the borrow at once -- and Ximm's blocker was about
+    CLEARING, not marking. The feed cannot report expiry, so it can never free
+    a book; it can always mark one. So the follower returns in the single
+    direction it is sound in: :func:`_feed_loop` marks from events every
+    FEED_INTERVAL seconds and never clears, :func:`_poll_loop` remains the only
+    thing that clears, every POLL_INTERVAL seconds, against the index. Each
+    loop does the half the other is bad at, and neither is able to make the
+    unrecoverable mistake.
 
 Credit for the v2 blockers is Ximm's (ES lead); they are what moved this.
 
@@ -61,8 +75,10 @@ New to this file? The 30-second version
 ---------------------------------------
 This is a small standalone daemon -- not a cron, not part of the web app. It
 runs as a backgrounded process inside the solr-updater container (launched by
-docker/ol-solr-updater-start.sh, next to the main solr_updater). Every
-POLL_INTERVAL seconds it:
+docker/ol-solr-updater-start.sh, next to the main solr_updater). It runs TWO
+concurrent loops.
+
+The POLL (:func:`_poll_loop`), every POLL_INTERVAL seconds:
 
   1. Asks archive.org's search index which books are lendable but currently
      neither borrowable nor browsable -- i.e. who is checked out right now
@@ -72,9 +88,17 @@ POLL_INTERVAL seconds it:
   3. Issues ONE bulk in-place update: `ebook_unavailable` set to 1 on the
      newly-unavailable, 0 on the ones that have been returned or expired.
 
-That is the whole loop. There is no cursor, no state file and no --reset,
-because each poll is a complete statement of what should be marked rather than
-an increment on top of what came before.
+The FOLLOWER (:func:`_feed_loop`), every FEED_INTERVAL seconds, reads IA's
+loan-changes feed forward from a cursor and marks the identifiers that just had
+an acquiring event. It never clears -- that is the whole of its contract -- so
+a borrow shows up in Solr within seconds instead of waiting for the index to
+notice it.
+
+That is the whole of it. Each poll is a complete statement of what should be
+marked rather than an increment on top of what came before, so there is no
+state file and no --reset. The follower's cursor is the only state, it lives in
+memory, and every start re-places it at the index's currency
+(:func:`bootstrap_feed_cursor`) rather than resuming a persisted one.
 
 Nothing reads this Solr field yet -- wiring search/pages to it is a follow-up.
 
@@ -85,6 +109,11 @@ every other poll costs. A restart needs no catch-up, a lost state file is not a
 concept, and a reindex that wipes the field self-heals on the next cycle. The
 operator step that used to exist is deleted rather than automated: nothing can
 be forgotten if there is nothing to remember.
+
+The follower has a startup step, but not a catch-up one. It places its cursor
+at the index's currency -- one feed read, bounded by BATCH_SIZE, replaying only
+the lag gap the poll cannot already see. It never replays a window sized by how
+long the daemon was down, which is the unbounded restart cost v1 had.
 
 The asymmetry that shapes everything here
 -----------------------------------------
@@ -135,13 +164,24 @@ fall back to delete-and-re-add.
 
 Solr also rejects `"set": null` under requireInPlace: a value can be set or
 incremented in place, never cleared. That is why "available" is written as 0
-rather than by removing the field, and why there is no field here holding a
-timestamp -- there would be no way to clear one when it went stale.
+rather than by removing the field, and it is the constraint
+`ebook_unavailable_ts` is built around: a clear cannot erase the stamp, so a
+cleared edition keeps the stamp of the mark it no longer has. That is harmless
+only because the stamp is read for exactly one purpose -- deciding whether a
+MARKED edition is old enough to clear -- and a mark always rewrites it. A stamp
+belonging to a mark that is gone is never consulted.
 
-One field, deliberately
------------------------
-Two others were carried through earlier revisions and are gone. `loan_uid` was
-the changes-feed cursor, and there is no feed and no cursor. `ebook_becomes_available`
+Two fields, deliberately
+------------------------
+`ebook_unavailable` is the answer; `ebook_unavailable_ts` is when the current
+unbroken run of unavailability began, and exists so the poll can refuse to
+clear a mark younger than the index's lag -- see :func:`mark_update` for the
+exact semantics, which the obvious paraphrase gets wrong.
+
+Two further fields were carried through earlier revisions and are gone.
+`loan_uid` persisted the changes-feed cursor per document; the cursor is now
+held in memory and re-placed from the index's currency at every start, so
+nothing needs to store it. `ebook_becomes_available`
 held "available in N days", which the poll cannot know -- the index exposes no
 due date (probed with controls: every plausible date field returns 0 documents,
 and the one that exists, `loans__status__last_loan_date`, carries 2020 values
@@ -151,12 +191,15 @@ cannot clear a stale one.
 
 Recovering from drift
 ---------------------
-Nothing here infers availability from events, so there is no class of change
-the daemon can miss by not seeing one. A lending policy change, copies added or
-removed, an item going dark, a hold being fulfilled -- each simply changes
-whether the index returns that identifier, and the next poll reflects it. The
-previous design needed a separate re-check loop as a partial safety net for
-exactly these; the poll has no blind spot for it to cover.
+No availability answer here is INFERRED from events. The follower reads
+events, but only ever to mark, and a mark it misses is simply made by the next
+poll -- so a missed event costs latency, never correctness, and there is no
+class of change the daemon can get permanently wrong by not seeing one. A
+lending policy change, copies added or removed, an item going dark, a hold
+being fulfilled -- each simply changes whether the index returns that
+identifier, and the next poll reflects it. The design that followed the feed
+ALONE needed a separate re-check loop as a partial safety net for exactly
+these; the poll has no blind spot for it to cover.
 
 Reindex coordination: a full Solr reindex of a work rebuilds its edition
 children WITHOUT this field -- the main indexer is unaware of it -- so every
@@ -230,12 +273,12 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     id_set = set(identifiers)
     resolved: dict[str, dict] = {}
     # Chunked here rather than at the call sites, because one caller cannot see
-    # how large another's list is. The cold-start path hands over every
-    # identifier touched in LOAN_MAX_AGE_DAYS -- tens of thousands -- and one
-    # clause per identifier against Solr's maxBooleanClauses (30000 in
-    # production) fails the whole query, which propagated out of the cold start
-    # and killed the process before any state was written. A daemon that cannot
-    # complete a cold start never starts at all.
+    # how large another's list is. The poll hands over the whole unavailable
+    # set, and one clause per identifier against Solr's maxBooleanClauses
+    # (30000 in production) fails the WHOLE query -- which propagated out and
+    # killed the process. The set is ~600 today, so this is headroom rather
+    # than a live need; the point is that it grows with traffic and nothing
+    # here would notice it crossing the limit.
     for chunk in itertools.batched(identifiers, SOLR_QUERY_CHUNK, strict=False):
         quoted = " ".join(_phrase(id_) for id_ in chunk)
         result = await get_solr().select_async(
@@ -529,9 +572,9 @@ async def confirm_mass_clear(to_clear: list[dict], allowed: int, marked_total: i
 #
 # The asymmetry is deliberate and it is the safety property of this design.
 # Acquiring is written straight from the event with no ground-truth call, so an
-# unknown type errs toward `unavailable` -- which the re-check corrects against
-# ground truth within RECHECK_INTERVAL. Erring the other way would publish a
-# book as borrowable when it is not, and nothing would correct it.
+# unknown type errs toward `unavailable` -- which the next poll corrects against
+# the index, within POLL_INTERVAL. Erring the other way would publish a book as
+# borrowable when it is not, and nothing would correct it.
 #
 # The row shape is documented (lending.get_loan_changes) but IA's set of
 # event_type VALUES is not, anywhere we can see. So this set is what we have
@@ -643,33 +686,29 @@ def build_solr_updates(
 ) -> list[dict]:
     """Build Solr atomic-update documents from the events alone.
 
-    Write-only, in one direction: an acquiring event sets
-    ``ebook_unavailable=1``; a releasing event writes NOTHING. All clearing is
-    done by :func:`build_recheck_updates` against ground truth.
+    Write-only, in one direction: an acquiring event sets ``ebook_unavailable=1``
+    and stamps ``ebook_unavailable_ts``; a releasing event writes NOTHING. All
+    clearing is done by :func:`build_poll_updates`, from the index.
 
     That split is the whole design, and the releasing case is the reason for it.
     A return does not mean available -- if anyone is queued, the freed copy goes
     to the head of the waitlist and the book stays unborrowable. Clearing on a
     return event would therefore publish a book as borrowable when it is not,
-    and nothing would correct it, because the re-check only ever flips
-    unavailable -> available. Declining to write is what keeps every clear on
-    the path that has actually checked.
+    and the feed would never say otherwise, because the feed cannot report
+    expiry at all. Declining to write is what keeps every clear on the path that
+    has actually checked.
 
     The converse error is harmless and self-correcting: marking a multi-copy
     item unavailable when one of several copies was borrowed is wrong, and the
-    re-check frees it within RECHECK_INTERVAL. So this path never consults the
-    availability service, and the updater keeps following the changes feed even
+    next poll frees it once the index agrees. So this path never consults the
+    availability service, and the follower keeps up with the changes feed even
     while that service is down.
 
     An identifier with no Solr edition is skipped -- a new item, or its work is
-    mid-reindex. There is no doc to mark, so the event is skipped while last_uid
-    still advances; the book is missed until its next event or a --reset
-    rebuild. Accepted as v1: an unindexed book has no searchable doc anyway.
-
-    ebook_becomes_available is written only alongside ebook_unavailable=1, and
-    only when the row carried a parsable expiry. It is never cleared when a book
-    frees up (requireInPlace rejects "set": null), so it is advisory and
-    meaningful only while ebook_unavailable is 1.
+    mid-reindex. There is no doc to mark, so the event is skipped while the
+    cursor still advances; the book stays unmarked until its next event or until
+    a poll picks it up from the index, which is the backstop that makes the skip
+    acceptable rather than a hole.
     """
     now = int(time.time())
     updates = []

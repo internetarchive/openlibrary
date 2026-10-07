@@ -157,48 +157,17 @@ async def test_solr_update_in_place_propagates_transport_errors():
 
 
 # ---------------------------------------------------------------------------
-# build_recheck_updates — the drift safety net
-# ---------------------------------------------------------------------------
-
-
-def _recheck_docs():
-    mock_result = MagicMock()
-    mock_result.docs = [
-        {"key": "/books/OL99M", "ia": ["freed"], "_root_": "/works/OL99W"},
-        {"key": "/books/OL100M", "ia": ["stillout"], "_root_": "/works/OL100W"},
-    ]
-    return mock_result
-
-
-# ---------------------------------------------------------------------------
-# main() — daemon error-handling integration tests
+# Shared Solr fixtures for the tests that drive a whole poll.
 #
-# Strategy: pre-seed the state file so read_state() returns 99 (skipping the
-# startup init path), then control lending.get_loan_changes to return one
-# batch then raise SystemExit to terminate the infinite loop.  The state file
-# content after the test reveals whether write_state was called.
+# A poll issues two kinds of select: resolve identifiers -> edition docs, and
+# read back the set Solr currently has marked. _select_side_effect routes by
+# query content so one mock serves both.
 # ---------------------------------------------------------------------------
 
-_RETURN_ROW = {
-    "identifier": "bookabc",
-    "uid": 100,
-    "event_type": "return",
-    "extra": "{}",
-}
-# Acquiring, so the steady-state path actually writes. A releasing row writes
-# nothing by design, which makes it useless for exercising the write sites.
-_BORROW_ROW = {
-    "identifier": "bookabc",
-    "uid": 100,
-    "event_type": "borrow",
-    "extra": '{"until": "2026-05-15 10:00:00"}',
-}
 _RESOLVE_RESULT = MagicMock()
 _RESOLVE_RESULT.docs = [{"key": "/books/OL1M", "ia": ["bookabc"], "_root_": "/works/OL1W"}]
 _EMPTY_RESULT = MagicMock()
 _EMPTY_RESULT.docs = []
-_RECHECK_RESULT = MagicMock()
-_RECHECK_RESULT.docs = [{"key": "/books/OL99M", "ia": ["stale"], "_root_": "/works/OL99W"}]
 
 _OK_RESPONSE = {"responseHeader": {"status": 0}}
 
@@ -208,25 +177,8 @@ def _select_side_effect(*args, **kwargs):
     query = kwargs.get("query", "") or (args[0] if args else "")
     if "ia:" in query:
         return _RESOLVE_RESULT
-    # ebook_unavailable:1 → re-check candidates (empty unless overridden)
+    # ebook_unavailable:1 → the currently-marked set (empty unless overridden)
     return _EMPTY_RESULT
-
-
-def _wire_lending(lending_mock, first_batch_rows, availability=None):
-    """Give the patched lending module realistic behaviour for main()."""
-    lending_mock.get_loan_changes = AsyncMock(
-        side_effect=[
-            {"status": "OK", "rows": first_batch_rows, "latest_uid": 100},
-            SystemExit(0),  # stop the loop on the second iteration
-        ]
-    )
-    lending_mock.get_availability_async = AsyncMock(return_value={"bookabc": AVAILABLE} if availability is None else availability)
-    lending_mock.is_available_for_loan.side_effect = lambda a: bool(a.get("available_to_browse") or a.get("available_to_borrow"))
-
-
-# ---------------------------------------------------------------------------
-# Cold start inside main()
-# ---------------------------------------------------------------------------
 
 
 # ---------------------------------------------------------------------------
@@ -236,11 +188,11 @@ def _wire_lending(lending_mock, first_batch_rows, availability=None):
 
 @pytest.mark.asyncio
 async def test_resolve_edition_keys_chunks_its_query():
-    """The cold start hands over every identifier touched in 14 days. One
+    """A poll hands over every identifier the index says is unavailable. One
     clause per identifier against Solr's maxBooleanClauses (30000 in
-    production) failed the whole query, which propagated out of the cold start
-    and killed the process before any state was written -- so the daemon could
-    never complete a cold start at all, on every restart."""
+    production) failed the whole query, which propagated out of the poll and
+    killed the process -- so the daemon could never complete a cycle at all,
+    on any run."""
     identifiers = [f"ocaid_{i}" for i in range(SOLR_QUERY_CHUNK * 3 + 7)]
     mock_solr = MagicMock(spec=Solr)
     mock_solr.select_async.return_value = MagicMock(docs=[])
@@ -893,14 +845,24 @@ async def test_the_bootstrap_starts_at_the_index_currency_not_the_feed_head():
 
 
 @pytest.mark.asyncio
-async def test_the_bootstrap_does_not_replay_the_whole_window():
-    """Starting at the oldest row is safe but wasteful -- it re-marks books the
-    index already covers, every restart."""
+async def test_the_bootstrap_lands_inside_a_full_window_at_neither_end():
+    """Both ends of a full day of events are wrong, and for opposite reasons.
+    Starting at the oldest row is safe but wasteful -- it re-marks, every
+    restart, books the index already covers. Starting at the head replays
+    NOTHING, which is the unsafe end: the lag gap stays uncovered until the
+    next borrow. So this bounds the cursor on both sides and then pins it
+    exactly, because `cursor > 1` alone is satisfied by the head."""
     now = int(time.time())
-    rows = [_row(i, now - 86_400 + i * 60) for i in range(1, 60)]
+    # 59 events spread across a day at 24-minute steps, with the index current
+    # as of an hour ago. uid 57 sits at now-4320 and uid 58 at now-2880, so the
+    # last event the index can be assumed to know about is 57.
+    rows = [_row(i, now - 86_400 + i * 1440) for i in range(1, 60)]
+    oldest, head = rows[0]["uid"], rows[-1]["uid"]
     with patch("openlibrary.core.lending.get_loan_changes", AsyncMock(return_value=_feed_response(rows))):
         cursor = await bootstrap_feed_cursor(3600)
-    assert cursor > 1, "the cursor must not fall back to the start of the window"
+    assert cursor > oldest, "the cursor must not fall back to the start of the window and replay the whole day"
+    assert cursor < head, "the cursor must not land on the head, which replays nothing and leaves the lag gap uncovered"
+    assert cursor == 57, "the cursor must sit at the newest event the index already knows about"
 
 
 @pytest.mark.asyncio
