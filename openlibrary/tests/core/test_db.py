@@ -51,6 +51,17 @@ CREATE TABLE observations (
 );
 """
 
+YEARLY_READING_GOALS_DDL = """
+CREATE TABLE yearly_reading_goals (
+    username text NOT NULL,
+    year integer NOT NULL,
+    target integer NOT NULL,
+    created datetime NOT NULL,
+    updated datetime NOT NULL,
+    primary key (username, year)
+);
+"""
+
 COMMUNITY_EDITS_QUEUE_DDL = """
 CREATE TABLE community_edits_queue (
     title text,
