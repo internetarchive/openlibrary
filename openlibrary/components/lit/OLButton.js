@@ -201,7 +201,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             cursor: pointer;
             user-select: none;
             text-decoration: none;
-            /* Hover color changes are instant (see docs/ai/design.md); only the
+            /* Hover color changes are instant (see docs/frontend/design.md); only the
                :active press-scale animates. */
             transition: transform var(--duration-press);
         }
@@ -517,9 +517,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         :host([aria-haspopup]) .chevron {
-            /* Same glyph as static/images/icons/chevron-down.svg, inlined: this literal
-               never passes through the CSS formatter that mangled data URIs in the
-               global sheet, and inlining spares a request inside every shadow root. */
+            /* The sprite's chevron-down, inlined: this literal never passes through
+               the CSS formatter that mangled data URIs in the global sheet, and
+               inlining spares a request inside every shadow root. */
             --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
             display: inline-block;
