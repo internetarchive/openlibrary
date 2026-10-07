@@ -51,6 +51,7 @@ project's Solr entirely.
 """
 
 import asyncio
+import datetime
 import json
 import os
 import urllib.error
@@ -60,7 +61,11 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from scripts.solr_updater.loan_availability_updater import main
+from infogami import config
+from openlibrary.config import load_config
+from openlibrary.core import lending
+from openlibrary.utils.request_context import create_context_for_script, req_context
+from scripts.solr_updater.loan_availability_updater import _poll_loop, follow_feed_once
 
 SOLR = os.environ.get("SOLR_URL", "http://localhost:8984/solr/openlibrary")
 FEED = os.environ.get("MOCKSERVICES_URL", "http://localhost:8090")
@@ -134,18 +139,40 @@ def seeded_editions():
     return write
 
 
+def _ensure_config() -> None:
+    """main() loads the config and wires lending; the loop functions do not.
+
+    Driving a loop directly skips that, and the symptom is remote: the daemon
+    falls back to a bookreader host that is unset, so the URL has the literal
+    string "None" for a hostname and the failure surfaces as a DNS error from
+    inside an exception handler that swallows it. Doing it here keeps the tests
+    on the shipping loop functions without pretending main() does nothing.
+    """
+
+    if not config.get("plugin_openlibrary"):
+        load_config("conf/openlibrary.yml")
+        lending.setup(config)
+    req_context.set(create_context_for_script())
+
+
 async def _one_poll() -> None:
-    """Run main()'s real loop for exactly one cycle.
+    """Run the REAL poll loop for exactly one cycle.
+
+    Not main(): in the hybrid that runs the feed loop alongside this one under
+    asyncio.gather and bootstraps a cursor first, so it is the wrong entry
+    point for a test about the poll. _poll_loop is the shipping function these
+    tests were always about.
 
     Stopped by making the sleep at the end of a cycle raise, rather than by
     bounding the wall clock: a timeout can stop the loop mid-write and makes
     the assertion depend on how fast the machine is.
     """
+    _ensure_config()
     with (
         patch("scripts.solr_updater.loan_availability_updater.asyncio.sleep", AsyncMock(side_effect=SystemExit)),
         pytest.raises(SystemExit),
     ):
-        await main("conf/openlibrary.yml", poll_interval=0)
+        await _poll_loop(poll_interval=0, es_lag_margin=0, dry_run=False)
 
 
 def test_a_poll_marks_what_the_index_calls_unavailable(seeded_editions, monkeypatch):
@@ -201,3 +228,123 @@ def test_a_reindex_wipe_is_repaired_by_the_next_poll(seeded_editions, monkeypatc
 
     healed = {key for key in keys if _edition(key).get("ebook_unavailable") == 1}
     assert healed == set(keys[:3]), "the next poll must restore every mark with no operator step"
+
+
+# ---------------------------------------------------------------------------
+# The hybrid's reason for existing, end to end on the shipping daemon: the feed
+# and the index DISAGREE, with the feed ahead, and the timestamp gate decides
+# who wins. Everything above tests the poll alone.
+# ---------------------------------------------------------------------------
+
+FRESH_OCAID = "hybridfresh001"
+FRESH_WORK, FRESH_EDITION = "/works/OL7790W", "/books/OL7790M"
+
+
+def _reset_feed() -> None:
+    """Unfreeze and re-seed the mock's feed.
+
+    Staging a window freezes the dev generator so the staged rows hold still.
+    That is necessary and it leaves the container in a state the next test does
+    not expect -- one hand-written row where a realistic feed should be. Two
+    container-gated tests next door broke on exactly that before this existed.
+    """
+    req = urllib.request.Request(f"{FEED}/_test/loan_changes/reset", data=b"", method="POST")
+    urllib.request.urlopen(req, timeout=30).read()
+
+
+def _set_feed(rows: list[dict]) -> None:
+    req = urllib.request.Request(
+        f"{FEED}/_test/loan_changes",
+        data=json.dumps({"rows": rows}).encode(),
+        headers={"Content-Type": "application/json"},
+        method="PUT",
+    )
+    urllib.request.urlopen(req, timeout=10).read()
+
+
+def _seed_one_edition() -> None:
+    _post(
+        "update",
+        [
+            {
+                "key": FRESH_WORK,
+                "type": "work",
+                "title": "Hybrid disagreement",
+                "editions": [{"key": FRESH_EDITION, "type": "edition", "work_key": [FRESH_WORK], "ia": [FRESH_OCAID]}],
+            }
+        ],
+    )
+    _commit()
+
+
+async def _feed_once(cursor: int = 1) -> int:
+    _ensure_config()
+    return await follow_feed_once(cursor, dry_run=False)
+
+
+async def _poll_once(margin: int) -> None:
+    """One cycle of the REAL poll loop, stopped by its own sleep."""
+    _ensure_config()
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.asyncio.sleep", AsyncMock(side_effect=SystemExit)),
+        pytest.raises(SystemExit),
+    ):
+        await _poll_loop(poll_interval=0, es_lag_margin=margin, dry_run=False)
+
+
+def test_a_fresh_feed_mark_survives_a_poll_that_would_otherwise_clear_it(monkeypatch):
+    """THE HYBRID, on the real daemon, against real Solr and both mocks.
+
+    The feed sees a borrow. The index has not caught up, so the book is ABSENT
+    from its unavailable set — which, to a poll-only daemon, is indistinguishable
+    from "returned". Under #12689 that book is cleared and published as
+    borrowable while someone has it; the whole point of this design is that it
+    is not.
+
+    Staged rather than raced: the index is set to say nothing is checked out
+    and the feed is set to a borrow timestamped now, so the disagreement is
+    deterministic. Then the SAME daemon code is run with two margins — a day,
+    under which the mark is too fresh to contradict, and one second, under which
+    it is not. The second half is what proves the gate is a gate rather than a
+    blanket refusal to clear.
+    """
+    monkeypatch.setenv("OL_SOLR_BASE_URL", SOLR)
+    _seed_one_edition()
+    _set_index([])  # the index believes nothing is checked out
+    _set_feed(
+        [
+            {
+                "identifier": FRESH_OCAID,
+                "uid": 100,
+                "event_type": "borrow",
+                "extra": "{}",
+                # Five seconds ago, not "now": the mark is stamped from the EVENT time,
+                # and the tight-margin half of this test needs the stamp to be
+                # provably older than (poll time - margin) rather than within a
+                # fraction of a second of it. A test that depends on which side of a
+                # sub-second boundary two clocks land is a flake, not a check.
+                "time": (datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=5)).strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        ]
+    )
+
+    asyncio.run(_feed_once())
+    _commit()
+    doc = _edition(FRESH_EDITION)
+    assert doc.get("ebook_unavailable") == 1, "the feed must mark a borrow the index has not seen"
+    assert doc.get("ebook_unavailable_ts"), "a mark with no stamp cannot be protected by the gate"
+
+    # A day-sized margin: the mark is far newer than the index's currency.
+    asyncio.run(_poll_once(margin=86_400))
+    _commit()
+    assert _edition(FRESH_EDITION).get("ebook_unavailable") == 1, "a poll must not clear a mark the index is too stale to contradict"
+
+    # One second: the index is treated as current, so the same absence now
+    # means "returned" and the clear proceeds.
+    asyncio.run(_poll_once(margin=1))
+    _commit()
+    assert _edition(FRESH_EDITION).get("ebook_unavailable") == 0, "with a current index the gate must let the clear through"
+
+    # Put the shared fixture back: a staged window is frozen, and leaving it
+    # frozen poisons every later test against this container.
+    _reset_feed()

@@ -488,6 +488,8 @@ _LOAN_CHANGES_INTERVAL_SECONDS = 60
 
 _loan_changes: list[dict] = []
 _loan_changes_lock = asyncio.Lock()
+_loan_changes_frozen = False
+"""Set by PUT /_test/unavailable's sibling, to stop the dev generator mutating a staged window."""
 _next_loan_uid = itertools.count(1)
 
 
@@ -566,15 +568,37 @@ async def _seed_loan_changes() -> None:
 
 
 async def _loan_changes_ongoing_loop() -> None:
+    """Generates lifelike churn for dev -- and stands down once a test stages a window."""
     ids = await _fetch_real_ia_ids()
     while True:
         await asyncio.sleep(_LOAN_CHANGES_INTERVAL_SECONDS)
         now = datetime.now(UTC)
         new_events = [_make_loan_event(random.choice(ids), now, "borrow" if i % 2 == 0 else "return") for i in range(_LOAN_CHANGES_BATCH_SIZE)]
+        if _loan_changes_frozen:
+            continue
         async with _loan_changes_lock:
             _loan_changes.extend(new_events)
             del _loan_changes[:_LOAN_CHANGES_BATCH_SIZE]
         logger.info("loan changes: added %d, evicted %d oldest", len(new_events), _LOAN_CHANGES_BATCH_SIZE)
+
+
+@app.post("/_test/loan_changes/reset")
+async def reset_loan_changes() -> JSONResponse:
+    """Unfreeze and re-seed the feed. Test control surface, not IA.
+
+    The freeze exists so a staged window holds still, which means a test that
+    stages one leaves the container in a state no later test expects -- a
+    single hand-written row where the next test wants a realistic feed. Staging
+    is therefore only half the control surface; this is the other half, and a
+    test that stages should call it when it is done.
+    """
+    global _loan_changes_frozen
+    async with _loan_changes_lock:
+        _loan_changes.clear()
+    _loan_changes_frozen = False
+    await _seed_loan_changes()
+    async with _loan_changes_lock:
+        return JSONResponse({"rows": len(_loan_changes), "frozen": False})
 
 
 @app.get("/services/loans/loan/")
@@ -619,6 +643,7 @@ async def put_loan_changes(request: Request) -> JSONResponse:
     hybrid is that the feed and the index DISAGREE, with the feed ahead. A
     fixture that derived one from the other could not express that.
     """
+    global _loan_changes_frozen
     body = await request.json()
     rows = body.get("rows")
     if not isinstance(rows, list):
@@ -626,7 +651,14 @@ async def put_loan_changes(request: Request) -> JSONResponse:
     async with _loan_changes_lock:
         _loan_changes.clear()
         _loan_changes.extend(rows)
-        return JSONResponse({"rows": len(_loan_changes)})
+        # Staging a window FREEZES the dev event generator. Without this the
+        # background loop keeps appending and trimming, so a staged row is gone
+        # within seconds and the test it was staged for sees someone else's
+        # events -- observed as "1 rows over 1 ocaids, 0 marks" with a cursor
+        # that had jumped past the staged uid entirely. A fixture you cannot
+        # hold still is not a fixture.
+        _loan_changes_frozen = True
+        return JSONResponse({"rows": len(_loan_changes), "frozen": True})
 
 
 # ---------------------------------------------------------------------------

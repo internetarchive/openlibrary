@@ -379,12 +379,28 @@ class TestLoanChangesFeed:
         for key in ("time", "identifier", "username", "loan_id", "event_type", "extra", "uid"):
             assert key in row
 
-    @pytest.mark.parametrize("params", [{}, {"after_uid": 0}])
-    def test_missing_or_zero_after_uid_is_an_error(self, params):
-        """IA answers this rather than the whole feed; the updater must never send it."""
-        resp = _get("/services/loans/loan/", params={"action": "changes", "limit": 1, **params})
+    def test_a_literal_zero_after_uid_is_still_an_error(self):
+        """A caller passing 0 has failed to read its own state rather than asked
+        for the tail, and answering those two intentions identically would hide
+        it. IA treats 0 and absent alike; the mock deliberately does not."""
+        resp = _get("/services/loans/loan/", params={"action": "changes", "limit": 1, "after_uid": 0})
         assert resp.status_code == 400
         assert resp.json() == {"status": "ERROR", "error": "No since or after_uid supplied."}
+
+    def test_no_after_uid_returns_the_tail(self):
+        """CONTRACT CHANGE. This used to be a 400, and the daemon's cursor
+        bootstrap depends on it no longer being one: with no cursor to resume
+        from, it reads the most recent rows and starts at the index's currency.
+
+        Mirrors an external petabox change to the changes API. Until that lands
+        in production the daemon falls back to the feed head, which leaves the
+        lag gap uncovered until the next borrow rather than failing unsafely.
+        """
+        resp = _get("/services/loans/loan/", params={"action": "changes", "limit": 3})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "OK"
+        assert len(body["rows"]) <= 3
 
     def test_unsupported_action_returns_400(self):
         resp = _get("/services/loans/loan/", params={"action": "bogus"})
