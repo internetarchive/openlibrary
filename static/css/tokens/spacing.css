@@ -110,6 +110,6 @@
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
   :root {
-    --spacing-page-gutter: var(--spacing-md);        /* 12px */
+    --spacing-page-gutter: var(--spacing-md); /* 12px */
   }
 }

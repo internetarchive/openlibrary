@@ -4199,11 +4199,11 @@ msgstr ""
 msgid "Trending"
 msgstr ""
 
-#: home/genre_shelf.html.jinja merge_request_table/table_header.html openlibrary/plugins/openlibrary/partials.py
+#: home/genre_shelf.html.jinja merge_request_table/table_header.html
 msgid "Newest"
 msgstr ""
 
-#: home/genre_shelf.html.jinja openlibrary/plugins/openlibrary/partials.py
+#: home/genre_shelf.html.jinja
 msgid "Top rated"
 msgstr ""
 
