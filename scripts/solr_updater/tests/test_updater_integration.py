@@ -51,6 +51,8 @@ project's Solr entirely.
 """
 
 import asyncio
+import datetime
+import itertools
 import json
 import os
 import time
@@ -97,15 +99,43 @@ def _edition(key: str) -> dict:
     return json.load(urllib.request.urlopen(f"{SOLR}/get?id={urllib.parse.quote(key)}&wt=json", timeout=10)).get("doc") or {}
 
 
-def _set_index(identifiers: list[str]) -> None:
-    """Replace what the mock index calls checked out."""
+def _put(path: str, payload: dict) -> None:
     req = urllib.request.Request(
-        f"{FEED}/_test/unavailable",
-        data=json.dumps({"identifiers": identifiers}).encode(),
+        f"{FEED}{path}",
+        data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json"},
         method="PUT",
     )
     urllib.request.urlopen(req, timeout=10).read()
+
+
+_index_clock = itertools.count()
+
+
+def _set_index(identifiers: list[str], dated: bool = True) -> None:
+    """Replace what the mock index calls checked out.
+
+    `dated` also stages a loan-event time, because the clear gate needs a
+    horizon: the index's snapshot is current only up to its newest event, and
+    with no event anywhere it can judge nothing and clears nothing. The live
+    index carries an event time on about 68% of the set, so having one is the
+    normal case and this default reflects it.
+
+    **Each call advances the stamp by a minute.** Not cosmetic: the gate
+    compares whole seconds, and two calls in the same real second produce an
+    identical horizon, so a mark made by the first poll is not strictly older
+    than the second poll's horizon and is correctly held. A test that changes
+    the index twice inside one second therefore cannot observe a clear -- it
+    would be measuring the clock's resolution, not the daemon. Real traffic
+    advances the horizon continuously (measured: a new event every ~30s), and
+    this models that rather than racing it.
+
+    Pass `dated=False` for the pathological case: the index reports books but
+    no times at all, which must clear nothing.
+    """
+    _put("/_test/unavailable", {"identifiers": identifiers})
+    stamp = (datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=next(_index_clock))).strftime("%Y-%m-%dT%H:%M:%SZ")
+    _put("/_test/loan_event_times", {i: {"lending___last_browse": stamp} for i in identifiers} if dated else {})
 
 
 @pytest.fixture

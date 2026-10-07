@@ -448,7 +448,7 @@ async def fetch_marked_editions() -> dict[str, dict]:
     """
     result = await get_solr().select_async(
         query=f"type:edition AND ebook_unavailable:{EBOOK_UNAVAILABLE}",
-        fields=["key", "ia", "_root_"],
+        fields=["key", "ia", "_root_", "ebook_unavailable_ts"],
         rows=MARKED_SET_MAX,
     )
     docs = result.docs
@@ -576,6 +576,69 @@ def mark_update(key: str, root: str, at: int) -> dict:
     }
 
 
+def gate_clears_on_index_currency(absent: list[dict], newest: int | None) -> tuple[list[dict], list[dict]]:
+    """Absence from the index means "returned" only for marks OLDER than the index.
+
+    The index's snapshot is current only up to its newest loan event. A mark
+    newer than that is absent from the result set because the index has not
+    caught up, NOT because the book came back -- so clearing it publishes a
+    checked-out book as borrowable, and nothing revisits it.
+
+    So `newest` is the horizon: a marked edition absent from the result set may
+    be cleared only if its stamp is STRICTLY older. Returns (clearable, held).
+
+    Three edges, each decided rather than inherited:
+
+    * **Strict `<`.** A mark exactly at the horizon is held. The index is
+      current *up to and including* that instant, so a mark at the same second
+      is precisely the ambiguous case, and ambiguity resolves toward holding.
+    * **No horizon at all** -- an empty result set, or one where no record
+      carries an event time. Nothing can be judged against nothing, so NOTHING
+      is cleared this cycle. This is also what makes a collapsed index safe:
+      the set going empty reads as "no information", never as "everything was
+      returned".
+    * **A mark with no stamp of its own** is treated as very old, so it
+      clears. Reachable only for a mark written between the schema deploy and
+      this code shipping -- a reindex that wipes the stamp wipes
+      `ebook_unavailable` with it, so such a document leaves the marked set
+      entirely rather than lingering without a stamp. Those marks really are
+      from before the field existed, and holding them forever would be the
+      worse failure.
+
+    On this branch the gate is near-inert: every clear candidate was marked by
+    an earlier poll and is older than the current horizon. It earns its place
+    because the feed-plus-poll design that follows marks books the index has
+    not seen yet, which is exactly the case this refuses to clear.
+
+    THE SEAM for that follower: `newest` is an optimistic horizon, since index
+    shards lag non-uniformly. The follower subtracts a safety margin here
+    rather than restructuring the gate.
+    """
+    if newest is None:
+        if absent:
+            logger.warning(
+                "Index gave no loan-event time to judge against, so none of the %d absent marks can be "
+                "cleared this cycle; absence is being read as no information rather than as returned",
+                len(absent),
+            )
+        return [], absent
+
+    clearable: list[dict] = []
+    held: list[dict] = []
+    for doc in absent:
+        stamp = doc.get("ebook_unavailable_ts")
+        stamp = stamp if isinstance(stamp, int) else 0
+        (clearable if stamp < newest else held).append(doc)
+    if held:
+        logger.info(
+            "Gate: holding %d of %d absent marks newer than the index's currency (%d); they are lag, not returns",
+            len(held),
+            len(absent),
+            newest,
+        )
+    return clearable, held
+
+
 def stamp_for(ocaid: str, unavailable: dict[str, int | None], newest: int | None) -> int:
     """When to say this book's unavailability began.
 
@@ -624,8 +687,19 @@ async def build_poll_updates(unavailable: dict[str, int | None]) -> list[dict]:
     should_be_marked = {info["key"]: info for info in resolved.values()}
     marked = await fetch_marked_editions()
 
+    # THE INDEX'S CURRENCY. The newest loan event it reported anywhere in this
+    # result set, and therefore the instant up to which its snapshot can be
+    # trusted. Two things read it: the gate below, and the fallback stamp for
+    # books the index gave no event time for. Computed once, here, because the
+    # gate needs it before any clear is decided.
+    dated = [epoch for epoch in unavailable.values() if epoch is not None]
+    newest = max(dated) if dated else None
+
     to_mark = [info for key, info in should_be_marked.items() if key not in marked]
-    to_clear = [doc for key, doc in marked.items() if key not in should_be_marked]
+    absent = [doc for key, doc in marked.items() if key not in should_be_marked]
+    # LAYER 1 of two on the clear path, and it runs FIRST so the breaker below
+    # sizes itself against the gated set rather than the raw one.
+    to_clear, held = gate_clears_on_index_currency(absent, newest)
 
     allowed = max(CLEAR_BREAKER_FLOOR, int(len(marked) * CLEAR_BREAKER_FRACTION))
     if len(to_clear) > allowed:
@@ -636,10 +710,6 @@ async def build_poll_updates(unavailable: dict[str, int | None]) -> list[dict]:
         # exists to prevent, reached from the other side.
         to_clear = await confirm_mass_clear(to_clear, allowed, len(marked), len(unavailable_identifiers))
 
-    # What the no-event-time third falls back to: the latest loan event
-    # anywhere in this result set. See stamp_for.
-    dated = [epoch for epoch in unavailable.values() if epoch is not None]
-    newest = max(dated) if dated else None
     if newest is None and to_mark:
         logger.warning(
             "Checked-out index returned no loan-event time for any of its %d identifiers; "
@@ -655,12 +725,13 @@ async def build_poll_updates(unavailable: dict[str, int | None]) -> list[dict]:
     # the disk-growth investigation needs this and a rate is invisible in a
     # per-event log.
     logger.info(
-        "Poll: index=%d resolved=%d marked=%d mark=%d clear=%d",
+        "Poll: index=%d resolved=%d marked=%d mark=%d clear=%d held_newer_than_index=%d",
         len(unavailable_identifiers),
         len(should_be_marked),
         len(marked),
         len(to_mark),
         len(to_clear),
+        len(held),
     )
     return updates
 

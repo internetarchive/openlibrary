@@ -23,6 +23,7 @@ from scripts.solr_updater.loan_availability_updater import (
     SolrWriteFailed,
     build_poll_updates,
     fetch_marked_editions,
+    gate_clears_on_index_currency,
     main,
     resolve_edition_keys,
     solr_update_in_place,
@@ -335,12 +336,16 @@ POLL_EDITIONS = {
 EVENT_EPOCH = 1791403200
 
 
-def _index(*identifiers: str, at: int | None = None) -> dict[str, int | None]:
+def _index(*identifiers: str, at: int | None = EVENT_EPOCH) -> dict[str, int | None]:
     """What the index now returns: identifier -> loan-event epoch, or None.
 
-    `at=None` is the realistic majority case -- about a third of the live
-    unavailable set carries neither event field -- so it is the DEFAULT here
-    rather than something a test has to opt into.
+    Defaults to a real event time because a real poll almost always has one:
+    68% of the live unavailable set carries `lending___last_browse`, and ONE
+    dated record is enough to give the clear-gate its horizon. Defaulting to
+    None would leave every test without a horizon, which blocks all clearing
+    and would quietly turn the clear-path tests into no-ops.
+
+    Pass `at=None` for the case where the index knows nothing about timing.
     """
     return dict.fromkeys(identifiers, at)
 
@@ -509,12 +514,14 @@ async def test_the_breaker_floor_protects_a_small_marked_set():
     fresh install. The absolute floor is what keeps the guard from being
     nonsense at small N."""
     assert int(3 * CLEAR_BREAKER_FRACTION) == 0
-    resolve, marked = _poll([], _marked("/books/OL1M", "/books/OL2M", "/books/OL3M"))
+    # The index still reports one book, so the gate has a horizon to judge
+    # against; the other three are absent from it and old enough to clear.
+    resolve, marked = _poll(["bookaaa"], _marked("/books/OL2M", "/books/OL3M"))
     with resolve, marked:
-        updates = await build_poll_updates({})
+        updates = await build_poll_updates(_index("bookaaa"))
     _, clear = _sets(updates)
-    assert len(clear) == 3
-    assert CLEAR_BREAKER_FLOOR >= 3
+    assert len(clear) == 2
+    assert CLEAR_BREAKER_FLOOR >= 2
 
 
 @pytest.mark.asyncio
@@ -526,6 +533,80 @@ async def test_a_truncated_marked_read_is_refused_rather_than_treated_as_the_set
     with patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=mock_solr), pytest.raises(PollRefused) as excinfo:
         await fetch_marked_editions()
     assert "cap" in str(excinfo.value)
+
+
+# ---------------------------------------------------------------------------
+# The clear gate: absence means "returned" only for marks OLDER than the index.
+# ---------------------------------------------------------------------------
+
+
+def _marked_at(key: str, ocaid: str, stamp: int | None) -> dict:
+    doc: dict = {"key": key, "ia": [ocaid], "_root_": key.replace("books", "works").replace("M", "W")}
+    if stamp is not None:
+        doc["ebook_unavailable_ts"] = stamp
+    return doc
+
+
+@pytest.mark.asyncio
+async def test_a_mark_newer_than_the_index_is_held_not_cleared():
+    """THE SEAM. The index's snapshot is current only up to its newest loan
+    event. A mark newer than that is absent from the result set because the
+    index has not caught up -- not because the book came back. Clearing it
+    publishes a checked-out book as borrowable and nothing revisits it.
+    """
+    marked = {"/books/OL2M": _marked_at("/books/OL2M", "bookbbb", EVENT_EPOCH + 60)}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={"bookaaa": POLL_EDITIONS["bookaaa"]})),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+    ):
+        updates = await build_poll_updates({"bookaaa": EVENT_EPOCH})
+    _, clear = _sets(updates)
+    assert clear == set(), "a mark newer than the index's currency is lag, and must be held"
+
+
+@pytest.mark.asyncio
+async def test_a_mark_older_than_the_index_is_cleared():
+    """The other half, and it matters as much: a gate that holds everything
+    looks identical to a gate that works, until a book is never freed."""
+    marked = {"/books/OL2M": _marked_at("/books/OL2M", "bookbbb", EVENT_EPOCH - 60)}
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.resolve_edition_keys", AsyncMock(return_value={"bookaaa": POLL_EDITIONS["bookaaa"]})),
+        patch("scripts.solr_updater.loan_availability_updater.fetch_marked_editions", AsyncMock(return_value=marked)),
+    ):
+        updates = await build_poll_updates({"bookaaa": EVENT_EPOCH})
+    _, clear = _sets(updates)
+    assert clear == {"/books/OL2M"}, "a mark the index is current enough to contradict must clear"
+
+
+def test_a_mark_exactly_at_the_index_currency_is_held():
+    """Strict `<`. The index is current up to and INCLUDING that instant, so a
+    mark at the same second is the ambiguous case, and ambiguity holds."""
+    doc = _marked_at("/books/OL2M", "bookbbb", EVENT_EPOCH)
+    clearable, held = gate_clears_on_index_currency([doc], EVENT_EPOCH)
+    assert clearable == []
+    assert held == [doc]
+
+
+def test_no_index_horizon_clears_nothing():
+    """An empty result set, or one where nothing carries an event time, is NO
+    INFORMATION -- never "everything was returned". This is what makes a
+    collapsed index safe rather than catastrophic."""
+    doc = _marked_at("/books/OL2M", "bookbbb", 1)
+    clearable, held = gate_clears_on_index_currency([doc], None)
+    assert clearable == []
+    assert held == [doc]
+
+
+def test_a_mark_with_no_stamp_is_treated_as_very_old_and_clears():
+    """Decided, not inherited. Only reachable for a mark written between the
+    schema deploy and this code shipping: a reindex that wipes the stamp wipes
+    `ebook_unavailable` with it, so such a document leaves the marked set
+    rather than lingering stampless. Those marks really are old, and holding
+    them forever is the worse failure."""
+    doc = _marked_at("/books/OL2M", "bookbbb", None)
+    clearable, held = gate_clears_on_index_currency([doc], EVENT_EPOCH)
+    assert clearable == [doc]
+    assert held == []
 
 
 # ---------------------------------------------------------------------------
@@ -839,32 +920,24 @@ async def test_a_refused_mass_clear_still_marks_the_newly_unavailable():
 
 @pytest.mark.asyncio
 async def test_a_mark_carries_the_timestamp_in_the_same_update():
-    """`ebook_unavailable_ts` ships ahead of the code that reads it.
+    """The mark and its stamp are ONE update, not two.
 
-    Nothing in this daemon consults it -- the poll restates the whole set every
-    cycle and needs no history. It exists so the feed/poll hybrid that follows
-    is a code-only change rather than a second schema special-deploy, and its
-    semantics are fixed by what that hybrid needs: when the mark was last
-    asserted.
-
-    Asserted on the SAME update dict rather than as a second write, because a
-    mark and its timestamp arriving separately could interleave with a clear.
+    Separate writes could interleave with a clear, leaving a mark whose stamp
+    belongs to a different write -- and the gate judges marks by that stamp.
     """
     resolve, marked = _poll(["bookaaa"], {})
     with resolve, marked:
         updates = await build_poll_updates(_index("bookaaa"))
     assert len(updates) == 1
     assert updates[0]["ebook_unavailable"] == {"set": EBOOK_UNAVAILABLE}
-    ts = updates[0]["ebook_unavailable_ts"]["set"]
-    # Bounded against the clock, not just "greater than some constant". A
-    # review proved the looser assertion green against BOTH a milliseconds
-    # mutation (int(time.time() * 1000)) and a frozen constant -- either of
-    # which would make the hybrid's `ts > index_currency` true for every mark
-    # forever, blocking every clear and freezing availability, with no test
-    # anywhere going red. The unit and the liveness are the whole value of
-    # this field, and nothing else in the repo defends them: it is unread.
-    now = int(time.time())
-    assert now - 5 <= ts <= now + 5, f"ts={ts} is not epoch SECONDS near now ({now}); milliseconds or a frozen value would both pass a looser bound"
+    # Pinned to the exact event time rather than "greater than some constant".
+    # A review proved the looser form green against BOTH a milliseconds bug
+    # (int(time.time() * 1000)) and a frozen constant -- either of which makes
+    # every mark newer than the index's currency forever, so the gate holds
+    # every clear and availability freezes, with nothing going red. Equality
+    # against a known epoch catches both, and now catches a third: the stamp
+    # silently reverting to the daemon's clock.
+    assert updates[0]["ebook_unavailable_ts"]["set"] == EVENT_EPOCH
 
 
 @pytest.mark.asyncio
@@ -873,12 +946,12 @@ async def test_a_clear_does_not_touch_the_timestamp():
     value behind -- verified against a live Solr, not assumed. The field is
     therefore meaningful only while `ebook_unavailable` is 1, and a re-mark
     overwrites it."""
-    resolve, marked = _poll([], _marked("/books/OL1M"))
+    resolve, marked = _poll(["bookaaa"], _marked("/books/OL2M"))
     with resolve, marked:
-        updates = await build_poll_updates({})
-    assert len(updates) == 1
-    assert updates[0]["ebook_unavailable"] == {"set": EBOOK_AVAILABLE}
-    assert "ebook_unavailable_ts" not in updates[0]
+        updates = await build_poll_updates(_index("bookaaa"))
+    clear = [u for u in updates if u["ebook_unavailable"] == {"set": EBOOK_AVAILABLE}]
+    assert len(clear) == 1
+    assert "ebook_unavailable_ts" not in clear[0]
 
 
 @pytest.mark.asyncio
