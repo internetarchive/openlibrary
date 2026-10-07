@@ -9,15 +9,21 @@
         <div class="reading-goal-progress" style="margin-bottom: 0;">
             <div class="reading-goal-progress__body">
                 
+                {% if show_header is not defined or show_header %}
+                <div class="reading-goal-progress__header section-header section-header-split">
+                    <span class="reading-goal-progress__title">{{ _('Reading Goal') }}</span>
+                    <a href="javascript:;" class="reading-goal-progress__edit" data-ol-link-track="ReadingGoalProgress|EditGoal" data-dialog-trigger="#yearly-goal-modal-{{ loop.index }}">{{ _('Edit') }}</a>
+                </div>
+                {% endif %}
+
                 <div class="reading-goal-progress__progress-bar">
                     {% set completed = 100 if goal.progress > 100 else goal.progress %}
                     <span class="reading-goal-progress__completed" style="width: {{ completed }}%;"></span>
-                </div>
-                
-                <div class="reading-goal-progress__details">
-                    <a href="/account/books/already-read/year/{{ goal.year }}" data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">
-                        {{ _('<span class="reading-goal-progress__books-read">%(books_read)d</span> / <span class="reading-goal-progress__goal">%(goal)d</span> books', books_read=goal.books_read, goal=goal.goal) | safe }}
-                    </a>
+                    <div class="reading-goal-progress__progress-text">
+                        <span class="reading-goal-progress__books-read">{{ goal.books_read }}</span>
+                        <span class="reading-goal-progress__separator">/</span>
+                        <span class="reading-goal-progress__goal">{{ goal.goal }} {{ _('books') }}</span>
+                    </div>
                 </div>
 
                 <!-- Edit Goal Modal -->

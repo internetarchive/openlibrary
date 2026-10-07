@@ -74,7 +74,6 @@
   background-color: var(--grey-blue);
   border-radius: 4px;
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-  margin: var(--spacing-stack-xs) var(--spacing-inline-sm);
   font-weight: bold;
 }
 
@@ -225,7 +224,6 @@
     background-color: var(--grey-blue);
     border-radius: 4px;
     padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-    margin: var(--spacing-stack-xs) var(--spacing-inline-sm);
     font-weight: bold;
   }
 
@@ -282,6 +280,30 @@
   }
   /* stylelint-enable selector-max-specificity */
 
+  /* Sidebar cards mobile */
+  .mybooks-menu-mobile .sb-card .section-header.section-header-split {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    text-transform: none;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+  }
+
+  .mybooks-menu-mobile .sb-card .section-header.section-header-split > :first-child {
+    padding: 4px 15px;
+    display: inline-block;
+  }
+
+  .mybooks-menu-mobile .sb-card .section-header.section-header-split > a {
+    padding: 4px 15px 4px 1px;
+  }
+
   .mybooks-menu-mobile hr {
     height: 0;
     margin: var(--spacing-stack-xs) var(--spacing-inline-xl);
@@ -321,6 +343,7 @@
     width: 250px; /* Desktops are fine with the wider menu. */
   }
 }
+
 
 /* ── Sidebar cards ──────────────────────────────────────────────── */
 .sb-card {
@@ -386,27 +409,13 @@
   margin: var(--spacing-3xs) 0 var(--spacing-2xs);
 }
 
-.sb-welcome-name {
-  display: block;
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-}
-
-.sb-welcome-tagline {
-  font-size: var(--font-size-body-small);
-  color: var(--color-text-secondary);
-}
-
 .sb-social-info {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-inline-lg);
-  font-size: var(--font-size-label-small);
+  font-size: var(--font-size-label-medium);
   color: var(--color-text-secondary);
-  margin-top: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
 }
 
 .sb-social-link {
@@ -503,21 +512,75 @@
   color: var(--color-primary);
 }
 
-/* Edit goal link in sidebar - minimal style */
-.sb-edit-goal-link {
-  display: inline;
-  background: none;
-  color: var(--color-primary) !important;
-  padding: 0;
-  font-size: var(--font-size-label-medium);
-  font-weight: var(--font-weight-medium);
-  margin-left: var(--spacing-sm);
-  transition: none;
+.sb-profile-status-pill {
+  margin: var(--spacing-md) 0;
+  display: inline-flex;
+  background: var(--background-grey);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-chip);
+  overflow: hidden;
 }
 
-.sb-edit-goal-link:hover {
-  text-decoration: underline;
-  color: var(--color-primary-hover) !important;
+.sb-profile-status-link__profile,
+.sb-profile-status-link__share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: var(--font-size-label-medium);
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sb-profile-status-link__share {
+  padding-left: 6px !important;
+}
+
+.sb-profile-status-link__profile:hover {
+  background: var(--color-hover-overlay);
+  text-decoration: none;
+}
+
+
+/* Divider between profile and share */
+.sb-profile-status-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--color-border-subtle);
+  flex-shrink: 0;
+}
+
+/* Share button */
+.sb-profile-status-link__share {
+  border-radius: 0 100px 100px 0;
+  padding: 6px 10px;
+  color: var(--color-link);
+}
+
+.sb-profile-status-link__share:hover:not([aria-disabled="true"]) {
+  background: var(--color-hover-overlay);
+  text-decoration: none;
+}
+
+.sb-profile-status-link__share ol-icon,
+.sb-profile-status-link__share .sb-share-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--color-link);
+}
+
+.sb-profile-status-link__share[aria-disabled="true"],
+.sb-profile-status-link__share[aria-disabled="true"] ol-icon,
+.sb-profile-status-link__share[aria-disabled="true"] .sb-share-icon {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sb-profile-status-link__share[aria-disabled="true"]:hover {
+  background: transparent;
 }
 
 /* Lists card */

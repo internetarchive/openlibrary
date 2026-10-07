@@ -8,74 +8,56 @@ $def year_span(year, use_local_year=False):
   $else:
     <span>$year</span>
 
-<div class="mybooks-details-specific">
-
-  $code:
-      SHELF_IDS = shelf_ids()
-      def compact_carousel(data):
-          key, title, url = data
-          books = mybooks[key].docs
-          count = mybooks[key].total_results
-          return render_jinja_template("books/custom_carousel.html.jinja", **get_book_carousel_data(**{
-              "books": books,
-              "title": title,
-              "count": None if key == "loans" else count,
-              "shelf": SHELF_IDS.get(key),
-              "url": url,
-              "key": key,
-              "min_books": 1,
-              "load_more": None,
-              "compact_mode": True,
-              "test": False,
-              "full_path": request.fullpath,
-          })) if books else None
-
-  $def empty_carousel(data):
-    $ key, title, url = data
-    <div class="carousel-section-header">
-      <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
-    </div>
-    <p>$_("No books are on this shelf")</p>
-
-  $# Data for carousels
-  $ readlog_url = "/people/%s/books/" % username
-  $ loans = ["loans", _('Loans & History'), "/account/loans"]
-  $ currently_reading = ["currently-reading", _('Currently Reading'), readlog_url + "currently-reading"]
-  $ want_to_read = ["want-to-read", _('Want to Read'), readlog_url + "want-to-read"]
-  $ already_read = ["already-read", _('Already Read'), readlog_url + "already-read"]
-  $ stopped_reading = ["stopped-reading", _('Stopped Reading'), readlog_url + "stopped-reading"]
-
-
-  $# Render carousels
-  $if owners_page:
-    $:(compact_carousel(loans) or empty_carousel(loans))
-  $if owners_page or public:
-    $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
-    $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
-    $:(compact_carousel(already_read) or empty_carousel(already_read))
-    $:(compact_carousel(stopped_reading) or empty_carousel(stopped_reading))
-    $:render_template("lists/showcase", lists, username)
-  $else:
-    <p>$_("This reader has chosen to make their Reading Log private.")</p>
-</div>
+    
+$# Data for carousels
+$ readlog_url = "/people/%s/books/" % username
+$ loans = ["loans", _('Loans & History'), "/account/loans"]
+$ currently_reading = ["currently-reading", _('Currently Reading'), readlog_url + "currently-reading"]
+$ want_to_read = ["want-to-read", _('Want to Read'), readlog_url + "want-to-read"]
+$ already_read = ["already-read", _('Already Read'), readlog_url + "already-read"]
+$ stopped_reading = ["stopped-reading", _('Stopped Reading'), readlog_url + "stopped-reading"]
 
 $code:
-    def mobile_carousel(data):
-        key, title, url = data
-        books = mybooks[key].docs
-        count = mybooks[key].total_results
-        return render_template("books/mobile_carousel", **{
-            "books": books,
-            "title": title,
-            "count": None if key == "loans" else count,
-            "shelf": SHELF_IDS.get(key),
-            "url": url,
-            "key": key,
-            "min_books": 1,
-            "load_more": None,
-            "compact_mode": True,
-            "test": False
-        }) if books else None
+  SHELF_IDS = shelf_ids()
+
+  def compact_carousel(data):
+    key, title, url = data
+    books = mybooks[key].docs
+    count = mybooks[key].total_results
+    return render_jinja_template("books/custom_carousel.html.jinja", **get_book_carousel_data(**{
+        "books": books,
+        "title": title,
+        "count": None if key == "loans" else count,
+        "shelf": SHELF_IDS.get(key),
+        "url": url,
+        "key": key,
+        "min_books": 1,
+        "load_more": None,
+        "compact_mode": True,
+        "test": False,
+        "full_path": request.fullpath,
+    })) if books else None
+
+  def mobile_carousel(data):
+    key, title, url = data
+    books = mybooks[key].docs
+    count = mybooks[key].total_results
+    return render_template("books/mobile_carousel", **{
+        "books": books,
+        "title": title,
+        "count": None if key == "loans" else count,
+        "shelf": SHELF_IDS.get(key),
+        "url": url,
+        "key": key,
+        "min_books": 1,
+        "load_more": None,
+        "compact_mode": True,
+        "test": False
+    }) if books else None
+
+        
+      
+
 
 $def empty_mobile_carousel(data):
     $ key, title, url = data
@@ -180,5 +162,25 @@ $def empty_mobile_carousel(data):
         </li>
       </ul>
   </div>
-  <p></p>
   $ component_times['Sidebar'] = time() - component_times['Sidebar']
+
+$def empty_carousel(data):
+  $ key, title, url = data
+  <div class="carousel-section">
+    <div class="carousel-section-header">
+      <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
+    </div>
+    <p>$_("No books are on this shelf")</p>
+  </div>
+
+$# Render carousels
+$if owners_page:
+  $:(compact_carousel(loans) or empty_carousel(loans))
+$if owners_page or public:
+  $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
+  $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
+  $:(compact_carousel(already_read) or empty_carousel(already_read))
+  $:(compact_carousel(stopped_reading) or empty_carousel(stopped_reading))
+  $:render_template("lists/showcase", lists, username)
+$else:
+  <p>$_("This reader has chosen to make their Reading Log private.")</p>

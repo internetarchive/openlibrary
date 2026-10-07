@@ -18,9 +18,9 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         <a href="/people/$username/books" class="sb-avatar-link">
           <img src="/people/$username/avatar" class="sb-avatar" alt="$username">
         </a>
-        <div class="sb-welcome">
+        <h3 class="sb-welcome">
           $:_("Hi, <span>%(name)s</span>!", name=username)
-        </div>
+        </h3>
         $if counts and 'followers' in counts:
           <div class="sb-social-info">
             <a href="/people/$username/following" class="sb-social-link">
@@ -32,26 +32,46 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
             </a>
           </div>
         $set_share_links(url=request.canonical_url, title=username, view_context=ctx)
-        $if ctx.get('share_links'):
-          $ share_str = _('Share')
-          $ share_content = '<a class="sb-share-btn share-modal-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><svg class="sb-share-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span>%s</span></a>' % share_str
-          <div class="sb-share-wrapper">
-            $:macros.ShareModal(ctx.get('share_links'), request.home, share_content, "share-modal-wrapper", show_embed=False)
+        $if public:
+          <div class="sb-profile-status-pill">
+            <a href="/account/privacy" class="sb-profile-status-link__profile" data-ol-link-track="MyBooksSidebar|ProfilePrivacy">
+              <ol-icon name="globe" size="sm"></ol-icon>
+              <span>$_('Public profile')</span>
+            </a>
+            <span class="sb-profile-status-divider" aria-hidden="true"></span>
+            $ share_content = '<a class="sb-profile-status-link__share share-modal-link" href="javascript:;" slot="trigger" data-ol-link-track="MyBooksModalLinkClick|ShareIcon" aria-label="%s"><ol-icon name="share-2" size="sm"></ol-icon></a>' % _('Share profile')
+            $:macros.ShareModal(ctx.get('share_links') or [], request.home, share_content, "share-modal-wrapper", show_embed=False)
+          </div>
+        $else:
+          <div class="sb-profile-status-pill">
+            <a href="/account/privacy" class="sb-profile-status-link__profile" data-ol-link-track="MyBooksSidebar|ProfilePrivacy">
+              <ol-icon name="lock" size="sm"></ol-icon>
+              <span>$_('Private profile')</span>
+            </a>
+            <span class="sb-profile-status-divider" aria-hidden="true"></span>
+            <ol-tooltip label="$_('Make profile public to share')" position="top">
+              <a href="javascript:;" class="sb-profile-status-link__share share-modal-link"
+                 data-ol-link-track="MyBooksModalLinkClick|ShareIcon"
+                 aria-label="$_('Make profile public to share')"
+                 aria-disabled="true">
+                <ol-icon name="share-2" size="sm"></ol-icon>
+              </a>
+            </ol-tooltip>
           </div>
         <hr class="sb-divider">
         <ul class="sidebar-section sb-card-section sb-profile-nav">
           <li>
-            <a class="li-title-desktop $('selected' if key == 'mybooks' else '')" href="/people/$username/books" data-ol-link-track="MyBooksSidebar|MyBooks">$_("Dashboard")</a>
-          </li>
-          <li>
-            <a class="li-title-desktop $('selected' if key == 'profile' else '')" href="/people/$username" data-ol-link-track="MyBooksSidebar|ViewProfile">$_("My Activity")</a>
+            <a class="li-title-desktop $('selected' if key == 'mybooks' else '')" href="/people/$username/books" data-ol-link-track="MyBooksSidebar|MyBooks">$_("My Books")</a>
           </li>
           $if owners_page:
             <li>
-              <a class="li-title-desktop $('selected' if key == 'loans' else '')" href="/account/loans" data-ol-link-track="MyBooksSidebar|Loans">$_('Loans & History')</a>
+              <a class="li-title-desktop $('selected' if key=='feed' else '')" data-ol-link-track="MyBooksSidebar|MyFeed" href="/people/$username/books/feed">$_('My Feed')</a>
             </li>
             <li>
-              <a class="li-title-desktop $('selected' if key=='feed' else '')" data-ol-link-track="MyBooksSidebar|MyFeed" href="/people/$username/books/feed">$_('My Feed')</a>
+              <a class="li-title-desktop $('selected' if key == 'stats' else '')" data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">$_('My Reading Stats')</a>
+            </li>
+            <li>
+              <a class="$('selected' if key=='imports' else '')" data-ol-link-track="MyBooksSidebar|Import" href="/account/import">$_("Import your data")</a>
             </li>
         </ul>
       </div>
@@ -62,11 +82,13 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
       $ current_goal = get_reading_goals(year=year)
       <div class="sb-card">
         <ul class="sidebar-section sb-card-section">
-          <li class="section-header">$_('Reading Goal')</li>
+          <li class="section-header section-header-split">
+            <span>$('Reading Goal')</span>
+            <a href="javascript:;" data-ol-link-track="MyBooksSidebar|EditReadingGoal" class="li-count" data-dialog-trigger="#yearly-goal-modal">$('Edit')</a>
+          </li>
           $if current_goal:
             <li>
-              $:render_jinja_template('reading_goals/reading_goal_progress.html.jinja', goals=[current_goal])
-              <a class="sb-edit-goal-link" href="javascript:;">$_("Edit")</a>
+              $:render_jinja_template('reading_goals/reading_goal_progress.html.jinja', goals=[current_goal], show_header=False)
             </li>
           $else:
             <li>
@@ -105,8 +127,7 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
           <li class="section-header">$_('Activity')</li>
             <li><a class="$('selected' if key=='notes' else '')" data-ol-link-track="MyBooksSidebar|MyNotes" href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
             <li><a class="$('selected' if key=='observations' else '')" data-ol-link-track="MyBooksSidebar|MyReviews" href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
-            <li><a class="$('selected' if key=='stats' else '')" data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">$_('My Reading Stats')</a></li>
-            <li><a class="$('selected' if key=='imports' else '')" data-ol-link-track="MyBooksSidebar|Import" href="/account/import">$_("Import your data")</a></li>
+            <li><a class="$('selected' if key=='loans' else '')" href="/account/loans" data-ol-link-track="MyBooksSidebar|Loans">$_('Loans & History')</a></li>
         </ul>
       </div>
 
@@ -114,11 +135,19 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
     $if public or owners_page:
       <div class="sb-card">
         <ul class="sidebar-section sb-card-section">
-          <li class="section-header section-header-split"><span>$(_('My lists') if owners_page else _('Lists'))</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count chevron">$(_('See All'))</a></li>
-          $if owners_page:
-            <li class="create-new-list">
-              <a href="/people/$username/lists/add">$_('Create a list')</a>
-            </li>
+          <li class="section-header section-header-split">
+            <span>$(_('My lists') if owners_page else _('Lists'))</span>
+            $if owners_page:
+              <a href="/people/$username/lists/add" data-ol-link-track="MyBooksSidebar|CreateList" class="li-count">
+                $_('Create a list')
+                <ol-icon name="plus" size="sm"></ol-icon>
+              </a>
+          </li>
+          <li>
+            <a class="$('selected' if key == 'lists' else '')" data-ol-link-track="MyBooksSidebar|AllLists" href="/people/$username/lists">
+              $_('All lists')
+            </a>
+          </li>
           <div class="list-overflow">
             $ placeholder_name = _('Untitled list')
             $for lst in lists:

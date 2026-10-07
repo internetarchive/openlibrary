@@ -9,11 +9,10 @@ $var title: $header_title
 <div class="mybooks">
   $if mb.is_my_page:
     $:render_jinja_template("reading_goals/yearly_goal_dialog.html.jinja", year=current_year())
+  
   $:mb.render_sidebar()
 
-  $ css = 'no-padding' if mb.key == 'mybooks' else ''
-  <div class="mybooks-details $css">
-
+  <div class="mybooks-details">
     $if ctx.user:
       $ pending_action_msg = mb.get_pending_action_banner()
       $if pending_action_msg:
@@ -40,33 +39,29 @@ $var title: $header_title
 
     $ mb.component_times['Details header'] = time()
     <header>
-      <div class="breadcrumb-wrapper">
-        $if mb.key == 'list':
-          <h1 class="details-title">$header_title</h1>
-        $else:
-          <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
-            <h1>$header_title</h1>
+      <!-- Todo: figure out what the year_breadcrumb-select does -->
+      <!-- <div class="breadcrumb-wrapper">
+        <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
 
-            $if mb.key == 'already-read' and mb.yearly_reads:
-              $ url_prefix = "/people/%s/books/already-read" % mb.username
-              $:render_template("books/year_breadcrumb_select", mb.yearly_reads, url_prefix, url_prefix + "/year/%d", selected=mb.selected_year)
+          $if mb.key == 'already-read' and mb.yearly_reads:
+            $ url_prefix = "/people/%s/books/already-read" % mb.username
+            $:render_template("books/year_breadcrumb_select", mb.yearly_reads, url_prefix, url_prefix + "/year/%d", selected=mb.selected_year)
 
-          </div>
+        </div>
       </div>
-
+ -->
       $if not mb.is_my_page and mb.is_subscribed != -1:
         $:render_template('follow/follow', mb.username, following=mb.is_subscribed, link_track='MyBooksPageHeader|Follow')
-
+    </header>
+    
+    <div class="details-databar">
       $if page and mb.is_my_page:
         $:macros.databarView(page)
-    </header>
+    </div>
 
     $ mb.component_times['Details header'] = time() - mb.component_times['Details header']
     $ mb.component_times['Details content'] = time()
     <div class="details-content">
-      $if mb.is_my_page:
-        $:render_template("account/topmenu", mb)
-
       $if mb.is_my_page and mb.key in ['notes', 'observations']:
         <p>
           $if mb.key == 'notes':

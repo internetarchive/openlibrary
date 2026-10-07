@@ -77,20 +77,21 @@
 }
 
 .mybooks-details {
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   display: flex;
   flex-direction: column;
   margin: 0 auto;
   width: 75%;
 }
 
-.mybooks-details header {
-  display: flex;
-  justify-content: space-between;
+.mybooks-details .details-databar {
+  position: absolute;
+  top: var(--spacing-inset-sm);
+  right: var(--spacing-inset-sm);
 }
 
-.mybooks-details header > * {
-  padding-left: 0;
+.details-content .carousel-section:nth-child(2) h2 {
+  margin-top: var(--spacing-inset-sm) !important;
 }
 
 .mybooks-details .navigation-breadcrumbs {
