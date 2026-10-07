@@ -62,7 +62,7 @@ class Stats:
 
 
 @cache.memoize(engine="memcache", key="admin._get_loan_counts_from_graphite", expires=5 * 60)
-def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
+def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]]:
     try:
         r = requests.get(
             "http://graphite.us.archive.org/render",
@@ -77,7 +77,10 @@ def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
         r.raise_for_status()
         return r.json()[0]["datapoints"]
     except requests.exceptions.RequestException, ValueError, AttributeError:
-        return None
+        # Return [] rather than None: cache.memoize treats None as a cache miss,
+        # so caching a failure would otherwise re-hit the 5s timeout on every
+        # request while Graphite is down. Callers test truthiness.
+        return []
 
 
 class LoanStats(Stats):

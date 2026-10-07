@@ -7,6 +7,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Path
 from fastapi.responses import Response
 
+from infogami import config
 from openlibrary.core import cache
 
 router = APIRouter()
@@ -20,7 +21,11 @@ CACHE_MAX_AGE = 86400
 # internetarchive/openlibrary#12823). We fetch the charts server-side instead
 # and cache the result, so a Graphite outage surfaces as a quick 502 rather
 # than a request that hangs in the visitor's browser.
-GRAPHITE_RENDER_URL = "http://graphite.us.archive.org/render"
+#
+# Reuse the config-driven host that the admin graphs already read
+# (plugins/admin/graphs.py), keeping the historical value as the default.
+GRAPHITE_BASE_URL = config.get("graphite_base_url") or "http://graphite.us.archive.org"
+GRAPHITE_RENDER_URL = f"{GRAPHITE_BASE_URL.rstrip('/')}/render"
 GRAPHITE_TIMEOUT = 5.0
 GRAPHITE_CACHE_SECONDS = 300
 
