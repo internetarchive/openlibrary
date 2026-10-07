@@ -148,6 +148,76 @@ test('shows a spinner on the row while its update is in flight', async() => {
     expect(document.querySelector('.testing-env__row-action .testing-env__spinner')).toBeNull();
 });
 
+test('removing a never-deployed row drops it with no ghost undo', async() => {
+    // A disabled, never-deployed row is removed outright server-side (it was
+    // never on the box): the response says so via removed_prs, and the row
+    // must go away instead of lingering with a dead undo button.
+    let serverPrs = [
+        { pr: 13269, title: 'First PR', author: 'one', assignee: '', commit: 'abc1234', head_sha: 'def5678', drift: 0, active: false, in_set: true }
+    ];
+    const snapshot = () => ({
+        prs: serverPrs,
+        pending_changes: [],
+        deploying: false,
+        deploy_result: '',
+        deploy_started_at: '',
+        deploy_finished_at: '',
+        deploy_stage: '',
+        last_deploy_at: '',
+        deployed_by: '',
+        has_pending: false
+    });
+    window.fetch = async(url) => {
+        if (url === '/status/testing.json') {
+            return { ok: true, json: async() => snapshot() };
+        }
+        if (url === '/status/remove') {
+            serverPrs = [];
+            return { ok: true, json: async() => ({ ok: true, staged_prs: [], removed_prs: [13269], prs: [] }) };
+        }
+        throw new Error(`unexpected fetch: ${url}`);
+    };
+
+    class QuietEventSource {
+        constructor() {
+            this.readyState = 1;
+            this._open = null;
+        }
+        set onopen(fn) {
+            this._open = fn;
+            setTimeout(() => this._open?.(), 0);
+        }
+        get onopen() {
+            return this._open;
+        }
+        set onerror(fn) {
+            this._error = fn;
+        }
+        get onerror() {
+            return this._error;
+        }
+        addEventListener() {}
+        close() {
+            this.readyState = 2;
+        }
+    }
+    const realEventSource = window.EventSource;
+    window.EventSource = QuietEventSource;
+
+    try {
+        await render(TestingEnvironment, { props: { maintainer: 'true' } });
+        await expect.element(page.getByRole('link', { name: 'First PR' })).toBeInTheDocument();
+
+        await page.getByRole('button', { name: 'Remove' }).click();
+
+        // The row is gone (not staged with an undo), and no error toasts.
+        await expect.poll(() => document.querySelector('.testing-env__row')).toBeNull();
+        expect(document.querySelector('ol-toast')).toBeNull();
+    } finally {
+        window.EventSource = realEventSource;
+    }
+});
+
 test('applies status pushed over the event stream', async() => {
     const fetchUrls = [];
     window.fetch = async(url) => {

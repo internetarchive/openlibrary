@@ -101,13 +101,20 @@ export function useActions({ busy, payload, setToast, strings }) {
     }
 
     // ── Optimistic rows, confirmed at drain end ───────────────────────
-    // Copy the staged flags from a mutation response over our rows. Merges
-    // flags only — never adds or drops rows (removals land via the stream),
-    // so a partial or empty response is always safe to apply or skip.
+    // Copy the staged flags from a mutation response over our rows, and drop
+    // rows the server removed outright (never-deployed deletes have nothing
+    // to stage — without this they linger with a dead undo button). Merges
+    // flags only otherwise — never adds rows — so a partial or empty
+    // response is always safe to apply or skip.
     function applyConfirmedState(result) {
-        const rows = result?.prs;
         const current = payload?.value?.prs;
-        if (!Array.isArray(rows) || !Array.isArray(current)) return;
+        if (!Array.isArray(current)) return;
+        for (const pr of result?.removed_prs ?? []) {
+            const index = current.findIndex((r) => r.pr === pr);
+            if (index !== -1) current.splice(index, 1);
+        }
+        const rows = result?.prs;
+        if (!Array.isArray(rows)) return;
         for (const update of rows) {
             const row = current.find((r) => r.pr === update.pr);
             if (row) {
