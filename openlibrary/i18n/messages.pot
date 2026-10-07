@@ -2017,7 +2017,7 @@ msgstr ""
 msgid "Covers Added"
 msgstr ""
 
-#: admin/index.html home/stats.html
+#: admin/index.html
 msgid "New Members"
 msgstr ""
 
@@ -2069,7 +2069,7 @@ msgstr ""
 msgid "Star Rating Patrons"
 msgstr ""
 
-#: admin/index.html home/stats.html
+#: admin/index.html
 msgid "Unique Visitors"
 msgstr ""
 
@@ -4187,66 +4187,6 @@ msgstr ""
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
-
-#: home/stats.html
-msgid "Around the Library"
-msgstr ""
-
-#: home/stats.html
-msgid "Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>"
-msgstr ""
-
-#: home/stats.html
-msgid "See all visitors to OpenLibrary.org"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of recent unique visitors"
-msgstr ""
-
-#: home/stats.html
-msgid "How many new Open Library members have we welcomed?"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of new members"
-msgstr ""
-
-#: home/stats.html
-msgid "People are constantly updating the catalog"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of recent catalog edits"
-msgstr ""
-
-#: home/stats.html
-msgid "Catalog Edits"
-msgstr ""
-
-#: home/stats.html
-msgid "Members can create Lists"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of lists created recently"
-msgstr ""
-
-#: home/stats.html
-msgid "Lists Created"
-msgstr ""
-
-#: home/stats.html
-msgid "We're a library, so we lend books, too"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of ebooks borrowed recently"
-msgstr ""
-
-#: home/stats.html
-msgid "eBooks Borrowed"
 msgstr ""
 
 #: home/welcome.html
@@ -8221,6 +8161,22 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "unique visitors"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "new members"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "catalog edits"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "ebooks borrowed"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py

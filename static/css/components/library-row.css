@@ -1,0 +1,238 @@
+/* The row under the home page carousels: the librarian call-out and the compact
+   "Around the Library" card (templates/home/library_row.html.jinja). */
+
+.library-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--spacing-inline-xl);
+  margin-block: var(--spacing-stack-xl);
+}
+
+/* No stats to show: the call-out takes the row. */
+.library-row--solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.librarian-card,
+.library-stats {
+  box-sizing: border-box;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  box-shadow: var(--box-shadow-raised);
+}
+
+/* The call-out ---------------------------------------------------------- */
+
+.librarian-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-md);
+  padding: var(--spacing-inset-xl);
+  background: var(--color-surface-sunken);
+}
+
+.librarian-card__title {
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-headline-large);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-display);
+  letter-spacing: -0.01em;
+  color: var(--color-text-heading);
+  text-wrap: balance;
+}
+
+.librarian-card__body {
+  margin: 0;
+  max-width: 56ch;
+  font-size: var(--font-size-body-large);
+  line-height: var(--line-height-body);
+  color: var(--color-text-secondary);
+}
+
+/* The three facts, then the button at the end of the line; on a narrow card the
+   button wraps under them. */
+.librarian-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  margin-top: var(--spacing-stack-sm);
+}
+
+/* base/dl.css floats every dt/dd into a two-column definition list; these are a grid of cells. */
+.librarian-card__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-inline-xl);
+  flex: 1 1 360px;
+  margin: 0;
+}
+
+.librarian-card__facts::after {
+  content: none;
+}
+
+.librarian-card__fact {
+  padding-top: var(--spacing-stack-sm);
+  border-top: 1px solid var(--color-border-muted);
+}
+
+.librarian-card__fact dt,
+.librarian-card__fact dd {
+  float: none;
+  width: auto;
+  max-width: none;
+  padding: 0;
+}
+
+.librarian-card__fact dt {
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-muted);
+}
+
+.librarian-card__fact dd {
+  margin: var(--spacing-stack-xs) 0 0;
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+}
+
+/* The arrow points forward in both reading directions. */
+.librarian-card__cta:dir(rtl) .ol-icon {
+  transform: scaleX(-1);
+}
+
+/* The stats card --------------------------------------------------------- */
+
+.library-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-lg);
+  padding: var(--spacing-inset-lg);
+  background: var(--color-surface);
+}
+
+.library-stats__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-inline-lg);
+}
+
+.library-stats__title {
+  margin: 0;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-secondary);
+}
+
+/* :link/:visited so these outrank the base anchor rules. */
+.library-stats__range:link,
+.library-stats__range:visited {
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-link);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.library-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-stack-lg) var(--spacing-inline-xl);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.library-stat:link,
+.library-stat:visited {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.library-stat__value {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-headline-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.library-stat__label {
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-meta);
+  color: var(--color-text-secondary);
+}
+
+.library-stat__spark {
+  display: block;
+  width: 100%;
+  height: 28px;
+  margin-top: var(--spacing-stack-xs);
+  overflow: visible;
+}
+
+.library-stat__spark polyline {
+  fill: none;
+  stroke: var(--library-stat-color);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* One hue per series, in card order. */
+.library-stats__grid > li {
+  --library-stat-color: var(--color-chart-1);
+}
+
+.library-stats__grid > li:nth-child(2) {
+  --library-stat-color: var(--color-chart-2);
+}
+
+.library-stats__grid > li:nth-child(3) {
+  --library-stat-color: var(--color-chart-3);
+}
+
+.library-stats__grid > li:nth-child(4) {
+  --library-stat-color: var(--color-chart-4);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .library-stats__range:hover,
+  .library-stat:hover .library-stat__label {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+  }
+}
+
+/* --width-breakpoint-tablet */
+@media (max-width: 767px) {
+  .library-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-stack-md);
+  }
+
+  .librarian-card {
+    padding: var(--spacing-inset-lg);
+  }
+
+  .librarian-card__title {
+    font-size: var(--font-size-headline-small);
+  }
+
+  .librarian-card__facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-stack-sm);
+  }
+}

@@ -1,0 +1,63 @@
+{#
+  The row under the home page carousels: the librarian call-out, which pitches the catalog as a
+  commons and sends readers to /librarians, and beside it the "Around the Library" card, four
+  28-day counts with sparklines. `stats` is home.get_library_stats(); it's empty when admin
+  stats are unavailable, and then the call-out takes the whole row.
+#}
+<div class="library-row{% if not stats %} library-row--solo{% endif %}">
+    <section class="librarian-card" aria-labelledby="librarian-card-title">
+        <h2 class="librarian-card__title" id="librarian-card-title">{{ _("A library owned by the people who use it.") }}</h2>
+        <p class="librarian-card__body">{{ _("Not a store, not a feed. A catalog of every book ever published, written and corrected by readers, with every byte of it free for anyone to take.") }}</p>
+        <div class="librarian-card__footer">
+            <dl class="librarian-card__facts">
+                <div class="librarian-card__fact">
+                    <dt>{{ _("Editable") }}</dt>
+                    <dd>
+                        {{ _("By anyone, like Wikipedia") }}
+                    </dd>
+                </div>
+                <div class="librarian-card__fact">
+                    <dt>{{ _("Public") }}</dt>
+                    <dd>
+                        {{ _("Every record, free to download") }}
+                    </dd>
+                </div>
+                <div class="librarian-card__fact">
+                    <dt>{{ _("Nonprofit") }}</dt>
+                    <dd>
+                        {{ _("Run by the Internet Archive") }}
+                    </dd>
+                </div>
+            </dl>
+            <ol-button class="librarian-card__cta" variant="primary" href="/librarians" data-ol-link-track="HomeLibrarianCard|Librarians">
+                {{ _("See how librarians help") }}
+                {{ icon("arrow-right", size="sm", slot="icon-end") }}
+            </ol-button>
+        </div>
+    </section>
+    {% if stats %}
+        <section class="library-stats" aria-labelledby="library-stats-title">
+            <div class="library-stats__header">
+                <h2 class="library-stats__title" id="library-stats-title">{{ _("Around the Library") }}</h2>
+                <a class="library-stats__range" href="/stats">{{ _("28 days") }}</a>
+            </div>
+            <ul class="library-stats__grid">
+                {% for stat in stats %}
+                    <li>
+                        <a class="library-stat" href="{{ stat.href }}">
+                            <span class="library-stat__value">{{ stat.value }}</span>
+                            <span class="library-stat__label">{{ stat.label }}</span>
+                            <svg class="library-stat__spark"
+                                 viewBox="0 0 120 28"
+                                 preserveAspectRatio="none"
+                                 aria-hidden="true"
+                                 focusable="false">
+                                <polyline points="{{ stat.points }}" vector-effect="non-scaling-stroke"></polyline>
+                            </svg>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+</div>

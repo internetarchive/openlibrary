@@ -215,6 +215,14 @@
   --color-error-object: var(--red-400);
   --color-warning-object: var(--amber-400);
   --color-neutral-object: var(--neutral-300);
+
+  /* Data lines — sparklines and small charts, one hue per series in this order.
+     The 500 steps: dark enough that a 2px line reads on white, not so dark they
+     turn to ink. */
+  --color-chart-1: var(--blue-500);
+  --color-chart-2: var(--green-500);
+  --color-chart-3: var(--amber-500);
+  --color-chart-4: var(--red-500);
 }
 
 /**

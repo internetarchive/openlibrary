@@ -1,4 +1,4 @@
-$def with (stats=None, blog_posts=None, test=False, featured_subjects=[], carousel_data=None)
+$def with (stats=None, blog_posts=None, test=False, featured_subjects=[], carousel_data=None, library_stats=None)
 
 $ _x = ctx.setdefault('cssfile', 'home')
 $var title: $_("Welcome to Open Library")
@@ -41,7 +41,7 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $:render_template("home/categories", featured_subjects=featured_subjects if not test else [])
 
-  $:render_template("home/stats", stats)
+  $:render_jinja_template("home/library_row.html.jinja", stats=library_stats or [])
 
   $:render_template("home/about", blog_posts)
  </div>
