@@ -7,7 +7,7 @@ opens it, so FastAPI's loop, ``async_bridge``'s loop, and any other caller
 Pools open lazily on first use, so bridged model methods work in the legacy
 web.py process where no FastAPI lifespan runs. ``init_pool()`` pre-warms the
 current loop's pool at FastAPI startup and ``close_pool()`` closes it at
-shutdown. See ``docs/core/README.md`` for the full guide.
+shutdown. See ``docs/core/database.md`` for the full guide.
 
 Async call sites use the single-statement helpers:
 
