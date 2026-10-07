@@ -635,7 +635,7 @@ Both #12689 and #12916 modify `managed-schema.xml`. They can be applied to the p
 
 ## For New Contributors
 
-1. Read the [OL dev setup](../README.md) first — Docker is required
+1. Read the [OL dev setup](../ai-coding-guide.md) first — Docker is required
 2. Start with `conf/solr/conf/managed-schema.xml` to understand what fields exist and why
 3. Read `openlibrary/solr/updater/work.py` — it's the most complex piece; understanding `WorkSolrBuilder` unlocks everything
 4. Read `openlibrary/plugins/worksearch/schemes/works.py` — this is the bridge between user queries and Solr parameters

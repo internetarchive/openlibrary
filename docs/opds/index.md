@@ -195,6 +195,6 @@ See `docs/testing-opds-locally.md` for the full local testing guide including th
 
 ## Related Systems
 
-- **Solr** — all OPDS search calls ultimately hit Solr via `openlibrary.org/search.json`. See [Solr docs](../solr/index.md).
+- **Solr** — all OPDS search calls ultimately hit Solr via `openlibrary.org/search.json`. See [Solr docs](../search/index.md).
 - **OL FastAPI layer** — `openlibrary/fastapi/search.py` defines the `/search.json` endpoint the OPDS service calls.
 - **reader.archive.org** — the primary production consumer of the OPDS feed; production traffic is live and immediately visible.

@@ -71,7 +71,7 @@
 }
 
 /* iOS zooms in on focus when the field's font is < 16px; bump it on mobile to
-   suppress that (docs/ai/design.md). */
+   suppress that (docs/frontend/design.md). */
 @media screen and (max-width: 767px) {
   .notes-modal-textarea {
     font-size: var(--font-size-body-large);
