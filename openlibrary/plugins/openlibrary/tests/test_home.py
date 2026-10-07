@@ -156,8 +156,7 @@ class TestFeaturedGenres:
         assert genres[1]["covers"] == [10, 11, 12]
 
     def test_trending_leads_with_live_covers(self):
-        """Trending is the first tile, always: the template keeps it there while shuffling the rest.
-        Its fan is the covers its shelf would open with, not hand-picked ones."""
+        """Trending leads, with live covers rather than hand-picked ones."""
         genres = self.featured(trending_covers=[7, 8, 9])
         assert genres[0]["slug"] == "trending"
         assert genres[0]["kind"] == "trending"
@@ -172,7 +171,6 @@ class TestFeaturedGenres:
         with patch.object(home, "work_search_async", new=AsyncMock(return_value={"docs": docs})) as search:
             assert home.get_trending_tile_covers() == [5, 6, 7]
         query, kwargs = search.call_args.args[0], search.call_args.kwargs
-        # The same books the shelf shows: readable, in trending order.
         assert (query["q"], query["has_fulltext"], kwargs["sort"]) == (TRENDING_QUERY, "true", "trending")
 
     def test_no_picked_covers_no_tile(self):
@@ -180,7 +178,6 @@ class TestFeaturedGenres:
         assert [g["slug"] for g in genres] == ["trending", "horror"]
 
     def test_names_are_localized_per_page_not_in_the_cache(self):
-        # The cache is shared across languages, so a subject tile's name is translated after it.
         genres = self.featured()
         assert [g["name"] for g in genres] == ["Trending", "Horror", "History", "Absurd"]
         with (

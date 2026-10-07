@@ -1,11 +1,4 @@
-{#
-  The shelf that opens under a "Browse the stacks" tile. Rendered by HomeGenrePartial. A header
-  names the genre, links to each subgenre's row ("Jump to") and carries the shelf's sort control.
-  Then `carousel`, the genre's row, already loaded, and `subgenre_rows`, lazy placeholders for one
-  row per subgenre, stacked beneath it. The genre row's wrapper carries its config, as a lazy-loaded
-  row's does. The sort control re-sorts every row (lazy-carousel.js); `sort` is the shelf's current one.
-  The skeleton in home/browse_stacks.html.jinja mirrors this shape.
-#}
+{# Rendered by HomeGenrePartial. The skeleton in home/browse_stacks.html.jinja mirrors this shape. #}
 {% if genre is defined %}
     <div class="genre-shelf"
          data-genre="{{ genre.slug }}"
@@ -29,7 +22,6 @@
                     </nav>
                 {% endif %}
             </div>
-            {# The component supplies the trigger, so its label follows the choice without a re-render. #}
             {% set sort_items = [
                 {"value": "trending", "label": _("Trending")},
                 {"value": "new", "label": _("Newest")},

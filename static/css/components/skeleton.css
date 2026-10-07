@@ -5,8 +5,7 @@
  *  - openlibrary/macros/CarouselSkeleton.html.jinja
  */
 
-/* The highlight is fixed to the viewport, so one band sweeps every block on screen together
-   rather than each block running its own. */
+/* Fixed to the viewport so one band sweeps every block together. */
 .skeleton {
   display: block;
   border-radius: var(--border-radius-sm);

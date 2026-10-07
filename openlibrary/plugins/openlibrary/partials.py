@@ -251,7 +251,7 @@ def get_carousel_card_data(book, lazy: bool, layout: str | None, key: str, full_
     if loan and hasattr(book, "get_waitinglist_size"):
         waitlist_size = book.get_waitinglist_size()
 
-    # The native row draws its covers with <ol-book-cover>; a loan card keeps the overlay badge it needs.
+    # Loan cards keep the legacy cover for their overlay badge.
     book_cover = layout == "ol-carousel" and not loan
 
     expiry = loan.get("expiry") if loan else None
@@ -792,10 +792,9 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
-    # Links to `url` from a "See all" at the end of the header, instead of from the title.
+    # Link `url` from a "See all" instead of the title.
     see_all: bool = False
-    # A "Browse the stacks" shelf row (HomeGenrePartial): the genre's row, or one subgenre's within it.
-    # The server rebuilds the query from these, so the config needn't carry it.
+    # A "Browse the stacks" row; the server builds its query (HomeGenrePartial.narrow).
     genre: str | None = None
     subgenre: str | None = None
 
@@ -879,7 +878,6 @@ _SAFE_MODE_FILTER = '-subject:"content_warning:cover"'
 
 
 def _with_sort(url: str, sort: str) -> str:
-    """`url` with its `sort` parameter set to `sort`, so a row's header link matches its sort control."""
     parts = urlsplit(url)
     query = [(k, v) for k, v in parse_qsl(parts.query) if k != "sort"] + [("sort", sort)]
     return urlunsplit(parts._replace(query=urlencode(query)))
@@ -955,7 +953,6 @@ def _carousel_card_book(book: Any) -> Any:
     if target is not book:
         # An edition doc carries no work key; the shelf button needs it.
         card_book["work_key"] = book.get("key")
-        # Nor the work's author names or first year, which the byline and hover card show.
         for field in ("author_name", "first_publish_year"):
             if not card_book.get(field) and (value := book.get(field)):
                 card_book[field] = value
@@ -996,8 +993,7 @@ class BookCarouselData(CarouselCommonData):
     cards: list[str]
     count: int | None  # shown after the title; a shelf carousel's count is kept live by book-state.js
     shelf: int | None
-    # "carousel" (slick), "grid", or "ol-carousel" (the native component; carousel/native.js).
-    layout: str
+    layout: str  # "carousel" (slick), "grid", or "ol-carousel"
 
 
 class CarouselPlaceholderData(TypedDict):
@@ -1005,7 +1001,7 @@ class CarouselPlaceholderData(TypedDict):
 
     lazy_config_json: str
     fallback: str | bool | None
-    # For the loading skeleton (macros/CarouselSkeleton.html.jinja).
+    # For macros/CarouselSkeleton.html.jinja.
     title: str
     title_link: bool
     layout: str
@@ -1104,34 +1100,26 @@ def get_book_carousel_data(
 
 
 class HomeGenreParams(BaseModel):
-    """Parameters for the home page genre shelf partial."""
-
     genre: str
 
 
 class SubgenreOption(TypedDict):
     name: str
-    href: str  # the subgenre's row, further down the shelf
+    href: str
 
 
 class HomeGenrePartial:
-    """The shelf that opens under a "Browse the stacks" tile: a header naming the genre, with a link to
-    each subgenre's row and the shelf's one sort control, then the genre's row, loaded, and a row per
-    subgenre as lazy placeholders. The genre row is titled for the shelf's sort ("Trending in Horror");
-    changing the control re-sorts every row (lazy-carousel.js).
-    Fetched by browse-stacks.js; CarouselPartial calls `narrow` to build a row's query."""
+    """The shelf under a "Browse the stacks" tile: the genre's row, loaded, then a lazy row per subgenre."""
 
     @staticmethod
     def row_key(genre: home_genres.Genre, subgenre: home_genres.GenreNode | None = None) -> str:
-        """The row's carousel key; also its element id, so the shelf header's subgenre links can jump to it."""
+        """Also the row's element id, for the header's jump links."""
         return f"genre-{genre['slug']}" + (f"-{subgenre['slug']}" if subgenre else "")
 
     @staticmethod
     def genre_row_title(genre: home_genres.Genre, sort: str) -> str:
-        """The genre row's title says how it's sorted, since the shelf's sort control changes it."""
         name = home_genres.display_name(genre)
         if genre["kind"] == "trending":
-            # The shelf is already "Trending": its row says how the trending books are ordered.
             return {"new": _("Newest"), "rating": _("Top rated")}.get(sort, _("Trending now"))
         if sort == "new":
             return _("Newest in %(genre)s", genre=name)
@@ -1141,35 +1129,29 @@ class HomeGenrePartial:
 
     @classmethod
     def jump_links(cls, genre: home_genres.Genre) -> list[SubgenreOption]:
-        """The shelf header's links, one to each subgenre's row."""
         return [SubgenreOption(name=s["name"], href=f"#{cls.row_key(genre, s)}") for s in genre["subgenres"]]
 
     @classmethod
     def narrow(cls, params: LazyCarouselParams, genre: home_genres.Genre) -> LazyCarouselParams:
-        """`params` with the query, title and header link for `params.subgenre` within `genre`."""
         subgenre = home_genres.find_subgenre(genre, params.subgenre)
         node, parent = (subgenre, genre) if subgenre else (genre, None)
         lang_clause = home_genres.user_language_clause(get_request_lang())
         query = home_genres.solr_query(node, parent) + lang_clause
-        # As build_carousel_placeholder_config does for the row's first load.
         if params.safe_mode:
             query = f"{query} {_SAFE_MODE_FILTER}"
-        # Every row's link follows the shelf's sort, whichever row carries the control, and shows the
-        # same books as the row: the same language restriction.
         url = _with_sort(home_genres.search_url(node, parent=parent, lang_clause=lang_clause), params.sort)
         title = subgenre["name"] if subgenre else cls.genre_row_title(genre, params.sort)
         return params.model_copy(update={"query": query, "url": url, "title": title, "subgenre": subgenre and subgenre["slug"]})
 
     @classmethod
     def row(cls, genre: home_genres.Genre, subgenre: home_genres.GenreNode | None = None) -> LazyCarouselParams:
-        """A shelf row's config. `narrow` fills in the query, title and link when the row is fetched."""
+        """`narrow` fills in the query when the row is fetched."""
         return LazyCarouselParams(
             title=subgenre["name"] if subgenre else cls.genre_row_title(genre, "trending"),
             sort="trending",
             key=cls.row_key(genre, subgenre),
             limit=20,
             has_fulltext_only=True,
-            # The shelf rows pilot the native carousel component; the other home rows are still slick.
             layout="ol-carousel",
             see_all=True,
             genre=genre["slug"],
@@ -1182,8 +1164,7 @@ class HomeGenrePartial:
         if not genre:
             return {"partials": ""}
 
-        # The genre row is rendered in this response rather than as a lazy placeholder, so opening a
-        # shelf shows books in one request; the subgenre rows load as they scroll into view.
+        # Render the genre row eagerly so opening a shelf takes one request.
         genre_row = cls.row(genre)
         carousel = await CarouselPartial.generate_async(genre_row)
         subgenre_rows = [
@@ -1205,7 +1186,7 @@ class HomeGenrePartial:
             jump_links=cls.jump_links(genre),
             sort=genre_row.sort,
             carousel=carousel["partials"],
-            # The shelf's sort control refetches the row from this config, as for a lazy-loaded row (lazy-carousel.js).
+            # The sort control refetches from this (lazy-carousel.js).
             config_json=json_encode(genre_row.model_dump(exclude_none=True)),
             subgenre_rows=subgenre_rows,
         )
@@ -1239,7 +1220,6 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         lazy_config_json=json_encode(config),
         fallback=params.get("fallback"),
         title=config.get("title", ""),
-        # CarouselPartial links the title, to the search when no url is given.
         title_link=True,
         layout=config["layout"],
     )
@@ -1288,7 +1268,6 @@ def build_nearby_books_placeholder_config(work_key: str, language: str | None = 
     return CarouselPlaceholderData(
         lazy_config_json=json_encode(config),
         fallback=None,
-        # NearbyBooksPartial's heading.
         title=_("On the Same Shelf"),
         title_link=False,
         layout="carousel",

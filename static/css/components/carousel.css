@@ -26,8 +26,7 @@
   margin-top: var(--spacing-stack-lg);
 }
 
-/* A row with a "See all" link (books/custom_carousel.html.jinja): the link sits at the end of
-   the heading's line, and drops under it when there is no room. */
+/* "See all" sits at the end of the heading's line, wrapping under it when tight. */
 .carousel-section-header--inline {
   display: flex;
   flex-wrap: wrap;
@@ -93,8 +92,7 @@
   padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
 }
 
-/* On a phone a native row runs edge to edge. Slick rows keep the inset: their arrows
-   hang 25px past the track and would push the page wide. */
+/* Native rows run edge to edge on phones; slick's overhanging arrows would widen the page. */
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
   .carousel-container:has(> .carousel--native) {
@@ -127,14 +125,12 @@
   box-sizing: border-box;
 }
 
-/* A row rendered as <ol-carousel> (books/custom_carousel.html.jinja, layout "ol-carousel"):
-   the component sizes and spaces the cards, so the slick-era item box is reset. */
+/* <ol-carousel> sizes and spaces the cards itself. */
 .carousel--native {
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
 }
 
-/* The component's gap is the only space between cards, and the cover rings
-   (OlBookCover.js) draw past the card's edge into the viewport padding. */
+/* Room for the cover rings (OlBookCover.js). */
 .carousel--native > .carousel__item {
   float: none;
   margin: 0;
@@ -153,8 +149,7 @@
   width: 100%;
 }
 
-/* Touch has no hover card, so the title and author sit under the cover.
-   The title is held to one line, so the buttons under it line up across the row. */
+/* Touch has no hover card, so the caption shows under the cover. */
 .carousel-caption {
   display: none;
   margin-top: var(--spacing-stack-xs);
@@ -490,8 +485,7 @@
   padding: 0;
 }
 
-/* A row's loading state (macros/CarouselSkeleton.html.jinja). It reuses the loaded row's
-   section, container and card classes, so it takes the loaded row's size and nothing shifts. */
+/* Loading rows reuse the loaded row's classes, so nothing shifts (macros/CarouselSkeleton.html.jinja). */
 .carousel-skeleton__title--link {
   color: var(--color-link);
 }
@@ -514,15 +508,13 @@
   overflow: hidden;
 }
 
-/* The slick row: slick shows 6/5/4/3/2 cards at these viewport widths (carousel/Carousel.js),
-   each with the slick slide's inline margin. */
+/* Slick's 6/5/4/3/2 cards per width (carousel/Carousel.js). */
 .carousel-skeleton__row:not(.carousel--native) {
   padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
   --skeleton-columns: 6;
 }
 
-/* A slick row is as tall as its tallest card, and nearly every row has a Preview button,
-   which is 5px taller than the others there. */
+/* Most slick rows have a Preview button, 5px taller than the others. */
 .carousel-skeleton__row:not(.carousel--native) .ol-action-row {
   padding-bottom: 5px;
 }
@@ -557,8 +549,7 @@
   }
 }
 
-/* The native row: ol-carousel's track, columns and edge peek (OlCarousel.js). The container
-   is as wide as the component would be, and the columns step at the component's own widths. */
+/* Mirrors ol-carousel's track, columns and peek (OlCarousel.js). */
 .carousel-skeleton .carousel-container {
   container-type: inline-size;
 }

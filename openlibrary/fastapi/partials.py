@@ -252,10 +252,7 @@ async def lazy_carousel_partial(
 
 @router.get("/partials/HomeGenre.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def home_genre_partial(params: Annotated[HomeGenreParams, Query()]) -> dict:
-    """
-    Get the shelf HTML for one genre on the home page's "Browse the stacks":
-    the genre's carousel, with a control that narrows it to a subgenre.
-    """
+    """Get the shelf HTML for one genre in the home page's "Browse the stacks"."""
     return await HomeGenrePartial.generate_async(params=params)
 
 

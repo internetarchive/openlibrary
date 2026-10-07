@@ -81,17 +81,6 @@ ol-segmented-control[size="large"]:not(:defined) {
   height: var(--control-height-large);
 }
 
-/* <ol-tab> elements are declarative data for <ol-tabs>, which renders its own tabs. */
-ol-tab {
-  display: none;
-}
-
-/* The upgraded row's height: one large-control tab, with the divider drawn inside it. */
-ol-tabs:not(:defined) {
-  display: block;
-  height: var(--control-height-large);
-}
-
 /* Before ol-popover upgrades, its default-slot content (the panel) renders
    in the light DOM. Hide everything except the trigger so the popover body
    doesn't flash on page load; the upgraded component manages it in its
@@ -135,7 +124,6 @@ ol-carousel:not(:defined) {
   display: flex;
   gap: 8px;
   overflow: hidden;
-  /* The upgraded viewport's own padding; optional, so it needs the component's 0 default. */
   padding-block: var(--ol-carousel-viewport-padding, 0);
 }
 

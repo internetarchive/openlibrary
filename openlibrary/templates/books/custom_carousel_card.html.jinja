@@ -12,15 +12,13 @@
 {% from "FormatExpiry.html.jinja" import format_expiry %}
 <div class="book carousel__item">
     {% if book_cover %}
-        {# The native row: a uniform 2:3 cover whose hover card carries the title, year and author.
-           Touch has no hover, so the caption under it shows the same (carousel.css).
-           Past the first page (`lazy`), the cover waits for ol-carousel to bring it within a page of view. #}
+        {# Touch has no hover card, so the caption repeats it (carousel.css). #}
         <div class="book-cover">
             <ol-book-cover {% if lazy %}deferred{% endif %} src="{{ cover_url or '' }}" book-title="{{ title }}" authors="{{ author_names | join(', ') }}" year="{{ year }}" href="{{ url }}" data-cover-track="BookCarousel|CoverClick|{{ key }}">
                 {{ shelf_button_html }}
             </ol-book-cover>
         </div>
-        {# The cover link already names the book, so this one stays out of the tab order and the tree. #}
+        {# The cover link already names the book. #}
         <a class="carousel-caption"
            href="{{ url }}"
            tabindex="-1"

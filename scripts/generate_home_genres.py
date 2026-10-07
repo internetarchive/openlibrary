@@ -33,9 +33,8 @@ READABLE_CLAUSE = "ebook_access:[borrowable TO *]"
 # into Humor (see QUERY_OVERRIDES).
 EXCLUDED_GENRES = {"Comedy", "Erotica", "Satire", "Tragedy"}
 
-# Subjects shelved alongside the genres, so nonfiction and kids' books have a way in too. These
-# aren't in the genres vocabulary; `page` is the subject page the shelf links out to. Names are
-# translated at render time (home.py SUBJECT_LABELS), so keep them in sync.
+# Nonfiction and kids' tiles, outside the genres vocabulary. Keep names in sync with
+# home_genres.subject_tile_labels(), which translates them.
 SUBJECTS = [
     ("Kids", "kids", "(juvenile_fiction OR juvenile_literature OR children's_fiction OR juvenile_nonfiction)", "/subjects/juvenile_fiction"),
     ("History", "history", "history", "/subjects/history"),
@@ -57,10 +56,8 @@ KNOWN_SYNONYMS = {
     "Cli-fi": "climate fiction",
 }
 
-# Terms whose bare prefix drags in unrelated subjects (psychological* is mostly
-# "psychological aspects", cult* is "culture", western* is "western civilization"), or that are
-# thin on their own and need the BISAC key too ("Fiction / Action & Adventure" indexes as
-# fiction_action__adventure). Values are subject_key clauses, checked live against production.
+# Terms whose bare prefix drags in unrelated subjects (psychological* → "psychological aspects"),
+# or that need the BISAC key too. Values are subject_key clauses.
 QUERY_OVERRIDES = {
     "Action": "(fiction_action__adventure* OR action__adventure* OR action_and_adventure* OR action)",
     "Crime": "(crime OR crime_fiction OR crime_fiction_fiction OR fiction_crime*)",
@@ -118,9 +115,7 @@ def fetch_count(q: str) -> int:
 
 
 def resolve_subject_key(tag: dict) -> tuple[str, int]:
-    """Pick the best-populated subject_key for a vocabulary entry. The vocabulary's slug keeps
-    hyphens ("true-crime") where Solr keys use underscores, and some terms are catalogued under
-    a synonym, so each candidate is checked live and the biggest wins."""
+    """Pick the best-populated subject_key among a vocabulary entry's spellings and synonyms."""
     candidates = dict.fromkeys(
         c
         for c in [

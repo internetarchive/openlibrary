@@ -1,8 +1,4 @@
-{#
-  "Browse the stacks": one tile per genre, fanned with three hand-picked covers. A tile opens
-  the genre's shelf (home/genre_shelf.html.jinja) in place; browse-stacks.js does the fetching.
-  `genres` comes from home.get_cached_featured_genres().
-#}
+{# "Browse the stacks": genre tiles that open home/genre_shelf.html.jinja in place (browse-stacks.js). #}
 {% from "CarouselSkeleton.html.jinja" import carousel_skeleton %}
 {% if genres is defined and genres %}
     <section class="browse-stacks"
@@ -11,11 +7,9 @@
         <div class="carousel-section-header browse-stacks__header">
             <h2 class="home-h2" id="browse-stacks-title">{{ _("Browse the stacks") }}</h2>
         </div>
-        {# One row of tiles; the rail pages sideways. Trending stays first; the rest are shuffled per visit below. #}
         <ol-carousel id="browse-stacks-rail" class="browse-stacks__rail" label="{{ _('Browse the stacks') }}" gap="12">
             {% for genre in genres %}
-                {# data-shelf: what the shelf's skeleton shows before it loads (see the template below);
-                   the genre row's title is for the shelf's initial sort. HomeGenrePartial renders the same strings. #}
+                {# For the skeleton; keep the strings in sync with HomeGenrePartial. #}
                 {% set shelf = {
                     "name": genre.name,
                     "title": _("Trending now") if genre.kind == "trending" else _("Trending in %(genre)s", genre=genre.name),
@@ -44,10 +38,7 @@
                 </button>
             {% endfor %}
         </ol-carousel>
-        {# Shown in the shelf while browse-stacks.js fetches it: the shape of home/genre_shelf.html.jinja.
-           browse-stacks.js fills the header from the tile's data-shelf (the subgenre names go in the
-           "Jump to" line), titles the genre row, and repeats the second row once per subgenre.
-           The sort control is stubbed, so the header keeps its height. #}
+        {# The shelf's loading skeleton, in the shape of home/genre_shelf.html.jinja. #}
         <template class="browse-stacks__loading">
             <div class="genre-shelf">
                 <div class="genre-shelf__header">
@@ -64,14 +55,8 @@
             </div>
         </template>
         <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
-        {# Order the tiles before first paint: pinned ones (Trending) first, the rest shuffled, so every
-           visit leads with different genres even though the page itself is cached. A stack the URL names
-           (?stack=horror, which browse-stacks.js sets as the reader opens one, so it's back when they return
-           from a book) goes right after the pinned tiles, where it's in view, and is the one that opens.
-           Then draw that tile's shelf as a skeleton, so the shelf browse-stacks.js opens on load doesn't push
-           the page down, and start fetching it (as shelf.prefetch). Covers on the first page of tiles load eagerly.
-           Runs inline for all of it; no-JS keeps the server order and a closed shelf.
-           Builds what skeletonFor() in browse-stacks.js does. #}
+        {# Before first paint: shuffle the tiles (the page is cached), draw the open shelf's skeleton so
+           nothing shifts, and start its fetch. Keep in sync with skeletonFor() in browse-stacks.js. #}
         <script>
             (function () {
                 var rail = document.getElementById('browse-stacks-rail');
@@ -103,7 +88,6 @@
                 var shelf = document.getElementById('browse-stacks-shelf');
                 if (!tiles.length || !template) return;
                 var open = requested || tiles[0];
-                // Fetch the open shelf now rather than after main.js loads browse-stacks.js, which takes it from here.
                 var params = new URLSearchParams({ genre: open.getAttribute('data-genre') });
                 var lang = new URLSearchParams(location.search).get('lang');
                 if (lang) params.set('lang', lang);

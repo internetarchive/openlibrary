@@ -6,9 +6,8 @@ import { buildPartialsUrl, whenVisible } from './utils';
 let relatedBooksTracked = false;
 let bannerClicked = false;
 
-// A loaded row is either a slick carousel or the native component (books/custom_carousel.html.jinja).
 const CAROUSEL_SELECTOR = '.carousel--progressively-enhanced, ol-carousel';
-// Any row with books, including a grid row, which has cards but nothing to initialize.
+// Includes grid rows, which have nothing to initialize.
 const ROW_SELECTOR = '.carousel, ol-carousel';
 
 function initCarousels(elems) {
@@ -20,8 +19,7 @@ function initCarousels(elems) {
 }
 
 /**
- * Sets up rows that arrive already loaded, inside a `.lazy-carousel-loaded[data-config]` wrapper
- * (the "Browse the stacks" shelf), so they get the same behavior and controls as lazy-loaded rows.
+ * Sets up rows that arrive already loaded, like the "Browse the stacks" genre row.
  *
  * @param root {HTMLElement}
  */
@@ -96,7 +94,7 @@ function doFetchAndUpdate(target) {
             return resp.json();
         })
         .then(data => {
-            // The config changed while this was in flight (a shelf's sort): fetch again for the new one.
+            // The shelf's sort changed while this was in flight.
             if (target.dataset.config !== requested) {
                 doFetchAndUpdate(target);
                 return;
@@ -122,12 +120,9 @@ function doFetchAndUpdate(target) {
 
                 target.querySelector('.lazy-carousel-fallback').classList.remove('hidden');
             } else if (!hasRow) {
-                // Nothing to show on first load: drop the row (with its controls) rather than
-                // announcing an empty shelf the patron never asked for.
                 target.remove();
             } else {
-                // The loaded wrapper keeps the config so its header controls can refetch in place,
-                // and the placeholder's id so links to the row still land on it.
+                // Keep the config for refetches and the id for jump links.
                 newElem.dataset.config = JSON.stringify(config);
                 if (target.id) newElem.id = target.id;
                 target.parentNode.insertBefore(newElem, target);
@@ -201,11 +196,7 @@ function handleRetry(target) {
     doFetchAndUpdate(target);
 }
 
-/**
- * A "Browse the stacks" shelf's sort control (home/genre_shelf.html.jinja) re-sorts the shelf:
- * every loaded row refetches in place, and rows not loaded yet take the sort when they do.
- * The shelf keeps the current sort in `data-sort`.
- */
+// A "Browse the stacks" shelf's sort control re-sorts every row, loaded or not.
 document.addEventListener('ol-menu-popover-select', (e) => {
     const shelf = e.target.closest?.('.genre-shelf__sort')?.closest('.genre-shelf');
     if (!shelf) return;
@@ -222,12 +213,11 @@ document.addEventListener('ol-menu-popover-select', (e) => {
     });
 });
 
-// The latest refetch per carousel, so a slower earlier response can't overwrite a newer one.
+// So a slower earlier response can't overwrite a newer one.
 const latestRefetch = new WeakMap();
 
 /**
- * Replaces a loaded carousel with a fresh render for `config`. The old cards
- * stay visible, dimmed, until the new ones arrive; on failure they stay put.
+ * Re-renders a loaded carousel for `config`, keeping the old cards dimmed until then.
  *
  * @param host {HTMLElement}
  * @param config {object}
@@ -254,7 +244,6 @@ function refetch(host, config) {
         })
         .catch(() => {
             if (latestRefetch.get(host) !== request) return;
-            // Keep the current cards, and the config they show.
             host.dataset.config = JSON.stringify(previous);
         })
         .finally(() => {

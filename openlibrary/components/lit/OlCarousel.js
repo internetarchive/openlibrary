@@ -13,14 +13,9 @@ import './OlIcon.js';
  * Off-page items are deliberately not `inert` — in a scroll container they
  * are legitimately reachable by tab, screen reader and find-in-page.
  *
- * Off-page images load one page ahead. `loading="lazy"` alone doesn't hold
- * them back: browsers fetch lazy images a fixed distance (Chrome ~1250px)
- * past a scroller's edge, which is three pages ahead on a phone. So an item
- * can mark what should wait with a `deferred` attribute (`<ol-book-cover
- * deferred>`), and the carousel removes it once the item is within a page of
- * view. Leave the first page undeferred so it never waits on this script, and
- * keep `loading="lazy"`: the carousel only judges sideways distance, so the
- * browser still decides for a rail that is far down the page.
+ * Browsers fetch `loading="lazy"` images ~1250px past a scroller's edge, several
+ * pages ahead on a phone. Mark off-page items `deferred` (`<ol-book-cover deferred>`)
+ * and the carousel removes it within a page of view. Keep `loading="lazy"` too.
  *
  * @element ol-carousel
  *
@@ -537,7 +532,6 @@ export class OlCarousel extends LitElement {
     }
 
     willUpdate(changedProperties) {
-        // Breakpoints set after the first measure re-pick the columns at the current width.
         if (changedProperties.has('breakpoints') && this.hasUpdated) {
             this._updateColumns(this.clientWidth);
         }
@@ -778,7 +772,7 @@ export class OlCarousel extends LitElement {
         this._items.forEach((item) => this._itemObserver.observe(item));
 
         if (!this._nearObserver) {
-            // Percentages are of the viewport's width, so 100% reaches one page either side.
+            // 100% of the viewport's width: one page either side.
             this._nearObserver = new IntersectionObserver(this._onItemNear, {
                 root: scroller,
                 rootMargin: '0px 100%',
@@ -790,7 +784,6 @@ export class OlCarousel extends LitElement {
             .forEach((item) => this._nearObserver.observe(item));
     }
 
-    /** Releasing is one-way: once an item's images may load, it stops being watched. */
     _onItemNear(entries) {
         for (const entry of entries) {
             if (!entry.isIntersecting) continue;

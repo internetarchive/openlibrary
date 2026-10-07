@@ -19,9 +19,7 @@ export const DEFAULT_LABELS = {
  * `ol-tooltip` arms on the same media query a cover-card layout uses to
  * hide that text below the cover, so exactly one of the two shows.
  *
- * A linked cover gets a ring on hover and on keyboard focus, reaching 4px outside
- * the cover — leave that much room around it (e.g. ol-carousel's viewport padding).
- * Hover also dims the artwork under the ring.
+ * A linked cover's hover/focus ring reaches 4px outside it; leave that much room.
  *
  * @element ol-book-cover
  *
@@ -33,9 +31,7 @@ export const DEFAULT_LABELS = {
  * @prop {String} href - Link target; empty renders the cover unlinked
  * @prop {String} size - "medium" (default) or "small"; small drops the author
  *     from the blank cover, which has no room for it
- * @prop {Boolean} deferred - Holds the artwork back, drawing only the cover's surface, until
- *     the attribute is removed. ol-carousel removes it as the cover comes within a page of
- *     view; anything else that sets it has to remove it too
+ * @prop {Boolean} deferred - Holds the artwork back until removed (ol-carousel removes it near view)
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @slot overlay - Pinned to the cover's top-right corner, over the artwork
@@ -71,13 +67,8 @@ export class OlBookCover extends LitElement {
             outline: none;
         }
 
-        /* Both rings sit outside the cover, which clips anything inside it. The
-           host's surface needs 4px of room around it for them: the focus ring
-           is 2px with a 2px gap, the hover ring 4px hugging the edge. */
         @media (hover: hover) and (pointer: fine) {
-            /* At rest the hover ring is there at zero width, so hovering grows it out from the edge.
-               It tucks one media-border width under the cover's edge, covering the light seam two
-               antialiased curves leave at the corners; the extra width keeps its 4px reach outside. */
+            /* Zero-width at rest so hover grows it. Tucked under the edge to hide the corner seam. */
             :host([href]) {
                 outline: 0 solid var(--color-border-pointed);
                 outline-offset: calc(-1 * var(--border-width-media));
@@ -114,15 +105,13 @@ export class OlBookCover extends LitElement {
             }
         }
 
-        /* Wraps the overlay too, so pointing at the save button keeps the card
-           up. The link stays the trigger: it alone is described by the card. */
+        /* Wraps the overlay too, so hovering the save button keeps the card up. */
         ol-tooltip {
             display: block;
             height: 100%;
         }
 
-        /* The edge line is an inset outline, drawn over the artwork, so a pale
-           cover still separates from a pale page. */
+        /* Inset so a pale cover still separates from a pale page. */
         .img {
             display: block;
             width: 100%;
@@ -133,7 +122,6 @@ export class OlBookCover extends LitElement {
             outline-offset: calc(-1 * var(--border-width-media));
         }
 
-        /* A deferred cover: the host's own surface shows through until the artwork loads. */
         .pending {
             display: block;
             height: 100%;
@@ -252,7 +240,6 @@ export class OlBookCover extends LitElement {
         return this.renderRoot.querySelector('ol-tooltip');
     }
 
-    /** Pressing the overlay's button acts on the book; the card would only cover its menu. */
     _hideTip() {
         this._tooltip?.hide();
     }
@@ -293,7 +280,7 @@ export class OlBookCover extends LitElement {
         `;
     }
 
-    /** Reflects keyboard focus on the link to the host, which draws the ring. */
+    /** The host draws the focus ring. */
     _onFocus(e) {
         this.toggleAttribute('link-focus', e.target.matches(':focus-visible'));
     }

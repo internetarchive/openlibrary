@@ -6,7 +6,6 @@
  *  - openlibrary/plugins/openlibrary/js/browse-stacks.js
  */
 
-/* Sits after the book carousels, so it takes the gap a section heading gets there. */
 .browse-stacks {
   margin-top: var(--spacing-stack-xl);
 }
@@ -25,8 +24,7 @@
   font-weight: var(--font-weight-heading);
 }
 
-/* One row of tiles; the rail pages sideways. The viewport padding leaves room for the
-   tile's hover lift and shadow. */
+/* Viewport padding leaves room for the tile's hover lift and shadow. */
 /* The margin and the viewport padding together match the header's own gap. */
 .browse-stacks__rail {
   --ol-carousel-viewport-padding: var(--spacing-inset-xs);
@@ -149,8 +147,7 @@
   animation: browse-stacks-open var(--duration-base) var(--ease-enter);
 }
 
-/* The skeleton holds the shelf's size at once, but only shows once a load runs past a beat,
-   so a quick one goes straight to the books. */
+/* Delayed so a quick load goes straight to the books. */
 .browse-stacks__shelf--loading .carousel-skeleton {
   animation: browse-stacks-skeleton-in var(--duration-base) var(--ease-enter)
     var(--duration-fast) backwards;
@@ -162,9 +159,7 @@
   }
 }
 
-/* A caret under the open tile, so the shelf reads as that tile's, not a box below the rail.
-   browse-stacks.js measures the tile and sets --caret-x (a physical offset, so it holds in RTL)
-   and --caret-opacity, which fades it out before the tile reaches the rail's edge. */
+/* A caret under the open tile. browse-stacks.js sets --caret-x (physical, so RTL holds) and --caret-opacity. */
 .browse-stacks__shelf--anchored::before {
   content: "";
   position: absolute;
@@ -187,9 +182,7 @@
   transition: none;
 }
 
-/* Ride the open tile's view timeline instead, so the caret moves on the compositor with the rail
-   rather than a frame behind it. The timeline's ends come from browse-stacks.js. The fades span
-   the tile's centre reaching the edge (entry/exit 50%) to a half tile inside it. */
+/* Ride the tile's view timeline so the caret moves on the compositor, in step with the rail. */
 @supports (view-timeline: --a inline) and (timeline-scope: --a) {
   .browse-stacks {
     timeline-scope: --browse-stacks-open-tile;
@@ -203,8 +196,7 @@
 
   .browse-stacks__shelf--anchored::before {
     left: 0;
-    /* Longhands, not the `animation` shorthand: the minifier expands a multi-animation shorthand
-       to `animation-duration: 0s`, and a scroll-driven animation needs the `auto` default. */
+    /* Longhands: the minifier expands the shorthand to `animation-duration: 0s`, which breaks scroll-driven animation. */
     animation-name:
       browse-stacks-caret, browse-stacks-caret-in, browse-stacks-caret-out;
     animation-timing-function: linear;
@@ -260,8 +252,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-/* The shelf's header: the genre's name over its "Jump to" line, with the sort control at the end.
-   On a narrow screen the control drops under the name. */
+/* The sort control drops under the name on a narrow screen. */
 .genre-shelf__header {
   display: flex;
   flex-wrap: wrap;
@@ -309,8 +300,7 @@
   color: var(--color-text-muted);
 }
 
-/* The control is a block the size of its trigger, from the start: the component injects the
-   trigger on upgrade, and the header shouldn't move when it does. */
+/* Sized before upgrade so the header doesn't shift. */
 .genre-shelf__sort {
   display: block;
   min-height: var(--control-height-medium);
@@ -329,8 +319,7 @@
   border: 0;
 }
 
-/* The row's viewport bleeds to the shelf's edges, so scrolled cards run under them, but the cards
-   rest at the shelf's inset: the first cover lines up with the headings above it. */
+/* Bleed to the shelf's edges, but rest the first cover on the headings' left edge. */
 .genre-shelf .carousel-container {
   margin-inline: calc(-1 * var(--shelf-inset));
   padding-inline: 0;
@@ -351,8 +340,7 @@
   margin-top: 0;
 }
 
-/* The genre row, then one row per subgenre, parted by hairlines. A "Jump to" link scrolls its
-   row just clear of the one above. The header spaces itself from the first row. */
+/* Rows parted by hairlines. */
 .genre-shelf > * + * {
   margin-top: var(--spacing-stack-md);
   padding-top: var(--spacing-stack-md);

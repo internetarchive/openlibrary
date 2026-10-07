@@ -1,9 +1,6 @@
 {#
-  A book row's loading state: blank covers in the row's own card boxes, so the loaded row lands
-  without shifting. `layout` matches the row's ("carousel" for slick, "ol-carousel" for native).
-  `title` shows the row's real heading (`title_link` when it links); `header` stubs one when
-  the title isn't known yet.
-  `see_all` stubs a row's "See all" link, so the header keeps its loaded shape.
+  A book row's loading state, sized like the loaded row so nothing shifts.
+  `header` stubs the heading when `title` isn't known yet.
 #}
 {% macro carousel_skeleton(layout="carousel", title="", title_link=false, header=false, see_all=false) %}
     <div class="carousel-skeleton">

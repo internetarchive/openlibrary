@@ -44,7 +44,7 @@ HORROR = {
 
 
 class TestHomeGenreNarrow:
-    """A shelf row's query is built from its genre and subgenre: a subgenre row is books in both."""
+    """A subgenre row is books in both the genre and the subgenre."""
 
     def narrow(self, subgenre=None, sort="trending"):
         params = LazyCarouselParams(query="stale", genre="horror", subgenre=subgenre, sort=sort, safe_mode=False)
@@ -55,7 +55,6 @@ class TestHomeGenreNarrow:
             return HomeGenrePartial.narrow(params, HORROR)
 
     def test_genre_row_is_titled_for_its_sort(self):
-        """The shelf's sort control changes the genre row, so its title says what it shows."""
         params = self.narrow()
         assert params.query == "subject_key:(horror* OR fiction_horror*)"
         assert params.subgenre is None
@@ -72,7 +71,7 @@ class TestHomeGenreNarrow:
         assert self.narrow("gothic", sort="new").title == "Gothic"
 
     def test_every_row_links_with_the_shelf_sort(self):
-        """The shelf has one sort control, in its header, so a subgenre row's link follows it too."""
+        """A subgenre row's link follows the shelf's sort."""
         for subgenre in (None, "gothic"):
             params = self.narrow(subgenre, sort="rating")
             assert "sort=rating" in params.url
@@ -84,7 +83,6 @@ class TestHomeGenreNarrow:
         with patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=" language:eng"):
             params = HomeGenrePartial.narrow(LazyCarouselParams(query="stale", genre="trending", sort="trending", safe_mode=False), trending)
         assert params.query == f"{trending['query']} language:eng"
-        # The row's "See all" shows the same books, so it carries the same language clause.
         assert "language%3Aeng" in params.url
         assert params.title == "Trending now"
         assert HomeGenrePartial.genre_row_title(trending, "new") == "Newest"
@@ -104,8 +102,7 @@ class TestHomeGenreNarrow:
 
 
 class TestHomeGenreShelf:
-    """Opening a shelf is one request: a header for the genre, then the genre row loaded, with the config
-    the shelf's one sort control refetches from, and a lazy placeholder per subgenre row after it."""
+    """One request renders the header, the loaded genre row and a lazy placeholder per subgenre."""
 
     @pytest.fixture(autouse=True)
     def setup_context(self, request_context_fixture):
@@ -117,8 +114,7 @@ class TestHomeGenreShelf:
             patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=HORROR),
             patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
             patch.object(CarouselPartial, "generate_async", render),
-            # The "See all" chevron: the Jinja `icon` global renders a Templetor macro, not loaded here. Stub the
-            # macro, not the global: imported Jinja macros (CarouselSkeleton) snapshot globals when first imported.
+            # Stub the macro, not the Jinja global: imported macros snapshot globals on first import.
             patch.dict(web.template.Template.globals, {"macros": {"icon": lambda *a, **kw: ""}}),
         ):
             html = (await HomeGenrePartial.generate_async(HomeGenreParams(genre="horror")))["partials"]
@@ -138,16 +134,13 @@ class TestHomeGenreShelf:
         assert "<ol-carousel></ol-carousel>" in html
         assert 'class="lazy-carousel-loaded"' in html
         assert html.count('class="lazy-carousel"') == 2
-        # The shelf's one sort control is in the header, set to the genre row's sort; no row has its own.
         assert 'data-sort="trending"' in html
         assert html.count("genre-shelf__sort") == 1
         assert 'class="genre-shelf__sort" label="Sort by" heading="Sort by" value="trending"' in html
         assert "carousel-sort" not in html
-        # Every row links from a "See all" at the end of its header; the placeholders stub it.
         assert html.count("carousel-skeleton__see-all") == 2
         assert 'id="genre-horror-gothic"' in html
         assert 'id="genre-horror-psychological"' in html
-        # The placeholders' configs name their subgenre, so CarouselPartial scopes them when they load.
         assert "subgenre&#34;: &#34;gothic" in html or "subgenre&quot;: &quot;gothic" in html
 
     @pytest.mark.asyncio
@@ -157,7 +150,6 @@ class TestHomeGenreShelf:
         assert 'href="#genre-horror-gothic">Gothic</a>' in html
         assert 'href="#genre-horror-psychological">Psychological</a>' in html
         assert "Browse all" not in html
-        # The header, with the sort control, comes before the rows.
         assert html.index("genre-shelf__header") < html.index("genre-shelf__sort") < html.index("lazy-carousel-loaded")
 
     @pytest.mark.asyncio

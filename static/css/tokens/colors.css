@@ -171,8 +171,7 @@
   --color-control-track: var(--neutral-100);
   /* Drag handle on a sheet or tray — see-through ink, like --color-hover-overlay. */
   --color-drag-handle: color-mix(in srgb, var(--ink-overlay) 20%, transparent);
-  /* Loading skeleton blocks — see-through ink, so a block reads a step darker on any
-     surface — and the light band that sweeps across them (components/skeleton.css). */
+  /* Loading skeletons (components/skeleton.css); see-through, so they work on any surface. */
   --color-skeleton: color-mix(in srgb, var(--ink-overlay) 8%, transparent);
   --color-skeleton-highlight: color-mix(in srgb, var(--white) 40%, transparent);
 

@@ -2,10 +2,7 @@ import { trackEvent } from '../ol.analytics.js';
 import { buildPartialsUrl } from '../utils.js';
 
 /**
- * A book row rendered as `<ol-carousel>` (books/custom_carousel.html.jinja, layout
- * "ol-carousel"). The component pages and lazy-loads covers itself; this adds the
- * two things the slick rows get from Carousel.js: analytics and load-more, read
- * from the same `data-config`.
+ * Adds analytics and load-more to `<ol-carousel>` book rows, as Carousel.js does for slick rows.
  *
  * @param {Iterable<HTMLElement>} elems `ol-carousel` elements
  */
@@ -28,7 +25,6 @@ export function initNativeCarousels(elems) {
         const loadMore = config.loadMore;
         if (!loadMore?.queryType) return;
         let locked = false;
-        // A first batch short of the limit is the whole result set; don't ask for more.
         let allDone = carousel.children.length < loadMore.limit;
         carousel.addEventListener('ol-carousel-near-end', async(e) => {
             if (locked || allDone) return;
@@ -40,7 +36,7 @@ export function initNativeCarousels(elems) {
                 if (!cards.length) allDone = true;
                 carousel.append(...cards);
             } catch {
-                // Leave the rail as it is; the next settle near the end asks again.
+                // The next near-end event retries.
             } finally {
                 locked = false;
                 carousel.removeAttribute('aria-busy');
@@ -50,8 +46,6 @@ export function initNativeCarousels(elems) {
 }
 
 /**
- * The next batch of cards after `itemCount`, as elements.
- *
  * @param {object} loadMore the `loadMore` block of the row's config
  * @param {number} itemCount cards already in the rail
  * @returns {Promise<Element[]>}
@@ -61,7 +55,6 @@ async function fetchMoreCards(loadMore, itemCount) {
         queryType: loadMore.queryType,
         q: loadMore.q,
         limit: loadMore.limit,
-        // Offset mode counts from the last card; page mode is slick-only on this path.
         page: itemCount,
         sorts: loadMore.sorts,
         subject: loadMore.subject,

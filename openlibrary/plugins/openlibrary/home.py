@@ -32,10 +32,8 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    # The template shuffles the tiles per visit, so the cached order doesn't matter.
-    # A Solr failure costs the rail, not the page; it isn't cached, so the next render retries.
+    # The genre cache is shared across languages, so names are translated per page.
     try:
-        # The cache is shared across languages, so the names are translated here, per page.
         featured_genres = [{**genre, "name": home_genres.display_name(genre)} for genre in get_cached_featured_genres()]
     except Exception:
         logger.error("Error in getting featured genres", exc_info=True)
@@ -131,8 +129,7 @@ class random_book(delegate.page):
 
 
 def get_featured_subjects():
-    """The subject list behind the OPDS catalog's navigation (api.py). The home page's
-    subject strip that used it is gone; the stacks below replaced it."""
+    """The subject list behind the OPDS catalog's navigation (api.py)."""
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()
@@ -226,13 +223,11 @@ def get_cached_featured_subjects():
     )()
 
 
-# Covers shown fanned on each genre tile.
 GENRE_TILE_COVERS = 3
 
 
 def get_trending_tile_covers() -> list[int]:
-    """The Trending tile's fan: the covers of the first readable books its shelf would show. Live, where
-    the other tiles' are hand-picked; cached with the rest of the rail."""
+    """Covers for the Trending tile. Live, unlike the other tiles' hand-picked ones."""
     results = async_bridge.run(
         work_search_async(
             {"q": home_genres.solr_query(home_genres.TRENDING), "has_fulltext": "true"},
@@ -247,13 +242,10 @@ def get_trending_tile_covers() -> list[int]:
 
 
 def get_featured_genres():
-    """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree fanned with the covers
-    hand-picked in home_genre_covers.json (no covers, no tile), led by the Trending stack. Names are
-    left untranslated: the cache is shared across languages, and get_homepage translates them per page."""
+    """Tiles for home/browse_stacks.html.jinja, Trending first. A genre without picked covers gets no tile."""
     if "env" not in web.ctx:
         delegate.fakeload()
     picked = {home_genres.TRENDING["slug"]: get_trending_tile_covers(), **home_genres.load_tile_covers()}
-    # Trending leads; the template shuffles the rest.
     nodes = [home_genres.TRENDING, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
     return [{**genre, "covers": picked[genre["slug"]][:GENRE_TILE_COVERS]} for genre in nodes]
 

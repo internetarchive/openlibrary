@@ -1,8 +1,4 @@
-{#
-  Shows a carousel placeholder: a skeleton of the row until lazy-carousel.js swaps the row in.
-  `id`, when given, moves to the loaded row, so links to the row keep working. `see_all` stubs
-  the row's "See all" link.
-#}
+{# A skeleton of the row until lazy-carousel.js swaps it in. `id` moves to the loaded row. #}
 {% from "CarouselSkeleton.html.jinja" import carousel_skeleton %}
 <div class="lazy-carousel"
      {% if id | default("") %}id="{{ id }}"{% endif %}

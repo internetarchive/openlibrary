@@ -107,8 +107,6 @@
   --spacing-section-gap-desktop: var(--spacing-5xl);  /* 48px – between page sections on desktop */
 }
 
-/* A phone has no room for a 20px gutter on each side. Anything that bleeds to the
-   page edge (carousels, the sticky nav bar) derives from the token, so it follows. */
 /* --width-breakpoint-tablet */
 @media (max-width: 767px) {
   :root {

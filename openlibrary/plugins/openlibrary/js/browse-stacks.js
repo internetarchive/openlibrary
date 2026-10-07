@@ -1,12 +1,6 @@
 /**
- * "Browse the stacks" on the home page: a rail of genre tiles that open a shelf (a header for the
- * genre, its carousel, then one per subgenre) in place. The shelf HTML comes from /partials/HomeGenre.json
- * with the genre row already loaded and the subgenre rows as lazy placeholders; lazy-carousel.js loads
- * those and runs the header's sort control, which re-sorts the whole shelf. The first tile's shelf (Trending,
- * which the template pins first) is open on load; a caret on an open shelf points at its tile.
- * Opening another stack puts it in the URL (?stack=horror, replacing the history entry), so a reader who
- * follows a book and comes back finds it open: the template's inline script moves that tile into view and
- * draws its skeleton, and this opens it. Closing, or opening the pinned stack, clears the URL again.
+ * "Browse the stacks" on the home page: genre tiles that open a shelf in place, from /partials/HomeGenre.json.
+ * The open stack is kept in ?stack= so it survives a trip to a book page and back.
  */
 
 import { trackEvent } from './ol.analytics.js';
@@ -29,16 +23,11 @@ export function initBrowseStacks(root) {
         return tiles.find(tile => tile.dataset.genre === slug);
     }
 
-    /** The stack the URL names: the one to open on load. */
     function requested() {
         return tileFor(new URLSearchParams(location.search).get('stack'));
     }
 
-    /**
-     * Keep the open stack in the URL so it survives a trip to a book page and back. The pinned (default)
-     * stack and a closed shelf leave the URL clean.
-     * @param {string|null} slug
-     */
+    /** @param {string|null} slug - null, or the pinned stack, clears ?stack= */
     function remember(slug) {
         const url = new URL(location.href);
         const tile = tileFor(slug);
@@ -55,11 +44,8 @@ export function initBrowseStacks(root) {
     }
 
     /**
-     * Point the shelf's caret at the open tile, fading it over the tile's last half-width of travel
-     * so it is gone before it reaches the rail's edge.
-     * Where scroll-driven animations exist, CSS moves and fades the caret along the tile's view timeline,
-     * so it scrolls in the same frame as the tile; --caret-from/--caret-to are the timeline's ends.
-     * Elsewhere --caret-x and --caret-opacity are re-measured each scroll frame, a frame or so behind.
+     * Point the shelf's caret at the open tile, fading it out near the rail's edges.
+     * With scroll-driven animations CSS moves it between --caret-from/--caret-to; elsewhere we re-measure per frame.
      */
     function anchor() {
         const tile = tileFor(current);
@@ -75,7 +61,6 @@ export function initBrowseStacks(root) {
         shelf.style.setProperty('--caret-x', `${centre - shelfLeft}px`);
         shelf.style.setProperty('--caret-opacity', Math.max(0, Math.min(1, Math.min(centre - port.left, port.right - centre) / half)));
         if (scroller) {
-            // The timeline runs from the tile entering at the scrollport's end edge to leaving at its start.
             const rtl = getComputedStyle(rail).direction === 'rtl';
             shelf.style.setProperty('--caret-from', `${(rtl ? port.left - half : port.right + half) - shelfLeft}px`);
             shelf.style.setProperty('--caret-to', `${(rtl ? port.right + half : port.left - half) - shelfLeft}px`);
@@ -83,8 +68,7 @@ export function initBrowseStacks(root) {
         shelf.classList.add('browse-stacks__shelf--anchored');
     }
 
-    // While the rail scrolls, the caret follows each frame instead of easing after the tile.
-    // Settles on a short idle rather than scrollend, which Safari only got in 26.2.
+    // Idle timeout rather than scrollend, which Safari only got in 26.2.
     let frame = 0;
     let idle = 0;
     function track() {
@@ -116,9 +100,7 @@ export function initBrowseStacks(root) {
     }
 
     /**
-     * The shelf's skeleton: the header naming the tile's genre, its subgenres as the "Jump to" line and
-     * a stub for its sort control; then the genre row, titled; then a row per subgenre, so the loaded shelf
-     * lands in the same shape. The template's inline script builds the same for the shelf open on load.
+     * A skeleton in the loaded shelf's shape. Keep in sync with the inline script in browse_stacks.html.jinja.
      * @param {HTMLElement} tile
      * @returns {DocumentFragment}
      */
@@ -150,7 +132,7 @@ export function initBrowseStacks(root) {
     /**
      * @param {string} slug
      * @param {object} [options]
-     * @param {boolean} [options.initial] - the shelf opened on load, whose skeleton the template's inline script already drew
+     * @param {boolean} [options.initial] - opened on load; the inline script already drew the skeleton
      */
     async function load(slug, { initial = false } = {}) {
         controller?.abort();
@@ -163,7 +145,6 @@ export function initBrowseStacks(root) {
             shelf.classList.add('browse-stacks__shelf--loading');
         }
         const lazyCarouselModule = import('./lazy-carousel');
-        // The template's inline script already started the fetch for the shelf open on load.
         const prefetch = shelf.prefetch;
         delete shelf.prefetch;
         try {
@@ -188,7 +169,6 @@ export function initBrowseStacks(root) {
             });
             return false;
         } finally {
-            // Unless a newer load owns the shelf's busy state now.
             if (controller.signal === signal) {
                 shelf.classList.remove('browse-stacks__shelf--loading');
                 shelf.removeAttribute('aria-busy');
@@ -199,7 +179,7 @@ export function initBrowseStacks(root) {
     /**
      * @param {string} slug
      * @param {object} [options]
-     * @param {boolean} [options.initial] - the shelf opened on load, not by the reader: don't focus or track it
+     * @param {boolean} [options.initial] - opened on load, not by the reader: don't focus or track it
      */
     async function open(slug, { initial = false } = {}) {
         if (current === slug) {
@@ -212,8 +192,6 @@ export function initBrowseStacks(root) {
             remember(slug);
             trackEvent('BrowseStacks', 'Open', slug);
         }
-        // The skeleton is already the loaded shelf's size, so point at it while it loads.
-        // No scrolling: the shelf opens right under the rail, and the page stays where the reader is.
         const loading = load(slug, { initial });
         anchor();
         const ok = await loading;
@@ -224,12 +202,10 @@ export function initBrowseStacks(root) {
 
     tiles.forEach(tile => tile.addEventListener('click', () => open(tile.dataset.genre)));
 
-    // Lead with the URL's stack open, or else the first tile's (Trending; the template's inline script
-    // already drew the same shelf's skeleton).
     const first = requested() || tiles[0];
     if (first) open(first.dataset.genre, { initial: true });
 
-    // The scroller is inside ol-carousel's shadow root; scroll events don't cross it.
+    // Scroll events don't cross ol-carousel's shadow root.
     customElements.whenDefined('ol-carousel').then(() => rail.updateComplete).then(() => {
         scroller = rail.shadowRoot?.querySelector('.viewport');
         scroller?.addEventListener('scroll', track, { passive: true });
@@ -242,8 +218,7 @@ export function initBrowseStacks(root) {
     });
     window.addEventListener('resize', anchor);
 
-    // Only Escape from inside the stacks, so dismissing the header search or a menu leaves the shelf open.
-    // A popover inside the shelf owns its own Escape (its host is the retargeted event target).
+    // Escape only from inside the stacks, and not from a popover, which handles its own.
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape' || !current || e.defaultPrevented) return;
         if (!e.composedPath().includes(root)) return;

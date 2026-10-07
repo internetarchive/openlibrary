@@ -84,7 +84,7 @@ test('breakpoints override the default columns', async() => {
     const el = document.querySelector('ol-carousel');
     await el.updateComplete;
 
-    // The default would show eight at this width; these breakpoints show seven, so pages start every 7th card.
+    // Seven columns at this width, not the default eight.
     await expect.poll(() => el.totalPages).toBe(3);
     const items = Array.from(el.children);
     expect(items[7].style.scrollSnapAlign).toBe('start');

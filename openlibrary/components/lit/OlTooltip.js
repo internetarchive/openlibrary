@@ -83,7 +83,7 @@ export class OlTooltip extends LitElement {
             user-select: none;
             width: max-content;
             opacity: 0;
-            /* display and overlay hold the panel (and its top-layer slot) until the fade-out ends. */
+            /* Keep it displayed and in the top layer until the fade-out ends. */
             transition:
                 opacity var(--duration-fast) var(--ease-exit),
                 display var(--duration-fast) allow-discrete,
@@ -104,7 +104,7 @@ export class OlTooltip extends LitElement {
         .tooltip[data-visible] {
             display: block;
             opacity: 1;
-            /* A plain ease-out over 200ms: --ease-enter's quint curve does most of an opacity fade in the first frames, so it reads as a pop. */
+            /* Not --ease-enter: a quint curve makes an opacity fade read as a pop. */
             transition-duration: var(--duration-base);
             transition-timing-function: ease-out;
         }
@@ -288,7 +288,6 @@ export class OlTooltip extends LitElement {
 
     // ── Show / Hide ──
 
-    /** Closes the panel now; the next hover or keyboard focus can open it again. */
     hide() {
         this._clearTimers();
         this._hide();
