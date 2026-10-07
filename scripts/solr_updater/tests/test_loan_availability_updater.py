@@ -1,5 +1,6 @@
 """Tests for loan_availability_updater.py"""
 
+import logging
 import time
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -18,6 +19,7 @@ from scripts.solr_updater.loan_availability_updater import (
     MARKED_SET_MAX,
     SOLR_QUERY_CHUNK,
     PollRefused,
+    SolrWriteFailed,
     build_poll_updates,
     fetch_marked_editions,
     main,
@@ -138,8 +140,25 @@ async def test_solr_update_in_place_raises_on_nonzero_status():
             "responseHeader": {"status": 400},
             "error": {"msg": "Can not satisfy 'update.partial.requireInPlace'"},
         }
-        with pytest.raises(RuntimeError, match="Solr in-place update error"):
+        with pytest.raises(RuntimeError, match="Solr rejected the in-place update"):
             await solr_update_in_place([{"key": "/books/OL1M"}])
+
+
+@pytest.mark.asyncio
+async def test_a_refused_write_is_logged_with_the_batch_it_refused(caplog):
+    """Solr answers 400 for the whole request and names no document, so the
+    batch's shape and a sample key are what make it diagnosable."""
+    batch = [{"key": "/books/OL1M", "_root_": "/works/OL1W", "ebook_unavailable": {"set": EBOOK_UNAVAILABLE}}]
+    solr = MagicMock(spec=Solr)
+    solr.update_in_place_async = AsyncMock(return_value={"responseHeader": {"status": 400}, "error": {"msg": "no in-place update"}})
+    with (
+        patch("scripts.solr_updater.loan_availability_updater.get_solr", return_value=solr),
+        caplog.at_level(logging.ERROR, logger="openlibrary.loan-availability-updater"),
+        pytest.raises(SolrWriteFailed),
+    ):
+        await solr_update_in_place(batch)
+    assert "/books/OL1M" in caplog.text
+    assert "no in-place update" in caplog.text, "Solr's own words, not just our summary"
 
 
 @pytest.mark.asyncio

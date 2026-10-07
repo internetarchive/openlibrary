@@ -269,25 +269,90 @@ async def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     return resolved
 
 
+class SolrWriteFailed(RuntimeError):
+    """The batch did not land. Distinct from a bad READ (PollRefused) because
+    the operator response differs: a refused read is usually transient index
+    churn, a refused write is usually this batch being unacceptable to Solr.
+
+    Subclasses RuntimeError deliberately: this narrowed what used to be a bare
+    RuntimeError, and anything that caught that -- including the supervising
+    loop -- keeps working unchanged. The new type adds a handle for callers
+    that want to distinguish, it does not take one away."""
+
+
+def _describe(request: list[dict]) -> str:
+    """What a batch contains, in one line, for a log that has to be actionable.
+
+    A `requireInPlace` rejection names no document -- Solr answers 400 for the
+    whole request -- so without this the operator gets "update failed" and a
+    count. The sample keys are what make it diagnosable: they can be fetched
+    from Solr and compared against the schema by hand.
+    """
+    marks = [d["key"] for d in request if d.get("ebook_unavailable") == {"set": EBOOK_UNAVAILABLE}]
+    clears = [d["key"] for d in request if d.get("ebook_unavailable") == {"set": EBOOK_AVAILABLE}]
+    fields = sorted({field for d in request for field in d if field not in ("key", "_root_")})
+    sample = (marks + clears)[:5]
+    return f"{len(request)} docs ({len(marks)} mark, {len(clears)} clear), fields={fields}, first keys={sample}"
+
+
 async def solr_update_in_place(request: list[dict], commit: bool = False) -> None:
-    """Call Solr.update_in_place_async and raise if Solr reports failure.
+    """Write the batch, or raise with enough detail to act on.
 
     update_in_place_async returns the parsed response without checking status
     -- other callers (trending_updater_daily/hourly) rely on that and just log
     it, so the check is done here rather than changing the shared method.
+
+    Both failure shapes are caught and described, because they have different
+    causes and a bare traceback distinguishes them poorly:
+
+    * **No response at all** -- Solr unreachable, connection reset, timeout.
+      Infrastructure; the batch is untouched and the next poll rebuilds it.
+    * **A response carrying a non-zero status** -- Solr understood and refused.
+      Under `update.partial.requireInPlace` the usual cause is a document that
+      no longer satisfies in-place rules, typically because the main
+      solr_updater rewrote that edition between this poll's read and its
+      write. The whole batch is rejected over one such document, so the field
+      list and sample keys are how the offending one gets found.
     """
-    resp = await get_solr().update_in_place_async(request, commit=commit)
-    if resp.get("responseHeader", {}).get("status") != 0:
-        raise RuntimeError(f"Solr in-place update error: {resp}")
+    described = _describe(request)
+    try:
+        resp = await get_solr().update_in_place_async(request, commit=commit, _timeout=SOLR_WRITE_TIMEOUT)
+    except Exception as exc:
+        logger.error("Solr write failed with no response -- %s -- %s: %s", described, type(exc).__name__, exc)
+        raise SolrWriteFailed(f"Solr unreachable or the request never completed: {described}") from exc
+
+    header = resp.get("responseHeader") or {}
+    if header.get("status") != 0:
+        # Solr puts the useful part under "error"; log that rather than the
+        # whole envelope, which is mostly echo of the request.
+        error = resp.get("error") or resp
+        logger.error("Solr REFUSED the write (status=%s) -- %s -- %s", header.get("status"), described, error)
+        raise SolrWriteFailed(f"Solr rejected the in-place update (status={header.get('status')}): {described}")
+
+    logger.info("Solr write OK: %s in %sms", described, header.get("QTime", "?"))
 
 
-POLL_INTERVAL = 15
+POLL_INTERVAL = 30
 """Seconds between polls of the index's unavailable set.
 
 Measured 2026-10-05 against live archive.org: the set moved by 4 books across
 several minutes, so it changes per-minute rather than per-second. At two pages
 per poll, 10s is ~17,000 requests/day and 30s is ~5,700, for no freshness any
-measurement here could distinguish.
+measurement here could distinguish -- so this is sized to the rate the data
+actually changes, not to the smallest interval the daemon could sustain.
+"""
+
+SOLR_WRITE_TIMEOUT = 60
+"""Seconds to wait for Solr to accept a batch.
+
+Six times the shared client default, on purpose. This is one bulk in-place
+update carrying the whole cycle's marks and clears, and it contends with the
+main solr_updater on the same cores -- so the tail is the interesting case
+here, not the median. Timing out mid-write costs the entire batch and the next
+poll has to rebuild it; waiting is the cheaper failure.
+
+Comfortably inside POLL_INTERVAL * 2, so a slow write cannot stack cycles up
+behind it.
 """
 
 MARKED_SET_MAX = 50_000
@@ -635,6 +700,13 @@ async def main(
             if now - last_heartbeat >= HEARTBEAT_INTERVAL:
                 await log_heartbeat()
                 last_heartbeat = now
+        except SolrWriteFailed:
+            # Already logged with the batch's shape and Solr's own words. This
+            # exists so a write failure is not reported as "poll failed", which
+            # points an operator at the READ path -- the index, the network,
+            # the query -- when the read in fact succeeded and the daemon has
+            # an answer it simply could not store.
+            logger.exception("Solr write failed; prior state stands and the next poll rebuilds this batch")
         except lending.CheckedOutSeedIncomplete, PollRefused:
             # Both mean "this cycle's inputs are not trustworthy". Prior state
             # stands, which is the safe direction: an over-held book is hidden
