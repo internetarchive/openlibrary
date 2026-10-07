@@ -111,28 +111,86 @@
   justify-content: center;
 }
 
-.reading-goal-progress__progress-bar {
-  background-color: var(--light-grey);
-  border-radius: 5px;
-  height: 20px;
-  margin: auto;
-  width: 85%;
-  margin-bottom: 10px;
-}
-
-.reading-goal-progress__completed {
-  display: inline-block;
-  background-color: var(--color-primary);
-  height: inherit;
-  border-radius: inherit;
-}
-
-.reading-goal-progress__details {
+.reading-goal-progress__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
   width: 85%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reading-goal-progress__title {
+  font-weight: 600;
+  font-size: var(--font-size-body-large);
+}
+
+.reading-goal-progress__edit {
+  font-size: var(--font-size-label-medium);
+  color: var(--link-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.reading-goal-progress__edit:hover {
+  text-decoration: underline;
+}
+
+.reading-goal-progress__progress-bar {
+  background-color: var(--light-grey);
+  border-radius: 5px;
+  height: 28px;
   margin: auto;
+  width: 85%;
+  margin-bottom: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.reading-goal-progress__completed {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.reading-goal-progress__progress-text {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0 8px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1;
+  pointer-events: none;
+  color: var(--color-text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.reading-goal-progress__books-read {
+  font-size: var(--font-size-label-small);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.reading-goal-progress__separator {
+  font-size: var(--font-size-label-small);
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.reading-goal-progress__goal {
+  font-size: var(--font-size-label-small);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 @media only screen and (max-width: 768px) /* @width-breakpoint-tablet */ {
@@ -140,27 +198,23 @@
     padding: 15px 0 0;
   }
 
-  .reading-goal-progress__details {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 85%;
-    margin: auto;
+  .reading-goal-progress__header {
+    width: 90%;
+  }
+
+  .reading-goal-progress__progress-bar {
+    width: 90%;
+    height: 24px;
+  }
+
+  .reading-goal-progress__books-read,
+  .reading-goal-progress__separator,
+  .reading-goal-progress__goal {
+    font-size: var(--font-size-label-xsmall);
   }
 }
 
-.edit-reading-goal-link {
-  display: inline-block;
-  background-color: var(--link-blue);
-  color: var(--white) !important;
-  border-radius: 4px;
-  padding: 4px 12px;
-  font-size: 0.85em;
-  font-weight: bold;
-  text-decoration: none !important;
-  transition: background-color 0.15s ease;
-}
-
-.edit-reading-goal-link:hover {
-  background-color: var(--dark-blue);
+/* Override the dialog trigger to work with the edit link */
+.reading-goal-progress__edit[data-dialog-trigger] {
+  cursor: pointer;
 }
