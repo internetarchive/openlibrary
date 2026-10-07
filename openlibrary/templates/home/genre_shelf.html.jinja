@@ -22,13 +22,16 @@
                     </nav>
                 {% endif %}
             </div>
-            {% set sort_items = [
-                {"value": "trending", "label": _("Trending")},
-                {"value": "new", "label": _("Newest")},
-                {"value": "rating", "label": _("Top rated")},
-            ] %}
-            <ol-menu-popover class="genre-shelf__sort" label="{{ _('Sort by') }}" heading="{{ _('Sort by') }}" value="{{ sort }}" items="{{ sort_items | tojson | forceescape }}">
-            </ol-menu-popover>
+            {# Trending is already an order, so its shelf has no sort. #}
+            {% if genre.kind != "trending" %}
+                {% set sort_items = [
+                    {"value": "trending", "label": _("Trending")},
+                    {"value": "new", "label": _("Newest")},
+                    {"value": "rating", "label": _("Top rated")},
+                ] %}
+                <ol-menu-popover class="genre-shelf__sort" label="{{ _('Sort by') }}" heading="{{ _('Sort by') }}" value="{{ sort }}" items="{{ sort_items | tojson | forceescape }}">
+                </ol-menu-popover>
+            {% endif %}
         </div>
         <div class="lazy-carousel-loaded" data-config="{{ config_json }}">{{ carousel | safe }}</div>
         {% for row in subgenre_rows %}

@@ -113,6 +113,7 @@ export function initBrowseStacks(root) {
         const entitle = (row, name) => {
             row.querySelector('.carousel-skeleton__title').textContent = name;
         };
+        fragment.querySelector('.genre-shelf').dataset.genre = tile.dataset.genre;
         fragment.querySelector('.genre-shelf__title').textContent = data.name;
         const jump = fragment.querySelector('.genre-shelf__jump');
         if (data.subgenres.length) {

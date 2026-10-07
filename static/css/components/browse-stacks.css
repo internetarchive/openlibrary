@@ -343,6 +343,25 @@
   margin-top: 0;
 }
 
+/* The Trending shelf's title already names its one row: the row's heading is for screen readers only,
+   and its "See all" moves up beside the title. */
+.genre-shelf[data-genre="trending"] .home-h2 {
+  position: absolute;
+  left: -10000px;
+}
+
+.genre-shelf[data-genre="trending"] .carousel-section-header {
+  position: absolute;
+  top: var(--spacing-inset-md);
+  right: var(--shelf-inset);
+  height: calc(var(--font-size-headline-small) * var(--line-height-tight));
+  margin: 0;
+}
+
+.genre-shelf[data-genre="trending"] .genre-shelf__sort-skeleton {
+  display: none;
+}
+
 /* Rows parted by hairlines. */
 .genre-shelf > * + * {
   margin-top: var(--spacing-stack-md);

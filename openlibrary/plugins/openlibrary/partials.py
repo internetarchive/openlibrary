@@ -1120,7 +1120,7 @@ class HomeGenrePartial:
     def genre_row_title(genre: home_genres.Genre, sort: str) -> str:
         name = home_genres.display_name(genre)
         if genre["kind"] == "trending":
-            return {"new": _("Newest"), "rating": _("Top rated")}.get(sort, _("Trending now"))
+            return _("Trending now")
         if sort == "new":
             return _("Newest in %(genre)s", genre=name)
         if sort == "rating":

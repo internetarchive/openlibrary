@@ -85,8 +85,6 @@ class TestHomeGenreNarrow:
         assert params.query == f"{trending['query']} language:eng"
         assert "language%3Aeng" in params.url
         assert params.title == "Trending now"
-        assert HomeGenrePartial.genre_row_title(trending, "new") == "Newest"
-        assert HomeGenrePartial.genre_row_title(trending, "rating") == "Top rated"
         assert HomeGenrePartial.jump_links(trending) == []
 
     def test_unknown_subgenre_falls_back_to_the_genre(self):
@@ -108,16 +106,16 @@ class TestHomeGenreShelf:
     def setup_context(self, request_context_fixture):
         request_context_fixture(lang="en")
 
-    async def shelf(self):
+    async def shelf(self, genre=HORROR):
         render = AsyncMock(return_value={"partials": "<ol-carousel></ol-carousel>"})
         with (
-            patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=HORROR),
+            patch("openlibrary.plugins.openlibrary.home_genres.find_genre", return_value=genre),
             patch("openlibrary.plugins.openlibrary.home_genres.user_language_clause", return_value=""),
             patch.object(CarouselPartial, "generate_async", render),
             # Stub the macro, not the Jinja global: imported macros snapshot globals on first import.
             patch.dict(web.template.Template.globals, {"macros": {"icon": lambda *a, **kw: ""}}),
         ):
-            html = (await HomeGenrePartial.generate_async(HomeGenreParams(genre="horror")))["partials"]
+            html = (await HomeGenrePartial.generate_async(HomeGenreParams(genre=genre["slug"])))["partials"]
         return html, render.call_args.args[0]
 
     @pytest.mark.asyncio
@@ -151,6 +149,12 @@ class TestHomeGenreShelf:
         assert 'data-ol-link-track="BrowseStacks|JumpTo|genre-horror-psychological">Psychological</a>' in html
         assert "Browse all" not in html
         assert html.index("genre-shelf__header") < html.index("genre-shelf__sort") < html.index("lazy-carousel-loaded")
+
+    @pytest.mark.asyncio
+    async def test_trending_shelf_has_no_sort(self):
+        html, _row = await self.shelf(home_genres.TRENDING)
+        assert 'data-genre="trending"' in html
+        assert "genre-shelf__sort" not in html
 
     @pytest.mark.asyncio
     async def test_unknown_genre_is_empty(self):

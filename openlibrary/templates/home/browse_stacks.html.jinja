@@ -98,6 +98,7 @@
                 shelf.prefetch.response.catch(function () {});
                 var data = JSON.parse(open.getAttribute('data-shelf'));
                 var skeleton = template.content.cloneNode(true);
+                skeleton.querySelector('.genre-shelf').setAttribute('data-genre', open.getAttribute('data-genre'));
                 skeleton.querySelector('.genre-shelf__title').textContent = data.name;
                 var jump = skeleton.querySelector('.genre-shelf__jump');
                 var rows = skeleton.querySelectorAll('.carousel-skeleton');
