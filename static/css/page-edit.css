@@ -115,6 +115,9 @@ table.code td {
 .formElement.pagetype {
   width: 300px;
 }
+.formElement.pagetype select {
+  width: 100%;
+}
 div#revertNotice,
 footer,
 div#bottom,
