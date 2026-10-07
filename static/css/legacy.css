@@ -114,10 +114,6 @@ table.meta td.title {
   width: 120px;
 }
 
-table.meta td.descrip {
-  width: 65px;
-}
-
 table.code pre {
   white-space: pre !important;
 }
@@ -348,12 +344,6 @@ span.resultTitle {
   color: var(--color-text-secondary);
 }
 
-span.resultTitle span.resultType {
-  font-size: 0.75em;
-  font-family: var(--font-family-body);
-  color: var(--brown);
-}
-
 span.resultTitle .bookauthor,
 span.resultTitle .resultPublisher {
   font-size: 0.75em;
@@ -460,13 +450,6 @@ input.highlight {
 }
 
 /* Search v2 */
-/* openlibrary/macros/SearchResultsWork.html */
-.serp-extras {
-  border: 1px solid var(--color-border-subtle);
-  background-color: var(--white);
-  padding: 0 10px 10px;
-  margin-top: var(--spacing-stack-sm);
-}
 
 /* openlibrary/data/sitemap.py */
 div#placement {
@@ -487,21 +470,6 @@ div#content {
   border-radius: 5px;
   border: 1px solid var(--color-border-muted);
 }
-
-div#content div.contentLists {
-  float: left;
-  position: relative;
-  left: -20px;
-}
-
-/* stylelint-disable selector-max-specificity */
-div#content div#contentLists {
-  float: left;
-  position: relative;
-  border-top: 1px solid var(--color-border-subtle);
-  background: var(--white) url(/static/images/back_results.png) repeat-x;
-}
-/* stylelint-enable selector-max-specificity */
 
 div#contentHead {
   max-width: 1018px;
@@ -575,9 +543,7 @@ div.formElement.bottom {
   padding-bottom: 0;
 }
 
-div.formElement label,
-div.formElement select#date1,
-div.formElement select#date2 {
+div.formElement label {
   font-size: 0.75em;
 }
 
@@ -792,11 +758,6 @@ div.verify span {
 
 .defaultstyling .padtop {
   margin-top: var(--spacing-stack-sm);
-}
-
-/* openlibrary/templates/account/email/forgot-ia.html */
-.forgot-email {
-  font-size: 0.8em;
 }
 
 .forgot-email-form {
@@ -1153,15 +1114,6 @@ div.workHelp {
   margin-bottom: 20px;
 }
 
-/* openlibrary/templates/type/work/view.html */
-.workCover .illustration img {
-  max-width: 270px !important;
-}
-
-.workCover .illustration .SRPCoverBlank {
-  margin: 0 auto;
-}
-
 /* openlibrary/templates/books/author-autocomplete.html */
 div.books {
   float: left;
@@ -1448,13 +1400,6 @@ span.actions span.daisy:hover {
   background-position: -408px 0 !important;
 }
 
-/* openlibrary/templates/type/list/embed.html */
-span.actions a span.checked-out {
-  display: block;
-  margin: 0 auto;
-  padding: 0;
-}
-
 /* openlibrary/templates/stats/readinglog.html */
 /* openlibrary/templates/type/author/view.html */
 /* openlibrary/templates/work_search.html */
@@ -1494,11 +1439,6 @@ ul.list-books span.resultPublisher {
 /* openlibrary/macros/SearchResultsWork.html */
 ul.list-books span.resultPublisher {
   display: block;
-}
-
-/* openlibrary/templates/books/show.html */
-ul.list-books span.resultType {
-  font-size: 0.6875em;
 }
 
 .list-books--grid {
@@ -1629,12 +1569,6 @@ div.mergeThis {
 }
 /* stylelint-enable selector-max-specificity */
 
-/* BORROWING */
-div.preSubmit,
-div.postSubmit {
-  text-align: center;
-}
-
 /* LISTS */
 /* openlibrary/templates/type/list/exports.html */
 #listTools ul {
@@ -1669,62 +1603,6 @@ div.postSubmit {
 
 #listTools li span.alert {
   background-position: -56px 0;
-}
-
-/* openlibrary/templates/lists/widget.html */
-.heart-adjust {
-  position: relative;
-  top: -3px;
-  left: 4px;
-}
-
-/* openlibrary/templates/publishers/view.html */
-/* openlibrary/templates/subjects.html */
-div#subjectLists ul.listLists {
-  padding: 0;
-}
-
-div#subjectLists ul.listLists li {
-  list-style-type: none;
-  float: left;
-  width: 282px;
-  font-family: var(--font-family-body);
-  padding-bottom: 10px;
-  padding-top: 0;
-  display: flex;
-}
-
-div#subjectLists ul.listLists li .image {
-  display: block;
-  float: left;
-  width: 34px;
-  min-height: 35px;
-}
-
-div#subjectLists ul.listLists li .image img {
-  width: 24px;
-}
-
-div#subjectLists ul.listLists li .data {
-  display: block;
-  float: left;
-  width: 248px;
-}
-
-div#subjectLists p {
-  font-size: 0.6875em;
-  font-family: var(--font-family-body);
-  padding-left: 42px;
-  margin-bottom: var(--spacing-stack-xs) !important;
-}
-
-/* SEARCH INSIDE */
-/* openlibrary/templates/search/snippets.html */
-.snipHL {
-  opacity: 0.2;
-  filter: alpha(opacity=20);
-  background-color: var(--blue);
-  position: absolute;
 }
 
 /* LIBRARIES */
@@ -1794,11 +1672,6 @@ div#subjectLists p {
     clear: both;
   }
 
-  div.editionTools {
-    float: right;
-    width: 250px;
-  }
-
   /* clear the floating of the edition* elements. */
   .workDetails::after {
     content: "";
@@ -1842,21 +1715,8 @@ div#subjectLists p {
   /* Whitespace nowrap is problematic in tables on mobile */
   table.meta td.title,
   table.meta td.object,
-  table.meta td.descrip,
   table.meta td.tag {
     white-space: nowrap;
-  }
-  /* Books pages */
-  div.workCover {
-    float: right;
-    width: 270px;
-    min-height: 10px;
-  }
-  div.workAbout {
-    float: left;
-    clear: left;
-    width: 610px;
-    padding-right: 38px;
   }
   .contentTwothird {
     float: left;
@@ -1870,10 +1730,6 @@ div#subjectLists p {
   .contentHalf {
     float: left;
     max-width: 439px;
-  }
-  .contentThreeQuarter {
-    float: left;
-    max-width: 684px;
   }
   .contentSpacer {
     float: left;

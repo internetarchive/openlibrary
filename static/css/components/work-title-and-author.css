@@ -120,14 +120,6 @@
   }
 
   /* stylelint-disable selector-max-specificity */
-  /* stylelint-disable max-nesting-depth */
-  .work-title-and-author
-    .readers-stats__review-count--none
-    li.readers-stats__review-count {
-    display: none;
-  }
-  /* stylelint-enable max-nesting-depth */
-
   .work-title-and-author .readers-stats li.avg-ratings .dot,
   .work-title-and-author
     .readers-stats
@@ -135,20 +127,9 @@
     display: none;
   }
 
-  .work-title-and-author .readers-stats li.avg-ratings,
-  .work-title-and-author .readers-stats li.readers-stats__review-count {
+  .work-title-and-author .readers-stats li.avg-ratings {
     font-size: 0.85em;
   }
 
-  /* On mobile only, the rating count text has parentheses around it */
-  .work-title-and-author .readers-stats li.readers-stats__review-count::before {
-    content: "(";
-    margin-right: -2px;
-  }
-
-  .work-title-and-author .readers-stats li.readers-stats__review-count::after {
-    content: ")";
-    margin: 0 0 0 -1px;
-  }
   /* stylelint-enable selector-max-specificity */
 }

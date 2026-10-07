@@ -185,27 +185,6 @@
   width: fit-content;
 }
 
-.selected-tag .selected-tag__type--place {
-  background-color: var(--dark-red);
-}
-
-.selected-tag .selected-tag__type--person {
-  background-color: var(--dark-green);
-}
-
-.selected-tag .selected-tag__type--time {
-  background-color: var(--dark-yellow);
-  color: var(--black);
-}
-
-.selected-tag .selected-tag__type--subject {
-  background-color: var(--color-primary);
-}
-
-.selected-tag .selected-tag__type--collection {
-  background-color: var(--black);
-}
-
 .selected-tag--staged {
   background-color: var(--light-yellow);
 }

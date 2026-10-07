@@ -31,10 +31,6 @@
   text-decoration: none;
 }
 
-.light-yellow {
-  background-color: var(--light-yellow);
-}
-
 /* max-width: 768px (tablet) */
 @media screen and (max-width: 768px) {
   .toast {
