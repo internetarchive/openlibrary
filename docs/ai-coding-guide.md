@@ -44,9 +44,8 @@ npm run test:js
 # JavaScript component tests in a real browser (Vitest browser mode)
 npm run test:js:browser
 
-# i18n validation (.po syntax/placeholders, then HTML structure)
+# i18n validation
 make test-i18n
-pytest openlibrary/i18n/
 
 # All tests
 make test
@@ -193,8 +192,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 `openlibrary/core/` contains the data layer:
 - `models.py` — Data models (Work, Edition, Author, etc.)
-- `async_db.py` — Async psycopg3 pool + single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`); **new DB code goes here**
-- `db.py` — Legacy sync web.py database handle; sync callers bridge to async models via `async_bridge.run` (`_sync` suffix)
+- `db.py` — Database access
 - `lending.py` — Book lending/availability
 - `bookshelves.py`, `ratings.py`, `booknotes.py` — User content features
 - `vendors.py` — External vendor integrations
@@ -210,12 +208,12 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Browser Support
 
-We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 15.4, iOS ≥ 15.4. The Safari floor is set by the Lit components, which need `delegatesFocus` and `<dialog>.showModal()`. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 11.1, iOS ≥ 11.3, Android ≥ 5. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
 
 What the toolchain guarantees:
 
-- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari15.4', 'ios15.4']` in `scripts/vite/build.mjs`, matching `browserslist`). No built-ins are polyfilled — everything we use ships natively at Safari 15.4.
-- **Vue/Lit components** use the same `build.target` — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target` is `['safari11.1', 'ios11.3']` in `scripts/vite/build.mjs`, matching `browserslist`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/main.js`. `all.js` is a `<script type="module">`, so the floor is Safari/iOS 11.x plus evergreen Chrome/Edge/Firefox per `browserslist`.
+- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `scripts/vite/build.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
 - **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
 
 Rules for new code:
@@ -252,20 +250,19 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 
 These companion docs cover specific areas in depth:
 
-- [Accessibility](web-components.md#accessibility) — focus, ARIA across shadow roots, keyboard patterns for Lit components
-- [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
-- [Database](database.md) — Infobase vs. SQL tables, the async psycopg3 pool, the sync bridge, which driver to use when
-- [Design](design.md) — UI rules and their scope: typography, RTL, the component inventory (what to use, what to avoid), icons, design tokens, overlays, animations, mobile, and what enforces each rule
-- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
-- [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
+- [Accessibility](frontend/a11y.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
+- [CSS](frontend/css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
+- [Design](frontend/design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
+- [Web Component Standards](frontend/web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM, testing in jsdom vs browser mode
+- [Internationalization](i18n/i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
 
 ## Domain Knowledge Bases
 
 Deep-dive references for major system domains. Each covers production architecture, key files, how it works, endpoints/APIs, debug playbook, open issues, and PR review expectations.
 
-- [Solr](solr/index.md) — search index, solr-updater, schema, search endpoints, facets
+- [Solr](search/index.md) — search index, solr-updater, schema, search endpoints, facets
 - [Imports](imports/index.md) — import pipeline, DataProvider/DataProviderRecord pattern, batch import, importapi endpoints, adding new sources
-- [Tags](tag-system/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
+- [Tags](tags/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
 - [OPDS](opds/index.md) — OPDS 2.0 feed service (opds.openlibrary.org), pyopds2_openlibrary library, reader.archive.org integration, local dev setup
 
 ## Key File Locations
@@ -287,20 +284,16 @@ Deep-dive references for major system domains. Each covers production architectu
 | Browser-mode component tests | `tests/browser/` |
 | Docker config | `docker/`, `compose.yaml` |
 | Solr config | `conf/solr/` |
-| i18n code and `messages.pot` | `openlibrary/i18n/` |
-| i18n translations (`.po`) | [internetarchive/openlibrary-i18n](https://github.com/internetarchive/openlibrary-i18n) `locale/<lang>/` (see [i18n.md](i18n.md#where-translations-live)) |
+| i18n translations | `openlibrary/i18n/` |
 | Infogami submodule | `vendor/infogami/` |
 | GitHub wiki (local clone) | `docs/wiki/` |
 
 ## Contributing to These Docs
 
-This `docs/ai/` directory is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating.
+The `docs/` knowledge base is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the KB conventions (one topic = one directory).
 
-**To add a new topic:**
-1. Create `docs/ai/<topic>.md` (one domain per file, e.g., `solr.md`, `templates.md`).
-2. Add a link to it in the **Topic Guides** section above.
-3. No changes to the bridge files are needed — agents follow links from this README.
+**To add a new topic:** create a directory under `docs/` with a `README.md` overview, and link it from the KB index ([`docs/README.md`](README.md)). No changes to the bridge files are needed — agents follow links from the KB.
 
-**To update general guidance:** edit this file (`docs/ai/README.md`). Only update the bridge files if a key command or style rule changes, since those are inlined in the bridges for quick reference.
+**To update general guidance:** edit this file (`docs/ai-coding-guide.md`). Only update the bridge files if a key command or style rule changes, since those are inlined in the bridges for quick reference.
 
 **To remove a tool's bridge:** delete the bridge file when the team stops using that tool.

@@ -2,7 +2,7 @@
 
 Unit tests patch the ``async_db`` helpers and check query text and params.
 Integration tests (``TestYearlyReadingGoalsIntegration``) run the same
-methods against real postgres. See ``docs/ai/database.md`` for the pattern.
+methods against real postgres. See ``docs/core/README.md`` for the pattern.
 """
 
 from datetime import datetime, timedelta

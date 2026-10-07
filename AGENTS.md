@@ -1,12 +1,12 @@
 # AGENTS.md
 
-> **Canonical guide:** [`docs/ai/README.md`](/docs/ai/README.md) — read that file for full architecture, templates, data-model, and file-location details.
+> **Canonical guide:** [`docs/ai-coding-guide.md`](/docs/ai-coding-guide.md) — read that file for full architecture, templates, data-model, and file-location details.
 
 ## Quick Reference
 
 **Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · Vite · Solr 10
 
-> 📖 **Guides:** [`docs/ai/i18n.md`](/docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/design.md`](/docs/ai/design.md) — read before touching `static/css/`, templates, macros, or `openlibrary/components/`; [`docs/ai/web-components.md`](/docs/ai/web-components.md) — also read before touching `openlibrary/components/lit/`. [`docs/ai/README.md`](/docs/ai/README.md) — full architecture and data-model. [`docs/ai/database.md`](/docs/ai/database.md) — read before writing SQL or touching the DB models. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
+> 📖 **Guides:** [`docs/i18n/i18n.md`](/docs/i18n/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/frontend/design.md`](/docs/frontend/design.md) — read before touching `static/css/`, templates, macros, or `openlibrary/components/`; [`docs/frontend/web-components.md`](/docs/frontend/web-components.md) — also read before touching `openlibrary/components/lit/`. [`docs/ai-coding-guide.md`](/docs/ai-coding-guide.md) — full architecture and data-model. [`docs/core/README.md`](/docs/core/README.md) — read before writing SQL or touching the DB models. [`docs/wiki/developers/frontend/jinja.md`](/developers/frontend/jinja.md) — Jinja template conventions and Templetor→Jinja conversion.
 
 > 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
 >
@@ -16,7 +16,7 @@
 > ```
 > (Inside the Docker container the same command runs with `/openlibrary/docs/wiki` — see `docker/ol-home-start.sh`.)
 >
-> 🗄️ **Databases:** New DB code goes through the async psycopg3 pool in `openlibrary/core/async_db.py`. Single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`) run one query each; `async with connection()` wraps multi-statement transactions. Legacy sync code keeps `openlibrary/core/db.py`; sync web.py callers reach async model methods via `async_bridge.run` (`_sync` suffix). Reference migration: `openlibrary/core/yearly_reading_goals.py` + `openlibrary/plugins/upstream/yearly_reading_goals.py`. Full guide: [`docs/ai/database.md`](/docs/ai/database.md).
+> 🗄️ **Databases:** New DB code goes through the async psycopg3 pool in `openlibrary/core/async_db.py`. Single-statement helpers (`execute`, `fetch_all`, `fetch_one`, `fetch_val`) run one query each; `async with connection()` wraps multi-statement transactions. Legacy sync code keeps `openlibrary/core/db.py`; sync web.py callers reach async model methods via `async_bridge.run` (`_sync` suffix). Reference migration: `openlibrary/core/yearly_reading_goals.py` + `openlibrary/plugins/upstream/yearly_reading_goals.py`. Full guide: [`docs/core/README.md`](/docs/core/README.md).
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
