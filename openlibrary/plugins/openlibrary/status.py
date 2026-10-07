@@ -75,25 +75,24 @@ def _json_error(error: str) -> delegate.RawText:
 
 
 def remove_testing_prs(prs: list[int]) -> dict[str, Any]:
-    """Remove PRs from the testing state."""
+    """Remove PRs from the testing state.
+
+    Always staged, never outright: the row survives read-only until the
+    deploy drops it, so undo (restore) works the same whether or not the PR
+    ever reached the box. ``removed_prs`` stays in the contract but is now
+    always empty.
+    """
     to_remove = {int(p) for p in prs}
     state = _load_testing_state()
     if not state or not to_remove:
         return {"ok": True, "staged_prs": [], "removed_prs": [], "prs": []}
     staged_prs = []
-    removed_prs = []
-    kept = []
     for p in state.prs:
         if p.pr in to_remove:
-            if not _live_now(state, p):
-                removed_prs.append(p.pr)
-                continue
             p.pending_remove = True
             staged_prs.append(p.pr)
-        kept.append(p)
-    state.prs = kept
     _save_testing_state(state)
-    return {"ok": True, "staged_prs": staged_prs, "removed_prs": removed_prs, "prs": _staged_rows(state)}
+    return {"ok": True, "staged_prs": staged_prs, "removed_prs": [], "prs": _staged_rows(state)}
 
 
 def restore_prs(prs: list[int]) -> dict[str, Any]:

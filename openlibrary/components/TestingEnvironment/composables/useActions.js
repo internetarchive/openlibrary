@@ -159,7 +159,8 @@ export function useActions({ busy, payload, setToast, strings }) {
     }
 
     function removePr(pr) {
-        // Not-live rows vanish on confirm; staged ones keep the flag.
+        // Always staged; the deploy drops the row. Undo works the same
+        // whether or not the PR ever reached the box.
         return optimisticRow(pr.pr, { pending_remove: true }, '/status/remove', { prs: [pr.pr] });
     }
 

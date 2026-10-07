@@ -708,8 +708,9 @@ def test_remove_stages_a_removal_for_a_live_pr():
     mock_save.assert_called_once_with(state)
 
 
-def test_remove_deletes_a_never_deployed_pr_outright():
-    """A PR that never reached the box has nothing to undo, so no staged removal."""
+def test_remove_stages_a_removal_for_a_never_deployed_pr():
+    """A PR that never reached the box stages like any other: the row
+    survives read-only so undo works the same everywhere."""
     pr = _make_pr()  # added after last deploy
     state = _make_state(prs=[pr])
     state.deployed = {13238: "Other PR"}
@@ -720,8 +721,9 @@ def test_remove_deletes_a_never_deployed_pr_outright():
     ):
         result = status_module.remove_testing_prs([13269])
 
-    assert result == {"ok": True, "staged_prs": [], "removed_prs": [13269], "prs": []}
-    assert state.prs == []
+    assert result == {"ok": True, "staged_prs": [13269], "removed_prs": [], "prs": [{"pr": 13269, "pending_active": None, "pending_remove": True}]}
+    assert [p.pr for p in state.prs] == [13269]
+    assert state.prs[0].pending_remove is True
 
 
 def test_mutation_responses_echo_the_staged_rows():
@@ -1530,7 +1532,7 @@ def test_remove_prs_endpoint_e2e_stages_live_pr(fastapi_client, mock_authenticat
     mock_save.assert_called_once_with(state)
 
 
-def test_remove_prs_endpoint_e2e_deletes_never_deployed_pr(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+def test_remove_prs_endpoint_e2e_stages_never_deployed_pr(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     pr = _make_pr()
     state = _make_state(prs=[pr])
@@ -1543,8 +1545,9 @@ def test_remove_prs_endpoint_e2e_deletes_never_deployed_pr(fastapi_client, mock_
         response = fastapi_client.post("/status/remove", json={"prs": [13269]})
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True, "staged_prs": [], "removed_prs": [13269], "prs": []}
-    assert state.prs == []
+    assert response.json() == {"ok": True, "staged_prs": [13269], "removed_prs": [], "prs": [{"pr": 13269, "pending_active": None, "pending_remove": True}]}
+    assert [p.pr for p in state.prs] == [13269]
+    assert state.prs[0].pending_remove is True
     mock_save.assert_called_once_with(state)
 
 

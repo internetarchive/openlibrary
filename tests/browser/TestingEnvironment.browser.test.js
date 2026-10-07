@@ -148,15 +148,25 @@ test('shows a spinner on the row while its update is in flight', async() => {
     expect(document.querySelector('.testing-env__row-action .testing-env__spinner')).toBeNull();
 });
 
-test('removing a never-deployed row drops it with no ghost undo', async() => {
-    // A disabled, never-deployed row is removed outright server-side (it was
-    // never on the box): the response says so via removed_prs, and the row
-    // must go away instead of lingering with a dead undo button.
-    let serverPrs = [
-        { pr: 13269, title: 'First PR', author: 'one', assignee: '', commit: 'abc1234', head_sha: 'def5678', drift: 0, active: false, in_set: true }
-    ];
+test('removing then restoring a never-deployed row round-trips', async() => {
+    // Delete stages the row read-only (never outright, even when it never
+    // reached the box); undo unstages it back to normal. No error toasts.
+    let stagedRemove = false;
+    const row = () => ({
+        pr: 13269,
+        title: 'First PR',
+        author: 'one',
+        assignee: '',
+        commit: 'abc1234',
+        head_sha: 'def5678',
+        drift: 0,
+        active: false,
+        pending_active: null,
+        pending_remove: stagedRemove,
+        in_set: true
+    });
     const snapshot = () => ({
-        prs: serverPrs,
+        prs: [row()],
         pending_changes: [],
         deploying: false,
         deploy_result: '',
@@ -167,13 +177,18 @@ test('removing a never-deployed row drops it with no ghost undo', async() => {
         deployed_by: '',
         has_pending: false
     });
+    const echo = () => [{ pr: 13269, pending_active: null, pending_remove: stagedRemove }];
     window.fetch = async(url) => {
         if (url === '/status/testing.json') {
             return { ok: true, json: async() => snapshot() };
         }
         if (url === '/status/remove') {
-            serverPrs = [];
-            return { ok: true, json: async() => ({ ok: true, staged_prs: [], removed_prs: [13269], prs: [] }) };
+            stagedRemove = true;
+            return { ok: true, json: async() => ({ ok: true, staged_prs: [13269], removed_prs: [], prs: echo() }) };
+        }
+        if (url === '/status/restore') {
+            stagedRemove = false;
+            return { ok: true, json: async() => ({ ok: true, prs: echo() }) };
         }
         throw new Error(`unexpected fetch: ${url}`);
     };
@@ -210,8 +225,15 @@ test('removing a never-deployed row drops it with no ghost undo', async() => {
 
         await page.getByRole('button', { name: 'Remove' }).click();
 
-        // The row is gone (not staged with an undo), and no error toasts.
-        await expect.poll(() => document.querySelector('.testing-env__row')).toBeNull();
+        // The row stages read-only with an undo button, not vanished.
+        const restore = page.getByRole('button', { name: 'Restore' });
+        await expect.element(restore).toBeInTheDocument();
+        expect(document.querySelector('ol-toast')).toBeNull();
+
+        await restore.click();
+
+        // Undo unstages: the toggle is back and no toast appeared.
+        await expect.element(page.getByRole('button', { name: 'PR #13269 on testing' })).toBeInTheDocument();
         expect(document.querySelector('ol-toast')).toBeNull();
     } finally {
         window.EventSource = realEventSource;
