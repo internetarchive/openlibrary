@@ -302,6 +302,7 @@ class LayoutContext:
     browse_links: list[NavLink]
     featured_browse_links: list[NavLink]
     simple_browse_links: list[NavLink]
+    browse_featured_count: int
     announcement_banner: AnnouncementBanner | None = None
 
     @property
@@ -362,6 +363,7 @@ class LayoutContext:
             browse_links=all_browse,
             featured_browse_links=featured_browse,
             simple_browse_links=simple_browse,
+            browse_featured_count=BROWSE_FEATURED_COUNT,
             announcement_banner=_safe(_extract_announcement_banner, None),
         )
 

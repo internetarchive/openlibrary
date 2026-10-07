@@ -55,7 +55,7 @@ dropdown.
                         <li>
                             <a class="browse-popover__link"
                                href="{{ link.href }}"
-                               data-ol-link-track="{{ pfx }}|{{ link.track }}|{{ 4 + loop.index }}">
+                               data-ol-link-track="{{ pfx }}|{{ link.track }}|{{ layout.browse_featured_count + loop.index }}">
                                 {{- icon(nav_icons.get(link.track, 'link'), size="sm") -}}
                                 {{ link.text }}
                             </a>

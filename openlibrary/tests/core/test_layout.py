@@ -98,6 +98,7 @@ def test_layout_context_is_frozen():
         browse_links=[],
         featured_browse_links=[],
         simple_browse_links=[],
+        browse_featured_count=4,
         announcement_banner=None,
     )
     with pytest.raises((AttributeError, TypeError)):
