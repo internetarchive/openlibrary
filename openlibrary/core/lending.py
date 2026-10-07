@@ -449,13 +449,10 @@ async def get_availability_async(
     ids: list[str],
     use_cache: bool = True,
     batch_size: int = AVAILABILITY_BATCH_SIZE,
-    drop_errors: bool = False,
 ) -> dict[str, AvailabilityStatusV2]:
     """
     :param use_cache: Read and write the 5-minute memcache.
     :param batch_size: Max ids per request to the availability service.
-    :param drop_errors: Omit `status: "error"` entries and the top-level error keys,
-                        for callers that must tell "no answer" from "unavailable".
     """
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
@@ -530,8 +527,6 @@ async def get_availability_async(
                 }
             )
 
-    if drop_errors:
-        return {_id: availability for _id, availability in availabilities.items() if availability.get("status") != "error"}
     if error:
         return availabilities | {
             "error": "request_timeout",

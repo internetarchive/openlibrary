@@ -152,15 +152,6 @@ class TestGetAvailability:
         assert r["error"] == "request_timeout"
 
     @pytest.mark.asyncio
-    async def test_drop_errors_leaves_errors_out_of_the_response(self):
-        """No error placeholders and no top-level error keys, so a failed lookup never reads as an answer."""
-        session, mock_get = self._session([{"dropok": {"status": "open"}, "droperr": {"status": "error"}}])
-        mock_get.side_effect = [*mock_get.side_effect, httpx.ReadTimeout("boom")]
-        with session:
-            r = await lending.get_availability_async("identifier", ["dropok", "droperr", "dropfailed"], use_cache=False, batch_size=2, drop_errors=True)
-        assert list(r) == ["dropok"]
-
-    @pytest.mark.asyncio
     async def test_a_service_level_failure_only_loses_its_own_batch(self):
         """A `success: false` batch drops only its own ids, not other batches' or cached answers."""
         session, mock_get = self._session([])
@@ -182,18 +173,10 @@ class TestGetAvailability:
 
     @pytest.mark.asyncio
     async def test_a_missing_request_context_raises_rather_than_reading_as_no_answer(self):
-        """Swallowed under drop_errors, it would be indistinguishable from the service answering nothing."""
+        """A missing request context is a bug, so it raises rather than becoming an error placeholder."""
         session, _ = self._session([{"noctx": {"status": "open"}}])
         with session, patch("openlibrary.core.lending.req_context", ContextVar("unset")), pytest.raises(LookupError):
-            await lending.get_availability_async("identifier", ["noctx"], use_cache=False, drop_errors=True)
-
-    @pytest.mark.asyncio
-    async def test_drop_errors_leaves_out_a_cached_error_without_refetching(self):
-        session, mock_get = self._session([{"cachederr": {"status": "error"}}])
-        with session:
-            assert (await lending.get_availability_async("identifier", ["cachederr"]))["cachederr"]["status"] == "error"
-            assert await lending.get_availability_async("identifier", ["cachederr"], drop_errors=True) == {}
-        assert mock_get.call_count == 1
+            await lending.get_availability_async("identifier", ["noctx"], use_cache=False)
 
 
 @pytest.mark.usefixtures("request_context_fixture")
