@@ -1973,7 +1973,7 @@ msgstr ""
 msgid "Last 7 days"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html home/library_row.html.jinja
 msgid "Last 28 days"
 msgstr ""
 

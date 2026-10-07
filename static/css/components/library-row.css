@@ -124,13 +124,22 @@
   background: var(--color-surface);
 }
 
+/* Title at the start, the time window at the end, both in the overline style. */
 .library-stats__title {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-inline-lg);
   margin: 0;
   font-size: var(--font-size-overline);
   font-weight: var(--font-weight-overline);
   letter-spacing: var(--letter-spacing-overline);
   text-transform: var(--text-transform-overline);
   color: var(--color-text-secondary);
+}
+
+.library-stats__range {
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .library-stats__grid {

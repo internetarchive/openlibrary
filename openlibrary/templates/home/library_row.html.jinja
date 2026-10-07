@@ -40,7 +40,10 @@
     </section>
     {% if stats %}
         <section class="library-stats" aria-labelledby="library-stats-title">
-            <h2 class="library-stats__title" id="library-stats-title">{{ _("Around the Library") }}</h2>
+            <h2 class="library-stats__title" id="library-stats-title">
+                {{ _("Around the Library") }}
+                <span class="library-stats__range">{{ _("Last 28 days") }}</span>
+            </h2>
             <ul class="library-stats__grid">
                 {% for stat in stats %}
                     <li>
