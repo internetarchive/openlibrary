@@ -54,10 +54,13 @@ import asyncio
 import datetime
 import json
 import os
+import subprocess
+import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -321,6 +324,55 @@ async def _poll_once(margin: int) -> MagicMock:
     ):
         await _poll_loop(poll_interval=0, es_lag_margin=margin, dry_run=False)
     return spy
+
+
+def test_the_shipped_entrypoint_reaches_both_startup_paths_as_a_program():
+    """PAM #57, the runtime half. CI must execute the DEPLOYMENT ENTRYPOINT.
+
+    The unit test runs `loan_availability_updater.py --help`, which crosses the
+    CLI boundary but stops at argument parsing. Every other test in this file
+    drives `_poll_loop` or `follow_feed_once` as Python functions. So nothing
+    had ever run the thing the container runs --
+    `python -u scripts/solr_updater/loan_availability_updater.py $OL_CONFIG` --
+    far enough to execute STARTUP.
+
+    That matters here specifically because this branch has TWO startup paths:
+    the feed's cursor bootstrap and the poll's first cycle. A restart exercises
+    both at once, and a failure in either leaves the supervisor looping every
+    60 seconds with the container healthy and the field frozen -- the exact
+    shape of the defect that survived 8/8 green CI on the poll-only branch.
+
+    `--dry-run`, so this writes nothing: it shares a Solr core with the tests
+    above and must not depend on, or disturb, their state.
+    """
+    argv = [
+        sys.executable,
+        "-u",
+        "scripts/solr_updater/loan_availability_updater.py",
+        "conf/openlibrary.yml",
+        "--poll-interval",
+        "1",
+        "--feed-interval",
+        "1",
+        "--dry-run",
+    ]
+    # The TIMEOUT is the expected ending, not a failure: a daemon that exits on
+    # its own has broken its contract. subprocess.run raises rather than
+    # returning in that case, and the raised exception is where the output
+    # lives -- reading it is the whole point, so the except branch is the
+    # normal path and a clean return is the suspicious one.
+    try:
+        proc = subprocess.run(argv, capture_output=True, text=True, timeout=10, cwd=Path(__file__).parents[3], check=False)
+        output = (proc.stdout or "") + (proc.stderr or "")
+        raise AssertionError(f"the daemon exited on its own with {proc.returncode}; it is supposed to run forever:\n{output[-3000:]}")
+    except subprocess.TimeoutExpired as killed:
+        output = (killed.stdout or b"").decode(errors="replace") + (killed.stderr or b"").decode(errors="replace")
+
+    # What is asserted is how far it got before being killed.
+    assert "BEGIN loan_availability_updater" in output, f"the entrypoint did not reach main():\n{output[-3000:]}"
+    assert "Feed:" in output or "bootstrapping at" in output, f"the FEED startup path never ran:\n{output[-3000:]}"
+    assert "Poll:" in output, f"the POLL startup path never ran:\n{output[-3000:]}"
+    assert "Traceback" not in output, f"the entrypoint raised during startup:\n{output[-3000:]}"
 
 
 def test_a_fresh_feed_mark_survives_a_poll_that_would_otherwise_clear_it(monkeypatch):

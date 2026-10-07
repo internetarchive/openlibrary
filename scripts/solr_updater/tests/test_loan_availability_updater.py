@@ -3,6 +3,9 @@
 import contextlib
 import datetime
 import logging
+import os
+import subprocess
+import sys
 import time
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -613,6 +616,52 @@ async def test_main_writes_nothing_on_a_dry_run(mock_config, mock_infogami, mock
 # because the thing it pins was broken and shipped, not because it seemed
 # worth asserting.
 # ---------------------------------------------------------------------------
+
+
+def test_the_shipped_entrypoint_runs_as_a_program_not_just_as_a_function():
+    """PAM #57: CI must execute the DEPLOYMENT ENTRYPOINT, not only main().
+
+    The sibling test below compares the launcher's flags against main()'s
+    signature by PARSING both. That is a static check: it would pass on a
+    module that cannot be executed at all -- an import error at module scope, a
+    signature FnToCLI cannot build a parser for, a missing __main__ block. The
+    deployment runs `python scripts/solr_updater/loan_availability_updater.py`,
+    and nothing here had ever run that.
+
+    It matters more on this branch than on the poll-only one, because a restart
+    exercises every startup path at once and this daemon now has two.
+
+    `--help` is the cheapest invocation that crosses the whole boundary: it
+    imports the module, reaches __main__, builds the FnToCLI parser from
+    main()'s real signature, and renders every parameter. It needs no config,
+    no Solr and no network, so it runs in ordinary CI rather than behind a
+    container gate.
+    """
+    repo = Path(__file__).parents[3]
+    entrypoint = repo / "scripts" / "solr_updater" / "loan_availability_updater.py"
+    assert entrypoint.exists(), f"entrypoint not found at {entrypoint}"
+
+    # PYTHONPATH is set to the repo root because THE DEPLOYMENT SETS IT --
+    # docker/compose gives the container PYTHONPATH=/openlibrary, which is how
+    # `import infogami` resolves through the repo-root symlink. Python puts the
+    # SCRIPT's directory on sys.path, not the working directory, so without it
+    # the entrypoint cannot import its own dependencies. Reproducing that is
+    # fidelity to the deployment, not a fudge to make the test pass.
+    result = subprocess.run(
+        [sys.executable, str(entrypoint), "--help"],
+        capture_output=True,
+        text=True,
+        cwd=repo,
+        env={**os.environ, "PYTHONPATH": str(repo)},
+        timeout=120,
+        check=False,  # the exit code IS the assertion below
+    )
+    assert result.returncode == 0, f"the shipped entrypoint exits {result.returncode} when run as a program:\n{result.stderr[-2000:]}"
+
+    # Every parameter main() takes must reach the CLI. A parameter FnToCLI
+    # silently drops is a flag the launcher could pass and the program ignore.
+    for flag in ("--poll-interval", "--feed-interval", "--es-lag-margin", "--dry-run"):
+        assert flag in result.stdout, f"{flag} is in main()'s signature but not in the program's own --help"
 
 
 def test_the_shipped_launcher_invocation_matches_mains_signature():

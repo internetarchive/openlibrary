@@ -1146,9 +1146,11 @@ async def main(
        could not close and the reason this exists.
     2. The TIMESTAMP GUARD stops a lagged poll clearing a mark younger than the
        index's currency. It covers RECENT marks, and only those.
-    3. The BREAKER plus its ground-truth confirmation stops a degraded index
-       mass-clearing OLD marks -- the population layer 2 is silent about,
-       because their timestamps are long past the margin.
+    3. GROUND-TRUTH CONFIRMATION of every clear stops a degraded index clearing
+       OLD marks -- the population layer 2 is silent about, because their
+       timestamps are long past the margin. Unconditional, at any volume: a
+       threshold here was a complete bypass, since a sustained sub-threshold
+       drop never tripped it. See :func:`confirm_clears`.
 
     Neither writer can undo the other's direction: the feed only marks, the
     poll only clears. That is v2's asymmetry, with the index poll standing in
