@@ -11,19 +11,20 @@
         <div class="carousel-section-header browse-stacks__header">
             <h2 class="home-h2" id="browse-stacks-title">{{ _("Browse the stacks") }}</h2>
         </div>
-        {# One row of tiles; the rail pages sideways. Order is shuffled per visit below. #}
+        {# One row of tiles; the rail pages sideways. Trending stays first; the rest are shuffled per visit below. #}
         <ol-carousel id="browse-stacks-rail" class="browse-stacks__rail" label="{{ _('Browse the stacks') }}" gap="12">
             {% for genre in genres %}
                 {# data-shelf: what the shelf's skeleton shows before it loads (see the template below);
                    the genre row's title is for the shelf's initial sort. HomeGenrePartial renders the same strings. #}
                 {% set shelf = {
                     "name": genre.name,
-                    "title": _("Trending in %(genre)s", genre=genre.name),
+                    "title": _("Trending now") if genre.kind == "trending" else _("Trending in %(genre)s", genre=genre.name),
                     "subgenres": genre.subgenres | map(attribute="name") | list,
                 } %}
                 <button class="browse-stacks__tile"
                         type="button"
                         data-genre="{{ genre.slug }}"
+                        {% if genre.kind == "trending" %}data-pinned{% endif %}
                         data-shelf="{{ shelf | tojson | forceescape }}"
                         aria-expanded="false"
                         aria-controls="browse-stacks-shelf">
@@ -65,20 +66,32 @@
             </div>
         </template>
         <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
-        {# Shuffle the tiles before first paint, so every visit leads with a different shelf even
-           though the page itself is cached. Then open the first tile's shelf as a skeleton, so the
-           shelf browse-stacks.js opens on load doesn't push the page down. Runs inline for both;
-           no-JS keeps the server order and a closed shelf. Builds what skeletonFor() in browse-stacks.js does. #}
+        {# Order the tiles before first paint: pinned ones (Trending) first, the rest shuffled, so every
+           visit leads with different genres even though the page itself is cached. A stack the URL names
+           (?stack=horror, which browse-stacks.js sets as the reader opens one, so it's back when they return
+           from a book) goes right after the pinned tiles, where it's in view, and is the one that opens.
+           Then draw that tile's shelf as a skeleton, so the shelf browse-stacks.js opens on load doesn't push
+           the page down. Runs inline for both; no-JS keeps the server order and a closed shelf.
+           Builds what skeletonFor() in browse-stacks.js does. #}
         <script>
             (function () {
                 var rail = document.getElementById('browse-stacks-rail');
                 var tiles = Array.prototype.slice.call(rail.querySelectorAll('.browse-stacks__tile'));
-                for (var i = tiles.length - 1; i > 0; i--) {
+                var pinned = tiles.filter(function (tile) { return tile.hasAttribute('data-pinned'); });
+                var rest = tiles.filter(function (tile) { return !tile.hasAttribute('data-pinned'); });
+                for (var i = rest.length - 1; i > 0; i--) {
                     var j = Math.floor(Math.random() * (i + 1));
-                    var swap = tiles[i];
-                    tiles[i] = tiles[j];
-                    tiles[j] = swap;
+                    var swap = rest[i];
+                    rest[i] = rest[j];
+                    rest[j] = swap;
                 }
+                var slug = new URLSearchParams(location.search).get('stack');
+                var requested = tiles.filter(function (tile) { return tile.getAttribute('data-genre') === slug; })[0];
+                if (requested && rest.indexOf(requested) > 0) {
+                    rest.splice(rest.indexOf(requested), 1);
+                    rest.unshift(requested);
+                }
+                tiles = pinned.concat(rest);
                 tiles.forEach(function (tile) {
                     rail.appendChild(tile);
                 });
@@ -86,7 +99,7 @@
                 var template = document.querySelector('.browse-stacks__loading');
                 var shelf = document.getElementById('browse-stacks-shelf');
                 if (!tiles.length || !template) return;
-                var data = JSON.parse(tiles[0].getAttribute('data-shelf'));
+                var data = JSON.parse((requested || tiles[0]).getAttribute('data-shelf'));
                 var skeleton = template.content.cloneNode(true);
                 skeleton.querySelector('.genre-shelf__title').textContent = data.name;
                 var jump = skeleton.querySelector('.genre-shelf__jump');

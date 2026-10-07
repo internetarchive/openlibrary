@@ -2,8 +2,11 @@
  * "Browse the stacks" on the home page: a rail of genre tiles that open a shelf (a header for the
  * genre, its carousel, then one per subgenre) in place. The shelf HTML comes from /partials/HomeGenre.json
  * with the genre row already loaded and the subgenre rows as lazy placeholders; lazy-carousel.js loads
- * those and runs the header's sort control, which re-sorts the whole shelf. The first tile's shelf is open
- * on load; a caret on an open shelf points at its tile.
+ * those and runs the header's sort control, which re-sorts the whole shelf. The first tile's shelf (Trending,
+ * which the template pins first) is open on load; a caret on an open shelf points at its tile.
+ * Opening another stack puts it in the URL (?stack=horror, replacing the history entry), so a reader who
+ * follows a book and comes back finds it open: the template's inline script moves that tile into view and
+ * draws its skeleton, and this opens it. Closing, or opening the pinned stack, clears the URL again.
  */
 
 import { trackEvent } from './ol.analytics.js';
@@ -24,6 +27,27 @@ export function initBrowseStacks(root) {
 
     function tileFor(slug) {
         return tiles.find(tile => tile.dataset.genre === slug);
+    }
+
+    /** The stack the URL names: the one to open on load. */
+    function requested() {
+        return tileFor(new URLSearchParams(location.search).get('stack'));
+    }
+
+    /**
+     * Keep the open stack in the URL so it survives a trip to a book page and back. The pinned (default)
+     * stack and a closed shelf leave the URL clean.
+     * @param {string|null} slug
+     */
+    function remember(slug) {
+        const url = new URL(location.href);
+        const tile = tileFor(slug);
+        if (tile && !tile.hasAttribute('data-pinned')) {
+            url.searchParams.set('stack', slug);
+        } else {
+            url.searchParams.delete('stack');
+        }
+        if (url.href !== location.href) history.replaceState(history.state, '', url);
     }
 
     function markExpanded(slug) {
@@ -83,6 +107,7 @@ export function initBrowseStacks(root) {
         const tile = tileFor(current);
         current = null;
         markExpanded(null);
+        remember(null);
         shelf.hidden = true;
         shelf.innerHTML = '';
         anchor();
@@ -174,7 +199,10 @@ export function initBrowseStacks(root) {
         }
         current = slug;
         markExpanded(slug);
-        if (!initial) trackEvent('BrowseStacks', 'Open', slug);
+        if (!initial) {
+            remember(slug);
+            trackEvent('BrowseStacks', 'Open', slug);
+        }
         // The skeleton is already the loaded shelf's size, so point at it while it loads.
         // No scrolling: the shelf opens right under the rail, and the page stays where the reader is.
         const loading = load(slug, { initial });
@@ -187,8 +215,10 @@ export function initBrowseStacks(root) {
 
     tiles.forEach(tile => tile.addEventListener('click', () => open(tile.dataset.genre)));
 
-    // Lead with the first tile's shelf open (the rail is shuffled per visit, so a different one each time).
-    if (tiles.length) open(tiles[0].dataset.genre, { initial: true });
+    // Lead with the URL's stack open, or else the first tile's (Trending; the template's inline script
+    // already drew the same shelf's skeleton).
+    const first = requested() || tiles[0];
+    if (first) open(first.dataset.genre, { initial: true });
 
     // The scroller is inside ol-carousel's shadow root; scroll events don't cross it.
     customElements.whenDefined('ol-carousel').then(() => rail.updateComplete).then(() => {
