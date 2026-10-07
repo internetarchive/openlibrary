@@ -27,11 +27,16 @@ from openlibrary.utils.request_context import site
 router = APIRouter()
 
 
-def _borrow_params_from_request(request: Request) -> BorrowParams:
-    """FastAPI dependency: builds BorrowParams from the request's query
-    params, the same way openlibrary.fastapi.models.SolrInternalsParams is
-    built via its own from_request()."""
-    return BorrowParams.model_validate(request.query_params)
+async def _borrow_params_from_request(request: Request) -> BorrowParams:
+    """FastAPI dependency: builds BorrowParams from query params merged with
+    the POST form body (body wins), matching web.input() semantics in the
+    legacy web.py handler. Forms like ReturnForm post action/redirect in the
+    body, not the query string."""
+    data = dict(request.query_params)
+    if request.method == "POST":
+        form = await request.form()
+        data.update({k: v for k, v in form.multi_items() if isinstance(v, str)})
+    return BorrowParams.model_validate(data)
 
 
 def _resolve_ocaid_to_olid(ocaid: str) -> str | None:
@@ -110,4 +115,4 @@ async def checkout_with_ocaid_post(ocaid: str, request: Request) -> Response:
     olid = _resolve_ocaid_to_olid(ocaid)
     if olid is None:
         raise HTTPException(status_code=404)
-    return await borrow(request, olid=olid, slug="x", params=_borrow_params_from_request(request))
+    return await borrow(request, olid=olid, slug="x", params=await _borrow_params_from_request(request))

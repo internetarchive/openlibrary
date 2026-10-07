@@ -1,12 +1,13 @@
 /**
- * Maps tag display types to BEM suffixes.
+ * Maps tag types to their badge modifier classes.
+ * Full class names (not suffixes) so a search finds them before they're pruned from tagging-menu.css.
  */
-const classTypeSuffixes = {
-    subjects: '--subject',
-    subject_people: '--person',
-    subject_places: '--place',
-    subject_times: '--time',
-    collections: '--collection'
+const typeBadgeClasses = {
+    subjects: 'selected-tag__type--subject',
+    subject_people: 'selected-tag__type--person',
+    subject_places: 'selected-tag__type--place',
+    subject_times: 'selected-tag__type--time',
+    collections: 'selected-tag__type--collection'
 };
 
 /**
@@ -110,7 +111,7 @@ export class MenuOption {
         const markup = `<span class="selected-tag__status selected-tag__status--${bemSuffix}"></span>
             <span class="selected-tag__name">${this.tag.tagName}</span>
             <span class="selected-tag__type-container">
-                <span class="selected-tag__type selected-tag__type${classTypeSuffixes[this.tag.tagType]}">${this.tag.displayType}</span>
+                <span class="selected-tag__type ${typeBadgeClasses[this.tag.tagType]}">${this.tag.displayType}</span>
             </span>`;
 
         parentElem.innerHTML = markup;

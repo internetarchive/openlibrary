@@ -100,10 +100,6 @@
   }
 }
 
-#list-edit .multi-input-autocomplete--seeds .mia__preview .ac_work .cover {
-  margin-right: 9px;
-}
-
 #list-edit .mia__input {
   list-style: none;
   width: 90%;
@@ -124,12 +120,4 @@
 
 #list-edit .mia__input .ac-input__visible.accept {
   display: none;
-}
-
-.new-list__seed__position {
-  font-size: 0.9em;
-}
-
-.work-autocomplete {
-  width: calc(100% - 8ch);
 }
