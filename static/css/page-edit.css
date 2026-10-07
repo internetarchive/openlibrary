@@ -115,6 +115,7 @@ table.code td {
 .formElement.pagetype {
   width: 300px;
 }
+/* Rendered by thinginput() in openlibrary/macros/TypeChanger.html */
 .formElement.pagetype select {
   width: 100%;
 }
