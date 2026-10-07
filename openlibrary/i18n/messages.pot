@@ -1129,15 +1129,15 @@ msgid "Sign in with a third-party account"
 msgstr ""
 
 #: account/import.html
-msgid "Goodreads"
+msgid "Import from Goodreads"
 msgstr ""
 
 #: account/import.html
-msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\" target=\"_blank\" rel=\"noopener noreferrer\">Goodreads Import/Export</a>"
+msgid "Format: .csv (Max 10MB)"
 msgstr ""
 
 #: account/import.html
-msgid "File size limit 10MB and .csv file type only"
+msgid "How to export?"
 msgstr ""
 
 #: account/import.html
@@ -1153,11 +1153,11 @@ msgid "Load Books"
 msgstr ""
 
 #: account/import.html
-msgid "Barcode Scanner"
+msgid "Scan barcodes"
 msgstr ""
 
 #: account/import.html
-msgid "Scan book barcodes using your device camera to quickly add books to your reading log."
+msgid "Instantly add physical books to your reading log by scanning their barcodes with your device's camera."
 msgstr ""
 
 #: account/import.html
@@ -1165,7 +1165,15 @@ msgid "Launch Barcode Scanner"
 msgstr ""
 
 #: account/import.html
-msgid "Help us decide which importers to build next."
+msgid "Looking for exports? They've moved to a separate page - click here to export your data."
+msgstr ""
+
+#: account/import.html
+msgid "Help us decide which importers to build next"
+msgstr ""
+
+#: account/import.html
+msgid "Tell us where your books live now. We count requests when we plan the next importer."
 msgstr ""
 
 #: account/import.html
