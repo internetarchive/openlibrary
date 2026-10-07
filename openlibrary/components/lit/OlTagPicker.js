@@ -461,6 +461,10 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
             this._activeIndex >= 0 && this._activeIndex < options.length
                 ? `${this._listboxId}-opt-${this._activeIndex}`
                 : undefined;
+        // A listbox must own at least one option (axe: aria-required-children),
+        // so when nothing matches we collapse the combobox and show the
+        // empty-state as a live region instead of an empty listbox.
+        const hasOptions = options.length > 0;
         return html`
             <div class="panel">
                 <div class="filter">
@@ -470,9 +474,9 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
                         class="filter-input"
                         role="combobox"
                         aria-label=${ifDefined(ariaLabel || undefined)}
-                        aria-expanded="true"
+                        aria-expanded=${hasOptions ? 'true' : 'false'}
                         aria-autocomplete="list"
-                        aria-controls=${this._listboxId}
+                        aria-controls=${ifDefined(hasOptions ? this._listboxId : undefined)}
                         aria-activedescendant=${ifDefined(activeId)}
                         autocomplete="off"
                         placeholder=${this.placeholder}
@@ -487,14 +491,13 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
                         <span class="loading-spinner" aria-hidden="true"></span>
                         <span>${this.loadingLabel}</span>
                     </div>`
-        : html`
+        : hasOptions
+            ? html`
                     <ul class="listbox" role="listbox" id=${this._listboxId} aria-label=${ifDefined(ariaLabel || undefined)}>
-                        ${options.length === 0
-        ? html`<li class="empty-state" role="presentation">${query ? this.noMatchesLabel : ''}</li>`
-        : repeat(
-            options,
-            (o) => o.key,
-            (o, i) => html`
+                        ${repeat(
+        options,
+        (o) => o.key,
+        (o, i) => html`
                                     <li
                                         class="option ${i === this._activeIndex ? 'option--active' : ''}"
                                         role="option"
@@ -507,8 +510,11 @@ export class OlTagPicker extends FormAssociatedMixin(LitElement) {
                                         <span class="option-label">${o.name}</span>
                                     </li>
                                 `,
-        )}
-                    </ul>`}
+    )}
+                    </ul>`
+            : query
+                ? html`<div class="empty-state" role="status" aria-live="polite">${this.noMatchesLabel}</div>`
+                : nothing}
             </div>
         `;
     }
