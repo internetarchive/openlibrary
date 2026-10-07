@@ -1,0 +1,13 @@
+/* "Did you mean ...?" on /search when the search returned no results.
+   Renders inside the existing .search-no-direct-match card, which is already a
+   centred flex column, so this only needs to reset the <p> margin and make the
+   suggested query read as the actionable thing in the card.
+   openlibrary/templates/work_search.html */
+.search-did-you-mean {
+  margin: 0;
+}
+
+.search-did-you-mean__link {
+  color: var(--color-link);
+  font-weight: var(--font-weight-semibold);
+}

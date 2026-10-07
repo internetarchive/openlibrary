@@ -2453,7 +2453,7 @@ export class SearchModal extends LitElement {
     _baseSearchParams(query) {
         const params = new URLSearchParams();
         params.set('q', query);
-        params.set('_spellcheck_count', '0');
+        params.set('spellcheck_count', '0');
         return params;
     }
 

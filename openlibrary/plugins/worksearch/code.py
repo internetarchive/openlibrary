@@ -5,8 +5,9 @@ import logging
 import re
 import time
 import urllib
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
+from html import escape as html_escape
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 from unicodedata import normalize
@@ -384,7 +385,11 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     if spellcheck_count is None:
         spellcheck_count = default_spellcheck_count
 
-    if spellcheck_count:
+    # Only request spellchecking when there is free text to spellcheck. A
+    # structured-only search (author/isbn/subject browse) has no `spellcheck.q`
+    # to send, so the checker would fall back to parsing the edismax wrapper in
+    # `q` and answer with corrections for OL's own field names.
+    if spellcheck_count and param.get("q"):
         params.append(("spellcheck", "true"))
         params.append(("spellcheck.count", spellcheck_count))
 
@@ -441,6 +446,14 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     q = None
     if param.get("q"):
         q = scheme.process_user_query(param["q"])
+        # Point the spellchecker at the raw free-text query instead of letting it
+        # fall back to the assembled `q` param, which is an edismax local-param
+        # wrapper. SpellCheckComponent parses the raw `q` as user text when
+        # `spellcheck.q` is absent, which makes OL's own field names (`lccn`,
+        # `chapter`, `subject`, ...) spellcheck candidates. Only the free-text
+        # part is spellcheckable -- `userWorkQuery` also carries structured terms
+        # like `author_name:(...)`, so it must not be used here.
+        params.append(("spellcheck.q", param["q"]))
 
     if params_q := scheme.build_q_from_params(param):
         q = f"{q} {params_q}" if q else params_q
@@ -552,6 +565,69 @@ def load_stopwords(lang: str = "en") -> set[str]:
 
 
 @dataclass
+class SpellCheckSuggestion:
+    """A single token Solr flagged as misspelled, plus the corrections it offered."""
+
+    original_token: str
+    """The misspelled token as it appeared in the user's query."""
+    suggestions: list[str]
+    """Correction words, best (most frequent) first, as ranked by Solr."""
+    start_offset: int | None = None
+    """Character offset of the token within the query, if Solr reported one."""
+    end_offset: int | None = None
+    original_freq: int | None = None
+    """How often the misspelling occurs in the index, if Solr reported it."""
+
+
+@dataclass
+class SpellCheckCollation:
+    """Solr's re-run of the whole query with corrections substituted.
+
+    Open Library sets `spellcheck.collate=false` (see `conf/solr/conf/solrconfig.xml`),
+    so Solr does not currently produce this. It is parsed anyway so the data survives
+    if that setting is ever turned on.
+    """
+
+    collation_query: str | None
+    hits: int | None
+    misspellings_and_corrections: list[str]
+
+
+@dataclass
+class SpellCheckResult:
+    """Parsed form of Solr's top-level `spellcheck` section."""
+
+    suggestions: list[SpellCheckSuggestion]
+    collations: list[SpellCheckCollation]
+    correctly_spelled: bool | None
+    """Solr's verdict, but only sent when `spellcheck.extendedResults` is set."""
+    raw: dict
+    """The untouched `spellcheck` dict, so parsing never loses information."""
+
+
+def _solr_flat_pairs(entries: Any) -> Iterator[tuple[str | None, dict]]:
+    """Walk one of Solr's flat spellcheck lists, yielding `(token, details)` pairs.
+
+    Solr sends `suggestions` and `collations` as a flat list alternating between the
+    text it is about and an object describing it, e.g.::
+
+        ['telivision', {'startOffset': 0, 'endOffset': 10, 'suggestion': [...]}]
+
+    >>> list(_solr_flat_pairs(['telivision', {'startOffset': 0}]))
+    [('telivision', {'startOffset': 0})]
+    >>> list(_solr_flat_pairs(None))
+    []
+    """
+    token: str | None = None
+    for entry in entries or []:
+        if isinstance(entry, str):
+            token = entry
+        elif isinstance(entry, dict):
+            yield token, entry
+            token = None
+
+
+@dataclass
 class SearchResponse:
     facet_counts: dict[str, list[tuple[str, str, int]]]
     sort: str
@@ -565,6 +641,13 @@ class SearchResponse:
     error: str = None
     time: float = None
     """Seconds to execute the query"""
+    spellcheck: SpellCheckResult | None = None
+    """Parsed Solr spellcheck output, or None when Solr offered no corrections.
+
+    Read from the top-level `spellcheck` section of the Solr response. This is data
+    carried internally only; no API response exposes it yet, and nothing consumes it
+    yet. Which of these suggestions is worth showing is deliberately undecided.
+    """
 
     @staticmethod
     def from_solr_result(
@@ -596,7 +679,77 @@ class SearchResponse:
                 highlighting=highlighting,
                 solr_select=solr_select,
                 time=time,
+                spellcheck=SearchResponse.parse_spellcheck(solr_result.get("spellcheck")),
             )
+
+    @staticmethod
+    def parse_spellcheck(spellcheck: dict | None) -> SpellCheckResult | None:
+        """
+        Parse Solr's top-level `spellcheck` section into a `SpellCheckResult`.
+
+        Returns None when there is nothing actionable, so callers can treat "Solr sent
+        no spellcheck data" and "Solr found nothing to suggest" the same way, and so a
+        response with no corrections never looks like a did-you-mean opportunity.
+
+        Solr formats `suggestions` as a flat list alternating between a token and its
+        details object, and each `suggestion` entry is either a bare word (default) or
+        a `{'word': ..., 'freq': ...}` object (when `extendedResults` is set); both are
+        handled here.
+
+        >>> SearchResponse.parse_spellcheck({'suggestions': [
+        ...     'telivision',
+        ...     {'startOffset': 0, 'endOffset': 10,
+        ...      'suggestion': [{'word': 'television', 'freq': 310}]},
+        ... ]}).suggestions[0]
+        SpellCheckSuggestion(original_token='telivision', suggestions=['television'], start_offset=0, end_offset=10, original_freq=None)
+
+        >>> SearchResponse.parse_spellcheck({'suggestions': [
+        ...     'telivision', {'startOffset': 0, 'suggestion': ['television', 'televise']}]}).suggestions[0].suggestions
+        ['television', 'televise']
+
+        >>> SearchResponse.parse_spellcheck({'correctlySpelled': True, 'suggestions': []}) is None
+        True
+        >>> SearchResponse.parse_spellcheck(None) is None
+        True
+        """
+        spellcheck = spellcheck or {}
+
+        def words(raw_suggestions: Any) -> list[str]:
+            found = []
+            for entry in raw_suggestions or []:
+                word = entry["word"] if isinstance(entry, dict) else entry
+                if word:
+                    found.append(word)
+            return found
+
+        suggestions = [
+            SpellCheckSuggestion(
+                original_token=details.get("originalToken") or token or "",
+                suggestions=words(details.get("suggestion")),
+                start_offset=details.get("startOffset"),
+                end_offset=details.get("endOffset"),
+                original_freq=details.get("origFreq"),
+            )
+            for token, details in _solr_flat_pairs(spellcheck.get("suggestions"))
+        ]
+        collations = [
+            SpellCheckCollation(
+                collation_query=details.get("collationQuery") or token,
+                hits=details.get("hits"),
+                misspellings_and_corrections=details.get("misspellingsAndCorrections") or [],
+            )
+            for token, details in _solr_flat_pairs(spellcheck.get("collations"))
+        ]
+
+        if not suggestions and not collations:
+            return None
+
+        return SpellCheckResult(
+            suggestions=suggestions,
+            collations=collations,
+            correctly_spelled=spellcheck.get("correctlySpelled"),
+            raw=spellcheck,
+        )
 
     @staticmethod
     def clean_highlighting(
@@ -652,6 +805,185 @@ class SearchResponse:
                 del highlighting[key]
 
         return highlighting or None
+
+
+@dataclass
+class DidYouMean:
+    """A correction that has been *proven* to match documents.
+
+    Only ever constructed after the corrected query has been run against Solr and
+    matched at least one document under the same filters and structured terms as the
+    original search. Holding one of these means the correction is safe to offer.
+    """
+
+    original_query: str
+    corrected_query: str
+    original_token: str
+    """The misspelled word, as it appeared in the user's query."""
+    suggestion: str
+    """The word Solr proposed in its place."""
+    num_found: int
+    """How many documents the corrected query matches under the same filters."""
+
+
+def _primary_correction(spellcheck: SpellCheckResult | None) -> tuple[str, str] | None:
+    """Solr's highest-ranked correction, as `(original_token, suggestion)`.
+
+    Solr ranks suggestions by frequency in the index, so the first entry is its best
+    guess. Returns None when there is no spellcheck data or no flagged token came
+    with a usable correction.
+    """
+    for entry in spellcheck.suggestions if spellcheck else []:
+        if entry.original_token and entry.suggestions:
+            return entry.original_token, entry.suggestions[0]
+    return None
+
+
+def build_corrected_query(query: str, spellcheck: SpellCheckResult | None) -> str | None:
+    """Apply Solr's corrections to `query`, or None if there is nothing to apply.
+
+    Solr reports the character offsets of each misspelled token within `spellcheck.q`,
+    which Open Library sets to the user's raw query, so corrections are spliced in at
+    those offsets. This handles multi-word queries ("competiton polciy") in one pass,
+    which is what a user means by them.
+
+    Returns None -- never the unchanged query -- when there is no correction to make,
+    so a caller cannot mistake a no-op for a usable suggestion.
+    """
+    if not query or not spellcheck:
+        return None
+
+    corrections = [
+        (entry.original_token, entry.suggestions[0], entry.start_offset, entry.end_offset)
+        for entry in spellcheck.suggestions
+        if entry.original_token and entry.suggestions
+    ]
+    if not corrections:
+        return None
+
+    if all(start is not None and end is not None for _, _, start, end in corrections):
+        # Splice back-to-front so the offsets of the remaining edits stay valid.
+        corrected = query
+        for _, word, start, end in sorted(corrections, key=lambda c: c[2], reverse=True):
+            corrected = corrected[:start] + word + corrected[end:]
+    else:
+        # No offsets: fall back to replacing the token on word boundaries, which
+        # leaves other words containing it as a substring alone.
+        corrected = query
+        for token, word, _, _ in corrections:
+            corrected = re.sub(rf"\b{re.escape(token)}\b", word, corrected, flags=re.IGNORECASE)
+
+    return corrected if corrected != query else None
+
+
+async def find_did_you_mean_async(
+    param: dict,
+    spellcheck: SpellCheckResult | None,
+    num_found: int | None,
+    solr_editions: bool = True,
+    request_label: SolrRequestLabel = "BOOK_SEARCH_DID_YOU_MEAN",
+) -> DidYouMean | None:
+    """Decide whether Solr's correction is safe to offer as a did-you-mean.
+
+    Returns a `DidYouMean` only when the corrected query actually matches documents;
+    otherwise None. Callers must treat None as "behave exactly as before", because a
+    search with no valid candidate has to look untouched.
+
+    `num_found` is the original search's own hit count and is a hard precondition: a
+    did-you-mean is only ever offered when that search returned *nothing*. Offering one
+    next to a populated result list is noise, and measured over 9,130 real titles it was
+    the entire false-positive population (3 of 400 correctly spelled queries, all of them
+    suggestions like "Armageddon" -> "armageddon's"). The gate is cheap because a query
+    with a correction almost always already returns zero results -- 734 of 739 measured
+    corrections did -- so coverage barely moves, and it costs no extra Solr query.
+
+    `correctlySpelled` is deliberately not the gate: Open Library does not request
+    `extendedResults`, so Solr does not send it at all, and even when it is present it
+    only describes the query, not whether the correction finds anything.
+
+    Validation deliberately reuses the normal search pipeline -- same scheme, same
+    `param` with only `q` swapped -- so filters, sorting and structured clauses carry
+    over by construction instead of being reimplemented here. `spellcheck_count=0`
+    keeps the checker off so validation cannot recurse into another validation.
+    """
+    if num_found is None or num_found > 0:
+        # Not a zero-result search: nothing to second-guess, so do not spend a query.
+        return None
+
+    if not param.get("q"):
+        # A structured-only search (author/isbn/subject browse) has no free text to
+        # correct, and must never become a did-you-mean candidate.
+        return None
+
+    primary = _primary_correction(spellcheck)
+    if not primary:
+        return None
+
+    corrected = build_corrected_query(param["q"], spellcheck)
+    if not corrected:
+        return None
+
+    # Only `q` changes; every filter and structured term the user applied is kept.
+    validation_param = copy.deepcopy(param)
+    validation_param["q"] = corrected
+
+    response = await run_solr_query_async(
+        WorkSearchScheme(solr_editions=solr_editions),
+        validation_param,
+        rows=0,
+        spellcheck_count=0,  # never ask for spellcheck here: no recursion
+        facet=False,
+        # "editions" opts into the same edition block-join as /search, so the count
+        # reflects the parent/child filtering the real results are subject to.
+        fields=["key", "editions"],
+        request_label=request_label,
+    )
+    if not response.num_found:
+        return None
+
+    original_token, suggestion = primary
+    return DidYouMean(
+        original_query=param["q"],
+        corrected_query=corrected,
+        original_token=original_token,
+        suggestion=suggestion,
+        num_found=response.num_found,
+    )
+
+
+find_did_you_mean = async_bridge.wrap(find_did_you_mean_async, "find_did_you_mean")
+
+
+@public
+def did_you_mean_search_url(dym: DidYouMean, param: dict) -> str:
+    """A /search URL that re-runs the search with `dym`'s corrected query.
+
+    Every other parameter the user applied is carried over, so following the
+    suggestion keeps their filters, sort and structured terms instead of dropping
+    them and silently widening the search. `doseq` because facets arrive as lists.
+    """
+    query = {key: value for key, value in param.items() if value and key != "q"}
+    query["q"] = dym.corrected_query
+    return "/search?" + urllib.parse.urlencode(query, doseq=True)
+
+
+@public
+def did_you_mean_link(dym: DidYouMean, param: dict) -> str:
+    """The complete `<a>...</a>` for a did-you-mean, ready to drop into a sentence.
+
+    Templetor's `$:_(...)` is raw output, so this must escape both halves itself:
+    `corrected_query` is derived from the user's own query and would otherwise be an
+    injection hole. The URL is urlencoded and then escaped for attribute context.
+    Rendered as one `%(link)s` placeholder rather than link_start/link_end because the
+    link text is dynamic -- translators still position the whole link themselves.
+
+    Uses stdlib `html.escape` rather than markupsafe: markupsafe is only a transitive
+    dependency here (via Jinja2), and this module is imported by the web.py worker at
+    boot, so an undeclared import would take the whole worker down.
+    """
+    href = html_escape(did_you_mean_search_url(dym, param))
+    text = html_escape(dym.corrected_query)
+    return f'<a class="search-did-you-mean__link" href="{href}" data-ol-link-track="Search|DidYouMean">{text}</a>'
 
 
 def get_doc(doc: SolrDocument):
@@ -893,6 +1225,16 @@ class search(delegate.page):
         works = [get_doc(doc) for doc in search_response.docs]
         add_availability([(w.get("editions") or [None])[0] or w for w in works])
 
+        # Solr's spelling correction, offered only when this search found nothing.
+        # find_did_you_mean gates on num_found itself, so the zero-result precondition
+        # is enforced in one place and this call is a no-op on every populated search.
+        did_you_mean = find_did_you_mean(
+            param,
+            search_response.spellcheck,
+            search_response.num_found,
+            solr_editions=req_context.get().solr_editions,
+        )
+
         return render.work_search(
             q_joined,
             search_response,
@@ -903,6 +1245,7 @@ class search(delegate.page):
             readable_count,
             author_suggestions,
             has_solr_editions_enabled=req_context.get().solr_editions,
+            did_you_mean=did_you_mean,
         )
 
 

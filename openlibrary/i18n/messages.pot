@@ -924,6 +924,11 @@ msgid "No matching books or authors"
 msgstr ""
 
 #: work_search.html
+#, python-format
+msgid "Did you mean %(link)s?"
+msgstr ""
+
+#: work_search.html
 msgid "Add a new book"
 msgstr ""
 

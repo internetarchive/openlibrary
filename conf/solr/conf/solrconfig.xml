@@ -655,7 +655,19 @@
            passes an explicit qf, so this only matters for ad-hoc/debug
            queries against /select without one. -->
       <str name="df">title</str>
+      <!-- Run the spellchecker after the normal component chain so /select
+           returns a "spellcheck" section. Added as a last-component (not by
+           replacing "components") so ranking, facets and highlighting are
+           unaffected. Collation is disabled: it re-runs the user's query with
+           corrections substituted, which is expensive and unsafe against the
+           parent/child `editions:[subquery]` edismax query. Callers pass
+           spellcheck.q so the checker sees the raw user text rather than the
+           edismax wrapper in `q`. -->
+      <bool name="spellcheck.collate">false</bool>
     </lst>
+    <arr name="last-components">
+      <str>spellcheck</str>
+    </arr>
   </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
@@ -706,7 +718,20 @@
     <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">title</str>
+      <!-- Build the dictionary from title_suggest, NOT title. DirectSolrSpellChecker
+           enumerates the *indexed terms* of this field, so the dictionary is only as
+           good as its analyzer. `title` is text_en_splitting, whose index analyzer
+           ends in porterStem, which made every dictionary entry a stem: "telivision"
+           was corrected to "televis" and "competiton" to "competit" (the highest
+           frequency stem, which is the wrong answer to offer a reader). Stems are
+           not words, so they make poor did-you-mean suggestions.
+
+           `title_suggest` is text_general (standard tokenizer, no stemmer) and is
+           already populated from title by a copyField, so it holds real whole words
+           with no reindex and no schema change. This only redirects the spellchecker:
+           title_suggest appears in no qf/pf/fq, so search matching and ranking are
+           unaffected. -->
+      <str name="field">title_suggest</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
       <str name="distanceMeasure">internal</str>

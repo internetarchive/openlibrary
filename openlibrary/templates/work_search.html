@@ -1,4 +1,4 @@
-$def with (q_param, search_response, works, param, page, rows, readable_count, author_suggestions, has_solr_editions_enabled)
+$def with (q_param, search_response, works, param, page, rows, readable_count, author_suggestions, has_solr_editions_enabled, did_you_mean=None)
 
 $ layout = get_remembered_layout()
 $ bodyclass = ctx.setdefault('bodyclass', [])
@@ -125,6 +125,14 @@ $def fulltext_rescue(query, exclude=None):
         $ query = query_param('q')
         <div class="search-no-direct-match">
           <p class="search-no-direct-match__message">$_('No matching books or authors')</p>
+          $# Only reachable when the search returned nothing, and only when Solr's
+          $# correction was proven against Solr. One translatable string carries the
+          $# whole link so translators can place it per language; the link itself is
+          $# built and escaped in Python because Templetor output here is raw.
+          $if did_you_mean:
+            <p class="search-did-you-mean">
+              $:_('Did you mean %(link)s?', link=did_you_mean_link(did_you_mean, param))
+            </p>
           <ol-button variant="secondary" href="/books/add">$_('Add a new book')</ol-button>
         </div>
         $:fulltext_rescue(query)
