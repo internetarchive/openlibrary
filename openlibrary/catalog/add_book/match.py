@@ -8,6 +8,7 @@ from openlibrary.catalog.utils import flip_name
 
 re_amazon_title_paren = re.compile(r"^(.*) \([^)]+?\)$")
 re_brackets = re.compile(r"^(.+)\[.*?\]$")
+re_c1_control = re.compile(r"[\u0080-\u009f]")
 re_whitespace_and_punct = re.compile(r"[-\s,;:.]+")
 
 type ThresholdResult = tuple[str, str, int]  # (field/category, result, score)
@@ -66,6 +67,7 @@ def normalize(s: str) -> str:
     stripping extra whitespace and punctuation, and replacing ampersands.
     """
     s = unicodedata.normalize("NFC", s)
+    s = re_c1_control.sub("", s)
     s = s.replace(" & ", " and ")
     s = re_whitespace_and_punct.sub(" ", s.lower()).strip()
     return s
