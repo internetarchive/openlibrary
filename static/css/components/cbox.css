@@ -1,5 +1,5 @@
-/* Legacy page-level overlay: keep its z-index band as is and add no new consumers.
-   New overlays use ol-popover / ol-dialog, which live in the top layer (#12363). */
+/* Legacy overlay styles: add no new consumers. New overlays use
+   ol-popover / ol-dialog, which live in the top layer (#12363). */
 /* For changes in this file to take effect you must run make js instead of the usual make css because this is imported by main.js (via js-all.css) */
 /* stylelint-disable selector-max-specificity */
 

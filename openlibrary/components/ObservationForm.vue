@@ -1,8 +1,5 @@
 <template>
-  <div
-    ref="form"
-    class="observation-form"
-  >
+  <div class="observation-form">
     <SavedTags
       :all-selected-values="allSelectedValues"
       :work-key="workKey"

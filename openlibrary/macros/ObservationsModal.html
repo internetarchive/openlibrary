@@ -21,7 +21,7 @@ $if reload_id:
   $:link_markup
 
   $if ctx.user:
-    <ol-dialog id="$id-metadata-form" label="$_('My Book Review')" width="large" data-context="$json_encode(context)">
+    <ol-dialog id="$id-metadata-form" label="$_('My Book Review')" label-close="$_('Close')" width="large" data-context="$json_encode(context)">
       $:render_component('ObservationForm', asyncDefer=True, attrs={'schema': dict(get_observations()), 'observations': dict(work.get_users_observations(username)), 'work-key': work.key, 'username': username})
     </ol-dialog>
 </div>

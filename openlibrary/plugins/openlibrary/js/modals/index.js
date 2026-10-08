@@ -8,8 +8,7 @@ import '../../../../../static/css/components/metadata-form.css';
 /**
  * Initializes share popover button listeners.
  *
- * <ol-popover> manages its own open/close lifecycle on trigger click, so
- * Colorbox wiring is no longer needed.
+ * <ol-popover> manages its own open/close lifecycle on trigger click.
  */
 export function initShareModal() {
     addShareModalButtonListeners();
@@ -317,17 +316,16 @@ export function addNotesPageButtonListeners() {
  * Creates and displays a toast component.
  *
  * @param {String} message Message displayed in toast component
- * @param {JQuery} $parent Mount point for toast component
  */
-function showToast(message, $parent) {
-    new FadingToast(message, $parent).show();
+function showToast(message) {
+    new FadingToast(message).show();
 }
 
 /**
  * Initializes a collection of observations modals.
  *
- * Adds on click listeners to all given modal links, and adds change listeners to
- * each modal's inputs.
+ * Opens each modal's <ol-dialog> when its link is clicked, and reloads the
+ * observations list a modal points at once it closes.
  *
  * @param {JQuery} $modalLinks  A collection of observations modal links.
  */
@@ -337,14 +335,10 @@ export function initObservationsModal($modalLinks) {
     addDeleteObservationsListeners($('.delete-observations-button'));
 
     $modalLinks.each(function(_i, modalLinkElement) {
-        const $element = $(modalLinkElement);
-        const dialog = getModalContent($element);
+        const dialog = getModalContent($(modalLinkElement));
         const context = JSON.parse(dialog.dataset['context']);
 
-        addObservationChangeListeners($element.next(), context);
-
-        // Reload the list this modal points at once it closes. The dialog
-        // closes itself, so this replaces colorbox's onClosed hook.
+        // Reload the list this modal points at once the dialog closes.
         dialog.addEventListener('ol-after-close', () => {
             if (context.reloadId) {
                 $(`#${context.reloadId}`).trigger('contentReload');
@@ -484,91 +478,8 @@ function addDeleteObservationsListeners($deleteButtons) {
                     $button.parent().removeClass('observation-buttons');
                     $button.parent().addClass('no-content');
                     $button.addClass('hidden');
-
-                    // find and clear modal selections
-                    clearForm($button.siblings().find('form'));
                 }
             });
         });
     });
-}
-
-/**
- * Unchecks all inputs in an observations modal form.
- *
- * @param {JQuery} $form An observations modal form
- */
-function clearForm($form) {
-    $form.find('input').each(function(_i, input) {
-        if (input.checked) {
-            input.checked = false;
-        }
-    });
-}
-
-/**
- * Adds change listeners to each input in the observations section of the modal.
- *
- * For each checkbox and radio button in the observations form, a change listener
- * that triggers observation submissions is added.  On change, a payload containing
- * the username, action type ('add' when an input is checked, 'delete' when unchecked),
- * and observation type and value are sent to the back-end server.
- *
- * @param {JQuery}  $parent  Object that contains the observations form.
- * @param {Object}  context  An object containing the patron's username and the work's OLID.
- */
-function addObservationChangeListeners($parent, context) {
-    const $questionSections = $parent.find('.aspect-section');
-    const username = context.username;
-    const workOlid = context.work.split('/')[2];
-
-    $questionSections.each(function() {
-        const $inputs = $(this).find('input');
-
-        $inputs.each(function() {
-            $(this).on('change', function() {
-                const type = $(this).attr('name');
-                const value = $(this).attr('value');
-                const observation = {};
-                observation[type] = value;
-
-                const data = {
-                    username: username,
-                    action: `${$(this).prop('checked') ? 'add': 'delete'}`,
-                    observation: observation
-                };
-
-                submitObservation($(this), workOlid, data, type);
-            });
-        });
-    });
-}
-
-/**
- * Submits an observation to the server.
- *
- * @param {String}  workOlid    The OLID for the work being observed.
- * @param {Object}  data        Payload that will be sent to the back-end server.
- * @param {String}  sectionType Name of the input's section.
- */
-function submitObservation($input, workOlid, data, sectionType) {
-    let toastMessage;
-    const capitalizedType = sectionType[0].toUpperCase() + sectionType.substring(1);
-
-    // Make AJAX call
-    $.ajax({
-        type: 'POST',
-        url: `/works/${workOlid}/observations`,
-        contentType: 'application/json',
-        data: JSON.stringify(data)
-    })
-        .done(function() {
-            toastMessage = `${capitalizedType} saved!`;
-        })
-        .fail(function() {
-            toastMessage = `${capitalizedType} save failed...`;
-        })
-        .always(function() {
-            showToast(toastMessage, $input.closest('.metadata-form'));
-        });
 }
