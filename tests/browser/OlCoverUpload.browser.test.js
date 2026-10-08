@@ -115,7 +115,6 @@ test('dragging a file onto the dropzone selects it and highlights the zone', asy
 
     zone.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
     await el.updateComplete;
-    expect(el.renderRoot.querySelector('.dropzone--filled')).not.toBeNull();
-    expect(el.renderRoot.querySelector('.preview')).not.toBeNull();
+    expect(el.renderRoot.querySelector('.drop-content .preview-wrap')).not.toBeNull();
     expect(el.renderRoot.querySelector('.dropzone--active')).toBeNull();
 });

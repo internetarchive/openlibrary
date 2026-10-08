@@ -107,10 +107,37 @@ export class OlCoverUpload extends LitElement {
         /* The form panel: the same soft card the old server-rendered
            cover form used (legacy form styling), rebuilt from tokens. */
         .panel {
-            padding: var(--spacing-sm);
+            padding: var(--spacing-md);
             margin-bottom: var(--spacing-sm);
             background: var(--neutral-100);
             border-radius: var(--border-radius-lg);
+        }
+
+        /* The whole panel is the drop target — dropping anywhere in the box,
+           including on the buttons, picks up the image. */
+        .dropzone {
+            border: var(--border-width-thick) dashed var(--color-border-muted);
+            transition:
+                border-color var(--duration-fast) var(--ease-state),
+                background-color var(--duration-fast) var(--ease-state);
+        }
+
+        .dropzone--active {
+            border-color: var(--color-primary);
+            background: var(--color-control-selected-bg);
+        }
+
+        .drop-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 96px;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .dropzone__hint {
+            margin: 0;
+            color: var(--color-text-muted);
         }
 
         .heading {
@@ -135,39 +162,6 @@ export class OlCoverUpload extends LitElement {
 
         .file {
             display: none;
-        }
-
-        .dropzone {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 120px;
-            padding: var(--spacing-md);
-            margin-bottom: var(--spacing-sm);
-            border: var(--border-width-thick) dashed var(--color-border-muted);
-            border-radius: var(--border-radius-lg);
-            text-align: center;
-            transition:
-                border-color var(--duration-fast) var(--ease-state),
-                background-color var(--duration-fast) var(--ease-state);
-        }
-
-        .dropzone--active {
-            border-color: var(--color-primary);
-            background: var(--color-control-selected-bg);
-        }
-
-        /* With an image selected the dashed frame gets out of the way; the
-           preview brings its own border. */
-        .dropzone--filled {
-            min-height: 0;
-            padding: 0;
-            border: none;
-        }
-
-        .dropzone__hint {
-            margin: 0;
-            color: var(--color-text-muted);
         }
 
         .preview-wrap {
@@ -623,7 +617,12 @@ export class OlCoverUpload extends LitElement {
                 <a href="/help/faq/editing#picture" target="_blank" rel="noopener noreferrer">${guideline}</a>.
             </p>
 
-            <div class="panel">
+            <div
+                class="panel dropzone ${classMap({ 'dropzone--active': this._dragging })}"
+                @dragover=${this._onDragOver}
+                @dragleave=${this._onDragLeave}
+                @drop=${this._onDrop}
+            >
                 <h3 class="heading">${this.t('chooseFile')}</h3>
                 <input
                     class="file"
@@ -633,12 +632,7 @@ export class OlCoverUpload extends LitElement {
                     aria-label=${this.t('chooseFile')}
                     @change=${this._onFileChange}
                 />
-                <div
-                    class="dropzone ${classMap({ 'dropzone--active': this._dragging, 'dropzone--filled': !!this._previewUrl })}"
-                    @dragover=${this._onDragOver}
-                    @dragleave=${this._onDragLeave}
-                    @drop=${this._onDrop}
-                >
+                <div class="drop-content">
                     ${this._previewUrl ? this._renderPreview() : html`<p class="dropzone__hint">${this.t('dropHint')}</p>`}
                 </div>
                 <div class="row">
