@@ -15,11 +15,10 @@ export function initCoversChange() {
     const add_url = data_config_json['add_url'];
     const manage_url = data_config_json['manage_url'];
 
-    // Add iframes lazily when the popup is loaded.
-    // This avoids fetching the iframes along with main page.
+    // Add iframes lazily when the dialog opens, clearing them first so they
+    // reload fresh each time. This avoids fetching the iframes with the page.
     $('.coverPop')
         .on('click', function() {
-            // clear the content of #imagesAdd and #imagesManage before adding new
             $('.imagesAdd').html('');
             $('.imagesManage').html('');
             if (doc_type_key === '/type/work') {
@@ -31,16 +30,19 @@ export function initCoversChange() {
                 // add iframe to manage images
                 add_iframe('.imagesManage', manage_url);
             }, 0);
-        })
-        .on('cbox_cleanup', function() {
-            $('.imagesAdd').html('');
-            $('.imagesManage').html('');
         });
+
+    // Clear the add/manage iframes once the dialog has closed so they stop running;
+    // the next open rebuilds them. Waits for the close animation so it doesn't empty mid-fade.
+    const coverDialog = document.querySelector('.imagesAdd')?.closest('ol-dialog');
+    coverDialog?.addEventListener('ol-after-close', () => {
+        document.querySelectorAll('.imagesAdd, .imagesManage').forEach((el) => el.replaceChildren());
+    });
 }
 
 function add_iframe(selector, src) {
     $(selector)
-        .append('<iframe frameborder="0" height="580" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
+        .append('<iframe height="580" width="100%" style="border: 0;"></iframe>')
         .find('iframe')
         .attr('src', src);
 }
@@ -89,6 +91,7 @@ export function initCoversSaved() {
     if (['/type/edition', '/type/work', '/edit'].includes(doc_type_key)) {
         if (image) {
             cover_url = `${coverstore_url}/b/id/${image}-M.jpg`;
+            updateCoverPreview(`${coverstore_url}/b/id/${image}-L.jpg`);
             // XXX-Anand: Fix this hack
             // set url and  show SRPCover  and hide SRPCoverBlank
             parent.$(cover_selector).attr('src', cover_url)
@@ -108,12 +111,22 @@ export function initCoversSaved() {
     else {
         if (image) {
             cover_url = `${coverstore_url}/a/id/${image}-M.jpg`;
+            updateCoverPreview(`${coverstore_url}/a/id/${image}-L.jpg`);
         }
         else {
             cover_url = '/static/images/icons/avatar_author-lg.png';
         }
         parent.$(cover_selector).attr('src', cover_url);
     }
+}
+
+// Point the enlarged preview dialog, and its trigger's fallback link, at the newly saved image.
+function updateCoverPreview(largeUrl) {
+    const preview = parent.document.querySelector('#seeImage img.cover-preview');
+    if (preview) {
+        preview.src = largeUrl;
+    }
+    parent.document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach((link) => { link.href = largeUrl; });
 }
 
 // This function will be triggered when the user clicks the "Paste" button
