@@ -641,4 +641,4 @@ Both #12689 and #12916 modify `managed-schema.xml`. They can be applied to the p
 4. Read `openlibrary/plugins/worksearch/schemes/works.py` — this is the bridge between user queries and Solr parameters
 5. The `ebook_access` enum and `AVAILABILITY_TO_PARAMS` are a frequent source of bugs — understand both before touching availability filters
 6. Public docs: [docs.openlibrary.org/advanced/solr.html](https://docs.openlibrary.org/advanced/solr.html)
-7. For OPDS/batch search integration, see [pm/workflows/opds-system.md](../../../pm/workflows/opds-system.md)
+7. For OPDS/batch search integration, see [the OPDS system docs](../opds/README.md)
