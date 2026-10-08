@@ -1186,10 +1186,9 @@ class export_books(delegate.page):
     @require_login
     def GET(self):
         i = web.input(type="")
-        user = accounts.get_current_user()
-
         if not i.type:
             # Render export selection page when no type specified
+            user = accounts.get_current_user()
             username = user.key.split("/")[-1]
             template = render["account/export"](user=user)
             return MyBooksTemplate(username, "exports").render(header_title=_("Export your data"), template=template)

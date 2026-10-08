@@ -3,7 +3,7 @@ $def with (user=None)
 <div class="data-transfer-grid">
   <div class="data-transfer-card">
     <h3>$_("Export your Reading Log")</h3>
-    <p>$:_('Download a copy of your <a href="/help/faq/reading-log.en#reading-log">reading log</a>.')</p>
+    <p>$:_('Download a copy of your %(link_start)sreading log%(link_end)s.', link_start='<a href="/help/faq/reading-log.en#reading-log">', link_end='</a>')</p>
     <div class="data-transfer-card__footer">
       <form method="GET" action="/account/export"
           enctype="multipart/form-data">
