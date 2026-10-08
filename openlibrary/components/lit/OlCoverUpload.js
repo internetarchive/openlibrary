@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { classMap } from 'lit/directives/class-map.js';
 // Registers <ol-button> for the upload / paste actions.
 import './OLButton.js';
 import './OlIcon.js';
@@ -15,6 +16,8 @@ export const DEFAULT_LABELS = {
     guidelinesCover: 'Cover Guidelines',
     guidelinesPhoto: 'Image Guidelines',
     chooseFile: 'Choose a JPG, GIF, PNG or WebP on your computer',
+    browse: 'Browse',
+    dropHint: 'Drag and drop an image here',
     useImageFrom: 'Or, use an image from %(source)s',
     uploadImage: 'Upload Image',
     paste: 'Paste Image',
@@ -69,6 +72,7 @@ export class OlCoverUpload extends LitElement {
         _busy: { state: true },
         _error: { state: true },
         _pasted: { state: true },
+        _dragging: { state: true },
         _savedId: { state: true },
         _savedUrl: { state: true },
     };
@@ -120,9 +124,40 @@ export class OlCoverUpload extends LitElement {
         }
 
         .file {
-            flex: 1 1 12rem;
-            min-width: 0;
-            font: inherit;
+            display: none;
+        }
+
+        .dropzone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            border: var(--border-width-thick) dashed var(--color-border-muted);
+            border-radius: var(--border-radius-lg);
+            text-align: center;
+            transition:
+                border-color var(--duration-fast) var(--ease-state),
+                background-color var(--duration-fast) var(--ease-state);
+        }
+
+        .dropzone--active {
+            border-color: var(--color-primary);
+            background: var(--color-control-selected-bg);
+        }
+
+        /* With an image selected the dashed frame gets out of the way; the
+           preview brings its own border. */
+        .dropzone--filled {
+            min-height: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .dropzone__hint {
+            margin: 0;
+            color: var(--color-text-muted);
         }
 
         .preview-wrap {
@@ -213,6 +248,7 @@ export class OlCoverUpload extends LitElement {
         this._busy = false;
         this._error = '';
         this._pasted = false;
+        this._dragging = false;
         this._savedId = null;
         this._savedUrl = '';
         this._onPasteEvent = this._onPasteEvent.bind(this);
@@ -279,12 +315,20 @@ export class OlCoverUpload extends LitElement {
 
     _onFileChange(event) {
         const file = event.target.files?.[0];
+        if (file) this._setFile(file);
+    }
+
+    /** Open the hidden native file picker from the Browse button. */
+    _openPicker() {
+        this._fileInput?.click();
+    }
+
+    /** Record a chosen or dropped image and preview it. */
+    _setFile(file) {
         this._error = '';
-        if (file) {
-            this._pasted = false;
-            this._file = file;
-            this._showPreview(file);
-        }
+        this._pasted = false;
+        this._file = file;
+        this._showPreview(file);
     }
 
     /** Record an image as the pending "pasted" upload and preview it. */
@@ -293,6 +337,24 @@ export class OlCoverUpload extends LitElement {
         this._pasted = true;
         this._file = file;
         this._showPreview(file);
+    }
+
+    _onDragOver(event) {
+        event.preventDefault();
+        this._dragging = true;
+    }
+
+    _onDragLeave(event) {
+        // Ignore the dragleave fired when the pointer moves onto a child.
+        if (event.currentTarget?.contains(event.relatedTarget)) return;
+        this._dragging = false;
+    }
+
+    _onDrop(event) {
+        event.preventDefault();
+        this._dragging = false;
+        const file = [...(event.dataTransfer?.files ?? [])].find((f) => f.type.startsWith('image/'));
+        if (file) this._setFile(file);
     }
 
     /**
@@ -515,22 +577,30 @@ export class OlCoverUpload extends LitElement {
 
             <div class="panel">
                 <h3 class="heading">${this.t('chooseFile')}</h3>
+                <input
+                    class="file"
+                    type="file"
+                    name="file"
+                    accept=${this.accept}
+                    aria-label=${this.t('chooseFile')}
+                    @change=${this._onFileChange}
+                />
+                <div
+                    class="dropzone ${classMap({ 'dropzone--active': this._dragging, 'dropzone--filled': !!this._previewUrl })}"
+                    @dragover=${this._onDragOver}
+                    @dragleave=${this._onDragLeave}
+                    @drop=${this._onDrop}
+                >
+                    ${this._previewUrl ? this._renderPreview() : html`<p class="dropzone__hint">${this.t('dropHint')}</p>`}
+                </div>
                 <div class="row">
-                    <input
-                        class="file"
-                        type="file"
-                        name="file"
-                        accept=${this.accept}
-                        aria-label=${this.t('chooseFile')}
-                        @change=${this._onFileChange}
-                    />
+                    <ol-button class="browse-button" @click=${this._openPicker}>${this.t('browse')}</ol-button>
                     <ol-button class="paste-button" aria-label=${this.t('pasteAria')} @click=${this._onPaste}
                         >${this.t(this._pasted ? 'changeImage' : 'paste')}</ol-button
                     >
                     ${upload}
                 </div>
                 <p class="hint">${this.t('pasteHint')}</p>
-                ${this._renderPreview()}
             </div>
 
             ${this._renderCandidates()}

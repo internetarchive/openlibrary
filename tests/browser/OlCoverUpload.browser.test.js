@@ -90,3 +90,32 @@ test('inside ol-dialog, uploading then Finished closes the dialog', async() => {
     await userEvent.click(el.renderRoot.querySelector('.finished'));
     await vi.waitFor(() => expect(dialog.open).toBe(false));
 });
+
+test('dragging a file onto the dropzone selects it and highlights the zone', async() => {
+    await page.viewport(1000, 900);
+    window.fetch = vi.fn(async() => ({ ok: true, text: async() => SAVED }));
+
+    render(html`
+        <ol-cover-upload
+            action="/books/OL1M/add-cover"
+            doc-type="/type/edition"
+            coverstore-url="https://covers.openlibrary.org"
+        ></ol-cover-upload>
+    `);
+    const el = document.querySelector('ol-cover-upload');
+    await el.updateComplete;
+
+    const zone = el.renderRoot.querySelector('.dropzone');
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['x'], 'drag.png', { type: 'image/png' }));
+
+    zone.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    await el.updateComplete;
+    expect(el.renderRoot.querySelector('.dropzone--active')).not.toBeNull();
+
+    zone.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    await el.updateComplete;
+    expect(el.renderRoot.querySelector('.dropzone--filled')).not.toBeNull();
+    expect(el.renderRoot.querySelector('.preview')).not.toBeNull();
+    expect(el.renderRoot.querySelector('.dropzone--active')).toBeNull();
+});

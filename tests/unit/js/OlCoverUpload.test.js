@@ -113,6 +113,34 @@ describe('ol-cover-upload form', () => {
         expect(el._previewUrl).toBe('');
         expect(q(el, '.preview')).toBeNull();
     });
+
+    test('dropping an image selects it', async() => {
+        const el = await mount();
+        const file = new File(['x'], 'drop.png', { type: 'image/png' });
+        el._onDrop({ preventDefault() {}, dataTransfer: { files: [file] } });
+        await el.updateComplete;
+        expect(el._file).toBe(file);
+        expect(el._pasted).toBe(false);
+        expect(q(el, '.preview')).not.toBeNull();
+    });
+
+    test('a drop with no image is ignored', async() => {
+        const el = await mount();
+        el._onDrop({ preventDefault() {}, dataTransfer: { files: [new File(['x'], 'a.txt', { type: 'text/plain' })] } });
+        await el.updateComplete;
+        expect(el._file).toBeNull();
+    });
+
+    test('dragging over the dropzone highlights it until the drag leaves', async() => {
+        const el = await mount();
+        el._onDragOver({ preventDefault() {} });
+        await el.updateComplete;
+        expect(q(el, '.dropzone--active')).not.toBeNull();
+
+        el._onDragLeave({ currentTarget: q(el, '.dropzone'), relatedTarget: null });
+        await el.updateComplete;
+        expect(q(el, '.dropzone--active')).toBeNull();
+    });
 });
 
 describe('ol-cover-upload submission', () => {
