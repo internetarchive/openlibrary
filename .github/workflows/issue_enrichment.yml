@@ -74,7 +74,7 @@ jobs:
             --allowedTools "Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh issue view:*)
             Bash(gh issue comment:*) Bash(gh issue edit:*) Bash(gh issue close:*)
             Bash(gh issue list:*) Bash(gh pr list:*) Bash(gh label list:*)"
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
           github_token: ${{ secrets.OL_BOT_PAT }}
           # Issues are opened by any public contributor, most of whom have only
           # read access. claude-code-action's default actor-permission check
