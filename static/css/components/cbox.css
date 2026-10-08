@@ -3,137 +3,7 @@
 /* For changes in this file to take effect you must run make js instead of the usual make css because this is imported by main.js (via js-all.css) */
 /* stylelint-disable selector-max-specificity */
 
-/* COLORBOX POP-UP */
-#colorbox,
-#cboxOverlay,
-#cboxWrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: var(--z-index-toast);
-}
-
-#colorbox {
-  outline: none;
-  box-sizing: content-box;
-}
-
-#colorbox > * {
-  box-sizing: content-box;
-}
-
-/* In lightboxes for displaying current cover, important the image */
-/* is not larger than available space. */
-#colorbox img {
-  height: auto;
-}
-
-#colorbox img,
-#colorbox iframe {
-  width: 100%;
-}
-
-#colorbox img.cover {
-  border-radius: 5px;
-  box-shadow: 1px 1px 2px 0 var(--book-cover-shadow-color);
-}
-
-#cboxOverlay {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  opacity: 0.5;
-  filter: alpha(opacity=50);
-  background-color: var(--black);
-}
-
-#cboxMiddleLeft,
-#cboxBottomLeft {
-  clear: left;
-}
-
-#cboxTitle {
-  margin: 0;
-  display: none !important;
-}
-
-#cboxLoadingOverlay,
-#cboxLoadingGraphic {
-  position: absolute;
-  top: 25px;
-  left: 25px;
-  width: 100%;
-}
-
-#cboxPrevious,
-#cboxNext,
-#cboxClose,
-#cboxSlideshow {
-  cursor: pointer;
-}
-
-#cboxContent {
-  box-sizing: content-box;
-  position: relative;
-  background: var(--white);
-  padding: var(--spacing-inset-sm);
-  border: 1px solid var(--color-border-muted);
-  border-radius: var(--border-radius-overlay);
-  -webkit-box-shadow: 1px 3px 5px var(--darker-grey);
-  box-shadow: 1px 3px 5px var(--darker-grey);
-}
-
-#cboxLoadedContent {
-  background: var(--white);
-  margin: 0;
-  overflow: visible !important;
-}
-
-#cboxLoadedContent iframe {
-  display: block;
-  border: 0;
-}
-
-#cboxLoadingOverlay {
-  background: transparent;
-}
-
-#cboxClose {
-  display: none !important;
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 32px;
-  height: 32px;
-  background-image: url(/static/images/icons/icon_close-pop.png);
-  background-position: 0 0;
-  background-repeat: no-repeat;
-}
-
-#cboxClose:hover {
-  background-position: 0 -32px;
-}
-
-.dialog--close {
-  color: var(--color-text);
-  font-size: 1.2em;
-  /* Increase clickable area to the recommended size (44x44px) according to */
-  /* https://www.w3.org/WAI/WCAG21/Understanding/target-size.html */
-  /* but avoid modifying the UI */
-  display: inline-block;
-  position: relative;
-  z-index: var(--z-index-base);
-  padding: 11px 17px;
-  margin: -11px -17px;
-}
-
-.dialog--close:visited,
-.dialog--close:link,
-.dialog--close:hover {
-  text-decoration: none;
-}
-
-/* OVERLAY HEADS (observations modal, native dialog) */
+/* OVERLAY HEADS (native dialog) */
 div.floaterHead {
   display: flex;
   padding: var(--spacing-inset-sm) var(--spacing-inset-xs);
@@ -285,43 +155,6 @@ div.imageIntro {
   margin: 0 0 var(--spacing-stack-sm);
 }
 
-/* ADD ROLES, ETC. */
-div.floaterAdd {
-  position: relative;
-  font-family: var(--font-family-body);
-  background: var(--white);
-  text-align: left;
-}
-
-div.floaterAdd .formElement {
-  margin: 0 var(--spacing-inline-xl);
-}
-
-div.floaterAdd form.floatform .input {
-  padding-top: var(--spacing-inset-xs);
-}
-
-div.floaterAdd form.floatform .label {
-  padding-top: var(--spacing-inset-md);
-}
-
-/* stylelint-disable-next-line max-nesting-depth */
-div.floaterAdd form.floatform .label label {
-  font-size: 1em;
-  font-family: var(--font-family-body);
-  font-weight: 700;
-}
-
-div.floaterAdd form.floatform input[type="text"],
-div.floaterAdd form.floatform textarea {
-  margin-left: 0;
-}
-
-div.floaterAdd form.floatform textarea {
-  padding: var(--spacing-inset-xs);
-  resize: none;
-}
-
 @media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
   .floatform div#covers.input,
   .floatform .label,
@@ -343,14 +176,5 @@ div.floaterAdd form.floatform textarea {
 
   div.imageIntro {
     margin: var(--spacing-stack-sm);
-  }
-
-  div.floaterAdd .input,
-  div.floaterAdd .label,
-  div.floaterAdd input[type="text"],
-  div.floaterAdd input[type="url"],
-  div.floaterAdd textarea {
-    width: 560px;
-    resize: none;
   }
 }

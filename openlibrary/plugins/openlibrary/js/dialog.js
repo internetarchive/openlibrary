@@ -1,82 +1,97 @@
-import $ from 'jquery';
-// For dialog boxes (e.g. add to list)
-import 'jquery-colorbox';
+// For dialog boxes (e.g. add to list, book preview)
 import { trackEvent } from './ol.analytics.js';
 
 /**
  * Collapses the search-inside form back to the button state.
- * @param {jQuery} $btnGroup - The .cta-button-group container.
+ * @param {HTMLElement} btnGroup - The .cta-button-group container.
  */
-function collapseSearchForm($btnGroup) {
-    $btnGroup.find('.search-inside-form').hide();
-    $btnGroup.find('.search-inside-input').val('');
-    $btnGroup.find('.preview-btn, .search-inside-trigger-btn').show();
-    $btnGroup.find('[data-search-trigger]').attr('aria-expanded', 'false');
+function collapseSearchForm(btnGroup) {
+    if (!btnGroup) return;
+    const form = btnGroup.querySelector('.search-inside-form');
+    const input = btnGroup.querySelector('.search-inside-input');
+    if (form) form.style.display = 'none';
+    if (input) input.value = '';
+    btnGroup.querySelectorAll('.preview-btn, .search-inside-trigger-btn')
+        .forEach(el => { el.style.display = ''; });
+    btnGroup.querySelectorAll('[data-search-trigger]')
+        .forEach(el => el.setAttribute('aria-expanded', 'false'));
 }
 
-export function initPreviewDialogs() {
-    // Delegated click handler for Book Preview buttons.
-    // Uses event delegation so dynamically-added buttons (e.g. from
-    // lazy-loaded carousels) work without re-initialization.
-    $(document).off('click.bookPreview').on('click.bookPreview', '[data-book-preview]', function(e) {
-        e.preventDefault();
+/**
+ * Wires up the book preview dialog and the search-inside form.
+ *
+ * Listeners are delegated on document so triggers added later (e.g. from
+ * lazy-loaded carousels) work without re-initializing.
+ *
+ * @param {AbortSignal} signal Removes this set's listeners when aborted.
+ */
+function initPreviewDialogs(signal) {
+    // Open the preview dialog for the clicked book.
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-book-preview]');
+        if (!button) return;
+        event.preventDefault();
         trackEvent('BookOptions', 'Preview');
-        const $button = $(this);
+
         const dialog = document.getElementById('bookPreview');
         if (!dialog) return;
-
         const iframe = dialog.querySelector('iframe');
-        if (iframe) {
-            iframe.src = $button.data('iframe-src');
-        }
-
+        if (iframe) iframe.src = button.dataset.iframeSrc;
         const link = dialog.querySelector('.learn-more a');
-        if (link) {
-            link.href = $button.data('iframe-link');
-        }
-
+        if (link) link.href = button.dataset.iframeLink;
         dialog.open = true;
-    });
+    }, { signal });
 
-    $(document).off('ol-close.bookPreview').on('ol-close.bookPreview', '#bookPreview', function() {
+    // Drop the preview embed when the dialog closes, so a stale book's
+    // iframe can't keep loading in the background.
+    document.getElementById('bookPreview')?.addEventListener('ol-close', function() {
         const iframe = this.querySelector('iframe');
-        if (iframe) {
-            iframe.src = '';
-        }
-    });
+        if (iframe) iframe.src = '';
+    }, { signal });
 
-    // Handle clicking the "Search Inside" button to expand it to the input form
-    $(document).off('click.bookSearchTrigger').on('click.bookSearchTrigger', '[data-search-trigger]', function(e) {
-        e.preventDefault();
+    // Expand the "Search Inside" button into its input form.
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-search-trigger]');
+        if (!trigger) return;
+        event.preventDefault();
         trackEvent('BookOptions', 'SearchInside');
-        const $triggerBtn = $(this);
-        const $btnGroup = $triggerBtn.closest('.cta-button-group');
-        $triggerBtn.attr('aria-expanded', 'true');
-        $btnGroup.find('.preview-btn, .search-inside-trigger-btn').hide();
-        $btnGroup.find('.search-inside-form').show().find('.search-inside-input').trigger('focus');
-    });
+        trigger.setAttribute('aria-expanded', 'true');
 
-    // Handle pressing Escape to collapse the search inside input form back
-    $(document).off('keydown.bookSearchInput').on('keydown.bookSearchInput', '.search-inside-input', function(e) {
-        if (e.key === 'Escape') {
-            const $btnGroup = $(this).closest('.cta-button-group');
-            collapseSearchForm($btnGroup);
-            e.stopPropagation();
+        const btnGroup = trigger.closest('.cta-button-group');
+        if (!btnGroup) return;
+        btnGroup.querySelectorAll('.preview-btn, .search-inside-trigger-btn')
+            .forEach(el => { el.style.display = 'none'; });
+        const form = btnGroup.querySelector('.search-inside-form');
+        if (form) {
+            form.style.display = '';
+            form.querySelector('.search-inside-input')?.focus();
         }
-    });
+    }, { signal });
 
-    // Handle clicking the cancel (&times;) button to collapse the form back
-    $(document).off('click.bookSearchCancel').on('click.bookSearchCancel', '.search-cancel-btn', function(e) {
-        e.preventDefault();
-        collapseSearchForm($(this).closest('.cta-button-group'));
-    });
+    // Escape collapses the form back to the button state.
+    document.addEventListener('keydown', (event) => {
+        const input = event.target.closest('.search-inside-input');
+        if (!input || event.key !== 'Escape') return;
+        collapseSearchForm(input.closest('.cta-button-group'));
+        event.stopPropagation();
+    }, { signal });
 
-    // Handle search form submission to open query inside preview dialog modal
-    $(document).off('submit.bookSearchForm').on('submit.bookSearchForm', '.search-inside-form', function(e) {
-        e.preventDefault();
-        const $form = $(this);
-        const query = $form.find('.search-inside-input').val();
-        const ocaid = $form.data('ocaid');
+    // The cancel (×) button collapses the form back.
+    document.addEventListener('click', (event) => {
+        const cancel = event.target.closest('.search-cancel-btn');
+        if (!cancel) return;
+        event.preventDefault();
+        collapseSearchForm(cancel.closest('.cta-button-group'));
+    }, { signal });
+
+    // Submitting the form runs the query inside the preview dialog.
+    document.addEventListener('submit', (event) => {
+        const form = event.target.closest('.search-inside-form');
+        if (!form) return;
+        event.preventDefault();
+        const query = form.querySelector('.search-inside-input')?.value ?? '';
+        const ocaid = form.dataset.ocaid;
+
         const dialog = document.getElementById('bookPreview');
         if (dialog) {
             const iframe = dialog.querySelector('iframe');
@@ -84,29 +99,34 @@ export function initPreviewDialogs() {
                 iframe.src = `https://archive.org/details/${ocaid}?view=theater&wrapper=false&q=${encodeURIComponent(query)}`;
             }
             const link = dialog.querySelector('.learn-more a');
-            if (link) {
-                link.href = `https://archive.org/details/${ocaid}`;
-            }
+            if (link) link.href = `https://archive.org/details/${ocaid}`;
             dialog.open = true;
         }
-        collapseSearchForm($form.closest('.cta-button-group'));
-    });
+        collapseSearchForm(form.closest('.cta-button-group'));
+    }, { signal });
 }
+
+let dialogController;
 
 /**
  * Wires up dialog triggers.
  *
  * An element with class `dialog--open` opens the <ol-dialog> named by its
  * `aria-controls` attribute, e.g. the cover preview and add/manage cover
- * dialogs.
+ * dialogs. Closing is the component's job (close button, backdrop, Escape),
+ * so no close wiring is needed here.
  */
 export function initDialogs() {
+    dialogController?.abort();
+    dialogController = new AbortController();
+    const { signal } = dialogController;
+
     document.querySelectorAll('.dialog--open').forEach((trigger) => {
         const getTarget = () => document.getElementById(trigger.getAttribute('aria-controls'));
         // Start fetching the dialog's lazy images on hover/focus so they're loaded by the click.
         const warmImages = () => getTarget()?.querySelectorAll('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
-        trigger.addEventListener('pointerenter', warmImages, { once: true });
-        trigger.addEventListener('focus', warmImages, { once: true });
+        trigger.addEventListener('pointerenter', warmImages, { once: true, signal });
+        trigger.addEventListener('focus', warmImages, { once: true, signal });
         trigger.addEventListener('click', (e) => {
             const target = getTarget();
             if (target?.tagName !== 'OL-DIALOG') {
@@ -114,12 +134,8 @@ export function initDialogs() {
             }
             e.preventDefault();
             target.open = true;
-        });
+        }, { signal });
     });
 
-    initPreviewDialogs();
-
-    // Legacy: closes the colorbox used by the observations modal (the last
-    // colorbox consumer). Delete when that modal migrates to ol-dialog.
-    $('.dialog--close').attr('href', 'javascript:;').off('click.dialog').on('click.dialog', () => $.fn.colorbox.close());
+    initPreviewDialogs(signal);
 }

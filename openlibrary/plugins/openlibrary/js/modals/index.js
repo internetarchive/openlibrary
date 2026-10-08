@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import 'jquery-colorbox';
 import { olConfirm } from '../../../../components/lit/alert-dialog.js';
 import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.css';
@@ -333,45 +332,51 @@ function showToast(message, $parent) {
  * @param {JQuery} $modalLinks  A collection of observations modal links.
  */
 export function initObservationsModal($modalLinks) {
-    addClickListeners($modalLinks, '800px');
+    addClickListeners($modalLinks);
     addObservationReloadListeners($('.observations-list'));
     addDeleteObservationsListeners($('.delete-observations-button'));
 
     $modalLinks.each(function(_i, modalLinkElement) {
         const $element = $(modalLinkElement);
-        const context = JSON.parse(getModalContent($element).dataset['context']);
+        const dialog = getModalContent($element);
+        const context = JSON.parse(dialog.dataset['context']);
 
         addObservationChangeListeners($element.next(), context);
+
+        // Reload the list this modal points at once it closes. The dialog
+        // closes itself, so this replaces colorbox's onClosed hook.
+        dialog.addEventListener('ol-after-close', () => {
+            if (context.reloadId) {
+                $(`#${context.reloadId}`).trigger('contentReload');
+            }
+        });
     });
 }
 
 /**
  * Add on click listeners to a collection of modal links.
  *
- * When any of the links are clicked, it's corresponding modal
- * will be displayed.
+ * When a link is clicked, its corresponding <ol-dialog> opens.
  *
  * @param {JQuery} $modalLinks  A collection of modal links.
  */
-function addClickListeners($modalLinks, maxWidth) {
+function addClickListeners($modalLinks) {
     $modalLinks.each(function(_i, modalLinkElement) {
         $(modalLinkElement).on('click', function() {
             // Get context, which is attached to the modal content
-            const content = getModalContent($(this));
-            displayModal(content, maxWidth);
+            getModalContent($(this)).open = true;
         });
     });
 }
 
 /**
- * Gets reference to modal content that is associated with the
- * given modal link.
+ * Gets the <ol-dialog> associated with the given modal link.
  *
  * @param {JQuery} $modalLink Link that triggers a modal
- * @returns {HTMLElement}  Reference to a modal's content
+ * @returns {HTMLElement}  Reference to a modal's dialog
  */
 function getModalContent($modalLink) {
-    return $modalLink.siblings()[0].children[0];
+    return $modalLink.next()[0];
 }
 
 /**
@@ -497,33 +502,6 @@ function clearForm($form) {
     $form.find('input').each(function(_i, input) {
         if (input.checked) {
             input.checked = false;
-        }
-    });
-}
-
-/**
- * Displays a model identified by the given identifier.
- *
- * Optionally fires a reload event to a list with the given ID.
- *
- * @param {HTMLElement} content  Content that will be displayed in the modal
- * @param {String} maxWidth  The max width of the modal
- */
-function displayModal(content, maxWidth) {
-    const modalId = `#${content.id}`;
-    const context = content.dataset['context'] ? JSON.parse(content.dataset['context']) : null;
-    const reloadId = context ? context.reloadId : null;
-
-    $.colorbox({
-        inline: true,
-        opacity: '0.5',
-        href: modalId,
-        width: '100%',
-        maxWidth: maxWidth,
-        onClosed: function() {
-            if (reloadId) {
-                $(`#${reloadId}`).trigger('contentReload');
-            }
         }
     });
 }

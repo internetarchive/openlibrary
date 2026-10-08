@@ -387,15 +387,6 @@ $(function() {
         import('./editions-table')
             .then(module => module.initEditionsTable());
     }
-    if ($('#cboxPrevious').length) {
-        $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
-    }
-    if ($('#cboxNext').length) {
-        $('#cboxNext').attr({'aria-label': 'Next button', 'aria-hidden': 'true'});
-    }
-    if ($('#cboxSlideshow').length) {
-        $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
-    }
 
     // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
     if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
@@ -411,7 +402,7 @@ $(function() {
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,.dialog--close,#bookPreview');
+    const $dialogs = $('.dialog--open,#bookPreview');
     if ($dialogs.length) {
         import('./dialog')
             .then(module => module.initDialogs());
