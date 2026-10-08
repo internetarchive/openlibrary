@@ -277,6 +277,20 @@ class SentryContext:
     baggage: str
     frontend_config_json: str
 
+    @classmethod
+    def build(cls) -> SentryContext | None:
+        from openlibrary.plugins.upstream.utils import json_encode
+        from openlibrary.utils.sentry import get_sentry
+
+        sentry = _safe(get_sentry, None)
+        if not sentry or not _safe(lambda: bool(sentry.enabled), False):
+            return None
+        return cls(
+            traceparent=_safe(lambda: sentry.get_traceparent() or "", ""),
+            baggage=_safe(lambda: sentry.get_baggage() or "", ""),
+            frontend_config_json=_safe(lambda: json_encode(sentry.get_frontend_config()), "{}"),
+        )
+
 
 @dataclass(frozen=True)
 class HeadContext:
@@ -297,121 +311,41 @@ class HeadContext:
     links: list[str]
     metatags: list[str]
     icon_sprite_url: str
-    is_local_dev: bool
     days_registered_json: str
     sentry: SentryContext | None
 
+    @classmethod
+    def build(cls, *, title: str, user: User | None) -> HeadContext:
+        """Read the per-page infogami ctx and assemble head data with safe fallbacks."""
+        from infogami.utils.context import context as _ctx
+        from openlibrary.accounts import get_days_registered
+        from openlibrary.plugins.upstream.utils import Request, icon_sprite_url, json_encode
 
-def _extract_request_info() -> tuple[str, str]:
-    """Return the (domain, canonical_url) pair the Templetor ``request`` global exposed."""
-    from openlibrary.plugins.upstream.utils import Request
+        def ctx(key: str, default: Any) -> Any:
+            return _safe(lambda: _ctx.get(key, default), default)
 
-    request = Request()
-    domain = _safe(lambda: request.domain or "", "")
-    canonical_url = _safe(lambda: request.canonical_url or "", "")
-    return domain, canonical_url
+        def ctx_str_list(key: str) -> list[str]:
+            raw = ctx(key, [])
+            return [str(x) for x in raw] if isinstance(raw, (list, tuple)) else []
 
+        request = Request()
+        cssfile = ctx("cssfile", "user") or "user"
 
-def _extract_disable_analytics() -> bool:
-    from infogami.utils.context import context as _ctx
-
-    return bool(_safe(lambda: _ctx.get("disable_analytics", False), False))
-
-
-def _extract_page_css_path() -> str:
-    from infogami.utils.context import context as _ctx
-
-    cssfile = _safe(lambda: _ctx.get("cssfile") or "user", "user")
-    return f"build/css/page-{cssfile}.css"
-
-
-def _extract_experiments_json() -> str:
-    from infogami.utils.context import context as _ctx
-    from openlibrary.plugins.upstream.utils import json_encode
-
-    return _safe(lambda: json_encode(_ctx.get("experiments", {}) or {}), "{}")
-
-
-def _extract_days_registered_json(user: User | None) -> str:
-    from openlibrary.accounts import get_days_registered
-    from openlibrary.plugins.upstream.utils import json_encode
-
-    return _safe(lambda: json_encode(get_days_registered(user)), '"visitor"')
-
-
-def _extract_robots() -> str:
-    from infogami.utils.context import context as _ctx
-
-    return str(_safe(lambda: _ctx.get("robots") or "", ""))
-
-
-def _extract_description() -> str:
-    from infogami.utils.context import context as _ctx
-
-    return str(_safe(lambda: _ctx.get("description") or "", ""))
-
-
-def _extract_metatags() -> list[str]:
-    """Raw ``ctx.metatags`` HTML snippets, rendered unescaped into the head."""
-    from infogami.utils.context import context as _ctx
-
-    raw: Any = _safe(lambda: _ctx.get("metatags", []), [])
-    return [str(tag) for tag in raw] if isinstance(raw, (list, tuple)) else []
-
-
-def _extract_links() -> list[str]:
-    """Raw ``ctx.links`` HTML snippets, rendered unescaped into the head."""
-    from infogami.utils.context import context as _ctx
-
-    raw: Any = _safe(lambda: _ctx.get("links", []), [])
-    return [str(link) for link in raw] if isinstance(raw, (list, tuple)) else []
-
-
-def _extract_icon_sprite_url() -> str:
-    from openlibrary.plugins.upstream.utils import icon_sprite_url
-
-    return _safe(icon_sprite_url, "/static/icons/sprite.svg")
-
-
-def _extract_is_local_dev() -> bool:
-    from openlibrary.core.env import get_ol_env
-
-    return _safe(lambda: bool(get_ol_env().LOCAL_DEV), False)
-
-
-def _extract_sentry() -> SentryContext | None:
-    from openlibrary.plugins.upstream.utils import json_encode
-    from openlibrary.utils.sentry import get_sentry
-
-    sentry = _safe(get_sentry, None)
-    if not sentry or not _safe(lambda: bool(sentry.enabled), False):
-        return None
-    return SentryContext(
-        traceparent=_safe(lambda: sentry.get_traceparent() or "", ""),
-        baggage=_safe(lambda: sentry.get_baggage() or "", ""),
-        frontend_config_json=_safe(lambda: json_encode(sentry.get_frontend_config()), "{}"),
-    )
-
-
-def _extract_head_context(title: str, user: User | None) -> HeadContext:
-    """Assemble the site head's precomputed data."""
-    domain, canonical_url = _extract_request_info()
-    return HeadContext(
-        title=title,
-        domain=domain,
-        canonical_url=canonical_url,
-        disable_analytics=_extract_disable_analytics(),
-        page_css_path=_extract_page_css_path(),
-        experiments_json=_extract_experiments_json(),
-        robots=_extract_robots(),
-        description=_extract_description(),
-        links=_extract_links(),
-        metatags=_extract_metatags(),
-        icon_sprite_url=_extract_icon_sprite_url(),
-        is_local_dev=_extract_is_local_dev(),
-        days_registered_json=_extract_days_registered_json(user),
-        sentry=_extract_sentry(),
-    )
+        return cls(
+            title=title,
+            domain=_safe(lambda: request.domain or "", ""),
+            canonical_url=_safe(lambda: request.canonical_url or "", ""),
+            disable_analytics=bool(ctx("disable_analytics", False)),
+            page_css_path=f"build/css/page-{cssfile}.css",
+            experiments_json=_safe(lambda: json_encode(ctx("experiments", {}) or {}), "{}"),
+            robots=str(ctx("robots", "") or ""),
+            description=str(ctx("description", "") or ""),
+            links=ctx_str_list("links"),
+            metatags=ctx_str_list("metatags"),
+            icon_sprite_url=_safe(icon_sprite_url, "/static/icons/sprite.svg"),
+            days_registered_json=_safe(lambda: json_encode(get_days_registered(user)), '"visitor"'),
+            sentry=SentryContext.build(),
+        )
 
 
 @dataclass(frozen=True)
@@ -439,6 +373,7 @@ class LayoutContext:
     flash_messages: list[dict[str, str]]
     user: HeaderUser | None
     ol_env: str
+    is_local_dev: bool
     page_status_url: str
     is_recognized_bot: bool
     is_print_disabled: bool
@@ -477,6 +412,7 @@ class LayoutContext:
         """Assemble and compute layout context safely with fallbacks."""
         from infogami.utils.context import context as _infogami_context
         from infogami.utils.view import query_param
+        from openlibrary.core.env import get_ol_env
         from openlibrary.plugins.openlibrary.code import get_supported_languages
         from openlibrary.plugins.openlibrary.status import get_git_revision_short_hash
         from openlibrary.utils.request_context import get_request_lang, req_context
@@ -501,6 +437,7 @@ class LayoutContext:
             flash_messages=_extract_flash_messages(),
             user=_extract_header_user(user),
             ol_env=_extract_ol_env(),
+            is_local_dev=get_ol_env().LOCAL_DEV,
             page_status_url=_extract_page_status_url(),
             is_recognized_bot=_extract_is_recognized_bot(),
             is_print_disabled=_extract_is_print_disabled(),
@@ -510,7 +447,7 @@ class LayoutContext:
             featured_browse_links=featured_browse,
             simple_browse_links=simple_browse,
             browse_featured_count=BROWSE_FEATURED_COUNT,
-            head=_extract_head_context(title, user),
+            head=HeadContext.build(title=title, user=user),
             announcement_banner=_safe(_extract_announcement_banner, None),
         )
 

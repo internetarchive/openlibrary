@@ -12,7 +12,6 @@ from openlibrary.core.layout import (
     HeadContext,
     LayoutContext,
     SentryContext,
-    _extract_sentry,
     can_show_librarian_tools,
 )
 
@@ -98,6 +97,7 @@ def test_layout_context_is_frozen():
         flash_messages=[],
         user=None,
         ol_env="production",
+        is_local_dev=False,
         page_status_url="",
         is_recognized_bot=False,
         is_print_disabled=False,
@@ -119,7 +119,6 @@ def test_layout_context_is_frozen():
             links=[],
             metatags=[],
             icon_sprite_url="",
-            is_local_dev=False,
             days_registered_json='"visitor"',
             sentry=None,
         ),
@@ -285,7 +284,7 @@ def test_layout_build_head_defaults(request_context_fixture):
     assert isinstance(head.canonical_url, str)
     assert isinstance(head.domain, str)
     assert isinstance(head.icon_sprite_url, str)
-    assert isinstance(head.is_local_dev, bool)
+    assert isinstance(layout.is_local_dev, bool)
 
 
 def test_layout_build_head_title_passthrough(request_context_fixture):
@@ -318,14 +317,14 @@ def test_layout_build_head_reads_page_context(request_context_fixture):
         infogami_ctx.clear()
 
 
-def test_extract_sentry_disabled_returns_none(monkeypatch):
+def test_sentry_context_build_disabled_returns_none(monkeypatch):
     """Sentry should be None when no client is configured."""
     monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: None)
 
-    assert _extract_sentry() is None
+    assert SentryContext.build() is None
 
 
-def test_extract_sentry_enabled_precomputes_fields(monkeypatch):
+def test_sentry_context_build_enabled_precomputes_fields(monkeypatch):
     """An enabled Sentry client should be flattened into a frozen data object."""
     sentry = type(
         "Sentry",
@@ -339,7 +338,7 @@ def test_extract_sentry_enabled_precomputes_fields(monkeypatch):
     )()
     monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: sentry)
 
-    result = _extract_sentry()
+    result = SentryContext.build()
     assert isinstance(result, SentryContext)
     assert result.traceparent == "TRACE"
     assert result.baggage == "BAGGAGE"
