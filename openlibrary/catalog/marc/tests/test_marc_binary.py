@@ -44,7 +44,6 @@ class Test_BinaryDataField:
         r = bdf.translate(b'\xc2\x98The \xc2\x9cTitle')
         assert len(r) == 11
         assert r == "\u0098The \u009cTitle"
-        #assert r == "The Title"
 
     def test_bad_marc_line(self):
         line = b"0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e"
