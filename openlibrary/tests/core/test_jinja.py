@@ -15,6 +15,7 @@ from lxml.etree import ParseError as LxmlParseError
 from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
 
+from infogami.utils.context import context as infogami_context
 from openlibrary import i18n as i18n_module
 from openlibrary.core import jinja as jinja_module
 from openlibrary.core import layout as layout_module
@@ -113,8 +114,7 @@ def _create_validation_env() -> jinja2.Environment:
 
     # Stubbed: this env only validates template structure, without infogami's
     # runtime template disk-loading or template globals.
-    # For layouts/site.html.jinja the head and nav fragments are rendered via
-    # render_templetor_template.
+    # The site shell's remaining Templetor subtemplates are stubbed out here.
     def _stub_render_templetor(name, *a, **kw):
         return ""
 
@@ -200,6 +200,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.browse_links, list)
         assert isinstance(layout.featured_browse_links, list)
         assert isinstance(layout.simple_browse_links, list)
+        assert isinstance(layout.head, layout_module.HeadContext)
         # No flat layout keys should leak into root context
         for key in (
             "show_ol_shell",
@@ -226,6 +227,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
             "browse_links",
             "featured_browse_links",
             "simple_browse_links",
+            "head",
         ):
             assert key not in kwargs
         return rendered
@@ -496,3 +498,95 @@ def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests
             tpl = env.get_template(rel.as_posix())
             output = tpl.render()
             assert_valid_html(output)
+
+
+def _render_head(monkeypatch, **ctx_values):
+    """Render site/head.html.jinja from a real LayoutContext plus per-page ctx."""
+    env = get_jinja_env()
+    monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
+    try:
+        for key, value in ctx_values.items():
+            if key != "_title":
+                infogami_context[key] = value
+        layout = layout_module.LayoutContext.build(title=ctx_values.get("_title", ""))
+        return env.get_template("site/head.html.jinja").render(layout=layout)
+    finally:
+        infogami_context.clear()
+
+
+def test_head_renders_shell(monkeypatch, request_context_fixture):
+    """The Jinja head should render canonical URL, title, description and scripts."""
+    request_context_fixture(lang="en")
+    html = _render_head(monkeypatch, _title="My <em>Page</em>")
+    assert 'rel="canonical"' in html
+    assert "My <em>Page</em> | Open Library" in html
+    assert "Open Library is an open, editable library catalog" in html
+    assert "window.OL_EXPERIMENTS = {};" in html
+    assert "@licstart" in html
+    assert "/static/build/css/page-user.css" in html
+
+
+def test_head_omits_analytics_for_bots(monkeypatch, request_context_fixture):
+    """Bots must not get the Matomo/analytics bootstrap, but keep the license notice."""
+    request_context_fixture(lang="en", is_bot=True)
+    html = _render_head(monkeypatch)
+    assert "_paq" not in html
+    assert "_mtm" not in html
+    assert "@licstart" in html
+
+
+def test_head_escapes_description_but_keeps_title_and_snippets_raw(monkeypatch, request_context_fixture):
+    """``description``/``robots`` are escaped; title, links and metatags stay raw HTML."""
+    request_context_fixture(lang="en")
+    html = _render_head(
+        monkeypatch,
+        _title="<em>Raw</em>",
+        description="a <b> & c",
+        robots="noindex,nofollow",
+        links=['<link rel="alternate" href="/x">'],
+        metatags=['<meta name="custom" content="v">'],
+    )
+    assert "a &lt;b&gt; &amp; c" in html
+    assert '<meta name="robots" content="noindex,nofollow" />' in html
+    assert "<em>Raw</em> | Open Library" in html
+    assert '<link rel="alternate" href="/x">' in html
+    assert '<meta name="custom" content="v">' in html
+
+
+def test_head_embeds_sentry_config_when_enabled(monkeypatch, request_context_fixture):
+    """An enabled Sentry client should emit trace/baggage metas and the frontend config."""
+    request_context_fixture(lang="en")
+    sentry = type(
+        "Sentry",
+        (),
+        {
+            "enabled": True,
+            "get_traceparent": lambda self: "TRACE",
+            "get_baggage": lambda self: "BAGGAGE",
+            "get_frontend_config": lambda self: {"dsn": "https://x"},
+        },
+    )()
+    monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: sentry)
+    html = _render_head(monkeypatch)
+    assert '<meta name="sentry-trace" content="TRACE">' in html
+    assert '<meta name="baggage" content="BAGGAGE">' in html
+    assert 'window.OL_SENTRY = {"dsn": "https://x"};' in html
+
+
+def test_site_shell_renders_with_real_layout_context(monkeypatch, request_context_fixture):
+    """site.html.jinja must render end-to-end with a real LayoutContext.
+
+    Uses StrictUndefined (the real env), so a missing head field or an
+    unwired include fails loudly here rather than in production.
+    """
+    request_context_fixture(lang="en")
+    env = get_jinja_env()
+    monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
+    monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
+    monkeypatch.setitem(env.globals, "render_templetor_template", lambda name, *a, **kw: "")
+    layout = layout_module.LayoutContext.build(title="Shell Test")
+    html = env.get_template("site.html.jinja").render(page="<p>hi</p>", layout=layout)
+    assert "<head>" in html
+    assert "<title>Shell Test | Open Library</title>" in html
+    assert '<meta name="ol-icon-sprite"' in html
+    assert "<p>hi</p>" in html

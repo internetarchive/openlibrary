@@ -1,8 +1,10 @@
 {# djlint:off H016,H030 #}
-{# TODO: Remove H016/H030 ignore after migrating site/head.html to Jinja (head currently rendered via Templetor) #}
+{# The <title> and <meta name="description"> live in the included
+   site/head.html.jinja. djLint lints each file in isolation, so it can't see
+   them here. #}
 <!DOCTYPE html>
 <html lang="{{ layout.lang }}">
-    {{ render_templetor_template("site/head", title=page.title) }}
+    {% include "site/head.html.jinja" %}
     <body class="{{ layout.body_class }}"
           {% for attr in layout.body_attrs %} {{ attr | safe }}{% endfor %}>
         <script>

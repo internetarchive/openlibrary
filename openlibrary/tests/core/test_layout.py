@@ -7,7 +7,14 @@ import pytest
 
 import infogami.utils.flash as flash_module
 from infogami.utils.context import context as infogami_ctx
-from openlibrary.core.layout import AnnouncementBanner, LayoutContext, can_show_librarian_tools
+from openlibrary.core.layout import (
+    AnnouncementBanner,
+    HeadContext,
+    LayoutContext,
+    SentryContext,
+    _extract_sentry,
+    can_show_librarian_tools,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -21,6 +28,7 @@ LAYOUT_TEMPLATES = [
     TEMPLATES_DIR / "site.html.jinja",
     TEMPLATES_DIR / "site" / "alert.html.jinja",
     TEMPLATES_DIR / "site" / "banner.html.jinja",
+    TEMPLATES_DIR / "site" / "head.html.jinja",
     TEMPLATES_DIR / "lib" / "nav_foot.html.jinja",
     TEMPLATES_DIR / "lib" / "nav_head.html.jinja",
     TEMPLATES_DIR / "lib" / "browse_popover.html.jinja",
@@ -99,6 +107,22 @@ def test_layout_context_is_frozen():
         featured_browse_links=[],
         simple_browse_links=[],
         browse_featured_count=4,
+        head=HeadContext(
+            title="",
+            domain="",
+            canonical_url="",
+            disable_analytics=False,
+            page_css_path="build/css/page-user.css",
+            experiments_json="{}",
+            robots="",
+            description="",
+            links=[],
+            metatags=[],
+            icon_sprite_url="",
+            is_local_dev=False,
+            days_registered_json='"visitor"',
+            sentry=None,
+        ),
         announcement_banner=None,
     )
     with pytest.raises((AttributeError, TypeError)):
@@ -241,3 +265,82 @@ def test_layout_build_header_navigation(request_context_fixture):
     assert len(layout.featured_browse_links) == 4
     assert len(layout.simple_browse_links) == len(layout.browse_links) - 4
     assert layout.ol_env in ("production", "development", "testing")
+
+
+def test_layout_build_head_defaults(request_context_fixture):
+    """Head fields should have safe defaults on a bare request context."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    head = layout.head
+    assert head.title == ""
+    assert head.disable_analytics is False
+    assert head.page_css_path == "build/css/page-user.css"
+    assert head.experiments_json == "{}"
+    assert head.robots == ""
+    assert head.description == ""
+    assert head.links == []
+    assert head.metatags == []
+    assert head.days_registered_json == '"visitor"'
+    assert head.sentry is None
+    assert isinstance(head.canonical_url, str)
+    assert isinstance(head.domain, str)
+    assert isinstance(head.icon_sprite_url, str)
+    assert isinstance(head.is_local_dev, bool)
+
+
+def test_layout_build_head_title_passthrough(request_context_fixture):
+    """``build(title=...)`` should surface the page title for the <head>."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build(title="The Hobbit")
+    assert layout.head.title == "The Hobbit"
+
+
+def test_layout_build_head_reads_page_context(request_context_fixture):
+    """Head fields should be sourced from the per-page infogami context."""
+    request_context_fixture(lang="en")
+    infogami_ctx["disable_analytics"] = True
+    infogami_ctx["cssfile"] = "work"
+    infogami_ctx["experiments"] = {"foo": "bar"}
+    infogami_ctx["robots"] = "noindex"
+    infogami_ctx["description"] = "A description"
+    infogami_ctx["links"] = ['<link rel="alternate" href="/x">']
+    infogami_ctx["metatags"] = ['<meta name="custom" content="v">']
+    try:
+        head = LayoutContext.build().head
+        assert head.disable_analytics is True
+        assert head.page_css_path == "build/css/page-work.css"
+        assert head.experiments_json == '{"foo": "bar"}'
+        assert head.robots == "noindex"
+        assert head.description == "A description"
+        assert head.links == ['<link rel="alternate" href="/x">']
+        assert head.metatags == ['<meta name="custom" content="v">']
+    finally:
+        infogami_ctx.clear()
+
+
+def test_extract_sentry_disabled_returns_none(monkeypatch):
+    """Sentry should be None when no client is configured."""
+    monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: None)
+
+    assert _extract_sentry() is None
+
+
+def test_extract_sentry_enabled_precomputes_fields(monkeypatch):
+    """An enabled Sentry client should be flattened into a frozen data object."""
+    sentry = type(
+        "Sentry",
+        (),
+        {
+            "enabled": True,
+            "get_traceparent": lambda self: "TRACE",
+            "get_baggage": lambda self: "BAGGAGE",
+            "get_frontend_config": lambda self: {"dsn": "https://x"},
+        },
+    )()
+    monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: sentry)
+
+    result = _extract_sentry()
+    assert isinstance(result, SentryContext)
+    assert result.traceparent == "TRACE"
+    assert result.baggage == "BAGGAGE"
+    assert result.frontend_config_json == '{"dsn": "https://x"}'

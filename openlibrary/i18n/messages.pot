@@ -4433,7 +4433,7 @@ msgstr ""
 msgid "Edited by %(user)s"
 msgstr ""
 
-#: lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html
+#: lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html.jinja
 msgid "Open Library"
 msgstr ""
 
@@ -6068,7 +6068,7 @@ msgstr ""
 msgid "Internet Archive logo"
 msgstr ""
 
-#: site/head.html
+#: site/head.html.jinja
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
 msgstr ""
 

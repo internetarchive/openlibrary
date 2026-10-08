@@ -270,6 +270,151 @@ def _extract_browse_links() -> tuple[list[NavLink], list[NavLink], list[NavLink]
 
 
 @dataclass(frozen=True)
+class SentryContext:
+    """Precomputed Sentry values for the site head, if Sentry is enabled."""
+
+    traceparent: str
+    baggage: str
+    frontend_config_json: str
+
+
+@dataclass(frozen=True)
+class HeadContext:
+    """Precomputed data for the site head (``site/head.html.jinja``).
+
+    Grouped separately from the rest of ``LayoutContext`` because the head is
+    its own concern and pulls from a distinct set of per-page values.
+    """
+
+    title: str
+    domain: str
+    canonical_url: str
+    disable_analytics: bool
+    page_css_path: str
+    experiments_json: str
+    robots: str
+    description: str
+    links: list[str]
+    metatags: list[str]
+    icon_sprite_url: str
+    is_local_dev: bool
+    days_registered_json: str
+    sentry: SentryContext | None
+
+
+def _extract_request_info() -> tuple[str, str]:
+    """Return the (domain, canonical_url) pair the Templetor ``request`` global exposed."""
+    from openlibrary.plugins.upstream.utils import Request
+
+    request = Request()
+    domain = _safe(lambda: request.domain or "", "")
+    canonical_url = _safe(lambda: request.canonical_url or "", "")
+    return domain, canonical_url
+
+
+def _extract_disable_analytics() -> bool:
+    from infogami.utils.context import context as _ctx
+
+    return bool(_safe(lambda: _ctx.get("disable_analytics", False), False))
+
+
+def _extract_page_css_path() -> str:
+    from infogami.utils.context import context as _ctx
+
+    cssfile = _safe(lambda: _ctx.get("cssfile") or "user", "user")
+    return f"build/css/page-{cssfile}.css"
+
+
+def _extract_experiments_json() -> str:
+    from infogami.utils.context import context as _ctx
+    from openlibrary.plugins.upstream.utils import json_encode
+
+    return _safe(lambda: json_encode(_ctx.get("experiments", {}) or {}), "{}")
+
+
+def _extract_days_registered_json(user: User | None) -> str:
+    from openlibrary.accounts import get_days_registered
+    from openlibrary.plugins.upstream.utils import json_encode
+
+    return _safe(lambda: json_encode(get_days_registered(user)), '"visitor"')
+
+
+def _extract_robots() -> str:
+    from infogami.utils.context import context as _ctx
+
+    return str(_safe(lambda: _ctx.get("robots") or "", ""))
+
+
+def _extract_description() -> str:
+    from infogami.utils.context import context as _ctx
+
+    return str(_safe(lambda: _ctx.get("description") or "", ""))
+
+
+def _extract_metatags() -> list[str]:
+    """Raw ``ctx.metatags`` HTML snippets, rendered unescaped into the head."""
+    from infogami.utils.context import context as _ctx
+
+    raw: Any = _safe(lambda: _ctx.get("metatags", []), [])
+    return [str(tag) for tag in raw] if isinstance(raw, (list, tuple)) else []
+
+
+def _extract_links() -> list[str]:
+    """Raw ``ctx.links`` HTML snippets, rendered unescaped into the head."""
+    from infogami.utils.context import context as _ctx
+
+    raw: Any = _safe(lambda: _ctx.get("links", []), [])
+    return [str(link) for link in raw] if isinstance(raw, (list, tuple)) else []
+
+
+def _extract_icon_sprite_url() -> str:
+    from openlibrary.plugins.upstream.utils import icon_sprite_url
+
+    return _safe(icon_sprite_url, "/static/icons/sprite.svg")
+
+
+def _extract_is_local_dev() -> bool:
+    from openlibrary.core.env import get_ol_env
+
+    return _safe(lambda: bool(get_ol_env().LOCAL_DEV), False)
+
+
+def _extract_sentry() -> SentryContext | None:
+    from openlibrary.plugins.upstream.utils import json_encode
+    from openlibrary.utils.sentry import get_sentry
+
+    sentry = _safe(get_sentry, None)
+    if not sentry or not _safe(lambda: bool(sentry.enabled), False):
+        return None
+    return SentryContext(
+        traceparent=_safe(lambda: sentry.get_traceparent() or "", ""),
+        baggage=_safe(lambda: sentry.get_baggage() or "", ""),
+        frontend_config_json=_safe(lambda: json_encode(sentry.get_frontend_config()), "{}"),
+    )
+
+
+def _extract_head_context(title: str, user: User | None) -> HeadContext:
+    """Assemble the site head's precomputed data."""
+    domain, canonical_url = _extract_request_info()
+    return HeadContext(
+        title=title,
+        domain=domain,
+        canonical_url=canonical_url,
+        disable_analytics=_extract_disable_analytics(),
+        page_css_path=_extract_page_css_path(),
+        experiments_json=_extract_experiments_json(),
+        robots=_extract_robots(),
+        description=_extract_description(),
+        links=_extract_links(),
+        metatags=_extract_metatags(),
+        icon_sprite_url=_extract_icon_sprite_url(),
+        is_local_dev=_extract_is_local_dev(),
+        days_registered_json=_extract_days_registered_json(user),
+        sentry=_extract_sentry(),
+    )
+
+
+@dataclass(frozen=True)
 class LayoutContext:
     """Precomputed data for the site layout. Strictly data, immutable.
 
@@ -303,6 +448,7 @@ class LayoutContext:
     featured_browse_links: list[NavLink]
     simple_browse_links: list[NavLink]
     browse_featured_count: int
+    head: HeadContext
     announcement_banner: AnnouncementBanner | None = None
 
     @property
@@ -327,7 +473,7 @@ class LayoutContext:
         return {"code": "en", "localized": "English", "native": "English"}
 
     @classmethod
-    def build(cls) -> LayoutContext:
+    def build(cls, *, title: str = "") -> LayoutContext:
         """Assemble and compute layout context safely with fallbacks."""
         from infogami.utils.context import context as _infogami_context
         from infogami.utils.view import query_param
@@ -364,6 +510,7 @@ class LayoutContext:
             featured_browse_links=featured_browse,
             simple_browse_links=simple_browse,
             browse_featured_count=BROWSE_FEATURED_COUNT,
+            head=_extract_head_context(title, user),
             announcement_banner=_safe(_extract_announcement_banner, None),
         )
 
@@ -380,5 +527,5 @@ class SiteLayoutTemplate:
     def __call__(self, page: Any) -> str:
         from openlibrary.core.jinja import render_jinja_template
 
-        layout = LayoutContext.build()
+        layout = LayoutContext.build(title=getattr(page, "title", "") or "")
         return render_jinja_template("site.html.jinja", page=page, layout=layout)

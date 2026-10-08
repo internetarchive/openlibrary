@@ -1,0 +1,155 @@
+{# djlint:off J004 #}
+{# Site head. Rendered via a Jinja include from site.html.jinja; dynamic values
+   come from LayoutContext.head (openlibrary/core/layout.py). #}
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if layout.head.domain != 'openlibrary.org' %}
+        <meta name="robots" content="noindex">
+    {% endif %}
+    <meta name="theme-color" content="#e2dcc5">
+    <link rel="canonical" href="{{ layout.head.canonical_url }}" />
+    {% if not layout.is_bot and not layout.head.disable_analytics %}
+        <link rel="preconnect" href="https://athena.archive.org">
+        <link rel="preconnect" href="https://apollo.archive.org">
+    {% endif %}
+    <link rel="search"
+          type="application/opensearchdescription+xml"
+          title="Open Library"
+          href="/static/opensearch.xml">
+    <link rel="manifest" href="{{ static_url('manifest.json') }}">
+    <link href="/static/images/openlibrary-128x128.png" rel="apple-touch-icon" />
+    <link href="/static/images/openlibrary-152x152.png"
+          rel="apple-touch-icon"
+          sizes="152x152" />
+    <link href="/static/images/openlibrary-167x167.png"
+          rel="apple-touch-icon"
+          sizes="167x167" />
+    <link href="/static/images/openlibrary-180x180.png"
+          rel="apple-touch-icon"
+          sizes="180x180" />
+    {% if layout.ol_env == 'production' %}
+        <link href="/static/images/openlibrary-192x192.png"
+              rel="icon"
+              sizes="192x192" />
+        <link href="/static/images/openlibrary-128x128.png"
+              rel="icon"
+              sizes="128x128" />
+    {% else %}
+        {# Env-specific favicons (green "D" / orange "T") so dev and testing tabs stand out #}
+        <link href="/static/images/openlibrary-{{ layout.ol_env }}-192x192.png"
+              rel="icon"
+              sizes="192x192" />
+        <link href="/static/images/openlibrary-{{ layout.ol_env }}-128x128.png"
+              rel="icon"
+              sizes="128x128" />
+    {% endif %}
+    {# Icon sprite: one cacheable asset behind every <use href="…#icon-*">, and where
+       client JS (<ol-icon>) reads the hashed URL from. Deliberately not a rel=preload:
+       an as=image preload isn't credited against the <use> fetch, so it double-fetches. #}
+    <meta name="ol-icon-sprite" content="{{ layout.head.icon_sprite_url }}">
+    {# Loaded separately from page-*.css so they cache once and serve every page from cache. #}
+    <link href="{{ static_url('build/css/tokens.css') }}"
+          rel="stylesheet"
+          type="text/css" />
+    <link href="{{ static_url('build/css/ol-components.css') }}"
+          rel="stylesheet"
+          type="text/css" />
+    <link href="{{ static_url(layout.head.page_css_path) }}"
+          rel="stylesheet"
+          type="text/css" />
+    <noscript>
+        <style>
+        /* Don't hide content with clamp if no js to show more/less */
+        .clamp {
+          -webkit-line-clamp: unset !important;
+        }
+
+        /* @width-breakpoint-tablet media query: */
+        @media only screen and (min-width: 768px) {
+          /* Sticky navbar to top of screen if compact title cannot be stickied */
+          .work-menu {
+            top: 0 !important;
+          }
+        }
+        </style>
+    </noscript>
+    <script>window.OL_EXPERIMENTS = {{ layout.head.experiments_json | safe }};</script>
+    <script>
+ {% if not layout.is_bot and not layout.head.disable_analytics %}
+   // Dimension 1 (visit-scoped): "Days Since Registration" — ID must match Matomo admin config (issue #12144)
+   var _paq = window._paq = window._paq || [];
+   _paq.push(['setCustomDimension', 1, {{ layout.head.days_registered_json | safe }}]);
+   // One-shot ActivationSuccess: cookie set by /account/verify on successful email activation.
+   // Cleared immediately so it only fires once per activation.
+   if (document.cookie.match(/(?:^|;\s*)ol_activation=1/)) {
+     _paq.push(['trackEvent', 'Account', 'ActivationSuccess']);
+     document.cookie = 'ol_activation=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+   }
+
+   var _mtm = window._mtm = window._mtm || [];
+   _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+   (function() {
+     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+     g.async=true; g.src='https://apollo.archive.org/js/container_7cLc1b4U.js'; s.parentNode.insertBefore(g,s);
+   })();
+
+ {% endif %}
+ /* @licstart  The following is the entire license notice for the
+  * JavaScript code in this page served from openlibrary.org.
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU Affero General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU Affero General Public License for more details.
+  *
+  * You should have received a copy of the GNU Affero General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses />.
+  *
+  * @licend  The above is the entire license notice
+  * for the JavaScript code in this page.
+  */
+    </script>
+    {% if layout.head.is_local_dev %}
+        <link href="{{ static_url('build/css/page-dev.css') }}"
+              rel="stylesheet"
+              type="text/css" />
+    {% endif %}
+    <meta name="google-site-verification"
+          content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
+    <meta name="google-site-verification"
+          content="vtXGm8q3UgP-f6qXTvQBo85uh3nmIYIotVqqdJDpyz4" />
+    {# Drini's Google Search Console #}
+    <meta name="google-site-verification"
+          content="XYOJ9Uj0MBr6wk7kj1IkttXrqY-bbRstFMADTfEt354" />
+    {# Drini's Bing Webmaster Tools #}
+    <meta name="msvalidate.01" content="8BEBECBEF537077737975A49D55B857D" />
+    {% if layout.head.robots %}
+        <meta name="robots" content="{{ layout.head.robots }}" />
+    {% endif %}
+    {% if layout.head.description %}
+        <meta name="description" content="{{ layout.head.description }}" />
+    {% else %}
+        <meta name="description"
+              content="{{ _('Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free.') }}" />
+    {% endif %}
+    <title>{{ layout.head.title | safe }} | {{ _("Open Library") }}</title>
+    {% for link in layout.head.links %}
+        {{ link | safe }}
+    {% endfor %}
+    {% for tag in layout.head.metatags %}
+        {{ tag | safe }}
+    {% endfor %}
+    {% if layout.head.sentry %}
+        <meta name="sentry-trace" content="{{ layout.head.sentry.traceparent }}">
+        <meta name="baggage" content="{{ layout.head.sentry.baggage }}">
+        {# detect-missing-i18n-skip-line #}
+        <script>window.OL_SENTRY = {{ layout.head.sentry.frontend_config_json | safe }};</script>
+    {% endif %}
+</head>
