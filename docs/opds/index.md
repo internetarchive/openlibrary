@@ -189,7 +189,7 @@ See `docs/testing-opds-locally.md` for the full local testing guide including th
 
 - **Availability facet `numberOfItems` was intentionally removed** (PR #41). If you see `numberOfItems` on availability facet links, something regressed — it required 4 extra OL requests per search and was dropped for performance.
 
-- **`opds-system.md` in `pm/workflows/` has a stale "Performance Fix" section.** It describes PRs pyopds2 #102 and OL #12987 (a `/search/carousels.json` batch endpoint) as the June 2026 performance work. Both were closed without merging. The actual fix was opds #41. Ignore that section.
+- **The earlier carousel-batch performance plan is obsolete.** PRs pyopds2 #102 and OL #12987 were closed without merging; the actual fix was opds #41. See the [OPDS overview](README.md) for current documentation.
 
 ---
 

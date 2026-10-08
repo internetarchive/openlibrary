@@ -89,6 +89,4 @@ with the commit that makes them, reviewed like any other change.
 The in-repo `docs/` tree is the **single source of truth**. The historical
 external `openlibrary-kb` repo is **not** canonical — don't add new pages there
 or cite it as authoritative; new documentation and edits go here, next to the
-code they describe. (Conventions that apply to *all* developers or to
-agent-specific home directories will migrate to `.pam`; until then they live
-here.)
+code they describe. (Conventions that apply to *all* developers currently live here.)
