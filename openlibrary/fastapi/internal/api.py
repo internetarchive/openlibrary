@@ -45,7 +45,7 @@ from openlibrary.plugins.openlibrary.api import (
 )
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
+from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT, get_trending_books
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
@@ -126,7 +126,7 @@ async def post_book_availability(
 
 
 class TrendingRequestParams(Pagination):
-    limit: int = Field(100, ge=0, le=1000, description="Maximum number of results per page.")
+    limit: int | None = Field(None, ge=0, le=1000, description="Maximum number of results per page.")  # type: ignore[assignment]
     hours: int = Field(0, ge=0, description="Custom number of hours to look back.")
     days: int = Field(0, ge=0, description="Custom number of days to look back.")
     sort_by_count: bool = Field(True, description="Sort results by total log count (most-logged first).")
@@ -165,11 +165,12 @@ async def trending_books_api(
     """Fetch trending books for the given period."""
     # ``period`` is always a key in SINCE_DAYS — guaranteed by the Literal type above.
     since_days: int | None = SINCE_DAYS.get(period, params.days)
+    limit = params.limit if params.limit is not None else (TRENDING_NOW_LIMIT if period == "now" else 100)
 
     works = await get_trending_books(
         since_days=since_days,
         since_hours=params.hours,
-        limit=params.limit,
+        limit=limit,
         page=params.page,
         sort_by_count=params.sort_by_count,
         minimum=params.minimum,
