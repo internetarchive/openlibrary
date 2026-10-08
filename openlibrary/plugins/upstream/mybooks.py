@@ -3,7 +3,7 @@ import logging
 import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Final, Literal, cast
+from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, cast
 
 import web
 from web.template import TemplateResult
@@ -22,7 +22,7 @@ from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
 from openlibrary.core.jinja import render_jinja_template
-from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
+from openlibrary.core.lending import add_availability, get_cached_loans_of_user, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.reading_state import ReadingState, get_reading_state
@@ -42,6 +42,93 @@ if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Work
 
 logger = logging.getLogger("openlibrary.mybooks")
+
+
+class LoanEntry(NamedTuple):
+    book: Any
+    timestamp: float
+    is_active: bool
+
+
+def get_loans_and_history(user_key: str, username: str, *, include_history: bool = True, cached: bool = False, s3_cookie: str | None = None) -> list[LoanEntry]:
+    """A patron's active loans and loan history, one entry per work.
+
+    Active loans rank first, then everything by most recent loan date. Only
+    pass include_history for the session's own patron: get_loan_history_data()
+    resolves S3 credentials for whichever username it is handed.
+    """
+    myloans = get_cached_loans_of_user(user_key) if cached else get_loans_of_user(user_key)
+
+    # Dictionary mapping dedup_key -> entry
+    merged_books: dict[str, LoanEntry] = {}
+
+    # Resolve books independently of loans: batch-fetch the unique loan
+    # book keys, then keep fetching /type/redirect targets in batches
+    # (up to 5 hops). Nothing is fetched inside the loan loop below.
+    book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
+    fetched_keys = set(book_keys)
+    book_map: dict[str, Any] = {}
+    if book_keys:
+        book_map.update({b.key: b for b in site.get().get_many(book_keys)})
+
+    for _hop in range(5):
+        redirect_locations = {
+            book.location
+            for book in book_map.values()
+            if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
+        }
+        if not redirect_locations:
+            break
+        fetched_keys.update(redirect_locations)
+        book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
+
+    # Process loans in one loop, following redirect chains through book_map.
+    for loan in myloans:
+        book_key = loan.get("book")
+        if not book_key:
+            continue
+        book = book_map.get(book_key)
+        if not book:
+            continue
+        for _hop in range(5):
+            if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                book = book_map.get(book.location)
+            else:
+                break
+        if book:
+            book.loan = loan
+            works = getattr(book, "works", None)
+            work_key = works[0].key if works and len(works) > 0 else book.key
+            loaned_at = loan.get("loaned_at") or 0.0
+            merged_books[work_key] = LoanEntry(book, float(loaned_at), True)
+
+    history_books = []
+    if include_history:
+        try:
+            history_data = get_loan_history_data(username, page=1, s3_cookie=s3_cookie)
+            history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
+        except Exception:
+            # Deliberately non-fatal: callers must still render active loans
+            # if IA is unreachable. But log it -- swallowing this silently makes
+            # a missing history indistinguishable from an empty one.
+            logger.exception("Failed to fetch loan history for %s; rendering without it", username)
+
+    for book in history_books:
+        works = getattr(book, "works", None)
+        work_key = works[0].key if works and len(works) > 0 else book.key
+        updatedate = book.get("last_loan_date") or ""
+        try:
+            timestamp = datetime.fromisoformat(updatedate.replace(" ", "T")).timestamp()
+        except ValueError:
+            timestamp = 0.0
+
+        # Add history record only if no active loan exists for this book
+        if work_key not in merged_books:
+            merged_books[work_key] = LoanEntry(book, timestamp, False)
+
+    # A currently-borrowed book always ranks above a recently-returned one.
+    return sorted(merged_books.values(), key=lambda e: (e.is_active, e.timestamp), reverse=True)
+
 
 RESULTS_PER_PAGE: Final = 25
 
@@ -75,88 +162,11 @@ class mybooks_home(delegate.page):
         docs: dict[str, Any] = {"loans": [], "want-to-read": [], "currently-reading": [], "already-read": [], "stopped-reading": []}
 
         if mb.me:
-            myloans = get_loans_of_user(mb.me.key)
-
-            # Dictionary mapping dedup_key -> (book, timestamp, is_active)
-            merged_books: dict[str, tuple[Any, float, bool]] = {}
-
-            # Resolve books independently of loans: batch-fetch the unique loan
-            # book keys, then keep fetching /type/redirect targets in batches
-            # (up to 5 hops). Nothing is fetched inside the loan loop below.
-            book_keys = list(dict.fromkeys(loan["book"] for loan in myloans if loan.get("book")))
-            fetched_keys = set(book_keys)
-            book_map: dict[str, Any] = {}
-            if book_keys:
-                book_map.update({b.key: b for b in site.get().get_many(book_keys)})
-
-            for _ in range(5):
-                redirect_locations = {
-                    book.location
-                    for book in book_map.values()
-                    if getattr(getattr(book, "type", None), "key", None) == "/type/redirect" and book.location not in fetched_keys
-                }
-                if not redirect_locations:
-                    break
-                fetched_keys.update(redirect_locations)
-                book_map.update({b.key: b for b in site.get().get_many(list(redirect_locations))})
-
-            # Process loans in one loop, following redirect chains through book_map.
-            for loan in myloans:
-                book_key = loan.get("book")
-                if not book_key:
-                    continue
-                book = book_map.get(book_key)
-                if not book:
-                    continue
-                for _ in range(5):
-                    if book and getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
-                        book = book_map.get(book.location)
-                    else:
-                        break
-                if book:
-                    book.loan = loan
-                    works = getattr(book, "works", None)
-                    work_key = works[0].key if works and len(works) > 0 else book.key
-                    loaned_at = loan.get("loaned_at") or 0.0
-                    merged_books[work_key] = (book, float(loaned_at), True)
-
             # Ownership gate, not just "is logged in": mb.username comes from the
-            # URL, while mb.me is the session. get_loan_history_data() resolves S3
-            # credentials for whichever username it is handed, so this must run
-            # only on the patron's own page. The carousel is already rendered for
-            # owners only, but that guard lives in the template -- keep the fetch
-            # itself gated too rather than relying on the view layer.
-            history_books = []
-            if mb.is_my_page:
-                try:
-                    history_data = get_loan_history_data(mb.username, page=1)
-                    history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
-                except Exception:
-                    # Deliberately non-fatal: My Books must still render its
-                    # active loans and every other shelf if IA is unreachable.
-                    # But log it -- swallowing this silently makes a missing
-                    # history section indistinguishable from an empty one, with
-                    # nothing in the logs to tell them apart.
-                    logger.exception("Failed to fetch loan history for %s; rendering without it", mb.username)
-
-            for book in history_books:
-                works = getattr(book, "works", None)
-                work_key = works[0].key if works and len(works) > 0 else book.key
-                updatedate = book.get("last_loan_date") or ""
-                try:
-                    timestamp = datetime.fromisoformat(updatedate.replace(" ", "T")).timestamp()
-                except ValueError:
-                    timestamp = 0.0
-
-                # Add history record only if no active loan exists for this book
-                if work_key not in merged_books:
-                    merged_books[work_key] = (book, timestamp, False)
-
-            # Sort: active loans first (is_active=True > False), then by timestamp desc.
-            # This ensures a currently-borrowed book always ranks above a recently-returned one.
-            total_results = len(merged_books)
-            sorted_entries = sorted(merged_books.values(), key=lambda x: (x[2], x[1]), reverse=True)
-            final_books = [entry[0] for entry in sorted_entries[:18]]
+            # URL, while mb.me is the session.
+            entries = get_loans_and_history(mb.me.key, mb.username, include_history=mb.is_my_page)
+            total_results = len(entries)
+            final_books = [entry.book for entry in entries[:18]]
 
             docs["loans"] = web.Storage({"docs": final_books, "total_results": total_results})
 

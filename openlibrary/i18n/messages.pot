@@ -443,7 +443,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: RelatedSubjects.html.jinja account/create.html librarian_dashboard/data_quality_table.html login.html openlibrary/plugins/openlibrary/partials.py search/work_search_facets.html.jinja
+#: RelatedSubjects.html.jinja account/create.html home/index.html librarian_dashboard/data_quality_table.html login.html openlibrary/plugins/openlibrary/partials.py search/work_search_facets.html.jinja
 msgid "Loading..."
 msgstr ""
 
@@ -4153,20 +4153,20 @@ msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
 
+#: home/continue_reading.html.jinja
+msgid "Continue Reading"
+msgstr ""
+
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
 msgstr ""
 
-#: home/index.html
-msgid "Loading your books..."
+#: PublishingHistory.html PublishingHistory.html.jinja RelatedSubjects.html.jinja home/index.html
+msgid "Something went wrong."
 msgstr ""
 
-#: home/index.html
-msgid "Failed to load."
-msgstr ""
-
-#: RawQueryCarouselPlaceholder.html.jinja home/index.html
-msgid "Retry?"
+#: PublishingHistory.html PublishingHistory.html.jinja RelatedSubjects.html.jinja home/index.html
+msgid "Retry"
 msgstr ""
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
@@ -7298,20 +7298,16 @@ msgstr ""
 msgid "This graph charts editions published on this subject."
 msgstr ""
 
-#: PublishingHistory.html PublishingHistory.html.jinja RelatedSubjects.html.jinja
-msgid "Something went wrong."
-msgstr ""
-
-#: PublishingHistory.html PublishingHistory.html.jinja RelatedSubjects.html.jinja
-msgid "Retry"
-msgstr ""
-
 #: RawQueryCarousel.html.jinja
 msgid "Search collection"
 msgstr ""
 
 #: RawQueryCarouselPlaceholder.html.jinja
 msgid "Failed to fetch carousel."
+msgstr ""
+
+#: RawQueryCarouselPlaceholder.html.jinja
+msgid "Retry?"
 msgstr ""
 
 #: RawQueryCarouselPlaceholder.html.jinja
@@ -8332,8 +8328,40 @@ msgid "Random Book"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
-msgid "Continue Reading"
+#, python-format
+msgid "Returned %(n)d day ago"
+msgid_plural "Returned %(n)d days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Returned today"
 msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Borrowed"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Due in %(n)d minute"
+msgid_plural "Due in %(n)d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Due in %(n)d hour"
+msgid_plural "Due in %(n)d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+#, python-format
+msgid "Due in %(n)d day"
+msgid_plural "Due in %(n)d days"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Better World Books"
