@@ -112,19 +112,7 @@ export function initDialogs() {
 
     initPreviewDialogs();
 
-    // This will close the dialog in the current page.
+    // Legacy: closes the colorbox used by the observations modal (the last
+    // colorbox consumer). Delete when that modal migrates to ol-dialog.
     $('.dialog--close').attr('href', 'javascript:;').off('click.dialog').on('click.dialog', () => $.fn.colorbox.close());
-    // This will close the colorbox from the parent.
-    $('.dialog--close-parent').off('click.dialog').on('click.dialog', () => parent.$.fn.colorbox.close());
-}
-
-/**
- * Adds click listeners for closing dialogs to the given elements.
- *
- * @param {NodeList<Element>} closers
- */
-export function initDialogClosers(closers) {
-    closers.forEach(closer => {
-        $(closer).on('click', () => $.fn.colorbox.close());
-    });
 }

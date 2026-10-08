@@ -274,10 +274,6 @@ div.floaterHead h2 {
   min-width: 1px;
 }
 
-.dialog--close-parent {
-  cursor: pointer;
-}
-
 div#covers.input {
   max-height: 132px;
   overflow: hidden;
