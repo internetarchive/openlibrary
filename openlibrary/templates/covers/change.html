@@ -40,6 +40,8 @@ $code:
         "guidelinesCover": _("Cover Guidelines"),
         "guidelinesPhoto": _("Image Guidelines"),
         "chooseFile": _("Choose a JPG, GIF, PNG or WebP on your computer"),
+        "useImageFrom": _("Or, use an image from %(source)s"),
+        "uploadImage": _("Upload Image"),
         "pasteLabel": _("Or, paste an image from your clipboard"),
         "paste": _("Paste Image"),
         "changeImage": _("Change Image"),
@@ -56,6 +58,21 @@ $code:
         "noClipboardImage": _("No image found in clipboard"),
     }
 
+    # Remote images offered as one-click imports, mirroring the old
+    # covers/external_image forms: an author's Wikidata image, or the
+    # Internet Archive cover/title scan for an edition. Both are cheap
+    # (cache-backed / derived from the ocaid), so they can be inlined here.
+    cover_upload_candidates = []
+    if doc.type.key == '/type/author':
+        wikidata = doc.wikidata() if hasattr(doc, 'wikidata') else None
+        if wikidata:
+            cover_upload_candidates = [{'url': url, 'source': _('Wikidata')} for url in wikidata.get_image_urls()]
+    elif doc.type.key == '/type/edition' and doc.get('ocaid'):
+        cover_upload_candidates = [
+            {'url': 'https://archive.org/download/%s/page/%s' % (doc.ocaid, kind), 'source': _('Internet Archive')}
+            for kind in ('cover', 'title')
+        ]
+
 <ol-dialog id="addImage-$imagesId" label="$title" width="large">
     <div id="tabsImages" class="ol-tabs tabsPop">
         <ul>
@@ -69,7 +86,8 @@ $code:
                 doc-type="$doc.type.key"
                 cover-selector="$cover_selector"
                 coverstore-url="$(get_coverstore_public_url())"
-                labels="$json_encode(cover_upload_labels)"></ol-cover-upload>
+                labels="$json_encode(cover_upload_labels)"
+                candidates="$json_encode(cover_upload_candidates)"></ol-cover-upload>
         </div>
 
         <div class="imagesManage" id="imagesManage-$imagesId">

@@ -249,3 +249,94 @@ describe('ol-cover-upload clipboard paste', () => {
         expect(el._file).toBeNull();
     });
 });
+
+describe('ol-cover-upload external images', () => {
+    test('renders server-supplied candidates grouped by source', async() => {
+        const el = await mount({
+            candidates: [
+                { url: 'https://commons.example/a.jpg', source: 'Wikidata' },
+                { url: 'https://commons.example/b.jpg', source: 'Wikidata' },
+                { url: 'https://archive.org/download/x/page/cover', source: 'Internet Archive' },
+            ],
+        });
+        const imgs = [...el.renderRoot.querySelectorAll('.candidate__img')].map((i) => i.getAttribute('src'));
+        expect(imgs).toEqual([
+            'https://commons.example/a.jpg',
+            'https://commons.example/b.jpg',
+            'https://archive.org/download/x/page/cover',
+        ]);
+        const headings = [...el.renderRoot.querySelectorAll('.heading')].map((h) => h.textContent);
+        expect(headings).toContain('Or, use an image from Wikidata');
+        expect(headings).toContain('Or, use an image from Internet Archive');
+    });
+
+    test('with no candidates there is no external panel', async() => {
+        const el = await mount();
+        expect(q(el, '.candidate__img')).toBeNull();
+    });
+
+    test('importing an external image posts its URL and refreshes the cover', async() => {
+        seedCover();
+        const el = await mount({ candidates: [{ url: 'https://commons.example/a.jpg', source: 'Wikidata' }] });
+        const fetchMock = mockFetch(SAVED);
+        await el._useUrl('https://commons.example/a.jpg');
+        await el.updateComplete;
+
+        const [url, options] = fetchMock.mock.calls[0];
+        expect(url).toBe('/books/OL1M/add-cover');
+        expect(options.body.get('url')).toBe('https://commons.example/a.jpg');
+        expect(el._savedId).toBe(42);
+        expect(document.querySelector('.bookCover img').getAttribute('src')).toBe('https://covers.openlibrary.org/b/id/42-M.jpg');
+    });
+});
+
+describe('ol-cover-upload Cmd+V', () => {
+    function pasteEvent(file) {
+        return {
+            clipboardData: { items: [{ kind: 'file', type: file.type, getAsFile: () => file }] },
+            prevented: false,
+            preventDefault() {
+                this.prevented = true;
+            },
+        };
+    }
+
+    test('an image pasted with the keyboard is used for the next upload', async() => {
+        const el = await mount();
+        const file = new File(['x'], 'shot.png', { type: 'image/png' });
+        const event = pasteEvent(file);
+        el._onPasteEvent(event);
+        await el.updateComplete;
+
+        expect(event.prevented).toBe(true);
+        expect(el._file).toBe(file);
+        expect(el._pasted).toBe(true);
+        expect(q(el, '.preview')?.getAttribute('src')).toBe('blob:preview');
+    });
+
+    test('a text-only paste is left alone', async() => {
+        const el = await mount();
+        const event = {
+            clipboardData: { items: [{ kind: 'string', type: 'text/plain' }] },
+            prevented: false,
+            preventDefault() {
+                this.prevented = true;
+            },
+        };
+        el._onPasteEvent(event);
+        expect(event.prevented).toBe(false);
+        expect(el._file).toBeNull();
+    });
+
+    test('a paste is ignored while the dialog is closed', async() => {
+        const dialog = document.createElement('ol-dialog');
+        document.body.appendChild(dialog);
+        const el = document.createElement('ol-cover-upload');
+        Object.assign(el, { action: '/x', docType: '/type/edition', coverstoreUrl: 'https://c.example' });
+        dialog.appendChild(el);
+        await el.updateComplete;
+
+        el._onPasteEvent(pasteEvent(new File(['x'], 'a.png', { type: 'image/png' })));
+        expect(el._file).toBeNull();
+    });
+});

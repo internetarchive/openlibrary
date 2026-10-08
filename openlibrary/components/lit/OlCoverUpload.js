@@ -14,6 +14,8 @@ export const DEFAULT_LABELS = {
     guidelinesCover: 'Cover Guidelines',
     guidelinesPhoto: 'Image Guidelines',
     chooseFile: 'Choose a JPG, GIF, PNG or WebP on your computer',
+    useImageFrom: 'Or, use an image from %(source)s',
+    uploadImage: 'Upload Image',
     pasteLabel: 'Or, paste an image from your clipboard',
     paste: 'Paste Image',
     changeImage: 'Change Image',
@@ -59,6 +61,7 @@ export class OlCoverUpload extends LitElement {
         coverstoreUrl: { type: String, attribute: 'coverstore-url' },
         accept: { type: String },
         labels: { type: Object },
+        candidates: { type: Array },
         _file: { state: true },
         _previewUrl: { state: true },
         _busy: { state: true },
@@ -123,6 +126,26 @@ export class OlCoverUpload extends LitElement {
             border-radius: var(--border-radius-thumbnail);
         }
 
+        .candidates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+
+        .candidate {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--spacing-2xs);
+        }
+
+        .candidate__img {
+            height: 120px;
+            width: auto;
+            border: var(--border-width) solid var(--color-control-border);
+            border-radius: var(--border-radius-thumbnail);
+        }
+
         .status {
             margin: var(--spacing-sm) 0 0;
             line-height: var(--line-height-body);
@@ -164,6 +187,7 @@ export class OlCoverUpload extends LitElement {
         this.coverstoreUrl = '';
         this.accept = '.jpg,.jpeg,.gif,.png,.webp';
         this.labels = {};
+        this.candidates = [];
         this._file = null;
         this._previewUrl = '';
         this._busy = false;
@@ -171,6 +195,7 @@ export class OlCoverUpload extends LitElement {
         this._pasted = false;
         this._savedId = null;
         this._savedUrl = '';
+        this._onPasteEvent = this._onPasteEvent.bind(this);
     }
 
     t(key, vars) {
@@ -186,8 +211,16 @@ export class OlCoverUpload extends LitElement {
         return this.renderRoot?.querySelector('input[type="file"]');
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        // Cmd/Ctrl+V anywhere while the dialog is open hands us the image
+        // directly, with no clipboard permission prompt (unlike the button).
+        document.addEventListener('paste', this._onPasteEvent);
+    }
+
     disconnectedCallback() {
         super.disconnectedCallback();
+        document.removeEventListener('paste', this._onPasteEvent);
         this._revokePreview();
     }
 
@@ -223,6 +256,34 @@ export class OlCoverUpload extends LitElement {
         }
     }
 
+    /** Record an image as the pending "pasted" upload and preview it. */
+    _setPastedFile(file) {
+        this._error = '';
+        this._pasted = true;
+        this._file = file;
+        this._showPreview(file);
+    }
+
+    /**
+     * Native paste (Cmd/Ctrl+V). `event.clipboardData` carries the image with
+     * no permission prompt, so this is the primary paste path; the button's
+     * `navigator.clipboard.read()` is the fallback for explicit clicks.
+     */
+    _onPasteEvent(event) {
+        const dialog = this.closest('ol-dialog');
+        if (dialog && !dialog.open) return;
+        const items = event.clipboardData?.items;
+        if (!items) return;
+        for (const item of items) {
+            if (item.kind !== 'file' || !item.type.startsWith('image/')) continue;
+            const file = item.getAsFile();
+            if (!file) return;
+            event.preventDefault();
+            this._setPastedFile(file);
+            return;
+        }
+    }
+
     async _onPaste() {
         this._error = '';
         try {
@@ -232,10 +293,7 @@ export class OlCoverUpload extends LitElement {
                 if (!mimeType) continue;
                 const blob = await item.getType(mimeType);
                 const extension = mimeType === 'image/png' ? 'png' : mimeType === 'image/jpeg' ? 'jpeg' : 'jpg';
-                const file = new File([blob], `pasted-image.${extension}`, { type: mimeType });
-                this._pasted = true;
-                this._file = file;
-                this._showPreview(file);
+                this._setPastedFile(new File([blob], `pasted-image.${extension}`, { type: mimeType }));
                 return;
             }
             this._error = this.t('noClipboardImage');
@@ -243,6 +301,13 @@ export class OlCoverUpload extends LitElement {
             // Permission denied or unsupported; the user can still choose a file.
             this._error = this.t('noClipboardImage');
         }
+    }
+
+    /** Upload one of the server-supplied external image URLs (by URL, no file). */
+    async _useUrl(url) {
+        const data = new FormData();
+        data.append('url', url);
+        await this._post(data);
     }
 
     async _onSubmit() {
@@ -357,6 +422,36 @@ export class OlCoverUpload extends LitElement {
             : nothing;
     }
 
+    /** Server-supplied remote images (Wikidata, Internet Archive), grouped by source. */
+    _renderCandidates() {
+        const groups = new Map();
+        for (const candidate of this.candidates ?? []) {
+            if (!candidate?.url) continue;
+            const source = candidate.source ?? '';
+            if (!groups.has(source)) groups.set(source, []);
+            groups.get(source).push(candidate.url);
+        }
+        return [...groups.entries()].map(
+            ([source, urls]) => html`
+                <div class="panel">
+                    <h3 class="heading">${this.t('useImageFrom', { source })}</h3>
+                    <div class="candidates">
+                        ${urls.map(
+        (url) => html`
+                                <div class="candidate">
+                                    <img class="candidate__img" src=${url} alt="" />
+                                    <ol-button class="candidate__use" @click=${() => this._useUrl(url)}
+                                        >${this.t('uploadImage')}</ol-button
+                                    >
+                                </div>
+                            `,
+    )}
+                    </div>
+                </div>
+            `,
+        );
+    }
+
     _renderForm() {
         const intro = this.t(this._isPhoto ? 'introPhoto' : 'introCover');
         const guideline = this.t(this._isPhoto ? 'guidelinesPhoto' : 'guidelinesCover');
@@ -401,6 +496,8 @@ export class OlCoverUpload extends LitElement {
                 </div>
                 ${this._pasted ? this._renderPreview() : nothing}
             </div>
+
+            ${this._renderCandidates()}
 
             ${this._error ? html`<p class="status status--error" role="alert">${this._error}</p>` : nothing}
             ${this._busy ? html`<p class="status" role="status">${this.t('uploading')}</p>` : nothing}
