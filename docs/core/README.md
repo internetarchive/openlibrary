@@ -147,7 +147,7 @@ Related: `vendors.py::amazon_affiliate_url()` handles the same 979 limitation on
 
 - Python 3.14; Ruff linting; line length 162
 - Dev setup: `make git` → `docker compose up` → http://localhost:8080
-- FastAPI dev server: port 18080
+- In dev, FastAPI is the primary entry point on port 8080; it proxies unmatched requests to web.py via `openlibrary/fastapi/proxy.py`. (The old web.py-on-8080 / FastAPI-on-18080 layout was swapped in #13423; 18080 is now the production FastAPI port.)
 - Branch naming: `{issue-number}/{type}/{slug}`
 
 ## Testing
@@ -180,7 +180,7 @@ Infogami object reads go through `openlibrary/core/cache.py` (Memcache). FastAPI
 
 - **Templetor ≠ Jinja2.** Templates use web.py's Templetor syntax (`$def with (args)`, `$variable`, `$:variable` unescaped). Wrong assumptions cause subtle rendering bugs.
 - **`plugins/openlibrary/` ≠ the whole app.** It's one plugin. `plugins/upstream/` owns mutations; `plugins/worksearch/` owns search.
-- **FastAPI and web.py run on different ports in dev.** localhost:8080 = web.py/Infogami; localhost:18080 = FastAPI. The ASGI app routes between them in production.
+- **FastAPI and web.py: one port in dev, two in prod.** In dev, FastAPI is the single host-facing entry on localhost:8080 and proxies any route it doesn't handle to web.py (`openlibrary/fastapi/proxy.py`). The web.py-on-8080 / FastAPI-on-18080 split was swapped in #13423 and now applies only in production (web.py on 8080, FastAPI on 18080).
 
 ## Dependencies
 
