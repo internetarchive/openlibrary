@@ -20,7 +20,7 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $# Continue Reading: per-patron, so it loads client-side on the cached homepage; empty (and removed) when logged out.
   $if not test:
-    $ continue_reading_config = json_encode({"partial": "ContinueReading"})
+    $ continue_reading_config = json_encode({"partial": "ContinueReading", "requires_user": True})
     <div class="lazy-carousel" data-config="$continue_reading_config">
       $:macros.LoadingIndicator(_("Loading..."), hidden=True)
       <div class="lazy-carousel-retry hidden">
