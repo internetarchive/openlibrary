@@ -4,8 +4,8 @@ They must be available in the global JS namespace
 See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-2107911798
 */
 
-// Closes the <ol-dialog> the originating iframe lives in. Called from inside
-// the cover-manager iframe, where the dialog lives on the parent document.
+// Closes the <ol-dialog> that contains the calling iframe. The cover-manager
+// iframe used to call colorbox.close() on the parent page instead.
 export function closePopup() {
     const dialog = window.frameElement?.closest('ol-dialog');
     if (dialog) {
