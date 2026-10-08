@@ -55,7 +55,7 @@ export default function initAnalytics() {
         vs = window.archive_analytics.get_data_packets();
         for (i in vs) {
             vs[i]['cache_bust']=Math.random();
-            vs[i]['server_ms']=document.querySelector('.analytics-stats-time-calculator')?.dataset.time;
+            vs[i]['server_ms']=Number(document.querySelector('.analytics-stats-time-calculator')?.dataset.time);
             vs[i]['server_name']='ol-web.us.archive.org';
             vs[i]['service']='ol';
         }
