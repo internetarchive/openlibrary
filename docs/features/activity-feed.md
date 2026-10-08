@@ -67,4 +67,4 @@ There are no credentials for seeded accounts. Use the admin console: log in as `
 
 Note there are **two** activity feed components and they are not the same thing: `<ol-activity-feed>` is the homepage "What's Happening Now" widget ([#12863](https://github.com/internetarchive/openlibrary/pull/12863)); `<ol-social-feed>` is the My Books one. Different surfaces, shared patterns.
 
-In production nginx routes `/api/internal/*` to the FastAPI process. **A local dev stack has no proxy between web.py (8080) and FastAPI (18080)**, so a page served by web.py cannot reach the endpoint on the same origin. Pass the FastAPI origin explicitly when testing locally.
+In production nginx routes `/api/internal/*` to the FastAPI process. In local dev, FastAPI is the front door on `localhost:8080` and serves `/api/internal/*` directly, proxying any route it doesn't handle to web.py (`openlibrary/fastapi/proxy.py`) — so the endpoint is reachable same-origin at `localhost:8080`, no separate origin needed. (The old web.py-on-8080 / FastAPI-on-18080 layout was swapped in #13423.)

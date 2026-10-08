@@ -1,5 +1,4 @@
 // @ts-check
-import $ from 'jquery';
 import { uniqBy } from './nonjquery_utils.js';
 import Chart from 'chart.js';
 import 'chartjs-plugin-datalabels';
@@ -109,7 +108,7 @@ export function init(config) {
             }
         });
 
-        $(window.render_excluded_works_list(excluded, config.works.length)).appendTo(container);
+        container.insertAdjacentHTML('beforeend', window.render_excluded_works_list(excluded, config.works.length));
     }
 
     const defaultFieldRender = field => `OPTIONAL { ?x ${field.relation} ?${field.name}. }`;
