@@ -15,11 +15,10 @@ export function initCoversChange() {
     const add_url = data_config_json['add_url'];
     const manage_url = data_config_json['manage_url'];
 
-    // Add iframes lazily when the popup is loaded.
-    // This avoids fetching the iframes along with main page.
+    // Add iframes lazily when the dialog opens, clearing them first so they
+    // reload fresh each time. This avoids fetching the iframes with the page.
     $('.coverPop')
         .on('click', function() {
-            // clear the content of #imagesAdd and #imagesManage before adding new
             $('.imagesAdd').html('');
             $('.imagesManage').html('');
             if (doc_type_key === '/type/work') {
@@ -32,14 +31,6 @@ export function initCoversChange() {
                 add_iframe('.imagesManage', manage_url);
             }, 0);
         });
-
-    // Clear the iframes once the <ol-dialog> closes, so they reload fresh
-    // next time (replaces the old colorbox `cbox_cleanup` hook).
-    $('ol-dialog:has(.imagesAdd)').each(function(_i, dialog) {
-        dialog.addEventListener('ol-after-close', function() {
-            $(dialog).find('.imagesAdd, .imagesManage').html('');
-        });
-    });
 }
 
 function add_iframe(selector, src) {

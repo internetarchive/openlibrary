@@ -94,32 +94,20 @@ export function initPreviewDialogs() {
 }
 
 /**
- * Wires up dialog close buttons
- * If an element has the class dialog--open it will trigger the
- * opening of a dialog. The `aria-controls` attribute on that same element
- * communicates where the HTML of that dialog lives.
+ * Wires up dialog triggers.
+ *
+ * An element with class `dialog--open` opens the <ol-dialog> named by its
+ * `aria-controls` attribute, e.g. the cover preview and add/manage cover
+ * dialogs.
  */
 export function initDialogs() {
     $('.dialog--open').on('click', function(e) {
-        const $link = $(this),
-            target = document.getElementById($link.attr('aria-controls'));
-
-        // <ol-dialog> (or native <dialog>) targets open natively, e.g. the
-        // cover preview and add/manage cover dialogs.
-        if (target && (target.tagName === 'OL-DIALOG' || target.tagName === 'DIALOG')) {
-            e.preventDefault();
-            if (target.tagName === 'OL-DIALOG') {
-                target.open = true;
-            } else if (!target.open) {
-                target.showModal();
-            }
+        const target = document.getElementById($(this).attr('aria-controls'));
+        if (target?.tagName !== 'OL-DIALOG') {
             return;
         }
-
-        const href = `#${$link.attr('aria-controls')}`;
-
-        $link.colorbox({ inline: true, opacity: '0.5', href,
-            maxWidth: '640px', width: '100%' });
+        e.preventDefault();
+        target.open = true;
     });
 
     initPreviewDialogs();
