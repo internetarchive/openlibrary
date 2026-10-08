@@ -255,7 +255,9 @@ class TestReadButtonTemplate:
 
     def test_an_open_access_acquisition_still_renders_read(self):
         html = self.render("open-access", READ_URL)
-        assert ">Read</a>" in html
+        # master's #13721 ("Button label audit") moved every CTA label into a
+        # `cta-btn__label` span, so a bare `>Read</a>` no longer matches.
+        assert '<span class="cta-btn__label">Read</span>' in html
         assert 'href="/books/OL46539165M/-/borrow?action=read"' in html
 
     def test_the_borrow_button_says_which_provider_the_offer_came_from(self):
@@ -275,6 +277,7 @@ class TestReadButtonTemplate:
         html = self.render("borrow", BORROW_URL, provider_name=None)
         assert ">Borrow</a>" in html
         assert 'data-ol-provider=""' in html
+
 
 @pytest.fixture
 def one_scan_allowed():

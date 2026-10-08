@@ -724,7 +724,10 @@ def provider_loans(username: str) -> ProviderLoans:
     results = async_bridge.run(_gather_node_loans(holdings, issuers, budget))
 
     loans: list[dict[str, Any]] = []
-    for (provider_name, _), result in zip(holdings, results, strict=True):
+    # The second element is the grant, already spent by `_gather_node_loans`.
+    # Named rather than `_`: this module imports gettext as `_`, and a loop
+    # variable of that name rebinds it for the rest of the function.
+    for (provider_name, _grant), result in zip(holdings, results, strict=True):
         if isinstance(result, BaseException):
             # A node rejecting the token is the patron needing to reconnect,
             # not the node being down, and the difference is not cosmetic: a

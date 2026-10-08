@@ -859,6 +859,7 @@ class TestPopupEndings:
         module = pathlib.Path(lenny.__file__).resolve().parents[2] / "plugins/openlibrary/js/provider_borrow_popup.js"
         assert f"const MESSAGE_TYPE = '{lenny.POPUP_MESSAGE_TYPE}';" in module.read_text()
 
+
 NODE_B = {
     "issuer": "https://lenny-b.example.org",
     "client_id": "ol-client",
