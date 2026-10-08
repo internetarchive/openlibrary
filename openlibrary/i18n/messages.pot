@@ -4082,6 +4082,10 @@ msgstr ""
 msgid "Selected image preview"
 msgstr ""
 
+#: covers/change.html
+msgid "Remove image"
+msgstr ""
+
 #: covers/change.html covers/saved.html
 msgid "Saved!"
 msgstr ""

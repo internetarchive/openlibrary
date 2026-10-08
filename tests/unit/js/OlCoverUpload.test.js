@@ -100,6 +100,19 @@ describe('ol-cover-upload form', () => {
         expect(el._file).toBe(file);
         expect(q(el, '.preview')?.getAttribute('src')).toBe('blob:preview');
     });
+
+    test('the preview has a remove control that clears the selection', async() => {
+        const el = await mount();
+        el._onFileChange({ target: { files: [new File(['x'], 'cover.png', { type: 'image/png' })] } });
+        await el.updateComplete;
+        expect(q(el, '.preview-clear')).not.toBeNull();
+
+        q(el, '.preview-clear').click();
+        await el.updateComplete;
+        expect(el._file).toBeNull();
+        expect(el._previewUrl).toBe('');
+        expect(q(el, '.preview')).toBeNull();
+    });
 });
 
 describe('ol-cover-upload submission', () => {

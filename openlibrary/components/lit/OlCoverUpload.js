@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 // Registers <ol-button> for the upload / paste actions.
 import './OLButton.js';
+import './OlIcon.js';
 import { translate } from './utils/labels.js';
 
 /**
@@ -21,6 +22,7 @@ export const DEFAULT_LABELS = {
     changeImage: 'Change Image',
     pasteAria: 'Paste image from clipboard',
     previewAlt: 'Selected image preview',
+    removeImage: 'Remove image',
     upload: 'Upload',
     uploading: 'Uploading…',
     saved: 'Saved!',
@@ -117,13 +119,25 @@ export class OlCoverUpload extends LitElement {
             font: inherit;
         }
 
+        .preview-wrap {
+            position: relative;
+            display: inline-block;
+            margin-top: var(--spacing-sm);
+        }
+
         .preview {
             display: block;
             max-width: 200px;
             max-height: 200px;
-            margin-top: var(--spacing-sm);
             border: var(--border-width) solid var(--color-control-border);
             border-radius: var(--border-radius-thumbnail);
+        }
+
+        /* Floating remove control over the chosen/pasted image. */
+        .preview-clear {
+            position: absolute;
+            top: var(--spacing-2xs);
+            right: var(--spacing-2xs);
         }
 
         .candidates {
@@ -135,7 +149,7 @@ export class OlCoverUpload extends LitElement {
         .candidate {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             gap: var(--spacing-2xs);
         }
 
@@ -239,6 +253,17 @@ export class OlCoverUpload extends LitElement {
 
     _revokePreview() {
         if (this._previewUrl) URL.revokeObjectURL(this._previewUrl);
+    }
+
+    /** Discard the chosen/pasted image and return to the empty form. */
+    _clearImage() {
+        this._revokePreview();
+        this._file = null;
+        this._previewUrl = '';
+        this._pasted = false;
+        this._error = '';
+        const input = this._fileInput;
+        if (input) input.value = '';
     }
 
     _showPreview(file) {
@@ -417,9 +442,21 @@ export class OlCoverUpload extends LitElement {
     }
 
     _renderPreview() {
-        return this._previewUrl
-            ? html`<img class="preview" src=${this._previewUrl} alt=${this.t('previewAlt')} />`
-            : nothing;
+        if (!this._previewUrl) return nothing;
+        return html`
+            <div class="preview-wrap">
+                <img class="preview" src=${this._previewUrl} alt=${this.t('previewAlt')} />
+                <ol-button
+                    class="preview-clear"
+                    shape="icon"
+                    variant="ghost"
+                    aria-label=${this.t('removeImage')}
+                    @click=${this._clearImage}
+                >
+                    <ol-icon name="x"></ol-icon>
+                </ol-button>
+            </div>
+        `;
     }
 
     /** Server-supplied remote images (Wikidata, Internet Archive), grouped by source. */
