@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import { initSearchModal } from './search-modal/SearchModal';
 
 /*
@@ -9,18 +8,19 @@ function setValueInCookie(key, value) {
 }
 
 export default function init() {
-    const $searchComponent = $('header#header-bar .search-component');
-    initSearchModal($searchComponent.find('.search-bar-trigger')[0]);
+    const searchComponent = document.querySelector('header#header-bar .search-component');
+    initSearchModal(searchComponent?.querySelector('.search-bar-trigger'));
 
     initWebsiteTranslationOptions();
 }
 
 export function initWebsiteTranslationOptions() {
-    $('.locale-options li a').on('click', function(event) {
-        event.preventDefault();
-        const locale = $(this).data('lang-id');
-        setValueInCookie('HTTP_LANG', locale);
-        location.reload();
+    document.querySelectorAll('.locale-options li a').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const locale = link.dataset.langId;
+            setValueInCookie('HTTP_LANG', locale);
+            location.reload();
+        });
     });
-
 }
