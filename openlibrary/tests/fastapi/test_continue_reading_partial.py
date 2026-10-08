@@ -1,5 +1,6 @@
 """Tests for the homepage Continue Reading partial."""
 
+import threading
 import time
 from unittest.mock import patch
 
@@ -68,3 +69,23 @@ def test_loan_due_status(request_context_fixture):
     assert _loan_due_status(30 * 60) == "Due in 30 minutes"
     assert _loan_due_status(5 * 3600) == "Due in 5 hours"
     assert _loan_due_status(1 * DAY + 60) == "Due in 1 day"
+
+
+def test_generate_sets_up_web_ctx_on_a_fresh_thread():
+    # FastAPI runs the sync handler on a worker thread with no web.ctx.env,
+    # which the LoanStatus macro's query_param() reads.
+    seen = {}
+
+    def run():
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.get_loans_and_history", return_value=[]),
+            patch("openlibrary.plugins.openlibrary.partials.delegate.fakeload", side_effect=lambda: web.ctx.update(env={})) as fakeload,
+        ):
+            _partials().ContinueReadingPartial.generate("u", "/people/u", None)
+        seen["fakeloaded"] = fakeload.called
+        seen["env"] = "env" in web.ctx
+
+    thread = threading.Thread(target=run)
+    thread.start()
+    thread.join()
+    assert seen == {"fakeloaded": True, "env": True}

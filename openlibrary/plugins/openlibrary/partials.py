@@ -15,6 +15,7 @@ import web
 from markupsafe import Markup
 from pydantic import BaseModel, Field
 
+from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
@@ -124,6 +125,10 @@ class ContinueReadingPartial:
 
     @classmethod
     def generate(cls, username: str, user_key: str, s3_cookie: str | None) -> dict:
+        # FastAPI runs this sync handler on a threadpool worker with no web.ctx;
+        # the LoanStatus macro's query_param() needs web.ctx.env.
+        if "env" not in web.ctx:
+            delegate.fakeload()
         entries = get_loans_and_history(user_key, username, cached=True, s3_cookie=s3_cookie)
         return cls._render(entries)
 
