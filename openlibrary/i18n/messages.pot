@@ -3935,19 +3935,19 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Image Guidelines"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "There are a few ways to put a cover image on Open Library."
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Cover Guidelines"
 msgstr ""
 
@@ -3972,23 +3972,23 @@ msgstr ""
 msgid "Use this image"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Choose a JPG, GIF, PNG or WebP on your computer"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Upload"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Or, paste an image from your clipboard"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Paste image from clipboard"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Paste Image"
 msgstr ""
 
@@ -4000,7 +4000,7 @@ msgstr ""
 msgid "Upload Image"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Uploading..."
 msgstr ""
 
@@ -4066,6 +4066,46 @@ msgid "Add Cover Image"
 msgstr ""
 
 #: covers/change.html
+msgid "Learn more by reading our"
+msgstr ""
+
+#: covers/change.html
+msgid "Change Image"
+msgstr ""
+
+#: covers/change.html
+msgid "Selected image preview"
+msgstr ""
+
+#: covers/change.html covers/saved.html
+msgid "Saved!"
+msgstr ""
+
+#: covers/change.html covers/saved.html
+msgid "New book cover"
+msgstr ""
+
+#: covers/change.html covers/saved.html
+msgid "Add another image"
+msgstr ""
+
+#: covers/change.html covers/saved.html
+msgid "Finished"
+msgstr ""
+
+#: covers/change.html
+msgid "Please choose an image first."
+msgstr ""
+
+#: covers/change.html
+msgid "Could not upload the image. Please try again."
+msgstr ""
+
+#: covers/change.html
+msgid "No image found in clipboard"
+msgstr ""
+
+#: covers/change.html
 msgid "Manage"
 msgstr ""
 
@@ -4079,23 +4119,7 @@ msgid "You can drag and drop thumbnails to reorder, or into the trash to delete 
 msgstr ""
 
 #: covers/saved.html
-msgid "New book cover"
-msgstr ""
-
-#: covers/saved.html
-msgid "Saved!"
-msgstr ""
-
-#: covers/saved.html
 msgid "Notes:"
-msgstr ""
-
-#: covers/saved.html
-msgid "Add another image"
-msgstr ""
-
-#: covers/saved.html
-msgid "Finished"
 msgstr ""
 
 #: email/account/pd_request.html

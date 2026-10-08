@@ -32,6 +32,30 @@ $else:
   <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers coverPop dialog--open" href="$(manage_url if doc.get_cover() else add_url)" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</ol-button>
 </div>
 
+$code:
+    cover_upload_labels = {
+        "introCover": _("There are a few ways to put a cover image on Open Library."),
+        "introPhoto": _("There are two ways to put an author's image on Open Library."),
+        "learnMore": _("Learn more by reading our"),
+        "guidelinesCover": _("Cover Guidelines"),
+        "guidelinesPhoto": _("Image Guidelines"),
+        "chooseFile": _("Choose a JPG, GIF, PNG or WebP on your computer"),
+        "pasteLabel": _("Or, paste an image from your clipboard"),
+        "paste": _("Paste Image"),
+        "changeImage": _("Change Image"),
+        "pasteAria": _("Paste image from clipboard"),
+        "previewAlt": _("Selected image preview"),
+        "upload": _("Upload"),
+        "uploading": _("Uploading..."),
+        "saved": _("Saved!"),
+        "savedAlt": _("New book cover"),
+        "addAnother": _("Add another image"),
+        "finished": _("Finished"),
+        "noFile": _("Please choose an image first."),
+        "uploadFailed": _("Could not upload the image. Please try again."),
+        "noClipboardImage": _("No image found in clipboard"),
+    }
+
 <ol-dialog id="addImage-$imagesId" label="$title" width="large">
     <div id="tabsImages" class="ol-tabs tabsPop">
         <ul>
@@ -40,7 +64,12 @@ $else:
         </ul>
 
         <div class="imagesAdd" id="imagesAdd-$imagesId">
-            $# add image iframe is added here when the popup is loaded
+            <ol-cover-upload
+                action="$add_url"
+                doc-type="$doc.type.key"
+                cover-selector="$cover_selector"
+                coverstore-url="$(get_coverstore_public_url())"
+                labels="$json_encode(cover_upload_labels)"></ol-cover-upload>
         </div>
 
         <div class="imagesManage" id="imagesManage-$imagesId">

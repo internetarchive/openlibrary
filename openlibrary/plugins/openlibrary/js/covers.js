@@ -9,34 +9,26 @@ import { closePopup } from './utils';
 
 //cover/change.html
 export function initCoversChange() {
-    // Pull data from data-config of class "manageCovers" in covers/manage.html
+    // The add panel is a Lit component (<ol-cover-upload>) rendered by the
+    // template, so only the manage panel is still an iframe. Load it lazily on
+    // open so the page doesn't fetch it up front.
     const data_config_json = $('.manageCovers').data('config');
-    const doc_type_key = data_config_json['key'];
-    const add_url = data_config_json['add_url'];
     const manage_url = data_config_json['manage_url'];
 
-    // Add iframes lazily when the dialog opens, clearing them first so they
-    // reload fresh each time. This avoids fetching the iframes with the page.
-    $('.coverPop')
-        .on('click', function() {
-            $('.imagesAdd').html('');
-            $('.imagesManage').html('');
-            if (doc_type_key === '/type/work') {
-                $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
-            }
-            setTimeout(function() {
-                // add iframe to add images
-                add_iframe('.imagesAdd', add_url);
-                // add iframe to manage images
-                add_iframe('.imagesManage', manage_url);
-            }, 0);
-        });
+    $('.coverPop').on('click', function() {
+        $('.imagesManage').html('');
+        setTimeout(function() {
+            // add iframe to manage images
+            add_iframe('.imagesManage', manage_url);
+        }, 0);
+    });
 
-    // Clear the add/manage iframes once the dialog has closed so they stop running;
-    // the next open rebuilds them. Waits for the close animation so it doesn't empty mid-fade.
+    // Stop the manage iframe on close and reset the add component to its initial
+    // state. Waits for the close animation so it doesn't empty mid-fade.
     const coverDialog = document.querySelector('.imagesAdd')?.closest('ol-dialog');
     coverDialog?.addEventListener('ol-after-close', () => {
-        document.querySelectorAll('.imagesAdd, .imagesManage').forEach((el) => el.replaceChildren());
+        document.querySelectorAll('.imagesManage').forEach((el) => el.replaceChildren());
+        coverDialog.querySelector('ol-cover-upload')?.reset?.();
     });
 }
 
