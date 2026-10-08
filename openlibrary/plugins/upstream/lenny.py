@@ -882,7 +882,7 @@ class lenny_borrow(delegate.page):
                 "edition_key": edition_key,
                 "provider_name": provider_name,
                 # The bare username, not ``user.key``: it is the key the
-                # ``provider_tokens`` row and ``anonymize`` both use.
+                # provider token store and ``anonymize`` both use.
                 "username": user.get_username(),
             },
             expires=STATE_TTL_SECONDS,

@@ -21,8 +21,13 @@ import httpx
 import pytest
 import web
 
-from openlibrary.core.provider_tokens import Grant, TokenRefreshFailed
+from openlibrary.core.provider_tokens import Grant, ProviderToken, TokenRefreshFailed
 from openlibrary.plugins.upstream import lenny
+
+#: The shipping `upsert`, captured at import time. Fixtures below replace the
+#: attribute on the class, so a test that wants the real one back cannot read
+#: it off `ProviderToken` by then -- it would get the fixture's stand-in.
+REAL_UPSERT = ProviderToken.upsert
 
 NODE = {
     "issuer": "https://lennyforlibraries.org",
@@ -690,11 +695,39 @@ class TestCallback:
         assert "could not complete the loan" in body.rawtext
         assert "borrow" not in flow["order"]
 
-    def test_no_credential_reaches_the_browser(self, flow, monkeypatch):
-        """The grant lives in `provider_tokens`, not in a cookie. Nothing in
-        this flow should be writing one."""
+    def test_no_plaintext_credential_reaches_the_browser(self, flow, monkeypatch):
+        """The grant now lives in a cookie, so "writes no cookie" is no longer
+        the property to want -- and asserting it here would pass vacuously,
+        because `flow` replaces `ProviderToken.upsert` with a recorder that
+        never reaches the store.
+
+        What still has to hold is that nothing the browser receives contains a
+        bearer token in cleartext. So this one puts the *real* store back and
+        reads what it actually set.
+        """
+        from openlibrary.accounts import model as accounts_model
+        from openlibrary.core import provider_tokens as pt
+
+        monkeypatch.setattr(accounts_model, "get_secret_key", lambda: "test-secret-key")
+        written: list[tuple] = []
+        monkeypatch.setattr(pt.web, "cookies", web.storage)  # an empty jar: no cookie yet
+        monkeypatch.setattr(pt.web, "setcookie", lambda name, value, **kw: written.append((name, value)))
+        monkeypatch.setattr(pt.web, "ctx", web.storage(protocol="https"), raising=False)
+        monkeypatch.setattr(lenny.ProviderToken, "upsert", staticmethod(REAL_UPSERT))
+
         self._call(monkeypatch)
-        assert flow["cookies"] == []
+
+        assert [name for name, _ in written] == [pt.COOKIE_NAME], "the grant must be stored, and only there"
+        value = written[0][1]
+        assert value, "an empty cookie means the grant was not stored at all"
+        assert "at-1" not in value, "the access token reached the browser in cleartext"
+        assert "rt-1" not in value, "the refresh token reached the browser in cleartext"
+        # And it is genuinely recoverable, not merely unreadable.
+        import json
+
+        from openlibrary.accounts.model import decrypt_token
+
+        assert json.loads(decrypt_token(value))["g"]["lenny"]["a"] == "at-1"
 
     def test_the_borrow_presents_the_freshly_exchanged_token(self, flow, monkeypatch):
         self._call(monkeypatch)
