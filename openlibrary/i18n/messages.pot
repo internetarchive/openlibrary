@@ -3980,7 +3980,7 @@ msgstr ""
 msgid "Upload"
 msgstr ""
 
-#: covers/add.html covers/change.html
+#: covers/add.html
 msgid "Or, paste an image from your clipboard"
 msgstr ""
 
@@ -4072,6 +4072,10 @@ msgstr ""
 #: covers/change.html
 #, python-format
 msgid "Or, use an image from %(source)s"
+msgstr ""
+
+#: covers/change.html
+msgid "Or paste with Ctrl/⌘+V"
 msgstr ""
 
 #: covers/change.html

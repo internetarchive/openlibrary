@@ -17,8 +17,8 @@ export const DEFAULT_LABELS = {
     chooseFile: 'Choose a JPG, GIF, PNG or WebP on your computer',
     useImageFrom: 'Or, use an image from %(source)s',
     uploadImage: 'Upload Image',
-    pasteLabel: 'Or, paste an image from your clipboard',
     paste: 'Paste Image',
+    pasteHint: 'Or paste with Ctrl/⌘+V',
     changeImage: 'Change Image',
     pasteAria: 'Paste image from clipboard',
     previewAlt: 'Selected image preview',
@@ -104,6 +104,12 @@ export class OlCoverUpload extends LitElement {
             font-size: var(--font-size-body-large);
             font-weight: var(--font-weight-semibold);
             line-height: var(--line-height-heading);
+        }
+
+        .hint {
+            margin: var(--spacing-2xs) 0 0;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-label-medium);
         }
 
         .row {
@@ -518,20 +524,13 @@ export class OlCoverUpload extends LitElement {
                         aria-label=${this.t('chooseFile')}
                         @change=${this._onFileChange}
                     />
-                    ${upload}
-                </div>
-                ${!this._pasted && this._file ? this._renderPreview() : nothing}
-            </div>
-
-            <div class="panel">
-                <h3 class="heading">${this.t('pasteLabel')}</h3>
-                <div class="row">
                     <ol-button class="paste-button" aria-label=${this.t('pasteAria')} @click=${this._onPaste}
                         >${this.t(this._pasted ? 'changeImage' : 'paste')}</ol-button
                     >
-                    ${this._pasted ? upload : nothing}
+                    ${upload}
                 </div>
-                ${this._pasted ? this._renderPreview() : nothing}
+                <p class="hint">${this.t('pasteHint')}</p>
+                ${this._renderPreview()}
             </div>
 
             ${this._renderCandidates()}
