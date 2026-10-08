@@ -133,39 +133,7 @@
   text-decoration: none;
 }
 
-/* VIEW LARGER COVER POP-UP */
-div.coverFloat {
-  font-family: var(--font-family-body);
-  background: var(--white);
-  text-align: left;
-}
-
-div.coverFloat a.dialog--close:hover {
-  background-position: 0 -16px;
-}
-
-div.coverFloatHead {
-  display: flex;
-}
-
-div.coverFloatHead h2 {
-  font-weight: normal;
-  color: var(--color-text);
-  font-size: 1em;
-  margin: 0;
-  padding: 0;
-  flex: 1;
-}
-
-/* ADD IMAGE/COVER POP-UP */
-div.floater {
-  position: relative;
-  font-family: var(--font-family-body);
-  min-height: 675px;
-  background: var(--white);
-  text-align: left;
-}
-
+/* OVERLAY HEADS (observations modal, native dialog) */
 div.floaterHead {
   display: flex;
   padding: var(--spacing-inset-sm) var(--spacing-inset-xs);

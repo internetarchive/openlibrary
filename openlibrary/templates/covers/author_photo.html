@@ -8,7 +8,7 @@ $ photo_aspect_ratio_str = 'aspect-ratio: ' + str(photo_aspect_ratio) if photo_a
 $if author_thumbnail_url:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">
-            <a aria-controls="seeImage" class="coverLook dialog--open" title="$_('Pull up a larger author photo')">
+            <a href="$author_photo_url" aria-controls="seeImage" class="coverLook dialog--open" title="$_('Pull up a larger author photo')">
                 <img src="$author_thumbnail_url" itemprop="image" class="cover" style="$photo_aspect_ratio_str" alt="$_('Photo of %(author)s', author=author.name)"/>
             </a>
         </div>
