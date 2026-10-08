@@ -52,6 +52,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @cssprop --ol-dialog-padding - Padding around body and footer regions.
  *     Set to `0` for edge-to-edge content (e.g. when slotting a search bar
  *     or filter row that owns its own padding).
+ * @cssprop [--ol-dialog-max-height=85vh] - Maximum dialog height; the body scrolls past it.
+ *     Slotted content can read it to size itself to fit (e.g. an enlarged image).
  * @cssprop --ol-dialog-border-radius - Corner radius (ignored in fullscreen mode).
  * @cssprop --ol-dialog-backdrop-color - Backdrop color.
  * @cssprop --ol-dialog-backdrop-blur - Blur radius applied to the page behind
@@ -115,6 +117,7 @@ export class OlDialog extends LitElement {
             --ol-dialog-width-medium: 550px;
             --ol-dialog-width-large: 800px;
             --ol-dialog-padding: var(--spacing-xl);
+            --ol-dialog-max-height: 85vh;
             --ol-dialog-border-radius: var(--border-radius-overlay);
             --ol-dialog-animation-duration: var(--duration-base);
             --ol-dialog-backdrop-color: var(--overlay-backdrop-color);
@@ -129,7 +132,7 @@ export class OlDialog extends LitElement {
             border-radius: var(--ol-dialog-border-radius);
             padding: 0;
             max-width: 90vw;
-            max-height: 85vh;
+            max-height: var(--ol-dialog-max-height);
             overflow: hidden;
             box-shadow: var(--box-shadow-overlay);
         }
@@ -212,10 +215,13 @@ export class OlDialog extends LitElement {
 
         /* Top-anchored placement: keeps the dialog's top edge fixed as its
            own height grows or shrinks (search modal / command palette). */
+        :host([placement="top"]) {
+            --ol-dialog-max-height: calc(100dvh - var(--ol-dialog-top-offset) - var(--spacing-xl));
+        }
+
         :host([placement="top"]) dialog {
             margin-block-start: var(--ol-dialog-top-offset);
             margin-block-end: auto;
-            max-height: calc(100dvh - var(--ol-dialog-top-offset) - var(--spacing-xl));
             transform-origin: top center;
         }
 
@@ -266,6 +272,10 @@ export class OlDialog extends LitElement {
            Also neutralizes placement="top" so the dialog truly fills the
            viewport (no top offset, no leftover max-height clamp). */
         @media (max-width: 767px) {
+            :host([fullscreen-on-mobile]) {
+                --ol-dialog-max-height: 100dvh;
+            }
+
             :host([fullscreen-on-mobile]) dialog {
                 width: 100vw;
                 height: 100dvh;
@@ -278,7 +288,6 @@ export class OlDialog extends LitElement {
             :host([fullscreen-on-mobile][placement="top"]) dialog {
                 margin-block-start: 0;
                 margin-block-end: 0;
-                max-height: 100dvh;
             }
         }
 

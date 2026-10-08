@@ -153,12 +153,6 @@ password = admin123
 
 ---
 
-## Note on Local Availability
-
-The `openlibrary-client` repo is not checked out at `/Users/internetarchive/Projects/`. Code synthesis above is from `raw/openlibrary-docs-ai/imports/` (AI-compiled docs) + knowledge of the public interface. To add ground-truth detail: `git clone github.com/internetarchive/openlibrary-client` and add to cq for a Unit A ingest.
-
----
-
 ## Dependencies
 
 **Depends on:**
