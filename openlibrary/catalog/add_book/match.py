@@ -62,6 +62,7 @@ def normalize(s: str) -> str:
     """
     Normalizes a title for matching purposes, not display,
     by lowercasing, unicode -> NFC,
+    stripping C1 control characters (non-printing),
     stripping extra whitespace and punctuation, and replacing ampersands.
     """
     s = unicodedata.normalize("NFC", s)
