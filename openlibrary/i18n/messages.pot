@@ -1118,7 +1118,8 @@ msgid "Export your star ratings"
 msgstr ""
 
 #: account/export.html
-msgid "Download a copy of your <a href=\"/help/faq/reviews#star-ratings\">star ratings</a>."
+#, python-format
+msgid "Download a copy of your %(link_start)sstar ratings%(link_end)s."
 msgstr ""
 
 #: account/follows.html
