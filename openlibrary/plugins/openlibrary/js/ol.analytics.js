@@ -1,4 +1,3 @@
-import $ from 'jquery';
 /**
 * OpenLibrary-specific convenience functions for use with Archive.org athena.js
 *
@@ -56,15 +55,17 @@ export default function initAnalytics() {
         vs = window.archive_analytics.get_data_packets();
         for (i in vs) {
             vs[i]['cache_bust']=Math.random();
-            vs[i]['server_ms']=$('.analytics-stats-time-calculator').data('time');
+            vs[i]['server_ms']=document.querySelector('.analytics-stats-time-calculator')?.dataset.time;
             vs[i]['server_name']='ol-web.us.archive.org';
             vs[i]['service']='ol';
         }
         if (window.flights){
             window.flights.init();
         }
-        $(document).on('click', '[data-ol-link-track]', function() {
-            var category_action = $(this).attr('data-ol-link-track').split('|');
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('[data-ol-link-track]');
+            if (!link) return;
+            const category_action = link.getAttribute('data-ol-link-track').split('|');
             trackEvent(category_action[0], category_action[1], category_action[2]);
         });
     }
