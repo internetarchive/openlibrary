@@ -90,15 +90,15 @@ def test_html_format():
                 # Need this to support &nbsp;, since ET only parses XML.
                 # Find a better solution?
                 entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
-                id_tree = ET.fromstring(f"{entities}<root>{msgid}</root>")
-                str_tree = ET.fromstring(f"{entities}<root>{msgstr}</root>")
                 # For translations that correctly reorder elements to fit the target language's word order
                 ordered = not msgstr.startswith("<!-- i18n-lint no-tree-order -->")
                 try:
-                    assert trees_equal(id_tree, str_tree, ordered=ordered)
-                except AssertionError:
-                    errors.append(f"{locale}:{message.lineno}:\nmsgid:  {msgid}\nmsgstr: {msgstr}")
-    assert errors == []
+                    id_tree = ET.fromstring(f"{entities}<root>{msgid}</root>")
+                    str_tree = ET.fromstring(f"{entities}<root>{msgstr}</root>")
+                    trees_equal(id_tree, str_tree, ordered=ordered)
+                except (AssertionError, ET.ParseError) as e:
+                    errors.append(f"{locale}:{message.lineno}: {e}\nmsgid:  {msgid}\nmsgstr: {msgstr}")
+    assert not errors, "\n\n".join(errors)
 
 
 def test_validate():
@@ -109,7 +109,7 @@ def test_validate():
             # The same selection as `make test-i18n`, so the two cannot disagree
             if message.lineno and (errs := validate(message, catalog)):
                 errors.extend(f"{locale}:{message.lineno}: {err}" for err in errs)
-    assert errors == []
+    assert not errors, "\n\n".join(errors)
 
 
 @pytest.mark.parametrize(
