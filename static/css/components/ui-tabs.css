@@ -108,6 +108,7 @@
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
+  ol-dialog .ui-tabs-panel,
   .floater .ui-tabs-panel {
     border-top: 3px solid var(--lightest-grey);
     padding: 15px 30px !important;
