@@ -1,6 +1,7 @@
 #!/bin/bash
 
 python --version
+source docker/ol-install-missing-deps.sh
 OSP_DUMP_LOCATION="/solr-updater-data/osp_totals.db"
 # If the osp dump file does not exist, download it. Takes ~30s
 # Keep link in sync with Makefile and Jenkinsfile
@@ -12,12 +13,12 @@ ls -la /solr-updater-data/
 
 # Run in background
 echo "Starting trending updater"
-PYTHONPATH=. python scripts/solr_updater/trending_updater.py \
+python scripts/solr_updater/trending_updater.py \
     "$OL_CONFIG" \
     --trending-offset-file /solr-updater-data/$TRENDING_OFFSET_FILE &
 
 echo "Starting Solr updater"
-PYTHONPATH=. python scripts/solr_updater/solr_updater.py "$OL_CONFIG" \
+python scripts/solr_updater/solr_updater.py "$OL_CONFIG" \
     --state-file /solr-updater-data/$STATE_FILE \
     --ol-url "$OL_URL" \
     --osp-dump "$OSP_DUMP_LOCATION" \

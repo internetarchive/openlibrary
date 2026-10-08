@@ -42,17 +42,22 @@
 import LazyBookCard from './BarcodeScanner/components/LazyBookCard.vue';
 import SettingsIcon from './LibraryExplorer/components/icons/SettingsIcon.vue';
 import Quagga from '@ericblade/quagga2';
-import maxBy from 'lodash/maxBy';
-import countBy from 'lodash/countBy';
 import { OCRScanner, ThrottleGrouping } from './BarcodeScanner/utils/classes.js';
 
 export default {
     components: { LazyBookCard, SettingsIcon },
     data() {
         let returnTo = new URLSearchParams(location.search).get('returnTo');
-        // Only allow absolute URLs or root-relative URLs to prevent XSS
-        if (!/^(https?:\/\/|\/)/.test(returnTo)) {
-            returnTo = null;
+        // Only allow same-origin redirects to prevent open redirect attacks.
+        // Guard for null first: new URL(null, base) coerces to the string "null"
+        // and would create a same-origin URL https://<origin>/null.
+        if (returnTo) {
+            try {
+                const url = new URL(returnTo, window.location.origin);
+                returnTo = url.origin === window.location.origin ? url.href : null;
+            } catch (_) {
+                returnTo = null;
+            }
         }
         return {
             disableISBNTextButton: false,
@@ -68,21 +73,18 @@ export default {
                 func: this.submitISBN.bind(this),
                 // Use the most frequent
                 reducer: (groupOfArgs) => {
-                    const isbnCounts = Array.from(
-                        Object.entries(
-                            countBy(groupOfArgs, (arg) => arg[0])
-                        )
-                    );
-
-                    /* eslint-disable no-unused-vars */
-                    const mostFrequentISBN = maxBy(isbnCounts, ([isbn, count]) => count)[0];
+                    const isbnCounts = new Map();
+                    for (const [isbn] of groupOfArgs) {
+                        isbnCounts.set(isbn, (isbnCounts.get(isbn) || 0) + 1);
+                    }
+                    const [mostFrequentISBN] = [...isbnCounts].reduce((best, entry) => entry[1] > best[1] ? entry : best);
                     return groupOfArgs.reverse().find((args) => args[0] === mostFrequentISBN);
                 },
                 wait: 300,
             }).asFunction(),
             quaggaVideo: null,
             ocrScanner: null,
-        }
+        };
     },
     async mounted() {
         await this.start();
@@ -107,7 +109,7 @@ export default {
                     decoder: {
                         readers: ['ean_reader']
                     },
-                }, async (err) => {
+                }, async(err) => {
                     if (err) {
                         rej(err);
                         return;
@@ -217,12 +219,7 @@ export default {
             if (this.seenISBN.has(isbn)) return;
 
             if (this.returnTo) {
-                // Check if domain is the same as the current domain to prevent
-                // open redirects.
-                if (!this.returnTo.startsWith('/')) {
-                    window.alert(`Redirecting to ${this.returnTo.replace('$$$', isbn)}`);
-                }
-                location = this.returnTo.replace('$$$', isbn);
+                location.href = this.returnTo.replace('$$$', isbn);
             }
             this.isbnList.unshift({isbn: isbn, cover: tentativeCoverUrl});
             this.seenISBN.add(isbn);
@@ -233,7 +230,7 @@ export default {
         },
 
     }
-}
+};
 </script>
 
 <style>

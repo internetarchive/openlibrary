@@ -1,0 +1,738 @@
+"""
+Mock services for Open Library local development.
+
+Replaces the web.py inline stubs from account.py (/internal/fake/*) and
+provides mocks for external services that do not have dev interceptors:
+  - IA xauthn  (was /internal/fake/xauth)
+  - IA S3 auth (was /internal/fake/s3auth)
+  - IA loans   (was /internal/fake/loans)
+  - IA loans "changes" feed (needed by the near-realtime loan availability updater)
+  - IA availability v2 (was not mocked — pointed at real archive.org)
+  - IA borrow status (was hardcoded in lending.py)
+  - reCAPTCHA siteverify
+  - be-api full-text search
+  - Amazon PA-API (stub)
+
+Configure openlibrary.yml to point at this service:
+  ia_xauth_api_url:          http://mockservices:8090/services/xauthn/
+  ia_s3_auth_url:            http://mockservices:8090/services/s3auth/
+  ia_loan_api_url:           http://mockservices:8090/services/loans/loan/
+  ia_s3_loan_url:            http://mockservices:8090/services/loans/loan/
+  ia_availability_api_v2_url: http://mockservices:8090/services/availability/
+  ia_borrow_status_url:      http://mockservices:8090/services/borrow/
+  recaptcha_url:             http://mockservices:8090/recaptcha/api/siteverify
+
+  /fts/v1/search is implemented but NOT wired as the default — be-api.us.archive.org
+  works fine for local dev as-is. Point (plugin_inside) search_endpoint at
+  http://mockservices:8090/fts/v1/search only if you need to work offline or
+  simulate a specific search response.
+
+Email: configure smtp_server=mockservices, smtp_port=1025, dummy_sendmail=False
+       Inspect captured mail via mailpit: http://localhost:8025
+"""
+
+import asyncio
+import hashlib
+import itertools
+import json as jsonlib
+import logging
+import random
+import time
+from collections import defaultdict
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime, timedelta
+from typing import Annotated, Any
+
+import httpx
+from fastapi import FastAPI, Header, Request
+from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    await _seed_loan_changes()
+    task = asyncio.create_task(_loan_changes_ongoing_loop())
+    yield
+    task.cancel()
+
+
+app = FastAPI(title="OL Mock Services", docs_url="/mock/docs", lifespan=_lifespan)
+
+# ---------------------------------------------------------------------------
+# IA xauthn  (was /internal/fake/xauth in account.py)
+# POST /services/xauthn/?op=...
+#
+# The real client (InternetArchiveAccount.xauth in accounts/model.py) sends
+# `op` as a query param and the payload as a JSON body, and reads "success"
+# (not "status") from the response.
+#
+# Supported ops: authenticate, info, issue_otp, redeem_otp, create, issue_key, activate
+# Dev credentials: email=openlibrary@example.com, password=<any non-empty>
+#                  (password "bad_password" is rejected, so the error path
+#                  is reachable from the login form / e2e tests)
+# Every dev login resolves to /people/openlibrary, the seeded admin account.
+# Dev S3 keys:     access=foo, secret=foo
+# Dev OTP code:    123456
+# ---------------------------------------------------------------------------
+
+_DEV_S3 = {"access": "foo", "secret": "foo"}
+_DEV_SCREENNAME = "openlibrary"
+_DEV_EMAIL = "openlibrary@example.com"
+_DEV_OTP = "123456"
+_DEV_TOKEN = "dev_placeholder_token"
+_DEV_BAD_PASSWORD = "bad_password"
+
+
+@app.post("/services/xauthn/")
+async def xauth(op: str, request: Request) -> JSONResponse:
+    try:
+        body = await request.json()
+    except ValueError:
+        body = {}
+
+    if op == "authenticate":
+        if body.get("password") in (None, "", _DEV_BAD_PASSWORD):
+            return JSONResponse({"success": False, "values": {"reason": "bad_password"}})
+        return JSONResponse(
+            {
+                "success": True,
+                "version": 1,
+                "values": {
+                    "token": _DEV_TOKEN,
+                    "email": body.get("email") or _DEV_EMAIL,
+                    "screenname": _DEV_SCREENNAME,
+                    "itemname": "@" + _DEV_SCREENNAME,
+                    "verified": True,
+                    "locked": False,
+                    "access": _DEV_S3["access"],
+                    "secret": _DEV_S3["secret"],
+                },
+            }
+        )
+
+    if op == "info":
+        return JSONResponse(
+            {
+                "success": True,
+                "version": 1,
+                "values": {
+                    "locked": False,
+                    "email": _DEV_EMAIL,
+                    "itemname": "@" + _DEV_SCREENNAME,
+                    "screenname": _DEV_SCREENNAME,
+                    "verified": True,
+                    "access": _DEV_S3["access"],
+                    "secret": _DEV_S3["secret"],
+                },
+            }
+        )
+
+    if op == "issue_otp":
+        return JSONResponse({"success": True, "version": 1})
+
+    if op == "redeem_otp":
+        # xauth("redeem_otp", ..., password=otp) sends the OTP in the "password" field
+        if body.get("password") == _DEV_OTP:
+            return JSONResponse(
+                {
+                    "success": True,
+                    "version": 1,
+                    "values": {
+                        "email": body.get("email") or _DEV_EMAIL,
+                        "itemname": "@" + _DEV_SCREENNAME,
+                        "screenname": _DEV_SCREENNAME,
+                        "token": _DEV_TOKEN,
+                        "access": _DEV_S3["access"],
+                        "secret": _DEV_S3["secret"],
+                    },
+                }
+            )
+        return JSONResponse({"success": False, "version": 1, "values": {"reason": "invalid_otp"}})
+
+    if op == "issue_key":
+        return JSONResponse({"success": True, "version": 1, "s3": dict(_DEV_S3), "ttl": 3600})
+
+    if op == "create":
+        email = str(body.get("email") or _DEV_EMAIL)
+        screenname = str(body.get("screenname") or _DEV_SCREENNAME)
+        return JSONResponse(
+            {
+                "success": True,
+                "version": 1,
+                "values": {
+                    "email": email,
+                    "screenname": screenname,
+                    "itemname": "@" + screenname,
+                    "verified": False,
+                    "locked": False,
+                },
+            }
+        )
+
+    if op == "activate":
+        return JSONResponse(
+            {
+                "success": True,
+                "version": 1,
+                "values": {
+                    "email": _DEV_EMAIL,
+                    "itemname": "@" + _DEV_SCREENNAME,
+                    "screenname": _DEV_SCREENNAME,
+                    "token": _DEV_TOKEN,
+                },
+            }
+        )
+
+    logger.warning("xauthn: unhandled op=%s", op)
+    return JSONResponse({"success": False, "values": {"reason": f"unknown_op:{op}"}}, status_code=400)
+
+
+# ---------------------------------------------------------------------------
+# IA S3 auth  (was /internal/fake/s3auth in account.py)
+# GET /services/s3auth/
+#
+# Accepts: Authorization: LOW foo:foo
+# ---------------------------------------------------------------------------
+
+
+@app.get("/services/s3auth/")
+async def s3auth(authorization: Annotated[str | None, Header()] = None) -> JSONResponse:
+    if authorization and authorization.startswith("LOW "):
+        credentials = authorization[4:]
+        if ":" in credentials:
+            return JSONResponse(
+                {
+                    "authorized": True,
+                    "username": _DEV_SCREENNAME,
+                    "itemname": "@" + _DEV_SCREENNAME,
+                    "email": _DEV_EMAIL,
+                    "screenname": _DEV_SCREENNAME,
+                }
+            )
+    return JSONResponse({"authorized": False}, status_code=401)
+
+
+# ---------------------------------------------------------------------------
+# IA Loans API  (was /internal/fake/loans in account.py)
+# POST /services/loans/loan/
+#
+# Supports:
+#   - Borrowing: s3_loan_api(action="borrow_book" / "browse_book", identifier=...)
+#   - Returning: s3_loan_api(action="return_loan", identifier=...)
+#   - Active loans query: ia_lending_api.find_loans(userid=...) / method="loan.query"
+#   - Loan history query: s3_loan_api(action="user_borrow_history", limit=..., offset=...)
+# ---------------------------------------------------------------------------
+
+_active_loans: dict[str, dict[str, dict]] = defaultdict(dict)
+_loan_history: dict[str, list[dict]] = defaultdict(list)
+_loans_lock = asyncio.Lock()
+
+
+async def _extract_request_params(request: Request) -> dict[str, Any]:
+    params: dict[str, Any] = dict(request.query_params)
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                params.update(body)
+        except (ValueError, UnicodeDecodeError):  # fmt: skip
+            pass
+    elif "form" in content_type:
+        try:
+            form = await request.form()
+            params.update({key: val for key, val in form.items() if isinstance(val, str)})
+        except (ValueError, RuntimeError):  # fmt: skip
+            pass
+    return params
+
+
+def _normalize_userid(uid: str | None) -> str:
+    if not uid:
+        return "@" + _DEV_SCREENNAME
+    if uid.startswith("ol:"):
+        return "@" + uid[len("ol:") :]
+    if not uid.startswith("@"):
+        return "@" + uid
+    return uid
+
+
+AVAILABILITY_VARIANTS = [
+    # 0. "Read" (Open Access / Public Domain)
+    {
+        "status": "open",
+        "is_readable": True,
+        "is_lendable": False,
+        "is_previewable": True,
+    },
+    # 1. "Browse" (CDL available to browse *and* borrow; OL favors browse)
+    {
+        "status": "borrow_available",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": True,
+        "available_to_browse": True,
+        "is_previewable": True,
+    },
+    # 2. "Borrow" (14-day CDL borrow only; this title is not offered for browse).
+    #    Needed as its own variant because user_can_borrow_edition_async() checks
+    #    available_to_browse first, so a title with both flags always renders the
+    #    browse CTA and the borrow CTA would otherwise be unreachable in dev.
+    {
+        "status": "borrow_available",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": True,
+        "available_to_browse": False,
+        "is_previewable": True,
+    },
+    # 3. "Join Waitlist" (All copies on loan, waitlist open)
+    {
+        "status": "borrow_unavailable",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": False,
+        "available_to_browse": False,
+        "available_to_waitlist": True,
+        "num_waitlist": 3,
+        "is_previewable": True,
+    },
+    # 4. "Checked Out" (All copies on loan, waitlist closed)
+    {
+        "status": "borrow_unavailable",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": False,
+        "available_to_browse": False,
+        "available_to_waitlist": False,
+        "is_previewable": True,
+    },
+    # 5. "Preview Only" (Previewable on BookReader)
+    {
+        "status": "preview_only",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_previewable": True,
+    },
+    # 6. "Print Disabled" / DAISY (Restricted to print-disabled patrons)
+    {
+        "status": "printdisabled",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_printdisabled": True,
+        "is_previewable": False,
+    },
+    # 7. "Locate" (No digital copies on IA)
+    {
+        "status": "error",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_previewable": False,
+    },
+]
+
+
+def _deterministic_availability(item_id: str) -> dict[str, Any]:
+    idx = int(hashlib.md5(item_id.encode("utf-8")).hexdigest(), 16) % len(AVAILABILITY_VARIANTS)
+    res = AVAILABILITY_VARIANTS[idx].copy()
+    res["identifier"] = item_id
+    return res
+
+
+@app.post("/services/loans/loan/")
+async def loans(request: Request) -> JSONResponse:
+    params = await _extract_request_params(request)
+    action = params.get("action")
+    method = params.get("method")
+    identifier = params.get("identifier")
+    userid = _normalize_userid(params.get("userid"))
+
+    async with _loans_lock:
+        # 0. S3 groundtruth availability query
+        if action == "availability" and identifier:
+            avail = _deterministic_availability(identifier)
+            return JSONResponse({"status": "ok", "lending_status": avail})
+
+        # 1. Query active loans
+        if method == "loan.query":
+            user_loans = _active_loans[userid]
+            if identifier:
+                loan = user_loans.get(identifier)
+                return JSONResponse({"result": [loan] if loan else []})
+            return JSONResponse({"result": list(user_loans.values())})
+
+        if method == "waitinglist.query":
+            return JSONResponse({"result": []})
+
+        # 2. Borrow a book
+        if action in ("borrow_book", "browse_book") and identifier:
+            loan_id = next(_next_loan_uid)
+            now = datetime.now(UTC)
+            # Match IA's real loan periods: browse is a 1-hour read, borrow is a
+            # 14-day CDL loan. The expiry is patron-visible (macros.FormatExpiry
+            # on the loans page and carousel cards), so giving browse 14 days
+            # would render the wrong thing in the UI dev is trying to preview.
+            loan_period = timedelta(hours=1) if action == "browse_book" else timedelta(days=14)
+            until_str = (now + loan_period).strftime("%Y-%m-%d %H:%M:%S")
+            loan_obj = {
+                "_key": f"/loans/{loan_id}",
+                "id": loan_id,
+                "identifier": identifier,
+                "userid": userid,
+                "ol_key": None,
+                "format": "bookreader",
+                "resource_id": identifier,
+                "loaned_at": time.time(),
+                "created": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "until": until_str,
+                "expiry": until_str,
+                "fulfilled": True,
+                "loan_link": f"/stream/{identifier}",
+                "book": f"/books/ia:{identifier}",
+            }
+            _active_loans[userid][identifier] = loan_obj
+
+            history_record = {
+                "identifier": identifier,
+                "updatedate": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "loan_id": f"a1000001-0001-4000-8000-{loan_id:012x}",
+            }
+            _loan_history[userid] = [h for h in _loan_history[userid] if h.get("identifier") != identifier]
+            _loan_history[userid].insert(0, history_record)
+
+            return JSONResponse({"status": "ok", "result": {"loan": loan_obj}})
+
+        # 3. Return a book
+        if action == "return_loan" and identifier:
+            _active_loans[userid].pop(identifier, None)
+            now_str = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
+            history_record = {
+                "identifier": identifier,
+                "updatedate": now_str,
+                "loan_id": f"a1000001-0001-4000-8000-{next(_next_loan_uid):012x}",
+            }
+            _loan_history[userid] = [h for h in _loan_history[userid] if h.get("identifier") != identifier]
+            _loan_history[userid].insert(0, history_record)
+            return JSONResponse({"status": "ok"})
+
+        # 4. User borrow history query
+        if action == "user_borrow_history":
+            try:
+                limit = int(params.get("limit", 25))
+                offset = int(params.get("offset", 0))
+            except TypeError, ValueError:
+                limit, offset = 25, 0
+            items = _loan_history[userid][offset : offset + limit]
+            return JSONResponse({"history": {"items": items}})
+
+    return JSONResponse({})
+
+
+# ---------------------------------------------------------------------------
+# IA Loans "changes" feed  (needed by scripts/solr_updater/loan_availability_updater.py,
+# see get_loan_changes() in openlibrary/core/lending.py)
+# GET /services/loans/loan/?action=changes&after_uid=N&limit=N
+#
+# On startup, seeds 1000 borrow/return events using real `ia` identifiers
+# pulled from the local Solr index, with timestamps spread evenly over the
+# last 14 days — this proves catchup/backfill for a fresh consumer.
+# Every 60s a background loop then appends 50 new events and evicts the 50
+# oldest from the in-memory window — this proves ongoing/steady-state polling.
+# ---------------------------------------------------------------------------
+
+_SOLR_URL = "http://solr:8983/solr/openlibrary/select"
+_FALLBACK_IA_IDS = [
+    "recipesfromoldso00mead",
+    "interiorcastleor00tere",
+    "pioneersfrontier00macd",
+    "completeworksofm10twai",
+    "completeworksofm21twai",
+    "completeworksofm01twaiiala",
+    "completeworksofm00twai",
+]
+_LOAN_CHANGES_WINDOW_SIZE = 1000
+_LOAN_CHANGES_BATCH_SIZE = 50
+_LOAN_CHANGES_INTERVAL_SECONDS = 60
+
+_loan_changes: list[dict] = []
+_loan_changes_lock = asyncio.Lock()
+_next_loan_uid = itertools.count(1)
+
+
+async def _fetch_real_ia_ids(limit: int = 200) -> list[str]:
+    """Best-effort fetch of real `ia` identifiers from the local Solr index.
+
+    Falls back to a small static pool (matching the shape of real IA identifiers)
+    if Solr is unreachable or has no ebook-access documents yet, which is the
+    case on a completely fresh dev environment before any content is indexed.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            resp = await client.get(
+                _SOLR_URL,
+                params={"q": "ia:*", "fl": "ia", "rows": limit, "wt": "json"},
+            )
+            resp.raise_for_status()
+            docs = resp.json()["response"]["docs"]
+            ids = [ia_id for doc in docs for ia_id in doc.get("ia", [])]
+            return ids or list(_FALLBACK_IA_IDS)
+    except (httpx.HTTPError, KeyError, ValueError):  # fmt: skip
+        logger.warning("loan changes: could not fetch real ia ids from solr, using fallback pool")
+        return list(_FALLBACK_IA_IDS)
+
+
+def _make_loan_event(identifier: str, when: datetime, event_type: str) -> dict:
+    uid = next(_next_loan_uid)
+    extra = jsonlib.dumps({"until": (when + timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")}) if event_type == "borrow" else "{}"
+    return {
+        "time": when.strftime("%Y-%m-%d %H:%M:%S"),
+        "identifier": identifier,
+        "username": "@dummy",
+        "loan_id": f"a1000001-0001-4000-8000-{uid:012x}",
+        "event_type": event_type,
+        "extra": extra,
+        "uid": uid,
+    }
+
+
+async def _seed_loan_changes() -> None:
+    ids = await _fetch_real_ia_ids()
+    now = datetime.now(UTC)
+    start = now - timedelta(days=14)
+    step = (now - start) / _LOAN_CHANGES_WINDOW_SIZE
+    events = [
+        _make_loan_event(
+            random.choice(ids),
+            start + step * i,
+            "borrow" if i % 2 == 0 else "return",
+        )
+        for i in range(_LOAN_CHANGES_WINDOW_SIZE)
+    ]
+    async with _loan_changes_lock:
+        _loan_changes.extend(events)
+    logger.info("loan changes: seeded %d events spanning the last 14 days", len(events))
+
+
+async def _loan_changes_ongoing_loop() -> None:
+    ids = await _fetch_real_ia_ids()
+    while True:
+        await asyncio.sleep(_LOAN_CHANGES_INTERVAL_SECONDS)
+        now = datetime.now(UTC)
+        new_events = [_make_loan_event(random.choice(ids), now, "borrow" if i % 2 == 0 else "return") for i in range(_LOAN_CHANGES_BATCH_SIZE)]
+        async with _loan_changes_lock:
+            _loan_changes.extend(new_events)
+            del _loan_changes[:_LOAN_CHANGES_BATCH_SIZE]
+        logger.info("loan changes: added %d, evicted %d oldest", len(new_events), _LOAN_CHANGES_BATCH_SIZE)
+
+
+@app.get("/services/loans/loan/")
+async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JSONResponse:
+    if action != "changes":
+        return JSONResponse({"status": "error", "error": f"unsupported action: {action}"}, status_code=400)
+    async with _loan_changes_lock:
+        rows = [event for event in _loan_changes if event["uid"] > after_uid][:limit]
+        latest_uid = _loan_changes[-1]["uid"] if _loan_changes else 0
+    return JSONResponse({"status": "OK", "latest_uid": latest_uid, "rows": rows})
+
+
+# ---------------------------------------------------------------------------
+# IA Availability API v2
+# GET/POST /services/availability/
+# ---------------------------------------------------------------------------
+
+
+@app.api_route("/services/availability/", methods=["GET", "POST"])
+async def availability(
+    request: Request,
+    identifier: str | None = None,
+    openlibrary_work: str | None = None,
+    openlibrary_edition: str | None = None,
+) -> JSONResponse:
+    raw_ids: str | list[str] = identifier or openlibrary_work or openlibrary_edition or ""
+    if not raw_ids and request.method == "POST":
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                raw_ids = body.get("identifier") or body.get("openlibrary_work") or body.get("openlibrary_edition") or ""
+        except (ValueError, UnicodeDecodeError):  # fmt: skip
+            pass
+
+    if isinstance(raw_ids, list):
+        ids = [str(i).strip() for i in raw_ids if str(i).strip()]
+    else:
+        ids = [i.strip() for i in str(raw_ids).split(",") if i.strip()]
+
+    responses = {item_id: _deterministic_availability(item_id) for item_id in ids}
+    return JSONResponse({"success": True, "responses": responses})
+
+
+# ---------------------------------------------------------------------------
+# IA Borrow Status  (was hardcoded in lending.py line 599)
+# GET /services/borrow/{identifier}
+# ---------------------------------------------------------------------------
+
+
+@app.get("/services/borrow/{identifier}")
+async def borrow_status(identifier: str) -> JSONResponse:
+    return JSONResponse({"status": "borrow_available", "identifier": identifier})
+
+
+# ---------------------------------------------------------------------------
+# reCAPTCHA siteverify  (was hitting recaptcha.net in dev)
+# POST /recaptcha/api/siteverify
+# ---------------------------------------------------------------------------
+
+
+@app.post("/recaptcha/api/siteverify")
+async def recaptcha_siteverify() -> JSONResponse:
+    return JSONResponse({"success": True, "score": 0.9, "action": "submit"})
+
+
+# ---------------------------------------------------------------------------
+# be-api full-text search  (was hitting be-api.us.archive.org in dev)
+# GET /fts/v1/search
+# ---------------------------------------------------------------------------
+
+
+@app.get("/fts/v1/search")
+async def fts_search() -> JSONResponse:
+    return JSONResponse({"hits": [], "total": 0})
+
+
+# ---------------------------------------------------------------------------
+# Amazon PA-API stub  (stretch goal — currently no dev intercept)
+# POST /paapi5/getItems
+# ---------------------------------------------------------------------------
+
+
+@app.post("/paapi5/getItems")
+async def amazon_get_items(request: Request) -> JSONResponse:
+    body = await request.json()
+    item_ids = body.get("ItemIds", [])
+    items = [
+        {
+            "ASIN": asin,
+            "ItemInfo": {
+                "Title": {"DisplayValue": f"Mock Book ({asin})", "Label": "Title"},
+            },
+        }
+        for asin in item_ids
+    ]
+    return JSONResponse({"ItemsResult": {"Items": items}})
+
+
+# ---------------------------------------------------------------------------
+# Matomo Reporting API  (Core Vitals retention scoring, issue #11956)
+# POST /matomo/index.php
+#
+# matomo.archive.org is restricted to IA's network, so retention scoring is
+# otherwise untestable locally. Point the client at this instead:
+#   MATOMO_URL=http://mockservices:8090/matomo
+#
+# Returns visits in the shape Live.getLastVisitsDetails does. The part worth
+# mocking faithfully is the wire format: `dimension1` is a FLAT field on the
+# visit -- this endpoint never returns the `customDimensions` structure it looks
+# like it should -- and engagement lives in `actionDetails` as a mix of `event`
+# and `action` entries. Newest-first ordering and `minTimestamp` filtering are
+# honoured so paging and window behaviour can be exercised against it.
+# ---------------------------------------------------------------------------
+
+MATOMO_COHORTS = ["visitor", "d0", "d1+", "d7+", "d14+", "d30+", "d90+"]
+
+# Deliberately a different length from MATOMO_COHORTS (7) so cohorts and events
+# do not advance in lockstep -- otherwise `visitor` would always carry the same
+# event and most cohort/event pairs would never appear in the feed.
+MATOMO_SAMPLE_EVENTS = [
+    ("CTAClick", "Read"),
+    ("CTAClick", "Borrow"),
+    ("ReadingLog", "WantToRead"),
+    ("MainNav", "MyBooks"),
+    # Real traffic a consumer's schema may have no row for; included so callers
+    # can assert unmapped events are ignored rather than fatal.
+    ("SearchModal", "Open"),
+]
+
+# Fixed at import, and deliberately NOT derived from the caller's
+# `minTimestamp`: if visit times are built from the filter then every visit is
+# after it by construction, the mock can never disagree with the filter, and the
+# one property `minTimestamp` exists to enforce becomes untestable. Two days back
+# so the feed sits comfortably inside a client's maximum window while still being
+# old enough that "since a minute ago" correctly returns nothing.
+MATOMO_MOCK_EPOCH = int((datetime.now(UTC) - timedelta(days=2)).timestamp())
+MATOMO_MOCK_VISITS = 12
+# Seconds between consecutive visits in the fake feed.
+MATOMO_MOCK_INTERVAL = 60
+
+
+def _matomo_visit(index: int) -> dict:
+    """One synthetic visit, fully determined by `index`."""
+    cohort = MATOMO_COHORTS[index % len(MATOMO_COHORTS)]
+    category, action = MATOMO_SAMPLE_EVENTS[index % len(MATOMO_SAMPLE_EVENTS)]
+    timestamp = MATOMO_MOCK_EPOCH + index * MATOMO_MOCK_INTERVAL
+    return {
+        "idVisit": str(index),
+        # Flat, exactly as the real API returns it.
+        "dimension1": cohort,
+        "visitorId": f"visitor{index:04d}",
+        "userId": None,
+        "firstActionTimestamp": timestamp,
+        "serverTimestamp": timestamp,
+        "actionDetails": [
+            {"type": "event", "eventCategory": category, "eventAction": action},
+            {"type": "action", "url": f"https://openlibrary.org/works/OL{index}W/Mock_Book"},
+        ],
+    }
+
+
+def _matomo_form_int(form, key: str, default: int) -> int:
+    """Read an int from a form body.
+
+    Starlette types form values as `str | UploadFile`, hence the str() before
+    int(); a non-numeric value is a caller error and should surface as one.
+    """
+    raw = form.get(key, default)
+    try:
+        return int(str(raw))
+    except (TypeError, ValueError):  # fmt: skip
+        raise ValueError(f"{key} must be an integer, got {raw!r}") from None
+
+
+@app.post("/matomo/index.php")
+async def matomo_api(request: Request) -> JSONResponse:
+    form = await request.form()
+    method = str(form.get("method", ""))
+
+    if not form.get("token_auth"):
+        return JSONResponse({"result": "error", "message": "Requests to the API must be authenticated"})
+
+    if method != "Live.getLastVisitsDetails":
+        return JSONResponse({"result": "error", "message": f"Mock does not implement {method}"})
+
+    try:
+        limit = _matomo_form_int(form, "filter_limit", 500)
+        offset = _matomo_form_int(form, "filter_offset", 0)
+        since = _matomo_form_int(form, "minTimestamp", 0)
+    except ValueError as exc:
+        logger.warning("Invalid Matomo API request parameters", exc_info=exc)
+        return JSONResponse({"result": "error", "message": "Invalid request parameters"})
+    if limit < 1 or offset < 0:
+        return JSONResponse({"result": "error", "message": "filter_limit must be >= 1 and filter_offset >= 0"})
+
+    # Filter on the feed's own timestamps, so `minTimestamp` is actually honoured
+    # and a narrower window really does return fewer visits. Newest first, which
+    # is the order the real endpoint uses and what makes paging overlap possible.
+    feed = [v for v in (_matomo_visit(i) for i in range(MATOMO_MOCK_VISITS)) if v["firstActionTimestamp"] >= since]
+    feed.reverse()
+    return JSONResponse(feed[offset : offset + limit])
+
+
+# ---------------------------------------------------------------------------
+# Health check
+# ---------------------------------------------------------------------------
+
+
+@app.get("/health")
+async def health() -> JSONResponse:
+    return JSONResponse({"status": "ok", "service": "ol-mockservices"})

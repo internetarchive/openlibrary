@@ -30,16 +30,17 @@
 </template>
 
 <script>
-import _ from 'lodash';
-
 export default {
     props: {
-        excerpts: Array
+        excerpts: {
+            type: Array,
+            default: () => []
+        }
     },
     computed: {
         fields() {
-            return _.uniq(_.flatMap(this.excerpts, Object.keys));
+            return [...new Set(this.excerpts.flatMap(excerpt => Object.keys(excerpt)))];
         }
     }
-}
+};
 </script>

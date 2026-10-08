@@ -10,18 +10,19 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
+      - OL_DEPLOYMENT_NAME=testing
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      # Note this won't work with uv pip, because uv makes a network request
-      - BEFORE_START=pip install -e /booklending_utils
+      - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
     volumes:
       - ../olsystem:/olsystem
-      - ../booklending_utils:/booklending_utils
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -37,11 +38,17 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     restart: unless-stopped
     hostname: "$HOSTNAME"
+    ports:
+      - ${FAST_WEB_PORT:-8080}:8080
     environment:
       - GUNICORN_OPTS= --workers 2 --timeout 180 --max-requests 500
+      - OL_DEPLOYMENT_NAME=testing
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
     volumes:
@@ -53,6 +60,27 @@ services:
 
   memcached:
     restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
+    # Needed to see the host's network/PIDs instead of the container's
+    network_mode: host
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|run)($$|/)
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
 
 volumes:
   ol-vendor:

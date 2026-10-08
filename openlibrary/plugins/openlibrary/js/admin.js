@@ -1,10 +1,11 @@
+import $ from 'jquery';
 /**
  * Functionality for templates/admin
  */
 
 export function initAdmin() {
     // admin/people/view
-    $('a.tag').on('click', function () {
+    $('a.tag').on('click', function() {
         var action;
         var tag;
 
@@ -18,7 +19,7 @@ export function initAdmin() {
     });
 
     // admin/people/edits
-    $('#checkall').on('click', function () {
+    $('#checkall').on('click', function() {
         $('form.olform').find(':checkbox').prop('checked', this.checked);
     });
 }
@@ -30,7 +31,7 @@ export function initAnonymizationButton(button) {
         if (!confirm(confirmMessage)) {
             event.preventDefault();
         }
-    })
+    });
 }
 
 /**
@@ -40,12 +41,12 @@ export function initAnonymizationButton(button) {
  * @param {NodeList<HTMLButtonElement>} buttons
  */
 export function initConfirmationButtons(buttons) {
-    const confirmMessage = 'Are you sure?'
+    const confirmMessage = 'Are you sure?';
     for (const button of buttons) {
         button.addEventListener('click', function(event) {
             if (!confirm(confirmMessage)) {
                 event.preventDefault();
             }
-        })
+        });
     }
 }

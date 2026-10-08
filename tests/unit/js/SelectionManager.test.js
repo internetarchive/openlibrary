@@ -1,4 +1,5 @@
 import SelectionManager from '../../../openlibrary/plugins/openlibrary/js/ile/utils/SelectionManager/SelectionManager.js';
+import { IntegratedLibrarianEnvironment } from '../../../openlibrary/plugins/openlibrary/js/ile/index.js';
 
 function createTestElementsForProcessClick() {
     const listItem = document.createElement('li');
@@ -15,14 +16,14 @@ function createTestElementsForProcessClick() {
 
     listItem.appendChild(bookTitle);
 
-    return {listItem,link};
+    return {listItem, link};
 }
 
 function setupSelectionManager() {
     const sm = new SelectionManager(null, '/search');
-    sm.ile = { $statusImages: { append: jest.fn() } };
+    sm.ile = { $statusImages: { append: vi.fn() } };
     sm.selectedItems = { work: [] };
-    sm.updateToolbar = jest.fn();
+    sm.updateToolbar = vi.fn();
     return sm;
 }
 
@@ -55,26 +56,22 @@ describe('SelectionManager', () => {
 
     test('processClick - clicking on a link or button', () => {
         const sm = setupSelectionManager();
-        const { listItem,link } = createTestElementsForProcessClick();
+        const { listItem, link } = createTestElementsForProcessClick();
 
-        link.addEventListener('click', () => {
-            sm.processClick({ target: link, currentTarget: listItem });
-        });
+        listItem.addEventListener('click', sm.processClick);
 
         expect(listItem.classList.contains('ile-selected')).toBe(false);
         link.click();
         expect(listItem.classList.contains('ile-selected')).toBe(false);
 
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     test('processClick - clicking on listItem', () => {
         const sm = setupSelectionManager();
         const { listItem } = createTestElementsForProcessClick();
 
-        listItem.addEventListener('click', () => {
-            sm.processClick({ target: listItem, currentTarget: listItem });
-        });
+        listItem.addEventListener('click', sm.processClick);
 
         expect(listItem.classList.contains('ile-selected')).toBe(false);
         listItem.click();
@@ -82,6 +79,96 @@ describe('SelectionManager', () => {
         listItem.click();
         expect(listItem.classList.contains('ile-selected')).toBe(false);
 
-        jest.clearAllMocks();
+        vi.clearAllMocks();
+    });
+
+    test('processClick - clicking a button inside a web component', () => {
+        const sm = setupSelectionManager();
+        const { listItem } = createTestElementsForProcessClick();
+
+        // The button lives in a shadow root, so the row sees the host as the target.
+        const host = document.createElement('ol-shelf-button');
+        const button = document.createElement('button');
+        host.attachShadow({ mode: 'open' }).appendChild(button);
+        listItem.appendChild(host);
+        listItem.addEventListener('click', sm.processClick);
+
+        button.click();
+        expect(listItem.classList.contains('ile-selected')).toBe(false);
+        host.click();
+        expect(listItem.classList.contains('ile-selected')).toBe(true);
+
+        vi.clearAllMocks();
+    });
+});
+
+/**
+ * Selecting an element sets `draggable` and binds drag listeners as well as
+ * adding the class, so clearing has to undo all three. When it only dropped
+ * the class, the link stayed draggable and the browser kept starting a native
+ * drag on it -- which is why an author's name could not be selected as text
+ * after "Clear Selections".
+ */
+describe('IntegratedLibrarianEnvironment.reset', () => {
+    /** @returns {HTMLAnchorElement} an author link, in the document so $() finds it */
+    function createAuthorLink() {
+        const link = document.createElement('a');
+        link.href = '/authors/OL1A';
+        link.textContent = 'Some Author';
+        document.body.appendChild(link);
+        return link;
+    }
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+        window.sessionStorage.clear();
+    });
+
+    test('clears draggable, not just the class', () => {
+        const ile = new IntegratedLibrarianEnvironment();
+        const link = createAuthorLink();
+
+        ile.selectionManager.setElementSelectionAttributes(link, true);
+        expect(link.classList.contains('ile-selected')).toBe(true);
+        expect(link.draggable).toBe(true);
+
+        ile.reset();
+
+        expect(link.classList.contains('ile-selected')).toBe(false);
+        expect(link.draggable).toBe(false);
+    });
+
+    test('unbinds both drag listeners', () => {
+        const ile = new IntegratedLibrarianEnvironment();
+        const link = createAuthorLink();
+        // Swapped in before selecting, so these are the references that get
+        // bound -- and the ones reset() must pass to removeEventListener.
+        ile.selectionManager.dragStart = vi.fn();
+        ile.selectionManager.dragEnd = vi.fn();
+
+        ile.selectionManager.setElementSelectionAttributes(link, true);
+        ile.reset();
+        link.dispatchEvent(new Event('dragstart'));
+        link.dispatchEvent(new Event('dragend'));
+
+        expect(ile.selectionManager.dragStart).not.toHaveBeenCalled();
+        expect(ile.selectionManager.dragEnd).not.toHaveBeenCalled();
+    });
+
+    test('"Clear Selections" clears the drag state of every selected element', () => {
+        const ile = new IntegratedLibrarianEnvironment();
+        const first = createAuthorLink();
+        const second = createAuthorLink();
+        ile.selectionManager.getSelectedItems();
+
+        for (const link of [first, second]) {
+            ile.selectionManager.setElementSelectionAttributes(link, true);
+        }
+        ile.selectionManager.clearSelectedItems();
+
+        for (const link of [first, second]) {
+            expect(link.classList.contains('ile-selected')).toBe(false);
+            expect(link.draggable).toBe(false);
+        }
     });
 });

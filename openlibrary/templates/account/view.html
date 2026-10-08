@@ -8,19 +8,42 @@ $var title: $header_title
 
 <div class="mybooks">
   $if mb.is_my_page:
-    $ reading_goal_form = render_template('reading_goals/reading_goal_form', year=current_year())
-    $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal'))
+    $:render_jinja_template("reading_goals/yearly_goal_dialog.html.jinja", year=current_year())
   $:mb.render_sidebar()
 
   $ css = 'no-padding' if mb.key == 'mybooks' else ''
   <div class="mybooks-details $css">
+
+    $if ctx.user:
+      $ pending_action_msg = mb.get_pending_action_banner()
+      $if pending_action_msg:
+        <ol-banner dismissible id="pending-action-container" class="pending-action-container">
+          <span>$:pending_action_msg</span>
+        </ol-banner>
+        <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              var container = document.getElementById('pending-action-container');
+              if (container) {
+                  var link = container.querySelector('.pending-action-link');
+                  if (link) {
+                      link.setAttribute('data-ol-link-track', 'PreserveIntent|Continue');
+                      link.addEventListener('click', function() {
+                          document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
+                      });
+                  }
+                  container.addEventListener('ol-banner-dismiss', (e) => {
+                    document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
+                  })
+              }
+          });
+        </script>
 
     $ mb.component_times['Details header'] = time()
     <header>
       <div class="breadcrumb-wrapper">
         $# Only show breadcrumbs when we're not on mybooks
         <div class="account-breadcrumb">
-          <a href="$mb.user.key" class="username-avatar"><img src="$(mb.user.key)/avatar" class="account-avatar"></a>
+          <a href="$mb.user.key" class="username-avatar"><img src="$(mb.user.key)/avatar" class="account-avatar" alt="$mb.username"></a>
           <h2 class="account-username"><a href="$mb.user.key">$mb.username</a> &rsaquo;</h2>
         </div>
         $if mb.key == 'list':
@@ -37,7 +60,7 @@ $var title: $header_title
       </div>
 
       $if not mb.is_my_page and mb.is_subscribed != -1:
-        $:macros.Follow(mb.username, following=mb.is_subscribed)
+        $:render_template('follow/follow', mb.username, following=mb.is_subscribed, link_track='MyBooksPageHeader|Follow')
 
       $if 'followers' in mb.counts:
         <div class="social-wrapper">
@@ -47,7 +70,8 @@ $var title: $header_title
             $set_share_links(url=request.canonical_url, title=header_title, view_context=ctx)
             $if ctx.get('share_links'):
               $ share_str = _('Share')
-              $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20" alt=""> %s</a>' % share_str
+              $ share_glyph = macros.icon("share-2", extra_class="icon-link__image")
+              $ share_content = '<a slot="trigger" class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon">%s %s</a>' % (share_glyph, share_str)
               $ page_url = request.home
               $ share_links = ctx.get('share_links')
               $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)

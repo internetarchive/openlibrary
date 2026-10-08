@@ -1,6 +1,19 @@
 // @ts-check
-import debounce from 'lodash/debounce';
-import chunk from 'lodash/chunk';
+import { debounce } from './nonjquery_utils.js';
+
+/**
+ * @template T
+ * @param {T[]} items
+ * @param {number} size
+ * @returns {T[][]}
+ */
+function chunk(items, size) {
+    const chunks = [];
+    for (let i = 0; i < items.length; i += size) {
+        chunks.push(items.slice(i, i + size));
+    }
+    return chunks;
+}
 
 /**
  * Responds to HTML like:
@@ -28,7 +41,7 @@ export class LazyThingPreview {
     }
 
     init() {
-        $('.lazy-thing-preview').each((i, el) => {
+        document.querySelectorAll('.lazy-thing-preview').forEach((el) => {
             this.push({
                 key: el.dataset.key,
                 render_fn_name: el.dataset.renderFn,
@@ -55,8 +68,9 @@ export class LazyThingPreview {
      * @param {object} book
      */
     renderKey(key, render_fn, book) {
-        const $el = $(`.lazy-thing-preview[data-key="${key}"]`);
-        $el.html(render_fn(book));
+        document.querySelectorAll(`.lazy-thing-preview[data-key="${key}"]`).forEach((el) => {
+            el.innerHTML = render_fn(book);
+        });
     }
 
     /**

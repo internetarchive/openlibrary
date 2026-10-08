@@ -34,12 +34,6 @@
   background-color: var(--grey);
   color: var(--white);
 }
-.hidden--nojs {
-  display: none;
-}
-.client-js .hidden--nojs {
-  display: block;
-}
 .clearfix {
   width: 100%;
   clear: both;
@@ -58,8 +52,7 @@ a.hoverlink {
 }
 
 .local-date-time {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
   font-size: var(--font-size-label-small);
   text-align: center;
-  padding: var(--spacing-inset-xs) 0 0;
 }

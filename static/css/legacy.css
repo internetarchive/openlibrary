@@ -1,7 +1,5 @@
 /* stylelint-disable no-descending-specificity */
 
-@charset "utf-8";
-
 /**
  * This file exists for historic reasons and will be deleted
  * at the first available opportunity.
@@ -20,10 +18,8 @@
  * with `page-` or `js-`
  */
 @import "legacy-tools.css";
-@import "legacy-wmd.css";
 
 @import "components/read-panel.css";
-@import "components/preview.css";
 @import "components/diff.css";
 @import "components/carousel.css";
 @import "components/category-item.css";
@@ -42,11 +38,62 @@
 @import "components/mybooks.css";
 @import "components/readinglog-stats.css";
 @import "components/tagging-menu.css";
-@import "components/shareLinks.css";
+@import "components/share-popover.css";
 @import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
 @import "components/subNav.css";
 @import "components/book.css";
+
+/* SITE DEFAULTS */
+@import "base/common.css";
+@import "components/buttonCta.css";
+@import "components/buttonsAndLinks.css";
+@import "components/buttonLink.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "base/dl.css";
+@import "base/helpers-common.css";
+@import "base/helpers-misc.css";
+@import "markdown.css";
+@import "components/widget-box.css";
+@import "base/headings.css";
+/* LAYOUT */
+@import "layout/index.css";
+@import "components/page-heading-search-box.css";
+@import "components/form.olform.css";
+@import "components/edit-toolbar.css";
+/* FOOTER */
+@import "components/footer.css";
+/* LANGUAGE DROPDOWN */
+@import "components/language.css";
+@import "components/link-box.css";
+/* HOME PAGE */
+/* NEW HOME PAGE */
+/* HOME PAGE CAROUSEL SKIN */
+@import "components/home.css";
+@import "components/search-result-item.css";
+@import "components/fulltext-snippet.css";
+@import "components/search-results-container.css";
+/* Work sub-imports */
+@import "components/compact-title.css";
+@import "components/nav-bar.css";
+@import "components/librarian-dashboard.css";
+@import "components/cover.css";
+@import "components/readerStats.css";
+@import "components/reading-goal.css";
+@import "components/work-title-and-author.css";
+@import "components/work.css";
+@import "components/navEdition.css";
+@import "components/illustration.css";
+@import "components/page-history.css";
+/* TABS */
+/* Skin */
+@import "components/chart-stats.css";
+/* CHARTING */
+@import "components/chart.css";
+@import "components/merge-form.css";
+@import "components/listLists.css";
+@import "components/rating-form.css";
+@import "components/searchResultItemCta.css";
 
 table {
   border-collapse: collapse;
@@ -54,7 +101,7 @@ table {
 }
 
 table.meta {
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
 }
 
 table.meta td {
@@ -64,10 +111,6 @@ table.meta td {
 
 table.meta td.title {
   width: 120px;
-}
-
-table.meta td.descrip {
-  width: 65px;
 }
 
 table.code pre {
@@ -93,19 +136,19 @@ table#pageHistory td.number {
 /* openlibrary/templates/admin/people/edits.html */
 table#pageHistory th,
 table.changeHistory th {
-  border-bottom: 1px solid var(--grey-e7e7e7);
-  color: var(--brown);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-heading);
   text-transform: uppercase !important;
   font-size: 0.6875em;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
 }
 
 table#pageHistory td,
 table.changeHistory td {
-  border-bottom: 1px solid var(--grey-e7e7e7);
-  padding: 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: var(--spacing-inset-sm);
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 table.changeHistory {
@@ -131,15 +174,15 @@ table.changeHistory .comment__cover {
 /* https://openlibrary.org/help/markdown */
 table.help {
   margin: 20px 0;
-  border-top: 1px solid var(--grey-e7e7e7);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 table.help th {
   font-size: 0.75em;
   font-family: var(--font-family-body);
-  color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
-  padding: 5px;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: var(--spacing-inset-xs);
   vertical-align: top;
   background-color: var(--lightest-grey);
 }
@@ -147,9 +190,9 @@ table.help th {
 table.help td {
   font-size: 0.75em;
   font-family: var(--font-family-body);
-  color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
-  padding: 5px;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: var(--spacing-inset-xs);
   vertical-align: top;
 }
 
@@ -171,7 +214,7 @@ var {
 
 li span.snippet {
   display: block;
-  margin: 10px 0;
+  margin: var(--spacing-stack-sm) 0;
   background-color: var(--lightest-grey);
   font-size: 0.8em;
   padding: 20px;
@@ -209,63 +252,13 @@ abbr {
 /* DEFINE SOME DEFAULTS */
 b,
 strong {
-  font-weight: 700;
+  font-weight: 650;
 }
 
 i,
 em {
   font-style: italic;
 }
-
-/* Styles that should apply to markdown documents */
-.markdown-content ol,
-.markdown-content ul {
-  padding-left: 40px;
-}
-
-.markdown-content ol li {
-  list-style: decimal;
-  color: var(--dark-grey);
-  line-height: var(--line-height-list);
-}
-
-.markdown-content ul li {
-  list-style: disc;
-  color: var(--dark-grey);
-  line-height: var(--line-height-list);
-}
-
-pre,
-code {
-  font-family: var(--font-family-code);
-  font-size: 0.875em;
-  font-weight: normal;
-  white-space: pre-wrap;
-}
-
-blockquote,
-q {
-  quotes: "" "";
-}
-
-blockquote:before,
-blockquote:after,
-q:before,
-q:after {
-  content: "";
-}
-
-/* SITE DEFAULTS */
-
-@import "base/common.css";
-@import "components/buttonCta.css";
-@import "components/buttonsAndLinks.css";
-@import "components/buttonLink.css";
-@import "components/buttonGhost.css";
-@import "components/buttonBtn.css";
-@import "base/dl.css";
-@import "base/helpers-common.css";
-@import "base/helpers-misc.css";
 
 /* openlibrary/templates/recentchanges/header.html */
 /* openlibrary/templates/showia.html */
@@ -283,21 +276,17 @@ q:after {
 
 /* TYPOGRAPHY */
 
-@import "components/widget-box.css";
-
 div.unordered {
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
   line-height: var(--line-height-list);
 }
 
 div.superNav {
   font-size: 0.6875em;
   font-family: var(--font-family-body);
-  color: var(--grey);
-  margin-bottom: 5px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-stack-xs);
 }
-
-@import "base/headings.css";
 
 span.link {
   font-size: var(--font-size-label-medium);
@@ -309,7 +298,7 @@ span.link {
 
 span.tools {
   font-size: var(--font-size-label-medium);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: normal !important;
   font-family: var(--font-family-body);
 }
@@ -323,17 +312,17 @@ span.tools span.label {
   background-color: var(--orange);
   color: var(--white);
   font-weight: normal !important;
-  padding: 3px;
+  padding: var(--spacing-inset-xs);
   border-radius: 3px;
 }
 
 span.tools span.list {
-  padding: 3px;
+  padding: var(--spacing-inset-xs);
 }
 
 span.tag {
   font-size: 13px;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 span.count {
@@ -341,29 +330,23 @@ span.count {
   font-weight: normal !important;
   font-family: var(--font-family-body);
   color: var(--brown);
-  padding: 5px 5px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
 }
 
 /* span.merge appears in openlibrary/templates/work_search.html */
 span.merge {
-  padding: 2px 0;
+  padding: var(--spacing-inset-xs) 0;
 }
 
 span.resultTitle {
   font-family: var(--font-family-body);
-  color: var(--grey);
-}
-
-span.resultTitle span.resultType {
-  font-size: 0.75em;
-  font-family: var(--font-family-body);
-  color: var(--brown);
+  color: var(--color-text-secondary);
 }
 
 span.resultTitle .bookauthor,
 span.resultTitle .resultPublisher {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   font-weight: normal;
 }
@@ -376,14 +359,14 @@ span.resultTitle span.details {
 /* openlibrary/templates/form.html */
 span#showpass {
   display: block;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 
 /* openlibrary/templates/form.html */
 span#masker {
   display: block;
   float: left;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
   clear: both;
 }
 
@@ -402,16 +385,16 @@ p.alert {
   background-color: var(--light-yellow);
   background-position: 10px 50%;
   background-repeat: no-repeat;
-  margin: 10px auto 0;
-  padding: 15px 52px;
+  margin: var(--spacing-stack-sm) auto 0;
+  padding: var(--spacing-inset-md) 52px;
 }
 
 p.info {
-  background-image: url(/images/icons/icon_info.png);
+  background-image: url(/static/images/icons/icon_info.png);
 }
 
 p.thanks {
-  background-image: url(/images/icons/icon_check.png);
+  background-image: url(/static/images/icons/icon_check.png);
 }
 
 input[type="text"],
@@ -432,8 +415,8 @@ input.repeat-add {
 }
 
 input.invalid {
-  border-color: var(--red);
-  color: var(--dark-grey);
+  border-color: var(--color-border-error);
+  color: var(--color-text);
 }
 
 input.highlight {
@@ -442,10 +425,9 @@ input.highlight {
 
 .format {
   font-size: 0.75em;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 
-/* openlibrary/templates/search/inside.html */
 .search-results-stats {
   display: flex;
   gap: 10px;
@@ -456,17 +438,17 @@ input.highlight {
   overflow-x: auto;
 }
 
-/* Search v2 */
-/* openlibrary/macros/SearchResultsWork.html */
-.serp-extras {
-  border: 1px solid var(--lighter-grey);
-  background-color: var(--white);
-  padding: 0 10px 10px;
-  margin-top: 10px;
+/* Filters lead the row; sort and layout only shape the results, so they sit at
+   the far end. Mirrors .search-filter-row__tools on the search page. The auto
+   margin collapses on its own once the row overflows and starts scrolling. */
+.search-results-stats__tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
 }
 
-/* LAYOUT */
-@import "layout/index.css";
+/* Search v2 */
 
 /* openlibrary/data/sitemap.py */
 div#placement {
@@ -485,23 +467,8 @@ div#content {
   width: 958px;
   background-color: var(--white);
   border-radius: 5px;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
 }
-
-div#content div.contentLists {
-  float: left;
-  position: relative;
-  left: -20px;
-}
-
-/* stylelint-disable selector-max-specificity */
-div#content div#contentLists {
-  float: left;
-  position: relative;
-  border-top: 1px solid var(--lighter-grey);
-  background: var(--white) url(/images/back_results.png) repeat-x;
-}
-/* stylelint-enable selector-max-specificity */
 
 div#contentHead {
   max-width: 1018px;
@@ -525,38 +492,45 @@ div.note {
   font-family: var(--font-family-body);
   background-color: var(--light-yellow);
   margin: 0 auto;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   text-align: left;
-  border: 1px solid var(--dark-yellow);
+  border: 1px solid var(--color-warning-border);
 }
 
 /* openlibrary/templates/lib/not_logged.html */
 div#noLogin {
-  margin-top: 10px;
-  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat
-    10px 50%;
-  padding: 10px 10px 10px 44px;
+  margin-top: var(--spacing-stack-sm);
+  background: var(--light-yellow) url(/static/images/icons/icon_info.png)
+    no-repeat 10px 50%;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 44px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#preMerge {
   min-height: 32px;
-  padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_merge.png) no-repeat 10px 10px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 52px;
+  background: transparent url(/static/images/icons/icon_merge.png) no-repeat
+    10px 10px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#postMerge {
   min-height: 32px;
-  padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_check.png) no-repeat 10px 10px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 52px;
+  background: transparent url(/static/images/icons/icon_check.png) no-repeat
+    10px 10px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#errorMerge {
   min-height: 32px;
-  padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_alert.png) no-repeat 10px 10px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 52px;
+  background: transparent url(/static/images/icons/icon_alert.png) no-repeat
+    10px 10px;
 }
 
 /* FORMS */
@@ -568,9 +542,7 @@ div.formElement.bottom {
   padding-bottom: 0;
 }
 
-div.formElement label,
-div.formElement select#date1,
-div.formElement select#date2 {
+div.formElement label {
   font-size: 0.75em;
 }
 
@@ -581,7 +553,7 @@ div.formElement .input label {
 div.formElement .footnote,
 div.formElement p.tip {
   border-top: 1px solid var(--mid-grey);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 
 div.formElement blockquote {
@@ -593,7 +565,7 @@ div.formElement blockquote {
 fieldset {
   position: relative;
   padding: 0 0 20px;
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-stack-sm);
 }
 
 fieldset.minor {
@@ -603,7 +575,7 @@ fieldset.minor {
 }
 
 fieldset.major legend {
-  padding: 5px 0;
+  padding: var(--spacing-inset-xs) 0;
   font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
@@ -628,8 +600,6 @@ fieldset.home legend {
 }
 
 /* ACCOUNT FORMS */
-@import "components/page-heading-search-box.css";
-@import "components/form.olform.css";
 
 /* openlibrary/templates/account/notifications.html */
 form#notifications input[type="radio"] {
@@ -705,8 +675,8 @@ div.siteSearch input[type="text"] {
 .searchPlus {
   font-family: var(--font-family-body);
   font-size: 0.75em;
-  color: var(--dark-grey);
-  padding: 15px 0;
+  color: var(--color-text);
+  padding: var(--spacing-inset-md) 0;
 }
 
 .searchPlus a {
@@ -732,14 +702,13 @@ div.cclicense {
   font-family: var(--font-family-body);
   font-size: 0.75em;
   min-height: 20px;
-  padding: 3px 0 0 30px;
+  padding: var(--spacing-inset-xs) 0 0 30px;
   color: var(--brown);
   margin-bottom: 12px;
-  background: url(/images/logo_CC0-20px.png) 0 0 no-repeat;
+  background: url(/static/images/logo_CC0-20px.png) 0 0 no-repeat;
 }
 
 /* TOOLS ACCORDION */
-@import "components/edit-toolbar.css";
 
 /* openlibrary/macros/databarDiff.html */
 /* openlibrary/macros/databarEdit.html */
@@ -755,7 +724,7 @@ div#revertNotice {
   width: 958px;
   height: 45px;
   text-align: center;
-  padding-top: 15px;
+  padding-top: var(--spacing-inset-md);
   background-color: var(--dark-green);
 }
 
@@ -764,7 +733,7 @@ div.alert span,
 div.verify span {
   margin: 0 auto;
   min-height: 25px;
-  padding: 5px 0 5px 32px;
+  padding: var(--spacing-inset-xs) 0 var(--spacing-inset-xs) 32px;
 }
 
 div.alert,
@@ -774,11 +743,11 @@ div.verify {
 
 /* openlibrary/templates/account/verify/failed.html */
 div.alert span {
-  background: url(/images/icons/icon_alert.png) no-repeat;
+  background: url(/static/images/icons/icon_alert.png) no-repeat;
 }
 
 div.verify span {
-  background: url(/images/icons/icon_check.png) no-repeat;
+  background: url(/static/images/icons/icon_check.png) no-repeat;
 }
 
 /* openlibrary/templates/account/email/forgot-ia.html */
@@ -787,12 +756,7 @@ div.verify span {
 }
 
 .defaultstyling .padtop {
-  margin-top: 10px;
-}
-
-/* openlibrary/templates/account/email/forgot-ia.html */
-.forgot-email {
-  font-size: 0.8em;
+  margin-top: var(--spacing-stack-sm);
 }
 
 .forgot-email-form {
@@ -800,22 +764,14 @@ div.verify span {
 }
 
 .forgot-email-form .form-row {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .forgot-email-form label {
   font-family: var(--font-family-body);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: 600;
 }
-
-/* FOOTER */
-@import "components/footer.css";
-
-/* LANGUAGE DROPDOWN */
-@import "components/language.css";
-
-@import "components/link-box.css";
 
 /* Various templates */
 .contentQuarter {
@@ -860,13 +816,6 @@ div.verify span {
 }
 /* stylelint-enable selector-max-specificity */
 
-/* HOME PAGE */
-
-/* NEW HOME PAGE */
-
-/* HOME PAGE CAROUSEL SKIN */
-@import "components/home.css";
-
 /* SEARCH RESULTS */
 
 div#searchResults,
@@ -874,7 +823,7 @@ div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
-  margin-bottom: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* openlibrary/templates/books/check.html */
@@ -895,7 +844,7 @@ div#searchResults .SRPCoverBlank {
   position: relative;
   width: 130px;
   height: 200px;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   margin: 0 15px 20px 0;
   text-align: center;
   float: left;
@@ -915,28 +864,6 @@ div#searchResults .SRPCoverBlank a {
   text-decoration: none;
 }
 
-/* openlibrary/templates/work_search.html */
-/* openlibrary/templates/type/author/view.html */
-.mode-options {
-  font-size: 0.7em;
-  font-family: var(--font-family-body);
-}
-
-.mode-options input {
-  margin-left: 15px;
-  margin-right: 4px;
-  position: relative;
-}
-
-/* openlibrary/macros/AvailabilityButton.html */
-.waitlist-msg {
-  font-family: var(--font-family-body);
-  font-size: 0.7em;
-  margin-bottom: -1.5em;
-  color: var(--grey);
-  padding: 0.2em;
-}
-
 /* Results on /search/authors */
 /* openlibrary/templates/search/authors.html */
 .authorList {
@@ -947,12 +874,113 @@ div#searchResults .SRPCoverBlank a {
   margin-bottom: 1.5em;
   max-width: 800px;
   font-size: 1em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .authorList .cover {
   max-width: 120px;
   border-radius: 4px;
+}
+
+/* Search empty-state card. */
+/* openlibrary/templates/work_search.html, openlibrary/templates/search/inside.html */
+.search-no-direct-match,
+.search-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* No button here, so give the text more room. */
+.search-no-results {
+  padding: var(--spacing-inset-lg) var(--spacing-inset-md);
+}
+
+.search-no-direct-match__message {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+/* Section labels ("Authors"/"Books") shown above the work search result */
+/* groups when the query names an author. */
+/* openlibrary/templates/work_search.html */
+.search-results-section-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-xs);
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+/* The result count rides the "Books" label but reads as data, not a label. */
+.search-results-section-label__count {
+  font-size: 1.2em;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Author suggestion row shown above work search results. */
+/* openlibrary/macros/SearchAuthorSuggestion.html */
+.search-author-suggestion {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-stack-sm);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.search-author-suggestion li {
+  margin-bottom: 0;
+  max-width: none;
+  gap: var(--spacing-inline-lg);
+  /* Keep the avatar to the left of the name on mobile too; the shared */
+  /* .searchResultItem stacks (flex-direction: column) below the tablet */
+  /* breakpoint, which would center the avatar on top. */
+  flex-direction: row;
+}
+
+/* Avatar: a person-icon placeholder layered behind the author photo. The photo */
+/* covers it when it loads; a missing photo (?default=false 404) is hidden by */
+/* main.js, revealing the icon. Mirrors the modal's .result__avatar. */
+.search-author-suggestion .sas-avatar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  background: var(--lightest-grey);
+  border-radius: var(--border-radius-avatar);
+}
+
+.search-author-suggestion .sas-avatar__icon {
+  width: 26px;
+  height: 26px;
+}
+
+.search-author-suggestion .sas-avatar__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* openlibrary/templates/languages/index.html */
@@ -965,13 +993,9 @@ div#searchResults .SRPCoverBlank a {
 
 /* SEARCH FACETS */
 
-@import "components/search-result-item.css";
-@import "components/fulltext-snippet.css";
-@import "components/search-results-container.css";
-
 /* openlibrary/templates/work_search.html */
 div#searchFacets {
-  width: 220px;
+  width: var(--search-facets-width);
   padding: 0 15px;
 }
 
@@ -1010,7 +1034,6 @@ div.facetMoreLess a {
 
 /* RESULTS */
 
-/* openlibrary/templates/lib/message_addbook.html */
 /* openlibrary/templates/lists/widget.html */
 div.list {
   float: left;
@@ -1036,8 +1059,8 @@ div.list .copy {
 div.list h5 {
   font-family: var(--font-family-serif);
   font-weight: normal;
-  color: var(--dark-grey);
-  margin-bottom: 5px;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 div.list h5 span {
@@ -1048,29 +1071,18 @@ div.list h5 span {
 div.list .tags {
   font-family: var(--font-family-body);
   font-size: 0.6875em;
-  color: var(--grey);
-  margin-bottom: 5px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 div.list .owner {
   font-family: var(--font-family-body);
   font-size: 0.6875em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   text-align: right;
 }
 
 /* BOOKS */
-/* Work sub-imports */
-@import "components/compact-title.css";
-@import "components/nav-bar.css";
-@import "components/librarian-dashboard.css";
-@import "components/cover.css";
-@import "components/readerStats.css";
-@import "components/check-in.css";
-@import "components/reading-goal.css";
-@import "components/work-title-and-author.css";
-@import "components/work.css";
-@import "components/navEdition.css";
 
 /* openlibrary/templates/books/author-autocomplete.html */
 /* openlibrary/templates/type/work/view.html */
@@ -1100,17 +1112,6 @@ div.workHelp {
   font-size: 0.8em;
   margin-bottom: 20px;
 }
-
-/* openlibrary/templates/type/work/view.html */
-.workCover .illustration img {
-  max-width: 270px !important;
-}
-
-.workCover .illustration .SRPCoverBlank {
-  margin: 0 auto;
-}
-
-@import "components/illustration.css";
 
 /* openlibrary/templates/books/author-autocomplete.html */
 div.books {
@@ -1142,7 +1143,7 @@ div.books .SRPCoverBlank {
   position: relative;
   width: 74px;
   height: 105px;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   text-align: center;
   float: left;
   font-size: 0.6875em;
@@ -1165,13 +1166,13 @@ div.books .BookTitle {
   margin-left: -31px;
   height: 93px;
   margin-top: -46px;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 div.books .Author {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-style: italic;
-  padding: 4px 4px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: 0.6875em;
 }
 
@@ -1193,7 +1194,7 @@ div.excerpt {
 }
 
 div.excerpt .text {
-  padding: 15px;
+  padding: var(--spacing-inset-md);
   font-size: 0.875em;
   line-height: 1.25em;
   font-style: italic;
@@ -1208,9 +1209,9 @@ div.excerpt .attribution {
 /* openlibrary/templates/books/edit/edition.html */
 /* openlibrary/templates/admin/imports-add.html */
 .identifiers td {
-  color: var(--dark-grey);
-  border-bottom: 1px solid var(--lighter-grey);
-  padding: 5px;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: var(--spacing-inset-xs);
 }
 
 .identifiers.authors td {
@@ -1220,10 +1221,10 @@ div.excerpt .attribution {
 /* openlibrary/templates/books/edit/edition.html */
 .multi-input-autocomplete--series {
   max-width: 600px;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 .multi-input-autocomplete--series .mia__input + .mia__input {
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 .multi-input-autocomplete--series .mias__name {
   flex: 1;
@@ -1289,8 +1290,6 @@ ul.clean li span.resultTitle {
   margin-top: 0;
 }
 
-@import "components/page-history.css";
-
 /* openlibrary/macros/CoverImage.html */
 /* openlibrary/templates/covers/book_cover.html */
 .BookTitle {
@@ -1302,16 +1301,16 @@ ul.clean li span.resultTitle {
   height: 100px;
   margin-top: -50px;
   vertical-align: middle;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 0.875em;
   line-height: normal;
 }
 
 /* openlibrary/templates/covers/book_cover.html */
 .Author {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-style: italic;
-  padding: 4px 4px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: var(--font-size-label-small);
 }
 
@@ -1343,7 +1342,7 @@ span.actions a span.image {
   height: 24px;
   margin: 0 auto;
   padding: 0;
-  background-image: url(/images/icons/icons_sprite-sm.png);
+  background-image: url(/static/images/icons/icons_sprite-sm.png);
   background-repeat: no-repeat;
 }
 
@@ -1400,13 +1399,6 @@ span.actions span.daisy:hover {
   background-position: -408px 0 !important;
 }
 
-/* openlibrary/templates/type/list/embed.html */
-span.actions a span.checked-out {
-  display: block;
-  margin: 0 auto;
-  padding: 0;
-}
-
 /* openlibrary/templates/stats/readinglog.html */
 /* openlibrary/templates/type/author/view.html */
 /* openlibrary/templates/work_search.html */
@@ -1427,7 +1419,7 @@ ul.list-books .resultTitle {
   display: block;
   margin: 0 !important;
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 /* `span.resultTitle .bookauthor` is used in: */
@@ -1438,7 +1430,7 @@ ul.list-books .resultTitle {
 ul.list-books .resultTitle .bookauthor,
 ul.list-books span.resultPublisher {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
 }
 
@@ -1448,16 +1440,11 @@ ul.list-books span.resultPublisher {
   display: block;
 }
 
-/* openlibrary/templates/books/show.html */
-ul.list-books span.resultType {
-  font-size: 0.6875em;
-}
-
 .list-books--grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  grid-gap: 30px 5px;
-  padding: 10px;
+  grid-gap: 30px var(--spacing-inline-xs);
+  padding: var(--spacing-inset-sm);
 }
 
 .list-books--grid .searchResultItem {
@@ -1478,7 +1465,6 @@ ul.list-books span.resultType {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   margin: 0;
 }
 
@@ -1495,7 +1481,6 @@ ul.list-books span.resultType {
   width: 100%;
 }
 
-.list-books--grid .searchResultItem .check-in-prompt,
 .list-books--grid .searchResultItem .star-rating-form {
   display: none;
 }
@@ -1503,7 +1488,7 @@ ul.list-books span.resultType {
 .list-books--grid .list-books__note {
   overflow: hidden;
   padding-top: 8px;
-  margin-top: 4px;
+  margin-top: var(--spacing-stack-xs);
   border-top: var(--border-divider);
   line-height: var(--line-height-blurb);
   display: -webkit-box;
@@ -1520,40 +1505,13 @@ ul.list-books span.resultType {
 div.popAlert {
   display: none;
   width: 550px;
-  padding: 8px 16px;
-  margin-bottom: 15px;
-  background: url(/images/icons/icon_alert.png) no-repeat;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  margin-bottom: var(--spacing-stack-md);
+  background: url(/static/images/icons/icon_alert.png) no-repeat;
   font-size: 1.25em;
   color: var(--red);
   text-align: center;
 }
-
-/* openlibrary/templates/type/edition/view.html */
-#wikicode textarea {
-  width: 400px;
-  height: 200px;
-  padding: 10px;
-  margin: 10px;
-  font-family: var(--font-family-body);
-  font-size: 0.75em;
-  overflow: auto;
-  outline: none;
-  white-space: pre-line;
-  word-break: break-all;
-  word-wrap: break-word;
-}
-
-#wikicode p {
-  margin: 10px 10px 0;
-  padding: 0;
-  font-family: var(--font-family-body);
-  font-size: 0.75em;
-}
-
-/* TABS */
-
-/* Skin */
-@import "components/chart-stats.css";
 
 /* PAGE HISTORY */
 /* Desktop: @width-breakpoint-desktop = 960px */
@@ -1586,46 +1544,35 @@ div.popAlert {
   }
 }
 
-/* CHARTING */
-@import "components/chart.css";
-
 /* MERGING */
 /* Merge button */
 /* openlibrary/templates/search/authors.html */
 div.mergeThis {
   display: inline;
-  padding: 15px 0 0 45px;
+  padding: var(--spacing-inset-md) 0 0 45px;
   margin-left: 15px;
-  background: url(/images/icons/icon_merge.png) no-repeat 0 0;
+  background: url(/static/images/icons/icon_merge.png) no-repeat 0 0;
 }
-
-@import "components/merge-form.css";
 
 /* openlibrary/templates/recentchanges/default/view.html */
 /* openlibrary/templates/recentchanges/merge-authors/view.html */
 /* openlibrary/templates/recentchanges/undo/view.html */
 #mergeHead {
   background-color: var(--lightest-grey);
-  padding: 15px;
+  padding: var(--spacing-inset-md);
 }
 
 /* stylelint-disable selector-max-specificity */
 #mergeHead #recordMaster {
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
 }
 /* stylelint-enable selector-max-specificity */
-
-/* BORROWING */
-div.preSubmit,
-div.postSubmit {
-  text-align: center;
-}
 
 /* LISTS */
 /* openlibrary/templates/type/list/exports.html */
 #listTools ul {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   margin: 0 0 20px !important;
 }
@@ -1641,7 +1588,7 @@ div.postSubmit {
   width: 28px;
   height: 28px;
   margin-right: 15px;
-  background-image: url(/images/icons/icons_lists.png);
+  background-image: url(/static/images/icons/icons_lists.png);
   background-repeat: no-repeat;
 }
 
@@ -1657,64 +1604,6 @@ div.postSubmit {
   background-position: -56px 0;
 }
 
-@import "components/listLists.css";
-
-/* openlibrary/templates/lists/widget.html */
-.heart-adjust {
-  position: relative;
-  top: -3px;
-  left: 4px;
-}
-
-/* openlibrary/templates/publishers/view.html */
-/* openlibrary/templates/subjects.html */
-div#subjectLists ul.listLists {
-  padding: 0;
-}
-
-div#subjectLists ul.listLists li {
-  list-style-type: none;
-  float: left;
-  width: 282px;
-  font-family: var(--font-family-body);
-  padding-bottom: 10px;
-  padding-top: 0;
-  display: flex;
-}
-
-div#subjectLists ul.listLists li .image {
-  display: block;
-  float: left;
-  width: 34px;
-  min-height: 35px;
-}
-
-div#subjectLists ul.listLists li .image img {
-  width: 24px;
-}
-
-div#subjectLists ul.listLists li .data {
-  display: block;
-  float: left;
-  width: 248px;
-}
-
-div#subjectLists p {
-  font-size: 0.6875em;
-  font-family: var(--font-family-body);
-  padding-left: 42px;
-  margin-bottom: 5px !important;
-}
-
-/* SEARCH INSIDE */
-/* openlibrary/templates/search/snippets.html */
-.snipHL {
-  opacity: 0.2;
-  filter: alpha(opacity=20);
-  background-color: var(--blue);
-  position: absolute;
-}
-
 /* LIBRARIES */
 
 /* use manage-covers instead */
@@ -1725,12 +1614,12 @@ div#subjectLists p {
 }
 
 .editionCover .illustration {
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 /* openlibrary/macros/databarWork.html */
 #read.panel {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* openlibrary/macros/SearchResultsWork.html */
@@ -1740,9 +1629,9 @@ div#subjectLists p {
   background: inherit;
   border: none;
   padding: 0;
-  color: var(--link-blue);
+  color: var(--color-link);
   border-bottom: 1px solid var(--link-blue);
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* My books ... */
@@ -1761,62 +1650,10 @@ div#subjectLists p {
   display: flex;
 }
 
-@import "components/rating-form.css";
-@import "components/searchResultItemCta.css";
-
 /* Tablet: @width-breakpoint-tablet = 768px */
 @media only screen and (min-width: 768px) {
   span.count {
     white-space: nowrap;
-  }
-  /* inlined from components/header-bar--tablet.css */
-  .header-bar {
-    padding-top: 5px;
-  }
-
-  /* The width and height attributes of logo-icon should be equal to */
-  /* dimensions of /static/images/openlibrary-logo-tighter.svg */
-  .header-bar .logo-component .logo-icon {
-    height: 47px;
-    width: 189px;
-  }
-
-  .header-bar .auth-component .hide-me {
-    display: inline;
-  }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-  }
-
-  .header-bar .search-component {
-    -webkit-box-ordinal-group: 4;
-    -ms-flex-order: 3;
-    order: 3;
-  }
-
-  .header-bar .search-component .search-bar-component {
-    width: 300px;
-  }
-
-  .header-bar .search-component .search-justify-right {
-    min-width: 210px;
-  }
-
-  .header-bar .search-component .search-bar {
-    width: auto;
-    max-width: 310px;
-  }
-
-  .header-bar .header-dropdown .account__icon {
-    width: 45px;
-    height: 45px;
-  }
-  /* inlined from components/page-banner--tablet.css */
-  .page-banner .btn {
-    display: inline;
   }
   /* inlined from components/work--tablet.css */
   /* workDetails is the parent element.
@@ -1834,11 +1671,6 @@ div#subjectLists p {
     clear: both;
   }
 
-  div.editionTools {
-    float: right;
-    width: 250px;
-  }
-
   /* clear the floating of the edition* elements. */
   .workDetails::after {
     content: "";
@@ -1847,19 +1679,15 @@ div#subjectLists p {
   }
   /* inlined from components/edit-toolbar--tablet.css */
   /* stylelint-disable selector-max-specificity */
-  div#editTools,
-  div.editButton,
   div#editHistory {
     padding: 2px 5px 0 10px;
     margin-top: -5px;
     float: right;
   }
-  div#editInfo {
-    margin-top: 3px;
-    float: right;
-  }
+  /* #editTools sets its own padding in components/edit-toolbar.css, so it takes
+     only the float from here. Keep in step with edit-toolbar--tablet.css. */
   div#editTools {
-    display: flex;
+    float: right;
     margin-top: 1px;
     max-width: 280px;
   }
@@ -1867,78 +1695,6 @@ div#subjectLists p {
 
 /* Desktop: @width-breakpoint-desktop = 960px */
 @media all and (min-width: 960px) {
-  /* inlined from components/header-bar--desktop.css */
-  .header-bar {
-    margin: 20px auto;
-    padding-top: 0;
-    -webkit-box-orient: horizontal;
-    -webkit-box-direction: normal;
-    -ms-flex-direction: row;
-    flex-direction: row;
-  }
-
-  .header-bar .auth-component {
-    -webkit-box-ordinal-group: 7;
-    -ms-flex-order: 6;
-    order: 6;
-  }
-
-  .header-bar .logo-component {
-    /* border-right: 1px solid var(--dark-beige); */
-    padding-right: 15px;
-  }
-
-  .header-bar .navigation-component {
-    display: flex;
-    -webkit-box-ordinal-group: 3;
-    -ms-flex-order: 2;
-    order: 2;
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-  }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-radius: 3px;
-    border: 1px solid var(--dark-beige);
-  }
-
-  .header-bar .navigation-component li .dropdown-menu {
-    width: auto;
-    white-space: nowrap;
-  }
-
-  .header-bar .search-component .search-bar-component {
-    width: 100%;
-  }
-
-  .header-bar .search-component .search-bar {
-    max-width: 100%;
-  }
-
-  .header-bar .hamburger-component {
-    -webkit-box-ordinal-group: 5;
-    -ms-flex-order: 6;
-    order: 6;
-  }
-
-  .header-bar .app-drawer {
-    top: 0;
-    height: 100%;
-  }
-
-  .header-bar .mask-menu {
-    top: 0;
-  }
-
-  .header-bar .header-dropdown .account__icon {
-    width: 45px;
-    height: 45px;
-  }
-
-  .header-bar.mobile {
-    display: none;
-  }
   /** These styles are used on the page for editing a book.
   They may be used in another places as well */
   fieldset.minor {
@@ -1958,21 +1714,8 @@ div#subjectLists p {
   /* Whitespace nowrap is problematic in tables on mobile */
   table.meta td.title,
   table.meta td.object,
-  table.meta td.descrip,
   table.meta td.tag {
     white-space: nowrap;
-  }
-  /* Books pages */
-  div.workCover {
-    float: right;
-    width: 270px;
-    min-height: 10px;
-  }
-  div.workAbout {
-    float: left;
-    clear: left;
-    width: 610px;
-    padding-right: 38px;
   }
   .contentTwothird {
     float: left;
@@ -1986,10 +1729,6 @@ div#subjectLists p {
   .contentHalf {
     float: left;
     max-width: 439px;
-  }
-  .contentThreeQuarter {
-    float: left;
-    max-width: 684px;
   }
   .contentSpacer {
     float: left;

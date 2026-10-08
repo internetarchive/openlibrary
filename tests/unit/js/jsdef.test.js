@@ -21,13 +21,13 @@ test('jsdef: foreach', () => {
     const listToLoop = [1, 2, 3];
     expect.assertions(1);
     return new Promise((resolve) => {
-        foreach(listToLoop, loop, function () {
+        foreach(listToLoop, loop, function() {
             called += 1;
             if (called === 3) {
                 expect(called).toBe(3);
                 resolve();
             }
-        })
+        });
     });
 });
 

@@ -32,9 +32,10 @@ $var title: $_('Editing %(name)s', name=page.displayname)
         $:macros.UserEditRow(page, 'website', False)
 
         <div class="formElement">
-            <div class="label"><label for="description">$_("Description")</label></div>
+            <div class="label"><label for="user-description">$_("Description")</label></div>
             <div class="input">
-                <textarea name="description" class="markdown" rows="6" cols="40">$page.description</textarea>
+                <textarea name="description" id="user-description">$page.description</textarea>
+                <ol-markdown-editor target-id="user-description"></ol-markdown-editor>
             </div>
         </div>
 

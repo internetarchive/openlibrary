@@ -7,15 +7,15 @@ div.merge {
   font-family: var(--font-family-body);
   width: 100%;
   float: left;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
 }
 
 div.merge .entry {
   width: 100%;
-  padding: 10px 0;
+  padding: var(--spacing-inset-sm) 0;
   float: left;
   clear: right;
-  border-bottom: 1px solid var(--lighter-grey);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 div.merge .header {
@@ -23,11 +23,11 @@ div.merge .header {
   padding: 0 !important;
   float: left;
   clear: right;
-  border-bottom: 1px solid var(--lighter-grey);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 div.merge .header div {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 
 div.merge .master {
@@ -42,14 +42,14 @@ div.merge .mouseoverHighlight {
 }
 
 div.merge .data {
-  padding: 0 5px;
+  padding: 0 var(--spacing-inset-xs);
 }
 
 div.merge .input {
   width: 37px;
   float: left;
   text-align: center;
-  padding: 3px 5px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
 }
 
 div.merge .record ul {
@@ -58,7 +58,7 @@ div.merge .record ul {
 }
 
 div.merge .record li {
-  color: var(--grey) !important;
+  color: var(--color-text-secondary) !important;
   font-size: 0.75em;
 }
 
@@ -69,13 +69,7 @@ div.merge .record label {
 div.merge .metaDate {
   color: var(--brown);
   font-size: 0.8125em;
-  padding-left: 10px;
-}
-
-div.merge .metaSubject {
-  color: var(--grey);
-  font-size: 0.8125em;
-  display: block;
+  padding-left: var(--spacing-inset-sm);
 }
 
 div.merge .ol-num {
@@ -97,7 +91,7 @@ div.merge .name a:visited {
 
 div.merge .name a:hover,
 div.merge .name a:active {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 /* stylelint-enable selector-max-specificity */
@@ -121,6 +115,51 @@ div.merge .count {
 .merge-feedback__reject {
   color: var(--white);
   background-color: var(--red-two);
+}
+
+/* Confirmation dialog body, built by merge.js. Names the record being kept and
+   the records redirected into it, so the decision does not depend on the page
+   behind the dialog. */
+.merge-summary__label {
+  margin: 0;
+  padding-bottom: var(--spacing-inset-xs);
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+}
+
+.merge-summary__list {
+  margin: 0 0 var(--spacing-stack-md);
+  padding: 0;
+  list-style: none;
+}
+
+.merge-summary__list:last-child {
+  margin-bottom: 0;
+}
+
+.merge-summary__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inset-sm);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--spacing-inset-sm) 0;
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.merge-summary__row:last-child {
+  border-bottom: 0;
+}
+
+.merge-summary__name {
+  font-weight: var(--font-weight-bold);
+}
+
+.merge-summary__meta {
+  color: var(--color-text-secondary);
 }
 
 /* @width-breakpoint-desktop: 960px */

@@ -84,10 +84,13 @@ export default class SelectionManager {
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
     processClick(clickEvent) {
-        // If there is text selection or the click is on a link that isn't a select handle, don't do anything
-        if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
-            ($(clickEvent.target).closest('a, button, details').length > 0 &&
-            $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
+        // If there is text selection, don't do anything
+        if (!clickEvent.shiftKey && window.getSelection()?.toString() !== '') return;
+        // Walk the composed path: a click inside a web component (ol-shelf-button)
+        // is retargeted to its host by the time it reaches the row.
+        const path = (clickEvent.originalEvent ?? clickEvent).composedPath();
+        const onControl = path.some(n => n instanceof Element && n.matches('a, button, details, [popover]'));
+        if (onControl && !clickEvent.target.classList.contains('ile-select-handle')) return;
 
         const el = clickEvent.currentTarget;
         if (clickEvent.shiftKey && this.lastClicked)
@@ -188,7 +191,7 @@ export default class SelectionManager {
         const statusParts = [];
         this.ile.$actions.empty();
         this.ile.$selectionActions.empty();
-        this.ile.bulkTagger.hideTaggingMenu()
+        this.ile.bulkTagger.hideTaggingMenu();
         SelectionManager.TYPES.forEach(type => {
             const count = this.selectedItems[type.singular].length;
             if (count) statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
@@ -234,7 +237,7 @@ export default class SelectionManager {
             if (sessionStorage.getItem('ile-items')) {
                 this.selectedItems = JSON.parse(sessionStorage.getItem('ile-items'));
             } else {
-                SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = []});
+                SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = [];});
             }
         }
 
@@ -343,8 +346,12 @@ SelectionManager.DROP_HANDLERS = [
             console.log('move', data);
             window.ILE.setStatusText('Working...');
             try {
-                await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
-                window.ILE.setStatusText('Completed!');
+                const { total, failed } = await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
+                if (failed) {
+                    window.ILE.setStatusText(`Something went wrong: ${failed}/${total} failed to save.`);
+                } else {
+                    window.ILE.setStatusText(`Completed! ${total}/${total} saved.`);
+                }
             } catch (e) {
                 window.ILE.setStatusText('Errored!');
                 throw e;
@@ -365,8 +372,12 @@ SelectionManager.DROP_HANDLERS = [
                     const ed = await fetch(`/books/${location.pathname.match(/OL\d+M/)[0]}.json`).then(r => r.json());
                     workOlid = ed.works[0].key.match(/OL\d+W/)[0];
                 }
-                await move_to_work(data.items, data.from, workOlid);
-                window.ILE.setStatusText('Completed!');
+                const { total, failed } = await move_to_work(data.items, data.from, workOlid);
+                if (failed) {
+                    window.ILE.setStatusText(`Something went wrong: ${failed}/${total} failed to save.`);
+                } else {
+                    window.ILE.setStatusText(`Completed! ${total}/${total} saved.`);
+                }
             } catch (e) {
                 window.ILE.setStatusText('Errored!');
                 throw e;
@@ -383,24 +394,24 @@ SelectionManager.TYPES = [
         image: olid => {
             const imgOlid = olid.split(':').pop();
             if (imgOlid.slice(-1) === 'M')
-                return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`
+                return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
             else
-                return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`
+                return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
         },
     },
     {
         singular: 'edition',
         plural: 'editions',
         regex: /OL\d+M/,
-        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`,
+        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`,
     },
     {
         singular: 'author',
         plural: 'authors',
         regex: /OL\d+A/,
-        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_author-lg.png`,
+        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`,
     }
-]
+];
 
 /**
  * Selection Providers define what is selectable on a page. E.g. the path regex
@@ -413,7 +424,7 @@ SelectionManager.SELECTION_PROVIDERS = [
     {
         path: /(\/authors\/OL\d+A.*|\/search)$/,
         selector: '.searchResultItem',
-        type: ['work','edition'],
+        type: ['work', 'edition'],
         /**
          * @param {HTMLElement} el
          * @return {import('../ol.js').WorkOLID}
@@ -480,7 +491,7 @@ SelectionManager.SELECTION_PROVIDERS = [
  */
 SelectionManager.ACTIONS = [
     {
-        applies_to_type: ['work','edition'],
+        applies_to_type: ['work', 'edition'],
         requires_type: ['work'],
         multiple_only: false,
         name: 'Tag Works',
@@ -494,7 +505,7 @@ SelectionManager.ACTIONS = [
         href: olids => `/account/lists/add?seeds=${olids.join(',')}`,
     },
     {
-        applies_to_type: ['work','edition'],
+        applies_to_type: ['work', 'edition'],
         requires_type: ['work'],
         multiple_only: true,
         name: 'Merge Works...',

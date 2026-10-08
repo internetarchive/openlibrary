@@ -75,13 +75,13 @@ def generate_osp_db(input_directory: Path, output_file: str) -> None:
     with closing(sqlite3.connect(output_file)) as conn:
         cursor = conn.cursor()
         # Drop the table if it exists so we only have fresh data
-        cursor.execute('DROP TABLE IF EXISTS data;')
-        cursor.execute('''
+        cursor.execute("DROP TABLE IF EXISTS data;")
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS data (
                 olid INTEGER PRIMARY KEY,
                 total INTEGER
             )
-        ''')
+        """)
 
         # Iterate through the files in the input directory
         # input_directory_path = Path(input_directory)
@@ -94,9 +94,7 @@ def generate_osp_db(input_directory: Path, output_file: str) -> None:
                         json_data = json.loads(line)
 
                         # Extract the 'ol_id' and 'total' fields
-                        ol_id = int(
-                            json_data["ol_id"].replace("/works/OL", "").replace("W", "")
-                        )
+                        ol_id = int(json_data["ol_id"].replace("/works/OL", "").replace("W", ""))
                         total = json_data["total"]
 
                         # Exclude lines where the 'total' is less than one
@@ -110,4 +108,4 @@ def generate_osp_db(input_directory: Path, output_file: str) -> None:
         cursor.execute("CREATE INDEX IF NOT EXISTS olid_index ON data (olid)")
         conn.commit()
 
-        print(f'SQLite database created successfully: {output_file}')
+        print(f"SQLite database created successfully: {output_file}")

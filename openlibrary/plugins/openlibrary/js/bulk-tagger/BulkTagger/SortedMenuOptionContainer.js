@@ -19,8 +19,8 @@ export class SortedMenuOptionContainer {
      * @param {HTMLElement} element The container
      */
     constructor(element) {
-        this.rootElement = element
-        this.sortedMenuOptions = []
+        this.rootElement = element;
+        this.sortedMenuOptions = [];
     }
 
     /**
@@ -30,9 +30,9 @@ export class SortedMenuOptionContainer {
      */
     add(...menuOptions) {
         for (const option of menuOptions) {
-            const index = this.findIndex(option)
-            this.sortedMenuOptions.splice(index, 0, option)
-            this.updateViewOnAdd(option, index)
+            const index = this.findIndex(option);
+            this.sortedMenuOptions.splice(index, 0, option);
+            this.updateViewOnAdd(option, index);
         }
     }
 
@@ -44,10 +44,10 @@ export class SortedMenuOptionContainer {
      */
     updateViewOnAdd(menuOption, index) {
         if (index === 0) {
-            this.rootElement.prepend(menuOption.rootElement)
+            this.rootElement.prepend(menuOption.rootElement);
         } else {
-            const sibling = this.rootElement.children[index - 1]
-            sibling.insertAdjacentElement('afterend', menuOption.rootElement)
+            const sibling = this.rootElement.children[index - 1];
+            sibling.insertAdjacentElement('afterend', menuOption.rootElement);
         }
     }
 
@@ -58,9 +58,9 @@ export class SortedMenuOptionContainer {
      */
     remove(...menuOptions) {
         for (const option of menuOptions) {
-            const index = this.findIndex(option)
-            const removed = this.sortedMenuOptions.splice(index, 1)
-            removed.forEach((option) => option.remove())
+            const index = this.findIndex(option);
+            const removed = this.sortedMenuOptions.splice(index, 1);
+            removed.forEach((option) => option.remove());
         }
     }
 
@@ -72,25 +72,25 @@ export class SortedMenuOptionContainer {
      * @returns {Number} Index where the given menu option should be inserted.
      */
     findIndex(menuOption) {
-        let index = 0
+        let index = 0;
 
         // XXX : Binary search?
         while (index < this.sortedMenuOptions.length) {
-            const currentMenuOption = this.sortedMenuOptions[index]
+            const currentMenuOption = this.sortedMenuOptions[index];
 
             if (currentMenuOption.tag.tagName.toLowerCase() === menuOption.tag.tagName.toLowerCase()) {
                 // Compare types
                 if (currentMenuOption.tag.tagType.toLowerCase() >= menuOption.tag.tagType.toLowerCase()) {
-                    return index
+                    return index;
                 }
             }
             else if (currentMenuOption.tag.tagName.toLowerCase() > menuOption.tag.tagName.toLowerCase()) {
-                return index
+                return index;
             }
-            ++index
+            ++index;
         }
 
-        return index
+        return index;
     }
 
     /**
@@ -100,7 +100,7 @@ export class SortedMenuOptionContainer {
      * @returns {boolean} `true` if a matching menu option exists in this container
      */
     contains(menuOption) {
-        return this.sortedMenuOptions.some((option) => menuOption.tag.equals(option.tag))
+        return this.sortedMenuOptions.some((option) => menuOption.tag.equals(option.tag));
     }
 
     /**
@@ -110,7 +110,7 @@ export class SortedMenuOptionContainer {
      * @returns {boolean} `true` if a menu option which represents the given tag is in this container.
      */
     containsOptionWithTag(tag) {
-        return this.sortedMenuOptions.some((option) => tag.equals(option.tag))
+        return this.sortedMenuOptions.some((option) => tag.equals(option.tag));
     }
 
     /**
@@ -120,7 +120,7 @@ export class SortedMenuOptionContainer {
      * @returns {MenuOption|undefined} The first matching menu option, or `undefined` if none were found.
      */
     findByTag(tag) {
-        return this.sortedMenuOptions.find((option) => tag.equals(option.tag))
+        return this.sortedMenuOptions.find((option) => tag.equals(option.tag));
     }
 
     /**
@@ -128,8 +128,8 @@ export class SortedMenuOptionContainer {
      */
     clear() {
         while (this.sortedMenuOptions.length > 0) {
-            this.sortedMenuOptions.pop()
+            this.sortedMenuOptions.pop();
         }
-        this.rootElement.innerHTML = ''
+        this.rootElement.innerHTML = '';
     }
 }

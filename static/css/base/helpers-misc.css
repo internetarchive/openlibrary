@@ -54,11 +54,6 @@ button.larger {
   border-radius: 4px;
 }
 
-.editFormHead {
-  display: flex;
-  padding-bottom: 0;
-}
-
 .editFormTitle {
   flex: 1;
   margin: 0;
@@ -77,14 +72,10 @@ button.larger {
   padding: var(--spacing-inset-xs) 0 0 29px !important;
 }
 
-.noborder {
-  border: none;
-}
-
 .valid,
 .darkgreen,
 .pos {
-  color: var(--dark-green) !important;
+  color: var(--color-success-fg) !important;
 }
 
 .black {
@@ -108,15 +99,11 @@ button.larger {
 }
 
 .lightgreen {
-  color: var(--olive) !important;
-}
-.lightgrey,
-.lightgray {
-  color: var(--light-grey) !important;
+  color: var(--color-success-fg) !important;
 }
 
 .blue {
-  color: var(--link-blue) !important;
+  color: var(--color-link) !important;
 }
 
 .invalid,
@@ -139,12 +126,7 @@ button.larger {
 .lighter,
 .gray,
 .grey {
-  color: var(--grey) !important;
-}
-
-.darkgray,
-.darkgrey {
-  color: var(--dark-grey) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .plain {

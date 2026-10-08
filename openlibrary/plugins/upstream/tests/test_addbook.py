@@ -1,5 +1,6 @@
 """py.test tests for addbook"""
 
+import pytest
 import web
 
 from openlibrary import accounts
@@ -19,6 +20,7 @@ def mock_user():
         {
             "is_admin": lambda slf: False,
             "is_super_librarian": lambda slf: False,
+            "is_super_librarian_or_higher": lambda slf: slf.is_admin() or slf.is_super_librarian(),
             "is_librarian": lambda slf: False,
             "is_usergroup_member": lambda slf, grp: False,
         },
@@ -489,6 +491,55 @@ class TestSaveBookHelper:
         assert not new_work.subjects
 
 
+class TestDaisyPage:
+    def setup_method(self, method):
+        web.ctx.site = MockSite()
+
+    def test_redirects_to_archive_item_for_edition_with_ocaid(self, monkeypatch):
+        web.ctx.site.save(
+            {
+                "type": {"key": "/type/edition"},
+                "key": "/books/OL1M",
+                "title": "Accessible Book",
+                "ocaid": "testitem00archive",
+            }
+        )
+
+        redirects = []
+
+        def seeother(url):
+            redirects.append(url)
+            raise RuntimeError("redirect")
+
+        monkeypatch.setattr(addbook.web, "seeother", seeother)
+
+        with pytest.raises(RuntimeError, match="redirect"):
+            addbook.daisy().GET("/books/OL1M")
+        assert redirects == ["https://archive.org/details/testitem00archive"]
+
+    def test_redirect_escapes_archive_item_identifier(self, monkeypatch):
+        web.ctx.site.save(
+            {
+                "type": {"key": "/type/edition"},
+                "key": "/books/OL1M",
+                "title": "Accessible Book",
+                "ocaid": "test item/archive",
+            }
+        )
+
+        redirects = []
+
+        def seeother(url):
+            redirects.append(url)
+            raise RuntimeError("redirect")
+
+        monkeypatch.setattr(addbook.web, "seeother", seeother)
+
+        with pytest.raises(RuntimeError, match="redirect"):
+            addbook.daisy().GET("/books/OL1M")
+        assert redirects == ["https://archive.org/details/test%20item%2Farchive"]
+
+
 class TestMakeWork:
     def test_make_author_adds_the_correct_key(self):
         author_key = "OL123A"
@@ -525,7 +576,7 @@ class TestMakeWork:
                 "language": ["eng"],
                 "title": "The Celebrated Jumping Frog of Calaveras County",
                 "authors": [author],
-                "cover_url": "/images/icons/avatar_book-sm.png",
+                "cover_url": "/static/images/icons/avatar_book-sm.png",
                 "ia": [],
                 "first_publish_year": None,
             }
@@ -548,7 +599,7 @@ class TestMakeWork:
                 "language": ["eng"],
                 "title": "The Celebrated Jumping Frog of Calaveras County",
                 "authors": [],
-                "cover_url": "/images/icons/avatar_book-sm.png",
+                "cover_url": "/static/images/icons/avatar_book-sm.png",
                 "ia": [],
                 "first_publish_year": None,
             }

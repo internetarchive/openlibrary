@@ -7,7 +7,7 @@
 table#editions,
 .editions-table {
   width: 100%;
-  margin-top: 15px;
+  margin-top: var(--spacing-stack-md);
   border-collapse: collapse;
   clear: both;
   font-family: var(--font-family-body);
@@ -21,7 +21,7 @@ table#editions .cta-button-group,
 
 table#editions thead,
 .editions-table thead {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
 }
 
 table#editions thead tr,
@@ -41,6 +41,29 @@ table#editions thead tr th.title:focus,
 }
 /* stylelint-enable max-nesting-depth */
 
+/* One icon per sort state, shown by the sorting class DataTables sets on the th.
+   Before the table upgrades no state class exists, so no indicator renders.
+   These have to sit here rather than in the DataTables stylesheet, which only
+   arrives with the lazily-imported editions-table chunk. */
+.editions-table th .sort-indicator__icon {
+  display: none;
+  margin-left: var(--spacing-inline-xs);
+}
+
+/* This DataTables version keeps the base `sorting` class when a direction
+   class is added, so the unsorted icon must exclude both. */
+.editions-table
+  th.sorting:not(.sorting_asc, .sorting_desc)
+  .sort-indicator__icon--none {
+  display: inline-block;
+  color: var(--color-icon-muted);
+}
+
+.editions-table th.sorting_asc .sort-indicator__icon--asc,
+.editions-table th.sorting_desc .sort-indicator__icon--desc {
+  display: inline-block;
+}
+
 table#editions th,
 .editions-table th {
   font-family: var(--font-family-body);
@@ -49,9 +72,26 @@ table#editions th,
   text-transform: uppercase;
   line-height: normal;
   text-align: left;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   outline: none;
   cursor: pointer;
+}
+
+/* --color-control-hover would vanish here: the thead gradient already ends in
+   the same neutral-100, so hover uses the any-surface ink overlay instead. */
+@media (hover: hover) and (pointer: fine) {
+  table#editions th:hover,
+  .editions-table th:hover {
+    background-color: var(--color-hover-overlay);
+  }
+}
+
+table#editions th a,
+.editions-table th a,
+table#editions th a:hover,
+.editions-table th a:hover {
+  color: var(--color-text);
+  text-decoration: none;
 }
 
 table#editions td.book,
@@ -63,7 +103,8 @@ table#editions td.book,
 table#editions div.cover,
 .editions-table div.cover {
   text-align: center;
-  padding: 10px 10px 10px 0;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 0;
   width: 70px;
   overflow: hidden;
 }
@@ -77,7 +118,7 @@ table#editions div.cover img,
 table#editions div.title,
 .editions-table div.title {
   font-size: var(--font-size-title-small);
-  padding: 10px 0;
+  padding: var(--spacing-inset-sm) 0;
   min-width: 1%;
   overflow-wrap: break-word;
 }
@@ -85,7 +126,7 @@ table#editions div.title,
 table#editions div.links,
 .editions-table div.links {
   font-size: var(--font-size-label-medium);
-  color: var(--dark-grey);
+  color: var(--color-text);
   line-height: 1.5em;
 }
 
@@ -107,7 +148,7 @@ table#editions td.icon,
 .editions-table td.icon {
   text-align: left;
   vertical-align: top;
-  padding: 15px;
+  padding: var(--spacing-inset-md);
 }
 
 table#editions td.icon ul,
@@ -133,14 +174,14 @@ table#editions .highlight,
   text-align: left;
   font-weight: normal;
   font-size: 0.6875em;
-  color: var(--brown);
-  padding: 0 0 10px;
+  color: var(--color-text-heading);
+  padding: 0 0 var(--spacing-inset-sm);
   border-left: none;
   border-right: none;
 }
 
 .lists table#editions td {
-  color: var(--dark-grey);
+  color: var(--color-text);
   vertical-align: top;
 }
 
@@ -153,12 +194,13 @@ table#editions .highlight,
 .lists table#editions td.who,
 .lists table#editions td.que {
   font-size: 0.75em;
-  padding: 10px 15px 10px 0;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md)
+    var(--spacing-inset-sm) 0;
 }
 
 .lists table#editions td .cover {
   width: 40px;
-  padding-right: 10px;
+  padding-right: var(--spacing-inset-sm);
 }
 
 .lists table#editions td .cover img {
@@ -202,8 +244,8 @@ table#editions .highlight,
   table#editions tr {
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid var(--lighter-grey);
-    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding-bottom: var(--spacing-inset-sm);
     overflow: visible;
   }
 
@@ -212,7 +254,7 @@ table#editions .highlight,
   }
 
   table#editions form {
-    padding: 10px;
+    padding: var(--spacing-inset-sm);
   }
 
   table#editions ul.links ul,
@@ -246,7 +288,7 @@ table#editions .highlight,
     display: flex;
     flex-direction: column;
     order: -1;
-    padding: 10px 0;
+    padding: var(--spacing-inset-sm) 0;
   }
 
   table#editions td.icon.locate .links {
@@ -254,7 +296,7 @@ table#editions .highlight,
   }
 
   table#editions td.icon.locate {
-    padding: 0 10px;
+    padding: 0 var(--spacing-inset-sm);
   }
 
   table#editions .cta-button-group {

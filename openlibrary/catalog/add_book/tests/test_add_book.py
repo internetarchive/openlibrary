@@ -522,11 +522,11 @@ class Test_From_MARC:
         assert a.name == "Laura K. Egendorf"
         assert a.birth_date == "1973"
 
-    def test_editior_role_from_700(self, mock_site, add_languages):
+    def test_editor_role_from_700(self, mock_site, add_languages):
         marc = "../../../marc/tests/test_data/bin_input/ithaca_college_75002321.mrc"
         data = open_test_data(marc).read()
         rec = read_edition(MarcBinary(data))
-        rec["source_records"] = ["ia:test_editior_role_from_700"]
+        rec["source_records"] = ["ia:test_editor_role_from_700"]
         reply = load(rec)
         assert reply["success"] is True
         # authors from 700
@@ -624,6 +624,35 @@ class Test_From_MARC:
         assert isinstance(work["description"], Text)
         assert work["description"] == desc
 
+    def test_matched_author_gets_modified(self, mock_site, add_languages, ia_writeback):
+        mock_site.save(
+            {
+                "key": "/authors/OL1A",
+                "type": {"key": "/type/author"},
+                "name": "John Smith",
+                "birth_date": "1900",
+            }
+        )
+        isni = "000000000000000X"
+        rec = {
+            "title": "Some New Book",
+            "source_records": ["ia:new_book"],
+            "authors": [
+                {
+                    "name": "John Smith",
+                    "birth_date": "1900",
+                    "death_date": "1970",
+                    "remote_ids": {"isni": isni},
+                }
+            ],
+        }
+        reply = load(rec)
+        assert reply["authors"][0]["status"] == "modified"
+        assert reply["authors"][0]["key"] == "/authors/OL1A"
+        existing = mock_site.get("/authors/OL1A")
+        assert existing.death_date == "1970"
+        assert existing.remote_ids.get("isni") == isni
+
 
 def test_build_pool(mock_site):
     assert build_pool({"title": "test"}) == {}
@@ -713,7 +742,7 @@ def test_extra_author(mock_site, add_languages):
                     "When it first became known to Europe that a new continent had "
                     "been discovered, the wise men, philosophers, and especially the "
                     "learned ecclesiastics, were sorely perplexed to account for such "
-                    "a discovery.",
+                    "a discovery."
                 ),
             },
             "subject_places": [
@@ -997,7 +1026,7 @@ def test_same_twice(mock_site, add_languages):
         "description": (
             "A macabre mash-up of the children's classic Pat the Bunny and the "
             "present-day zombie phenomenon, with the tactile features of the original "
-            "book revoltingly re-imagined for an adult audience.",
+            "book revoltingly re-imagined for an adult audience."
         ),
         "title": "Pat The Zombie",
         "isbn_13": ["9781607740360"],
@@ -1963,6 +1992,85 @@ class TestNormalizeImportRecord:
         """
         normalize_import_record(rec=rec)
         assert rec == expected
+
+    def test_unescape_html_entities_in_title(self):
+        """HTML numeric entities in titles are unescaped (BWB-sourced mangled Unicode)."""
+        rec = {
+            "title": "&#1059;&#1073;&#1077;&#1079;&#1087;&#1077;&#1094;&#1110;&#1079;",
+            "source_records": ["bwb:9781234567890"],
+        }
+        normalize_import_record(rec=rec)
+        # U+0423 U+0431 U+0435 U+0437 U+043F U+0435 U+0446 U+0456 U+0437
+        assert rec["title"] == "Убезпеціз"
+
+    def test_unescape_html_entities_in_subtitle(self):
+        rec = {
+            "title": "My Book",
+            "subtitle": "&#1057;&#1077;&#1088;&#1075;&#1077;&#1081;",
+            "source_records": ["bwb:9781234567890"],
+        }
+        normalize_import_record(rec=rec)
+        # U+0421 U+0435 U+0440 U+0433 U+0435 U+0439 = Sergei in Russian
+        assert rec["subtitle"] == "Сергей"
+
+    def test_unescape_html_entities_in_author_name(self):
+        rec = {
+            "title": "My Book",
+            "source_records": ["bwb:9781234567890"],
+            "authors": [{"name": "&#1057;&#1077;&#1088;&#1075;&#1077;&#1081;"}],
+        }
+        normalize_import_record(rec=rec)
+        assert rec["authors"][0]["name"] == "Сергей"
+
+    def test_hex_entity_unescaped(self):
+        """Hex-form entities (&#x41B;) are also unescaped."""
+        rec = {
+            "title": "&#x41B;",
+            "source_records": ["bwb:9781234567890"],
+        }
+        normalize_import_record(rec=rec)
+        assert rec["title"] == "Л"  # CYRILLIC CAPITAL LETTER EL
+
+    def test_legitimate_ampersand_unchanged(self):
+        """A bare & in a title is not corrupted."""
+        rec = {
+            "title": "Tom & Jerry",
+            "source_records": ["ia:tomjerry"],
+        }
+        normalize_import_record(rec=rec)
+        assert rec["title"] == "Tom & Jerry"
+
+    def test_named_entity_unchanged(self):
+        """Named entities like &amp; are not unescaped (strict numeric-only pattern)."""
+        rec = {
+            "title": "Foo &amp; Bar",
+            "source_records": ["ia:foobar"],
+        }
+        normalize_import_record(rec=rec)
+        assert rec["title"] == "Foo &amp; Bar"
+
+    def test_mixed_numeric_and_named_entities(self):
+        """When a numeric entity triggers the guard, named entities are also decoded."""
+        rec = {
+            "title": "&#1059; &amp; bar",
+            "source_records": ["bwb:9781234567890"],
+        }
+        normalize_import_record(rec=rec)
+        # &#1059; -> U+0423 (triggers guard); &amp; -> & (decoded as side-effect)
+        assert rec["title"] == "У & bar"  # noqa: RUF001
+
+    def test_description_as_dict_unescaped(self):
+        """description stored as {type, value} dict is unescaped."""
+        rec = {
+            "title": "My Book",
+            "source_records": ["bwb:9781234567890"],
+            "description": {
+                "type": "/type/text",
+                "value": "&#1057;&#1077;&#1088;",
+            },
+        }
+        normalize_import_record(rec=rec)
+        assert rec["description"]["value"] == "Сер"  # noqa: RUF001  # Cyrillic chars
 
 
 def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):

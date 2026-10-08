@@ -42,12 +42,14 @@ $var title: $_("Sign Up to Open Library")
                 $:input.render()
                 $if input.name == 'password':
                     <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
-                        <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                        $:macros.icon("eye-off", label=_('Toggle Password Visibility'))
                     </a>
                 $else:
                     <div class="ol-signup-form__icon-wrap">
                         <img src="/static/images/bubble-loader.svg" class="ol-signup-form__icon ol-signup-form__icon--loading" title="$_('Loading...')" alt="$_('Loading...')" style="display:none"/>
-                        <img src="/static/images/icons/icon_check-circle.svg" class="ol-signup-form__icon ol-signup-form__icon--success" title="$_('Success!')" alt="$_('Success!')" style="display:none" />
+                        $# Wrapped so signup.js can keep show()/hide()-ing a single element:
+                        $# jQuery toggles the inline style, which the macro cannot emit.
+                        <span class="ol-signup-form__icon ol-signup-form__icon--success" style="display:none">$:macros.icon("circle-check", label=_('Success!'))</span>
                     </div>
             </div>
             <div class="ol-signup-form__suffix">$:suffix</div>
@@ -81,7 +83,7 @@ $var title: $_("Sign Up to Open Library")
             </div>
             <div id="rpd-checkbox" class="ol-signup-form__checkbox">
                 <input type="checkbox" id="pd-request" name="pd_request" aria-expanded="false" aria-controls="pda-selector"/>
-                <label for="pd-request" id="pd-request-label">$:_('I want to apply* for <a href="https://help.archive.org/help/program-overview/" target="_blank">special print disability access</a> through a qualifying program.')</label>
+                <label for="pd-request" id="pd-request-label">$:_('I want to apply* for <a href="https://help.archive.org/help/program-overview/" target="_blank" rel="noopener noreferrer">special print disability access</a> through a qualifying program.')</label>
             </div>
             <div id="pda-selector" class="ol-signup-form__select hidden" role="region" aria-labelledby="pd-request-label" aria-hidden="true">
                 <div class="ol-signup-form__error" id="pd_programMessage" role="alert" aria-live="polite" aria-atomic="true"></div>
@@ -97,7 +99,7 @@ $var title: $_("Sign Up to Open Library")
             <div class="formElement bottom">
                 <br/>
                 <button type="submit" name="signup" id="signup" class="cta-btn cta-btn--primary">$_("Sign Up with Email")</button>
-                <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
+                <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank" rel="noopener noreferrer">Terms of Service</a>.')</small>
                 <p class="ol-signup-form__login-hint">$:_('Already have an account? <a href="/account/login">Log in</a>')</p>
                 $ sitekey = classes = callback = ''
                 $if form.has_recaptcha:
@@ -110,4 +112,3 @@ $var title: $_("Sign Up to Open Library")
         </form>
     </div>
 </div>
-

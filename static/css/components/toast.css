@@ -3,7 +3,7 @@
   top: 20px;
   left: 0;
   right: 0;
-  z-index: var(--z-index-level-17);
+  z-index: var(--z-index-toast);
   pointer-events: none;
 }
 
@@ -29,10 +29,6 @@
 .toast .toast__close:hover {
   cursor: pointer;
   text-decoration: none;
-}
-
-.light-yellow {
-  background-color: var(--light-yellow);
 }
 
 /* max-width: 768px (tablet) */

@@ -7,7 +7,7 @@ class bulk_search(delegate.page):
     path = "/search/bulk"
 
     def GET(self):
-        return render['bulk_search/bulk_search']()
+        return render["bulk_search/bulk_search"]()
 
 
 def setup():

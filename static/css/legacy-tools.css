@@ -23,15 +23,6 @@
   position: relative;
 }
 
-.Tools .btn-notice a.worldcat-link {
-  text-decoration: underline;
-}
-
-.Tools .btn-notice span.worldcat-attribution {
-  font-size: 0.8em;
-  display: block;
-}
-
 .Tools .btn-notice input {
   display: block;
   width: 100%;
@@ -42,48 +33,8 @@
   font-size: 1em;
 }
 
-.Tools .btn-notice p a.wait-btn,
-.Tools .btn-notice p a.borrow-btn {
-  display: block;
-  text-align: center;
-  margin: 0 auto;
-  color: var(--white);
-}
-
-.Tools .btn-notice p.primary-cta {
-  text-align: center;
-}
-
-.Tools .btn-notice p.primary-cta a {
-  display: block;
-}
-
-.Tools .check-availability {
-  padding: 10px;
-  border-top: 1px solid var(--lightest-grey);
-  border-radius: 3px;
-}
-
-.Tools .check-availability p {
-  padding-top: 7px;
-}
-
-.Tools .check-availability p.check-other-editions {
-  text-align: center;
-}
-
-.Tools .check-availability p.check-other-editions a {
-  font-size: 1em;
-  text-decoration: underline;
-}
-
-.Tools .check-availability a {
-  font-size: 1.3em;
-  color: var(--dark-blue);
-}
-
 .Tools .cta-section {
-  padding: 5px 5px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   margin: 0;
 }
 
@@ -93,10 +44,6 @@
 
 .Tools div.panel .cta-section p {
   margin: 0;
-}
-
-.Tools .hidetool {
-  display: none;
 }
 
 .Tools span.owner {
@@ -111,10 +58,6 @@
   background-image: none;
 }
 
-.Tools.borrow .lists-widget-head {
-  display: none;
-}
-
 .Tools table {
   width: 250px;
 }
@@ -125,11 +68,11 @@
 }
 
 .Tools table td.price {
-  padding: 3px 0 0;
+  padding: var(--spacing-inset-xs) 0 0;
 }
 
 .Tools table td.vendor {
-  padding: 3px 10px 0 42px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm) 0 42px;
 }
 
 .Tools h3 {
@@ -150,7 +93,7 @@
   width: 32px;
   height: 32px;
   float: left;
-  background-image: url(/images/icons/icons_sprite.png);
+  background-image: url(/static/images/icons/icons_sprite.png);
   background-repeat: no-repeat;
 }
 
@@ -158,32 +101,16 @@
   background-position: -96px 0;
 }
 
-.Tools h3 span.icon.readinact {
-  background-position: -160px 0;
-}
-
 .Tools h3 span.icon.download {
   background-position: -192px 0;
-}
-
-.Tools h3 span.icon.downloadinact {
-  background-position: -256px 0;
 }
 
 .Tools h3 span.icon.buy {
   background-position: -288px 0;
 }
 
-.Tools h3 span.icon.buyinact {
-  background-position: -352px 0;
-}
-
 .Tools h3 span.icon.borrow {
   background-position: -384px 0;
-}
-
-.Tools h3 span.icon.borrowinact {
-  background-position: -448px 0;
 }
 
 .Tools h3 span.icon.browse {
@@ -197,14 +124,8 @@
   color: var(--black);
 }
 
-.Tools h3 span.subhead {
-  padding-left: 10px;
-  font-size: 0.6875em;
-  color: var(--light-grey);
-}
-
 .Tools h3.closed span.head {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools h4 {
@@ -212,13 +133,13 @@
   font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-stack-sm);
   padding: 0;
   zoom: 1;
 }
 
 .Tools .panel {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .Tools .panel ul {
@@ -236,13 +157,13 @@
   list-style-type: none;
   font-size: 0.75em;
   margin-top: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools .panel p {
   font-size: 0.75em;
   margin-top: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .Tools div.icon {
@@ -251,7 +172,7 @@
   left: 0;
   width: 32px;
   height: 32px;
-  background-image: url(/images/icons/icons_sprite.png);
+  background-image: url(/static/images/icons/icons_sprite.png);
   background-repeat: no-repeat;
 }
 
@@ -263,35 +184,8 @@
   font-size: 0.6875em;
   font-family: var(--font-family-body);
   padding-left: 42px;
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
-
-.Tools #readBooks p {
-  font-size: 0.75em !important;
-}
-
-.Tools .widget-add.old-style-lists div.edition-page-lists-dropdown {
-  margin: 0;
-  left: 0;
-  width: 157px;
-  top: 0;
-  padding: 0 10px;
-}
-
-/* stylelint-disable selector-max-specificity */
-.Tools
-  .widget-add.old-style-lists
-  div.edition-page-lists-dropdown
-  .arrow-unactivated {
-  background-position: 6px -7px;
-}
-/* stylelint-enable selector-max-specificity */
-
-/* stylelint-disable selector-max-specificity */
-.Tools .widget-add.old-style-lists div.edition-page-lists-dropdown .arrow.up {
-  background-position: -22px -7px;
-}
-/* stylelint-enable selector-max-specificity */
 
 .user-book-options .Tools {
   margin: 0 auto;
@@ -330,10 +224,6 @@ div.tools-override .listLists li {
 
   div.tools-override {
     width: 180px;
-  }
-
-  div.tools-override.editionTools {
-    float: left;
   }
 
   div.tools-override .Tools .btn-notice {

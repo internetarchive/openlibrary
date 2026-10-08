@@ -1,4 +1,6 @@
+import asyncio
 import time
+from collections.abc import Awaitable, Callable
 
 
 class MaxRetriesExceeded(Exception):
@@ -17,7 +19,7 @@ class RetryStrategy:
         self.max_retries = max_retries
         self.delay = delay
 
-    def __call__(self, func):
+    def __call__[T](self, func: Callable[[], T]) -> T:
         try:
             return func()
         except Exception as e:
@@ -30,5 +32,21 @@ class RetryStrategy:
                 self.retry_count += 1
                 time.sleep(self.delay)
                 return self(func)
+            else:
+                raise MaxRetriesExceeded(self.last_exception)
+
+    async def async_call[T](self, func: Callable[[], Awaitable[T]]) -> T:
+        try:
+            return await func()
+        except Exception as e:
+            if not any(isinstance(e, exc) for exc in self.exceptions):
+                raise e
+
+            self.last_exception = e
+
+            if self.retry_count < self.max_retries:
+                self.retry_count += 1
+                await asyncio.sleep(self.delay)
+                return await self.async_call(func)
             else:
                 raise MaxRetriesExceeded(self.last_exception)

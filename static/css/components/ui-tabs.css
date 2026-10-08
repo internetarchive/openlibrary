@@ -43,11 +43,11 @@
 /* stylelint-disable max-nesting-depth */
 .ui-tabs-nav a:link,
 .ui-tabs-nav a:visited {
-  color: var(--link-blue);
+  color: var(--color-link);
 }
 
 .ui-tabs-nav a:hover {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 /* stylelint-enable max-nesting-depth */
@@ -68,20 +68,12 @@
 /* stylelint-disable no-descending-specificity */
 .ui-tabs-nav a:hover,
 .ui-tabs-nav a:focus,
-.ui-tabs-nav a:active,
-.ui-tabs-nav .ui-tabs-deselectable a:hover,
-.ui-tabs-nav .ui-tabs-deselectable a:focus,
-.ui-tabs-nav .ui-tabs-deselectable a:active {
+.ui-tabs-nav a:active {
   /* @ Opera, we need to be explicit again here now... */
   cursor: pointer;
 }
 /* stylelint-enable no-descending-specificity */
 /* stylelint-enable selector-max-specificity */
-
-.ui-tabs-disabled {
-  opacity: 0.4;
-  filter: alpha(opacity=40);
-}
 
 .ui-tabs-panel {
   border: 3px solid var(--lightest-grey);
@@ -122,10 +114,6 @@
     /* declare background color for container to avoid distorted fonts in IE while fading */
   }
 
-  .tabs-panel {
-    padding: 15px 30px 20px !important;
-  }
-
   .ui-tabs-nav {
     margin-bottom: -3px !important;
   }
@@ -140,14 +128,5 @@
 
   .ui-tabs-nav .ui-tabs-active a {
     padding: 2px 8px 3px;
-  }
-}
-
-/* Caution! Ensure accessibility in print and other media types... */
-@media projection, screen, print {
-  /* Use class for showing/hiding tab content,
-  so that visibility can be better controlled in different media types... */
-  .ui-tabs-hide {
-    display: none;
   }
 }

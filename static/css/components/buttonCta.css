@@ -18,35 +18,20 @@ a.cta-btn {
   font-family: var(--font-family-body);
   text-align: center;
   padding: var(--spacing-inset-sm);
-  white-space: nowrap;
+  /* An action never hides its verb: long labels wrap (balanced, hyphenated
+     where the page language allows) instead of ellipsizing. */
+  text-wrap: balance;
+  hyphens: auto;
+  overflow-wrap: anywhere;
   background-color: var(--grey);
   line-height: 1.5em;
   text-decoration: none;
-
-  transition: background-color 0.2s;
 }
 
-.cta-btn .btn-icon,
-a.cta-btn .btn-icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-}
-
-/* stylelint-disable selector-max-specificity */
-.cta-btn .btn-icon.read-aloud,
-a.cta-btn .btn-icon.read-aloud {
-  background-image: url(/static/images/icons/read%20aloud.svg);
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-}
-/* stylelint-enable selector-max-specificity */
-
-.cta-btn .btn-label,
-a.cta-btn .btn-label {
-  padding: var(--spacing-inset-sm);
-  padding-right: 0;
+/* Icons sit inline beside the label, as in ol-button's icon slots. The label
+   is the part that wraps, so the icon keeps its size. */
+.cta-btn__label {
+  min-width: 0;
 }
 
 .cta-btn:link,
@@ -57,63 +42,106 @@ a.cta-btn:visited {
   text-decoration: none;
 }
 
-.cta-btn--no-pointer,
-a.cta-btn--no-pointer {
-  cursor: default;
-}
-
+/* The CTAs share ol-button's medium box (components/ol-button.css): control
+   height, padding, type and radius. They stay full-width — that is the CTA's
+   job — so every state of the button lines up with the Buy trigger. The height
+   is a minimum so a long translation can take a second line. */
 .cta-btn--available,
-.cta-btn--preview,
 .cta-btn--primary,
-a.cta-btn--available,
-a.cta-btn--preview,
-a.cta-btn--primary {
-  background-color: var(--primary-blue);
-  color: var(--white);
-}
-
-.cta-btn--available:hover,
-.cta-btn--preview:hover,
-.cta-btn--primary:hover,
-a.cta-btn--available:hover,
-a.cta-btn--preview:hover,
-a.cta-btn--primary:hover {
-  background-color: hsl(202, 96%, 17%);
-}
-
-.cta-btn--available:disabled,
-.cta-btn--preview:disabled,
-.cta-btn--primary:disabled,
-a.cta-btn--available:disabled,
-a.cta-btn--preview:disabled,
-a.cta-btn--primary:disabled {
-  background-color: var(--grey);
-  cursor: default;
-}
-
-.cta-btn--external,
-a.cta-btn--external {
-  background-image: url(/static/images/icons/octicon-link-external-24.svg);
-  background-repeat: no-repeat;
-  background-size: 20px;
-  background-position: center right 8px;
-  justify-content: center;
-}
-
 .cta-btn--unavailable,
+.cta-btn--preview,
+.cta-btn--shell,
+a.cta-btn--available,
+a.cta-btn--primary,
+a.cta-btn--unavailable,
+a.cta-btn--preview,
+a.cta-btn--shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2xs);
+  min-height: var(--control-height-medium);
+  padding: var(--spacing-2xs) var(--spacing-md);
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-control);
+  border-radius: var(--border-radius-button);
+}
+
+/* The filled CTA is the primary button, so it takes the same look as
+   .ol-button-static--primary: a 1px border in the fill, and the raised shadow
+   with its specular top edge. It can't simply wear that class —
+   ol-components.css loads ahead of the page sheets, so .cta-btn's own box would
+   win on the tie. */
+.cta-btn--available,
+.cta-btn--primary,
+.cta-btn--unavailable,
+a.cta-btn--available,
+a.cta-btn--primary,
 a.cta-btn--unavailable {
-  background-color: var(--primary-blue);
+  border: 1px solid var(--color-primary-border);
+  background-color: var(--color-primary);
   color: var(--white);
+  --control-surface: var(--color-primary);
+  --control-highlight-strength: var(--control-highlight-strength-filled);
+  box-shadow:
+    var(--box-shadow-raised),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
+  transition: transform var(--duration-press);
 }
 
-.cta-btn--unavailable:hover,
-a.cta-btn--unavailable:hover {
-  background-color: hsl(202, 96%, 17%);
+/* brightness() moves the fill, border and specular edge together, as it does
+   for .ol-button-static--primary. */
+@media (hover: hover) and (pointer: fine) {
+  .cta-btn--available:hover,
+  .cta-btn--primary:hover,
+  .cta-btn--unavailable:hover,
+  a.cta-btn--available:hover,
+  a.cta-btn--primary:hover,
+  a.cta-btn--unavailable:hover {
+    filter: brightness(1.1);
+  }
 }
 
-.cta-btn--shell.cta-btn--external,
-a.cta-btn--shell.cta-btn--external {
-  background-blend-mode: difference;
+/* These stretch the width of their column, where the standard press reads as a
+   lurch — the same softer scale the Buy trigger takes. Inside a .cta-dropper
+   the group presses as one unit instead (generic-dropper.css). */
+.cta-btn--available:active,
+.cta-btn--primary:active,
+.cta-btn--unavailable:active,
+a.cta-btn--available:active,
+a.cta-btn--primary:active,
+a.cta-btn--unavailable:active {
+  transform: scale(var(--press-scale-wide));
+}
+
+.cta-btn--available:focus-visible,
+.cta-btn--primary:focus-visible,
+.cta-btn--unavailable:focus-visible,
+a.cta-btn--available:focus-visible,
+a.cta-btn--primary:focus-visible,
+a.cta-btn--unavailable:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: var(--spacing-3xs);
+}
+
+/* Disabled drops to the flat grey fill: no lift, and the border follows the
+   fill so the shape stays one tone. */
+.cta-btn--available:disabled,
+.cta-btn--primary:disabled,
+.cta-btn--unavailable:disabled,
+a.cta-btn--available:disabled,
+a.cta-btn--primary:disabled,
+a.cta-btn--unavailable:disabled {
+  border-color: var(--grey);
+  background-color: var(--grey);
+  box-shadow: none;
+  cursor: default;
 }
 
 .cta-btn--shell,
@@ -123,21 +151,15 @@ a.cta-btn--shell,
 a.cta-btn--shell:link,
 a.cta-btn--shell:visited {
   background-color: var(--white);
-  border: 2px solid var(--primary-blue);
+  border: 2px solid var(--color-primary);
   color: var(--primary-blue);
 }
 
 .cta-btn--shell:disabled,
 a.cta-btn--shell:disabled {
-  border: 2px solid var(--light-grey);
+  border: 2px solid var(--color-border-muted);
   color: var(--light-grey);
   cursor: default;
-}
-
-.cta-btn--sponsor,
-a.cta-btn--sponsor {
-  border: 2px solid var(--link-blue);
-  background: hsl(202, 40%, 95%);
 }
 
 .cta-btn--vanilla,
@@ -147,9 +169,9 @@ a.cta-btn--vanilla,
 a.cta-btn--vanilla:visited,
 a.cta-btn--vanilla:link {
   padding: var(--spacing-inset-xs);
-  border: 2px solid var(--light-grey);
+  border: 2px solid var(--color-border-muted);
   background: var(--white);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   border-radius: 6px;
 }
 
@@ -161,74 +183,37 @@ a.cta-btn--unstyled:visited,
 a.cta-btn--unstyled:link {
   padding: var(--spacing-inset-sm);
   background: var(--white);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   border-radius: 6px;
 }
 
 .cta-btn--delete,
-.cta-btn--cancel,
-a.cta-btn--delete,
-a.cta-btn--cancel {
+a.cta-btn--delete {
   background-color: var(--red);
 }
 
 .cta-btn--delete:visited,
-.cta-btn--cancel:visited,
-a.cta-btn--delete:visited,
-a.cta-btn--cancel:visited {
-  color: var(--grey);
+a.cta-btn--delete:visited {
+  color: var(--color-text-secondary);
 }
 
 .cta-btn--delete:hover,
-.cta-btn--cancel:hover,
-a.cta-btn--delete:hover,
-a.cta-btn--cancel:hover {
+a.cta-btn--delete:hover {
   background-color: hsl(8, 78%, 29%);
 }
 
-.cta-btn.cta-btn--w-icon,
-a.cta-btn.cta-btn--w-icon {
-  display: flex;
-  align-items: center;
-  padding: 0 var(--spacing-inset-sm);
-}
-
-.cta-btn--sponsor:link,
-.cta-btn--sponsor:visited,
-a.cta-btn--sponsor:link,
-a.cta-btn--sponsor:visited {
-  color: var(--link-blue);
-}
-
-.cta-btn--sponsor:hover,
-a.cta-btn--sponsor:hover {
-  border: 2px solid var(--link-blue);
-  background-color: var(--link-blue);
-  color: var(--white);
-}
-
-.cta-btn__badge,
-a.cta-btn__badge {
-  background-color: hsl(19, 95%, 20%);
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-  border-radius: 5px;
-  font-size: 0.7em;
-}
-
 /* Button inside carousel */
+/* Cards run as narrow as 130px on phones, so the inset drops to ol-button
+   small's to give the label as much of the card as it can. */
 .carousel-section .cta-btn {
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  padding-inline: var(--spacing-sm);
   font-size: var(--font-size-label-large);
   text-align: center;
 }
 
-.carousel-section .cta-btn.cta-btn--external {
-  padding-right: var(--spacing-inset-lg);
-}
-
 /* Top margin to button coming after another button */
 .cta-btn + form input.cta-btn,
+.cta-btn + form button.cta-btn,
 .cta-btn + .cta-btn {
   margin-top: var(--spacing-stack-xs);
 }
@@ -242,9 +227,9 @@ a.cta-btn__badge {
   width: auto;
   display: inline-block;
   margin: 0;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
   background-color: var(--light-beige);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .waitinglist-message {
@@ -257,12 +242,15 @@ a.cta-btn__badge {
 }
 
 .cta-button-group .cta-btn {
-  padding: var(--spacing-inset-sm);
   margin: 0;
+}
 
-  /* Avoid text wrapping */
-  text-overflow: ellipsis;
-  overflow: hidden;
+.return-form {
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+form.return-form > ol-button {
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
@@ -282,4 +270,90 @@ a.cta-btn__badge {
   /* Not tokenized: 1px gap is intentional for connected button group appearance */
   margin-left: 1px;
   border-radius: 2px 6px 6px 2px;
+}
+
+/**
+ * Preview + Search Inside Buttons
+ */
+
+.book-preview-buttons {
+  gap: 6px;
+}
+
+/**
+ * Search Inside Form
+ */
+
+.search-inside-form {
+  position: relative;
+  width: 100%;
+}
+
+.search-inside-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 50px 6px 10px;
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: 4px;
+  font-size: var(--font-size-body-medium);
+}
+
+.search-submit-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 28px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  /* The glyph strokes with currentColor, so the blue is set on the button. */
+  color: var(--primary-blue);
+  display: flex;
+  align-items: center;
+}
+
+.search-cancel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+}
+
+.search-cancel-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+/**
+ * Book Preview Modal Content
+ */
+
+.book-preview {
+  display: flex;
+  flex-direction: column;
+  /* Max height of content fits viewport without scrolling the dialog body */
+  height: calc(100dvh - var(--ol-dialog-top-offset, 64px) - 160px);
+  min-height: 380px;
+  max-height: 515px;
+}
+
+.book-preview iframe {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+}
+
+.book-preview .learn-more {
+  margin-top: var(--spacing-md);
+  margin-bottom: 0;
+  text-align: center;
 }

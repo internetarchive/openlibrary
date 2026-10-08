@@ -51,6 +51,7 @@ export default {
             default: ''
         }
     },
+    emits: ['update-selected'],
     data: function() {
         return {
             /**
@@ -59,7 +60,7 @@ export default {
              * @type {boolean}
              */
             isSelected: this.selected
-        }
+        };
     },
     computed: {
         /**
@@ -72,8 +73,8 @@ export default {
         }
     },
     watch: {
-        selected (newValue) {
-            this.isSelected = newValue
+        selected(newValue) {
+            this.isSelected = newValue;
         }
     },
     methods: {
@@ -88,7 +89,7 @@ export default {
              * @property {boolean} isSelected Selected status of this chip.
              * @property {String} text Main text displayed by this chip.
              */
-            this.$emit('update-selected', this.isSelected, this.text)
+            this.$emit('update-selected', this.isSelected, this.text);
         },
         /**
          * Toggles the state of `isSelected`
@@ -97,7 +98,7 @@ export default {
             this.isSelected = !this.isSelected;
         }
     }
-}
+};
 </script>
 
 <style scoped>

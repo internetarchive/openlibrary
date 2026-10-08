@@ -70,7 +70,7 @@ registerRoute(
             cacheableResponses
         ],
     })
-)
+);
 
 registerRoute(
     matchSmallMediumCovers,

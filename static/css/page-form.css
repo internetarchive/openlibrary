@@ -24,18 +24,10 @@ div#revertLink,
   display: none;
 }
 /* stylelint-enable selector-max-specificity */
-.formButtons {
-  position: absolute;
-  height: 50px;
-  bottom: 0;
-  left: 0;
-  text-align: center;
-  cursor: pointer;
-}
 .column {
   min-height: 90px;
   margin: 10px;
-  background-image: url(/images/back_sortable.png);
+  background-image: url(/static/images/back_sortable.png);
   background-repeat: no-repeat;
 }
 .trashCan {
@@ -44,7 +36,7 @@ div#revertLink,
   right: 32px;
   width: 32px;
   height: 42px;
-  background-image: url(/images/back_sort-trash.png);
+  background-image: url(/static/images/back_sort-trash.png);
   background-repeat: no-repeat;
   background-position: 0 0;
   cursor: pointer;
@@ -62,7 +54,7 @@ div#revertLink,
   background-color: var(--light-yellow);
   margin: 0 10px;
   border-radius: 8px;
-  border: 1px solid var(--dark-yellow);
+  border: 1px solid var(--color-warning-border);
 }
 .portlet {
   margin: 7px 13px 13px 7px;
@@ -70,7 +62,7 @@ div#revertLink,
   width: 70px;
   height: 70px;
   overflow: hidden;
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   cursor: move;
 }
@@ -94,19 +86,19 @@ div#revertLink,
 .imageSaved {
   width: 300px;
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 .imageSaved .imageSaved__button {
   text-decoration: none;
 }
 .saved {
-  background: url(/images/icons/icon_saved.png) no-repeat;
+  background: url(/static/images/icons/icon_saved.png) no-repeat;
   font-size: 1.5em;
   font-weight: 700;
   color: var(--black);
-  padding: 6px 0 0 40px;
+  padding: var(--spacing-inset-xs) 0 0 40px;
   min-height: 30px;
-  margin: 25px 0 15px;
+  margin: var(--spacing-stack-lg) 0 var(--spacing-stack-md);
 }
 .saved-image-container {
   display: flex;
@@ -126,9 +118,6 @@ div#revertLink,
     min-height: 440px;
   }
   /* stylelint-enable selector-max-specificity */
-  .formButtons {
-    width: 600px;
-  }
   .column {
     width: 560px;
   }
@@ -149,17 +138,13 @@ div#revertLink,
 }
 
 .ol-cover-form .label {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .ol-cover-form .input {
   display: flex;
   gap: 10px;
   align-items: center;
-}
-
-.ol-cover-form--ia_image {
-  height: 200px;
 }
 
 .ol-cover-form--clipboard .image-container img {

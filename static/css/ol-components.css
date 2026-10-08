@@ -1,0 +1,144 @@
+/**
+ * ol-components.css — site-wide styles for OL web components.
+ *
+ * Loaded render-blocking on every page (see site/head.html), separately
+ * from the page-* bundles, so it caches once per visitor and serves all
+ * subsequent pages from cache. Same pattern as tokens.css.
+ *
+ * What belongs here: CSS that needs to be in the document outside any
+ * shadow root — i.e. styles for light-DOM web components (<ol-banner>)
+ * and pre-upgrade rules for shadow-DOM components: reserving height
+ * before Lit upgrades them, or painting the resting state on the host
+ * tag so a server-rendered control looks right on first paint
+ * (<ol-button>, keyed on :not(:defined)).
+ *
+ * What does NOT belong here: page-specific styles, shadow-DOM component
+ * internals (those ship inside the component's JS).
+ */
+
+@import "components/ol-button.css";
+@import "components/ol-banner.css";
+@import "components/ol-icon.css";
+@import "components/ol-shelf-button.css";
+@import "components/popover-menu.css";
+
+/* Pre-hydration sizing for shadow-DOM web components. These rules apply
+   only until the component upgrades and renders its own shadow root. */
+
+/* Hide ol-read-more content before component is defined to prevent flash
+   of unstyled content. min-height matches the default rendered height. */
+ol-read-more {
+  min-height: 121px;
+  visibility: hidden;
+  overflow: hidden;
+}
+
+ol-read-more[label-size="small"] {
+  min-height: 107px;
+}
+
+/* Reserve height for ol-chip before Lit hydrates to prevent layout shift. */
+ol-chip:not(:defined) {
+  display: inline-block;
+  height: 30px;
+}
+
+ol-chip[size="small"]:not(:defined) {
+  height: 24px;
+}
+
+/* <ol-segment> elements are pure declarative data for <ol-segmented-control>:
+   the control reads their value/label on connect and renders its own radios in
+   the shadow root, so the light-DOM children should never be visible. */
+ol-segment {
+  display: none;
+}
+
+/* Reserve height for ol-segmented-control before Lit hydrates, matching the
+   rendered track height per size, to prevent layout shift. */
+ol-segmented-control:not(:defined) {
+  display: inline-block;
+  height: var(--control-height-medium);
+}
+
+ol-segmented-control[size="small"]:not(:defined) {
+  height: var(--control-height-small);
+}
+
+ol-segmented-control[size="large"]:not(:defined) {
+  height: var(--control-height-large);
+}
+
+/* Before ol-popover upgrades, its default-slot content (the panel) renders
+   in the light DOM. Hide everything except the trigger so the popover body
+   doesn't flash on page load; the upgraded component manages it in its
+   shadow root. */
+ol-popover:not(:defined) > :not([slot="trigger"]) {
+  display: none;
+}
+
+/* Match the upgraded :host box so the trigger sizes the same on first paint —
+   otherwise a stretched trigger (the split CTA's caret) starts short and grows.
+   Zero specificity, so a page's own rule on the element (e.g. a hidden
+   .ds__nav-popover) wins before upgrade as it does after. */
+:where(ol-popover:not(:defined)) {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+}
+
+/* Hide ol-drawer's slotted menu content before the component upgrades; the
+   drawer shell renders in its shadow root once Lit defines it. */
+ol-drawer:not(:defined) {
+  display: none;
+}
+
+/* Same for ol-dialog, and load-bearing: until Lit upgrades it the slotted body
+   is ordinary page markup, so an `autofocus` field in there is a document-level
+   candidate — the browser focuses it at first paint and scrolls the page to a
+   dialog that is about to be hidden. The upgraded component reads [autofocus]
+   itself when it opens. */
+ol-dialog:not(:defined) {
+  display: none;
+}
+
+/* Before ol-carousel upgrades, its items would stack as full-width blocks —
+   a tall flash and a large layout shift. Lay out one clipped row instead,
+   with item widths approximating the measured layout: (1 - 2 * peek) / cols
+   for the column counts in OlCarousel._breakpoints. The media queries key on
+   viewport width where the component measures its own width, so counts only
+   approximate inside narrow containers — close enough for a skeleton. */
+ol-carousel:not(:defined) {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+}
+
+ol-carousel:not(:defined) > * {
+  flex: 0 0 11.75%; /* 8 columns */
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  ol-carousel:not(:defined) > * {
+    flex-basis: 13.4%; /* 7 columns */
+  }
+}
+
+@media (max-width: 768px) {
+  ol-carousel:not(:defined) > * {
+    flex-basis: 18.8%; /* 5 columns */
+  }
+}
+
+@media (max-width: 600px) {
+  ol-carousel:not(:defined) > * {
+    flex-basis: 23.5%; /* 4 columns */
+  }
+}
+
+@media (max-width: 480px) {
+  ol-carousel:not(:defined) > * {
+    flex-basis: 31.3%; /* 3 columns */
+  }
+}

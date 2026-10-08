@@ -9,21 +9,21 @@ import lxml.etree as ET
 
 
 class OPDS:
-    xmlns_atom = 'http://www.w3.org/2005/Atom'
-    xmlns_dcterms = 'http://purl.org/dc/terms/'
-    xmlns_opds = 'http://opds-spec.org/'
-    xmlns_rdvocab = 'http://RDVocab.info/elements/'
-    xmlns_bibo = 'http://purl.org/ontology/bibo/'
-    xmlns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
+    xmlns_atom = "http://www.w3.org/2005/Atom"
+    xmlns_dcterms = "http://purl.org/dc/terms/"
+    xmlns_opds = "http://opds-spec.org/"
+    xmlns_rdvocab = "http://RDVocab.info/elements/"
+    xmlns_bibo = "http://purl.org/ontology/bibo/"
+    xmlns_xsi = "http://www.w3.org/2001/XMLSchema-instance"
 
     nsmap = MappingProxyType(
         {
             None: xmlns_atom,
-            'dcterms': xmlns_dcterms,
-            'opds': xmlns_opds,
-            'rdvocab': xmlns_rdvocab,
-            'bibo': xmlns_bibo,
-            'xsi': xmlns_xsi,
+            "dcterms": xmlns_dcterms,
+            "opds": xmlns_opds,
+            "rdvocab": xmlns_rdvocab,
+            "bibo": xmlns_bibo,
+            "xsi": xmlns_xsi,
         }
     )
 
@@ -36,16 +36,16 @@ class OPDS:
 
     fileExtMap = MappingProxyType(
         {
-            'pdf': 'application/pdf',
-            'epub': 'application/epub+zip',
-            'mobi': 'application/x-mobipocket-ebook',
+            "pdf": "application/pdf",
+            "epub": "application/epub+zip",
+            "mobi": "application/x-mobipocket-ebook",
         }
     )
 
     ebookTypes = (
-        'application/pdf',
-        'application/epub+zip',
-        'application/x-mobipocket-ebook',
+        "application/pdf",
+        "application/epub+zip",
+        "application/x-mobipocket-ebook",
     )
 
     # create_text_element()
@@ -65,7 +65,7 @@ class OPDS:
 
     # add_list()
     # ___________________________________________________________________________
-    def add_list(self, name, values, prefix='', attrs=None):
+    def add_list(self, name, values, prefix="", attrs=None):
         attrs = attrs or {}
         if isinstance(values, (list, tuple)):
             for v in values:
@@ -76,26 +76,24 @@ class OPDS:
     # add_author()
     # ___________________________________________________________________________
     def add_author(self, name, uri=None):
-        element = ET.SubElement(self.root, 'author')
-        self.create_text_element(element, 'name', name)
+        element = ET.SubElement(self.root, "author")
+        self.create_text_element(element, "name", name)
         if uri:
-            self.create_text_element(element, 'uri', uri)
+            self.create_text_element(element, "uri", uri)
         return element
 
     # create_rel_link()
     # ___________________________________________________________________________
-    def create_rel_link(
-        self, parent, rel, absurl, type='application/atom+xml', title=None
-    ):
+    def create_rel_link(self, parent, rel, absurl, type="application/atom+xml", title=None):
         if parent is None:
             parent = self.root
 
-        element = ET.SubElement(parent, 'link')
-        element.attrib['rel'] = rel
-        element.attrib['type'] = type
-        element.attrib['href'] = absurl
+        element = ET.SubElement(parent, "link")
+        element.attrib["rel"] = rel
+        element.attrib["type"] = type
+        element.attrib["href"] = absurl
         if title:
-            element.attrib['title'] = title
+            element.attrib["title"] = title
 
         return element
 
@@ -138,8 +136,8 @@ class OPDSEntry(OPDS):
     # add_indirect_acq()
     # ___________________________________________________________________________
     def add_indirect_acq(self, parent, type):
-        element = ET.SubElement(parent, self.opdsNS + 'indirectAcquisition')
-        element.attrib['type'] = type
+        element = ET.SubElement(parent, self.opdsNS + "indirectAcquisition")
+        element.attrib["type"] = type
         return element
 
     # add_acquisition_links()
@@ -148,38 +146,36 @@ class OPDSEntry(OPDS):
         if not book.ocaid:
             return
 
-        if 'inlibrary' in collection:
+        if "inlibrary" in collection:
             available_loans = book.get_available_loans()
-            loan_types = [loan['resource_type'] for loan in available_loans]
-            got_epub = 'epub' in loan_types
-            got_pdf = 'pdf' in loan_types
+            loan_types = [loan["resource_type"] for loan in available_loans]
+            got_epub = "epub" in loan_types
+            got_pdf = "pdf" in loan_types
 
             if got_epub or got_pdf:
                 link = self.create_rel_link(
                     None,
-                    'http://opds-spec.org/acquisition/borrow',
-                    'https://openlibrary.org' + book.url('/borrow'),
-                    'text/html',
+                    "http://opds-spec.org/acquisition/borrow",
+                    "https://openlibrary.org" + book.url("/borrow"),
+                    "text/html",
                 )
-                indirect_acq = self.add_indirect_acq(
-                    link, 'application/vnd.adobe.adept+xml'
-                )
+                indirect_acq = self.add_indirect_acq(link, "application/vnd.adobe.adept+xml")
                 if got_epub:
-                    self.add_indirect_acq(indirect_acq, 'application/epub+zip')
+                    self.add_indirect_acq(indirect_acq, "application/epub+zip")
                 if got_pdf:
-                    self.add_indirect_acq(indirect_acq, 'application/pdf')
-        elif 'printdisabled' not in collection:
+                    self.add_indirect_acq(indirect_acq, "application/pdf")
+        elif "printdisabled" not in collection:
             self.create_rel_link(
                 None,
-                'http://opds-spec.org/acquisition/open-access',
-                f'https://archive.org/download/{book.ocaid}/{book.ocaid}.pdf',
-                'application/pdf',
+                "http://opds-spec.org/acquisition/open-access",
+                f"https://archive.org/download/{book.ocaid}/{book.ocaid}.pdf",
+                "application/pdf",
             )
             self.create_rel_link(
                 None,
-                'http://opds-spec.org/acquisition/open-access',
-                f'https://archive.org/download/{book.ocaid}/{book.ocaid}.epub',
-                'application/epub+zip',
+                "http://opds-spec.org/acquisition/open-access",
+                f"https://archive.org/download/{book.ocaid}/{book.ocaid}.epub",
+                "application/epub+zip",
             )
 
     # add_rel_links()
@@ -188,34 +184,32 @@ class OPDSEntry(OPDS):
         if work:
             self.create_rel_link(
                 None,
-                'related',
-                'https://openlibrary.org' + work.key,
-                'text/html',
-                'Open Library Work',
+                "related",
+                "https://openlibrary.org" + work.key,
+                "text/html",
+                "Open Library Work",
             )
 
         for name, values in book.get_identifiers().multi_items():
             for id in values:
                 if id.url and name not in [
-                    'oclc_numbers',
-                    'lccn',
-                    'ocaid',
+                    "oclc_numbers",
+                    "lccn",
+                    "ocaid",
                 ]:  # these go in other elements
-                    self.create_rel_link(
-                        None, 'related', id.url, 'text/html', 'View on ' + id.label
-                    )
+                    self.create_rel_link(None, "related", id.url, "text/html", "View on " + id.label)
 
     # __init__()
     # ___________________________________________________________________________
     def __init__(self, book):
-        self.root = self.create_root('entry')
+        self.root = self.create_root("entry")
 
         bookID = book.key
-        atomID = 'https://openlibrary.org' + bookID + '.opds'
+        atomID = "https://openlibrary.org" + bookID + ".opds"
         title = book.title
         if book.subtitle:
             title += " " + book.subtitle
-        updated = book.last_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
+        updated = book.last_modified.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         work = book.works and book.works[0]
 
@@ -231,76 +225,70 @@ class OPDSEntry(OPDS):
         # the collection and inlibrary check is coped from databarWork.html
         collection = set()
         if meta_fields := book.get_ia_meta_fields():
-            collection = meta_fields.get('collection', [])
+            collection = meta_fields.get("collection", [])
 
-        coverLarge = book.get_cover_url('L')
-        coverThumb = book.get_cover_url('S')
+        coverLarge = book.get_cover_url("L")
+        coverThumb = book.get_cover_url("S")
 
-        self.add('id', atomID)
-        self.create_rel_link(None, 'self', atomID)
-        self.create_rel_link(
-            None, 'alternate', 'https://openlibrary.org' + book.url(), 'text/html'
-        )
-        self.add('title', title)
-        self.add('updated', updated)
+        self.add("id", atomID)
+        self.create_rel_link(None, "self", atomID)
+        self.create_rel_link(None, "alternate", "https://openlibrary.org" + book.url(), "text/html")
+        self.add("title", title)
+        self.add("updated", updated)
 
         for a in authors:
-            self.add_author(a.name, 'https://openlibrary.org' + a.url())
+            self.add_author(a.name, "https://openlibrary.org" + a.url())
 
-        self.add_list(self.dcterms + 'publisher', book.publishers)
-        self.add_list(self.rdvocab + 'placeOfPublication', book.publish_places)
-        self.add_list(self.dcterms + 'issued', book.publish_date)
-        self.add_list(self.dcterms + 'extent', pages)
-        self.add_list(self.rdvocab + 'dimensions', book.physical_dimensions)
-        self.add_list(self.bibo + 'edition', book.edition_name)
+        self.add_list(self.dcterms + "publisher", book.publishers)
+        self.add_list(self.rdvocab + "placeOfPublication", book.publish_places)
+        self.add_list(self.dcterms + "issued", book.publish_date)
+        self.add_list(self.dcterms + "extent", pages)
+        self.add_list(self.rdvocab + "dimensions", book.physical_dimensions)
+        self.add_list(self.bibo + "edition", book.edition_name)
 
         for subject in subjects:
             self.add_category(
-                '/subjects/' + subject.lower().replace(' ', '_').replace(',', ''),
+                "/subjects/" + subject.lower().replace(" ", "_").replace(",", ""),
                 subject,
             )
 
-        self.add_list('summary', book.description)
-        self.add_list(self.rdvocab + 'note', book.notes)
+        self.add_list("summary", book.description)
+        self.add_list(self.rdvocab + "note", book.notes)
 
         for lang in book.languages:
-            self.add_list(self.dcterms + 'language', lang.code)
+            self.add_list(self.dcterms + "language", lang.code)
 
         self.add_list(
-            self.dcterms + 'identifier',
+            self.dcterms + "identifier",
             book.key,
-            'https://openlibrary.org',
-            {self.xsi + 'type': 'dcterms:URI'},
+            "https://openlibrary.org",
+            {self.xsi + "type": "dcterms:URI"},
         )
         self.add_list(
-            self.dcterms + 'identifier',
+            self.dcterms + "identifier",
             book.ocaid,
-            'https://archive.org/details/',
-            {self.xsi + 'type': 'dcterms:URI'},
+            "https://archive.org/details/",
+            {self.xsi + "type": "dcterms:URI"},
         )
         self.add_list(
-            self.dcterms + 'identifier',
+            self.dcterms + "identifier",
             book.isbn_10,
-            'urn:ISBN:',
-            {self.xsi + 'type': 'dcterms:ISBN'},
+            "urn:ISBN:",
+            {self.xsi + "type": "dcterms:ISBN"},
         )
         self.add_list(
-            self.dcterms + 'identifier',
+            self.dcterms + "identifier",
             book.isbn_13,
-            'urn:ISBN:',
-            {self.xsi + 'type': 'dcterms:ISBN'},
+            "urn:ISBN:",
+            {self.xsi + "type": "dcterms:ISBN"},
         )
-        self.add_list(self.bibo + 'oclcnum', book.oclc_numbers)
-        self.add_list(self.bibo + 'lccn', book.lccn)
+        self.add_list(self.bibo + "oclcnum", book.oclc_numbers)
+        self.add_list(self.bibo + "lccn", book.lccn)
 
         if coverLarge:
-            self.create_rel_link(
-                None, 'http://opds-spec.org/image', coverLarge, 'image/jpeg'
-            )
+            self.create_rel_link(None, "http://opds-spec.org/image", coverLarge, "image/jpeg")
         if coverThumb:
-            self.create_rel_link(
-                None, 'http://opds-spec.org/image/thumbnail', coverThumb, 'image/jpeg'
-            )
+            self.create_rel_link(None, "http://opds-spec.org/image/thumbnail", coverThumb, "image/jpeg")
 
         self.add_acquisition_links(book, collection)
         self.add_rel_links(book, work)
@@ -313,6 +301,6 @@ def xmlsafe(s):
     byte value below 32. This function strips them all.
     """
     if isinstance(s, bytes):
-        s = s.decode('utf-8')
+        s = s.decode("utf-8")
     # ignore the first 32 bytes of ASCII, which are not allowed in XML
     return "".join(c for c in s if ord(c) >= 0x20)

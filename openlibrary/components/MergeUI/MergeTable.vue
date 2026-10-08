@@ -24,7 +24,7 @@
         :class="{ selected: selected[record.key]}"
         :cell-selected="isCellUsed"
         :merged="merge ? merge.record : null"
-        :show_diffs="show_diffs"
+        :show-diffs="showDiffs"
       >
         <template #pre>
           <td
@@ -71,9 +71,8 @@
 
 <script>
 /* eslint no-console: 0 */
-import _ from 'lodash';
 import MergeRow from './MergeRow.vue';
-import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry } from './utils.js';
+import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry, cloneJSON } from './utils.js';
 import CONFIGS from '../configs.js';
 
 
@@ -98,7 +97,7 @@ async function fetchRecords(olids) {
     };
     const params = new URLSearchParams({query: JSON.stringify(query)});
 
-    return (await fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json()
+    return (await fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json();
 }
 
 export default {
@@ -107,9 +106,15 @@ export default {
         MergeRow
     },
     props: {
-        olids: Array,
-        show_diffs: Boolean,
-        primary: String
+        olids: {
+            type: Array,
+            required: true
+        },
+        showDiffs: Boolean,
+        primary: {
+            type: String,
+            default: ''
+        }
     },
     data() {
         return {
@@ -120,25 +125,22 @@ export default {
     },
     asyncComputed: {
         async records() {
-            const records = _.orderBy(
-                await fetchRecords(this.olids),
-                [
-                    // Ensure orphaned editions are at the bottom of the list
-                    record => record.type.key,
-                    // Sort by key, so oldest records are at the top
-                    record => parseFloat(record.key.match(/\d+/)[0]),
-                ],
-                ['desc', 'asc'],
+            const olidNumber = record => parseFloat(record.key.match(/\d+/)[0]);
+            const records = (await fetchRecords(this.olids)).sort((a, b) =>
+                // Ensure orphaned editions are at the bottom of the list
+                (a.type.key < b.type.key) - (a.type.key > b.type.key) ||
+                // Sort by key, so oldest records are at the top
+                olidNumber(a) - olidNumber(b)
             );
 
-            let masterIndex = 0
+            let masterIndex = 0;
             if (this.primary) {
-                const primaryKey = `/works/${this.primary}`
-                masterIndex = records.findIndex(elem => elem.key === primaryKey)
+                const primaryKey = `/works/${this.primary}`;
+                masterIndex = records.findIndex(elem => elem.key === primaryKey);
             }
 
-            this.master_key = records[masterIndex].key
-            this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
+            this.master_key = records[masterIndex].key;
+            this.selected = Object.fromEntries(records.map(record => [record.key, record.type.key.includes('work')]));
 
             return records;
         },
@@ -155,7 +157,7 @@ export default {
                 console.error('Error creating enhancedRecords:', error);
             }
 
-            const enhanced_records = _.cloneDeep(this.records)
+            const enhanced_records = cloneJSON(this.records);
 
             for (const record of enhanced_records) {
                 for (const entry of (record.authors || [])) {
@@ -165,7 +167,7 @@ export default {
                     entry.name = author_names[authorKey.slice('/authors/'.length)];
                 }
             }
-            return enhanced_records
+            return enhanced_records;
         },
 
         async editions() {
@@ -175,7 +177,7 @@ export default {
                 this.records.map(r => r.type.key.includes('work') ? get_editions(r.key) : {size: 0})
             );
             const editions = editionPromises.map(p => p.value || p);
-            const editionsMap = _.fromPairs(
+            const editionsMap = Object.fromEntries(
                 this.records.map((work, i) => [work.key, editions[i]])
             );
 
@@ -195,7 +197,7 @@ export default {
                 this.records.map(r => (r.type.key === '/type/work') ? get_lists(r.key, 0) : {})
             );
             const responses = promises.map(p => p.value || p);
-            return _.fromPairs(
+            return Object.fromEntries(
                 this.records.map((work, i) => [work.key, responses[i]])
             );
         },
@@ -206,7 +208,7 @@ export default {
                 this.records.map(r => (r.type.key === '/type/work') ? get_bookshelves(r.key) : {})
             );
             const responses = promises.map(p => p.value || p);
-            return _.fromPairs(
+            return Object.fromEntries(
                 this.records.map((work, i) => [work.key, responses[i]])
             );
         },
@@ -218,7 +220,7 @@ export default {
                 this.records.map(r => (r.type.key === '/type/work') ? get_ratings(r.key) : {})
             );
             const responses = promises.map(p => p.value || p);
-            return _.fromPairs(
+            return Object.fromEntries(
                 this.records.map((work, i) => [work.key, responses[i]])
             );
         },
@@ -255,8 +257,8 @@ export default {
                 'latest_revision',
                 'id',
             ];
-            const recordFields = _.uniq(_.flatMap(this.records, Object.keys));
-            const otherFields = _.difference(recordFields, [
+            const recordFields = [...new Set((this.records || []).flatMap(record => Object.keys(record)))];
+            const knownFields = new Set([
                 ...at_start,
                 ...together,
                 ...subjects,
@@ -265,8 +267,9 @@ export default {
                 ...text_data,
                 ...exclude
             ]);
-            const usedIdentifiers = _.intersection(identifiers, recordFields);
-            const usedTextData = _.intersection(text_data, recordFields);
+            const otherFields = recordFields.filter(field => !knownFields.has(field));
+            const usedIdentifiers = identifiers.filter(field => recordFields.includes(field));
+            const usedTextData = text_data.filter(field => recordFields.includes(field));
             return [
                 ...at_start,
                 together.join('|'),
@@ -302,16 +305,13 @@ export default {
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
             const dupes = all_dupes.filter(r => r.type.key === '/type/work');
-            const editions_to_move = _.flatMap(
-                all_dupes,
-                work => this.editions[work.key].entries
-            );
+            const editions_to_move = all_dupes.flatMap(work => this.editions[work.key].entries);
 
             const [record, sources] = merge(master, dupes);
 
             const extras = {
-                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
-                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
+                edition_count: records.reduce((total, r) => total + (this.editions[r.key].size || 0), 0),
+                list_count: (this.lists) ? records.reduce((total, r) => total + (this.lists[r.key].size || 0), 0) : null
             };
 
             const unmergeable_works = records
@@ -345,11 +345,14 @@ time {
 table.main {
   border-collapse: collapse;
   min-width: 100%;
+  /* Contain the sticky header/footer's stacking. A shadow root is not a stacking
+     context, so without this their z-index competes with the whole page. */
+  isolation: isolate;
 }
 table.main thead,
 table.main tfoot {
   position: sticky;
-  z-index: 300;
+  z-index: var(--z-index-local-1);
 }
 table.main > thead {
   top: 0;

@@ -9,7 +9,7 @@ It is in a is a separate file to avoid this error when writing tests:
 
 export function matchMiscFiles({ url }) {
     const miscFiles = ['/favicon.ico', '/static/manifest.json', '/cdn/archive.org/athena.js',
-        '/cdn/archive.org/donate.js']
+        '/cdn/archive.org/donate.js'];
     return miscFiles.includes(url.pathname);
 }
 
@@ -30,7 +30,7 @@ export function matchStaticImages({ url }) {
 
 export function matchStaticBuild({ url }) {
     const regex = /^\/static\/build\/.*(\.js|\.css)/;
-    const localhost = url.origin.includes('localhost')
+    const localhost = url.origin.includes('localhost');
     return !localhost && regex.test(url.pathname);
 }
 

@@ -154,7 +154,7 @@
 <script>
 import {sampleData} from '../utils/samples.js';
 import { BulkSearchState} from '../utils/classes.js';
-import { buildSearchUrl } from '../utils/searchUtils.js'
+import { buildSearchUrl } from '../utils/searchUtils.js';
 export default {
 
     props: {
@@ -169,7 +169,7 @@ export default {
             loadingMatchedBooks: false,
             matchBooksDisabled: true,
             createListDisabled: true,
-        }
+        };
     },
     computed: {
         activeStep() {
@@ -182,20 +182,20 @@ export default {
             }
         },
         showApiKey(){
-            if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor
-            return false
+            if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor;
+            return false;
         },
         extractBooksText(){
-            if (this.loadingExtractedBooks) return 'Loading...'
-            return 'Extract Books'
+            if (this.loadingExtractedBooks) return 'Loading...';
+            return 'Extract Books';
         },
         matchBooksText(){
-            if (this.loadingMatchedBooks) return 'Loading...'
-            return 'Match Books'
+            if (this.loadingMatchedBooks) return 'Loading...';
+            return 'Match Books';
         },
         showColumnHint(){
-            if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor'
-            return false
+            if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor';
+            return false;
         },
     },
     watch: {
@@ -212,36 +212,36 @@ export default {
     },
     methods: {
         togglePasswordVisibility(){
-            this.showPassword= !this.showPassword
+            this.showPassword= !this.showPassword;
         },
         async extractBooks() {
-            this.loadingExtractedBooks = true
-            const extractedData = await this.bulkSearchState.activeExtractor.run(this.bulkSearchState.extractionOptions, this.bulkSearchState.inputText)
-            this.bulkSearchState.matchedBooks = extractedData
-            this.loadingExtractedBooks = false
+            this.loadingExtractedBooks = true;
+            const extractedData = await this.bulkSearchState.activeExtractor.run(this.bulkSearchState.extractionOptions, this.bulkSearchState.inputText);
+            this.bulkSearchState.matchedBooks = extractedData;
+            this.loadingExtractedBooks = false;
             this.matchBooksDisabled = false;
             this.createListDisabled = true;
         },
         async matchBooks() {
-            const fetchSolrBook = async function (book, matchOptions) {
+            const fetchSolrBook = async function(book, matchOptions) {
                 try {
-                    const data = await fetch(buildSearchUrl(book, matchOptions, true))
-                    return await data.json()
+                    const data = await fetch(buildSearchUrl(book, matchOptions, true));
+                    return await data.json();
                 }
                 catch (error) {
                     // Silence errors - failing to match a book is expected
                 }
-            }
-            this.loadingMatchedBooks = true
+            };
+            this.loadingMatchedBooks = true;
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
-                bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
+                bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions);
             }
-            this.loadingMatchedBooks = false
-            this.createListDisabled = false
+            this.loadingMatchedBooks = false;
+            this.createListDisabled = false;
         },
 
     }
-}
+};
 </script>
 
 <style>

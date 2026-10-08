@@ -1,0 +1,3 @@
+{% macro code_block() %}
+    <pre class="example__code"><code class="language-html">{{ caller() | dedent | force_escape }}</code></pre>
+{% endmacro %}

@@ -1,33 +1,47 @@
 name: new_pr_labeler
-on:
+on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
   pull_request_target:
+    # `ready_for_review` is needed alongside `opened`: a PR opened as a draft is
+    # skipped by the `!draft` guard below, and with `opened` as the only trigger
+    # nothing ever re-evaluates it, so it never enters the labeling pipeline at
+    # all -- no priority label, no lead, not even `Needs: Lead`. A PR opened ready
+    # never emits `ready_for_review`, so this does not double-label.
+    #
+    # Same trigger pair as auto_assign_reviewer.yml, which handles this correctly.
     types:
       - opened
+      - ready_for_review
 env:
   NODE_VERSION: '24'
 jobs:
   label_pr:
-    # Continue only if the PR is not a draft, and was opened in the same repository that is running this action:
-    if: ${{ github.repository == github.event.repository.full_name && !github.event.pull_request.draft}}
+    # Continue only if this is the canonical repo and the PR is not a draft.
+    #
+    # Note this guard intentionally does NOT exclude fork-authored PRs -- those should
+    # be labeled too, and pull_request_target keeps the write token needed to do it.
+    if: ${{ github.repository == 'internetarchive/openlibrary' && !github.event.pull_request.draft }}
     permissions:
       contents: read
       issues: read
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@v5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: cache-octokit
         with:
           path: 'node_modules'
           # Cache key shared across workflows
           key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
       - if: steps.cache-octokit.outputs.cache-hit != 'true'
-        run: npm install @octokit/action
-      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} ${{ github.event.pull_request.user.login }} ${{ github.event.pull_request.number }} "$PR_BODY"
+        run: npm install @octokit/action  # zizmor: ignore[adhoc-packages]
+      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} ${GITHUB_EVENT_PULL_REQUEST_USER_LOGIN} ${{ github.event.pull_request.number }} "$PR_BODY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_BODY: ${{ github.event.pull_request.body }}
+          GITHUB_EVENT_PULL_REQUEST_USER_LOGIN: ${{ github.event.pull_request.user.login }}

@@ -17,15 +17,14 @@
   padding: 10px;
   display: inline-block;
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   border: 1px solid var(--mid-grey);
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 .subjectTagEdit .editTagButton:hover {
   background-color: var(--grey-e7e7e7);
 }
 .subjectTagEdit a.editTagButton {
   text-decoration: none;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }

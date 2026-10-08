@@ -2,6 +2,6 @@
 # Run like this:
 # uv pip install -r requirements_scripts.txt && PYTHONPATH=. python ./path/to/script.py optional_args... && uv pip uninstall -y -r requirements_scripts.txt
 
-mwparserfromhell==0.6.6
+mwparserfromhell==0.7.2
 nameparser==1.1.3
-wikitextparser==0.56.1
+wikitextparser==0.56.4

@@ -6,6 +6,9 @@
  * -  https://openlibrary.org/books/OL7521653M/Holes/daisy
  */
 
+/* Import all common components */
+@import "legacy.css";
+
 footer,
 div#bottom,
 .siteSearch {
@@ -31,7 +34,7 @@ div.nav {
 /* Specific to borrowTable component */
 
 .borrow-table {
-  margin: 60px 0 25px;
+  margin: 60px 0 var(--spacing-stack-lg);
 }
 
 .borrow-table p {
@@ -53,7 +56,7 @@ div.nav {
 
 .borrow-table table th.expires {
   font-family: var(--font-family-body);
-  color: var(--brown);
+  color: var(--color-text-heading);
   font-weight: 600;
   font-size: 0.6875em;
   text-transform: uppercase;
@@ -68,10 +71,11 @@ div.nav {
 }
 
 div.message {
-  padding: 25px 25px 25px 55px;
+  padding: var(--spacing-inset-lg) var(--spacing-inset-lg)
+    var(--spacing-inset-lg) 55px;
   margin-bottom: 50px;
-  background: var(--light-yellow) url(/images/icons/icon_lock-msg.png) no-repeat
-    15px 50%;
+  background: var(--light-yellow) url(/static/images/icons/icon_lock-msg.png)
+    no-repeat 15px 50%;
 }
 div.message h2 {
   font-weight: normal;
@@ -101,41 +105,37 @@ ul.link li {
 }
 #faq p {
   font-size: 0.75em;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 p.help {
   font-size: var(--font-size-label-large);
 }
 div.alert {
-  background: var(--light-yellow) url(/images/icons/icon_alert-gold.png)
+  background: var(--light-yellow) url(/static/images/icons/icon_alert-gold.png)
     no-repeat 15px 50% !important;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
   margin-top: 20px;
 }
 div.stop {
-  background: var(--light-yellow) url(/images/icons/icon_stop.png) no-repeat
-    15px 50% !important;
+  background: var(--light-yellow) url(/static/images/icons/icon_stop.png)
+    no-repeat 15px 50% !important;
   margin-bottom: 45px;
   margin-top: 20px;
 }
 div.info {
-  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat
-    17px 50% !important;
+  background: var(--light-yellow) url(/static/images/icons/icon_info.png)
+    no-repeat 17px 50% !important;
   margin-bottom: 45px;
   margin-top: 20px;
 }
 h1 {
   font-size: 1.5em;
-  margin: 0 0 15px;
-}
-div.navBorrow {
-  margin: 50px 0 10px;
-  font-size: 0.75em;
+  margin: 0 0 var(--spacing-stack-md);
 }
 .panel {
   background-color: var(--white);
-  border: 1px solid var(--beige-two);
+  border: 1px solid var(--color-border-subtle);
   padding: 30px 20px;
   margin-bottom: 20px;
 }
@@ -146,26 +146,22 @@ div.navBorrow {
   font-size: 1.875em;
 }
 
-#borrowThis {
-  margin-bottom: 20px;
-}
-
 .borrow span.book {
   font-size: 1em;
   font-weight: 700;
 }
 .borrow span.author {
   font-size: 0.875em;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 .borrow span.publisher,
 .borrow span.contributor {
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 0.875em;
 }
 .borrow div.date {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 .borrow span.expires {
   font-size: 1em;
@@ -173,12 +169,3 @@ div.navBorrow {
 .borrow table {
   border-bottom: none;
 }
-
-div#listsWork p {
-  font-size: 0.75em;
-  padding-left: 0;
-  margin-bottom: 5px !important;
-}
-
-/* Import all common components */
-@import "legacy.css";

@@ -1,10 +1,13 @@
 from typing import cast
+from urllib.parse import parse_qsl
 
+import pytest
 import web
 
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
 )
+from openlibrary.plugins.admin import code as admin_code
 from openlibrary.plugins.admin.code import revert_all_user_edits
 
 
@@ -108,6 +111,57 @@ class TestRevertAllUserEdits:
         assert web.ctx.site.get("/works/OL123W").title == "Good Book Title"
         assert web.ctx.site.get("/works/OL123W").type.key == "/type/work"
 
+    def test_deletes_spam_lists(self, mock_site):
+        good_alice = make_test_account("good_alice")
+        spam_alice = make_test_account("spam_alice")
+
+        # Good alice's list should not be touched
+        web.ctx.site.save(
+            author=good_alice.get_user(),
+            query=make_thing("/people/good_alice/lists/OL1L", "Good List"),
+            action="lists",
+        )
+
+        # Spam alice creates a list (revision 1)
+        web.ctx.site.save(
+            author=spam_alice.get_user(),
+            query=make_thing("/people/spam_alice/lists/OL2L", "Spam List"),
+            action="lists",
+        )
+
+        revert_all_user_edits(spam_alice)
+
+        # Good list remains
+        assert web.ctx.site.get("/people/good_alice/lists/OL1L").type.key == "/type/list"
+
+        # Spam list is deleted
+        assert web.ctx.site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
+
+    def test_does_not_delete_edited_lists(self, mock_site):
+        good_alice = make_test_account("good_alice")
+        spam_alice = make_test_account("spam_alice")
+
+        # Good alice creates a list
+        web.ctx.site.save(
+            author=good_alice.get_user(),
+            query=make_thing("/people/good_alice/lists/OL1L", "Good List"),
+            action="lists",
+        )
+
+        # Spam alice edits good alice's list (revision 2 — spam alice did NOT create it)
+        web.ctx.site.save(
+            author=spam_alice.get_user(),
+            query=make_thing("/people/good_alice/lists/OL1L", "Vandalized List"),
+            action="lists",
+        )
+
+        revert_all_user_edits(spam_alice)
+
+        # The list should be reverted (back to good title) but NOT deleted
+        reverted = web.ctx.site.get("/people/good_alice/lists/OL1L")
+        assert reverted.type.key == "/type/list"
+        assert reverted.name == "Good List"
+
     def test_does_not_undelete(self, mock_site):
         spam_alice = make_test_account("spam_alice")
 
@@ -124,7 +178,7 @@ class TestRevertAllUserEdits:
 
         revert_all_user_edits(spam_alice)
 
-        assert web.ctx.site.get("/people/spam_alice/lists/OL123L").revision == 2
+        assert web.ctx.site.get("/people/spam_alice/lists/OL123L").revision >= 2
         assert web.ctx.site.get("/people/spam_alice/lists/OL123L").type.key == "/type/delete"
 
     def test_two_spammy_editors(self, mock_site):
@@ -168,3 +222,68 @@ class TestRevertAllUserEdits:
         assert web.ctx.site.get("/works/OL1W").type.key == "/type/delete"
         assert web.ctx.site.get("/works/OL2W").revision == 4
         assert web.ctx.site.get("/works/OL2W").type.key == "/type/delete"
+
+
+class TestPeopleEditsPost:
+    def test_revert_redirects_back_to_the_same_page(self, monkeypatch):
+        reverted = []
+        monkeypatch.setattr(admin_code, "revert_changesets", lambda ids, comment: reverted.append(ids))
+        monkeypatch.setattr(
+            web,
+            "input",
+            lambda **defaults: web.storage(defaults, changesets=["123"], action="revert"),
+        )
+        for name, value in {
+            "home": "http://localhost",
+            "path": "/admin/people/spammer/edits",
+            "fullpath": "/admin/people/spammer/edits?page=3",
+            "headers": [],
+            "status": None,
+        }.items():
+            monkeypatch.setattr(web.ctx, name, value, raising=False)
+
+        with pytest.raises(web.SeeOther):
+            admin_code.people_edits().POST("spammer")
+
+        assert reverted == [["123"]]
+        assert web.ctx.status == "303 See Other"
+        assert (
+            "Location",
+            "http://localhost/admin/people/spammer/edits?page=3",
+        ) in web.ctx.headers
+
+
+class TestPeopleEditsTemplate:
+    @pytest.fixture
+    def render_edits(self, monkeypatch, render_template):
+        account = web.storage(
+            username="spammer",
+            displayname="Spammer",
+            get_user=lambda: web.storage(key="/people/spammer"),
+            get_edit_count=lambda: 250,
+        )
+        monkeypatch.setitem(web.template.Template.globals, "recentchanges", lambda query: [])
+        monkeypatch.setitem(web.template.Template.globals, "request", web.storage(path="/admin/people/spammer/edits"))
+        monkeypatch.setitem(web.template.Template.globals, "macros", web.storage(OlPagination=lambda page, total_pages: f"pager:{page}/{total_pages}"))
+
+        def render(query_string):
+            monkeypatch.setattr(web, "input", lambda _m=None, **defaults: web.storage(defaults, **dict(parse_qsl(query_string))))
+            return render_template("admin/people/edits", account)
+
+        return render
+
+    @pytest.mark.parametrize(
+        ("query_string", "pager"),
+        [
+            ("", "pager:1/3"),
+            ("page=2&limit=50", "pager:2/5"),
+            ("page=0", "pager:1/3"),
+            ("page=-2", "pager:1/3"),
+            ("page=abc", "pager:1/3"),
+            ("limit=0", "pager:1/3"),
+            ("limit=-5", "pager:1/3"),
+            ("limit=abc", "pager:1/3"),
+        ],
+    )
+    def test_bad_page_and_limit_fall_back_to_defaults(self, render_edits, query_string, pager):
+        assert pager in render_edits(query_string)

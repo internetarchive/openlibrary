@@ -11,11 +11,11 @@ import {
 export function errorDisplay(message, error_output) {
     let errorSelector;
     if (error_output === '#hiddenAuthorIdentifiers') {
-        errorSelector = document.querySelector('#id-errors-author')
+        errorSelector = document.querySelector('#id-errors-author');
     } else if (error_output === '#hiddenWorkIdentifiers') {
-        errorSelector = document.querySelector('#id-errors-work')
+        errorSelector = document.querySelector('#id-errors-work');
     } else if (error_output === '#hiddenEditionIdentifiers') {
-        errorSelector = document.querySelector('#id-errors-edition')
+        errorSelector = document.querySelector('#id-errors-edition');
     }
     if (message) {
         errorSelector.style.display = '';

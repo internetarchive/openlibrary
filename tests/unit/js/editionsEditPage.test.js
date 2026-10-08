@@ -1,10 +1,8 @@
+import $ from 'jquery';
 import { validateIdentifiers } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
-import sinon from 'sinon';
 import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
 import { init } from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
-
-let sandbox;
 
 /**
  * Test various patterns with the editions identifier parsing function,
@@ -26,17 +24,15 @@ let sandbox;
 
 beforeEach(() => {
     // Clear session storage
-    sandbox = sinon.createSandbox();
-    global.htmlquote = htmlquote;
     // htmlquote is used inside an eval expression (yuck) so is an implied dependency
-    sandbox.stub(global, 'htmlquote').callsFake(htmlquote);
+    global.htmlquote = htmlquote;
     // setup Query repeat
     init();
     // setup the HTML
     $(document.body).html(testData.editionIdentifiersSample);
     $('#identifiers').repeat({
         vars: {prefix: 'edition--'},
-        validate: function(data) {return validateIdentifiers(data)},
+        validate: function(data) {return validateIdentifiers(data);},
     });
 });
 
@@ -84,7 +80,7 @@ describe('initIdentifierValidation', () => {
         $('#do-not-add-isbn').trigger('click');
         expect($('.repeat-item').length).toBe(5);
         const cssDisplay = $('#id-errors').css('display');
-        expect(cssDisplay).toEqual('none')
+        expect(cssDisplay).toEqual('none');
     });
 
     it('does NOT add a duplicate ISBN 10', () => {
@@ -102,7 +98,7 @@ describe('initIdentifierValidation', () => {
         $('#id-value').val('09- 8478---2869  ');
         $('.repeat-add').trigger('click');
         expect($('.repeat-item').length).toBe(6);
-    })
+    });
 
     it('does count identical stripped and unstripped ISBN 10s as the same ISBN', () => {
         $('#select-id').val('isbn_10');
@@ -149,7 +145,7 @@ describe('initIdentifierValidation', () => {
         $('#do-not-add-isbn').trigger('click');
         expect($('.repeat-item').length).toBe(5);
         const cssDisplay = $('#id-errors').css('display');
-        expect(cssDisplay).toEqual('none')
+        expect(cssDisplay).toEqual('none');
     });
 
     it('does NOT add a duplicate ISBN 13', () => {
@@ -167,7 +163,7 @@ describe('initIdentifierValidation', () => {
         $('#id-value').val('978-16172--95 980  ');
         $('.repeat-add').trigger('click');
         expect($('.repeat-item').length).toBe(6);
-    })
+    });
 
     it('does count identical stripped and unstripped ISBN 13s as the same ISBN', () => {
         $('#select-id').val('isbn_13');
@@ -209,7 +205,7 @@ describe('initIdentifierValidation', () => {
         $('#id-value').val(' 75-425165//r75');
         $('.repeat-add').trigger('click');
         expect($('.repeat-item').length).toBe(6);
-    })
+    });
 
     it('does count identical normalized and non-normalized LCCNs as the same LCCN', () => {
         $('#select-id').val('lccn');

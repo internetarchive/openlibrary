@@ -1,87 +1,26 @@
-$def with (page, edition=None)
+$def with (page, edition=None, book_page_context=None)
 
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
+$ is_privileged_user = ctx.user and ctx.user.is_super_librarian_or_higher()
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 
 $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 $ tab = input(tab=None).tab
-$ editions = []
 $ page_type = page.key.split('/')[1]
-$ show_observations = True
 
-$if page.key.startswith('/works'):
-  $ work = page
-$elif page.works:
-  $ work = list(page.works)[0]
-$else:
-  $ work = page.make_work_from_orphaned_edition()
-  $ show_observations = False
+$# Work, selected edition, editions, and lending state are resolved in
+$# Python by prepare_book_page() before this template renders (see
+$# openlibrary/plugins/upstream/code.py), so no lending/availability I/O
+$# (including the ground-truth availability fallback) happens here.
+$ work = book_page_context.work
+$ edition = book_page_context.edition
+$ editions = book_page_context.editions
+$ editions_limit = book_page_context.editions_limit
+$ previews = book_page_context.previews
+$ show_observations = book_page_context.show_observations
+$ lending_state = book_page_context.lending_state
 
-$# This can happen when looking at past versions of an edition who's work
-$# has since been merged.
-$if work.type.key == '/type/redirect':
-  $ redir = work
-  $ work = get_document(redir.key)
-  $ work['title'] = '↪ ' + redir.key
-
-$ edition = storage({})
-$if query_param('edition', '').startswith('key:'):
-  $ edition = get_type(query_param('edition', '').split(':')[1])
-$elif page.key.startswith('/books'):
-  $# We are on an editions page: an edition has been explicitly selected
-  $ edition = page
-
-$ selected_provider = None
-$ selected_id = None
-$ provider = None
-$if query_param('edition') and not edition:
-  $if ':' in query_param('edition'):
-    $ [selected_provider, selected_id] = query_param('edition').split(':')
-  $else:
-    $ [selected_provider, selected_id] = ['ia', query_param('edition')]
-  $ provider = get_book_provider_by_name(selected_provider)
-
-$ component_times['get_sorted_editions'] = time()
-
-$# Fetch a work's editions
-$# Used for loading the editions table
-$# Book availability of editions injected by bulk get_availability API
-$ edition_count = work.edition_count if work and work.edition_count else 1
-$ ebooks_only = (query_param('mode') == 'ebooks') or (query_param('mode') != 'all' and edition_count > 10)
-
-$# For performance reasons, limit to 10 ebooks
-$# Tradeoff: limits our ability to select best edition
-$ editions_limit = None if query_param('mode') in ['all', 'ebooks'] else 10
-$# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
-$ keys = (edition and [edition.key]) or (provider and provider.get_olids(selected_id))
-$if ebooks_only:
-  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
-$if not editions:
-  $# use ebooks_only to determine whether to lazyload editions table
-  $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
-$ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
-$ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
-
-$# This collects which books are previewable in any manner
-$ previews = [e for e in editions if e.get('ocaid')]
-
-$# Choose an edition to render
-$if editions and not edition:
-  $# We're presumably on a work url
-  $# edition selection strategy (e.g. language, by id, first w/ ocaid)
-  $if provider:
-    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0])
-  $else:
-    $ edition, provider = get_best_edition(editions)
-
-$# Just in case edition is not set, treat as work
-$ edition = edition or page
-
-$if not edition.get('availability'):
-  $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
@@ -91,7 +30,7 @@ $# Only display the first / primary author
 $ title_suffix = "by " + authors[0].name if authors else ""
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
+$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/static/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('cssfile', 'book')
 
 $var title: $title
@@ -170,7 +109,8 @@ $if is_privileged_user:
 
 $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
-$ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True)
+$# Don't include microdata twice; leads to Google SEO issues
+$ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True, microdata=False)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
 $ component_times['get_observation_metrics'] = time()
@@ -178,9 +118,10 @@ $ reader_observations = get_observation_metrics(work['key']) if show_observation
 $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
 $ component_times['affiliate_links component'] = time()
+$# A work with no editions renders here with `edition` set to the work
+$# itself (see _select_edition), which has no ISBN to price by.
 $ prices = edition.key.startswith('/books/')
 
-$ oclc_numbers = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
 $ isbn_13 = edition.get_isbn13() or None
 $ isbn_10 = edition.get_isbn10() or None
 
@@ -192,26 +133,26 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = macros.AffiliateLinks(edition.title, {'isbn': isbn_13, 'asin': asin, 'prices': prices}, async_load=True)
+$ first_author = (authors[0].name or None) if authors else None
+$ affiliate_links = render_affiliate_links(edition.title, isbn_13, asin, prices, author=first_author)
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
-$ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
-
-<div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
+<div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book" data-lending-state="$lending_state">
   <div class="workDetails">
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <!-- (mobile only) -->
-    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
+    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, lending_state=lending_state)
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
+      $:macros.databarWork(edition or work, affiliate_links, editions_page=True, render_times=component_times, lending_state=lending_state)
     </div>
 
     <div class="editionAbout">
-      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True)
+      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True, lending_state=lending_state)
+
       <div class="editionAll">
         $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
@@ -263,14 +204,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                 <div>$_("Publisher")</div>
                 <span>
                 $for p in edition.publishers:
-                  $if "publishers" in ctx.features:
-                    <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')"
-                       title="$_('Show other books from %(publisher)s', publisher=p)"
-                       >$p</a>$cond(loop.last, "", ", ")
-                  $else:
-                    <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')"
-                       title="$_('Search for other books from %(publisher)s', publisher=p)"
-                       >$p</a>$cond(loop.last, "", ", ")
+                  <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')"
+                     title="$_('Show other books from %(publisher)s', publisher=p)"
+                     >$p</a>$cond(loop.last, "", ", ")
                 </span>
               </div>
             $if edition.languages:
@@ -307,19 +243,6 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           </div>
       </div>
 
-      <div class="Tools">
-        <div class="panel mobile-vendor">
-          <div class="btn-notice">
-            $:worldcat_links
-
-            <div class="cta-section">
-              <p class="cta-section-title">$_('Buy this book')</p>
-              $:affiliate_links
-            </div>
-          </div>
-        </div>
-      </div>
-
       $ seen = set()
       $if previews and any([len(e.languages) for e in previews]):
         <p class="preview-languages">
@@ -342,7 +265,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <a id="editions-list" name="editions-list" class="section-anchor"></a>
       <div class="tab-section">
         $ component_times['EditionsTable'] = time()
-        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
+        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit, lending_state=lending_state)
         $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
       </div>
 
@@ -532,7 +455,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <a id="lists-section" class="section-anchor"></a>
       $# pages like /books/ia:foo00bar are fake records created from metadata API.
       $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-      $if "lists" in ctx.features and not page.is_fake_record():
+      $if not page.is_fake_record():
         $ component_times['Lists section'] = time()
         $code:
           data_ids = {}
@@ -552,15 +475,29 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         </div>
         $ component_times['Lists section'] = time() - component_times['Lists section']
 
-      <a id="related-work-carousel" class="section-anchor"></a>
+        <a id="related-work-carousel" class="section-anchor"></a>
     </div>
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
-    $:render_template("books/RelatedWorksCarousel", work)
-  </div>
-  $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
+  $:render_template("books/RelatedWorksCarousel", work)
+  $ component_times['RelatedWorksCarousel'] = time() - component_times['RelatedWorksCarousel']
+
+  $# Nearby Books anchors on the *work's* indexed ddc_sort, which Solr
+  $# aggregates across every edition. The page only sees a slice of the
+  $# editions, so it can't gate on DDC itself; the partial answers empty
+  $# for works with no shelf position and the loader removes the box.
+  $code:
+    nearby_books_lang = None
+    if edition and edition.get("languages"):
+        lang_obj = edition.languages[0]
+        nearby_books_lang = (lang_obj.key if hasattr(lang_obj, "key") else str(lang_obj)).split("/")[-1]
+
+  $if work and work.key:
+    $ component_times['NearbyBooksCarousel'] = time()
+    $:render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **build_nearby_books_placeholder_config(work.key, nearby_books_lang))
+    $ component_times['NearbyBooksCarousel'] = time() - component_times['NearbyBooksCarousel']
+
   $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 

@@ -1,0 +1,191 @@
+{#
+  Principles — the design philosophy, one row per entry in PRINCIPLES in
+  design.py. Each row opens with a figure: an abstract composition built from
+  the system's own tokens and components (a button at 800%, the surface stack,
+  the easing curve), so the idea has something to look at before the words.
+  Figures are decorative — everything inside is inert and aria-hidden.
+#}
+{% macro body() %}
+    <section class="ds-section ds-principles-intro">
+        <p class="ds-lead">
+            What the system is going for, and where it will have to choose. Each principle comes with a place where both
+            directions are reasonable and the principle tips the decision.
+        </p>
+    </section>
+    <div class="ds-principles">
+        {% for principle in principles %}
+            <section class="ds-section ds-principle" id="{{ principle.id }}">
+                <figure class="ds-principle__figure" aria-hidden="true">
+                    {{ figure(principle.id) }}
+                </figure>
+                <div class="ds-principle__number">{{ "%02d" | format(loop.index) }}</div>
+                <h2 class="ds-principle__title">{{ principle.title }}</h2>
+                <p class="ds-principle__blurb">{{ principle.blurb }}</p>
+                <h3 class="ds-principle__example-title">Example</h3>
+                <p class="ds-principle__example">{{ principle.example }}</p>
+            </section>
+        {% endfor %}
+    </div>
+    <section class="ds-section" id="tensions">
+        <h2 class="ds-section__title">Tensions</h2>
+        <p class="ds-section__blurb">The pairs that keep coming up, and how we resolve them so far.</p>
+        <dl class="ds-tensions">
+            {% for tension in tensions %}
+                <div class="ds-tensions__row">
+                    <dt class="ds-tensions__title">{{ tension.title }}</dt>
+                    <dd class="ds-tensions__body">
+                        {{ tension.body }}
+                    </dd>
+                </div>
+            {% endfor %}
+        </dl>
+    </section>
+{% endmacro %}
+{# The crisp controls in front of the out-of-focus brand. #}
+{% macro bench() %}
+    <div class="ds-fig__bench">
+        <ol-button variant="primary">
+            Borrow
+        </ol-button>
+        <ol-button>
+            Want to read
+        </ol-button>
+        <ol-button selected>
+            Ebooks
+        </ol-button>
+        <ol-chip selected>
+            Fiction
+        </ol-chip>
+        <ol-chip>
+            Biography
+        </ol-chip>
+        <ol-segmented-control size="small" value="covers" accessible-label="View">
+            <ol-segment value="covers">
+                Covers
+            </ol-segment>
+            <ol-segment value="list">
+                List
+            </ol-segment>
+        </ol-segmented-control>
+        <ol-toggle label="Ebooks only" checked>
+        </ol-toggle>
+    </div>
+{% endmacro %}
+{#
+  One figure per principle id. All sizing is in container units of the figure,
+  so the composition scales with the column instead of cropping differently at
+  each width.
+#}
+{% macro figure(id) %}
+    {% if id == "tools-before-brand" %}
+        <div class="ds-fig ds-fig--tools">
+            <div class="ds-fig__identity">
+                <span class="ds-fig__identity-mark"></span>
+                <span class="ds-fig__identity-name">Open Library</span>
+                <span class="ds-fig__identity-tagline"></span>
+            </div>
+            {{ bench() }}
+        </div>
+    {% elif id == "keep-the-paper" %}
+        <div class="ds-fig ds-fig--paper">
+            <div class="ds-fig__sheet ds-fig__sheet--sunken"></div>
+            <div class="ds-fig__sheet ds-fig__sheet--surface"></div>
+            <div class="ds-fig__sheet ds-fig__sheet--raised"></div>
+        </div>
+    {% elif id == "quiet-surface" %}
+        <div class="ds-fig ds-fig--toast">
+            <div class="ds-fig__toast">
+                <span class="ds-fig__toast-dot"></span>
+                Reading goal reached
+            </div>
+        </div>
+    {% elif id == "everything-answers-back" %}
+        <div class="ds-fig ds-fig--states">
+            {% for state in ["rest", "hover", "press"] %}
+                <div class="ds-fig__state-cell">
+                    <div class="ds-fig__state ds-fig__state--{{ state }}">Borrow</div>
+                    <div class="ds-fig__caption">{{ state }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% elif id == "never-hide-the-wait" %}
+        <div class="ds-fig ds-fig--wait">
+            <div class="ds-fig__progress">
+                <div class="ds-fig__progress-fill"></div>
+            </div>
+            <div class="ds-fig__skeleton">
+                <span class="ds-fig__bone ds-fig__bone--w70"></span>
+                <span class="ds-fig__bone ds-fig__bone--w45"></span>
+                <span class="ds-fig__bone ds-fig__bone--w60"></span>
+            </div>
+            <div class="ds-fig__wait-button">
+                <ol-button variant="primary" loading>
+                    Saving
+                </ol-button>
+            </div>
+        </div>
+    {% elif id == "motion-is-information" %}
+        <div class="ds-fig ds-fig--motion">
+            {# --ease-out-quint, cubic-bezier(0.23, 1, 0.32, 1), y flipped for SVG. #}
+            <svg class="ds-fig__curve"
+                 viewBox="0 0 100 100"
+                 preserveAspectRatio="none">
+                <path class="ds-fig__curve-linear" d="M0,100 L100,0" />
+                <path class="ds-fig__curve-path" d="M0,100 C23,0 32,0 100,0" />
+            </svg>
+            <div class="ds-fig__durations">
+                {% for ms, name in [(80, "press"), (150, "fast"), (200, "base"), (300, "slow"), (400, "slower")] %}
+                    <div class="ds-fig__duration" style="--ds-fig-ms: {{ ms }}">
+                        <span class="ds-fig__duration-bar ds-fig__duration-bar--{{ ms }}"></span>
+                        <span class="ds-fig__duration-label">{{ ms }}ms {{ name }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% elif id == "dense-on-the-desk" %}
+        <div class="ds-fig ds-fig--density">
+            <div class="ds-fig__desk">
+                {% for _ in range(28) %}<span class="ds-fig__block ds-fig__block--sm"></span>{% endfor %}
+            </div>
+            <div class="ds-fig__hand">
+                {% for _ in range(3) %}<span class="ds-fig__block ds-fig__block--lg"></span>{% endfor %}
+            </div>
+        </div>
+    {% elif id == "keyboard-first-class" %}
+        <div class="ds-fig ds-fig--focus">
+            <div class="ds-fig__keycap">Tab</div>
+            <div class="ds-fig__focused">Save</div>
+        </div>
+    {% elif id == "one-way-to-say-it" %}
+        <div class="ds-fig ds-fig--selected">
+            <span class="ds-fig__sel ds-fig__sel--button">Ebooks</span>
+            <span class="ds-fig__sel ds-fig__sel--chip">Fiction</span>
+            <span class="ds-fig__sel ds-fig__sel--page">3</span>
+            <span class="ds-fig__sel ds-fig__sel--tab">Overview</span>
+            <span class="ds-fig__sel ds-fig__sel--row">Recently added</span>
+        </div>
+    {% elif id == "nothing-shifts" %}
+        <div class="ds-fig ds-fig--shift">
+            <div class="ds-fig__tabs">
+                <span>Overview</span><span class="ds-fig__tab--bold">Editions</span><span>Reviews</span>
+            </div>
+            <div class="ds-fig__tabs">
+                <span>Overview</span><span class="ds-fig__tab--color">Editions</span><span class="ds-fig__tab--guide">Reviews</span>
+            </div>
+        </div>
+    {% elif id == "accessible-is-the-floor" %}
+        <div class="ds-fig ds-fig--floor">
+            <div class="ds-fig__floor-samples">
+                <span class="ds-fig__floor-sample ds-fig__floor-sample--ink">Aa</span>
+                <span class="ds-fig__floor-sample ds-fig__floor-sample--secondary">Aa</span>
+                <span class="ds-fig__floor-sample ds-fig__floor-sample--muted">Aa</span>
+            </div>
+            <div class="ds-fig__floor-line"><span class="ds-fig__caption">4.5:1</span></div>
+            <div class="ds-fig__floor-samples ds-fig__floor-samples--below">
+                <span class="ds-fig__floor-sample ds-fig__floor-sample--decorative">Aa</span>
+            </div>
+        </div>
+    {% else %}
+        <div class="ds-fig"></div>
+    {% endif %}
+{% endmacro %}

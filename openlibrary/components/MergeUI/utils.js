@@ -1,10 +1,42 @@
 /* eslint no-console: 0 */
-import _ from 'lodash';
-import { approveRequest, declineRequest, createRequest, REQUEST_TYPES } from '../../plugins/openlibrary/js/merge-request-table/MergeRequestService'
+import { approveRequest, declineRequest, createRequest, REQUEST_TYPES } from '../../plugins/openlibrary/js/merge-request-table/MergeRequestService';
 import CONFIGS from '../configs.js';
 
-const collator = new Intl.Collator('en-US', {numeric: true})
-export const DEFAULT_EDITION_LIMIT = 200
+const collator = new Intl.Collator('en-US', {numeric: true});
+export const DEFAULT_EDITION_LIMIT = 200;
+
+/**
+ * Deep copy of a JSON record. Unlike structuredClone, this also accepts Vue reactive proxies.
+ * @template T
+ * @param {T} value
+ * @returns {T}
+ */
+export function cloneJSON(value) {
+    return JSON.parse(JSON.stringify(value));
+}
+
+/**
+ * Deep equality for JSON values; object key order is ignored.
+ * @param {unknown} a
+ * @param {unknown} b
+ * @returns {boolean}
+ */
+export function isEqualJSON(a, b) {
+    if (a === b) return true;
+    if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    const aKeys = Object.keys(a);
+    return aKeys.length === Object.keys(b).length && aKeys.every(key => Object.prototype.hasOwnProperty.call(b, key) && isEqualJSON(a[key], b[key]));
+}
+
+/**
+ * @template T
+ * @param {T[]} items
+ * @returns {T[]} items with deep-equal duplicates removed, keeping the first occurrence
+ */
+function uniqJSON(items) {
+    return items.filter((item, i) => items.findIndex(other => isEqualJSON(item, other)) === i);
+}
 
 /**
  * @param {string | URL | Request} input
@@ -68,7 +100,7 @@ function hash_subel(field, value) {
  * @param {Object} dupes
  */
 export function merge(master, dupes) {
-    const result = _.cloneDeep(master);
+    const result = cloneJSON(master);
     result.latest_revision++;
     result.revision = result.latest_revision;
     result.last_modified.value = (new Date()).toISOString().slice(0, -1);
@@ -93,7 +125,7 @@ export function merge(master, dupes) {
                 result[field] = dupe[field];
                 sources[field] = [dupe.key];
             } else if (result[field] instanceof Array) {
-                result[field] = result[field].concat(dupe[field])
+                result[field] = result[field].concat(dupe[field]);
                 sources[field].push(dupe.key);
             }
         }
@@ -105,11 +137,11 @@ export function merge(master, dupes) {
             continue;
         switch (key) {
         case 'authors':{
-            const authors = _.cloneDeep(result.authors);
+            const authors = cloneJSON(result.authors);
             authors
                 .filter(a => typeof a.type === 'string')
                 .forEach(a => a.type = { key: a.type });
-            result.authors = _.uniqWith(authors, _.isEqual);
+            result.authors = uniqJSON(authors);
             break;
         }
         case 'covers':
@@ -119,7 +151,7 @@ export function merge(master, dupes) {
         case 'subject_times':
         case 'excerpts':
         default:
-            result[key] = _.uniqWith(result[key], _.isEqual);
+            result[key] = uniqJSON(result[key]);
             break;
         }
     }
@@ -135,9 +167,9 @@ export async function do_merge(merged_record, dupes, editions, mrid) {
         ...editions
     ];
 
-    let comment = 'Merge works'
+    let comment = 'Merge works';
     if (mrid) {
-        comment += ` (MRID: ${mrid})`
+        comment += ` (MRID: ${mrid})`;
     }
 
     return await save_many(
@@ -207,10 +239,10 @@ export function get_ratings(key) {
  */
 export function update_merge_request(mrid, action, comment) {
     if (action === 'approve') {
-        return approveRequest(mrid, comment)
+        return approveRequest(mrid, comment);
     }
     else if (action === 'decline') {
-        return declineRequest(mrid, comment)
+        return declineRequest(mrid, comment);
     }
 }
 
@@ -225,8 +257,8 @@ export function update_merge_request(mrid, action, comment) {
  * @returns {Promise<Response>}
  */
 export function createMergeRequest(workIds, primaryRecord, action = 'create-merged', comment = null) {
-    const normalizedIds = prepareIds(workIds).join(',')
-    return createRequest(normalizedIds, action, REQUEST_TYPES['WORK_MERGE'], comment, primaryRecord)
+    const normalizedIds = prepareIds(workIds).join(',');
+    return createRequest(normalizedIds, action, REQUEST_TYPES['WORK_MERGE'], comment, primaryRecord);
 }
 
 /**
@@ -239,9 +271,9 @@ export function createMergeRequest(workIds, primaryRecord, action = 'create-merg
  */
 function prepareIds(workIds) {
     return Array.from(workIds, id => {
-        const splitArr = id.split('/')
-        return splitArr[splitArr.length - 1]
-    }).sort(collator.compare)
+        const splitArr = id.split('/');
+        return splitArr[splitArr.length - 1];
+    }).sort(collator.compare);
 }
 
 /**
@@ -272,10 +304,10 @@ function save_many(items, comment, action, data) {
  * @returns {Promise<Record<string,object>} A response to the request
  */
 export async function get_author_names(works) {
-    const authorIds = _.uniq(works).flatMap(record =>
+    const authorIds = [...new Set(works)].flatMap(record =>
         (record.authors || [])
             .map(authorEntry => authorEntry.author?.key ?? authorEntry.key)
-    )
+    );
 
     if (!authorIds.length) return {};
 
@@ -283,21 +315,21 @@ export async function get_author_names(works) {
         q: `key:(${authorIds.join(' OR ')})`,
         mode: 'everything',
         fields: 'key,name',
-    })
+    });
 
-    const response = await fetchWithRetry(`${CONFIGS.OL_BASE_SEARCH}/search/authors.json?${queryParams}`)
+    const response = await fetchWithRetry(`${CONFIGS.OL_BASE_SEARCH}/search/authors.json?${queryParams}`);
 
     if (!response.ok) {
         throw new Error('Failed to fetch author data');
     }
 
-    const results = await response.json()
+    const results = await response.json();
 
-    const authorDirectory = {}
+    const authorDirectory = {};
 
     for (const doc of results.docs) {
         authorDirectory[doc.key] = doc.name;
     }
 
-    return authorDirectory
+    return authorDirectory;
 }

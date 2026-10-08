@@ -18,7 +18,7 @@ describe('highlight', () => {
             const highlightedText = highlight(test[0], test[1]);
             expect(highlightedText).toStrictEqual(test[2]);
         });
-    })
+    });
 });
 
 
@@ -62,5 +62,5 @@ describe('mapApiResultsToAutocompleteSuggestions', () => {
                 value: 'Add new item'
             }
         );
-    })
+    });
 });

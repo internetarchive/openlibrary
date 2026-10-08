@@ -1,4 +1,4 @@
-import { FadingToast } from './Toast'
+import { FadingToast } from './Toast';
 
 export function initPrivateButtons(buttons) {
     buttons.forEach(button => {

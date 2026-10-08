@@ -45,9 +45,18 @@
 <script>
 export default {
     props: {
-        width: Number,
-        height: Number,
-        thickness: Number
+        width: {
+            type: Number,
+            required: true
+        },
+        height: {
+            type: Number,
+            required: true
+        },
+        thickness: {
+            type: Number,
+            required: true
+        }
     },
     computed: {
         cubeStyle() {
@@ -126,4 +135,3 @@ export default {
   transform: perspective(2000px) rotateX(-5deg) rotateY(50deg);
 }
 </style>
-

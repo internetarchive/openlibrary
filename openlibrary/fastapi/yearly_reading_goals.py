@@ -24,7 +24,7 @@ MAX_READING_GOAL = 10_000
 class ReadingGoalItem(BaseModel):
     """A single reading goal entry."""
 
-    year: int = Field(..., description="The year for this reading goal")
+    year: int = Field(..., gt=0, le=9999, description="The year for this reading goal (1-9999)")
     goal: int = Field(..., description="The target number of books to read")
 
 
@@ -56,6 +56,8 @@ class ReadingGoalForm(BaseModel):
     )
     year: int | None = Field(
         default=None,
+        gt=0,
+        le=9999,
         description="Year for this reading goal. Defaults to current year for creates, required for updates.",
     )
     is_update: str | None = Field(
@@ -84,17 +86,18 @@ class ReadingGoalForm(BaseModel):
 @router.get("/reading-goal.json", response_model=ReadingGoalsResponse)
 async def get_reading_goals_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-    year: Annotated[int | None, Query(description="The year to filter goals by")] = None,
+    year: Annotated[int | None, Query(gt=0, le=9999, description="The year to filter goals by")] = None,
 ) -> ReadingGoalsResponse:
     """Get reading goals for the authenticated user."""
     if year:
-        records = YearlyReadingGoals.select_by_username_and_year(user.username, year)
+        goal = await YearlyReadingGoals.select_by_username_and_year(user.username, year)
+        records = [goal] if goal else []
     else:
-        records = YearlyReadingGoals.select_by_username(user.username)
+        records = await YearlyReadingGoals.select_by_username(user.username)
     goals = [
         ReadingGoalItem(
-            year=getattr(record, "year", 0),
-            goal=getattr(record, "target", 0),
+            year=record.year,
+            goal=record.target,
         )
         for record in records
     ]
@@ -113,10 +116,10 @@ async def update_reading_goal_endpoint(
         # year is guaranteed to be not None here due to model_validator
         assert form.year is not None
         if form.goal == 0:
-            YearlyReadingGoals.delete_by_username_and_year(user.username, form.year)
+            await YearlyReadingGoals.delete_by_username_and_year(user.username, form.year)
         else:
-            YearlyReadingGoals.update_target(user.username, form.year, form.goal)
+            await YearlyReadingGoals.update_target(user.username, form.year, form.goal)
     else:
-        YearlyReadingGoals.create(user.username, current_year, form.goal)
+        await YearlyReadingGoals.create(user.username, current_year, form.goal)
 
     return ReadingGoalUpdateResponse(status="ok")

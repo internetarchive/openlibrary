@@ -28,7 +28,10 @@ import ShelfIndex from './ShelfIndex.vue';
 export default {
     components: { RightArrowIcon, ShelfIndex },
     props: {
-        node: Object
+        node: {
+            type: Object,
+            required: true
+        }
     },
 
     computed: {

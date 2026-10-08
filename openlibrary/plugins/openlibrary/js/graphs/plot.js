@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /*
  * FIXME: The methods loadEditionsGraph, plot_minigraph and plot_tooltip_graph
  * need to be refactored once unit tests have been added to the repo. They
@@ -53,7 +54,7 @@ export function loadEditionsGraph() {
 
     placeholder = $('#chartPubHistory');
     function showTooltip(x, y, contents) {
-        $(`<div id="chartLabel">${contents}</div>`).css({
+        $(`<div id="chartLabel" class="chart-tooltip">${contents}</div>`).css({
             position: 'absolute',
             display: 'none',
             top: y + 12,
@@ -63,12 +64,11 @@ export function loadEditionsGraph() {
             'background-color': '#fffdcd',
             color: '#615132',
             'font-size': '11px',
-            opacity: 0.90,
-            'z-index': 100
+            opacity: 0.90
         }).appendTo('body').fadeIn(200);
     }
     previousPoint = null;
-    placeholder.bind('plothover', function (event, pos, item) {
+    placeholder.bind('plothover', function(event, pos, item) {
         var x, y;
         $('#x').text(pos.x.toFixed(0));
         $('#y').text(pos.y.toFixed(0));
@@ -93,21 +93,21 @@ export function loadEditionsGraph() {
         }
     });
 
-    placeholder.bind('plotclick', function (event, pos, item) {
+    placeholder.bind('plotclick', function(event, pos, item) {
 
         if (item) {
             plot.unhighlight();
             const yearFrom = item.datapoint[0].toFixed(0);
             applyDateFilter(yearFrom, yearFrom);
 
-            plot.highlight(item.series,item.datapoint);
+            plot.highlight(item.series, item.datapoint);
         }
         else {
             plot.unhighlight();
         }
     });
 
-    placeholder.bind('plotselected', function (event, ranges) {
+    placeholder.bind('plotselected', function(event, ranges) {
         plot = $.plot(placeholder, data,
             $.extend(true, {}, options, {
                 xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
@@ -205,7 +205,7 @@ export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36')
     graph = $.plot(node, [data], options);
 
     function showTooltip(x, y, contents) {
-        $(`<div id="chartLabelA">${contents}</div>`).css({
+        $(`<div id="chartLabelA" class="chart-tooltip">${contents}</div>`).css({
             position: 'absolute',
             display: 'none',
             top: y + 12,
@@ -220,7 +220,7 @@ export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36')
             boxShadow: '1px 1px 1px #000'
         }).appendTo('body').fadeIn(200);
     }
-    node.bind('plothover', function (event, pos, item) {
+    node.bind('plothover', function(event, pos, item) {
         var date, milli, x, y;
         $('#x').text(pos.x);
         $('#y').text(pos.y.toFixed(0));

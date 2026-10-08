@@ -1,0 +1,38 @@
+$def with (ocaid)
+$# :param str ocaid:
+
+
+$if ocaid:
+  <div class="cta-button-group book-preview-buttons">
+    <!-- Preview Button -->
+    <ol-button variant="secondary" full-width size="small" class="preview-btn"
+      data-book-preview
+      data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
+      data-iframe-link="https://archive.org/details/$ocaid"
+      data-ol-link-track="BookOptions|Preview">
+      $:macros.icon("eye", size="sm", slot="icon-start")
+      $_('Preview')
+    </ol-button>
+
+    <!-- Search Trigger Button -->
+    <ol-button variant="secondary" full-width size="small" class="search-inside-trigger-btn"
+      data-search-trigger
+      aria-expanded="false"
+      data-ol-link-track="BookOptions|SearchInside">
+      $:macros.icon("text-search", size="sm", slot="icon-start")
+      $_('Search')
+    </ol-button>
+
+    <!-- Search Inside Input Form -->
+    <form class="search-inside-form" data-ocaid="$ocaid" role="search" aria-label="$_('Search inside book')" style="display: none;">
+      <input class="search-inside-input" type="text" name="q" placeholder="$_('Search inside')" required />
+      <button type="submit" class="search-submit-btn" title="$_('Search')" aria-label="$_('Search')">
+        $:macros.icon("search", size="sm", extra_class="search-icon")
+      </button>
+      <button type="button" class="search-cancel-btn" title="$_('Cancel')" aria-label="$_('Cancel')">
+        $:macros.icon("x", size="sm")
+      </button>
+    </form>
+  </div>
+
+$:macros.BookPreviewFloater()
