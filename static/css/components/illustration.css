@@ -27,7 +27,9 @@ ol-dialog img.cover-preview {
   width: auto;
   max-width: 100%;
   height: auto;
-  max-height: calc(var(--ol-dialog-max-height) - 2 * var(--ol-dialog-padding) - 3.5rem);
+  max-height: calc(
+    var(--ol-dialog-max-height) - 2 * var(--ol-dialog-padding) - 3.5rem
+  );
   margin-inline: auto;
 }
 .illustration .SRPCoverBlank {
