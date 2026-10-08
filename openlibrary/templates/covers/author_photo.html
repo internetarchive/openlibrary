@@ -13,17 +13,9 @@ $if author_thumbnail_url:
             </a>
         </div>
     </div>
-    <div class="hidden">
-        <div class="coverFloat" id="seeImage">
-            <div class="coverFloatHead">
-                <h2>$truncate(author.name or "", 60)</h2>
-                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-            </div>
-            <a class="dialog--close" title="$_('Click to close')">
-                <img src="$author_photo_url" itemprop="image" class="cover" alt="$_('Photo of %(author)s', author=author.name)"/>
-            </a>
-        </div>
-    </div>
+    <ol-dialog id="seeImage" label="$_('Author photo')" width="medium">
+        <img src="$author_photo_url" itemprop="image" class="cover" alt="$_('Photo of %(author)s', author=author.name)"/>
+    </ol-dialog>
 $else:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">

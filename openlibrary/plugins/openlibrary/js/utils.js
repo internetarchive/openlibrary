@@ -4,10 +4,18 @@ They must be available in the global JS namespace
 See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-2107911798
 */
 
-// closes active popup
+// closes the containing <ol-dialog> (or native <dialog>), including from
+// inside a cover-manager iframe, where it lives on the parent page.
 export function closePopup() {
-    // Note we don't import colorbox here, since it's on the parent
-    parent.jQuery.fn.colorbox.close();
+    const openDialog = parent.document.querySelector('ol-dialog[open], dialog[open]');
+    if (!openDialog) {
+        return;
+    }
+    if (openDialog.tagName === 'OL-DIALOG') {
+        openDialog.open = false;
+    } else {
+        openDialog.close();
+    }
 }
 
 // used in templates/admin/imports.html

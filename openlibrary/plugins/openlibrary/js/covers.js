@@ -31,11 +31,15 @@ export function initCoversChange() {
                 // add iframe to manage images
                 add_iframe('.imagesManage', manage_url);
             }, 0);
-        })
-        .on('cbox_cleanup', function() {
-            $('.imagesAdd').html('');
-            $('.imagesManage').html('');
         });
+
+    // Clear the iframes once the <ol-dialog> closes, so they reload fresh
+    // next time (replaces the old colorbox `cbox_cleanup` hook).
+    $('ol-dialog:has(.imagesAdd)').each(function(_i, dialog) {
+        dialog.addEventListener('ol-after-close', function() {
+            $(dialog).find('.imagesAdd, .imagesManage').html('');
+        });
+    });
 }
 
 function add_iframe(selector, src) {

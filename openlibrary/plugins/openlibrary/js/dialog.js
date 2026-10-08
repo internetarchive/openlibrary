@@ -100,9 +100,23 @@ export function initPreviewDialogs() {
  * communicates where the HTML of that dialog lives.
  */
 export function initDialogs() {
-    $('.dialog--open').on('click', function() {
+    $('.dialog--open').on('click', function(e) {
         const $link = $(this),
-            href = `#${$link.attr('aria-controls')}`;
+            target = document.getElementById($link.attr('aria-controls'));
+
+        // <ol-dialog> (or native <dialog>) targets open natively, e.g. the
+        // cover preview and add/manage cover dialogs.
+        if (target && (target.tagName === 'OL-DIALOG' || target.tagName === 'DIALOG')) {
+            e.preventDefault();
+            if (target.tagName === 'OL-DIALOG') {
+                target.open = true;
+            } else if (!target.open) {
+                target.showModal();
+            }
+            return;
+        }
+
+        const href = `#${$link.attr('aria-controls')}`;
 
         $link.colorbox({ inline: true, opacity: '0.5', href,
             maxWidth: '640px', width: '100%' });
