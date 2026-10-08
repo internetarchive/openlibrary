@@ -68,8 +68,9 @@ export class LazyThingPreview {
      * @param {object} book
      */
     renderKey(key, render_fn, book) {
-        const el = document.querySelector(`.lazy-thing-preview[data-key="${key}"]`);
-        el.innerHTML = render_fn(book);
+        document.querySelectorAll(`.lazy-thing-preview[data-key="${key}"]`).forEach((el) => {
+            el.innerHTML = render_fn(book);
+        });
     }
 
     /**
