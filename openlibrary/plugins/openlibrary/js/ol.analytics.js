@@ -63,10 +63,12 @@ export default function initAnalytics() {
             window.flights.init();
         }
         document.addEventListener('click', (event) => {
-            const link = event.target.closest('[data-ol-link-track]');
-            if (!link) return;
-            const category_action = link.getAttribute('data-ol-link-track').split('|');
-            trackEvent(category_action[0], category_action[1], category_action[2]);
+            let link = event.target.closest('[data-ol-link-track]');
+            while (link) {
+                const category_action = link.getAttribute('data-ol-link-track').split('|');
+                trackEvent(category_action[0], category_action[1], category_action[2]);
+                link = link.parentElement?.closest('[data-ol-link-track]');
+            }
         });
     }
     window.vs = vs;
