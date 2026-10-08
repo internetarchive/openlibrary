@@ -88,7 +88,7 @@
 /* These rules apply within overlays */
 /* e.g. when you click "change cover" on a books page */
 /* Need to investigate whether these can be generalised somehow. */
-.floater .ui-tabs-panel {
+ol-dialog .ui-tabs-panel {
   border: none;
   background: var(--white);
   /* declare background color for container to avoid distorted fonts in IE while fading */
@@ -108,7 +108,7 @@
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
-  .floater .ui-tabs-panel {
+  ol-dialog .ui-tabs-panel {
     border-top: 3px solid var(--lightest-grey);
     padding: 15px 30px !important;
     /* declare background color for container to avoid distorted fonts in IE while fading */
