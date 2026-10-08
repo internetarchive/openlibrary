@@ -94,35 +94,32 @@ export function initPreviewDialogs() {
 }
 
 /**
- * Wires up dialog close buttons
- * If an element has the class dialog--open it will trigger the
- * opening of a dialog. The `aria-controls` attribute on that same element
- * communicates where the HTML of that dialog lives.
+ * Wires up dialog triggers.
+ *
+ * An element with class `dialog--open` opens the <ol-dialog> named by its
+ * `aria-controls` attribute, e.g. the cover preview and add/manage cover
+ * dialogs.
  */
 export function initDialogs() {
-    $('.dialog--open').on('click', function() {
-        const $link = $(this),
-            href = `#${$link.attr('aria-controls')}`;
-
-        $link.colorbox({ inline: true, opacity: '0.5', href,
-            maxWidth: '640px', width: '100%' });
+    document.querySelectorAll('.dialog--open').forEach((trigger) => {
+        const getTarget = () => document.getElementById(trigger.getAttribute('aria-controls'));
+        // Start fetching the dialog's lazy images on hover/focus so they're loaded by the click.
+        const warmImages = () => getTarget()?.querySelectorAll('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
+        trigger.addEventListener('pointerenter', warmImages, { once: true });
+        trigger.addEventListener('focus', warmImages, { once: true });
+        trigger.addEventListener('click', (e) => {
+            const target = getTarget();
+            if (target?.tagName !== 'OL-DIALOG') {
+                return;
+            }
+            e.preventDefault();
+            target.open = true;
+        });
     });
 
     initPreviewDialogs();
 
-    // This will close the dialog in the current page.
-    $('.dialog--close').attr('href', 'javascript:;').on('click', () => $.fn.colorbox.close());
-    // This will close the colorbox from the parent.
-    $('.dialog--close-parent').on('click', () => parent.$.fn.colorbox.close());
-}
-
-/**
- * Adds click listeners for closing dialogs to the given elements.
- *
- * @param {NodeList<Element>} closers
- */
-export function initDialogClosers(closers) {
-    closers.forEach(closer => {
-        $(closer).on('click', () => $.fn.colorbox.close());
-    });
+    // Legacy: closes the colorbox used by the observations modal (the last
+    // colorbox consumer). Delete when that modal migrates to ol-dialog.
+    $('.dialog--close').attr('href', 'javascript:;').off('click.dialog').on('click.dialog', () => $.fn.colorbox.close());
 }

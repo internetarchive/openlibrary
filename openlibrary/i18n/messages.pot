@@ -532,7 +532,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: ObservationsModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -4046,10 +4046,6 @@ msgstr ""
 #: covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
-msgstr ""
-
-#: covers/author_photo.html
-msgid "Click to close"
 msgstr ""
 
 #: covers/author_photo.html

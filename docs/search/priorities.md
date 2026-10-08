@@ -14,7 +14,7 @@ Last updated: 2026-06-23
 
 **Downstream:** pyopds2_openlibrary PR #102 (Odie) depends on this endpoint being live before it can ship. The OPDS home feed is broken at scale until both land.
 
-**Current state:** PR #12987 open, bot commit squashed, CI passing, ready for code review. Endpoint is confirmed `/search/carousels.json`. The OPDS system doc (`pm/workflows/opds-system.md`) still references `/search/batch.json` — Odie must update pyopds2 PR #102 to use the correct URL before shipping.
+**Current state:** PR #12987 open, bot commit squashed, CI passing, ready for code review. Endpoint is confirmed `/search/carousels.json`. For the current OPDS implementation, see the [OPDS overview](../opds/README.md); the earlier plan described here is historical.
 
 **Owner:** PR by @mekarpeles; Odie owns the pyopds2 consumer side.
 
