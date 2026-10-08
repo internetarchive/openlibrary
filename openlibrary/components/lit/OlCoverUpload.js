@@ -71,6 +71,7 @@ export class OlCoverUpload extends LitElement {
     static styles = css`
         :host {
             display: block;
+            text-align: left;
             font-family: var(--font-family-body);
             color: var(--color-text);
         }
@@ -84,38 +85,46 @@ export class OlCoverUpload extends LitElement {
             color: var(--color-link);
         }
 
-        .label {
-            display: block;
-            margin-bottom: var(--spacing-xs);
-            font-weight: 600;
+        /* The form panel: the same soft card the old server-rendered
+           cover form used (legacy form styling), rebuilt from tokens. */
+        .panel {
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            background: var(--neutral-100);
+            border-radius: var(--border-radius-lg);
         }
 
-        .field {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: var(--spacing-lg);
-            font: inherit;
+        .heading {
+            margin: 0 0 var(--spacing-2xs);
+            font-size: var(--font-size-body-large);
+            font-weight: var(--font-weight-semibold);
+            line-height: var(--line-height-heading);
         }
 
-        .paste {
+        .row {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-lg);
+        }
+
+        .file {
+            flex: 1 1 12rem;
+            min-width: 0;
+            font: inherit;
         }
 
         .preview {
             display: block;
             max-width: 200px;
-            max-height: 300px;
-            margin-bottom: var(--spacing-lg);
+            max-height: 200px;
+            margin-top: var(--spacing-sm);
             border: var(--border-width) solid var(--color-control-border);
             border-radius: var(--border-radius-thumbnail);
         }
 
         .status {
-            margin: 0 0 var(--spacing-md);
+            margin: var(--spacing-sm) 0 0;
             line-height: var(--line-height-body);
         }
 
@@ -342,9 +351,22 @@ export class OlCoverUpload extends LitElement {
         `;
     }
 
+    _renderPreview() {
+        return this._previewUrl
+            ? html`<img class="preview" src=${this._previewUrl} alt=${this.t('previewAlt')} />`
+            : nothing;
+    }
+
     _renderForm() {
         const intro = this.t(this._isPhoto ? 'introPhoto' : 'introCover');
         const guideline = this.t(this._isPhoto ? 'guidelinesPhoto' : 'guidelinesCover');
+        const upload = html`<ol-button
+            class="upload-button"
+            variant="primary"
+            ?loading=${this._busy}
+            ?disabled=${this._busy}
+            @click=${this._onSubmit}
+        >${this.t('upload')}</ol-button>`;
         return html`
             <p class="intro">
                 ${intro}
@@ -353,32 +375,35 @@ export class OlCoverUpload extends LitElement {
                 <a href="/help/faq/editing#picture" target="_blank" rel="noopener noreferrer">${guideline}</a>.
             </p>
 
-            <label class="label" for="cover-file">${this.t('chooseFile')}</label>
-            <input
-                id="cover-file"
-                class="field"
-                type="file"
-                name="file"
-                accept=${this.accept}
-                @change=${this._onFileChange}
-            />
-
-            <div class="paste">
-                <span>${this.t('pasteLabel')}</span>
-                <ol-button class="paste-button" size="small" aria-label=${this.t('pasteAria')} @click=${this._onPaste}>
-                    ${this.t(this._pasted ? 'changeImage' : 'paste')}
-                </ol-button>
+            <div class="panel">
+                <h3 class="heading">${this.t('chooseFile')}</h3>
+                <div class="row">
+                    <input
+                        class="file"
+                        type="file"
+                        name="file"
+                        accept=${this.accept}
+                        aria-label=${this.t('chooseFile')}
+                        @change=${this._onFileChange}
+                    />
+                    ${upload}
+                </div>
+                ${!this._pasted && this._file ? this._renderPreview() : nothing}
             </div>
 
-            ${this._previewUrl
-        ? html`<img class="preview" src=${this._previewUrl} alt=${this.t('previewAlt')} />`
-        : nothing}
+            <div class="panel">
+                <h3 class="heading">${this.t('pasteLabel')}</h3>
+                <div class="row">
+                    <ol-button class="paste-button" aria-label=${this.t('pasteAria')} @click=${this._onPaste}
+                        >${this.t(this._pasted ? 'changeImage' : 'paste')}</ol-button
+                    >
+                    ${this._pasted ? upload : nothing}
+                </div>
+                ${this._pasted ? this._renderPreview() : nothing}
+            </div>
+
             ${this._error ? html`<p class="status status--error" role="alert">${this._error}</p>` : nothing}
             ${this._busy ? html`<p class="status" role="status">${this.t('uploading')}</p>` : nothing}
-
-            <ol-button class="upload-button" variant="primary" ?loading=${this._busy} ?disabled=${this._busy} @click=${this._onSubmit}>
-                ${this.t('upload')}
-            </ol-button>
         `;
     }
 }

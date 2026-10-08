@@ -75,7 +75,7 @@ describe('ol-cover-upload form', () => {
         const el = await mount();
         expect(q(el, '.intro').textContent).toContain('a few ways to put a cover image');
         expect(q(el, 'input[type="file"]').getAttribute('accept')).toBe('.jpg,.jpeg,.gif,.png,.webp');
-        expect(q(el, '.paste ol-button').textContent).toContain('Paste Image');
+        expect(q(el, '.paste-button').textContent).toContain('Paste Image');
         expect(el.renderRoot.textContent).toContain('Upload');
     });
 
@@ -237,7 +237,7 @@ describe('ol-cover-upload clipboard paste', () => {
         expect(el._file).toBeInstanceOf(File);
         expect(el._file.name).toBe('pasted-image.png');
         expect(q(el, '.preview')?.getAttribute('src')).toBe('blob:preview');
-        expect(q(el, '.paste ol-button').textContent).toContain('Change Image');
+        expect(q(el, '.paste-button').textContent).toContain('Change Image');
     });
 
     test('a clipboard without an image reports it', async() => {
