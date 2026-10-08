@@ -7,6 +7,7 @@ emitted nothing for `borrow` before this, which for Lenny is half the catalogue
 — 25 of the 50 publications in the live feed, counted 2026-09-20.
 """
 
+import logging
 from pathlib import Path
 from typing import Final
 from unittest.mock import patch
@@ -15,6 +16,7 @@ import pytest
 import web
 from web.template import Template
 
+from openlibrary import book_providers
 from openlibrary.book_providers import (
     PROVIDER_ORDER,
     Acquisition,
@@ -273,3 +275,150 @@ class TestReadButtonTemplate:
         html = self.render("borrow", BORROW_URL, provider_name=None)
         assert ">Borrow</a>" in html
         assert 'data-ol-provider=""' in html
+
+@pytest.fixture
+def one_scan_allowed():
+    """Clear the process-wide scan throttle, so a test gets exactly one scan.
+
+    ``setattr`` rather than an assignment on the imported name, so that these
+    tests still reach their assertions -- and fail on "nothing was logged" --
+    when run against source that has no throttle at all. A red that says
+    `AttributeError` proves only that a symbol is missing.
+    """
+    book_providers._lenny_provider_scan_deadline = 0.0
+    yield
+    book_providers._lenny_provider_scan_deadline = 0.0
+
+
+def lenny_warnings(caplog) -> list[str]:
+    return [record.getMessage() for record in caplog.records if record.levelno >= logging.WARNING and record.name == "openlibrary.book_providers"]
+
+
+class TestASecondNodeIsAudible:
+    """Lenny names a node after its host once there is more than one of them,
+    and this code reads exactly one name. Nothing here fixes that -- the
+    button still vanishes -- it just stops the vanishing being silent.
+
+    The failure cannot be caught by watching our own deploys, because the
+    thing that triggers it is a library elsewhere standing up a node.
+    """
+
+    def test_a_row_no_configured_node_can_serve_is_named_in_the_log(self, acquisitions_db, one_scan_allowed, caplog):
+        store("46539165", {"access": "borrow", "url": BORROW_URL}, provider_name="lenny_localhost")
+        with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
+            assert lenny.get_acquisitions(edition("46539165")) == []
+        (warning,) = lenny_warnings(caplog)
+        assert "lenny_localhost" in warning
+
+    def test_the_healthy_single_node_case_says_nothing(self, acquisitions_db, one_scan_allowed, caplog):
+        """Production is 94 works and every one is plain `lenny`. A warning
+        that fires there is a warning nobody reads anywhere else."""
+        store("46539165", {"access": "borrow", "url": BORROW_URL})
+        store("37044817", {"access": "open-access", "url": READ_URL})
+        with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
+            assert len(lenny.get_acquisitions(edition("46539165"))) == 1
+        assert lenny_warnings(caplog) == []
+
+    def test_an_empty_table_says_nothing(self, acquisitions_db, one_scan_allowed, caplog):
+        with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
+            assert lenny.get_acquisitions(edition("46539165")) == []
+        assert lenny_warnings(caplog) == []
+
+    def test_it_fires_on_a_call_that_itself_succeeded(self, acquisitions_db, one_scan_allowed, caplog):
+        """The whole design, in one assertion.
+
+        An edition harvested under `lenny_localhost` carries
+        `identifiers.lenny_localhost`, so `get_book_providers` never selects
+        `LennyProvider` for it and `_harvested_lenny_entries` is never called
+        on its behalf. Every call that does arrive is a healthy one. Gate the
+        scan on the call having come up empty -- the obvious shape -- and this
+        goes quiet in exactly the situation it exists for.
+        """
+        store("46539165", {"access": "borrow", "url": BORROW_URL})
+        store("99999999", {"access": "borrow", "url": BORROW_URL}, provider_name="lenny_localhost")
+        with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
+            acquisitions = lenny.get_acquisitions(edition("46539165"))
+        assert len(acquisitions) == 1, "the healthy edition must still render its button"
+        (warning,) = lenny_warnings(caplog)
+        assert "lenny_localhost" in warning
+
+    def test_a_provider_that_merely_sorts_next_to_lenny_is_not_claimed(self, acquisitions_db, one_scan_allowed, caplog):
+        """`lennylibrary` is not a Lenny node. Only `lenny` and `lenny_<host>`
+        are names this scheme can produce."""
+        store("46539165", {"access": "borrow", "url": BORROW_URL}, provider_name="lennylibrary")
+        store("46539166", {"access": "borrow", "url": BORROW_URL}, provider_name="betterworldbooks")
+        with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
+            lenny.get_acquisitions(edition("46539165"))
+        assert lenny_warnings(caplog) == []
+
+    def test_every_unservable_node_is_named_not_just_the_first(self, acquisitions_db, one_scan_allowed, caplog):
+        """A report that names one of three is how the other two ship."""
+        store("1", {"access": "borrow", "url": BORROW_URL}, provider_name="lenny_b_example_org")
+        store("2", {"access": "borrow", "url": BORROW_URL}, provider_name="lenny_a_example_org")
+        store("3", {"access": "borrow", "url": BORROW_URL}, provider_name="lenny_c_example_org")
+        with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
+            lenny.get_acquisitions(edition("46539165"))
+        (warning,) = lenny_warnings(caplog)
+        for host in ("lenny_a_example_org", "lenny_b_example_org", "lenny_c_example_org"):
+            assert host in warning
+
+
+class TestItCannotSpamAHotPath:
+    """`_harvested_lenny_entries` runs once per Lenny edition per page render,
+    and the scan behind this warning is unindexed -- `acquisitions` is indexed
+    on work_id, edition_id and updated, not provider_name."""
+
+    def test_a_page_of_many_lenny_editions_logs_once(self, acquisitions_db, one_scan_allowed, caplog):
+        store("46539165", {"access": "borrow", "url": BORROW_URL}, provider_name="lenny_localhost")
+        with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
+            for _ in range(25):
+                lenny.get_acquisitions(edition("46539165"))
+        assert len(lenny_warnings(caplog)) == 1
+
+    def test_a_page_of_many_lenny_editions_scans_once(self, acquisitions_db, one_scan_allowed):
+        """The log line is deduplicated because the query is, not the other
+        way round: the cost this is bounding is the read, not the message."""
+        store("46539165", {"access": "borrow", "url": BORROW_URL}, provider_name="lenny_localhost")
+        with patch.object(StoredAcquisition, "distinct_provider_names", wraps=StoredAcquisition.distinct_provider_names) as spy:
+            for _ in range(25):
+                lenny.get_acquisitions(edition("46539165"))
+        assert spy.call_count == 1
+
+    def test_a_failing_scan_is_not_retried_by_the_rest_of_the_page(self, acquisitions_db, one_scan_allowed):
+        """The deadline moves before the query, not after, so a scan that
+        raises or hangs costs the page once rather than once per edition."""
+        with patch.object(StoredAcquisition, "distinct_provider_names", side_effect=OSError("boom")) as failing:
+            for _ in range(25):
+                lenny.get_acquisitions(edition("46539165"))
+        assert failing.call_count == 1
+
+    def test_nothing_is_scanned_when_the_database_did_not_answer(self, acquisitions_db, one_scan_allowed):
+        """The Solr indexer need not have this database configured at all."""
+        with (
+            patch.object(StoredAcquisition, "find_many", side_effect=OSError("no connection")),
+            patch.object(StoredAcquisition, "distinct_provider_names") as scan,
+        ):
+            assert lenny.get_acquisitions(edition("46539165")) == []
+        scan.assert_not_called()
+
+
+class TestTheWarningChangesNothing:
+    """This function's contract is that it returns `[]` on any failure: both
+    callers are places an exception cannot go."""
+
+    def test_a_scan_that_raises_does_not_reach_the_caller(self, acquisitions_db, one_scan_allowed, caplog):
+        store("46539165", {"access": "borrow", "url": BORROW_URL})
+        with (
+            caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"),
+            patch.object(StoredAcquisition, "distinct_provider_names", side_effect=OSError("boom")),
+        ):
+            (acquisition,) = lenny.get_acquisitions(edition("46539165"))
+        assert acquisition.url == BORROW_URL
+        assert lenny_warnings(caplog) == []
+
+    def test_an_unservable_row_does_not_change_what_is_offered(self, acquisitions_db, one_scan_allowed, caplog):
+        store("46539165", {"access": "borrow", "url": BORROW_URL})
+        store("46539165", {"access": "open-access", "url": READ_URL}, provider_name="lenny_localhost")
+        with caplog.at_level(logging.WARNING, logger="openlibrary.book_providers"):
+            assert lenny.get_access(edition("46539165")) == EbookAccess.BORROWABLE
+        assert len(lenny_warnings(caplog)) == 1
