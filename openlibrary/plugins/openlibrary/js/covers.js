@@ -31,6 +31,14 @@ export function initCoversChange() {
                 add_iframe('.imagesManage', manage_url);
             }, 0);
         });
+
+    // Tear the iframes down when the dialog closes so they stop running; they
+    // are re-created on the next open. (Replaces the old colorbox cbox_cleanup
+    // handler removed in the ol-dialog migration.)
+    const coverDialog = document.querySelector('.imagesAdd')?.closest('ol-dialog');
+    coverDialog?.addEventListener('ol-close', () => {
+        document.querySelectorAll('.imagesAdd, .imagesManage').forEach((el) => el.replaceChildren());
+    });
 }
 
 function add_iframe(selector, src) {

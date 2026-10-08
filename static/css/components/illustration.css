@@ -19,6 +19,13 @@
   border-radius: var(--border-radius-thumbnail);
   box-shadow: 1px 1px 2px 0 var(--book-cover-shadow-color);
 }
+/* The enlarged cover preview lives in an <ol-dialog> that is still slotted
+   inside .illustration, so it would otherwise inherit the 180px thumbnail
+   width above. Fill the dialog instead. */
+ol-dialog img.cover {
+  width: 100%;
+  height: auto;
+}
 .illustration .SRPCoverBlank {
   position: relative;
   width: 148px;

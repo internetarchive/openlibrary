@@ -4,12 +4,12 @@ They must be available in the global JS namespace
 See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-2107911798
 */
 
-// Closes the open <ol-dialog> on the parent page. Called from inside the
-// cover-manager iframe, where the dialog lives on the parent document.
+// Closes the <ol-dialog> the originating iframe lives in. Called from inside
+// the cover-manager iframe, where the dialog lives on the parent document.
 export function closePopup() {
-    const openDialog = parent.document.querySelector('ol-dialog[open]');
-    if (openDialog) {
-        openDialog.open = false;
+    const dialog = window.frameElement?.closest('ol-dialog');
+    if (dialog) {
+        dialog.open = false;
     }
 }
 
