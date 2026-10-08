@@ -180,17 +180,41 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and (provider := get_book_provider(edition))
         and provider.short_name != "ia"
         and (acquisitions := provider.get_acquisitions(edition))
-        and acquisitions[0].access == "open-access"
+        # `borrow` as well as `open-access`: a provider that lends its own
+        # copies sends the patron to its own sign-in. Falling through reaches
+        # `get_bookreader_stream_url(edition.ocaid)`, and on a non-IA edition
+        # `ocaid` is infogami's `Nothing`, whose `__radd__` returns the left
+        # operand -- so that path yields a bare `archive.org/stream/` instead
+        # of raising.
+        and acquisitions[0].access in ("open-access", "borrow")
     ):
         stats.increment("ol.loans.webbook")
+        url = acquisitions[0].url
         raw_name = acquisitions[0].provider_name or ""
-        book_provider = Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>") if raw_name else Markup("")
+        display_name = raw_name.replace("_", " ").title()
+        borrowing = False
+
+        if acquisitions[0].access == "borrow":
+            # A lending node Open Library holds OAuth credentials for is
+            # borrowed *through* Open Library, not at the node: the patron
+            # stays here and the loan is created by the callback (#13688).
+            # `mediated_borrow` returns None for a node with no credentials
+            # configured, which falls back to the URL the feed gave us -- the
+            # node's own sign-in, which works with nothing built here.
+            from openlibrary.plugins.upstream import lenny
+
+            if mediated := lenny.mediated_borrow(key):
+                url, display_name = mediated
+                borrowing = True
+
+        book_provider = Markup("<strong>") + escape(display_name) + Markup("</strong>") if raw_name else Markup("")
         return render_jinja_template(
             "interstitial.html.jinja",
-            url=acquisitions[0].url,
+            url=url,
             book_provider=book_provider,
             wait=5,
             fastapi=fastapi,
+            borrowing=borrowing,
         )
 
     archive_url = get_bookreader_stream_url(edition.ocaid) + "?ref=ol"
