@@ -101,13 +101,20 @@ export function initPreviewDialogs() {
  * dialogs.
  */
 export function initDialogs() {
-    $('.dialog--open').off('click.dialog').on('click.dialog', function(e) {
-        const target = document.getElementById($(this).attr('aria-controls'));
-        if (target?.tagName !== 'OL-DIALOG') {
-            return;
-        }
-        e.preventDefault();
-        target.open = true;
+    document.querySelectorAll('.dialog--open').forEach((trigger) => {
+        const getTarget = () => document.getElementById(trigger.getAttribute('aria-controls'));
+        // Start fetching the dialog's lazy images on hover/focus so they're loaded by the click.
+        const warmImages = () => getTarget()?.querySelectorAll('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
+        trigger.addEventListener('pointerenter', warmImages, { once: true });
+        trigger.addEventListener('focus', warmImages, { once: true });
+        trigger.addEventListener('click', (e) => {
+            const target = getTarget();
+            if (target?.tagName !== 'OL-DIALOG') {
+                return;
+            }
+            e.preventDefault();
+            target.open = true;
+        });
     });
 
     initPreviewDialogs();

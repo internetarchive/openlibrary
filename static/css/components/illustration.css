@@ -19,16 +19,16 @@
   border-radius: var(--border-radius-thumbnail);
   box-shadow: 1px 1px 2px 0 var(--book-cover-shadow-color);
 }
-/* The enlarged cover preview is slotted into <ol-dialog> inside .illustration,
-   so the 180px thumbnail rule above would shrink it. Show it at its intrinsic
-   size instead, capped to the dialog width and the viewport height. Colorbox
-   did the same, via the inline-block <a> that wrapped the image. */
-ol-dialog img.cover {
+/* Enlarged cover in the preview <ol-dialog>, inside .illustration. Shown at its
+   intrinsic size (as Colorbox did), capped to the dialog's max height minus body
+   padding and the ~3rem title row, so it never scrolls. */
+ol-dialog img.cover-preview {
   display: block;
   width: auto;
   max-width: 100%;
-  max-height: 70vh;
-  margin: 0 auto;
+  height: auto;
+  max-height: calc(var(--ol-dialog-max-height) - 2 * var(--ol-dialog-padding) - 3.5rem);
+  margin-inline: auto;
 }
 .illustration .SRPCoverBlank {
   position: relative;

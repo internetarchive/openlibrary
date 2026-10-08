@@ -50,6 +50,6 @@ $if preload:
         $:overlay
 </div>
 
-<ol-dialog id="seeImage" label="$_('Book cover')" width="medium">
-    <img src="$cover_lg" class="cover" alt="$title $_('by') $author_names"/>
+<ol-dialog id="seeImage" label="$truncate(title or '', 70)" width="medium">
+    <img src="$cover_lg" loading="lazy" class="cover cover-preview" alt="$title $_('by') $author_names"/>
 </ol-dialog>

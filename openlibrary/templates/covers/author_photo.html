@@ -13,8 +13,8 @@ $if author_thumbnail_url:
             </a>
         </div>
     </div>
-    <ol-dialog id="seeImage" label="$_('Author photo')" width="medium">
-        <img src="$author_photo_url" itemprop="image" class="cover" alt="$_('Photo of %(author)s', author=author.name)"/>
+    <ol-dialog id="seeImage" label="$truncate(author.name or '', 60)" width="medium">
+        <img src="$author_photo_url" loading="lazy" itemprop="image" class="cover cover-preview" alt="$_('Photo of %(author)s', author=author.name)"/>
     </ol-dialog>
 $else:
     <div class="author coverMagic">

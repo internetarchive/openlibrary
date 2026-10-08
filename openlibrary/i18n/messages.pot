@@ -4018,10 +4018,6 @@ msgid "Photo of %(author)s"
 msgstr ""
 
 #: covers/author_photo.html
-msgid "Author photo"
-msgstr ""
-
-#: covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
 msgstr ""
@@ -4033,10 +4029,6 @@ msgstr ""
 #: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
-
-#: covers/book_cover.html
-msgid "Book cover"
 msgstr ""
 
 #: covers/book_cover_small.html

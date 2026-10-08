@@ -32,10 +32,10 @@ export function initCoversChange() {
             }, 0);
         });
 
-    // Clear the add/manage iframes when the dialog closes so they stop running;
-    // the next open rebuilds them. Colorbox's cbox_cleanup did this on close.
+    // Clear the add/manage iframes once the dialog has closed so they stop running;
+    // the next open rebuilds them. Waits for the close animation so it doesn't empty mid-fade.
     const coverDialog = document.querySelector('.imagesAdd')?.closest('ol-dialog');
-    coverDialog?.addEventListener('ol-close', () => {
+    coverDialog?.addEventListener('ol-after-close', () => {
         document.querySelectorAll('.imagesAdd, .imagesManage').forEach((el) => el.replaceChildren());
     });
 }
@@ -91,6 +91,7 @@ export function initCoversSaved() {
     if (['/type/edition', '/type/work', '/edit'].includes(doc_type_key)) {
         if (image) {
             cover_url = `${coverstore_url}/b/id/${image}-M.jpg`;
+            updateCoverPreview(`${coverstore_url}/b/id/${image}-L.jpg`);
             // XXX-Anand: Fix this hack
             // set url and  show SRPCover  and hide SRPCoverBlank
             parent.$(cover_selector).attr('src', cover_url)
@@ -110,12 +111,22 @@ export function initCoversSaved() {
     else {
         if (image) {
             cover_url = `${coverstore_url}/a/id/${image}-M.jpg`;
+            updateCoverPreview(`${coverstore_url}/a/id/${image}-L.jpg`);
         }
         else {
             cover_url = '/static/images/icons/avatar_author-lg.png';
         }
         parent.$(cover_selector).attr('src', cover_url);
     }
+}
+
+// Point the enlarged preview dialog, and its trigger's fallback link, at the newly saved image.
+function updateCoverPreview(largeUrl) {
+    const preview = parent.document.querySelector('#seeImage img.cover-preview');
+    if (preview) {
+        preview.src = largeUrl;
+    }
+    parent.document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach((link) => { link.href = largeUrl; });
 }
 
 // This function will be triggered when the user clicks the "Paste" button
