@@ -282,3 +282,37 @@ class TestGetLoanHistoryData:
 
         mock_api.assert_called_once()
         assert result["docs"] == []
+
+
+@pytest.mark.usefixtures("request_context_fixture")
+class TestLoanHistoryCache:
+    """The homepage reads page 1 of IA history from memcache; My Books and borrow/return keep it fresh."""
+
+    def _get(self, username, *, cached, items):
+        response = Mock()
+        response.json.return_value = {"history": {"items": items}}
+        with (
+            patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "a", "secret": "s"}),
+            patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
+            patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
+        ):
+            result = lending.get_loan_history_data(username, page=1, s3_cookie="irrelevant", cached=cached)
+        return result, mock_api
+
+    def test_cached_read_skips_ia_after_a_fetch(self):
+        self._get("cacheuser1", cached=False, items=[{"identifier": "first", "updatedate": "2026-01-01"}])
+        result, mock_api = self._get("cacheuser1", cached=True, items=[])
+        mock_api.assert_not_called()
+        assert [d["ocaid"] for d in result["docs"]] == ["first"]
+
+    def test_uncached_read_always_queries_ia(self):
+        self._get("cacheuser2", cached=False, items=[])
+        _, mock_api = self._get("cacheuser2", cached=False, items=[])
+        mock_api.assert_called_once()
+
+    def test_invalidate_forces_a_fresh_fetch(self):
+        self._get("cacheuser3", cached=False, items=[])
+        lending.invalidate_loan_history_cache("cacheuser3")
+        _, mock_api = self._get("cacheuser3", cached=True, items=[])
+        mock_api.assert_called_once()

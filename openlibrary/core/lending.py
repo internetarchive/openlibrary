@@ -891,9 +891,18 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
 
 
 RESULTS_PER_PAGE: int = 25
+LOAN_HISTORY_CACHE_SECS = 5 * dateutil.MINUTE_SECS
 
 
-def get_loan_history_data(username: str, page: int, s3_cookie: str | None = None) -> dict:
+def _loan_history_cache_key(username: str) -> str:
+    return cache.build_memcache_key("lending.loan_history", username)
+
+
+def invalidate_loan_history_cache(username: str) -> None:
+    cache.get_memcache().delete(_loan_history_cache_key(username))
+
+
+def get_loan_history_data(username: str, page: int, s3_cookie: str | None = None, cached: bool = False) -> dict:
     """Fetch loan history data for a user.
 
     This will use a patron's S3 keys to query the IA loan history API,
@@ -906,6 +915,8 @@ def get_loan_history_data(username: str, page: int, s3_cookie: str | None = None
     see https://github.com/internetarchive/openlibrary/pull/8375.
 
     FastAPI callers pass ``s3_cookie`` themselves: web.cookies() is empty there.
+    ``cached`` reads page 1's raw IA history from memcache; every uncached
+    page-1 fetch refreshes it. Availability keeps its own cache either way.
     """
     from infogami.utils.view import render
 
@@ -927,15 +938,20 @@ def get_loan_history_data(username: str, page: int, s3_cookie: str | None = None
         logger.warning("No IA S3 keys for %s; returning empty loan history", username)
         return {"docs": [], "show_next": False, "limit": limit, "page": page}
 
-    response = s3_loan_api(
-        s3_keys=s3_keys,
-        action="user_borrow_history",
-        limit=limit + 1,
-        offset=offset,
-        newest=True,
-    ).json()
-    history = response.get("history") or {}
-    loan_history = history.get("items") or []
+    mc = cache.get_memcache()
+    loan_history = mc.get(_loan_history_cache_key(username)) if cached and page == 1 else None
+    if loan_history is None:
+        response = s3_loan_api(
+            s3_keys=s3_keys,
+            action="user_borrow_history",
+            limit=limit + 1,
+            offset=offset,
+            newest=True,
+        ).json()
+        history = response.get("history") or {}
+        loan_history = history.get("items") or []
+        if page == 1:
+            mc.set(_loan_history_cache_key(username), loan_history, expires=LOAN_HISTORY_CACHE_SECS)
 
     # We request limit+1 to see if there is another page of history to display,
     # and then pop the +1 off if it's present.

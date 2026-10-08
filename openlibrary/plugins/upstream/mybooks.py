@@ -105,7 +105,7 @@ def get_loans_and_history(user_key: str, username: str, *, include_history: bool
     history_books = []
     if include_history:
         try:
-            history_data = get_loan_history_data(username, page=1, s3_cookie=s3_cookie)
+            history_data = get_loan_history_data(username, page=1, s3_cookie=s3_cookie, cached=cached)
             history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
         except Exception:
             # Deliberately non-fatal: callers must still render active loans
