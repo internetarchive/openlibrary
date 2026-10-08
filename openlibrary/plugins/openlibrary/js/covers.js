@@ -35,7 +35,7 @@ export function initCoversChange() {
 
 function add_iframe(selector, src) {
     $(selector)
-        .append('<iframe frameborder="0" height="580" width="100%" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
+        .append('<iframe height="580" width="100%" style="border: 0;"></iframe>')
         .find('iframe')
         .attr('src', src);
 }

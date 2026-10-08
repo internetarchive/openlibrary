@@ -101,7 +101,7 @@ export function initPreviewDialogs() {
  * dialogs.
  */
 export function initDialogs() {
-    $('.dialog--open').on('click', function(e) {
+    $('.dialog--open').off('click.dialog').on('click.dialog', function(e) {
         const target = document.getElementById($(this).attr('aria-controls'));
         if (target?.tagName !== 'OL-DIALOG') {
             return;
@@ -113,9 +113,9 @@ export function initDialogs() {
     initPreviewDialogs();
 
     // This will close the dialog in the current page.
-    $('.dialog--close').attr('href', 'javascript:;').on('click', () => $.fn.colorbox.close());
+    $('.dialog--close').attr('href', 'javascript:;').off('click.dialog').on('click.dialog', () => $.fn.colorbox.close());
     // This will close the colorbox from the parent.
-    $('.dialog--close-parent').on('click', () => parent.$.fn.colorbox.close());
+    $('.dialog--close-parent').off('click.dialog').on('click.dialog', () => parent.$.fn.colorbox.close());
 }
 
 /**
