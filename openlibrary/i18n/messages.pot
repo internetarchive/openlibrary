@@ -3972,7 +3972,7 @@ msgstr ""
 msgid "Use this image"
 msgstr ""
 
-#: covers/add.html covers/change.html
+#: covers/add.html
 msgid "Choose a JPG, GIF, PNG or WebP on your computer"
 msgstr ""
 
@@ -4069,6 +4069,10 @@ msgstr ""
 msgid "Learn more by reading our"
 msgstr ""
 
+#: covers/change.html
+msgid "Choose an image"
+msgstr ""
+
 #: covers/change.html databarWork.html lib/browse_popover.html lib/nav_head.html
 msgid "Browse"
 msgstr ""
@@ -4116,6 +4120,11 @@ msgstr ""
 
 #: covers/change.html
 msgid "Please choose an image first."
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "That file type isn't supported. Please use one of these image types: %(types)s."
 msgstr ""
 
 #: covers/change.html

@@ -15,7 +15,7 @@ export const DEFAULT_LABELS = {
     learnMore: 'Learn more by reading our',
     guidelinesCover: 'Cover Guidelines',
     guidelinesPhoto: 'Image Guidelines',
-    chooseFile: 'Choose a JPG, GIF, PNG or WebP on your computer',
+    chooseFile: 'Choose an image',
     browse: 'Browse',
     dropHint: 'Drag and drop an image here',
     useImageFrom: 'Or, use an image from %(source)s',
@@ -33,8 +33,18 @@ export const DEFAULT_LABELS = {
     addAnother: 'Add another image',
     finished: 'Finished',
     noFile: 'Please choose an image first.',
+    invalidType: 'That file type isn\'t supported. Please use one of these image types: %(types)s.',
     uploadFailed: 'Could not upload the image. Please try again.',
     noClipboardImage: 'No image found in clipboard',
+};
+
+/** Extension → MIME types, for files (e.g. pasted) with no usable filename. */
+const EXTENSION_MIME = {
+    '.jpg': ['image/jpeg', 'image/jpg'],
+    '.jpeg': ['image/jpeg', 'image/jpg'],
+    '.gif': ['image/gif'],
+    '.png': ['image/png'],
+    '.webp': ['image/webp'],
 };
 
 /**
@@ -323,8 +333,39 @@ export class OlCoverUpload extends LitElement {
         this._fileInput?.click();
     }
 
+    /** Extensions from the `accept` list, e.g. ['.jpg', '.png']. */
+    get _acceptedExtensions() {
+        return (this.accept || '')
+            .split(',')
+            .map((s) => s.trim().toLowerCase())
+            .filter((s) => s.startsWith('.'));
+    }
+
+    /** Whether a picked / dropped / pasted file is an accepted image type. */
+    _isAccepted(file) {
+        const extensions = this._acceptedExtensions;
+        if (!extensions.length) return true;
+        const name = (file?.name || '').toLowerCase();
+        if (extensions.some((ext) => name.endsWith(ext))) return true;
+        const mimes = extensions.flatMap((ext) => EXTENSION_MIME[ext] ?? []);
+        return mimes.includes((file?.type || '').toLowerCase());
+    }
+
+    /** "JPG, JPEG, GIF, PNG, WEBP" — the accepted types, for the error copy. */
+    _acceptedTypesLabel() {
+        return [...new Set(this._acceptedExtensions.map((ext) => ext.slice(1).toUpperCase()))].join(', ');
+    }
+
+    _invalidTypeMessage() {
+        return this.t('invalidType', { types: this._acceptedTypesLabel() });
+    }
+
     /** Record a chosen or dropped image and preview it. */
     _setFile(file) {
+        if (!this._isAccepted(file)) {
+            this._error = this._invalidTypeMessage();
+            return;
+        }
         this._error = '';
         this._pasted = false;
         this._file = file;
@@ -333,6 +374,10 @@ export class OlCoverUpload extends LitElement {
 
     /** Record an image as the pending "pasted" upload and preview it. */
     _setPastedFile(file) {
+        if (!this._isAccepted(file)) {
+            this._error = this._invalidTypeMessage();
+            return;
+        }
         this._error = '';
         this._pasted = true;
         this._file = file;
@@ -353,8 +398,11 @@ export class OlCoverUpload extends LitElement {
     _onDrop(event) {
         event.preventDefault();
         this._dragging = false;
-        const file = [...(event.dataTransfer?.files ?? [])].find((f) => f.type.startsWith('image/'));
+        const files = [...(event.dataTransfer?.files ?? [])];
+        if (!files.length) return;
+        const file = files.find((f) => this._isAccepted(f));
         if (file) this._setFile(file);
+        else this._error = this._invalidTypeMessage();
     }
 
     /**
@@ -382,11 +430,11 @@ export class OlCoverUpload extends LitElement {
         try {
             const items = await navigator.clipboard.read();
             for (const item of items) {
-                const mimeType = ['image/png', 'image/jpeg', 'image/jpg'].find((type) => item.types.includes(type));
-                if (!mimeType) continue;
-                const blob = await item.getType(mimeType);
-                const extension = mimeType === 'image/png' ? 'png' : mimeType === 'image/jpeg' ? 'jpeg' : 'jpg';
-                this._setPastedFile(new File([blob], `pasted-image.${extension}`, { type: mimeType }));
+                const imageType = item.types.find((type) => type.startsWith('image/'));
+                if (!imageType) continue;
+                const blob = await item.getType(imageType);
+                const extension = (imageType.split('/')[1] || 'png').replace('jpeg', 'jpg');
+                this._setPastedFile(new File([blob], `pasted-image.${extension}`, { type: imageType }));
                 return;
             }
             this._error = this.t('noClipboardImage');
@@ -603,10 +651,10 @@ export class OlCoverUpload extends LitElement {
                 <p class="hint">${this.t('pasteHint')}</p>
             </div>
 
-            ${this._renderCandidates()}
-
             ${this._error ? html`<p class="status status--error" role="alert">${this._error}</p>` : nothing}
             ${this._busy ? html`<p class="status" role="status">${this.t('uploading')}</p>` : nothing}
+
+            ${this._renderCandidates()}
         `;
     }
 }

@@ -124,11 +124,28 @@ describe('ol-cover-upload form', () => {
         expect(q(el, '.preview')).not.toBeNull();
     });
 
-    test('a drop with no image is ignored', async() => {
+    test('a drop with no supported image is ignored and explained', async() => {
         const el = await mount();
         el._onDrop({ preventDefault() {}, dataTransfer: { files: [new File(['x'], 'a.txt', { type: 'text/plain' })] } });
         await el.updateComplete;
         expect(el._file).toBeNull();
+        expect(q(el, '.status--error').textContent).toContain('GIF');
+    });
+
+    test('an unsupported file type is rejected and the accepted types are named', async() => {
+        const el = await mount();
+        el._setFile(new File(['x'], 'notes.txt', { type: 'text/plain' }));
+        await el.updateComplete;
+        expect(el._file).toBeNull();
+        expect(q(el, '.status--error').textContent).toContain('JPG');
+    });
+
+    test('an unsupported pasted image is rejected', async() => {
+        const el = await mount();
+        el._setPastedFile(new File(['x'], 'pasted-image.bmp', { type: 'image/bmp' }));
+        await el.updateComplete;
+        expect(el._file).toBeNull();
+        expect(q(el, '.status--error')).not.toBeNull();
     });
 
     test('dragging over the dropzone highlights it until the drag leaves', async() => {
