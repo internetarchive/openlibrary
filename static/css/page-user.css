@@ -112,18 +112,18 @@ div.siteSearch.darker {
   margin-bottom: 0;
 }
 
-/* The stats line labels the results below it, so it sits closer to them than */
-/* to the controls above — the filter row's margin-bottom below owns that split. */
-/* padding-left matches .searchResultItem's inset so the text starts on the */
-/* result card's content edge rather than its outer box. */
+/* The stats line labels the results below it, so it sits closer to them than
+   to the controls above — the filter row's margin-bottom below owns that split.
+   padding-left matches .searchResultItem's inset so the text starts on the
+   result card's content edge rather than its outer box. */
 .search-controls .search-results-stats {
   padding-bottom: 0;
   padding-left: var(--spacing-inset-sm);
 }
 
-/* Exception to the gap-owns-spacing rule above: the filters are the last */
-/* control before the results, so they need a block-level break rather than the */
-/* tighter row gap — most visible against the "Authors" section heading. */
+/* Exception to the gap-owns-spacing rule above: the filters are the last
+   control before the results, so they need a block-level break rather than the
+   tighter row gap — most visible against the "Authors" section heading. */
 .search-filter-row {
   display: flex;
   flex-wrap: wrap;
@@ -132,8 +132,8 @@ div.siteSearch.darker {
   margin: 0 0 var(--spacing-stack-md);
 }
 
-/* Own row on narrow screens: wrapping to the end of a half-empty line reads */
-/* as misaligned. */
+/* Own row on narrow screens: wrapping to the end of a half-empty line reads
+   as misaligned. */
 .search-filter-row__tools {
   display: flex;
   flex-basis: 100%;
@@ -141,8 +141,8 @@ div.siteSearch.darker {
   align-items: center;
 }
 
-/* From tablet up, share the filters' row. margin-left rather than */
-/* space-between so the filters stay packed together. */
+/* From tablet up, share the filters' row. margin-left rather than
+   space-between so the filters stay packed together. */
 @media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
   .search-filter-row__tools {
     flex-basis: auto;
@@ -150,16 +150,16 @@ div.siteSearch.darker {
   }
 }
 
-/* Where the sidebar moves beside the results, reserve its width so the */
-/* right-aligned tools land on the results column's edge, not the page's. */
+/* Where the sidebar moves beside the results, reserve its width so the
+   right-aligned tools land on the results column's edge, not the page's. */
 @media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
   .search-filter-row {
     padding-right: var(--search-facets-width);
   }
 }
 
-/* On the search page, enlarge the in-page search box to match the header */
-/* search bar. */
+/* On the search page, enlarge the in-page search box to match the header
+   search bar. */
 .search-page .searchbox {
   height: 47px;
   border-radius: 6px;
@@ -208,7 +208,7 @@ div#editHistory {
 }
 
 .data-transfer-illustration__icon {
-  color: var(--color-icon-muted, #666);
+  color: var(--color-icon-muted);
 }
 
 .data-transfer-card--full-width {
@@ -309,25 +309,6 @@ div#editHistory {
 
 .dropzone.has-file .dropzone-filename {
   display: block;
-}
-
-div#subjectsPage {
-  columns: 2;
-}
-
-/* @width-breakpoint-tablet = 768px */
-@media only screen and (min-width: 768px) {
-  div#subjectsPage {
-    columns: 4;
-  }
-}
-
-div#subjectsPage h3 {
-  break-after: avoid;
-}
-
-div#subjectsPage ul {
-  display: inline-block;
 }
 
 div.lists {

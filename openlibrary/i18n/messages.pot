@@ -1081,7 +1081,8 @@ msgid "Export your Reading Log"
 msgstr ""
 
 #: account/export.html
-msgid "Download a copy of your <a href=\"/help/faq/reading-log.en#reading-log\">reading log</a>."
+#, python-format
+msgid "Download a copy of your %(link_start)sreading log%(link_end)s."
 msgstr ""
 
 #: account/export.html
