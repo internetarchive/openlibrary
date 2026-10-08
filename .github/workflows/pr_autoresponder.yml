@@ -95,7 +95,7 @@ jobs:
             Bash(gh pr diff:*) Bash(gh pr checks:*) Bash(gh pr comment:*) Bash(gh pr edit:*)
             Bash(gh issue view:*) Bash(gh issue list:*) Bash(gh pr list:*)
             Bash(gh api:*) Bash(gh label list:*)"
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.OL_BOT_CLAUDE_OAUTH_TOKEN }}
           github_token: ${{ secrets.OL_BOT_PAT }}
           # PR authors on a public repo mostly have only read access, same reasoning
           # as issue_enrichment.yml. NOTE: #13161 found this bypass unreliable for

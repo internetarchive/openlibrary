@@ -21,6 +21,12 @@ A page is **reference**: how a system works, or — for a finished system — wh
   work on it. If a piece of a page is really status, move it to the tracker.
 - **Scratch work and investigation diaries.** Distil findings into reference;
   don't paste the working notes or the path you took to them.
+- **One developer's machine.** No absolute home paths (`/Users/you/…`,
+  `/home/alice/…`), personal checkout locations, or "works on my box" setup. A
+  doc is read on every contributor's machine, so paths are repo-root-relative,
+  and a path that must be absolute uses a placeholder (`$HOME`, `<repo>`). A
+  genuinely per-developer workaround may be **described as a limitation**, but
+  never written as a committed recipe tied to one person's path.
 - **Armchair security.** Threat speculation and exploit walkthroughs are not
   documentation. A response **playbook** describes *how to respond*, not *how to
   exploit*.
@@ -79,3 +85,8 @@ than silently.
 
 This KB lives in-repo under `docs/`; there is no separate publish step. Edits land
 with the commit that makes them, reviewed like any other change.
+
+The in-repo `docs/` tree is the **single source of truth**. The historical
+external `openlibrary-kb` repo is **not** canonical — don't add new pages there
+or cite it as authoritative; new documentation and edits go here, next to the
+code they describe. (Conventions that apply to *all* developers currently live here.)

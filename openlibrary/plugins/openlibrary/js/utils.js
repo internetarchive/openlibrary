@@ -4,10 +4,13 @@ They must be available in the global JS namespace
 See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-2107911798
 */
 
-// closes active popup
+// Closes the <ol-dialog> that contains the calling iframe. The cover-manager
+// iframe used to call colorbox.close() on the parent page instead.
 export function closePopup() {
-    // Note we don't import colorbox here, since it's on the parent
-    parent.jQuery.fn.colorbox.close();
+    const dialog = window.frameElement?.closest('ol-dialog');
+    if (dialog) {
+        dialog.open = false;
+    }
 }
 
 // used in templates/admin/imports.html
