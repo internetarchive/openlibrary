@@ -1,0 +1,66 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Content formats", "Click the trigger, type to filter the type's Tags (case-insensitively), and pick one or more. Each becomes a removable chip; the popover stays open so several can be added in a row.",
+        code='<ol-tag-picker\n  tag-type="content_formats"\n  name="content_formats">\n</ol-tag-picker>\n\n<!-- Fetches the type\'s Tags from query.json. On a dev DB with none,\n     pass them directly: el.options = [{key, name}, ...] -->') %}
+        <ol-tag-picker id="demo-tag-picker" tag-type="content_formats" name="content_formats" aria-label="Content formats">
+        </ol-tag-picker>
+        <p>Selected: <strong id="demo-tag-picker-out">(none)</strong></p>
+        <script>
+            (function () {
+                const el = document.getElementById('demo-tag-picker');
+                const out = document.getElementById('demo-tag-picker-out');
+                // The 24 production content_formats, supplied directly so this
+                // demo renders on a dev database that has no content_formats Tags.
+                el.options = [
+                    { key: '/tags/OL120T', name: 'Almanac' }, { key: '/tags/OL121T', name: 'Anthology' },
+                    { key: '/tags/OL122T', name: 'Artbook' }, { key: '/tags/OL123T', name: 'Atlas' },
+                    { key: '/tags/OL124T', name: 'Autobiography' }, { key: '/tags/OL125T', name: 'Biography' },
+                    { key: '/tags/OL126T', name: 'Chronology' }, { key: '/tags/OL127T', name: 'Diary' },
+                    { key: '/tags/OL128T', name: 'Dictionary' }, { key: '/tags/OL129T', name: 'Encyclopedia' },
+                    { key: '/tags/OL130T', name: 'Essays' }, { key: '/tags/OL131T', name: 'Graphic Novel' },
+                    { key: '/tags/OL132T', name: 'Letters' }, { key: '/tags/OL133T', name: 'Lexicon' },
+                    { key: '/tags/OL134T', name: 'Manga' }, { key: '/tags/OL135T', name: 'Memoir' },
+                    { key: '/tags/OL136T', name: 'Novel' }, { key: '/tags/OL137T', name: 'Novella' },
+                    { key: '/tags/OL138T', name: 'Photography' }, { key: '/tags/OL139T', name: 'Recipes' },
+                    { key: '/tags/OL140T', name: 'Reference' }, { key: '/tags/OL141T', name: 'Script / Play' },
+                    { key: '/tags/OL142T', name: 'Short Story' }, { key: '/tags/OL143T', name: 'Textbook' }
+                ];
+                el.addEventListener('ol-tag-picker-change', (e) => {
+                    out.textContent = e.detail.value.length === 0 ? '(none)' : e.detail.value.join(', ');
+                });
+            })();
+        </script>
+{% endcall %}
+{% call ex.example("Preselected, both stored shapes", "Initial selections are accepted as plain key strings (\"/tags/OL136T\") and as refs ({\"key\": \"/tags/OL142T\"}), mixed freely. Existing works hold strings; works saved after the type is declared hold refs.") %}
+    <ol-tag-picker id="demo-tag-picker-pre" tag-type="content_formats" name="content_formats" aria-label="Content formats">
+    </ol-tag-picker>
+    <script>
+            (function () {
+                const el = document.getElementById('demo-tag-picker-pre');
+                el.options = [
+                    { key: '/tags/OL136T', name: 'Novel' }, { key: '/tags/OL142T', name: 'Short Story' },
+                    { key: '/tags/OL131T', name: 'Graphic Novel' }, { key: '/tags/OL134T', name: 'Manga' },
+                    { key: '/tags/OL137T', name: 'Novella' }
+                ];
+                // String shape and {key} ref shape, mixed — both normalise to keys.
+                el.value = ['/tags/OL136T', { key: '/tags/OL142T' }];
+            })();
+    </script>
+{% endcall %}
+{% call ex.example("Custom trigger", "Any element with slot=\"trigger\" works; the component owns the popover, combobox, and ARIA wiring.") %}
+    <ol-tag-picker id="demo-tag-picker-custom" tag-type="genres" aria-label="Genres">
+        <ol-button slot="trigger" variant="secondary">
+            Pick genres
+        </ol-button>
+    </ol-tag-picker>
+    <script>
+            // Real production genres (verified against query.json 2026-10-07).
+            document.getElementById('demo-tag-picker-custom').options = [
+                { key: '/tags/OL169T', name: 'Fantasy' }, { key: '/tags/OL179T', name: 'Sci-Fi' },
+                { key: '/tags/OL175T', name: 'Mystery' }, { key: '/tags/OL177T', name: 'Romance' },
+                { key: '/tags/OL171T', name: 'Horror' }, { key: '/tags/OL180T', name: 'Thriller' },
+                { key: '/tags/OL170T', name: 'Historical' }
+            ];
+    </script>
+{% endcall %}
+{% endmacro %}
