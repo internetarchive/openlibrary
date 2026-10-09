@@ -59,16 +59,6 @@
   color: var(--color-text-secondary);
 }
 
-/* Form field labels: sentence case, so they read as questions rather than section headings. */
-.fe-label {
-  display: block;
-  padding: 0;
-  margin-block-end: var(--spacing-stack-sm);
-  font-size: var(--font-size-label-large);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-}
-
 .fe-visually-hidden {
   position: absolute;
   width: 1px;
@@ -102,13 +92,6 @@
 }
 
 /* Book header */
-.fe-bookcard {
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius-card);
-  padding: var(--spacing-inset-md);
-  background: var(--color-surface);
-}
-
 .fe-book {
   display: flex;
   gap: var(--spacing-inline-lg);
@@ -192,18 +175,6 @@
   gap: var(--spacing-stack-md);
 }
 
-/* Unboxed task-page blocks; only the answer keeps its card. */
-.fe-block {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-.fe-subhead {
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-title);
-}
-
 .fe-question {
   gap: var(--spacing-stack-xs);
 }
@@ -228,18 +199,15 @@
   transform: scaleX(-1);
 }
 
-/* Task layout: one column here; the context beside a sticky answer on desktop. */
-.fe-task__head,
-.fe-task__evidence {
+/* Task page: the question and the record in one column, help beside it on desktop. */
+.fe-task__main,
+.fe-task__help {
   min-width: 0;
+  display: grid;
+  align-content: start;
 }
 
-/* Back link, question and book card read as one unit, so tighter than the blocks below. */
-.fe-task__head > :not(:last-child) {
-  margin-block-end: var(--spacing-stack-md);
-}
-
-.fe-task__evidence > :not(:last-child) {
+.fe-task__main > :not(:last-child) {
   margin-block-end: var(--spacing-stack-lg);
 }
 
@@ -250,123 +218,273 @@
   text-wrap: balance;
 }
 
-/* Notes */
-.fe-note {
-  margin: 0;
-  font-size: var(--font-size-body-medium);
-  color: var(--color-text-secondary);
-}
-
-.fe-siblings,
-.fe-linkouts {
+/* The record, with the missing field as the live input. Phones: a small cover beside the title, fields full width. */
+.fe-record {
   display: grid;
-  gap: var(--spacing-stack-sm);
+  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-areas:
+    "cover head"
+    "fields fields";
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  align-items: start;
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  padding: var(--spacing-inset-md);
 }
 
-.fe-siblings__list,
-.fe-linkouts__list {
-  margin: 0;
-  padding-inline-start: 1.25em;
+.fe-record__cover {
+  grid-area: cover;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--shadow-card, 0 1px 2px rgb(0 0 0 / 12%));
 }
 
-/* base/common.css strips every li marker site-wide, so ask for the bullet back. */
-:is(.fe-siblings__list, .fe-linkouts__list) li {
-  list-style: disc;
-}
-
-:is(.fe-siblings__list, .fe-linkouts__list) li + li {
-  margin-block-start: var(--spacing-stack-sm);
-}
-
-/* Answer: on phones only the action bar sticks, so the context stays readable above it. */
-.fe-answer {
-  display: grid;
-  gap: var(--spacing-stack-lg);
-}
-
-.fe-answer__options {
-  border: 0;
-  margin: 0;
-  padding: 0;
+.fe-record__head {
+  grid-area: head;
+  align-self: center;
   display: grid;
   gap: var(--spacing-stack-xs);
 }
 
-/* Answer choices are bare at rest so the picked one is the only thing wearing a box. */
-.fe-choice {
-  --_choice-bg: transparent;
-  --_choice-border: transparent;
-  --_choice-fg: var(--color-text);
-  --_choice-sublabel-fg: var(--color-text-secondary);
-  --_choice-label-weight: var(--font-weight-medium);
+@media (min-width: 768px) {
+  .fe-record {
+    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-areas:
+      "cover head"
+      "cover fields";
+    column-gap: var(--spacing-2xl);
+    padding: var(--spacing-inset-lg);
+  }
 
-  display: flex;
-  gap: var(--spacing-inline-md);
-  align-items: flex-start;
-  border: var(--border-width) solid var(--_choice-border);
+  .fe-record__head {
+    align-self: start;
+  }
+}
+
+.fe-record__fields {
+  grid-area: fields;
+  margin: 0;
+  display: grid;
+}
+
+.fe-record__row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: var(--spacing-inline-lg);
+  align-items: baseline;
+  padding-block: var(--spacing-sm);
+  border-block-start: var(--border-width) solid var(--color-border-subtle);
+}
+
+.fe-record__row dt {
+  color: var(--color-text-secondary);
+}
+
+.fe-record__row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The blank being filled: tinted like a selected control, bleeding past the row edges. */
+.fe-record__row--ask {
+  align-items: start;
+  margin-inline: calc(-1 * var(--spacing-md));
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-control-selected-border);
   border-radius: var(--border-radius-card);
-  background: var(--_choice-bg);
-  color: var(--_choice-fg);
-  padding: var(--spacing-sm) var(--spacing-inset-sm);
-  cursor: pointer;
+  background: var(--color-control-selected-bg);
 }
 
-.fe-choice:has(input:checked) {
-  --_choice-bg: var(--color-control-selected-bg);
-  --_choice-border: var(--color-control-selected-border);
-  --_choice-fg: var(--color-link);
-  --_choice-sublabel-fg: var(--color-primary);
-  --_choice-label-weight: var(--font-weight-semibold);
+/* No divider on the row after the blank; the tint already separates it. */
+.fe-record__row--ask + .fe-record__row {
+  border-block-start-color: transparent;
 }
 
-.fe-choice .fe-muted {
-  color: var(--_choice-sublabel-fg);
+.fe-record__row--ask dt {
+  color: var(--color-link);
+  font-weight: var(--font-weight-semibold);
+  /* Centered on the 36px control beside it. */
+  line-height: var(--control-height-large);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .fe-choice:hover {
-    --_choice-bg: var(--color-control-hover);
-  }
-
-  .fe-choice:has(:checked):hover {
-    --_choice-bg: var(--color-control-selected-bg-hover);
-    --_choice-border: var(--color-control-selected-border-hover);
-  }
-}
-
-.fe-choice input {
-  margin-block-start: 4px;
-  flex: none;
-  accent-color: var(--color-primary);
-}
-
-.fe-choice__body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px var(--spacing-inline-md);
-  align-items: center;
-  align-self: center;
-  line-height: var(--line-height-body);
-}
-
-.fe-choice__body strong {
-  font-weight: var(--_choice-label-weight);
-}
-
-.fe-choice__body .fe-muted {
-  flex-basis: 100%;
-  font-size: var(--font-size-body-medium);
-}
-
-.fe-other {
+.fe-record__row--ask dd {
   display: grid;
   gap: var(--spacing-stack-sm);
-  padding-inline-start: var(--spacing-inset-md);
+  justify-items: start;
 }
 
-.fe-other[hidden],
+.fe-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-sm) var(--spacing-inline-md);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+/* Help column */
+.fe-task__help > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+  padding-block-end: var(--spacing-stack-lg);
+  border-block-end: var(--border-width) solid var(--color-border-subtle);
+}
+
+.fe-help {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.fe-help .fe-h {
+  margin-block-end: 0;
+}
+
+.fe-steps {
+  counter-reset: fe-step;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+.fe-steps > li {
+  counter-increment: fe-step;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--spacing-stack-sm) var(--spacing-inline-lg);
+}
+
+.fe-steps > li::before {
+  content: counter(fe-step);
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-pill);
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.fe-linkouts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm) var(--spacing-inline-xl);
+}
+
+.fe-linkouts a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Per-value counts across the other editions, as a small bar chart. */
+.fe-tally {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(48px, 1fr) auto;
+  gap: var(--spacing-stack-sm) var(--spacing-inline-lg);
+  align-items: center;
+}
+
+.fe-tally > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.fe-tally__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fe-tally__bar {
+  height: 8px;
+  border-radius: var(--border-radius-pill);
+  background: linear-gradient(
+    to right,
+    var(--color-primary) var(--fe-share),
+    var(--color-surface-sunken) var(--fe-share)
+  );
+}
+
+.fe-tally__bar--empty {
+  background: linear-gradient(
+    to right,
+    var(--color-border) var(--fe-share),
+    var(--color-surface-sunken) var(--fe-share)
+  );
+}
+
+.fe-tally__bar:dir(rtl) {
+  transform: scaleX(-1);
+}
+
+.fe-tally__count {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.fe-disclosure summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--color-link);
+}
+
+.fe-disclosure[open] summary {
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.fe-siblings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.fe-siblings li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--spacing-inline-md);
+  padding-block: var(--spacing-xs);
+  border-block-end: var(--border-width) solid var(--color-border-subtle);
+}
+
+.fe-siblings__value {
+  flex: 0 0 7em;
+}
+
+/* Answer: on phones only the action bar sticks, so the help below stays readable while it does. */
+.fe-answer {
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
 .fe-page [hidden] {
   display: none;
+}
+
+/* Sized to its trigger, so the panel opens under the button rather than the column. */
+.fe-picker {
+  justify-self: start;
+  /* Short enough to open below the trigger on a laptop screen. */
+  --ol-popover-content-max-height: min(50vh, 360px);
 }
 
 .fe-input {
@@ -393,8 +511,12 @@
   }
 }
 
-.fe-answer__note {
-  display: grid;
+.fe-record__row--ask .fe-input {
+  max-width: 24rem;
+}
+
+.fe-record__row--ask .fe-input--number {
+  max-width: 12rem;
 }
 
 .fe-answer__actions {
@@ -406,14 +528,7 @@
   bottom: 0;
   z-index: var(--z-index-sticky);
   background: var(--color-surface);
-  padding-block: var(--spacing-inset-sm) var(--spacing-inset-md);
-  margin-block-end: calc(-1 * var(--spacing-inset-md));
-}
-
-.fe-answer__promise {
-  flex-basis: 100%;
-  font-size: var(--font-size-body-small);
-  text-wrap: pretty;
+  padding-block: var(--spacing-inset-sm);
 }
 
 /* List */
@@ -541,48 +656,35 @@
     padding-block: 0;
     margin-block-end: 0;
   }
-
-  .fe-answer__promise {
-    flex-basis: auto;
-  }
 }
 
 /* Desktop: @width-breakpoint-desktop = 960px. */
 @media (min-width: 960px) {
   .fe-page--task {
-    max-width: 1080px;
-    grid-template-columns: minmax(0, 1fr) 360px;
+    max-width: 1120px;
+    grid-template-columns: minmax(0, 1fr) 340px;
     grid-template-areas:
-      "head head"
-      "evidence answer";
-    column-gap: var(--spacing-section-gap);
+      "back back"
+      "main help";
+    column-gap: var(--spacing-section-gap-desktop);
   }
 
-  .fe-task__head {
-    grid-area: head;
+  .fe-page--task > .fe-back {
+    grid-area: back;
   }
 
-  .fe-task__evidence {
-    grid-area: evidence;
+  .fe-task__main {
+    grid-area: main;
   }
 
-  /* Shares its row with the answer, so nothing follows it. */
-  .fe-page > .fe-task__evidence {
+  /* Shares its row with the help column, so nothing follows it. */
+  .fe-page > .fe-task__main {
     margin-block-end: 0;
   }
 
-  /* Scrolls itself if "something else" and the note make it taller than the viewport. */
-  .fe-task__answer {
-    grid-area: answer;
-    align-self: start;
-    position: sticky;
-    top: var(--spacing-stack-md);
-    max-height: calc(100vh - 2 * var(--spacing-stack-md));
-    overflow-y: auto;
-  }
-
-  .fe-task__answer .fe-answer__promise {
-    flex-basis: 100%;
+  .fe-task__help {
+    grid-area: help;
+    padding-block-start: var(--spacing-stack-xs);
   }
 }
 
@@ -591,11 +693,6 @@
    mistakes and gate the answer behind a confirmation. */
 
 .fe-traps {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-.fe-traps__list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -625,7 +722,6 @@
   border: 1px solid var(--color-warning-border);
   border-radius: var(--border-radius-sm);
   padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  margin-block-start: var(--spacing-stack-sm);
 }
 
 .fe-confirm input {
@@ -633,17 +729,17 @@
   margin-block-start: 2px;
 }
 
-.fe-other__verdict {
-  margin-block: var(--spacing-stack-xs) 0;
+.fe-field__verdict {
+  margin: 0;
   font-size: var(--font-size-body-medium);
   min-height: 1lh; /* reserve the line so the form doesn't jump as you type */
 }
 
-.fe-other__verdict[data-state="ok"] {
+.fe-field__verdict[data-state="ok"] {
   color: var(--color-success-fg);
 }
 
-.fe-other__verdict[data-state="bad"] {
+.fe-field__verdict[data-state="bad"] {
   color: var(--color-error-fg);
 }
 

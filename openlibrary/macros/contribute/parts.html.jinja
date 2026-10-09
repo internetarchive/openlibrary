@@ -42,63 +42,39 @@
         </a>
     </li>
 {% endmacro %}
-{% macro sibling_list(siblings, total) %}
-    <div class="fe-siblings">
-        {% if total %}
-            <h2 class="fe-subhead">{{ _("How the other %(count)s editions of this work fill this in", count=total) }}</h2>
-        {% else %}
-            <h2 class="fe-subhead">{{ _("Other editions of this work") }}</h2>
-        {% endif %}
-        {% if siblings %}
-            <ul class="fe-siblings__list">
-                {% for s in siblings %}
-                    <li>
-                        {% if s.value %}
-                            {{ s.value }}
-                        {% else %}
-                            <span class="fe-muted">{{ _("Not filled in") }}</span>
-                        {% endif %}
-                        {% if s.about %}
-                            <span class="fe-muted">·</span> <a href="{{ s.url }}">{{ s.about }}</a>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-            {% if total > siblings|length %}
-                <p class="fe-muted">{{ _("And %(count)s more.", count=total - siblings|length) }}</p>
-            {% endif %}
-        {% else %}
-            <p class="fe-muted">{{ _("This is the only edition of this work catalogued so far, so there is nothing to compare against yet.") }}</p>
-        {% endif %}
-    </div>
-{% endmacro %}
 {% macro how_to(playbook, links) %}
-    <div class="fe-linkouts">
-        <h2 class="fe-subhead">{{ _("Where to find it") }}</h2>
-        <p>{{ playbook.how }}</p>
-        {% if links %}
-            <ul class="fe-linkouts__list">
-                {% for link in links %}
-                    <li>
-                        <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="fe-muted">{{ _("This edition has no ISBN to search by, so look it up by title and author.") }}</p>
-        {% endif %}
-        {% for note in playbook.notes %}
-            <p class="fe-note">
-                {{ note.text }}
-                {% if note.href %}<a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}
-            </p>
-        {% endfor %}
-    </div>
+    <section class="fe-help">
+        <h2 class="fe-h">{{ _("How to answer") }}</h2>
+        <ol class="fe-steps">
+            <li>
+                <p>{{ playbook.how }}</p>
+                {% if links %}
+                    <ul class="fe-linkouts">
+                        {% for link in links %}
+                            <li>
+                                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}{{ icon("external-link", size="sm") }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="fe-muted">{{ _("This edition has no ISBN to search by, so look it up by title and author.") }}</p>
+                {% endif %}
+            </li>
+            {% for note in playbook.notes %}
+                <li>
+                    <p>
+                        {{ note.text }}
+                        {% if note.href %}<a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}
+                    </p>
+                </li>
+            {% endfor %}
+        </ol>
+    </section>
 {% endmacro %}
 {% macro traps(items) %}
-    <div class="fe-traps">
-        <h2 class="fe-subhead">{{ _("How this edit goes wrong") }}</h2>
-        <ul class="fe-traps__list">
+    <section class="fe-help">
+        <h2 class="fe-h">{{ _("How this edit goes wrong") }}</h2>
+        <ul class="fe-traps">
             {% for trap in items %}
                 <li class="fe-trap">
                     {{ icon("triangle-alert", size="sm") }}
@@ -106,92 +82,166 @@
                 </li>
             {% endfor %}
         </ul>
-    </div>
+    </section>
 {% endmacro %}
-{% macro answer_form(task, playbook, is_identifier, list_url, error="", value="", note="", languages=[]) %}
-    {#- One shape for every field. An identifier answer is gated behind "I opened the record":
-        a wrong number silently corrupts record matching. -#}
+{% macro sibling_tally(tally, siblings, total, hint) %}
+    {#- What the work's other editions put in this field: a count per value, then each edition behind a disclosure. -#}
+    <section class="fe-help">
+        <h2 class="fe-h">{{ ngettext("The other edition", "The other %(count)d editions", total, count=total) }}</h2>
+        {% if hint %}<p>{{ hint }}</p>{% endif %}
+        <ul class="fe-tally">
+            {% for t in tally["values"] %}
+                <li>
+                    <span class="fe-tally__label">{{ t.label }}</span>
+                    <span class="fe-tally__bar"
+                          style="--fe-share: {{ t.share }}%"
+                          aria-hidden="true"></span>
+                    <span class="fe-tally__count">{{ t.count }}</span>
+                </li>
+            {% endfor %}
+            {% if tally.more %}
+                <li class="fe-muted">{{ ngettext("1 other value", "%(count)d other values", tally.more, count=tally.more) }}</li>
+            {% endif %}
+            {% if tally.unfilled %}
+                <li class="fe-muted">
+                    <span class="fe-tally__label">{{ _("Not filled in") }}</span>
+                    <span class="fe-tally__bar fe-tally__bar--empty"
+                          style="--fe-share: {{ (100 * tally.unfilled / total) | round | int }}%"
+                          aria-hidden="true"></span>
+                    <span class="fe-tally__count">{{ tally.unfilled }}</span>
+                </li>
+            {% endif %}
+        </ul>
+        <details class="fe-disclosure">
+            <summary>{{ _("See each edition") }}</summary>
+            <ul class="fe-siblings">
+                {% for s in siblings %}
+                    <li>
+                        <span class="fe-siblings__value{% if not s.value %} fe-muted{% endif %}">{{ s.value or _("Not filled in") }}</span>
+                        {% if s.about %}<a href="{{ s.url }}">{{ s.about }}</a>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+            {% if total > siblings|length %}
+                <p class="fe-muted">{{ _("And %(count)s more.", count=total - siblings|length) }}</p>
+            {% endif %}
+        </details>
+    </section>
+{% endmacro %}
+{% macro answer_control(task, playbook, is_identifier, value, languages) %}
+    {% if is_identifier %}
+        <input id="fe-other-value"
+               type="text"
+               name="value"
+               class="fe-input fe-input--id"
+               placeholder="{{ playbook.placeholder }}"
+               inputmode="numeric"
+               autocomplete="off"
+               data-id-input
+               data-id-field="{{ task.field }}"
+               value="{{ value }}"
+               data-msg-ok="{{ _('That looks like a valid number.') }}"
+               data-msg-tidied="{{ _('Will be stored as %(value)s.', value='__VALUE__') }}"
+               data-msg-url="{{ _('Paste only the number, not the web address.') }}"
+               data-msg-bad="{{ _('That is not a valid number for this catalog.') }}" />
+    {% elif languages %}
+        <ol-options-popover id="fe-other-value" class="fe-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ playbook.answer_label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
+        </ol-options-popover>
+    {% else %}
+        <input id="fe-other-value"
+               type="{{ playbook.input_type }}"
+               name="value"
+               class="fe-input{% if playbook.input_type == 'number' %} fe-input--number{% endif %}"
+               placeholder="{{ playbook.placeholder }}"
+               {% if playbook.input_type == "number" %}min="1"{% endif %}
+               value="{{ value }}"
+               autocomplete="off" />
+    {% endif %}
+{% endmacro %}
+{% macro record_form(data) %}
+    {#- The edition's record with the missing field as the live input, so the answer has an obvious place.
+        An identifier answer is gated behind "I opened the record": a wrong number silently corrupts record matching. -#}
+    {% set task = data.task %}
+    {% set book = data.book %}
     <form method="post"
           action="{{ task.url }}"
           class="fe-answer"
           data-task-form
-          {% if is_identifier %}data-id-form{% endif %}
+          {% if data.is_identifier %}data-id-form{% endif %}
           data-task-key="{{ task.key }}">
-        {% if error %}<p class="ol-message ol-message--error" role="alert">{{ error }}</p>{% endif %}
-        <fieldset class="fe-answer__options">
-            <legend class="fe-label">{{ _("Your answer") }}</legend>
-            <label class="fe-choice">
-                <input type="radio"
-                       name="choice"
-                       value="other"
-                       {% if is_identifier %}data-gated{% endif %}
-                       checked />
-                <span class="fe-choice__body"><strong>{{ _("I found it") }}</strong></span>
-            </label>
-            <div class="fe-other" data-other-input hidden>
-                <label class="fe-label" for="fe-other-value">{{ playbook.answer_label }}</label>
-                {% if is_identifier %}
-                    <input id="fe-other-value"
-                           type="text"
-                           name="value"
-                           class="fe-input"
-                           placeholder="{{ playbook.placeholder }}"
-                           inputmode="numeric"
-                           autocomplete="off"
-                           data-id-input
-                           data-id-field="{{ task.field }}"
-                           value="{{ value }}"
-                           data-msg-ok="{{ _('That looks like a valid number.') }}"
-                           data-msg-tidied="{{ _('Will be stored as %(value)s.', value='__VALUE__') }}"
-                           data-msg-url="{{ _('Paste only the number, not the web address.') }}"
-                           data-msg-bad="{{ _('That is not a valid number for this catalog.') }}" />
-                    <p class="fe-other__verdict" data-id-verdict role="status"></p>
-                {% else %}
-                    <input id="fe-other-value"
-                           type="{{ playbook.input_type }}"
-                           name="value"
-                           class="fe-input"
-                           placeholder="{{ playbook.placeholder }}"
-                           {% if playbook.input_type == "number" %}min="1"{% endif %}
-                           {% if languages %}list="fe-languages"{% endif %}
-                           value="{{ value }}"
-                           autocomplete="off" />
-                    {% if languages %}
-                        <datalist id="fe-languages">
-                            {% for lang in languages %}<option value="{{ lang.name }}"></option>{% endfor %}
-                        </datalist>
-                    {% endif %}
-                {% endif %}
+        {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
+        <div class="fe-record">
+            {% if book.cover_url %}
+                <img class="fe-record__cover"
+                     src="{{ book.cover_url }}"
+                     alt=""
+                     width="96"
+                     height="144"
+                     loading="lazy" />
+            {% else %}
+                <div class="fe-record__cover fe-book__cover--empty" aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+            {% endif %}
+            <div class="fe-record__head">
+                <div class="fe-book__title">
+                    <a href="{{ book.key }}">{{ book.title }}</a>
+                </div>
+                {% if book.authors %}<div class="fe-book__authors">{{ book.authors }}</div>{% endif %}
             </div>
-            <label class="fe-choice fe-choice--unsure">
-                <input type="radio" name="choice" value="unsure" />
-                <span class="fe-choice__body">
-                    <strong>{{ _("I couldn't find it") }}</strong>
-                    <span class="fe-muted">{{ _("Skips this book. Nothing on the record changes.") }}</span>
-                </span>
-            </label>
-        </fieldset>
-        {% if is_identifier %}
-            <label class="fe-confirm" data-id-confirm>
-                <input type="checkbox" name="confirmed" value="1" required />
-                <span>{{ _("I opened the record and the year and publisher match this edition.") }}</span>
-            </label>
-        {% endif %}
-        <label class="fe-answer__note">
-            <span class="fe-label">{{ _("Edit comment (optional)") }}</span>
-            <textarea name="note"
+            <dl class="fe-record__fields">
+                {% for row in data.record %}
+                    {% if row.ask %}
+                        <div class="fe-record__row fe-record__row--ask">
+                            <dt>
+                                <label for="fe-other-value">{{ row.label }}</label>
+                            </dt>
+                            <dd>
+                                {{ answer_control(task, data.playbook, data.is_identifier, data.value, data.languages) }}
+                                {% if data.is_identifier %}<p class="fe-field__verdict" data-id-verdict role="status"></p>{% endif %}
+                                {% if data.suggestions %}
+                                    <div class="fe-suggest" data-suggest>
+                                        <span>{{ _("Other editions say") }}</span>
+                                        {% for s in data.suggestions %}
+                                            <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on 1 edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
+                                                {{ s.label }}
+                                            </ol-chip>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if data.is_identifier %}
+                                    <label class="fe-confirm">
+                                        <input type="checkbox" name="confirmed" value="1" required />
+                                        <span>{{ _("I opened the record and the year and publisher match this edition.") }}</span>
+                                    </label>
+                                {% endif %}
+                            </dd>
+                        </div>
+                    {% else %}
+                        <div class="fe-record__row">
+                            <dt>{{ row.label }}</dt>
+                            <dd>
+                                {{ row.value }}
+                            </dd>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </dl>
+        </div>
+        <details class="fe-disclosure"{% if data.note %} open{% endif %}>
+            <summary>{{ _("Add an edit comment") }}</summary>
+            <label class="fe-visually-hidden" for="fe-note">{{ _("Edit comment") }}</label>
+            <textarea id="fe-note"
+                      name="note"
                       rows="2"
                       class="fe-input"
-                      placeholder="{{ _('Where you found it') }}">{{ note }}</textarea>
-        </label>
+                      placeholder="{{ _('Where you found it') }}">{{ data.note }}</textarea>
+        </details>
         <div class="fe-answer__actions">
             <ol-button variant="primary" type="submit">
-                {{ _("Save") }}
+                {{ _("Save to the record") }}
             </ol-button>
-            <ol-button variant="ghost" href="{{ list_url }}" data-skip>
-                {{ _("Skip this book") }}
+            <ol-button variant="secondary" href="{{ task.skip_url }}" data-skip>
+                {{ _("I couldn't find it") }}
             </ol-button>
-            <span class="fe-muted fe-answer__promise">{{ _("Saves to the record right away. You can undo it from the record's history.") }}</span>
         </div>
     </form>
 {% endmacro %}

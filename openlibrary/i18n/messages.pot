@@ -885,7 +885,7 @@ msgstr ""
 msgid "Search languages…"
 msgstr ""
 
-#: books/edit/edition.html languages/index.html search/search_modal_i18n.html work_search.html
+#: books/edit/edition.html contribute/parts.html.jinja languages/index.html search/search_modal_i18n.html work_search.html
 msgid "Languages"
 msgstr ""
 
@@ -1440,7 +1440,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/manage.html my_books/shelf_button_i18n.html
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html covers/manage.html my_books/shelf_button_i18n.html
 msgid "Save"
 msgstr ""
 
@@ -3051,7 +3051,7 @@ msgstr ""
 msgid "ISBN 13"
 msgstr ""
 
-#: books/add.html openlibrary/first_edits/playbooks.py
+#: books/add.html openlibrary/first_edits/playbooks.py openlibrary/plugins/openlibrary/contribute.py
 msgid "LCCN"
 msgstr ""
 
@@ -4091,11 +4091,6 @@ msgstr ""
 
 #: contribute/nothing.html.jinja contribute/task.html.jinja
 msgid "Back to the list"
-msgstr ""
-
-#: contribute/task.html.jinja
-#, python-format
-msgid "Open Library has no %(label)s for this edition."
 msgstr ""
 
 #: covers/add.html
@@ -5809,7 +5804,7 @@ msgstr ""
 msgid "All fields"
 msgstr ""
 
-#: search/advancedsearch.html
+#: openlibrary/plugins/openlibrary/contribute.py search/advancedsearch.html
 msgid "ISBN"
 msgstr ""
 
@@ -6580,7 +6575,7 @@ msgstr ""
 msgid "Show other books from %(publisher)s"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
+#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
 msgid "Pages"
 msgstr ""
 
@@ -6636,7 +6631,7 @@ msgstr ""
 msgid "External Links"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
+#: openlibrary/plugins/openlibrary/contribute.py type/edition/view.html type/work/view.html
 msgid "Format"
 msgstr ""
 
@@ -7997,29 +7992,7 @@ msgid "Why this book: on about %(count)s readers' shelves."
 msgstr ""
 
 #: contribute/parts.html.jinja
-#, python-format
-msgid "How the other %(count)s editions of this work fill this in"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Other editions of this work"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Not filled in"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "And %(count)s more."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "This is the only edition of this work catalogued so far, so there is nothing to compare against yet."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Where to find it"
+msgid "How to answer"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8035,11 +8008,30 @@ msgid "How this edit goes wrong"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Your answer"
+#, python-format
+msgid "The other edition"
+msgid_plural "The other %(count)d editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "1 other value"
+msgid_plural "%(count)d other values"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contribute/parts.html.jinja
+msgid "Not filled in"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "I found it"
+msgid "See each edition"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "And %(count)s more."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8060,19 +8052,38 @@ msgid "That is not a valid number for this catalog."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "I couldn't find it"
+msgid "Choose a language"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Skips this book. Nothing on the record changes."
+msgid "Filter languages"
 msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "No matching language"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Other editions say"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "%(value)s, on 1 edition"
+msgid_plural "%(value)s, on %(count)d editions"
+msgstr[0] ""
+msgstr[1] ""
 
 #: contribute/parts.html.jinja
 msgid "I opened the record and the year and publisher match this edition."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Edit comment (optional)"
+msgid "Add an edit comment"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Edit comment"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8080,11 +8091,11 @@ msgid "Where you found it"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Skip this book"
+msgid "Save to the record"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Saves to the record right away. You can undo it from the record's history."
+msgid "I couldn't find it"
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8428,7 +8439,7 @@ msgid "Look the ISBN up in WorldCat or Google Books; both list the language of t
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Language decides which readers find this edition in search and which editions get grouped together."
+msgid "Editions of a work usually share a language, but a translation won't. Check this edition's own text."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8477,10 +8488,6 @@ msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
 msgid "Open Library records the imprint printed on the book, not the parent company. Anchor Books, not Penguin Random House."
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Match the spelling other editions of this work already use, so the publisher page stays in one piece."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8658,6 +8665,14 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "Published"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
+msgid "OCLC"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

@@ -15,6 +15,7 @@ Every page is for librarians.
 """
 
 import random
+from collections import Counter
 from dataclasses import dataclass, field
 from urllib.parse import urlencode
 
@@ -144,6 +145,40 @@ def _display(edition, fld: str) -> str:
         names = _language_names({str(v) for v in values})
         return ", ".join(names.get(str(v), str(v)) for v in values)
     return ", ".join(str(v) for v in values)
+
+
+def _record(edition, fld: str) -> list[dict]:
+    """The edition's record as the task page shows it: the fields it has, plus the one being asked about, in place."""
+    rows = [
+        ("publishers", _("Publisher")),
+        ("publish_date", _("Published")),
+        ("physical_format", _("Format")),
+        ("number_of_pages", _("Pages")),
+        ("languages", _("Language")),
+        ("isbn", _("ISBN")),
+        ("lccn", _("LCCN")),
+        ("oclc_numbers", _("OCLC")),
+    ]
+    out = []
+    for f, label in rows:
+        value = (edition.get_isbn13() or ", ".join(edition.get("isbn_10") or [])) if f == "isbn" else _display(edition, f)
+        if value or f == fld:
+            out.append({"label": label, "value": value, "ask": f == fld})
+    return out
+
+
+def _tally(fld: str, others: list, limit: int = 5) -> dict:
+    """How often each value appears across the other editions, most common first."""
+    values = [edition_field_values(e, fld) for e in others]
+    counts = Counter(str(v) for vs in values for v in vs)
+    names = _language_names(set(counts)) if fld == "languages" else {}
+    total = len(others) or 1
+    common = counts.most_common()
+    return {
+        "values": [{"value": v, "label": names.get(v, v), "count": n, "share": round(100 * n / total)} for v, n in common[:limit]],
+        "more": len(common) - limit if len(common) > limit else 0,
+        "unfilled": sum(1 for vs in values if not vs),
+    }
 
 
 def _recent(user) -> list[dict]:
@@ -301,16 +336,28 @@ def _sibling_editions(edition) -> list:
 
 def _task_context(edition, task: tasks.Task, back: str, error: str = "", value: str = "", note: str = "") -> dict:
     playbook = get_playbooks()[task.field]
-    others = _sibling_editions(edition)
+    others = _sibling_editions(edition) if playbook.show_siblings else []
+    siblings = _sibling_list(task.field, others)
+    tally = _tally(task.field, others)
     book = _book(edition)
     return {
         "book": book,
-        "task": {"key": task.key, "field": task.field, "url": _task_url(task, back)},
+        "task": {
+            "key": task.key,
+            "field": task.field,
+            "url": _task_url(task, back),
+            "skip_url": f"/contribute/task/{task.olid}/{task.field}/done?{urlencode({'choice': 'skipped', 'back': back})}",
+        },
         "is_identifier": identifiers.is_identifier_field(task.field),
         "playbook": playbook,
         "link_outs": link_outs(playbook, book["isbn13"]),
-        "siblings": _sibling_list(task.field, others),
+        # Nothing to compare against when no other edition has a value.
+        "siblings": siblings if any(s["value"] for s in siblings) else [],
         "sibling_total": len(others),
+        "tally": tally,
+        # Quick picks for the answer, only where the other editions are good evidence for this one.
+        "suggestions": tally["values"][:3] if playbook.suggest_from_siblings else [],
+        "record": _record(edition, task.field),
         "list_url": _dashboard_url(back),
         "languages": save.language_options() if task.field == "languages" else [],
         "error": error,
@@ -353,14 +400,12 @@ class contribute_task(delegate.page):
     def POST(self, olid, fld):
         if denied := _gate(f"/contribute/task/{olid}/{fld}"):
             return denied
-        i = web.input(choice="", value="", note="", back="", confirmed="")
+        i = web.input(value="", note="", back="", confirmed="")
         back = _task_filter(i.back)
         edition = _edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return _nothing(edition, fld, back)
         done = f"/contribute/task/{olid}/{fld}/done"
-        if i.choice == "unsure":
-            raise web.seeother(f"{done}?{urlencode({'choice': 'skipped', 'back': back})}")
         playbook = get_playbooks()[fld]
         try:
             if identifiers.is_identifier_field(fld) and not i.confirmed:

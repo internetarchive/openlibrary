@@ -52,6 +52,9 @@ class Playbook:
     how: str  # where to look and what to copy
     sources: list[Source] = dc_field(default_factory=list)
     why: str = ""
+    show_siblings: bool = False  # set only for fields where other editions' values help
+    sibling_hint: str = ""
+    suggest_from_siblings: bool = False  # offer the other editions' values as one-click answers
     notes: list[Note] = dc_field(default_factory=list)
     traps: list[str] = dc_field(default_factory=list)
     answer_label: str = ""
@@ -72,7 +75,9 @@ def get_playbooks() -> dict[str, Playbook]:
             question=_("What language is this edition written in?"),
             how=_("Look the ISBN up in WorldCat or Google Books; both list the language of the text. The title page and cover tell you too."),
             sources=[worldcat, google],
-            why=_("Language decides which readers find this edition in search and which editions get grouped together."),
+            show_siblings=True,
+            suggest_from_siblings=True,
+            sibling_hint=_("Editions of a work usually share a language, but a translation won't. Check this edition's own text."),
             notes=[
                 Note(
                     _("Record the language of the text, not the language of the title page. A translation is in the language it was translated into."),
@@ -112,12 +117,12 @@ def get_playbooks() -> dict[str, Playbook]:
             question=_("Who published this edition?"),
             how=_("The imprint is printed on the title page and the spine. WorldCat and the Library of Congress list it under Publisher."),
             sources=[worldcat, loc, google],
+            show_siblings=True,
             notes=[
                 Note(
                     _("Open Library records the imprint printed on the book, not the parent company. Anchor Books, not Penguin Random House."),
                     f"{HELP_BASE}#publisher",
                 ),
-                Note(_("Match the spelling other editions of this work already use, so the publisher page stays in one piece."), f"{HELP_BASE}#publisher"),
             ],
             answer_label=_("Publisher"),
             placeholder=_("Publisher as printed"),

@@ -20,8 +20,8 @@ class InvalidAnswer(ValueError):
 
 
 def language_options() -> list[dict]:
-    """Every current language, for the task page's suggestions."""
-    return sorted(({"code": lang.code, "name": lang.name} for lang in get_languages().values() if lang.get("name")), key=lambda x: x["name"])
+    """Every current language as picker items: the code submits, the name shows."""
+    return sorted(({"value": lang.code, "label": lang.name} for lang in get_languages().values() if lang.get("name")), key=lambda x: x["label"])
 
 
 def _language(raw: str) -> dict:

@@ -1,29 +1,19 @@
-{#- /contribute/task/OL…M/<field> — one book, one missing field. -#}
+{#- /contribute/task/OL…M/<field> — one book, one missing field, answered in place on the record. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="fe-page fe-page--task" data-contribute-task>
-    <header class="fe-task__head">
-        <a class="fe-back" href="{{ data.list_url }}">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
-        <div class="fe-block fe-question">
+    <a class="fe-back" href="{{ data.list_url }}">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
+    <div class="fe-task__main">
+        <div class="fe-question">
             <h1 class="fe-question__text">{{ data.playbook.question }}</h1>
-            <p>{{ _("Open Library has no %(label)s for this edition.", label=data.playbook.label) }}</p>
             {% if data.playbook.why %}<p class="fe-muted">{{ data.playbook.why }}</p>{% endif %}
         </div>
-        <div class="fe-bookcard">{{ parts.book_header(data.book) }}</div>
-    </header>
-    <div class="fe-task__evidence">
-        <section class="fe-block">
-            {{ parts.how_to(data.playbook, data.link_outs) }}
-        </section>
-        <section class="fe-block">
-            {{ parts.sibling_list(data.siblings, data.sibling_total) }}
-        </section>
-        {% if data.playbook.traps %}
-            <section class="fe-block">
-                {{ parts.traps(data.playbook.traps) }}
-            </section>
-        {% endif %}
+        {{ parts.record_form(data) }}
     </div>
-    <section class="fe-section fe-section--answer fe-task__answer">
-        {{ parts.answer_form(data.task, data.playbook, data.is_identifier, data.list_url, data.error, data.value, data.note, data.languages) }}
-    </section>
+    <aside class="fe-task__help">
+        {{ parts.how_to(data.playbook, data.link_outs) }}
+        {% if data.playbook.traps %}{{ parts.traps(data.playbook.traps) }}{% endif %}
+        {% if data.siblings %}
+            {{ parts.sibling_tally(data.tally, data.siblings, data.sibling_total, data.playbook.sibling_hint) }}
+        {% endif %}
+    </aside>
 </div>
