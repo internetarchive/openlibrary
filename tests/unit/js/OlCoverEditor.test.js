@@ -410,6 +410,17 @@ describe('ol-cover-editor image management', () => {
         expect(el._trashed).toEqual([]);
     });
 
+    test('a trashed thumbnail drags from its wrapper, not the bare image', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        el._trashImage(0);
+        await el.updateComplete;
+        // A draggable <img> navigates the page to the image URL when dropped
+        // outside a target, so the wrapper is the drag source instead.
+        expect(q(el, '.trash__item').getAttribute('draggable')).toBe('true');
+        expect(q(el, '.trash__img').getAttribute('draggable')).toBe('false');
+    });
+
     test('clicking an image opens a larger preview', async() => {
         const el = await mount({ images: IMAGES });
         el._onCardClick(1);

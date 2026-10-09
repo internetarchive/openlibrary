@@ -1116,14 +1116,12 @@ export class OlCoverEditor extends LitElement {
                         <ol-icon class="trash__icon" name="trash"></ol-icon>
                         ${this._trashed.map(
         (image, index) => html`
-                                <div class="trash__item">
-                                    <img
-                                        class="trash__img"
-                                        src=${image.url}
-                                        alt=""
-                                        draggable="true"
-                                        @dragstart=${(e) => this._onTrashedDragStart(e, index)}
-                                    />
+                                <div
+                                    class="trash__item"
+                                    draggable="true"
+                                    @dragstart=${(e) => this._onTrashedDragStart(e, index)}
+                                >
+                                    <img class="trash__img" src=${image.url} alt="" draggable="false" />
                                     <ol-button
                                         class="trash__restore"
                                         shape="icon"
