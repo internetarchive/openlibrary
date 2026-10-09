@@ -1,4 +1,4 @@
-"""The librarian dashboard at /contribute: books missing a field, and one page to fill each.
+"""The librarian dashboard at /tasks: books missing a field, and one page to fill each.
 
 Answers save straight to the record as normal edits, so they show in its history and revert like any other.
 """
@@ -52,14 +52,14 @@ def _gate(path: str):
     return None
 
 
-def _dashboard_url(task: str = "", base: str = "/contribute") -> str:
+def _dashboard_url(task: str = "", base: str = "/tasks") -> str:
     return f"{base}?{urlencode({'task': task})}" if task else base
 
 
 def _next_url(back: str, after: tasks.Task, saved: bool) -> str:
     """Another random task from the same filter, skipping the book just done; ``saved`` carries the receipt along."""
     params = {"task": back, "exclude": after.olid} | ({"saved": after.key} if saved else {})
-    return f"/contribute/one?{urlencode({k: v for k, v in params.items() if v})}"
+    return f"/tasks/one?{urlencode({k: v for k, v in params.items() if v})}"
 
 
 def _language_names(codes: set[str]) -> dict[str, str]:
@@ -179,7 +179,7 @@ def _book(edition, readers: int | None = None) -> dict:
 
 
 def _task_url(task: tasks.Task, back: str = "") -> str:
-    url = f"/contribute/task/{task.olid}/{task.field}"
+    url = f"/tasks/{task.olid}/{task.field}"
     return f"{url}?{urlencode({'back': back})}" if back else url
 
 
@@ -226,7 +226,7 @@ def _rail(task: str) -> dict:
 
 
 class contribute_index(delegate.page):
-    path = "/contribute"
+    path = "/tasks"
 
     def GET(self):
         task = _task_filter(query_param("task", ""))
@@ -236,7 +236,7 @@ class contribute_index(delegate.page):
         return _render(
             "contribute/dashboard.html.jinja",
             _("Librarian Dashboard"),
-            one_task_url=_dashboard_url(task, base="/contribute/one"),
+            one_task_url=_dashboard_url(task, base="/tasks/one"),
             rail=_rail(task),
             rows=_rows(task),
             heading=_("Missing: %(field)s", field=_filters()[task][0]) if task else _("Most needed"),
@@ -249,7 +249,7 @@ class contribute_index(delegate.page):
 class contribute_one(delegate.page):
     """Do one task: a weighted random pick from the dashboard's current filter, straight to its task page."""
 
-    path = "/contribute/one"
+    path = "/tasks/one"
 
     def GET(self):
         task = _task_filter(query_param("task", ""))
@@ -304,7 +304,7 @@ def _task_context(edition, task: tasks.Task, back: str, error: str = "", value: 
     }
 
 
-TASK_PATH = rf"/contribute/task/(OL\d+M)/({'|'.join(tasks.POINTS)})"
+TASK_PATH = rf"/tasks/(OL\d+M)/({'|'.join(tasks.POINTS)})"
 
 
 def _back() -> str:
@@ -336,7 +336,7 @@ class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        if denied := _gate(f"/contribute/task/{olid}/{fld}"):
+        if denied := _gate(f"/tasks/{olid}/{fld}"):
             return denied
         back = _back()
         edition = _edition_or_404(olid)
@@ -346,14 +346,14 @@ class contribute_task(delegate.page):
         return _render("contribute/task.html.jinja", get_playbooks()[fld].question, **context)
 
     def POST(self, olid, fld):
-        if denied := _gate(f"/contribute/task/{olid}/{fld}"):
+        if denied := _gate(f"/tasks/{olid}/{fld}"):
             return denied
         i = web.input(value="", note="", back="", confirmed="", then="")
         back = _task_filter(i.back)
         edition = _edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return _nothing(edition, fld, back)
-        done = f"/contribute/task/{olid}/{fld}/done"
+        done = f"/tasks/{olid}/{fld}/done"
         playbook = get_playbooks()[fld]
         try:
             if fld in save.NORMALIZERS and not i.confirmed:
@@ -371,7 +371,7 @@ class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        if denied := _gate(f"/contribute/task/{olid}/{fld}/done"):
+        if denied := _gate(f"/tasks/{olid}/{fld}/done"):
             return denied
         back = _back()
         edition = _edition_or_404(olid)
