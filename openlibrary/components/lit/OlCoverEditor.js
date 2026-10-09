@@ -1,8 +1,10 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
-// Registers <ol-button> for the actions and <ol-icon> for the glyphs.
+// Registers <ol-button> for the actions, <ol-icon> for the glyphs, and
+// <ol-tooltip> for the delete affordance.
 import './OLButton.js';
 import './OlIcon.js';
+import './OlTooltip.js';
 import { translate } from './utils/labels.js';
 
 /**
@@ -15,11 +17,10 @@ export const DEFAULT_LABELS = {
     learnMore: 'Learn more by reading our',
     guidelinesCover: 'Cover Guidelines',
     guidelinesPhoto: 'Image Guidelines',
-    yourImages: 'Your images',
-    reorderHint: 'Drag to reorder — the first image is the one shown on the page.',
+    coversHeading: 'Covers',
+    photosHeading: 'Photos',
+    reorderHint: 'Drag to reorder, or click an image to make it primary.',
     coverPrimary: 'Primary',
-    makePrimary: 'Make primary',
-    reorderImage: 'Reorder image',
     imagePosition: 'Image %(position)s of %(total)s',
     chooseFile: 'Choose an image',
     browse: 'Browse',
@@ -35,6 +36,8 @@ export const DEFAULT_LABELS = {
     uploading: 'Uploading…',
     saving: 'Saving…',
     imageAdded: 'Image added.',
+    imageRemoved: 'Image removed.',
+    undo: 'Undo',
     orderSaved: 'Order saved.',
     movedImage: 'Moved image to position %(position)s of %(total)s.',
     noFile: 'Please choose an image first.',
@@ -99,6 +102,7 @@ export class OlCoverEditor extends LitElement {
         _dragging: { state: true },
         _dragIndex: { state: true },
         _status: { state: true },
+        _removedImage: { state: true },
         _focusIndex: { state: true },
     };
 
@@ -139,25 +143,25 @@ export class OlCoverEditor extends LitElement {
             font-size: var(--font-size-label-medium);
         }
 
-        /* ── Current images (rows, UploadThing-style) ─────────────────── */
+        /* ── Current images (a horizontal strip) ──────────────────────── */
 
         .images {
             display: flex;
-            flex-direction: column;
-            gap: var(--spacing-2xs);
+            gap: var(--spacing-sm);
             margin: var(--spacing-sm) 0 0;
-            padding: 0;
+            padding: 0 0 var(--spacing-3xs);
             list-style: none;
+            overflow-x: auto;
         }
 
         .image {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-2xs);
-            border: var(--border-width) solid var(--color-border-subtle);
-            border-radius: var(--border-radius-md);
-            background: var(--color-surface);
+            position: relative;
+            flex: none;
+            width: 72px;
+            aspect-ratio: 2 / 3;
+            border-radius: var(--border-radius-thumbnail);
+            overflow: hidden;
+            background: var(--color-surface-sunken);
             cursor: grab;
             outline: none;
         }
@@ -167,7 +171,7 @@ export class OlCoverEditor extends LitElement {
         }
 
         .image--primary {
-            border-color: var(--color-primary);
+            box-shadow: 0 0 0 var(--border-width-thick) var(--color-primary);
         }
 
         .image--dragging {
@@ -176,16 +180,16 @@ export class OlCoverEditor extends LitElement {
 
         .image__img {
             display: block;
-            flex: none;
-            width: 40px;
-            height: 56px;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: var(--border-radius-thumbnail);
-            background: var(--color-surface-sunken);
             pointer-events: none;
         }
 
         .image__badge {
+            position: absolute;
+            left: var(--spacing-2xs);
+            bottom: var(--spacing-2xs);
             padding: 1px var(--spacing-2xs);
             border-radius: var(--border-radius-sm);
             background: var(--color-primary);
@@ -194,11 +198,26 @@ export class OlCoverEditor extends LitElement {
             font-weight: var(--font-weight-semibold);
         }
 
+        /* The delete control, revealed on hover/focus — always on touch, where
+           there is no hover. */
         .image__actions {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-2xs);
-            margin-left: auto;
+            position: absolute;
+            top: var(--spacing-2xs);
+            right: var(--spacing-2xs);
+            opacity: 0;
+            transition: opacity var(--duration-fast) var(--ease-state);
+        }
+
+        .image:hover .image__actions,
+        .image:focus-visible .image__actions,
+        .image:focus-within .image__actions {
+            opacity: 1;
+        }
+
+        @media (hover: none) {
+            .image__actions {
+                opacity: 1;
+            }
         }
 
         /* ── Add panel (whole panel is a drop target) ─────────────────── */
@@ -325,6 +344,7 @@ export class OlCoverEditor extends LitElement {
         this._dragging = false;
         this._dragIndex = null;
         this._status = '';
+        this._removedImage = null;
         this._focusIndex = null;
         this._imagesEdited = false;
         this._onPasteEvent = this._onPasteEvent.bind(this);
@@ -391,6 +411,7 @@ export class OlCoverEditor extends LitElement {
         this._previewUrl = '';
         this._error = '';
         this._status = '';
+        this._removedImage = null;
         this._pasted = false;
         const input = this._fileInput;
         if (input) input.value = '';
@@ -575,6 +596,7 @@ export class OlCoverEditor extends LitElement {
             }
             this._clearImage();
             this._imagesEdited = true;
+            this._removedImage = null;
             this._images = [{ id, url: this._coverUrl(id) }, ...this._images];
             this._status = this.t('imageAdded');
             this._applyCover(id);
@@ -672,6 +694,11 @@ export class OlCoverEditor extends LitElement {
     }
 
     _onCardKeydown(event, index) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            this._makePrimary(index);
+            return;
+        }
         const map = {
             ArrowLeft: index - 1,
             ArrowUp: index - 1,
@@ -694,6 +721,7 @@ export class OlCoverEditor extends LitElement {
         const [moved] = images.splice(from, 1);
         images.splice(to, 0, moved);
         this._imagesEdited = true;
+        this._removedImage = null;
         this._images = images;
         this._status = this.t('movedImage', { position: to + 1, total: images.length });
         this._syncPageCover();
@@ -705,9 +733,36 @@ export class OlCoverEditor extends LitElement {
         this._moveImage(index, 0);
     }
 
+    /** Clicking an image promotes it to primary (front of the list). */
+    _onCardClick(index) {
+        if (index === 0) return;
+        this._moveImage(index, 0);
+    }
+
+    _onDeleteClick(event, index) {
+        event.stopPropagation();
+        this._deleteImage(index);
+    }
+
     _deleteImage(index) {
+        const image = this._images[index];
+        if (!image) return;
+        this._removedImage = { image, index };
         this._imagesEdited = true;
         this._images = this._images.filter((_, i) => i !== index);
+        this._syncPageCover();
+        this._saveOrder();
+    }
+
+    /** Restore the most recently removed image at its old position. */
+    _undoDelete() {
+        const removed = this._removedImage;
+        if (!removed) return;
+        this._removedImage = null;
+        const images = [...this._images];
+        images.splice(Math.min(removed.index, images.length), 0, removed.image);
+        this._imagesEdited = true;
+        this._images = images;
         this._syncPageCover();
         this._saveOrder();
     }
@@ -762,7 +817,7 @@ export class OlCoverEditor extends LitElement {
                 >.
             </p>
 
-            ${this._renderImages()} ${this._renderAdd()} ${this._renderStatus()} ${this._renderCandidates()}
+            ${this._renderAdd()} ${this._renderCandidates()} ${this._renderImages()} ${this._renderStatus()}
         `;
     }
 
@@ -770,7 +825,7 @@ export class OlCoverEditor extends LitElement {
         if (!this._images.length) return nothing;
         return html`
             <div class="panel">
-                <h3 class="heading">${this.t('yourImages')}</h3>
+                <h3 class="heading">${this.t(this._isPhoto ? 'photosHeading' : 'coversHeading')}</h3>
                 <p class="hint">${this.t('reorderHint')}</p>
                 <ul class="images" @dragend=${this._onCardDragEnd}>
                     ${this._images.map(
@@ -783,33 +838,29 @@ export class OlCoverEditor extends LitElement {
                                 draggable="true"
                                 tabindex="0"
                                 aria-label=${this.t('imagePosition', { position: index + 1, total: this._images.length })}
+                                @click=${() => this._onCardClick(index)}
+                                @keydown=${(e) => this._onCardKeydown(e, index)}
                                 @dragstart=${(e) => this._onCardDragStart(e, index)}
                                 @dragover=${(e) => this._onCardDragOver(e)}
                                 @drop=${(e) => this._onCardDrop(e, index)}
-                                @keydown=${(e) => this._onCardKeydown(e, index)}
                             >
                                 <img class="image__img" src=${image.url} alt="" draggable="false" />
                                 ${index === 0
         ? html`<span class="image__badge">${this.t('coverPrimary')}</span>`
         : nothing}
                                 <div class="image__actions">
-                                    ${index === 0
-        ? nothing
-        : html`<ol-button
-                                              class="image__make-primary"
-                                              size="small"
-                                              @click=${() => this._makePrimary(index)}
-                                              >${this.t('makePrimary')}</ol-button
-                                          >`}
-                                    <ol-button
-                                        class="image__delete"
-                                        shape="icon"
-                                        variant="ghost"
-                                        aria-label=${this.t('removeImage')}
-                                        @click=${() => this._deleteImage(index)}
-                                    >
-                                        <ol-icon name="x"></ol-icon>
-                                    </ol-button>
+                                    <ol-tooltip content=${this.t('removeImage')} placement="top">
+                                        <ol-button
+                                            class="image__delete"
+                                            shape="icon"
+                                            size="small"
+                                            variant="secondary"
+                                            aria-label=${this.t('removeImage')}
+                                            @click=${(e) => this._onDeleteClick(e, index)}
+                                        >
+                                            <ol-icon name="x"></ol-icon>
+                                        </ol-button>
+                                    </ol-tooltip>
                                 </div>
                             </li>
                         `,
@@ -861,6 +912,14 @@ export class OlCoverEditor extends LitElement {
         if (this._error) return html`<p class="status status--error" role="alert">${this._error}</p>`;
         if (this._busy) return html`<p class="status" role="status">${this.t('uploading')}</p>`;
         if (this._saving) return html`<p class="status" role="status">${this.t('saving')}</p>`;
+        if (this._removedImage) {
+            return html`<p class="status" role="status">
+                ${this.t('imageRemoved')}
+                <ol-button class="status__undo" size="small" variant="ghost" @click=${this._undoDelete}
+                    >${this.t('undo')}</ol-button
+                >
+            </p>`;
+        }
         if (this._status) return html`<p class="status" role="status">${this._status}</p>`;
         return nothing;
     }

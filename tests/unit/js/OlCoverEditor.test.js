@@ -15,6 +15,15 @@ beforeAll(() => {
     URL.createObjectURL = () => 'blob:preview';
     URL.revokeObjectURL = () => {};
     global.requestAnimationFrame = (fn) => setTimeout(fn, 0);
+    // ol-tooltip reads matchMedia to detect a hover-capable pointer.
+    window.matchMedia = (query) => ({
+        matches: false,
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+        addListener() {},
+        removeListener() {},
+    });
 });
 
 afterAll(() => {
@@ -341,8 +350,33 @@ describe('ol-cover-editor image management', () => {
         expect(qa(el, '.image').length).toBe(3);
         expect(q(el, '.image--primary .image__img').getAttribute('src')).toBe(IMAGES[0].url);
         expect(q(el, '.image__badge').textContent).toBe('Primary');
-        // Only the non-primary images offer "Make primary".
-        expect(qa(el, '.image__make-primary').length).toBe(2);
+    });
+
+    test('clicking an image makes it primary', async() => {
+        const el = await mount({ images: IMAGES });
+        const fetchMock = manageFetch();
+        el._onCardClick(2);
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
+        expect(fetchMock).toHaveBeenCalled();
+    });
+
+    test('deleting offers an undo that restores the image at its position', async() => {
+        seedCover();
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        el._deleteImage(1);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        await el.updateComplete;
+
+        expect(el._images.map((i) => i.id)).toEqual([1, 3]);
+        expect(el.renderRoot.textContent).toContain('Image removed');
+        const undo = q(el, '.status__undo');
+        expect(undo).not.toBeNull();
+
+        undo.click();
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
     });
 
     test('make primary moves an image to the front and saves the order', async() => {
