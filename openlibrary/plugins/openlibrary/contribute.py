@@ -179,7 +179,7 @@ def _book(edition, readers: int | None = None) -> dict:
 
 
 def _task_url(task: tasks.Task, back: str = "") -> str:
-    url = f"/tasks/task/{task.olid}/{task.field}"
+    url = f"/tasks/{task.olid}/{task.field}"
     return f"{url}?{urlencode({'back': back})}" if back else url
 
 
@@ -304,7 +304,7 @@ def _task_context(edition, task: tasks.Task, back: str, error: str = "", value: 
     }
 
 
-TASK_PATH = rf"/tasks/task/(OL\d+M)/({'|'.join(tasks.POINTS)})"
+TASK_PATH = rf"/tasks/(OL\d+M)/({'|'.join(tasks.POINTS)})"
 
 
 def _back() -> str:
@@ -336,7 +336,7 @@ class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        if denied := _gate(f"/tasks/task/{olid}/{fld}"):
+        if denied := _gate(f"/tasks/{olid}/{fld}"):
             return denied
         back = _back()
         edition = _edition_or_404(olid)
@@ -346,14 +346,14 @@ class contribute_task(delegate.page):
         return _render("contribute/task.html.jinja", get_playbooks()[fld].question, **context)
 
     def POST(self, olid, fld):
-        if denied := _gate(f"/tasks/task/{olid}/{fld}"):
+        if denied := _gate(f"/tasks/{olid}/{fld}"):
             return denied
         i = web.input(value="", note="", back="", confirmed="", then="")
         back = _task_filter(i.back)
         edition = _edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return _nothing(edition, fld, back)
-        done = f"/tasks/task/{olid}/{fld}/done"
+        done = f"/tasks/{olid}/{fld}/done"
         playbook = get_playbooks()[fld]
         try:
             if fld in save.NORMALIZERS and not i.confirmed:
@@ -371,7 +371,7 @@ class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        if denied := _gate(f"/tasks/task/{olid}/{fld}/done"):
+        if denied := _gate(f"/tasks/{olid}/{fld}/done"):
             return denied
         back = _back()
         edition = _edition_or_404(olid)
