@@ -185,6 +185,12 @@ $(function() {
             });
     }
 
+    // conditionally load file dropzone for CSV import (Goodreads, etc.)
+    if (document.getElementById('csv-dropzone')) {
+        import('./file-dropzone.js')
+            .then(module => module.initFileDropzone());
+    }
+
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import('./goodreads_import.js')
@@ -235,15 +241,15 @@ $(function() {
             .then(module => module.initPatronExportForms(patronImportForms));
     }
 
-    const $observationModalLinks = $('.observations-modal-link');
+    const observationModalLinks = document.querySelectorAll('.observations-modal-link');
     const notesModalLinks = document.querySelectorAll('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
+    if (observationModalLinks.length || notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
         import('./modals')
             .then(module => {
-                if ($observationModalLinks.length) {
-                    module.initObservationsModal($observationModalLinks);
+                if (observationModalLinks.length) {
+                    module.initObservationsModal(observationModalLinks);
                 }
                 if (notesModalLinks.length) {
                     module.initNotesModal(notesModalLinks);
@@ -393,15 +399,6 @@ $(function() {
         import('./editions-table')
             .then(module => module.initEditionsTable());
     }
-    if ($('#cboxPrevious').length) {
-        $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
-    }
-    if ($('#cboxNext').length) {
-        $('#cboxNext').attr({'aria-label': 'Next button', 'aria-hidden': 'true'});
-    }
-    if ($('#cboxSlideshow').length) {
-        $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
-    }
 
     // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
     if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
@@ -417,8 +414,7 @@ $(function() {
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,.dialog--close,#bookPreview');
-    if ($dialogs.length) {
+    if (document.querySelector('.dialog--open, #bookPreview')) {
         import('./dialog')
             .then(module => module.initDialogs());
     }

@@ -7,27 +7,11 @@ $# :param str reload_id: Reference to UI component that will update when observa
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 
-$# The following data is accessed via JS:
-$ context = {
-  $ "username": username,
-  $ "work": work.key,
-  $ "id": id
-  $ }
-
-$if reload_id:
-  $ context['reloadId'] = reload_id
-
-<div class="$classes">
+<div class="observations-modal $classes">
   $:link_markup
 
   $if ctx.user:
-    <div class="hidden">
-      <div id="$id-metadata-form" class="floaterAdd metadata-form" data-context="$json_encode(context)">
-        <div class="floaterHead">
-          <h2>$_("My Book Review")</h2>
-          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-        </div>
-        $:render_component('ObservationForm', asyncDefer=True, attrs={'schema': dict(get_observations()), 'observations': dict(work.get_users_observations(username)), 'work-key': work.key, 'username': username})
-      </div>
-    </div>
+    <ol-dialog id="$id-metadata-form" label="$_('My Book Review')" label-close="$_('Close')" width="large" data-reload-id="$(reload_id or '')">
+      $:render_component('ObservationForm', asyncDefer=True, attrs={'schema': dict(get_observations()), 'observations': dict(work.get_users_observations(username)), 'work-key': work.key, 'username': username})
+    </ol-dialog>
 </div>
