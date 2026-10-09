@@ -40,6 +40,8 @@
     {
       "matchPackageNames": [
         "eslint",
+        "@babel/eslint-parser",
+        "eslint-plugin-no-jquery",
         "eslint-plugin-vue"
       ],
       "groupName": "eslint",
@@ -54,8 +56,7 @@
         "bundlesize2",
         "stylelint",
         "stylelint-declaration-strict-value",
-        "oxfmt",
-        "oxlint"
+        "oxfmt"
       ],
       "automerge": false
     },
