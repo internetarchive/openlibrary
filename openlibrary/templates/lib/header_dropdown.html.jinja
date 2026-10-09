@@ -1,0 +1,70 @@
+{# djlint:off J004 #}
+{#
+Dropdown menu or singleton link component. Imported as a macro by
+lib/nav_head.html.jinja -- macros take explicit arguments, unlike
+{% with %}{% include %} (see docs/wiki/developers/frontend/jinja.md).
+#}
+{% macro header_dropdown(props, track_prefix) %}
+    {% set singleton = props.links | length == 1 %}
+    <div class="{{ props.name }}-component header-dropdown">
+        {% if singleton %}
+            {% set link = props.links[0] %}
+            {% set tracker_value = (track_prefix ~ '|' ~ link.track) if (track_prefix and link.get('track')) else '' %}
+            <a href="{{ link.href }}"
+               {%- if props.get('link-class') %} class="{{ props.get('link-class') }}"{% endif %}
+               {%- if tracker_value %} data-ol-link-track="{{ tracker_value }}"{% endif -%}>
+                {% if props.get('icon') %}
+                    {{ icon(props.icon, size="sm", extra_class="ol-button-static__icon") }}
+                {% endif %}
+                {{ props.label }}
+            </a>
+        {% else %}
+            <details>
+                <summary>
+                    {% if props.get('icon') %}
+                        {{ icon(props.icon, size="lg", label=props.label, extra_class=props.get('image-class', '')) }}
+                    {% elif props.get('label') %}
+                        {{ props.label }}
+                        <span class="shift">{{ _("Menu") }}</span>
+                    {% endif %}
+                    <img class="down-arrow"
+                         aria-hidden="true"
+                         src="/static/images/down-arrow.png"
+                         alt=""
+                         role="presentation"
+                         width="7"
+                         height="4">
+                </summary>
+                <div class="{{ props.name }}-dropdown-component navigation-dropdown-component">
+                    <ul class="dropdown-menu {{ props.name }}-dropdown-menu">
+                        {% for link in props.links %}
+                            {% set tracker_value = (track_prefix ~ '|' ~ link.track) if (track_prefix and link.get('track')) else '' %}
+                            {% if 'subsection' in link %}
+                                <li class="subsection">{{ link.subsection }}</li>
+                            {% else %}
+                                <li>
+                                    {% if 'post' in link %}
+                                        <form {% if 'name' in link %}name="{{ link.name }}"{% endif %}
+                                              action="{{ link.post }}"
+                                              method="post">
+                                            <button {% if tracker_value %}data-ol-link-track="{{ tracker_value }}"{% endif %}>{{ link.text }}</button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{{ link.href }}"
+                                           {% if tracker_value %}data-ol-link-track="{{ tracker_value }}"{% endif %}>
+                                            {{ link.text }}
+                                            {% if 'subheading' in link %}
+                                                <br>
+                                                <i class="subheading">{{ link.subheading }}</i>
+                                            {% endif %}
+                                        </a>
+                                    {% endif %}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </details>
+        {% endif %}
+    </div>
+{% endmacro %}

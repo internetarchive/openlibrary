@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import web
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, pass_context
 from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
 
@@ -79,6 +79,37 @@ def get_jinja_env() -> Environment:
         _jinja_ngettext,
         newstyle=True,
     )
+    original_gettext = env.globals["gettext"]
+    original_ngettext = env.globals["ngettext"]
+
+    @pass_context
+    def _safe_gettext(context: Any, string: str, **variables: Any) -> str:
+        if not variables:
+            rv = context.call(_jinja_gettext, string)
+            if "%%" in rv:
+                rv = rv.replace("%%", "%")
+            return Markup(rv) if context.eval_ctx.autoescape else rv
+        return original_gettext(context, string, **variables)
+
+    @pass_context
+    def _safe_ngettext(context: Any, singular: str, plural: str, n: int, **variables: Any) -> str:
+        if not variables:
+            rv = context.call(_jinja_ngettext, singular, plural, n)
+            if "%(num)" in rv:
+                # Jinja's newstyle ngettext always %-formats with an implicit
+                # num: a bare ngettext('%(num)d book', '%(num)d books', 3)
+                # rendered "3 books" before these wrappers. Restore that for
+                # %(num) strings; everything else stays raw above so
+                # client-side sprintf strings keep their %s placeholders.
+                rv = rv % {"num": n}
+            elif "%%" in rv:
+                rv = rv.replace("%%", "%")
+            return Markup(rv) if context.eval_ctx.autoescape else rv
+        return original_ngettext(context, singular, plural, n, **variables)
+
+    env.globals["gettext"] = _safe_gettext
+    env.globals["_"] = _safe_gettext
+    env.globals["ngettext"] = _safe_ngettext
     env.policies["ext.i18n.trimmed"] = True
 
     # Expose Templetor's render_template to Jinja templates so they can

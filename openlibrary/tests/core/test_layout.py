@@ -7,7 +7,13 @@ import pytest
 
 import infogami.utils.flash as flash_module
 from infogami.utils.context import context as infogami_ctx
-from openlibrary.core.layout import AnnouncementBanner, LayoutContext, can_show_librarian_tools
+from openlibrary.core.layout import (
+    AnnouncementBanner,
+    HeadContext,
+    LayoutContext,
+    SentryContext,
+    can_show_librarian_tools,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -21,7 +27,13 @@ LAYOUT_TEMPLATES = [
     TEMPLATES_DIR / "site.html.jinja",
     TEMPLATES_DIR / "site" / "alert.html.jinja",
     TEMPLATES_DIR / "site" / "banner.html.jinja",
+    TEMPLATES_DIR / "site" / "head.html.jinja",
     TEMPLATES_DIR / "lib" / "nav_foot.html.jinja",
+    TEMPLATES_DIR / "lib" / "nav_head.html.jinja",
+    TEMPLATES_DIR / "lib" / "browse_popover.html.jinja",
+    TEMPLATES_DIR / "lib" / "header_dropdown.html.jinja",
+    TEMPLATES_DIR / "search" / "availability_i18n.html.jinja",
+    TEMPLATES_DIR / "search" / "search_modal_i18n.html.jinja",
     TEMPLATES_DIR / "languages" / "language_list.html.jinja",
     TEMPLATES_DIR / "site" / "stats.html.jinja",
 ]
@@ -31,7 +43,7 @@ def test_layout_context_contains_no_callables(request_context_fixture):
     """LayoutContext.build() must be pure data — no functions that could hide I/O."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
-    # __post_init__ already guards this, but double-check via to_dict
+    # Double-check via to_dict; the frozen dataclass is deliberate
     for key, val in layout.to_dict().items():
         assert not callable(val), f"{key} is callable"
         if isinstance(val, dict):
@@ -83,6 +95,33 @@ def test_layout_context_is_frozen():
         body_attrs=[],
         donate_script_url="",
         flash_messages=[],
+        user=None,
+        ol_env="production",
+        is_local_dev=False,
+        page_status_url="",
+        is_recognized_bot=False,
+        is_print_disabled=False,
+        homepath="",
+        my_books_props={},
+        browse_links=[],
+        featured_browse_links=[],
+        simple_browse_links=[],
+        browse_featured_count=4,
+        head=HeadContext(
+            title="",
+            domain="",
+            canonical_url="",
+            disable_analytics=False,
+            page_css_path="build/css/page-user.css",
+            experiments_json="{}",
+            robots="",
+            description="",
+            links=[],
+            metatags=[],
+            icon_sprite_url="",
+            days_registered_json='"visitor"',
+            sentry=None,
+        ),
         announcement_banner=None,
     )
     with pytest.raises((AttributeError, TypeError)):
@@ -175,3 +214,132 @@ def test_announcement_banner_structure():
     assert banner.cookie_duration_days == 7
     with pytest.raises((AttributeError, TypeError)):
         banner.content = "New content"  # type: ignore[misc]
+
+
+def test_layout_build_header_user_logged_out(request_context_fixture):
+    """LayoutContext should have user=None when no user is logged in."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    assert layout.user is None
+
+
+def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture):
+    """LayoutContext should build HeaderUser when a user is logged in."""
+    request_context_fixture(lang="en")
+
+    class MockUser:
+        key = "/people/super_librarian"
+        created = "2020-01-01"
+
+        def is_librarian_or_higher(self):
+            return True
+
+        def is_super_librarian_or_higher(self):
+            return True
+
+    monkeypatch.setattr("openlibrary.core.layout.get_current_user", MockUser)
+    monkeypatch.setattr("openlibrary.core.layout.get_internet_archive_id", lambda key: "ia_bob")
+    monkeypatch.setattr("openlibrary.core.layout.cached_get_counts_by_mode", lambda mode="open": 42)
+
+    layout = LayoutContext.build()
+    assert layout.user is not None
+    assert layout.user.key == "/people/super_librarian"
+    assert layout.user.username == "super_librarian"
+    assert layout.user.ia_id == "ia_bob"
+    assert "super_librarian" in layout.user.account_title
+    assert layout.user.is_privileged_user is True
+    assert layout.user.shows_merge_count is True
+    assert layout.user.open_merges_count == 42
+
+
+def test_layout_build_header_navigation(request_context_fixture):
+    """LayoutContext should build header navigation props and browse links."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    assert layout.my_books_props["name"] == "mybooks"
+    assert layout.my_books_props["label"] == "My Books"
+    assert len(layout.my_books_props["links"]) == 1
+    assert layout.my_books_props["links"][0]["track"] == "MyBooks"
+    assert len(layout.browse_links) > 0
+    assert len(layout.featured_browse_links) == 4
+    assert len(layout.simple_browse_links) == len(layout.browse_links) - 4
+    assert layout.ol_env in ("production", "development", "testing")
+
+
+def test_layout_build_head_defaults(request_context_fixture):
+    """Head fields should have safe defaults on a bare request context."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    head = layout.head
+    assert head.title == ""
+    assert head.disable_analytics is False
+    assert head.page_css_path == "build/css/page-user.css"
+    assert head.experiments_json == "{}"
+    assert head.robots == ""
+    assert head.description == ""
+    assert head.links == []
+    assert head.metatags == []
+    assert head.days_registered_json == '"visitor"'
+    assert head.sentry is None
+    assert isinstance(head.canonical_url, str)
+    assert isinstance(head.domain, str)
+    assert isinstance(head.icon_sprite_url, str)
+    assert isinstance(layout.is_local_dev, bool)
+
+
+def test_layout_build_head_title_passthrough(request_context_fixture):
+    """``build(title=...)`` should surface the page title for the <head>."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build(title="The Hobbit")
+    assert layout.head.title == "The Hobbit"
+
+
+def test_layout_build_head_reads_page_context(request_context_fixture):
+    """Head fields should be sourced from the per-page infogami context."""
+    request_context_fixture(lang="en")
+    infogami_ctx["disable_analytics"] = True
+    infogami_ctx["cssfile"] = "work"
+    infogami_ctx["experiments"] = {"foo": "bar"}
+    infogami_ctx["robots"] = "noindex"
+    infogami_ctx["description"] = "A description"
+    infogami_ctx["links"] = ['<link rel="alternate" href="/x">']
+    infogami_ctx["metatags"] = ['<meta name="custom" content="v">']
+    try:
+        head = LayoutContext.build().head
+        assert head.disable_analytics is True
+        assert head.page_css_path == "build/css/page-work.css"
+        assert head.experiments_json == '{"foo": "bar"}'
+        assert head.robots == "noindex"
+        assert head.description == "A description"
+        assert head.links == ['<link rel="alternate" href="/x">']
+        assert head.metatags == ['<meta name="custom" content="v">']
+    finally:
+        infogami_ctx.clear()
+
+
+def test_sentry_context_build_disabled_returns_none(monkeypatch):
+    """Sentry should be None when no client is configured."""
+    monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: None)
+
+    assert SentryContext.build() is None
+
+
+def test_sentry_context_build_enabled_precomputes_fields(monkeypatch):
+    """An enabled Sentry client should be flattened into a frozen data object."""
+    sentry = type(
+        "Sentry",
+        (),
+        {
+            "enabled": True,
+            "get_traceparent": lambda self: "TRACE",
+            "get_baggage": lambda self: "BAGGAGE",
+            "get_frontend_config": lambda self: {"dsn": "https://x"},
+        },
+    )()
+    monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: sentry)
+
+    result = SentryContext.build()
+    assert isinstance(result, SentryContext)
+    assert result.traceparent == "TRACE"
+    assert result.baggage == "BAGGAGE"
+    assert result.frontend_config_json == '{"dsn": "https://x"}'

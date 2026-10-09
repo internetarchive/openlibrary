@@ -13,6 +13,10 @@ from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from openlibrary.accounts import get_current_user
+from openlibrary.accounts.model import get_internet_archive_id
+from openlibrary.core.edits import cached_get_counts_by_mode
+from openlibrary.core.helpers import datestr
+from openlibrary.plugins.openlibrary.nav import BROWSE_FEATURED_COUNT, NavLink, browse_links
 
 if TYPE_CHECKING:
     from openlibrary.core.models import User
@@ -59,7 +63,7 @@ def _extract_stats_details() -> list[Any]:
         return []
 
 
-def can_show_librarian_tools(path: str, user: User) -> bool:
+def can_show_librarian_tools(path: str, user: User | None) -> bool:
     """Check whether librarian environment tools should be active for the current path and user."""
     if not (path and any(path.startswith(prefix) for prefix in ("/works/OL", "/authors/OL", "/books/OL", "/search"))):
         return False
@@ -68,26 +72,26 @@ def can_show_librarian_tools(path: str, user: User) -> bool:
     return user.is_librarian_or_higher()
 
 
-def _extract_body_classes() -> list[str]:
+def _extract_body_classes(user: User | None) -> list[str]:
     from infogami.utils.context import context as _ctx
 
     bodyclass = list(_ctx.get("bodyclass", [])) if isinstance(_ctx.get("bodyclass"), (list, tuple)) else []
     show_ol_shell = _ctx.get("show_ol_shell", True)
-    path = getattr(_ctx, "path", "") or _ctx.get("path", "")
+    path = getattr(_ctx, "path", "")
 
-    if show_ol_shell and can_show_librarian_tools(path, get_current_user()):
+    if show_ol_shell and can_show_librarian_tools(path, user):
         bodyclass.append("show-librarian-tools")
 
     return bodyclass
 
 
-def _extract_body_attrs() -> list[str]:
+def _extract_body_attrs(user: User | None) -> list[str]:
     """Extract body attributes from the request context."""
     from infogami.utils.context import context as _ctx
 
     bodyattrs = list(_ctx.get("bodyattrs", [])) if isinstance(_ctx.get("bodyattrs"), (list, tuple)) else []
     # For book-state.js: carousel shelf buttons are rendered without a reader.
-    if user := get_current_user():
+    if user:
         bodyattrs.append(f'data-user-key="{user.key}"')
     return bodyattrs
 
@@ -127,10 +131,11 @@ class AnnouncementBanner:
 
 
 def _extract_announcement_banner() -> AnnouncementBanner | None:
+    """Banner content is configured here; with no content there is never a banner."""
     announcement = ""
     cookie_name = ""
     cookie_duration_days = 30
-    if not (announcement and cookie_name):
+    if not announcement or not cookie_name:
         return None
 
     try:
@@ -147,6 +152,201 @@ def _extract_announcement_banner() -> AnnouncementBanner | None:
         cookie_name=cookie_name,
         cookie_duration_days=cookie_duration_days,
     )
+
+
+@dataclass(frozen=True)
+class HeaderUser:
+    """Precomputed user and role information for the site header."""
+
+    key: str
+    username: str
+    ia_id: str | None
+    account_title: str
+    is_privileged_user: bool
+    shows_merge_count: bool
+    open_merges_count: int
+
+
+def _extract_header_user(user: User | None) -> HeaderUser | None:
+    if not user:
+        return None
+
+    key = str(getattr(user, "key", "") or "")
+    if not key:
+        return None
+    username = key.rsplit("/", maxsplit=1)[-1]
+    ia_id = _safe(lambda: get_internet_archive_id(key), None)
+    created = getattr(user, "created", None)
+    joined_date = _safe(lambda: datestr(created), "") if created else ""
+    from openlibrary.i18n import gettext as _
+
+    account_title = f"{username}\n{_('Joined %(date)s', date=joined_date)}" if joined_date else username
+    is_privileged = _safe(lambda: bool(user.is_librarian_or_higher()), False)
+    shows_merges = _safe(lambda: bool(user.is_super_librarian_or_higher()), False)
+    merge_count = 0
+    if shows_merges:
+        merge_count = _safe(lambda: int(cached_get_counts_by_mode(mode="open") or 0), 0)
+
+    return HeaderUser(
+        key=key,
+        username=username,
+        ia_id=ia_id,
+        account_title=account_title,
+        is_privileged_user=is_privileged,
+        shows_merge_count=shows_merges,
+        open_merges_count=merge_count,
+    )
+
+
+def _extract_ol_env() -> str:
+    from openlibrary.core.env import get_deployment_name
+
+    return _safe(get_deployment_name, "production")
+
+
+def _extract_is_recognized_bot() -> bool:
+    from openlibrary.utils.request_context import req_context
+
+    return _safe(lambda: req_context.get().is_recognized_bot, False)
+
+
+def _extract_page_status_url() -> str:
+    try:
+        import web
+
+        return web.changequery(show_page_status=1)
+    except Exception:  # noqa: BLE001
+        return "?show_page_status=1"
+
+
+def _extract_is_print_disabled() -> bool:
+    try:
+        import web
+
+        if web.cookies().get("pd"):
+            return True
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from openlibrary.utils.request_context import req_context
+
+        return bool(req_context.get().print_disabled)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _extract_homepath() -> str:
+    try:
+        import web
+
+        return getattr(web.ctx, "homepath", "") or ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _extract_my_books_props(homepath: str) -> dict[str, Any]:
+    from openlibrary.i18n import gettext as _
+
+    return {
+        "name": "mybooks",
+        "label": _("My Books"),
+        "icon": "bookmark",
+        "links": [
+            {
+                "href": f"{homepath}/account/books",
+                "text": _("My Books"),
+                "track": "MyBooks",
+            }
+        ],
+        "link-class": "ol-button-static ol-button-static--ghost",
+    }
+
+
+def _extract_browse_links() -> tuple[list[NavLink], list[NavLink], list[NavLink]]:
+    empty_links: list[NavLink] = []
+    links = _safe(browse_links, empty_links)
+    featured = links[:BROWSE_FEATURED_COUNT]
+    simple = links[BROWSE_FEATURED_COUNT:]
+    return links, featured, simple
+
+
+@dataclass(frozen=True)
+class SentryContext:
+    """Precomputed Sentry values for the site head, if Sentry is enabled."""
+
+    traceparent: str
+    baggage: str
+    frontend_config_json: str
+
+    @classmethod
+    def build(cls) -> SentryContext | None:
+        from openlibrary.plugins.upstream.utils import json_encode
+        from openlibrary.utils.sentry import get_sentry
+
+        sentry = _safe(get_sentry, None)
+        if not sentry or not _safe(lambda: bool(sentry.enabled), False):
+            return None
+        return cls(
+            traceparent=_safe(lambda: sentry.get_traceparent() or "", ""),
+            baggage=_safe(lambda: sentry.get_baggage() or "", ""),
+            frontend_config_json=_safe(lambda: json_encode(sentry.get_frontend_config()), "{}"),
+        )
+
+
+@dataclass(frozen=True)
+class HeadContext:
+    """Precomputed data for the site head (``site/head.html.jinja``).
+
+    Grouped separately from the rest of ``LayoutContext`` because the head is
+    its own concern and pulls from a distinct set of per-page values.
+    """
+
+    title: str
+    domain: str
+    canonical_url: str
+    disable_analytics: bool
+    page_css_path: str
+    experiments_json: str
+    robots: str
+    description: str
+    links: list[str]
+    metatags: list[str]
+    icon_sprite_url: str
+    days_registered_json: str
+    sentry: SentryContext | None
+
+    @classmethod
+    def build(cls, *, title: str, user: User | None) -> HeadContext:
+        """Read the per-page infogami ctx and assemble head data with safe fallbacks."""
+        from infogami.utils.context import context as _ctx
+        from openlibrary.accounts import get_days_registered
+        from openlibrary.plugins.upstream.utils import Request, icon_sprite_url, json_encode
+
+        def ctx(key: str, default: Any) -> Any:
+            return _safe(lambda: _ctx.get(key, default), default)
+
+        def ctx_str_list(key: str) -> list[str]:
+            raw = ctx(key, [])
+            return [str(x) for x in raw] if isinstance(raw, (list, tuple)) else []
+
+        request = Request()
+        cssfile = ctx("cssfile", "user") or "user"
+
+        return cls(
+            title=title,
+            domain=_safe(lambda: request.domain or "", ""),
+            canonical_url=_safe(lambda: request.canonical_url or "", ""),
+            disable_analytics=bool(ctx("disable_analytics", False)),
+            page_css_path=f"build/css/page-{cssfile}.css",
+            experiments_json=_safe(lambda: json_encode(ctx("experiments", {}) or {}), "{}"),
+            robots=str(ctx("robots", "") or ""),
+            description=str(ctx("description", "") or ""),
+            links=ctx_str_list("links"),
+            metatags=ctx_str_list("metatags"),
+            icon_sprite_url=_safe(icon_sprite_url, "/static/icons/sprite.svg"),
+            days_registered_json=_safe(lambda: json_encode(get_days_registered(user)), '"visitor"'),
+            sentry=SentryContext.build(),
+        )
 
 
 @dataclass(frozen=True)
@@ -172,6 +372,19 @@ class LayoutContext:
     body_attrs: list[str]
     donate_script_url: str
     flash_messages: list[dict[str, str]]
+    user: HeaderUser | None
+    ol_env: str
+    is_local_dev: bool
+    page_status_url: str
+    is_recognized_bot: bool
+    is_print_disabled: bool
+    homepath: str
+    my_books_props: dict[str, Any]
+    browse_links: list[NavLink]
+    featured_browse_links: list[NavLink]
+    simple_browse_links: list[NavLink]
+    browse_featured_count: int
+    head: HeadContext
     announcement_banner: AnnouncementBanner | None = None
 
     @property
@@ -196,13 +409,18 @@ class LayoutContext:
         return {"code": "en", "localized": "English", "native": "English"}
 
     @classmethod
-    def build(cls) -> LayoutContext:
+    def build(cls, *, title: str = "") -> LayoutContext:
         """Assemble and compute layout context safely with fallbacks."""
         from infogami.utils.context import context as _infogami_context
         from infogami.utils.view import query_param
+        from openlibrary.core.env import get_ol_env
         from openlibrary.plugins.openlibrary.code import get_supported_languages
         from openlibrary.plugins.openlibrary.status import get_git_revision_short_hash
         from openlibrary.utils.request_context import get_request_lang, req_context
+
+        homepath = _extract_homepath()
+        all_browse, featured_browse, simple_browse = _extract_browse_links()
+        user = _safe(get_current_user, None)
 
         return cls(
             show_ol_shell=_safe(lambda: _infogami_context.get("show_ol_shell", True), True),
@@ -214,11 +432,24 @@ class LayoutContext:
             lang=_safe(get_request_lang, "en"),
             stats_summary=_safe(_extract_stats_summary, {}),
             stats_details=_safe(_extract_stats_details, []),
-            body_classes=_extract_body_classes(),
-            body_attrs=_extract_body_attrs(),
+            body_classes=_extract_body_classes(user),
+            body_attrs=_extract_body_attrs(user),
             donate_script_url=_safe(_extract_donate_script_url, "/cdn/archive.org/donate.js"),
             flash_messages=_extract_flash_messages(),
-            announcement_banner=_safe(_extract_announcement_banner, None),
+            user=_extract_header_user(user),
+            ol_env=_extract_ol_env(),
+            is_local_dev=get_ol_env().LOCAL_DEV,
+            page_status_url=_extract_page_status_url(),
+            is_recognized_bot=_extract_is_recognized_bot(),
+            is_print_disabled=_extract_is_print_disabled(),
+            homepath=homepath,
+            my_books_props=_extract_my_books_props(homepath),
+            browse_links=all_browse,
+            featured_browse_links=featured_browse,
+            simple_browse_links=simple_browse,
+            browse_featured_count=BROWSE_FEATURED_COUNT,
+            head=HeadContext.build(title=title, user=user),
+            announcement_banner=_extract_announcement_banner(),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -234,5 +465,5 @@ class SiteLayoutTemplate:
     def __call__(self, page: Any) -> str:
         from openlibrary.core.jinja import render_jinja_template
 
-        layout = LayoutContext.build()
+        layout = LayoutContext.build(title=getattr(page, "title", "") or "")
         return render_jinja_template("site.html.jinja", page=page, layout=layout)
