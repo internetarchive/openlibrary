@@ -254,11 +254,13 @@ class add_cover(delegate.page):
         # remove references to field storage objects
         web.ctx.pop("_fieldstorage", None)
 
+        # requests sends every `files=` entry as a file part, so a plain `url` field arrives as bytes.
+        if isinstance(i.url, bytes):
+            i.url = i.url.decode("utf-8")
+
         data = self.upload(key, i)
 
         if coverid := data.get("id"):
-            if isinstance(i.url, bytes):
-                i.url = i.url.decode("utf-8")
             self.save(book, coverid, url=i.url)
             cover = Image(web.ctx.site, "b", coverid)
             image_info = cover.info()
@@ -270,8 +272,9 @@ class add_cover(delegate.page):
         """Uploads a cover to coverstore and returns the response."""
         olid = key.split("/")[-1]
 
-        if i.file is not None and hasattr(i.file, "file"):
-            file_data = i.file.file
+        # openlibrary-client's add_bookcover sends an empty file part alongside `url`.
+        if (file_data := getattr(i.file, "file", None)) and file_data.read(1):
+            file_data.seek(0)
             filename = i.file.filename
 
             validator = image_validator()

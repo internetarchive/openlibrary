@@ -3978,11 +3978,11 @@ msgid "Cover Guidelines"
 msgstr ""
 
 #: covers/add.html
-msgid "Please provide a valid image."
+msgid "Please provide an image URL."
 msgstr ""
 
 #: covers/add.html
-msgid "Please provide an image URL."
+msgid "Please provide a valid image."
 msgstr ""
 
 #: covers/add.html
