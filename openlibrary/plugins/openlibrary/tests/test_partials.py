@@ -34,17 +34,15 @@ HORROR = {
     "slug": "horror",
     "query": "(horror* OR fiction_horror*)",
     "kind": "genre",
-    "work_count": 1,
-    "readable_count": 1,
     "subgenres": [
-        {"name": "Gothic", "slug": "gothic", "query": "gothic_fiction*", "work_count": 1, "readable_count": 1},
-        {"name": "Psychological", "slug": "psychological", "query": "psychological_fiction*", "work_count": 1, "readable_count": 1},
+        {"name": "Gothic", "slug": "gothic", "query": "gothic_fiction*"},
+        {"name": "Psychological", "slug": "psychological", "query": "psychological_fiction*", "requiresIntersection": True},
     ],
 }
 
 
 class TestHomeGenreNarrow:
-    """A subgenre row is books in both the genre and the subgenre."""
+    """A subgenre row searches the subgenre alone, unless it's ambiguous and must be scoped to its genre."""
 
     def narrow(self, subgenre=None, sort="trending"):
         params = LazyCarouselParams(query="stale", genre="horror", subgenre=subgenre, sort=sort, safe_mode=False)
@@ -62,13 +60,19 @@ class TestHomeGenreNarrow:
         assert self.narrow(sort="new").title == "Newest in Horror"
         assert self.narrow(sort="rating").title == "Top rated in Horror"
 
-    def test_subgenre_row_is_scoped_to_its_genre(self):
+    def test_subgenre_row_searches_the_subgenre_alone(self):
         params = self.narrow("gothic")
-        assert params.query == "subject_key:(horror* OR fiction_horror*) AND subject_key:gothic_fiction*"
+        assert params.query == "subject_key:gothic_fiction*"
         assert "gothic_fiction" in params.url
-        assert "horror" in params.url
         assert params.title == "Gothic"
         assert self.narrow("gothic", sort="new").title == "Gothic"
+
+    def test_ambiguous_subgenre_is_scoped_to_its_genre(self):
+        """Psychological on its own is mostly "psychological aspects"; requiresIntersection keeps it in Horror."""
+        params = self.narrow("psychological")
+        assert params.query == "subject_key:(horror* OR fiction_horror*) AND subject_key:psychological_fiction*"
+        assert "horror" in params.url
+        assert params.title == "Psychological"
 
     def test_every_row_links_with_the_shelf_sort(self):
         """A subgenre row's link follows the shelf's sort."""
