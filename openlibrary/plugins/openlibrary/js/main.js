@@ -229,15 +229,15 @@ $(function() {
             .then(module => module.initPatronExportForms(patronImportForms));
     }
 
-    const $observationModalLinks = $('.observations-modal-link');
+    const observationModalLinks = document.querySelectorAll('.observations-modal-link');
     const notesModalLinks = document.querySelectorAll('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
+    if (observationModalLinks.length || notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
         import('./modals')
             .then(module => {
-                if ($observationModalLinks.length) {
-                    module.initObservationsModal($observationModalLinks);
+                if (observationModalLinks.length) {
+                    module.initObservationsModal(observationModalLinks);
                 }
                 if (notesModalLinks.length) {
                     module.initNotesModal(notesModalLinks);
@@ -402,8 +402,7 @@ $(function() {
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,#bookPreview');
-    if ($dialogs.length) {
+    if (document.querySelector('.dialog--open, #bookPreview')) {
         import('./dialog')
             .then(module => module.initDialogs());
     }

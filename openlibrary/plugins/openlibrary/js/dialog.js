@@ -18,55 +18,67 @@ function collapseSearchForm(btnGroup) {
 }
 
 /**
+ * Opens the preview dialog for the clicked book.
+ * @param {HTMLElement} button - The [data-book-preview] trigger.
+ */
+function openPreview(button) {
+    trackEvent('BookOptions', 'Preview');
+    const dialog = document.getElementById('bookPreview');
+    if (!dialog) return;
+    const iframe = dialog.querySelector('iframe');
+    if (iframe) iframe.src = button.dataset.iframeSrc;
+    const link = dialog.querySelector('.learn-more a');
+    if (link) link.href = button.dataset.iframeLink;
+    dialog.open = true;
+}
+
+/**
+ * Expands the "Search Inside" button into its input form.
+ * @param {HTMLElement} trigger - The [data-search-trigger] button.
+ */
+function expandSearchForm(trigger) {
+    trackEvent('BookOptions', 'SearchInside');
+    trigger.setAttribute('aria-expanded', 'true');
+
+    const btnGroup = trigger.closest('.cta-button-group');
+    if (!btnGroup) return;
+    btnGroup.querySelectorAll('.preview-btn, .search-inside-trigger-btn')
+        .forEach(el => { el.style.display = 'none'; });
+    const form = btnGroup.querySelector('.search-inside-form');
+    if (form) {
+        form.style.display = '';
+        form.querySelector('.search-inside-input')?.focus();
+    }
+}
+
+/**
  * Wires up the book preview dialog and the search-inside form.
  *
  * Listeners are delegated on document so triggers added later (e.g. from
  * lazy-loaded carousels) work without re-initializing.
- *
- * @param {AbortSignal} signal Removes this set's listeners when aborted.
  */
-function initPreviewDialogs(signal) {
-    // Open the preview dialog for the clicked book.
+function initPreviewDialogs() {
     document.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-book-preview]');
-        if (!button) return;
+        const target = event.target.closest('[data-book-preview], [data-search-trigger], .search-cancel-btn');
+        if (!target) return;
         event.preventDefault();
-        trackEvent('BookOptions', 'Preview');
-
-        const dialog = document.getElementById('bookPreview');
-        if (!dialog) return;
-        const iframe = dialog.querySelector('iframe');
-        if (iframe) iframe.src = button.dataset.iframeSrc;
-        const link = dialog.querySelector('.learn-more a');
-        if (link) link.href = button.dataset.iframeLink;
-        dialog.open = true;
-    }, { signal });
+        if (target.matches('[data-book-preview]')) {
+            openPreview(target);
+        } else if (target.matches('[data-search-trigger]')) {
+            expandSearchForm(target);
+        } else {
+            collapseSearchForm(target.closest('.cta-button-group'));
+        }
+    });
 
     // Drop the preview embed when the dialog closes, so a stale book's
-    // iframe can't keep loading in the background.
-    document.getElementById('bookPreview')?.addEventListener('ol-close', function() {
-        const iframe = this.querySelector('iframe');
+    // iframe can't keep loading in the background. Delegated so it also covers
+    // a #bookPreview that a partial renders after init.
+    document.addEventListener('ol-close', (event) => {
+        if (event.target.id !== 'bookPreview') return;
+        const iframe = event.target.querySelector('iframe');
         if (iframe) iframe.src = '';
-    }, { signal });
-
-    // Expand the "Search Inside" button into its input form.
-    document.addEventListener('click', (event) => {
-        const trigger = event.target.closest('[data-search-trigger]');
-        if (!trigger) return;
-        event.preventDefault();
-        trackEvent('BookOptions', 'SearchInside');
-        trigger.setAttribute('aria-expanded', 'true');
-
-        const btnGroup = trigger.closest('.cta-button-group');
-        if (!btnGroup) return;
-        btnGroup.querySelectorAll('.preview-btn, .search-inside-trigger-btn')
-            .forEach(el => { el.style.display = 'none'; });
-        const form = btnGroup.querySelector('.search-inside-form');
-        if (form) {
-            form.style.display = '';
-            form.querySelector('.search-inside-input')?.focus();
-        }
-    }, { signal });
+    });
 
     // Escape collapses the form back to the button state.
     document.addEventListener('keydown', (event) => {
@@ -74,15 +86,7 @@ function initPreviewDialogs(signal) {
         if (!input || event.key !== 'Escape') return;
         collapseSearchForm(input.closest('.cta-button-group'));
         event.stopPropagation();
-    }, { signal });
-
-    // The cancel (×) button collapses the form back.
-    document.addEventListener('click', (event) => {
-        const cancel = event.target.closest('.search-cancel-btn');
-        if (!cancel) return;
-        event.preventDefault();
-        collapseSearchForm(cancel.closest('.cta-button-group'));
-    }, { signal });
+    });
 
     // Submitting the form runs the query inside the preview dialog.
     document.addEventListener('submit', (event) => {
@@ -103,10 +107,8 @@ function initPreviewDialogs(signal) {
             dialog.open = true;
         }
         collapseSearchForm(form.closest('.cta-button-group'));
-    }, { signal });
+    });
 }
-
-let dialogController;
 
 /**
  * Wires up dialog triggers.
@@ -117,16 +119,12 @@ let dialogController;
  * so no close wiring is needed here.
  */
 export function initDialogs() {
-    dialogController?.abort();
-    dialogController = new AbortController();
-    const { signal } = dialogController;
-
     document.querySelectorAll('.dialog--open').forEach((trigger) => {
         const getTarget = () => document.getElementById(trigger.getAttribute('aria-controls'));
         // Start fetching the dialog's lazy images on hover/focus so they're loaded by the click.
         const warmImages = () => getTarget()?.querySelectorAll('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
-        trigger.addEventListener('pointerenter', warmImages, { once: true, signal });
-        trigger.addEventListener('focus', warmImages, { once: true, signal });
+        trigger.addEventListener('pointerenter', warmImages, { once: true });
+        trigger.addEventListener('focus', warmImages, { once: true });
         trigger.addEventListener('click', (e) => {
             const target = getTarget();
             if (target?.tagName !== 'OL-DIALOG') {
@@ -134,8 +132,8 @@ export function initDialogs() {
             }
             e.preventDefault();
             target.open = true;
-        }, { signal });
+        });
     });
 
-    initPreviewDialogs(signal);
+    initPreviewDialogs();
 }

@@ -327,50 +327,23 @@ function showToast(message) {
  * Opens each modal's <ol-dialog> when its link is clicked, and reloads the
  * observations list a modal points at once it closes.
  *
- * @param {JQuery} $modalLinks  A collection of observations modal links.
+ * @param {NodeListOf<HTMLElement>} modalLinks  A collection of observations modal links.
  */
-export function initObservationsModal($modalLinks) {
-    addClickListeners($modalLinks);
+export function initObservationsModal(modalLinks) {
     addObservationReloadListeners($('.observations-list'));
     addDeleteObservationsListeners($('.delete-observations-button'));
 
-    $modalLinks.each(function(_i, modalLinkElement) {
-        const dialog = getModalContent($(modalLinkElement));
-        const context = JSON.parse(dialog.dataset['context']);
+    for (const link of modalLinks) {
+        const dialog = link.nextElementSibling;
+        const { reloadId } = JSON.parse(dialog.dataset.context);
 
-        // Reload the list this modal points at once the dialog closes.
-        dialog.addEventListener('ol-after-close', () => {
-            if (context.reloadId) {
-                $(`#${context.reloadId}`).trigger('contentReload');
-            }
+        link.addEventListener('click', () => { dialog.open = true; });
+        dialog.addEventListener('ol-after-close', (event) => {
+            // Ignore closes bubbling up from dialogs nested inside this one.
+            if (event.target !== dialog || !reloadId) return;
+            document.getElementById(reloadId)?.dispatchEvent(new CustomEvent('contentReload'));
         });
-    });
-}
-
-/**
- * Add on click listeners to a collection of modal links.
- *
- * When a link is clicked, its corresponding <ol-dialog> opens.
- *
- * @param {JQuery} $modalLinks  A collection of modal links.
- */
-function addClickListeners($modalLinks) {
-    $modalLinks.each(function(_i, modalLinkElement) {
-        $(modalLinkElement).on('click', function() {
-            // Get context, which is attached to the modal content
-            getModalContent($(this)).open = true;
-        });
-    });
-}
-
-/**
- * Gets the <ol-dialog> associated with the given modal link.
- *
- * @param {JQuery} $modalLink Link that triggers a modal
- * @returns {HTMLElement}  Reference to a modal's dialog
- */
-function getModalContent($modalLink) {
-    return $modalLink.next()[0];
+    }
 }
 
 /**
