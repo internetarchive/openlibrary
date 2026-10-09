@@ -9,9 +9,8 @@ import { isbnOverride } from '../../openlibrary/js/isbnOverride';
  */
 export function init() {
     // used in books/edit/exercpt, books/edit/web and books/edit/edition
-    $.fn.repeat = function(options) {
-        var addSelector, removeSelector, id, elems, t, code,
-            nextRowId;
+    $.fn.repeat = function (options) {
+        var addSelector, removeSelector, id, elems, t, code, nextRowId;
         options = options || {};
 
         id = `#${this.attr('id')}`;
@@ -24,7 +23,8 @@ export function init() {
         };
 
         function createTemplate(selector) {
-            code = $(selector).html()
+            code = $(selector)
+                .html()
                 .replace(/%7B%7B/gi, '<%=')
                 .replace(/%7D%7D/gi, '%>')
                 .replace(/{{/g, '<%=')
@@ -41,7 +41,7 @@ export function init() {
          */
         function formdata() {
             var data = {};
-            $(':input', elems.form).each(function() {
+            $(':input', elems.form).each(function () {
                 var $e = $(this),
                     name = $e.attr('name'),
                     type = $e.attr('type'),
@@ -92,12 +92,7 @@ export function init() {
             // increment the index to avoid situations where more than one element have same
             nextRowId++;
             // Create the HTML of a hidden input
-            elems.template
-                .clone()
-                .attr('id', newid)
-                .html(t(data))
-                .show()
-                .appendTo(elems.display);
+            elems.template.clone().attr('id', newid).html(t(data)).show().appendTo(elems.display);
 
             elems._this.trigger('repeat-add');
         }

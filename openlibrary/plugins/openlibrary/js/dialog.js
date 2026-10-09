@@ -11,10 +11,10 @@ function collapseSearchForm(btnGroup) {
     const input = btnGroup.querySelector('.search-inside-input');
     if (form) form.style.display = 'none';
     if (input) input.value = '';
-    btnGroup.querySelectorAll('.preview-btn, .search-inside-trigger-btn')
-        .forEach(el => { el.style.display = ''; });
-    btnGroup.querySelectorAll('[data-search-trigger]')
-        .forEach(el => el.setAttribute('aria-expanded', 'false'));
+    btnGroup.querySelectorAll('.preview-btn, .search-inside-trigger-btn').forEach(el => {
+        el.style.display = '';
+    });
+    btnGroup.querySelectorAll('[data-search-trigger]').forEach(el => el.setAttribute('aria-expanded', 'false'));
 }
 
 /**
@@ -42,8 +42,9 @@ function expandSearchForm(trigger) {
 
     const btnGroup = trigger.closest('.cta-button-group');
     if (!btnGroup) return;
-    btnGroup.querySelectorAll('.preview-btn, .search-inside-trigger-btn')
-        .forEach(el => { el.style.display = 'none'; });
+    btnGroup.querySelectorAll('.preview-btn, .search-inside-trigger-btn').forEach(el => {
+        el.style.display = 'none';
+    });
     const form = btnGroup.querySelector('.search-inside-form');
     if (form) {
         form.style.display = '';
@@ -58,7 +59,7 @@ function expandSearchForm(trigger) {
  * lazy-loaded carousels) work without re-initializing.
  */
 function initPreviewDialogs() {
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', event => {
         const target = event.target.closest('[data-book-preview], [data-search-trigger], .search-cancel-btn');
         if (!target) return;
         event.preventDefault();
@@ -75,14 +76,14 @@ function initPreviewDialogs() {
     // Drop the preview embed when the dialog closes, so a stale book's
     // iframe can't keep loading in the background. Delegated so it doesn't
     // depend on which #bookPreview existed at init (partials can add copies).
-    document.addEventListener('ol-close', (event) => {
+    document.addEventListener('ol-close', event => {
         if (event.target.id !== 'bookPreview') return;
         const iframe = event.target.querySelector('iframe');
         if (iframe) iframe.src = '';
     });
 
     // Escape collapses the form back to the button state.
-    document.addEventListener('keydown', (event) => {
+    document.addEventListener('keydown', event => {
         const input = event.target.closest('.search-inside-input');
         if (!input || event.key !== 'Escape') return;
         collapseSearchForm(input.closest('.cta-button-group'));
@@ -90,17 +91,14 @@ function initPreviewDialogs() {
     });
 
     // Submitting the form runs the query inside the preview dialog.
-    document.addEventListener('submit', (event) => {
+    document.addEventListener('submit', event => {
         const form = event.target.closest('.search-inside-form');
         if (!form) return;
         event.preventDefault();
         const query = form.querySelector('.search-inside-input')?.value ?? '';
         const ocaid = form.dataset.ocaid;
 
-        showPreview(
-            `https://archive.org/details/${ocaid}?view=theater&wrapper=false&q=${encodeURIComponent(query)}`,
-            `https://archive.org/details/${ocaid}`,
-        );
+        showPreview(`https://archive.org/details/${ocaid}?view=theater&wrapper=false&q=${encodeURIComponent(query)}`, `https://archive.org/details/${ocaid}`);
         collapseSearchForm(form.closest('.cta-button-group'));
     });
 }
@@ -114,13 +112,18 @@ function initPreviewDialogs() {
  * so no close wiring is needed here.
  */
 export function initDialogs() {
-    document.querySelectorAll('.dialog--open').forEach((trigger) => {
+    document.querySelectorAll('.dialog--open').forEach(trigger => {
         const getTarget = () => document.getElementById(trigger.getAttribute('aria-controls'));
         // Start fetching the dialog's lazy images on hover/focus so they're loaded by the click.
-        const warmImages = () => getTarget()?.querySelectorAll('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
+        const warmImages = () =>
+            getTarget()
+                ?.querySelectorAll('img[loading="lazy"]')
+                .forEach(img => {
+                    img.loading = 'eager';
+                });
         trigger.addEventListener('pointerenter', warmImages, { once: true });
         trigger.addEventListener('focus', warmImages, { once: true });
-        trigger.addEventListener('click', (e) => {
+        trigger.addEventListener('click', e => {
             const target = getTarget();
             if (target?.tagName !== 'OL-DIALOG') {
                 return;

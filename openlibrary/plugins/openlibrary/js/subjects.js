@@ -15,7 +15,7 @@ import { fetchAndSwap } from './utils';
  * @param {HTMLElement} elem Root element of the publishing-history component
  */
 export async function initPublishingHistory(elem) {
-    await fetchAndSwap(elem, 'SubjectPublishingHistory', async() => {
+    await fetchAndSwap(elem, 'SubjectPublishingHistory', async () => {
         const graphs = await import('./graphs');
         graphs.initPublishersGraph();
     });

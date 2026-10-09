@@ -4,7 +4,7 @@
  * For more details, see:
  * http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
  */
-import { ungettext, ugettext,  sprintf } from './i18n';
+import { ungettext, ugettext, sprintf } from './i18n';
 // TODO: Can likely move some of these methods into this file
 import { commify, urlencode, slice } from './python';
 import { truncate, cond } from './utils';
@@ -30,7 +30,7 @@ export function range(begin, end, step) {
     }
 
     r = [];
-    for (i=begin; i<end; i += step) {
+    for (i = begin; i < end; i += step) {
         r[r.length] = i;
     }
     return r;
@@ -73,17 +73,17 @@ export function ForLoop(parent, seq) {
     this.index0 = -1;
 }
 
-ForLoop.prototype.next = function() {
-    var i = this.index0+1;
+ForLoop.prototype.next = function () {
+    var i = this.index0 + 1;
 
     this.index0 = i;
-    this.index = i+1;
+    this.index = i + 1;
 
-    this.first = (i === 0);
-    this.last = (i === this.length-1);
+    this.first = i === 0;
+    this.last = i === this.length - 1;
 
-    this.odd = (this.index % 2 === 1);
-    this.even = (this.index % 2 === 0);
+    this.odd = this.index % 2 === 1;
+    this.even = this.index % 2 === 0;
     this.parity = ['even', 'odd'][this.index % 2];
 
     this.revindex0 = this.length - i;
@@ -95,7 +95,7 @@ export function foreach(seq, parent_loop, callback) {
     var loop = new ForLoop(parent_loop, seq);
     var i, args, j;
 
-    for (i=0; i<seq.length; i++) {
+    for (i = 0; i < seq.length; i++) {
         loop.next();
 
         args = [loop];
@@ -105,8 +105,7 @@ export function foreach(seq, parent_loop, callback) {
             for (j in seq[i]) {
                 args.push(seq[i][j]);
             }
-        }
-        else {
+        } else {
             args[1] = seq[i];
         }
         callback.apply(this, args);
@@ -120,12 +119,10 @@ export function websafe(value) {
     try {
         if (value === null || value === undefined) {
             return '';
-        }
-        else {
+        } else {
             return htmlquote(value.toString());
         }
-    }
-    catch (e) {
+    } catch (e) {
         return '';
     }
 }
@@ -150,7 +147,6 @@ export function is_jsdef() {
     return true;
 }
 
-
 /**
  * foo.get(KEY, default) isn't defined in js, so we can't use that construct
  * in our jsdef methods. This helper function provides a workaround, and works
@@ -160,8 +156,8 @@ export function is_jsdef() {
  * @param {string} key - the key to get from the object
  * @param {any} def - the default value to return if the key isn't found
  */
-export function jsdef_get(obj, key, def=null) {
-    return (key in obj) ? obj[key] : def;
+export function jsdef_get(obj, key, def = null) {
+    return key in obj ? obj[key] : def;
 }
 
 export function exposeGlobally() {

@@ -8,7 +8,7 @@ const EDITION = '/books/OL1M';
 const LIST = '/people/openlibrary/lists/OL1L';
 
 function jsonResponse(body) {
-    return { ok: true, status: 200, json: async() => body };
+    return { ok: true, status: 200, json: async () => body };
 }
 
 function setup(listData) {
@@ -16,14 +16,14 @@ function setup(listData) {
         <ul class="already-lists" data-seed-keys='${JSON.stringify([WORK, EDITION])}'>
             <div class="list-overview-loading-indicator">Loading</div>
         </ul>`;
-    global.fetch = vi.fn(async(url) => {
+    global.fetch = vi.fn(async url => {
         if (String(url).includes('MyBooksDropperLists')) return jsonResponse({ listData });
         return jsonResponse({ key: '/people/openlibrary/lists/OL9L' });
     });
     return document.querySelector('.already-lists');
 }
 
-const chips = (container) => [...container.querySelectorAll('.actionable-item')].map(li => li.querySelector('input[name=seed-key]').value);
+const chips = container => [...container.querySelectorAll('.actionable-item')].map(li => li.querySelector('input[name=seed-key]').value);
 
 describe('initListShowcase', () => {
     beforeEach(() => {
@@ -31,10 +31,10 @@ describe('initListShowcase', () => {
         getShowcases().length = 0;
     });
 
-    test('renders one chip per matching seed from the shared store, with one request', async() => {
+    test('renders one chip per matching seed from the shared store, with one request', async () => {
         const container = setup({
             [LIST]: { listName: 'Mine', members: [WORK, '/works/OL2W'] },
-            '/people/openlibrary/lists/OL2L': { listName: 'Other', members: ['/works/OL3W'] },
+            '/people/openlibrary/lists/OL2L': { listName: 'Other', members: ['/works/OL3W'] }
         });
         await initListShowcase(container);
         expect(chips(container)).toEqual([WORK]);
@@ -42,7 +42,7 @@ describe('initListShowcase', () => {
         expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
-    test('follows the store: a created list appears, an untick removes', async() => {
+    test('follows the store: a created list appears, an untick removes', async () => {
         const container = setup({ [LIST]: { listName: 'Mine', members: [WORK] } });
         await initListShowcase(container);
 
@@ -53,9 +53,11 @@ describe('initListShowcase', () => {
         expect(chips(container)).toEqual([EDITION]);
     });
 
-    test('a failed load keeps the loading indicator', async() => {
+    test('a failed load keeps the loading indicator', async () => {
         const container = setup({});
-        global.fetch = vi.fn(async() => { throw new Error('offline'); });
+        global.fetch = vi.fn(async () => {
+            throw new Error('offline');
+        });
         await initListShowcase(container);
         expect(container.querySelector('.list-overview-loading-indicator')).not.toBeNull();
     });

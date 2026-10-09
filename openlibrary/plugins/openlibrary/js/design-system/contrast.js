@@ -9,9 +9,7 @@ export const WHITE = [255, 255, 255];
  * Relative luminance of an sRGB triple whose channels are already 0–1.
  */
 export function relativeLuminance([r, g, b]) {
-    const [rl, gl, bl] = [r, g, b].map((channel) =>
-        channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
-    );
+    const [rl, gl, bl] = [r, g, b].map(channel => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4));
     return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
 }
 
@@ -37,8 +35,8 @@ export function parseCssColor(color) {
     const parts = (wide ? wide[2] : color).match(/[\d.]+/g);
     if (!parts || parts.length < 3) return null;
     return {
-        rgb: parts.slice(0, 3).map((value) => Number(value) * (wide ? 255 : 1)),
-        alpha: parts.length > 3 ? Number(parts[3]) : 1,
+        rgb: parts.slice(0, 3).map(value => Number(value) * (wide ? 255 : 1)),
+        alpha: parts.length > 3 ? Number(parts[3]) : 1
     };
 }
 
@@ -73,5 +71,5 @@ export function luminanceFromCssColor(color, backdrop = WHITE) {
 }
 
 function luminanceOf(rgb) {
-    return relativeLuminance(rgb.map((channel) => channel / 255));
+    return relativeLuminance(rgb.map(channel => channel / 255));
 }

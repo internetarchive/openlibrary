@@ -33,49 +33,65 @@ export function initFileDropzone() {
     }
 
     // Click to browse
-    browseBtn.addEventListener('click', function(e) {
+    browseBtn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
         input.click();
     });
 
     // File input change
-    input.addEventListener('change', function() {
+    input.addEventListener('change', function () {
         updateLoadButton();
         showFileName();
     });
 
     // Drag and drop events
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
-        dropzone.addEventListener(eventName, function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }, false);
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (eventName) {
+        dropzone.addEventListener(
+            eventName,
+            function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            },
+            false
+        );
     });
 
-    ['dragenter', 'dragover'].forEach(function(eventName) {
-        dropzone.addEventListener(eventName, function() {
-            dropzone.classList.add('drag-active');
-        }, false);
+    ['dragenter', 'dragover'].forEach(function (eventName) {
+        dropzone.addEventListener(
+            eventName,
+            function () {
+                dropzone.classList.add('drag-active');
+            },
+            false
+        );
     });
 
-    ['dragleave', 'drop'].forEach(function(eventName) {
-        dropzone.addEventListener(eventName, function() {
-            dropzone.classList.remove('drag-active');
-        }, false);
+    ['dragleave', 'drop'].forEach(function (eventName) {
+        dropzone.addEventListener(
+            eventName,
+            function () {
+                dropzone.classList.remove('drag-active');
+            },
+            false
+        );
     });
 
-    dropzone.addEventListener('drop', function(e) {
-        const files = e.dataTransfer.files;
-        if (files.length) {
-            input.files = files;
-            updateLoadButton();
-            showFileName();
-        }
-    }, false);
+    dropzone.addEventListener(
+        'drop',
+        function (e) {
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                input.files = files;
+                updateLoadButton();
+                showFileName();
+            }
+        },
+        false
+    );
 
     // Click on dropzone to trigger file input
-    dropzone.addEventListener('click', function(e) {
+    dropzone.addEventListener('click', function (e) {
         if (e.target !== browseBtn && e.target !== input) {
             input.click();
         }

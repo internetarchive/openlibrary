@@ -40,7 +40,7 @@ const NOTICE_LABELS = {
     movedTo: 'Moved to %(shelf)s',
     removedFromShelf: 'Removed from shelf',
     undo: 'Undo',
-    errorGeneric: 'Something went wrong. Please try again.',
+    errorGeneric: 'Something went wrong. Please try again.'
 };
 
 /** @type {Object<string, string|Object<string, string>>|null} */
@@ -186,9 +186,7 @@ function markRowLeftShelf(button, workKey, next) {
         return;
     }
     const notice = existing ?? createLeftShelfNotice(row, workKey, pageShelf);
-    notice.querySelector('.left-shelf-notice__text').textContent = next === null
-        ? t('removedFromShelf')
-        : t('movedTo', { shelf: t(SHELF_LABEL[next]) });
+    notice.querySelector('.left-shelf-notice__text').textContent = next === null ? t('removedFromShelf') : t('movedTo', { shelf: t(SHELF_LABEL[next]) });
     notice.dataset.from = next ?? '';
 }
 

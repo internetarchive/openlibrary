@@ -20,9 +20,12 @@ import '../../openlibrary/components/lit/OlCarousel.js';
 async function mountCarousel() {
     render(html`
         <ol-carousel label="Trending" style="width: 1200px">
-            ${Array.from({ length: 18 }, (_, i) => html`
+            ${Array.from(
+                { length: 18 },
+                (_, i) => html`
                 <div style="height: 120px">Card ${i}</div>
-            `)}
+            `
+            )}
         </ol-carousel>
     `);
 
@@ -33,11 +36,11 @@ async function mountCarousel() {
 
     return {
         el,
-        scroller: el.shadowRoot.querySelector('.viewport'),
+        scroller: el.shadowRoot.querySelector('.viewport')
     };
 }
 
-test('real layout decides the columns, the pages and the snap points', async() => {
+test('real layout decides the columns, the pages and the snap points', async () => {
     await page.viewport(1280, 800);
     const { el, scroller } = await mountCarousel();
 
@@ -54,7 +57,7 @@ test('real layout decides the columns, the pages and the snap points', async() =
     expect(items[17].style.scrollSnapAlign).toBe('end');
 });
 
-test('Next really scrolls the rail, settles it, and announces the page', async() => {
+test('Next really scrolls the rail, settles it, and announces the page', async () => {
     await page.viewport(1280, 800);
     const { el, scroller } = await mountCarousel();
 
@@ -65,8 +68,7 @@ test('Next really scrolls the rail, settles it, and announces the page', async()
     // scrollend, then the live-region announcement. Auto-retrying assertions
     // ride the whole sequence instead of guessing a sleep length.
     await expect.element(page.getByText('Page 2 of 3')).toBeInTheDocument();
-    await expect.poll(() => scroller.scrollLeft, 'the rail settled on page 1')
-        .toBeCloseTo(el._pageOffsets[1], 0);
+    await expect.poll(() => scroller.scrollLeft, 'the rail settled on page 1').toBeCloseTo(el._pageOffsets[1], 0);
 
     // The reported page agrees with where the rail actually is.
     expect(el.page).toBe(1);

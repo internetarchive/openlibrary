@@ -12,7 +12,7 @@ class OlScoreGauge extends LitElement {
     static properties = {
         percentage: { type: Number },
         size: { type: String, reflect: true },
-        showPercent: { type: Boolean, attribute: 'show-percent' },
+        showPercent: { type: Boolean, attribute: 'show-percent' }
     };
 
     static styles = css`
@@ -167,7 +167,7 @@ export class OlScorecard extends LitElement {
         labelCollapse: { type: String, attribute: 'label-collapse' },
         outdated: { type: Boolean },
         labelOutdated: { type: String, attribute: 'label-outdated' },
-        _activeSection: { type: Number, state: true },
+        _activeSection: { type: Number, state: true }
     };
 
     static styles = css`
@@ -485,7 +485,9 @@ export class OlScorecard extends LitElement {
                 class="collapsed-toggle"
                 aria-expanded="false"
                 aria-label=${ariaLabel}
-                @click=${() => { this.expanded = true; }}
+                @click=${() => {
+                    this.expanded = true;
+                }}
             >
                 <ol-score-gauge percentage=${percentage} size="small"></ol-score-gauge>
                 <span class="collapsed-label" aria-hidden="true">${name}</span>
@@ -504,7 +506,9 @@ export class OlScorecard extends LitElement {
                 type="button"
                 class="header"
                 aria-expanded="true"
-                @click=${() => { this.expanded = false; }}
+                @click=${() => {
+                    this.expanded = false;
+                }}
             >
                 <span style="flex: 1">${name}</span>
                 <ol-icon class="header-chevron" name="chevron-down" label=${this.labelCollapse}></ol-icon>
@@ -522,11 +526,11 @@ export class OlScorecard extends LitElement {
                 <div class="tab-separator" role="presentation"></div>
 
                 ${sections.map((section, i) => {
-        const sectionPct = this._percentage(section.score, section.maxScore);
-        const isActive = i === this._activeSection;
-        const panelId = `${this._panelIdPrefix}-panel-${i}`;
-        const tabId = `${this._panelIdPrefix}-tab-${i}`;
-        return html`
+                    const sectionPct = this._percentage(section.score, section.maxScore);
+                    const isActive = i === this._activeSection;
+                    const panelId = `${this._panelIdPrefix}-panel-${i}`;
+                    const tabId = `${this._panelIdPrefix}-tab-${i}`;
+                    return html`
                         <button
                             type="button"
                             class="tab"
@@ -535,15 +539,17 @@ export class OlScorecard extends LitElement {
                             aria-selected=${isActive}
                             aria-controls=${panelId}
                             tabindex=${isActive ? '0' : '-1'}
-                            @click=${() => { this._activeSection = i; }}
-                            @keydown=${(e) => this._onTabKeydown(e, i)}
+                            @click=${() => {
+                                this._activeSection = i;
+                            }}
+                            @keydown=${e => this._onTabKeydown(e, i)}
                         >
                             <ol-score-gauge percentage=${sectionPct} show-percent></ol-score-gauge>
                             <span class="tab-label">${section.name}</span>
                             <span class="tab-points">${section.score}/${section.maxScore}</span>
                         </button>
                     `;
-    })}
+                })}
             </div>
 
             ${sections.map((section, i) => this._renderSectionPanel(section, i))}

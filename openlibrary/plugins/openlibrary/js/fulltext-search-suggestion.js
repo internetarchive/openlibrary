@@ -18,20 +18,20 @@ function showLoadingIndicators(fulltextSearchSuggestion) {
     return isLoading;
 }
 async function getPartials(fulltextSearchSuggestion, query, exclude = '') {
-    const params = {data: query};
+    const params = { data: query };
     if (exclude) params.exclude = exclude;
     const providerPref = new URLSearchParams(window.location.search).get('providerPref');
     if (providerPref) {
         params.providerPref = providerPref;
     }
     return fetch(buildPartialsUrl('FulltextSearchSuggestion', params))
-        .then((resp) => {
+        .then(resp => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
             }
             return resp.json();
         })
-        .then((data) => {
+        .then(data => {
             fulltextSearchSuggestion.innerHTML += data['partials'];
             const loadingIndicator = fulltextSearchSuggestion.querySelector('.loadingIndicator');
             if (loadingIndicator) {
@@ -54,7 +54,6 @@ async function getPartials(fulltextSearchSuggestion, query, exclude = '') {
                     getPartials(fulltextSearchSuggestion, query, exclude);
                 });
             }
-
         });
 }
 

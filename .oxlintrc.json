@@ -1,0 +1,117 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "ignorePatterns": [
+    "**/*.vue",
+    "*.config.js",
+    "*.config.mjs",
+    "*.config.cjs",
+    "*.config.ts",
+    "conf/",
+    "config/",
+    "docker/",
+    "docs/wiki/",
+    "infogami/",
+    "openlibrary/components/lit/icons.generated.js",
+    "scripts/gh_scripts/",
+    "static/build/",
+    "provisioning/",
+    "vendor/",
+    "tests/screenshots/"
+  ],
+  "rules": {
+    "prefer-template": "error",
+    "eqeqeq": [
+      "error",
+      "always"
+    ],
+    "no-console": "error",
+    "no-redeclare": "error",
+    "no-undef": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "caughtErrors": "none"
+      }
+    ],
+    "no-useless-escape": "error",
+    "no-warning-comments": [
+      "error",
+      {
+        "terms": [
+          "webpackChunkName"
+        ],
+        "location": "anywhere"
+      }
+    ],
+    "vars-on-top": "error",
+    "prefer-const": "error",
+    "no-unused-expressions": "off"
+  },
+  "overrides": [
+    {
+      "files": [
+        "tests/unit/**/*.js",
+        "openlibrary/components/__tests__/**/*.js",
+        "openlibrary/components/test-utils/**/*.js"
+      ],
+      "env": {
+        "vitest": true,
+        "node": true
+      }
+    },
+    {
+      "files": [
+        "openlibrary/components/dev/serve-component.js"
+      ],
+      "env": {
+        "node": true
+      }
+    },
+    {
+      "files": [
+        "openlibrary/plugins/openlibrary/js/edit.js"
+      ],
+      "globals": {
+        "render_author": "readonly",
+        "render_author_autocomplete_item": "readonly",
+        "render_series": "readonly",
+        "render_series_autocomplete_item": "readonly",
+        "render_subject_autocomplete_item": "readonly",
+        "render_seed_field": "readonly",
+        "render_language_field": "readonly",
+        "render_lazy_work_preview": "readonly",
+        "render_language_autocomplete_item": "readonly",
+        "render_work_field": "readonly",
+        "render_work_autocomplete_item": "readonly"
+      }
+    },
+    {
+      "files": [
+        "**/*.mjs",
+        "**/*.cjs",
+        "**/*.config.ts",
+        "tests/e2e/**/*.ts"
+      ],
+      "env": {
+        "node": true
+      }
+    },
+    {
+      "files": [
+        "scripts/**/*.mjs",
+        "tests/e2e/**/*.ts"
+      ],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

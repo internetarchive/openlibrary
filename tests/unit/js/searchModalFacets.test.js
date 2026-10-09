@@ -13,20 +13,20 @@ import { fetchFacetCounts } from '../../../openlibrary/plugins/openlibrary/js/se
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
 
 vi.mock('../../../openlibrary/plugins/openlibrary/js/search-modal/languages.js');
-vi.mock('../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js', async(importOriginal) => ({
+vi.mock('../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js', async importOriginal => ({
     ...(await importOriginal()),
-    fetchFacetCounts: vi.fn(),
+    fetchFacetCounts: vi.fn()
 }));
 
 const CATALOGUE = [
     { value: 'eng', label: 'English' },
-    { value: 'ger', label: 'German'  },
-    { value: 'fre', label: 'French'  },
+    { value: 'ger', label: 'German' },
+    { value: 'fre', label: 'French' }
 ];
 
 const COUNTS = [
-    { value: 'fre', label: 'French',  count: 12 },
-    { value: 'eng', label: 'English', count: 4  },
+    { value: 'fre', label: 'French', count: 12 },
+    { value: 'eng', label: 'English', count: 4 }
 ];
 
 /** A modal with a query typed in, its language catalogue already loaded. */
@@ -43,21 +43,21 @@ beforeEach(() => {
 });
 
 describe('_loadLanguageFacets', () => {
-    test('merges counts into the language items for the current query', async() => {
+    test('merges counts into the language items for the current query', async () => {
         const modal = makeModal();
         await modal._loadLanguageFacets();
 
         expect(fetchFacetCounts).toHaveBeenCalledTimes(1);
         expect(modal._languageItems).toEqual([
-            { value: 'fre', label: 'French',  count: 12 },
-            { value: 'eng', label: 'English', count: 4  },
+            { value: 'fre', label: 'French', count: 12 },
+            { value: 'eng', label: 'English', count: 4 }
         ]);
     });
 
-    test('forwards the query and availability subset, but not the selection', async() => {
+    test('forwards the query and availability subset, but not the selection', async () => {
         const modal = makeModal();
         modal._availability = 'readable';
-        modal._languages    = ['ger'];
+        modal._languages = ['ger'];
         await modal._loadLanguageFacets();
 
         const [field, params] = fetchFacetCounts.mock.calls[0];
@@ -69,7 +69,7 @@ describe('_loadLanguageFacets', () => {
         expect(params.has('language')).toBe(false);
     });
 
-    test('keeps a selected language visible even at zero count', async() => {
+    test('keeps a selected language visible even at zero count', async () => {
         const modal = makeModal();
         modal._languages = ['ger'];
         await modal._loadLanguageFacets();
@@ -78,7 +78,7 @@ describe('_loadLanguageFacets', () => {
         expect(german).toEqual({ value: 'ger', label: 'German', count: 0 });
     });
 
-    test('does not fetch without a query, and drops a previous query\'s counts', async() => {
+    test("does not fetch without a query, and drops a previous query's counts", async () => {
         const modal = makeModal();
         await modal._loadLanguageFacets();
         expect(modal._languageItems).toHaveLength(2);
@@ -90,7 +90,7 @@ describe('_loadLanguageFacets', () => {
         expect(modal._languageItems).toEqual(CATALOGUE);
     });
 
-    test('re-opening on the same query does not refetch', async() => {
+    test('re-opening on the same query does not refetch', async () => {
         const modal = makeModal();
         await modal._loadLanguageFacets();
         await modal._loadLanguageFacets();
@@ -98,7 +98,7 @@ describe('_loadLanguageFacets', () => {
         expect(fetchFacetCounts).toHaveBeenCalledTimes(1);
     });
 
-    test('refetches when the query changes', async() => {
+    test('refetches when the query changes', async () => {
         const modal = makeModal();
         await modal._loadLanguageFacets();
         modal._query = 'asimov';
@@ -107,7 +107,7 @@ describe('_loadLanguageFacets', () => {
         expect(fetchFacetCounts).toHaveBeenCalledTimes(2);
     });
 
-    test('refetches when the availability filter changes', async() => {
+    test('refetches when the availability filter changes', async () => {
         const modal = makeModal();
         await modal._loadLanguageFacets();
         modal._availability = 'readable';
@@ -116,7 +116,7 @@ describe('_loadLanguageFacets', () => {
         expect(fetchFacetCounts).toHaveBeenCalledTimes(2);
     });
 
-    test('falls back to the uncounted catalogue when the request fails', async() => {
+    test('falls back to the uncounted catalogue when the request fails', async () => {
         fetchFacetCounts.mockRejectedValue(new Error('HTTP 500'));
         const modal = makeModal();
         await modal._loadLanguageFacets();
@@ -125,7 +125,7 @@ describe('_loadLanguageFacets', () => {
         expect(modal._langsLoading).toBe(false);
     });
 
-    test('retries after a failure instead of caching the empty result', async() => {
+    test('retries after a failure instead of caching the empty result', async () => {
         fetchFacetCounts.mockRejectedValueOnce(new Error('HTTP 500'));
         const modal = makeModal();
         await modal._loadLanguageFacets();
@@ -135,7 +135,7 @@ describe('_loadLanguageFacets', () => {
         expect(modal._languageItems).toHaveLength(2);
     });
 
-    test('shows the uncounted catalogue when the query matches nothing', async() => {
+    test('shows the uncounted catalogue when the query matches nothing', async () => {
         fetchFacetCounts.mockResolvedValue([]);
         const modal = makeModal();
         await modal._loadLanguageFacets();
@@ -143,7 +143,7 @@ describe('_loadLanguageFacets', () => {
         expect(modal._languageItems).toEqual(CATALOGUE);
     });
 
-    test('clears the loading flag once counts land', async() => {
+    test('clears the loading flag once counts land', async () => {
         const modal = makeModal();
         const pending = modal._loadLanguageFacets();
         expect(modal._langsLoading).toBe(true);
@@ -151,7 +151,7 @@ describe('_loadLanguageFacets', () => {
         expect(modal._langsLoading).toBe(false);
     });
 
-    test('fetches the catalogue only once across repeated opens', async() => {
+    test('fetches the catalogue only once across repeated opens', async () => {
         const modal = makeModal();
         await modal._loadLanguageFacets();
         modal._query = 'asimov';

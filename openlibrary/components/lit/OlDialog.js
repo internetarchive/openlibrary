@@ -108,7 +108,7 @@ export class OlDialog extends LitElement {
         fullscreenOnMobile: { type: Boolean, attribute: 'fullscreen-on-mobile', reflect: true },
         placement: { type: String, reflect: true },
         _hasHeaderContent: { state: true },
-        _hasFooterContent: { state: true },
+        _hasFooterContent: { state: true }
     };
 
     static styles = css`
@@ -403,10 +403,12 @@ export class OlDialog extends LitElement {
         // document.activeElement doesn't pass into shadow DOM
         this._previouslyFocusedElement = getDeepActiveElement();
 
-        this.dispatchEvent(new CustomEvent('ol-open', {
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-open', {
+                bubbles: true,
+                composed: true
+            })
+        );
 
         dialog.showModal();
 
@@ -425,10 +427,12 @@ export class OlDialog extends LitElement {
         this._setInitialFocus();
 
         this._afterAnimation(dialog, () => {
-            this.dispatchEvent(new CustomEvent('ol-after-open', {
-                bubbles: true,
-                composed: true,
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-after-open', {
+                    bubbles: true,
+                    composed: true
+                })
+            );
         });
     }
 
@@ -460,7 +464,7 @@ export class OlDialog extends LitElement {
             // would miss it and strand focus elsewhere. Skip the synthetic close
             // button so focus still prefers real content over the X; we fall back
             // to it below only when there's nothing else to focus.
-            const firstFocusable = this._getFocusableElements().find((el) => el !== closeButton);
+            const firstFocusable = this._getFocusableElements().find(el => el !== closeButton);
             if (firstFocusable) {
                 firstFocusable.focus();
                 return;
@@ -483,7 +487,7 @@ export class OlDialog extends LitElement {
             bubbles: true,
             composed: true,
             cancelable: true,
-            detail: { returnValue: this.returnValue },
+            detail: { returnValue: this.returnValue }
         });
 
         this.dispatchEvent(closeEvent);
@@ -506,11 +510,13 @@ export class OlDialog extends LitElement {
             this._releaseScrollLock();
             this._restoreFocus();
 
-            this.dispatchEvent(new CustomEvent('ol-after-close', {
-                bubbles: true,
-                composed: true,
-                detail: { returnValue: this.returnValue },
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-after-close', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { returnValue: this.returnValue }
+                })
+            );
         });
     }
 
@@ -644,9 +650,7 @@ export class OlDialog extends LitElement {
                 return true;
             }
             const parent = cur.parentNode;
-            cur = (parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host)
-                ? parent.host
-                : cur.parentElement;
+            cur = parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host ? parent.host : cur.parentElement;
         }
         return false;
     }
@@ -662,9 +666,7 @@ export class OlDialog extends LitElement {
         while (cur && cur !== this) {
             if (cur.tagName === 'OL-DIALOG' && cur.open) return true;
             const parent = cur.parentNode;
-            cur = (parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host)
-                ? parent.host
-                : cur.parentElement;
+            cur = parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host ? parent.host : cur.parentElement;
         }
         return false;
     }

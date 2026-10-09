@@ -3,10 +3,10 @@ import { initLazyCarousel } from '../../../openlibrary/plugins/openlibrary/js/la
 // Must be `mock`-prefixed: vitest hoists the factory above the declarations.
 const mockTrackEvent = vi.fn();
 vi.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
-    trackEvent: (...args) => mockTrackEvent(...args),
+    trackEvent: (...args) => mockTrackEvent(...args)
 }));
 vi.mock('../../../openlibrary/plugins/openlibrary/js/carousel', () => ({
-    initialzeCarousels: () => {},
+    initialzeCarousels: () => {}
 }));
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -17,7 +17,7 @@ class ImmediatelyVisibleObserver {
     }
 
     observe(target) {
-        this.callback([{isIntersecting: true, target}], this);
+        this.callback([{ isIntersecting: true, target }], this);
     }
 
     unobserve() {}
@@ -37,7 +37,7 @@ function makePlaceholder(config) {
 }
 
 function respondWith(partials) {
-    global.fetch = vi.fn().mockResolvedValue({ok: true, json: async() => ({partials})});
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ partials }) });
 }
 
 describe('lazy carousel impressions', () => {
@@ -54,26 +54,26 @@ describe('lazy carousel impressions', () => {
         global.IntersectionObserver = originalIntersectionObserver;
     });
 
-    test('reports one impression for a carousel with books', async() => {
+    test('reports one impression for a carousel with books', async () => {
         respondWith('<div class="carousel carousel--progressively-enhanced"></div>');
-        initLazyCarousel([makePlaceholder({key: 'nearby-books'})]);
+        initLazyCarousel([makePlaceholder({ key: 'nearby-books' })]);
         await flushPromises();
 
         expect(mockTrackEvent).toHaveBeenCalledTimes(1);
         expect(mockTrackEvent).toHaveBeenCalledWith('BookCarousel', 'Impression', 'nearby-books');
     });
 
-    test('reports nothing when the partial is empty', async() => {
+    test('reports nothing when the partial is empty', async () => {
         respondWith('');
-        initLazyCarousel([makePlaceholder({key: 'nearby-books'})]);
+        initLazyCarousel([makePlaceholder({ key: 'nearby-books' })]);
         await flushPromises();
 
         expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    test('reports nothing when the fallback message is shown instead', async() => {
+    test('reports nothing when the fallback message is shown instead', async () => {
         respondWith('');
-        initLazyCarousel([makePlaceholder({key: 'related-subjects-carousel', fallback: true})]);
+        initLazyCarousel([makePlaceholder({ key: 'related-subjects-carousel', fallback: true })]);
         await flushPromises();
 
         expect(mockTrackEvent).not.toHaveBeenCalled();

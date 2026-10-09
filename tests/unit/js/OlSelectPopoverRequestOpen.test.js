@@ -33,7 +33,9 @@ function stubInnerPopover(el) {
     Object.defineProperty(popover, 'open', {
         configurable: true,
         get: () => opened.count > 0,
-        set: (v) => { if (v) opened.count++; },
+        set: v => {
+            if (v) opened.count++;
+        }
     });
     return opened;
 }
@@ -51,7 +53,7 @@ afterEach(() => {
 });
 
 describe('ol-select-popover request-open gate', () => {
-    test('fires a cancelable request-open when the trigger is clicked', async() => {
+    test('fires a cancelable request-open when the trigger is clicked', async () => {
         const el = await mount();
         const opened = stubInnerPopover(el);
         const seen = [];
@@ -67,7 +69,7 @@ describe('ol-select-popover request-open gate', () => {
         expect(opened.count).toBe(1);
     });
 
-    test('preventDefault holds the panel shut', async() => {
+    test('preventDefault holds the panel shut', async () => {
         const el = await mount();
         const opened = stubInnerPopover(el);
         el.addEventListener('ol-select-popover-request-open', e => e.preventDefault());
@@ -79,7 +81,7 @@ describe('ol-select-popover request-open gate', () => {
         expect(evt.defaultPrevented).toBe(true);
     });
 
-    test('show() opens the panel', async() => {
+    test('show() opens the panel', async () => {
         const el = await mount();
         const opened = stubInnerPopover(el);
         el.addEventListener('ol-select-popover-request-open', e => e.preventDefault());
@@ -90,7 +92,7 @@ describe('ol-select-popover request-open gate', () => {
         expect(opened.count).toBe(1);
     });
 
-    test('leaves the trigger untouched while an open is deferred', async() => {
+    test('leaves the trigger untouched while an open is deferred', async () => {
         // The component must not restyle or re-mark the trigger — a host that
         // wants a busy affordance owns it.
         const el = await mount();
@@ -104,25 +106,29 @@ describe('ol-select-popover request-open gate', () => {
         expect(trigger.getAttributeNames().sort()).toEqual(before);
     });
 
-    test('ArrowDown on the trigger routes through the same gate', async() => {
+    test('ArrowDown on the trigger routes through the same gate', async () => {
         const el = await mount();
         stubInnerPopover(el);
         const seen = [];
-        el.addEventListener('ol-select-popover-request-open', e => { seen.push(e); e.preventDefault(); });
+        el.addEventListener('ol-select-popover-request-open', e => {
+            seen.push(e);
+            e.preventDefault();
+        });
 
-        el.querySelector('[slot="trigger"]').dispatchEvent(
-            new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true, cancelable: true }),
-        );
+        el.querySelector('[slot="trigger"]').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true, cancelable: true }));
 
         expect(seen).toHaveLength(1);
         expect(seen[0].detail.focusFirst).toBe(true);
     });
 
-    test('does not re-request while an open is already pending', async() => {
+    test('does not re-request while an open is already pending', async () => {
         const el = await mount();
         stubInnerPopover(el);
         const seen = [];
-        el.addEventListener('ol-select-popover-request-open', e => { seen.push(e); e.preventDefault(); });
+        el.addEventListener('ol-select-popover-request-open', e => {
+            seen.push(e);
+            e.preventDefault();
+        });
 
         clickTrigger(el);
         clickTrigger(el);
@@ -130,17 +136,19 @@ describe('ol-select-popover request-open gate', () => {
         expect(seen).toHaveLength(1);
     });
 
-    test('opening by any route ends the deferral', async() => {
+    test('opening by any route ends the deferral', async () => {
         const el = await mount();
         stubInnerPopover(el);
         const seen = [];
-        el.addEventListener('ol-select-popover-request-open', e => { seen.push(e); e.preventDefault(); });
+        el.addEventListener('ol-select-popover-request-open', e => {
+            seen.push(e);
+            e.preventDefault();
+        });
         clickTrigger(el);
         expect(el._openDeferred).toBe(true);
 
         // ol-popover reports itself open without going through show().
-        el.shadowRoot.querySelector('ol-popover')
-            .dispatchEvent(new CustomEvent('ol-popover-open', { bubbles: true, composed: true }));
+        el.shadowRoot.querySelector('ol-popover').dispatchEvent(new CustomEvent('ol-popover-open', { bubbles: true, composed: true }));
 
         expect(el._openDeferred).toBe(false);
     });

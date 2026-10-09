@@ -150,7 +150,7 @@ make lint
 
 # JavaScript + CSS
 npm run lint
-npm run lint:js              # ESLint only
+npm run lint:js              # oxlint + oxfmt (JS) and ESLint (Vue) only
 npm run lint:css             # Stylelint only
 
 # Auto-fix
@@ -204,7 +204,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 - **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via `scripts/vite/build.mjs` (`--only js`) to `static/build/js/`.
 - **Vue components:** `openlibrary/components/*.vue`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
 - **Lit web components:** `openlibrary/components/lit/`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
-- **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
+- **jQuery** is still widely used but new code should avoid it.
 
 ### Browser Support
 
@@ -242,7 +242,7 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 ## Code Style
 
 - **Python:** Ruff for linting and `ruff format` for formatting. Line length 162. Target Python 3.14.
-- **JavaScript:** ESLint with single quotes, `prefer-template`, `eqeqeq`. No jQuery in new code.
+- **JavaScript:** oxlint for linting and oxfmt for formatting, with single quotes, `prefer-template`, `eqeqeq`. ESLint is only used for Vue files. No jQuery in new code.
 - **CSS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
 - **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)
 

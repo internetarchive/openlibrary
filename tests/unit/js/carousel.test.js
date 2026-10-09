@@ -55,7 +55,7 @@ describe('Carousel', () => {
             })
         };
 
-        $.fn.slick = vi.fn(function(arg) {
+        $.fn.slick = vi.fn(function (arg) {
             if (arg === 'getSlick') {
                 return slick;
             }
@@ -69,7 +69,7 @@ describe('Carousel', () => {
         vi.restoreAllMocks();
     });
 
-    test('unlocks and removes the loading slide when loading more cards fails', async() => {
+    test('unlocks and removes the loading slide when loading more cards fails', async () => {
         const request = $.Deferred();
         $.ajax = vi.fn(() => request.promise());
         carousel.loadMore.locked = true;
@@ -84,7 +84,7 @@ describe('Carousel', () => {
         expect(carousel.loadMore.allDone).toBe(false);
     });
 
-    test('uses i18n strings from data-config, even without the hidden input', async() => {
+    test('uses i18n strings from data-config, even without the hidden input', async () => {
         document.querySelector('input[name="carousel-i18n-strings"]').remove();
         document.querySelector('.carousel').dataset.config = JSON.stringify({
             i18n: { loading: 'Cargando...' },
@@ -109,7 +109,7 @@ describe('Carousel', () => {
         expect(carousel.loadMore.locked).toBe(false);
     });
 
-    test('does not remain locked when the i18n input is missing', async() => {
+    test('does not remain locked when the i18n input is missing', async () => {
         document.querySelector('input[name="carousel-i18n-strings"]').remove();
         carousel = new Carousel($('.carousel'));
         const request = $.Deferred();
@@ -124,7 +124,7 @@ describe('Carousel', () => {
         expect(carousel.loadMore.allDone).toBe(false);
     });
 
-    test('makes shelf buttons in hidden slides inert, and frees them again when shown', async() => {
+    test('makes shelf buttons in hidden slides inert, and frees them again when shown', async () => {
         carousel = new Carousel($('.carousel'));
         carousel.init();
         const container = document.querySelector('.carousel');

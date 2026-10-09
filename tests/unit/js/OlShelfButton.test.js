@@ -11,19 +11,25 @@ let fetchCalls;
 
 function stubFetch({ ok = true, status = 200 } = {}) {
     fetchCalls = [];
-    global.fetch = vi.fn(async(url, init) => {
+    global.fetch = vi.fn(async (url, init) => {
         fetchCalls.push({ url, init });
-        return { ok, status, json: async() => ({ bookshelves_affected: 1 }) };
+        return { ok, status, json: async () => ({ bookshelves_affected: 1 }) };
     });
 }
 
 beforeAll(() => {
     window.matchMedia = query => ({
-        matches: false, media: query,
-        addEventListener() {}, removeEventListener() {},
-        addListener() {}, removeListener() {},
+        matches: false,
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+        addListener() {},
+        removeListener() {}
     });
-    global.ResizeObserver = class { observe() {} disconnect() {} };
+    global.ResizeObserver = class {
+        observe() {}
+        disconnect() {}
+    };
 });
 
 async function mount(props = {}) {
@@ -34,7 +40,7 @@ async function mount(props = {}) {
         bookTitle: 'The Two Towers',
         shelf: null,
         rating: null,
-        ...props,
+        ...props
     });
     document.body.appendChild(el);
     await el.updateComplete;
@@ -55,7 +61,7 @@ function pendingAction() {
 }
 
 describe('ol-shelf-button shapes', () => {
-    test('split is the default: a main half and a menu half', async() => {
+    test('split is the default: a main half and a menu half', async () => {
         const el = await mount({ userKey: '/people/tester' });
         stubFetch();
         expect(q(el, '.split')).not.toBeNull();
@@ -64,13 +70,13 @@ describe('ol-shelf-button shapes', () => {
         expect(q(el, '.save')).toBeNull();
     });
 
-    test('icon renders the bookmark and no main half', async() => {
+    test('icon renders the bookmark and no main half', async () => {
         const el = await mount({ variant: 'icon', userKey: '/people/tester' });
         expect(q(el, '.save').getAttribute('aria-label')).toBe('Save The Two Towers to your reading log');
         expect(q(el, '.main')).toBeNull();
     });
 
-    test('outline is the icon shape in a bordered square: same trigger, same glyph', async() => {
+    test('outline is the icon shape in a bordered square: same trigger, same glyph', async () => {
         const el = await mount({ variant: 'outline', userKey: '/people/tester' });
         expect(el.getAttribute('variant')).toBe('outline');
         expect(q(el, '.save').getAttribute('aria-label')).toBe('Save The Two Towers to your reading log');
@@ -82,7 +88,7 @@ describe('ol-shelf-button shapes', () => {
         expect(q(el, 'ol-icon').getAttribute('name')).toBe('circle-check-filled');
     });
 
-    test('on a shelf, both shapes show it', async() => {
+    test('on a shelf, both shapes show it', async () => {
         const split = await mount({ shelf: SHELF.ALREADY_READ, userKey: '/people/tester' });
         expect(q(split, '.main').textContent.trim()).toBe('Already Read');
         expect(q(split, '.split').classList.contains('split--on')).toBe(true);
@@ -92,7 +98,7 @@ describe('ol-shelf-button shapes', () => {
         expect(q(icon, '.save').getAttribute('aria-label')).toBe('The Two Towers is on your reading log');
     });
 
-    test('the icon shape draws the shelf\'s glyph once shelved', async() => {
+    test("the icon shape draws the shelf's glyph once shelved", async () => {
         const off = await mount({ variant: 'icon' });
         expect(q(off, 'ol-icon').getAttribute('name')).toBe('bookmark');
 
@@ -107,7 +113,7 @@ describe('ol-shelf-button shapes', () => {
         expect(q(stopped, 'ol-icon').getAttribute('name')).toBe('circle-pause-filled');
     });
 
-    test('a glyph change swaps the icon in place, with no outgoing layer', async() => {
+    test('a glyph change swaps the icon in place, with no outgoing layer', async () => {
         const el = await mount({ variant: 'icon' });
         el.shelf = SHELF.ALREADY_READ;
         await el.updateComplete;
@@ -120,7 +126,7 @@ describe('ol-shelf-button shapes', () => {
         expect(q(el, 'ol-icon').getAttribute('name')).toBe('bookmark');
     });
 
-    test('reflects the shelf, so the page\'s CSS can tell a saved book apart', async() => {
+    test("reflects the shelf, so the page's CSS can tell a saved book apart", async () => {
         const el = await mount({ shelf: SHELF.WANT_TO_READ });
         expect(el.getAttribute('shelf')).toBe('1');
         el.shelf = null;
@@ -128,14 +134,14 @@ describe('ol-shelf-button shapes', () => {
         expect(el.hasAttribute('shelf')).toBe(false);
     });
 
-    test('labels override the shelf names', async() => {
+    test('labels override the shelf names', async () => {
         const el = await mount({ userKey: '/people/tester', labels: { wantToRead: 'À lire' } });
         expect(q(el, '.main').textContent.trim()).toBe('À lire');
     });
 });
 
 describe('ol-shelf-button popover', () => {
-    test('signed in, the trigger is wrapped in the actions popover with the book\'s state', async() => {
+    test("signed in, the trigger is wrapped in the actions popover with the book's state", async () => {
         const el = await mount({ shelf: SHELF.ALREADY_READ, rating: 4, userKey: '/people/tester' });
         const actions = q(el, 'ol-shelf-actions');
         expect(actions).not.toBeNull();
@@ -145,7 +151,7 @@ describe('ol-shelf-button popover', () => {
         expect(actions.querySelector('[slot="trigger"]')).not.toBeNull();
     });
 
-    test('carries `open` on the host while the popover is open', async() => {
+    test('carries `open` on the host while the popover is open', async () => {
         const el = await mount({ userKey: '/people/tester' });
         const actions = q(el, 'ol-shelf-actions');
         expect(el.hasAttribute('open')).toBe(false);
@@ -162,7 +168,7 @@ describe('ol-shelf-button popover', () => {
         expect(el.hasAttribute('open')).toBe(false);
     });
 
-    test('signed out, no popover is built at all', async() => {
+    test('signed out, no popover is built at all', async () => {
         const el = await mount();
         expect(q(el, 'ol-shelf-actions')).toBeNull();
         expect(q(el, '.more')).not.toBeNull();
@@ -170,13 +176,13 @@ describe('ol-shelf-button popover', () => {
 
     // The denominator for every save the popover reports: how many opens,
     // and from which shape.
-    test('an open is reported, labelled by shape', async() => {
+    test('an open is reported, labelled by shape', async () => {
         window._paq = [];
         try {
             for (const [props, label] of [
                 [{ variant: 'split' }, 'split'],
                 [{ variant: 'icon' }, 'icon'],
-                [{ variant: 'outline', listsOnly: true }, 'outline-lists'],
+                [{ variant: 'outline', listsOnly: true }, 'outline-lists']
             ]) {
                 const el = await mount({ userKey: '/people/tester', ...props });
                 q(el, 'ol-shelf-actions').dispatchEvent(new CustomEvent('ol-popover-open', { bubbles: true, composed: true }));
@@ -190,13 +196,17 @@ describe('ol-shelf-button popover', () => {
 });
 
 describe('ol-shelf-button analytics', () => {
-    beforeEach(() => { window._paq = []; });
-    afterEach(() => { delete window._paq; });
+    beforeEach(() => {
+        window._paq = [];
+    });
+    afterEach(() => {
+        delete window._paq;
+    });
 
     const events = () => window._paq.map(e => e.slice(1));
 
     // "quick" tells the one-tap half apart from the same save made in the menu.
-    test('the one-tap half reports its save and its removal as quick', async() => {
+    test('the one-tap half reports its save and its removal as quick', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
         q(el, '.main').click();
@@ -208,11 +218,11 @@ describe('ol-shelf-button analytics', () => {
 
         expect(events()).toEqual([
             ['ReadingLog', 'WantToRead', 'quick'],
-            ['ReadingLog', 'RemoveFromShelf', 'quick'],
+            ['ReadingLog', 'RemoveFromShelf', 'quick']
         ]);
     });
 
-    test('a failed write reports an error and no save', async() => {
+    test('a failed write reports an error and no save', async () => {
         stubFetch({ ok: false, status: 500 });
         const el = await mount({ userKey: '/people/tester' });
         q(el, '.main').click();
@@ -221,7 +231,7 @@ describe('ol-shelf-button analytics', () => {
     });
 
     // An expired session is an error, not a visitor without an account.
-    test('a 401 reports an error, not a signed-out click', async() => {
+    test('a 401 reports an error, not a signed-out click', async () => {
         stubFetch({ ok: false, status: 401 });
         const el = await mount({ userKey: '/people/tester' });
         q(el, '.main').click();
@@ -233,17 +243,16 @@ describe('ol-shelf-button analytics', () => {
         [{ variant: 'split' }, '.main', 'split'],
         [{ variant: 'split' }, '.more', 'split'],
         [{ variant: 'icon' }, '.save', 'icon'],
-        [{ variant: 'split', listsOnly: true }, '.main', 'split-lists'],
-    ])('a signed-out click is reported (%o on %s)', async(props, selector, label) => {
+        [{ variant: 'split', listsOnly: true }, '.main', 'split-lists']
+    ])('a signed-out click is reported (%o on %s)', async (props, selector, label) => {
         const el = await mount(props);
         q(el, selector).dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
         expect(events()).toEqual([['ShelfActions', 'LoggedOut', label]]);
     });
-
 });
 
 describe('ol-shelf-button state changes', () => {
-    test('clicking main adds to Want to Read and reports it before the request lands', async() => {
+    test('clicking main adds to Want to Read and reports it before the request lands', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
         const seen = [];
@@ -260,7 +269,7 @@ describe('ol-shelf-button state changes', () => {
         expect(post.init.body.get('edition_id')).toBe('OL1M');
     });
 
-    test('clicking main while on Want to Read removes it', async() => {
+    test('clicking main while on Want to Read removes it', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.WANT_TO_READ, rating: 5, userKey: '/people/tester' });
         const seen = [];
@@ -278,7 +287,8 @@ describe('ol-shelf-button state changes', () => {
     // Leaving a reading shelf goes through the menu, which routes Already Read
     // via its date pane; one tap on the main half must not delete check-ins.
     test.each([SHELF.CURRENTLY_READING, SHELF.ALREADY_READ, SHELF.STOPPED_READING])(
-        'clicking main while on shelf %i opens the menu and posts nothing', async(shelf) => {
+        'clicking main while on shelf %i opens the menu and posts nothing',
+        async shelf => {
             stubFetch();
             const el = await mount({ shelf, userKey: '/people/tester' });
             const seen = [];
@@ -291,10 +301,10 @@ describe('ol-shelf-button state changes', () => {
             expect(fetchCalls.filter(c => c.url.endsWith('/works/OL1W/bookshelves.json'))).toHaveLength(0);
             const popover = q(el, 'ol-shelf-actions').shadowRoot.querySelector('ol-popover');
             expect(popover.open).toBe(true);
-        },
+        }
     );
 
-    test('a second click before the request lands is dropped', async() => {
+    test('a second click before the request lands is dropped', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
         const seen = [];
@@ -310,7 +320,7 @@ describe('ol-shelf-button state changes', () => {
         expect(fetchCalls.filter(c => c.url.endsWith('/works/OL1W/bookshelves.json'))).toHaveLength(1);
     });
 
-    test('never writes its own shelf — the surface owns it', async() => {
+    test('never writes its own shelf — the surface owns it', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
         q(el, '.main').click();
@@ -321,7 +331,7 @@ describe('ol-shelf-button state changes', () => {
         expect(q(el, '.main').textContent.trim()).toBe('Want to Read');
     });
 
-    test('a failed write is reported back so the surface can roll its state back', async() => {
+    test('a failed write is reported back so the surface can roll its state back', async () => {
         stubFetch({ ok: false, status: 500 });
         const el = await mount({ userKey: '/people/tester' });
         const seen = [];
@@ -332,11 +342,11 @@ describe('ol-shelf-button state changes', () => {
 
         expect(seen).toEqual([
             { key: '/works/OL1W', shelf: SHELF.WANT_TO_READ, rating: null },
-            { key: '/works/OL1W', shelf: null, rating: null },
+            { key: '/works/OL1W', shelf: null, rating: null }
         ]);
     });
 
-    test('the event crosses a shadow boundary so a composing parent hears it', async() => {
+    test('the event crosses a shadow boundary so a composing parent hears it', async () => {
         stubFetch();
         const host = document.createElement('div');
         document.body.appendChild(host);
@@ -357,7 +367,7 @@ describe('ol-shelf-button signed out', () => {
     // jsdom refuses the navigation redirectToLogin performs, so what is
     // asserted here is the part that has to survive it: the click is cancelled
     // and the intent is remembered.
-    test('clicking main cancels the click and remembers the book', async() => {
+    test('clicking main cancels the click and remembers the book', async () => {
         const el = await mount();
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         q(el, '.main').dispatchEvent(event);
@@ -366,11 +376,14 @@ describe('ol-shelf-button signed out', () => {
             // The resume target is the page they were on — jsdom's '/' here.
             // On a list of results the book's own page would strand them
             // somewhere they never asked to go.
-            name: 'The Two Towers', url: '/', action: 'Want to Read', type: 'book',
+            name: 'The Two Towers',
+            url: '/',
+            action: 'Want to Read',
+            type: 'book'
         });
     });
 
-    test('clicking the menu half remembers it too, rather than opening nothing', async() => {
+    test('clicking the menu half remembers it too, rather than opening nothing', async () => {
         const el = await mount();
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         q(el, '.more').dispatchEvent(event);
@@ -378,7 +391,7 @@ describe('ol-shelf-button signed out', () => {
         expect(pendingAction().name).toBe('The Two Towers');
     });
 
-    test('no write is attempted', async() => {
+    test('no write is attempted', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.main').click();
@@ -388,19 +401,19 @@ describe('ol-shelf-button signed out', () => {
 });
 
 describe('ol-shelf-button pass-through to the popover', () => {
-    test('hands hide-rating to ol-shelf-actions', async() => {
+    test('hands hide-rating to ol-shelf-actions', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester', hideRating: true });
         expect(q(el, 'ol-shelf-actions').hideRating).toBe(true);
     });
 
-    test('it defaults to off', async() => {
+    test('it defaults to off', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
         expect(q(el, 'ol-shelf-actions').hideRating).toBe(false);
     });
 
-    test('hands pending to ol-shelf-actions, and reflects it', async() => {
+    test('hands pending to ol-shelf-actions, and reflects it', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester', pending: true });
         expect(q(el, 'ol-shelf-actions').pending).toBe(true);
@@ -410,7 +423,7 @@ describe('ol-shelf-button pass-through to the popover', () => {
 
 describe('ol-shelf-button pending', () => {
     // With the shelf unknown the main half's toggle would be a guess, and a wrong guess removes the book.
-    test('the main half does nothing until the state is known', async() => {
+    test('the main half does nothing until the state is known', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester', pending: true });
         const seen = [];
@@ -427,7 +440,7 @@ describe('ol-shelf-button pending', () => {
         expect(seen).toHaveLength(1);
     });
 
-    test('says it is busy while it waits, and stops once it is not', async() => {
+    test('says it is busy while it waits, and stops once it is not', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester', pending: true });
         expect(q(el, '.main').getAttribute('aria-busy')).toBe('true');
@@ -436,7 +449,7 @@ describe('ol-shelf-button pending', () => {
         expect(q(el, '.main').hasAttribute('aria-busy')).toBe(false);
     });
 
-    test('looks unshelved rather than guessing', async() => {
+    test('looks unshelved rather than guessing', async () => {
         const el = await mount({ variant: 'outline', userKey: '/people/tester', pending: true });
         expect(q(el, '.save').classList.contains('save--on')).toBe(false);
         expect(q(el, 'ol-icon').getAttribute('name')).toBe('bookmark');
@@ -444,7 +457,7 @@ describe('ol-shelf-button pending', () => {
 });
 
 describe('ol-shelf-button accessible name and state', () => {
-    test('the main half names the book and reports pressed', async() => {
+    test('the main half names the book and reports pressed', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
         const main = q(el, '.main');
@@ -456,7 +469,7 @@ describe('ol-shelf-button accessible name and state', () => {
         expect(main.getAttribute('aria-pressed')).toBe('true');
     });
 
-    test('a main click is announced, on and off', async() => {
+    test('a main click is announced, on and off', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
         const live = q(el, '.sr-only');
@@ -473,7 +486,7 @@ describe('ol-shelf-button accessible name and state', () => {
         expect(live.textContent).toBe('Removed from shelf');
     });
 
-    test('translated labels reach the name', async() => {
+    test('translated labels reach the name', async () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester', labels: { wantToRead: 'À lire', shelfToggle: '%(title)s — %(shelf)s' } });
         expect(q(el, '.main').getAttribute('aria-label')).toBe('The Two Towers — À lire');
@@ -482,7 +495,7 @@ describe('ol-shelf-button accessible name and state', () => {
 
 describe('ol-shelf-button lists-only', () => {
     // A seed with no work to shelve: an author, or an edition on its own.
-    test('the split shape is one "Add to list" trigger, no main half', async() => {
+    test('the split shape is one "Add to list" trigger, no main half', async () => {
         const el = await mount({ userKey: '/people/tester', workKey: '/authors/OL3A', editionKey: '', bookTitle: 'Ursula K. Le Guin', listsOnly: true });
         expect(q(el, '.split--list')).not.toBeNull();
         expect(q(el, '.more')).toBeNull();
@@ -494,7 +507,7 @@ describe('ol-shelf-button lists-only', () => {
         expect(q(el, 'ol-shelf-actions').listsOnly).toBe(true);
     });
 
-    test('the icon shape draws a list-plus and says so', async() => {
+    test('the icon shape draws a list-plus and says so', async () => {
         const el = await mount({ userKey: '/people/tester', variant: 'icon', workKey: '/books/OL2M', bookTitle: 'Orphan', listsOnly: true });
         expect(q(el, 'ol-icon.glyph').getAttribute('name')).toBe('list-plus');
         expect(q(el, '.save').getAttribute('aria-label')).toBe('Add Orphan to a list');
@@ -502,7 +515,7 @@ describe('ol-shelf-button lists-only', () => {
 
     // jsdom refuses the navigation itself; the cancelled click and the
     // remembered intent are what is asserted, as for the shelf shapes.
-    test('signed out, the trigger cancels the click and remembers an add-to-list intent', async() => {
+    test('signed out, the trigger cancels the click and remembers an add-to-list intent', async () => {
         const el = await mount({ userKey: '', workKey: '/authors/OL3A', bookTitle: 'Ursula K. Le Guin', listsOnly: true });
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         q(el, '.main').dispatchEvent(event);

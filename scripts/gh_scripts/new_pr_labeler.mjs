@@ -17,32 +17,32 @@
  * 3. Updates PR, adding same priority label as issue, and assigning the lead (or labeling the issue
  *    as "Needs: Lead")
  */
-import { Octokit } from "@octokit/action";
+import { Octokit } from '@octokit/action';
 
-const CLOSES_REGEX = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+#(\d+)/i
-const DEFAULT_REQUEST_HEADERS = {"X-GitHub-Api-Version": "2022-11-28"}
+const CLOSES_REGEX = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+#(\d+)/i;
+const DEFAULT_REQUEST_HEADERS = { 'X-GitHub-Api-Version': '2022-11-28' };
 
-console.log('Script starting....')
-const octokit = new Octokit()
-await main()
-console.log('Script terminated....')
+console.log('Script starting....');
+const octokit = new Octokit();
+await main();
+console.log('Script terminated....');
 
 async function main() {
     // Parse and assign all command-line variables
-    const {fullRepoName, prAuthor, prNumber, prBody} = parseArgs()
-    const [repoOwner, repoName] = fullRepoName.split('/')
+    const { fullRepoName, prAuthor, prNumber, prBody } = parseArgs();
+    const [repoOwner, repoName] = fullRepoName.split('/');
 
     // Fetch linked issue, if any
-    const issue = await findLinkedIssue(prBody, repoOwner, repoName)
-    let prLabelSet = new Set()
+    const issue = await findLinkedIssue(prBody, repoOwner, repoName);
+    let prLabelSet = new Set();
     if (!issue) {
-        console.log('No linked issue found for this pull request.')
-        prLabelSet.add("Needs: Lead")
+        console.log('No linked issue found for this pull request.');
+        prLabelSet.add('Needs: Lead');
     }
 
-    const {leadName, priority} = getLinkedIssueMetadata(issue)
+    const { leadName, priority } = getLinkedIssueMetadata(issue);
     // Don't assign lead to PR if PR author is the issue lead
-    const assignLead = (leadName && !(leadName === prAuthor))
+    const assignLead = leadName && !(leadName === prAuthor);
 
     // If lead was identified, assign lead to PR:
     if (assignLead) {
@@ -52,14 +52,14 @@ async function main() {
             issue_number: prNumber,
             assignees: [leadName],
             headers: DEFAULT_REQUEST_HEADERS
-          })
+        });
     }
 
     if (priority) {
-        prLabelSet.add(priority)
+        prLabelSet.add(priority);
     }
     if (!assignLead) {
-        prLabelSet.add("Needs: Lead")
+        prLabelSet.add('Needs: Lead');
     }
     // Add labels to PR, if needed:
     if (prLabelSet.size) {
@@ -69,7 +69,7 @@ async function main() {
             issue_number: prNumber,
             labels: Array.from(prLabelSet),
             headers: DEFAULT_REQUEST_HEADERS
-          })
+        });
     }
 }
 
@@ -82,16 +82,16 @@ async function main() {
  */
 function parseArgs() {
     if (process.argv.length < 6) {
-        console.log('Unexpected number of arguments.')
-        process.exit(1)
+        console.log('Unexpected number of arguments.');
+        process.exit(1);
     }
-    const prBody = process.argv.slice(5).join(' ')
+    const prBody = process.argv.slice(5).join(' ');
     return {
         fullRepoName: process.argv[2],
         prAuthor: process.argv[3],
         prNumber: process.argv[4],
         prBody: prBody
-    }
+    };
 }
 
 /**
@@ -106,19 +106,19 @@ function parseArgs() {
  *                         statement is found.
  */
 async function findLinkedIssue(body, repoOwner, repoName) {
-    const matches = body.match(CLOSES_REGEX)
-    const issueNumber =  matches?.length ? Number(matches[1]) : null
+    const matches = body.match(CLOSES_REGEX);
+    const issueNumber = matches?.length ? Number(matches[1]) : null;
 
     if (!issueNumber) {
-        return null
+        return null;
     }
 
     return octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
-            owner: repoOwner,
-            repo: repoName,
-            issue_number: issueNumber,
-            headers: DEFAULT_REQUEST_HEADERS
-          })
+        owner: repoOwner,
+        repo: repoName,
+        issue_number: issueNumber,
+        headers: DEFAULT_REQUEST_HEADERS
+    });
 }
 
 /**
@@ -128,14 +128,14 @@ async function findLinkedIssue(body, repoOwner, repoName) {
  * @returns {{lead: string|undefined, priority: string|undefined}}
  */
 function getLinkedIssueMetadata(issue) {
-    let leadName, priority
+    let leadName, priority;
     if (issue) {
         for (const label of issue.data.labels) {
             if (!leadName && label.name.startsWith('Lead: @')) {
-                leadName = label.name.split('@')[1]
+                leadName = label.name.split('@')[1];
             }
             if (!priority && label.name.match(/Priority: [012]/)) {
-                priority = label.name
+                priority = label.name;
             }
         }
     }
@@ -143,5 +143,5 @@ function getLinkedIssueMetadata(issue) {
     return {
         lead: leadName,
         priority: priority
-    }
+    };
 }

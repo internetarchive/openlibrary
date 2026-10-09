@@ -8,7 +8,7 @@ import {
     FACET_OPEN_BUDGET_MS,
     fetchFacetCounts,
     mergeFacetCounts,
-    openWhenCountsReady,
+    openWhenCountsReady
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,18 +18,18 @@ import {
 describe('fetchFacetCounts', () => {
     const MOCK_FLAT = [
         { value: 'English', count: 665 },
-        { value: 'German',  count: 32  },
-        { value: 'Spanish', count: 18  },
+        { value: 'German', count: 32 },
+        { value: 'Spanish', count: 18 }
     ];
 
     beforeEach(() => {
         vi.resetAllMocks();
     });
 
-    test('calls /search/facets.json with field + forwarded search params', async() => {
+    test('calls /search/facets.json with field + forwarded search params', async () => {
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: async() => MOCK_FLAT,
+            json: async () => MOCK_FLAT
         });
 
         const params = new URLSearchParams('q=lord+of+the+rings&sort=new');
@@ -41,10 +41,10 @@ describe('fetchFacetCounts', () => {
         expect(url).toContain('q=lord+of+the+rings');
     });
 
-    test('strips an existing filter on the field being counted', async() => {
+    test('strips an existing filter on the field being counted', async () => {
         // Solr ANDs an fq on the faceted field, so forwarding language=eng would
         // zero out every other language and strand the patron on one choice.
-        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => MOCK_FLAT });
 
         await fetchFacetCounts('language', new URLSearchParams('q=tolkien&language=eng&public_scan=true'));
 
@@ -56,8 +56,8 @@ describe('fetchFacetCounts', () => {
         expect(url.searchParams.get('q')).toBe('tolkien');
     });
 
-    test('strips both spellings of the author filter when counting author_facet', async() => {
-        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
+    test('strips both spellings of the author filter when counting author_facet', async () => {
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => MOCK_FLAT });
 
         await fetchFacetCounts('author_facet', new URLSearchParams('q=rings&author_facet=OL9A&author_key=OL9A'));
 
@@ -66,59 +66,55 @@ describe('fetchFacetCounts', () => {
         expect(url.searchParams.getAll('author_facet')).toEqual([]);
     });
 
-    test('does not mutate the caller\'s params', async() => {
-        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
+    test("does not mutate the caller's params", async () => {
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => MOCK_FLAT });
 
         const params = new URLSearchParams('q=tolkien&language=eng');
         await fetchFacetCounts('language', params);
         expect(params.getAll('language')).toEqual(['eng']);
     });
 
-    test('returns a flat array when the API responds with a flat array', async() => {
+    test('returns a flat array when the API responds with a flat array', async () => {
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: async() => MOCK_FLAT,
+            json: async () => MOCK_FLAT
         });
 
         const result = await fetchFacetCounts('language', new URLSearchParams('q=foo'));
         expect(result).toEqual(MOCK_FLAT);
     });
 
-    test('unwraps a field-keyed map when the API responds with the multi-field shape', async() => {
+    test('unwraps a field-keyed map when the API responds with the multi-field shape', async () => {
         const multiShape = { language: MOCK_FLAT, author_facet: [] };
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: async() => multiShape,
+            json: async () => multiShape
         });
 
         const result = await fetchFacetCounts('language', new URLSearchParams('q=foo'));
         expect(result).toEqual(MOCK_FLAT);
     });
 
-    test('returns [] when a field-keyed map does not contain the requested field', async() => {
+    test('returns [] when a field-keyed map does not contain the requested field', async () => {
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: async() => ({ author_facet: [{ value: 'Tolkien', count: 12 }] }),
+            json: async () => ({ author_facet: [{ value: 'Tolkien', count: 12 }] })
         });
 
         const result = await fetchFacetCounts('language', new URLSearchParams('q=foo'));
         expect(result).toEqual([]);
     });
 
-    test('throws on a non-2xx HTTP response', async() => {
+    test('throws on a non-2xx HTTP response', async () => {
         global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
 
-        await expect(
-            fetchFacetCounts('language', new URLSearchParams('q=foo'))
-        ).rejects.toThrow('HTTP 500');
+        await expect(fetchFacetCounts('language', new URLSearchParams('q=foo'))).rejects.toThrow('HTTP 500');
     });
 
-    test('propagates network errors', async() => {
+    test('propagates network errors', async () => {
         global.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
 
-        await expect(
-            fetchFacetCounts('language', new URLSearchParams('q=foo'))
-        ).rejects.toThrow('Failed to fetch');
+        await expect(fetchFacetCounts('language', new URLSearchParams('q=foo'))).rejects.toThrow('Failed to fetch');
     });
 });
 
@@ -131,17 +127,17 @@ describe('mergeFacetCounts', () => {
     // MARC code, the label is the patron-facing name.
     const ITEMS = [
         { value: 'eng', label: 'English' },
-        { value: 'ger', label: 'German'  },
+        { value: 'ger', label: 'German' },
         { value: 'spa', label: 'Spanish' },
-        { value: 'fre', label: 'French'  },
-        { value: 'dut', label: 'Dutch'   },
+        { value: 'fre', label: 'French' },
+        { value: 'dut', label: 'Dutch' }
     ];
 
     // Fixture counts (what fetchFacetCounts() returns)
     const COUNTS = [
         { value: 'eng', label: 'English', count: 665 },
-        { value: 'ger', label: 'German',  count: 32  },
-        { value: 'spa', label: 'Spanish', count: 18  },
+        { value: 'ger', label: 'German', count: 32 },
+        { value: 'spa', label: 'Spanish', count: 18 }
     ];
 
     test('attaches counts to matching items', () => {
@@ -232,7 +228,7 @@ describe('openWhenCountsReady', () => {
             currentTarget: popover,
             detail: { focusFirst },
             preventDefault: vi.fn(),
-            popover,
+            popover
         };
     }
 
@@ -244,10 +240,13 @@ describe('openWhenCountsReady', () => {
         vi.useRealTimers();
     });
 
-    test('holds the panel shut until the load resolves', async() => {
+    test('holds the panel shut until the load resolves', async () => {
         const e = requestOpenEvent();
         let release;
-        const load = () => new Promise(resolve => { release = resolve; });
+        const load = () =>
+            new Promise(resolve => {
+                release = resolve;
+            });
 
         const done = openWhenCountsReady(e, load);
         await Promise.resolve();
@@ -260,15 +259,15 @@ describe('openWhenCountsReady', () => {
         expect(e.popover.show).toHaveBeenCalledWith({ focusFirst: false });
     });
 
-    test('forwards the keyboard focus-first intent to show()', async() => {
+    test('forwards the keyboard focus-first intent to show()', async () => {
         const e = requestOpenEvent({ focusFirst: true });
         await openWhenCountsReady(e, () => Promise.resolve());
         expect(e.popover.show).toHaveBeenCalledWith({ focusFirst: true });
     });
 
-    test('opens anyway once the budget expires', async() => {
+    test('opens anyway once the budget expires', async () => {
         const e = requestOpenEvent();
-        const done = openWhenCountsReady(e, () => new Promise(() => {}));  // never settles
+        const done = openWhenCountsReady(e, () => new Promise(() => {})); // never settles
         await Promise.resolve();
         expect(e.popover.show).not.toHaveBeenCalled();
 
@@ -277,14 +276,13 @@ describe('openWhenCountsReady', () => {
         expect(e.popover.show).toHaveBeenCalledTimes(1);
     });
 
-    test('opens when the load rejects', async() => {
+    test('opens when the load rejects', async () => {
         const e = requestOpenEvent();
-        await expect(openWhenCountsReady(e, () => Promise.reject(new Error('boom'))))
-            .rejects.toThrow('boom');
+        await expect(openWhenCountsReady(e, () => Promise.reject(new Error('boom')))).rejects.toThrow('boom');
         expect(e.popover.show).toHaveBeenCalledTimes(1);
     });
 
-    test('clears the budget timer once the load wins the race', async() => {
+    test('clears the budget timer once the load wins the race', async () => {
         const e = requestOpenEvent();
         await openWhenCountsReady(e, () => Promise.resolve());
 

@@ -50,7 +50,7 @@ export class OlMenuPopover extends LitElement {
         value: { type: String, reflect: true },
         label: { type: String },
         heading: { type: String },
-        _focusIndex: { state: true },
+        _focusIndex: { state: true }
     };
 
     static styles = css`
@@ -160,9 +160,7 @@ export class OlMenuPopover extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -307,7 +305,7 @@ export class OlMenuPopover extends LitElement {
             count: items.length,
             current: this._focusIndex,
             orientation: 'vertical',
-            wrap: true,
+            wrap: true
         });
         if (target === -1) return;
         e.preventDefault();
@@ -322,10 +320,13 @@ export class OlMenuPopover extends LitElement {
 
     _activate(value) {
         this.value = value;
-        this.dispatchEvent(new CustomEvent('ol-menu-popover-select', {
-            bubbles: true, composed: true,
-            detail: { value },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-menu-popover-select', {
+                bubbles: true,
+                composed: true,
+                detail: { value }
+            })
+        );
         const popover = this.renderRoot?.querySelector('ol-popover');
         if (popover) popover.open = false;
     }

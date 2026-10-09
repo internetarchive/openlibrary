@@ -167,7 +167,8 @@ export class TableRow {
      */
     async closeRequest() {
         const comment = prompt(i18nStrings['close_request_comment_prompt']);
-        if (comment !== null) {  // Comment will be `null` if "Cancel" button pressed
+        if (comment !== null) {
+            // Comment will be `null` if "Cancel" button pressed
             await declineRequest(this.mrid, comment)
                 .then(result => result.json())
                 .then(data => {

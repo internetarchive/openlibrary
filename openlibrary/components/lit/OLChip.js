@@ -43,7 +43,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         variant: { type: String, reflect: true },
         href: { type: String },
         count: { type: String },
-        accessibleLabel: { type: String, attribute: 'accessible-label' },
+        accessibleLabel: { type: String, attribute: 'accessible-label' }
     };
 
     static styles = css`
@@ -252,11 +252,13 @@ export class OLChip extends FocusableHostMixin(LitElement) {
     }
 
     _handleClick() {
-        this.dispatchEvent(new CustomEvent('ol-chip-select', {
-            bubbles: true,
-            composed: true,
-            detail: { selected: !this.selected },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-chip-select', {
+                bubbles: true,
+                composed: true,
+                detail: { selected: !this.selected }
+            })
+        );
     }
 
     _renderIcons() {

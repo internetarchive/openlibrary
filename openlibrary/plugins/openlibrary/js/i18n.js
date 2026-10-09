@@ -2,11 +2,9 @@
 export function sprintf(s) {
     var args = arguments;
     var i = 1;
-    return s.replace(/%[%s]/g, function(match) {
-        if (match === '%%')
-            return '%';
-        else
-            return args[i++];
+    return s.replace(/%[%s]/g, function (match) {
+        if (match === '%%') return '%';
+        else return args[i++];
     });
 }
 
@@ -19,5 +17,5 @@ export function ugettext(s) {
 
 // used in templates/borrow/read.html
 export function ungettext(s1, s2, n) {
-    return n === 1? s1 : s2;
+    return n === 1 ? s1 : s2;
 }

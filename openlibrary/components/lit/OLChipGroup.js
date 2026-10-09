@@ -19,7 +19,7 @@ import { LitElement, html, css } from 'lit';
  */
 export class OLChipGroup extends LitElement {
     static properties = {
-        gap: { type: String, reflect: true },
+        gap: { type: String, reflect: true }
     };
 
     static styles = css`

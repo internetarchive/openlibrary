@@ -19,7 +19,7 @@ function scrolledModal({ inside = false } = {}) {
 }
 
 describe('scrolling back to the top', () => {
-    test('a catalog answer resets the pane once it has rendered', async() => {
+    test('a catalog answer resets the pane once it has rendered', async () => {
         const { modal, results } = scrolledModal();
         modal._scrollResultsToTop();
         expect(results.scrollTop).toBe(240);
@@ -27,7 +27,7 @@ describe('scrolling back to the top', () => {
         expect(results.scrollTop).toBe(0);
     });
 
-    test('the Inside tab keeps its place', async() => {
+    test('the Inside tab keeps its place', async () => {
         const { modal, results } = scrolledModal({ inside: true });
         modal._scrollResultsToTop();
         await modal.updateComplete;

@@ -1,7 +1,4 @@
-import {
-    DEFAULT_NOTES_MODAL_STRINGS,
-    notesModalStrings,
-} from '../../../openlibrary/plugins/openlibrary/js/modals';
+import { DEFAULT_NOTES_MODAL_STRINGS, notesModalStrings } from '../../../openlibrary/plugins/openlibrary/js/modals';
 
 describe('notesModalStrings', () => {
     function elementWith(dataI18n) {
@@ -21,10 +18,12 @@ describe('notesModalStrings', () => {
     });
 
     test('uses the translated strings when the attribute is valid', () => {
-        const el = elementWith(JSON.stringify({
-            saveError: 'Impossible d\u2019enregistrer votre note.',
-            deleteError: 'Impossible de supprimer votre note.',
-        }));
+        const el = elementWith(
+            JSON.stringify({
+                saveError: 'Impossible d\u2019enregistrer votre note.',
+                deleteError: 'Impossible de supprimer votre note.'
+            })
+        );
         expect(notesModalStrings(el).saveError).toBe('Impossible d\u2019enregistrer votre note.');
         expect(notesModalStrings(el).deleteError).toBe('Impossible de supprimer votre note.');
     });

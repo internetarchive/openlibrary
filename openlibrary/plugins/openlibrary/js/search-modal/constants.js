@@ -12,7 +12,7 @@ export const AVAILABILITY_OPTIONS = [
     { value: 'all', label: 'All books' },
     { value: 'readable', label: 'Readable Only' },
     { value: 'open', label: 'Free to read now' },
-    { value: 'borrowable', label: 'Borrow online' },
+    { value: 'borrowable', label: 'Borrow online' }
 ];
 
 export const DEFAULT_AVAILABILITY = 'all';
@@ -32,7 +32,7 @@ export const DEFAULT_AVAILABILITY = 'all';
  */
 export function localizeAvailabilityOptions(i18nStrings) {
     if (!i18nStrings) return AVAILABILITY_OPTIONS;
-    return AVAILABILITY_OPTIONS.map((opt) => {
+    return AVAILABILITY_OPTIONS.map(opt => {
         const t = i18nStrings[opt.value];
         if (!t) return opt;
         return { ...opt, label: t.label || opt.label };
@@ -53,7 +53,9 @@ export function availabilityOptionsFromElement(el) {
     try {
         const raw = el && el.dataset ? el.dataset.i18n : null;
         if (raw) i18nStrings = JSON.parse(raw);
-    } catch { /* fall back to the English defaults below */ }
+    } catch {
+        /* fall back to the English defaults below */
+    }
     return localizeAvailabilityOptions(i18nStrings);
 }
 
@@ -134,7 +136,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     insideError: 'Search inside books is temporarily unavailable. Please try again later.',
     // %s = snippet rows shown (1–3), not the backend total.
     insideAnnounceOne: '%s match found inside books',
-    insideAnnounceMany: '%s matches found inside books',
+    insideAnnounceMany: '%s matches found inside books'
 };
 
 /**
@@ -152,10 +154,10 @@ export function searchModalStringsFromElement(el) {
     try {
         const raw = el && el.dataset ? el.dataset.i18nUi : null;
         if (raw) overrides = JSON.parse(raw);
-    } catch { /* fall back to the English defaults below */ }
-    return overrides
-        ? { ...DEFAULT_SEARCH_MODAL_STRINGS, ...overrides }
-        : DEFAULT_SEARCH_MODAL_STRINGS;
+    } catch {
+        /* fall back to the English defaults below */
+    }
+    return overrides ? { ...DEFAULT_SEARCH_MODAL_STRINGS, ...overrides } : DEFAULT_SEARCH_MODAL_STRINGS;
 }
 
 /**
@@ -172,7 +174,7 @@ export const AVAILABILITY_TO_PARAMS = {
     // "Borrow online" — readable but not public: borrowable scans only.
     borrowable: { has_fulltext: 'true', public_scan: 'false' },
     // "Free to read now" — public-domain / open-access scans (ebook_access:public).
-    open: { public_scan: 'true' },
+    open: { public_scan: 'true' }
 };
 
 /**
@@ -184,8 +186,7 @@ export const AVAILABILITY_TO_PARAMS = {
  * @returns {string}
  */
 export function availabilityFromParams(get) {
-    const matches = (params) =>
-        Object.entries(params).every(([k, v]) => String(get(k) ?? '') === v);
+    const matches = params => Object.entries(params).every(([k, v]) => String(get(k) ?? '') === v);
     // Check specific (multi-param) values before less specific ones; skip `all`
     // (the empty default) so it only wins when nothing else matches.
     for (const value of ['borrowable', 'readable', 'open']) {
@@ -227,7 +228,7 @@ export const DEFAULT_LANGUAGE_OPTIONS = [
     { value: 'lat', label: 'Latin' },
     { value: 'per', label: 'Persian' },
     { value: 'heb', label: 'Hebrew' },
-    { value: 'ben', label: 'Bengali' },
+    { value: 'ben', label: 'Bengali' }
 ];
 
 /**
@@ -256,7 +257,7 @@ export const UI_LANG_TO_MARC = {
     te: 'tel',
     uk: 'ukr',
     zh: 'chi',
-    tl: 'tgl',
+    tl: 'tgl'
 };
 
 /**
@@ -283,7 +284,7 @@ export function siteLanguageToMarc(iso) {
  */
 export function languageNameFromOptions(options, code) {
     const opts = options && options.length ? options : DEFAULT_LANGUAGE_OPTIONS;
-    return opts.find((o) => o.value === code)?.label || null;
+    return opts.find(o => o.value === code)?.label || null;
 }
 
 // Most languages to name in the "In <language>" hint before truncating to a
@@ -304,9 +305,7 @@ const HINT_LANG_LIMIT = 2;
  */
 function listEditionLanguages(langs, options) {
     if (!Array.isArray(langs) || langs.length === 0) return null;
-    const names = langs
-        .map((code) => languageNameFromOptions(options, code))
-        .filter(Boolean);                                // drop codes with no display name
+    const names = langs.map(code => languageNameFromOptions(options, code)).filter(Boolean); // drop codes with no display name
     if (names.length === 0) return null;
     const shown = names.slice(0, HINT_LANG_LIMIT).join(', ');
     return names.length > HINT_LANG_LIMIT ? `${shown}, …` : shown;
@@ -343,12 +342,12 @@ function listEditionLanguages(langs, options) {
  * @returns {string|null}
  */
 export function readableLanguageMismatch({ edition, languages, siteLanguage, options }) {
-    if (!edition) return null;                            // only promoted readable editions
-    if (languages.length) return null;                   // patron already chose language(s)
-    if (!siteLanguage) return null;                      // unknown site lang → don't guess
+    if (!edition) return null; // only promoted readable editions
+    if (languages.length) return null; // patron already chose language(s)
+    if (!siteLanguage) return null; // unknown site lang → don't guess
     const langs = edition.language;
     if (!Array.isArray(langs) || langs.length === 0) return null;
-    if (langs.includes(siteLanguage)) return null;       // readable in their language → fine
+    if (langs.includes(siteLanguage)) return null; // readable in their language → fine
     return listEditionLanguages(langs, options);
 }
 
@@ -372,7 +371,7 @@ export function readableLanguageMismatch({ edition, languages, siteLanguage, opt
  * @returns {string|null}
  */
 export function readableEditionLanguages({ edition, languages, options }) {
-    if (!edition) return null;                            // only promoted readable editions
+    if (!edition) return null; // only promoted readable editions
     if (!languages || languages.length < 2) return null; // only when juggling several filters
     return listEditionLanguages(edition.language, options);
 }
@@ -381,7 +380,7 @@ export function readableEditionLanguages({ edition, languages, options }) {
  * sessionStorage keys for per-session filter persistence.
  */
 export const SS_AVAILABILITY_KEY = 'ol-header-search-availability';
-export const SS_LANGUAGES_KEY    = 'ol-header-search-languages';
+export const SS_LANGUAGES_KEY = 'ol-header-search-languages';
 
 /**
  * sessionStorage read/write that swallow access errors (private browsing, quota,
@@ -393,7 +392,11 @@ export const SS_LANGUAGES_KEY    = 'ol-header-search-languages';
  * @returns {string|null}
  */
 export function ssGet(key) {
-    try { return sessionStorage.getItem(key); } catch { return null; }
+    try {
+        return sessionStorage.getItem(key);
+    } catch {
+        return null;
+    }
 }
 
 /**
@@ -401,14 +404,18 @@ export function ssGet(key) {
  * @param {string} value
  */
 export function ssSet(key, value) {
-    try { sessionStorage.setItem(key, value); } catch { /* ignore */ }
+    try {
+        sessionStorage.setItem(key, value);
+    } catch {
+        /* ignore */
+    }
 }
 
 /**
  * localStorage key and cap for per-device recent searches.
  */
 export const LS_RECENT_SEARCHES_KEY = 'ol-recent-searches';
-export const RECENT_SEARCHES_MAX    = 8;
+export const RECENT_SEARCHES_MAX = 8;
 
 /**
  * Read the recent-search list from localStorage. Returns [] on any failure.
@@ -423,7 +430,9 @@ export function readRecentSearches() {
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed)) return [];
         return parsed.filter(s => typeof s === 'string').slice(0, RECENT_SEARCHES_MAX);
-    } catch { return []; }
+    } catch {
+        return [];
+    }
 }
 
 /**
@@ -437,11 +446,10 @@ export function saveRecentSearch(query) {
     try {
         const searches = readRecentSearches().filter(s => s !== trimmed);
         searches.unshift(trimmed);
-        localStorage.setItem(
-            LS_RECENT_SEARCHES_KEY,
-            JSON.stringify(searches.slice(0, RECENT_SEARCHES_MAX))
-        );
-    } catch { /* ignore */ }
+        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(searches.slice(0, RECENT_SEARCHES_MAX)));
+    } catch {
+        /* ignore */
+    }
 }
 
 /**
@@ -454,7 +462,9 @@ export function removeRecentSearch(query) {
         const searches = readRecentSearches().filter(s => s !== query);
         localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(searches));
         return searches;
-    } catch { return readRecentSearches(); }
+    } catch {
+        return readRecentSearches();
+    }
 }
 
 /**
@@ -472,5 +482,7 @@ export function readStoredLanguages() {
     try {
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed.filter(s => typeof s === 'string') : [];
-    } catch { return []; }
+    } catch {
+        return [];
+    }
 }

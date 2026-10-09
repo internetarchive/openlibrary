@@ -47,7 +47,7 @@ export class OLReadMore extends LitElement {
         labelSize: { type: String, attribute: 'label-size' },
         // Internal state
         _expanded: { type: Boolean, state: true },
-        _unnecessary: { type: Boolean, state: true },
+        _unnecessary: { type: Boolean, state: true }
     };
 
     static styles = css`
@@ -210,7 +210,7 @@ export class OLReadMore extends LitElement {
         if (rect.top < 0) {
             this.scrollIntoView({
                 behavior: 'smooth',
-                block: 'start',
+                block: 'start'
             });
         }
     }

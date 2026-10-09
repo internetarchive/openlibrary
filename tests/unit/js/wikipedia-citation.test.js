@@ -15,7 +15,7 @@ describe('Wikipedia citation copy', () => {
         `;
         Object.defineProperty(navigator, 'clipboard', {
             configurable: true,
-            value: { writeText: vi.fn().mockResolvedValue(undefined) },
+            value: { writeText: vi.fn().mockResolvedValue(undefined) }
         });
         initWikipediaCitation();
         copyButton = document.querySelector('[data-wikipedia-citation-copy]');
@@ -26,14 +26,14 @@ describe('Wikipedia citation copy', () => {
         vi.restoreAllMocks();
     });
 
-    it('copies the trimmed citation and shows copied feedback', async() => {
+    it('copies the trimmed citation and shows copied feedback', async () => {
         copyButton.click();
 
         await vi.waitFor(() => expect(copyButton.classList.contains('is-copied')).toBe(true));
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith('{{cite book|title=Test}}');
     });
 
-    it('leaves the button untouched when the clipboard write fails', async() => {
+    it('leaves the button untouched when the clipboard write fails', async () => {
         navigator.clipboard.writeText.mockRejectedValue(new Error('denied'));
 
         copyButton.click();

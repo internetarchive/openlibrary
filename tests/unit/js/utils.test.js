@@ -17,7 +17,7 @@ describe('`removeChildren()` tests', () => {
         expect(elem.isEqualNode(clonedElem)).toBe(true);
     });
 
-    it('removes all of an element\'s children', () => {
+    it("removes all of an element's children", () => {
         document.body.innerHTML = multiChildElem;
         const elem = document.querySelector('.remove-tests');
         const clonedElem = elem.cloneNode(true);
@@ -68,15 +68,14 @@ describe('`queueAction()` tests', () => {
     let originalCookie;
 
     beforeAll(() => {
-        originalCookie = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie') ||
-                     Object.getOwnPropertyDescriptor(HTMLDocument.prototype, 'cookie');
+        originalCookie = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie') || Object.getOwnPropertyDescriptor(HTMLDocument.prototype, 'cookie');
     });
 
     beforeEach(() => {
         Object.defineProperty(document, 'cookie', {
             value: '',
             writable: true,
-            configurable: true,
+            configurable: true
         });
     });
 

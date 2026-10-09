@@ -36,7 +36,7 @@ export function hashCode(str) {
  */
 export function hierarchyFind(node, predicate) {
     if (!predicate(node)) return [];
-    for (const child of (node.children || [])) {
+    for (const child of node.children || []) {
         const childResult = hierarchyFind(child, predicate);
         if (childResult.length) return [node, ...childResult];
     }
@@ -66,18 +66,22 @@ export function testLuceneSyntax(pattern, string) {
  * while keeping it solr-query safe.
  * @param {string} string
  */
-export function decrementStringSolr(string, caseSensitive=true, numeric=false) {
+export function decrementStringSolr(string, caseSensitive = true, numeric = false) {
     const lastChar = caseSensitive ? string[string.length - 1] : string[string.length - 1].toUpperCase();
     // Anything < '.' will likely cause query issues, so assume it's
     // the end of the that prefix.
     // Also append Z; this is the equivalent of going back one, and then expanding (e.g. 0.123 decremented is not 0.122, it's 0.12999999)
     const maxTail = (numeric ? '9' : 'z').repeat(5);
-    const newLastChar = (
-        lastChar === '.' ? '' :
-            lastChar === '0' ? `.${maxTail}` :
-                lastChar === 'A' ? `9${maxTail}` :
-                    lastChar === 'a' ? `Z${maxTail}` :
-                        `${String.fromCharCode(lastChar.charCodeAt(0) - 1)}${maxTail}`);
+    const newLastChar =
+        lastChar === '.'
+            ? ''
+            : lastChar === '0'
+              ? `.${maxTail}`
+              : lastChar === 'A'
+                ? `9${maxTail}`
+                : lastChar === 'a'
+                  ? `Z${maxTail}`
+                  : `${String.fromCharCode(lastChar.charCodeAt(0) - 1)}${maxTail}`;
 
     return string.slice(0, -1) + newLastChar;
 }

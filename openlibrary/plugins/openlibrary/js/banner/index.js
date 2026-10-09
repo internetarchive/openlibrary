@@ -27,12 +27,12 @@ function setBannerCookie(cookieName, cookieDurationDays) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Accept: 'application/json'
         },
         body: JSON.stringify({
             'cookie-name': cookieName,
-            'cookie-duration-days': cookieDurationDays,
-        }),
+            'cookie-duration-days': cookieDurationDays
+        })
     });
 }
 
@@ -43,7 +43,7 @@ function setBannerCookie(cookieName, cookieDurationDays) {
 export function initOlBannerDismissals() {
     initBannerAnalytics();
 
-    document.addEventListener('ol-banner-dismiss', (e) => {
+    document.addEventListener('ol-banner-dismiss', e => {
         const dismissId = e.detail?.dismissId;
         if (!dismissId) return;
         const days = Number(e.target?.dataset?.cookieDurationDays) || 30;
@@ -64,7 +64,7 @@ export function initDismissibleBanners(banners) {
         const dismissButton = banner.querySelector('.page-banner--dismissable-close');
         dismissButton.addEventListener('click', () => {
             setBannerCookie(cookieName, cookieDurationDays)
-                .then((res) => {
+                .then(res => {
                     if (res.ok) banner.remove();
                 })
                 .catch(() => {});

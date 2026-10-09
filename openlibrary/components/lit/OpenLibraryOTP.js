@@ -30,7 +30,7 @@ export class OpenLibraryOTP extends LitElement {
         _submitting: { type: Boolean, state: true },
         _issueError: { type: String, state: true },
         _validationStatus: { type: String, state: true },
-        _newCodeSending: { type: Boolean, state: true },
+        _newCodeSending: { type: Boolean, state: true }
     };
 
     constructor() {
@@ -51,7 +51,9 @@ export class OpenLibraryOTP extends LitElement {
         this._boundFocusFirst = this._focusFirst.bind(this);
         this._boundFocusLast = this._focusLast.bind(this);
         this._boundCloseModal = this._closeModal.bind(this);
-        this._boundHandleEmailInput = (e) => { this._email = e.target.value; };
+        this._boundHandleEmailInput = e => {
+            this._email = e.target.value;
+        };
         this._boundHandleEmailSubmit = this._handleEmailSubmit.bind(this);
         this._boundHandleCodeSubmitted = this._handleCodeSubmitted.bind(this);
         this._boundHandleResend = this._handleResend.bind(this);
@@ -192,12 +194,7 @@ export class OpenLibraryOTP extends LitElement {
         // Content container — swapped between email and code step
         this._contentContainer = document.createElement('div');
 
-        this._dialog.append(
-            this._sentinelStart,
-            this._closeBtn,
-            this._contentContainer,
-            this._sentinelEnd,
-        );
+        this._dialog.append(this._sentinelStart, this._closeBtn, this._contentContainer, this._sentinelEnd);
         this._overlay.appendChild(this._dialog);
 
         // Portal container
@@ -313,7 +310,7 @@ export class OpenLibraryOTP extends LitElement {
         h2.textContent = 'Sign in with a one-time code';
 
         const p = document.createElement('p');
-        p.textContent = 'Enter your Internet Archive email and we\'ll send you a login code.';
+        p.textContent = "Enter your Internet Archive email and we'll send you a login code.";
 
         const form = document.createElement('form');
         form.className = 'ol-otp-email-form';
@@ -403,9 +400,7 @@ export class OpenLibraryOTP extends LitElement {
         this._validationStatus = 'ready';
 
         requestAnimationFrame(() => {
-            const first = this._contentContainer.querySelector(
-                'input, button:not(.ol-otp-close-btn)'
-            );
+            const first = this._contentContainer.querySelector('input, button:not(.ol-otp-close-btn)');
             (first || this._dialog).focus();
         });
     }
@@ -437,17 +432,13 @@ export class OpenLibraryOTP extends LitElement {
 
     /** Redirect Tab-past-end back to the first focusable element */
     _focusFirst() {
-        const el = this._dialog.querySelector(
-            'button.ol-otp-close-btn, input, button:not([disabled])'
-        );
+        const el = this._dialog.querySelector('button.ol-otp-close-btn, input, button:not([disabled])');
         el?.focus();
     }
 
     /** Redirect Shift+Tab-past-start back to the last focusable element */
     _focusLast() {
-        const candidates = this._dialog.querySelectorAll(
-            'button:not([disabled]), input:not([disabled])'
-        );
+        const candidates = this._dialog.querySelectorAll('button:not([disabled]), input:not([disabled])');
         candidates[candidates.length - 1]?.focus();
     }
 
@@ -463,7 +454,7 @@ export class OpenLibraryOTP extends LitElement {
             const resp = await fetch('/account/login/otp/issue', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ email: this._email }),
+                body: new URLSearchParams({ email: this._email })
             });
             const data = await resp.json();
             if (data.success) {
@@ -490,8 +481,8 @@ export class OpenLibraryOTP extends LitElement {
                 body: new URLSearchParams({
                     email: this._email,
                     otp: e.detail,
-                    redirect: this.redirect,
-                }),
+                    redirect: this.redirect
+                })
             });
             const data = await resp.json();
             if (data.success) {
@@ -512,7 +503,7 @@ export class OpenLibraryOTP extends LitElement {
             await fetch('/account/login/otp/issue', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ email: this._email }),
+                body: new URLSearchParams({ email: this._email })
             });
         } finally {
             this._newCodeSending = false;

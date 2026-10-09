@@ -8,7 +8,7 @@ import { FulltextBand, INSIDE_LIMIT } from '../../../openlibrary/plugins/openlib
 function bandSetup() {
     const band = new FulltextBand({
         getFilters: () => ({ readable: false, languages: [] }),
-        onChange: vi.fn(),
+        onChange: vi.fn()
     });
     band._fetch = vi.fn();
     return band;
@@ -27,7 +27,7 @@ function modalSetup({ query = 'white whale' } = {}) {
 }
 
 describe('FulltextBand explicit mode', () => {
-    test('entering the tab fetches at once, at the tab\'s deeper limit', () => {
+    test("entering the tab fetches at once, at the tab's deeper limit", () => {
         const band = bandSetup();
 
         band.setExplicit(true, 'white whale');
@@ -41,7 +41,7 @@ describe('FulltextBand explicit mode', () => {
     test('entering with nothing to search leaves the tab idle, not loading', () => {
         const band = new FulltextBand({
             getFilters: () => ({ readable: false, languages: [] }),
-            onChange: vi.fn(),
+            onChange: vi.fn()
         });
 
         band.setExplicit(true, '   ');
@@ -72,7 +72,7 @@ describe('FulltextBand explicit mode', () => {
     });
 
     // The band's gates exist to spare the FTS backend; the tab is a request.
-    test('a strong catalog answer no longer clears the tab\'s hits', () => {
+    test("a strong catalog answer no longer clears the tab's hits", () => {
         const band = bandSetup();
         band.explicit = true;
         band.hits = [{ ia: 'scanA' }];
@@ -106,7 +106,7 @@ describe('FulltextBand explicit mode', () => {
             expect(band._fetch).toHaveBeenCalledWith('dune', INSIDE_LIMIT);
         });
 
-        test('off the tab, a short query still waits for the catalog\'s answer', () => {
+        test("off the tab, a short query still waits for the catalog's answer", () => {
             const band = bandSetup();
 
             band.queryChanged('dune');
@@ -270,7 +270,7 @@ describe('SearchModal scope tabs', () => {
     // key-repeat rate, fetching fulltext on every flip.
     test('a held arrow key flips the tab once, not once per repeat', () => {
         const modal = modalSetup();
-        const press = (repeat) => modal._onTabKeydown({ key: 'ArrowRight', repeat, preventDefault: () => {} });
+        const press = repeat => modal._onTabKeydown({ key: 'ArrowRight', repeat, preventDefault: () => {} });
 
         press(false);
         expect(modal._inside).toBe(true);
@@ -292,8 +292,7 @@ describe('SearchModal Inside tab announcement', () => {
     };
 
     test('counts the passages on screen', () => {
-        expect(onTab({ hits: [{ ia: 'a' }, { ia: 'b' }] })._resultsAnnouncement())
-            .toBe('2 matches found inside books');
+        expect(onTab({ hits: [{ ia: 'a' }, { ia: 'b' }] })._resultsAnnouncement()).toBe('2 matches found inside books');
     });
 
     test('a settled empty search says so', () => {

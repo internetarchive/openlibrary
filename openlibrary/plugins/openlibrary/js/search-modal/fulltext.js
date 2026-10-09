@@ -9,9 +9,28 @@ export const WEAK_SCAN_LIMIT = 3;
 // Too common to count as title/author overlap. Interrogatives are included so
 // "how do birds navigate?" isn't "answered" by a "How to..." title.
 const OVERLAP_STOPWORDS = new Set([
-    'the', 'and', 'for', 'with', 'from', 'was', 'are', 'not', 'but',
-    'his', 'her', 'its', 'this', 'that', 'you', 'all',
-    'who', 'what', 'when', 'where', 'why', 'how',
+    'the',
+    'and',
+    'for',
+    'with',
+    'from',
+    'was',
+    'are',
+    'not',
+    'but',
+    'his',
+    'her',
+    'its',
+    'this',
+    'that',
+    'you',
+    'all',
+    'who',
+    'what',
+    'when',
+    'where',
+    'why',
+    'how'
 ]);
 
 /**
@@ -22,13 +41,20 @@ const OVERLAP_STOPWORDS = new Set([
  * @returns {string} '' when nothing is left
  */
 export function phraseQuery(query) {
-    const words = (query || '').replace(/[\u201c\u201d\u201e\u201f]/g, '"').replace(/"/g, ' ').split(/\s+/).filter(Boolean);
+    const words = (query || '')
+        .replace(/[\u201c\u201d\u201e\u201f]/g, '"')
+        .replace(/"/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
     return words.length ? `"${words.join(' ')}"` : '';
 }
 
 /** Lowercase and strip diacritics so "garcia" matches "García". */
 function fold(s) {
-    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return (s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
 }
 
 /**
@@ -63,8 +89,7 @@ export function solrLooksWeak(docs, query) {
     return !docs.slice(0, WEAK_SCAN_LIMIT).some(doc => {
         if (!doc) return false;
         const edition = doc.editions && doc.editions.docs && doc.editions.docs[0];
-        const haystack = [doc.title, doc.subtitle, edition && edition.title, ...(doc.author_name || [])]
-            .filter(Boolean).join(' ');
+        const haystack = [doc.title, doc.subtitle, edition && edition.title, ...(doc.author_name || [])].filter(Boolean).join(' ');
         const words = fold(haystack).split(/\W+/).filter(meaningful);
         return tokens.some(t => words.some(w => w.startsWith(t) || t.startsWith(w)));
     });
@@ -114,14 +139,18 @@ export function fulltextHitDisplay(hit) {
     const edition = hit.edition || null;
     const metaTitle = Array.isArray(fields.meta_title) ? fields.meta_title[0] : fields.meta_title;
     const title = (edition && edition.title) || metaTitle || '';
-    const author = (edition && Array.isArray(edition.authors)
-        ? edition.authors.map((a) => a && a.name).filter(Boolean).join(', ')
-        : creatorsFromMeta(fields.meta_creator));
+    const author =
+        edition && Array.isArray(edition.authors)
+            ? edition.authors
+                  .map(a => a && a.name)
+                  .filter(Boolean)
+                  .join(', ')
+            : creatorsFromMeta(fields.meta_creator);
     const metaYear = Array.isArray(fields.meta_year) ? fields.meta_year[0] : fields.meta_year;
     const year = metaYear ? String(metaYear) : '';
     // IA cover size map matches get_ia_cover: S = 116×58, M = 180×360.
     const coverUrl = (edition && edition.cover_url) || `https://archive.org/download/${ia}/page/cover_w116_h58.jpg`;
-    const coverSrcset = (edition && edition.cover_url) ? '' : `https://archive.org/download/${ia}/page/cover_w180_h360.jpg 2x`;
+    const coverSrcset = edition && edition.cover_url ? '' : `https://archive.org/download/${ia}/page/cover_w180_h360.jpg 2x`;
     return { ia, title, author, year, snippet, coverUrl, coverSrcset };
 }
 
@@ -136,10 +165,10 @@ const CREATOR_ROLE_SUFFIX = /(?:,\s*(?:joint\s+)?(?:author|editor|illustrator|tr
  * @returns {string}
  */
 export function creatorsFromMeta(metaCreator) {
-    const values = Array.isArray(metaCreator) ? metaCreator : (metaCreator ? [metaCreator] : []);
+    const values = Array.isArray(metaCreator) ? metaCreator : metaCreator ? [metaCreator] : [];
     return values
-        .flatMap((v) => String(v).split(/,(?=\S)/))
-        .map((name) => name.trim().replace(CREATOR_ROLE_SUFFIX, ''))
+        .flatMap(v => String(v).split(/,(?=\S)/))
+        .map(name => name.trim().replace(CREATOR_ROLE_SUFFIX, ''))
         .filter(Boolean)
         .slice(0, 3)
         .join(', ');
@@ -161,5 +190,5 @@ export function dedupeFulltextHits(hits, docs) {
             for (const ocaid of ed?.ia || []) listed.add(ocaid);
         }
     }
-    return (hits || []).filter((hit) => !listed.has(hit.ia));
+    return (hits || []).filter(hit => !listed.has(hit.ia));
 }

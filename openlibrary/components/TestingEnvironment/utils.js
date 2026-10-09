@@ -96,7 +96,7 @@ export function parsePrNumbers(value) {
         .trim()
         .split(/[\s,]+/)
         .filter(Boolean)
-        .flatMap((token) => {
+        .flatMap(token => {
             if (token.includes('/issues/')) return [];
             const match = token.match(/\/pull\/(\d+)/);
             const number = match ? Number(match[1]) : Number(token.replace(/^#/, ''));
@@ -125,7 +125,7 @@ export function actionErrorMessage(result, strings) {
         return Object.keys(failed)
             .map(Number)
             .sort((a, b) => a - b)
-            .map((prNumber) => sprintf(reasons[failed[prNumber]] || strings.addFailedOther, prNumber))
+            .map(prNumber => sprintf(reasons[failed[prNumber]] || strings.addFailedOther, prNumber))
             .join(' ');
     }
     const key = ACTION_ERRORS[result?.error] || 'actionFailed';
@@ -210,7 +210,7 @@ const FAVICON_MAX_DURATION_MS = 20 * 60 * 1000;
  * poll that normally ends it can't run in a hidden tab.
  */
 export function applyDeployBadge(links) {
-    const frames = links.map((link) => ({
+    const frames = links.map(link => ({
         link,
         original: link.getAttribute('href'),
         image: new Image(),
@@ -272,7 +272,9 @@ export function applyDeployBadge(links) {
  * "2026-08-06T15:00:00+00:00" → "2026-08-06 15:00"
  */
 export function formatTime(value) {
-    return String(value || '').slice(0, 16).replace('T', ' ');
+    return String(value || '')
+        .slice(0, 16)
+        .replace('T', ' ');
 }
 
 /**
@@ -301,9 +303,7 @@ export function timeAgo(value, now = Date.now()) {
  * Clicking again after staging undoes the change.
  */
 export function effectiveActive(pr) {
-    return pr.pending_active === undefined || pr.pending_active === null
-        ? pr.active !== false
-        : pr.pending_active;
+    return pr.pending_active === undefined || pr.pending_active === null ? pr.active !== false : pr.pending_active;
 }
 
 /**
@@ -337,9 +337,7 @@ export function driftPill(pr, strings) {
     }
     return {
         label: `-${drift}`,
-        href: pr.head_sha
-            ? `${REPO_URL}/compare/${encodeURIComponent(pr.commit || '')}...${encodeURIComponent(pr.head_sha)}`
-            : '',
+        href: pr.head_sha ? `${REPO_URL}/compare/${encodeURIComponent(pr.commit || '')}...${encodeURIComponent(pr.head_sha)}` : '',
         title: drift === 1 ? t('behindOne', drift, pinned) : t('behindMany', drift, pinned)
     };
 }

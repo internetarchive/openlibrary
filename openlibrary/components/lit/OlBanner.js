@@ -65,7 +65,7 @@ export class OlBanner extends LitElement {
         appearance: { type: String, reflect: true },
         dismissId: { type: String, attribute: 'dismiss-id' },
         dismissible: { type: Boolean, reflect: true },
-        labelClose: { type: String, attribute: 'label-close' },
+        labelClose: { type: String, attribute: 'label-close' }
     };
 
     // Render into the light DOM so the global stylesheet
@@ -94,9 +94,8 @@ export class OlBanner extends LitElement {
         neutral: OlBanner._neutralIcon,
         success: OlBanner._successIcon,
         warning: OlBanner._warningIcon,
-        danger: OlBanner._dangerIcon,
+        danger: OlBanner._dangerIcon
     };
-
 
     constructor() {
         super();
@@ -141,17 +140,19 @@ export class OlBanner extends LitElement {
     dismiss() {
         if (this._closing) return;
         this._closing = true;
-        this.dispatchEvent(new CustomEvent('ol-banner-dismiss', {
-            detail: { dismissId: this.dismissId },
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-banner-dismiss', {
+                detail: { dismissId: this.dismissId },
+                bubbles: true,
+                composed: true
+            })
+        );
 
         // data-closing triggers the exit transition on the host
         this.setAttribute('data-closing', '');
 
         const finalize = () => this.remove();
-        this.addEventListener('transitionend', (e) => {
+        this.addEventListener('transitionend', e => {
             if (e.target === this && e.propertyName === 'opacity') finalize();
         });
         // Fallback in case no transition runs (e.g. prefers-reduced-motion)
@@ -163,13 +164,17 @@ export class OlBanner extends LitElement {
         return html`
             <span class="ol-banner__icon">${this._customIcon ?? icon}</span>
             ${this._content}
-            ${this.dismissible ? html`
+            ${
+                this.dismissible
+                    ? html`
                 <button
                     class="ol-banner__close"
                     aria-label=${this.labelClose}
                     @click=${() => this.dismiss()}
                 ><ol-icon name="x"></ol-icon></button>
-            ` : ''}
+            `
+                    : ''
+            }
         `;
     }
 }

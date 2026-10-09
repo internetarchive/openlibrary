@@ -16,24 +16,28 @@ window.jQuery = $;
 window.$ = $;
 
 // Global listener for login intent buttons
-document.addEventListener('click', function(e) {
-    const btn = e.target.closest('.js-login-intent');
-    if (btn) {
-        const action = btn.dataset.action;
-        const title = btn.dataset.title;
-        const type = btn.dataset.type || 'item';
-        const targetUrl = btn.dataset.resumeurl || (window.location.pathname + window.location.search);
-        if (action && title) {
-            queueAction(action, title, targetUrl, type);
+document.addEventListener(
+    'click',
+    function (e) {
+        const btn = e.target.closest('.js-login-intent');
+        if (btn) {
+            const action = btn.dataset.action;
+            const title = btn.dataset.title;
+            const type = btn.dataset.type || 'item';
+            const targetUrl = btn.dataset.resumeurl || window.location.pathname + window.location.search;
+            if (action && title) {
+                queueAction(action, title, targetUrl, type);
+            }
+            if (btn.tagName !== 'A') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                window.location.href = `/account/login?redirect=${encodeURIComponent(targetUrl)}`;
+            }
         }
-        if (btn.tagName !== 'A') {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            e.stopPropagation();
-            window.location.href = `/account/login?redirect=${encodeURIComponent(targetUrl)}`;
-        }
-    }
-}, true);
+    },
+    true
+);
 
 initSentry();
 
@@ -45,24 +49,22 @@ initServiceWorker();
 initAnalytics();
 
 // Initialise some things
-$(function() {
+$(function () {
     const $tabs = $('.ol-tabs');
     if ($tabs.length) {
-        import('./tabs')
-            .then((module) => module.initTabs($tabs));
+        import('./tabs').then(module => module.initTabs($tabs));
     }
 
     const $autocomplete = $('.multi-input-autocomplete');
     if ($autocomplete.length) {
-        import('./autocomplete')
-            .then((module) => module.init($));
+        import('./autocomplete').then(module => module.init($));
     }
 
     // hide all images in .no-img
     $('.no-img img').hide();
 
     // disable save button after click
-    $('button[name=\'_save\']').on('submit', function() {
+    $("button[name='_save']").on('submit', function () {
         $(this).attr('disabled', true);
     });
 
@@ -85,110 +87,110 @@ $(function() {
     // conditionally load for user edit page
     if (
         edition ||
-        autocompleteAuthor || autocompleteSeries || autocompleteLanguage || autocompleteWorks ||
-        autocompleteSeeds || autocompleteSubjects ||
-        addRowButton || roles || classifications ||
-        excerpts || links || deleteRecordButtons.length
+        autocompleteAuthor ||
+        autocompleteSeries ||
+        autocompleteLanguage ||
+        autocompleteWorks ||
+        autocompleteSeeds ||
+        autocompleteSubjects ||
+        addRowButton ||
+        roles ||
+        classifications ||
+        excerpts ||
+        links ||
+        deleteRecordButtons.length
     ) {
-        import('./edit')
-            .then(module => {
-                if (edition) {
-                    module.initEdit();
-                }
-                if (addRowButton) {
-                    module.initEditRow();
-                }
-                if (excerpts) {
-                    module.initEditExcerpts();
-                }
-                if (links) {
-                    module.initEditLinks();
-                }
-                if (autocompleteAuthor) {
-                    module.initAuthorMultiInputAutocomplete();
-                }
-                if (autocompleteSeries) {
-                    module.initSeriesMultiInputAutocomplete();
-                }
-                if (roles) {
-                    module.initRoleValidation();
-                }
-                if (classifications) {
-                    module.initClassificationValidation();
-                }
-                if (autocompleteLanguage) {
-                    module.initLanguageMultiInputAutocomplete();
-                }
-                if (autocompleteWorks) {
-                    module.initWorksMultiInputAutocomplete();
-                }
-                if (autocompleteSubjects) {
-                    module.initSubjectsAutocomplete();
-                }
-                if (autocompleteSeeds) {
-                    module.initSeedsMultiInputAutocomplete();
-                }
-                if (deleteRecordButtons.length) {
-                    module.initRecordDeletion(deleteRecordButtons);
-                }
-            });
+        import('./edit').then(module => {
+            if (edition) {
+                module.initEdit();
+            }
+            if (addRowButton) {
+                module.initEditRow();
+            }
+            if (excerpts) {
+                module.initEditExcerpts();
+            }
+            if (links) {
+                module.initEditLinks();
+            }
+            if (autocompleteAuthor) {
+                module.initAuthorMultiInputAutocomplete();
+            }
+            if (autocompleteSeries) {
+                module.initSeriesMultiInputAutocomplete();
+            }
+            if (roles) {
+                module.initRoleValidation();
+            }
+            if (classifications) {
+                module.initClassificationValidation();
+            }
+            if (autocompleteLanguage) {
+                module.initLanguageMultiInputAutocomplete();
+            }
+            if (autocompleteWorks) {
+                module.initWorksMultiInputAutocomplete();
+            }
+            if (autocompleteSubjects) {
+                module.initSubjectsAutocomplete();
+            }
+            if (autocompleteSeeds) {
+                module.initSeedsMultiInputAutocomplete();
+            }
+            if (deleteRecordButtons.length) {
+                module.initRecordDeletion(deleteRecordButtons);
+            }
+        });
     }
 
     // conditionally load for author merge page
     const mergePageElement = document.querySelector('#author-merge-page');
     const preMergePageElement = document.getElementById('preMerge');
     if (mergePageElement || preMergePageElement) {
-        import('./merge')
-            .then(module => {
-                if (mergePageElement) {
-                    module.initAuthorMergePage();
-                }
-                if (preMergePageElement) {
-                    module.initAuthorView();
-                }
-            });
+        import('./merge').then(module => {
+            if (mergePageElement) {
+                module.initAuthorMergePage();
+            }
+            if (preMergePageElement) {
+                module.initAuthorView();
+            }
+        });
     }
 
     // conditionally load for type changing input
     const typeChanger = document.getElementById('type.key');
     if (typeChanger) {
-        import('./type_changer.js')
-            .then(module => module.initTypeChanger(typeChanger));
+        import('./type_changer.js').then(module => module.initTypeChanger(typeChanger));
     }
 
     // conditionally load validation and submission js for registration form
     if (document.querySelector('form[name=signup]')) {
-        import('./signup.js')
-            .then(module => module.initSignupForm());
+        import('./signup.js').then(module => module.initSignupForm());
     }
 
     // conditionally load submission js for login form
     if (document.querySelector('form[name=login]')) {
-        import('./signup.js')
-            .then(module => module.initLoginForm());
+        import('./signup.js').then(module => module.initLoginForm());
     }
 
     // conditionally load clamping components
     const clampers = document.querySelectorAll('.clamp');
     if (clampers.length) {
-        import('./clampers.js')
-            .then(module => {
-                if (clampers.length) {
-                    module.initClampers(clampers);
-                }
-            });
+        import('./clampers.js').then(module => {
+            if (clampers.length) {
+                module.initClampers(clampers);
+            }
+        });
     }
 
     // conditionally load file dropzone for CSV import (Goodreads, etc.)
     if (document.getElementById('csv-dropzone')) {
-        import('./file-dropzone.js')
-            .then(module => module.initFileDropzone());
+        import('./file-dropzone.js').then(module => module.initFileDropzone());
     }
 
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
-        import('./goodreads_import.js')
-            .then(module => module.initGoodreadsImport());
+        import('./goodreads_import.js').then(module => module.initGoodreadsImport());
     }
     // conditionally load list seed item deletion dialog functionality based on id on lists pages
     if (document.getElementById('listResults')) {
@@ -198,41 +200,34 @@ $(function() {
     // Enable any carousels in the page
     const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced');
     if (carouselElements.length) {
-        import('./carousel')
-            .then((module) => {
-                module.initialzeCarousels(carouselElements);
-            });
+        import('./carousel').then(module => {
+            module.initialzeCarousels(carouselElements);
+        });
     }
     if ($('script[type="text/json+graph"]').length > 0) {
-        import('./graphs')
-            .then((module) => module.init());
+        import('./graphs').then(module => module.init());
     }
 
     const readingLogCharts = document.querySelector('.readinglog-charts');
     if (readingLogCharts) {
         const readingLogConfig = JSON.parse(readingLogCharts.dataset.config);
-        import('./readinglog_stats')
-            .then(module => module.init(readingLogConfig));
+        import('./readinglog_stats').then(module => module.init(readingLogConfig));
     }
 
     if (document.getElementsByClassName('toast').length) {
-        import('./Toast')
-            .then((module) => {
-                Array.from(document.getElementsByClassName('toast'))
-                    .forEach(el => new module.Toast($(el)));
-            });
+        import('./Toast').then(module => {
+            Array.from(document.getElementsByClassName('toast')).forEach(el => new module.Toast($(el)));
+        });
     }
 
     if ($('.lazy-thing-preview').length) {
-        import('./lazy-thing-preview')
-            .then((module) => new module.LazyThingPreview().init());
+        import('./lazy-thing-preview').then(module => new module.LazyThingPreview().init());
     }
 
     // Disable data export buttons on form submit
     const patronImportForms = document.querySelectorAll('.patron-export-form');
     if (patronImportForms.length) {
-        import('./patron_exports')
-            .then(module => module.initPatronExportForms(patronImportForms));
+        import('./patron_exports').then(module => module.initPatronExportForms(patronImportForms));
     }
 
     const observationModalLinks = document.querySelectorAll('.observations-modal-link');
@@ -240,23 +235,21 @@ $(function() {
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
     if (observationModalLinks.length || notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
-        import('./modals')
-            .then(module => {
-                if (observationModalLinks.length) {
-                    module.initObservationsModal(observationModalLinks);
-                }
-                if (notesModalLinks.length) {
-                    module.initNotesModal(notesModalLinks);
-                }
-                if ($notesPageButtons.length) {
-                    module.addNotesPageButtonListeners();
-                }
-                if ($shareModalLinks.length) {
-                    module.initShareModal();
-                }
-            });
+        import('./modals').then(module => {
+            if (observationModalLinks.length) {
+                module.initObservationsModal(observationModalLinks);
+            }
+            if (notesModalLinks.length) {
+                module.initNotesModal(notesModalLinks);
+            }
+            if ($notesPageButtons.length) {
+                module.addNotesPageButtonListeners();
+            }
+            if ($shareModalLinks.length) {
+                module.initShareModal();
+            }
+        });
     }
-
 
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
     const addCoversElement = document.getElementsByClassName('imageIntro').length;
@@ -264,26 +257,24 @@ $(function() {
     const coverForm = document.querySelector('.ol-cover-form--clipboard');
 
     if (addCoversElement || manageCoversElement || saveCoversElement || coverForm) {
-        import('./covers')
-            .then((module) => {
-                if (manageCoversElement) {
-                    module.initCoversChange();
-                }
-                if (addCoversElement) {
-                    module.initCoversAddManage();
-                }
-                if (saveCoversElement) {
-                    module.initCoversSaved();
-                }
-                if (coverForm) {
-                    module.initPasteForm(coverForm);
-                }
-            });
+        import('./covers').then(module => {
+            if (manageCoversElement) {
+                module.initCoversChange();
+            }
+            if (addCoversElement) {
+                module.initCoversAddManage();
+            }
+            if (saveCoversElement) {
+                module.initCoversSaved();
+            }
+            if (coverForm) {
+                module.initPasteForm(coverForm);
+            }
+        });
     }
 
     if (document.getElementById('addbook')) {
-        import('./add-book')
-            .then(module => module.initAddBookImport());
+        import('./add-book').then(module => module.initAddBookImport());
     }
 
     if (document.getElementById('autofill-dev-credentials')) {
@@ -295,61 +286,53 @@ $(function() {
     const adminLinks = document.getElementById('adminLinks');
     const confirmButtons = document.querySelectorAll('.do-confirm');
     if (adminLinks || anonymizationButton || confirmButtons.length) {
-        import('./admin')
-            .then(module => {
-                if (adminLinks) {
-                    module.initAdmin();
-                }
-                if (anonymizationButton) {
-                    module.initAnonymizationButton(anonymizationButton);
-                }
-                if (confirmButtons.length) {
-                    module.initConfirmationButtons(confirmButtons);
-                }
-            });
+        import('./admin').then(module => {
+            if (adminLinks) {
+                module.initAdmin();
+            }
+            if (anonymizationButton) {
+                module.initAnonymizationButton(anonymizationButton);
+            }
+            if (confirmButtons.length) {
+                module.initConfirmationButtons(confirmButtons);
+            }
+        });
     }
 
     if (window.matchMedia('(display-mode: standalone)').matches) {
-        import('./offline-banner')
-            .then((module) => module.initOfflineBanner());
+        import('./offline-banner').then(module => module.initOfflineBanner());
     }
 
     const searchFacets = document.getElementById('searchFacets');
     if (searchFacets) {
-        import('./search')
-            .then((module) => module.initSearchFacets(searchFacets));
+        import('./search').then(module => module.initSearchFacets(searchFacets));
     }
 
     const subjectPublishingHistory = document.getElementById('subjectPublishingHistory');
     if (subjectPublishingHistory) {
-        import('./subjects')
-            .then((module) => module.initPublishingHistory(subjectPublishingHistory));
+        import('./subjects').then(module => module.initPublishingHistory(subjectPublishingHistory));
     }
 
     const subjectRelatedFacets = document.getElementById('subjectRelatedFacets');
     if (subjectRelatedFacets) {
-        import('./subjects')
-            .then((module) => module.initRelatedSubjects(subjectRelatedFacets));
+        import('./subjects').then(module => module.initRelatedSubjects(subjectRelatedFacets));
     }
 
     const searchFilterBar = document.querySelector('.search-filter-row');
     if (searchFilterBar) {
-        import('./SearchFilterBar')
-            .then((module) => module.initSearchFilterBar(searchFilterBar));
+        import('./SearchFilterBar').then(module => module.initSearchFilterBar(searchFilterBar));
     }
 
     // Page-local availability toggles (author pages, reading log). Unlike the
     // search filter bar above, these don't share state across pages.
     const resultsFilterToggles = document.querySelectorAll('.results-filter-toggle');
     if (resultsFilterToggles.length) {
-        import('./results-filter-toggle')
-            .then((module) => module.initResultsFilterToggles(resultsFilterToggles));
+        import('./results-filter-toggle').then(module => module.initResultsFilterToggles(resultsFilterToggles));
     }
 
     const designSystem = document.querySelector('[data-ds-root]');
     if (designSystem) {
-        import('./design-system')
-            .then((module) => module.initDesignSystem(designSystem));
+        import('./design-system').then(module => module.initDesignSystem(designSystem));
     }
 
     // Author-suggestion avatars request photos with ?default=false, so a missing
@@ -359,19 +342,25 @@ $(function() {
         if (img.complete && img.naturalWidth === 0) {
             img.hidden = true;
         } else {
-            img.addEventListener('error', () => { img.hidden = true; }, { once: true });
+            img.addEventListener(
+                'error',
+                () => {
+                    img.hidden = true;
+                },
+                { once: true }
+            );
         }
     }
 
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import('./ile')
-            .then((module) => module.init())
+            .then(module => module.init())
             .then(() => {
                 // book page subject editing
                 // Handle pencil clicks
                 document.querySelectorAll('.edit-subject-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
+                    btn.addEventListener('click', e => {
                         e.preventDefault();
                         const workOlid = btn.dataset.workOlid;
                         if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
@@ -384,45 +373,38 @@ $(function() {
             });
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-            import('./editions-table')
-                .then(module => module.initEditionsTable());
+            import('./editions-table').then(module => module.initEditionsTable());
         }
     }
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-        import('./editions-table')
-            .then(module => module.initEditionsTable());
+        import('./editions-table').then(module => module.initEditionsTable());
     }
 
     // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
     if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
-        import('./book-state')
-            .then(module => module.initBookState());
+        import('./book-state').then(module => module.initBookState());
     }
 
     // The lists a book is on, under the shelf button on its page:
     const listShowcase = document.querySelector('.already-lists[data-seed-keys]');
     if (listShowcase) {
-        import('./lists/list-showcase')
-            .then(module => module.initListShowcase(listShowcase));
+        import('./lists/list-showcase').then(module => module.initListShowcase(listShowcase));
     }
 
     // TODO: Make these selectors a consistent interface
     if (document.querySelector('.dialog--open, #bookPreview')) {
-        import('./dialog')
-            .then(module => module.initDialogs());
+        import('./dialog').then(module => module.initDialogs());
     }
 
     const citationCopyButton = document.querySelector('[data-wikipedia-citation-copy]');
     if (citationCopyButton) {
-        import('./wikipedia-citation')
-            .then(module => module.initWikipediaCitation());
+        import('./wikipedia-citation').then(module => module.initWikipediaCitation());
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog');
     if (nativeDialogs.length) {
-        import('./native-dialog')
-            .then(module => module.initDialogs(nativeDialogs));
+        import('./native-dialog').then(module => module.initDialogs(nativeDialogs));
     }
 
     // Yearly reading goal functionality
@@ -431,28 +413,27 @@ $(function() {
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button');
     const yearElements = document.querySelectorAll('.use-local-year');
     if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || yearElements.length) {
-        import('./reading-goals')
-            .then((module) => {
-                if (setGoalLinks.length) {
-                    module.initYearlyGoalPrompt(setGoalLinks);
-                }
-                if (goalEditLinks.length) {
-                    module.initGoalEditLinks(goalEditLinks);
-                }
-                if (goalSubmitButtons.length) {
-                    module.initGoalSubmitButtons(goalSubmitButtons);
-                }
-                if (yearElements.length) {
-                    module.displayLocalYear(yearElements);
-                }
-            });
+        import('./reading-goals').then(module => {
+            if (setGoalLinks.length) {
+                module.initYearlyGoalPrompt(setGoalLinks);
+            }
+            if (goalEditLinks.length) {
+                module.initGoalEditLinks(goalEditLinks);
+            }
+            if (goalSubmitButtons.length) {
+                module.initGoalSubmitButtons(goalSubmitButtons);
+            }
+            if (yearElements.length) {
+                module.displayLocalYear(yearElements);
+            }
+        });
     }
 
-    $(document).on('click', '.slide-toggle', function() {
+    $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
 
-    $('.header-dropdown').on('keydown', function(event) {
+    $('.header-dropdown').on('keydown', function (event) {
         if (event.key === 'Escape') {
             $('.header-dropdown > details[open]').removeAttr('open');
         }
@@ -462,8 +443,7 @@ $(function() {
     const hamburgerTrigger = document.querySelector('.hamburger-trigger');
     const hamburgerDrawer = document.getElementById('hamburger-drawer');
     if (hamburgerTrigger && hamburgerDrawer) {
-        import('./hamburger-drawer')
-            .then((module) => module.initHamburgerDrawer(hamburgerTrigger, hamburgerDrawer));
+        import('./hamburger-drawer').then(module => module.initHamburgerDrawer(hamburgerTrigger, hamburgerDrawer));
     }
 
     // Browse menu: send one analytics event each time the popover opens
@@ -473,25 +453,28 @@ $(function() {
     // their own wiring once we know how we want to measure them. The
     // "category|action|label" string is set server-side per surface (desktop
     // vs. mobile tray) in browse_popover.html.
-    document.querySelectorAll('.browse-popover[data-ol-open-track]').forEach((popover) => {
+    document.querySelectorAll('.browse-popover[data-ol-open-track]').forEach(popover => {
         popover.addEventListener('ol-popover-open', () => {
             const ping = popover.getAttribute('data-ol-open-track').split('|');
             window.archive_analytics?.ol_send_event_ping?.({
                 category: ping[0],
                 action: ping[1],
-                label: ping[2],
+                label: ping[2]
             });
         });
     });
 
-    $('.dropdown-menu').each(function() {
-        $(this).find('a').last().on('focusout', function() {
-            $('.header-dropdown > details[open]').removeAttr('open');
-        });
+    $('.dropdown-menu').each(function () {
+        $(this)
+            .find('a')
+            .last()
+            .on('focusout', function () {
+                $('.header-dropdown > details[open]').removeAttr('open');
+            });
     });
 
     // Open one dropdown at a time.
-    $(document).on('click', function(event) {
+    $(document).on('click', function (event) {
         const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
@@ -502,177 +485,151 @@ $(function() {
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form');
     if (ratingForms.length) {
-        import('./star-ratings')
-            .then((module) => module.initRatingHandlers(ratingForms));
+        import('./star-ratings').then(module => module.initRatingHandlers(ratingForms));
     }
 
     // Book page navbar initialization:
     const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper');
     if (navbarWrappers.length) {
         // Add JS for book page navbar:
-        import('./edition-nav-bar')
-            .then((module) => {
-                module.initNavbars(navbarWrappers);
-            });
+        import('./edition-nav-bar').then(module => {
+            module.initNavbars(navbarWrappers);
+        });
         // Add sticky title component animations to desktop views:
-        import('./compact-title')
-            .then((module) => {
-                const compactTitle = document.querySelector('.compact-title');
-                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'));
-                module.initCompactTitle(desktopNavbar, compactTitle);
-            });
+        import('./compact-title').then(module => {
+            const compactTitle = document.querySelector('.compact-title');
+            const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'));
+            module.initCompactTitle(desktopNavbar, compactTitle);
+        });
     }
 
     // Add functionality for librarian merge request table:
     const librarianQueue = document.querySelector('.librarian-queue-wrapper');
 
     if (librarianQueue) {
-        import('./merge-request-table')
-            .then(module => {
-                module.initLibrarianQueue(librarianQueue);
-            });
+        import('./merge-request-table').then(module => {
+            module.initLibrarianQueue(librarianQueue);
+        });
     }
 
     // Add functionality to the team page for filtering members:
     const teamCards = document.querySelector('.teamCards_container');
     if (teamCards) {
-        import('./team')
-            .then(module => {
-                module.initTeamFilter();
-            });
+        import('./team').then(module => {
+            module.initTeamFilter();
+        });
     }
 
     // Add new providers in edit edition view:
     const addProviderRowLink = document.querySelector('#add-new-provider-row');
     if (addProviderRowLink) {
-        import('./add_provider')
-            .then(module => module.initAddProviderRowLink(addProviderRowLink));
+        import('./add_provider').then(module => module.initAddProviderRowLink(addProviderRowLink));
     }
-
 
     // Allow banner announcements to be dismissed by logged-in users:
     const banners = document.querySelectorAll('.page-banner--dismissable');
     if (banners.length) {
-        import('./banner')
-            .then(module => module.initDismissibleBanners(banners));
+        import('./banner').then(module => module.initDismissibleBanners(banners));
     }
 
     // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
     if (document.querySelector('ol-banner[dismiss-id], ol-banner[dismissible]')) {
-        import('./banner')
-            .then(module => module.initOlBannerDismissals());
+        import('./banner').then(module => module.initOlBannerDismissals());
     }
 
     const returnForms = document.querySelectorAll('.return-form');
     if (returnForms.length) {
-        import('./return-form')
-            .then(module => module.initReturnForms(returnForms));
+        import('./return-form').then(module => module.initReturnForms(returnForms));
     }
 
     const crumbs = document.querySelectorAll('.crumb select');
     if (crumbs.length) {
-        import('./breadcrumb_select')
-            .then(module => module.initBreadcrumbSelect(crumbs));
+        import('./breadcrumb_select').then(module => module.initBreadcrumbSelect(crumbs));
     }
 
     const interstitial = document.querySelector('.interstitial');
     if (interstitial) {
-        import('./interstitial')
-            .then(module => module.initInterstitial(interstitial));
+        import('./interstitial').then(module => module.initInterstitial(interstitial));
     }
 
     const leaveWaitlistLinks = document.querySelectorAll('a.leave');
     if (leaveWaitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
-        import('./waitlist')
-            .then(module => module.initLeaveWaitlist(leaveWaitlistLinks));
+        import('./waitlist').then(module => module.initLeaveWaitlist(leaveWaitlistLinks));
     }
 
     const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');
     if (thirdPartyLoginsIframe) {
-        import('./ia_thirdparty_logins')
-            .then((module) => module.initMessageEventListener(thirdPartyLoginsIframe));
+        import('./ia_thirdparty_logins').then(module => module.initMessageEventListener(thirdPartyLoginsIframe));
     }
 
     // Password visibility toggle:
     const passwordVisibilityToggle = document.querySelector('.password-visibility-toggle');
     if (passwordVisibilityToggle) {
-        import('./password-toggle')
-            .then(module => module.initPasswordToggling(passwordVisibilityToggle));
+        import('./password-toggle').then(module => module.initPasswordToggling(passwordVisibilityToggle));
     }
 
     // Affiliate link prices:
     const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section[data-isbn]');
     if (affiliateLinksSection.length) {
-        import('./affiliate-links')
-            .then(module => module.initAffiliateLinks(affiliateLinksSection));
+        import('./affiliate-links').then(module => module.initAffiliateLinks(affiliateLinksSection));
     }
 
     // Fulltext search box:
-    const  fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion');
+    const fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion');
     if (fulltextSearchSuggestion) {
-        import('./fulltext-search-suggestion')
-            .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion));
+        import('./fulltext-search-suggestion').then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion));
     }
 
     // Go back redirect:
     const backLinks = document.querySelectorAll('.go-back-link');
     if (backLinks.length) {
-        import('./go-back-links')
-            .then(module => module.initGoBackLinks(backLinks));
+        import('./go-back-links').then(module => module.initGoBackLinks(backLinks));
     }
 
     // Lazy-load book page lists section
     const listSection = document.querySelector('.lists-section');
     if (listSection) {
-        import('./book-page-lists')
-            .then(module => module.initListsSection(listSection));
+        import('./book-page-lists').then(module => module.initListsSection(listSection));
     }
 
     // Initialize follow forms lazily
     const followForms = document.querySelectorAll('.follow-form');
     if (followForms.length) {
-        import('./following')
-            .then(module => module.initAsyncFollowing(followForms));
+        import('./following').then(module => module.initAsyncFollowing(followForms));
     }
 
     // Generalized carousel lazy-loading
     const lazyCarousels = document.querySelectorAll('.lazy-carousel');
     if (lazyCarousels.length) {
-        import('./lazy-carousel')
-            .then(module => module.initLazyCarousel(lazyCarousels));
+        import('./lazy-carousel').then(module => module.initLazyCarousel(lazyCarousels));
     }
 
     // Librarian Dashboard
     const librarianDashboard = document.querySelector('.librarian-dashboard');
     if (librarianDashboard) {
-        import('./librarian-dashboard')
-            .then(module => module.initLibrarianDashboard(librarianDashboard));
+        import('./librarian-dashboard').then(module => module.initLibrarianDashboard(librarianDashboard));
     }
 
     // List books
     if (document.querySelector('.list-books')) {
-        import('./list_books')
-            .then(module => module.ListBooks.init());
+        import('./list_books').then(module => module.ListBooks.init());
     }
 
     // Sort options popover (results toolbars)
     const sortOptions = document.querySelector('.sort-options');
     if (sortOptions) {
-        import('./sort_options')
-            .then(module => module.initSortOptions(sortOptions));
+        import('./sort_options').then(module => module.initSortOptions(sortOptions));
     }
 
     // Stats page login counts
     const monthlyLoginStats = document.querySelector('.monthly-login-counts');
     if (monthlyLoginStats) {
-        import('./stats')
-            .then(module => module.initUniqueLoginCounts(monthlyLoginStats));
+        import('./stats').then(module => module.initUniqueLoginCounts(monthlyLoginStats));
     }
 
     // History page comparison
     const pageHistory = document.querySelector('#pageHistory');
     if (pageHistory) {
-        import('./history')
-            .then(module => module.initHistory(pageHistory));
+        import('./history').then(module => module.initHistory(pageHistory));
     }
 });

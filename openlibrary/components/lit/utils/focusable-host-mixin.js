@@ -19,30 +19,31 @@
  * @param {T} BaseClass
  * @returns {T} The base class with focus delegation applied.
  */
-export const FocusableHostMixin = (BaseClass) => class extends BaseClass {
-    static shadowRootOptions = {
-        ...BaseClass.shadowRootOptions,
-        delegatesFocus: true,
+export const FocusableHostMixin = BaseClass =>
+    class extends BaseClass {
+        static shadowRootOptions = {
+            ...BaseClass.shadowRootOptions,
+            delegatesFocus: true
+        };
+
+        /**
+         * Override point for when the desired target isn't the first focusable in
+         * DOM order, which is where `delegatesFocus` would otherwise send focus.
+         *
+         * @returns {HTMLElement|null} Element to focus, or null to keep the default.
+         */
+        get _focusTarget() {
+            return null;
+        }
+
+        /**
+         * @override
+         * @param {FocusOptions} [options]
+         * @returns {void}
+         */
+        focus(options) {
+            const target = this._focusTarget;
+            if (target?.focus) target.focus(options);
+            else super.focus(options);
+        }
     };
-
-    /**
-     * Override point for when the desired target isn't the first focusable in
-     * DOM order, which is where `delegatesFocus` would otherwise send focus.
-     *
-     * @returns {HTMLElement|null} Element to focus, or null to keep the default.
-     */
-    get _focusTarget() {
-        return null;
-    }
-
-    /**
-     * @override
-     * @param {FocusOptions} [options]
-     * @returns {void}
-     */
-    focus(options) {
-        const target = this._focusTarget;
-        if (target?.focus) target.focus(options);
-        else super.focus(options);
-    }
-};

@@ -11,9 +11,9 @@ module.exports = {
                     convertPathData: false,
                     removeDesc: false,
                     removeTitle: false,
-                    removeViewBox: false,
-                },
-            },
-        },
-    ],
+                    removeViewBox: false
+                }
+            }
+        }
+    ]
 };

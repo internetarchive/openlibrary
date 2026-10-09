@@ -36,11 +36,11 @@ const sel = {
     resetControl: '#demo-button-form ol-button[type="reset"] .control',
     disableToggle: '#demo-button-form-disable .toggle',
     output: '#demo-button-form-output',
-    count: '#demo-button-form-count',
+    count: '#demo-button-form-count'
 };
 
 async function gotoFixture(page: Page): Promise<void> {
-    await page.route('https://archive.org/**', (route) => route.abort());
+    await page.route('https://archive.org/**', route => route.abort());
     await page.goto(PAGE);
     await expect(page.locator('#header-bar').first()).toBeVisible();
     await page.waitForFunction(() => customElements.get('ol-button') && customElements.get('ol-toggle'));
@@ -82,8 +82,8 @@ test.describe('ol-button form semantics', () => {
     });
 
     test('preventDefault() on an ancestor click listener cancels the submit', async ({ page }) => {
-        await page.evaluate((formSel) => {
-            document.querySelector(formSel)!.addEventListener('click', (e) => e.preventDefault());
+        await page.evaluate(formSel => {
+            document.querySelector(formSel)!.addEventListener('click', e => e.preventDefault());
         }, sel.form);
         await page.fill(sel.name, 'Ada');
         await page.click(sel.submitControl);
@@ -102,10 +102,11 @@ test.describe('ol-button form semantics', () => {
 
     test('a disabled fieldset disables the button, and re-enabling the fieldset re-enables it', async ({ page }) => {
         const control = page.locator(sel.submitControl);
-        const disabledState = () => page.locator(sel.submit).evaluate((el) => ({
-            matchesDisabled: el.matches(':disabled'),
-            hasDisabledAttr: el.hasAttribute('disabled'),
-        }));
+        const disabledState = () =>
+            page.locator(sel.submit).evaluate(el => ({
+                matchesDisabled: el.matches(':disabled'),
+                hasDisabledAttr: el.hasAttribute('disabled')
+            }));
 
         await page.click(sel.disableToggle);
         await expect(control).toBeDisabled();
@@ -130,23 +131,27 @@ test.describe('ol-button form semantics', () => {
 
     test('loading blocks both click and Enter', async ({ page }) => {
         await page.fill(sel.name, 'Ada');
-        await page.locator(sel.submit).evaluate((el: any) => { el.loading = true; });
+        await page.locator(sel.submit).evaluate((el: any) => {
+            el.loading = true;
+        });
         await page.click(sel.submitControl, { force: true }).catch(() => undefined);
         await page.locator(sel.name).press('Enter');
         await page.waitForTimeout(100);
         await expect(page.locator(sel.count)).toHaveText('0');
-        await page.locator(sel.submit).evaluate((el: any) => { el.loading = false; });
+        await page.locator(sel.submit).evaluate((el: any) => {
+            el.loading = false;
+        });
         await page.locator(sel.name).press('Enter');
         await expect(page.locator(sel.count)).toHaveText('1');
     });
 
     test('the proxy is invisible and does not change the accessible label', async ({ page }) => {
-        const info = await page.locator(sel.submit).evaluate((el) => {
+        const info = await page.locator(sel.submit).evaluate(el => {
             const proxy = el.querySelector(':scope > button') as HTMLButtonElement;
             return {
                 rendered: proxy.getClientRects().length > 0,
                 slotted: proxy.assignedSlot !== null,
-                text: el.textContent!.trim(),
+                text: el.textContent!.trim()
             };
         });
         expect(info).toEqual({ rendered: false, slotted: false, text: 'Submit' });
@@ -179,7 +184,7 @@ test.describe('FormAssociatedMixin fieldset handling', () => {
         });
         expect(result).toEqual({
             whileDisabled: { inner: true, attr: false },
-            afterEnabled: { inner: false, attr: false },
+            afterEnabled: { inner: false, attr: false }
         });
     });
 });

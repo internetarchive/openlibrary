@@ -57,8 +57,15 @@ describe('debounce', () => {
 
 describe('uniqBy', () => {
     test('keeps the first item for each key', () => {
-        const items = [{ id: 1, n: 'a' }, { id: 2, n: 'b' }, { id: 1, n: 'c' }];
-        expect(uniqBy(items, x => x.id)).toEqual([{ id: 1, n: 'a' }, { id: 2, n: 'b' }]);
+        const items = [
+            { id: 1, n: 'a' },
+            { id: 2, n: 'b' },
+            { id: 1, n: 'c' }
+        ];
+        expect(uniqBy(items, x => x.id)).toEqual([
+            { id: 1, n: 'a' },
+            { id: 2, n: 'b' }
+        ]);
     });
 
     test('treats undefined as a key', () => {

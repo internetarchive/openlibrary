@@ -31,7 +31,7 @@ import './OlIcon.js';
 
 // Toolbar glyphs from the shared icon set, keyed by the editor's local names.
 // .toolbar-btn ol-icon governs size and stroke width.
-const glyph = (name) => html`<ol-icon name="${name}"></ol-icon>`;
+const glyph = name => html`<ol-icon name="${name}"></ol-icon>`;
 
 const ICONS = {
     undo: glyph('undo'),
@@ -52,7 +52,7 @@ const ICONS = {
     codeInline: glyph('braces'),
     codeBlock: glyph('square-code'),
     more: glyph('ellipsis'),
-    source: glyph('file-code'),
+    source: glyph('file-code')
 };
 
 export class OLMarkdownEditor extends LitElement {
@@ -452,7 +452,7 @@ export class OLMarkdownEditor extends LitElement {
 
     async firstUpdated() {
         if (!this.targetId) {
-            this._errorMsg = 'Missing \'target-id\' attribute.';
+            this._errorMsg = "Missing 'target-id' attribute.";
             throw new Error(`OLMarkdownEditor: ${this._errorMsg}`);
         }
 
@@ -479,24 +479,23 @@ export class OLMarkdownEditor extends LitElement {
                 // Note, tiptap uses 2 spaces for list indentation, olmarkdown uses 4.
                 // Normalize nested list indentation from 2-space-per-level (tiptap) to
                 // 4-space-per-level (olmarkdown) without injecting extra newlines.
-                markdownOutput = markdownOutput.replace(
-                    /^(\s{2,})([*+-]|\d+\.) /gm,
-                    (match, spaces, marker) => {
-                        const depth = Math.round(spaces.length / 2);
-                        const newIndent = ' '.repeat(depth * 4);
-                        return `${newIndent}${marker} `;
-                    }
-                );
+                markdownOutput = markdownOutput.replace(/^(\s{2,})([*+-]|\d+\.) /gm, (match, spaces, marker) => {
+                    const depth = Math.round(spaces.length / 2);
+                    const newIndent = ' '.repeat(depth * 4);
+                    return `${newIndent}${marker} `;
+                });
 
                 if (this.targetElement) {
                     this.targetElement.value = markdownOutput;
                 }
 
-                this.dispatchEvent(new CustomEvent('ol-markdown-editor-change', {
-                    detail: { value: markdownOutput },
-                    bubbles: true,
-                    composed: true
-                }));
+                this.dispatchEvent(
+                    new CustomEvent('ol-markdown-editor-change', {
+                        detail: { value: markdownOutput },
+                        bubbles: true,
+                        composed: true
+                    })
+                );
             },
             onTransaction: () => {
                 this.requestUpdate();
@@ -508,7 +507,7 @@ export class OLMarkdownEditor extends LitElement {
         const associatedLabel = document.querySelector(`label[for="${this.targetId}"]`);
         if (associatedLabel) {
             this._associatedLabel = associatedLabel;
-            this._labelClickHandler = (e) => {
+            this._labelClickHandler = e => {
                 e.preventDefault();
                 this._focusEditor();
             };
@@ -540,14 +539,38 @@ export class OLMarkdownEditor extends LitElement {
         if (!this.editor.isFocused) this.editor.commands.focus();
     }
 
-    formatHeading(level) { if (!this.editor) return; this.editor.chain().focus().toggleHeading({ level }).run(); }
-    formatText(type) { if (!this.editor) return; this.editor.chain().focus()[`toggle${type.charAt(0).toUpperCase() + type.slice(1)}`]().run(); }
-    insertRule() { if (!this.editor) return; this.editor.chain().focus().setHorizontalRule().run(); }
-    insertHtmlBlock() { if (!this.editor) return; this.editor.commands.insertHtmlBlock(''); }
-    formatQuote() { if (!this.editor) return; this.editor.chain().focus().toggleBlockquote().run(); }
-    formatInlineCode() { if (!this.editor) return; this.editor.chain().focus().toggleCode().run(); }
-    formatCodeBlock() { if (!this.editor) return; this.editor.chain().focus().toggleCodeBlock().run(); }
-    formatList(type) { if (!this.editor) return; this.editor.chain().focus()[type === 'bullet' ? 'toggleBulletList' : 'toggleOrderedList']().run(); }
+    formatHeading(level) {
+        if (!this.editor) return;
+        this.editor.chain().focus().toggleHeading({ level }).run();
+    }
+    formatText(type) {
+        if (!this.editor) return;
+        this.editor.chain().focus()[`toggle${type.charAt(0).toUpperCase() + type.slice(1)}`]().run();
+    }
+    insertRule() {
+        if (!this.editor) return;
+        this.editor.chain().focus().setHorizontalRule().run();
+    }
+    insertHtmlBlock() {
+        if (!this.editor) return;
+        this.editor.commands.insertHtmlBlock('');
+    }
+    formatQuote() {
+        if (!this.editor) return;
+        this.editor.chain().focus().toggleBlockquote().run();
+    }
+    formatInlineCode() {
+        if (!this.editor) return;
+        this.editor.chain().focus().toggleCode().run();
+    }
+    formatCodeBlock() {
+        if (!this.editor) return;
+        this.editor.chain().focus().toggleCodeBlock().run();
+    }
+    formatList(type) {
+        if (!this.editor) return;
+        this.editor.chain().focus()[type === 'bullet' ? 'toggleBulletList' : 'toggleOrderedList']().run();
+    }
 
     toggleLinkPopover() {
         if (!this.editor) return;
@@ -559,11 +582,19 @@ export class OLMarkdownEditor extends LitElement {
         }
     }
 
-    handleLinkInput(e) { this.linkInputValue = e.target.value; }
+    handleLinkInput(e) {
+        this.linkInputValue = e.target.value;
+    }
 
     handleLinkKeydown(e) {
-        if (e.key === 'Enter') { e.preventDefault(); this.applyLink(); }
-        if (e.key === 'Escape') { this.showLinkPopover = false; this._focusEditor(); }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.applyLink();
+        }
+        if (e.key === 'Escape') {
+            this.showLinkPopover = false;
+            this._focusEditor();
+        }
     }
 
     applyLink() {
@@ -591,11 +622,19 @@ export class OLMarkdownEditor extends LitElement {
         }
     }
 
-    handleImageInput(e) { this.imageUrlValue = e.target.value; }
+    handleImageInput(e) {
+        this.imageUrlValue = e.target.value;
+    }
 
     handleImageKeydown(e) {
-        if (e.key === 'Enter') { e.preventDefault(); this.applyImage(); }
-        if (e.key === 'Escape') { this.showImagePopover = false; this._focusEditor(); }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.applyImage();
+        }
+        if (e.key === 'Escape') {
+            this.showImagePopover = false;
+            this._focusEditor();
+        }
     }
 
     applyImage() {
@@ -638,11 +677,13 @@ export class OLMarkdownEditor extends LitElement {
 
     _handleSourceInput(e) {
         if (this.targetElement) this.targetElement.value = e.target.value;
-        this.dispatchEvent(new CustomEvent('ol-markdown-editor-change', {
-            detail: { value: e.target.value },
-            bubbles: true,
-            composed: true
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-markdown-editor-change', {
+                detail: { value: e.target.value },
+                bubbles: true,
+                composed: true
+            })
+        );
     }
 
     /**
@@ -684,13 +725,32 @@ export class OLMarkdownEditor extends LitElement {
         const secondaryButtons = html`
           ${this._renderButton({ title: 'Heading 1', icon: ICONS.h1, action: () => this.formatHeading(1), isActive: this._isActive('heading', { level: 1 }) })}
           ${this._renderButton({ title: 'Heading 2', icon: ICONS.h2, action: () => this.formatHeading(2), isActive: this._isActive('heading', { level: 2 }) })}
-          ${this._renderButton({ title: 'Image', icon: ICONS.image, action: () => { this.showOverflowMenu = false; this.toggleImagePopover(); }, isActive: this.showImagePopover })}
+          ${this._renderButton({
+              title: 'Image',
+              icon: ICONS.image,
+              action: () => {
+                  this.showOverflowMenu = false;
+                  this.toggleImagePopover();
+              },
+              isActive: this.showImagePopover
+          })}
           ${this._renderButton({ title: 'Blockquote', icon: ICONS.quote, action: this.formatQuote.bind(this), isActive: this._isActive('blockquote') })}
           ${this._renderButton({ title: 'Divider', icon: ICONS.hr, action: this.insertRule.bind(this) })}
           ${this.enableCode ? this._renderButton({ title: 'Inline Code', icon: ICONS.codeInline, action: this.formatInlineCode.bind(this), isActive: this._isActive('code') }) : ''}
           ${this.enableCode ? this._renderButton({ title: 'Code Block', icon: ICONS.codeBlock, action: this.formatCodeBlock.bind(this), isActive: this._isActive('codeBlock') }) : ''}
           ${this.enableHtmlBlock ? this._renderButton({ title: 'HTML Block', icon: ICONS.code, action: this.insertHtmlBlock.bind(this) }) : ''}
-          ${!this.showSource ? this._renderButton({ title: 'View source', icon: ICONS.source, action: () => { this.showOverflowMenu = false; this._toggleSource(); } }) : ''}
+          ${
+              !this.showSource
+                  ? this._renderButton({
+                        title: 'View source',
+                        icon: ICONS.source,
+                        action: () => {
+                            this.showOverflowMenu = false;
+                            this._toggleSource();
+                        }
+                    })
+                  : ''
+          }
         `;
 
         return html`
@@ -709,24 +769,32 @@ export class OLMarkdownEditor extends LitElement {
             ${this._renderButton({ title: 'Italic', icon: ICONS.italic, action: () => this.formatText('italic'), isActive: this._isActive('italic') })}
             <div class="link-popover-wrapper">
               ${this._renderButton({ title: 'Link', icon: ICONS.link, action: this.toggleLinkPopover.bind(this), isActive: this._isActive('link') || this.showLinkPopover, isPressed: this._isActive('link'), isExpanded: this.showLinkPopover })}
-              ${this.showLinkPopover ? html`
-                <div class="link-popover" @mousedown="${(e) => e.stopPropagation()}">
+              ${
+                  this.showLinkPopover
+                      ? html`
+                <div class="link-popover" @mousedown="${e => e.stopPropagation()}">
                   <input type="url" class="link-input" placeholder="https://..." .value="${this.linkInputValue}" @input="${this.handleLinkInput}" @keydown="${this.handleLinkKeydown}" />
                   ${this._renderButton({ title: 'Save Link', icon: ICONS.save, action: this.applyLink.bind(this) })}
                   ${this._isActive('link') ? this._renderButton({ title: 'Remove Link', icon: ICONS.remove, action: this.removeLink.bind(this), customColor: 'var(--color-destructive)' }) : ''}
                 </div>
-              ` : ''}
+              `
+                      : ''
+              }
             </div>
             <div class="link-popover-wrapper">
               <span class="overflow-secondary">
                 ${this._renderButton({ title: 'Image', icon: ICONS.image, action: this.toggleImagePopover.bind(this), isActive: this.showImagePopover, isPressed: null, isExpanded: this.showImagePopover })}
               </span>
-              ${this.showImagePopover ? html`
-                <div class="link-popover" @mousedown="${(e) => e.stopPropagation()}">
+              ${
+                  this.showImagePopover
+                      ? html`
+                <div class="link-popover" @mousedown="${e => e.stopPropagation()}">
                   <input type="url" class="link-input image-input" placeholder="https://..." .value="${this.imageUrlValue}" @input="${this.handleImageInput}" @keydown="${this.handleImageKeydown}" />
                   ${this._renderButton({ title: 'Insert Image', icon: ICONS.save, action: this.applyImage.bind(this) })}
                 </div>
-              ` : ''}
+              `
+                      : ''
+              }
             </div>
             <div class="toolbar-divider"></div>
             ${this._renderButton({ title: 'Bullet List', icon: ICONS.ul, action: () => this.formatList('bullet'), isActive: this._isActive('bulletList') })}
@@ -740,12 +808,26 @@ export class OLMarkdownEditor extends LitElement {
               ${this.enableHtmlBlock ? this._renderButton({ title: 'HTML Block', icon: ICONS.code, action: this.insertHtmlBlock.bind(this) }) : ''}
             </span>
             <div class="overflow-menu-wrapper overflow-toggle" @keydown="${this._handleOverflowKeydown}">
-              ${this._renderButton({ title: 'More', icon: ICONS.more, action: () => { this.showOverflowMenu = !this.showOverflowMenu; if (this.showOverflowMenu) this.showLinkPopover = false; }, isActive: this.showOverflowMenu, isPressed: null, isExpanded: this.showOverflowMenu })}
-              ${this.showOverflowMenu ? html`
-                <div class="overflow-menu" @mousedown="${(e) => e.stopPropagation()}">
+              ${this._renderButton({
+                  title: 'More',
+                  icon: ICONS.more,
+                  action: () => {
+                      this.showOverflowMenu = !this.showOverflowMenu;
+                      if (this.showOverflowMenu) this.showLinkPopover = false;
+                  },
+                  isActive: this.showOverflowMenu,
+                  isPressed: null,
+                  isExpanded: this.showOverflowMenu
+              })}
+              ${
+                  this.showOverflowMenu
+                      ? html`
+                <div class="overflow-menu" @mousedown="${e => e.stopPropagation()}">
                   ${secondaryButtons}
                 </div>
-              ` : ''}
+              `
+                      : ''
+              }
             </div>
           </div>
           <span class="${this.showSource ? 'toolbar-right-slot' : 'overflow-secondary'}">
@@ -758,7 +840,9 @@ export class OLMarkdownEditor extends LitElement {
         <div id="editor-root" class="editor-input ${this.showSource ? 'is-hidden' : ''}" style="${this.height ? `min-height:${this.height}` : ''}" @click="${this._focusEditor}">
             ${!this.editor ? html`<span class="loading-placeholder">${this.placeholder || 'Write something...'}</span>` : ''}
         </div>
-        ${this.showSource ? html`
+        ${
+            this.showSource
+                ? html`
           <textarea
             class="source-textarea"
             spellcheck="false"
@@ -766,7 +850,9 @@ export class OLMarkdownEditor extends LitElement {
             .value="${this.targetElement?.value || ''}"
             @input="${this._handleSourceInput}"
           ></textarea>
-        ` : ''}
+        `
+                : ''
+        }
       </div>
     `;
     }

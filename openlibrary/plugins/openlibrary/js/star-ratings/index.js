@@ -4,7 +4,7 @@ import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function (e) {
             handleRatingSubmission(e, form);
         });
     }
@@ -14,7 +14,6 @@ function handleRatingSubmission(event, form) {
     event.preventDefault();
     // Continue only if selected star is different from previous rating
     if (!event.submitter.classList.contains('star-selected')) {
-
         // Construct form data object:
         const formData = new FormData(form);
         let rating;
@@ -31,7 +30,7 @@ function handleRatingSubmission(event, form) {
             },
             body: new URLSearchParams(formData)
         })
-            .then((response) => {
+            .then(response => {
                 if (response.status === 401) {
                     if (event.submitter && event.submitter.id) {
                         const label = form.querySelector(`label[for="${event.submitter.id}"]`);
@@ -49,7 +48,7 @@ function handleRatingSubmission(event, form) {
                     throw new Error('Ratings update failed');
                 }
                 // Update view to deselect all stars
-                form.querySelectorAll('.star-selected').forEach((elem) => {
+                form.querySelectorAll('.star-selected').forEach(elem => {
                     elem.classList.remove('star-selected');
                     if (elem.hasAttribute('property')) {
                         elem.removeAttribute('property');
@@ -57,22 +56,23 @@ function handleRatingSubmission(event, form) {
                 });
 
                 const clearButton = form.querySelector('.star-messaging');
-                if (rating) {  // A rating was added or updated
+                if (rating) {
+                    // A rating was added or updated
                     // Update view to show patron's new star rating:
                     clearButton.classList.remove('hidden');
-                    form.querySelectorAll(`.star-${rating}`).forEach((elem) => {
+                    form.querySelectorAll(`.star-${rating}`).forEach(elem => {
                         elem.classList.add('star-selected');
                         if (elem.tagName === 'LABEL') {
                             elem.setAttribute('property', 'ratingValue');
                         }
                     });
-
-                } else {  // A rating was deleted
+                } else {
+                    // A rating was deleted
                     clearButton.classList.add('hidden');
                 }
                 announceRating(form.dataset.workKey, rating ?? null);
             })
-            .catch((error) => {
+            .catch(error => {
                 new FadingToast(error.message).show();
             });
     }
