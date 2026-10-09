@@ -5,8 +5,6 @@ import $ from 'jquery';
 import './jquery-ui-sortable'; // disable-selection + sortable for drag-to-reorder
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
-import { closePopup } from './utils';
-
 // covers/change.html: show the cover <ol-cover-manager> just saved on the page behind it.
 export function initCoversChange() {
     document.addEventListener('ol-cover-manager-save', (event) => {
@@ -19,7 +17,7 @@ export function initCoversChange() {
 
         if (key === '/type/author') {
             covers.forEach((img) => { img.src = coverId ? `${url}/a/id/${coverId}-M.jpg` : '/static/images/icons/avatar_author-lg.png'; });
-            if (coverId) updateCoverPreview(`${url}/a/id/${coverId}-L.jpg`, document);
+            if (coverId) updateCoverPreview(`${url}/a/id/${coverId}-L.jpg`);
             return;
         }
         if (!coverId) return;
@@ -36,7 +34,7 @@ export function initCoversChange() {
                 if (wrapper.nextElementSibling) wrapper.nextElementSibling.style.display = 'none';
             }
         });
-        updateCoverPreview(`${url}/b/id/${coverId}-L.jpg`, document);
+        updateCoverPreview(`${url}/b/id/${coverId}-L.jpg`);
     });
 }
 
@@ -66,60 +64,13 @@ export function initCoversAddManage() {
     $('.trash').disableSelection();
 }
 
-// covers/saved.html
-// Uses parent.$ in place of $ where elements lie outside of the "saved" window
-export function initCoversSaved() {
-    // Save the new image
-    // Pull data from data-config of class "imageSaved" in covers/saved.html
-    const data_config_json = parent.$('.manageCovers').data('config');
-    const doc_type_key = data_config_json['key'];
-    const coverstore_url = data_config_json['url'];
-    const cover_selector = data_config_json['selector'];
-    const image = $('.imageSaved').data('imageId');
-    var cover_url;
-
-    $('.popClose').on('click', closePopup);
-
-    // Update the image for the cover
-    if (['/type/edition', '/type/work', '/edit'].includes(doc_type_key)) {
-        if (image) {
-            cover_url = `${coverstore_url}/b/id/${image}-M.jpg`;
-            updateCoverPreview(`${coverstore_url}/b/id/${image}-L.jpg`);
-            // XXX-Anand: Fix this hack
-            // set url and  show SRPCover  and hide SRPCoverBlank
-            parent.$(cover_selector).attr('src', cover_url)
-                .parents('div:first').show()
-                .next().hide();
-            parent.$(cover_selector).attr('srcset', cover_url)
-                .parents('div:first').show()
-                .next().hide();
-        }
-        else {
-            // hide SRPCover and show SRPCoverBlank
-            parent.$(cover_selector)
-                .parents('div:first').hide()
-                .next().show();
-        }
-    }
-    else {
-        if (image) {
-            cover_url = `${coverstore_url}/a/id/${image}-M.jpg`;
-            updateCoverPreview(`${coverstore_url}/a/id/${image}-L.jpg`);
-        }
-        else {
-            cover_url = '/static/images/icons/avatar_author-lg.png';
-        }
-        parent.$(cover_selector).attr('src', cover_url);
-    }
-}
-
 // Point the enlarged preview dialog, and its trigger's fallback link, at the newly saved image.
-function updateCoverPreview(largeUrl, doc = parent.document) {
-    const preview = doc.querySelector('#seeImage img.cover-preview');
+function updateCoverPreview(largeUrl) {
+    const preview = document.querySelector('#seeImage img.cover-preview');
     if (preview) {
         preview.src = largeUrl;
     }
-    doc.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach((link) => { link.href = largeUrl; });
+    document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach((link) => { link.href = largeUrl; });
 }
 
 // This function will be triggered when the user clicks the "Paste" button

@@ -260,10 +260,9 @@ $(function() {
 
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
     const addCoversElement = document.getElementsByClassName('imageIntro').length;
-    const saveCoversElement = document.getElementsByClassName('imageSaved').length;
     const coverForm = document.querySelector('.ol-cover-form--clipboard');
 
-    if (addCoversElement || manageCoversElement || saveCoversElement || coverForm) {
+    if (addCoversElement || manageCoversElement || coverForm) {
         import('./covers')
             .then((module) => {
                 if (manageCoversElement) {
@@ -271,9 +270,6 @@ $(function() {
                 }
                 if (addCoversElement) {
                     module.initCoversAddManage();
-                }
-                if (saveCoversElement) {
-                    module.initCoversSaved();
                 }
                 if (coverForm) {
                     module.initPasteForm(coverForm);
