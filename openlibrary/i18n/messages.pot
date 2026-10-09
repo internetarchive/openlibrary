@@ -3961,12 +3961,12 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: contribute/dashboard.html.jinja
-msgid "Librarian dashboard"
+#: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Librarian Dashboard"
 msgstr ""
 
-#: contribute/dashboard.html.jinja lib/nav_head.html openlibrary/plugins/openlibrary/contribute.py
-msgid "Contribute"
+#: contribute/dashboard.html.jinja
+msgid "Fill in what's missing on real books, one detail at a time."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -4019,6 +4019,10 @@ msgstr ""
 
 #: contribute/dashboard.html.jinja
 msgid "Your recent fixes"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "See all your edits"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -4794,6 +4798,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Log out"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Contribute"
 msgstr ""
 
 #: lib/nav_head.html
@@ -7975,6 +7983,14 @@ msgid "Why this book: on about %(count)s readers' shelves."
 msgstr ""
 
 #: contribute/parts.html.jinja
+msgid "Go to book page"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Go to edit page"
+msgstr ""
+
+#: contribute/parts.html.jinja
 msgid "How to answer"
 msgstr ""
 
@@ -8062,7 +8078,7 @@ msgid "I opened the record and the year and publisher match this edition."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Add an edit comment"
+msgid "Add a comment about your edit"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8647,6 +8663,10 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
+msgid "The contribute dashboard is for librarians"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/contribute.py
 msgid "Published"
 msgstr ""
 
@@ -8665,10 +8685,6 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
 msgid "Most needed"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Books more people read come first."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

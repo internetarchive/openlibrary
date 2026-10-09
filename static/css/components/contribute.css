@@ -69,7 +69,6 @@
 /* Hero */
 .contrib-hero {
   display: grid;
-  gap: var(--spacing-stack-sm);
 }
 
 .contrib-hero__actions {
@@ -158,6 +157,29 @@
   margin-inline-end: var(--spacing-inline-md);
 }
 
+/* View/edit shortcuts for cards whose cover and title aren't links; shown on
+   card hover or keyboard focus, and hidden on touch screens. */
+.contrib-book__actions {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-book__actions {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-stack-xs);
+    margin-inline-start: auto;
+    opacity: 0;
+    transition: opacity 120ms ease-out;
+  }
+
+  .contrib-row:hover .contrib-book__actions,
+  .contrib-row:focus-within .contrib-book__actions {
+    opacity: 1;
+  }
+}
+
 /* Sections */
 .contrib-section {
   border: 1px solid var(--color-border-subtle);
@@ -226,6 +248,11 @@
   padding: var(--spacing-inset-md);
 }
 
+/* A shortcut to the full edit form; desktop only, where the card has room for it. */
+.contrib-record__edit {
+  display: none;
+}
+
 .contrib-record__cover {
   grid-area: cover;
   width: 100%;
@@ -256,6 +283,18 @@
 
   .contrib-record__head {
     align-self: start;
+    padding-inline-end: var(--spacing-xl);
+  }
+
+  .contrib-record {
+    position: relative;
+  }
+
+  .contrib-record__edit {
+    display: block;
+    position: absolute;
+    inset-block-start: var(--spacing-inset-sm);
+    inset-inline-end: var(--spacing-inset-sm);
   }
 }
 
@@ -568,6 +607,7 @@
   font-size: var(--font-size-body-medium);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
+  --contrib-badge-bg: var(--color-info-bg);
 }
 
 /* The badge says which kind of task this is before the label is read: blue for
@@ -579,18 +619,22 @@
   flex: none;
   padding: var(--spacing-inset-xs);
   border-radius: var(--border-radius-badge);
-  background: var(--color-info-bg);
+  background: var(--contrib-badge-bg);
   color: var(--color-info-fg);
 }
 
+/* Blue-tinted hover to match the blue label; the badge steps down a shade so
+   it doesn't vanish into the fill. */
 .contrib-row__task a:focus-visible,
 .contrib-row__task a:active {
-  background-color: var(--color-hover-overlay);
+  background-color: var(--color-primary-subtle);
+  --contrib-badge-bg: var(--color-info-bg-hover);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .contrib-row__task a:hover {
-    background-color: var(--color-hover-overlay);
+    background-color: var(--color-primary-subtle);
+    --contrib-badge-bg: var(--color-info-bg-hover);
   }
 }
 
@@ -694,12 +738,12 @@
   display: flex;
   gap: var(--spacing-inline-md);
   align-items: flex-start;
-  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-body);
 }
 
 .contrib-trap ol-icon {
   flex: none;
-  margin-block-start: 2px;
+  margin-block-start: calc((1lh - var(--icon-size-sm)) / 2);
   color: var(--color-warning-fg);
 }
 
@@ -757,12 +801,24 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  padding-block-end: var(--spacing-stack-lg);
+  border-block-end: var(--border-divider);
 }
 
 .contrib-dash__one {
   display: grid;
-  justify-items: start;
-  gap: var(--spacing-stack-xs);
+  justify-items: end;
+  margin-inline-start: auto;
+  text-align: end;
+  gap: var(--spacing-stack-sm);
+}
+
+@media (max-width: 767px) {
+  .contrib-dash__one {
+    flex-basis: 100%;
+    justify-items: stretch;
+    text-align: center;
+  }
 }
 
 .contrib-dash__h2 {
@@ -881,12 +937,7 @@
   min-width: 0;
 }
 
-.contrib-dash__listhead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+.contrib-dash__main .contrib-dash__listhead {
   margin-block-end: var(--spacing-stack-md);
 }
 
@@ -952,8 +1003,24 @@
   border-block-end: 1px solid var(--color-border-subtle);
 }
 
-.contrib-recent__when {
-  font-size: var(--font-size-label-small);
+a.contrib-recent__title {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  a.contrib-recent__title:hover {
+    text-decoration: underline;
+  }
+}
+
+.contrib-recent__all {
+  justify-self: start;
+  font-size: var(--font-size-body-medium);
+}
+
+.contrib-recent__meta {
+  font-size: var(--font-size-body-small);
 }
 
 .contrib-dash__aside {
@@ -981,5 +1048,22 @@
 
   .contrib-dash__aside {
     grid-column: auto;
+  }
+
+  /* The header shares the body's columns, so the action sits over the aside. */
+  .contrib-dash__head {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr) 280px;
+    column-gap: var(--spacing-section-gap);
+  }
+
+  .contrib-hero {
+    grid-column: 1 / 3;
+  }
+
+  .contrib-dash__one {
+    justify-items: stretch;
+    margin-inline-start: 0;
+    text-align: center;
   }
 }

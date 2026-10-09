@@ -48,7 +48,7 @@ def _gate(path: str):
     if not user:
         raise web.seeother(f"/account/login?{urlencode({'redirect': path})}")
     if not user.is_librarian_or_higher():
-        return render_template("permission_denied", path, "The contribute dashboard is for librarians")
+        return render_template("permission_denied", path, _("The contribute dashboard is for librarians"))
     return None
 
 
@@ -140,7 +140,6 @@ def _recent(user) -> list[dict]:
                 "title": edition.get_title(),
                 "url": f"{key}?m=history",
                 "field_label": playbooks[fld].label if fld in playbooks else "",
-                "value": _display(edition, fld) if fld else "",
                 "when": helpers.datestr(c.timestamp),
             }
         )
@@ -161,6 +160,7 @@ def _book(edition, readers: int | None = None) -> dict:
     return {
         "key": edition.key,
         "olid": edition.key.split("/")[-1],
+        "edit_url": edition.url(suffix="/edit"),
         "title": edition.get_title(),
         "authors": ", ".join(author_names),
         "cover_url": edition.get_cover_url("M"),
@@ -226,16 +226,17 @@ class contribute_index(delegate.page):
         task = _task_filter(query_param("task", ""))
         if denied := _gate(_dashboard_url(task)):
             return denied
+        user = accounts.get_current_user()
         return _render(
             "contribute/dashboard.html.jinja",
-            _("Contribute"),
+            _("Librarian Dashboard"),
             one_task_url=_dashboard_url(task, base="/contribute/one"),
             rail=_rail(task),
             rows=_rows(task),
             heading=_("Missing: %(field)s", field=_filters()[task][0]) if task else _("Most needed"),
-            sort_note=_("Books more people read come first."),
             empty=_("Nothing missing here right now. Thank you."),
-            recent=_recent(accounts.get_current_user()),
+            recent=_recent(user),
+            history_url=user.key,
         )
 
 

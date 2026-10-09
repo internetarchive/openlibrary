@@ -4,11 +4,11 @@
 <div class="contrib-dash" data-contribute-list>
     <header class="contrib-dash__head">
         <div class="contrib-hero">
-            <p class="contrib-overline">{{ _("Librarian dashboard") }}</p>
-            <h1 class="contrib-title">{{ _("Contribute") }}</h1>
+            <h1 class="contrib-title">{{ _("Librarian Dashboard") }}</h1>
+            <p class="contrib-muted">{{ _("Fill in what's missing on real books, one detail at a time.") }}</p>
         </div>
         <div class="contrib-dash__one">
-            <ol-button variant="primary" href="{{ data.one_task_url }}">
+            <ol-button variant="primary" full-width href="{{ data.one_task_url }}">
                 {{ icon("dices", slot="icon-start") }}
                 {{ _("Surprise me") }}
             </ol-button>
@@ -52,14 +52,11 @@
             </div>
         </nav>
         <main class="contrib-dash__main">
-            <div class="contrib-dash__listhead">
-                <h2 class="contrib-dash__h2">{{ data.heading }}</h2>
-                <span class="contrib-muted">{{ data.sort_note }}</span>
-            </div>
+            <h2 class="contrib-dash__h2 contrib-dash__listhead">{{ data.heading }}</h2>
             <ol class="contrib-rows">
                 {% for row in data.rows %}
                     <li class="contrib-row" data-book-row>
-                        {{ parts.book_header(row.book, compact=True) }}
+                        {{ parts.book_header(row.book, compact=True, linked=False) }}
                         <ul class="contrib-row__tasks">
                             {% for task in row.tasks %}
                                 {{ parts.task_row(task) }}
@@ -81,12 +78,12 @@
                     <ul class="contrib-recent">
                         {% for fix in data.recent %}
                             <li class="contrib-recent__item">
-                                <a href="{{ fix.url }}">{{ fix.title }}</a>
-                                <span class="contrib-muted">{{ fix.field_label }}{% if fix.value %}: {{ fix.value }}{% endif %}</span>
-                                <span class="contrib-muted contrib-recent__when">{{ fix.when }}</span>
+                                <a class="contrib-recent__title" href="{{ fix.url }}">{{ fix.title }}</a>
+                                <span class="contrib-muted contrib-recent__meta">{{ fix.when }}{% if fix.field_label %} · {{ fix.field_label }}{% endif %}</span>
                             </li>
                         {% endfor %}
                     </ul>
+                    <a class="contrib-recent__all" href="{{ data.history_url }}">{{ _("See all your edits") }}</a>
                 {% else %}
                     <p class="contrib-muted">{{ _("Fixes you save here show up in this list.") }}</p>
                 {% endif %}
