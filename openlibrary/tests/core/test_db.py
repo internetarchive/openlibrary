@@ -56,8 +56,8 @@ CREATE TABLE yearly_reading_goals (
     username text NOT NULL,
     year integer NOT NULL,
     target integer NOT NULL,
-    created datetime NOT NULL,
-    updated datetime NOT NULL,
+    created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     primary key (username, year)
 );
 """
