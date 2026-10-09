@@ -19,6 +19,7 @@ export const DEFAULT_STRINGS = {
     actionFailed: 'Could not complete that action.',
     addFailedNotFound: 'PR %s does not exist.',
     addFailedUnavailable: 'Could not check PR %s — GitHub is unavailable.',
+    addFailedTokenInvalid: 'Could not add PR %s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml.',
     addFailedOther: 'Could not add PR %s.',
     title: 'Testing Environment',
     addPrs: 'Add PRs',
@@ -26,6 +27,7 @@ export const DEFAULT_STRINGS = {
     add: 'Add PRs',
     addChange: 'Add',
     pr: 'PR',
+    draft: 'Draft',
     author: 'Author',
     assignee: 'Assignee',
     drift: 'Drift',
@@ -114,7 +116,8 @@ export function actionErrorMessage(result, strings) {
     if (result?.error === 'add_failed' && failed && Object.keys(failed).length) {
         const reasons = {
             not_found: strings.addFailedNotFound,
-            unavailable: strings.addFailedUnavailable
+            unavailable: strings.addFailedUnavailable,
+            token_invalid: strings.addFailedTokenInvalid
         };
         // Numeric order, not insertion order: JSON object keys that look like
         // integers come back re-sorted ascending by the JS engine, so relying

@@ -1186,10 +1186,9 @@ class export_books(delegate.page):
     @require_login
     def GET(self):
         i = web.input(type="")
-        user = accounts.get_current_user()
-
         if not i.type:
             # Render export selection page when no type specified
+            user = accounts.get_current_user()
             username = user.key.split("/")[-1]
             template = render["account/export"](user=user)
             return MyBooksTemplate(username, "exports").render(header_title=_("Export your data"), template=template)
@@ -1253,7 +1252,6 @@ class my_follows(delegate.page):
 
 
 def get_account_loans_json(user: User) -> dict[str, Any]:
-    user.update_loan_status()
     loans = lending.get_loans_of_user(user.key)
     return {"loans": loans}
 
@@ -1280,7 +1278,6 @@ class account_loans(delegate.page):
         except ValueError:
             page = 1
         user = accounts.get_current_user()
-        user.update_loan_status()
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
         docs = get_loans_of_user(user.key)

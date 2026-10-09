@@ -134,3 +134,127 @@ class Test_pot_width:
 
         assert "#, python-format" in pot
         assert "Created %(reference)s" in pot
+
+
+PO_HEADER = 'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n"Plural-Forms: nplurals=2; plural=(n != 1);\\n"\n\n'
+
+
+def _write_locale(base, lang, body):
+    path = base / lang
+    path.mkdir(parents=True, exist_ok=True)
+    (path / "messages.po").write_text(PO_HEADER + body, encoding="utf-8")
+    return path / "messages.po"
+
+
+class Test_install_translations:
+    """``install_translations`` is the gate olbase runs on ``.po`` files pulled from
+    openlibrary-i18n. A file that would crash at render time or break ``make i18n``
+    must not replace the committed one.
+    """
+
+    GOOD = 'msgid "by %(name)s"\nmsgstr "von %(name)s"\n'
+
+    def test_installs_a_valid_file_into_a_new_language_directory(self, tmp_path):
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(src, "xx", self.GOOD)
+        dest.mkdir()
+
+        assert i18n.install_translations(str(src), str(dest)) == {"xx": []}
+        assert (dest / "xx" / "messages.po").read_text(encoding="utf-8").endswith(self.GOOD)
+
+    @pytest.mark.parametrize(
+        "body",
+        [
+            # hr:5752 on openlibrary master: positional msgid, named msgstr -> TypeError
+            pytest.param('msgid "by <a href=\\"%s\\">You</a>"\nmsgstr "od <a href=\\"%(link)s\\">ti</a>"\n', id="positional-to-named"),
+            # ko:1181 on openlibrary master: %(count) followed by a non-conversion char -> ValueError
+            pytest.param('msgid "%(count)s commits behind"\nmsgstr "%(count)개 커밋 뒤처짐"\n', id="bad-conversion"),
+            pytest.param('msgid "by %(name)s"\nmsgstr "von %(author)s"\n', id="unknown-name"),
+            pytest.param('msgid "%s books"\nmsgstr "%s %s Bücher"\n', id="too-many-positional"),
+            pytest.param(
+                'msgid "one book"\nmsgid_plural "%(n)s books"\nmsgstr[0] "ein Buch"\nmsgstr[1] "%(m)s Bücher"\n',
+                id="plural-form",
+            ),
+            pytest.param('msgid "a"\nthis is not po\nmsgstr "b"\n', id="syntax"),
+            # Jinja's newstyle gettext always applies `% variables`, even with none
+            pytest.param('msgid "Edit"\nmsgstr "Modifier (100% gratuit)"\n', id="jinja-bare-percent"),
+            # renders the argument dict's repr
+            pytest.param('msgid "by %(name)s"\nmsgstr "von %s"\n', id="named-to-positional"),
+        ],
+    )
+    def test_keeps_the_committed_file_when_the_pulled_one_is_unsafe(self, tmp_path, body):
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(src, "hr", body)
+        committed = _write_locale(dest, "hr", self.GOOD)
+        before = committed.read_bytes()
+
+        results = i18n.install_translations(str(src), str(dest))
+
+        assert results["hr"], "unsafe file was accepted"
+        assert committed.read_bytes() == before
+
+    def test_keeps_committed_on_undecodable_file(self, tmp_path):
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        (src / "hr").mkdir(parents=True)
+        (src / "hr" / "messages.po").write_bytes(PO_HEADER.encode() + b'msgid "a"\nmsgstr "\xff\xfe"\n')
+        committed = _write_locale(dest, "hr", self.GOOD)
+        before = committed.read_bytes()
+
+        assert i18n.install_translations(str(src), str(dest))["hr"]
+        assert committed.read_bytes() == before
+
+    def test_keeps_committed_when_plural_forms_header_does_not_load(self, tmp_path):
+        # Babel compiles this, but gettext raises when load_translations loads the .mo.
+        # Babel only writes Plural-Forms into the .mo when the catalog has a Language.
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        (src / "hr").mkdir(parents=True)
+        header = PO_HEADER.replace('"Plural-Forms', '"Language: hr\\n"\n"Plural-Forms').replace("plural=(n != 1);", "plural=((n != 1);")
+        (src / "hr" / "messages.po").write_text(header + self.GOOD, encoding="utf-8")
+        committed = _write_locale(dest, "hr", self.GOOD)
+        before = committed.read_bytes()
+
+        assert i18n.install_translations(str(src), str(dest))["hr"]
+        assert committed.read_bytes() == before
+
+    def test_untranslated_and_benign_entries_do_not_block_install(self, tmp_path):
+        # Empty msgstrs fall back to English at runtime; %(n)d for %(n)s is fine when
+        # n is an int; a placeholder-free msgid with a plain or %%-escaped msgstr is fine.
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(
+            src,
+            "hr",
+            'msgid "%s books"\nmsgstr ""\n'
+            'msgid "one"\nmsgid_plural "%s works"\nmsgstr[0] ""\nmsgstr[1] ""\n'
+            'msgid "%(n)s people"\nmsgstr "%(n)d ljudi"\n'
+            'msgid "Edit"\nmsgstr "Uredi (100%% besplatno)"\n' + self.GOOD,
+        )
+        dest.mkdir()
+
+        assert i18n.install_translations(str(src), str(dest)) == {"hr": []}
+
+    def test_fuzzy_entries_do_not_block_install(self, tmp_path):
+        # Fuzzy entries are never compiled into the .mo, so they cannot crash a render.
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(src, "hr", '#, fuzzy\nmsgid "by %s"\nmsgstr "od %(link)s"\n' + self.GOOD)
+        dest.mkdir()
+
+        assert i18n.install_translations(str(src), str(dest)) == {"hr": []}
+
+    def test_one_bad_language_does_not_stop_the_others(self, tmp_path):
+        src, dest = tmp_path / "src", tmp_path / "dest"
+        _write_locale(src, "de", self.GOOD)
+        _write_locale(src, "hr", 'msgid "by %s"\nmsgstr "od %(link)s"\n')
+        dest.mkdir()
+
+        results = i18n.install_translations(str(src), str(dest))
+
+        assert results["de"] == []
+        assert results["hr"]
+        assert (dest / "de" / "messages.po").exists()
+        assert not (dest / "hr").exists()
+
+    def test_source_with_no_languages_is_an_error(self, tmp_path):
+        # A layout change upstream must not look like "nothing to update".
+        (tmp_path / "src").mkdir()
+        with pytest.raises(ValueError, match="no locales"):
+            i18n.install_translations(str(tmp_path / "src"), str(tmp_path))

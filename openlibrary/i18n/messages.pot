@@ -536,7 +536,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: ObservationsModal.html account/loans.html covers/author_photo.html covers/book_cover.html covers/change.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -690,10 +690,6 @@ msgstr ""
 msgid "System information"
 msgstr ""
 
-#: status.html
-msgid "Features enabled"
-msgstr ""
-
 #: subjects.html
 msgid "Edit tag for this subject"
 msgstr ""
@@ -844,7 +840,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: reading_goals/reading_goal_form.html.jinja widget.html
+#: LoanStatus.html reading_goals/reading_goal_form.html.jinja widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -973,6 +969,10 @@ msgid "Staff"
 msgstr ""
 
 #: about/index.html
+msgid "Leads"
+msgstr ""
+
+#: about/index.html
 msgid "Fellows"
 msgstr ""
 
@@ -998,6 +998,10 @@ msgstr ""
 
 #: about/index.html
 msgid "Librarianship"
+msgstr ""
+
+#: about/index.html
+msgid "Year:"
 msgstr ""
 
 #: about/index.html
@@ -1077,7 +1081,8 @@ msgid "Export your Reading Log"
 msgstr ""
 
 #: account/export.html
-msgid "Download a copy of your <a href=\"/help/faq/reading-log.en#reading-log\">reading log</a>."
+#, python-format
+msgid "Download a copy of your %(link_start)sreading log%(link_end)s."
 msgstr ""
 
 #: account/export.html
@@ -1113,7 +1118,8 @@ msgid "Export your star ratings"
 msgstr ""
 
 #: account/export.html
-msgid "Download a copy of your <a href=\"/help/faq/reviews#star-ratings\">star ratings</a>."
+#, python-format
+msgid "Download a copy of your %(link_start)sstar ratings%(link_end)s."
 msgstr ""
 
 #: account/follows.html
@@ -1125,15 +1131,15 @@ msgid "Sign in with a third-party account"
 msgstr ""
 
 #: account/import.html
-msgid "Goodreads"
+msgid "Import from Goodreads"
 msgstr ""
 
 #: account/import.html
-msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\" target=\"_blank\">Goodreads Import/Export</a>"
+msgid "Format: .csv (Max 10MB)"
 msgstr ""
 
 #: account/import.html
-msgid "File size limit 10MB and .csv file type only"
+msgid "How to export?"
 msgstr ""
 
 #: account/import.html
@@ -1149,11 +1155,31 @@ msgid "Load Books"
 msgstr ""
 
 #: account/import.html
-msgid "LibraryThing"
+msgid "Scan barcodes"
 msgstr ""
 
 #: account/import.html
-msgid "Coming Soon"
+msgid "Instantly add physical books to your reading log by scanning their barcodes with your device's camera."
+msgstr ""
+
+#: account/import.html
+msgid "Launch Barcode Scanner"
+msgstr ""
+
+#: account/import.html
+msgid "Looking for exports? They've moved to a separate page - click here to export your data."
+msgstr ""
+
+#: account/import.html
+msgid "Help us decide which importers to build next"
+msgstr ""
+
+#: account/import.html
+msgid "Tell us where your books live now. We count requests when we plan the next importer."
+msgstr ""
+
+#: account/import.html
+msgid "LibraryThing"
 msgstr ""
 
 #: account/import.html
@@ -2802,8 +2828,8 @@ msgstr ""
 msgid "Listen to a reading from %s"
 msgstr ""
 
-#: book_providers/read_button.html
-msgid "Audiobook"
+#: ReadingOptionsMenu.html book_providers/read_button.html
+msgid "Listen"
 msgstr ""
 
 #: book_providers/read_button.html
@@ -4018,10 +4044,6 @@ msgid "Photo of %(author)s"
 msgstr ""
 
 #: covers/author_photo.html
-msgid "Click to close"
-msgstr ""
-
-#: covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
 msgstr ""
@@ -4963,15 +4985,25 @@ msgid "You must select a primary record to point the duplicates toward."
 msgstr ""
 
 #: merge/authors.html
-msgid "Merge these authors?"
-msgstr ""
+#, python-format
+msgid "Merge %(count)s author into %(name)s?"
+msgid_plural "Merge %(count)s authors into %(name)s?"
+msgstr[0] ""
+msgstr[1] ""
 
-#: merge/authors.html search/authors.html
-msgid "Merge authors"
+#: merge/authors.html
+#, python-format
+msgid "Merge %(count)s author"
+msgid_plural "Merge %(count)s authors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: merge/authors.html
+msgid "Keep"
 msgstr ""
 
 #: merge/authors.html
-msgid "The duplicate records will be redirected to the primary record."
+msgid "Merge in and redirect"
 msgstr ""
 
 #: merge/authors.html recentchanges/merge/view.html
@@ -5641,6 +5673,10 @@ msgid "%(count)d records modified."
 msgstr ""
 
 #: search/advancedsearch.html
+msgid "All fields"
+msgstr ""
+
+#: search/advancedsearch.html
 msgid "ISBN"
 msgstr ""
 
@@ -5675,6 +5711,10 @@ msgstr ""
 
 #: search/authors.html
 msgid "Is the same author listed twice?"
+msgstr ""
+
+#: search/authors.html
+msgid "Merge authors"
 msgstr ""
 
 #: search/authors.html
@@ -6614,14 +6654,6 @@ msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT 
 msgstr ""
 
 #: type/list/embed.html
-msgid "This book is checked out"
-msgstr ""
-
-#: type/list/embed.html
-msgid "Checked out"
-msgstr ""
-
-#: type/list/embed.html
 msgid "Borrow book"
 msgstr ""
 
@@ -7133,14 +7165,6 @@ msgstr[1] ""
 msgid "by an <em>unknown author</em>"
 msgstr ""
 
-#: BookPreview.html
-msgid "Preview Only"
-msgstr ""
-
-#: BookPreview.html
-msgid "No Preview"
-msgstr ""
-
 #: BookPreviewFloater.html
 msgid "Preview Book"
 msgstr ""
@@ -7151,6 +7175,10 @@ msgstr ""
 
 #: BookPreviewFloater.html
 msgid "See more about this book on Archive.org"
+msgstr ""
+
+#: CheckWorldcat.html ReadingOptionsMenu.html
+msgid "Nearby Libraries"
 msgstr ""
 
 #: DisplayCode.html
@@ -7240,19 +7268,7 @@ msgid "All copies are checked out."
 msgstr ""
 
 #: LoanStatus.html
-msgid "This book is currently checked out, please check back later."
-msgstr ""
-
-#: LoanStatus.html
 msgid "Checked Out"
-msgstr ""
-
-#: LoanStatus.html
-msgid "Only a preview is available."
-msgstr ""
-
-#: LocateButton.html ReadingOptionsMenu.html
-msgid "Nearby Libraries"
 msgstr ""
 
 #: NotInLibrary.html
@@ -7338,10 +7354,6 @@ msgstr ""
 
 #: ReadingOptionsMenu.html
 msgid "More reading options"
-msgstr ""
-
-#: ReadingOptionsMenu.html
-msgid "Listen"
 msgstr ""
 
 #: RecentChanges.html
@@ -7580,6 +7592,11 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
+msgid "Could not add PR %(num)s — GitHub API token is invalid or expired. Check `github_api_token` in config/openlibrary.yml."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
 msgid "Could not add PR %(num)s."
 msgstr ""
 
@@ -7597,6 +7614,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "PR"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Draft"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -8342,6 +8363,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Loading carousel"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "On the Same Shelf"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py

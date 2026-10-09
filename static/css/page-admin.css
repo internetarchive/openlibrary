@@ -15,35 +15,6 @@
 @import "legacy-borrowTable-adminUser.css";
 @import "components/pd-dashboard.css";
 
-.status--0 {
-  color: var(--red);
-}
-.status--1 {
-  color: var(--orange);
-}
-.status--2 {
-  color: var(--blue);
-}
-.status--3 {
-  color: var(--green);
-}
-
-.earnings--profit {
-  color: var(--green);
-}
-.earnings--loss {
-  color: var(--red);
-}
-
-.sponsor th {
-  background-color: var(--grey-fafafa);
-  padding: var(--spacing-inset-xs);
-  border-bottom: 1px solid var(--light-mid-grey);
-  text-transform: uppercase;
-  font-size: 0.65em;
-  font-weight: bold;
-}
-
 /* graphite graphs may be bigger than viewport... */
 img {
   max-width: 100%;
@@ -172,13 +143,6 @@ div.sparkDisplay {
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
-  /* openlibrary/admin/templates/admin/index.html */
-  div#uniqueIps {
-    float: left;
-    width: 918px;
-    margin: 20px 0 30px;
-  }
-
   /* openlibrary/admin/templates/admin/index.html */
   div.measurements,
   div.measurements div {

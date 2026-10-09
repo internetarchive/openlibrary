@@ -26,7 +26,6 @@ def send_slack_message(message: str):
 if __name__ == "__main__":
     GH_LOGIN_TO_SLACK = {
         "cdrini": "<@cdrini>",
-        "jimchamp": "<@U01ARTHG9EV>",
         "mekarpeles": "<@mek>",
         "scottbarnes": "<@U03MNR6T7FH>",
     }
@@ -35,7 +34,7 @@ if __name__ == "__main__":
         "Priority: 1": "❗️ ",
     }
 
-    INCLUDE_AUTHORS = ["mekarpeles", "cdrini", "scottbarnes", "jimchamp"]
+    INCLUDE_AUTHORS = ["mekarpeles", "cdrini", "scottbarnes"]
     EXCLUDE_LABELS = [
         "Needs: Submitter Input",
         "State: Blocked",
