@@ -31,7 +31,7 @@ export function urlencode(query) {
 export function slice(array, begin, end) {
     var a = [];
     var i;
-    for (i=begin; i < Math.min(array.length, end); i++) {
+    for (i = begin; i < Math.min(array.length, end); i++) {
         a.push(array[i]);
     }
     return a;

@@ -4,8 +4,6 @@ import { olConfirm } from '../../../../components/lit/alert-dialog.js';
 import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.css';
 
-
-
 /**
  * Initializes share popover button listeners.
  *
@@ -20,7 +18,7 @@ export function initShareModal() {
  * Adds click listeners to action buttons inside share popovers.
  */
 function addShareModalButtonListeners() {
-    $(document).on('click', '.share-popover .copy-url-btn', async function(event) {
+    $(document).on('click', '.share-popover .copy-url-btn', async function (event) {
         event.preventDefault();
         try {
             await navigator.clipboard.writeText(window.location.href);
@@ -35,7 +33,7 @@ function addShareModalButtonListeners() {
         }
     });
 
-    $(document).on('click', '.share-popover .embed-work-btn', function(event) {
+    $(document).on('click', '.share-popover .embed-work-btn', function (event) {
         event.preventDefault();
         const embedCode = this.dataset.embedCode;
         if (embedCode) {
@@ -48,14 +46,13 @@ function addShareModalButtonListeners() {
         }
     });
 
-    $(document).on('click', '.share-popover .share-popover__link:not(.embed-work-btn):not(.copy-url-btn)', function() {
+    $(document).on('click', '.share-popover .share-popover__link:not(.embed-work-btn):not(.copy-url-btn)', function () {
         const popover = this.closest('ol-popover');
         if (popover) {
             popover.open = false;
         }
     });
 }
-
 
 /** English fallbacks. Must match type/edition/notes_modal_i18n.html. */
 export const DEFAULT_NOTES_MODAL_STRINGS = {
@@ -65,7 +62,7 @@ export const DEFAULT_NOTES_MODAL_STRINGS = {
     deleteMessage: 'This cannot be undone.',
     deleteConfirm: 'Delete Note',
     cancel: 'Cancel',
-    close: 'Close',
+    close: 'Close'
 };
 
 /**
@@ -131,7 +128,7 @@ export function initNotesModal(modalLinks) {
      * desktop and mobile -- or they stay stale until the next page load.
      */
     function setNoteIndicator(hasNote) {
-        modalLinks.forEach((link) => {
+        modalLinks.forEach(link => {
             link.classList.toggle('icon-link--has-note', hasNote);
             const use = link.querySelector('svg use');
             if (use) {
@@ -163,7 +160,7 @@ export function initNotesModal(modalLinks) {
         formData.delete('work_id');
         const response = await fetch(`/works/${workOlid}/notes.json`, {
             method: 'POST',
-            body: formData,
+            body: formData
         });
         if (!response.ok) {
             throw new Error(`Notes request failed: ${response.status}`);
@@ -223,7 +220,7 @@ export function initNotesModal(modalLinks) {
     textarea.addEventListener('input', syncButtons);
     syncButtons();
 
-    modalLinks.forEach((link) => {
+    modalLinks.forEach(link => {
         link.addEventListener('click', () => {
             dialog.open = true;
         });
@@ -231,14 +228,14 @@ export function initNotesModal(modalLinks) {
 
     saveButton.addEventListener('click', saveNote);
 
-    deleteButton.addEventListener('click', async() => {
+    deleteButton.addEventListener('click', async () => {
         const confirmed = await olConfirm({
             title: strings.deleteTitle,
             message: strings.deleteMessage,
             confirmLabel: strings.deleteConfirm,
             cancelLabel: strings.cancel,
             labelClose: strings.close,
-            destructive: true,
+            destructive: true
         });
         if (confirmed) {
             await deleteNote();
@@ -247,13 +244,13 @@ export function initNotesModal(modalLinks) {
 }
 
 /**
-* Add listeners to update and delete buttons on the notes page.
-*
-* On successful delete, list elements related to the note are removedd
-* from the view.
-*/
+ * Add listeners to update and delete buttons on the notes page.
+ *
+ * On successful delete, list elements related to the note are removedd
+ * from the view.
+ */
 export function addNotesPageButtonListeners() {
-    $('.update-note-link-button').on('click', function(event) {
+    $('.update-note-link-button').on('click', function (event) {
         event.preventDefault();
         const workId = $(this).parent().siblings('input')[0].value;
         const editionId = $(this).parent().attr('id').split('-')[0];
@@ -269,13 +266,13 @@ export function addNotesPageButtonListeners() {
             type: 'POST',
             contentType: false,
             processData: false,
-            success: function() {
+            success: function () {
                 showToast('Update successful!');
             }
         });
     });
 
-    $('.delete-note-button').on('click', function() {
+    $('.delete-note-button').on('click', function () {
         if (confirm('Really delete this book note?')) {
             const $parent = $(this).parent();
 
@@ -291,7 +288,7 @@ export function addNotesPageButtonListeners() {
                 type: 'POST',
                 contentType: false,
                 processData: false,
-                success: function() {
+                success: function () {
                     showToast('Note deleted.');
 
                     // Remove list element from UI:
@@ -337,7 +334,7 @@ export function initObservationsModal($modalLinks) {
     addObservationReloadListeners($('.observations-list'));
     addDeleteObservationsListeners($('.delete-observations-button'));
 
-    $modalLinks.each(function(_i, modalLinkElement) {
+    $modalLinks.each(function (_i, modalLinkElement) {
         const $element = $(modalLinkElement);
         const context = JSON.parse(getModalContent($element).dataset['context']);
 
@@ -354,8 +351,8 @@ export function initObservationsModal($modalLinks) {
  * @param {JQuery} $modalLinks  A collection of modal links.
  */
 function addClickListeners($modalLinks, maxWidth) {
-    $modalLinks.each(function(_i, modalLinkElement) {
-        $(modalLinkElement).on('click', function() {
+    $modalLinks.each(function (_i, modalLinkElement) {
+        $(modalLinkElement).on('click', function () {
             // Get context, which is attached to the modal content
             const content = getModalContent($(this));
             displayModal(content, maxWidth);
@@ -385,8 +382,8 @@ function getModalContent($modalLink) {
  * @param {JQuery} $observationLists All of the observations lists on a page
  */
 function addObservationReloadListeners($observationLists) {
-    $observationLists.each(function(_i, list) {
-        $(list).on('contentReload', function() {
+    $observationLists.each(function (_i, list) {
+        $(list).on('contentReload', function () {
             const $list = $(this);
             const $buttonsDiv = $list.siblings('div').first();
             const id = $list.attr('id');
@@ -403,41 +400,40 @@ function addObservationReloadListeners($observationLists) {
                 type: 'GET',
                 url: `/works/${workOlid}/observations`,
                 dataType: 'json'
-            })
-                .done(function(data) {
-                    let listItems = '';
-                    for (const [category, values] of Object.entries(data)) {
-                        let observations = values.join(', ');
-                        observations = observations.charAt(0).toUpperCase() + observations.slice(1);
+            }).done(function (data) {
+                let listItems = '';
+                for (const [category, values] of Object.entries(data)) {
+                    let observations = values.join(', ');
+                    observations = observations.charAt(0).toUpperCase() + observations.slice(1);
 
-                        listItems += `
+                    listItems += `
                     <li>
                         <span class="observation-category">${category.charAt(0).toUpperCase() + category.slice(1)}:</span> ${observations}
                     </li>
                 `;
-                    }
+                }
 
-                    $list.empty();
+                $list.empty();
 
-                    if (listItems.length === 0) {
-                        listItems = `
+                if (listItems.length === 0) {
+                    listItems = `
                     <li>
                         No observations for this work.
                     </li>
                 `;
-                        $list.addClass('no-content');
-                        $buttonsDiv.removeClass('observation-buttons');
-                        $buttonsDiv.addClass('no-content');
-                        $buttonsDiv.children().first().addClass('hidden');
-                    } else {
-                        $list.removeClass('no-content');
-                        $buttonsDiv.removeClass('no-content');
-                        $buttonsDiv.addClass('observation-buttons');
-                        $buttonsDiv.children().first().removeClass('hidden');
-                    }
+                    $list.addClass('no-content');
+                    $buttonsDiv.removeClass('observation-buttons');
+                    $buttonsDiv.addClass('no-content');
+                    $buttonsDiv.children().first().addClass('hidden');
+                } else {
+                    $list.removeClass('no-content');
+                    $buttonsDiv.removeClass('no-content');
+                    $buttonsDiv.addClass('observation-buttons');
+                    $buttonsDiv.children().first().removeClass('hidden');
+                }
 
-                    $list.append(listItems);
-                });
+                $list.append(listItems);
+            });
         });
     });
 }
@@ -453,17 +449,17 @@ function addObservationReloadListeners($observationLists) {
  * @param {JQuery} $deleteButtons All observation delete buttons found on a page.
  */
 function addDeleteObservationsListeners($deleteButtons) {
-    $deleteButtons.each(function(_i, deleteButton) {
+    $deleteButtons.each(function (_i, deleteButton) {
         const $button = $(deleteButton);
 
-        $button.on('click', function() {
+        $button.on('click', function () {
             const workOlid = `OL${$button.prop('id').split('-')[0]}W`;
 
             $.ajax({
                 url: `/works/${workOlid}/observations`,
                 type: 'DELETE',
                 contentType: 'application/json',
-                success: function() {
+                success: function () {
                     // Remove observations in view
                     const $observationsView = $button.closest('.observation-view');
                     const $list = $observationsView.find('ul');
@@ -494,7 +490,7 @@ function addDeleteObservationsListeners($deleteButtons) {
  * @param {JQuery} $form An observations modal form
  */
 function clearForm($form) {
-    $form.find('input').each(function(_i, input) {
+    $form.find('input').each(function (_i, input) {
         if (input.checked) {
             input.checked = false;
         }
@@ -520,7 +516,7 @@ function displayModal(content, maxWidth) {
         href: modalId,
         width: '100%',
         maxWidth: maxWidth,
-        onClosed: function() {
+        onClosed: function () {
             if (reloadId) {
                 $(`#${reloadId}`).trigger('contentReload');
             }
@@ -544,11 +540,11 @@ function addObservationChangeListeners($parent, context) {
     const username = context.username;
     const workOlid = context.work.split('/')[2];
 
-    $questionSections.each(function() {
+    $questionSections.each(function () {
         const $inputs = $(this).find('input');
 
-        $inputs.each(function() {
-            $(this).on('change', function() {
+        $inputs.each(function () {
+            $(this).on('change', function () {
                 const type = $(this).attr('name');
                 const value = $(this).attr('value');
                 const observation = {};
@@ -556,7 +552,7 @@ function addObservationChangeListeners($parent, context) {
 
                 const data = {
                     username: username,
-                    action: `${$(this).prop('checked') ? 'add': 'delete'}`,
+                    action: `${$(this).prop('checked') ? 'add' : 'delete'}`,
                     observation: observation
                 };
 
@@ -584,13 +580,13 @@ function submitObservation($input, workOlid, data, sectionType) {
         contentType: 'application/json',
         data: JSON.stringify(data)
     })
-        .done(function() {
+        .done(function () {
             toastMessage = `${capitalizedType} saved!`;
         })
-        .fail(function() {
+        .fail(function () {
             toastMessage = `${capitalizedType} save failed...`;
         })
-        .always(function() {
+        .always(function () {
             showToast(toastMessage, $input.closest('.metadata-form'));
         });
 }

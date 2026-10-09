@@ -104,7 +104,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         noMatchesLabel: { type: String, attribute: 'no-matches-label' },
         loadingLabel: { type: String, attribute: 'loading-label' },
         _query: { state: true },
-        loading: { type: Boolean, reflect: true },
+        loading: { type: Boolean, reflect: true }
     };
 
     static styles = css`
@@ -451,9 +451,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         // own trigger handler — the only point where the open can still be
         // intercepted (see _requestOpen).
         this.addEventListener('click', this._onTriggerClickCapture, true);
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -524,7 +522,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         if (!btn || !this._defaultTriggerText) return;
         const selected = this.selected || [];
         const count = selected.length;
-        const labelFor = (value) => (this.items || []).find(it => it.value === value)?.label ?? value;
+        const labelFor = value => (this.items || []).find(it => it.value === value)?.label ?? value;
 
         if (count === 0) {
             this._defaultTriggerText.textContent = this.label;
@@ -555,18 +553,16 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         const suggestionItems = items.filter(it => !selectedSet.has(it.value));
 
         const query = this._query.trim().toLowerCase();
-        const filteredSuggestions = query
-            ? suggestionItems.filter(it => (it.label || '').toLowerCase().includes(query))
-            : suggestionItems;
+        const filteredSuggestions = query ? suggestionItems.filter(it => (it.label || '').toLowerCase().includes(query)) : suggestionItems;
 
         const hasSelected = selectedItems.length > 0;
-        const suggestionsHeading = hasSelected
-            ? this.suggestionsHeading
-            : (this.unselectedHeading || this.suggestionsHeading);
+        const suggestionsHeading = hasSelected ? this.suggestionsHeading : this.unselectedHeading || this.suggestionsHeading;
 
         return html`
             <div class="panel">
-                ${showSearch ? html`
+                ${
+                    showSearch
+                        ? html`
                     <div class="filter">
                         ${OlSelectPopover._searchIcon}
                         <input
@@ -580,8 +576,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                             @keydown=${this._onListKeydown}
                         />
                     </div>
-                ` : nothing}
-                ${hasSelected ? html`
+                `
+                        : nothing
+                }
+                ${
+                    hasSelected
+                        ? html`
                     <ul
                         class="group group--selected"
                         role="group"
@@ -589,29 +589,45 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                         @keydown=${this._onListKeydown}
                     >
                         <li class="group-heading" aria-hidden="true">${this.selectedHeading}</li>
-                        ${repeat(selectedItems, it => it.value, it => this._renderItem(it))}
+                        ${repeat(
+                            selectedItems,
+                            it => it.value,
+                            it => this._renderItem(it)
+                        )}
                     </ul>
-                ` : nothing}
+                `
+                        : nothing
+                }
                 <div class="list-area" id=${this._panelId} @keydown=${this._onListKeydown}>
-                    ${this.loading
-        ? html`
+                    ${
+                        this.loading
+                            ? html`
                         <div class="loading-row" role="status" aria-live="polite">
                             <span class="loading-spinner" aria-hidden="true"></span>
                             <span>${this.loadingLabel}</span>
                         </div>`
-        : html`
+                            : html`
                     <ul
                         class="group group--suggestions"
                         role="group"
                         aria-label=${suggestionsHeading}
                     >
                         <li class="group-heading" aria-hidden="true">${suggestionsHeading}</li>
-                        ${filteredSuggestions.length === 0 && query
-        ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
-        : repeat(filteredSuggestions, it => it.value, it => this._renderItem(it))}
-                    </ul>`}
+                        ${
+                            filteredSuggestions.length === 0 && query
+                                ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
+                                : repeat(
+                                      filteredSuggestions,
+                                      it => it.value,
+                                      it => this._renderItem(it)
+                                  )
+                        }
+                    </ul>`
+                    }
                 </div>
-                ${hasSelected ? html`
+                ${
+                    hasSelected
+                        ? html`
                     <div class="footer">
                         <button
                             type="button"
@@ -619,7 +635,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                             @click=${this._onClear}
                         >${this.clearLabel}</button>
                     </div>
-                ` : nothing}
+                `
+                        : nothing
+                }
             </div>
         `;
     }
@@ -637,9 +655,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                         @change=${this._onItemToggle}
                     />
                     <span class="item-label">${item.label}</span>
-                    ${item.count !== null && item.count !== undefined
-        ? html`<span class="item-count" aria-hidden="true">${item.count.toLocaleString()}</span>`
-        : nothing}
+                    ${
+                        item.count !== null && item.count !== undefined
+                            ? html`<span class="item-count" aria-hidden="true">${item.count.toLocaleString()}</span>`
+                            : nothing
+                    }
                 </label>
             </li>
         `;
@@ -697,7 +717,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             bubbles: true,
             composed: true,
             cancelable: true,
-            detail: { focusFirst },
+            detail: { focusFirst }
         });
         this.dispatchEvent(evt);
         if (!evt.defaultPrevented) return true;
@@ -754,10 +774,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         const value = e.target.value;
         const checked = e.target.checked;
         const current = new Set(this.selected || []);
-        if (checked) current.add(value); else current.delete(value);
-        const nextSelected = (this.items || [])
-            .map(it => it.value)
-            .filter(v => current.has(v));
+        if (checked) current.add(value);
+        else current.delete(value);
+        const nextSelected = (this.items || []).map(it => it.value).filter(v => current.has(v));
 
         // The toggled item is about to move between the "selected" and
         // "suggestions" groups, which destroys its checkbox DOM node — focus
@@ -774,9 +793,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _onClear() {
         if ((this.selected || []).length === 0) return;
         this._emitChange([], null, null);
-        this.dispatchEvent(new CustomEvent('ol-select-popover-clear', {
-            bubbles: true, composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-select-popover-clear', {
+                bubbles: true,
+                composed: true
+            })
+        );
     }
 
     _onListKeydown(e) {
@@ -825,10 +847,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _emitChange(nextSelected, added, removed) {
         this.selected = nextSelected;
         this._syncFormValue();
-        this.dispatchEvent(new CustomEvent('ol-select-popover-change', {
-            bubbles: true, composed: true,
-            detail: { selected: nextSelected, added, removed },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-select-popover-change', {
+                bubbles: true,
+                composed: true,
+                detail: { selected: nextSelected, added, removed }
+            })
+        );
     }
 }
 

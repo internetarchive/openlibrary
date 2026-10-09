@@ -6,7 +6,7 @@ window.$ = $;
 // Improve error reporting for unhandled promise rejections.
 // Under the vmThreads pool `process` is shared across test files while each
 // file gets a fresh globalThis, so guard on the shared process's listeners.
-if (!process.listeners('unhandledRejection').some((fn) => fn.name === 'olRethrowUnhandledRejection')) {
+if (!process.listeners('unhandledRejection').some(fn => fn.name === 'olRethrowUnhandledRejection')) {
     process.on('unhandledRejection', function olRethrowUnhandledRejection(error) {
         throw error;
     });
@@ -19,7 +19,7 @@ if (!process.listeners('unhandledRejection').some((fn) => fn.name === 'olRethrow
 const virtualConsole = window.jsdom?.virtualConsole;
 if (virtualConsole) {
     virtualConsole.removeAllListeners('jsdomError');
-    virtualConsole.on('jsdomError', (error) => {
+    virtualConsole.on('jsdomError', error => {
         if (error.type === 'not-implemented') return;
         // Mirror jsdom's own forwardTo() formatting for the remaining errors.
         // eslint-disable-next-line no-console

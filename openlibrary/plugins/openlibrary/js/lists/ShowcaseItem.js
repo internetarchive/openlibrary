@@ -100,7 +100,7 @@ export class ShowcaseItem {
      */
     initialize() {
         showcases.push(this);
-        this.removeFromListAffordance.addEventListener('click', (event) => {
+        this.removeFromListAffordance.addEventListener('click', event => {
             event.preventDefault();
             this.removeShowcaseItem();
         });
@@ -152,7 +152,7 @@ export class ShowcaseItem {
      * @return {boolean} `true` if the given keys match this item's keys
      */
     isShowcaseForListAndSeed(listKey, seedKey) {
-        return (this.listKey === listKey) && (this.seedKey === seedKey);
+        return this.listKey === listKey && this.seedKey === seedKey;
     }
 }
 

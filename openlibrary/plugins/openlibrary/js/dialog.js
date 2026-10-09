@@ -18,79 +18,91 @@ export function initPreviewDialogs() {
     // Delegated click handler for Book Preview buttons.
     // Uses event delegation so dynamically-added buttons (e.g. from
     // lazy-loaded carousels) work without re-initialization.
-    $(document).off('click.bookPreview').on('click.bookPreview', '[data-book-preview]', function(e) {
-        e.preventDefault();
-        trackEvent('BookOptions', 'Preview');
-        const $button = $(this);
-        const dialog = document.getElementById('bookPreview');
-        if (!dialog) return;
+    $(document)
+        .off('click.bookPreview')
+        .on('click.bookPreview', '[data-book-preview]', function (e) {
+            e.preventDefault();
+            trackEvent('BookOptions', 'Preview');
+            const $button = $(this);
+            const dialog = document.getElementById('bookPreview');
+            if (!dialog) return;
 
-        const iframe = dialog.querySelector('iframe');
-        if (iframe) {
-            iframe.src = $button.data('iframe-src');
-        }
-
-        const link = dialog.querySelector('.learn-more a');
-        if (link) {
-            link.href = $button.data('iframe-link');
-        }
-
-        dialog.open = true;
-    });
-
-    $(document).off('ol-close.bookPreview').on('ol-close.bookPreview', '#bookPreview', function() {
-        const iframe = this.querySelector('iframe');
-        if (iframe) {
-            iframe.src = '';
-        }
-    });
-
-    // Handle clicking the "Search Inside" button to expand it to the input form
-    $(document).off('click.bookSearchTrigger').on('click.bookSearchTrigger', '[data-search-trigger]', function(e) {
-        e.preventDefault();
-        trackEvent('BookOptions', 'SearchInside');
-        const $triggerBtn = $(this);
-        const $btnGroup = $triggerBtn.closest('.cta-button-group');
-        $triggerBtn.attr('aria-expanded', 'true');
-        $btnGroup.find('.preview-btn, .search-inside-trigger-btn').hide();
-        $btnGroup.find('.search-inside-form').show().find('.search-inside-input').trigger('focus');
-    });
-
-    // Handle pressing Escape to collapse the search inside input form back
-    $(document).off('keydown.bookSearchInput').on('keydown.bookSearchInput', '.search-inside-input', function(e) {
-        if (e.key === 'Escape') {
-            const $btnGroup = $(this).closest('.cta-button-group');
-            collapseSearchForm($btnGroup);
-            e.stopPropagation();
-        }
-    });
-
-    // Handle clicking the cancel (&times;) button to collapse the form back
-    $(document).off('click.bookSearchCancel').on('click.bookSearchCancel', '.search-cancel-btn', function(e) {
-        e.preventDefault();
-        collapseSearchForm($(this).closest('.cta-button-group'));
-    });
-
-    // Handle search form submission to open query inside preview dialog modal
-    $(document).off('submit.bookSearchForm').on('submit.bookSearchForm', '.search-inside-form', function(e) {
-        e.preventDefault();
-        const $form = $(this);
-        const query = $form.find('.search-inside-input').val();
-        const ocaid = $form.data('ocaid');
-        const dialog = document.getElementById('bookPreview');
-        if (dialog) {
             const iframe = dialog.querySelector('iframe');
             if (iframe) {
-                iframe.src = `https://archive.org/details/${ocaid}?view=theater&wrapper=false&q=${encodeURIComponent(query)}`;
+                iframe.src = $button.data('iframe-src');
             }
+
             const link = dialog.querySelector('.learn-more a');
             if (link) {
-                link.href = `https://archive.org/details/${ocaid}`;
+                link.href = $button.data('iframe-link');
             }
+
             dialog.open = true;
-        }
-        collapseSearchForm($form.closest('.cta-button-group'));
-    });
+        });
+
+    $(document)
+        .off('ol-close.bookPreview')
+        .on('ol-close.bookPreview', '#bookPreview', function () {
+            const iframe = this.querySelector('iframe');
+            if (iframe) {
+                iframe.src = '';
+            }
+        });
+
+    // Handle clicking the "Search Inside" button to expand it to the input form
+    $(document)
+        .off('click.bookSearchTrigger')
+        .on('click.bookSearchTrigger', '[data-search-trigger]', function (e) {
+            e.preventDefault();
+            trackEvent('BookOptions', 'SearchInside');
+            const $triggerBtn = $(this);
+            const $btnGroup = $triggerBtn.closest('.cta-button-group');
+            $triggerBtn.attr('aria-expanded', 'true');
+            $btnGroup.find('.preview-btn, .search-inside-trigger-btn').hide();
+            $btnGroup.find('.search-inside-form').show().find('.search-inside-input').trigger('focus');
+        });
+
+    // Handle pressing Escape to collapse the search inside input form back
+    $(document)
+        .off('keydown.bookSearchInput')
+        .on('keydown.bookSearchInput', '.search-inside-input', function (e) {
+            if (e.key === 'Escape') {
+                const $btnGroup = $(this).closest('.cta-button-group');
+                collapseSearchForm($btnGroup);
+                e.stopPropagation();
+            }
+        });
+
+    // Handle clicking the cancel (&times;) button to collapse the form back
+    $(document)
+        .off('click.bookSearchCancel')
+        .on('click.bookSearchCancel', '.search-cancel-btn', function (e) {
+            e.preventDefault();
+            collapseSearchForm($(this).closest('.cta-button-group'));
+        });
+
+    // Handle search form submission to open query inside preview dialog modal
+    $(document)
+        .off('submit.bookSearchForm')
+        .on('submit.bookSearchForm', '.search-inside-form', function (e) {
+            e.preventDefault();
+            const $form = $(this);
+            const query = $form.find('.search-inside-input').val();
+            const ocaid = $form.data('ocaid');
+            const dialog = document.getElementById('bookPreview');
+            if (dialog) {
+                const iframe = dialog.querySelector('iframe');
+                if (iframe) {
+                    iframe.src = `https://archive.org/details/${ocaid}?view=theater&wrapper=false&q=${encodeURIComponent(query)}`;
+                }
+                const link = dialog.querySelector('.learn-more a');
+                if (link) {
+                    link.href = `https://archive.org/details/${ocaid}`;
+                }
+                dialog.open = true;
+            }
+            collapseSearchForm($form.closest('.cta-button-group'));
+        });
 }
 
 /**
@@ -101,13 +113,18 @@ export function initPreviewDialogs() {
  * dialogs.
  */
 export function initDialogs() {
-    document.querySelectorAll('.dialog--open').forEach((trigger) => {
+    document.querySelectorAll('.dialog--open').forEach(trigger => {
         const getTarget = () => document.getElementById(trigger.getAttribute('aria-controls'));
         // Start fetching the dialog's lazy images on hover/focus so they're loaded by the click.
-        const warmImages = () => getTarget()?.querySelectorAll('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
+        const warmImages = () =>
+            getTarget()
+                ?.querySelectorAll('img[loading="lazy"]')
+                .forEach(img => {
+                    img.loading = 'eager';
+                });
         trigger.addEventListener('pointerenter', warmImages, { once: true });
         trigger.addEventListener('focus', warmImages, { once: true });
-        trigger.addEventListener('click', (e) => {
+        trigger.addEventListener('click', e => {
             const target = getTarget();
             if (target?.tagName !== 'OL-DIALOG') {
                 return;
@@ -121,5 +138,8 @@ export function initDialogs() {
 
     // Legacy: closes the colorbox used by the observations modal (the last
     // colorbox consumer). Delete when that modal migrates to ol-dialog.
-    $('.dialog--close').attr('href', 'javascript:;').off('click.dialog').on('click.dialog', () => $.fn.colorbox.close());
+    $('.dialog--close')
+        .attr('href', 'javascript:;')
+        .off('click.dialog')
+        .on('click.dialog', () => $.fn.colorbox.close());
 }

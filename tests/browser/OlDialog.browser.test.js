@@ -34,17 +34,17 @@ async function openDialog() {
     el.open = true;
     await el.updateComplete;
     // Initial focus is set in a rAF.
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     return {
         el,
         textarea: el.querySelector('textarea'),
         save: el.querySelector('.save'),
-        close: el.shadowRoot.querySelector('.close-button'),
+        close: el.shadowRoot.querySelector('.close-button')
     };
 }
 
-test('Tab cycles the dialog\'s controls, skipping the icon that can\'t hold focus', async() => {
+test("Tab cycles the dialog's controls, skipping the icon that can't hold focus", async () => {
     await page.viewport(800, 600);
     const { el, textarea, save, close } = await openDialog();
 
@@ -60,7 +60,7 @@ test('Tab cycles the dialog\'s controls, skipping the icon that can\'t hold focu
     expect(document.activeElement).toBe(textarea);
 });
 
-test('Shift+Tab runs the same cycle backwards', async() => {
+test('Shift+Tab runs the same cycle backwards', async () => {
     await page.viewport(800, 600);
     const { el, textarea, save, close } = await openDialog();
 

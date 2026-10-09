@@ -139,7 +139,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         // (aria-controls, aria-describedby) are omitted — see the class doc.
         a11yLabel: { type: String, attribute: 'aria-label' },
         a11yHasPopup: { type: String, attribute: 'aria-haspopup' },
-        a11yExpanded: { type: String, attribute: 'aria-expanded' },
+        a11yExpanded: { type: String, attribute: 'aria-expanded' }
     };
 
     static styles = css`

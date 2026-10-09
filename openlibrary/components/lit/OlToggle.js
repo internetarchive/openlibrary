@@ -59,7 +59,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         value: { type: String },
         // Internal: whether the default slot holds real content — see
         // slotHasContent() for why native <slot> fallback can't be used.
-        _hasSlottedLabel: { state: true },
+        _hasSlottedLabel: { state: true }
     };
 
     static styles = css`
@@ -319,11 +319,13 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
     _handleClick() {
         if (this.isDisabled) return;
         this.checked = !this.checked;
-        this.dispatchEvent(new CustomEvent('ol-toggle-change', {
-            bubbles: true,
-            composed: true,
-            detail: { checked: this.checked },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-toggle-change', {
+                bubbles: true,
+                composed: true,
+                detail: { checked: this.checked }
+            })
+        );
     }
 
     render() {
@@ -342,10 +344,14 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 </span>
                 <span class="toggle__text">
                     <slot @slotchange=${this._handleLabelSlotChange}></slot>
-                    ${this._hasSlottedLabel ? nothing : html`
+                    ${
+                        this._hasSlottedLabel
+                            ? nothing
+                            : html`
                         ${this.label ? html`<span>${this.label}</span>` : nothing}
                         ${this.sublabel ? html`<span class="toggle__sublabel">${this.sublabel}</span>` : nothing}
-                    `}
+                    `
+                    }
                 </span>
             </button>
         `;

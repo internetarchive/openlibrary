@@ -15,7 +15,7 @@ import {
     removeRecentSearch,
     saveRecentSearch,
     searchModalStringsFromElement,
-    siteLanguageToMarc,
+    siteLanguageToMarc
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/constants';
 
 describe('localizeAvailabilityOptions', () => {
@@ -25,36 +25,36 @@ describe('localizeAvailabilityOptions', () => {
 
     test('overrides label by option value', () => {
         const localized = localizeAvailabilityOptions({
-            readable: { label: 'Lire maintenant' },
+            readable: { label: 'Lire maintenant' }
         });
-        const readable = localized.find((o) => o.value === 'readable');
+        const readable = localized.find(o => o.value === 'readable');
         expect(readable.label).toBe('Lire maintenant');
         // Untranslated values keep their English text...
-        expect(localized.find((o) => o.value === 'all').label).toBe('All books');
+        expect(localized.find(o => o.value === 'all').label).toBe('All books');
         // ...and the non-translatable `value` is preserved.
         expect(readable.value).toBe('readable');
     });
 
     test('keeps the English label when a translation omits it', () => {
         const localized = localizeAvailabilityOptions({
-            readable: {},
+            readable: {}
         });
-        const readable = localized.find((o) => o.value === 'readable');
+        const readable = localized.find(o => o.value === 'readable');
         expect(readable.label).toBe('Readable Only');
     });
 
     test('does not mutate the shared defaults', () => {
         localizeAvailabilityOptions({ all: { label: 'Tout' } });
-        expect(AVAILABILITY_OPTIONS.find((o) => o.value === 'all').label).toBe('All books');
+        expect(AVAILABILITY_OPTIONS.find(o => o.value === 'all').label).toBe('All books');
     });
 });
 
 describe('availabilityOptionsFromElement', () => {
-    const elWith = (i18n) => ({ dataset: i18n === undefined ? {} : { i18n } });
+    const elWith = i18n => ({ dataset: i18n === undefined ? {} : { i18n } });
 
     test('parses the data-i18n attribute and localizes', () => {
         const el = elWith(JSON.stringify({ open: { label: 'Aperçu' } }));
-        expect(availabilityOptionsFromElement(el).find((o) => o.value === 'open').label).toBe('Aperçu');
+        expect(availabilityOptionsFromElement(el).find(o => o.value === 'open').label).toBe('Aperçu');
     });
 
     test('falls back to defaults when the attribute is absent', () => {
@@ -71,7 +71,7 @@ describe('availabilityOptionsFromElement', () => {
 });
 
 describe('searchModalStringsFromElement', () => {
-    const elWith = (i18nUi) => ({ dataset: i18nUi === undefined ? {} : { i18nUi } });
+    const elWith = i18nUi => ({ dataset: i18nUi === undefined ? {} : { i18nUi } });
 
     test('parses data-i18n-ui and merges over the English defaults', () => {
         const el = elWith(JSON.stringify({ seeAll: 'Voir tout', noResults: 'Aucun résultat' }));
@@ -106,7 +106,7 @@ describe('searchModalStringsFromElement', () => {
 });
 
 describe('availabilityFromParams', () => {
-    const fromObj = (obj) => availabilityFromParams((name) => obj[name]);
+    const fromObj = obj => availabilityFromParams(name => obj[name]);
 
     test('maps params back to their availability value', () => {
         expect(fromObj({ has_fulltext: 'true' })).toBe('readable');
@@ -138,7 +138,10 @@ describe('siteLanguageToMarc', () => {
 });
 
 describe('languageNameFromOptions', () => {
-    const opts = [{ value: 'fre', label: 'Français' }, { value: 'eng', label: 'English' }];
+    const opts = [
+        { value: 'fre', label: 'Français' },
+        { value: 'eng', label: 'English' }
+    ];
 
     test('returns the matching label', () => {
         expect(languageNameFromOptions(opts, 'fre')).toBe('Français');
@@ -160,13 +163,13 @@ describe('readableLanguageMismatch', () => {
         { value: 'fre', label: 'French' },
         { value: 'ger', label: 'German' },
         { value: 'spa', label: 'Spanish' },
-        { value: 'eng', label: 'English' },
+        { value: 'eng', label: 'English' }
     ];
     const base = {
         edition: { language: ['fre'] },
         languages: [],
         siteLanguage: 'eng',
-        options: opts,
+        options: opts
     };
 
     test('returns the localized name when the readable edition is in another language', () => {
@@ -248,7 +251,9 @@ describe('recent searches (localStorage)', () => {
         });
 
         test('returns [] when localStorage.getItem throws (private browsing)', () => {
-            vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+            vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+                throw new Error('denied');
+            });
             expect(readRecentSearches()).toEqual([]);
         });
     });
@@ -276,7 +281,9 @@ describe('recent searches (localStorage)', () => {
         });
 
         test('silently ignores a setItem failure (quota / private browsing)', () => {
-            vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+            vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('quota');
+            });
             expect(() => saveRecentSearch('whatever')).not.toThrow();
         });
     });
@@ -328,7 +335,9 @@ describe('readStoredLanguages (sessionStorage)', () => {
     });
 
     test('returns [] when sessionStorage.getItem throws (private browsing)', () => {
-        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('denied');
+        });
         expect(readStoredLanguages()).toEqual([]);
     });
 });
@@ -338,19 +347,19 @@ describe('readableEditionLanguages', () => {
         { value: 'fre', label: 'French' },
         { value: 'ger', label: 'German' },
         { value: 'spa', label: 'Spanish' },
-        { value: 'eng', label: 'English' },
+        { value: 'eng', label: 'English' }
     ];
     const base = {
         edition: { language: ['fre'] },
         languages: ['eng', 'fre'],
-        options: opts,
+        options: opts
     };
 
-    test('names the readable copy\'s language when several languages are selected', () => {
+    test("names the readable copy's language when several languages are selected", () => {
         expect(readableEditionLanguages(base)).toBe('French');
     });
 
-    test('names the language even when it matches the patron\'s site language choice', () => {
+    test("names the language even when it matches the patron's site language choice", () => {
         // No site-language gating here: the explicit filter overrides it.
         expect(readableEditionLanguages({ ...base, edition: { language: ['eng'] } })).toBe('English');
     });

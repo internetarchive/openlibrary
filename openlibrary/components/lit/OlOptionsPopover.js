@@ -61,7 +61,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         items: { type: Array },
         selected: { type: String, reflect: true },
         label: { type: String },
-        heading: { type: String },
+        heading: { type: String }
     };
 
     static styles = css`
@@ -223,9 +223,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
     connectedCallback() {
         super.connectedCallback();
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -346,7 +344,11 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                     @keydown=${this._onListKeydown}
                 >
                     ${heading ? html`<div class="group-heading" aria-hidden="true">${heading}</div>` : nothing}
-                    <ul class="group" id=${this._panelId}>${repeat(items, it => it.value, it => this._renderItem(it))}</ul>
+                    <ul class="group" id=${this._panelId}>${repeat(
+                        items,
+                        it => it.value,
+                        it => this._renderItem(it)
+                    )}</ul>
                 </div>
             </div>
         `;
@@ -420,10 +422,13 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         if (value === this.selected) return false;
         this.selected = value;
         this._syncFormValue();
-        this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
-            bubbles: true, composed: true,
-            detail: { selected: value },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-options-popover-change', {
+                bubbles: true,
+                composed: true,
+                detail: { selected: value }
+            })
+        );
         return true;
     }
 

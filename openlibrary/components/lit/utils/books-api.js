@@ -11,7 +11,7 @@ export const SHELF = Object.freeze({
     WANT_TO_READ: 1,
     CURRENTLY_READING: 2,
     ALREADY_READ: 3,
-    STOPPED_READING: 4,
+    STOPPED_READING: 4
 });
 
 /** Shelf id → key into the components' label objects. */
@@ -19,7 +19,7 @@ export const SHELF_LABEL = Object.freeze({
     [SHELF.WANT_TO_READ]: 'wantToRead',
     [SHELF.CURRENTLY_READING]: 'currentlyReading',
     [SHELF.ALREADY_READ]: 'alreadyRead',
-    [SHELF.STOPPED_READING]: 'stoppedReading',
+    [SHELF.STOPPED_READING]: 'stoppedReading'
 });
 
 /** Shelf id → ol-icon name: the glyph a shelf is drawn with wherever it appears. */
@@ -27,7 +27,7 @@ export const SHELF_ICON = Object.freeze({
     [SHELF.WANT_TO_READ]: 'bookmark',
     [SHELF.CURRENTLY_READING]: 'book-open',
     [SHELF.ALREADY_READ]: 'circle-check',
-    [SHELF.STOPPED_READING]: 'circle-pause',
+    [SHELF.STOPPED_READING]: 'circle-pause'
 });
 
 /** Solid counterparts of SHELF_ICON, for a glyph that floats over cover art. */
@@ -35,7 +35,7 @@ export const SHELF_ICON_FILLED = Object.freeze({
     [SHELF.WANT_TO_READ]: 'bookmark-filled',
     [SHELF.CURRENTLY_READING]: 'book-open-filled',
     [SHELF.ALREADY_READ]: 'circle-check-filled',
-    [SHELF.STOPPED_READING]: 'circle-pause-filled',
+    [SHELF.STOPPED_READING]: 'circle-pause-filled'
 });
 
 /**
@@ -47,7 +47,7 @@ export const SHELF_EVENT = Object.freeze({
     [SHELF.CURRENTLY_READING]: 'CurrentlyReading',
     [SHELF.ALREADY_READ]: 'AlreadyRead',
     [SHELF.STOPPED_READING]: 'StoppedReading',
-    null: 'RemoveFromShelf',
+    null: 'RemoveFromShelf'
 });
 
 /**
@@ -127,14 +127,17 @@ const FINISH_EVENT = 3;
  * reader is changing a date they already gave.
  */
 export function setCheckIn(workKey, { year, month = null, day = null, editionKey, eventId = null } = {}) {
-    return request(`/works/${olid(workKey)}/check-ins`, json({
-        event_type: FINISH_EVENT,
-        year,
-        month,
-        day,
-        edition_key: editionKey || null,
-        event_id: eventId || null,
-    }));
+    return request(
+        `/works/${olid(workKey)}/check-ins`,
+        json({
+            event_type: FINISH_EVENT,
+            year,
+            month,
+            day,
+            edition_key: editionKey || null,
+            event_id: eventId || null
+        })
+    );
 }
 
 /**

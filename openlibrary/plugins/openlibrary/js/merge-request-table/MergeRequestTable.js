@@ -14,7 +14,6 @@ import { setI18nStrings, TableRow } from './MergeRequestTable/TableRow';
  * @class
  */
 export default class MergeRequestTable {
-
     /**
      * Creates references to the table and its header and hydrates each.
      *
@@ -55,7 +54,7 @@ export default class MergeRequestTable {
      */
     initialize() {
         this.tableHeader.initialize();
-        document.addEventListener('click', (event) => this.tableHeader.closeMenusIfClickOutside(event));
+        document.addEventListener('click', event => this.tableHeader.closeMenusIfClickOutside(event));
         this.tableRows.forEach(elem => elem.initialize());
     }
 }

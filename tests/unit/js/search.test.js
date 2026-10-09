@@ -21,7 +21,7 @@ class ImmediatelyVisibleObserver {
     }
 
     observe(target) {
-        this.callback([{isIntersecting: true, target}], this);
+        this.callback([{ isIntersecting: true, target }], this);
     }
 
     unobserve() {}
@@ -96,11 +96,11 @@ function checkFacetVisibility(totalFacet, expectedVisibleFacet) {
 
     for (let i = 0; i < totalFacet; i++) {
         if (i < expectedVisibleFacet) {
-            test(`element "facet_${i+1}" displayed`, () => {
+            test(`element "facet_${i + 1}" displayed`, () => {
                 expect(facetEntryList[i].classList.contains('ui-helper-hidden')).toBe(false);
             });
         } else {
-            test(`element "facet_${i+1}" hidden`, () => {
+            test(`element "facet_${i + 1}" hidden`, () => {
                 expect(facetEntryList[i].classList.contains('ui-helper-hidden')).toBe(true);
             });
         }
@@ -150,7 +150,7 @@ function checkFacetMoreLessVisibility(totalFacet, minVisibleFacet, expectedVisib
 const _originalGetClientRects = window.Element.prototype.getClientRects;
 
 // Stubbed getClientRects to enable jQuery ':hidden' selector used by 'more' and 'less' functions
-const _stubbedGetClientRects = function() {
+const _stubbedGetClientRects = function () {
     let node = this;
     while (node) {
         if (node === document) {
@@ -161,7 +161,7 @@ const _stubbedGetClientRects = function() {
         }
         node = node.parentNode;
     }
-    return [{width: 1, height: 1}];
+    return [{ width: 1, height: 1 }];
 };
 
 describe('initSearchFacets', () => {
@@ -175,8 +175,8 @@ describe('initSearchFacets', () => {
         global.IntersectionObserver = originalIntersectionObserver;
     });
 
-    test('shows a fallback message when the partials request fails', async() => {
-        global.fetch = vi.fn().mockResolvedValue({ok: false, status: 503});
+    test('shows a fallback message when the partials request fails', async () => {
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 503 });
 
         await initSearchFacets(document.getElementById('searchFacets'));
 
@@ -185,13 +185,13 @@ describe('initSearchFacets', () => {
         expect(document.body.textContent).not.toContain('Loading...');
     });
 
-    test('shows a fallback message instead of rendering a plain-text sidebar payload', async() => {
+    test('shows a fallback message instead of rendering a plain-text sidebar payload', async () => {
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             json: vi.fn().mockResolvedValue({
                 title: 'Search results',
-                sidebar: 'Unable to render this page.',
-            }),
+                sidebar: 'Unable to render this page.'
+            })
         });
 
         await initSearchFacets(document.getElementById('searchFacets'));
@@ -205,11 +205,11 @@ describe('initSearchFacets', () => {
 describe('more', () => {
     [
         /*[ totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet ]*/
-        [ 7, 2, 3, 2, 5 ],
-        [ 9, 2, 3, 5, 8 ],
-        [ 7, 2, 3, 5, 7 ],
-        [ 7, 2, 3, 7, 7 ]
-    ].forEach((test) => {
+        [7, 2, 3, 2, 5],
+        [9, 2, 3, 5, 8],
+        [7, 2, 3, 5, 7],
+        [7, 2, 3, 7, 7]
+    ].forEach(test => {
         const label = `Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`;
         describe(label, () => {
             beforeAll(() => {
@@ -231,11 +231,11 @@ describe('more', () => {
 describe('less', () => {
     [
         /*[ totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet ]*/
-        [ 5, 2, 3, 2, 2 ],
-        [ 7, 2, 3, 5, 2 ],
-        [ 9, 2, 3, 8, 5 ],
-        [ 7, 2, 3, 7, 5 ]
-    ].forEach((test) => {
+        [5, 2, 3, 2, 2],
+        [7, 2, 3, 5, 2],
+        [9, 2, 3, 8, 5],
+        [7, 2, 3, 7, 5]
+    ].forEach(test => {
         const label = `Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`;
         describe(label, () => {
             beforeAll(() => {

@@ -56,7 +56,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         disabled: { type: Boolean, reflect: true },
         fullWidth: { type: Boolean, reflect: true, attribute: 'full-width' },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
-        _options: { state: true },
+        _options: { state: true }
     };
 
     static styles = css`
@@ -368,7 +368,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
     // The light-DOM children stay in the DOM (hidden via ol-components.css) but
     // are never slotted — the shadow root renders the interactive radios.
     _harvestOptions() {
-        this._options = Array.from(this.querySelectorAll('ol-segment')).map((el) => {
+        this._options = Array.from(this.querySelectorAll('ol-segment')).map(el => {
             const text = el.textContent.trim();
             // A segment with element children carries markup (e.g. an icon);
             // render that verbatim. A text-only segment renders its plain text.
@@ -380,15 +380,15 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                 // Accessible name: the `label` attribute, else the text. Icon-only
                 // segments have no text, so they rely on `label`.
                 accessibleLabel: el.getAttribute('label') ?? text,
-                disabled: el.hasAttribute('disabled'),
+                disabled: el.hasAttribute('disabled')
             };
         });
 
         // A segmented control always has a selection. If value is unset or
         // doesn't match an option, fall back to the first enabled option.
-        const hasValid = this._options.some((o) => o.value === this.value && !o.disabled);
+        const hasValid = this._options.some(o => o.value === this.value && !o.disabled);
         if (!hasValid) {
-            const firstEnabled = this._options.find((o) => !o.disabled);
+            const firstEnabled = this._options.find(o => !o.disabled);
             this.value = firstEnabled ? firstEnabled.value : null;
         }
     }
@@ -399,7 +399,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         // <slot> a microtask later; until it does, those buttons have no box and
         // would measure as zero-width. Wait for them before sizing the pill.
         const tooltips = Array.from(this.renderRoot.querySelectorAll('ol-tooltip'));
-        await Promise.all(tooltips.map((t) => t.updateComplete));
+        await Promise.all(tooltips.map(t => t.updateComplete));
         // Place the pill/active layer, reveal them, then enable transitions one
         // frame later so the first placement doesn't animate from the origin.
         this._measure();
@@ -452,19 +452,21 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
     // Index of the option that owns the roving tabindex / arrow-key focus.
     get _activeIndex() {
-        const i = this._options.findIndex((o) => o.value === this.value);
+        const i = this._options.findIndex(o => o.value === this.value);
         if (i !== -1) return i;
-        return this._options.findIndex((o) => !o.disabled);
+        return this._options.findIndex(o => !o.disabled);
     }
 
     _select(value, { focus = false } = {}) {
         if (value === this.value) return;
         this.value = value;
-        this.dispatchEvent(new CustomEvent('ol-segmented-control-change', {
-            bubbles: true,
-            composed: true,
-            detail: { value },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-segmented-control-change', {
+                bubbles: true,
+                composed: true,
+                detail: { value }
+            })
+        );
         if (focus) {
             this.updateComplete.then(() => {
                 const btn = this.renderRoot.querySelector('.segment[aria-checked="true"]');
@@ -479,9 +481,9 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         const target = getNextKeyboardFocusIndex(e.key, {
             count: this._options.length,
             current: this._activeIndex,
-            isDisabled: (i) => this._options[i].disabled,
+            isDisabled: i => this._options[i].disabled,
             orientation: 'both',
-            wrap: true,
+            wrap: true
         });
         if (target === -1) return;
         e.preventDefault();
@@ -504,7 +506,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                     ${this._options.map((option, i) => this._renderSegment(option, i, activeIndex))}
                 </div>
                 <div class="layer layer--active" aria-hidden="true">
-                    ${this._options.map((option) => this._renderGhost(option))}
+                    ${this._options.map(option => this._renderGhost(option))}
                 </div>
             </div>
         `;

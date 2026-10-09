@@ -38,7 +38,9 @@ function update_len() {
     } else {
         color = 'gray';
     }
-    $('#excerpts-excerpt-len').html(2000 - len).css('color', color);
+    $('#excerpts-excerpt-len')
+        .html(2000 - len)
+        .css('color', color);
 }
 
 /**
@@ -64,10 +66,10 @@ function limitChars(textid, limit) {
  * @param selector - css selector used by jQuery
  * @returns {*[]} - array of jQuery elements
  */
-function getJqueryElements(selector){
+function getJqueryElements(selector) {
     const queryResult = $(selector);
     const jQueryElementArray = [];
-    for (let i = 0; i < queryResult.length; i++){
+    for (let i = 0; i < queryResult.length; i++) {
         jQueryElementArray.push(queryResult.eq(i));
     }
     return jQueryElementArray;
@@ -77,8 +79,8 @@ export function initRoleValidation() {
     initJqueryRepeat();
     const dataConfig = JSON.parse(document.querySelector('#roles').dataset.config);
     $('#roles').repeat({
-        vars: {prefix: 'edition--'},
-        validate: function(data) {
+        vars: { prefix: 'edition--' },
+        validate: function (data) {
             if (data.role === '' || data.role === '---') {
                 return error('#role-errors', '#select-role', dataConfig['Please select a role.']);
             }
@@ -212,11 +214,9 @@ export function validateIdentifiers(data) {
     let validId = true;
     if (data.name === 'isbn_10') {
         validId = validateIsbn10(data, dataConfig, label);
-    }
-    else if (data.name === 'isbn_13') {
+    } else if (data.name === 'isbn_13') {
         validId = validateIsbn13(data, dataConfig, label);
-    }
-    else if (data.name === 'lccn') {
+    } else if (data.name === 'lccn') {
         validId = validateLccn(data, dataConfig, label);
     }
 
@@ -225,7 +225,9 @@ export function validateIdentifiers(data) {
     const entries = document.querySelectorAll(`.${data.name}`);
     if (isIdDupe(entries, data.value) === true) {
         // isbnOverride being set will override the dupe checker, so clear isbnOverride if there's a dupe.
-        if (isbnOverride.get()) {isbnOverride.clear();}
+        if (isbnOverride.get()) {
+            isbnOverride.clear();
+        }
         return error('#id-errors', '#id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
     }
 
@@ -239,7 +241,7 @@ export function initClassificationValidation() {
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
 
     // Prevent form submission on Enter for classification fields
-    $('#classification-value').on('keydown', function(e) {
+    $('#classification-value').on('keydown', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             $('#classifications .repeat-add').trigger('click');
@@ -248,8 +250,8 @@ export function initClassificationValidation() {
     });
 
     $('#classifications').repeat({
-        vars: {prefix: 'edition--'},
-        validate: function(data) {
+        vars: { prefix: 'edition--' },
+        validate: function (data) {
             if (data.name === '' || data.name === '---') {
                 return error('#classification-errors', '#select-classification', dataConfig['Please select a classification.']);
             }
@@ -266,13 +268,13 @@ export function initClassificationValidation() {
 
 export function initLanguageMultiInputAutocomplete() {
     initAutocomplete();
-    $(function() {
+    $(function () {
         getJqueryElements('.multi-input-autocomplete--language').forEach(jqueryElement => {
             jqueryElement.setup_multi_input_autocomplete(
                 render_language_field,
                 {
                     endpoint: '/languages/_autocomplete',
-                    sortable: true,
+                    sortable: true
                 },
                 {
                     max: 6,
@@ -285,7 +287,7 @@ export function initLanguageMultiInputAutocomplete() {
 
 export function initWorksMultiInputAutocomplete() {
     initAutocomplete();
-    $(function() {
+    $(function () {
         getJqueryElements('.multi-input-autocomplete--works').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
             const dataConfig = JSON.parse(jqueryElement[0].dataset.config || '{}');
@@ -295,27 +297,28 @@ export function initWorksMultiInputAutocomplete() {
                     endpoint: '/works/_autocomplete',
                     addnew: dataConfig['addnew'] || false,
                     new_name: dataConfig['new_name'] || '',
-                    allow_empty: dataConfig['allow_empty'] || false,
+                    allow_empty: dataConfig['allow_empty'] || false
                 },
                 {
                     minChars: 2,
                     max: 11,
                     matchSubset: false,
                     autoFill: true,
-                    formatItem: render_work_autocomplete_item,
-                });
+                    formatItem: render_work_autocomplete_item
+                }
+            );
         });
     });
 
     // Show the new work options checkboxes only if "New work" selected
-    $('input[name="works--0"]').on('autocompleteselect', function(_event, ui) {
+    $('input[name="works--0"]').on('autocompleteselect', function (_event, ui) {
         $('.new-work-options').toggle(ui.item.key === '__new__');
     });
 }
 
 export function initSeedsMultiInputAutocomplete() {
     initAutocomplete();
-    $(function() {
+    $(function () {
         getJqueryElements('.multi-input-autocomplete--seeds').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
             jqueryElement.setup_multi_input_autocomplete(
@@ -324,15 +327,16 @@ export function initSeedsMultiInputAutocomplete() {
                     endpoint: '/works/_autocomplete',
                     addnew: false,
                     allow_empty: true,
-                    sortable: true,
+                    sortable: true
                 },
                 {
                     minChars: 2,
                     max: 11,
                     matchSubset: false,
                     autoFill: true,
-                    formatItem: render_lazy_work_preview,
-                });
+                    formatItem: render_lazy_work_preview
+                }
+            );
         });
     });
 }
@@ -348,7 +352,7 @@ export function initAuthorMultiInputAutocomplete() {
                 endpoint: '/authors/_autocomplete',
                 // Don't render "Create new author" if searching by key
                 addnew: query => !/OL\d+A/i.test(query),
-                sortable: true,
+                sortable: true
             },
             {
                 minChars: 2,
@@ -356,7 +360,8 @@ export function initAuthorMultiInputAutocomplete() {
                 matchSubset: false,
                 autoFill: true,
                 formatItem: render_author_autocomplete_item
-            });
+            }
+        );
     });
 }
 
@@ -371,7 +376,7 @@ export function initSeriesMultiInputAutocomplete() {
                 endpoint: '/series/_autocomplete',
                 // Don't render "Create new series" if searching by key
                 addnew: query => !/OL\d+L/i.test(query),
-                sortable: true,
+                sortable: true
             },
             {
                 minChars: 2,
@@ -379,7 +384,8 @@ export function initSeriesMultiInputAutocomplete() {
                 matchSubset: false,
                 autoFill: true,
                 formatItem: render_series_autocomplete_item
-            });
+            }
+        );
     });
 }
 
@@ -391,23 +397,23 @@ export function initSubjectsAutocomplete() {
             'textarea',
             {
                 endpoint: `/subjects_autocomplete?type=${dataConfig.facet}`,
-                addnew: false,
+                addnew: false
             },
             {
-                formatItem: render_subject_autocomplete_item,
+                formatItem: render_subject_autocomplete_item
             }
         );
     });
 
     /* Resize textarea to fit on input */
-    $('.csv-autocomplete--subjects textarea').on('input', function() {
+    $('.csv-autocomplete--subjects textarea').on('input', function () {
         this.style.height = 'auto';
         this.style.height = `${this.scrollHeight + 5}px`;
     });
 }
 
-export function initEditRow(){
-    document.querySelector('#add_row_button').addEventListener('click', ()=>add_row('website'));
+export function initEditRow() {
+    document.querySelector('#add_row_button').addEventListener('click', () => add_row('website'));
 }
 
 /**
@@ -420,7 +426,7 @@ function add_row(name) {
     inputBox.name = `${name}#${inputBoxes.length}`;
     inputBox.type = 'url';
     inputBox.placeholder = 'https://...';
-    inputBoxes[inputBoxes.length-1].after(inputBox);
+    inputBoxes[inputBoxes.length - 1].after(inputBox);
 }
 
 function show_hide_title() {
@@ -435,9 +441,9 @@ export function initEditExcerpts() {
     initJqueryRepeat();
     $('#excerpts').repeat({
         vars: {
-            prefix: 'work--excerpts',
+            prefix: 'work--excerpts'
         },
-        validate: function(data) {
+        validate: function (data) {
             const i18nStrings = JSON.parse(document.querySelector('#excerpts-errors').dataset.i18n);
 
             if (!data.excerpt) {
@@ -453,16 +459,13 @@ export function initEditExcerpts() {
     });
 
     // update length on every keystroke
-    $('#excerpts-excerpt').on('keyup', function() {
+    $('#excerpts-excerpt').on('keyup', function () {
         limitChars('excerpts-excerpt', 2000);
         update_len();
     });
 
     // update length on add.
-    $('#excerpts')
-        .on('repeat-add', update_len)
-        .on('repeat-add', show_hide_title)
-        .on('repeat-remove', show_hide_title);
+    $('#excerpts').on('repeat-add', update_len).on('repeat-add', show_hide_title).on('repeat-remove', show_hide_title);
 
     // update length on load
     update_len();
@@ -484,7 +487,7 @@ export function initEditLinks() {
         vars: {
             prefix: $('#links').data('prefix')
         },
-        validate: function(data) {
+        validate: function (data) {
             const i18nStrings = JSON.parse(document.querySelector('#link-errors').dataset.i18n);
             const url = data.url.trim();
 
@@ -534,8 +537,8 @@ export function initEdit() {
     // input field is enabled only after the tab is selected and that takes some time after clicking the link.
     // wait for 1 sec after clicking the link and focus the input field
     if ($(fieldname).length !== 0) {
-        setTimeout(function() {
-        // scroll such that top of the content is visible
+        setTimeout(function () {
+            // scroll such that top of the content is visible
             $(fieldname).trigger('focus');
             $(window).scrollTop($('#contentHead').offset().top);
         }, 1000);
@@ -560,7 +563,7 @@ function isValidURL(url) {
  */
 export function initRecordDeletion(elems) {
     for (const elem of elems) {
-        elem.addEventListener('click', (event) => {
+        elem.addEventListener('click', event => {
             event.preventDefault();
             const form = elem.form;
             const commentInput = document.querySelector('input[name=_comment]');

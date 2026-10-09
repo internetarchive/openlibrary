@@ -10,21 +10,18 @@ self.skipWaiting();
 clientsClaim();
 
 // This is needed for the offline page to show
-setDefaultHandler(
-    new NetworkOnly()
-);
+setDefaultHandler(new NetworkOnly());
 
 offlineFallback({
     pageFallback: '/static/offline.html',
     imageFallback: '/static/images/logo_OL-lg.png'
 });
 
-
 const HOUR_SECONDS = 60 * 60;
 const DAY_SECONDS = 24 * HOUR_SECONDS;
 // only cache if it the request returns 0 or 200 status
 const cacheableResponses = new CacheableResponsePlugin({
-    statuses: [0, 200],
+    statuses: [0, 200]
 });
 
 registerRoute(
@@ -36,7 +33,7 @@ registerRoute(
                 maxAgeSeconds: DAY_SECONDS
             }),
             cacheableResponses
-        ],
+        ]
     })
 );
 
@@ -47,10 +44,10 @@ registerRoute(
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 100,
-                maxAgeSeconds: DAY_SECONDS * 365,
+                maxAgeSeconds: DAY_SECONDS * 365
             }),
             cacheableResponses
-        ],
+        ]
     })
 );
 
@@ -65,10 +62,10 @@ registerRoute(
         cacheName: 'static-build-cache',
         plugins: [
             new ExpirationPlugin({
-                maxAgeSeconds: 60 * 10,
+                maxAgeSeconds: 60 * 10
             }),
             cacheableResponses
-        ],
+        ]
     })
 );
 
@@ -80,10 +77,10 @@ registerRoute(
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 150,
-                purgeOnQuotaError: true,
+                purgeOnQuotaError: true
             }),
             cacheableResponses
-        ],
+        ]
     })
 );
 
@@ -96,10 +93,10 @@ registerRoute(
             new ExpirationPlugin({
                 maxEntries: 5,
                 maxAgeSeconds: HOUR_SECONDS,
-                purgeOnQuotaError: true,
+                purgeOnQuotaError: true
             }),
             cacheableResponses
-        ],
+        ]
     })
 );
 
@@ -111,9 +108,9 @@ registerRoute(
             new ExpirationPlugin({
                 maxEntries: 50,
                 maxAgeSeconds: DAY_SECONDS,
-                purgeOnQuotaError: true,
+                purgeOnQuotaError: true
             }),
             cacheableResponses
-        ],
+        ]
     })
 );

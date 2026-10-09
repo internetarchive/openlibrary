@@ -29,20 +29,20 @@ function stubFetch({ failWith } = {}) {
     failEditions = false;
     listData = {
         '/people/tester/lists/OL1L': { listName: 'Summer 2026', members: ['/works/OL7W'] },
-        '/people/tester/lists/OL2L': { listName: 'Sci-fi to reread', members: ['/works/OL1W'] },
+        '/people/tester/lists/OL2L': { listName: 'Sci-fi to reread', members: ['/works/OL1W'] }
     };
-    global.fetch = vi.fn(async(url, init) => {
+    global.fetch = vi.fn(async (url, init) => {
         calls.push({ url, init });
-        if (failWith) return { ok: false, status: failWith, json: async() => ({}) };
+        if (failWith) return { ok: false, status: failWith, json: async () => ({}) };
         let body = {};
         if (String(url).includes('/partials/WorkEditions.json')) {
-            if (failEditions) return { ok: false, status: 500, json: async() => ({}) };
-            return { ok: true, status: 200, json: async() => ({ editions: heldEditions ? await heldEditions : workEditions }) };
+            if (failEditions) return { ok: false, status: 500, json: async () => ({}) };
+            return { ok: true, status: 200, json: async () => ({ editions: heldEditions ? await heldEditions : workEditions }) };
         }
         if (url.endsWith('/partials/MyBooksDropperLists.json')) body = { dropper: '', listData };
         if (url.endsWith('/lists.json') && init?.method === 'POST') body = { key: '/people/tester/lists/OL3L', revision: 1 };
         if (url.includes('/check-ins')) body = { status: 'ok', id: 42 };
-        return { ok: true, status: 200, json: async() => body };
+        return { ok: true, status: 200, json: async () => body };
     });
 }
 
@@ -52,9 +52,17 @@ function padLists(n = 7) {
 }
 
 beforeAll(() => {
-    global.ResizeObserver = class { observe() {} disconnect() {} };
+    global.ResizeObserver = class {
+        observe() {}
+        disconnect() {}
+    };
     window.matchMedia = query => ({
-        matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
+        matches: false,
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+        addListener() {},
+        removeListener() {}
     });
 });
 
@@ -119,7 +127,7 @@ describe('plural labels', () => {
         expect(translate({}, DEFAULT_LABELS, 'onLists', { count: 3 })).toBe('On 3 lists');
     });
 
-    test('uses the page language\'s rules, and falls back to other', () => {
+    test("uses the page language's rules, and falls back to other", () => {
         // Russian: 1 → one, 3 → few, 5 → many, 21 → one.
         document.documentElement.lang = 'ru';
         const ru = { one: 'один', few: 'несколько', many: 'много', other: 'other' };
@@ -133,7 +141,7 @@ describe('plural labels', () => {
 });
 
 describe('ol-shelf-actions shelves', () => {
-    test('renders header and four shelf rows with the current one pressed', async() => {
+    test('renders header and four shelf rows with the current one pressed', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.CURRENTLY_READING });
         expect(q(el, '.header').textContent.replace(/\s+/g, ' ').trim()).toBe('Project Hail Mary (2021)');
@@ -141,7 +149,7 @@ describe('ol-shelf-actions shelves', () => {
         expect(rows.map(r => r.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'false', 'false']);
     });
 
-    test('clicking a shelf posts it, updates optimistically, and emits state', async() => {
+    test('clicking a shelf posts it, updates optimistically, and emits state', async () => {
         stubFetch();
         const el = await mount();
         const events = [];
@@ -156,7 +164,7 @@ describe('ol-shelf-actions shelves', () => {
         expect(events).toEqual([{ key: '/works/OL1W', shelf: SHELF.WANT_TO_READ, rating: null }]);
     });
 
-    test('clicking the current shelf removes it', async() => {
+    test('clicking the current shelf removes it', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.WANT_TO_READ });
         qa(el, '.group.shelves .row[data-shelf]')[0].click();
@@ -168,14 +176,14 @@ describe('ol-shelf-actions shelves', () => {
 
     // Clicking the shelf you are on is the way off it, so a link on this pane
     // would be a second way of doing the same thing.
-    test('no shelf offers a remove link on the main pane', async() => {
+    test('no shelf offers a remove link on the main pane', async () => {
         stubFetch();
         for (const shelf of [null, ...Object.values(SHELF)]) {
             expect(q(await mount({ shelf }), '.group.shelves .clear')).toBeNull();
         }
     });
 
-    test('rolls back and toasts on failure', async() => {
+    test('rolls back and toasts on failure', async () => {
         stubFetch({ failWith: 500 });
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -187,7 +195,7 @@ describe('ol-shelf-actions shelves', () => {
 });
 
 describe('ol-shelf-actions rating', () => {
-    test('rating posts and moves the book to Already Read', async() => {
+    test('rating posts and moves the book to Already Read', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.star')[3].click();
@@ -205,8 +213,8 @@ describe('ol-shelf-actions rating', () => {
         ['an unshelved book', null, SHELF.ALREADY_READ],
         ['a Want to Read book', SHELF.WANT_TO_READ, SHELF.ALREADY_READ],
         ['a Currently Reading book', SHELF.CURRENTLY_READING, SHELF.CURRENTLY_READING],
-        ['a Stopped Reading book', SHELF.STOPPED_READING, SHELF.STOPPED_READING],
-    ])('rating %s leaves it on the right shelf', async(_label, shelf, expected) => {
+        ['a Stopped Reading book', SHELF.STOPPED_READING, SHELF.STOPPED_READING]
+    ])('rating %s leaves it on the right shelf', async (_label, shelf, expected) => {
         stubFetch();
         const el = await mount({ shelf });
         const events = [];
@@ -218,7 +226,7 @@ describe('ol-shelf-actions rating', () => {
         expect(events).toEqual([{ key: '/works/OL1W', shelf: expected, rating: 4 }]);
     });
 
-    test('clicking the current star clears the rating', async() => {
+    test('clicking the current star clears the rating', async () => {
         stubFetch();
         const el = await mount({ rating: 2, shelf: SHELF.ALREADY_READ });
         qa(el, '.star')[1].click();
@@ -229,7 +237,7 @@ describe('ol-shelf-actions rating', () => {
 });
 
 describe('ol-shelf-actions lists pane', () => {
-    test('opening the popover prefetches lists so the count shows straight away', async() => {
+    test('opening the popover prefetches lists so the count shows straight away', async () => {
         stubFetch();
         const el = await mount();
         await tick(el);
@@ -238,7 +246,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(q(el, '.group:last-child .count').textContent).toBe('On 1 list');
     });
 
-    test('a failed prefetch stays silent and lets the pane retry', async() => {
+    test('a failed prefetch stays silent and lets the pane retry', async () => {
         stubFetch({ failWith: 500 });
         const el = await mount();
         await tick(el);
@@ -246,7 +254,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(q(el, '.group:last-child .count')).toBeNull();
     });
 
-    test('opens the pane, loads lists with membership and counts', async() => {
+    test('opens the pane, loads lists with membership and counts', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group:last-child .row').click();
@@ -265,7 +273,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(rows.map(r => r.querySelector('.count').textContent)).toEqual(['1', '1']);
     });
 
-    test('filter narrows the rows', async() => {
+    test('filter narrows the rows', async () => {
         stubFetch();
         padLists();
         const el = await mount();
@@ -282,7 +290,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(q(el, '.empty').textContent).toBe('No lists match.');
     });
 
-    test('toggling a checkbox adds/removes the seed', async() => {
+    test('toggling a checkbox adds/removes the seed', async () => {
         stubFetch();
         // OL2L holds the edition this button writes, so its row is the ticked one.
         listData['/people/tester/lists/OL2L'].members = ['/books/OL9M'];
@@ -302,7 +310,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(qa(el, '.list-row .count').map(c => c.textContent)).toEqual(['2', '0']);
     });
 
-    test('toggling a checkbox announces it with ol-list-change', async() => {
+    test('toggling a checkbox announces it with ol-list-change', async () => {
         stubFetch();
         listData['/people/tester/lists/OL2L'].members = ['/books/OL9M'];
         const el = await mount();
@@ -319,11 +327,11 @@ describe('ol-shelf-actions lists pane', () => {
         await tick(el);
         expect(seen).toEqual([
             { key: '/people/tester/lists/OL1L', name: 'Summer 2026', seedKey: '/books/OL9M', member: true },
-            { key: '/people/tester/lists/OL2L', name: 'Sci-fi to reread', seedKey: '/books/OL9M', member: false },
+            { key: '/people/tester/lists/OL2L', name: 'Sci-fi to reread', seedKey: '/books/OL9M', member: false }
         ]);
     });
 
-    test('a list holding another edition says so, and takes this one too', async() => {
+    test('a list holding another edition says so, and takes this one too', async () => {
         stubFetch();
         // OL2L holds /books/OL8M — another edition of the same work, filed from
         // some other surface. Nothing on this button names that key.
@@ -349,7 +357,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('1 other edition');
     });
 
-    test('the label counts every other edition the list holds', async() => {
+    test('the label counts every other edition the list holds', async () => {
         stubFetch();
         listData['/people/tester/lists/OL2L'].members = ['/books/OL8M', '/books/OL7M'];
         workEditions = ['OL9M', 'OL8M', 'OL7M'];
@@ -359,7 +367,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('2 other editions');
     });
 
-    test('unticking takes only this edition, never the one already there', async() => {
+    test('unticking takes only this edition, never the one already there', async () => {
         stubFetch();
         listData['/people/tester/lists/OL2L'].members = ['/books/OL8M', '/books/OL9M'];
         workEditions = ['OL9M', 'OL8M'];
@@ -376,10 +384,12 @@ describe('ol-shelf-actions lists pane', () => {
         expect(getLists()['/people/tester/lists/OL2L'].members).toEqual(['/books/OL8M']);
     });
 
-    test('the lists pane waits rather than show a list the book is on as bare', async() => {
+    test('the lists pane waits rather than show a list the book is on as bare', async () => {
         stubFetch();
         let release;
-        heldEditions = new Promise(resolve => { release = resolve; });
+        heldEditions = new Promise(resolve => {
+            release = resolve;
+        });
         listData['/people/tester/lists/OL2L'].members = ['/books/OL8M'];
         const el = await mount();
         q(el, '.group:last-child .row').click();
@@ -394,7 +404,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('1 other edition');
     });
 
-    test('the editions are fetched once for a book, however many popovers ask', async() => {
+    test('the editions are fetched once for a book, however many popovers ask', async () => {
         stubFetch();
         workEditions = ['OL9M'];
         const el = await mount();
@@ -405,7 +415,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(fetches).toHaveLength(1);
     });
 
-    test('a book whose editions cannot be fetched still matches on what it knows', async() => {
+    test('a book whose editions cannot be fetched still matches on what it knows', async () => {
         stubFetch();
         failEditions = true;
         const el = await mount();
@@ -419,7 +429,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(qa(el, '.list-row')[1].querySelector('.other-form').textContent).toBe('Any edition');
     });
 
-    test('a list holding the book with no edition named says so', async() => {
+    test('a list holding the book with no edition named says so', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group:last-child .row').click();
@@ -433,7 +443,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(el._listCount).toBe(1);
     });
 
-    test('a list with neither the book nor any edition of it is bare', async() => {
+    test('a list with neither the book nor any edition of it is bare', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group:last-child .row').click();
@@ -443,7 +453,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(first.querySelector('.other-form')).toBeNull();
     });
 
-    test('with no edition in view the work is what gets filed', async() => {
+    test('with no edition in view the work is what gets filed', async () => {
         stubFetch();
         const el = await mount({ book: { key: '/works/OL1W', title: 'Project Hail Mary' } });
         q(el, '.group:last-child .row').click();
@@ -456,7 +466,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(JSON.parse(add.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
     });
 
-    test('create list inlines an input, posts, and prepends the new list', async() => {
+    test('create list inlines an input, posts, and prepends the new list', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group:last-child .row').click();
@@ -476,7 +486,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(rows[0].querySelector('input').checked).toBe(true);
     });
 
-    test('links to the reader\'s lists below the rows', async() => {
+    test("links to the reader's lists below the rows", async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group:last-child .row').click();
@@ -486,7 +496,7 @@ describe('ol-shelf-actions lists pane', () => {
         expect(link.textContent.trim()).toBe('Manage lists');
     });
 
-    test('Escape in the lists pane goes back instead of closing', async() => {
+    test('Escape in the lists pane goes back instead of closing', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group:last-child .row').click();
@@ -503,12 +513,12 @@ describe('ol-shelf-actions lists pane', () => {
 });
 
 describe('ol-shelf-actions lists pane, sized to the reader', () => {
-    const openPane = async(el) => {
+    const openPane = async el => {
         el.shadowRoot.querySelector('.group:last-child .row').click();
         await tick(el);
     };
 
-    test('offers no filter until there are enough lists to need one', async() => {
+    test('offers no filter until there are enough lists to need one', async () => {
         stubFetch();
         const el = await mount();
         await openPane(el);
@@ -518,7 +528,7 @@ describe('ol-shelf-actions lists pane, sized to the reader', () => {
         expect(el.shadowRoot.activeElement).toBe(qa(el, '.list-row input')[0]);
     });
 
-    test('offers one once the lists stop being scannable', async() => {
+    test('offers one once the lists stop being scannable', async () => {
         stubFetch();
         padLists();
         const el = await mount();
@@ -528,7 +538,7 @@ describe('ol-shelf-actions lists pane, sized to the reader', () => {
         expect(el.shadowRoot.activeElement).toBe(input);
     });
 
-    test('with no lists yet, the pane is the create form', async() => {
+    test('with no lists yet, the pane is the create form', async () => {
         stubFetch();
         listData = {};
         const el = await mount();
@@ -543,7 +553,7 @@ describe('ol-shelf-actions lists pane, sized to the reader', () => {
         expect(q(el, '.lists-footer')).toBeNull();
     });
 
-    test('the first list drops the create form and leaves a row', async() => {
+    test('the first list drops the create form and leaves a row', async () => {
         stubFetch();
         listData = {};
         const el = await mount();
@@ -560,7 +570,7 @@ describe('ol-shelf-actions lists pane, sized to the reader', () => {
         expect(document.querySelector('ol-toast')).toBeNull();
     });
 
-    test('Escape out of that form leaves the pane, not the form', async() => {
+    test('Escape out of that form leaves the pane, not the form', async () => {
         stubFetch();
         listData = {};
         const el = await mount();
@@ -584,7 +594,7 @@ describe('ol-shelf-actions shared lists', () => {
         await tick(el);
     }
 
-    test('creating a list announces it with ol-list-created', async() => {
+    test('creating a list announces it with ol-list-created', async () => {
         stubFetch();
         const el = await mount();
         const seen = [];
@@ -594,7 +604,7 @@ describe('ol-shelf-actions shared lists', () => {
         expect(seen[0].detail).toEqual({ key: '/people/tester/lists/OL3L', name: 'Gothic autumn', seedKey: '/books/OL9M' });
     });
 
-    test('a sibling popover picks up the new list without refetching', async() => {
+    test('a sibling popover picks up the new list without refetching', async () => {
         stubFetch();
         const el = await mount();
         const sibling = await mount({ book: { ...BOOK, key: '/works/OL2W', editionKey: 'OL8M' } });
@@ -611,7 +621,6 @@ describe('ol-shelf-actions shared lists', () => {
         expect(firstRow.querySelector('input').checked).toBe(false);
         expect(fetches()).toBe(before);
     });
-
 });
 
 describe('recent lists store', () => {
@@ -637,7 +646,7 @@ describe('recent lists store', () => {
 });
 
 describe('ol-shelf-actions recent lists', () => {
-    const openPane = async(el) => {
+    const openPane = async el => {
         el.shadowRoot.querySelector('.group:last-child .row').click();
         await tick(el);
     };
@@ -659,7 +668,7 @@ describe('ol-shelf-actions recent lists', () => {
         await tick(el);
     }
 
-    test('a used list moves to the front of the store, but never under the open pane', async() => {
+    test('a used list moves to the front of the store, but never under the open pane', async () => {
         stubFetch();
         const el = await mount();
         await openPane(el);
@@ -674,7 +683,7 @@ describe('ol-shelf-actions recent lists', () => {
         expect(names(el)).toEqual(['Sci-fi to reread', 'Summer 2026']);
     });
 
-    test('the next book offers the last list used, one tap away', async() => {
+    test('the next book offers the last list used, one tap away', async () => {
         stubFetch();
         const el = await mount();
         await openPane(el);
@@ -693,7 +702,7 @@ describe('ol-shelf-actions recent lists', () => {
         expect(q(next, '.row.shortcut').getAttribute('aria-pressed')).toBe('true');
     });
 
-    test('the shortcut renders from the remembered name, so the panel never grows a row mid-open', async() => {
+    test('the shortcut renders from the remembered name, so the panel never grows a row mid-open', async () => {
         noteListUsed('/people/tester', '/people/tester/lists/OL1L', 'Summer 2026');
         stubFetch();
         global.fetch = vi.fn(() => new Promise(() => {})); // lists never arrive
@@ -704,7 +713,7 @@ describe('ol-shelf-actions recent lists', () => {
 
     // No visible heading: the icon says what a tap does, and the group's name
     // is for screen readers, who don't see the rows sit under Add to list.
-    test('the shortcuts lead with plus or check and are named for screen readers', async() => {
+    test('the shortcuts lead with plus or check and are named for screen readers', async () => {
         noteListUsed('/people/tester', '/people/tester/lists/OL1L', 'Summer 2026');
         noteListUsed('/people/tester', '/people/tester/lists/OL2L', 'Sci-fi to reread');
         stubFetch();
@@ -715,11 +724,11 @@ describe('ol-shelf-actions recent lists', () => {
         expect(qa(el, '.row.shortcut .label').map(n => n.textContent)).toEqual(['Sci-fi to reread', 'Summer 2026']);
         expect(qa(el, '.row.shortcut').map(r => [r.getAttribute('aria-pressed'), r.querySelector('ol-icon').getAttribute('name')])).toEqual([
             ['true', 'check'],
-            ['false', 'plus'],
+            ['false', 'plus']
         ]);
     });
 
-    test('offers two recent lists at most, the store keeping a third for the pane', async() => {
+    test('offers two recent lists at most, the store keeping a third for the pane', async () => {
         stubFetch();
         listData['/people/tester/lists/OL3L'] = { listName: 'List 3', members: [] };
         ['OL1L', 'OL2L', 'OL3L'].forEach(id => noteListUsed('/people/tester', `/people/tester/lists/${id}`, id));
@@ -728,14 +737,14 @@ describe('ol-shelf-actions recent lists', () => {
         expect(qa(el, '.row.shortcut .label').map(n => n.textContent)).toEqual(['List 3', 'Sci-fi to reread']);
     });
 
-    test('no recent lists, no shortcuts group', async() => {
+    test('no recent lists, no shortcuts group', async () => {
         stubFetch();
         const el = await mount();
         await tick(el);
         expect(q(el, '.shortcuts')).toBeNull();
     });
 
-    test('a remembered list that has since gone takes its row with it', async() => {
+    test('a remembered list that has since gone takes its row with it', async () => {
         noteListUsed('/people/tester', '/people/tester/lists/OL9L', 'Deleted');
         stubFetch();
         const el = await mount();
@@ -749,9 +758,11 @@ describe('ol-shelf-actions recent lists', () => {
         expect(qa(next, '.row.shortcut .label').map(n => n.textContent)).toEqual(['Summer 2026']);
     });
 
-    test('pins the recent lists above the rest once there are enough to scroll', async() => {
+    test('pins the recent lists above the rest once there are enough to scroll', async () => {
         stubFetch();
-        [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
+        [3, 4, 5, 6].forEach(n => {
+            listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] };
+        });
         noteListUsed('/people/tester', '/people/tester/lists/OL5L', 'List 5');
         // A book on none of them, so recency is the only thing pinning rows.
         const el = await mount({ book: { ...BOOK, key: '/works/OL8W' } });
@@ -763,9 +774,11 @@ describe('ol-shelf-actions recent lists', () => {
         expect([...groups[1].querySelectorAll('.name')].map(n => n.textContent)).not.toContain('List 5');
     });
 
-    test('pins the lists the book is on above the recent ones', async() => {
+    test('pins the lists the book is on above the recent ones', async () => {
         stubFetch();
-        [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
+        [3, 4, 5, 6].forEach(n => {
+            listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] };
+        });
         listData['/people/tester/lists/OL6L'].members = [BOOK.key];
         noteListUsed('/people/tester', '/people/tester/lists/OL5L', 'List 5');
         const el = await mount();
@@ -777,18 +790,22 @@ describe('ol-shelf-actions recent lists', () => {
         expect([...groups[1].querySelectorAll('.name')].map(n => n.textContent)).toEqual(['Summer 2026', 'List 3', 'List 4']);
     });
 
-    test('a list the book is on is pinned once, even when it is also recent', async() => {
+    test('a list the book is on is pinned once, even when it is also recent', async () => {
         stubFetch();
-        [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
+        [3, 4, 5, 6].forEach(n => {
+            listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] };
+        });
         noteListUsed('/people/tester', '/people/tester/lists/OL2L', 'Sci-fi to reread');
         const el = await mount();
         await openPane(el);
         expect(names(el).filter(n => n === 'Sci-fi to reread')).toHaveLength(1);
     });
 
-    test('ticking a box leaves the row where it is until the pane is reopened', async() => {
+    test('ticking a box leaves the row where it is until the pane is reopened', async () => {
         stubFetch();
-        [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
+        [3, 4, 5, 6].forEach(n => {
+            listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] };
+        });
         const el = await mount();
         await openPane(el);
         const before = names(el);
@@ -802,7 +819,7 @@ describe('ol-shelf-actions recent lists', () => {
         expect(names(el).slice(0, 2).sort()).toEqual([before[before.length - 1], 'Sci-fi to reread'].sort());
     });
 
-    test('leaves a short list of lists alone', async() => {
+    test('leaves a short list of lists alone', async () => {
         noteListUsed('/people/tester', '/people/tester/lists/OL2L', 'Sci-fi to reread');
         stubFetch();
         const el = await mount();
@@ -812,7 +829,7 @@ describe('ol-shelf-actions recent lists', () => {
         expect(names(el)).toEqual(['Summer 2026', 'Sci-fi to reread']);
     });
 
-    test('Enter toggles the first filtered row and says which', async() => {
+    test('Enter toggles the first filtered row and says which', async () => {
         stubFetch();
         padLists();
         const el = await mount();
@@ -837,7 +854,7 @@ describe('ol-shelf-actions recent lists', () => {
 });
 
 describe('ol-shelf-actions hide-rating', () => {
-    test('drops the stars but keeps shelves and lists', async() => {
+    test('drops the stars but keeps shelves and lists', async () => {
         stubFetch();
         const el = await mount({ hideRating: true });
         expect(q(el, '.group.rating')).toBeNull();
@@ -845,7 +862,7 @@ describe('ol-shelf-actions hide-rating', () => {
         expect(q(el, '.group.lists-entry')).not.toBeNull();
     });
 
-    test('renders the stars by default', async() => {
+    test('renders the stars by default', async () => {
         stubFetch();
         const el = await mount();
         expect(q(el, '.group.rating')).not.toBeNull();
@@ -863,7 +880,7 @@ describe('ol-shelf-actions stars elsewhere', () => {
         return form;
     }
 
-    test('drops the stars while a visible star form for the book is on the page', async() => {
+    test('drops the stars while a visible star form for the book is on the page', async () => {
         stubFetch();
         starForm(BOOK.key, true);
         const el = await mount();
@@ -871,7 +888,7 @@ describe('ol-shelf-actions stars elsewhere', () => {
         expect(qa(el, '.group.shelves .row[data-shelf]')).toHaveLength(4);
     });
 
-    test('keeps the stars when that form is hidden, or is for another book', async() => {
+    test('keeps the stars when that form is hidden, or is for another book', async () => {
         stubFetch();
         starForm(BOOK.key, false);
         starForm('/works/OL2W', true);
@@ -879,7 +896,7 @@ describe('ol-shelf-actions stars elsewhere', () => {
         expect(q(el, '.group.rating')).not.toBeNull();
     });
 
-    test('checks again on the next open, so a layout toggle is honoured', async() => {
+    test('checks again on the next open, so a layout toggle is honoured', async () => {
         stubFetch();
         const form = starForm(BOOK.key, true);
         const el = await mount();
@@ -895,7 +912,7 @@ describe('ol-shelf-actions pending', () => {
     // Posting the shelf a book is already on removes it, so a click before the
     // state is known could undo a save. Held, not disabled: disabling the
     // focused row would drop focus.
-    test('marks the shelf and rating groups busy and ignores their clicks', async() => {
+    test('marks the shelf and rating groups busy and ignores their clicks', async () => {
         stubFetch();
         const el = await mount({ pending: true });
         expect(q(el, '.group.shelves').getAttribute('aria-busy')).toBe('true');
@@ -908,7 +925,7 @@ describe('ol-shelf-actions pending', () => {
         expect(calls.filter(c => c.url.startsWith('/works/'))).toHaveLength(0);
     });
 
-    test('lets go once the state arrives', async() => {
+    test('lets go once the state arrives', async () => {
         stubFetch();
         const el = await mount({ pending: true });
         el.pending = false;
@@ -925,11 +942,11 @@ describe('ol-shelf-actions pending', () => {
 describe('ol-shelf-actions rejected writes', () => {
     // bookshelves.json answers a rejected write with 200 and an `error` key,
     // so a status-only check would let the optimistic update stand.
-    test('a 200 carrying `error` rolls the shelf back', async() => {
+    test('a 200 carrying `error` rolls the shelf back', async () => {
         stubFetch();
-        global.fetch = vi.fn(async(url, init) => {
+        global.fetch = vi.fn(async (url, init) => {
             calls.push({ url, init });
-            return { ok: true, status: 200, json: async() => ({ error: 'Invalid bookshelf' }) };
+            return { ok: true, status: 200, json: async () => ({ error: 'Invalid bookshelf' }) };
         });
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[0].click();
@@ -939,7 +956,7 @@ describe('ol-shelf-actions rejected writes', () => {
 
     // A rating moves two properties, so rolling back the rating alone would
     // leave the book on a shelf it was never put on.
-    test('a rejected rating rolls back the shelf it implied too', async() => {
+    test('a rejected rating rolls back the shelf it implied too', async () => {
         stubFetch({ failWith: 500 });
         const el = await mount({ shelf: SHELF.WANT_TO_READ });
         qa(el, '.star')[3].click();
@@ -949,12 +966,14 @@ describe('ol-shelf-actions rejected writes', () => {
         expect(el.shelf).toBe(SHELF.WANT_TO_READ);
     });
 
-    test('a second write while one is in flight is dropped', async() => {
+    test('a second write while one is in flight is dropped', async () => {
         stubFetch();
         let land;
         global.fetch = vi.fn((url, init) => {
             calls.push({ url, init });
-            return new Promise(resolve => { land = () => resolve({ ok: true, status: 200, json: async() => ({}) }); });
+            return new Promise(resolve => {
+                land = () => resolve({ ok: true, status: 200, json: async () => ({}) });
+            });
         });
         const el = await mount();
 
@@ -996,25 +1015,27 @@ describe('quickYears', () => {
 });
 
 describe('ol-shelf-actions check-in pane', () => {
-    test('marking a book read slides the date question in', async() => {
+    test('marking a book read slides the date question in', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
         await tick(el);
         expect(el._pane).toBe('checkIn');
-        expect(paneRows(el).map(r => r.textContent.trim())).toEqual([
-            'Skip', 'Today', ...quickYears().map(y => `In ${y}`), 'Other date',
-        ]);
+        expect(paneRows(el).map(r => r.textContent.trim())).toEqual(['Skip', 'Today', ...quickYears().map(y => `In ${y}`), 'Other date']);
     });
 
     // Otherwise "Add date" flashes up for the round trip, just before the pane slides over it.
-    test('the date half stays hidden while the shelf saves on the way to the pane', async() => {
+    test('the date half stays hidden while the shelf saves on the way to the pane', async () => {
         stubFetch();
         let release;
         const stub = global.fetch;
-        global.fetch = vi.fn((url, init) => (String(url).endsWith('/bookshelves.json')
-            ? new Promise(resolve => { release = () => resolve(stub(url, init)); })
-            : stub(url, init)));
+        global.fetch = vi.fn((url, init) =>
+            String(url).endsWith('/bookshelves.json')
+                ? new Promise(resolve => {
+                      release = () => resolve(stub(url, init));
+                  })
+                : stub(url, init)
+        );
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
         await el.updateComplete;
@@ -1030,7 +1051,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(dateLink(el)).not.toBeNull();
     });
 
-    test('Skip keeps the shelf, writes no date, and slides back', async() => {
+    test('Skip keeps the shelf, writes no date, and slides back', async () => {
         stubFetch();
         const el = await mount();
         const alreadyRead = qa(el, '.group.shelves .row[data-shelf]')[2];
@@ -1047,7 +1068,7 @@ describe('ol-shelf-actions check-in pane', () => {
     });
 
     // With a date, Skip would read as clearing it; Back keeps it.
-    test('Skip is not offered once a date is recorded', async() => {
+    test('Skip is not offered once a date is recorded', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025' });
         dateLink(el).click();
@@ -1055,7 +1076,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(skipRow(el)).toBeNull();
     });
 
-    test('the other three shelves do not', async() => {
+    test('the other three shelves do not', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[1].click();
@@ -1064,7 +1085,7 @@ describe('ol-shelf-actions check-in pane', () => {
     });
 
     // Toggle parity with the other three: the shelf half comes off in one click.
-    test('Already Read toggles off like any other shelf', async() => {
+    test('Already Read toggles off like any other shelf', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
         const alreadyRead = qa(el, '.group.shelves .row[data-shelf]')[2];
@@ -1078,7 +1099,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(qa(el, '.group.shelves .row[data-shelf]')[2]).toBe(alreadyRead);
     });
 
-    test('the date half opens the pane to amend the date, and changes no shelf', async() => {
+    test('the date half opens the pane to amend the date, and changes no shelf', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ });
         dateLink(el).click();
@@ -1087,7 +1108,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(calls.find(c => c.url === '/works/OL1W/bookshelves.json')).toBeUndefined();
     });
 
-    test('Back from an amend returns focus to the date half', async() => {
+    test('Back from an amend returns focus to the date half', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025' });
         dateLink(el).click();
@@ -1097,7 +1118,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(el.shadowRoot.activeElement).toBe(dateLink(el));
     });
 
-    test('rating a book does not, even though the server moves it to Already Read', async() => {
+    test('rating a book does not, even though the server moves it to Already Read', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.star')[3].click();
@@ -1106,7 +1127,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(el._pane).toBe('main');
     });
 
-    test('a failed shelf write asks nothing', async() => {
+    test('a failed shelf write asks nothing', async () => {
         stubFetch({ failWith: 500 });
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1114,7 +1135,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(el._pane).toBe('main');
     });
 
-    test('the date already given rides on the date half', async() => {
+    test('the date already given rides on the date half', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2026' });
         expect(dateLink(el).querySelector('.count').textContent).toBe('2026');
@@ -1125,14 +1146,14 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(qa(el, '.group.shelves .row[data-shelf]')[2].querySelector('.trail')).toBeNull();
     });
 
-    test('with no date yet, the date half offers to add one', async() => {
+    test('with no date yet, the date half offers to add one', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ });
         expect(dateLink(el).querySelector('.count.hint').textContent).toBe('Add date');
         expect(dateLink(el).hasAttribute('aria-label')).toBe(false);
     });
 
-    test('a partial date shows only what is known', async() => {
+    test('a partial date shows only what is known', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2026-08' });
         expect(dateLink(el).querySelector('.count').textContent).toBe('Aug 2026');
@@ -1140,7 +1161,7 @@ describe('ol-shelf-actions check-in pane', () => {
 
     // The server keeps check-ins through a shelf move (only coming off the
     // shelves deletes them), so the date outlives the shelf it was given on.
-    test('but not once the book has moved to another shelf', async() => {
+    test('but not once the book has moved to another shelf', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.CURRENTLY_READING, readDate: '2026' });
         // Nor the hint: off the shelf, there is no read to date.
@@ -1149,7 +1170,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(el.readDate).toBe('2026');
     });
 
-    test('amending a date edits the same check-in rather than adding one', async() => {
+    test('amending a date edits the same check-in rather than adding one', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
         const events = [];
@@ -1163,7 +1184,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(events).toEqual([{ key: '/works/OL1W', date: String(new Date().getFullYear()), eventId: 42 }]);
     });
 
-    test('Today posts a full date', async() => {
+    test('Today posts a full date', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1177,12 +1198,12 @@ describe('ol-shelf-actions check-in pane', () => {
             month: now.getMonth() + 1,
             day: now.getDate(),
             edition_key: 'OL9M',
-            event_id: null,
+            event_id: null
         });
         expect(el._pane).toBe('main');
     });
 
-    test('this year posts a year on its own', async() => {
+    test('this year posts a year on its own', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1195,7 +1216,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(body.day).toBeNull();
     });
 
-    test('other date reveals the selects, month and day gated in turn', async() => {
+    test('other date reveals the selects, month and day gated in turn', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1237,42 +1258,43 @@ describe('ol-shelf-actions check-in pane', () => {
             await tick(el);
             return el;
         };
-        const marked = el => paneRows(el)
-            .filter(r => r.getAttribute('aria-pressed') === 'true')
-            .map(r => r.querySelector('.label').textContent);
+        const marked = el =>
+            paneRows(el)
+                .filter(r => r.getAttribute('aria-pressed') === 'true')
+                .map(r => r.querySelector('.label').textContent);
 
-        test('today\'s date marks Today', async() => {
+        test("today's date marks Today", async () => {
             expect(marked(await openPane(today))).toEqual(['Today']);
         });
 
-        test('a bare current year marks that year', async() => {
+        test('a bare current year marks that year', async () => {
             expect(marked(await openPane(String(now.getFullYear())))).toEqual([`In ${now.getFullYear()}`]);
         });
 
-        test('anything else marks Other date and shows the date on the row', async() => {
+        test('anything else marks Other date and shows the date on the row', async () => {
             const el = await openPane('1998-03-14');
             expect(marked(el)).toEqual(['Other date']);
             expect(q(el, '.date-toggle .count').textContent).toBe('Mar 14, 1998');
         });
 
-        test('no date marks nothing', async() => {
+        test('no date marks nothing', async () => {
             expect(marked(await openPane(null))).toEqual([]);
         });
 
         // A date the shortcuts cannot express is invisible behind a collapsed
         // row, so the pane opens on it.
-        test('a date no shortcut can express opens the selects, seeded', async() => {
+        test('a date no shortcut can express opens the selects, seeded', async () => {
             const el = await openPane('1998-03-14');
             expect(el._pickingDate).toBe(true);
             expect(qa(el, '.select').map(s => s.value)).toEqual(['1998', '3', '14']);
         });
 
-        test('a partial date seeds only the parts it knows', async() => {
+        test('a partial date seeds only the parts it knows', async () => {
             const el = await openPane('1998-03');
             expect(qa(el, '.select').map(s => s.value)).toEqual(['1998', '3', '']);
         });
 
-        test('a date a shortcut covers leaves them closed', async() => {
+        test('a date a shortcut covers leaves them closed', async () => {
             expect((await openPane(today))._pickingDate).toBe(false);
             expect((await openPane(String(now.getFullYear())))._pickingDate).toBe(false);
         });
@@ -1280,7 +1302,7 @@ describe('ol-shelf-actions check-in pane', () => {
         // Lit commits a select's own bindings before its children, so seeding
         // through the select's .value silently dropped; the selection rides on
         // each option instead. Clearing has to survive the same round trip.
-        test('clearing the year blanks the selects it gated', async() => {
+        test('clearing the year blanks the selects it gated', async () => {
             const el = await openPane('1998-03-14');
             el._setDatePart('year', '');
             await tick(el);
@@ -1288,7 +1310,7 @@ describe('ol-shelf-actions check-in pane', () => {
         });
     });
 
-    test('other date is a disclosure, so pressing it again closes the selects', async() => {
+    test('other date is a disclosure, so pressing it again closes the selects', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1311,7 +1333,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(el._pane).toBe('checkIn');
     });
 
-    test('Today still answers while the selects are open', async() => {
+    test('Today still answers while the selects are open', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1323,7 +1345,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(JSON.parse(checkInWrites()[0].init.body).day).toBe(new Date().getDate());
     });
 
-    test('clearing the year clears what it gated', async() => {
+    test('clearing the year clears what it gated', async () => {
         stubFetch();
         const el = await mount();
         el._setDatePart('year', '2024');
@@ -1333,7 +1355,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(el._date).toEqual({ year: '', month: '', day: '' });
     });
 
-    test('a partial date saves as a partial date', async() => {
+    test('a partial date saves as a partial date', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1343,7 +1365,9 @@ describe('ol-shelf-actions check-in pane', () => {
         el._setDatePart('year', '2024');
         el._setDatePart('month', '6');
         await tick(el);
-        checkInPane(el).querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+        checkInPane(el)
+            .querySelector('form')
+            .dispatchEvent(new Event('submit', { cancelable: true }));
         await tick(el);
         const body = JSON.parse(checkInWrites()[0].init.body);
         expect([body.year, body.month, body.day]).toEqual([2024, 6, null]);
@@ -1357,7 +1381,7 @@ describe('ol-shelf-actions check-in pane', () => {
             await tick(el);
         };
 
-        test('clears the date without a DELETE of its own', async() => {
+        test('clears the date without a DELETE of its own', async () => {
             stubFetch();
             const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
             await offShelf(el);
@@ -1367,7 +1391,7 @@ describe('ol-shelf-actions check-in pane', () => {
             expect(checkInWrites()).toHaveLength(0);
         });
 
-        test('so the next check-in adds an event instead of amending the deleted one', async() => {
+        test('so the next check-in adds an event instead of amending the deleted one', async () => {
             stubFetch();
             const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
             await offShelf(el);
@@ -1377,7 +1401,7 @@ describe('ol-shelf-actions check-in pane', () => {
             expect(JSON.parse(checkInWrites()[0].init.body).event_id).toBeNull();
         });
 
-        test('a failed removal puts the book and its date back', async() => {
+        test('a failed removal puts the book and its date back', async () => {
             stubFetch({ failWith: 500 });
             const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
             await offShelf(el);
@@ -1388,20 +1412,20 @@ describe('ol-shelf-actions check-in pane', () => {
     });
 
     describe('Remove date', () => {
-        const openPane = async(props = {}) => {
+        const openPane = async (props = {}) => {
             const el = await mount({ shelf: SHELF.ALREADY_READ, ...props });
             dateLink(el).click();
             await tick(el);
             return el;
         };
 
-        test('is offered only when there is a date to remove', async() => {
+        test('is offered only when there is a date to remove', async () => {
             stubFetch();
             expect(removeDateRow(await openPane())).toBeNull();
             expect(removeDateRow(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
         });
 
-        test('deletes the check-in, keeps the shelf and slides back', async() => {
+        test('deletes the check-in, keeps the shelf and slides back', async () => {
             stubFetch();
             const el = await openPane({ readDate: '2025', eventId: 12 });
             const events = [];
@@ -1420,7 +1444,7 @@ describe('ol-shelf-actions check-in pane', () => {
             expect(events).toEqual([{ key: '/works/OL1W', date: null, eventId: null }]);
         });
 
-        test('so the next check-in adds an event instead of amending the deleted one', async() => {
+        test('so the next check-in adds an event instead of amending the deleted one', async () => {
             stubFetch();
             const el = await openPane({ readDate: '2025', eventId: 12 });
             removeDateRow(el).click();
@@ -1432,7 +1456,7 @@ describe('ol-shelf-actions check-in pane', () => {
             expect(JSON.parse(checkInWrites()[1].init.body).event_id).toBeNull();
         });
 
-        test('a failed delete keeps the date', async() => {
+        test('a failed delete keeps the date', async () => {
             stubFetch({ failWith: 500 });
             const el = await openPane({ readDate: '2025', eventId: 12 });
             removeDateRow(el).click();
@@ -1443,7 +1467,7 @@ describe('ol-shelf-actions check-in pane', () => {
         });
     });
 
-    test('a removal made outside the popover drops it too', async() => {
+    test('a removal made outside the popover drops it too', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
         // What the split button's main click does, applied by the surface.
@@ -1453,7 +1477,7 @@ describe('ol-shelf-actions check-in pane', () => {
         expect(el.eventId).toBeNull();
     });
 
-    test('Escape from the pane goes back rather than closing', async() => {
+    test('Escape from the pane goes back rather than closing', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1470,11 +1494,15 @@ describe('ol-shelf-actions check-in pane', () => {
     describe('analytics', () => {
         const events = () => window._paq.filter(e => e[0] === 'trackEvent' && /^CheckIn/.test(e[1])).map(e => e.slice(1));
 
-        beforeEach(() => { window._paq = []; });
-        afterEach(() => { delete window._paq; });
+        beforeEach(() => {
+            window._paq = [];
+        });
+        afterEach(() => {
+            delete window._paq;
+        });
 
         // On the shelf already, the date half opens it; otherwise marking the book read does.
-        const openPane = async(props) => {
+        const openPane = async props => {
             stubFetch();
             const el = await mount(props);
             (props?.shelf === SHELF.ALREADY_READ ? dateLink(el) : qa(el, '.group.shelves .row[data-shelf]')[2]).click();
@@ -1484,64 +1512,85 @@ describe('ol-shelf-actions check-in pane', () => {
 
         // Marking a book read asks the question unbidden: that is the
         // impression the answers below are measured against.
-        test('the prompt reports itself shown when it follows a shelf change', async() => {
+        test('the prompt reports itself shown when it follows a shelf change', async () => {
             await openPane();
             expect(events()).toEqual([['CheckInPrompt', 'Shown']]);
         });
 
-        test('Today is the prompt\'s SetDateToday', async() => {
+        test("Today is the prompt's SetDateToday", async () => {
             const el = await openPane();
             todayRow(el).click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateToday']]);
+            expect(events()).toEqual([
+                ['CheckInPrompt', 'Shown'],
+                ['CheckInPrompt', 'SetDateToday']
+            ]);
         });
 
-        test('a quick year is the prompt\'s SetDateCurrentYear', async() => {
+        test("a quick year is the prompt's SetDateCurrentYear", async () => {
             const el = await openPane();
             yearRows(el)[0].click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCurrentYear']]);
+            expect(events()).toEqual([
+                ['CheckInPrompt', 'Shown'],
+                ['CheckInPrompt', 'SetDateCurrentYear']
+            ]);
         });
 
-        test('opening the fields is the prompt\'s Other; saving them is the form\'s submit', async() => {
+        test("opening the fields is the prompt's Other; saving them is the form's submit", async () => {
             const el = await openPane();
             otherDateRow(el).click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCustom']]);
+            expect(events()).toEqual([
+                ['CheckInPrompt', 'Shown'],
+                ['CheckInPrompt', 'SetDateCustom']
+            ]);
             el._setDatePart('year', '2024');
             await tick(el);
-            checkInPane(el).querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+            checkInPane(el)
+                .querySelector('form')
+                .dispatchEvent(new Event('submit', { cancelable: true }));
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'SetDateCustom'], ['CheckInForm', 'SubmitCheckIn']]);
+            expect(events()).toEqual([
+                ['CheckInPrompt', 'Shown'],
+                ['CheckInPrompt', 'SetDateCustom'],
+                ['CheckInForm', 'SubmitCheckIn']
+            ]);
         });
 
-        test('Skip is its own event', async() => {
+        test('Skip is its own event', async () => {
             const el = await openPane();
             skipRow(el).click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'Shown'], ['CheckInPrompt', 'Skip']]);
+            expect(events()).toEqual([
+                ['CheckInPrompt', 'Shown'],
+                ['CheckInPrompt', 'Skip']
+            ]);
         });
 
-        test('reopening the pane on a recorded date is the prompt\'s EditDate', async() => {
+        test("reopening the pane on a recorded date is the prompt's EditDate", async () => {
             await openPane({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
             expect(events()).toEqual([['CheckInPrompt', 'EditDate']]);
         });
 
         // Asked for by the reader, not put to them: neither shown nor an edit.
-        test('reopening it with no date yet is not an edit', async() => {
+        test('reopening it with no date yet is not an edit', async () => {
             await openPane({ shelf: SHELF.ALREADY_READ });
             expect(events()).toEqual([]);
         });
 
-        test('Remove date is the form\'s DeleteCheckIn', async() => {
+        test("Remove date is the form's DeleteCheckIn", async () => {
             const el = await openPane({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
             removeDateRow(el).click();
             await tick(el);
-            expect(events()).toEqual([['CheckInPrompt', 'EditDate'], ['CheckInForm', 'DeleteCheckIn']]);
+            expect(events()).toEqual([
+                ['CheckInPrompt', 'EditDate'],
+                ['CheckInForm', 'DeleteCheckIn']
+            ]);
         });
 
         // The shelf change reports as RemoveFromShelf; DeleteCheckIn keeps its old meaning.
-        test('taking the book off the shelf is not, even with a date recorded', async() => {
+        test('taking the book off the shelf is not, even with a date recorded', async () => {
             stubFetch();
             const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
             qa(el, '.group.shelves .row[data-shelf]')[2].click();
@@ -1552,7 +1601,7 @@ describe('ol-shelf-actions check-in pane', () => {
 });
 
 describe('ol-shelf-actions screen reader and keyboard', () => {
-    test('a shelf click keeps focus on the row through the request', async() => {
+    test('a shelf click keeps focus on the row through the request', async () => {
         stubFetch();
         const el = await mount();
         const row = qa(el, '.group.shelves .row[data-shelf]')[1];
@@ -1568,7 +1617,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(el.shadowRoot.activeElement).toBe(row);
     });
 
-    test('a star click keeps focus on the star', async() => {
+    test('a star click keeps focus on the star', async () => {
         stubFetch();
         const el = await mount();
         const star = qa(el, '.star')[2];
@@ -1579,7 +1628,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(el.shadowRoot.activeElement).toBe(star);
     });
 
-    test('shelf and rating changes are announced', async() => {
+    test('shelf and rating changes are announced', async () => {
         stubFetch();
         const el = await mount();
         const live = q(el, '.sr-only');
@@ -1604,7 +1653,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(live.textContent).toBe('Rating cleared');
     });
 
-    test('the same announcement twice running is re-spoken', async() => {
+    test('the same announcement twice running is re-spoken', async () => {
         stubFetch();
         const el = await mount();
         const live = q(el, '.sr-only');
@@ -1619,7 +1668,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(live.textContent).toBe('Added to Summer 2026');
     });
 
-    test('shelf rows are toggle buttons in a named group, not menu items', async() => {
+    test('shelf rows are toggle buttons in a named group, not menu items', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.WANT_TO_READ });
         const group = q(el, '.group.shelves');
@@ -1630,7 +1679,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(rows.map(r => r.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false', 'false']);
     });
 
-    test('stars keep their names, and the current one is the single tab stop', async() => {
+    test('stars keep their names, and the current one is the single tab stop', async () => {
         stubFetch();
         const el = await mount({ rating: 3 });
         const stars = qa(el, '.star');
@@ -1639,13 +1688,13 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(stars.map(s => s.getAttribute('tabindex'))).toEqual(['-1', '-1', '0', '-1', '-1']);
     });
 
-    test('unrated, the first star is the tab stop', async() => {
+    test('unrated, the first star is the tab stop', async () => {
         stubFetch();
         const el = await mount();
         expect(qa(el, '.star').map(s => s.getAttribute('tabindex'))).toEqual(['0', '-1', '-1', '-1', '-1']);
     });
 
-    test('arrow keys move between stars without rating, and preview like hover', async() => {
+    test('arrow keys move between stars without rating, and preview like hover', async () => {
         stubFetch();
         const el = await mount({ rating: 2 });
         const stars = qa(el, '.star');
@@ -1675,7 +1724,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(tab.defaultPrevented).toBe(false);
     });
 
-    test('the check-in question names its group and rows are toggle buttons', async() => {
+    test('the check-in question names its group and rows are toggle buttons', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ });
         dateLink(el).click();
@@ -1692,7 +1741,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(group.querySelector('.row.skip').hasAttribute('aria-pressed')).toBe(false);
     });
 
-    test('Other date only claims aria-controls once the fields exist', async() => {
+    test('Other date only claims aria-controls once the fields exist', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ });
         dateLink(el).click();
@@ -1705,7 +1754,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(el.shadowRoot.getElementById('date-fields')).not.toBeNull();
     });
 
-    test('saving a date announces it and returns focus to the half that led there', async() => {
+    test('saving a date announces it and returns focus to the half that led there', async () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ });
         dateLink(el).click();
@@ -1718,7 +1767,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(q(el, '.sr-only').textContent).toMatch(/^Finished /);
     });
 
-    test('leaving the lists pane returns focus to Add to list', async() => {
+    test('leaving the lists pane returns focus to Add to list', async () => {
         stubFetch();
         const el = await mount();
         const entry = q(el, '.group.lists-entry .row');
@@ -1729,7 +1778,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(el.shadowRoot.activeElement).toBe(entry);
     });
 
-    test('the lists pane is a named group', async() => {
+    test('the lists pane is a named group', async () => {
         stubFetch();
         const el = await mount();
         const pane = q(el, '.pane:nth-child(2)');
@@ -1738,7 +1787,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(q(el, '.pane:nth-child(1)').hasAttribute('role')).toBe(false);
     });
 
-    test('creating a list lands focus on its row', async() => {
+    test('creating a list lands focus on its row', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group.lists-entry .row').click();
@@ -1754,7 +1803,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .list-row input'));
     });
 
-    test('opening the create form lands on the name field', async() => {
+    test('opening the create form lands on the name field', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group.lists-entry .row').click();
@@ -1767,16 +1816,27 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
     describe('on mobile', () => {
         // ol-popover's tray breakpoint; the soft keyboard would cover the pane.
         const mobile = query => ({
-            matches: query === '(max-width: 767px)', media: query,
-            addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
+            matches: query === '(max-width: 767px)',
+            media: query,
+            addEventListener() {},
+            removeEventListener() {},
+            addListener() {},
+            removeListener() {}
         });
         let desktop;
-        beforeEach(() => { desktop = window.matchMedia; window.matchMedia = mobile; });
-        afterEach(() => { window.matchMedia = desktop; });
+        beforeEach(() => {
+            desktop = window.matchMedia;
+            window.matchMedia = mobile;
+        });
+        afterEach(() => {
+            window.matchMedia = desktop;
+        });
         // The tray's scroll lock restores the page position on close; jsdom has no scrollTo.
-        beforeAll(() => { window.scrollTo = () => {}; });
+        beforeAll(() => {
+            window.scrollTo = () => {};
+        });
 
-        test('the lists pane opens on Back, not the filter', async() => {
+        test('the lists pane opens on Back, not the filter', async () => {
             stubFetch();
             padLists();
             const el = await mount();
@@ -1786,7 +1846,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
             expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .back'));
         });
 
-        test('the create form does not raise the keyboard', async() => {
+        test('the create form does not raise the keyboard', async () => {
             stubFetch();
             const el = await mount();
             q(el, '.group.lists-entry .row').click();
@@ -1798,7 +1858,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         });
     });
 
-    test('list item counts are pluralised', async() => {
+    test('list item counts are pluralised', async () => {
         stubFetch();
         const el = await mount();
         q(el, '.group.lists-entry .row').click();
@@ -1816,7 +1876,7 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
 describe('ol-shelf-actions lists-only', () => {
     const AUTHOR = { key: '/authors/OL3A', title: 'Ursula K. Le Guin' };
 
-    test('opens on the lists pane with the seed as heading, no shelves, stars or back', async() => {
+    test('opens on the lists pane with the seed as heading, no shelves, stars or back', async () => {
         stubFetch();
         listData['/people/tester/lists/OL1L'].members.push('/authors/OL3A');
         const el = await mount({ book: AUTHOR, listsOnly: true });
@@ -1832,7 +1892,7 @@ describe('ol-shelf-actions lists-only', () => {
         expect(rows.filter(r => r.checked)).toHaveLength(1);
     });
 
-    test('toggling a list posts the seed and reports the change', async() => {
+    test('toggling a list posts the seed and reports the change', async () => {
         stubFetch();
         const el = await mount({ book: AUTHOR, listsOnly: true });
         await tick(el);
@@ -1846,7 +1906,7 @@ describe('ol-shelf-actions lists-only', () => {
         expect(events[0]).toMatchObject({ seedKey: '/authors/OL3A', member: true });
     });
 
-    test('escape closes instead of stepping back to a main pane it does not have', async() => {
+    test('escape closes instead of stepping back to a main pane it does not have', async () => {
         stubFetch();
         const el = await mount({ book: AUTHOR, listsOnly: true });
         await tick(el);
@@ -1861,11 +1921,15 @@ describe('ol-shelf-actions lists-only', () => {
 describe('ol-shelf-actions analytics labels', () => {
     const events = () => window._paq.map(e => e.slice(1));
 
-    beforeEach(() => { window._paq = []; });
-    afterEach(() => { delete window._paq; });
+    beforeEach(() => {
+        window._paq = [];
+    });
+    afterEach(() => {
+        delete window._paq;
+    });
 
     // "menu" tells these apart from the split button's one-tap half, which says "quick".
-    test('a shelf change reports that it came from the menu', async() => {
+    test('a shelf change reports that it came from the menu', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[1].click();
@@ -1873,7 +1937,7 @@ describe('ol-shelf-actions analytics labels', () => {
         expect(events()).toEqual([['ReadingLog', 'CurrentlyReading', 'menu']]);
     });
 
-    test('a failed request reports the operation and status, and no save', async() => {
+    test('a failed request reports the operation and status, and no save', async () => {
         stubFetch({ failWith: 500 });
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[0].click();
@@ -1882,13 +1946,15 @@ describe('ol-shelf-actions analytics labels', () => {
         await tick(el);
         expect(events()).toEqual([
             ['ShelfActions', 'Error', 'shelf:500'],
-            ['ShelfActions', 'Error', 'rating:500'],
+            ['ShelfActions', 'Error', 'rating:500']
         ]);
     });
 
-    test('a request that never gets a response says so', async() => {
+    test('a request that never gets a response says so', async () => {
         stubFetch();
-        global.fetch = vi.fn(async() => { throw new TypeError('Failed to fetch'); });
+        global.fetch = vi.fn(async () => {
+            throw new TypeError('Failed to fetch');
+        });
         const el = await mount();
         qa(el, '.group.shelves .row[data-shelf]')[0].click();
         await tick(el);

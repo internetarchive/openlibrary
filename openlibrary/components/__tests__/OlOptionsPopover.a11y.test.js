@@ -9,7 +9,7 @@ import '../lit/OlOptionsPopover.js';
 
 const ITEMS = [
     { value: 'all', label: 'Full Card Catalog' },
-    { value: 'readable', label: 'Readable Books Only' },
+    { value: 'readable', label: 'Readable Books Only' }
 ];
 
 const MARKUP = `
@@ -19,7 +19,7 @@ const MARKUP = `
 `;
 
 /** The OlPopover this component composes around; it owns the open state. */
-const innerPopover = (el) => el.shadowRoot.querySelector('ol-popover');
+const innerPopover = el => el.shadowRoot.querySelector('ol-popover');
 
 async function mountOptions(props = {}) {
     const el = await mount(MARKUP);
@@ -38,7 +38,7 @@ beforeEach(() => setupComponentEnv());
 afterEach(cleanup);
 
 describe('OlOptionsPopover a11y', () => {
-    test('closed: the slotted trigger advertises the popover it controls', async() => {
+    test('closed: the slotted trigger advertises the popover it controls', async () => {
         const el = await mountOptions();
 
         const trigger = el.querySelector('[slot="trigger"]');
@@ -47,7 +47,7 @@ describe('OlOptionsPopover a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open: options form a labelled radiogroup inside the dialog', async() => {
+    test('open: options form a labelled radiogroup inside the dialog', async () => {
         const el = await mountOpened();
 
         expect(innerPopover(el).shadowRoot.querySelector('.panel')).not.toBeNull();
@@ -57,7 +57,7 @@ describe('OlOptionsPopover a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open: each radio takes its accessible name from its wrapping label', async() => {
+    test('open: each radio takes its accessible name from its wrapping label', async () => {
         const el = await mountOpened();
 
         const radios = [...el.shadowRoot.querySelectorAll('input[type="radio"]')];
@@ -69,7 +69,7 @@ describe('OlOptionsPopover a11y', () => {
         });
     });
 
-    test('open: the visual group heading is hidden from assistive tech', async() => {
+    test('open: the visual group heading is hidden from assistive tech', async () => {
         // The radiogroup's aria-label already names the group, so exposing the
         // heading as well would announce "Availability" twice.
         const el = await mountOpened();
@@ -77,7 +77,7 @@ describe('OlOptionsPopover a11y', () => {
         expect(el.shadowRoot.querySelector('.group-heading').getAttribute('aria-hidden')).toBe('true');
     });
 
-    test('regression guard: with no label the composed dialog is unnamed', async() => {
+    test('regression guard: with no label the composed dialog is unnamed', async () => {
         // OlOptionsPopover passes its aria-label/label down to the inner
         // OlPopover. Drop both and axe should report the dialog as unnamed.
         const el = await mount('<ol-options-popover><button slot="trigger" type="button">Options</button></ol-options-popover>');
@@ -86,6 +86,6 @@ describe('OlOptionsPopover a11y', () => {
         await openPopover(innerPopover(el));
 
         const results = await checkA11y();
-        expect(results.violations.map((v) => v.id)).toContain('aria-dialog-name');
+        expect(results.violations.map(v => v.id)).toContain('aria-dialog-name');
     });
 });

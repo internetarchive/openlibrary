@@ -14,8 +14,8 @@ describe('OlToast a11y', () => {
     test.each([
         ['info', 'status', 'polite'],
         ['success', 'status', 'polite'],
-        ['error', 'alert', 'assertive'],
-    ])('%s toast announces via role=%s aria-live=%s', async(type, role, live) => {
+        ['error', 'alert', 'assertive']
+    ])('%s toast announces via role=%s aria-live=%s', async (type, role, live) => {
         const el = await mount(`<ol-toast type="${type}" message="Changes saved."></ol-toast>`);
         await nextFrames();
 
@@ -25,16 +25,16 @@ describe('OlToast a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('close button has an accessible name', async() => {
+    test('close button has an accessible name', async () => {
         const el = await mount('<ol-toast message="Changes saved."></ol-toast>');
         // The close control is an <ol-button>; the real <button> lives in its shadow root.
         const button = el.shadowRoot.querySelector('ol-button').shadowRoot.querySelector('button');
         expect(button.getAttribute('aria-label')).toBe('Close');
     });
 
-    test('regression guard: an unlabelled close button is reported as button-name', async() => {
+    test('regression guard: an unlabelled close button is reported as button-name', async () => {
         await mount('<ol-toast message="Changes saved." label-close=""></ol-toast>');
         const results = await checkA11y();
-        expect(results.violations.map((v) => v.id)).toContain('button-name');
+        expect(results.violations.map(v => v.id)).toContain('button-name');
     });
 });

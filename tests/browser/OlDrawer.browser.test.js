@@ -25,14 +25,17 @@ async function openDrawer() {
             style="--ol-drawer-enter-duration: 0ms; --ol-drawer-exit-duration: 0ms"
         >
             <nav>
-                ${Array.from({ length: ITEMS }, (_, i) => html`
+                ${Array.from(
+                    { length: ITEMS },
+                    (_, i) => html`
                     <a
                         href="#item-${i}"
                         style="display: block; height: ${ROW_HEIGHT}px;
                                line-height: ${ROW_HEIGHT}px; padding: 0 12px;
                                box-sizing: border-box;"
                     >Item ${i}</a>
-                `)}
+                `
+                )}
             </nav>
         </ol-drawer>
     `);
@@ -44,11 +47,11 @@ async function openDrawer() {
     return {
         el,
         /** The panel is the drawer's own scroll container. */
-        panel: el.shadowRoot.querySelector('.panel'),
+        panel: el.shadowRoot.querySelector('.panel')
     };
 }
 
-test('Tab past the fold scrolls the panel to the newly focused control', async() => {
+test('Tab past the fold scrolls the panel to the newly focused control', async () => {
     // 40 links at 40px each in a 300px-tall panel: everything past the 7th
     // row starts below the fold.
     await page.viewport(400, 300);
@@ -75,7 +78,7 @@ test('Tab past the fold scrolls the panel to the newly focused control', async()
     expect(focused.bottom).toBeLessThanOrEqual(box.bottom + 1);
 });
 
-test('Escape closes the drawer through the native dialog cancel event', async() => {
+test('Escape closes the drawer through the native dialog cancel event', async () => {
     // jsdom implements neither <dialog>.showModal() nor its cancel event, so
     // this path — the standard way every keyboard user dismisses a drawer —
     // had no coverage anywhere.
@@ -83,7 +86,7 @@ test('Escape closes the drawer through the native dialog cancel event', async() 
     const { el } = await openDrawer();
 
     const reasons = [];
-    el.addEventListener('ol-drawer-hide', (event) => reasons.push(event.detail.reason));
+    el.addEventListener('ol-drawer-hide', event => reasons.push(event.detail.reason));
 
     await userEvent.keyboard('{Escape}');
     await el.updateComplete;

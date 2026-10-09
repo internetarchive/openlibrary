@@ -30,7 +30,7 @@ import {
     siteLanguageToMarc,
     readRecentSearches,
     saveRecentSearch,
-    removeRecentSearch,
+    removeRecentSearch
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
@@ -40,7 +40,7 @@ import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBa
 
 // 'books' searches the catalogue (with the Search Inside band as a teaser);
 // 'inside' searches only the text of the scans.
-const MODE_BOOKS  = 'books';
+const MODE_BOOKS = 'books';
 const MODE_INSIDE = 'inside';
 
 // `editions` is requested not to render it, but to opt /search.json into the
@@ -85,10 +85,10 @@ const READABLE_ACCESS = new Set(['public', 'borrowable']);
 // patron; everyone else still gets no badge on printdisabled.
 const PRINT_DISABLED_ACCESS = 'printdisabled';
 
-const RESULTS_LIMIT     = 10;
+const RESULTS_LIMIT = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
 // autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
-const MIN_QUERY_LENGTH  = 3;
+const MIN_QUERY_LENGTH = 3;
 /** "/works/OL1W" → "OL1W" */
 const olidOf = key => key.split('/').pop();
 const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
@@ -140,7 +140,7 @@ export class SearchModal extends LitElement {
         _ftLoading: { state: true },
         _ftError: { state: true },
         _resultsKey: { state: true },
-        _markStale: { state: true },
+        _markStale: { state: true }
     };
 
     static styles = css`
@@ -940,24 +940,24 @@ export class SearchModal extends LitElement {
 
     constructor() {
         super();
-        this.open          = false;
-        this._query        = '';
-        this._mode         = MODE_BOOKS;
-        this._results      = [];
+        this.open = false;
+        this._query = '';
+        this._mode = MODE_BOOKS;
+        this._results = [];
         this._authorSuggestions = [];
-        this._numFound     = null;
+        this._numFound = null;
         // Live count of how many of the current query's hits are readable, shown
         // on the "Readable Only" toggle once a search lands. null before the
         // first search (the toggle falls back to the static corpus figure).
         this._readableCount = null;
-        this._loading      = false;
+        this._loading = false;
         // Whether the footer "See all results" button shows its loading spinner.
         // Set when the patron commits to /search (click or Enter) and the page
         // begins navigating; mirrors how a pressed result uses _navigatingKey.
         this._seeAllLoading = false;
         // Same, for the band's "Search Inside N books" button.
         this._ftSeeAllLoading = false;
-        this._hasSearched  = false;
+        this._hasSearched = false;
         // A failed fetch, not an empty result. Non-reactive: read at click time.
         this._searchFailed = false;
         this._langsLoading = false;
@@ -979,7 +979,7 @@ export class SearchModal extends LitElement {
         // catalogue merged with the current query's facet counts. `_allLanguageItems`
         // keeps the uncounted catalogue so each new query re-merges from a clean
         // list instead of one already filtered by the previous query's counts.
-        this._languageItems    = DEFAULT_LANGUAGE_OPTIONS;
+        this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
         this._allLanguageItems = DEFAULT_LANGUAGE_OPTIONS;
 
         // The patron's site language as a MARC code (e.g. 'eng'), matching Solr's
@@ -1001,7 +1001,7 @@ export class SearchModal extends LitElement {
         // the default 'all' (toggle off).
         const _storedAvailability = ssGet(SS_AVAILABILITY_KEY);
         this._availability = _storedAvailability === 'readable' ? 'readable' : DEFAULT_AVAILABILITY;
-        this._languages    = readStoredLanguages();
+        this._languages = readStoredLanguages();
 
         this._recentSearches = readRecentSearches();
 
@@ -1010,49 +1010,49 @@ export class SearchModal extends LitElement {
         // The search the rows on screen answer; _activeFetchKey moves as soon as a fetch starts.
         this._resultsKey = null;
         // Set once superseded content has shown for STALE_DELAY_MS. One clock for the whole modal.
-        this._markStale  = false;
+        this._markStale = false;
         this._staleTimer = null;
 
         // FulltextBand decides when to fetch; the modal mirrors its result.
-        this._ftHits  = [];
+        this._ftHits = [];
         this._ftTotal = null;
         this._ftSearchKey = null;
         this._ftQuery = '';
         this._ftLoading = false;
         this._ftError = false;
-        this._ftBand  = new FulltextBand({
+        this._ftBand = new FulltextBand({
             getFilters: () => this._fulltextFilters(),
             onChange: ({ hits, total, searchKey, query, loading, error }) => {
-                this._ftHits      = hits;
-                this._ftTotal     = total;
+                this._ftHits = hits;
+                this._ftTotal = total;
                 this._ftSearchKey = searchKey;
-                this._ftQuery     = query;
-                this._ftLoading   = loading;
-                this._ftError     = error;
+                this._ftQuery = query;
+                this._ftLoading = loading;
+                this._ftError = error;
             },
-            onAttempt: (status) => this._scheduleBandOutcome(status),
+            onAttempt: status => this._scheduleBandOutcome(status)
         });
         this._allLangsLoaded = false;
         // Search context the currently-merged language counts describe, and the
         // one a request is in flight for. Equal keys mean the counts on screen
         // are already right for this query, so re-opening the dropper is free.
-        this._facetKey       = null;
+        this._facetKey = null;
         this._activeFacetKey = null;
         // Search-outcome analytics: keys already counted this modal session, so
         // re-settling the same query never re-fires. Reset per open. One timer
         // per action, so the band's outcome can't cancel the catalog's.
         this._outcomeTracked = new Set();
-        this._outcomeTimers  = new Map();
+        this._outcomeTimers = new Map();
 
         // For the rows' shelf buttons. State is keyed by work OLID and outlives
         // the query, so a book seen again never refetches. Filled on intent.
-        this._userKey       = '';
-        this._shelfLabels   = null;
-        this._readingState  = new Map();
+        this._userKey = '';
+        this._shelfLabels = null;
+        this._readingState = new Map();
         this._stateRequested = new Set();
         this._shelfStateWanted = false;
         this._onBookStateChange = this._onBookStateChange.bind(this);
-        this._onBookCheckIn     = this._onBookCheckIn.bind(this);
+        this._onBookCheckIn = this._onBookCheckIn.bind(this);
     }
 
     connectedCallback() {
@@ -1084,7 +1084,7 @@ export class SearchModal extends LitElement {
         if (!trigger) return;
         // The trigger is a <button>, so a click (incl. keyboard Enter/Space)
         // is the open intent — focus alone should not pop the modal open.
-        trigger.addEventListener('click', (e) => {
+        trigger.addEventListener('click', e => {
             if (this.open) return;
             e.preventDefault();
             this._openModal();
@@ -1093,7 +1093,7 @@ export class SearchModal extends LitElement {
         // and show the "copy" cursor so the drag doesn't look rejected while
         // hovering over the trigger. Non-text drags (files, images, ILE book
         // selections) are left alone so they can't open an empty modal.
-        trigger.addEventListener('dragover', (e) => {
+        trigger.addEventListener('dragover', e => {
             if (!isTextDrag(e.dataTransfer)) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = 'copy';
@@ -1101,7 +1101,7 @@ export class SearchModal extends LitElement {
         // Open the modal on drop (not dragover, which fires continuously and
         // would pop the modal open before the patron has committed to the
         // drop) and forward the dropped text into the search input.
-        trigger.addEventListener('drop', (e) => {
+        trigger.addEventListener('drop', e => {
             if (!isTextDrag(e.dataTransfer)) return;
             e.preventDefault();
             const text = e.dataTransfer.getData('text/plain');
@@ -1128,7 +1128,9 @@ export class SearchModal extends LitElement {
         this.renderRoot.querySelector('.search-input')?.focus();
     }
 
-    _closeModal() { this.open = false; }
+    _closeModal() {
+        this.open = false;
+    }
 
     // Empties the result list and its derived counts. `hasSearched` records
     // whether this is a post-search empty state (true) or a pre-search reset
@@ -1136,13 +1138,13 @@ export class SearchModal extends LitElement {
     // where the separate readable-count request owns that field.
     _resetResults({ hasSearched, clearReadableCount = true } = {}) {
         this._clearOutcomeTimers();
-        this._results           = [];
-        this._resultsKey        = null;
+        this._results = [];
+        this._resultsKey = null;
         this._authorSuggestions = [];
-        this._numFound          = null;
+        this._numFound = null;
         if (clearReadableCount) this._readableCount = null;
-        this._loading           = false;
-        this._hasSearched       = hasSearched;
+        this._loading = false;
+        this._hasSearched = hasSearched;
     }
 
     // The small X inside the field: clear the query without closing the modal,
@@ -1150,9 +1152,9 @@ export class SearchModal extends LitElement {
     // _onQueryInput does when the query drops below the autocomplete threshold,
     // and drops _activeFetchKey so an in-flight fetch can't repopulate results.
     _clearInput() {
-        this._query          = '';
-        this._navigatingKey  = null;
-        this._seeAllLoading  = false;
+        this._query = '';
+        this._navigatingKey = null;
+        this._seeAllLoading = false;
         this._ftSeeAllLoading = false;
         this._activeFetchKey = null;
         this._resetResults({ hasSearched: false });
@@ -1171,7 +1173,7 @@ export class SearchModal extends LitElement {
         if (!this._languageCataloguePromise) {
             this._languageCataloguePromise = fetchLanguageOptions().then(options => {
                 this._allLanguageItems = options;
-                this._allLangsLoaded   = true;
+                this._allLangsLoaded = true;
                 return options;
             });
         }
@@ -1204,16 +1206,16 @@ export class SearchModal extends LitElement {
         // undoes a previous query's merge after the input is cleared.
         if (!this._shouldAutocomplete()) {
             this._languageItems = this._allLanguageItems;
-            this._facetKey      = null;
+            this._facetKey = null;
             return;
         }
 
         const params = this._buildFacetParams(this._query.trim());
-        const key    = params.toString();
-        if (key === this._facetKey) return;   // already merged for this context
+        const key = params.toString();
+        if (key === this._facetKey) return; // already merged for this context
 
         this._activeFacetKey = key;
-        this._langsLoading   = true;
+        this._langsLoading = true;
         // Drop the outgoing query's counts now rather than showing them under
         // the spinner. The suggestion list is hidden while `loading` is set, but
         // any selected rows stay on screen and would otherwise read as current.
@@ -1223,19 +1225,14 @@ export class SearchModal extends LitElement {
         // await it so a dropper opened immediately still merges. Counts are
         // caught rather than awaited fail-fast, so a failed count request still
         // leaves the catalogue that did load on screen.
-        const [catalogue, counts] = await Promise.all([
-            this._ensureLanguageCatalogue(),
-            fetchFacetCounts('language', params).catch(() => null),
-        ]);
+        const [catalogue, counts] = await Promise.all([this._ensureLanguageCatalogue(), fetchFacetCounts('language', params).catch(() => null)]);
         if (this._activeFacetKey !== key) return;
 
         // No counts (request failed, or the query matched nothing) degrades to
         // the uncounted catalogue — filtering must never break. Only a real
         // response is cached; a null key lets the next open retry.
-        this._languageItems = counts?.length
-            ? mergeFacetCounts(catalogue, counts, this._languages)
-            : catalogue;
-        this._facetKey     = counts ? key : null;
+        this._languageItems = counts?.length ? mergeFacetCounts(catalogue, counts, this._languages) : catalogue;
+        this._facetKey = counts ? key : null;
         this._langsLoading = false;
     }
 
@@ -1285,14 +1282,18 @@ export class SearchModal extends LitElement {
                             @drop=${this._onDrop}
                             @dragover=${this._onDragOver}
                         />
-                        ${this._query.length ? html`
+                        ${
+                            this._query.length
+                                ? html`
                             <button
                                 type="button"
                                 class="clear-btn"
                                 aria-label=${this._i18n.clearAria}
                                 @click=${this._clearInput}
                             >${SearchModal._closeIcon}</button>
-                        ` : nothing}
+                        `
+                                : nothing
+                        }
                         <button
                             type="button"
                             class="esc-pill"
@@ -1367,9 +1368,13 @@ export class SearchModal extends LitElement {
         return this._ftHits.length > 0 && !this._ftIsCurrent();
     }
 
-    _catalogIsStale() { return this._markStale && this._catalogSuperseded(); }
+    _catalogIsStale() {
+        return this._markStale && this._catalogSuperseded();
+    }
 
-    _bandIsStale() { return this._markStale && this._bandSuperseded(); }
+    _bandIsStale() {
+        return this._markStale && this._bandSuperseded();
+    }
 
     // is-navigating replaces the stale dim rather than compounding with it.
     _resultsClass(stale) {
@@ -1378,7 +1383,9 @@ export class SearchModal extends LitElement {
     }
 
     /** True while the Inside books tab is showing. */
-    get _inside() { return this._mode === MODE_INSIDE; }
+    get _inside() {
+        return this._mode === MODE_INSIDE;
+    }
 
     // No count on the Inside tab: it would only exist when the band happened to fire.
     _renderTabs() {
@@ -1458,9 +1465,7 @@ export class SearchModal extends LitElement {
         // live count is in hand — before that there's no honest number to display
         // (the whole-corpus figure ignores the query/language), so we show nothing.
         // Catalog-only; FTS has no equivalent.
-        const sublabel = !this._inside && this._hasSearched && typeof this._readableCount === 'number'
-            ? this._readableCount.toLocaleString()
-            : '';
+        const sublabel = !this._inside && this._hasSearched && typeof this._readableCount === 'number' ? this._readableCount.toLocaleString() : '';
         // "Clear all" only earns its place once there's more than one filter to
         // clear — i.e. readable-only is on *and* a language is selected. With a
         // single filter active the user just toggles/deselects it directly.
@@ -1485,13 +1490,17 @@ export class SearchModal extends LitElement {
                     @ol-select-popover-request-open=${this._onLanguageOpenRequest}
                     @ol-select-popover-change=${this._onLanguagesChange}
                 ></ol-select-popover>
-                ${showClearAll ? html`
+                ${
+                    showClearAll
+                        ? html`
                     <ol-button
                         variant="ghost"
                         class="clear-all"
                         @click=${this._clearAllFilters}
                     >${this._i18n.clearAll}</ol-button>
-                ` : nothing}
+                `
+                        : nothing
+                }
             </div>
         `;
     }
@@ -1500,9 +1509,7 @@ export class SearchModal extends LitElement {
         if (this._inside) return this._renderInsideResults();
 
         if (!this._shouldAutocomplete()) {
-            return this._recentSearches.length > 0
-                ? this._renderRecentSearches()
-                : html`<div class="results"></div>`;
+            return this._recentSearches.length > 0 ? this._renderRecentSearches() : html`<div class="results"></div>`;
         }
 
         if (this._loading && this._results.length === 0) {
@@ -1511,9 +1518,7 @@ export class SearchModal extends LitElement {
 
         if (this._results.length === 0 && this._hasSearched) {
             // With band hits for *this* query, scope the message to the catalog.
-            const emptyLabel = this._visibleFtHits().length
-                ? this._i18n.noCatalogResults
-                : this._i18n.noResults;
+            const emptyLabel = this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
             return html`<div class="results" @keydown=${this._onResultsKeydown}>
                 <div class="empty">${emptyLabel}</div>
                 ${this._renderFulltextBand()}
@@ -1522,18 +1527,30 @@ export class SearchModal extends LitElement {
 
         return html`
             <div class=${this._resultsClass(this._catalogIsStale())} @keydown=${this._onResultsKeydown}>
-                ${this._authorSuggestions.length ? html`
+                ${
+                    this._authorSuggestions.length
+                        ? html`
                     <h3 class="results-heading">${this._i18n.authorResults}</h3>
                     <ul class="results-list author-suggestion">
-                        ${repeat(this._authorSuggestions, a => a.key, (a, i) => this._renderAuthorSuggestion(a, i))}
+                        ${repeat(
+                            this._authorSuggestions,
+                            a => a.key,
+                            (a, i) => this._renderAuthorSuggestion(a, i)
+                        )}
                     </ul>
-                ` : nothing}
+                `
+                        : nothing
+                }
                 <h3 class="results-heading">${this._i18n.topResults}</h3>
                 <ul
                     class="results-list"
                     @pointerenter=${this._onShelfIntent}
                     @focusin=${this._onShelfIntent}
-                >${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
+                >${repeat(
+                    this._results,
+                    r => r.key,
+                    (r, i) => this._renderResult(r, i)
+                )}</ul>
                 ${this._renderFulltextBand()}
             </div>
         `;
@@ -1650,7 +1667,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ft-result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href, { event: 'FulltextClick', label: `rank:${index + 1}` })}
+                    @click=${e => this._onResultPress(e, href, { event: 'FulltextClick', label: `rank:${index + 1}` })}
                 >
                     <span class="result__cover-link">
                         <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} srcset=${hit.coverSrcset || nothing} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
@@ -1661,7 +1678,7 @@ export class SearchModal extends LitElement {
                         ${hit.author ? html`<span class="result__author">${hit.author}</span>` : nothing}
                         ${hit.year ? html`<span class="result__year">${hit.year}</span>` : nothing}
                         <span class="ft-quote">
-                            <span class="ft-quote__text">…${segments.map(s => s.match ? html`<mark>${s.text}</mark>` : s.text)}…</span>
+                            <span class="ft-quote__text">…${segments.map(s => (s.match ? html`<mark>${s.text}</mark>` : s.text))}…</span>
                         </span>
                     </span>
                 </a>
@@ -1673,14 +1690,17 @@ export class SearchModal extends LitElement {
             <div class="results" @keydown=${this._onResultsKeydown}>
                 <h3 class="results-heading">${this._i18n.recentSearches}</h3>
                 <ul class="results-list">
-                    ${repeat(this._recentSearches, s => s, s => html`
+                    ${repeat(
+                        this._recentSearches,
+                        s => s,
+                        s => html`
                         <li>
                             <div
                                 class="result recent-result"
                                 role="button"
                                 tabindex="0"
                                 @click=${() => this._onRecentSearchClick(s)}
-                                @keydown=${(e) => this._onRecentSearchKeydown(e, s)}
+                                @keydown=${e => this._onRecentSearchKeydown(e, s)}
                             >
                                 <span class="result__recent-icon" aria-hidden="true">
                                     ${SearchModal._clockIcon}
@@ -1692,11 +1712,15 @@ export class SearchModal extends LitElement {
                                     type="button"
                                     class="result__remove-recent"
                                     aria-label=${sprintf(this._i18n.removeRecent, s)}
-                                    @click=${(e) => { e.stopPropagation(); this._recentSearches = removeRecentSearch(s); }}
+                                    @click=${e => {
+                                        e.stopPropagation();
+                                        this._recentSearches = removeRecentSearch(s);
+                                    }}
                                 >${SearchModal._closeIcon}</button>
                             </div>
                         </li>
-                    `)}
+                    `
+                    )}
                 </ul>
             </div>
         `;
@@ -1737,7 +1761,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href, { event: 'ResultClick', label: `author:${index + 1}` })}
+                    @click=${e => this._onResultPress(e, href, { event: 'ResultClick', label: `author:${index + 1}` })}
                 >
                     <span class="result__avatar">
                         ${SearchModal._personIcon}
@@ -1806,12 +1830,12 @@ export class SearchModal extends LitElement {
         // editions disabled via the SOLR_EDITIONS flag, or an edition-less work).
         const edition = work.editions?.docs?.[0];
         const display = edition?.key ? edition : work;
-        const href    = display === edition ? edition.key : work.key;
+        const href = display === edition ? edition.key : work.key;
 
         // Author and year stay work-level: authors aren't indexed on editions,
         // and first_publish_year is the work's original-publication year.
         const author = work.author_name?.[0] || '';
-        const year   = work.first_publish_year || '';
+        const year = work.first_publish_year || '';
 
         // Whether the promoted edition — the copy weighted toward the patron's
         // site language, and the one this row opens — is itself readable for this
@@ -1854,16 +1878,16 @@ export class SearchModal extends LitElement {
         const otherLang = !editionReadable
             ? null
             : this._languages.length >= 2
-                ? readableEditionLanguages({
+              ? readableEditionLanguages({
                     edition,
                     languages: this._languages,
-                    options: this._languageItems,
+                    options: this._languageItems
                 })
-                : readableLanguageMismatch({
+              : readableLanguageMismatch({
                     edition,
                     languages: this._languages,
                     siteLanguage: this._siteLanguage,
-                    options: this._languageItems,
+                    options: this._languageItems
                 });
 
         // Cover resolution mirrors the rest of the site (Edition.get_cover_url →
@@ -1877,16 +1901,16 @@ export class SearchModal extends LitElement {
         const ia = display.ia?.[0] || work.ia?.[0] || work.editions?.docs?.[0]?.ia?.[0];
         let cover, coverSrcset;
         if (display.cover_i) {
-            cover       = `https://covers.openlibrary.org/b/id/${display.cover_i}-S.jpg`;
+            cover = `https://covers.openlibrary.org/b/id/${display.cover_i}-S.jpg`;
             coverSrcset = `https://covers.openlibrary.org/b/id/${display.cover_i}-M.jpg 2x`;
         } else if (ia) {
             // IA cover size map matches get_ia_cover: S = 116×58, M = 180×360.
             // archive.org URLs have no `?default=` fallback, so a missing scan
             // 404s and the <img> @error handler swaps in the placeholder.
-            cover       = `https://archive.org/download/${ia}/page/cover_w116_h58.jpg`;
+            cover = `https://archive.org/download/${ia}/page/cover_w116_h58.jpg`;
             coverSrcset = `https://archive.org/download/${ia}/page/cover_w180_h360.jpg 2x`;
         } else {
-            cover       = COVER_PLACEHOLDER;
+            cover = COVER_PLACEHOLDER;
             coverSrcset = nothing;
         }
 
@@ -1903,7 +1927,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href, { event: 'ResultClick', label: `${display === edition ? 'edition' : 'work'}:${index + 1}` })}
+                    @click=${e => this._onResultPress(e, href, { event: 'ResultClick', label: `${display === edition ? 'edition' : 'work'}:${index + 1}` })}
                 >
                     <span class="result__cover-link">
                         <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
@@ -1956,9 +1980,7 @@ export class SearchModal extends LitElement {
     // A failed batch is forgotten so the next intent tries it again.
     async _loadShelfState() {
         if (!this._userKey) return;
-        const olids = this._results
-            .map(work => olidOf(work.key))
-            .filter(olid => !this._readingState.has(olid) && !this._stateRequested.has(olid));
+        const olids = this._results.map(work => olidOf(work.key)).filter(olid => !this._readingState.has(olid) && !this._stateRequested.has(olid));
         if (olids.length === 0) return;
         olids.forEach(olid => this._stateRequested.add(olid));
         let works;
@@ -2029,7 +2051,7 @@ export class SearchModal extends LitElement {
         if (n > this._results.length) {
             return {
                 wide: sprintf(this._i18n.seeAllMany, count),
-                narrow: sprintf(this._i18n.seeAllManyNarrow, compactCount(n)),
+                narrow: sprintf(this._i18n.seeAllManyNarrow, compactCount(n))
             };
         }
         const label = sprintf(n === 1 ? this._i18n.seeOne : this._i18n.seeMany, count);
@@ -2082,9 +2104,9 @@ export class SearchModal extends LitElement {
         if (!fetchKey) return;
         const fire = () => {
             this._outcomeTimers.delete(action);
-            if (this._activeFetchKey !== fetchKey) return;   // query moved on
+            if (this._activeFetchKey !== fetchKey) return; // query moved on
             const key = `${action}:${fetchKey}`;
-            if (this._outcomeTracked.has(key)) return;       // already counted
+            if (this._outcomeTracked.has(key)) return; // already counted
             this._outcomeTracked.add(key);
             this._track(action, buildLabel ? buildLabel() : this._filterLabel());
         };
@@ -2149,7 +2171,9 @@ export class SearchModal extends LitElement {
 
     // The author photo is requested with ?default=false, so a missing photo
     // 404s and fires this — hide the <img> to reveal the person glyph beneath.
-    _onAvatarError(e) { e.target.hidden = true; }
+    _onAvatarError(e) {
+        e.target.hidden = true;
+    }
 
     _onDragOver(e) {
         e.preventDefault();
@@ -2229,7 +2253,7 @@ export class SearchModal extends LitElement {
         }
         if (!row) return;
         const rows = this._focusableRows();
-        const idx  = rows.indexOf(row);
+        const idx = rows.indexOf(row);
         if (idx === -1) return;
         e.preventDefault();
         const next = e.key === 'ArrowDown' ? idx + 1 : idx - 1;
@@ -2300,7 +2324,7 @@ export class SearchModal extends LitElement {
 
     _clearAllFilters() {
         this._availability = DEFAULT_AVAILABILITY;
-        this._languages    = [];
+        this._languages = [];
         ssSet(SS_AVAILABILITY_KEY, DEFAULT_AVAILABILITY);
         ssSet(SS_LANGUAGES_KEY, JSON.stringify([]));
         this._refetchIfActive();
@@ -2384,10 +2408,10 @@ export class SearchModal extends LitElement {
             return;
         }
 
-        const url      = this._buildSearchJsonUrl(trimmed);
+        const url = this._buildSearchJsonUrl(trimmed);
         const fetchKey = url;
         this._activeFetchKey = fetchKey;
-        this._searchFailed   = false;
+        this._searchFailed = false;
 
         // When the readable filter is off, the main numFound is the all-books
         // total and says nothing about the readable subset, so fetch that count
@@ -2398,16 +2422,16 @@ export class SearchModal extends LitElement {
         }
 
         fetch(url)
-            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Search failed: ${r.status}`)))
+            .then(r => (r.ok ? r.json() : Promise.reject(new Error(`Search failed: ${r.status}`))))
             .then(data => {
                 if (this._activeFetchKey !== fetchKey) return;
-                this._results           = data.docs || [];
-                this._resultsKey        = fetchKey;
+                this._results = data.docs || [];
+                this._resultsKey = fetchKey;
                 this._authorSuggestions = deriveAuthors(this._results, trimmed);
-                this._numFound          = typeof data.numFound === 'number' ? data.numFound : null;
+                this._numFound = typeof data.numFound === 'number' ? data.numFound : null;
                 if (this._availability === 'readable') this._readableCount = this._numFound;
-                this._loading           = false;
-                this._hasSearched       = true;
+                this._loading = false;
+                this._hasSearched = true;
                 this._scrollResultsToTop();
                 this._ftBand.solrSettled(trimmed, this._results);
                 if (this._shelfStateWanted) this._loadShelfState();
@@ -2421,7 +2445,7 @@ export class SearchModal extends LitElement {
                 this._searchFailed = true;
                 this._resetResults({
                     hasSearched: true,
-                    clearReadableCount: this._availability === 'readable',
+                    clearReadableCount: this._availability === 'readable'
                 });
                 this._ftBand.solrFailed(trimmed);
                 // After _resetResults, which cancels pending outcome timers.
@@ -2437,7 +2461,7 @@ export class SearchModal extends LitElement {
     // main search's fetchKey so a stale count never lands after the query moves on.
     _fetchReadableCount(query, fetchKey) {
         fetch(this._buildReadableCountUrl(query))
-            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Count failed: ${r.status}`)))
+            .then(r => (r.ok ? r.json() : Promise.reject(new Error(`Count failed: ${r.status}`))))
             .then(data => {
                 if (this._activeFetchKey !== fetchKey) return;
                 this._readableCount = typeof data.numFound === 'number' ? data.numFound : null;
@@ -2531,7 +2555,7 @@ export class SearchModal extends LitElement {
     _fulltextFilters() {
         return {
             readable: this._availability !== DEFAULT_AVAILABILITY,
-            languages: this._languages,
+            languages: this._languages
         };
     }
 

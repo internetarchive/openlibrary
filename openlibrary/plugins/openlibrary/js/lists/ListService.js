@@ -15,9 +15,9 @@ export async function createList(userKey, data) {
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Accept: 'application/json'
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
     });
 }
 
@@ -34,9 +34,9 @@ export async function addItem(listKey, seed) {
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Accept: 'application/json'
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(body)
     });
 }
 
@@ -53,8 +53,8 @@ export async function removeItem(listKey, seed) {
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Accept: 'application/json'
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(body)
     });
 }

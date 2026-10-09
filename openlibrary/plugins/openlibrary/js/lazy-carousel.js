@@ -1,11 +1,11 @@
-import {initialzeCarousels} from './carousel';
+import { initialzeCarousels } from './carousel';
 import { trackEvent } from './ol.analytics.js';
 import { buildPartialsUrl, whenVisible } from './utils';
 
 let relatedBooksTracked = false;
 let bannerClicked = false;
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', e => {
     if (e.target.closest('a[data-ol-link-track="OpenRelatedBooks|BannerClick"]')) {
         bannerClicked = true;
     }
@@ -23,7 +23,7 @@ export function initLazyCarousel(elems) {
 
         // Add retry listener
         const retryElem = elem.querySelector('.retry-btn');
-        retryElem.addEventListener('click', (e) => {
+        retryElem.addEventListener('click', e => {
             e.preventDefault();
             handleRetry(elem);
         });
@@ -116,7 +116,7 @@ function doFetchAndUpdate(target) {
                         window.archive_analytics.ol_send_event_ping({
                             category: 'OpenRelatedBooks',
                             action: action,
-                            label: lendingState,
+                            label: lendingState
                         });
                         relatedBooksTracked = true;
                     }
@@ -138,8 +138,7 @@ function doFetchAndUpdate(target) {
  * @param key {string}
  */
 function trackImpression(elem, key) {
-    whenVisible(elem, { rootMargin: '0px', threshold: 0.5 })
-        .then(() => trackEvent('BookCarousel', 'Impression', key));
+    whenVisible(elem, { rootMargin: '0px', threshold: 0.5 }).then(() => trackEvent('BookCarousel', 'Impression', key));
 }
 
 /**

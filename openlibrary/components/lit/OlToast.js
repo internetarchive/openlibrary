@@ -74,7 +74,7 @@ export class OlToast extends LitElement {
         _announce: { state: true },
         // Internal: whether the default slot holds real content — see
         // slotHasContent() for why native <slot> fallback can't be used.
-        _hasSlottedContent: { state: true },
+        _hasSlottedContent: { state: true }
     };
 
     static styles = css`
@@ -267,7 +267,6 @@ export class OlToast extends LitElement {
     /** Exclamation glyph shown on error toasts (the circle is drawn in CSS) */
     static _errorIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="6" x2="12" y2="13"/><line x1="12" y1="19.5" x2="12.01" y2="19.5"/></svg>`;
 
-
     constructor() {
         super();
         this.type = 'info';
@@ -384,17 +383,19 @@ export class OlToast extends LitElement {
         if (this._closing) return;
         this._closing = true;
         this._clearTimer();
-        this.dispatchEvent(new CustomEvent('ol-toast-close', {
-            detail: { reason },
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-toast-close', {
+                detail: { reason },
+                bubbles: true,
+                composed: true
+            })
+        );
 
         // data-closing triggers the exit transition on the host
         this.setAttribute('data-closing', '');
 
         const finalize = () => this.remove();
-        this.addEventListener('transitionend', (e) => {
+        this.addEventListener('transitionend', e => {
             if (e.target === this && e.propertyName === 'opacity') finalize();
         });
         // Fallback in case no transition runs (e.g. prefers-reduced-motion)
@@ -403,9 +404,7 @@ export class OlToast extends LitElement {
 
     render() {
         const isError = this.type === 'error';
-        const icon = this.type === 'success'
-            ? OlToast._successIcon
-            : isError ? OlToast._errorIcon : OlToast._infoIcon;
+        const icon = this.type === 'success' ? OlToast._successIcon : isError ? OlToast._errorIcon : OlToast._infoIcon;
         return html`
             <div
                 class="toast toast--${this.type}"
@@ -418,13 +417,21 @@ export class OlToast extends LitElement {
             >
                 <span class="toast__icon">${icon}</span>
                 <span class="toast__body">
-                    ${this._announce ? html`
+                    ${
+                        this._announce
+                            ? html`
                         <slot @slotchange=${this._handleSlotChange}></slot>
-                        ${this._hasSlottedContent ? nothing : html`
+                        ${
+                            this._hasSlottedContent
+                                ? nothing
+                                : html`
                             <span class="toast__message">${this.message}</span>
                             ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
-                        `}
-                    ` : ''}
+                        `
+                        }
+                    `
+                            : ''
+                    }
                 </span>
                 <ol-button
                     class="toast__close"

@@ -36,7 +36,7 @@ import {
     ssGet,
     ssSet,
     availabilityFromParams,
-    readStoredLanguages,
+    readStoredLanguages
 } from './search-modal/constants.js';
 import { fetchLanguageOptions } from './search-modal/languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './search-modal/searchFacets.js';
@@ -45,30 +45,26 @@ import { trackEvent } from './ol.analytics.js';
 // Every query param the availability filter owns, across all of its values.
 // Cleared before applying a new value so stale availability filters don't
 // accumulate in the URL.
-const AVAILABILITY_PARAM_KEYS = [
-    ...new Set(Object.values(AVAILABILITY_TO_PARAMS).flatMap(Object.keys)),
-];
+const AVAILABILITY_PARAM_KEYS = [...new Set(Object.values(AVAILABILITY_TO_PARAMS).flatMap(Object.keys))];
 
 // Per-surface URL param dialects. The FTS backend behind /search/inside has one
 // readable=true filter (no open vs borrowable split) and no Solr facet counts.
 export const SURFACES = {
     '/search': {
-        readAvailability: (params) => availabilityFromParams((name) => params.get(name)),
+        readAvailability: params => availabilityFromParams(name => params.get(name)),
         availabilityParamKeys: AVAILABILITY_PARAM_KEYS,
-        availabilityParams: (value) => AVAILABILITY_TO_PARAMS[value] || {},
-        facetCounts: true,
+        availabilityParams: value => AVAILABILITY_TO_PARAMS[value] || {},
+        facetCounts: true
     },
     '/search/inside': {
-        readAvailability: (params) =>
-            params.get('readable') === 'true' ? 'readable' : DEFAULT_AVAILABILITY,
+        readAvailability: params => (params.get('readable') === 'true' ? 'readable' : DEFAULT_AVAILABILITY),
         availabilityParamKeys: ['readable'],
-        availabilityParams: (value) =>
-            value === DEFAULT_AVAILABILITY ? {} : { readable: 'true' },
+        availabilityParams: value => (value === DEFAULT_AVAILABILITY ? {} : { readable: 'true' }),
         facetCounts: false,
         // FTS `lang` takes one language (`lang=a,b` returns nothing), so the
         // popover acts as a radio group here.
-        singleLanguage: true,
-    },
+        singleLanguage: true
+    }
 };
 
 function currentSurface() {
@@ -108,7 +104,6 @@ export function selectionFor(surface, selected, added) {
     return selected.slice(0, 1);
 }
 
-
 function urlHasAnyFilterParam(surface, params) {
     if (surface.availabilityParamKeys.some(k => params.has(k))) return true;
     if (params.has('language')) return true;
@@ -142,9 +137,7 @@ function sameAvailabilityOnSurface(surface, a, b) {
 export function syncSessionStorageFromUrl(surface, params) {
     const storedAvail = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
     const urlAvail = surface.readAvailability(params);
-    writeStoredAvailability(
-        sameAvailabilityOnSurface(surface, storedAvail, urlAvail) ? storedAvail : urlAvail,
-    );
+    writeStoredAvailability(sameAvailabilityOnSurface(surface, storedAvail, urlAvail) ? storedAvail : urlAvail);
 
     const storedLangs = readStoredLanguages();
     const urlLangs = params.getAll('language');
@@ -226,9 +219,7 @@ export function initSearchFilterBar(container) {
 
     // Build the facet field config now that we have element references.
     // Future filters: add an entry here.
-    POPOVER_FIELD_CONFIG = new Map([
-        ...(languageEl ? [[languageEl, 'language']] : []),
-    ]);
+    POPOVER_FIELD_CONFIG = new Map([...(languageEl ? [[languageEl, 'language']] : [])]);
 
     // True when the page has a meaningful search query — facet counts are only
     // fetched in this case. An empty or whitespace-only q= is treated as no
@@ -236,15 +227,14 @@ export function initSearchFilterBar(container) {
     const hasQuery = (currentParams.get('q') || '').trim().length > 0;
 
     if (availabilityEl) {
-        availabilityEl.checked =
-            surface.readAvailability(currentParams) !== DEFAULT_AVAILABILITY;
-        availabilityEl.addEventListener('ol-toggle-change', (e) => {
+        availabilityEl.checked = surface.readAvailability(currentParams) !== DEFAULT_AVAILABILITY;
+        availabilityEl.addEventListener('ol-toggle-change', e => {
             const value = e.detail.checked ? 'readable' : DEFAULT_AVAILABILITY;
             writeStoredAvailability(value);
             trackEvent('SearchFilter', e.detail.checked ? 'AvailabilityOn' : 'AvailabilityOff');
             const mapped = surface.availabilityParams(value);
-            navigateWithParams((params) => {
-                surface.availabilityParamKeys.forEach((key) => params.delete(key));
+            navigateWithParams(params => {
+                surface.availabilityParamKeys.forEach(key => params.delete(key));
                 Object.entries(mapped).forEach(([key, val]) => params.set(key, val));
             });
         });
@@ -284,14 +274,10 @@ export function initSearchFilterBar(container) {
                 // here; pass currentParams straight through.
                 const [options, counts] = await Promise.all([
                     fetchLanguageOptions(),
-                    hasQuery && field && surface.facetCounts
-                        ? fetchFacetCounts(field, currentParams)
-                        : Promise.resolve([]),
+                    hasQuery && field && surface.facetCounts ? fetchFacetCounts(field, currentParams) : Promise.resolve([])
                 ]);
 
-                languageEl.items = (hasQuery && counts.length > 0)
-                    ? mergeFacetCounts(options, counts, languageEl.selected || [])
-                    : options;
+                languageEl.items = hasQuery && counts.length > 0 ? mergeFacetCounts(options, counts, languageEl.selected || []) : options;
             } catch (err) {
                 // Graceful degradation: keep DEFAULT_LANGUAGE_OPTIONS seeded at
                 // init. Filtering must never break (spec requirement).
@@ -310,20 +296,18 @@ export function initSearchFilterBar(container) {
         // once (openWhenCountsReady handles the 500ms open budget + calling
         // popover.show()). Anything not listening for this event still opens
         // instantly, unaffected.
-        languageEl.addEventListener('ol-select-popover-request-open', (e) => {
+        languageEl.addEventListener('ol-select-popover-request-open', e => {
             openWhenCountsReady(e, loadLanguageItems);
         });
 
-        languageEl.addEventListener('ol-select-popover-change', (e) => {
+        languageEl.addEventListener('ol-select-popover-change', e => {
             // Single-language: a new pick replaces the old (`added` is null on deselect).
-            const selected = surface.singleLanguage
-                ? selectionFor(surface, e.detail.selected, e.detail.added)
-                : e.detail.selected;
+            const selected = surface.singleLanguage ? selectionFor(surface, e.detail.selected, e.detail.added) : e.detail.selected;
             languageEl.selected = selected;
             writeStoredLanguages(selected);
-            navigateWithParams((params) => {
+            navigateWithParams(params => {
                 params.delete('language');
-                selected.forEach((code) => params.append('language', code));
+                selected.forEach(code => params.append('language', code));
             });
         });
     }

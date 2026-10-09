@@ -119,7 +119,7 @@ export class OlPopover extends LitElement {
         _minWidth: { state: true },
         _transformOrigin: { state: true },
         _animState: { state: true },
-        _mobile: { state: true },
+        _mobile: { state: true }
     };
 
     // Animation states: closed → preparing → entering → open → exiting → closed
@@ -389,15 +389,21 @@ export class OlPopover extends LitElement {
         const showPanel = this._animState !== 'closed';
         return html`
             <slot name="trigger" @click="${this._onTriggerClick}"></slot>
-            ${showPanel ? html`
-                ${this._mobile || this.blockOutsideClicks ? html`
+            ${
+                showPanel
+                    ? html`
+                ${
+                    this._mobile || this.blockOutsideClicks
+                        ? html`
                     <div
                         class="backdrop ${this._mobile ? '' : 'guard'}"
                         popover="${ifDefined(topLayerAttr())}"
                         data-state="${this._animState}"
                         @click="${this._onBackdropClick}"
                     ></div>
-                ` : nothing}
+                `
+                        : nothing
+                }
                 <!-- Sentinels bracket the panel (rather than nesting inside it)
                      so focus reaching one means the user has Tabbed past the
                      panel's edge. A popover is non-modal, so that closes it (see
@@ -419,19 +425,27 @@ export class OlPopover extends LitElement {
                     aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
                     aria-modal="${ifDefined(this._mobile ? 'true' : undefined)}"
                     tabindex="-1"
-                    style="${this._mobile ? '' : `
+                    style="${
+                        this._mobile
+                            ? ''
+                            : `
                         top: ${this._position.top}px;
                         left: ${this._position.left}px;
                         min-width: ${this._minWidth}px;
                         transform-origin: ${this._transformOrigin};
-                    `}"
+                    `
+                    }"
                     @transitionend="${this._onTransitionEnd}"
                 >
-                    ${this._mobile ? html`
+                    ${
+                        this._mobile
+                            ? html`
                         <div class="tray-handle" aria-hidden="true">
                             <div class="tray-handle-bar"></div>
                         </div>
-                    ` : nothing}
+                    `
+                            : nothing
+                    }
                     <slot></slot>
                 </div>
                 <span
@@ -441,7 +455,9 @@ export class OlPopover extends LitElement {
                     data-edge="end"
                     @focus="${this._onSentinelFocus}"
                 ></span>
-            ` : nothing}
+            `
+                    : nothing
+            }
         `;
     }
 
@@ -529,10 +545,13 @@ export class OlPopover extends LitElement {
             panel.focus({ preventScroll: true });
 
             if (reducedMotion) {
-                this.dispatchEvent(new CustomEvent('ol-popover-open', {
-                    bubbles: true, composed: true,
-                    detail: { placement: this.placement },
-                }));
+                this.dispatchEvent(
+                    new CustomEvent('ol-popover-open', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { placement: this.placement }
+                    })
+                );
                 return;
             }
 
@@ -540,10 +559,13 @@ export class OlPopover extends LitElement {
             panel.getBoundingClientRect();
 
             this._animState = 'entering';
-            this.dispatchEvent(new CustomEvent('ol-popover-open', {
-                bubbles: true, composed: true,
-                detail: { placement: this.placement },
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-popover-open', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { placement: this.placement }
+                })
+            );
         });
     }
 
@@ -719,16 +741,16 @@ export class OlPopover extends LitElement {
         const anchorCenter = anchor.left + anchor.width / 2;
 
         switch (reqAlign) {
-        case 'center':
-            left = anchorCenter - panelW / 2;
-            break;
-        case 'end':
-            left = anchor.right - panelW;
-            break;
-        case 'start':
-        default:
-            left = anchor.left;
-            break;
+            case 'center':
+                left = anchorCenter - panelW / 2;
+                break;
+            case 'end':
+                left = anchor.right - panelW;
+                break;
+            case 'start':
+            default:
+                left = anchor.left;
+                break;
         }
 
         // Shift horizontally to keep within viewport
@@ -845,8 +867,10 @@ export class OlPopover extends LitElement {
 
     _requestClose(reason) {
         const ev = new CustomEvent('ol-popover-close', {
-            bubbles: true, composed: true, cancelable: true,
-            detail: { reason },
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { reason }
         });
         this.dispatchEvent(ev);
         if (!ev.defaultPrevented) {
@@ -968,10 +992,13 @@ export class OlPopover extends LitElement {
                 // the next tap. _animState is already 'closed', so the _hide()
                 // this triggers early-returns without re-animating.
                 this.open = false;
-                this.dispatchEvent(new CustomEvent('ol-popover-close', {
-                    bubbles: true, composed: true,
-                    detail: { reason: 'swipe' },
-                }));
+                this.dispatchEvent(
+                    new CustomEvent('ol-popover-close', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { reason: 'swipe' }
+                    })
+                );
             };
 
             if (panel) {

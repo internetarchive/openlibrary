@@ -14,11 +14,11 @@ export default function initSentry() {
             Sentry.browserTracingIntegration({
                 // Use the server's normalized route name (e.g. "^/books/[^/]*$") so browser
                 // pageload spans group the same way as the server-side transactions.
-                beforeStartSpan: (options) => ({
+                beforeStartSpan: options => ({
                     ...options,
-                    name: config.transactionName ?? options.name,
-                }),
-            }),
+                    name: config.transactionName ?? options.name
+                })
+            })
         ],
         beforeSend(event) {
             // Apply the same normalized name to error events so they group consistently too.
@@ -28,6 +28,6 @@ export default function initSentry() {
             return event;
         },
         // Inject sentry-trace/baggage headers on same-origin requests for distributed tracing
-        tracePropagationTargets: [/^\//],
+        tracePropagationTargets: [/^\//]
     });
 }

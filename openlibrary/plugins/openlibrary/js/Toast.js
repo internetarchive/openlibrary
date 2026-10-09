@@ -12,7 +12,7 @@ export class Toast {
      * @param {JQuery} $toast The element containing the appropriate parts
      * @param {JQuery|HTMLElement} containerParent where to add the toast bar
      */
-    constructor($toast, containerParent=document.body) {
+    constructor($toast, containerParent = document.body) {
         const $parent = $(containerParent);
         if (!$parent.has('.toast-container').length) {
             $parent.prepend('<div class="toast-container"></div>');
@@ -27,11 +27,8 @@ export class Toast {
 
     /** Displays the toast component on the page. */
     show() {
-        this.$toast
-            .appendTo(this.$container)
-            .fadeIn();
-        this.$toast.find('.toast__close')
-            .one('click', () => this.close());
+        this.$toast.appendTo(this.$container).fadeIn();
+        this.$toast.find('.toast__close').one('click', () => this.close());
     }
 
     /** Hides the toast component and removes it from the DOM. */
@@ -52,7 +49,7 @@ export class FadingToast extends Toast {
      * @param {JQuery} [$parent] Designates where the toast component will be attached
      * @param {number} [timeout] Amount of time, in milliseconds, that the component will be visible
      */
-    constructor(message, $parent=null, timeout=DEFAULT_TIMEOUT) {
+    constructor(message, $parent = null, timeout = DEFAULT_TIMEOUT) {
         // TODO(i18n-js)
         const $toast = $(`<div class="toast">
             <span class="toast__body">${message}</span>
@@ -86,7 +83,7 @@ export class PersistentToast extends Toast {
      * @param {string} message String that will be displayed within the toast component
      * @param {string} classes Additional classes to add to the toast component
      */
-    constructor(message, classes='') {
+    constructor(message, classes = '') {
         const $toast = $(`<div class="toast ${classes}">
             <span class="toast__body">${message}</span>
             <a class="toast__close">&times;<span class="shift">Close</span>

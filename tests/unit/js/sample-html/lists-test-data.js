@@ -34,7 +34,8 @@ function createListFormMarkup(isFilled) {
 export const listCreationForm = createListFormMarkup(false);
 export const filledListCreationForm = createListFormMarkup(true);
 
-export const showcaseI18nInput = '<input type="hidden" name="list-i18n-strings" value="{&quot;cover_of&quot;: &quot;Cover of: &quot;, &quot;see_this_list&quot;: &quot;See this list&quot;, &quot;remove_from_list&quot;: &quot;Remove from your list?&quot;, &quot;from&quot;: &quot;from&quot;, &quot;you&quot;: &quot;You&quot;}"></input>';
+export const showcaseI18nInput =
+    '<input type="hidden" name="list-i18n-strings" value="{&quot;cover_of&quot;: &quot;Cover of: &quot;, &quot;see_this_list&quot;: &quot;See this list&quot;, &quot;remove_from_list&quot;: &quot;Remove from your list?&quot;, &quot;from&quot;: &quot;from&quot;, &quot;you&quot;: &quot;You&quot;}"></input>';
 
 const DEFAULT_COVER_URL = '/static/images/icons/avatar_book-sm.png';
 
@@ -118,10 +119,12 @@ export const showcaseDetailsData = [
         listTitle: 'My First List',
         listOwner: '/people/openlibrary',
         seedType: 'subject'
-    },
+    }
 ];
 
-export const multipleShowcasesOnPage = createShowcaseMarkup(true, [showcaseDetailsData[0], showcaseDetailsData[2]]) + createShowcaseMarkup(false, [showcaseDetailsData[0], showcaseDetailsData[1]]);
+export const multipleShowcasesOnPage =
+    createShowcaseMarkup(true, [showcaseDetailsData[0], showcaseDetailsData[2]]) +
+    createShowcaseMarkup(false, [showcaseDetailsData[0], showcaseDetailsData[1]]);
 export const activeListShowcase = createShowcaseMarkup(true, [showcaseDetailsData[0]]);
 export const listsSectionShowcase = createShowcaseMarkup(false, [showcaseDetailsData[0]]);
 export const subjectShowcase = createShowcaseMarkup(false, [showcaseDetailsData[4]]);

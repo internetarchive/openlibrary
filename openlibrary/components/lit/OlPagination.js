@@ -260,9 +260,7 @@ export class OlPagination extends LitElement {
      * @returns {Array} Array of focusable elements (buttons or anchors)
      */
     _getFocusableElements() {
-        return Array.from(
-            this.shadowRoot.querySelectorAll('.pagination-item:not([aria-disabled="true"])')
-        );
+        return Array.from(this.shadowRoot.querySelectorAll('.pagination-item:not([aria-disabled="true"])'));
     }
 
     /**
@@ -275,7 +273,7 @@ export class OlPagination extends LitElement {
             count: focusable.length,
             current: focusable.indexOf(this.shadowRoot.activeElement),
             orientation: 'horizontal',
-            wrap: false,
+            wrap: false
         });
         if (target === -1) return;
         e.preventDefault();
@@ -296,7 +294,7 @@ export class OlPagination extends LitElement {
             detail: { page },
             bubbles: true,
             composed: true,
-            cancelable: true,
+            cancelable: true
         });
         this.dispatchEvent(event);
         if (event.defaultPrevented) return;
@@ -316,7 +314,7 @@ export class OlPagination extends LitElement {
             detail: { page },
             bubbles: true,
             composed: true,
-            cancelable: true,
+            cancelable: true
         });
         this.dispatchEvent(event);
         if (event.defaultPrevented) {
@@ -346,7 +344,7 @@ export class OlPagination extends LitElement {
                     class="pagination-item ${className}"
                     aria-label=${label}
                     aria-current=${ariaCurrent}
-                    @click=${(e) => this._handlePageClick(e, page)}
+                    @click=${e => this._handlePageClick(e, page)}
                 >${content}</a>
             `;
         }
@@ -372,9 +370,7 @@ export class OlPagination extends LitElement {
         }
 
         const isCurrent = page === this.currentPage;
-        const label = isCurrent
-            ? this._interpolateLabel(this.labelCurrentPage, { page })
-            : this._interpolateLabel(this.labelGoToPage, { page });
+        const label = isCurrent ? this._interpolateLabel(this.labelCurrentPage, { page }) : this._interpolateLabel(this.labelGoToPage, { page });
 
         return this._renderPaginationItem({ page, label, content: page });
     }
@@ -386,9 +382,7 @@ export class OlPagination extends LitElement {
      */
     _renderNavArrow(direction) {
         const isPrev = direction === 'prev';
-        const isDisabled = isPrev
-            ? this.currentPage === 1
-            : this.mode === 'arrows' ? !this.hasNextPage : this.currentPage === this.totalPages;
+        const isDisabled = isPrev ? this.currentPage === 1 : this.mode === 'arrows' ? !this.hasNextPage : this.currentPage === this.totalPages;
 
         if (isDisabled && this.mode !== 'arrows') return html``;
 

@@ -24,9 +24,7 @@ export function formatReadDate(value) {
     const [year, month, day] = String(value).split('-').map(Number);
     if (!year) return '';
     const lang = document.documentElement.lang || 'en';
-    const options = month
-        ? (day ? { year: 'numeric', month: 'short', day: 'numeric' } : { year: 'numeric', month: 'short' })
-        : null;
+    const options = month ? (day ? { year: 'numeric', month: 'short', day: 'numeric' } : { year: 'numeric', month: 'short' }) : null;
     if (!options) return String(year);
     return new Intl.DateTimeFormat(lang, options).format(new Date(year, month - 1, day || 1));
 }

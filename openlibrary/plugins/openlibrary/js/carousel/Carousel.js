@@ -2,7 +2,7 @@ import $ from 'jquery';
 // Slick#1.6.0 is not on npm
 import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.css';
-import { buildPartialsUrl } from  '../utils.js';
+import { buildPartialsUrl } from '../utils.js';
 
 /**
  * @typedef {Object} CarouselConfig
@@ -33,7 +33,7 @@ export class Carousel {
             {
                 booksPerBreakpoint: [6, 5, 4, 3, 2, 1],
                 analyticsCategory: 'Carousel',
-                carouselKey: '',
+                carouselKey: ''
             },
             JSON.parse($container.attr('data-config'))
         );
@@ -45,7 +45,7 @@ export class Carousel {
                 pageMode: 'page',
                 locked: false,
                 allDone: false,
-                page: 1,
+                page: 1
             },
             this.config.loadMore || {}
         );
@@ -57,7 +57,7 @@ export class Carousel {
         // which are always present even for carousels rendered via partials. Fall
         // back to the shared hidden input (books/custom_carousel.html), then to an
         // empty string so loading can continue if a translation is missing.
-        this.i18n = {loading: ''};
+        this.i18n = { loading: '' };
         const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]');
         if (i18nInput) {
             this.i18n = JSON.parse(i18nInput.value);
@@ -77,15 +77,14 @@ export class Carousel {
             speed: 300,
             slidesToShow: this.config.booksPerBreakpoint[0],
             slidesToScroll: this.config.booksPerBreakpoint[0],
-            responsive: [1200, 1024, 600, 480, 360]
-                .map((breakpoint, i) => ({
-                    breakpoint: breakpoint,
-                    settings: {
-                        slidesToShow: this.config.booksPerBreakpoint[i + 1],
-                        slidesToScroll: this.config.booksPerBreakpoint[i + 1],
-                        infinite: false,
-                    }
-                }))
+            responsive: [1200, 1024, 600, 480, 360].map((breakpoint, i) => ({
+                breakpoint: breakpoint,
+                settings: {
+                    slidesToShow: this.config.booksPerBreakpoint[i + 1],
+                    slidesToScroll: this.config.booksPerBreakpoint[i + 1],
+                    infinite: false
+                }
+            }))
         });
 
         // Slick's accessibility mode adds role="listbox" to the track and
@@ -106,25 +105,24 @@ export class Carousel {
         // Slick sets tabindex="-1" on links in hidden slides, but cannot reach a
         // shelf button's real button behind its shadow root; inert does the same job.
         const syncShelfButtons = () => {
-            this.$container[0].querySelectorAll('.slick-slide').forEach((slide) => {
+            this.$container[0].querySelectorAll('.slick-slide').forEach(slide => {
                 const hidden = slide.getAttribute('aria-hidden') === 'true';
-                slide.querySelectorAll('ol-shelf-button').forEach((button) => button.toggleAttribute('inert', hidden));
+                slide.querySelectorAll('ol-shelf-button').forEach(button => button.toggleAttribute('inert', hidden));
             });
         };
         syncShelfButtons();
-        new MutationObserver(syncShelfButtons)
-            .observe(this.$container[0], { subtree: true, childList: true, attributeFilter: ['aria-hidden'] });
+        new MutationObserver(syncShelfButtons).observe(this.$container[0], { subtree: true, childList: true, attributeFilter: ['aria-hidden'] });
 
         // Slick internally changes the click handlers on the next/prev buttons,
         // so we listen via the container instead
-        this.$container.on('click', '.slick-next', (ev) => {
+        this.$container.on('click', '.slick-next', ev => {
             // Note: This will actually fail on the last 'next', but that's okay
             if ($(ev.target).hasClass('slick-disabled')) return;
 
             window.archive_analytics.ol_send_event_ping({
                 category: this.config.analyticsCategory,
                 action: 'Next',
-                label: this.config.carouselKey,
+                label: this.config.carouselKey
             });
         });
 
@@ -133,7 +131,7 @@ export class Carousel {
                 window.archive_analytics.ol_send_event_ping({
                     category: this.config.analyticsCategory,
                     action: 'Next',
-                    label: this.config.carouselKey,
+                    label: this.config.carouselKey
                 });
             }
         });
@@ -146,14 +144,15 @@ export class Carousel {
                 const totalSlides = this.slick.$slides.length;
                 const numActiveSlides = this.slick.$slides.filter('.slick-active').length;
                 // this allows us to pre-load before hitting last page
-                const needsMoreCards = totalSlides - curSlide <= (numActiveSlides * 2);
+                const needsMoreCards = totalSlides - curSlide <= numActiveSlides * 2;
 
                 if (!loadMore.locked && !loadMore.allDone && needsMoreCards) {
                     loadMore.locked = true; // lock for critical section
 
                     if (loadMore.pageMode === 'page') {
                         loadMore.page++;
-                    } else { // i.e. offset, start from last slide
+                    } else {
+                        // i.e. offset, start from last slide
                         loadMore.page = totalSlides;
                     }
 
@@ -161,8 +160,8 @@ export class Carousel {
                 }
             });
 
-            document.addEventListener('filter', (ev) => {
-                loadMore.extraParams = {published_in: `${ev.detail.yearFrom}-${ev.detail.yearTo}`};
+            document.addEventListener('filter', ev => {
+                loadMore.extraParams = { published_in: `${ev.detail.yearFrom}-${ev.detail.yearTo}` };
 
                 // Reset the page count - the result set is now 'new'
                 if (loadMore.pageMode === 'page') {
@@ -193,8 +192,8 @@ export class Carousel {
             ...loadMore.extraParams
         });
         this.appendLoadingSlide();
-        $.ajax({url: url, type: 'GET'})
-            .then((results) => {
+        $.ajax({ url: url, type: 'GET' })
+            .then(results => {
                 this.removeLoadingSlide();
                 const cards = results.partials || [];
                 cards.forEach(card => this.slick.addSlide(card));

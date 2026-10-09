@@ -27,8 +27,8 @@ export const OLHardBreak = HardBreak.extend({
                 },
                 parse: {
                     // handled by markdown-it
-                },
-            },
+                }
+            }
         };
-    },
+    }
 });

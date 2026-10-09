@@ -16,5 +16,8 @@ export async function copyText(trigger, text) {
 
     trigger.classList.add('is-copied');
     clearTimeout(resetTimers.get(trigger));
-    resetTimers.set(trigger, setTimeout(() => trigger.classList.remove('is-copied'), 1200));
+    resetTimers.set(
+        trigger,
+        setTimeout(() => trigger.classList.remove('is-copied'), 1200)
+    );
 }

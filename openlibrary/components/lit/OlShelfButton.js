@@ -18,7 +18,7 @@ export const DEFAULT_LABELS = {
     // it is the visible label.
     shelfToggle: '%(shelf)s: %(title)s',
     shelfMenu: 'More options for %(title)s',
-    addToListFor: 'Add %(title)s to a list',
+    addToListFor: 'Add %(title)s to a list'
 };
 
 /**
@@ -120,7 +120,7 @@ export class OlShelfButton extends LitElement {
         hideRating: { type: Boolean, attribute: 'hide-rating' },
         listsOnly: { type: Boolean, attribute: 'lists-only', reflect: true },
         pending: { type: Boolean, reflect: true },
-        _announce: { state: true },
+        _announce: { state: true }
     };
 
     static styles = css`
@@ -592,11 +592,13 @@ export class OlShelfButton extends LitElement {
     }
 
     _emitState(shelf, rating = this.rating) {
-        this.dispatchEvent(new CustomEvent('ol-book-state-change', {
-            bubbles: true,
-            composed: true,
-            detail: { key: this.workKey, shelf, rating },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-book-state-change', {
+                bubbles: true,
+                composed: true,
+                detail: { key: this.workKey, shelf, rating }
+            })
+        );
     }
 
     _openActions() {
