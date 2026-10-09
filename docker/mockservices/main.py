@@ -7,7 +7,7 @@ provides mocks for external services that do not have dev interceptors:
   - IA S3 auth (was /internal/fake/s3auth)
   - IA loans   (was /internal/fake/loans)
   - IA loans "changes" feed (needed by the near-realtime loan availability updater)
-  - IA availability v2 (was not mocked — pointed at real archive.org)
+  - IA availability v2 (derived from the loans "changes" window)
   - IA borrow status (was hardcoded in lending.py)
   - reCAPTCHA siteverify
   - be-api full-text search
@@ -38,6 +38,7 @@ import json as jsonlib
 import logging
 import random
 import time
+import zlib
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
@@ -52,7 +53,9 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    await _ensure_solr_editions()
     await _seed_loan_changes()
+    await _seed_unavailable()
     task = asyncio.create_task(_loan_changes_ongoing_loop())
     yield
     task.cancel()
@@ -296,7 +299,7 @@ AVAILABILITY_VARIANTS = [
         "available_to_borrow": False,
         "available_to_browse": False,
         "available_to_waitlist": True,
-        "num_waitlist": 3,
+        "num_waitlist": "3",
         "is_previewable": True,
     },
     # 4. "Checked Out" (All copies on loan, waitlist closed)
@@ -334,9 +337,30 @@ AVAILABILITY_VARIANTS = [
 ]
 
 
+# Every field OL reads off an availability response. The sparse variants above
+# are overlaid onto this so none of them omits a field the site reads.
+_AVAILABILITY_DEFAULTS: dict[str, Any] = {
+    "status": "error",
+    "available_to_browse": False,
+    "available_to_borrow": False,
+    "available_to_waitlist": False,
+    "is_printdisabled": False,
+    "is_readable": False,
+    "is_lendable": False,
+    "is_previewable": False,
+    "isbn": None,
+    "oclc": None,
+    "openlibrary_work": None,
+    "openlibrary_edition": None,
+    "last_loan_date": None,
+    "num_waitlist": "0",
+    "last_waitlist_date": None,
+}
+
+
 def _deterministic_availability(item_id: str) -> dict[str, Any]:
     idx = int(hashlib.md5(item_id.encode("utf-8")).hexdigest(), 16) % len(AVAILABILITY_VARIANTS)
-    res = AVAILABILITY_VARIANTS[idx].copy()
+    res = _AVAILABILITY_DEFAULTS | AVAILABILITY_VARIANTS[idx]
     res["identifier"] = item_id
     return res
 
@@ -497,6 +521,26 @@ def _make_loan_event(identifier: str, when: datetime, event_type: str) -> dict:
     }
 
 
+async def _ensure_solr_editions() -> None:
+    """Dev bootstrap: on an empty Solr, seed the fallback ocaids as nested edition docs
+    so the loan-availability updater has real editions to resolve. No-op when Solr already
+    has ia-bearing editions (real data present). Fail-soft."""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(_SOLR_URL, params={"q": "ia:*", "rows": 0, "wt": "json"})
+            resp.raise_for_status()
+            if resp.json()["response"]["numFound"]:
+                return  # real editions already present; don't pollute the index
+            docs = [
+                {"key": f"/works/OL_MOCK{i}W", "type": "work", "editions": [{"key": f"/books/OL_MOCK{i}M", "type": "edition", "ia": [ocaid]}]}
+                for i, ocaid in enumerate(_FALLBACK_IA_IDS)
+            ]
+            await client.post(_SOLR_URL.replace("/select", "/update"), params={"commit": "true"}, json=docs)
+            logger.info("loan changes: seeded %d dev editions into empty Solr for loan-availability testing", len(docs))
+    except (httpx.HTTPError, KeyError, ValueError):  # fmt: skip
+        logger.warning("loan changes: could not seed dev editions into Solr; loop may resolve nothing")
+
+
 async def _seed_loan_changes() -> None:
     ids = await _fetch_real_ia_ids()
     now = datetime.now(UTC)
@@ -528,9 +572,12 @@ async def _loan_changes_ongoing_loop() -> None:
 
 
 @app.get("/services/loans/loan/")
-async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JSONResponse:
+async def loan_changes(action: str, after_uid: int | None = None, limit: int = 1000) -> JSONResponse:
     if action != "changes":
         return JSONResponse({"status": "error", "error": f"unsupported action: {action}"}, status_code=400)
+    if not after_uid:
+        # IA treats after_uid=0 the same as a missing one.
+        return JSONResponse({"status": "ERROR", "error": "No since or after_uid supplied."}, status_code=400)
     async with _loan_changes_lock:
         rows = [event for event in _loan_changes if event["uid"] > after_uid][:limit]
         latest_uid = _loan_changes[-1]["uid"] if _loan_changes else 0
@@ -539,8 +586,74 @@ async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JS
 
 # ---------------------------------------------------------------------------
 # IA Availability API v2
-# GET/POST /services/availability/
+# GET/POST /services/availability/?identifier=a,b,c
+#
+# Identifiers in the loan-changes window get an answer derived from their
+# events, so this endpoint and the changes feed agree. Everything else gets the
+# variant matrix (_deterministic_availability), so every CTA state stays
+# previewable in dev.
+#
+# Two event-derived buckets deliberately disagree with the events:
+#   - MULTI-COPY ids stay available during a borrow (other copies remain).
+#   - WAITLISTED ids stay unavailable after a return, with a non-zero
+#     num_waitlist (the freed copy goes to the queue).
 # ---------------------------------------------------------------------------
+
+_AVAILABILITY_BUCKETS = 5
+_MULTI_COPY_BUCKET = 0
+_WAITLISTED_BUCKET = 1
+_ACTIVE_LOAN_EVENTS = ("borrow", "browse", "renew_borrow", "renew_browse")
+
+
+def _availability_bucket(identifier: str) -> int:
+    """Stable per-identifier bucket. crc32, not hash(): str hashing is salted
+    per process, which would make the mock's answers change on every restart."""
+    return zlib.crc32(identifier.encode()) % _AVAILABILITY_BUCKETS
+
+
+def _latest_event_for(identifier: str, events: list[dict]) -> dict | None:
+    latest = None
+    for event in events:
+        if event["identifier"] == identifier and (latest is None or event["uid"] > latest["uid"]):
+            latest = event
+    return latest
+
+
+def _availability_for(identifier: str, events: list[dict]) -> dict:
+    bucket = _availability_bucket(identifier)
+    latest = _latest_event_for(identifier, events)
+
+    on_loan = False
+    if latest and latest["event_type"] in _ACTIVE_LOAN_EVENTS:
+        until = jsonlib.loads(latest["extra"] or "{}").get("until")
+        on_loan = not until or datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC) > datetime.now(UTC)
+
+    if bucket == _MULTI_COPY_BUCKET:
+        available = True
+    elif bucket == _WAITLISTED_BUCKET:
+        available = False
+    else:
+        available = not on_loan
+
+    num_waitlist = 3 if (not available and bucket == _WAITLISTED_BUCKET) else 0
+    return {
+        "status": "borrow_available" if available else "borrow_unavailable",
+        "available_to_browse": available,
+        "available_to_borrow": available,
+        "available_to_waitlist": bool(num_waitlist),
+        "is_printdisabled": True,
+        "is_readable": False,
+        "is_lendable": True,
+        "is_previewable": True,
+        "identifier": identifier,
+        "isbn": None,
+        "oclc": None,
+        "openlibrary_work": None,
+        "openlibrary_edition": None,
+        "last_loan_date": latest["time"] if latest else None,
+        "num_waitlist": str(num_waitlist),
+        "last_waitlist_date": None,
+    }
 
 
 @app.api_route("/services/availability/", methods=["GET", "POST"])
@@ -564,7 +677,12 @@ async def availability(
     else:
         ids = [i.strip() for i in str(raw_ids).split(",") if i.strip()]
 
-    responses = {item_id: _deterministic_availability(item_id) for item_id in ids}
+    async with _loan_changes_lock:
+        events = list(_loan_changes)
+    known = {event["identifier"] for event in events}
+
+    # Event-derived where the changes window knows the id; the variant matrix otherwise.
+    responses = {item_id: (_availability_for(item_id, events) if item_id in known else _deterministic_availability(item_id)) for item_id in ids}
     return JSONResponse({"success": True, "responses": responses})
 
 
@@ -572,6 +690,116 @@ async def availability(
 # IA Borrow Status  (was hardcoded in lending.py line 599)
 # GET /services/borrow/{identifier}
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# archive.org advancedsearch — the checked-out set the loan availability
+# updater polls
+# ---------------------------------------------------------------------------
+
+
+ADVANCEDSEARCH_MAX_ROWS = 10_000
+"""Where the real endpoint stops answering: `start + rows` may not exceed this."""
+
+
+_unavailable: set[str] = set()
+_unavailable_lock = asyncio.Lock()
+"""The set advancedsearch reports as checked out. Seeded from the loan-changes
+window at startup; tests replace it between polls via /_test/unavailable."""
+
+
+async def _seed_unavailable() -> None:
+    """Initial unavailable set, derived once from the seeded loan events."""
+    async with _loan_changes_lock:
+        events = list(_loan_changes)
+    identifiers = sorted({event["identifier"] for event in events})
+    async with _unavailable_lock:
+        _unavailable.clear()
+        _unavailable.update(i for i in identifiers if not _availability_for(i, events)["available_to_borrow"])
+
+
+_loan_event_times: dict[str, dict[str, str]] = {}
+"""Per-identifier `lending___last_borrow` / `lending___last_browse`, staged via
+PUT /_test/loan_event_times as {"identifier": {"lending___last_borrow": "...", ...}}.
+
+Empty by default: the real index lacks both on part of the unavailable set, and
+that case must be expressible.
+"""
+
+
+@app.get("/_test/loan_event_times")
+async def get_loan_event_times() -> JSONResponse:
+    """Read the staged loan-event times. Test control surface, not IA."""
+    return JSONResponse(_loan_event_times)
+
+
+@app.put("/_test/loan_event_times")
+async def put_loan_event_times(request: Request) -> JSONResponse:
+    """Replace the staged loan-event times wholesale. Test control surface, not IA."""
+    body = await request.json()
+    if not isinstance(body, dict):
+        return JSONResponse({"error": "body must be {identifier: {field: iso8601}}"}, status_code=400)
+    allowed = {"lending___last_borrow", "lending___last_browse"}
+    for identifier, fields in body.items():
+        if not isinstance(fields, dict) or set(fields) - allowed:
+            return JSONResponse({"error": f"{identifier}: fields must be a subset of {sorted(allowed)}"}, status_code=400)
+    _loan_event_times.clear()
+    _loan_event_times.update({str(k): dict(v) for k, v in body.items()})
+    return JSONResponse(_loan_event_times)
+
+
+@app.get("/_test/unavailable")
+async def get_unavailable() -> JSONResponse:
+    """Read the current unavailable set. Test control surface, not IA."""
+    async with _unavailable_lock:
+        return JSONResponse({"identifiers": sorted(_unavailable)})
+
+
+@app.put("/_test/unavailable")
+async def put_unavailable(request: Request) -> JSONResponse:
+    """Replace the unavailable set wholesale, as a poll reads it as a snapshot.
+    Test control surface, not IA."""
+    body = await request.json()
+    identifiers = body.get("identifiers")
+    if not isinstance(identifiers, list):
+        return JSONResponse({"error": "body must be {'identifiers': [...]}"}, status_code=400)
+    async with _unavailable_lock:
+        _unavailable.clear()
+        _unavailable.update(str(i) for i in identifiers)
+        return JSONResponse({"identifiers": sorted(_unavailable)})
+
+
+@app.get("/advancedsearch.php")
+async def advancedsearch(request: Request) -> JSONResponse:
+    """Enough of advancedsearch to answer "who is checked out right now", from
+    `_unavailable`. Only the daemon's checked-out query is interpreted; anything
+    else gets no results rather than a made-up answer."""
+    params = request.query_params
+    q = params.get("q", "")
+    rows = int(params.get("rows", "50") or 50)
+    page = int(params.get("page", "1") or 1)
+    start = (page - 1) * rows
+
+    if start + rows > ADVANCEDSEARCH_MAX_ROWS:
+        # As the real endpoint does past its window: HTTP 200 with no
+        # "response", which the daemon must treat as incomplete, not empty.
+        return JSONResponse({"responseHeader": {"status": 0}})
+
+    wants_checked_out = "available_to_borrow:false" in q and "available_to_browse:false" in q
+    if not wants_checked_out:
+        return JSONResponse({"response": {"numFound": 0, "start": start, "docs": []}})
+
+    async with _unavailable_lock:
+        checked_out = sorted(_unavailable)
+
+    page_ids = checked_out[start : start + rows]
+    docs = []
+    for i in page_ids:
+        doc = {"identifier": i, "openlibrary_edition": f"OL{abs(zlib.crc32(i.encode())) % 10_000_000}M"}
+        # Only present when staged; see _loan_event_times.
+        doc.update(_loan_event_times.get(i, {}))
+        docs.append(doc)
+    return JSONResponse({"response": {"numFound": len(checked_out), "start": start, "docs": docs}})
 
 
 @app.get("/services/borrow/{identifier}")

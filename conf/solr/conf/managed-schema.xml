@@ -165,6 +165,13 @@
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
+    <!-- Loan availability on edition docs, written by loan_availability_updater; see docs/search/index.md. -->
+    <!-- Absent or 0 means available: query -ebook_unavailable:1. -->
+    <!-- Numeric with stored/indexed=false, as update.partial.requireInPlace requires. -->
+    <field name="ebook_unavailable" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <!-- Epoch seconds the current loan began. plong, not pdate: requireInPlace rejects pdate. -->
+    <!-- Only meaningful while ebook_unavailable=1; requireInPlace can't null it on clear. -->
+    <field name="ebook_unavailable_ts" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 
     <!-- Usefulness scores -->
     <field name="usefulness_score" type="pint" multiValued="false"/>

@@ -247,6 +247,8 @@ class Solr:
 
         d = web.storage()
         d.num_found = response["numFound"]
+        # A `timeAllowed` cutoff is only reported here, as `partialResults`.
+        d.response_header = result.get("responseHeader") or {}
         d.docs = [doc_wrapper(doc) for doc in response["docs"]]
 
         if "facet_counts" in result:
