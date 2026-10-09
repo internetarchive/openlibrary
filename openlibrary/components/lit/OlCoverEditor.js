@@ -18,7 +18,7 @@ export const DEFAULT_LABELS = {
     coversHeading: 'Covers',
     photosHeading: 'Photos',
     reorderHint: 'Drag to reorder — the first image is the primary.',
-    trashHint: 'Drag an image here to remove it',
+    trashHint: 'Drag an image here to remove it — drag one back to restore',
     imagePosition: 'Image %(position)s of %(total)s',
     chooseFile: 'Choose an image',
     browse: 'Browse',
@@ -34,7 +34,6 @@ export const DEFAULT_LABELS = {
     uploading: 'Uploading…',
     saving: 'Saving…',
     imageAdded: 'Image added.',
-    imageRemoved: 'Image removed.',
     undo: 'Undo',
     movedImage: 'Moved image to position %(position)s of %(total)s.',
     noFile: 'Please choose an image first.',
@@ -101,7 +100,7 @@ export class OlCoverEditor extends LitElement {
         _trashActive: { state: true },
         _status: { state: true },
         _announce: { state: true },
-        _removedImage: { state: true },
+        _trashed: { state: true },
         _focusIndex: { state: true },
     };
 
@@ -144,13 +143,21 @@ export class OlCoverEditor extends LitElement {
 
         /* ── Current images (a horizontal strip) ──────────────────────── */
 
+        .images-row {
+            display: flex;
+            align-items: stretch;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+            padding-bottom: var(--spacing-3xs);
+            overflow-x: auto;
+        }
+
         .images {
             display: flex;
             gap: var(--spacing-sm);
-            margin: var(--spacing-sm) 0 0;
-            padding: 0 0 var(--spacing-3xs);
+            margin: 0;
+            padding: 0;
             list-style: none;
-            overflow-x: auto;
         }
 
         .image {
@@ -185,14 +192,16 @@ export class OlCoverEditor extends LitElement {
             pointer-events: none;
         }
 
-        /* The drag-to-remove target at the end of the strip. */
+        /* The holding bin for removed images — drag one back to restore. */
         .trash {
             flex: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 72px;
-            aspect-ratio: 2 / 3;
+            gap: var(--spacing-2xs);
+            min-width: 72px;
+            min-height: 108px;
+            padding: var(--spacing-2xs);
             border: var(--border-width-thick) dashed var(--color-border-muted);
             border-radius: var(--border-radius-thumbnail);
             color: var(--color-text-muted);
@@ -202,9 +211,22 @@ export class OlCoverEditor extends LitElement {
                 color var(--duration-fast) var(--ease-state);
         }
 
-        .trash ol-icon {
-            width: 24px;
-            height: 24px;
+        .trash__icon {
+            flex: none;
+            width: 22px;
+            height: 22px;
+        }
+
+        .trash__img {
+            display: block;
+            flex: none;
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: var(--border-radius-thumbnail);
+            background: var(--color-surface-sunken);
+            cursor: grab;
+            opacity: 0.7;
         }
 
         .trash--active {
@@ -348,13 +370,14 @@ export class OlCoverEditor extends LitElement {
         this._pasted = false;
         this._dragging = false;
         this._dragIndex = null;
+        this._dragSource = null;
         this._trashActive = false;
         this._status = '';
         this._announce = '';
-        this._removedImage = null;
+        this._trashed = [];
         this._focusIndex = null;
         this._imagesEdited = false;
-        /** Snapshots of `_images` for undo (⌘Z). */
+        /** Snapshots of the image + trash lists for undo (⌘Z). */
         this._history = [];
         this._onPasteEvent = this._onPasteEvent.bind(this);
         this._onDialogClose = this._onDialogClose.bind(this);
@@ -423,7 +446,10 @@ export class OlCoverEditor extends LitElement {
         this._previewUrl = '';
         this._error = '';
         this._status = '';
-        this._removedImage = null;
+        this._announce = '';
+        this._trashed = [];
+        this._history = [];
+        this._resetDrag();
         this._pasted = false;
         const input = this._fileInput;
         if (input) input.value = '';
@@ -620,7 +646,6 @@ export class OlCoverEditor extends LitElement {
             }
             this._clearImage();
             this._imagesEdited = true;
-            this._removedImage = null;
             this._pushHistory();
             this._images = [{ id, url: this._coverUrl(id) }, ...this._images];
             this._status = this.t('imageAdded');
@@ -694,33 +719,61 @@ export class OlCoverEditor extends LitElement {
     // ── Reorder / delete ───────────────────────────────────────────────
 
     _onCardDragStart(event, index) {
+        this._dragSource = 'images';
         this._dragIndex = index;
         event.dataTransfer.effectAllowed = 'move';
         // Some browsers refuse to start a drag without payload.
         event.dataTransfer.setData('text/plain', String(index));
     }
 
+    _onTrashedDragStart(event, index) {
+        this._dragSource = 'trash';
+        this._dragIndex = index;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', String(index));
+    }
+
     _onCardDragOver(event) {
-        if (this._dragIndex === null) return;
+        if (this._dragSource === null) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
     }
 
     _onCardDrop(event, index) {
         event.preventDefault();
+        event.stopPropagation();
+        const source = this._dragSource;
         const from = this._dragIndex;
-        this._dragIndex = null;
-        if (from === null || from === index) return;
-        this._moveImage(from, index);
+        this._resetDrag();
+        if (from === null) return;
+        if (source === 'trash') {
+            this._restoreImage(from, index);
+        } else if (source === 'images' && from !== index) {
+            this._moveImage(from, index);
+        }
+    }
+
+    /** Dropping in the gaps of the strip appends (e.g. every image was trashed). */
+    _onImagesDragOver(event) {
+        if (this._dragSource !== 'trash') return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }
+
+    _onImagesDrop(event) {
+        if (this._dragSource !== 'trash') return;
+        event.preventDefault();
+        const from = this._dragIndex;
+        this._resetDrag();
+        if (from !== null) this._restoreImage(from, this._images.length);
     }
 
     _onCardDragEnd() {
-        this._dragIndex = null;
-        this._trashActive = false;
+        this._resetDrag();
     }
 
     _onTrashDragOver(event) {
-        if (this._dragIndex === null) return;
+        if (this._dragSource !== 'images') return;
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
         this._trashActive = true;
@@ -731,11 +784,17 @@ export class OlCoverEditor extends LitElement {
     }
 
     _onTrashDrop(event) {
+        if (this._dragSource !== 'images') return;
         event.preventDefault();
-        const index = this._dragIndex;
+        const from = this._dragIndex;
+        this._resetDrag();
+        if (from !== null) this._trashImage(from);
+    }
+
+    _resetDrag() {
         this._dragIndex = null;
+        this._dragSource = null;
         this._trashActive = false;
-        if (index !== null) this._deleteImage(index);
     }
 
     _onCardKeydown(event, index) {
@@ -746,7 +805,7 @@ export class OlCoverEditor extends LitElement {
         }
         if (event.key === 'Delete' || event.key === 'Backspace') {
             event.preventDefault();
-            this._deleteImage(index);
+            this._trashImage(index);
             return;
         }
         const map = {
@@ -765,9 +824,12 @@ export class OlCoverEditor extends LitElement {
         this._moveImage(index, target);
     }
 
-    /** Snapshot the current list so ⌘Z can restore it. */
+    /** Snapshot both lists so ⌘Z can restore them. */
     _pushHistory() {
-        this._history.push(this._images.map((image) => ({ ...image })));
+        this._history.push({
+            images: this._images.map((image) => ({ ...image })),
+            trashed: this._trashed.map((image) => ({ ...image })),
+        });
         if (this._history.length > 30) this._history.shift();
     }
 
@@ -778,7 +840,6 @@ export class OlCoverEditor extends LitElement {
         const [moved] = images.splice(from, 1);
         images.splice(to, 0, moved);
         this._imagesEdited = true;
-        this._removedImage = null;
         this._status = '';
         this._images = images;
         // Announced to screen readers; the change is otherwise silent.
@@ -798,25 +859,42 @@ export class OlCoverEditor extends LitElement {
         this._moveImage(index, 0);
     }
 
-    _deleteImage(index) {
+    /** Move an image off the strip into the trash bin (unlink + save). */
+    _trashImage(index) {
         const image = this._images[index];
         if (!image) return;
         this._pushHistory();
-        this._removedImage = { image, index };
         this._imagesEdited = true;
         this._images = this._images.filter((_, i) => i !== index);
+        this._trashed = [...this._trashed, image];
         this._syncPageCover();
         this._saveOrder();
     }
 
-    /** Undo the last change (⌘Z, or the inline Undo after a delete). */
-    _undo() {
-        if (!this._history.length) return;
+    /** Drag a trashed image back onto the strip at the given index. */
+    _restoreImage(trashIndex, targetIndex) {
+        const image = this._trashed[trashIndex];
+        if (!image) return;
+        this._pushHistory();
         this._imagesEdited = true;
-        this._removedImage = null;
+        this._trashed = this._trashed.filter((_, i) => i !== trashIndex);
+        const images = [...this._images];
+        const at = Math.max(0, Math.min(targetIndex ?? images.length, images.length));
+        images.splice(at, 0, image);
+        this._images = images;
+        this._syncPageCover();
+        this._saveOrder();
+    }
+
+    /** Undo the last change (⌘Z), restoring the images and the trash bin. */
+    _undo() {
+        const previous = this._history.pop();
+        if (!previous) return;
+        this._imagesEdited = true;
         this._status = '';
         this._announce = this.t('undo');
-        this._images = this._history.pop();
+        this._images = previous.images;
+        this._trashed = previous.trashed;
         this._syncPageCover();
         this._saveOrder();
     }
@@ -877,42 +955,55 @@ export class OlCoverEditor extends LitElement {
     }
 
     _renderImages() {
-        if (!this._images.length) return nothing;
+        if (!this._images.length && !this._trashed.length) return nothing;
         return html`
             <div class="panel">
                 <h3 class="heading">${this.t(this._isPhoto ? 'photosHeading' : 'coversHeading')}</h3>
                 <p class="hint">${this.t('reorderHint')}</p>
-                <ul class="images" @dragend=${this._onCardDragEnd}>
-                    ${this._images.map(
+                <div class="images-row" @dragend=${this._onCardDragEnd}>
+                    <ul class="images" @dragover=${this._onImagesDragOver} @drop=${this._onImagesDrop}>
+                        ${this._images.map(
         (image, index) => html`
-                            <li
-                                class="image ${classMap({
+                                <li
+                                    class="image ${classMap({
         'image--primary': index === 0,
         'image--dragging': this._dragIndex === index,
     })}"
-                                draggable="true"
-                                tabindex="0"
-                                aria-label=${this.t('imagePosition', { position: index + 1, total: this._images.length })}
-                                @click=${() => this._onCardClick(index)}
-                                @keydown=${(e) => this._onCardKeydown(e, index)}
-                                @dragstart=${(e) => this._onCardDragStart(e, index)}
-                                @dragover=${(e) => this._onCardDragOver(e)}
-                                @drop=${(e) => this._onCardDrop(e, index)}
-                            >
-                                <img class="image__img" src=${image.url} alt="" draggable="false" />
-                            </li>
-                        `,
+                                    draggable="true"
+                                    tabindex="0"
+                                    aria-label=${this.t('imagePosition', { position: index + 1, total: this._images.length })}
+                                    @click=${() => this._onCardClick(index)}
+                                    @keydown=${(e) => this._onCardKeydown(e, index)}
+                                    @dragstart=${(e) => this._onCardDragStart(e, index)}
+                                    @dragover=${(e) => this._onCardDragOver(e)}
+                                    @drop=${(e) => this._onCardDrop(e, index)}
+                                >
+                                    <img class="image__img" src=${image.url} alt="" draggable="false" />
+                                </li>
+                            `,
     )}
-                    <li
+                    </ul>
+                    <div
                         class="trash ${classMap({ 'trash--active': this._trashActive })}"
                         aria-label=${this.t('trashHint')}
                         @dragover=${this._onTrashDragOver}
                         @dragleave=${this._onTrashDragLeave}
                         @drop=${this._onTrashDrop}
                     >
-                        <ol-icon name="trash"></ol-icon>
-                    </li>
-                </ul>
+                        <ol-icon class="trash__icon" name="trash"></ol-icon>
+                        ${this._trashed.map(
+        (image, index) => html`
+                                <img
+                                    class="trash__img"
+                                    src=${image.url}
+                                    alt=""
+                                    draggable="true"
+                                    @dragstart=${(e) => this._onTrashedDragStart(e, index)}
+                                />
+                            `,
+    )}
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -959,14 +1050,6 @@ export class OlCoverEditor extends LitElement {
         if (this._error) return html`<p class="status status--error" role="alert">${this._error}</p>`;
         if (this._busy) return html`<p class="status" role="status">${this.t('uploading')}</p>`;
         if (this._saving) return html`<p class="status" role="status">${this.t('saving')}</p>`;
-        if (this._removedImage) {
-            return html`<p class="status" role="status">
-                ${this.t('imageRemoved')}
-                <ol-button class="status__undo" size="small" variant="ghost" @click=${this._undo}
-                    >${this.t('undo')}</ol-button
-                >
-            </p>`;
-        }
         if (this._status) return html`<p class="status" role="status">${this._status}</p>`;
         return nothing;
     }

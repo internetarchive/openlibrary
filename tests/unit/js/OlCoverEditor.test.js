@@ -352,7 +352,7 @@ describe('ol-cover-editor image management', () => {
         expect(q(el, '.trash')).not.toBeNull();
     });
 
-    test('dragging an image onto the trash removes it', async() => {
+    test('dragging an image onto the trash moves it to the bin', async() => {
         const el = await mount({ images: IMAGES });
         const fetchMock = manageFetch();
         const dt = { effectAllowed: '', dropEffect: '', setData() {} };
@@ -364,15 +364,18 @@ describe('ol-cover-editor image management', () => {
         el._onTrashDrop({ preventDefault() {}, dataTransfer: dt });
         await el.updateComplete;
         expect(el._images.map((i) => i.id)).toEqual([2, 3]);
-        expect(fetchMock).toHaveBeenCalled();
+        expect(el._trashed.map((i) => i.id)).toEqual([1]);
+        expect(qa(el, '.trash__img').length).toBe(1);
+        expect(fetchMock.mock.calls[0][1].body.getAll('image')).toEqual(['2', '3', '-1', '-']);
     });
 
-    test('the Delete key removes a focused image', async() => {
+    test('the Delete key moves a focused image to the trash', async() => {
         const el = await mount({ images: IMAGES });
         manageFetch();
         el._onCardKeydown({ key: 'Delete', preventDefault() {} }, 1);
         await el.updateComplete;
         expect(el._images.map((i) => i.id)).toEqual([1, 3]);
+        expect(el._trashed.map((i) => i.id)).toEqual([2]);
     });
 
     test('clicking an image makes it primary', async() => {
@@ -384,22 +387,20 @@ describe('ol-cover-editor image management', () => {
         expect(fetchMock).toHaveBeenCalled();
     });
 
-    test('deleting offers an undo that restores the image at its position', async() => {
-        seedCover();
+    test('dragging a trashed image back restores it at the drop position', async() => {
         const el = await mount({ images: IMAGES });
-        manageFetch();
-        el._deleteImage(1);
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        const fetchMock = manageFetch();
+        const dt = { effectAllowed: '', dropEffect: '', setData() {} };
+        el._trashImage(1);
         await el.updateComplete;
+        expect(el._trashed.map((i) => i.id)).toEqual([2]);
 
-        expect(el._images.map((i) => i.id)).toEqual([1, 3]);
-        expect(el.renderRoot.textContent).toContain('Image removed');
-        const undo = q(el, '.status__undo');
-        expect(undo).not.toBeNull();
-
-        undo.click();
+        el._onTrashedDragStart({ dataTransfer: dt }, 0);
+        el._onCardDrop({ preventDefault() {}, stopPropagation() {}, dataTransfer: dt }, 0);
         await el.updateComplete;
-        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+        expect(el._images.map((i) => i.id)).toEqual([2, 1, 3]);
+        expect(el._trashed).toEqual([]);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     test('Cmd+Z undoes the last reorder', async() => {
@@ -419,12 +420,13 @@ describe('ol-cover-editor image management', () => {
         manageFetch();
         el._onCardClick(2);
         await el.updateComplete;
-        el._deleteImage(0);
+        el._trashImage(0);
         await el.updateComplete;
 
         el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
         await el.updateComplete;
         expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
+        expect(el._trashed).toEqual([]);
 
         el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
         await el.updateComplete;
@@ -451,10 +453,10 @@ describe('ol-cover-editor image management', () => {
         expect(fetchMock.mock.calls[0][1].body.getAll('image')).toEqual(['3', '1', '2', '-1', '-']);
     });
 
-    test('deleting an image removes it and saves the order', async() => {
+    test('trashing an image removes it from the saved order', async() => {
         const el = await mount({ images: IMAGES });
         const fetchMock = manageFetch();
-        el._deleteImage(0);
+        el._trashImage(0);
         await el.updateComplete;
 
         expect(el._images.map((i) => i.id)).toEqual([2, 3]);
@@ -476,31 +478,31 @@ describe('ol-cover-editor image management', () => {
         const fetchMock = manageFetch();
         const dt = { effectAllowed: '', dropEffect: '', setData() {} };
         el._onCardDragStart({ dataTransfer: dt }, 0);
-        el._onCardDrop({ preventDefault() {}, dataTransfer: dt }, 2);
+        el._onCardDrop({ preventDefault() {}, stopPropagation() {}, dataTransfer: dt }, 2);
         await el.updateComplete;
 
         expect(el._images.map((i) => i.id)).toEqual([2, 3, 1]);
         expect(fetchMock).toHaveBeenCalled();
     });
 
-    test('clearing every image falls back to the blank cover', async() => {
+    test('trashing every image falls back to the blank cover but keeps the bin', async() => {
         seedCover();
         const el = await mount({ images: [{ id: 9, url: 'u9' }] });
         manageFetch();
-        el._deleteImage(0);
+        el._trashImage(0);
         await el.updateComplete;
 
         expect(el._images).toEqual([]);
         expect(document.querySelector('.SRPCover').style.display).toBe('none');
         expect(document.querySelector('.SRPCoverBlank').style.display).toBe('block');
+        expect(qa(el, '.trash__img').length).toBe(1);
     });
 
     test('a failed save reports an error', async() => {
         const el = await mount({ images: IMAGES });
         global.fetch = vi.fn(async() => ({ ok: false, text: async() => '' }));
-        el._deleteImage(0);
-        await el.updateComplete;
-        await Promise.resolve();
+        el._trashImage(0);
+        await new Promise((resolve) => setTimeout(resolve, 0));
         await el.updateComplete;
         expect(q(el, '.status--error').textContent).toContain('Could not save');
     });

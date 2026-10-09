@@ -4082,7 +4082,7 @@ msgid "Drag to reorder — the first image is the primary."
 msgstr ""
 
 #: covers/change.html
-msgid "Drag an image here to remove it"
+msgid "Drag an image here to remove it — drag one back to restore"
 msgstr ""
 
 #: covers/change.html
@@ -4125,10 +4125,6 @@ msgstr ""
 
 #: covers/change.html
 msgid "Image added."
-msgstr ""
-
-#: covers/change.html
-msgid "Image removed."
 msgstr ""
 
 #: covers/change.html my_books/shelf_button_i18n.html
