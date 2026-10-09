@@ -38,7 +38,6 @@ export const DEFAULT_LABELS = {
     imageAdded: 'Image added.',
     imageRemoved: 'Image removed.',
     undo: 'Undo',
-    orderSaved: 'Order saved.',
     movedImage: 'Moved image to position %(position)s of %(total)s.',
     noFile: 'Please choose an image first.',
     invalidType: 'That file type isn\'t supported. Please use one of these image types: %(types)s.',
@@ -102,6 +101,7 @@ export class OlCoverEditor extends LitElement {
         _dragging: { state: true },
         _dragIndex: { state: true },
         _status: { state: true },
+        _announce: { state: true },
         _removedImage: { state: true },
         _focusIndex: { state: true },
     };
@@ -321,6 +321,18 @@ export class OlCoverEditor extends LitElement {
         .status--error {
             color: var(--color-error-fg);
         }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
     `;
 
     constructor() {
@@ -344,11 +356,15 @@ export class OlCoverEditor extends LitElement {
         this._dragging = false;
         this._dragIndex = null;
         this._status = '';
+        this._announce = '';
         this._removedImage = null;
         this._focusIndex = null;
         this._imagesEdited = false;
+        /** Snapshots of `_images` for undo (⌘Z). */
+        this._history = [];
         this._onPasteEvent = this._onPasteEvent.bind(this);
         this._onDialogClose = this._onDialogClose.bind(this);
+        this._onKeydown = this._onKeydown.bind(this);
     }
 
     t(key, vars) {
@@ -377,12 +393,14 @@ export class OlCoverEditor extends LitElement {
         // Cmd/Ctrl+V anywhere while the dialog is open hands us the image
         // directly, with no clipboard permission prompt (unlike the button).
         document.addEventListener('paste', this._onPasteEvent);
+        document.addEventListener('keydown', this._onKeydown);
         this.closest('ol-dialog')?.addEventListener('ol-after-close', this._onDialogClose);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('paste', this._onPasteEvent);
+        document.removeEventListener('keydown', this._onKeydown);
         this.closest('ol-dialog')?.removeEventListener('ol-after-close', this._onDialogClose);
         this._revokePreview();
     }
@@ -419,6 +437,18 @@ export class OlCoverEditor extends LitElement {
 
     _onDialogClose() {
         this.reset();
+    }
+
+    /** ⌘Z / Ctrl+Z undoes the last change to the image list. */
+    _onKeydown(event) {
+        if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z') return;
+        const dialog = this.closest('ol-dialog');
+        if (dialog && !dialog.open) return;
+        const target = event.target;
+        if (target instanceof HTMLElement && (target.matches('input, textarea') || target.isContentEditable)) return;
+        if (!this._history.length) return;
+        event.preventDefault();
+        this._undo();
     }
 
     _revokePreview() {
@@ -597,6 +627,7 @@ export class OlCoverEditor extends LitElement {
             this._clearImage();
             this._imagesEdited = true;
             this._removedImage = null;
+            this._pushHistory();
             this._images = [{ id, url: this._coverUrl(id) }, ...this._images];
             this._status = this.t('imageAdded');
             this._applyCover(id);
@@ -715,15 +746,24 @@ export class OlCoverEditor extends LitElement {
         this._moveImage(index, target);
     }
 
+    /** Snapshot the current list so ⌘Z can restore it. */
+    _pushHistory() {
+        this._history.push(this._images.map((image) => ({ ...image })));
+        if (this._history.length > 30) this._history.shift();
+    }
+
     _moveImage(from, to) {
         if (from === to || from < 0 || to < 0 || from >= this._images.length || to >= this._images.length) return;
+        this._pushHistory();
         const images = [...this._images];
         const [moved] = images.splice(from, 1);
         images.splice(to, 0, moved);
         this._imagesEdited = true;
         this._removedImage = null;
+        this._status = '';
         this._images = images;
-        this._status = this.t('movedImage', { position: to + 1, total: images.length });
+        // Announced to screen readers; the change is otherwise silent.
+        this._announce = this.t('movedImage', { position: to + 1, total: images.length });
         this._syncPageCover();
         this._saveOrder();
     }
@@ -747,6 +787,7 @@ export class OlCoverEditor extends LitElement {
     _deleteImage(index) {
         const image = this._images[index];
         if (!image) return;
+        this._pushHistory();
         this._removedImage = { image, index };
         this._imagesEdited = true;
         this._images = this._images.filter((_, i) => i !== index);
@@ -754,15 +795,14 @@ export class OlCoverEditor extends LitElement {
         this._saveOrder();
     }
 
-    /** Restore the most recently removed image at its old position. */
-    _undoDelete() {
-        const removed = this._removedImage;
-        if (!removed) return;
-        this._removedImage = null;
-        const images = [...this._images];
-        images.splice(Math.min(removed.index, images.length), 0, removed.image);
+    /** Undo the last change (⌘Z, or the inline Undo after a delete). */
+    _undo() {
+        if (!this._history.length) return;
         this._imagesEdited = true;
-        this._images = images;
+        this._removedImage = null;
+        this._status = '';
+        this._announce = this.t('undo');
+        this._images = this._history.pop();
         this._syncPageCover();
         this._saveOrder();
     }
@@ -789,7 +829,6 @@ export class OlCoverEditor extends LitElement {
         try {
             const response = await fetch(this.manageUrl, { method: 'POST', body: data, credentials: 'same-origin' });
             if (!response.ok) throw new Error('save failed');
-            this._status = this.t('orderSaved');
             this.dispatchEvent(
                 new CustomEvent('ol-cover-editor-order', {
                     bubbles: true,
@@ -818,6 +857,8 @@ export class OlCoverEditor extends LitElement {
             </p>
 
             ${this._renderAdd()} ${this._renderCandidates()} ${this._renderImages()} ${this._renderStatus()}
+
+            <p class="sr-only" role="status" aria-live="polite">${this._announce}</p>
         `;
     }
 
@@ -915,7 +956,7 @@ export class OlCoverEditor extends LitElement {
         if (this._removedImage) {
             return html`<p class="status" role="status">
                 ${this.t('imageRemoved')}
-                <ol-button class="status__undo" size="small" variant="ghost" @click=${this._undoDelete}
+                <ol-button class="status__undo" size="small" variant="ghost" @click=${this._undo}
                     >${this.t('undo')}</ol-button
                 >
             </p>`;

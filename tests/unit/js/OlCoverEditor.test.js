@@ -379,6 +379,44 @@ describe('ol-cover-editor image management', () => {
         expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
     });
 
+    test('Cmd+Z undoes the last reorder', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        el._onCardClick(2);
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
+
+        el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+    });
+
+    test('Cmd+Z steps back through several changes', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        el._onCardClick(2);
+        await el.updateComplete;
+        el._deleteImage(0);
+        await el.updateComplete;
+
+        el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
+
+        el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+    });
+
+    test('Cmd+Z does nothing without history', async() => {
+        const el = await mount({ images: IMAGES });
+        const fetchMock = manageFetch();
+        el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+    });
+
     test('make primary moves an image to the front and saves the order', async() => {
         const el = await mount({ images: IMAGES });
         const fetchMock = manageFetch();
