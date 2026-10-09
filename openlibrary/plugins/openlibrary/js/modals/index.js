@@ -334,13 +334,17 @@ export function initObservationsModal(modalLinks) {
     addDeleteObservationsListeners($('.delete-observations-button'));
 
     for (const link of modalLinks) {
-        const dialog = link.nextElementSibling;
-        const { reloadId } = JSON.parse(dialog.dataset.context);
-
+        // Look inside the macro's wrapper, not by id: book pages render the
+        // link twice (desktop and mobile) with the same dialog id.
+        const dialog = link.closest('.observations-modal')?.querySelector('ol-dialog');
+        if (!dialog) continue;
         link.addEventListener('click', () => { dialog.open = true; });
+
+        const { reloadId } = dialog.dataset;
+        if (!reloadId) continue;
         dialog.addEventListener('ol-after-close', (event) => {
             // Ignore closes bubbling up from dialogs nested inside this one.
-            if (event.target !== dialog || !reloadId) return;
+            if (event.target !== dialog) return;
             document.getElementById(reloadId)?.dispatchEvent(new CustomEvent('contentReload'));
         });
     }

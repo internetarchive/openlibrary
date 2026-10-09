@@ -18,17 +18,17 @@ function collapseSearchForm(btnGroup) {
 }
 
 /**
- * Opens the preview dialog for the clicked book.
- * @param {HTMLElement} button - The [data-book-preview] trigger.
+ * Opens the preview dialog on the given embed.
+ * @param {string} src - URL for the preview iframe.
+ * @param {string} href - URL for the dialog's "learn more" link.
  */
-function openPreview(button) {
-    trackEvent('BookOptions', 'Preview');
+function showPreview(src, href) {
     const dialog = document.getElementById('bookPreview');
     if (!dialog) return;
     const iframe = dialog.querySelector('iframe');
-    if (iframe) iframe.src = button.dataset.iframeSrc;
+    if (iframe) iframe.src = src;
     const link = dialog.querySelector('.learn-more a');
-    if (link) link.href = button.dataset.iframeLink;
+    if (link) link.href = href;
     dialog.open = true;
 }
 
@@ -63,7 +63,8 @@ function initPreviewDialogs() {
         if (!target) return;
         event.preventDefault();
         if (target.matches('[data-book-preview]')) {
-            openPreview(target);
+            trackEvent('BookOptions', 'Preview');
+            showPreview(target.dataset.iframeSrc, target.dataset.iframeLink);
         } else if (target.matches('[data-search-trigger]')) {
             expandSearchForm(target);
         } else {
@@ -72,8 +73,8 @@ function initPreviewDialogs() {
     });
 
     // Drop the preview embed when the dialog closes, so a stale book's
-    // iframe can't keep loading in the background. Delegated so it also covers
-    // a #bookPreview that a partial renders after init.
+    // iframe can't keep loading in the background. Delegated so it doesn't
+    // depend on which #bookPreview existed at init (partials can add copies).
     document.addEventListener('ol-close', (event) => {
         if (event.target.id !== 'bookPreview') return;
         const iframe = event.target.querySelector('iframe');
@@ -96,16 +97,10 @@ function initPreviewDialogs() {
         const query = form.querySelector('.search-inside-input')?.value ?? '';
         const ocaid = form.dataset.ocaid;
 
-        const dialog = document.getElementById('bookPreview');
-        if (dialog) {
-            const iframe = dialog.querySelector('iframe');
-            if (iframe) {
-                iframe.src = `https://archive.org/details/${ocaid}?view=theater&wrapper=false&q=${encodeURIComponent(query)}`;
-            }
-            const link = dialog.querySelector('.learn-more a');
-            if (link) link.href = `https://archive.org/details/${ocaid}`;
-            dialog.open = true;
-        }
+        showPreview(
+            `https://archive.org/details/${ocaid}?view=theater&wrapper=false&q=${encodeURIComponent(query)}`,
+            `https://archive.org/details/${ocaid}`,
+        );
         collapseSearchForm(form.closest('.cta-button-group'));
     });
 }
