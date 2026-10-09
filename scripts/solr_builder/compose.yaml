@@ -8,7 +8,9 @@ services:
       POSTGRES_PASSWORD: example
     working_dir: "/solr_builder"
     volumes:
-      - "postgres-data:/var/lib/postgresql/data"
+      # Big-storage bind (1TB volume): the imported dump table dwarfs the OS
+      # disk. postgres:18 stores data under /var/lib/postgresql/<major>/.
+      - "/mnt/HC_Volume_106672133/openlibrary/postgres:/var/lib/postgresql"
       - ".:/solr_builder"
       - "/storage:/storage"
     networks:
@@ -41,7 +43,9 @@ services:
     ports:
       - 8983:8983
     volumes:
-      - solr-data:/var/solr
+      # Big-storage bind (1TB volume): the solr index grows to tens of GB and
+      # the optimize step transiently needs ~2x that.
+      - "/mnt/HC_Volume_106672133/openlibrary/solr:/var/solr"
       - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
@@ -106,14 +110,62 @@ services:
       # does not clobber the data generated inside the image / container
       - "../../:/openlibrary"
       - "/storage:/storage"
+    environment:
+      # Tunables forwarded to index-type.sh / solr_builder.py; set them on the
+      # `docker compose run` invocation, e.g.
+      #   SKIP_IA_METADATA=1 CHUNK_ETA=70 docker compose run --rm ol ./index-type.sh work 18 works
+      - CHUNK_ETA=${CHUNK_ETA:-}
+      - SKIP_IA_METADATA=${SKIP_IA_METADATA:-}
     networks:
       - solr-access
       - db-access
 
+  # Pinned, code-defined Jenkins controller that runs this pipeline.
+  # All config lives in ./jenkins/ (Dockerfile, plugins.txt, JCasC, seed job).
+  # Start with: ADMIN_PASSWORD=... docker compose --profile jenkins up -d jenkins
+  jenkins:
+    profiles:
+      - jenkins
+    build:
+      context: ./jenkins
+    image: openlibrary/solr-builder-jenkins:2.568.2
+    restart: unless-stopped
+    # Legacy deployments ran the controller as root; docker-workflow starts
+    # build containers with the same uid, and the pipeline's docker CLI needs a
+    # writable HOME/config dir (otherwise `mkdir /.docker: permission denied`).
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      # Required at first boot; JCasC seeds the admin user's password from it.
+      # Intentionally NOT `${ADMIN_PASSWORD:?...}`: required-var syntax makes
+      # EVERY `docker compose` command in this project fail (including the
+      # pipeline's own, which runs without this var set) whenever the whole
+      # file gets interpolated. The seed job logs a loud warning instead.
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      JENKINS_URL: ${JENKINS_URL:-http://localhost:8080}
+      # Which branch of internetarchive/openlibrary the solr-builder job tracks.
+      # Defaults to master. E.g.: SEED_BRANCH=chore/pinned-jenkins-solr-builder
+      SEED_BRANCH: ${SEED_BRANCH:-}
+    volumes:
+      - "jenkins-data:/var/jenkins_home"
+      # Host-path bind (NOT a second named-volume mount): the Jenkinsfile maps
+      # its workspace onto /var/lib/docker/volumes/jenkins-data/_data/... so
+      # that `docker run/compose` commands see the same files as the controller.
+      - "/var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data"
+      - "/storage:/storage"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
 volumes:
-  postgres-data:
+  # postgres-data and solr-data moved to big-storage binds (see db/solr
+  # services); solr_prod still uses the named solr-data volume.
   solr-data:
   ol-vendor:
+  # The exact name matters: the Jenkinsfile runs
+  # `docker volume inspect --format=... jenkins-data` on the host.
+  jenkins-data:
+    name: jenkins-data
 
 networks:
   db-access:
