@@ -1,23 +1,19 @@
-"""First Edits pages at /contribute: a guided first contribution.
+"""The librarian dashboard at /contribute: books missing a field, and one page to fill it.
 
 Three separable parts, kept in three places:
 
-- **Supply**: which books are candidates. ``first_edits.supply``.
-- **Ranking**: which to show first. ``first_edits.ranking``.
-- **The task page**: the context to decide one field on one book. The
-  handlers below build it from the task's evidence, the work's other editions
-  and the playbook.
+- **Supply**: the most-read works with an edition missing a field, from Solr.
+  ``first_edits.supply``.
+- **Tasks**: one empty field on one edition. ``first_edits.tasks``.
+- **The task page**: the context to fill it in. Open Library fetches nothing
+  from outside catalogs; the page links to them per the field's playbook and
+  shows how the work's other editions fill the field.
 
-The tabs on the list pages are different supplies through the same ranking:
-"Most needed" is the demo set (popular books with gaps) ordered by readers
-helped times value; "Your books" is the reader's shelves ordered by value.
-
-Phase 1 is a click-through walkthrough. Book records, sibling editions and the
-reading log are live; outside evidence and the demo set come from fixtures in
-openlibrary/first_edits/fixtures; nothing is saved. Every page except the
-start page is for beta testers and librarians while it is tried out.
+Nothing is saved yet: submitting renders a receipt from the posted values.
+Every page is for beta testers and librarians while it is tried out.
 """
 
+import random
 from dataclasses import dataclass, field
 from urllib.parse import urlencode
 
@@ -26,27 +22,32 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.first_edits import fixtures, identifiers, ranking, supply, tasks
+from openlibrary.first_edits import identifiers, ranking, supply, tasks
 from openlibrary.first_edits.playbooks import get_playbooks, link_outs
 from openlibrary.first_edits.scope import load_scope
-from openlibrary.first_edits.siblings import edition_field_values, sibling_counts
-from openlibrary.first_edits.sources import get_sources
+from openlibrary.first_edits.siblings import edition_field_values
 from openlibrary.i18n import gettext as _
 
 DENIED = "First Edits is being tried out with a small group"
 
 # The Jinja page for each handler. Listed in full so template usage is greppable.
 PAGES = {
-    "start": "contribute/start.html.jinja",
-    "list": "contribute/list.html.jinja",
+    "dashboard": "contribute/dashboard.html.jinja",
     "task": "contribute/task.html.jinja",
     "nothing": "contribute/nothing.html.jinja",
     "done": "contribute/done.html.jinja",
 }
 
-# The list tabs. The id is the URL segment and the ``back`` query value a task page carries home.
-LISTS = ("needed", "yours")
-DEFAULT_LIST = "needed"
+LIST_SIZE = 50
+
+
+def _task_filters() -> tuple:
+    """The rail's filters: the ``task`` query value, its label, and the fields it covers. Each must be filterable in Solr."""
+    return (
+        ("languages", _("Language"), ("languages",)),
+        ("publishers", _("Publisher"), ("publishers",)),
+        ("identifiers", _("Identifiers"), ("lccn", "oclc_numbers")),
+    )
 
 
 def setup():
@@ -77,32 +78,27 @@ def _denied(path: str):
     return render_template("permission_denied", path, DENIED)
 
 
-def _list_id(raw: str) -> str:
-    return raw if raw in LISTS else DEFAULT_LIST
+def _enabled_fields() -> tuple[str, ...]:
+    return tuple(load_scope().enabled_fields())
 
 
-def _list_url(list_id: str) -> str:
-    return f"/contribute/{_list_id(list_id)}"
+def _filters() -> list[tuple]:
+    """The rail filters whose fields are switched on in the scope."""
+    enabled = set(_enabled_fields())
+    return [(fid, label, tuple(f for f in fields if f in enabled)) for fid, label, fields in _task_filters() if enabled.intersection(fields)]
 
 
-def _list_label(list_id: str) -> str:
-    return _("Back to your books") if _list_id(list_id) == "yours" else _("Back to the list")
+def _task_filter(raw: str) -> str:
+    return raw if any(raw == fid for fid, _label, _fields in _filters()) else ""
 
 
-def _tabs(active: str, user) -> list[dict]:
-    """The ways into the list. A tab the reader can't open yet says why instead of 403ing."""
-    allowed = _allowed(user)
-    if allowed:
-        locked = ""
-    elif user:
-        locked = _("Being tried out with a small group for now")
-    else:
-        locked = _("Log in to see this")
-    return [
-        {"id": "start", "label": _("Start here"), "url": "/contribute", "on": active == "start", "locked": ""},
-        {"id": "yours", "label": _("Your books"), "url": "/contribute/yours", "on": active == "yours", "locked": locked},
-        {"id": "needed", "label": _("Most needed"), "url": "/contribute/needed", "on": active == "needed", "locked": locked},
-    ]
+def _filter_fields(task: str) -> tuple[str, ...]:
+    """The fields a filter covers; no filter means every enabled field."""
+    return next((fields for fid, _label, fields in _filters() if fid == task), _enabled_fields())
+
+
+def _dashboard_url(task: str = "", base: str = "/contribute") -> str:
+    return f"{base}?{urlencode({'task': task})}" if task else base
 
 
 def _language_names(codes: set[str]) -> dict[str, str]:
@@ -113,15 +109,8 @@ def _language_names(codes: set[str]) -> dict[str, str]:
     return names
 
 
-def _language_names_for(edition, evidence_doc: dict | None) -> dict[str, str]:
-    codes = set(tasks.edition_values(edition)["languages"])
-    for src in (evidence_doc or {}).get("sources", []):
-        codes.update(src.get("fields", {}).get("languages") or [])
-    return _language_names(codes)
-
-
 def _sibling_list(fld: str, others: list, limit: int = 10) -> list[dict]:
-    """One line per other edition: its value for this field, plus enough to tell the editions apart."""
+    """One line per other edition: its value for this field, plus enough to tell the editions apart. Filled ones first."""
     values = {e.key: edition_field_values(e, fld) for e in others}
     names = _language_names({str(v) for vs in values.values() for v in vs}) if fld == "languages" else {}
     rows = []
@@ -129,33 +118,18 @@ def _sibling_list(fld: str, others: list, limit: int = 10) -> list[dict]:
         year = e.get_publish_year()
         about = [
             ", ".join(e.get("publishers") or []) if fld != "publishers" else "",
-            str(year) if year and fld != "publish_date" else "",
-            (e.get("physical_format") or "") if fld != "physical_format" else "",
+            str(year) if year else "",
+            e.get("physical_format") or "",
         ]
         rows.append({"url": e.key, "value": ", ".join(names.get(str(v), str(v)) for v in values[e.key]), "about": ", ".join(p for p in about if p)})
     return rows
 
 
-def _sibling_top(fld: str, others: list) -> str:
-    """The most common value among the other editions, as the answers on screen display it."""
-    if not (top := sibling_counts(others, fld, limit=1)):
-        return ""
-    return _language_names({top[0].display}).get(top[0].display, top[0].display) if fld == "languages" else top[0].display
-
-
-def _cover_url(edition, isbn: str | None) -> str | None:
-    """Prefer the production cover for a demo book: dev cover ids point at the wrong images."""
-    if isbn and (cover_id := fixtures.demo_cover_id(isbn)):
-        return f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
-    return edition.get_cover_url("M")
-
-
-def _book(edition, readers: int | None = None, reason: str = "") -> dict:
+def _book(edition, readers: int | None = None) -> dict:
     """What the book header shows. Live from the local record."""
     work = edition.works[0] if edition.works else None
     year = edition.get_publish_year()
     parts = [p for p in [", ".join(edition.get("publishers") or []), str(year) if year else "", edition.get("physical_format") or ""] if p]
-    isbn = edition.get_isbn13()
     seen: set[str] = set()
     author_names = []
     for a in edition.get_authors():
@@ -167,91 +141,64 @@ def _book(edition, readers: int | None = None, reason: str = "") -> dict:
         "olid": edition.key.split("/")[-1],
         "title": edition.get_title(),
         "authors": ", ".join(author_names),
-        "cover_url": _cover_url(edition, isbn),
+        "cover_url": edition.get_cover_url("M"),
         "edition_line": " · ".join(parts),
-        "isbn13": isbn,
+        "isbn13": edition.get_isbn13(),
         "edition_count": work.get_edition_count() if work else 1,
         "work_key": work.key if work else None,
-        "readers": readers if readers is not None else fixtures.demo_readers(isbn),
-        "reason": reason,
+        "readers": readers,
     }
 
 
-def _level_label(level: str) -> str:
-    return {
-        "strong": _("Strong evidence"),
-        "fair": _("Fair evidence"),
-        "weak": _("Weak evidence"),
-        "none": _("No outside evidence"),
-    }.get(level, "")
-
-
-def _match_label(match: str) -> str:
-    return _("found by exact ISBN") if match in ("isbn13", "isbn10", "lccn", "oclc") else _("matched by title and author")
-
-
-def _evidence_view(ev, sources) -> dict:
-    """A plain dict for the templates, which never call functions on their data."""
-    rows = []
-    for v in ev.values:
-        src = sources.get(v.source)
-        rows.append(
-            {
-                "id": v.source,
-                "name": src.name if src else v.source,
-                "kind": src.kind if src else "",
-                "display": v.display,
-                "match_label": _match_label(v.match),
-                "url": v.url,
-                "agrees": v.agrees_with_ol,
-            }
-        )
-    names = [r["name"] for r in rows if r["id"] in ev.suggestion_sources]
-    return {
-        "field": ev.field,
-        "verdict": ev.verdict,
-        "level": ev.level,
-        "level_label": _level_label(ev.level),
-        "sentence": ev.sentence,
-        "ol_display": ev.ol_display,
-        "suggestion_display": ev.suggestion_display,
-        "suggestion_sources_label": _(" and ").join(names),
-        "rows": rows,
-    }
-
-
-def _task_url(task: tasks.Task, back: str) -> str:
+def _task_url(task: tasks.Task, back: str = "") -> str:
     url = f"/contribute/task/{task.olid}/{task.field}"
-    return f"{url}?back={back}" if back != DEFAULT_LIST else url
+    return f"{url}?{urlencode({'back': back})}" if back else url
 
 
-def _task_summary(task: tasks.Task, playbooks, back: str = DEFAULT_LIST, scope=None) -> dict:
+def _task_summary(task: tasks.Task, playbooks, back: str = "") -> dict:
+    playbook = playbooks[task.field]
     return {
         "key": task.key,
         "field": task.field,
-        "label": playbooks[task.field].label,
-        "action_label": playbooks[task.field].action(task.mode),
-        "mode": task.mode,
-        "level": task.evidence.level,
-        "level_label": _level_label(task.evidence.level),
-        "points": ranking.task_points(task, scope),
+        "label": playbook.label,
+        "action_label": playbook.action,
+        "question": playbook.question,
         "url": _task_url(task, back),
     }
 
 
-def _rows(candidates: list[supply.Candidate], order: ranking.Ordering, back: str) -> list[dict]:
-    """Candidates → open tasks → ordered rows for the list page. Books with nothing to check drop out."""
+def _rows(task: str) -> list[dict]:
+    """The filter's books, most-read first, each with its open tasks narrowed to the filter's fields.
+
+    Each task carries a ``weight`` (readers times the field's points) so "Surprise me" favors the fixes that help most.
+    """
+    fields = _filter_fields(task)
     playbooks = get_playbooks()
     scope = load_scope()
-    pairs = []
-    for cand in candidates:
-        names = _language_names_for(cand.edition, tasks.evidence_for_edition(cand.edition))
-        if ts := tasks.tasks_for_edition(cand.edition, scope, names):
-            pairs.append((cand, ts))
-    return [
-        {"book": _book(cand.edition, cand.readers, cand.reason), "tasks": [_task_summary(t, playbooks, back, scope) for t in ts]}
-        for cand, ts in ranking.order_rows(pairs, order, scope)
+    rows = []
+    for cand in supply.solr_candidates(fields, LIST_SIZE):
+        # Solr can lag the database; a field filled since the last reindex is no longer a task.
+        if ts := [t for t in tasks.tasks_for_edition(cand.edition, scope) if t.field in fields]:
+            rows.append(
+                {
+                    "book": _book(cand.edition, cand.readers),
+                    "tasks": [_task_summary(t, playbooks, task) | {"weight": ranking.impact(cand.readers, t, scope)} for t in ts],
+                }
+            )
+    return rows
+
+
+def _rail(task: str) -> dict:
+    filters = [
+        {
+            "label": label,
+            "url": _dashboard_url("" if task == fid else fid),
+            "on": task == fid,
+            "count": supply.missing_count(fields),
+        }
+        for fid, label, fields in _filters()
     ]
+    return {"all": {"label": _("All open tasks"), "url": _dashboard_url(), "on": not task}, "filters": filters}
 
 
 class contribute_index(delegate.page):
@@ -259,75 +206,52 @@ class contribute_index(delegate.page):
 
     def GET(self):
         user = _user()
-        return _render(
-            "start",
-            _("Make your first edit"),
-            wait_days=load_scope().review_wait_days,
-            allowed=_allowed(user),
-            logged_in=bool(user),
-            tabs=_tabs("start", user),
-        )
+        task = _task_filter(query_param("task", ""))
+        allowed = _allowed(user)
+        params: dict = {
+            "allowed": allowed,
+            "logged_in": bool(user),
+            "wait_days": load_scope().review_wait_days,
+            "one_task_url": _dashboard_url(task, base="/contribute/one"),
+        }
+        if allowed:
+            heading = next((label for fid, label, _fields in _filters() if fid == task), None)
+            params |= {
+                "rail": _rail(task),
+                "rows": _rows(task),
+                "heading": _("Missing: %(field)s", field=heading) if heading else _("Most needed"),
+                "sort_note": _("Books more people read come first."),
+                "empty": _("Nothing missing here right now. Thank you."),
+            }
+        return _render("dashboard", _("Contribute"), **params)
 
 
-class contribute_start(delegate.page):
-    """The orientation moved to /contribute itself; keep the old link working."""
+class contribute_one(delegate.page):
+    """Do one task: a weighted random pick from the dashboard's current filter, straight to its task page."""
 
-    path = "/contribute/start"
-
-    def GET(self):
-        raise web.seeother("/contribute")
-
-
-class contribute_needed(delegate.page):
-    path = "/contribute/needed"
-
-    def GET(self):
-        user = _user()
-        if not _allowed(user):
-            return _denied(self.path)
-        return _render(
-            "list",
-            _("Books that need a hand"),
-            tabs=_tabs("needed", user),
-            heading=_("Books that need a hand"),
-            lede=_("Popular books with a fact missing or in doubt. The ones at the top help the most readers."),
-            rows=_rows(supply.demo_candidates(), "impact", "needed"),
-            empty=_("You've been through everything here. Thank you."),
-            empty_link={"url": "/contribute/yours", "label": _("Try the books you've read")},
-            sort_note=_("Sorted by readers helped, times what the fix is worth."),
-        )
-
-
-class contribute_yours(delegate.page):
-    path = "/contribute/yours"
+    path = "/contribute/one"
 
     def GET(self):
         user = _user()
+        task = _task_filter(query_param("task", ""))
         if not user:
-            raise web.seeother(f"/account/login?redirect={self.path}")
+            raise web.seeother(f"/account/login?redirect={_dashboard_url(task, base=self.path)}")
         if not _allowed(user):
             return _denied(self.path)
-        candidates = supply.shelf_candidates(user)
-        if candidates:
-            empty = _("Your shelves are in good shape. Nothing on them needs a check right now.")
-        else:
-            empty = _("Nothing on your shelves yet. Mark a few books as read and they'll show up here.")
-        return _render(
-            "list",
-            _("Books you've read that need a hand"),
-            tabs=_tabs("yours", user),
-            heading=_("Your books"),
-            lede=_("Books from your reading log."),
-            rows=_rows(candidates, "points", "yours"),
-            empty=empty,
-            empty_link={"url": "/contribute/needed", "label": _("See the books that need help most")},
-            sort_note=_("Read shelves first, then what you're reading, then Want to Read. Within each, the most valuable fix first."),
-        )
+        options = [t for row in _rows(task) for t in row["tasks"]]
+        if not options:
+            raise web.seeother(_dashboard_url(task))
+        pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]
+        raise web.seeother(pick["url"])
 
 
-# A passing check is reassurance, not an alert: it stays a quiet line. Only a
-# warning or a failure earns the ol-message treatment, so attention goes to problems.
-CHECK_TONES = {"pass": ("", "circle-check"), "warn": ("warning", "triangle-alert"), "fail": ("error", "circle-alert")}
+class contribute_redirect(delegate.page):
+    """Old entry points, now the dashboard."""
+
+    path = "/contribute/(start|needed|yours)"
+
+    def GET(self, _old):
+        raise web.seeother("/contribute")
 
 
 def _sibling_editions(edition) -> list:
@@ -337,91 +261,28 @@ def _sibling_editions(edition) -> list:
     return [e for e in work.get_sorted_editions(keys=[edition.key]) if e.key != edition.key]
 
 
-def _identifier_context(edition, task: tasks.Task, names: dict[str, str]) -> dict:
-    """The record an identifier points at, the checks run against it, and the traps nobody can check.
-
-    The number itself is not evidence: the Library of Congress record of course
-    carries its own LCCN. What a newcomer can judge is whether that record
-    describes the book on this page, so that comparison is the page.
-    """
-    spec = identifiers.get_specs()[task.field]
-    values = tasks.edition_values(edition)
-    doc = tasks.evidence_for_edition(edition) or {"sources": []}
-    src, rows, match_check = tasks.corroboration(task.field, values, doc, names)
-    value = ((src or {}).get("fields", {}).get(task.field) or [""])[0]
-    sources = get_sources()
-    source = sources.get((src or {}).get("id", ""))
-
-    value, format_check = identifiers.check_format(spec, value)
-    checks = [format_check, identifiers.check_collision(spec, value, _sibling_editions(edition)) if value else None, match_check]
-    checks = [c for c in checks if c]
-    caught = {c.id for c in checks if c.state == "pass"}
+def _task_context(edition, task: tasks.Task, back: str) -> dict:
     playbook = get_playbooks()[task.field]
-    return {
-        "value": value or "",
-        "label": playbook.label,
-        "source_name": source.name if source else _("the source catalog"),
-        "record_url": spec.record_url(value) if value else "",
-        "search_url": spec.search_url(edition.get_isbn13() or ""),
-        "match_rows": [{"label": r.label, "ours": r.ol_display, "theirs": r.target_display, "agrees": r.agrees} for r in rows],
-        "checks": [{"id": c.id, "state": c.state, "tone": CHECK_TONES[c.state][0], "icon": CHECK_TONES[c.state][1], "message": c.message} for c in checks],
-        "gate": identifiers.worst_state(checks),
-        "traps": [{"text": t.text, "checked_by": t.checked_by, "checked": bool(t.checked_by and t.checked_by in caught)} for t in playbook.traps],
-    }
-
-
-def _task_context(edition, task: tasks.Task, names: dict[str, str], back: str) -> dict:
-    playbooks = get_playbooks()
-    playbook = playbooks[task.field]
     others = _sibling_editions(edition)
     book = _book(edition)
-    ev = task.evidence
-    sources = get_sources()
-    note = _prefilled_note(ev, sources, _sibling_top(task.field, others))
-    ident = _identifier_context(edition, task, names) if identifiers.is_identifier_field(task.field) else None
-    if ident:
-        note = _prefilled_id_note(ident)
     return {
-        "identifier": ident,
         "book": book,
-        "task": {"key": task.key, "field": task.field, "mode": task.mode, "url": _task_url(task, back), "points": ranking.task_points(task)},
+        "task": {"key": task.key, "field": task.field, "url": _task_url(task, back)},
+        "is_identifier": identifiers.is_identifier_field(task.field),
         "playbook": playbook,
-        "question": playbook.question(task.mode),
-        "evidence": _evidence_view(ev, sources),
+        "link_outs": link_outs(playbook, book["isbn13"]),
         "siblings": _sibling_list(task.field, others),
         "sibling_total": len(others),
-        "link_outs": link_outs(book["isbn13"], book["title"]),
-        "note": note,
         "wait_days": load_scope().review_wait_days,
-        "list_url": _list_url(back),
-        "list_label": _list_label(back),
+        "list_url": _dashboard_url(back),
     }
 
 
-def _prefilled_id_note(ident: dict) -> str:
-    """The reviewer should not have to redo the lookup, so the receipt carries what was compared."""
-    agreed = [r["label"] for r in ident["match_rows"] if r["agrees"] is True]
-    if not agreed:
-        return ""
-    names = [str(a).lower() for a in agreed]
-    joined = names[0] if len(names) == 1 else _("%(first)s and %(last)s", first=", ".join(names[:-1]), last=names[-1])
-    return _("Checked against %(source)s: %(fields)s match.", source=ident["source_name"], fields=joined)
+TASK_PATH = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|lccn|oclc_numbers)"
 
 
-def _prefilled_note(ev, sources, sibling_top: str) -> str:
-    names = [sources[v.source].name for v in ev.values if v.source in sources]
-    if not names or not ev.suggestion_display:
-        return ""
-    parts = [_("Matched %(sources)s by ISBN.", sources=_(" and ").join(names))]
-    if sibling_top and sibling_top == ev.suggestion_display:
-        if ev.field == "languages":
-            parts.append(_("Other editions of this work say the same."))
-        else:
-            parts.append(_("Other editions of this work use the same spelling."))
-    return " ".join(parts)
-
-
-TASK_PATH = r"/contribute/task/(OL\d+M)/(languages|number_of_pages|publishers|subtitle|publish_date|lccn|oclc_numbers)"
+def _back() -> str:
+    return _task_filter(query_param("back", ""))
 
 
 class contribute_task(delegate.page):
@@ -431,23 +292,22 @@ class contribute_task(delegate.page):
         user = _user()
         if not _allowed(user):
             return _denied(f"/contribute/task/{olid}/{fld}")
-        back = _list_id(query_param("back", DEFAULT_LIST))
+        back = _back()
         edition = web.ctx.site.get(f"/books/{olid}")
         if not edition or edition.type.key != "/type/edition":
             raise web.notfound()
-        names = _language_names_for(edition, tasks.evidence_for_edition(edition))
-        task = tasks.task_for(edition, fld, language_names=names)
-        if not task:
-            return _render("nothing", _("Nothing to check here"), book=_book(edition), field_label=get_playbooks()[fld].label, list_url=_list_url(back))
-        return _render("task", get_playbooks()[fld].question(task.mode), **_task_context(edition, task, names, back))
+        playbook = get_playbooks()[fld]
+        if not (task := tasks.task_for(edition, fld)):
+            return _render("nothing", _("Nothing to fill in here"), book=_book(edition), field_label=playbook.label, list_url=_dashboard_url(back))
+        return _render("task", playbook.question, **_task_context(edition, task, back))
 
     def POST(self, olid, fld):
         user = _user()
         if not _allowed(user):
             return _denied(f"/contribute/task/{olid}/{fld}")
-        i = web.input(choice="", value="", note="", back=DEFAULT_LIST)
-        # Phase 1: nothing is saved. The receipt is rendered from what was posted.
-        query = urlencode({"choice": i.choice, "value": i.value.strip(), "note": i.note.strip(), "back": _list_id(i.back)})
+        i = web.input(choice="", value="", note="", back="")
+        # Nothing is saved yet. The receipt is rendered from what was posted.
+        query = urlencode({"choice": i.choice, "value": i.value.strip(), "note": i.note.strip(), "back": _task_filter(i.back)})
         raise web.seeother(f"/contribute/task/{olid}/{fld}/done?{query}")
 
 
@@ -458,36 +318,26 @@ class contribute_done(delegate.page):
         user = _user()
         if not _allowed(user):
             return _denied(f"/contribute/task/{olid}/{fld}/done")
-        back = _list_id(query_param("back", DEFAULT_LIST))
+        back = _back()
         edition = web.ctx.site.get(f"/books/{olid}")
         if not edition:
             raise web.notfound()
-        names = _language_names_for(edition, tasks.evidence_for_edition(edition))
         playbooks = get_playbooks()
-        task = tasks.task_for(edition, fld, language_names=names)
         choice = query_param("choice", "")
         value = query_param("value", "")
-        ev = task.evidence if task else tasks.field_evidence(edition, fld, names)
-        if choice == "suggestion":
-            new_value = ev.suggestion_display
-        elif choice == "keep":
-            new_value = ev.ol_display
-        elif choice == "unsure":
-            new_value = ""
-        else:
-            new_value = value
-        same_book = [_task_summary(t, playbooks, back) for t in tasks.tasks_for_edition(edition, language_names=names) if t.field != fld]
+        if identifiers.is_identifier_field(fld):
+            value = next(iter(identifiers.normalized(fld, value)), value)
+        same_book = [_task_summary(t, playbooks, back) for t in tasks.tasks_for_edition(edition) if t.field != fld]
         return _render(
             "done",
             _("Sent to a librarian"),
             book=_book(edition),
             field_label=playbooks[fld].label,
             choice=choice,
-            old_value=ev.ol_display,
-            new_value=new_value,
+            new_value="" if choice == "unsure" else value,
             note=query_param("note", ""),
             same_book=same_book,
             wait_days=load_scope().review_wait_days,
             task_key=f"{olid}/{fld}",
-            list_url=_list_url(back),
+            list_url=_dashboard_url(back),
         )

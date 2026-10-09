@@ -49,6 +49,77 @@ function initList(root) {
     if (empty) empty.hidden = rows.length > 0;
 }
 
+const INTRO_KEY = 'ol-contribute-intro-hidden';
+
+function initIntro(root) {
+    const intro = root.querySelector('[data-intro]');
+    if (!intro) return;
+    try {
+        if (localStorage.getItem(INTRO_KEY)) intro.hidden = true;
+    } catch (e) {
+        // Blocked storage: the introduction just stays.
+    }
+    intro.querySelector('[data-intro-close]')?.addEventListener('click', () => {
+        intro.hidden = true;
+        try {
+            localStorage.setItem(INTRO_KEY, '1');
+        } catch (e) {
+            // Hidden for this visit only.
+        }
+    });
+}
+
+function openTasks(root) {
+    return [...root.querySelectorAll('[data-book-row]:not([hidden]) [data-task-key]:not([hidden])')];
+}
+
+// Weighted like the server's pick, so busier books with more valuable gaps come up more often.
+function weightedPick(tasks, avoidKey) {
+    const pool = tasks.length > 1 ? tasks.filter((el) => el.dataset.taskKey !== avoidKey) : tasks;
+    const weights = pool.map((el) => Math.max(Number(el.dataset.weight) || 1, 1));
+    let r = Math.random() * weights.reduce((a, b) => a + b, 0);
+    return pool.find((_el, i) => (r -= weights[i]) <= 0) || pool[pool.length - 1];
+}
+
+/**
+ * "Surprise me" previews a pick from the tasks still on screen, so one
+ * already answered this session is never offered again. With nothing on
+ * screen (or no JS) the link falls through to /contribute/one.
+ */
+function initOneTask(root) {
+    const button = root.querySelector('[data-one-task]');
+    const card = root.querySelector('[data-pick]');
+    if (!button || !card) return;
+    let current = '';
+
+    const show = (task) => {
+        const row = task.closest('[data-book-row]');
+        const cover = row.querySelector('.fe-book__cover');
+        card.querySelector('[data-pick-cover]').replaceChildren(cover ? cover.cloneNode(true) : '');
+        card.querySelector('[data-pick-question]').textContent = task.dataset.question || task.textContent.trim();
+        const title = row.querySelector('.fe-book__title')?.textContent.trim() || '';
+        const authors = row.querySelector('.fe-book__authors')?.textContent.trim() || '';
+        card.querySelector('[data-pick-book]').textContent = authors ? `${title} · ${authors}` : title;
+        card.querySelector('[data-pick-why]').textContent = row.dataset.why || '';
+        card.querySelector('[data-pick-start]').setAttribute('href', task.querySelector('a').href);
+        current = task.dataset.taskKey;
+        card.hidden = false;
+        card.querySelector('[data-pick-question]').focus({ preventScroll: true });
+        card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    };
+
+    button.addEventListener('click', (event) => {
+        const tasks = openTasks(root);
+        if (!tasks.length) return;
+        event.preventDefault();
+        show(weightedPick(tasks, current));
+    });
+    card.querySelector('[data-pick-again]')?.addEventListener('click', () => {
+        const tasks = openTasks(root);
+        if (tasks.length) show(weightedPick(tasks, current));
+    });
+}
+
 function initChooser(root) {
     const other = root.querySelector('[data-other-input]');
     const radios = root.querySelectorAll('input[name="choice"]');
@@ -133,7 +204,11 @@ function initDone(root) {
 }
 
 export function init() {
-    document.querySelectorAll('[data-contribute-list]').forEach(initList);
+    document.querySelectorAll('[data-contribute-list]').forEach((root) => {
+        initList(root);
+        initIntro(root);
+        initOneTask(root);
+    });
     document.querySelectorAll('[data-contribute-task]').forEach(initChooser);
     document.querySelectorAll('form[data-id-form]').forEach(initIdForm);
     document.querySelectorAll('[data-contribute-done]').forEach(initDone);

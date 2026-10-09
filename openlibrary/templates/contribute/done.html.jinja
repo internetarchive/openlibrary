@@ -10,8 +10,6 @@
             <h1 class="fe-receipt__title">
                 {% if data.choice == "unsure" %}
                     {{ _("%(field)s for %(title)s: you asked a librarian to look", field=data.field_label, title=data.book.title) }}
-                {% elif data.old_value and data.new_value and data.old_value != data.new_value %}
-                    {{ _("%(field)s for %(title)s: %(old)s → %(new)s", field=data.field_label, title=data.book.title, old=data.old_value, new=data.new_value) }}
                 {% elif data.new_value %}
                     {{ _("%(field)s for %(title)s: %(new)s", field=data.field_label, title=data.book.title, new=data.new_value) }}
                 {% else %}

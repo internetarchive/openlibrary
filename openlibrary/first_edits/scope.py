@@ -1,4 +1,4 @@
-"""Which fields First Edits offers, in which modes, and how much evidence each needs.
+"""Which fields First Edits offers, and what filling each is worth.
 
 The scope is a JSON file so librarians can change it without a code change.
 """
@@ -10,8 +10,6 @@ from pathlib import Path
 
 SCOPE_PATH = Path(__file__).parent / "scope.json"
 
-MODES = ("fill", "check")
-LEVELS = ("none", "weak", "fair", "strong")
 FIELDS = ("languages", "number_of_pages", "publishers", "subtitle", "publish_date", "lccn", "oclc_numbers")
 
 
@@ -19,12 +17,7 @@ FIELDS = ("languages", "number_of_pages", "publishers", "subtitle", "publish_dat
 class FieldScope:
     field: str
     enabled: bool
-    modes: tuple[str, ...]
-    min_level: str
     points: int = 0  # Edition Scorecard weight; what a fill is worth to readers
-
-    def allows(self, mode: str, level: str) -> bool:
-        return self.enabled and mode in self.modes and LEVELS.index(level) >= LEVELS.index(self.min_level)
 
 
 @dataclass(frozen=True)
@@ -41,16 +34,10 @@ def parse_scope(raw: dict) -> Scope:
     for name, cfg in raw.get("fields", {}).items():
         if name not in FIELDS:
             raise ValueError(f"unknown field in scope: {name}")
-        modes = tuple(cfg.get("modes", ()))
-        if bad := [m for m in modes if m not in MODES]:
-            raise ValueError(f"unknown mode(s) for {name}: {bad}")
-        level = cfg.get("min_level", "fair")
-        if level not in LEVELS:
-            raise ValueError(f"unknown min_level for {name}: {level}")
         points = cfg.get("points", 0)
         if not isinstance(points, int) or points < 0:
             raise ValueError(f"points for {name} must be a non-negative integer: {points!r}")
-        fields[name] = FieldScope(name, bool(cfg.get("enabled", False)), modes, level, points)
+        fields[name] = FieldScope(name, bool(cfg.get("enabled", False)), points)
     return Scope(int(raw.get("review_wait_days", 3)), fields)
 
 

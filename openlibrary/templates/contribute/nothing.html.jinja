@@ -1,10 +1,10 @@
-{#- A task URL whose field has nothing to check right now. -#}
+{#- A task URL whose field is already filled in. -#}
 {% import "contribute/parts.html.jinja" as parts %}
 <div class="fe-page">
     {{ parts.book_header(data.book) }}
     <section class="fe-section">
-        <h1 class="fe-question__text">{{ _("Nothing to check for %(field)s on this edition", field=data.field_label) }}</h1>
-        <p>{{ _("Either the catalogs have nothing to say about it, or they disagree with each other and a librarian will settle it.") }}</p>
+        <h1 class="fe-question__text">{{ _("%(field)s is already filled in on this edition", field=data.field_label) }}</h1>
+        <p>{{ _("Someone filled it in since the list was made. Thank you for checking.") }}</p>
         <ol-button href="{{ data.list_url }}">
             {{ _("Back to the list") }}
         </ol-button>

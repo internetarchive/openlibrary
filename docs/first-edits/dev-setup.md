@@ -1,86 +1,25 @@
-# First Edits: dev setup for the walkthrough
+# First Edits: dev setup
 
-The phase 1 walkthrough at `/contribute` needs a few real editions in the local
-database whose ISBNs match the evidence fixtures in
-`openlibrary/first_edits/fixtures/evidence/`. Nothing else is required: outside
-evidence and the demo set are fixtures, and nothing is saved.
+`/contribute` needs no seeding. The lists come from Solr's edition child
+documents (editions with an ISBN missing a field, under the most-read works),
+and the task page reads the edition and its siblings from the local database.
+Nothing is fetched from outside catalogs and nothing is saved.
 
-## 0. Or build real fixtures and seed in one go
+## What has to be running
 
-`scripts/first_edits/build_fixtures.py` finds popular editions on
-openlibrary.org with real gaps, asks HathiTrust (and Google Books when a key or
-quota allows) what they say, keeps the ones that make a task under the current
-scope, writes the fixtures, and with `--import-local` imports those editions
-plus a few siblings into the local site as the dev user:
+- `solr`, with editions indexed. If the lists are empty, check
+  `type:edition` returns documents. Solr exits with code 134 under memory
+  pressure; `docker compose up -d solr` brings it back.
+- `solr-updater`, so a field filled since the last reindex drops out. The page
+  also re-checks each edition against the database, so a stale index only
+  shortens the list; it never shows a filled field as a task.
 
-```bash
-docker compose exec web python scripts/first_edits/build_fixtures.py --count 50 --import-local
-```
+## Gate
 
-Set `GOOGLE_BOOKS_API_KEY` to get a second source; the keyless quota is shared
-and often spent. Steps 1 and 2 below are the manual version of the same thing.
-
-## 1. Seed the demo editions
-
-The demo set is `openlibrary/first_edits/fixtures/demo_books.json`. Each entry is
-resolved at request time by its production edition key, falling back to ISBN when
-that key is missing or is a different book locally, so the list shows whichever
-demo editions exist. Most entries are real production editions with real gaps, so
-a production-data server needs no seeding. Locally, the first eight entries are
-the scripted walkthrough; import them through the site's import API as the dev
-user:
-
-```bash
-curl -s -c /tmp/cookies.txt -X POST "http://localhost:8080/account/login.json" \
-  -H "Content-Type: application/json" -d '{"username":"openlibrary","password":"openlibrary"}'
-
-# One record per demo edition. Title, authors, publishers, publish_date, isbn_13,
-# number_of_pages and languages, in the import API's shape. Leave a field out to
-# create a gap the wizard can fill (the demo set expects: Gatsby and Things Fall
-# Apart with no language, Ruptured Histories with no publisher, Fantastic Mr Fox
-# with no page count).
-curl -s -b /tmp/cookies.txt -X POST http://localhost:8080/api/import \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Ruptured histories","authors":[{"name":"Sheila Miyoshi Jager"},{"name":"Rana Mitter"}],"publish_date":"2007","isbn_13":["9780674024700"],"number_of_pages":384,"languages":["eng"],"subtitle":"war, memory, and the post-Cold War in Asia","source_records":["first-edits-demo:9780674024700"]}'
-```
-
-The production records for all eight demo editions are in Bookie's golden
-snapshots (`openlibrary-bookie/data/golden/snapshots/*.json`, under
-`subject.raw`), which is where the fixtures came from.
-
-## 2. Seed sibling editions
-
-Sibling counts ("how the other editions of this work spell the publisher") are
-live, so each demo work needs a few other editions locally. Import three to six
-real editions of each work from production the same way; the importer attaches
-them to the existing local work by title and author. Skip editions whose
-publisher is "Independently Published": the importer rejects them.
-
-## 2b. Seed the reading log (for the Your books tab)
-
-`/contribute/yours` reads the logged-in user's shelves, so put a few demo works
-on them, with the demo edition so the tab asks about that printing. Work and
-edition keys come from the demo books' pages (`/books/OL…M.json` → `works[0].key`):
-
-```bash
-# bookshelf_id: 1 want to read, 2 currently reading, 3 already read
-curl -s -b /tmp/cookies.txt -X POST http://localhost:8080/works/OL200W/bookshelves.json \
-  -d 'bookshelf_id=3&edition_id=OL2300M&dont_remove=true'      # Gatsby, read
-curl -s -b /tmp/cookies.txt -X POST http://localhost:8080/works/OL1924W/bookshelves.json \
-  -d 'bookshelf_id=2&edition_id=OL2302M&dont_remove=true'      # Ruptured Histories, reading
-curl -s -b /tmp/cookies.txt -X POST http://localhost:8080/works/OL180W/bookshelves.json \
-  -d 'bookshelf_id=1&edition_id=OL2299M&dont_remove=true'      # Fantastic Mr Fox, want to read
-```
-
-The reading log queries Solr, so the `solr` container must be up (it exits with
-code 134 under memory pressure; `docker compose up -d solr` brings it back).
-
-## 3. Gate
-
-Every page except `/contribute/start` requires a beta tester or admin. The dev
+Every page requires a beta tester, librarian, maintainer or admin. The dev
 user `openlibrary` is an admin, so it is already allowed.
 
-## 4. Assets
+## Assets
 
 No asset watcher runs in the dev container. After changing the stylesheet or the
 script, rebuild inside the web container and reload:
@@ -94,6 +33,5 @@ A new Templetor template or plugin module needs `docker compose restart web`.
 
 ## Covers
 
-Local cover ids point at the wrong images in dev, so demo books
-carry a production `cover_id` in their fixture and load covers from the
-production cover CDN.
+Local cover ids often point at the wrong images in dev. That's a dev-data
+problem, not a page bug.

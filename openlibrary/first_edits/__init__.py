@@ -1,6 +1,5 @@
-"""First Edits: a guided first-contribution experience at /contribute.
+"""First Edits: a librarian dashboard of missing fields at /contribute.
 
-Phase 1 is a click-through walkthrough. Book data and sibling editions are
-live; outside evidence, practice and status states come from fixtures; nothing
-is saved. See docs/first-edits/plan.md.
+Book data and the lists are live; the task page links out to other catalogs
+and fetches nothing from them; nothing is saved yet. See docs/first-edits/plan.md.
 """

@@ -94,30 +94,6 @@
   flex-basis: 100%;
 }
 
-.fe-cards {
-  display: grid;
-  gap: var(--spacing-inline-lg);
-}
-
-.fe-card {
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius-card);
-  padding: var(--spacing-inset-md);
-  display: grid;
-  align-content: start; /* cards share a height; keep each one's icon, title and text pinned to the top so they line up across the row */
-  gap: var(--spacing-stack-sm);
-  background: var(--color-surface);
-}
-
-.fe-card__icon {
-  color: var(--color-link);
-}
-
-.fe-card__title {
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semibold);
-}
-
 .fe-callout {
   border-inline-start: 3px solid var(--color-info-border);
   background: var(--color-info-bg);
@@ -252,7 +228,7 @@
   transform: scaleX(-1);
 }
 
-/* Task layout: one column here; evidence beside a sticky answer on desktop. */
+/* Task layout: one column here; the context beside a sticky answer on desktop. */
 .fe-task__head,
 .fe-task__evidence {
   min-width: 0;
@@ -274,101 +250,11 @@
   text-wrap: balance;
 }
 
-/* Evidence */
-.fe-evidence {
-  display: grid;
-  gap: var(--spacing-stack-sm);
-}
-
-.fe-meter__bars {
-  display: inline-flex;
-  gap: 3px;
-  flex: none;
-}
-
-.fe-meter__bars i {
-  width: 18px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--color-border-subtle);
-}
-
-.fe-meter__bars--strong i,
-.fe-meter__bars--fair i:nth-child(-n + 2) {
-  background: var(--color-success-object);
-}
-
-.fe-meter__bars--weak i:nth-child(1) {
-  background: var(--color-warning-object);
-}
-
-/* Ruled top and bottom so several catalogs read as one bounded table rather
-   than loose lines drifting into the prose around them. */
-.fe-evidence__rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border-block: 1px solid var(--color-border-muted);
-}
-
-.fe-evidence__row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2px var(--spacing-inline-lg);
-  padding-block: var(--spacing-inset-sm);
-}
-
-/* Lighter between rows than at the edges, so the block keeps its outline. */
-.fe-evidence__row + .fe-evidence__row {
-  border-block-start: 1px solid var(--color-border-extra-subtle);
-}
-
-.fe-evidence__source {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--spacing-inline-md);
-}
-
-.fe-evidence__match {
-  font-size: var(--font-size-body-small);
-  color: var(--color-text-secondary);
-}
-
-.fe-evidence__value {
-  font-weight: var(--font-weight-semibold);
-}
-
-.fe-evidence__row--agrees .fe-evidence__value {
-  color: var(--color-success-fg);
-}
-
-.fe-evidence__row--differs .fe-evidence__value {
-  color: var(--color-error-fg);
-}
-
 /* Notes */
 .fe-note {
   margin: 0;
   font-size: var(--font-size-body-medium);
   color: var(--color-text-secondary);
-}
-
-.fe-note--walkthrough {
-  display: flex;
-  gap: var(--spacing-inline-md);
-  align-items: flex-start;
-  color: inherit;
-  border-inline-start: 3px solid var(--color-warning-border);
-  background: var(--color-warning-bg);
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  border-radius: var(--border-radius-sm);
-}
-
-.fe-note--walkthrough ol-icon {
-  flex: none;
-  margin-block-start: 2px;
-  color: var(--color-warning-fg);
 }
 
 .fe-siblings,
@@ -392,7 +278,7 @@
   margin-block-start: var(--spacing-stack-sm);
 }
 
-/* Answer: on phones only the action bar sticks, so the evidence stays readable above it. */
+/* Answer: on phones only the action bar sticks, so the context stays readable above it. */
 .fe-answer {
   display: grid;
   gap: var(--spacing-stack-lg);
@@ -589,11 +475,6 @@
   color: var(--color-info-fg);
 }
 
-.fe-row__task--check .fe-row__badge {
-  background: var(--color-warning-bg);
-  color: var(--color-warning-fg);
-}
-
 .fe-row__task a:focus-visible,
 .fe-row__task a:active {
   background-color: var(--color-hover-overlay);
@@ -655,25 +536,6 @@
     padding-inline: var(--spacing-page-gutter-desktop);
   }
 
-  .fe-cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  /* One grid across every row, so the value column is only as wide as the
-     widest value and the rows still line up. A fixed width here instead would
-     strand a short page count far from its catalog. */
-  .fe-evidence__rows {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    column-gap: var(--spacing-inline-lg);
-  }
-
-  .fe-evidence__row {
-    grid-column: 1 / -1;
-    grid-template-columns: subgrid;
-    align-items: baseline;
-  }
-
   .fe-answer__actions {
     position: static;
     padding-block: 0;
@@ -685,7 +547,7 @@
   }
 }
 
-/* Desktop: @width-breakpoint-desktop = 960px. The evidence table needs ~500px, so no split at tablet width. */
+/* Desktop: @width-breakpoint-desktop = 960px. */
 @media (min-width: 960px) {
   .fe-page--task {
     max-width: 1080px;
@@ -725,80 +587,20 @@
 }
 
 /* --- Identifier tasks -----------------------------------------------------
-   An identifier is a pointer into another catalog, so the page argues about
-   the record it points at rather than about the number. */
+   A wrong identifier is worse than none, so these pages list the usual
+   mistakes and gate the answer behind a confirmation. */
 
-.fe-idrec,
-.fe-checks,
 .fe-traps {
   display: grid;
   gap: var(--spacing-stack-sm);
 }
 
-.fe-idrec__number {
-  margin: 0;
-}
-
-.fe-idrec__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-body-medium);
-}
-
-.fe-idrec__table th,
-.fe-idrec__table td {
-  text-align: start;
-  vertical-align: top;
-  padding-block: var(--spacing-inset-sm);
-  padding-inline-end: var(--spacing-inline-md);
-  border-bottom: 1px solid var(--color-border-extra-subtle);
-}
-
-.fe-idrec__table thead th {
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-semibold);
-}
-
-.fe-idrec__table tbody th {
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-regular);
-}
-
-.fe-idrec__table td:last-child {
-  padding-inline-end: 0;
-}
-
-.fe-idrec__row--agrees td:last-child {
-  color: var(--color-success-fg);
-}
-
-.fe-idrec__row--differs td:last-child {
-  color: var(--color-error-fg);
-  font-weight: var(--font-weight-semibold);
-}
-
-.fe-idrec__table ol-icon {
-  vertical-align: text-bottom;
-}
-
-.fe-checks__list,
 .fe-traps__list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: var(--spacing-stack-sm);
-}
-
-.fe-checks__item {
-  display: flex;
-  gap: var(--spacing-inline-md);
-  align-items: flex-start;
-}
-
-.fe-checks__item ol-icon {
-  flex: none;
-  margin-block-start: 2px;
 }
 
 .fe-trap {
@@ -811,17 +613,7 @@
 .fe-trap ol-icon {
   flex: none;
   margin-block-start: 2px;
-  color: var(--color-success-fg);
-}
-
-/* The traps nothing can check for you are the ones to actually read. */
-.fe-trap--unchecked ol-icon {
   color: var(--color-warning-fg);
-}
-
-/* Reads as a quiet annotation at the end of the sentence, not a second line. */
-.fe-trap__who {
-  margin-inline-start: var(--spacing-inline-sm);
 }
 
 .fe-confirm {
@@ -855,130 +647,276 @@
   color: var(--color-error-fg);
 }
 
-/* Below --width-breakpoint-tablet the three columns stop fitting, so each
-   detail becomes its own labelled block. */
-@media (max-width: 767px) {
-  .fe-idrec__table thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-
-  .fe-idrec__table,
-  .fe-idrec__table tbody,
-  .fe-idrec__row {
-    display: block;
-  }
-
-  .fe-idrec__row {
-    padding-block: var(--spacing-inset-sm);
-    border-bottom: 1px solid var(--color-border-extra-subtle);
-  }
-
-  .fe-idrec__table th,
-  .fe-idrec__table td {
-    display: block;
-    border-bottom: 0;
-    padding-block: 0;
-  }
-
-  .fe-idrec__table td::before {
-    content: attr(data-label);
-    color: var(--color-text-secondary);
-    margin-inline-end: var(--spacing-inline-sm);
-  }
+/* Dashboard (/contribute): a rail of filters beside the list.
+   One column on phones; the rail joins at desktop width. */
+.fe-dash {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding-inline: var(--spacing-page-gutter);
+  padding-block: var(--spacing-stack-lg) var(--spacing-section-gap-desktop);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
 }
 
-.fe-check--pass ol-icon {
-  color: var(--color-success-fg);
+.fe-dash :is(h1, h2, p) {
+  margin: 0;
 }
 
-/* Tabs: the ways into the list. Links, so each tab is a URL. Same look as the
-   design page's section tabs (.ds__tabs). Selectors carry the extra class to
-   outweigh the site-wide a:link / a:visited color and underline. */
-.fe-tabs {
+.fe-dash p {
+  line-height: var(--line-height-body);
+}
+
+.fe-dash > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.fe-dash__head {
   display: flex;
-  /* Out by the tab's own padding, so the first label lands on the page edge. */
-  margin-inline: calc(var(--spacing-md) * -1);
-  border-bottom: var(--border-divider);
-  overflow-x: auto;
-  scrollbar-width: none;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
 }
 
-.fe-tabs::-webkit-scrollbar {
+.fe-dash__one {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-stack-xs);
+}
+
+.fe-dash__h2 {
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+.fe-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-inset-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+}
+
+.fe-intro[hidden] {
   display: none;
 }
 
-.fe-tabs .fe-tabs__tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
-  /* Transparent on every tab so the current one's bar shifts nothing. */
-  border-bottom: 2px solid transparent;
+.fe-intro__steps {
+  flex: 1;
+  display: grid;
+  gap: var(--spacing-stack-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: fe-step;
+}
+
+.fe-intro__step {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  counter-increment: fe-step;
+}
+
+.fe-intro__step > strong::before {
+  content: counter(fe-step) ". ";
+}
+
+.fe-intro__close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--control-height-medium);
+  height: var(--control-height-medium);
+  margin: calc(-1 * var(--spacing-inset-xs));
+  border: 0;
+  border-radius: var(--border-radius-button);
+  background: none;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-label-large);
-  text-decoration: none;
-  white-space: nowrap;
+  cursor: pointer;
 }
 
-/* A hidden bold twin sizes the tab for its heaviest state, so the current
-   tab can go bold without the row reflowing. */
-.fe-tabs__ghost {
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-  font-weight: var(--font-weight-semibold);
+.fe-dash__body {
+  display: grid;
+  gap: var(--spacing-section-gap);
 }
 
-.fe-tabs__label {
+/* Rail: wrapping pills on phones, a vertical menu from desktop width. */
+.fe-rail {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  align-content: start;
+}
+
+.fe-rail__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+
+.fe-rail__group > .fe-overline {
+  flex-basis: 100%;
+}
+
+.fe-rail .fe-rail__item {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-inline-xs);
+  justify-content: space-between;
+  gap: var(--spacing-inline-md);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-pill);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
 }
 
-.fe-tabs .fe-tabs__tab:focus-visible {
+/* The selected look ol-button[selected] and ol-toggle share: a blue tint, link-blue text. */
+.fe-rail .fe-rail__item.is-on {
+  border-color: var(--color-control-selected-border);
+  background: var(--color-control-selected-bg);
+  color: var(--color-link);
+}
+
+.fe-rail .fe-rail__item:focus-visible {
   outline: 2px solid var(--color-focus-ring);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
-.fe-tabs .fe-tabs__tab.is-on {
-  border-bottom-color: var(--color-text);
-  color: var(--color-text);
-  font-weight: var(--font-weight-semibold);
+.fe-rail__count {
+  color: inherit;
+  font-size: var(--font-size-label-small);
+  font-variant-numeric: tabular-nums;
 }
 
-.fe-tabs .fe-tabs__tab--locked {
-  color: var(--color-text-muted);
-}
-
-/* A lighter bar than the current tab's, which outweighs this and keeps its own. */
 @media (hover: hover) and (pointer: fine) {
-  .fe-tabs a:hover {
-    border-bottom-color: var(--color-border-muted);
+  .fe-rail__item:not(.is-on):hover {
+    background-color: var(--color-hover-overlay);
     color: var(--color-text);
   }
 }
 
-/* What a fill is worth, on the task row and the receipt. */
-.fe-points {
-  margin-inline-start: auto;
-  padding: 2px 8px;
-  border-radius: var(--border-radius-pill);
-  background: var(--color-surface-sunken);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-label-small);
-  font-weight: var(--font-weight-semibold);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+.fe-dash__main {
+  min-width: 0;
 }
 
-.fe-list__note {
+.fe-dash__listhead {
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
-  gap: var(--spacing-inline-md);
+  gap: var(--spacing-stack-xs) var(--spacing-inline-md);
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.fe-dash__main .fe-rows {
+  margin-block-end: var(--spacing-stack-md);
+}
+
+/* Tablet: @width-breakpoint-tablet = 768px */
+@media (min-width: 768px) {
+  .fe-dash {
+    padding-inline: var(--spacing-page-gutter-desktop);
+  }
+
+  .fe-intro__steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-inline-xl);
+  }
+}
+
+/* Desktop: @width-breakpoint-desktop = 960px. The rail becomes a vertical menu. */
+@media (min-width: 960px) {
+  .fe-dash__body {
+    grid-template-columns: 200px minmax(0, 1fr);
+    column-gap: var(--spacing-section-gap);
+  }
+
+  .fe-rail {
+    gap: var(--spacing-stack-lg);
+  }
+
+  .fe-rail__group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+
+  .fe-rail__group > .fe-overline {
+    flex-basis: auto;
+    padding-inline: var(--menu-row-padding-inline);
+    margin-block-end: var(--spacing-stack-xs);
+  }
+
+  .fe-rail .fe-rail__item {
+    display: flex;
+    border-color: transparent;
+    border-radius: var(--border-radius-menu-row);
+  }
+
+  .fe-rail .fe-rail__item.is-on {
+    border-color: transparent;
+  }
+}
+
+/* "Do one task" preview: the picked task, with a way in and a re-roll. */
+.fe-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-stack-md) var(--spacing-inline-lg);
+  padding: var(--spacing-inset-md);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+}
+
+.fe-pick[hidden] {
+  display: none;
+}
+
+.fe-pick__cover {
+  flex: none;
+}
+
+.fe-pick__body {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+.fe-pick__label {
+  color: var(--color-link);
+  font-size: var(--font-size-label-medium);
+  font-weight: var(--font-weight-semibold);
+}
+
+.fe-pick__question {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+.fe-pick__question:focus {
+  outline: none;
+}
+
+.fe-pick__book {
+  font-weight: var(--font-weight-medium);
+}
+
+.fe-pick__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm);
 }

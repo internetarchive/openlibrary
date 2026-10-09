@@ -877,7 +877,7 @@ msgstr ""
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/first_edits/identifiers.py openlibrary/first_edits/playbooks.py openlibrary/plugins/worksearch/code.py search/inside.html search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/first_edits/playbooks.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search/inside.html search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
@@ -3051,7 +3051,7 @@ msgstr ""
 msgid "ISBN 13"
 msgstr ""
 
-#: books/add.html
+#: books/add.html openlibrary/first_edits/playbooks.py
 msgid "LCCN"
 msgstr ""
 
@@ -3497,7 +3497,7 @@ msgstr ""
 msgid "Enter the title of this specific edition."
 msgstr ""
 
-#: books/edit/edition.html openlibrary/first_edits/playbooks.py
+#: books/edit/edition.html
 msgid "Subtitle"
 msgstr ""
 
@@ -3961,6 +3961,88 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
+#: contribute/dashboard.html.jinja
+msgid "Librarian dashboard"
+msgstr ""
+
+#: contribute/dashboard.html.jinja lib/nav_head.html openlibrary/plugins/openlibrary/contribute.py
+msgid "Contribute"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Surprise me"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "A random book that needs a hand."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Your task"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Start task"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Pick another"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "How it works"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Pick a book"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Or let us pick. Each task is one missing detail."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Look it up"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "We link to catalogs that have it and show how other editions fill it in."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Suggest a fix"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+#, python-format
+msgid "A librarian reviews it, usually within %(days)s days. Not sure? Say so."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Hide this introduction"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Filter tasks"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Missing"
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+#, python-format
+msgid "On about %(count)s readers’ shelves."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Contributing is being tried out with a small group. Ask in the volunteers channel to be added, and this page will open up."
+msgstr ""
+
+#: contribute/dashboard.html.jinja
+msgid "Log in to start. You need an Open Library account so your suggestions have a name on them."
+msgstr ""
+
 #: contribute/done.html.jinja
 msgid "Sent as a question"
 msgstr ""
@@ -3972,11 +4054,6 @@ msgstr ""
 #: contribute/done.html.jinja
 #, python-format
 msgid "%(field)s for %(title)s: you asked a librarian to look"
-msgstr ""
-
-#: contribute/done.html.jinja
-#, python-format
-msgid "%(field)s for %(title)s: %(old)s → %(new)s"
 msgstr ""
 
 #: contribute/done.html.jinja
@@ -4006,88 +4083,22 @@ msgstr ""
 msgid "Pick a different book"
 msgstr ""
 
-#: contribute/list.html.jinja
-msgid "Skip any you're unsure about."
-msgstr ""
-
 #: contribute/nothing.html.jinja
 #, python-format
-msgid "Nothing to check for %(field)s on this edition"
+msgid "%(field)s is already filled in on this edition"
 msgstr ""
 
 #: contribute/nothing.html.jinja
-msgid "Either the catalogs have nothing to say about it, or they disagree with each other and a librarian will settle it."
+msgid "Someone filled it in since the list was made. Thank you for checking."
 msgstr ""
 
-#: contribute/nothing.html.jinja openlibrary/plugins/openlibrary/contribute.py
+#: contribute/nothing.html.jinja contribute/task.html.jinja
 msgid "Back to the list"
 msgstr ""
 
-#: contribute/start.html.jinja openlibrary/plugins/openlibrary/contribute.py
-msgid "Make your first edit"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "Most people finish their first one in about five minutes."
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "What you'll do"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "Pick a book. We show one fact that is missing or in doubt, next to what other library catalogs say. You fill it in, correct it, or say you're not sure."
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "How it's checked"
-msgstr ""
-
-#: contribute/start.html.jinja
-#, python-format
-msgid "Nothing changes on the book right away. A volunteer librarian reviews your suggestion against the same evidence, usually within %(days)s days, and accepts it, corrects it, or declines it with a note."
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "When you're not sure"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "Say so. “I'm not sure” sends the question to a librarian instead of a guess, which is more useful than a wrong answer and never counts against you."
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "Show me a book that needs help"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "Start with books I've read"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "First edits is being tried out with a small group. Ask in the volunteers channel to be added, and this page will open up."
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "Log in to start"
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "You need an Open Library account so your suggestions have a name on them."
-msgstr ""
-
-#: contribute/start.html.jinja
-msgid "This is a walkthrough. Outside catalog data is from a saved sample, and nothing you send is stored yet."
-msgstr ""
-
 #: contribute/task.html.jinja
 #, python-format
-msgid "Open Library has no %(label)s for this edition. One catalog has a record that may be it."
-msgstr ""
-
-#: contribute/task.html.jinja
-#, python-format
-msgid "Open Library currently says %(value)s. A catalog that found this exact ISBN says something different."
+msgid "Open Library has no %(label)s for this edition."
 msgstr ""
 
 #: covers/add.html
@@ -4584,7 +4595,7 @@ msgstr ""
 msgid "Edited by %(user)s"
 msgstr ""
 
-#: contribute/parts.html.jinja lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html
+#: lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
 msgstr ""
 
@@ -4808,10 +4819,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Log out"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Contribute"
 msgstr ""
 
 #: lib/nav_head.html
@@ -5503,7 +5510,7 @@ msgstr ""
 msgid "Other date"
 msgstr ""
 
-#: my_books/shelf_button_i18n.html openlibrary/first_edits/identifiers.py
+#: my_books/shelf_button_i18n.html
 msgid "Year"
 msgstr ""
 
@@ -5570,7 +5577,7 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
-#: openlibrary/first_edits/identifiers.py openlibrary/first_edits/playbooks.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
+#: openlibrary/first_edits/playbooks.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
 msgstr ""
 
@@ -6380,7 +6387,7 @@ msgstr ""
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
 msgstr ""
 
-#: type/author/edit.html
+#: openlibrary/plugins/openlibrary/contribute.py type/author/edit.html
 msgid "Identifiers"
 msgstr ""
 
@@ -6576,7 +6583,7 @@ msgstr ""
 msgid "Show other books from %(publisher)s"
 msgstr ""
 
-#: openlibrary/first_edits/identifiers.py type/edition/view.html type/work/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Pages"
 msgstr ""
 
@@ -7993,22 +8000,6 @@ msgid "Why this book: on about %(count)s readers' shelves."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "What this fix is worth to readers, on the Edition Scorecard"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Ways to find a book"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "What other catalogs say"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Open Library (now)"
-msgstr ""
-
-#: contribute/parts.html.jinja
 #, python-format
 msgid "How the other %(count)s editions of this work fill this in"
 msgstr ""
@@ -8031,7 +8022,11 @@ msgid "This is the only edition of this work catalogued so far, so there is noth
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Want to double-check outside Open Library?"
+msgid "Where to find it"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "This edition has no ISBN to search by, so look it up by title and author."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8039,108 +8034,15 @@ msgid "Guideline"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Your answer"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "What %(sources)s say."
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "Keep “%(value)s”"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Choose this if the book in your hands says so."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "I'm not sure"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Sends it to a librarian with a note. Never counts against you."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Note for the reviewer (optional)"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Send to a librarian"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Skip this book"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "Goes into the review queue. Usually looked at within %(days)s days."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "The record this number points at"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "from %(source)s"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Detail"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "This Open Library edition"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "That record"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "matches"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "does not match"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "What we checked for you"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "How this edit goes wrong"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Checked above."
+msgid "Your answer"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Only you can check this one."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Yes — that record is this edition"
-msgstr ""
-
-#: contribute/parts.html.jinja
-#, python-format
-msgid "Adds %(value)s to this record."
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "No — that record is a different edition"
-msgstr ""
-
-#: contribute/parts.html.jinja
-msgid "Nothing is added. This is a useful answer, not a failure."
+msgid "I found it"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8161,7 +8063,11 @@ msgid "That is not a valid number for this catalog."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Search that catalog for this ISBN"
+msgid "I couldn't find it"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Sends it to a librarian with a note. Never counts against you."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8169,7 +8075,24 @@ msgid "I opened the record and the year and publisher match this edition."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "A wrong number is worse than none, so a librarian checks every one."
+msgid "Note for the reviewer (optional)"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Where you found it"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Send to a librarian"
+msgstr ""
+
+#: contribute/parts.html.jinja
+msgid "Skip this book"
+msgstr ""
+
+#: contribute/parts.html.jinja
+#, python-format
+msgid "Goes into the review queue. Usually looked at within %(days)s days."
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8488,91 +8411,20 @@ msgstr ""
 msgid "How well can a patron determine if this edition is relevant to their needs before accessing it?"
 msgstr ""
 
-#: openlibrary/first_edits/evidence.py
-msgid "No outside source has this field for this edition."
+#: openlibrary/first_edits/playbooks.py
+msgid "WorldCat"
 msgstr ""
 
-#: openlibrary/first_edits/evidence.py
-#, python-format
-msgid "Needs judgment: %(sources)s disagree with each other, so this one is for a librarian."
+#: openlibrary/first_edits/playbooks.py
+msgid "Google Books"
 msgstr ""
 
-#: openlibrary/first_edits/evidence.py
-#, python-format
-msgid "Strong: %(sources)s agree, both found by exact ISBN."
+#: openlibrary/first_edits/playbooks.py openlibrary/plugins/openlibrary/partials.py
+msgid "Amazon"
 msgstr ""
 
-#: openlibrary/first_edits/evidence.py
-#, python-format
-msgid "Fair: %(sources)s agree, but one was matched by title and author, which is less certain."
-msgstr ""
-
-#: openlibrary/first_edits/evidence.py
-#, python-format
-msgid "Fair: only %(source)s has this, found by exact ISBN."
-msgstr ""
-
-#: openlibrary/first_edits/evidence.py
-#, python-format
-msgid "Weak: only %(source)s has this, matched by title and author."
-msgstr ""
-
-#: openlibrary/first_edits/evidence.py openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "%(first)s and %(last)s"
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py openlibrary/first_edits/playbooks.py
-msgid "Library of Congress number (LCCN)"
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py openlibrary/first_edits/playbooks.py
-msgid "OCLC/WorldCat number"
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-msgid "Nothing to check yet."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-msgid "That looks like a web address. Paste only the number from it."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-#, python-format
-msgid "That is not a %(label)s. Check you copied from the right place."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-#, python-format
-msgid "Tidied to %(value)s, which is the form Open Library stores."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-msgid "The format looks right."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-#, python-format
-msgid "Another edition of this work (%(olid)s) already has this number. Only one edition can, so either this is the wrong edition or those two records are duplicates. Choose “Not sure” and say so in the note."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-msgid "No other edition of this work claims this number."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-msgid "There is nothing on this record to compare against, so nobody can tell these apart automatically."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-#, python-format
-msgid "All %(count)s details that can be compared match."
-msgstr ""
-
-#: openlibrary/first_edits/identifiers.py
-#, python-format
-msgid "The %(fields)s do not match. That usually means this number belongs to a different printing, not to the edition on this page."
+#: openlibrary/first_edits/playbooks.py
+msgid "Library of Congress"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8580,11 +8432,7 @@ msgid "Fill in language"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Check language"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Is the language on this edition right?"
+msgid "Look the ISBN up in WorldCat or Google Books; both list the language of the text. The title page and cover tell you too."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8596,15 +8444,7 @@ msgid "Record the language of the text, not the language of the title page. A tr
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Keep what Open Library has"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "A different language"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Start typing a language"
+msgid "For example English"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8616,15 +8456,11 @@ msgid "Fill in page count"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Check page count"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
 msgid "How many pages does this edition have?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Is the page count on this edition right?"
+msgid "WorldCat lists the page count in the record's description. Google Books calls it Length. Make sure the record is for this ISBN, not another printing."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8632,7 +8468,7 @@ msgid "Catalogs count front matter differently, so numbers within a few pages of
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "A different number"
+msgid "For example 320"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8640,15 +8476,11 @@ msgid "Fill in publisher"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Check publisher"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
 msgid "Who published this edition?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Is the publisher on this edition right?"
+msgid "The imprint is printed on the title page and the spine. WorldCat and the Library of Congress list it under Publisher."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8660,79 +8492,11 @@ msgid "Match the spelling other editions of this work already use, so the publis
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "A different publisher"
+msgid "Publisher as printed"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Start typing a publisher"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Fill in subtitle"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Check subtitle"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Does this edition have a subtitle?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Is the subtitle on this edition right?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Subtitles are often on the cover but missing from imported records."
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "A tagline like “A Novel” or a series name is not a subtitle. Subtitles appear on the title page after a colon or line break."
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "A different subtitle"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Subtitle as printed"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Publish date"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Fill in publish date"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Check publish date"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "When was this edition published?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Is the publish date on this edition right?"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "The date tells editions apart and orders them on the work page."
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Publishers reuse one ISBN across printings, so catalogs can disagree by years. Record the date of the first printing under this ISBN."
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "A different date"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Year, or a full date"
+msgid "Library of Congress number (LCCN)"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8740,11 +8504,11 @@ msgid "Fill in LCCN"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Check LCCN"
+msgid "What is this edition's Library of Congress number?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Does this Library of Congress record describe the edition on this page?"
+msgid "Search the Library of Congress catalog for this ISBN. Open the record whose year and publisher match this edition, and copy the number shown as LCCN."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8764,15 +8528,11 @@ msgid "Pasting the web address instead of the number itself."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "The Library of Congress filed several printings under one number. If the year and publisher match, that is as far as anyone can check."
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "A different LCCN I found myself"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
 msgid "For example 75425165"
+msgstr ""
+
+#: openlibrary/first_edits/playbooks.py
+msgid "OCLC/WorldCat number"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8780,11 +8540,11 @@ msgid "Fill in OCLC number"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Check OCLC number"
+msgid "What is this edition's WorldCat (OCLC) number?"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "Does this WorldCat record describe the edition on this page?"
+msgid "Search WorldCat for this ISBN. Open the record whose year, publisher and format match this edition, and copy the number shown as OCLC Number."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
@@ -8804,80 +8564,11 @@ msgid "Pasting the web address, or leaving the ocm/ocn prefix on."
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
-msgid "WorldCat sometimes files several printings under one record, so an exact year match is the thing to look for."
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "A different OCLC number I found myself"
+msgid "OCLC number"
 msgstr ""
 
 #: openlibrary/first_edits/playbooks.py
 msgid "Digits only, for example 47810608"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "WorldCat"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py openlibrary/first_edits/sources.py
-msgid "Google Books"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py openlibrary/plugins/openlibrary/partials.py
-msgid "Amazon"
-msgstr ""
-
-#: openlibrary/first_edits/playbooks.py
-msgid "Goodreads"
-msgstr ""
-
-#: openlibrary/first_edits/sources.py
-msgid "Library of Congress"
-msgstr ""
-
-#: openlibrary/first_edits/sources.py
-msgid "HathiTrust"
-msgstr ""
-
-#: openlibrary/first_edits/sources.py
-msgid "Internet Archive scan"
-msgstr ""
-
-#: openlibrary/first_edits/sources.py
-msgid "Other editions on Open Library"
-msgstr ""
-
-#: openlibrary/first_edits/supply.py
-msgid "You've read this one."
-msgstr ""
-
-#: openlibrary/first_edits/supply.py
-msgid "You've read this; we picked the most common edition."
-msgstr ""
-
-#: openlibrary/first_edits/supply.py
-msgid "You're reading this edition."
-msgstr ""
-
-#: openlibrary/first_edits/supply.py
-msgid "You're reading this; we picked the most common edition."
-msgstr ""
-
-#: openlibrary/first_edits/supply.py
-msgid "On your Want to Read shelf."
-msgstr ""
-
-#: openlibrary/first_edits/tasks.py
-#, python-format
-msgid "Strong: the record this number points at matches this edition on all %(count)s details we can compare."
-msgstr ""
-
-#: openlibrary/first_edits/tasks.py
-msgid "Fair: the record matches on two details. Open the record and check the rest before you send it."
-msgstr ""
-
-#: openlibrary/first_edits/tasks.py
-msgid "Weak: there is too little on that record to tell these two printings apart."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/api.py
@@ -8957,23 +8648,12 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Back to your books"
+msgid "All open tasks"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Being tried out with a small group for now"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Log in to see this"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Start here"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Your books"
+#, python-format
+msgid "Missing: %(field)s"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
@@ -8981,101 +8661,15 @@ msgid "Most needed"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Strong evidence"
+msgid "Books more people read come first."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Fair evidence"
+msgid "Nothing missing here right now. Thank you."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Weak evidence"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "No outside evidence"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "found by exact ISBN"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "matched by title and author"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid " and "
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Books that need a hand"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Popular books with a fact missing or in doubt. The ones at the top help the most readers."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "You've been through everything here. Thank you."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Try the books you've read"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Sorted by readers helped, times what the fix is worth."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Your shelves are in good shape. Nothing on them needs a check right now."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Nothing on your shelves yet. Mark a few books as read and they'll show up here."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Books you've read that need a hand"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Books from your reading log."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "See the books that need help most"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Read shelves first, then what you're reading, then Want to Read. Within each, the most valuable fix first."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "the source catalog"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "Checked against %(source)s: %(fields)s match."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-#, python-format
-msgid "Matched %(sources)s by ISBN."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Other editions of this work say the same."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Other editions of this work use the same spelling."
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/contribute.py
-msgid "Nothing to check here"
+msgid "Nothing to fill in here"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

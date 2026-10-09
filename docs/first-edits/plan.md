@@ -8,6 +8,25 @@
 
 **Tabs (2026-10-06):** `/contribute` is now the orientation page with three tabs: *Start here*, *Your books* (`/contribute/yours`, the reader's shelves) and *Most needed* (`/contribute/needed`, the former list). `/contribute/start` redirects. Task rows show what a fix is worth (`points` in `scope.json`, mirroring the Edition Scorecard), and a task page remembers which tab it came from (`?back=`). See [section 0](#0-three-parts) for the split this introduces.
 
+**Dashboard (2026-10-08):** `/contribute` becomes one librarian dashboard and the three tabs go away. Mockup: claude.ai/artifact/ChjQkR1uKKgT7THkHb4bUP. Decisions:
+
+- URL stays `/contribute`; page title "Contribute", eyebrow "Librarian dashboard". `/librarians` stays the workbench.
+- **Do one task**: a button that picks one task weighted by readers × points from the current filter, then opens the existing task page. Login is required before the pick.
+- **Left rail** replaces the tabs: *All open tasks*, *Your books*, then one filter per field (`?task=languages`). Each is a supply plus a filter; no new pages.
+- *Start here* shrinks to a dismissible three-step strip. The task page gains one "why this matters" line (readers, points, initiative).
+- **Initiatives**: curated by staff in `initiatives.json` (supply query, fields, goal, dates). Progress is counted live from Solr as the remaining gap in the set, so it needs no saved answers.
+- **Community stats** ("quality points this month") ship as marked sample data until answers are saved (phase 2).
+- **Covers**: *missing cover* (50 points) joins the scope after the dashboard. *Verify cover* (a fast yes/no queue) is deferred.
+
+Build order: (1) dashboard shell, rail filters and the single-task pick; (2) initiatives with live progress; (3) cover fill; (4) real stats once answers are saved.
+
+**Real data (2026-10-08, later):** the fixtures are gone. Supersedes the evidence model in sections 0–3 and the dashboard notes above where they disagree.
+
+- **Supply** is one Solr block-join query per filter: works sorted by `readinglog_count` whose edition child (with an ISBN) lacks `language`, `publisher`, `lccn` or `oclc`, one edition per work (`supply.solr_candidates`). Rail counts are the same query with `rows=0`. Page count is not indexed on edition docs, so it has no filter; it still shows as a task on any listed book missing it.
+- **A task is an empty field.** No outside evidence, no fill/check modes, no evidence levels. Open Library fetches nothing from other catalogs: each field's playbook says where to look and what to copy, and links those catalogs opened on the ISBN. Sibling editions stay as the in-house reference.
+- **Cut:** *Your books*, initiatives, the monthly stats, the walkthrough note, the fixtures and `build_fixtures.py`, `evidence.py`, `compare.py`, `sources.py`, and the identifier record-match checks. Identifier tasks keep the client-side format check, the "I opened the record" gate and the list of common mistakes.
+- **Open question for librarians:** LCCN and OCLC lists are unfiltered, so they include books that rightly have none (most non-US editions have no LCCN). Narrow by publish year or publisher country once they say what counts as a real gap.
+
 ## 0. Three parts
 
 The project is three separable problems, and the code now keeps them apart so each can change on its own:

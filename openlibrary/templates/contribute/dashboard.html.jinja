@@ -1,0 +1,113 @@
+{#- /contribute — the librarian dashboard: one task at random, or a list narrowed by the rail.
+    Which books, and in what order, is decided in contribute.py; this page only shows them. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="fe-dash" data-contribute-list>
+    <header class="fe-dash__head">
+        <div class="fe-hero">
+            <p class="fe-overline">{{ _("Librarian dashboard") }}</p>
+            <h1 class="fe-title">{{ _("Contribute") }}</h1>
+        </div>
+        {% if data.allowed or not data.logged_in %}
+            <div class="fe-dash__one">
+                <ol-button variant="primary" href="{{ data.one_task_url }}" data-one-task>
+                    {{ icon("dices", slot="icon-start") }}
+                    {{ _("Surprise me") }}
+                </ol-button>
+                <span class="fe-muted">{{ _("A random book that needs a hand.") }}</span>
+            </div>
+        {% endif %}
+    </header>
+    <section class="fe-pick" data-pick hidden aria-labelledby="fe-pick-question">
+        <div class="fe-pick__cover" data-pick-cover></div>
+        <div class="fe-pick__body">
+            <p class="fe-pick__label">{{ _("Your task") }}</p>
+            <h2 class="fe-pick__question"
+                id="fe-pick-question"
+                tabindex="-1"
+                data-pick-question></h2>
+            <p class="fe-pick__book" data-pick-book></p>
+            <p class="fe-muted" data-pick-why></p>
+        </div>
+        <div class="fe-pick__actions">
+            <ol-button variant="primary" href="#" data-pick-start>
+                {{ _("Start task") }}
+            </ol-button>
+            <ol-button type="button" data-pick-again>
+                {{ _("Pick another") }}
+            </ol-button>
+        </div>
+    </section>
+    <section class="fe-intro" data-intro aria-label="{{ _('How it works') }}">
+        <ol class="fe-intro__steps">
+            <li class="fe-intro__step">
+                <strong>{{ _("Pick a book") }}</strong>
+                <span class="fe-muted">{{ _("Or let us pick. Each task is one missing detail.") }}</span>
+            </li>
+            <li class="fe-intro__step">
+                <strong>{{ _("Look it up") }}</strong>
+                <span class="fe-muted">{{ _("We link to catalogs that have it and show how other editions fill it in.") }}</span>
+            </li>
+            <li class="fe-intro__step">
+                <strong>{{ _("Suggest a fix") }}</strong>
+                <span class="fe-muted">{{ _("A librarian reviews it, usually within %(days)s days. Not sure? Say so.", days=data.wait_days) }}</span>
+            </li>
+        </ol>
+        <button type="button"
+                class="fe-intro__close"
+                data-intro-close
+                aria-label="{{ _('Hide this introduction') }}">{{ icon("x", size="sm") }}</button>
+    </section>
+    <div class="fe-dash__body">
+        {% if data.allowed %}
+            <nav class="fe-rail" aria-label="{{ _('Filter tasks') }}">
+                <div class="fe-rail__group">
+                    <a class="fe-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
+                       href="{{ data.rail.all.url }}"
+                       {% if data.rail.all.on %}aria-current="page"{% endif %}>{{ data.rail.all.label }}</a>
+                </div>
+                <div class="fe-rail__group">
+                    <span class="fe-overline">{{ _("Missing") }}</span>
+                    {% for item in data.rail.filters %}
+                        <a class="fe-rail__item{{ ' is-on' if item.on else '' }}"
+                           href="{{ item.url }}"
+                           {% if item.on %}aria-current="true"{% endif %}>
+                            <span>{{ item.label }}</span>
+                            <span class="fe-rail__count">{{ "{:,}".format(item.count) }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </nav>
+            <main class="fe-dash__main">
+                <div class="fe-dash__listhead">
+                    <h2 class="fe-dash__h2">{{ data.heading }}</h2>
+                    <span class="fe-muted">{{ data.sort_note }}</span>
+                </div>
+                <ol class="fe-rows">
+                    {% for row in data.rows %}
+                        <li class="fe-row"
+                            data-book-row
+                            {% if row.book.readers %}data-why="{{ _('On about %(count)s readers’ shelves.', count='{:,}'.format(row.book.readers)) }}"{% endif %}>
+                            {{ parts.book_header(row.book, compact=True) }}
+                            <ul class="fe-row__tasks">
+                                {% for task in row.tasks %}
+                                    {{ parts.task_row(task) }}
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ol>
+                <div class="fe-empty" data-list-empty {% if data.rows %}hidden{% endif %}>
+                    <p>{{ data.empty }}</p>
+                </div>
+            </main>
+        {% else %}
+            <main class="fe-dash__main">
+                {% if data.logged_in %}
+                    <p class="fe-callout">{{ _("Contributing is being tried out with a small group. Ask in the volunteers channel to be added, and this page will open up.") }}</p>
+                {% else %}
+                    <p class="fe-callout">{{ _("Log in to start. You need an Open Library account so your suggestions have a name on them.") }}</p>
+                {% endif %}
+            </main>
+        {% endif %}
+    </div>
+</div>
