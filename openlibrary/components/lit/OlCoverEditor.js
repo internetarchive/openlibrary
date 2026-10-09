@@ -1,10 +1,8 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
-// Registers <ol-button> for the actions, <ol-icon> for the glyphs, and
-// <ol-tooltip> for the delete affordance.
+// Registers <ol-button> for the actions and <ol-icon> for the glyphs.
 import './OLButton.js';
 import './OlIcon.js';
-import './OlTooltip.js';
 import { translate } from './utils/labels.js';
 
 /**
@@ -19,8 +17,8 @@ export const DEFAULT_LABELS = {
     guidelinesPhoto: 'Image Guidelines',
     coversHeading: 'Covers',
     photosHeading: 'Photos',
-    reorderHint: 'Drag to reorder, or click an image to make it primary.',
-    coverPrimary: 'Primary',
+    reorderHint: 'Drag to reorder — the first image is the primary.',
+    trashHint: 'Drag an image here to remove it',
     imagePosition: 'Image %(position)s of %(total)s',
     chooseFile: 'Choose an image',
     browse: 'Browse',
@@ -100,6 +98,7 @@ export class OlCoverEditor extends LitElement {
         _pasted: { state: true },
         _dragging: { state: true },
         _dragIndex: { state: true },
+        _trashActive: { state: true },
         _status: { state: true },
         _announce: { state: true },
         _removedImage: { state: true },
@@ -186,38 +185,32 @@ export class OlCoverEditor extends LitElement {
             pointer-events: none;
         }
 
-        .image__badge {
-            position: absolute;
-            left: var(--spacing-2xs);
-            bottom: var(--spacing-2xs);
-            padding: 1px var(--spacing-2xs);
-            border-radius: var(--border-radius-sm);
-            background: var(--color-primary);
-            color: var(--color-text-inverse);
-            font-size: var(--font-size-label-small);
-            font-weight: var(--font-weight-semibold);
+        /* The drag-to-remove target at the end of the strip. */
+        .trash {
+            flex: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            aspect-ratio: 2 / 3;
+            border: var(--border-width-thick) dashed var(--color-border-muted);
+            border-radius: var(--border-radius-thumbnail);
+            color: var(--color-text-muted);
+            transition:
+                border-color var(--duration-fast) var(--ease-state),
+                background-color var(--duration-fast) var(--ease-state),
+                color var(--duration-fast) var(--ease-state);
         }
 
-        /* The delete control, revealed on hover/focus — always on touch, where
-           there is no hover. */
-        .image__actions {
-            position: absolute;
-            top: var(--spacing-2xs);
-            right: var(--spacing-2xs);
-            opacity: 0;
-            transition: opacity var(--duration-fast) var(--ease-state);
+        .trash ol-icon {
+            width: 24px;
+            height: 24px;
         }
 
-        .image:hover .image__actions,
-        .image:focus-visible .image__actions,
-        .image:focus-within .image__actions {
-            opacity: 1;
-        }
-
-        @media (hover: none) {
-            .image__actions {
-                opacity: 1;
-            }
+        .trash--active {
+            border-color: var(--color-border-error);
+            background: var(--color-error-bg);
+            color: var(--color-error-fg);
         }
 
         /* ── Add panel (whole panel is a drop target) ─────────────────── */
@@ -355,6 +348,7 @@ export class OlCoverEditor extends LitElement {
         this._pasted = false;
         this._dragging = false;
         this._dragIndex = null;
+        this._trashActive = false;
         this._status = '';
         this._announce = '';
         this._removedImage = null;
@@ -722,12 +716,37 @@ export class OlCoverEditor extends LitElement {
 
     _onCardDragEnd() {
         this._dragIndex = null;
+        this._trashActive = false;
+    }
+
+    _onTrashDragOver(event) {
+        if (this._dragIndex === null) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        this._trashActive = true;
+    }
+
+    _onTrashDragLeave() {
+        this._trashActive = false;
+    }
+
+    _onTrashDrop(event) {
+        event.preventDefault();
+        const index = this._dragIndex;
+        this._dragIndex = null;
+        this._trashActive = false;
+        if (index !== null) this._deleteImage(index);
     }
 
     _onCardKeydown(event, index) {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             this._makePrimary(index);
+            return;
+        }
+        if (event.key === 'Delete' || event.key === 'Backspace') {
+            event.preventDefault();
+            this._deleteImage(index);
             return;
         }
         const map = {
@@ -777,11 +796,6 @@ export class OlCoverEditor extends LitElement {
     _onCardClick(index) {
         if (index === 0) return;
         this._moveImage(index, 0);
-    }
-
-    _onDeleteClick(event, index) {
-        event.stopPropagation();
-        this._deleteImage(index);
     }
 
     _deleteImage(index) {
@@ -886,26 +900,18 @@ export class OlCoverEditor extends LitElement {
                                 @drop=${(e) => this._onCardDrop(e, index)}
                             >
                                 <img class="image__img" src=${image.url} alt="" draggable="false" />
-                                ${index === 0
-        ? html`<span class="image__badge">${this.t('coverPrimary')}</span>`
-        : nothing}
-                                <div class="image__actions">
-                                    <ol-tooltip content=${this.t('removeImage')} placement="top">
-                                        <ol-button
-                                            class="image__delete"
-                                            shape="icon"
-                                            size="small"
-                                            variant="secondary"
-                                            aria-label=${this.t('removeImage')}
-                                            @click=${(e) => this._onDeleteClick(e, index)}
-                                        >
-                                            <ol-icon name="x"></ol-icon>
-                                        </ol-button>
-                                    </ol-tooltip>
-                                </div>
                             </li>
                         `,
     )}
+                    <li
+                        class="trash ${classMap({ 'trash--active': this._trashActive })}"
+                        aria-label=${this.t('trashHint')}
+                        @dragover=${this._onTrashDragOver}
+                        @dragleave=${this._onTrashDragLeave}
+                        @drop=${this._onTrashDrop}
+                    >
+                        <ol-icon name="trash"></ol-icon>
+                    </li>
                 </ul>
             </div>
         `;

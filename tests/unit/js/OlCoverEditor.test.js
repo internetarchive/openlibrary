@@ -345,11 +345,34 @@ describe('ol-cover-editor image management', () => {
         return global.fetch;
     }
 
-    test('renders the current images with the first marked primary', async() => {
+    test('renders the current images with the first marked primary and a trash target', async() => {
         const el = await mount({ images: IMAGES });
         expect(qa(el, '.image').length).toBe(3);
         expect(q(el, '.image--primary .image__img').getAttribute('src')).toBe(IMAGES[0].url);
-        expect(q(el, '.image__badge').textContent).toBe('Primary');
+        expect(q(el, '.trash')).not.toBeNull();
+    });
+
+    test('dragging an image onto the trash removes it', async() => {
+        const el = await mount({ images: IMAGES });
+        const fetchMock = manageFetch();
+        const dt = { effectAllowed: '', dropEffect: '', setData() {} };
+        el._onCardDragStart({ dataTransfer: dt }, 0);
+        el._onTrashDragOver({ preventDefault() {}, dataTransfer: dt });
+        await el.updateComplete;
+        expect(q(el, '.trash--active')).not.toBeNull();
+
+        el._onTrashDrop({ preventDefault() {}, dataTransfer: dt });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([2, 3]);
+        expect(fetchMock).toHaveBeenCalled();
+    });
+
+    test('the Delete key removes a focused image', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        el._onCardKeydown({ key: 'Delete', preventDefault() {} }, 1);
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 3]);
     });
 
     test('clicking an image makes it primary', async() => {

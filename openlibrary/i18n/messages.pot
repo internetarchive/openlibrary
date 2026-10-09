@@ -4078,11 +4078,11 @@ msgid "Photos"
 msgstr ""
 
 #: covers/change.html
-msgid "Drag to reorder, or click an image to make it primary."
+msgid "Drag to reorder — the first image is the primary."
 msgstr ""
 
-#: covers/change.html merge/authors.html recentchanges/merge/view.html
-msgid "Primary"
+#: covers/change.html
+msgid "Drag an image here to remove it"
 msgstr ""
 
 #: covers/change.html
@@ -5066,6 +5066,10 @@ msgstr ""
 
 #: merge/authors.html
 msgid "Merge in and redirect"
+msgstr ""
+
+#: merge/authors.html recentchanges/merge/view.html
+msgid "Primary"
 msgstr ""
 
 #: merge/authors.html
