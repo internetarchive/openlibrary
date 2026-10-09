@@ -8,7 +8,6 @@
 import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 
 const SKIPPED_KEY = 'ol-contribute-skipped';
-const INTRO_KEY = 'ol-contribute-intro-hidden';
 
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
@@ -49,24 +48,6 @@ function initList(root) {
     hideSkipped(root, '[data-book-row]');
     const empty = root.querySelector('[data-list-empty]');
     if (empty) empty.hidden = !!root.querySelector('[data-book-row]:not([hidden])');
-}
-
-function initIntro(root) {
-    const intro = root.querySelector('[data-intro]');
-    if (!intro) return;
-    try {
-        if (localStorage.getItem(INTRO_KEY)) intro.hidden = true;
-    } catch (e) {
-        // Blocked storage: the introduction just stays.
-    }
-    intro.querySelector('[data-intro-close]')?.addEventListener('click', () => {
-        intro.hidden = true;
-        try {
-            localStorage.setItem(INTRO_KEY, '1');
-        } catch (e) {
-            // Hidden for this visit only.
-        }
-    });
 }
 
 function initSkip(form) {
@@ -140,7 +121,6 @@ function clearReceipt() {
 export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach((root) => {
         initList(root);
-        initIntro(root);
     });
     document.querySelectorAll('form[data-task-form]').forEach((form) => {
         initSkip(form);

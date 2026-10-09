@@ -841,54 +841,6 @@
   text-wrap: balance;
 }
 
-.contrib-intro {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-inline-md);
-  padding: var(--spacing-inset-md);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface);
-}
-
-.contrib-intro[hidden] {
-  display: none;
-}
-
-.contrib-intro__steps {
-  flex: 1;
-  display: grid;
-  gap: var(--spacing-stack-md);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: contrib-step;
-}
-
-.contrib-intro__step {
-  display: grid;
-  gap: var(--spacing-stack-xs);
-  counter-increment: contrib-step;
-}
-
-.contrib-intro__step > strong::before {
-  content: counter(contrib-step) ". ";
-}
-
-.contrib-intro__close {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: var(--control-height-medium);
-  height: var(--control-height-medium);
-  margin: calc(-1 * var(--spacing-inset-xs));
-  border: 0;
-  border-radius: var(--border-radius-button);
-  background: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
 .contrib-dash__body {
   display: grid;
   gap: var(--spacing-section-gap);
@@ -956,14 +908,6 @@
 
 .contrib-dash__main .contrib-rows {
   margin-block-end: var(--spacing-stack-md);
-}
-
-/* Tablet and up */
-@media (min-width: 768px) {
-  .contrib-intro__steps {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--spacing-inline-xl);
-  }
 }
 
 /* Desktop and up: the rail becomes a vertical menu. */

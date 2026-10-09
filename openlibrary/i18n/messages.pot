@@ -3978,38 +3978,6 @@ msgid "A random book that needs a hand."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "How it works"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Pick a book"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Or let us pick. Each task is one missing detail."
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Look it up"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "We link to catalogs that have it and show how other editions fill it in."
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Save it"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "The record updates right away, and the edit shows in its history."
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Hide this introduction"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
 msgid "Filter tasks"
 msgstr ""
 
