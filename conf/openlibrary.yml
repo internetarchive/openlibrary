@@ -229,3 +229,20 @@ author_exclusions: []
 #     issuer: https://lennyforlibraries.org
 #     client_id: <from the register command>
 #     client_secret: <from the register command>
+#
+# On a deployed host the same keys go in olsystem's openlibrary.yml, not here:
+# compose.production.yaml and compose.staging.yaml both set
+# OL_CONFIG=/olsystem/etc/openlibrary.yml and mount ../olsystem, so this file is
+# read in development only. For testing.openlibrary.org the redirect_uri is
+#
+#   https://testing.openlibrary.org/borrow/lenny/callback
+#
+# and it is https, so the `ptok` cookie's Secure flag is honoured there. It is
+# only on plain-http localhost that an unconditional Secure=True would make the
+# browser drop the cookie silently -- see openlibrary/core/provider_tokens.py.
+#
+# The patron's grant is stored in the `provider_tokens` table, which
+# openlibrary/core/schema.sql declares but which an EXISTING database will not
+# have: schema.sql runs at database init only and there is no DDL-migration
+# mechanism. Run the CREATE TABLE by hand on that host first, or every borrow
+# fails on a missing relation.

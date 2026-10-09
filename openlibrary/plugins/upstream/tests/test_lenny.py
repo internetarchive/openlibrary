@@ -712,9 +712,12 @@ class TestCallback:
         from openlibrary.tests.core.test_provider_tokens import PROVIDER_TOKENS_DDL
 
         monkeypatch.setattr(accounts_model, "get_secret_key", lambda: "test-secret-key")
-        # Via monkeypatch, not `set_store`: the store is a module global and
-        # pytest would carry an unrestored swap into every later test.
-        monkeypatch.setattr(pt, "_store", pt.DbTokenStore())
+        # Deliberately NOT installing a store: this exercises whatever the
+        # module defaults to, which is the property the test's name claims. An
+        # earlier draft installed `DbTokenStore()` here and so kept passing with
+        # the default flipped back to the cookie -- a test of a store it had
+        # supplied itself.
+        assert isinstance(pt.get_store(), pt.DbTokenStore), f"the shipped default is {type(pt.get_store()).__name__}, not the table"
         web.config.db_parameters = {"dbn": "sqlite", "db": str(tmp_path / "ol.db")}
         db_module._get_db.cache_clear()
         oldb = db_module.get_db()
