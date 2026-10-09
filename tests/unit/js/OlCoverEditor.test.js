@@ -181,6 +181,14 @@ describe('ol-cover-editor add form', () => {
         await el.updateComplete;
         expect(q(el, '.dropzone--active')).toBeNull();
     });
+
+    test('shows an uploading overlay over the drop area while a file is in flight', async() => {
+        const el = await mount();
+        el._busy = true;
+        await el.updateComplete;
+        expect(q(el, '.uploading .spinner')).not.toBeNull();
+        expect(q(el, '.uploading').textContent).toContain('Uploading');
+    });
 });
 
 describe('ol-cover-editor submission', () => {
@@ -212,7 +220,9 @@ describe('ol-cover-editor submission', () => {
 
         expect(el._images.map((i) => i.id)).toEqual([42]);
         expect(q(el, '.image--primary')).not.toBeNull();
-        expect(q(el, '.status').textContent).toContain('Image added');
+        // The success is silent; it is announced to screen readers only.
+        expect(q(el, '.status')).toBeNull();
+        expect(q(el, '.sr-only').textContent).toContain('Image added');
         expect(document.querySelector('.bookCover img').getAttribute('src')).toBe(
             'https://covers.openlibrary.org/b/id/42-M.jpg',
         );
@@ -516,18 +526,62 @@ describe('ol-cover-editor image management', () => {
         expect(fetchMock).toHaveBeenCalled();
     });
 
-    test('dragging an image reorders it live and saves on release', async() => {
+    test('dragging over a card marks where the image will land', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        const dt = { effectAllowed: '', dropEffect: '', setData() {} };
+        el._onCardDragStart({ dataTransfer: dt }, 0);
+
+        // Left half of card 2 → insert before it.
+        el._onCardDragOver(
+            {
+                preventDefault() {},
+                stopPropagation() {},
+                dataTransfer: dt,
+                currentTarget: { getBoundingClientRect: () => ({ left: 100, width: 40 }) },
+                clientX: 105,
+            },
+            2,
+        );
+        await el.updateComplete;
+        expect(q(el, '.image--drop-start')).not.toBeNull();
+        expect(el._dropIndex).toBe(2);
+
+        // Right half → insert after it.
+        el._onCardDragOver(
+            {
+                preventDefault() {},
+                stopPropagation() {},
+                dataTransfer: dt,
+                currentTarget: { getBoundingClientRect: () => ({ left: 100, width: 40 }) },
+                clientX: 130,
+            },
+            2,
+        );
+        await el.updateComplete;
+        expect(q(el, '.image--drop-end')).not.toBeNull();
+        expect(el._dropIndex).toBe(3);
+    });
+
+    test('dropping an image to the right of another moves it there and saves', async() => {
         const el = await mount({ images: IMAGES });
         const fetchMock = manageFetch();
         const dt = { effectAllowed: '', dropEffect: '', setData() {} };
         el._onCardDragStart({ dataTransfer: dt }, 0);
-        el._onCardDragOver({ preventDefault() {}, dataTransfer: dt }, 2);
+        el._onCardDragOver(
+            {
+                preventDefault() {},
+                stopPropagation() {},
+                dataTransfer: dt,
+                currentTarget: { getBoundingClientRect: () => ({ left: 100, width: 40 }) },
+                clientX: 130,
+            },
+            2,
+        );
+        el._onCardDrop({ preventDefault() {}, stopPropagation() {}, dataTransfer: dt }, 2);
         await el.updateComplete;
-        expect(el._images.map((i) => i.id)).toEqual([2, 3, 1]);
 
-        el._onCardDragEnd();
-        await el.updateComplete;
-        expect(fetchMock).toHaveBeenCalled();
+        expect(el._images.map((i) => i.id)).toEqual([2, 3, 1]);
         expect(fetchMock.mock.calls[0][1].body).toBeInstanceOf(URLSearchParams);
         expect(fetchMock.mock.calls[0][1].body.getAll('image')).toEqual(['2', '3', '1', '-1', '-']);
     });

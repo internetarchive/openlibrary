@@ -101,8 +101,8 @@ export class OlCoverEditor extends LitElement {
         _pasted: { state: true },
         _dragging: { state: true },
         _dragIndex: { state: true },
+        _dropIndex: { state: true },
         _trashActive: { state: true },
-        _status: { state: true },
         _announce: { state: true },
         _trashed: { state: true },
         _candidates: { state: true },
@@ -176,6 +176,7 @@ export class OlCoverEditor extends LitElement {
             background: var(--color-surface-sunken);
             cursor: grab;
             outline: none;
+            transition: box-shadow var(--duration-fast) var(--ease-state);
         }
 
         .image:focus-visible {
@@ -188,6 +189,15 @@ export class OlCoverEditor extends LitElement {
 
         .image--dragging {
             opacity: 0.4;
+        }
+
+        /* Which side of a card the dragged image will land on. */
+        .image--drop-start {
+            box-shadow: calc(-1 * var(--spacing-2xs)) 0 0 0 var(--color-primary);
+        }
+
+        .image--drop-end {
+            box-shadow: var(--spacing-2xs) 0 0 0 var(--color-primary);
         }
 
         .image__img {
@@ -274,11 +284,49 @@ export class OlCoverEditor extends LitElement {
         }
 
         .drop-content {
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 96px;
             margin-bottom: var(--spacing-sm);
+        }
+
+        /* Upload progress sits over the drop area so a big file never looks
+           frozen, wherever the preview happens to be. */
+        .uploading {
+            position: absolute;
+            inset: 0;
+            z-index: var(--z-index-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            border-radius: var(--border-radius-thumbnail);
+            background: var(--neutral-100);
+            color: var(--color-text-muted);
+        }
+
+        .spinner {
+            flex: none;
+            width: 20px;
+            height: 20px;
+            border: var(--border-width-thick) solid var(--color-border-muted);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: cover-spin 700ms linear infinite;
+        }
+
+        @keyframes cover-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .spinner {
+                animation-duration: 2s;
+            }
         }
 
         .dropzone__hint {
@@ -395,13 +443,12 @@ export class OlCoverEditor extends LitElement {
         this._dragging = false;
         this._dragIndex = null;
         this._dragSource = null;
+        this._dropIndex = null;
         this._trashActive = false;
-        this._status = '';
         this._announce = '';
         this._trashed = [];
         this._candidates = [];
         this._lightbox = null;
-        this._dragOrigin = null;
         this._pendingFlip = null;
         this._focusIndex = null;
         this._imagesEdited = false;
@@ -488,6 +535,7 @@ export class OlCoverEditor extends LitElement {
      * reorder reads as movement rather than a jump.
      */
     _applyFlip(before) {
+        if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         for (const el of this.renderRoot.querySelectorAll('.image[data-id]')) {
             const from = before.get(el.dataset.id);
             if (!from || typeof el.animate !== 'function') continue;
@@ -508,7 +556,6 @@ export class OlCoverEditor extends LitElement {
         this._file = null;
         this._previewUrl = '';
         this._error = '';
-        this._status = '';
         this._announce = '';
         this._trashed = [];
         this._history = [];
@@ -714,7 +761,8 @@ export class OlCoverEditor extends LitElement {
             this._imagesEdited = true;
             this._pushHistory();
             this._images = [{ id, url: this._coverUrl(id) }, ...this._images];
-            this._status = this.t('imageAdded');
+            // The add is silent (optimistic); announce it for screen readers only.
+            this._announce = this.t('imageAdded');
             this._applyCover(id);
             this.dispatchEvent(
                 new CustomEvent('ol-cover-editor-add', { bubbles: true, composed: true, detail: { id } }),
@@ -789,10 +837,7 @@ export class OlCoverEditor extends LitElement {
     _onCardDragStart(event, index) {
         this._dragSource = 'images';
         this._dragIndex = index;
-        this._dragOrigin = {
-            images: this._images.map((image) => ({ ...image })),
-            trashed: this._trashed.map((image) => ({ ...image })),
-        };
+        this._dropIndex = null;
         event.dataTransfer.effectAllowed = 'move';
         // Some browsers refuse to start a drag without payload.
         event.dataTransfer.setData('text/plain', String(index));
@@ -801,23 +846,28 @@ export class OlCoverEditor extends LitElement {
     _onTrashedDragStart(event, index) {
         this._dragSource = 'trash';
         this._dragIndex = index;
+        this._dropIndex = null;
         event.dataTransfer.effectAllowed = 'move';
         event.dataTransfer.setData('text/plain', String(index));
     }
 
+    /**
+     * Mark where a dragged image would land. We show an insertion slot rather
+     * than reordering on the fly — no layout thrash, so the drag stays smooth;
+     * the move happens once, on drop.
+     */
     _onCardDragOver(event, index) {
         if (this._dragSource === null) return;
         event.preventDefault();
+        event.stopPropagation();
         event.dataTransfer.dropEffect = 'move';
-        // Live-preview the reorder so the strip moves as you drag.
-        if (this._dragSource === 'images' && index !== this._dragIndex) {
-            this._pendingFlip = this._captureImageRects();
-            const images = [...this._images];
-            const [moved] = images.splice(this._dragIndex, 1);
-            images.splice(index, 0, moved);
-            this._images = images;
-            this._dragIndex = index;
+        let after = false;
+        const el = event.currentTarget;
+        if (el?.getBoundingClientRect) {
+            const rect = el.getBoundingClientRect();
+            after = typeof event.clientX === 'number' && event.clientX > rect.left + rect.width / 2;
         }
+        this._dropIndex = after ? index + 1 : index;
     }
 
     _onCardDrop(event, index) {
@@ -825,11 +875,16 @@ export class OlCoverEditor extends LitElement {
         event.stopPropagation();
         const source = this._dragSource;
         const from = this._dragIndex;
+        const insert = this._dropIndex ?? index;
+        this._resetDrag();
+        if (from === null) return;
         if (source === 'trash') {
-            this._resetDrag();
-            this._restoreImage(from, index);
+            this._restoreImage(from, insert);
+        } else if (source === 'images') {
+            // `insert` counts slots before the dragged card is removed; convert
+            // it to the index _moveImage expects (in the post-removal list).
+            this._moveImage(from, insert > from ? insert - 1 : insert);
         }
-        // A dragged strip image is already reordered live; dragend commits it.
     }
 
     /** Dropping in the gaps of the strip appends (e.g. every image was trashed). */
@@ -848,7 +903,7 @@ export class OlCoverEditor extends LitElement {
     }
 
     _onCardDragEnd() {
-        this._commitDrag();
+        this._resetDrag();
     }
 
     _onTrashDragOver(event) {
@@ -870,30 +925,10 @@ export class OlCoverEditor extends LitElement {
         if (from !== null) this._trashImage(from);
     }
 
-    /** Persist a live-reordered drag; ⌘Z steps back to the pre-drag order. */
-    _commitDrag() {
-        const origin = this._dragOrigin;
-        const changed = this._dragSource === 'images' && origin && !this._sameOrder(origin.images, this._images);
-        const position = this._dragIndex;
-        this._resetDrag();
-        if (!changed) return;
-        this._history.push(origin);
-        if (this._history.length > 30) this._history.shift();
-        this._imagesEdited = true;
-        this._status = '';
-        this._announce = this.t('movedImage', { position: position + 1, total: this._images.length });
-        this._syncPageCover();
-        this._saveOrder();
-    }
-
-    _sameOrder(a, b) {
-        return a.length === b.length && a.every((image, i) => image.id === b[i].id);
-    }
-
     _resetDrag() {
         this._dragIndex = null;
         this._dragSource = null;
-        this._dragOrigin = null;
+        this._dropIndex = null;
         this._trashActive = false;
     }
 
@@ -941,7 +976,6 @@ export class OlCoverEditor extends LitElement {
         const [moved] = images.splice(from, 1);
         images.splice(to, 0, moved);
         this._imagesEdited = true;
-        this._status = '';
         this._images = images;
         // Announced to screen readers; the change is otherwise silent.
         this._announce = this.t('movedImage', { position: to + 1, total: images.length });
@@ -994,7 +1028,6 @@ export class OlCoverEditor extends LitElement {
         const previous = this._history.pop();
         if (!previous) return;
         this._imagesEdited = true;
-        this._status = '';
         this._announce = this.t('undo');
         this._images = previous.images;
         this._trashed = previous.trashed;
@@ -1089,7 +1122,10 @@ export class OlCoverEditor extends LitElement {
                                 <li
                                     class="image ${classMap({
         'image--primary': index === 0,
-        'image--dragging': this._dragIndex === index,
+        'image--dragging': this._dragSource === 'images' && this._dragIndex === index,
+        'image--drop-start': this._dragSource !== null && this._dropIndex === index,
+        'image--drop-end':
+            this._dragSource !== null && this._dropIndex === this._images.length && index === this._images.length - 1,
     })}"
                                     data-id=${image.id}
                                     draggable="true"
@@ -1167,9 +1203,12 @@ export class OlCoverEditor extends LitElement {
                 />
                 <div class="drop-content">
                     ${this._previewUrl ? this._renderPreview() : html`<p class="dropzone__hint">${this.t('dropHint')}</p>`}
+                    ${this._busy ? this._renderUploading() : nothing}
                 </div>
                 <div class="row">
-                    <ol-button class="browse-button" @click=${this._openPicker}>${this.t('browse')}</ol-button>
+                    <ol-button class="browse-button" ?disabled=${this._busy} @click=${this._openPicker}
+                        >${this.t('browse')}</ol-button
+                    >
                     <ol-button class="paste-button" aria-label=${this.t('pasteAria')} @click=${this._onPaste}
                         >${this.t(this._pasted ? 'changeImage' : 'paste')}</ol-button
                     >
@@ -1179,11 +1218,19 @@ export class OlCoverEditor extends LitElement {
         `;
     }
 
+    /** Overlay shown over the drop area while an upload is in flight. */
+    _renderUploading() {
+        return html`
+            <div class="uploading" role="status">
+                <span class="spinner" aria-hidden="true"></span>
+                <span>${this.t('uploading')}</span>
+            </div>
+        `;
+    }
+
     _renderStatus() {
         if (this._error) return html`<p class="status status--error" role="alert">${this._error}</p>`;
-        if (this._busy) return html`<p class="status" role="status">${this.t('uploading')}</p>`;
         if (this._saving) return html`<p class="status" role="status">${this.t('saving')}</p>`;
-        if (this._status) return html`<p class="status" role="status">${this._status}</p>`;
         return nothing;
     }
 
