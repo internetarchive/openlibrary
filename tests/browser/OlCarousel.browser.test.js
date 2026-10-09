@@ -71,3 +71,65 @@ test('Next really scrolls the rail, settles it, and announces the page', async()
     // The reported page agrees with where the rail actually is.
     expect(el.page).toBe(1);
 });
+
+test('breakpoints override the default columns', async() => {
+    await page.viewport(1280, 800);
+    render(html`
+        <ol-carousel label="Trending" breakpoints="[[480, 2], [null, 7]]" style="width: 1200px">
+            ${Array.from({ length: 18 }, (_, i) => html`
+                <div style="height: 120px">Card ${i}</div>
+            `)}
+        </ol-carousel>
+    `);
+    const el = document.querySelector('ol-carousel');
+    await el.updateComplete;
+
+    // Seven columns at this width, not the default eight.
+    await expect.poll(() => el.totalPages).toBe(3);
+    const items = Array.from(el.children);
+    expect(items[7].style.scrollSnapAlign).toBe('start');
+    expect(items[8].style.scrollSnapAlign).toBe('');
+});
+
+test('breakpoints pick the columns at narrow widths too', async() => {
+    await page.viewport(1280, 800);
+    render(html`
+        <ol-carousel label="Trending" breakpoints="[[480, 2], [null, 7]]" style="width: 400px">
+            ${Array.from({ length: 6 }, (_, i) => html`
+                <div style="height: 120px">Card ${i}</div>
+            `)}
+        </ol-carousel>
+    `);
+    const el = document.querySelector('ol-carousel');
+    await el.updateComplete;
+
+    await expect.poll(() => el.totalPages).toBe(3);
+});
+
+test('deferred items are released one page ahead, and further as the rail pages', async() => {
+    await page.viewport(1280, 800);
+    render(html`
+        <ol-carousel label="Trending" style="width: 1200px">
+            ${Array.from({ length: 32 }, (_, i) => html`
+                <div style="height: 120px"><span ?deferred=${i >= 8}>Card ${i}</span></div>
+            `)}
+        </ol-carousel>
+    `);
+    const el = document.querySelector('ol-carousel');
+    await el.updateComplete;
+    await expect.poll(() => el.totalPages).toBe(4);
+    const deferred = i => el.children[i].firstElementChild.hasAttribute('deferred');
+
+    // Eight columns: page 1 shows, page 2 is the page ahead, page 4 waits.
+    await expect.poll(() => deferred(8)).toBe(false);
+    await expect.poll(() => deferred(15)).toBe(false);
+    expect(deferred(31)).toBe(true);
+
+    // On page 2, page 3 becomes the page ahead; the last card is still more than a page away.
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect.poll(() => deferred(23)).toBe(false);
+    expect(deferred(31)).toBe(true);
+
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect.poll(() => deferred(31)).toBe(false);
+});

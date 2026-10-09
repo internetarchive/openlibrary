@@ -1,0 +1,464 @@
+{
+  "_comment": "Hand-picked covers fanned on each \"Browse the stacks\" tile, keyed by the slug in home_genres.json. Representative, recognisable works whose covers read at 44x66; a genre with no entry gets no tile.",
+  "covers": {
+    "action": [
+      {
+        "work": "/works/OL159452W",
+        "cover_id": 683604,
+        "title": "The Hunt for Red October"
+      },
+      {
+        "work": "/works/OL46881W",
+        "cover_id": 12882940,
+        "title": "Jurassic Park"
+      },
+      {
+        "work": "/works/OL24477958W",
+        "cover_id": 11089125,
+        "title": "Killing Floor"
+      }
+    ],
+    "adventure": [
+      {
+        "work": "/works/OL24034W",
+        "cover_id": 13859660,
+        "title": "Treasure Island"
+      },
+      {
+        "work": "/works/OL14942956W",
+        "cover_id": 12393037,
+        "title": "The Call of the Wild"
+      },
+      {
+        "work": "/works/OL45089W",
+        "cover_id": 368541,
+        "title": "Robinson Crusoe"
+      }
+    ],
+    "crime": [
+      {
+        "work": "/works/OL1673205W",
+        "cover_id": 6507069,
+        "title": "The Godfather"
+      },
+      {
+        "work": "/works/OL1992198W",
+        "cover_id": 228066,
+        "title": "In Cold Blood"
+      },
+      {
+        "work": "/works/OL5784622W",
+        "cover_id": 9274740,
+        "title": "The Girl with the Dragon Tattoo"
+      }
+    ],
+    "drama": [
+      {
+        "work": "/works/OL468431W",
+        "cover_id": 12461562,
+        "title": "The Great Gatsby"
+      },
+      {
+        "work": "/works/OL3140822W",
+        "cover_id": 14351077,
+        "title": "To Kill a Mockingbird"
+      },
+      {
+        "work": "/works/OL3335245W",
+        "cover_id": 9273490,
+        "title": "The Catcher in the Rye"
+      }
+    ],
+    "fantasy": [
+      {
+        "work": "/works/OL27482W",
+        "cover_id": 14627509,
+        "title": "The Hobbit"
+      },
+      {
+        "work": "/works/OL27513W",
+        "cover_id": 14656497,
+        "title": "The Fellowship of the Ring"
+      },
+      {
+        "work": "/works/OL82563W",
+        "cover_id": 15155833,
+        "title": "Harry Potter and the Philosopher's Stone"
+      }
+    ],
+    "historical": [
+      {
+        "work": "/works/OL5819456W",
+        "cover_id": 8153054,
+        "title": "The Book Thief"
+      },
+      {
+        "work": "/works/OL16821606W",
+        "cover_id": 14559680,
+        "title": "All the Light We Cannot See"
+      },
+      {
+        "work": "/works/OL464512W",
+        "cover_id": 8345848,
+        "title": "Wolf Hall"
+      }
+    ],
+    "horror": [
+      {
+        "work": "/works/OL85892W",
+        "cover_id": 14746089,
+        "title": "Dracula"
+      },
+      {
+        "work": "/works/OL450063W",
+        "cover_id": 12356249,
+        "title": "Frankenstein"
+      },
+      {
+        "work": "/works/OL81633W",
+        "cover_id": 12376585,
+        "title": "The Shining"
+      }
+    ],
+    "humor": [
+      {
+        "work": "/works/OL2163649W",
+        "cover_id": 12986869,
+        "title": "The Hitchhiker's Guide to the Galaxy"
+      },
+      {
+        "work": "/works/OL276798W",
+        "cover_id": 6468653,
+        "title": "Catch-22"
+      },
+      {
+        "work": "/works/OL453936W",
+        "cover_id": 10482258,
+        "title": "Good Omens"
+      }
+    ],
+    "lgbtq": [
+      {
+        "work": "/works/OL228702W",
+        "cover_id": 97395,
+        "title": "Giovanni's Room"
+      },
+      {
+        "work": "/works/OL88877W",
+        "cover_id": 1364882,
+        "title": "Maurice"
+      },
+      {
+        "work": "/works/OL39360W",
+        "cover_id": 3240273,
+        "title": "Orlando"
+      }
+    ],
+    "mystery": [
+      {
+        "work": "/works/OL262454W",
+        "cover_id": 8063264,
+        "title": "The Hound of the Baskervilles"
+      },
+      {
+        "work": "/works/OL471576W",
+        "cover_id": 14814353,
+        "title": "Murder on the Orient Express"
+      },
+      {
+        "work": "/works/OL471565W",
+        "cover_id": 10581983,
+        "title": "And Then There Were None"
+      }
+    ],
+    "mythology": [
+      {
+        "work": "/works/OL5262120W",
+        "cover_id": 8765912,
+        "title": "Mythology"
+      },
+      {
+        "work": "/works/OL26446888W",
+        "cover_id": 12474938,
+        "title": "The Odyssey"
+      },
+      {
+        "work": "/works/OL27292338W",
+        "cover_id": 12621988,
+        "title": "The Iliad"
+      }
+    ],
+    "romance": [
+      {
+        "work": "/works/OL66554W",
+        "cover_id": 14665299,
+        "title": "Pride and Prejudice"
+      },
+      {
+        "work": "/works/OL1095427W",
+        "cover_id": 14083354,
+        "title": "Jane Eyre"
+      },
+      {
+        "work": "/works/OL21177W",
+        "cover_id": 14840482,
+        "title": "Wuthering Heights"
+      }
+    ],
+    "sci-fi": [
+      {
+        "work": "/works/OL893414W",
+        "cover_id": 11481354,
+        "title": "Dune"
+      },
+      {
+        "work": "/works/OL27258W",
+        "cover_id": 283860,
+        "title": "Neuromancer"
+      },
+      {
+        "work": "/works/OL46125W",
+        "cover_id": 14612610,
+        "title": "Foundation"
+      }
+    ],
+    "thriller": [
+      {
+        "work": "/works/OL17112428W",
+        "cover_id": 7350360,
+        "title": "The Girl on the Train"
+      },
+      {
+        "work": "/works/OL16239762W",
+        "cover_id": 10138773,
+        "title": "Gone Girl"
+      },
+      {
+        "work": "/works/OL76837W",
+        "cover_id": 9255229,
+        "title": "The Da Vinci Code"
+      }
+    ],
+    "western": [
+      {
+        "work": "/works/OL134601W",
+        "cover_id": 8376548,
+        "title": "Lonesome Dove"
+      },
+      {
+        "work": "/works/OL104535W",
+        "cover_id": 488237,
+        "title": "True Grit"
+      },
+      {
+        "work": "/works/OL485504W",
+        "cover_id": 872066,
+        "title": "Riders of the Purple Sage"
+      }
+    ],
+    "kids": [
+      {
+        "work": "/works/OL2568879W",
+        "cover_id": 50842,
+        "title": "Where the Wild Things Are"
+      },
+      {
+        "work": "/works/OL52987W",
+        "cover_id": 7835968,
+        "title": "The Very Hungry Caterpillar"
+      },
+      {
+        "work": "/works/OL151798W",
+        "cover_id": 35556,
+        "title": "Goodnight Moon"
+      }
+    ],
+    "history": [
+      {
+        "work": "/works/OL17075811W",
+        "cover_id": 8634250,
+        "title": "Sapiens"
+      },
+      {
+        "work": "/works/OL276558W",
+        "cover_id": 7884018,
+        "title": "Guns, Germs, and Steel"
+      },
+      {
+        "work": "/works/OL50283W",
+        "cover_id": 10592817,
+        "title": "A People's History of the United States"
+      }
+    ],
+    "biography": [
+      {
+        "work": "/works/OL16085155W",
+        "cover_id": 12374726,
+        "title": "Steve Jobs"
+      },
+      {
+        "work": "/works/OL27294413W",
+        "cover_id": 13526331,
+        "title": "The Diary of a Young Girl"
+      },
+      {
+        "work": "/works/OL17930367W",
+        "cover_id": 8824664,
+        "title": "Becoming"
+      }
+    ],
+    "philosophy": [
+      {
+        "work": "/works/OL1317211W",
+        "cover_id": 13689101,
+        "title": "Meditations"
+      },
+      {
+        "work": "/works/OL380265W",
+        "cover_id": 14405603,
+        "title": "The Republic"
+      },
+      {
+        "work": "/works/OL98174W",
+        "cover_id": 12373487,
+        "title": "Beyond Good and Evil"
+      }
+    ],
+    "psychology": [
+      {
+        "work": "/works/OL15992072W",
+        "cover_id": 13290711,
+        "title": "Thinking, Fast and Slow"
+      },
+      {
+        "work": "/works/OL18147687W",
+        "cover_id": 8315367,
+        "title": "The Body Keeps the Score"
+      },
+      {
+        "work": "/works/OL3902892W",
+        "cover_id": 431011,
+        "title": "Influence"
+      }
+    ],
+    "poetry": [
+      {
+        "work": "/works/OL16333W",
+        "cover_id": 9000447,
+        "title": "Leaves of Grass"
+      },
+      {
+        "work": "/works/OL17606111W",
+        "cover_id": 8743595,
+        "title": "Milk and Honey"
+      },
+      {
+        "work": "/works/OL1142292W",
+        "cover_id": 115288,
+        "title": "The Waste Land"
+      }
+    ],
+    "travel": [
+      {
+        "work": "/works/OL65906W",
+        "cover_id": 34655,
+        "title": "On the Road"
+      },
+      {
+        "work": "/works/OL1974546W",
+        "cover_id": 1377482,
+        "title": "Into the Wild"
+      },
+      {
+        "work": "/works/OL41815W",
+        "cover_id": 111433,
+        "title": "Eat, Pray, Love"
+      }
+    ],
+    "science": [
+      {
+        "work": "/works/OL1892617W",
+        "cover_id": 4635085,
+        "title": "A Brief History of Time"
+      },
+      {
+        "work": "/works/OL15829966W",
+        "cover_id": 8283901,
+        "title": "Cosmos"
+      },
+      {
+        "work": "/works/OL1966488W",
+        "cover_id": 133936,
+        "title": "The Selfish Gene"
+      }
+    ],
+    "cooking": [
+      {
+        "work": "/works/OL267968W",
+        "cover_id": 475157,
+        "title": "Joy of Cooking"
+      },
+      {
+        "work": "/works/OL1820661W",
+        "cover_id": 254207,
+        "title": "Mastering the Art of French Cooking"
+      },
+      {
+        "work": "/works/OL18147901W",
+        "cover_id": 8315567,
+        "title": "Salt, Fat, Acid, Heat"
+      }
+    ],
+    "religion": [
+      {
+        "work": "/works/OL71056W",
+        "cover_id": 6538891,
+        "title": "Mere Christianity"
+      },
+      {
+        "work": "/works/OL137872W",
+        "cover_id": 9022521,
+        "title": "Confessions"
+      },
+      {
+        "work": "/works/OL71072W",
+        "cover_id": 9779,
+        "title": "The Screwtape Letters"
+      }
+    ],
+    "art": [
+      {
+        "work": "/works/OL686193W",
+        "cover_id": 538390,
+        "title": "The Story of Art"
+      },
+      {
+        "work": "/works/OL1980231W",
+        "cover_id": 95272,
+        "title": "Ways of Seeing"
+      },
+      {
+        "work": "/works/OL12164892W",
+        "cover_id": 7955901,
+        "title": "Drawing on the Right Side of the Brain"
+      }
+    ],
+    "textbooks": [
+      {
+        "work": "/works/OL19669698W",
+        "cover_id": 14421251,
+        "title": "Campbell Biology"
+      },
+      {
+        "work": "/works/OL100903W",
+        "cover_id": 364094,
+        "title": "Calculus"
+      },
+      {
+        "work": "/works/OL3361621W",
+        "cover_id": 19884,
+        "title": "Principles of Economics"
+      }
+    ]
+  }
+}

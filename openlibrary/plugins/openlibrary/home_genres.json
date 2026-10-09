@@ -1,0 +1,1609 @@
+[
+  {
+    "name": "Action",
+    "slug": "action",
+    "kind": "genre",
+    "query": "(fiction_action__adventure* OR action__adventure* OR action_and_adventure* OR action)",
+    "count": 3802,
+    "children": [
+      {
+        "name": "Survival",
+        "slug": "survival",
+        "query": "survival*",
+        "count": 2345
+      },
+      {
+        "name": "Revenge",
+        "slug": "revenge",
+        "query": "revenge*",
+        "count": 2180
+      },
+      {
+        "name": "Superheroes",
+        "slug": "superheroes",
+        "query": "superheroes*",
+        "count": 1949
+      },
+      {
+        "name": "Assassins",
+        "slug": "assassins",
+        "query": "assassins*",
+        "count": 713
+      },
+      {
+        "name": "War stories",
+        "slug": "war-stories",
+        "query": "war_stories*",
+        "count": 576
+      },
+      {
+        "name": "Vigilantes",
+        "slug": "vigilantes",
+        "query": "vigilantes*",
+        "count": 195
+      },
+      {
+        "name": "Martial arts fiction",
+        "slug": "martial-arts-fiction",
+        "query": "martial_arts_fiction*",
+        "count": 133
+      }
+    ]
+  },
+  {
+    "name": "Adventure",
+    "slug": "adventure",
+    "kind": "genre",
+    "query": "adventure*",
+    "count": 11004,
+    "children": [
+      {
+        "name": "Picaresque",
+        "slug": "picaresque",
+        "query": "picaresque*",
+        "count": 70
+      },
+      {
+        "name": "Steampunk",
+        "slug": "steampunk",
+        "query": "steampunk*",
+        "count": 89
+      },
+      {
+        "name": "Survival",
+        "slug": "survival",
+        "query": "survival*",
+        "count": 2345
+      },
+      {
+        "name": "Explorers",
+        "slug": "explorers",
+        "query": "explorers*",
+        "count": 2912
+      },
+      {
+        "name": "Pirates",
+        "slug": "pirates",
+        "query": "pirates*",
+        "count": 2259
+      },
+      {
+        "name": "Shipwrecks",
+        "slug": "shipwrecks",
+        "query": "shipwrecks*",
+        "count": 1676
+      },
+      {
+        "name": "Treasure troves",
+        "slug": "treasure-troves",
+        "query": "treasure_troves*",
+        "count": 1084
+      },
+      {
+        "name": "Sea stories",
+        "slug": "sea-stories",
+        "query": "sea_stories*",
+        "count": 776
+      },
+      {
+        "name": "Wilderness survival",
+        "slug": "wilderness-survival",
+        "query": "wilderness_survival*",
+        "count": 570
+      },
+      {
+        "name": "Jungles",
+        "slug": "jungles",
+        "query": "jungles*",
+        "count": 342
+      }
+    ]
+  },
+  {
+    "name": "Crime",
+    "slug": "crime",
+    "kind": "genre",
+    "query": "(crime OR crime_fiction OR crime_fiction_fiction OR fiction_crime*)",
+    "count": 8062,
+    "children": [
+      {
+        "name": "Detective",
+        "slug": "detective",
+        "query": "detective*",
+        "count": 9078
+      },
+      {
+        "name": "Espionage",
+        "slug": "espionage",
+        "query": "espionage*",
+        "count": 991
+      },
+      {
+        "name": "True Crime",
+        "slug": "true-crime",
+        "query": "true_crime*",
+        "count": 464
+      },
+      {
+        "name": "Trials",
+        "slug": "trials",
+        "query": "trials*",
+        "count": 147,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Prisons",
+        "slug": "prisons",
+        "query": "prisons*",
+        "count": 2035
+      },
+      {
+        "name": "Organized crime",
+        "slug": "organized-crime",
+        "query": "organized_crime*",
+        "count": 1393
+      },
+      {
+        "name": "Mafia",
+        "slug": "mafia",
+        "query": "mafia*",
+        "count": 758
+      },
+      {
+        "name": "Serial murderers",
+        "slug": "serial-murderers",
+        "query": "serial_murderers*",
+        "count": 996
+      },
+      {
+        "name": "Gangsters",
+        "slug": "gangsters",
+        "query": "gangsters*",
+        "count": 453
+      },
+      {
+        "name": "Noir fiction",
+        "slug": "noir-fiction",
+        "query": "noir_fiction*",
+        "count": 50
+      },
+      {
+        "name": "Police procedural",
+        "slug": "police-procedural",
+        "query": "police_procedural*",
+        "count": 41
+      }
+    ]
+  },
+  {
+    "name": "Drama",
+    "slug": "drama",
+    "kind": "genre",
+    "query": "drama",
+    "count": 13081,
+    "children": [
+      {
+        "name": "Coming of Age",
+        "slug": "coming-of-age",
+        "query": "coming_of_age*",
+        "count": 452
+      },
+      {
+        "name": "Epistolary",
+        "slug": "epistolary",
+        "query": "epistolary*",
+        "count": 78
+      },
+      {
+        "name": "Family Saga",
+        "slug": "family-saga",
+        "query": "family_saga*",
+        "count": 52
+      },
+      {
+        "name": "Melodrama",
+        "slug": "melodrama",
+        "query": "melodrama*",
+        "count": 45
+      },
+      {
+        "name": "Psychological",
+        "slug": "psychological",
+        "query": "psychological*",
+        "count": 120,
+        "requiresIntersection": true
+      },
+      {
+        "name": "War stories",
+        "slug": "war-stories",
+        "query": "war_stories*",
+        "count": 576
+      },
+      {
+        "name": "Domestic fiction",
+        "slug": "domestic-fiction",
+        "query": "domestic_fiction*",
+        "count": 944
+      },
+      {
+        "name": "Legal stories",
+        "slug": "legal-stories",
+        "query": "legal_stories*",
+        "count": 525
+      },
+      {
+        "name": "Political fiction",
+        "slug": "political-fiction",
+        "query": "political_fiction*",
+        "count": 348
+      },
+      {
+        "name": "Medical fiction",
+        "slug": "medical-fiction",
+        "query": "medical_fiction*",
+        "count": 228
+      }
+    ]
+  },
+  {
+    "name": "Fantasy",
+    "slug": "fantasy",
+    "kind": "genre",
+    "query": "(fantasy* OR fiction_fantasy*)",
+    "count": 14533,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "slug": "apocalyptic",
+        "query": "apocalyptic*",
+        "count": 252
+      },
+      {
+        "name": "Coming of Age",
+        "slug": "coming-of-age",
+        "query": "coming_of_age*",
+        "count": 452
+      },
+      {
+        "name": "Dystopian",
+        "slug": "dystopian",
+        "query": "dystopian*",
+        "count": 49
+      },
+      {
+        "name": "Epic",
+        "slug": "epic",
+        "query": "epic*",
+        "count": 909
+      },
+      {
+        "name": "Steampunk",
+        "slug": "steampunk",
+        "query": "steampunk*",
+        "count": 89
+      },
+      {
+        "name": "Fairy tales",
+        "slug": "fairy-tales",
+        "query": "fairy_tales*",
+        "count": 7325
+      },
+      {
+        "name": "Dragons",
+        "slug": "dragons",
+        "query": "dragons*",
+        "count": 2024
+      },
+      {
+        "name": "Magic",
+        "slug": "magic",
+        "query": "magic*",
+        "count": 1980,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Witches",
+        "slug": "witches",
+        "query": "witches*",
+        "count": 1977
+      },
+      {
+        "name": "Wizards",
+        "slug": "wizards",
+        "query": "wizards*",
+        "count": 940
+      },
+      {
+        "name": "Elves",
+        "slug": "elves",
+        "query": "elves*",
+        "count": 418
+      }
+    ]
+  },
+  {
+    "name": "Historical",
+    "slug": "historical",
+    "kind": "genre",
+    "query": "(historical_fiction* OR fiction_historical*)",
+    "count": 15734,
+    "children": [
+      {
+        "name": "Epic",
+        "slug": "epic",
+        "query": "epic*",
+        "count": 909
+      },
+      {
+        "name": "Family Saga",
+        "slug": "family-saga",
+        "query": "family_saga*",
+        "count": 52
+      },
+      {
+        "name": "Kings and rulers",
+        "slug": "kings-and-rulers",
+        "query": "kings_and_rulers*",
+        "count": 6651
+      },
+      {
+        "name": "Immigrants",
+        "slug": "immigrants",
+        "query": "immigrants*",
+        "count": 3272
+      },
+      {
+        "name": "Slavery",
+        "slug": "slavery",
+        "query": "slavery*",
+        "count": 134,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Biographical fiction",
+        "slug": "biographical-fiction",
+        "query": "biographical_fiction*",
+        "count": 181
+      },
+      {
+        "name": "Plague",
+        "slug": "plague",
+        "query": "plague*",
+        "count": 1010
+      },
+      {
+        "name": "Vikings",
+        "slug": "vikings",
+        "query": "vikings*",
+        "count": 796
+      },
+      {
+        "name": "Ancient Rome",
+        "slug": "ancient-rome",
+        "query": "ancient_rome*",
+        "count": 48
+      },
+      {
+        "name": "Ancient Egypt",
+        "slug": "ancient-egypt",
+        "query": "ancient_egypt*",
+        "count": 37
+      }
+    ]
+  },
+  {
+    "name": "Horror",
+    "slug": "horror",
+    "kind": "genre",
+    "query": "(horror* OR fiction_horror*)",
+    "count": 5662,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "slug": "apocalyptic",
+        "query": "apocalyptic*",
+        "count": 252
+      },
+      {
+        "name": "Cult",
+        "slug": "cult",
+        "query": "cult*",
+        "count": 23,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Epistolary",
+        "slug": "epistolary",
+        "query": "epistolary*",
+        "count": 78
+      },
+      {
+        "name": "Gothic",
+        "slug": "gothic",
+        "query": "gothic*",
+        "count": 338,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Psychological",
+        "slug": "psychological",
+        "query": "psychological*",
+        "count": 50,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Vampires",
+        "slug": "vampires",
+        "query": "vampires*",
+        "count": 2411
+      },
+      {
+        "name": "Supernatural",
+        "slug": "supernatural",
+        "query": "supernatural*",
+        "count": 2146
+      },
+      {
+        "name": "Ghost stories",
+        "slug": "ghost-stories",
+        "query": "ghost_stories*",
+        "count": 1957
+      },
+      {
+        "name": "Werewolves",
+        "slug": "werewolves",
+        "query": "werewolves*",
+        "count": 678
+      },
+      {
+        "name": "Zombies",
+        "slug": "zombies",
+        "query": "zombies*",
+        "count": 550
+      },
+      {
+        "name": "Occult fiction",
+        "slug": "occult-fiction",
+        "query": "occult_fiction*",
+        "count": 151
+      }
+    ]
+  },
+  {
+    "name": "Humor",
+    "slug": "humor",
+    "kind": "genre",
+    "query": "(humor* OR fiction_humorous* OR comedy* OR comedies)",
+    "count": 22131,
+    "children": [
+      {
+        "name": "Parody",
+        "slug": "parody",
+        "query": "parody*",
+        "count": 77
+      },
+      {
+        "name": "Farce",
+        "slug": "farce",
+        "query": "farce*",
+        "count": 80
+      },
+      {
+        "name": "Black humor",
+        "slug": "black-humor",
+        "query": "black_humor*",
+        "count": 63
+      },
+      {
+        "name": "Wit and humor",
+        "slug": "wit-and-humor",
+        "query": "wit_and_humor*",
+        "count": 3317
+      },
+      {
+        "name": "Mistaken identity",
+        "slug": "mistaken-identity",
+        "query": "mistaken_identity*",
+        "count": 194
+      }
+    ]
+  },
+  {
+    "name": "LGBTQ+",
+    "slug": "lgbtq",
+    "kind": "genre",
+    "query": "(lgbtq* OR fiction_lgbtq* OR fiction_gay* OR fiction_lesbian* OR gay_men_fiction OR lesbians_fiction OR gays_fiction)",
+    "count": 3255,
+    "children": [
+      {
+        "name": "Gender identity",
+        "slug": "gender-identity",
+        "query": "gender_identity*",
+        "count": 818
+      },
+      {
+        "name": "Gay men fiction",
+        "slug": "gay-men-fiction",
+        "query": "gay_men_fiction*",
+        "count": 496
+      },
+      {
+        "name": "Queer theory",
+        "slug": "queer-theory",
+        "query": "queer_theory*",
+        "count": 43
+      },
+      {
+        "name": "Homosexuality",
+        "slug": "homosexuality",
+        "query": "homosexuality*",
+        "count": 1842
+      },
+      {
+        "name": "Sexual minorities",
+        "slug": "sexual-minorities",
+        "query": "sexual_minorities*",
+        "count": 85
+      },
+      {
+        "name": "Same-sex marriage",
+        "slug": "same-sex-marriage",
+        "query": "same-sex_marriage*",
+        "count": 169
+      },
+      {
+        "name": "Bisexuals",
+        "slug": "bisexuals",
+        "query": "bisexuals*",
+        "count": 81
+      }
+    ]
+  },
+  {
+    "name": "Mystery",
+    "slug": "mystery",
+    "kind": "genre",
+    "query": "(mystery* OR fiction_mystery__detective*)",
+    "count": 29174,
+    "children": [
+      {
+        "name": "Detective",
+        "slug": "detective",
+        "query": "detective*",
+        "count": 9078
+      },
+      {
+        "name": "Locked Room",
+        "slug": "locked-room",
+        "query": "locked-room*",
+        "count": 76
+      },
+      {
+        "name": "Serial murderers",
+        "slug": "serial-murderers",
+        "query": "serial_murderers*",
+        "count": 996
+      },
+      {
+        "name": "Noir fiction",
+        "slug": "noir-fiction",
+        "query": "noir_fiction*",
+        "count": 50
+      },
+      {
+        "name": "Police procedural",
+        "slug": "police-procedural",
+        "query": "police_procedural*",
+        "count": 41
+      },
+      {
+        "name": "Private investigators",
+        "slug": "private-investigators",
+        "query": "private_investigators*",
+        "count": 4468
+      },
+      {
+        "name": "Missing persons",
+        "slug": "missing-persons",
+        "query": "missing_persons*",
+        "count": 2908
+      },
+      {
+        "name": "Women detectives",
+        "slug": "women-detectives",
+        "query": "women_detectives*",
+        "count": 2389
+      },
+      {
+        "name": "Cold cases",
+        "slug": "cold-cases",
+        "query": "cold_cases*",
+        "count": 164
+      },
+      {
+        "name": "Forensic scientists",
+        "slug": "forensic-scientists",
+        "query": "forensic_scientists*",
+        "count": 105
+      },
+      {
+        "name": "Murder investigation",
+        "slug": "murder-investigation",
+        "query": "murder_investigation*",
+        "count": 28
+      }
+    ]
+  },
+  {
+    "name": "Mythology",
+    "slug": "mythology",
+    "kind": "genre",
+    "query": "mythology*",
+    "count": 3731,
+    "children": [
+      {
+        "name": "Folklore",
+        "slug": "folklore",
+        "query": "folklore*",
+        "count": 14494
+      },
+      {
+        "name": "Legends",
+        "slug": "legends",
+        "query": "legends*",
+        "count": 4804
+      },
+      {
+        "name": "Greek mythology",
+        "slug": "greek-mythology",
+        "query": "greek_mythology*",
+        "count": 1240
+      },
+      {
+        "name": "Arthurian romances",
+        "slug": "arthurian-romances",
+        "query": "arthurian_romances*",
+        "count": 953
+      },
+      {
+        "name": "Norse mythology",
+        "slug": "norse-mythology",
+        "query": "norse_mythology*",
+        "count": 290
+      },
+      {
+        "name": "Celtic mythology",
+        "slug": "celtic-mythology",
+        "query": "celtic_mythology*",
+        "count": 325
+      },
+      {
+        "name": "Egyptian mythology",
+        "slug": "egyptian-mythology",
+        "query": "egyptian_mythology*",
+        "count": 179
+      },
+      {
+        "name": "Roman mythology",
+        "slug": "roman-mythology",
+        "query": "roman_mythology*",
+        "count": 154
+      },
+      {
+        "name": "Fairy tales",
+        "slug": "fairy-tales",
+        "query": "fairy_tales*",
+        "count": 7325
+      },
+      {
+        "name": "Gods",
+        "slug": "gods",
+        "query": "gods*",
+        "count": 2010
+      },
+      {
+        "name": "Dragons",
+        "slug": "dragons",
+        "query": "dragons*",
+        "count": 2024
+      },
+      {
+        "name": "Fables",
+        "slug": "fables",
+        "query": "fables*",
+        "count": 1262
+      },
+      {
+        "name": "Chinese mythology",
+        "slug": "chinese-mythology",
+        "query": "chinese_mythology*",
+        "count": 115
+      }
+    ]
+  },
+  {
+    "name": "Romance",
+    "slug": "romance",
+    "kind": "genre",
+    "query": "(romance* OR fiction_romance*)",
+    "count": 28968,
+    "children": [
+      {
+        "name": "Coming of Age",
+        "slug": "coming-of-age",
+        "query": "coming_of_age*",
+        "count": 452
+      },
+      {
+        "name": "Epistolary",
+        "slug": "epistolary",
+        "query": "epistolary*",
+        "count": 78
+      },
+      {
+        "name": "Gothic",
+        "slug": "gothic",
+        "query": "gothic*",
+        "count": 142,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Melodrama",
+        "slug": "melodrama",
+        "query": "melodrama*",
+        "count": 45
+      },
+      {
+        "name": "Marriage fiction",
+        "slug": "marriage-fiction",
+        "query": "marriage_fiction*",
+        "count": 791
+      },
+      {
+        "name": "Contemporary romance",
+        "slug": "contemporary-romance",
+        "query": "contemporary_romance*",
+        "count": 364
+      },
+      {
+        "name": "Historical romance",
+        "slug": "historical-romance",
+        "query": "historical_romance*",
+        "count": 1039
+      },
+      {
+        "name": "Paranormal romance",
+        "slug": "paranormal-romance",
+        "query": "paranormal_romance*",
+        "count": 241
+      },
+      {
+        "name": "Romantic suspense",
+        "slug": "romantic-suspense",
+        "query": "romantic_suspense*",
+        "count": 189
+      }
+    ]
+  },
+  {
+    "name": "Sci-Fi",
+    "slug": "sci-fi",
+    "kind": "genre",
+    "query": "(science_fiction* OR fiction_science_fiction*)",
+    "count": 14170,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "slug": "apocalyptic",
+        "query": "apocalyptic*",
+        "count": 252
+      },
+      {
+        "name": "Dystopian",
+        "slug": "dystopian",
+        "query": "dystopian*",
+        "count": 49
+      },
+      {
+        "name": "Epic",
+        "slug": "epic",
+        "query": "epic*",
+        "count": 909
+      },
+      {
+        "name": "Futurism",
+        "slug": "futurism",
+        "query": "futurism*",
+        "count": 120
+      },
+      {
+        "name": "Space Opera",
+        "slug": "space-opera",
+        "query": "space_opera*",
+        "count": 37
+      },
+      {
+        "name": "Steampunk",
+        "slug": "steampunk",
+        "query": "steampunk*",
+        "count": 89
+      }
+    ]
+  },
+  {
+    "name": "Thriller",
+    "slug": "thriller",
+    "kind": "genre",
+    "query": "(thriller* OR fiction_thrillers* OR fiction_suspense* OR suspense*)",
+    "count": 13878,
+    "children": [
+      {
+        "name": "Espionage",
+        "slug": "espionage",
+        "query": "espionage*",
+        "count": 991
+      },
+      {
+        "name": "Psychological",
+        "slug": "psychological",
+        "query": "psychological*",
+        "count": 176,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Assassins",
+        "slug": "assassins",
+        "query": "assassins*",
+        "count": 713
+      },
+      {
+        "name": "Serial murderers",
+        "slug": "serial-murderers",
+        "query": "serial_murderers*",
+        "count": 996
+      },
+      {
+        "name": "Political fiction",
+        "slug": "political-fiction",
+        "query": "political_fiction*",
+        "count": 348
+      },
+      {
+        "name": "Kidnapping",
+        "slug": "kidnapping",
+        "query": "kidnapping*",
+        "count": 2208
+      },
+      {
+        "name": "Conspiracies",
+        "slug": "conspiracies",
+        "query": "conspiracies*",
+        "count": 1148
+      },
+      {
+        "name": "Terrorism fiction",
+        "slug": "terrorism-fiction",
+        "query": "terrorism_fiction*",
+        "count": 356
+      },
+      {
+        "name": "Spy stories",
+        "slug": "spy-stories",
+        "query": "spy_stories*",
+        "count": 810
+      },
+      {
+        "name": "Sabotage",
+        "slug": "sabotage",
+        "query": "sabotage*",
+        "count": 150
+      }
+    ]
+  },
+  {
+    "name": "Western",
+    "slug": "western",
+    "kind": "genre",
+    "query": "(western_stories OR westerns OR western_fiction OR western OR fiction_westerns*)",
+    "count": 6873,
+    "children": [
+      {
+        "name": "Vigilantes",
+        "slug": "vigilantes",
+        "query": "vigilantes*",
+        "count": 195
+      },
+      {
+        "name": "Frontier and pioneer life",
+        "slug": "frontier-and-pioneer-life",
+        "query": "frontier_and_pioneer_life*",
+        "count": 6806
+      },
+      {
+        "name": "Cowboys",
+        "slug": "cowboys",
+        "query": "cowboys*",
+        "count": 1337
+      },
+      {
+        "name": "Ranch life",
+        "slug": "ranch-life",
+        "query": "ranch_life*",
+        "count": 1222
+      },
+      {
+        "name": "Outlaws",
+        "slug": "outlaws",
+        "query": "outlaws*",
+        "count": 1122
+      },
+      {
+        "name": "Sheriffs",
+        "slug": "sheriffs",
+        "query": "sheriffs*",
+        "count": 598
+      },
+      {
+        "name": "Ghost towns",
+        "slug": "ghost-towns",
+        "query": "ghost_towns*",
+        "count": 147
+      },
+      {
+        "name": "Cattle drives",
+        "slug": "cattle-drives",
+        "query": "cattle_drives*",
+        "count": 118
+      },
+      {
+        "name": "Gunfighters",
+        "slug": "gunfighters",
+        "query": "gunfighters*",
+        "count": 30
+      },
+      {
+        "name": "Gold rush",
+        "slug": "gold-rush",
+        "query": "gold_rush*",
+        "count": 24
+      },
+      {
+        "name": "Bounty hunters",
+        "slug": "bounty-hunters",
+        "query": "bounty_hunters*",
+        "count": 208
+      },
+      {
+        "name": "Wagon trains",
+        "slug": "wagon-trains",
+        "query": "wagon_trains*",
+        "count": 63
+      }
+    ]
+  },
+  {
+    "name": "Kids",
+    "slug": "kids",
+    "kind": "subject",
+    "query": "(juvenile_fiction OR juvenile_literature OR children's_fiction OR juvenile_nonfiction)",
+    "count": 304366,
+    "children": [
+      {
+        "name": "Fairy Tales",
+        "slug": "fairy-tales",
+        "query": "fairy_tales*",
+        "count": 7325
+      },
+      {
+        "name": "Picture Books",
+        "slug": "picture-books",
+        "query": "picture_books*",
+        "count": 8624
+      },
+      {
+        "name": "Adventure Stories",
+        "slug": "adventure-stories",
+        "query": "adventure_and_adventurers*",
+        "count": 8320
+      },
+      {
+        "name": "Mystery & Detective Stories",
+        "slug": "mystery-detective-stories",
+        "query": "mystery_and_detective_stories*",
+        "count": 6796
+      },
+      {
+        "name": "Science Fiction",
+        "slug": "science-fiction",
+        "query": "science_fiction*",
+        "count": 3202,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Humorous Stories",
+        "slug": "humorous-stories",
+        "query": "humorous_stories*",
+        "count": 5195
+      },
+      {
+        "name": "Animals",
+        "slug": "animals",
+        "query": "animals_fiction*",
+        "count": 3128
+      }
+    ]
+  },
+  {
+    "name": "History",
+    "slug": "history",
+    "kind": "subject",
+    "query": "history",
+    "count": 368192,
+    "children": [
+      {
+        "name": "World War II",
+        "slug": "world-war-ii",
+        "query": "world_war_1939-1945*",
+        "count": 20832
+      },
+      {
+        "name": "World War I",
+        "slug": "world-war-i",
+        "query": "world_war_1914-1918*",
+        "count": 15063
+      },
+      {
+        "name": "United States History",
+        "slug": "united-states-history",
+        "query": "united_states_history*",
+        "count": 6898
+      },
+      {
+        "name": "Military History",
+        "slug": "military-history",
+        "query": "military_history*",
+        "count": 4961
+      },
+      {
+        "name": "Middle Ages",
+        "slug": "middle-ages",
+        "query": "middle_ages*",
+        "count": 2960
+      },
+      {
+        "name": "Ancient History",
+        "slug": "ancient-history",
+        "query": "ancient_history*",
+        "count": 1590
+      }
+    ]
+  },
+  {
+    "name": "Biography",
+    "slug": "biography",
+    "kind": "subject",
+    "query": "(biography OR biographies)",
+    "count": 161584,
+    "children": [
+      {
+        "name": "Presidents",
+        "slug": "presidents",
+        "query": "presidents*",
+        "count": 9658
+      },
+      {
+        "name": "Women",
+        "slug": "women",
+        "query": "women*",
+        "count": 12568,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Authors",
+        "slug": "authors",
+        "query": "authors*",
+        "count": 7606,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Kings & Rulers",
+        "slug": "kings-rulers",
+        "query": "kings_and_rulers*",
+        "count": 6651
+      },
+      {
+        "name": "Statesmen",
+        "slug": "statesmen",
+        "query": "statesmen*",
+        "count": 3790
+      },
+      {
+        "name": "Artists",
+        "slug": "artists",
+        "query": "artists*",
+        "count": 3198,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Autobiography",
+        "slug": "autobiography",
+        "query": "autobiography*",
+        "count": 1381
+      }
+    ]
+  },
+  {
+    "name": "Philosophy",
+    "slug": "philosophy",
+    "kind": "subject",
+    "query": "philosophy",
+    "count": 21132,
+    "children": [
+      {
+        "name": "Ethics",
+        "slug": "ethics",
+        "query": "ethics*",
+        "count": 6547
+      },
+      {
+        "name": "Logic",
+        "slug": "logic",
+        "query": "logic*",
+        "count": 3239
+      },
+      {
+        "name": "Aesthetics",
+        "slug": "aesthetics",
+        "query": "aesthetics*",
+        "count": 3005
+      },
+      {
+        "name": "Metaphysics",
+        "slug": "metaphysics",
+        "query": "metaphysics*",
+        "count": 1105
+      },
+      {
+        "name": "Epistemology",
+        "slug": "epistemology",
+        "query": "knowledge_theory_of*",
+        "count": 827
+      },
+      {
+        "name": "Existentialism",
+        "slug": "existentialism",
+        "query": "existentialism*",
+        "count": 543
+      },
+      {
+        "name": "Ancient Philosophy",
+        "slug": "ancient-philosophy",
+        "query": "philosophy_ancient*",
+        "count": 382
+      }
+    ]
+  },
+  {
+    "name": "Psychology",
+    "slug": "psychology",
+    "kind": "subject",
+    "query": "psychology",
+    "count": 18683,
+    "children": [
+      {
+        "name": "Personality",
+        "slug": "personality",
+        "query": "personality*",
+        "count": 2894
+      },
+      {
+        "name": "Child Psychology",
+        "slug": "child-psychology",
+        "query": "child_psychology*",
+        "count": 2809
+      },
+      {
+        "name": "Emotions",
+        "slug": "emotions",
+        "query": "emotions*",
+        "count": 2627
+      },
+      {
+        "name": "Social Psychology",
+        "slug": "social-psychology",
+        "query": "social_psychology*",
+        "count": 1996
+      },
+      {
+        "name": "Developmental Psychology",
+        "slug": "developmental-psychology",
+        "query": "developmental_psychology*",
+        "count": 668
+      },
+      {
+        "name": "Clinical Psychology",
+        "slug": "clinical-psychology",
+        "query": "clinical_psychology*",
+        "count": 431
+      },
+      {
+        "name": "Cognitive Psychology",
+        "slug": "cognitive-psychology",
+        "query": "cognitive_psychology*",
+        "count": 279
+      }
+    ]
+  },
+  {
+    "name": "Poetry",
+    "slug": "poetry",
+    "kind": "subject",
+    "query": "poetry",
+    "count": 25272,
+    "children": [
+      {
+        "name": "English Poetry",
+        "slug": "english-poetry",
+        "query": "english_poetry*",
+        "count": 10152
+      },
+      {
+        "name": "American Poetry",
+        "slug": "american-poetry",
+        "query": "american_poetry*",
+        "count": 9498
+      },
+      {
+        "name": "Children's Poetry",
+        "slug": "children-s-poetry",
+        "query": "children's_poetry*",
+        "count": 6711
+      },
+      {
+        "name": "Love Poetry",
+        "slug": "love-poetry",
+        "query": "love_poetry*",
+        "count": 695
+      },
+      {
+        "name": "Epic Poetry",
+        "slug": "epic-poetry",
+        "query": "epic_poetry*",
+        "count": 595
+      },
+      {
+        "name": "Haiku",
+        "slug": "haiku",
+        "query": "haiku*",
+        "count": 196
+      },
+      {
+        "name": "Sonnets",
+        "slug": "sonnets",
+        "query": "sonnets*",
+        "count": 186
+      }
+    ]
+  },
+  {
+    "name": "Travel",
+    "slug": "travel",
+    "kind": "subject",
+    "query": "travel",
+    "count": 22463,
+    "children": [
+      {
+        "name": "Description & Travel",
+        "slug": "description-travel",
+        "query": "description_and_travel*",
+        "count": 58444
+      },
+      {
+        "name": "Guidebooks",
+        "slug": "guidebooks",
+        "query": "guidebooks*",
+        "count": 39745
+      },
+      {
+        "name": "Discovery & Exploration",
+        "slug": "discovery-exploration",
+        "query": "discovery_and_exploration*",
+        "count": 6713
+      },
+      {
+        "name": "Voyages & Travels",
+        "slug": "voyages-travels",
+        "query": "voyages_and_travels*",
+        "count": 5397
+      },
+      {
+        "name": "National Parks",
+        "slug": "national-parks",
+        "query": "national_parks*",
+        "count": 1491
+      }
+    ]
+  },
+  {
+    "name": "Science",
+    "slug": "science",
+    "kind": "subject",
+    "query": "science",
+    "count": 16916,
+    "children": [
+      {
+        "name": "Mathematics",
+        "slug": "mathematics",
+        "query": "mathematics*",
+        "count": 14953
+      },
+      {
+        "name": "Natural History",
+        "slug": "natural-history",
+        "query": "natural_history*",
+        "count": 9152
+      },
+      {
+        "name": "Geology",
+        "slug": "geology",
+        "query": "geology*",
+        "count": 6858
+      },
+      {
+        "name": "Chemistry",
+        "slug": "chemistry",
+        "query": "chemistry*",
+        "count": 6731
+      },
+      {
+        "name": "Physics",
+        "slug": "physics",
+        "query": "physics*",
+        "count": 5975
+      },
+      {
+        "name": "Biology",
+        "slug": "biology",
+        "query": "biology*",
+        "count": 4576
+      },
+      {
+        "name": "Astronomy",
+        "slug": "astronomy",
+        "query": "astronomy*",
+        "count": 4526
+      }
+    ]
+  },
+  {
+    "name": "Cooking",
+    "slug": "cooking",
+    "kind": "subject",
+    "query": "(cooking OR cookery OR recipes)",
+    "count": 19968,
+    "children": [
+      {
+        "name": "Quick & Easy",
+        "slug": "quick-easy",
+        "query": "quick_and_easy_cooking*",
+        "count": 2226
+      },
+      {
+        "name": "Desserts",
+        "slug": "desserts",
+        "query": "desserts*",
+        "count": 1826
+      },
+      {
+        "name": "Vegetarian",
+        "slug": "vegetarian",
+        "query": "vegetarian_cooking*",
+        "count": 1675
+      },
+      {
+        "name": "Baking",
+        "slug": "baking",
+        "query": "baking*",
+        "count": 1645
+      },
+      {
+        "name": "Bread",
+        "slug": "bread",
+        "query": "bread*",
+        "count": 1029
+      },
+      {
+        "name": "Italian",
+        "slug": "italian",
+        "query": "cooking_italian*",
+        "count": 528
+      },
+      {
+        "name": "Vegan",
+        "slug": "vegan",
+        "query": "vegan_cooking*",
+        "count": 315
+      }
+    ]
+  },
+  {
+    "name": "Religion",
+    "slug": "religion",
+    "kind": "subject",
+    "query": "religion",
+    "count": 16826,
+    "children": [
+      {
+        "name": "Bible",
+        "slug": "bible",
+        "query": "bible*",
+        "count": 46283
+      },
+      {
+        "name": "Christianity",
+        "slug": "christianity",
+        "query": "christianity*",
+        "count": 34142
+      },
+      {
+        "name": "Theology",
+        "slug": "theology",
+        "query": "theology*",
+        "count": 9375
+      },
+      {
+        "name": "Judaism",
+        "slug": "judaism",
+        "query": "judaism*",
+        "count": 6496
+      },
+      {
+        "name": "Islam",
+        "slug": "islam",
+        "query": "islam*",
+        "count": 5780
+      },
+      {
+        "name": "Buddhism",
+        "slug": "buddhism",
+        "query": "buddhism*",
+        "count": 3322
+      },
+      {
+        "name": "Hinduism",
+        "slug": "hinduism",
+        "query": "hinduism*",
+        "count": 1425
+      }
+    ]
+  },
+  {
+    "name": "Art",
+    "slug": "art",
+    "kind": "subject",
+    "query": "art",
+    "count": 17618,
+    "children": [
+      {
+        "name": "Architecture",
+        "slug": "architecture",
+        "query": "architecture*",
+        "count": 13855
+      },
+      {
+        "name": "Painting",
+        "slug": "painting",
+        "query": "painting*",
+        "count": 8455
+      },
+      {
+        "name": "Photography",
+        "slug": "photography",
+        "query": "photography*",
+        "count": 7614
+      },
+      {
+        "name": "Drawing",
+        "slug": "drawing",
+        "query": "drawing*",
+        "count": 4498
+      },
+      {
+        "name": "Sculpture",
+        "slug": "sculpture",
+        "query": "sculpture*",
+        "count": 2550
+      },
+      {
+        "name": "Decorative Arts",
+        "slug": "decorative-arts",
+        "query": "decorative_arts*",
+        "count": 1394
+      },
+      {
+        "name": "Art History",
+        "slug": "art-history",
+        "query": "art_history*",
+        "count": 367
+      }
+    ]
+  },
+  {
+    "name": "Textbooks",
+    "slug": "textbooks",
+    "kind": "subject",
+    "query": "textbooks",
+    "count": 9993,
+    "children": [
+      {
+        "name": "English Language",
+        "slug": "english-language",
+        "query": "english_language*",
+        "count": 630,
+        "requiresIntersection": true
+      },
+      {
+        "name": "History",
+        "slug": "history",
+        "query": "history*",
+        "count": 1045,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Mathematics",
+        "slug": "mathematics",
+        "query": "mathematics*",
+        "count": 1036,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Science",
+        "slug": "science",
+        "query": "science*",
+        "count": 856,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Business",
+        "slug": "business",
+        "query": "business*",
+        "count": 332,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Psychology",
+        "slug": "psychology",
+        "query": "psychology*",
+        "count": 471,
+        "requiresIntersection": true
+      },
+      {
+        "name": "Chemistry",
+        "slug": "chemistry",
+        "query": "chemistry*",
+        "count": 360,
+        "requiresIntersection": true
+      }
+    ]
+  }
+]

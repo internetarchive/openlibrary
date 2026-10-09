@@ -9,15 +9,17 @@ from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core import admin, cache, env
-from openlibrary.core.carousels import get_carousel_data
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
     get_blog_feeds,
     get_populated_languages,
 )
 from openlibrary.plugins.worksearch import search, subjects
+from openlibrary.plugins.worksearch.code import work_search_async
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import caching_prethread, req_context
 
 logger = logging.getLogger("openlibrary.home")
@@ -30,18 +32,21 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    featured_subjects = get_cached_featured_subjects()
+    # The genre cache is shared across languages, so names are translated per page.
+    try:
+        featured_genres = [{**genre, "name": home_genres.display_name(genre)} for genre in get_cached_featured_genres()]
+    except Exception:
+        logger.error("Error in getting featured genres", exc_info=True)
+        featured_genres = []
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    carousel_data = get_carousel_data()
     page = render_template(
         "home/index",
         stats=stats,
         blog_posts=blog_posts,
-        featured_subjects=featured_subjects,
-        carousel_data=carousel_data,
+        featured_genres=featured_genres,
     )
     # Convert to a dict so it can be cached
     return dict(page)
@@ -124,6 +129,7 @@ class random_book(delegate.page):
 
 
 def get_featured_subjects():
+    """The subject list behind the OPDS catalog's navigation (api.py)."""
     # web.ctx must be initialized as it won't be available to the background thread.
     if "env" not in web.ctx:
         delegate.fakeload()
@@ -213,6 +219,42 @@ def get_cached_featured_subjects():
         get_featured_subjects,
         f"home.featured_subjects.{web.ctx.lang}",
         timeout=dateutil.HOUR_SECS,
+        prethread=caching_prethread(),
+    )()
+
+
+GENRE_TILE_COVERS = 3
+
+
+def get_trending_tile_covers() -> list[int]:
+    """Covers for the Trending tile. Live, unlike the other tiles' hand-picked ones."""
+    results = async_bridge.run(
+        work_search_async(
+            {"q": home_genres.solr_query(home_genres.TRENDING), "has_fulltext": "true"},
+            sort="trending",
+            fields="cover_i",
+            limit=GENRE_TILE_COVERS * 2,
+            facet=False,
+            request_label="BOOK_CAROUSEL",
+        )
+    )
+    return [doc["cover_i"] for doc in results.get("docs", []) if doc.get("cover_i")][:GENRE_TILE_COVERS]
+
+
+def get_featured_genres():
+    """Tiles for home/browse_stacks.html.jinja, Trending first. A genre without picked covers gets no tile."""
+    if "env" not in web.ctx:
+        delegate.fakeload()
+    picked = {home_genres.TRENDING["slug"]: get_trending_tile_covers(), **home_genres.load_tile_covers()}
+    nodes = [home_genres.TRENDING, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
+    return [{**genre, "covers": picked[genre["slug"]][:GENRE_TILE_COVERS]} for genre in nodes]
+
+
+def get_cached_featured_genres():
+    return cache.memcache_memoize(
+        get_featured_genres,
+        "home.featured_genres",
+        timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
     )()
 

@@ -1,0 +1,119 @@
+{# "Browse the stacks": genre tiles that open home/genre_shelf.html.jinja in place (browse-stacks.js). #}
+{% from "CarouselSkeleton.html.jinja" import carousel_skeleton %}
+{% if genres is defined and genres %}
+    <section class="browse-stacks"
+             aria-labelledby="browse-stacks-title"
+             data-i18n="{{ i18n_json }}">
+        <div class="carousel-section-header browse-stacks__header">
+            <h2 class="home-h2" id="browse-stacks-title">{{ _("Browse the stacks") }}</h2>
+        </div>
+        <ol-carousel id="browse-stacks-rail" class="browse-stacks__rail" label="{{ _('Browse the stacks') }}" gap="12">
+            {% for genre in genres %}
+                {# For the skeleton; keep the strings in sync with HomeGenrePartial. #}
+                {% set shelf = {
+                    "name": genre.name,
+                    "title": _("Trending now") if genre.kind == "trending" else _("Trending in %(genre)s", genre=genre.name),
+                    "subgenres": genre.subgenres | map(attribute="name") | list,
+                } %}
+                <button class="browse-stacks__tile"
+                        type="button"
+                        data-genre="{{ genre.slug }}"
+                        {% if genre.kind == "trending" %}data-pinned{% endif %}
+                        data-shelf="{{ shelf | tojson | forceescape }}"
+                        aria-expanded="false"
+                        aria-controls="browse-stacks-shelf">
+                    <span class="browse-stacks__fan" aria-hidden="true">
+                        {% for cover in genre.covers %}
+                            <img src="//covers.openlibrary.org/b/id/{{ cover }}-M.jpg"
+                                 alt=""
+                                 loading="lazy"
+                                 width="44"
+                                 height="66">
+                        {% endfor %}
+                        {% for blank in range(3 - genre.covers | length) %}
+                            <span class="browse-stacks__blank"></span>
+                        {% endfor %}
+                    </span>
+                    <span class="browse-stacks__name">{{ genre.name }}</span>
+                </button>
+            {% endfor %}
+        </ol-carousel>
+        {# The shelf's loading skeleton, in the shape of home/genre_shelf.html.jinja. #}
+        <template class="browse-stacks__loading">
+            <div class="genre-shelf">
+                <div class="genre-shelf__header">
+                    <div class="genre-shelf__heading">
+                        <h2 class="genre-shelf__title"></h2>
+                        <div class="genre-shelf__jump genre-shelf__jump--loading">
+                            <span class="genre-shelf__jump-label">{{ _("Jump to") }}</span>
+                        </div>
+                    </div>
+                    <span class="skeleton genre-shelf__sort-skeleton"></span>
+                </div>
+                {{ carousel_skeleton(layout="ol-carousel", header=true, see_all=true) }}
+                {{ carousel_skeleton(layout="ol-carousel", header=true, see_all=true) }}
+            </div>
+        </template>
+        <div class="browse-stacks__shelf" id="browse-stacks-shelf" hidden></div>
+        {# Before first paint: shuffle the tiles (the page is cached), draw the open shelf's skeleton so
+           nothing shifts, and start its fetch. Keep in sync with skeletonFor() in browse-stacks.js. #}
+        <script>
+            (function () {
+                var rail = document.getElementById('browse-stacks-rail');
+                var tiles = Array.prototype.slice.call(rail.querySelectorAll('.browse-stacks__tile'));
+                var pinned = tiles.filter(function (tile) { return tile.hasAttribute('data-pinned'); });
+                var rest = tiles.filter(function (tile) { return !tile.hasAttribute('data-pinned'); });
+                for (var i = rest.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var swap = rest[i];
+                    rest[i] = rest[j];
+                    rest[j] = swap;
+                }
+                var slug = new URLSearchParams(location.search).get('stack');
+                var requested = tiles.filter(function (tile) { return tile.getAttribute('data-genre') === slug; })[0];
+                if (requested && rest.indexOf(requested) > 0) {
+                    rest.splice(rest.indexOf(requested), 1);
+                    rest.unshift(requested);
+                }
+                tiles = pinned.concat(rest);
+                tiles.forEach(function (tile, index) {
+                    rail.appendChild(tile);
+                    // The rail's first page (8 tiles at its widest) is above the fold.
+                    if (index < 8) {
+                        tile.querySelectorAll('img').forEach(function (img) { img.loading = 'eager'; });
+                    }
+                });
+
+                var template = document.querySelector('.browse-stacks__loading');
+                var shelf = document.getElementById('browse-stacks-shelf');
+                if (!tiles.length || !template) return;
+                var open = requested || tiles[0];
+                var params = new URLSearchParams({ genre: open.getAttribute('data-genre') });
+                var lang = new URLSearchParams(location.search).get('lang');
+                if (lang) params.set('lang', lang);
+                shelf.prefetch = {
+                    slug: open.getAttribute('data-genre'),
+                    response: fetch('/partials/HomeGenre.json?' + params),
+                };
+                shelf.prefetch.response.catch(function () {});
+                var data = JSON.parse(open.getAttribute('data-shelf'));
+                var skeleton = template.content.cloneNode(true);
+                skeleton.querySelector('.genre-shelf').setAttribute('data-genre', open.getAttribute('data-genre'));
+                skeleton.querySelector('.genre-shelf__title').textContent = data.name;
+                var jump = skeleton.querySelector('.genre-shelf__jump');
+                var rows = skeleton.querySelectorAll('.carousel-skeleton');
+                rows[0].querySelector('.carousel-skeleton__title').textContent = data.title;
+                data.subgenres.forEach(function (name) {
+                    var row = rows[1].cloneNode(true);
+                    row.querySelector('.carousel-skeleton__title').textContent = name;
+                    rows[1].parentNode.insertBefore(row, rows[1]);
+                    jump.appendChild(document.createElement('span')).textContent = name;
+                });
+                if (!data.subgenres.length) jump.remove();
+                rows[1].remove();
+                shelf.appendChild(skeleton);
+                shelf.hidden = false;
+            })();
+        </script>
+    </section>
+{% endif %}
