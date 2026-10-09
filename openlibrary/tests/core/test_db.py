@@ -9,6 +9,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.read_history import ReadHistory
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.utils.async_utils import async_bridge
 
 READING_LOG_DDL = """
 CREATE TABLE bookshelves_books (
@@ -460,7 +461,9 @@ class TestYearlyReadingGoals:
 
     def setup_method(self):
         self.db = get_db()
-        self.db.multiple_insert(self.TABLENAME, SETUP_ROWS)
+        for row in SETUP_ROWS:
+            db_sync = get_db()
+            db_sync.insert(self.TABLENAME, **row)
 
     def teardown_method(self):
         self.db.query("delete from yearly_reading_goals")
@@ -468,13 +471,13 @@ class TestYearlyReadingGoals:
     def test_create(self):
         assert len(list(self.db.select(self.TABLENAME))) == 3
         assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 1
-        YearlyReadingGoals.create("@kilgore_trout", 2023, 5)
+        async_bridge.run(YearlyReadingGoals.create("@kilgore_trout", 2023, 5))
         assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 2
         new_row = list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout", "year": 2023}))
         assert len(new_row) == 1
 
     def test_select_by_username_and_year(self):
-        assert len(YearlyReadingGoals.select_by_username_and_year("@billy_pilgrim", 2022)) == 1
+        assert len(async_bridge.run(YearlyReadingGoals.select_by_username_and_year("@billy_pilgrim", 2022))) == 1
 
     def test_update_target(self):
         assert (
@@ -488,7 +491,7 @@ class TestYearlyReadingGoals:
             )["target"]
             == 7
         )
-        YearlyReadingGoals.update_target("@billy_pilgrim", 2023, 14)
+        async_bridge.run(YearlyReadingGoals.update_target("@billy_pilgrim", 2023, 14))
         assert (
             next(
                 iter(
@@ -503,7 +506,7 @@ class TestYearlyReadingGoals:
 
     def test_delete_by_username(self):
         assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 2
-        YearlyReadingGoals.delete_by_username("@billy_pilgrim")
+        async_bridge.run(YearlyReadingGoals.delete_by_username("@billy_pilgrim"))
         assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 0
 
 

@@ -89,3 +89,8 @@ class YearlyReadingGoals:
     async def delete_by_username_and_year(cls, username: str, year: int) -> None:
         query = f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s AND year = %(year)s"
         await execute(query, {"username": username, "year": year})
+
+    @classmethod
+    async def delete_by_username(cls, username: str) -> None:
+        query = f"DELETE FROM {cls.TABLENAME} WHERE username = %(username)s"
+        await execute(query, {"username": username})
