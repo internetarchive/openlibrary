@@ -26,6 +26,6 @@
 
 /* The skip link focuses <main> (tabindex="-1") so reading starts there;
    it's a landmark, not a control, so it gets no ring of its own. */
-main:focus {
+main[tabindex="-1"]:focus {
   outline: none;
 }
