@@ -77,7 +77,7 @@ def _extract_body_classes(user: User | None) -> list[str]:
 
     bodyclass = list(_ctx.get("bodyclass", [])) if isinstance(_ctx.get("bodyclass"), (list, tuple)) else []
     show_ol_shell = _ctx.get("show_ol_shell", True)
-    path = getattr(_ctx, "path", "") or _ctx.get("path", "")
+    path = getattr(_ctx, "path", "")
 
     if show_ol_shell and can_show_librarian_tools(path, user):
         bodyclass.append("show-librarian-tools")
@@ -131,10 +131,11 @@ class AnnouncementBanner:
 
 
 def _extract_announcement_banner() -> AnnouncementBanner | None:
+    """Banner content is configured here; with no content there is never a banner."""
     announcement = ""
     cookie_name = ""
     cookie_duration_days = 30
-    if not (announcement and cookie_name):
+    if not announcement or not cookie_name:
         return None
 
     try:
@@ -448,7 +449,7 @@ class LayoutContext:
             simple_browse_links=simple_browse,
             browse_featured_count=BROWSE_FEATURED_COUNT,
             head=HeadContext.build(title=title, user=user),
-            announcement_banner=_safe(_extract_announcement_banner, None),
+            announcement_banner=_extract_announcement_banner(),
         )
 
     def to_dict(self) -> dict[str, Any]:

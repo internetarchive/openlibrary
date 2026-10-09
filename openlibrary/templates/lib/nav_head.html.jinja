@@ -1,4 +1,6 @@
 {# djlint:off H021 #}
+{% from "lib/header_dropdown.html.jinja" import header_dropdown %}
+{% from "lib/browse_popover.html.jinja" import browse_popover %}
 <header id="header-bar" class="header-bar">
     <div class="logo-component">
         <a href="/"
@@ -22,16 +24,8 @@
         {% endif %}
     </div>
     <ul class="navigation-component">
-        <li>
-            {% with props=layout.my_books_props, track_prefix="MainNav" %}
-                {% include "lib/header_dropdown.html.jinja" %}
-            {% endwith %}
-        </li>
-        <li>
-            {% with track_prefix="MainNav" %}
-                {% include "lib/browse_popover.html.jinja" %}
-            {% endwith %}
-        </li>
+        <li>{{ header_dropdown(layout.my_books_props, "MainNav") }}</li>
+        <li>{{ browse_popover(layout.featured_browse_links, layout.simple_browse_links, layout.browse_featured_count, "MainNav") }}</li>
     </ul>
     <div class="search-component">
         <div class="search-bar-component">
@@ -186,17 +180,9 @@
 </ol-drawer>
 <header class="header-bar mobile">
     <ul class="navigation-component mobile">
-        <li>
-            {% with props=layout.my_books_props, track_prefix="MainNav" %}
-                {% include "lib/header_dropdown.html.jinja" %}
-            {% endwith %}
-        </li>
+        <li>{{ header_dropdown(layout.my_books_props, "MainNav") }}</li>
         {# Distinct prefix so browse analytics separate the mobile tray from the
         desktop popover (see the tracking note in browse_popover.html). #}
-        <li>
-            {% with track_prefix="MainNavMobile" %}
-                {% include "lib/browse_popover.html.jinja" %}
-            {% endwith %}
-        </li>
+        <li>{{ browse_popover(layout.featured_browse_links, layout.simple_browse_links, layout.browse_featured_count, "MainNavMobile") }}</li>
     </ul>
 </header>

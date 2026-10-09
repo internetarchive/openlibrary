@@ -43,7 +43,7 @@ def test_layout_context_contains_no_callables(request_context_fixture):
     """LayoutContext.build() must be pure data — no functions that could hide I/O."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
-    # __post_init__ already guards this, but double-check via to_dict
+    # Double-check via to_dict; the frozen dataclass is deliberate
     for key, val in layout.to_dict().items():
         assert not callable(val), f"{key} is callable"
         if isinstance(val, dict):
