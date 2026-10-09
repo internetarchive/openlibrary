@@ -3966,7 +3966,7 @@ msgid "Bulk Search (beta)"
 msgstr ""
 
 #: contribute/dashboard.html.jinja openlibrary/plugins/openlibrary/contribute.py
-msgid "Librarian Dashboard"
+msgid "Tasks"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -8262,7 +8262,7 @@ msgstr ""
 
 #: openlibrary/contribute/save.py
 #, python-format
-msgid "Filled in %(field)s from the contribute dashboard"
+msgid "Filled in %(field)s from Open Library Tasks"
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8658,7 +8658,7 @@ msgid "Filipino"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "The contribute dashboard is for librarians"
+msgid "Tasks are open to librarians only, for now"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py

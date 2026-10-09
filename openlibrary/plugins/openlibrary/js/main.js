@@ -58,7 +58,7 @@ $(function() {
             .then((module) => module.init($));
     }
 
-    // Librarian dashboard pages (/tasks)
+    // Open Library Tasks pages (/tasks)
     if (document.querySelector('[data-contribute-list], [data-contribute-task], [data-contribute-done]')) {
         import('./contribute')
             .then((module) => module.init());

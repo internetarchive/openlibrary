@@ -1,4 +1,4 @@
-"""The librarian dashboard at /tasks: books missing a field, and one page to fill each.
+"""Open Library Tasks at /tasks: books missing a field, and one page to fill each.
 
 Answers save straight to the record as normal edits, so they show in its history and revert like any other.
 """
@@ -48,7 +48,7 @@ def _gate(path: str):
     if not user:
         raise web.seeother(f"/account/login?{urlencode({'redirect': path})}")
     if not user.is_librarian_or_higher():
-        return render_template("permission_denied", path, _("The contribute dashboard is for librarians"))
+        return render_template("permission_denied", path, _("Tasks are open to librarians only, for now"))
     return None
 
 
@@ -235,7 +235,7 @@ class contribute_index(delegate.page):
         user = accounts.get_current_user()
         return _render(
             "contribute/dashboard.html.jinja",
-            _("Librarian Dashboard"),
+            _("Tasks"),
             one_task_url=_dashboard_url(task, base="/tasks/one"),
             rail=_rail(task),
             rows=_rows(task),
