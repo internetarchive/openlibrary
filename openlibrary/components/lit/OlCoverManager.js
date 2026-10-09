@@ -582,8 +582,8 @@ export class OlCoverManager extends LitElement {
         this._added = [placeholder, ...this._added];
 
         const body = new FormData();
-        // Pasted images arrive as "image.png"; the server checks the extension.
-        body.append('file', file, file.name || `pasted-image.${file.type.split('/')[1]}`);
+        // Send a neutral name: the firewall rejects some real ones (apostrophes, #13286), and the server only checks the extension.
+        body.append('file', file, `image.${file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1]}`);
         try {
             const response = await fetch(`${this._endpoint}/upload.json`, { method: 'POST', body, credentials: 'same-origin' });
             const result = await response.json().catch(() => ({}));

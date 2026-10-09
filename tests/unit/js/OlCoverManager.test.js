@@ -167,6 +167,14 @@ describe('ol-cover-manager adding', () => {
         expect(status(el)).toBe('When you save, the selected image becomes the cover.');
     });
 
+    test('uploads under a neutral filename with the type’s extension', async() => {
+        stubFetch();
+        const el = await mount();
+        el._addFiles([file('Portrait d’Ada\'s.JPEG', 'image/jpeg')]);
+        await vi.waitFor(() => expect(calls).toHaveLength(2));
+        expect(calls[1].init.body.get('file').name).toBe('image.jpg');
+    });
+
     test('a failed upload drops its placeholder and says so', async() => {
         stubFetch({ 'POST /books/OL1M/covers/upload.json': { ok: false, body: { detail: 'Not a valid image file' } } });
         const el = await mount();
