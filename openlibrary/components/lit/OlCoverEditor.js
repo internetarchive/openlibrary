@@ -36,7 +36,6 @@ export const DEFAULT_LABELS = {
     imagePreview: 'Image preview',
     upload: 'Upload',
     uploading: 'Uploading…',
-    saving: 'Saving…',
     imageAdded: 'Image added.',
     undo: 'Undo',
     movedImage: 'Moved image to position %(position)s of %(total)s.',
@@ -96,7 +95,6 @@ export class OlCoverEditor extends LitElement {
         _file: { state: true },
         _previewUrl: { state: true },
         _busy: { state: true },
-        _saving: { state: true },
         _error: { state: true },
         _pasted: { state: true },
         _dragging: { state: true },
@@ -437,7 +435,6 @@ export class OlCoverEditor extends LitElement {
         this._file = null;
         this._previewUrl = '';
         this._busy = false;
-        this._saving = false;
         this._error = '';
         this._pasted = false;
         this._dragging = false;
@@ -1057,7 +1054,6 @@ export class OlCoverEditor extends LitElement {
         for (const image of this._images) data.append('image', image.id);
         data.append('image', '-1');
         data.append('image', '-');
-        this._saving = true;
         this._error = '';
         try {
             const response = await fetch(this.manageUrl, { method: 'POST', body: data, credentials: 'same-origin' });
@@ -1071,8 +1067,6 @@ export class OlCoverEditor extends LitElement {
             );
         } catch {
             this._error = this.t('saveFailed');
-        } finally {
-            this._saving = false;
         }
     }
 
@@ -1230,7 +1224,6 @@ export class OlCoverEditor extends LitElement {
 
     _renderStatus() {
         if (this._error) return html`<p class="status status--error" role="alert">${this._error}</p>`;
-        if (this._saving) return html`<p class="status" role="status">${this.t('saving')}</p>`;
         return nothing;
     }
 

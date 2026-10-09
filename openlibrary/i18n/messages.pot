@@ -4128,10 +4128,6 @@ msgid "Image preview"
 msgstr ""
 
 #: covers/change.html
-msgid "Saving..."
-msgstr ""
-
-#: covers/change.html
 msgid "Image added."
 msgstr ""
 
