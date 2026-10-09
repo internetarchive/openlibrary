@@ -14,6 +14,7 @@ from openlibrary.core.patron_feature_interest import PatronFeatureInterest, Patr
 class TestPatronFeatureInterestDB:
     """Integration tests requiring a real PostgreSQL database."""
 
+    @pytest.mark.asyncio
     async def test_create_and_exists(self, pg_db):
         """Test creating an interest and checking if it exists."""
         username = "testuser"
@@ -28,6 +29,7 @@ class TestPatronFeatureInterestDB:
         # Now should exist
         assert await PatronFeatureInterestDB.exists(username, feature) is True
 
+    @pytest.mark.asyncio
     async def test_create_idempotent(self, pg_db):
         """Test that creating the same interest twice is idempotent."""
         username = "testuser"
@@ -38,6 +40,7 @@ class TestPatronFeatureInterestDB:
 
         assert await PatronFeatureInterestDB.exists(username, feature) is True
 
+    @pytest.mark.asyncio
     async def test_select_features_by_username(self, pg_db):
         """Test selecting all features for a user."""
         username = "testuser"
@@ -49,11 +52,13 @@ class TestPatronFeatureInterestDB:
         result = await PatronFeatureInterestDB.select_features_by_username(username)
         assert set(result) == set(features)
 
+    @pytest.mark.asyncio
     async def test_select_features_by_username_empty(self, pg_db):
         """Test selecting features for a user with no interests."""
         result = await PatronFeatureInterestDB.select_features_by_username("nonexistent")
         assert result == []
 
+    @pytest.mark.asyncio
     async def test_select_by_username_returns_dataclass(self, pg_db):
         """Test that select_by_username returns PatronFeatureInterest dataclass instances."""
         username = "testuser"
@@ -70,6 +75,7 @@ class TestPatronFeatureInterestDB:
         assert record.feature == feature
         assert record.created is not None
 
+    @pytest.mark.asyncio
     async def test_count_by_feature(self, pg_db):
         """Test counting interests per feature."""
         feature = "LibraryThing"
@@ -81,11 +87,13 @@ class TestPatronFeatureInterestDB:
         count = await PatronFeatureInterestDB.count_by_feature(feature)
         assert count == 2
 
+    @pytest.mark.asyncio
     async def test_count_by_feature_zero(self, pg_db):
         """Test counting a feature with no interests."""
         count = await PatronFeatureInterestDB.count_by_feature("NonExistentFeature")
         assert count == 0
 
+    @pytest.mark.asyncio
     async def test_isolation_between_users(self, pg_db):
         """Test that interests are isolated per user."""
         await PatronFeatureInterestDB.create("user1", "LibraryThing")
