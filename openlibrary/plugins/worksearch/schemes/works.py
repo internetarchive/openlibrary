@@ -57,6 +57,7 @@ class WorkSearchScheme(SearchScheme):
             "cover_i",
             "ebook_access",
             "ebook_provider",
+            "ebook_unavailable",
             "edition_count",
             "edition_key",
             "format",
@@ -112,6 +113,8 @@ class WorkSearchScheme(SearchScheme):
             "trending_z_score",
         }
     )
+    # Only on edition docs, so kept out of the work query even without an `edition.` prefix.
+    edition_only_fields = frozenset({"ebook_unavailable"})
     non_solr_fields = frozenset(
         {
             "description",
@@ -283,6 +286,7 @@ class WorkSearchScheme(SearchScheme):
 
     def transform_user_query(self, user_query: str, q_tree: luqum.tree.Item) -> luqum.tree.Item:
         has_search_fields = False
+        ebook_unavailable_fields = []
         for node, parents in luqum_traverse(q_tree):
             if isinstance(node, luqum.tree.SearchField):
                 has_search_fields = True
@@ -294,6 +298,12 @@ class WorkSearchScheme(SearchScheme):
                     lcc_transform(node)
                 if node.name in ("ddc", "ddc_sort"):
                     ddc_transform(node)
+                if node.name.removeprefix("edition.") == "ebook_unavailable":
+                    ebook_unavailable_fields.append((node, parents))
+
+        # After the traversal, since this can replace nodes.
+        for node, parents in ebook_unavailable_fields:
+            q_tree = ebook_unavailable_transform(node, parents, q_tree)
 
         if not has_search_fields:
             # If there are no search fields, maybe we want just an isbn?
@@ -347,7 +357,7 @@ class WorkSearchScheme(SearchScheme):
         final_work_query = deepcopy(work_q_tree)
         luqum_replace_field(final_work_query, remove_work_prefix)
         try:
-            luqum_remove_field(final_work_query, lambda f: f.startswith("edition."))
+            luqum_remove_field(final_work_query, lambda f: f.startswith("edition.") or f in self.edition_only_fields)
         except EmptyTreeError:
             # If the whole tree is removed, we should just search for everything
             final_work_query = luqum_parser("*:*")
@@ -415,6 +425,7 @@ class WorkSearchScheme(SearchScheme):
                 "isbn": "isbn",
                 # 'id_*': 'id_*', # Handled manually for now to match any id field
                 "ebook_access": "ebook_access",
+                "ebook_unavailable": "ebook_unavailable",
                 # IA
                 "has_fulltext": "has_fulltext",
                 "ia": "ia",
@@ -843,6 +854,38 @@ def isbn_transform(sf: luqum.tree.SearchField):
             field_val.value = isbn
     else:
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
+
+
+def ebook_unavailable_transform(
+    sf: luqum.tree.SearchField,
+    parents: list[luqum.tree.Item],
+    root: luqum.tree.Item,
+) -> luqum.tree.Item:
+    """Let `ebook_unavailable` take true/false; returns the (possibly new) root.
+
+    False becomes a negation of `:1` rather than `:0`, since an edition with no
+    value is available too.
+    """
+    value = str(sf.expr).strip().lower()
+    if value not in ("true", "1", "false", "0"):
+        return root
+    sf.expr = luqum.tree.Word("1")
+    if value in ("true", "1"):
+        return root
+
+    parent = parents[-1] if parents else None
+    if isinstance(parent, (luqum.tree.Not, luqum.tree.Prohibit)):
+        # A negated false is just true: drop the negation.
+        old, new, path = parent, sf, parents[:-1]
+    else:
+        old, new, path = sf, luqum.tree.Prohibit(sf), parents
+    new.head, new.tail = old.head, old.tail
+    if new is not sf:
+        sf.head = sf.tail = ""
+    if not path:
+        return new
+    luqum_replace_child(path[-1], old, new)
+    return root
 
 
 def get_fulltext_min():
