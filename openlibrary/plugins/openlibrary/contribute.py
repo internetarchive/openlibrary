@@ -56,6 +56,12 @@ def _dashboard_url(task: str = "", base: str = "/contribute") -> str:
     return f"{base}?{urlencode({'task': task})}" if task else base
 
 
+def _next_url(back: str, after: tasks.Task, saved: bool) -> str:
+    """Another random task from the same filter, skipping the book just done; ``saved`` carries the receipt along."""
+    params = {"task": back, "exclude": after.olid} | ({"saved": after.key} if saved else {})
+    return f"/contribute/one?{urlencode({k: v for k, v in params.items() if v})}"
+
+
 def _language_names(codes: set[str]) -> dict[str, str]:
     names = {}
     for code in codes:
@@ -249,11 +255,13 @@ class contribute_one(delegate.page):
         task = _task_filter(query_param("task", ""))
         if denied := _gate(_dashboard_url(task, base=self.path)):
             return denied
-        options = [t for row in _rows(task) for t in row["tasks"]]
+        exclude = f"/books/{query_param('exclude', '')}"
+        options = [t for row in _rows(task) if row["book"]["key"] != exclude for t in row["tasks"]]
         if not options:
             raise web.seeother(_dashboard_url(task))
         pick = random.choices(options, weights=[max(t["weight"], 1) for t in options])[0]
-        raise web.seeother(pick["url"])
+        saved = query_param("saved", "")
+        raise web.seeother(f"{pick['url']}{'&' if '?' in pick['url'] else '?'}{urlencode({'saved': saved})}" if saved else pick["url"])
 
 
 def _sibling_editions(edition) -> list:
@@ -275,7 +283,7 @@ def _task_context(edition, task: tasks.Task, back: str, error: str = "", value: 
             "key": task.key,
             "field": task.field,
             "url": _task_url(task, back),
-            "skip_url": f"/contribute/task/{task.olid}/{task.field}/done?{urlencode({'choice': 'skipped', 'back': back})}",
+            "skip_url": _next_url(back, task, saved=False),
         },
         "is_identifier": task.field in save.NORMALIZERS,
         "playbook": playbook,
@@ -288,6 +296,7 @@ def _task_context(edition, task: tasks.Task, back: str, error: str = "", value: 
         "suggestions": tally["values"][:3] if playbook.suggest_from_siblings else [],
         "record": _record(edition, task.field),
         "list_url": _dashboard_url(back),
+        "next_scope": _filters()[back][0] if back else "",
         "languages": save.language_options() if task.field == "languages" else [],
         "error": error,
         "value": value,
@@ -300,6 +309,15 @@ TASK_PATH = rf"/contribute/task/(OL\d+M)/({'|'.join(tasks.POINTS)})"
 
 def _back() -> str:
     return _task_filter(query_param("back", ""))
+
+
+def _receipt(saved: str) -> dict | None:
+    """The previous task's "Saved" line, from a ``OL…M/field`` key, when "Save and next" brought us here."""
+    olid, _sep, fld = saved.partition("/")
+    playbook = get_playbooks().get(fld)
+    if not playbook or not (edition := web.ctx.site.get(f"/books/{olid}")):
+        return None
+    return {"field_label": playbook.label, "title": edition.title, "value": _display(edition, fld), "url": edition.url()}
 
 
 def _edition_or_404(olid: str):
@@ -324,12 +342,13 @@ class contribute_task(delegate.page):
         edition = _edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
             return _nothing(edition, fld, back)
-        return _render("contribute/task.html.jinja", get_playbooks()[fld].question, **_task_context(edition, task, back))
+        context = _task_context(edition, task, back) | {"receipt": _receipt(query_param("saved", ""))}
+        return _render("contribute/task.html.jinja", get_playbooks()[fld].question, **context)
 
     def POST(self, olid, fld):
         if denied := _gate(f"/contribute/task/{olid}/{fld}"):
             return denied
-        i = web.input(value="", note="", back="", confirmed="")
+        i = web.input(value="", note="", back="", confirmed="", then="")
         back = _task_filter(i.back)
         edition = _edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
@@ -343,6 +362,8 @@ class contribute_task(delegate.page):
         except save.InvalidAnswer as e:
             context = _task_context(edition, task, back, error=str(e), value=i.value, note=i.note)
             return _render("contribute/task.html.jinja", playbook.question, **context)
+        if i.then == "next":
+            raise web.seeother(_next_url(back, task, saved=True))
         raise web.seeother(f"{done}?{urlencode({'choice': 'saved', 'back': back})}")
 
 
@@ -366,5 +387,6 @@ class contribute_done(delegate.page):
             value=_display(edition, fld) if saved else "",
             history_url=f"{edition.key}?m=history",
             same_book=same_book,
+            next_url=_next_url(back, tasks.Task(olid, fld), saved=False),
             list_url=_dashboard_url(back),
         )

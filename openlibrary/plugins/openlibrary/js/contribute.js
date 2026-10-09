@@ -129,6 +129,14 @@ function initIdForm(form) {
     });
 }
 
+/** Drop the "Save and next" receipt from the URL, so a reload doesn't show its toast again. */
+function clearReceipt() {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('saved')) return;
+    url.searchParams.delete('saved');
+    history.replaceState(history.state, '', url);
+}
+
 export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach((root) => {
         initList(root);
@@ -138,6 +146,7 @@ export function init() {
         initSkip(form);
         initSuggestions(form);
     });
+    if (document.querySelector('[data-receipt]')) clearReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdForm);
     document.querySelectorAll('[data-contribute-done]').forEach((root) => hideSkipped(root, '[data-same-book]'));
 }

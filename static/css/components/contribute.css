@@ -279,15 +279,12 @@
       "cover fields";
     column-gap: var(--spacing-2xl);
     padding: var(--spacing-inset-lg);
+    position: relative;
   }
 
   .contrib-record__head {
     align-self: start;
     padding-inline-end: var(--spacing-xl);
-  }
-
-  .contrib-record {
-    position: relative;
   }
 
   .contrib-record__edit {
@@ -561,6 +558,22 @@
   z-index: var(--z-index-sticky);
   background: var(--color-surface);
   padding-block: var(--spacing-inset-sm);
+}
+
+.contrib-answer__save {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+}
+
+/* Skipping sits apart from saving, at the far end. */
+.contrib-answer__actions > [data-skip] {
+  margin-inline-start: auto;
+}
+
+.contrib-answer__next {
+  flex-basis: 100%;
+  margin: 0;
 }
 
 /* List */

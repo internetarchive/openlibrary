@@ -277,12 +277,26 @@
                       placeholder="{{ _('Where you found it') }}">{{ data.note }}</textarea>
         </details>
         <div class="contrib-answer__actions">
-            <ol-button variant="primary" type="submit">
-                {{ _("Save to the record") }}
-            </ol-button>
-            <ol-button variant="secondary" href="{{ task.skip_url }}" data-skip>
+            <div class="contrib-answer__save">
+                {#- First in the form, so Enter in the answer field saves and moves on. -#}
+                <ol-button variant="primary" type="submit" name="then" value="next">
+                    {{ _("Save and next") }}
+                </ol-button>
+                <ol-button variant="secondary" type="submit" name="then" value="done">
+                    {{ _("Save") }}
+                </ol-button>
+            </div>
+            <ol-button variant="ghost" href="{{ task.skip_url }}" data-skip>
                 {{ _("I couldn't find it") }}
+                {{ icon("arrow-right", slot="icon-end") }}
             </ol-button>
+            <p class="contrib-muted contrib-answer__next">
+                {% if data.next_scope %}
+                    {{ _("Next: a random task from %(filter)s", filter=data.next_scope) }}
+                {% else %}
+                    {{ _("Next: a random task from all open tasks") }}
+                {% endif %}
+            </p>
         </div>
     </form>
 {% endmacro %}
