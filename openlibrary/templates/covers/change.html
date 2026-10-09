@@ -77,18 +77,34 @@ $code:
     ]
 
     # Remote images offered as one-click imports, mirroring the old
-    # covers/external_image forms: an author's Wikidata image, or the
-    # Internet Archive cover/title scan for an edition. Both are cheap
-    # (cache-backed / derived from the ocaid), so they can be inlined here.
-    cover_upload_candidates = []
+    # covers/external_image forms: an author's Wikidata image, or the Internet
+    # Archive cover/title scan for an edition. Skip any we already have — a
+    # coverstore image records the `source_url` it was imported from, so we can
+    # match it against the remote URLs. `info()` is one coverstore call per
+    # local image, and only runs when there is something to offer.
+    cover_editor_local_images = doc.get_photos() if doc.type.key == '/type/author' else doc.get_covers()
+    cover_remote_source = ''
     if doc.type.key == '/type/author':
         wikidata = doc.wikidata() if hasattr(doc, 'wikidata') else None
-        if wikidata:
-            cover_upload_candidates = [{'url': url, 'source': _('Wikidata')} for url in wikidata.get_image_urls()]
+        cover_remote_images = wikidata.get_image_urls() if wikidata else []
+        cover_remote_source = _('Wikidata')
     elif doc.type.key == '/type/edition' and doc.get('ocaid'):
+        cover_remote_images = ['https://archive.org/download/%s/page/%s' % (doc.ocaid, kind) for kind in ('cover', 'title')]
+        cover_remote_source = _('Internet Archive')
+    else:
+        cover_remote_images = []
+
+    cover_upload_candidates = []
+    if cover_remote_images:
+        existing_source_urls = set()
+        for image in cover_editor_local_images:
+            image_info = image.info(fetch_author=False)
+            if image_info and image_info.get('source_url'):
+                existing_source_urls.add(image_info['source_url'])
         cover_upload_candidates = [
-            {'url': 'https://archive.org/download/%s/page/%s' % (doc.ocaid, kind), 'source': _('Internet Archive')}
-            for kind in ('cover', 'title')
+            {'url': url, 'source': cover_remote_source}
+            for url in cover_remote_images
+            if url not in existing_source_urls
         ]
 
 <ol-dialog id="addImage-$imagesId" label="$title" width="large">
