@@ -62,7 +62,6 @@
     "globals": "^15.14.0",
     "isbn3": "1.2.19",
     "jquery": "3.7.1",
-    "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.14.2",
     "jquery-ui-touch-punch": "0.2.3",
     "jsdom": "^30.0.1",
