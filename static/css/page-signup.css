@@ -20,6 +20,7 @@
 
 /* Components (modules) in order of appearance on page */
 @import "components/header-bar.css";
+@import "components/skip-link.css";
 @import "components/buttonGhost.css";
 @import "components/iaBar.css";
 @import "components/buttonBtn.css";
