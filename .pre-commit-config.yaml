@@ -110,9 +110,9 @@ repos:
     hooks:
       - id: oxfmt
         name: oxfmt
-        # Mirror hook targets JS/TS by default; limit it to CSS and plain .js.
-        types_or: [css, javascript]
-        files: \.(css|js)$
+        # Mirror hook targets JS/TS by default; also run it on CSS.
+        types_or: [css, javascript, ts]
+        files: \.(css|js|mjs|cjs|ts)$
         args: [--no-error-on-unmatched-pattern]
         additional_dependencies:
           - oxfmt@0.72.0
@@ -124,8 +124,8 @@ repos:
       - id: oxlint
         name: oxlint
         # Mirror hook targets JS/TS by default.
-        types_or: [javascript]
-        files: \.js$
+        types_or: [javascript, ts]
+        files: \.(js|mjs|cjs|ts)$
         additional_dependencies:
           - oxlint@1.87.0
 

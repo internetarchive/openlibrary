@@ -71,6 +71,22 @@ module.exports = [
       "vars-on-top": "error",
       "prefer-const": "error",
 
+      // Formatting rules: Vue script blocks are not covered by oxfmt
+      quotes: ["error", "single"],
+      "eol-last": ["error", "always"],
+      indent: 2,
+      "no-mixed-spaces-and-tabs": "error",
+      "no-extra-semi": "error",
+      "no-trailing-spaces": "error",
+      "space-in-parens": "error",
+      "template-curly-spacing": "error",
+      "quote-props": ["error", "as-needed"],
+      "keyword-spacing": ["error", { before: true, after: true }],
+      "key-spacing": ["error", { mode: "strict" }],
+      semi: ["error", "always"],
+      "space-before-function-paren": ["error", "never"],
+      "comma-spacing": ["error", { before: false, after: true }],
+
       "vue/no-mutating-props": "off",
       "vue/multi-word-component-names": [
         "error",

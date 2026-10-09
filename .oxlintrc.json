@@ -9,9 +9,11 @@
     "es2021": true
   },
   "ignorePatterns": [
-    "**/*.ts",
     "**/*.vue",
     "*.config.js",
+    "*.config.mjs",
+    "*.config.cjs",
+    "*.config.ts",
     "conf/",
     "config/",
     "docker/",
@@ -89,6 +91,26 @@
         "render_language_autocomplete_item": "readonly",
         "render_work_field": "readonly",
         "render_work_autocomplete_item": "readonly"
+      }
+    },
+    {
+      "files": [
+        "**/*.mjs",
+        "**/*.cjs",
+        "**/*.config.ts",
+        "tests/e2e/**/*.ts"
+      ],
+      "env": {
+        "node": true
+      }
+    },
+    {
+      "files": [
+        "scripts/**/*.mjs",
+        "tests/e2e/**/*.ts"
+      ],
+      "rules": {
+        "no-console": "off"
       }
     }
   ]
