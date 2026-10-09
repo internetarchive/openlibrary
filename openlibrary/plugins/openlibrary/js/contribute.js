@@ -1,5 +1,5 @@
 /**
- * Contribute dashboard (/contribute) page behavior.
+ * Librarian dashboard (/tasks) page behavior.
  *
  * Saved tasks leave the list on the server. Skipped ones are remembered for
  * the browser session so they drop out of the list too.

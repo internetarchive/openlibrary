@@ -2,7 +2,7 @@
 
 Saves go through the same path as the edit form: a new revision, the comment in
 the record's history, ``edit-book`` as the kind so edit stats are unchanged.
-``data.source`` marks them as /contribute edits so the dashboard can list them.
+``data.source`` marks them as dashboard edits so the dashboard can list them.
 """
 
 import re
@@ -95,6 +95,6 @@ def save_answer(edition, fld: str, raw: str, label: str, note: str = "") -> None
 
 
 def recent_saves(user_key: str, limit: int = 5) -> list:
-    """The user's latest /contribute edits, newest first. Filtered here: ``data`` filters need an index entry."""
+    """The user's latest dashboard edits, newest first. Filtered here: ``data`` filters need an index entry."""
     changes = web.ctx.site.recentchanges({"author": user_key, "kind": ACTION, "limit": 100})
     return [c for c in changes if (c.data or {}).get("source") == SOURCE][:limit]

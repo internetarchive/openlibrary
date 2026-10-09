@@ -1,5 +1,5 @@
 /**
- * Stylesheet entry point for the contribute pages at /contribute.
+ * Stylesheet entry point for the librarian dashboard pages at /tasks.
  * See openlibrary/templates/contribute/*.html.jinja
  */
 @import "base/common.css";

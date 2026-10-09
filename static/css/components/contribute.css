@@ -1,5 +1,5 @@
 /**
- * Contribute dashboard (/contribute). `contrib-` namespaces everything.
+ * Librarian dashboard (/tasks). `contrib-` namespaces everything.
  * Mobile-first: one column, the answer block sticks to the bottom on phones.
  */
 
@@ -790,7 +790,7 @@
   color: var(--color-error-fg);
 }
 
-/* Dashboard (/contribute): a rail of filters beside the list.
+/* Dashboard (/tasks): a rail of filters beside the list.
    One column on phones; the rail joins at desktop width. */
 .contrib-dash {
   max-width: 1320px;
