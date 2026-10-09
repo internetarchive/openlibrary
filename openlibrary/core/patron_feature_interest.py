@@ -1,9 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import ClassVar
 
 from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one
-from openlibrary.utils.async_utils import async_bridge
 
 
 @dataclass(frozen=True, slots=True)

@@ -184,5 +184,3 @@ CREATE TABLE feed_registry (
 );
 
 CREATE INDEX feed_registry_provider_name ON feed_registry (provider_name);
-
-

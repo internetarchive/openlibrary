@@ -1187,11 +1187,11 @@ msgid "Import your books and catalogs from LibraryThing."
 msgstr ""
 
 #: account/import.html
-msgid "Express interest in this"
+msgid "Interest recorded"
 msgstr ""
 
 #: account/import.html
-msgid "Interest recorded"
+msgid "Express interest in this"
 msgstr ""
 
 #: account/import.html
