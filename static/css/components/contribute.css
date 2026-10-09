@@ -3,16 +3,20 @@
  * Mobile-first: one column, the answer block sticks to the bottom on phones.
  */
 
-.contrib-page {
-  max-width: 760px;
+.contrib-page,
+.contrib-dash {
   margin: 0 auto;
   padding-inline: var(--spacing-page-gutter);
   padding-block: var(--spacing-stack-lg) var(--spacing-section-gap-desktop);
-  display: grid;
   font-family: var(--font-family-body);
   /* Dense librarian UI: 14px body, so the page reads as a workbench. */
   font-size: var(--font-size-body-medium);
   color: var(--color-text);
+}
+
+.contrib-page {
+  max-width: 760px;
+  display: grid;
 }
 
 /* Sections are spaced by bottom margins; gap is for tightly related items within one. */
@@ -45,11 +49,6 @@
   text-wrap: balance;
 }
 
-.contrib-lede {
-  color: var(--color-text-secondary);
-  max-width: 62ch;
-}
-
 .contrib-h {
   display: block;
   margin-block-end: var(--spacing-stack-sm);
@@ -67,7 +66,7 @@
   clip: rect(0 0 0 0);
 }
 
-/* Hero (start and list pages) */
+/* Hero */
 .contrib-hero {
   display: grid;
   gap: var(--spacing-stack-sm);
@@ -78,17 +77,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--spacing-inline-md);
-}
-
-.contrib-hero__actions .contrib-muted {
-  flex-basis: 100%;
-}
-
-.contrib-callout {
-  border-inline-start: 3px solid var(--color-info-border);
-  background: var(--color-info-bg);
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  border-radius: var(--border-radius-sm);
 }
 
 /* Book header */
@@ -636,18 +624,15 @@
   line-height: var(--line-height-title);
 }
 
-.contrib-receipt__note {
-  font-style: italic;
-}
-
 /* Next task on the receipt */
 .contrib-next {
   gap: var(--spacing-stack-sm);
 }
 
-/* Tablet: @width-breakpoint-tablet = 768px */
+/* Tablet and up */
 @media (min-width: 768px) {
-  .contrib-page {
+  .contrib-page,
+  .contrib-dash {
     padding-inline: var(--spacing-page-gutter-desktop);
   }
 
@@ -658,7 +643,7 @@
   }
 }
 
-/* Desktop: @width-breakpoint-desktop = 960px. */
+/* Desktop and up */
 @media (min-width: 960px) {
   .contrib-page--task {
     max-width: 1120px;
@@ -747,12 +732,6 @@
    One column on phones; the rail joins at desktop width. */
 .contrib-dash {
   max-width: 1320px;
-  margin: 0 auto;
-  padding-inline: var(--spacing-page-gutter);
-  padding-block: var(--spacing-stack-lg) var(--spacing-section-gap-desktop);
-  font-family: var(--font-family-body);
-  font-size: var(--font-size-body-medium);
-  color: var(--color-text);
 }
 
 .contrib-dash :is(h1, h2, p) {
@@ -916,19 +895,15 @@
   margin-block-end: var(--spacing-stack-md);
 }
 
-/* Tablet: @width-breakpoint-tablet = 768px */
+/* Tablet and up */
 @media (min-width: 768px) {
-  .contrib-dash {
-    padding-inline: var(--spacing-page-gutter-desktop);
-  }
-
   .contrib-intro__steps {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--spacing-inline-xl);
   }
 }
 
-/* Desktop: @width-breakpoint-desktop = 960px. The rail becomes a vertical menu. */
+/* Desktop and up: the rail becomes a vertical menu. */
 @media (min-width: 960px) {
   .contrib-dash__body {
     grid-template-columns: 200px minmax(0, 1fr);
@@ -960,61 +935,6 @@
   .contrib-rail .contrib-rail__item.is-on {
     border-color: transparent;
   }
-}
-
-/* "Do one task" preview: the picked task, with a way in and a re-roll. */
-.contrib-pick {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-stack-md) var(--spacing-inline-lg);
-  padding: var(--spacing-inset-md);
-  border: 2px solid var(--color-primary);
-  border-radius: var(--border-radius-card);
-  background: var(--color-surface);
-}
-
-.contrib-pick[hidden] {
-  display: none;
-}
-
-.contrib-pick__cover {
-  flex: none;
-}
-
-.contrib-pick__body {
-  flex: 1 1 320px;
-  min-width: 0;
-  display: grid;
-  gap: var(--spacing-stack-xs);
-}
-
-.contrib-pick__label {
-  color: var(--color-link);
-  font-size: var(--font-size-label-medium);
-  font-weight: var(--font-weight-semibold);
-}
-
-.contrib-pick__question {
-  font-family: var(--font-family-serif);
-  font-size: var(--font-size-title-large);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-title);
-  text-wrap: balance;
-}
-
-.contrib-pick__question:focus {
-  outline: none;
-}
-
-.contrib-pick__book {
-  font-weight: var(--font-weight-medium);
-}
-
-.contrib-pick__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-sm);
 }
 
 /* "Your recent fixes" in the dashboard's right column. */

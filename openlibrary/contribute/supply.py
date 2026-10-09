@@ -1,11 +1,4 @@
-"""Where the books that need a hand come from.
-
-/contribute is three separable parts: supply (which books are candidates),
-ranking (which to show first) and the task page (the context to act). This
-module is the supply: the most-read works with an edition missing a field,
-straight from Solr's edition child documents. The list pages turn each
-candidate into tasks with ``tasks.tasks_for_edition``.
-"""
+"""Which books need a hand: the most-read works with an edition missing a field, from Solr's edition child docs."""
 
 from dataclasses import dataclass
 

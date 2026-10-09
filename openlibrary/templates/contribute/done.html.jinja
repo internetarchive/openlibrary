@@ -1,8 +1,6 @@
 {#- /contribute/task/OL…M/<field>/done — the receipt, and what happens next. -#}
 {% import "contribute/parts.html.jinja" as parts %}
-<div class="contrib-page"
-     data-contribute-done
-     data-task-key="{{ data.task_key }}">
+<div class="contrib-page" data-contribute-done>
     <section class="contrib-receipt">
         <span class="contrib-receipt__icon">{{ icon("circle-check" if data.saved else "arrow-right", size="lg") }}</span>
         <div>

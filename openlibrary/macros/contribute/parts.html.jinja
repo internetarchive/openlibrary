@@ -33,10 +33,7 @@
 {% endmacro %}
 {% macro task_row(task) %}
     {#- One to-do per field, styled as a menu item: an icon and the action it leads to. -#}
-    <li class="contrib-row__task"
-        data-task-key="{{ task.key }}"
-        {% if task.weight is defined %}data-weight="{{ task.weight }}"{% endif %}
-        {% if task.question %}data-question="{{ task.question }}"{% endif %}>
+    <li class="contrib-row__task" data-task-key="{{ task.key }}">
         <a href="{{ task.url }}">
             <span class="contrib-row__badge">{{ icon("plus", size="sm") }}</span>
             <span>{{ task.action_label }}</span>
@@ -146,7 +143,7 @@
                data-msg-url="{{ _('Paste only the number, not the web address.') }}"
                data-msg-bad="{{ _('That is not a valid number for this catalog.') }}" />
     {% elif languages %}
-        <ol-options-popover id="contrib-other-value" class="contrib-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ playbook.answer_label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
+        <ol-options-popover id="contrib-other-value" class="contrib-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ playbook.label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
         </ol-options-popover>
     {% else %}
         <input id="contrib-other-value"

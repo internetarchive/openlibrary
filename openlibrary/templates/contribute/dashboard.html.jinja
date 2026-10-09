@@ -8,36 +8,13 @@
             <h1 class="contrib-title">{{ _("Contribute") }}</h1>
         </div>
         <div class="contrib-dash__one">
-            <ol-button variant="primary" href="{{ data.one_task_url }}" data-one-task>
+            <ol-button variant="primary" href="{{ data.one_task_url }}">
                 {{ icon("dices", slot="icon-start") }}
                 {{ _("Surprise me") }}
             </ol-button>
             <span class="contrib-muted">{{ _("A random book that needs a hand.") }}</span>
         </div>
     </header>
-    <section class="contrib-pick"
-             data-pick
-             hidden
-             aria-labelledby="contrib-pick-question">
-        <div class="contrib-pick__cover" data-pick-cover></div>
-        <div class="contrib-pick__body">
-            <p class="contrib-pick__label">{{ _("Your task") }}</p>
-            <h2 class="contrib-pick__question"
-                id="contrib-pick-question"
-                tabindex="-1"
-                data-pick-question></h2>
-            <p class="contrib-pick__book" data-pick-book></p>
-            <p class="contrib-muted" data-pick-why></p>
-        </div>
-        <div class="contrib-pick__actions">
-            <ol-button variant="primary" href="#" data-pick-start>
-                {{ _("Start task") }}
-            </ol-button>
-            <ol-button type="button" data-pick-again>
-                {{ _("Pick another") }}
-            </ol-button>
-        </div>
-    </section>
     <section class="contrib-intro" data-intro aria-label="{{ _('How it works') }}">
         <ol class="contrib-intro__steps">
             <li class="contrib-intro__step">
@@ -84,9 +61,7 @@
             </div>
             <ol class="contrib-rows">
                 {% for row in data.rows %}
-                    <li class="contrib-row"
-                        data-book-row
-                        {% if row.book.readers %}data-why="{{ _('On about %(count)s readers’ shelves.', count='{:,}'.format(row.book.readers)) }}"{% endif %}>
+                    <li class="contrib-row" data-book-row>
                         {{ parts.book_header(row.book, compact=True) }}
                         <ul class="contrib-row__tasks">
                             {% for task in row.tasks %}

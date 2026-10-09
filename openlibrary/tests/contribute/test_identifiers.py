@@ -1,6 +1,6 @@
 import pytest
 
-from openlibrary.contribute import identifiers
+from openlibrary.contribute import save
 from openlibrary.utils.oclc import normalize_oclc
 
 
@@ -35,9 +35,9 @@ def test_normalize_oclc(raw, expected):
     ],
 )
 def test_normalize_lccn_value(raw, expected):
-    assert identifiers.normalize_lccn_value(raw) == expected
+    assert save.normalize_lccn_value(raw) == expected
 
 
 def test_normalized_drops_unusable_values():
-    assert identifiers.normalized("oclc_numbers", ["ocm0004781", "junk"]) == ["4781"]
-    assert identifiers.normalized("lccn", None) == []
+    assert save.normalized("oclc_numbers", ["ocm0004781", "junk"]) == ["4781"]
+    assert save.normalized("lccn", None) == []

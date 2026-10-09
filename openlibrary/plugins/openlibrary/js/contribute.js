@@ -1,14 +1,14 @@
 /**
  * Contribute dashboard (/contribute) page behavior.
  *
- * Phase 1 saves nothing server-side. Progress within a browser session is a
- * list of task keys in sessionStorage so answered and skipped tasks drop out
- * of the list and the receipt can offer the next open one.
+ * Saved tasks leave the list on the server. Skipped ones are remembered for
+ * the browser session so they drop out of the list too.
  */
 
 import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 
-const STORAGE_KEY = 'ol-contribute-done';
+const SKIPPED_KEY = 'ol-contribute-skipped';
+const INTRO_KEY = 'ol-contribute-intro-hidden';
 
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
@@ -16,40 +16,40 @@ const ID_RULES = {
     oclc_numbers: { parse: parseOclc, isValid: isValidOclc },
 };
 
-function readDone() {
+function readSkipped() {
     try {
-        return new Set(JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]'));
+        return new Set(JSON.parse(sessionStorage.getItem(SKIPPED_KEY) || '[]'));
     } catch (e) {
         return new Set();
     }
 }
 
-function markDone(key) {
-    if (!key) return;
-    const done = readDone();
-    done.add(key);
+function markSkipped(key) {
+    const skipped = readSkipped();
+    skipped.add(key);
     try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...done]));
+        sessionStorage.setItem(SKIPPED_KEY, JSON.stringify([...skipped]));
     } catch (e) {
-        // Private mode or blocked storage: the walkthrough still works, just without memory.
+        // Blocked storage: the skipped task just stays listed.
     }
 }
 
-function initList(root) {
-    const done = readDone();
+/** Hide skipped tasks, then any group (book row, same-book section) left with none. */
+function hideSkipped(root, groupSelector) {
+    const skipped = readSkipped();
     root.querySelectorAll('[data-task-key]').forEach((el) => {
-        if (done.has(el.dataset.taskKey)) el.hidden = true;
+        if (skipped.has(el.dataset.taskKey)) el.hidden = true;
     });
-    root.querySelectorAll('[data-book-row]').forEach((row) => {
-        const open = row.querySelectorAll('[data-task-key]:not([hidden])');
-        if (!open.length) row.hidden = true;
+    root.querySelectorAll(groupSelector).forEach((group) => {
+        if (!group.querySelector('[data-task-key]:not([hidden])')) group.hidden = true;
     });
-    const rows = root.querySelectorAll('[data-book-row]:not([hidden])');
-    const empty = root.querySelector('[data-list-empty]');
-    if (empty) empty.hidden = rows.length > 0;
 }
 
-const INTRO_KEY = 'ol-contribute-intro-hidden';
+function initList(root) {
+    hideSkipped(root, '[data-book-row]');
+    const empty = root.querySelector('[data-list-empty]');
+    if (empty) empty.hidden = !!root.querySelector('[data-book-row]:not([hidden])');
+}
 
 function initIntro(root) {
     const intro = root.querySelector('[data-intro]');
@@ -69,66 +69,8 @@ function initIntro(root) {
     });
 }
 
-function openTasks(root) {
-    return [...root.querySelectorAll('[data-book-row]:not([hidden]) [data-task-key]:not([hidden])')];
-}
-
-// Weighted like the server's pick, so busier books with more valuable gaps come up more often.
-function weightedPick(tasks, avoidKey) {
-    const pool = tasks.length > 1 ? tasks.filter((el) => el.dataset.taskKey !== avoidKey) : tasks;
-    const weights = pool.map((el) => Math.max(Number(el.dataset.weight) || 1, 1));
-    let r = Math.random() * weights.reduce((a, b) => a + b, 0);
-    return pool.find((_el, i) => (r -= weights[i]) <= 0) || pool[pool.length - 1];
-}
-
-/**
- * "Surprise me" previews a pick from the tasks still on screen, so one
- * already answered this session is never offered again. With nothing on
- * screen (or no JS) the link falls through to /contribute/one.
- */
-function initOneTask(root) {
-    const button = root.querySelector('[data-one-task]');
-    const card = root.querySelector('[data-pick]');
-    if (!button || !card) return;
-    let current = '';
-
-    const show = (task) => {
-        const row = task.closest('[data-book-row]');
-        const cover = row.querySelector('.contrib-book__cover');
-        card.querySelector('[data-pick-cover]').replaceChildren(cover ? cover.cloneNode(true) : '');
-        card.querySelector('[data-pick-question]').textContent = task.dataset.question || task.textContent.trim();
-        const title = row.querySelector('.contrib-book__title')?.textContent.trim() || '';
-        const authors = row.querySelector('.contrib-book__authors')?.textContent.trim() || '';
-        card.querySelector('[data-pick-book]').textContent = authors ? `${title} · ${authors}` : title;
-        card.querySelector('[data-pick-why]').textContent = row.dataset.why || '';
-        card.querySelector('[data-pick-start]').setAttribute('href', task.querySelector('a').href);
-        current = task.dataset.taskKey;
-        card.hidden = false;
-        card.querySelector('[data-pick-question]').focus({ preventScroll: true });
-        card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    };
-
-    button.addEventListener('click', (event) => {
-        const tasks = openTasks(root);
-        if (!tasks.length) return;
-        event.preventDefault();
-        show(weightedPick(tasks, current));
-    });
-    card.querySelector('[data-pick-again]')?.addEventListener('click', () => {
-        const tasks = openTasks(root);
-        if (tasks.length) show(weightedPick(tasks, current));
-    });
-}
-
-function initTaskForm(root) {
-    const form = root.querySelector('form[data-task-form]');
-    if (form) {
-        form.addEventListener('submit', () => markDone(form.dataset.taskKey));
-        const skip = form.querySelector('[data-skip]');
-        if (skip) {
-            skip.addEventListener('click', () => markDone(form.dataset.taskKey));
-        }
-    }
+function initSkip(form) {
+    form.querySelector('[data-skip]')?.addEventListener('click', () => markSkipped(form.dataset.taskKey));
 }
 
 /**
@@ -187,24 +129,15 @@ function initIdForm(form) {
     });
 }
 
-function initDone(root) {
-    markDone(root.dataset.taskKey);
-    const done = readDone();
-    root.querySelectorAll('[data-task-key]').forEach((el) => {
-        if (done.has(el.dataset.taskKey)) el.hidden = true;
-    });
-    const sameBook = root.querySelector('[data-same-book]');
-    if (sameBook && !sameBook.querySelector('[data-task-key]:not([hidden])')) sameBook.hidden = true;
-}
-
 export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach((root) => {
         initList(root);
         initIntro(root);
-        initOneTask(root);
     });
-    document.querySelectorAll('[data-contribute-task]').forEach(initTaskForm);
-    document.querySelectorAll('form[data-task-form]').forEach(initSuggestions);
+    document.querySelectorAll('form[data-task-form]').forEach((form) => {
+        initSkip(form);
+        initSuggestions(form);
+    });
     document.querySelectorAll('form[data-id-form]').forEach(initIdForm);
-    document.querySelectorAll('[data-contribute-done]').forEach(initDone);
+    document.querySelectorAll('[data-contribute-done]').forEach((root) => hideSkipped(root, '[data-same-book]'));
 }

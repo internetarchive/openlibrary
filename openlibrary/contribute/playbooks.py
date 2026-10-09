@@ -1,11 +1,6 @@
-"""One playbook per field: the question in plain words, where to look it up,
-and the conventions a librarian needs.
+"""One playbook per field: the question, where to look it up, and the conventions to follow.
 
-Open Library fetches nothing from these sources. The page links to them,
-opened on the edition's ISBN, and says what to copy from each.
-
-Copy lives here rather than in templates so the task template stays one
-shape for every field. Strings are resolved per request for i18n.
+The page links to each source on the edition's ISBN; Open Library fetches nothing from them.
 """
 
 from dataclasses import dataclass
@@ -34,13 +29,7 @@ class Note:
 @dataclass(frozen=True)
 class Source:
     label: str
-    url: str  # template with {isbn}
-
-
-@dataclass(frozen=True)
-class LinkOut:
-    label: str
-    url: str
+    url: str  # may hold an {isbn} placeholder
 
 
 @dataclass(frozen=True)
@@ -57,7 +46,6 @@ class Playbook:
     suggest_from_siblings: bool = False  # offer the other editions' values as one-click answers
     notes: list[Note] = dc_field(default_factory=list)
     traps: list[str] = dc_field(default_factory=list)
-    answer_label: str = ""
     placeholder: str = ""
     input_type: str = "text"
 
@@ -84,7 +72,6 @@ def get_playbooks() -> dict[str, Playbook]:
                     f"{HELP_BASE}#edit-metadata-language",
                 ),
             ],
-            answer_label=_("Language"),
             placeholder=_("For example English"),
         ),
         "number_of_pages": Playbook(
@@ -106,7 +93,6 @@ def get_playbooks() -> dict[str, Playbook]:
                     f"{HELP_BASE}#pages",
                 ),
             ],
-            answer_label=_("Number of pages"),
             placeholder=_("For example 320"),
             input_type="number",
         ),
@@ -124,7 +110,6 @@ def get_playbooks() -> dict[str, Playbook]:
                     f"{HELP_BASE}#publisher",
                 ),
             ],
-            answer_label=_("Publisher"),
             placeholder=_("Publisher as printed"),
         ),
         "lccn": Playbook(
@@ -148,7 +133,6 @@ def get_playbooks() -> dict[str, Playbook]:
                 _("The number is already on another edition of this work, which means one of the two records is wrong."),
                 _("Pasting the web address instead of the number itself."),
             ],
-            answer_label=_("LCCN"),
             placeholder=_("For example 75425165"),
         ),
         "oclc_numbers": Playbook(
@@ -175,14 +159,13 @@ def get_playbooks() -> dict[str, Playbook]:
                 _("The number is already on another edition of this work, which means one of the two records is wrong."),
                 _("Pasting the web address, or leaving the ocm/ocn prefix on."),
             ],
-            answer_label=_("OCLC number"),
             placeholder=_("Digits only, for example 47810608"),
         ),
     }
 
 
-def link_outs(playbook: Playbook, isbn13: str | None) -> list[LinkOut]:
-    """The playbook's sources, opened on this ISBN. Link only, never imported."""
+def link_outs(playbook: Playbook, isbn13: str | None) -> list[Source]:
+    """The playbook's sources, opened on this ISBN."""
     if not isbn13:
         return []
-    return [LinkOut(s.label, s.url.format(isbn=isbn13)) for s in playbook.sources]
+    return [Source(s.label, s.url.format(isbn=isbn13)) for s in playbook.sources]

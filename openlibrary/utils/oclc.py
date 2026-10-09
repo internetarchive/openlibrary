@@ -1,13 +1,6 @@
-"""Normalize OCLC control numbers.
+"""Normalize OCLC control numbers: digits only, no ``ocm``/``ocn``/``on``/``(OCoLC)`` prefix.
 
-The Python counterpart of ``parseOclc``/``isValidOclc`` in
-``openlibrary/plugins/openlibrary/js/idValidation.js``, kept in step with it
-the way ``openlibrary/utils/lccn.py`` is.
-
-An OCLC number is "a unique, sequentially assigned number associated with a
-record in WorldCat": digits only, not zero-padded. Records in the wild carry
-the ``ocm``/``ocn``/``on`` prefixes OCLC used for fixed-width fields, and the
-``(OCoLC)`` organization code when they come from MARC 035.
+Kept in step with ``parseOclc``/``isValidOclc`` in ``js/idValidation.js``.
 """
 
 import re

@@ -3051,7 +3051,7 @@ msgstr ""
 msgid "ISBN 13"
 msgstr ""
 
-#: books/add.html openlibrary/contribute/playbooks.py openlibrary/plugins/openlibrary/contribute.py
+#: books/add.html openlibrary/plugins/openlibrary/contribute.py
 msgid "LCCN"
 msgstr ""
 
@@ -3978,18 +3978,6 @@ msgid "A random book that needs a hand."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Your task"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Start task"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-msgid "Pick another"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
 msgid "How it works"
 msgstr ""
 
@@ -4027,11 +4015,6 @@ msgstr ""
 
 #: contribute/dashboard.html.jinja
 msgid "Missing"
-msgstr ""
-
-#: contribute/dashboard.html.jinja
-#, python-format
-msgid "On about %(count)s readers’ shelves."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -6639,7 +6622,7 @@ msgstr ""
 msgid "Pagination"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py type/edition/view.html type/work/view.html
+#: type/edition/view.html type/work/view.html
 msgid "Number of pages"
 msgstr ""
 
@@ -8244,10 +8227,6 @@ msgstr ""
 
 #: openlibrary/contribute/playbooks.py
 msgid "Pasting the web address, or leaving the ocm/ocn prefix on."
-msgstr ""
-
-#: openlibrary/contribute/playbooks.py
-msgid "OCLC number"
 msgstr ""
 
 #: openlibrary/contribute/playbooks.py
