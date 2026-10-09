@@ -108,7 +108,7 @@
         </ul>
     </div>
 {% endmacro %}
-{% macro answer_form(task, playbook, is_identifier, wait_days, list_url) %}
+{% macro answer_form(task, playbook, is_identifier, list_url, error="", value="", note="", languages=[]) %}
     {#- One shape for every field. An identifier answer is gated behind "I opened the record":
         a wrong number silently corrupts record matching. -#}
     <form method="post"
@@ -117,6 +117,7 @@
           data-task-form
           {% if is_identifier %}data-id-form{% endif %}
           data-task-key="{{ task.key }}">
+        {% if error %}<p class="ol-message ol-message--error" role="alert">{{ error }}</p>{% endif %}
         <fieldset class="fe-answer__options">
             <legend class="fe-label">{{ _("Your answer") }}</legend>
             <label class="fe-choice">
@@ -139,6 +140,7 @@
                            autocomplete="off"
                            data-id-input
                            data-id-field="{{ task.field }}"
+                           value="{{ value }}"
                            data-msg-ok="{{ _('That looks like a valid number.') }}"
                            data-msg-tidied="{{ _('Will be stored as %(value)s.', value='__VALUE__') }}"
                            data-msg-url="{{ _('Paste only the number, not the web address.') }}"
@@ -151,14 +153,21 @@
                            class="fe-input"
                            placeholder="{{ playbook.placeholder }}"
                            {% if playbook.input_type == "number" %}min="1"{% endif %}
+                           {% if languages %}list="fe-languages"{% endif %}
+                           value="{{ value }}"
                            autocomplete="off" />
+                    {% if languages %}
+                        <datalist id="fe-languages">
+                            {% for lang in languages %}<option value="{{ lang.name }}"></option>{% endfor %}
+                        </datalist>
+                    {% endif %}
                 {% endif %}
             </div>
             <label class="fe-choice fe-choice--unsure">
                 <input type="radio" name="choice" value="unsure" />
                 <span class="fe-choice__body">
                     <strong>{{ _("I couldn't find it") }}</strong>
-                    <span class="fe-muted">{{ _("Sends it to a librarian with a note. Never counts against you.") }}</span>
+                    <span class="fe-muted">{{ _("Skips this book. Nothing on the record changes.") }}</span>
                 </span>
             </label>
         </fieldset>
@@ -169,20 +178,20 @@
             </label>
         {% endif %}
         <label class="fe-answer__note">
-            <span class="fe-label">{{ _("Note for the reviewer (optional)") }}</span>
+            <span class="fe-label">{{ _("Edit comment (optional)") }}</span>
             <textarea name="note"
                       rows="2"
                       class="fe-input"
-                      placeholder="{{ _('Where you found it') }}"></textarea>
+                      placeholder="{{ _('Where you found it') }}">{{ note }}</textarea>
         </label>
         <div class="fe-answer__actions">
             <ol-button variant="primary" type="submit">
-                {{ _("Send to a librarian") }}
+                {{ _("Save") }}
             </ol-button>
             <ol-button variant="ghost" href="{{ list_url }}" data-skip>
                 {{ _("Skip this book") }}
             </ol-button>
-            <span class="fe-muted fe-answer__promise">{{ _("Goes into the review queue. Usually looked at within %(days)s days.", days=wait_days) }}</span>
+            <span class="fe-muted fe-answer__promise">{{ _("Saves to the record right away. You can undo it from the record's history.") }}</span>
         </div>
     </form>
 {% endmacro %}

@@ -22,7 +22,6 @@ class FieldScope:
 
 @dataclass(frozen=True)
 class Scope:
-    review_wait_days: int
     fields: dict[str, FieldScope]
 
     def enabled_fields(self) -> list[str]:
@@ -38,7 +37,7 @@ def parse_scope(raw: dict) -> Scope:
         if not isinstance(points, int) or points < 0:
             raise ValueError(f"points for {name} must be a non-negative integer: {points!r}")
         fields[name] = FieldScope(name, bool(cfg.get("enabled", False)), points)
-    return Scope(int(raw.get("review_wait_days", 3)), fields)
+    return Scope(fields)
 
 
 @cache

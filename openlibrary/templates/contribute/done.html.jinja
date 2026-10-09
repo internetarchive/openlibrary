@@ -4,20 +4,24 @@
      data-contribute-done
      data-task-key="{{ data.task_key }}">
     <section class="fe-receipt">
-        <span class="fe-receipt__icon">{{ icon("circle-check", size="lg") }}</span>
+        <span class="fe-receipt__icon">{{ icon("circle-check" if data.saved else "arrow-right", size="lg") }}</span>
         <div>
-            <p class="fe-overline">{% if data.choice == "unsure" %}{{ _("Sent as a question") }}{% else %}{{ _("Sent") }}{% endif %}</p>
+            <p class="fe-overline">{% if data.saved %}{{ _("Saved") }}{% else %}{{ _("Skipped") }}{% endif %}</p>
             <h1 class="fe-receipt__title">
-                {% if data.choice == "unsure" %}
-                    {{ _("%(field)s for %(title)s: you asked a librarian to look", field=data.field_label, title=data.book.title) }}
-                {% elif data.new_value %}
-                    {{ _("%(field)s for %(title)s: %(new)s", field=data.field_label, title=data.book.title, new=data.new_value) }}
+                {% if data.saved and data.value %}
+                    {{ _("%(field)s for %(title)s: %(value)s", field=data.field_label, title=data.book.title, value=data.value) }}
                 {% else %}
                     {{ _("%(field)s for %(title)s", field=data.field_label, title=data.book.title) }}
                 {% endif %}
             </h1>
-            {% if data.note %}<p class="fe-receipt__note">{{ _("Your note:") }} {{ data.note }}</p>{% endif %}
-            <p>{{ _("A volunteer librarian will look at it, usually within %(days)s days.", days=data.wait_days) }}</p>
+            {% if data.saved %}
+                <p>
+                    {{ _("The record is updated.") }}
+                    <a href="{{ data.history_url }}">{{ _("See it in the record's history") }}</a>
+                </p>
+            {% else %}
+                <p>{{ _("Nothing on the record changed.") }}</p>
+            {% endif %}
         </div>
     </section>
     {% if data.same_book %}

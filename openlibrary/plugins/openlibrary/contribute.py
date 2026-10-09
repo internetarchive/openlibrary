@@ -9,8 +9,9 @@ Three separable parts, kept in three places:
   from outside catalogs; the page links to them per the field's playbook and
   shows how the work's other editions fill the field.
 
-Nothing is saved yet: submitting renders a receipt from the posted values.
-Every page is for beta testers and librarians while it is tried out.
+An answer is saved straight to the record as a normal edit (``first_edits.save``),
+so it shows in the record's history and can be reverted like any other.
+Every page is for librarians.
 """
 
 import random
@@ -22,13 +23,14 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
-from openlibrary.first_edits import identifiers, ranking, supply, tasks
+from openlibrary.core import helpers
+from openlibrary.first_edits import identifiers, ranking, save, supply, tasks
 from openlibrary.first_edits.playbooks import get_playbooks, link_outs
 from openlibrary.first_edits.scope import load_scope
 from openlibrary.first_edits.siblings import edition_field_values
 from openlibrary.i18n import gettext as _
 
-DENIED = "First Edits is being tried out with a small group"
+DENIED = "The contribute dashboard is for librarians"
 
 # The Jinja page for each handler. Listed in full so template usage is greppable.
 PAGES = {
@@ -70,12 +72,22 @@ def _user():
 
 
 def _allowed(user) -> bool:
-    """Beta testers, plus the groups that already try out new UI: librarians, maintainers, admins."""
-    return bool(user and (user.is_beta_tester() or user.is_librarian_or_higher() or user.is_maintainer()))
+    """Librarians and up: answers are saved straight to the record."""
+    return bool(user and user.is_librarian_or_higher())
 
 
 def _denied(path: str):
     return render_template("permission_denied", path, DENIED)
+
+
+def _gate(path: str):
+    """Login for visitors, permission denied for everyone else who isn't a librarian. None when the user may continue."""
+    user = _user()
+    if not user:
+        raise web.seeother(f"/account/login?{urlencode({'redirect': path})}")
+    if not _allowed(user):
+        return _denied(path)
+    return None
 
 
 def _enabled_fields() -> tuple[str, ...]:
@@ -123,6 +135,39 @@ def _sibling_list(fld: str, others: list, limit: int = 10) -> list[dict]:
         ]
         rows.append({"url": e.key, "value": ", ".join(names.get(str(v), str(v)) for v in values[e.key]), "about": ", ".join(p for p in about if p)})
     return rows
+
+
+def _display(edition, fld: str) -> str:
+    """The field's current value as the receipt shows it."""
+    values = edition_field_values(edition, fld)
+    if fld == "languages":
+        names = _language_names({str(v) for v in values})
+        return ", ".join(names.get(str(v), str(v)) for v in values)
+    return ", ".join(str(v) for v in values)
+
+
+def _recent(user) -> list[dict]:
+    """The right column's "Your recent fixes"."""
+    changes = save.recent_saves(user.key)
+    keys = [c.changes[0]["key"] for c in changes if c.changes]
+    editions = {e.key: e for e in web.ctx.site.get_many(keys)} if keys else {}
+    playbooks = get_playbooks()
+    out = []
+    for c in changes:
+        key = c.changes[0]["key"] if c.changes else ""
+        if not (edition := editions.get(key)):
+            continue
+        fld = (c.data or {}).get("field", "")
+        out.append(
+            {
+                "title": edition.get_title(),
+                "url": f"{key}?m=history",
+                "field_label": playbooks[fld].label if fld in playbooks else "",
+                "value": _display(edition, fld) if fld else "",
+                "when": helpers.datestr(c.timestamp),
+            }
+        )
+    return out
 
 
 def _book(edition, readers: int | None = None) -> dict:
@@ -205,25 +250,21 @@ class contribute_index(delegate.page):
     path = "/contribute"
 
     def GET(self):
-        user = _user()
         task = _task_filter(query_param("task", ""))
-        allowed = _allowed(user)
-        params: dict = {
-            "allowed": allowed,
-            "logged_in": bool(user),
-            "wait_days": load_scope().review_wait_days,
-            "one_task_url": _dashboard_url(task, base="/contribute/one"),
-        }
-        if allowed:
-            heading = next((label for fid, label, _fields in _filters() if fid == task), None)
-            params |= {
-                "rail": _rail(task),
-                "rows": _rows(task),
-                "heading": _("Missing: %(field)s", field=heading) if heading else _("Most needed"),
-                "sort_note": _("Books more people read come first."),
-                "empty": _("Nothing missing here right now. Thank you."),
-            }
-        return _render("dashboard", _("Contribute"), **params)
+        if denied := _gate(_dashboard_url(task)):
+            return denied
+        heading = next((label for fid, label, _fields in _filters() if fid == task), None)
+        return _render(
+            "dashboard",
+            _("Contribute"),
+            one_task_url=_dashboard_url(task, base="/contribute/one"),
+            rail=_rail(task),
+            rows=_rows(task),
+            heading=_("Missing: %(field)s", field=heading) if heading else _("Most needed"),
+            sort_note=_("Books more people read come first."),
+            empty=_("Nothing missing here right now. Thank you."),
+            recent=_recent(_user()),
+        )
 
 
 class contribute_one(delegate.page):
@@ -232,12 +273,9 @@ class contribute_one(delegate.page):
     path = "/contribute/one"
 
     def GET(self):
-        user = _user()
         task = _task_filter(query_param("task", ""))
-        if not user:
-            raise web.seeother(f"/account/login?redirect={_dashboard_url(task, base=self.path)}")
-        if not _allowed(user):
-            return _denied(self.path)
+        if denied := _gate(_dashboard_url(task, base=self.path)):
+            return denied
         options = [t for row in _rows(task) for t in row["tasks"]]
         if not options:
             raise web.seeother(_dashboard_url(task))
@@ -261,7 +299,7 @@ def _sibling_editions(edition) -> list:
     return [e for e in work.get_sorted_editions(keys=[edition.key]) if e.key != edition.key]
 
 
-def _task_context(edition, task: tasks.Task, back: str) -> dict:
+def _task_context(edition, task: tasks.Task, back: str, error: str = "", value: str = "", note: str = "") -> dict:
     playbook = get_playbooks()[task.field]
     others = _sibling_editions(edition)
     book = _book(edition)
@@ -273,8 +311,11 @@ def _task_context(edition, task: tasks.Task, back: str) -> dict:
         "link_outs": link_outs(playbook, book["isbn13"]),
         "siblings": _sibling_list(task.field, others),
         "sibling_total": len(others),
-        "wait_days": load_scope().review_wait_days,
         "list_url": _dashboard_url(back),
+        "languages": save.language_options() if task.field == "languages" else [],
+        "error": error,
+        "value": value,
+        "note": note,
     }
 
 
@@ -285,59 +326,72 @@ def _back() -> str:
     return _task_filter(query_param("back", ""))
 
 
+def _edition_or_404(olid: str):
+    edition = web.ctx.site.get(f"/books/{olid}")
+    if not edition or edition.type.key != "/type/edition":
+        raise web.notfound()
+    return edition
+
+
+def _nothing(edition, fld: str, back: str):
+    label = get_playbooks()[fld].label
+    return _render("nothing", _("Nothing to fill in here"), book=_book(edition), field_label=label, list_url=_dashboard_url(back))
+
+
 class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        user = _user()
-        if not _allowed(user):
-            return _denied(f"/contribute/task/{olid}/{fld}")
+        if denied := _gate(f"/contribute/task/{olid}/{fld}"):
+            return denied
         back = _back()
-        edition = web.ctx.site.get(f"/books/{olid}")
-        if not edition or edition.type.key != "/type/edition":
-            raise web.notfound()
-        playbook = get_playbooks()[fld]
+        edition = _edition_or_404(olid)
         if not (task := tasks.task_for(edition, fld)):
-            return _render("nothing", _("Nothing to fill in here"), book=_book(edition), field_label=playbook.label, list_url=_dashboard_url(back))
-        return _render("task", playbook.question, **_task_context(edition, task, back))
+            return _nothing(edition, fld, back)
+        return _render("task", get_playbooks()[fld].question, **_task_context(edition, task, back))
 
     def POST(self, olid, fld):
-        user = _user()
-        if not _allowed(user):
-            return _denied(f"/contribute/task/{olid}/{fld}")
-        i = web.input(choice="", value="", note="", back="")
-        # Nothing is saved yet. The receipt is rendered from what was posted.
-        query = urlencode({"choice": i.choice, "value": i.value.strip(), "note": i.note.strip(), "back": _task_filter(i.back)})
-        raise web.seeother(f"/contribute/task/{olid}/{fld}/done?{query}")
+        if denied := _gate(f"/contribute/task/{olid}/{fld}"):
+            return denied
+        i = web.input(choice="", value="", note="", back="", confirmed="")
+        back = _task_filter(i.back)
+        edition = _edition_or_404(olid)
+        if not (task := tasks.task_for(edition, fld)):
+            return _nothing(edition, fld, back)
+        done = f"/contribute/task/{olid}/{fld}/done"
+        if i.choice == "unsure":
+            raise web.seeother(f"{done}?{urlencode({'choice': 'skipped', 'back': back})}")
+        playbook = get_playbooks()[fld]
+        try:
+            if identifiers.is_identifier_field(fld) and not i.confirmed:
+                raise save.InvalidAnswer(_("Open the record and confirm it matches this edition first."))
+            save.save_answer(edition, fld, i.value, playbook.label, i.note)
+        except save.InvalidAnswer as e:
+            context = _task_context(edition, task, back, error=str(e), value=i.value, note=i.note)
+            return _render("task", playbook.question, **context)
+        raise web.seeother(f"{done}?{urlencode({'choice': 'saved', 'back': back})}")
 
 
 class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        user = _user()
-        if not _allowed(user):
-            return _denied(f"/contribute/task/{olid}/{fld}/done")
+        if denied := _gate(f"/contribute/task/{olid}/{fld}/done"):
+            return denied
         back = _back()
-        edition = web.ctx.site.get(f"/books/{olid}")
-        if not edition:
-            raise web.notfound()
+        edition = _edition_or_404(olid)
         playbooks = get_playbooks()
-        choice = query_param("choice", "")
-        value = query_param("value", "")
-        if identifiers.is_identifier_field(fld):
-            value = next(iter(identifiers.normalized(fld, value)), value)
+        saved = query_param("choice", "") == "saved"
         same_book = [_task_summary(t, playbooks, back) for t in tasks.tasks_for_edition(edition) if t.field != fld]
         return _render(
             "done",
-            _("Sent to a librarian"),
+            _("Saved") if saved else _("Skipped"),
             book=_book(edition),
             field_label=playbooks[fld].label,
-            choice=choice,
-            new_value="" if choice == "unsure" else value,
-            note=query_param("note", ""),
+            saved=saved,
+            value=_display(edition, fld) if saved else "",
+            history_url=f"{edition.key}?m=history",
             same_book=same_book,
-            wait_days=load_scope().review_wait_days,
             task_key=f"{olid}/{fld}",
             list_url=_dashboard_url(back),
         )

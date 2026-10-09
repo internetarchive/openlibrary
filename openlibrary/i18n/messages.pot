@@ -1440,7 +1440,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html covers/manage.html my_books/shelf_button_i18n.html
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/manage.html my_books/shelf_button_i18n.html
 msgid "Save"
 msgstr ""
 
@@ -4010,12 +4010,11 @@ msgid "We link to catalogs that have it and show how other editions fill it in."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Suggest a fix"
+msgid "Save it"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-#, python-format
-msgid "A librarian reviews it, usually within %(days)s days. Not sure? Say so."
+msgid "The record updates right away, and the edit shows in its history."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
@@ -4036,29 +4035,24 @@ msgid "On about %(count)s readers’ shelves."
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Contributing is being tried out with a small group. Ask in the volunteers channel to be added, and this page will open up."
+msgid "Your recent fixes"
 msgstr ""
 
 #: contribute/dashboard.html.jinja
-msgid "Log in to start. You need an Open Library account so your suggestions have a name on them."
+msgid "Fixes you save here show up in this list."
 msgstr ""
 
-#: contribute/done.html.jinja
-msgid "Sent as a question"
+#: contribute/done.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Saved"
 msgstr ""
 
-#: contribute/done.html.jinja
-msgid "Sent"
-msgstr ""
-
-#: contribute/done.html.jinja
-#, python-format
-msgid "%(field)s for %(title)s: you asked a librarian to look"
+#: contribute/done.html.jinja openlibrary/plugins/openlibrary/contribute.py
+msgid "Skipped"
 msgstr ""
 
 #: contribute/done.html.jinja
 #, python-format
-msgid "%(field)s for %(title)s: %(new)s"
+msgid "%(field)s for %(title)s: %(value)s"
 msgstr ""
 
 #: contribute/done.html.jinja
@@ -4067,12 +4061,15 @@ msgid "%(field)s for %(title)s"
 msgstr ""
 
 #: contribute/done.html.jinja
-msgid "Your note:"
+msgid "The record is updated."
 msgstr ""
 
 #: contribute/done.html.jinja
-#, python-format
-msgid "A volunteer librarian will look at it, usually within %(days)s days."
+msgid "See it in the record's history"
+msgstr ""
+
+#: contribute/done.html.jinja
+msgid "Nothing on the record changed."
 msgstr ""
 
 #: contribute/done.html.jinja
@@ -8058,7 +8055,7 @@ msgstr ""
 msgid "Paste only the number, not the web address."
 msgstr ""
 
-#: contribute/parts.html.jinja
+#: contribute/parts.html.jinja openlibrary/first_edits/save.py
 msgid "That is not a valid number for this catalog."
 msgstr ""
 
@@ -8067,7 +8064,7 @@ msgid "I couldn't find it"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Sends it to a librarian with a note. Never counts against you."
+msgid "Skips this book. Nothing on the record changes."
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8075,7 +8072,7 @@ msgid "I opened the record and the year and publisher match this edition."
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Note for the reviewer (optional)"
+msgid "Edit comment (optional)"
 msgstr ""
 
 #: contribute/parts.html.jinja
@@ -8083,16 +8080,11 @@ msgid "Where you found it"
 msgstr ""
 
 #: contribute/parts.html.jinja
-msgid "Send to a librarian"
-msgstr ""
-
-#: contribute/parts.html.jinja
 msgid "Skip this book"
 msgstr ""
 
 #: contribute/parts.html.jinja
-#, python-format
-msgid "Goes into the review queue. Usually looked at within %(days)s days."
+msgid "Saves to the record right away. You can undo it from the record's history."
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
@@ -8571,6 +8563,27 @@ msgstr ""
 msgid "Digits only, for example 47810608"
 msgstr ""
 
+#: openlibrary/first_edits/save.py
+msgid "Pick a language from the list."
+msgstr ""
+
+#: openlibrary/first_edits/save.py
+msgid "Enter the page count as a whole number."
+msgstr ""
+
+#: openlibrary/first_edits/save.py
+msgid "Fill in an answer, or choose “I couldn't find it”."
+msgstr ""
+
+#: openlibrary/first_edits/save.py
+msgid "This field can't be filled in here."
+msgstr ""
+
+#: openlibrary/first_edits/save.py
+#, python-format
+msgid "Filled in %(field)s from the contribute dashboard"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"
 msgstr ""
@@ -8673,7 +8686,7 @@ msgid "Nothing to fill in here"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/contribute.py
-msgid "Sent to a librarian"
+msgid "Open the record and confirm it matches this edition first."
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py

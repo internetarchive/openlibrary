@@ -920,3 +920,51 @@
   flex-wrap: wrap;
   gap: var(--spacing-inline-sm);
 }
+
+/* "Your recent fixes" in the dashboard's right column. */
+.fe-recent {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fe-recent__item {
+  display: grid;
+  gap: var(--spacing-3xs);
+  padding-block-end: var(--spacing-stack-sm);
+  border-block-end: 1px solid var(--color-border-subtle);
+}
+
+.fe-recent__when {
+  font-size: var(--font-size-label-small);
+}
+
+.fe-dash__aside {
+  display: grid;
+  gap: var(--spacing-section-gap);
+  align-content: start;
+}
+
+.fe-side {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+/* Desktop: the aside sits under the list until there is room beside it. */
+@media (min-width: 960px) {
+  .fe-dash__aside {
+    grid-column: 2;
+  }
+}
+
+@media (min-width: 1200px) {
+  .fe-dash__body {
+    grid-template-columns: 200px minmax(0, 1fr) 280px;
+  }
+
+  .fe-dash__aside {
+    grid-column: auto;
+  }
+}
