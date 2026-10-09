@@ -145,7 +145,7 @@ $def with (books=None, books_wo_isbns=None)
           document.querySelectorAll('.express-interest-btn[data-service="' + feature + '"]').forEach(function(btn) {
             btn.disabled = true;
             var recordedText = btn.dataset.interestRecordedText || 'Interest recorded';
-            btn.textContent = recordedText + ' \u2713';
+            btn.textContent = recordedText;
             btn.classList.remove('cta-btn--available');
             btn.classList.add('cta-btn--unavailable');
             btn.onclick = null;
