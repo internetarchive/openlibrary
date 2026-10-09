@@ -78,6 +78,8 @@ mk_norm_conversions = [
     ("Kitāb Yatīmat ud-Dahr", "kitābyatīmatuddahr"),
     ("The Fish and Chips", "fishchips"),
     ("A Fish & Chip shop", "fishchipshop"),
+    ("The Title", "title"),
+    ("\u0098The \u009cTitle", "title"),  # Unicode NSB/NSE markers
 ]
 
 

@@ -35,6 +35,16 @@ class Test_BinaryDataField:
         bdf = BinaryDataField(MockMARC("marc8"), b"")
         assert bdf.translate(b"Vieira, Claudio Bara\xe2una,") == "Vieira, Claudio Baraúna,"
 
+    def test_translate_nonsorting_MARC8(self):
+        bdf = BinaryDataField(MockMARC("marc8"), b"")
+        assert bdf.translate(b"\x88The \x89Title") == "The Title"
+
+    def test_translate_nonsorting_UTF8(self):
+        bdf = BinaryDataField(MockMARC("utf8"), b"")
+        r = bdf.translate(b"\xc2\x98The \xc2\x9cTitle")
+        assert len(r) == 11
+        assert r == "\u0098The \u009cTitle"
+
     def test_bad_marc_line(self):
         line = b"0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e"
         bdf = BinaryDataField(MockMARC("marc8"), line)
