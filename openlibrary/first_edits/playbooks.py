@@ -87,7 +87,9 @@ def get_playbooks() -> dict[str, Playbook]:
             label=_("Page count"),
             action=_("Fill in page count"),
             question=_("How many pages does this edition have?"),
-            how=_("WorldCat lists the page count in the record's description. Google Books calls it Length. Make sure the record is for this ISBN, not another printing."),
+            how=_(
+                "WorldCat lists the page count in the record's description. Google Books calls it Length. Make sure the record is for this ISBN, not another printing."
+            ),
             sources=[worldcat, google, amazon],
             notes=[
                 Note(
@@ -149,8 +151,7 @@ def get_playbooks() -> dict[str, Playbook]:
             action=_("Fill in OCLC number"),
             question=_("What is this edition's WorldCat (OCLC) number?"),
             how=_(
-                "Search WorldCat for this ISBN. Open the record whose year, publisher and format match this edition, "
-                "and copy the number shown as OCLC Number."
+                "Search WorldCat for this ISBN. Open the record whose year, publisher and format match this edition, and copy the number shown as OCLC Number."
             ),
             sources=[worldcat],
             why=_(

@@ -41,4 +41,3 @@ def test_normalize_lccn_value(raw, expected):
 def test_normalized_drops_unusable_values():
     assert identifiers.normalized("oclc_numbers", ["ocm0004781", "junk"]) == ["4781"]
     assert identifiers.normalized("lccn", None) == []
-
