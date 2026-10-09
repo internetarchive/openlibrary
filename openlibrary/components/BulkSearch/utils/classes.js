@@ -24,12 +24,11 @@ class AbstractExtractor {
      * @param {string} _text
      * @returns {Promise<BookMatch[]>}
      */
+    // eslint-disable-next-line no-unused-vars
     async run(_extractOptions, _text) {
-        //eslint-disable-line no-unused-vars
         throw new Error('Not Implemented Error');
     }
 }
-
 export class RegexExtractor extends AbstractExtractor {
     name = 'regex_extractor';
     /**
