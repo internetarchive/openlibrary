@@ -6,7 +6,7 @@ librarian at them, and the answer is theirs.
 
 from dataclasses import dataclass
 
-from openlibrary.first_edits.scope import Scope, load_scope
+from openlibrary.contribute.scope import Scope, load_scope
 
 
 @dataclass(frozen=True)

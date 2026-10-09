@@ -7,7 +7,7 @@ the record's history, ``edit-book`` as the kind so edit stats are unchanged.
 
 import web
 
-from openlibrary.first_edits import identifiers
+from openlibrary.contribute import identifiers
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_languages
 

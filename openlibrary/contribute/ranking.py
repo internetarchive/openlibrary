@@ -7,10 +7,10 @@ same thing here as on the edit form.
 
 from typing import TYPE_CHECKING
 
-from openlibrary.first_edits.scope import Scope, load_scope
+from openlibrary.contribute.scope import Scope, load_scope
 
 if TYPE_CHECKING:
-    from openlibrary.first_edits.tasks import Task
+    from openlibrary.contribute.tasks import Task
 
 
 def task_points(task: Task, scope: Scope | None = None) -> int:

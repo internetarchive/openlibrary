@@ -1,15 +1,15 @@
 {#- /contribute/task/OL…M/<field> — one book, one missing field, answered in place on the record. -#}
 {% import "contribute/parts.html.jinja" as parts %}
-<div class="fe-page fe-page--task" data-contribute-task>
-    <a class="fe-back" href="{{ data.list_url }}">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
-    <div class="fe-task__main">
-        <div class="fe-question">
-            <h1 class="fe-question__text">{{ data.playbook.question }}</h1>
-            {% if data.playbook.why %}<p class="fe-muted">{{ data.playbook.why }}</p>{% endif %}
+<div class="contrib-page contrib-page--task" data-contribute-task>
+    <a class="contrib-back" href="{{ data.list_url }}">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
+    <div class="contrib-task__main">
+        <div class="contrib-question">
+            <h1 class="contrib-question__text">{{ data.playbook.question }}</h1>
+            {% if data.playbook.why %}<p class="contrib-muted">{{ data.playbook.why }}</p>{% endif %}
         </div>
         {{ parts.record_form(data) }}
     </div>
-    <aside class="fe-task__help">
+    <aside class="contrib-task__help">
         {{ parts.how_to(data.playbook, data.link_outs) }}
         {% if data.playbook.traps %}{{ parts.traps(data.playbook.traps) }}{% endif %}
         {% if data.siblings %}

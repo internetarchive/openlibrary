@@ -3,13 +3,13 @@
 Three separable parts, kept in three places:
 
 - **Supply**: the most-read works with an edition missing a field, from Solr.
-  ``first_edits.supply``.
-- **Tasks**: one empty field on one edition. ``first_edits.tasks``.
+  ``openlibrary.contribute.supply``.
+- **Tasks**: one empty field on one edition. ``openlibrary.contribute.tasks``.
 - **The task page**: the context to fill it in. Open Library fetches nothing
   from outside catalogs; the page links to them per the field's playbook and
   shows how the work's other editions fill the field.
 
-An answer is saved straight to the record as a normal edit (``first_edits.save``),
+An answer is saved straight to the record as a normal edit (``openlibrary.contribute.save``),
 so it shows in the record's history and can be reverted like any other.
 Every page is for librarians.
 """
@@ -24,11 +24,11 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import query_param, render_template
 from openlibrary import accounts
+from openlibrary.contribute import identifiers, ranking, save, supply, tasks
+from openlibrary.contribute.playbooks import get_playbooks, link_outs
+from openlibrary.contribute.scope import load_scope
+from openlibrary.contribute.siblings import edition_field_values
 from openlibrary.core import helpers
-from openlibrary.first_edits import identifiers, ranking, save, supply, tasks
-from openlibrary.first_edits.playbooks import get_playbooks, link_outs
-from openlibrary.first_edits.scope import load_scope
-from openlibrary.first_edits.siblings import edition_field_values
 from openlibrary.i18n import gettext as _
 
 DENIED = "The contribute dashboard is for librarians"

@@ -1,8 +1,8 @@
 import pytest
 
-from openlibrary.first_edits import ranking, supply, tasks
-from openlibrary.first_edits.scope import parse_scope
-from openlibrary.first_edits.tasks import Task
+from openlibrary.contribute import ranking, supply, tasks
+from openlibrary.contribute.scope import parse_scope
+from openlibrary.contribute.tasks import Task
 
 SCOPE = parse_scope(
     {

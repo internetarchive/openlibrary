@@ -1,4 +1,4 @@
-"""Which fields First Edits offers, and what filling each is worth.
+"""Which fields /contribute offers, and what filling each is worth.
 
 The scope is a JSON file so librarians can change it without a code change.
 """

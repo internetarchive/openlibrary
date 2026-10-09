@@ -1,6 +1,6 @@
 import pytest
 
-from openlibrary.first_edits import identifiers
+from openlibrary.contribute import identifiers
 from openlibrary.utils.oclc import normalize_oclc
 
 

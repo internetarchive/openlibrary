@@ -1,23 +1,24 @@
-{#- Shared pieces of the First Edits pages. Data arrives precomputed from
+{#- Shared pieces of the /contribute pages. Data arrives precomputed from
     openlibrary/plugins/openlibrary/contribute.py; nothing here calls functions on it. -#}
 {% macro book_header(book, compact=False) %}
-    <div class="fe-book{% if compact %} fe-book--compact{% endif %}">
+    <div class="contrib-book{% if compact %} contrib-book--compact{% endif %}">
         {% if book.cover_url %}
-            <img class="fe-book__cover"
+            <img class="contrib-book__cover"
                  src="{{ book.cover_url }}"
                  alt=""
                  width="60"
                  height="90"
                  loading="lazy" />
         {% else %}
-            <div class="fe-book__cover fe-book__cover--empty" aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+            <div class="contrib-book__cover contrib-book__cover--empty"
+                 aria-hidden="true">{{ icon("book-open", size="md") }}</div>
         {% endif %}
-        <div class="fe-book__meta">
-            <div class="fe-book__title">
+        <div class="contrib-book__meta">
+            <div class="contrib-book__title">
                 {% if book.key %}<a href="{{ book.key }}">{{ book.title }}</a>{% else %}{{ book.title }}{% endif %}
             </div>
-            {% if book.authors %}<div class="fe-book__authors">{{ book.authors }}</div>{% endif %}
-            <div class="fe-book__line">
+            {% if book.authors %}<div class="contrib-book__authors">{{ book.authors }}</div>{% endif %}
+            <div class="contrib-book__line">
                 {% if book.edition_line %}<span>{{ book.edition_line }}</span>{% endif %}
                 {% if book.isbn13 %}<span>ISBN {{ book.isbn13 }}</span>{% endif %}
                 {% if book.edition_count and book.edition_count > 1 %}
@@ -25,31 +26,31 @@
                 {% endif %}
             </div>
             {% if book.readers and not compact %}
-                <div class="fe-book__why">{{ _("Why this book: on about %(count)s readers' shelves.", count="{:,}".format(book.readers)) }}</div>
+                <div class="contrib-book__why">{{ _("Why this book: on about %(count)s readers' shelves.", count="{:,}".format(book.readers)) }}</div>
             {% endif %}
         </div>
     </div>
 {% endmacro %}
 {% macro task_row(task) %}
     {#- One to-do per field, styled as a menu item: an icon and the action it leads to. -#}
-    <li class="fe-row__task"
+    <li class="contrib-row__task"
         data-task-key="{{ task.key }}"
         {% if task.weight is defined %}data-weight="{{ task.weight }}"{% endif %}
         {% if task.question %}data-question="{{ task.question }}"{% endif %}>
         <a href="{{ task.url }}">
-            <span class="fe-row__badge">{{ icon("plus", size="sm") }}</span>
+            <span class="contrib-row__badge">{{ icon("plus", size="sm") }}</span>
             <span>{{ task.action_label }}</span>
         </a>
     </li>
 {% endmacro %}
 {% macro how_to(playbook, links) %}
-    <section class="fe-help">
-        <h2 class="fe-h">{{ _("How to answer") }}</h2>
-        <ol class="fe-steps">
+    <section class="contrib-help">
+        <h2 class="contrib-h">{{ _("How to answer") }}</h2>
+        <ol class="contrib-steps">
             <li>
                 <p>{{ playbook.how }}</p>
                 {% if links %}
-                    <ul class="fe-linkouts">
+                    <ul class="contrib-linkouts">
                         {% for link in links %}
                             <li>
                                 <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}{{ icon("external-link", size="sm") }}</a>
@@ -57,7 +58,7 @@
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="fe-muted">{{ _("This edition has no ISBN to search by, so look it up by title and author.") }}</p>
+                    <p class="contrib-muted">{{ _("This edition has no ISBN to search by, so look it up by title and author.") }}</p>
                 {% endif %}
             </li>
             {% for note in playbook.notes %}
@@ -72,11 +73,11 @@
     </section>
 {% endmacro %}
 {% macro traps(items) %}
-    <section class="fe-help">
-        <h2 class="fe-h">{{ _("How this edit goes wrong") }}</h2>
-        <ul class="fe-traps">
+    <section class="contrib-help">
+        <h2 class="contrib-h">{{ _("How this edit goes wrong") }}</h2>
+        <ul class="contrib-traps">
             {% for trap in items %}
-                <li class="fe-trap">
+                <li class="contrib-trap">
                     {{ icon("triangle-alert", size="sm") }}
                     <span>{{ trap }}</span>
                 </li>
@@ -86,54 +87,54 @@
 {% endmacro %}
 {% macro sibling_tally(tally, siblings, total, hint) %}
     {#- What the work's other editions put in this field: a count per value, then each edition behind a disclosure. -#}
-    <section class="fe-help">
-        <h2 class="fe-h">{{ ngettext("The other edition", "The other %(count)d editions", total, count=total) }}</h2>
+    <section class="contrib-help">
+        <h2 class="contrib-h">{{ ngettext("The other edition", "The other %(count)d editions", total, count=total) }}</h2>
         {% if hint %}<p>{{ hint }}</p>{% endif %}
-        <ul class="fe-tally">
+        <ul class="contrib-tally">
             {% for t in tally["values"] %}
                 <li>
-                    <span class="fe-tally__label">{{ t.label }}</span>
-                    <span class="fe-tally__bar"
-                          style="--fe-share: {{ t.share }}%"
+                    <span class="contrib-tally__label">{{ t.label }}</span>
+                    <span class="contrib-tally__bar"
+                          style="--contrib-share: {{ t.share }}%"
                           aria-hidden="true"></span>
-                    <span class="fe-tally__count">{{ t.count }}</span>
+                    <span class="contrib-tally__count">{{ t.count }}</span>
                 </li>
             {% endfor %}
             {% if tally.more %}
-                <li class="fe-muted">{{ ngettext("1 other value", "%(count)d other values", tally.more, count=tally.more) }}</li>
+                <li class="contrib-muted">{{ ngettext("1 other value", "%(count)d other values", tally.more, count=tally.more) }}</li>
             {% endif %}
             {% if tally.unfilled %}
-                <li class="fe-muted">
-                    <span class="fe-tally__label">{{ _("Not filled in") }}</span>
-                    <span class="fe-tally__bar fe-tally__bar--empty"
-                          style="--fe-share: {{ (100 * tally.unfilled / total) | round | int }}%"
+                <li class="contrib-muted">
+                    <span class="contrib-tally__label">{{ _("Not filled in") }}</span>
+                    <span class="contrib-tally__bar contrib-tally__bar--empty"
+                          style="--contrib-share: {{ (100 * tally.unfilled / total) | round | int }}%"
                           aria-hidden="true"></span>
-                    <span class="fe-tally__count">{{ tally.unfilled }}</span>
+                    <span class="contrib-tally__count">{{ tally.unfilled }}</span>
                 </li>
             {% endif %}
         </ul>
-        <details class="fe-disclosure">
+        <details class="contrib-disclosure">
             <summary>{{ _("See each edition") }}</summary>
-            <ul class="fe-siblings">
+            <ul class="contrib-siblings">
                 {% for s in siblings %}
                     <li>
-                        <span class="fe-siblings__value{% if not s.value %} fe-muted{% endif %}">{{ s.value or _("Not filled in") }}</span>
+                        <span class="contrib-siblings__value{% if not s.value %} contrib-muted{% endif %}">{{ s.value or _("Not filled in") }}</span>
                         {% if s.about %}<a href="{{ s.url }}">{{ s.about }}</a>{% endif %}
                     </li>
                 {% endfor %}
             </ul>
             {% if total > siblings|length %}
-                <p class="fe-muted">{{ _("And %(count)s more.", count=total - siblings|length) }}</p>
+                <p class="contrib-muted">{{ _("And %(count)s more.", count=total - siblings|length) }}</p>
             {% endif %}
         </details>
     </section>
 {% endmacro %}
 {% macro answer_control(task, playbook, is_identifier, value, languages) %}
     {% if is_identifier %}
-        <input id="fe-other-value"
+        <input id="contrib-other-value"
                type="text"
                name="value"
-               class="fe-input fe-input--id"
+               class="contrib-input contrib-input--id"
                placeholder="{{ playbook.placeholder }}"
                inputmode="numeric"
                autocomplete="off"
@@ -145,13 +146,13 @@
                data-msg-url="{{ _('Paste only the number, not the web address.') }}"
                data-msg-bad="{{ _('That is not a valid number for this catalog.') }}" />
     {% elif languages %}
-        <ol-options-popover id="fe-other-value" class="fe-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ playbook.answer_label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
+        <ol-options-popover id="contrib-other-value" class="contrib-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ playbook.answer_label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
         </ol-options-popover>
     {% else %}
-        <input id="fe-other-value"
+        <input id="contrib-other-value"
                type="{{ playbook.input_type }}"
                name="value"
-               class="fe-input{% if playbook.input_type == 'number' %} fe-input--number{% endif %}"
+               class="contrib-input{% if playbook.input_type == 'number' %} contrib-input--number{% endif %}"
                placeholder="{{ playbook.placeholder }}"
                {% if playbook.input_type == "number" %}min="1"{% endif %}
                value="{{ value }}"
@@ -165,40 +166,41 @@
     {% set book = data.book %}
     <form method="post"
           action="{{ task.url }}"
-          class="fe-answer"
+          class="contrib-answer"
           data-task-form
           {% if data.is_identifier %}data-id-form{% endif %}
           data-task-key="{{ task.key }}">
         {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
-        <div class="fe-record">
+        <div class="contrib-record">
             {% if book.cover_url %}
-                <img class="fe-record__cover"
+                <img class="contrib-record__cover"
                      src="{{ book.cover_url }}"
                      alt=""
                      width="96"
                      height="144"
                      loading="lazy" />
             {% else %}
-                <div class="fe-record__cover fe-book__cover--empty" aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+                <div class="contrib-record__cover contrib-book__cover--empty"
+                     aria-hidden="true">{{ icon("book-open", size="md") }}</div>
             {% endif %}
-            <div class="fe-record__head">
-                <div class="fe-book__title">
+            <div class="contrib-record__head">
+                <div class="contrib-book__title">
                     <a href="{{ book.key }}">{{ book.title }}</a>
                 </div>
-                {% if book.authors %}<div class="fe-book__authors">{{ book.authors }}</div>{% endif %}
+                {% if book.authors %}<div class="contrib-book__authors">{{ book.authors }}</div>{% endif %}
             </div>
-            <dl class="fe-record__fields">
+            <dl class="contrib-record__fields">
                 {% for row in data.record %}
                     {% if row.ask %}
-                        <div class="fe-record__row fe-record__row--ask">
+                        <div class="contrib-record__row contrib-record__row--ask">
                             <dt>
-                                <label for="fe-other-value">{{ row.label }}</label>
+                                <label for="contrib-other-value">{{ row.label }}</label>
                             </dt>
                             <dd>
                                 {{ answer_control(task, data.playbook, data.is_identifier, data.value, data.languages) }}
-                                {% if data.is_identifier %}<p class="fe-field__verdict" data-id-verdict role="status"></p>{% endif %}
+                                {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
                                 {% if data.suggestions %}
-                                    <div class="fe-suggest" data-suggest>
+                                    <div class="contrib-suggest" data-suggest>
                                         <span>{{ _("Other editions say") }}</span>
                                         {% for s in data.suggestions %}
                                             <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on 1 edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
@@ -208,7 +210,7 @@
                                     </div>
                                 {% endif %}
                                 {% if data.is_identifier %}
-                                    <label class="fe-confirm">
+                                    <label class="contrib-confirm">
                                         <input type="checkbox" name="confirmed" value="1" required />
                                         <span>{{ _("I opened the record and the year and publisher match this edition.") }}</span>
                                     </label>
@@ -216,7 +218,7 @@
                             </dd>
                         </div>
                     {% else %}
-                        <div class="fe-record__row">
+                        <div class="contrib-record__row">
                             <dt>{{ row.label }}</dt>
                             <dd>
                                 {{ row.value }}
@@ -226,16 +228,16 @@
                 {% endfor %}
             </dl>
         </div>
-        <details class="fe-disclosure"{% if data.note %} open{% endif %}>
+        <details class="contrib-disclosure"{% if data.note %} open{% endif %}>
             <summary>{{ _("Add an edit comment") }}</summary>
-            <label class="fe-visually-hidden" for="fe-note">{{ _("Edit comment") }}</label>
-            <textarea id="fe-note"
+            <label class="contrib-visually-hidden" for="contrib-note">{{ _("Edit comment") }}</label>
+            <textarea id="contrib-note"
                       name="note"
                       rows="2"
-                      class="fe-input"
+                      class="contrib-input"
                       placeholder="{{ _('Where you found it') }}">{{ data.note }}</textarea>
         </details>
-        <div class="fe-answer__actions">
+        <div class="contrib-answer__actions">
             <ol-button variant="primary" type="submit">
                 {{ _("Save to the record") }}
             </ol-button>

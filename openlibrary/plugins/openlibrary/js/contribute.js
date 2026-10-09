@@ -1,5 +1,5 @@
 /**
- * First Edits (/contribute) page behavior.
+ * Contribute dashboard (/contribute) page behavior.
  *
  * Phase 1 saves nothing server-side. Progress within a browser session is a
  * list of task keys in sessionStorage so answered and skipped tasks drop out
@@ -8,7 +8,7 @@
 
 import { parseLccn, isValidLccn, parseOclc, isValidOclc } from './idValidation';
 
-const STORAGE_KEY = 'ol-first-edits-done';
+const STORAGE_KEY = 'ol-contribute-done';
 
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
@@ -94,11 +94,11 @@ function initOneTask(root) {
 
     const show = (task) => {
         const row = task.closest('[data-book-row]');
-        const cover = row.querySelector('.fe-book__cover');
+        const cover = row.querySelector('.contrib-book__cover');
         card.querySelector('[data-pick-cover]').replaceChildren(cover ? cover.cloneNode(true) : '');
         card.querySelector('[data-pick-question]').textContent = task.dataset.question || task.textContent.trim();
-        const title = row.querySelector('.fe-book__title')?.textContent.trim() || '';
-        const authors = row.querySelector('.fe-book__authors')?.textContent.trim() || '';
+        const title = row.querySelector('.contrib-book__title')?.textContent.trim() || '';
+        const authors = row.querySelector('.contrib-book__authors')?.textContent.trim() || '';
         card.querySelector('[data-pick-book]').textContent = authors ? `${title} · ${authors}` : title;
         card.querySelector('[data-pick-why]').textContent = row.dataset.why || '';
         card.querySelector('[data-pick-start]').setAttribute('href', task.querySelector('a').href);
@@ -137,7 +137,7 @@ function initTaskForm(root) {
  */
 function initSuggestions(form) {
     const group = form.querySelector('[data-suggest]');
-    const control = form.querySelector('#fe-other-value');
+    const control = form.querySelector('#contrib-other-value');
     if (!group || !control) return;
     const isPicker = control.tagName === 'OL-OPTIONS-POPOVER';
     const current = () => (isPicker ? control.selected : control.value.trim());

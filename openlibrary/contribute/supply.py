@@ -1,6 +1,6 @@
 """Where the books that need a hand come from.
 
-First Edits is three separable parts: supply (which books are candidates),
+/contribute is three separable parts: supply (which books are candidates),
 ranking (which to show first) and the task page (the context to act). This
 module is the supply: the most-read works with an edition missing a field,
 straight from Solr's edition child documents. The list pages turn each
