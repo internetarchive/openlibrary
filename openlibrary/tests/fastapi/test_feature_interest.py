@@ -100,8 +100,7 @@ def test_record_feature_interest_already_exists(fastapi_client, mock_authenticat
 
 def test_record_feature_interest_empty_feature(fastapi_client, mock_authenticated_user):
     response = fastapi_client.post("/account/feature-interest.json", data={"feature": ""})
-    assert response.status_code == 400
-    assert response.json()["detail"] == "Feature required"
+    assert response.status_code == 422  # Pydantic validation error for min_length=1
 
 
 def test_record_feature_interest_whitespace_only(fastapi_client, mock_authenticated_user):
