@@ -13,35 +13,52 @@ for the S3 keys -- see :func:`openlibrary.accounts.model.encrypt_token`.
 Storage
 =======
 
-The store is a seam -- :class:`TokenStore` -- and the backend that ships here is
-:class:`CookieTokenStore`: the whole grant set, JSON, Fernet-encrypted into one
-cookie in the patron's own browser. Nothing is written server-side, so **this
-module needs no table and no migration.**
+Where the grants live is a seam, :class:`TokenStore`, with two backends:
 
-That is a deliberate choice for a demo, and it buys the demo at a price that is
-stated here rather than discovered later:
+:class:`DbTokenStore`
+    **The default, and the one that ships.** One row per
+    ``(username, provider_name)`` in ``provider_tokens``, each token Fernet
+    encrypted at rest, with :meth:`ProviderToken.get_fresh` single-flighted by
+    ``SELECT ... FOR UPDATE`` on the patron's own row. The table is declared in
+    ``openlibrary/core/schema.sql``.
+
+:class:`CookieTokenStore`
+    The whole grant set, JSON, Fernet-encrypted into one cookie in the patron's
+    own browser. Nothing server-side, so it needs no table -- which is what
+    makes it useful for a demo or a test against a database that has not had
+    the DDL applied yet. **It is not the default and must not be read as one.**
+
+``schema.sql`` is applied at database *init* only, and Open Library has no
+DDL-migration mechanism: every script under ``scripts/migrations/`` migrates
+data, not schema. So an existing deployment -- production, or
+``testing.openlibrary.org`` -- gets this table when an operator runs the
+``CREATE TABLE`` by hand, and not before. Until they have,
+:class:`DbTokenStore` raises on a missing relation, which is the correct and
+visible failure; see the deploy steps on the pull request.
+
+What the cookie backend gives up
+================================
+
+Stated here rather than discovered later, because the cookie is still a
+selectable backend and the differences are not cosmetic:
 
 * **It cannot single-flight a rotating refresh token.** Lenny rotates refresh
   tokens and revokes the whole family when a spent one is presented again. Two
   concurrent requests carry the same cookie, so both hold the same ``R0``;
   whichever refreshes second presents a spent ``R0`` and loses the family. A
-  server-side row could be locked ``FOR UPDATE`` and re-read; a cookie cannot
-  be, because the winner's ``R1`` exists only in its own HTTP *response* to the
-  other tab. :meth:`ProviderToken.get_fresh` therefore narrows the window and
-  documents it, but does not close it. **This is a demo-scoped trade-off, not a
-  design decision for production.**
-* **Cookies are bounded.** Browsers cap a cookie near 4 KiB. Each stored grant
-  costs roughly ``len(access_token) + len(refresh_token)`` before a ~1.4x
-  Fernet/base64 expansion, so a patron with grants at many nodes will eventually
-  lose the oldest. :data:`MAX_COOKIE_BYTES` makes that a logged, deliberate
-  eviction rather than a silently truncated cookie.
+  server-side row can be locked ``FOR UPDATE`` and re-read; a cookie cannot be,
+  because the winner's ``R1`` exists only in its own HTTP *response* to the
+  other tab. :meth:`CookieTokenStore.get_fresh` therefore narrows the window
+  and documents it; :meth:`DbTokenStore.get_fresh` closes it.
+* **Cookies are bounded.** Browsers cap a cookie near 4 KiB, so a patron with
+  grants at many nodes will eventually lose the oldest.
+  :data:`MAX_COOKIE_BYTES` makes that a logged, deliberate eviction rather than
+  a silently truncated cookie.
+* **``delete_all_by_username`` can only reach the patron whose request is in
+  flight.** There is no server-side row for an operator to delete on someone
+  else's behalf.
 * **Clearing cookies forgets every grant.** The patron re-authorizes. That is a
   click, not a dead end.
-
-Swapping in a server-side store is one class, not a rewrite: implement
-:class:`TokenStore` and call :func:`set_store`. A durable backend should also
-add a lock around :meth:`ProviderToken.get_fresh`, which is the one thing the
-cookie cannot provide.
 
 See https://github.com/internetarchive/openlibrary/issues/13685 and
 ``ol-kb/wiki/lenny-oauth.md``.
@@ -52,16 +69,23 @@ from __future__ import annotations
 import datetime
 import json
 import logging
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 import web
 
 from openlibrary.accounts.model import decrypt_token, encrypt_token
 
+from . import db
+
+if TYPE_CHECKING:
+    from web.db import DB
+
 logger = logging.getLogger("openlibrary.provider_tokens")
 
+TABLENAME = "provider_tokens"
+
 COOKIE_NAME = "ptok"
-"""The cookie holding every provider grant this patron has authorized."""
+"""The cookie :class:`CookieTokenStore` holds a patron's grants in."""
 
 COOKIE_MAX_AGE = 3600 * 24 * 30
 """Thirty days. A refresh token outlives its access token by a long way, and a
@@ -82,7 +106,7 @@ a failed borrow. Lenny's access tokens last an hour (``wiki/lenny-oauth.md``,
 
 
 def _utcnow() -> datetime.datetime:
-    """Timezone-naive UTC now.
+    """Timezone-naive UTC now, matching the table's ``timestamp`` columns.
 
     Naive throughout this module, deliberately: the node sends timezone-aware
     timestamps and comparing the two raises ``TypeError`` rather than returning
@@ -96,7 +120,7 @@ class TokenRefreshFailed(Exception):
     """A refresh failed and the patron's stored grant has been deleted.
 
     The only correct response is to send the patron back through
-    authorization. Do not retry -- see :meth:`ProviderToken.get_fresh`.
+    authorization. Do not retry -- see :meth:`DbTokenStore.get_fresh`.
     """
 
 
@@ -137,11 +161,24 @@ class Grant:
 
 
 class Refresher(Protocol):
-    """Exchanges a refresh token for a new grant at one provider.
+    """Exchanges a refresh token with the provider for a new :class:`Grant`.
 
-    Raises on any failure. :meth:`ProviderToken.get_fresh` treats every
-    exception the same way, because from here a timeout and a rejection are
-    indistinguishable and both mean the stored grant is no longer trustworthy.
+    Supplied by the caller so this module holds no provider HTTP client. Under
+    :class:`DbTokenStore` it is called with the lock on the patron's row held,
+    so it **must** impose its own network timeout: whatever it waits for, the
+    row waits for too.
+
+    And do not call :meth:`ProviderToken.get_fresh` on a worker thread to get
+    several providers refreshed in parallel. ``web.db.DB`` keeps its connection
+    in a ``threadeddict`` and ``_unload_context`` only runs when pooling is on,
+    which it is not here (no ``dbutils``), so every new thread that reaches
+    :func:`openlibrary.core.db.get_db` opens a Postgres connection that is never
+    released. Resolve tokens sequentially and put a deadline over the phase --
+    ``openlibrary/plugins/upstream/lenny.py`` does this for #13687.
+
+    Raises on any failure. ``get_fresh`` treats every exception the same way,
+    because from here a timeout and a rejection are indistinguishable and both
+    mean the stored grant is no longer trustworthy.
     """
 
     def __call__(self, refresh_token: str) -> Grant: ...
@@ -150,19 +187,245 @@ class Refresher(Protocol):
 class TokenStore(Protocol):
     """Where a patron's grants live.
 
-    Deliberately coarse -- load and save the patron's whole grant set rather
-    than one provider's row. A cookie can only be written whole, and the
-    coarseness is what keeps the seam honest about that; a finer interface
-    would imply a per-provider atomicity the shipped backend does not have.
+    The whole operation set, not just load and save: ``get_fresh`` is on the
+    seam because single-flighting a rotating refresh token is the one thing the
+    two backends do *differently*, and expressing it in terms of a coarser
+    load/save pair would quietly impose the cookie's limitation on the table.
     """
 
-    def load(self, username: str) -> dict[str, Grant]:
-        """Every grant this patron holds, by provider name. ``{}`` if none."""
+    def get(self, username: str, provider_name: str) -> Grant | None:
+        """The patron's grant at a provider, or None. Does not check expiry."""
         ...
 
-    def save(self, username: str, grants: dict[str, Grant]) -> None:
-        """Replace this patron's whole grant set."""
+    def get_providers(self, username: str) -> list[str]:
+        """Every provider this patron holds a grant at, sorted."""
         ...
+
+    def upsert(self, username: str, provider_name: str, grant: Grant) -> Grant:
+        """Store, or replace, the patron's grant at a provider."""
+        ...
+
+    def delete(self, username: str, provider_name: str) -> int:
+        """Forget one grant. Returns the number removed (0 or 1)."""
+        ...
+
+    def delete_all_by_username(self, username: str) -> int:
+        """Forget every grant this patron holds. Returns the number removed."""
+        ...
+
+    def get_fresh(self, username: str, provider_name: str, refresher: Refresher) -> Grant | None:
+        """The patron's grant, refreshed first if its access token has expired."""
+        ...
+
+
+class DbTokenStore:
+    """Grants in the ``provider_tokens`` table, one row per patron per provider.
+
+    The shipped default. Requires the table; see the module docstring on how an
+    existing deployment gets it.
+    """
+
+    @staticmethod
+    def _decrypt(row: web.storage) -> Grant:
+        return Grant(
+            access_token=decrypt_token(row.access_token),
+            refresh_token=decrypt_token(row.refresh_token) if row.refresh_token else None,
+            expires=row.expires,
+            scope=row.scope or "",
+        )
+
+    def get(self, username: str, provider_name: str) -> Grant | None:
+        rows = list(
+            db.query(
+                f"SELECT * FROM {TABLENAME} WHERE username=$username AND provider_name=$provider_name",
+                vars={"username": username, "provider_name": provider_name},
+            )
+        )
+        return self._decrypt(rows[0]) if rows else None
+
+    def get_providers(self, username: str) -> list[str]:
+        rows = db.query(
+            f"SELECT provider_name FROM {TABLENAME} WHERE username=$username ORDER BY provider_name",
+            vars={"username": username},
+        )
+        return [row.provider_name for row in rows]
+
+    def upsert(self, username: str, provider_name: str, grant: Grant) -> Grant:
+        with db.transaction():
+            self._write(db.get_db(), username, provider_name, grant)
+        return grant
+
+    @staticmethod
+    def _write(oldb: DB, username: str, provider_name: str, grant: Grant) -> None:
+        oldb.query(
+            f"""
+            INSERT INTO {TABLENAME}
+                (username, provider_name, access_token, refresh_token, expires, scope, updated)
+            VALUES
+                ($username, $provider_name, $access_token, $refresh_token, $expires, $scope, $updated)
+            ON CONFLICT (username, provider_name) DO UPDATE SET
+                access_token = EXCLUDED.access_token,
+                refresh_token = EXCLUDED.refresh_token,
+                expires = EXCLUDED.expires,
+                scope = EXCLUDED.scope,
+                updated = EXCLUDED.updated
+            """,
+            vars={
+                "username": username,
+                "provider_name": provider_name,
+                "access_token": encrypt_token(grant.access_token),
+                "refresh_token": encrypt_token(grant.refresh_token) if grant.refresh_token else None,
+                "expires": grant.expires,
+                "scope": grant.scope,
+                "updated": _utcnow(),
+            },
+        )
+
+    def delete(self, username: str, provider_name: str) -> int:
+        with db.transaction():
+            return self._delete(db.get_db(), username, provider_name)
+
+    @staticmethod
+    def _delete(oldb: DB, username: str, provider_name: str) -> int:
+        return oldb.delete(
+            TABLENAME,
+            where="username=$username AND provider_name=$provider_name",
+            vars={"username": username, "provider_name": provider_name},
+        )
+
+    def delete_all_by_username(self, username: str) -> int:
+        """Forget every grant this patron holds.
+
+        **Nothing calls this yet, and something must.**
+        ``OpenLibraryAccount.anonymize`` renames a patron's rows in every other
+        table it touches; renaming is the wrong verb here, because a renamed row
+        still holds a live bearer token for a library the patron has left.
+        Deleting is right.
+
+        It is still not wired into ``anonymize``, and deliberately so: adding
+        the ``CREATE TABLE`` to ``schema.sql`` does not put the table in a
+        database that already exists, so on production today ``anonymize`` would
+        raise on a missing relation and take account deletion down with it. It
+        goes in once an operator has run the DDL -- which is a one-line follow-up
+        and is on the pull request's next-steps list, not a design question.
+        """
+        with db.transaction():
+            return db.get_db().delete(TABLENAME, where="username=$username", vars={"username": username})
+
+    @staticmethod
+    def _select_locked(oldb: DB, username: str, provider_name: str) -> web.storage | None:
+        """Read the patron's row, holding an exclusive lock on it until commit.
+
+        ``FOR UPDATE`` is what makes :meth:`get_fresh` single-flight across
+        Open Library's several web processes, so an in-process threading lock
+        would not do. Precedent for the clause: ``openlibrary/data/db.py:143``.
+
+        SQLite has no ``FOR UPDATE``. The tests that exercise the locking itself
+        run against Postgres and skip elsewhere; the tests that run everywhere
+        exercise the protocol built on top of it.
+        """
+        locking = " FOR UPDATE" if getattr(oldb, "dbname", None) == "postgres" else ""
+        rows = list(
+            oldb.query(
+                f"SELECT * FROM {TABLENAME} WHERE username=$username AND provider_name=$provider_name{locking}",
+                vars={"username": username, "provider_name": provider_name},
+            )
+        )
+        return rows[0] if rows else None
+
+    def get_fresh(self, username: str, provider_name: str, refresher: Refresher) -> Grant | None:
+        """The patron's grant, refreshed first if its access token has expired.
+
+        Returns None if the patron holds no usable grant at this provider --
+        either none is stored, or the access token has expired with no refresh
+        token to renew it. Either way the caller must re-authorize.
+
+        Raises :class:`TokenRefreshFailed` if a refresh was attempted and
+        failed. The stored grant has been deleted by then.
+
+        **Refresh rotation is destructive on reuse.** A provider that rotates
+        refresh tokens revokes the entire token family when a spent one is
+        presented again, which logs the patron out with no error anyone can
+        trace. Three things follow, and this method is where all three live:
+
+        1. The new pair is written in the *same* transaction that consumed the
+           old one, so there is no window in which the spent token is the
+           stored one.
+        2. The row is locked for the whole exchange, so a patron's second tab
+           blocks rather than presenting the same refresh token. It then
+           re-reads under the lock, finds the grant already fresh, and returns
+           it without touching the network.
+        3. A failed refresh deletes the grant. It is **not** retried.
+
+        On (3), because it reads like a missing feature: a timeout and a
+        rejection are indistinguishable from here. The provider may well have
+        rotated the token and lost the response on the way back, in which case
+        the token we hold is already spent and presenting it again is the
+        precise act that destroys the family. Re-authorization costs the patron
+        a click; a retry can cost them every loan they hold.
+
+        Optimistic concurrency -- write only if ``updated`` has not moved --
+        does not substitute for the lock: the damage is done by the network
+        call, which happens before any write.
+
+        **The lock is taken on every call, including the common one where the
+        token is live and nothing is written. That is deliberate and measured,
+        not an oversight.** The obvious alternative is to read without the lock
+        and take it only when a refresh looks necessary, which would make the
+        read-only path lock-free. Measured against ``postgres:18.3``, on one
+        patron's row:
+
+        * uncontended, live token: ``0.446ms`` with the lock, ``0.375ms``
+          without. The rewrite recovers **0.071ms** per call.
+        * contended -- a refresh holding the lock for 250ms while a second
+          caller arrives 20ms in: ``233.6ms`` with the lock, ``244.2ms``
+          without.
+
+        The contended case does not improve because it cannot. A caller
+        arriving mid-refresh reads, without the lock, the *pre-refresh* row --
+        which is expired, since that is why the first caller is refreshing --
+        so it concludes a refresh is needed and queues on the same lock for the
+        same duration, having paid for an extra query first. So the rewrite buys
+        71 microseconds on the path that is already fast and nothing on the path
+        that is slow, in exchange for a second decision point whose safety
+        depends on a later reader knowing the unlocked read must be discarded.
+        That is the trade that produces check-then-act, and check-then-act here
+        is what destroys token families.
+
+        At page-render frequency (#13687 reads this for the patron's loans page)
+        eight threads contending on a single row sustained ~3,400 calls/s at a
+        p95 of 2.6ms, which is far past any real load on one patron's row.
+        """
+        oldb = db.get_db()
+        failure: Exception
+        with oldb.transaction():
+            row = self._select_locked(oldb, username, provider_name)
+            if row is None:
+                return None
+
+            grant = self._decrypt(row)
+            # Read under the lock, never before it: another flight may have
+            # refreshed while this one waited, in which case its stored pair is
+            # live and the one this caller started with is spent.
+            if not grant.is_expired():
+                return grant
+
+            if not grant.refresh_token:
+                return None
+
+            try:
+                refreshed = refresher(grant.refresh_token)
+            except Exception as exc:  # noqa: BLE001 - every failure means the same thing
+                self._delete(oldb, username, provider_name)
+                failure = exc
+            else:
+                self._write(oldb, username, provider_name, refreshed)
+                return refreshed
+
+        # Outside the `with`, so the delete above is committed before this
+        # raises.
+        logger.info("cleared %s grant for %s after a failed refresh", provider_name, username)
+        raise TokenRefreshFailed(f"refresh failed for {provider_name}; grant cleared") from failure
 
 
 def _encode(grant: Grant) -> dict:
@@ -187,6 +450,10 @@ def _decode(raw: dict) -> Grant:
 class CookieTokenStore:
     """Grants held in one Fernet-encrypted cookie in the patron's browser.
 
+    **Not the default.** Install it with :func:`set_store` where there is no
+    ``provider_tokens`` table to write to -- a demo, or a dev container whose
+    database predates the DDL. The module docstring lists what it gives up.
+
     The *whole* payload is encrypted as a unit, username included, so nothing
     about which libraries a patron borrows from is readable from the cookie.
 
@@ -204,6 +471,7 @@ class CookieTokenStore:
             return None
 
     def load(self, username: str) -> dict[str, Grant]:
+        """Every grant this patron holds, by provider name. ``{}`` if none."""
         raw = self._read_raw()
         if not raw:
             return {}
@@ -223,6 +491,7 @@ class CookieTokenStore:
         return out
 
     def save(self, username: str, grants: dict[str, Grant]) -> None:
+        """Replace this patron's whole grant set."""
         if not grants:
             self._set("", expires=-1)
             return
@@ -271,138 +540,61 @@ class CookieTokenStore:
             samesite="Lax",
         )
 
+    def get(self, username: str, provider_name: str) -> Grant | None:
+        return self.load(username).get(provider_name)
 
-def _is_https() -> bool:
-    """Whether to mark the cookie ``Secure``.
+    def get_providers(self, username: str) -> list[str]:
+        return sorted(self.load(username))
 
-    Unconditional ``secure=True`` -- what the ``s3`` cookie does -- means the
-    browser silently drops the cookie on ``http://localhost``, which is exactly
-    where this flow is demonstrated. Keying on the request's own scheme keeps
-    ``Secure`` everywhere it can be honoured and keeps the dev flow working.
-    """
-    try:
-        return web.ctx.get("protocol", "http") == "https"
-    except AttributeError:
-        return False
-
-
-_store: TokenStore = CookieTokenStore()
-
-
-def get_store() -> TokenStore:
-    return _store
-
-
-def set_store(store: TokenStore) -> TokenStore:
-    """Swap the backend. Returns the one replaced, so a caller can restore it."""
-    global _store
-    previous, _store = _store, store
-    return previous
-
-
-class ProviderToken:
-    """A patron's grants, over whatever :class:`TokenStore` is installed."""
-
-    @staticmethod
-    def get(username: str, provider_name: str) -> Grant | None:
-        """The patron's stored grant at a provider, or None.
-
-        Does not check expiry; use :meth:`get_fresh` when you are about to
-        present the token.
-        """
-        return get_store().load(username).get(provider_name)
-
-    @staticmethod
-    def get_providers(username: str) -> list[str]:
-        """Every provider this patron holds a grant at, for a merged loan lookup."""
-        return sorted(get_store().load(username))
-
-    @staticmethod
-    def upsert(username: str, provider_name: str, grant: Grant) -> Grant:
-        """Store, or replace, the patron's grant at a provider.
-
-        Replacing is right, not merging: a provider issues a whole grant at a
-        time, and half of an old one beside half of a new one is not a grant
-        either side would honour.
-        """
-        store = get_store()
-        grants = store.load(username)
+    def upsert(self, username: str, provider_name: str, grant: Grant) -> Grant:
+        grants = self.load(username)
         # Re-inserted at the end so the most recently authorized grant is the
         # last one evicted when the cookie fills.
         grants.pop(provider_name, None)
         grants[provider_name] = grant
-        store.save(username, grants)
+        self.save(username, grants)
         return grant
 
-    @staticmethod
-    def delete(username: str, provider_name: str) -> int:
-        """Forget the patron's grant at a provider. Returns grants removed."""
-        store = get_store()
-        grants = store.load(username)
+    def delete(self, username: str, provider_name: str) -> int:
+        grants = self.load(username)
         if grants.pop(provider_name, None) is None:
             return 0
-        store.save(username, grants)
+        self.save(username, grants)
         return 1
 
-    @staticmethod
-    def delete_all_by_username(username: str) -> int:
+    def delete_all_by_username(self, username: str) -> int:
         """Forget every grant this patron holds.
 
-        ``OpenLibraryAccount.anonymize`` renames a patron's rows in the tables
-        it touches; renaming would be the wrong verb here, because a renamed
-        grant still holds a live bearer token for a library the patron has
-        left. Deleting is right.
-
-        With the cookie backend this can only clear the grants of the patron
-        whose request is in flight -- there is no server-side row for an
-        operator to delete on someone else's behalf. A durable backend must
-        wire this into ``anonymize``; this one cannot, and that is one of the
-        things the cookie gives up.
+        This backend can only reach the patron whose request is in flight:
+        there is no server-side row for an operator to delete on someone else's
+        behalf, so ``anonymize`` cannot be served from here at all.
         """
-        store = get_store()
-        count = len(store.load(username))
-        store.save(username, {})
+        count = len(self.load(username))
+        self.save(username, {})
         return count
 
-    @staticmethod
-    def get_fresh(username: str, provider_name: str, refresher: Refresher) -> Grant | None:
+    def get_fresh(self, username: str, provider_name: str, refresher: Refresher) -> Grant | None:
         """The patron's grant, refreshed first if its access token has expired.
 
-        Returns None if the patron holds no usable grant at this provider --
-        either none is stored, or the access token has expired with no refresh
-        token to renew it. Either way the caller must re-authorize.
-
-        Raises :class:`TokenRefreshFailed` if a refresh was attempted and
-        failed. The stored grant has been cleared by then.
-
-        **Refresh rotation is destructive on reuse, and the cookie backend
-        cannot fully prevent it.** A provider that rotates refresh tokens
-        revokes the entire family when a spent one is presented again. Two
-        concurrent requests from the same patron carry the same cookie, so both
-        read the same refresh token; the second to reach the provider presents
-        a spent one. A server-side row could be locked for the whole exchange
-        and re-read under that lock, which is the step that makes the second
-        flight find the *new* pair instead. A cookie has nowhere to re-read
-        from: the new pair exists only in the winner's HTTP response to the
-        other tab.
+        **Refresh rotation is destructive on reuse, and this backend cannot
+        fully prevent it.** Two concurrent requests from the same patron carry
+        the same cookie, so both read the same refresh token; the second to
+        reach the provider presents a spent one and loses the family. A
+        server-side row can be locked for the whole exchange and re-read under
+        that lock, which is the step that makes the second flight find the
+        *new* pair instead -- see :meth:`DbTokenStore.get_fresh`. A cookie has
+        nowhere to re-read from: the new pair exists only in the winner's HTTP
+        response to the other tab.
 
         What is done here instead, which narrows the window without closing it:
 
-        1. The store is re-read immediately before the refresh, so a refresh
+        1. The cookie is re-read immediately before the refresh, so a refresh
            that completed between this request's start and this line is seen.
         2. The new pair is saved before returning, so the spent token stops
            being the stored one as soon as this process can make that true.
         3. A failed refresh clears the grant and is **not** retried.
-
-        On (3), because it reads like a missing feature: a timeout and a
-        rejection are indistinguishable from here. The provider may well have
-        rotated the token and lost the response on the way back, in which case
-        the token we hold is already spent and presenting it again is the
-        precise act that destroys the family. Re-authorization costs the patron
-        a click; a retry can cost them every loan they hold.
         """
-        store = get_store()
-        grants = store.load(username)
+        grants = self.load(username)
         grant = grants.get(provider_name)
         if grant is None:
             return None
@@ -417,10 +609,103 @@ class ProviderToken:
             refreshed = refresher(grant.refresh_token)
         except Exception as exc:
             grants.pop(provider_name, None)
-            store.save(username, grants)
+            self.save(username, grants)
             logger.info("cleared %s grant for %s after a failed refresh", provider_name, username)
             raise TokenRefreshFailed(f"refresh failed for {provider_name}; grant cleared") from exc
 
         grants[provider_name] = refreshed
-        store.save(username, grants)
+        self.save(username, grants)
         return refreshed
+
+
+def _is_https() -> bool:
+    """Whether to mark the cookie ``Secure``.
+
+    Unconditional ``secure=True`` -- what the ``s3`` cookie does -- means the
+    browser silently drops the cookie on ``http://localhost``, which is exactly
+    where this flow is demonstrated. Keying on the request's own scheme keeps
+    ``Secure`` everywhere it can be honoured and keeps the dev flow working.
+    ``testing.openlibrary.org`` is https, so it is set there.
+    """
+    try:
+        return web.ctx.get("protocol", "http") == "https"
+    except AttributeError:
+        return False
+
+
+_store: TokenStore = DbTokenStore()
+
+
+def get_store() -> TokenStore:
+    return _store
+
+
+def set_store(store: TokenStore) -> TokenStore:
+    """Swap the backend. Returns the one replaced, so a caller can restore it."""
+    global _store
+    previous, _store = _store, store
+    return previous
+
+
+class ProviderToken:
+    """A patron's grants, over whatever :class:`TokenStore` is installed.
+
+    The facade every caller uses. It holds no storage logic of its own, so a
+    swap of backend changes behaviour in exactly one place.
+    """
+
+    @staticmethod
+    def get(username: str, provider_name: str) -> Grant | None:
+        """The patron's stored grant at a provider, or None.
+
+        Does not check expiry; use :meth:`get_fresh` when you are about to
+        present the token.
+        """
+        return get_store().get(username, provider_name)
+
+    @staticmethod
+    def get_providers(username: str) -> list[str]:
+        """Every provider this patron holds a grant at, for a merged loan lookup."""
+        return get_store().get_providers(username)
+
+    @staticmethod
+    def upsert(username: str, provider_name: str, grant: Grant) -> Grant:
+        """Store, or replace, the patron's grant at a provider.
+
+        Replacing is right, not merging: a provider issues a whole grant at a
+        time, and half of an old one beside half of a new one is not a grant
+        either side would honour.
+        """
+        return get_store().upsert(username, provider_name, grant)
+
+    @staticmethod
+    def delete(username: str, provider_name: str) -> int:
+        """Forget the patron's grant at a provider. Returns grants removed."""
+        return get_store().delete(username, provider_name)
+
+    @staticmethod
+    def delete_all_by_username(username: str) -> int:
+        """Forget every grant this patron holds.
+
+        ``OpenLibraryAccount.anonymize`` renames a patron's rows in the tables
+        it touches; renaming would be the wrong verb here, because a renamed
+        grant still holds a live bearer token for a library the patron has
+        left. Deleting is right.
+        """
+        return get_store().delete_all_by_username(username)
+
+    @staticmethod
+    def get_fresh(username: str, provider_name: str, refresher: Refresher) -> Grant | None:
+        """The patron's grant, refreshed first if its access token has expired.
+
+        Returns None if the patron holds no usable grant at this provider --
+        either none is stored, or the access token has expired with no refresh
+        token to renew it. Either way the caller must re-authorize.
+
+        Raises :class:`TokenRefreshFailed` if a refresh was attempted and
+        failed; the stored grant has been cleared by then, and it must not be
+        retried. Which backend is installed decides whether two concurrent
+        flights are single-flighted -- see :meth:`DbTokenStore.get_fresh` and
+        :meth:`CookieTokenStore.get_fresh`.
+        """
+        return get_store().get_fresh(username, provider_name, refresher)

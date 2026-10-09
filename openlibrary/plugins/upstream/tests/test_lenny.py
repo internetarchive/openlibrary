@@ -695,20 +695,65 @@ class TestCallback:
         assert "could not complete the loan" in body.rawtext
         assert "borrow" not in flow["order"]
 
-    def test_no_plaintext_credential_reaches_the_browser(self, flow, monkeypatch):
-        """The grant now lives in a cookie, so "writes no cookie" is no longer
-        the property to want -- and asserting it here would pass vacuously,
-        because `flow` replaces `ProviderToken.upsert` with a recorder that
-        never reaches the store.
+    def test_the_shipped_store_writes_no_cookie_at_all(self, flow, monkeypatch, tmp_path):
+        """The default backend is the table, so nothing about the grant should
+        reach the browser -- not even ciphertext.
 
-        What still has to hold is that nothing the browser receives contains a
-        bearer token in cleartext. So this one puts the *real* store back and
-        reads what it actually set.
+        This has to put the *real* `upsert` back and give it a *real* database,
+        or it proves nothing: `flow` replaces `ProviderToken.upsert` with a
+        recorder that never reaches a store, and against that an assertion that
+        no cookie was written passes with the whole storage layer deleted. The
+        row is read back here for the same reason -- "no cookie" alone is also
+        what a silently failed write looks like.
         """
         from openlibrary.accounts import model as accounts_model
+        from openlibrary.core import db as db_module
+        from openlibrary.core import provider_tokens as pt
+        from openlibrary.tests.core.test_provider_tokens import PROVIDER_TOKENS_DDL
+
+        monkeypatch.setattr(accounts_model, "get_secret_key", lambda: "test-secret-key")
+        # Via monkeypatch, not `set_store`: the store is a module global and
+        # pytest would carry an unrestored swap into every later test.
+        monkeypatch.setattr(pt, "_store", pt.DbTokenStore())
+        web.config.db_parameters = {"dbn": "sqlite", "db": str(tmp_path / "ol.db")}
+        db_module._get_db.cache_clear()
+        oldb = db_module.get_db()
+        oldb.query(PROVIDER_TOKENS_DDL)
+        try:
+            written: list[tuple] = []
+            monkeypatch.setattr(pt.web, "setcookie", lambda name, value, **kw: written.append((name, value)))
+            monkeypatch.setattr(lenny.ProviderToken, "upsert", staticmethod(REAL_UPSERT))
+
+            self._call(monkeypatch)
+
+            assert written == [], "the shipped store must leave nothing in the browser"
+            row = oldb.query("SELECT * FROM provider_tokens")[0]
+            assert row.username == "patron"
+            assert row.provider_name == "lenny"
+            assert "at-1" not in row.access_token, "the access token is stored in plaintext"
+            assert accounts_model.decrypt_token(row.access_token) == "at-1"
+            assert accounts_model.decrypt_token(row.refresh_token) == "rt-1"
+        finally:
+            db_module._get_db.cache_clear()
+
+    def test_the_cookie_backend_leaks_no_plaintext_credential(self, flow, monkeypatch):
+        """A statement about `CookieTokenStore`, which this installs by hand.
+
+        It is **not** the shipped default and nothing here should be read as a
+        claim about one -- see `test_the_shipped_store_writes_no_cookie_at_all`
+        above. But the cookie remains a selectable backend for a demo, so what
+        it hands the browser still has to be ciphertext, and that is a property
+        no amount of mocking `upsert` would check: `flow` replaces it with a
+        recorder that never reaches the store, so the real one goes back first.
+        """
+        import json
+
+        from openlibrary.accounts import model as accounts_model
+        from openlibrary.accounts.model import decrypt_token
         from openlibrary.core import provider_tokens as pt
 
         monkeypatch.setattr(accounts_model, "get_secret_key", lambda: "test-secret-key")
+        monkeypatch.setattr(pt, "_store", pt.CookieTokenStore())
         written: list[tuple] = []
         monkeypatch.setattr(pt.web, "cookies", web.storage)  # an empty jar: no cookie yet
         monkeypatch.setattr(pt.web, "setcookie", lambda name, value, **kw: written.append((name, value)))
@@ -723,10 +768,6 @@ class TestCallback:
         assert "at-1" not in value, "the access token reached the browser in cleartext"
         assert "rt-1" not in value, "the refresh token reached the browser in cleartext"
         # And it is genuinely recoverable, not merely unreadable.
-        import json
-
-        from openlibrary.accounts.model import decrypt_token
-
         assert json.loads(decrypt_token(value))["g"]["lenny"]["a"] == "at-1"
 
     def test_the_borrow_presents_the_freshly_exchanged_token(self, flow, monkeypatch):
