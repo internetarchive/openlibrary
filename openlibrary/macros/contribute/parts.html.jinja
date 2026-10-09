@@ -2,20 +2,26 @@
     openlibrary/plugins/openlibrary/contribute.py; nothing here calls functions on it. -#}
 {% macro book_header(book, compact=False) %}
     <div class="contrib-book{% if compact %} contrib-book--compact{% endif %}">
-        {% if book.cover_url %}
-            <img class="contrib-book__cover"
-                 src="{{ book.cover_url }}"
-                 alt=""
-                 width="60"
-                 height="90"
-                 loading="lazy" />
-        {% else %}
-            <div class="contrib-book__cover contrib-book__cover--empty"
-                 aria-hidden="true">{{ icon("book-open", size="md") }}</div>
-        {% endif %}
+        {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
+        <a class="contrib-cover-link"
+           href="{{ book.key }}"
+           tabindex="-1"
+           aria-hidden="true">
+            {% if book.cover_url %}
+                <img class="contrib-book__cover"
+                     src="{{ book.cover_url }}"
+                     alt=""
+                     width="60"
+                     height="90"
+                     loading="lazy" />
+            {% else %}
+                <div class="contrib-book__cover contrib-book__cover--empty"
+                     aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+            {% endif %}
+        </a>
         <div class="contrib-book__meta">
             <div class="contrib-book__title">
-                {% if book.key %}<a href="{{ book.key }}">{{ book.title }}</a>{% else %}{{ book.title }}{% endif %}
+                <a href="{{ book.key }}">{{ book.title }}</a>
             </div>
             {% if book.authors %}<div class="contrib-book__authors">{{ book.authors }}</div>{% endif %}
             <div class="contrib-book__line">
@@ -169,17 +175,23 @@
           data-task-key="{{ task.key }}">
         {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
         <div class="contrib-record">
-            {% if book.cover_url %}
-                <img class="contrib-record__cover"
-                     src="{{ book.cover_url }}"
-                     alt=""
-                     width="96"
-                     height="144"
-                     loading="lazy" />
-            {% else %}
-                <div class="contrib-record__cover contrib-book__cover--empty"
-                     aria-hidden="true">{{ icon("book-open", size="md") }}</div>
-            {% endif %}
+            {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
+            <a class="contrib-cover-link"
+               href="{{ book.key }}"
+               tabindex="-1"
+               aria-hidden="true">
+                {% if book.cover_url %}
+                    <img class="contrib-record__cover"
+                         src="{{ book.cover_url }}"
+                         alt=""
+                         width="96"
+                         height="144"
+                         loading="lazy" />
+                {% else %}
+                    <div class="contrib-record__cover contrib-book__cover--empty"
+                         aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+                {% endif %}
+            </a>
             <div class="contrib-record__head">
                 <div class="contrib-book__title">
                     <a href="{{ book.key }}">{{ book.title }}</a>

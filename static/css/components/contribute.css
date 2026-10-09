@@ -86,6 +86,11 @@
   align-items: flex-start;
 }
 
+/* Covers link to the edition like the title does; the link adds no box, so the cover keeps its layout. */
+.contrib-cover-link {
+  display: contents;
+}
+
 .contrib-book__cover {
   flex: none;
   width: 60px;
