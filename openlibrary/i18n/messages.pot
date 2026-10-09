@@ -1191,6 +1191,10 @@ msgid "Express interest in this"
 msgstr ""
 
 #: account/import.html
+msgid "Interest recorded"
+msgstr ""
+
+#: account/import.html
 msgid "StoryGraph"
 msgstr ""
 

@@ -119,6 +119,13 @@ CREATE TABLE yearly_reading_goals (
     updated timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (username, year)
 );
+CREATE TABLE patron_feature_interest (
+    username text not null,
+    feature text not null,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    primary key (username, feature)
+);
+
 
 CREATE TABLE wikidata (
     id text not null primary key,
@@ -177,3 +184,5 @@ CREATE TABLE feed_registry (
 );
 
 CREATE INDEX feed_registry_provider_name ON feed_registry (provider_name);
+
+
