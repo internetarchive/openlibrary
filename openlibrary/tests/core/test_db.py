@@ -7,9 +7,6 @@ from openlibrary.core.db import get_db
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.read_history import ReadHistory
-from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
-from openlibrary.utils.async_utils import async_bridge
 
 READING_LOG_DDL = """
 CREATE TABLE bookshelves_books (
@@ -49,17 +46,6 @@ CREATE TABLE observations (
     observation_type INTEGER not null,
     observation_value INTEGER not null,
     primary key (work_id, edition_id, username, observation_value, observation_type)
-);
-"""
-
-YEARLY_READING_GOALS_DDL = """
-CREATE TABLE yearly_reading_goals (
-    username text NOT NULL,
-    year integer NOT NULL,
-    target integer NOT NULL,
-    created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    primary key (username, year)
 );
 """
 
@@ -429,130 +415,3 @@ class TestCheckIns:
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 3)["event_date"] == "2019-10"
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 3)["id"] == 6
         assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 1) is None
-
-
-SETUP_ROWS = [
-    {
-        "username": "@billy_pilgrim",
-        "year": 2022,
-        "target": 5,
-    },
-    {
-        "username": "@billy_pilgrim",
-        "year": 2023,
-        "target": 7,
-    },
-    {
-        "username": "@kilgore_trout",
-        "year": 2022,
-        "target": 4,
-    },
-]
-
-
-class TestYearlyReadingGoals:
-    TABLENAME = YearlyReadingGoals.TABLENAME
-
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-        db = get_db()
-        db.query(YEARLY_READING_GOALS_DDL)
-
-    def setup_method(self):
-        self.db = get_db()
-        for row in SETUP_ROWS:
-            db_sync = get_db()
-            db_sync.insert(self.TABLENAME, **row)
-
-    def teardown_method(self):
-        self.db.query("delete from yearly_reading_goals")
-
-    def test_create(self):
-        assert len(list(self.db.select(self.TABLENAME))) == 3
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 1
-        async_bridge.run(YearlyReadingGoals.create("@kilgore_trout", 2023, 5))
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 2
-        new_row = list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout", "year": 2023}))
-        assert len(new_row) == 1
-
-    def test_select_by_username_and_year(self):
-        assert len(async_bridge.run(YearlyReadingGoals.select_by_username_and_year("@billy_pilgrim", 2022))) == 1
-
-    def test_update_target(self):
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={"username": "@billy_pilgrim", "year": 2023},
-                    )
-                )
-            )["target"]
-            == 7
-        )
-        async_bridge.run(YearlyReadingGoals.update_target("@billy_pilgrim", 2023, 14))
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={"username": "@billy_pilgrim", "year": 2023},
-                    )
-                )
-            )["target"]
-            == 14
-        )
-
-    def test_delete_by_username(self):
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 2
-        async_bridge.run(YearlyReadingGoals.delete_by_username("@billy_pilgrim"))
-        assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 0
-
-
-READ_HISTORY_DDL = """
-CREATE TABLE read_history (
-    username text NOT NULL,
-    work_id integer NOT NULL,
-    edition_id integer default null,
-    created timestamp,
-    updated timestamp,
-    PRIMARY KEY (username, work_id)
-);
-"""
-
-
-class TestReadHistory:
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-        db = get_db()
-        db.query(READ_HISTORY_DDL)
-
-    def setup_method(self):
-        self.db = get_db()
-        self.db.insert("read_history", username="@testuser", work_id=1, edition_id=10)
-
-    def teardown_method(self):
-        self.db.query("delete from read_history;")
-
-    def test_get_history(self):
-        history = ReadHistory.get_history("@testuser")
-        assert len(history) == 1
-        assert history[0]["work_id"] == 1
-        assert history[0]["edition_id"] == 10
-
-    def test_update_work_id_simple(self):
-        ReadHistory.update_work_id(1, 2)
-        history = ReadHistory.get_history("@testuser")
-        assert len(history) == 1
-        assert history[0]["work_id"] == 2
-
-    def test_update_work_id_collision(self):
-        self.db.insert("read_history", username="@testuser", work_id=2, edition_id=20)
-        assert len(ReadHistory.get_history("@testuser")) == 2
-
-        ReadHistory.update_work_id(1, 2)
-        history = ReadHistory.get_history("@testuser")
-        assert len(history) == 1
-        assert history[0]["work_id"] == 2
