@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch
 
-import pytest
-
 
 def test_list_feature_interests_success(fastapi_client, mock_authenticated_user):
     with patch(
@@ -61,18 +59,18 @@ def test_list_feature_interests_unauthorized(fastapi_client):
 
 
 def test_record_feature_interest_success(fastapi_client, mock_authenticated_user):
-    with patch(
-        "openlibrary.fastapi.feature_interest.PatronFeatureInterestDB.exists",
-        new_callable=AsyncMock,
-        return_value=False,
-    ) as mock_exists:
-        with patch(
+    with (
+        patch(
+            "openlibrary.fastapi.feature_interest.PatronFeatureInterestDB.exists",
+            new_callable=AsyncMock,
+            return_value=False,
+        ) as mock_exists,
+        patch(
             "openlibrary.fastapi.feature_interest.PatronFeatureInterestDB.create",
             new_callable=AsyncMock,
-        ) as mock_create:
-            response = fastapi_client.post(
-                "/account/feature-interest.json", data={"feature": "LibraryThing"}
-            )
+        ) as mock_create,
+    ):
+        response = fastapi_client.post("/account/feature-interest.json", data={"feature": "LibraryThing"})
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "already_recorded": False}
@@ -81,18 +79,18 @@ def test_record_feature_interest_success(fastapi_client, mock_authenticated_user
 
 
 def test_record_feature_interest_already_exists(fastapi_client, mock_authenticated_user):
-    with patch(
-        "openlibrary.fastapi.feature_interest.PatronFeatureInterestDB.exists",
-        new_callable=AsyncMock,
-        return_value=True,
-    ) as mock_exists:
-        with patch(
+    with (
+        patch(
+            "openlibrary.fastapi.feature_interest.PatronFeatureInterestDB.exists",
+            new_callable=AsyncMock,
+            return_value=True,
+        ) as mock_exists,
+        patch(
             "openlibrary.fastapi.feature_interest.PatronFeatureInterestDB.create",
             new_callable=AsyncMock,
-        ) as mock_create:
-            response = fastapi_client.post(
-                "/account/feature-interest.json", data={"feature": "LibraryThing"}
-            )
+        ) as mock_create,
+    ):
+        response = fastapi_client.post("/account/feature-interest.json", data={"feature": "LibraryThing"})
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "already_recorded": True}
