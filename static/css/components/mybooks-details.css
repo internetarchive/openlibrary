@@ -90,7 +90,7 @@
   right: var(--spacing-inset-sm);
 }
 
-.details-content .carousel-section:nth-child(2) h2 {
+.carousel-section:nth-child(2) h2 {
   margin-top: var(--spacing-inset-sm) !important;
 }
 

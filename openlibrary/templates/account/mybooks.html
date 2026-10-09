@@ -8,14 +8,13 @@ $def year_span(year, use_local_year=False):
   $else:
     <span>$year</span>
 
-    
 $# Data for carousels
 $ readlog_url = "/people/%s/books/" % username
-$ loans = ["loans", _('Loans & History'), "/account/loans"]
-$ currently_reading = ["currently-reading", _('Currently Reading'), readlog_url + "currently-reading"]
-$ want_to_read = ["want-to-read", _('Want to Read'), readlog_url + "want-to-read"]
-$ already_read = ["already-read", _('Already Read'), readlog_url + "already-read"]
-$ stopped_reading = ["stopped-reading", _('Stopped Reading'), readlog_url + "stopped-reading"]
+$ loans = ["loans", _("Loans & History"), "/account/loans"]
+$ currently_reading = ["currently-reading", _("Currently Reading"), readlog_url + "currently-reading"]
+$ want_to_read = ["want-to-read", _("Want to Read"), readlog_url + "want-to-read"]
+$ already_read = ["already-read", _("Already Read"), readlog_url + "already-read"]
+$ stopped_reading = ["stopped-reading", _("Stopped Reading"), readlog_url + "stopped-reading"]
 
 $code:
   SHELF_IDS = shelf_ids()
@@ -54,115 +53,6 @@ $code:
         "compact_mode": True,
         "test": False
     }) if books else None
-
-        
-      
-
-
-$def empty_mobile_carousel(data):
-    $ key, title, url = data
-    <div class="carousel-section-header">
-      <a class="li-title-desktop" name="$key" href="$url">$title (0)$:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")</a>
-    </div>
-
-  $ component_times['Sidebar'] = time()
-  <div class="mybooks-menu-mobile">
-    <ul class="sidebar-section">
-    $if owners_page:
-        <li>
-          $# Render carousel
-          $:(mobile_carousel(loans) or empty_mobile_carousel(loans))
-        </li>
-        <li>
-          $ year = current_year()
-          <div class="yearly-goal-section carousel-section-header">
-            $# Hide "Set reading goal" call to action with hidden class if a goal has already been set:
-            <div class="">
-              <span class="">
-                $ year_markup = year_span(year)
-                $ goal_set = "goal-set" if current_goal else ""
-                <a class="set-reading-goal-link li-title-desktop  $goal_set" data-ol-link-track="MyBooksLandingPage|SetReadingGoal" href="javascript:;">
-                  $:_('%(year_span)s reading goal', year_span=year_markup)
-                  $:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")
-                </a>
-              </span>
-            </div>
-            $if current_goal:
-              <span id="reading-goal-container">
-                $:render_jinja_template("reading_goals/reading_goal_progress.html.jinja", goals=[current_goal])
-              </span>
-          </div>
-        </li>
-    $if public or owners_page:
-        <li>
-          $# Render carousel
-          $:(mobile_carousel(currently_reading) or empty_mobile_carousel(currently_reading))
-        </li>
-        <li>
-          $# Render carousel
-          $:(mobile_carousel(want_to_read) or empty_mobile_carousel(want_to_read))
-        </li>
-        <li>
-          $# Render carousel
-          $:(mobile_carousel(already_read) or empty_mobile_carousel(already_read))
-        </li>
-        <li>
-          $# Render carousel
-          $:(mobile_carousel(stopped_reading) or empty_mobile_carousel(stopped_reading))
-        </li>
-        <li>
-          <div class="carousel-section-header">
-            <a data-ol-link-track="MyBooksSidebar|AllLists" href="/people/$username/lists">
-              $_('View All Lists')
-              $:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")
-            </a>
-          </div>
-        </li>
-      </ul>
-
-    $if owners_page:
-      <div>
-        <h1 class="details-title">$_("My Stats")</h1>
-      </div>
-      <ul class="sidebar-section">
-        <li>
-          <div class="carousel-section-header">
-            <a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">
-              $_("My Reading Stats")
-              $:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")
-            </a>
-          </div>
-        </li>
-
-        <li>
-          <div class="carousel-section-header">
-            <a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">
-              $_("My Notes")
-              ($counts['notes'])
-              $:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")
-            </a>
-          </div>
-        </li>
-        <li>
-          <div class="carousel-section-header">
-            <a data-ol-link-track="MyBooksSidebar|MyReviews" $('class=selected' if key=='observations' else '') href="/people/$username/books/observations">
-              $_("My Reviews")
-              ($counts['observations'])
-              $:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")
-            </a>
-          </div>
-        </li>
-        <li>
-          <div class="carousel-section-header">
-            <a data-ol-link-track="MyBooksSidebar|ImportExport" href="/account/import" $('class=selected' if key=='imports' else '')>
-              $_("Import your data")
-              $:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")
-            </a>
-          </div>
-        </li>
-      </ul>
-  </div>
-  $ component_times['Sidebar'] = time() - component_times['Sidebar']
 
 $def empty_carousel(data):
   $ key, title, url = data
