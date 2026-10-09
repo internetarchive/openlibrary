@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 import pytest
 
 from openlibrary.book_providers import IALiteMetadata
+from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.updater.work import (
     WorkSolrBuilder,
     WorkSolrUpdater,
@@ -18,7 +19,6 @@ from openlibrary.tests.solr.test_update import (
 if TYPE_CHECKING:
     from openlibrary.core.lists.model import SeriesDict
     from openlibrary.core.models import WorkSeriesEdge
-    from openlibrary.solr.data_provider import DataProvider
 
 
 def sorted_split_semicolon(s):
@@ -66,6 +66,71 @@ class TestWorkSolrUpdater:
 
         req, _ = await WorkSolrUpdater(FakeDataProvider([work, make_edition(work), make_edition(work)])).update_key(work)
         assert req.adds[0]["edition_count"] == 2
+
+
+class TestSkipIAMetadata:
+    """
+    Verifies the --skip-ia-metadata flag end-to-end through the per-document
+    update path: get_ia_collection_and_box_id() -> data_provider.get_metadata().
+
+    FakeDataProvider stubs get_metadata to return {} unconditionally, so this
+    test uses a provider that calls the real base-class implementation (which
+    short-circuits when skip_ia_metadata is set) to prove no network call to
+    ia.get_metadata_direct happens during update_key.
+    """
+
+    class RealMetadataProvider(FakeDataProvider):
+        """FakeDataProvider but with the real base-class get_metadata, so the
+        skip_ia_metadata short-circuit (or the get_metadata_direct fallback) is
+        actually exercised instead of the stubbed {} return."""
+
+        def __init__(self, docs=None, skip_ia_metadata=False):
+            super().__init__(docs)
+            self.ia_cache = {}
+            self.skip_ia_metadata = skip_ia_metadata
+
+        def get_metadata(self, identifier):
+            return DataProvider.get_metadata(self, identifier)
+
+    @pytest.mark.asyncio
+    async def test_update_key_skips_ia_metadata_fetch(self, monkeypatch):
+        work = make_work()
+        edition = make_edition(work, ocaid="foo00bar")
+        dp = self.RealMetadataProvider([work, edition], skip_ia_metadata=True)
+
+        def _fail(*args, **kwargs):
+            raise AssertionError("get_metadata_direct should not be called when skip_ia_metadata is set")
+
+        monkeypatch.setattr("openlibrary.solr.data_provider.ia.get_metadata_direct", _fail)
+
+        req, _ = await WorkSolrUpdater(dp).update_key(work)
+        assert len(req.adds) == 1
+        doc = req.adds[0]
+        # With no IA metadata fetched, ia_collection is empty and ia_box_id
+        # only comes from the edition record itself (none here).
+        assert doc.get("ia_collection", []) == []
+        assert "ia_box_id" not in doc
+
+    @pytest.mark.asyncio
+    async def test_update_key_fetches_ia_metadata_without_flag(self, monkeypatch):
+        """
+        Negative control: without skip_ia_metadata, the per-document path DOES
+        call get_metadata_direct. Proves the test above is sensitive to the flag.
+        """
+        work = make_work()
+        edition = make_edition(work, ocaid="foo00bar")
+        dp = self.RealMetadataProvider([work, edition], skip_ia_metadata=False)
+
+        calls = []
+        monkeypatch.setattr(
+            "openlibrary.solr.data_provider.ia.get_metadata_direct",
+            lambda itemid: calls.append(itemid) or {"collection": ["inlibrary"], "identifier": itemid},
+        )
+
+        req, _ = await WorkSolrUpdater(dp).update_key(work)
+        assert len(req.adds) == 1
+        assert calls == ["foo00bar"]
+        assert sorted(req.adds[0]["ia_collection"]) == ["inlibrary"]
 
 
 def make_work_solr_builder(
