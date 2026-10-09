@@ -179,6 +179,12 @@ $(function() {
             });
     }
 
+    // conditionally load file dropzone for CSV import (Goodreads, etc.)
+    if (document.getElementById('csv-dropzone')) {
+        import('./file-dropzone.js')
+            .then(module => module.initFileDropzone());
+    }
+
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import('./goodreads_import.js')
