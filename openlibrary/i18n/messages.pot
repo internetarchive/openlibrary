@@ -4136,6 +4136,10 @@ msgid "Undo"
 msgstr ""
 
 #: covers/change.html
+msgid "Redo"
+msgstr ""
+
+#: covers/change.html
 #, python-format
 msgid "Moved image to position %(position)s of %(total)s."
 msgstr ""

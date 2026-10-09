@@ -38,6 +38,7 @@ export const DEFAULT_LABELS = {
     uploading: 'Uploading…',
     imageAdded: 'Image added.',
     undo: 'Undo',
+    redo: 'Redo',
     movedImage: 'Moved image to position %(position)s of %(total)s.',
     noFile: 'Please choose an image first.',
     invalidType: 'That file type isn\'t supported. Please use one of these image types: %(types)s.',
@@ -449,8 +450,9 @@ export class OlCoverEditor extends LitElement {
         this._pendingFlip = null;
         this._focusIndex = null;
         this._imagesEdited = false;
-        /** Snapshots of the image + trash lists for undo (⌘Z). */
+        /** Snapshots of the image + trash lists for undo (⌘Z) / redo (⇧⌘Z). */
         this._history = [];
+        this._redoStack = [];
         this._onPasteEvent = this._onPasteEvent.bind(this);
         this._onDialogClose = this._onDialogClose.bind(this);
         this._onKeydown = this._onKeydown.bind(this);
@@ -556,6 +558,7 @@ export class OlCoverEditor extends LitElement {
         this._announce = '';
         this._trashed = [];
         this._history = [];
+        this._redoStack = [];
         this._resetDrag();
         this._pasted = false;
         const input = this._fileInput;
@@ -566,16 +569,22 @@ export class OlCoverEditor extends LitElement {
         this.reset();
     }
 
-    /** ⌘Z / Ctrl+Z undoes the last change to the image list. */
+    /** ⌘Z / Ctrl+Z undoes; ⇧⌘Z (or Ctrl+Y) redoes. */
     _onKeydown(event) {
-        if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z') return;
+        if (!event.metaKey && !event.ctrlKey) return;
+        const key = event.key.toLowerCase();
+        const isUndo = key === 'z' && !event.shiftKey;
+        const isRedo = (key === 'z' && event.shiftKey) || key === 'y';
+        if (!isUndo && !isRedo) return;
         const dialog = this.closest('ol-dialog');
         if (dialog && !dialog.open) return;
         const target = event.target;
         if (target instanceof HTMLElement && (target.matches('input, textarea') || target.isContentEditable)) return;
-        if (!this._history.length) return;
+        const stack = isUndo ? this._history : this._redoStack;
+        if (!stack.length) return;
         event.preventDefault();
-        this._undo();
+        if (isUndo) this._undo();
+        else this._redo();
     }
 
     _revokePreview() {
@@ -956,13 +965,20 @@ export class OlCoverEditor extends LitElement {
         this._moveImage(index, target);
     }
 
-    /** Snapshot both lists so ⌘Z can restore them. */
-    _pushHistory() {
-        this._history.push({
+    /** A snapshot of both lists, for the undo/redo timeline. */
+    _snapshot() {
+        return {
             images: this._images.map((image) => ({ ...image })),
             trashed: this._trashed.map((image) => ({ ...image })),
-        });
+        };
+    }
+
+    /** Snapshot both lists before a change so ⌘Z can restore them. */
+    _pushHistory() {
+        this._history.push(this._snapshot());
         if (this._history.length > 30) this._history.shift();
+        // A fresh change branches the timeline; nothing to redo any more.
+        this._redoStack = [];
     }
 
     _moveImage(from, to) {
@@ -1024,10 +1040,26 @@ export class OlCoverEditor extends LitElement {
     _undo() {
         const previous = this._history.pop();
         if (!previous) return;
-        this._imagesEdited = true;
+        this._redoStack.push(this._snapshot());
+        if (this._redoStack.length > 30) this._redoStack.shift();
         this._announce = this.t('undo');
-        this._images = previous.images;
-        this._trashed = previous.trashed;
+        this._applySnapshot(previous);
+    }
+
+    /** Redo the last undone change (⇧⌘Z), restoring the images and the trash bin. */
+    _redo() {
+        const next = this._redoStack.pop();
+        if (!next) return;
+        this._history.push(this._snapshot());
+        if (this._history.length > 30) this._history.shift();
+        this._announce = this.t('redo');
+        this._applySnapshot(next);
+    }
+
+    _applySnapshot(snapshot) {
+        this._imagesEdited = true;
+        this._images = snapshot.images;
+        this._trashed = snapshot.trashed;
         this._syncPageCover();
         this._saveOrder();
     }

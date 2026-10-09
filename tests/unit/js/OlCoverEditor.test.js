@@ -494,6 +494,84 @@ describe('ol-cover-editor image management', () => {
         expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
     });
 
+    test('Shift+Cmd+Z redoes the last undo', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        el._makePrimary(2);
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
+
+        el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+
+        el._onKeydown({ metaKey: true, shiftKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
+    });
+
+    test('Ctrl+Y also redoes, restoring the trash bin', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        el._trashImage(0);
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([2, 3]);
+
+        el._onKeydown({ ctrlKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+        expect(el._trashed).toEqual([]);
+
+        el._onKeydown({ ctrlKey: true, key: 'y', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([2, 3]);
+        expect(el._trashed.map((i) => i.id)).toEqual([1]);
+    });
+
+    test('redo steps forward through several changes', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        const undo = () => el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
+        const redo = () => el._onKeydown({ metaKey: true, shiftKey: true, key: 'z', target: document.body, preventDefault() {} });
+
+        el._makePrimary(2); // [3, 1, 2]
+        await el.updateComplete;
+        el._trashImage(0); // [1, 2], trashed [3]
+        await el.updateComplete;
+
+        undo();
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
+        undo();
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+
+        redo();
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
+        redo();
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2]);
+        expect(el._trashed.map((i) => i.id)).toEqual([3]);
+    });
+
+    test('a new change after an undo clears the redo stack', async() => {
+        const el = await mount({ images: IMAGES });
+        manageFetch();
+        el._makePrimary(2);
+        await el.updateComplete;
+        el._onKeydown({ metaKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+
+        el._trashImage(0); // branches the timeline
+        await el.updateComplete;
+        el._onKeydown({ metaKey: true, shiftKey: true, key: 'z', target: document.body, preventDefault() {} });
+        await el.updateComplete;
+        // Nothing to redo; the branch is not lost by redo.
+        expect(el._images.map((i) => i.id)).toEqual([2, 3]);
+    });
+
     test('make primary moves an image to the front and saves the order', async() => {
         const el = await mount({ images: IMAGES });
         const fetchMock = manageFetch();
