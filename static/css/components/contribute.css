@@ -865,12 +865,6 @@
   outline-offset: 2px;
 }
 
-.contrib-rail__count {
-  color: inherit;
-  font-size: var(--font-size-label-small);
-  font-variant-numeric: tabular-nums;
-}
-
 @media (hover: hover) and (pointer: fine) {
   .contrib-rail__item:not(.is-on):hover {
     background-color: var(--color-hover-overlay);

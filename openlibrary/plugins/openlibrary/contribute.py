@@ -192,8 +192,10 @@ def _rows(task: str) -> list[dict]:
     """The filter's books, most-read first, each with its open tasks weighted by ``tasks.impact`` for "Surprise me"."""
     fields = _filters()[task][1] if task else tuple(tasks.POINTS)
     playbooks = get_playbooks()
-    rows = []
-    for cand in supply.solr_candidates(fields, LIST_SIZE):
+    rows: list[dict] = []
+    for cand in supply.solr_candidates(fields):
+        if len(rows) == LIST_SIZE:
+            break
         # Solr can lag the database; a field filled since the last reindex is no longer a task.
         if ts := [t for t in tasks.tasks_for_edition(cand.edition) if t.field in fields]:
             rows.append(
@@ -211,9 +213,8 @@ def _rail(task: str) -> dict:
             "label": label,
             "url": _dashboard_url("" if task == fid else fid),
             "on": task == fid,
-            "count": supply.missing_count(fields),
         }
-        for fid, (label, fields) in _filters().items()
+        for fid, (label, _fields) in _filters().items()
     ]
     return {"all": {"label": _("All open tasks"), "url": _dashboard_url(), "on": not task}, "filters": filters}
 

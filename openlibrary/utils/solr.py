@@ -247,6 +247,7 @@ class Solr:
 
         d = web.storage()
         d.num_found = response["numFound"]
+        d.partial = bool(result.get("responseHeader", {}).get("partialResults"))
         d.docs = [doc_wrapper(doc) for doc in response["docs"]]
 
         if "facet_counts" in result:

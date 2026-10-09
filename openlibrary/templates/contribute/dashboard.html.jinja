@@ -47,10 +47,7 @@
                 {% for item in data.rail.filters %}
                     <a class="contrib-rail__item{{ ' is-on' if item.on else '' }}"
                        href="{{ item.url }}"
-                       {% if item.on %}aria-current="true"{% endif %}>
-                        <span>{{ item.label }}</span>
-                        <span class="contrib-rail__count">{{ "{:,}".format(item.count) }}</span>
-                    </a>
+                       {% if item.on %}aria-current="true"{% endif %}>{{ item.label }}</a>
                 {% endfor %}
             </div>
         </nav>
