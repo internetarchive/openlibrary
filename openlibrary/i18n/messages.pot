@@ -4120,6 +4120,14 @@ msgid "Remove image"
 msgstr ""
 
 #: covers/change.html
+msgid "Restore image"
+msgstr ""
+
+#: covers/change.html
+msgid "Image preview"
+msgstr ""
+
+#: covers/change.html
 msgid "Saving..."
 msgstr ""
 

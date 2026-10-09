@@ -120,7 +120,13 @@ test('dragging an image card onto another reorders and saves', async() => {
     cards[2].dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
     await vi.waitFor(() => expect(el._images.map((i) => i.id)).toEqual([2, 3, 1]));
 
-    expect(window.fetch).toHaveBeenCalledTimes(1);
+    // dragend commits the live reorder.
+    el.renderRoot
+        .querySelector('.images-row')
+        .dispatchEvent(new DragEvent('dragend', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    await vi.waitFor(() => expect(window.fetch).toHaveBeenCalledTimes(1));
+
     const body = window.fetch.mock.calls[0][1].body;
-    expect(await body.getAll('image')).toEqual(['2', '3', '1', '-1', '-']);
+    expect(body).toBeInstanceOf(URLSearchParams);
+    expect(body.getAll('image')).toEqual(['2', '3', '1', '-1', '-']);
 });

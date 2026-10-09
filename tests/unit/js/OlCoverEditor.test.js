@@ -15,6 +15,15 @@ beforeAll(() => {
     URL.createObjectURL = () => 'blob:preview';
     URL.revokeObjectURL = () => {};
     global.requestAnimationFrame = (fn) => setTimeout(fn, 0);
+    // jsdom has no <dialog>.showModal()/close().
+    if (window.HTMLDialogElement) {
+        HTMLDialogElement.prototype.showModal = function() {
+            this.open = true;
+        };
+        HTMLDialogElement.prototype.close = function() {
+            this.open = false;
+        };
+    }
     // ol-tooltip reads matchMedia to detect a hover-capable pointer.
     window.matchMedia = (query) => ({
         matches: false,
@@ -275,6 +284,15 @@ describe('ol-cover-editor external images', () => {
         expect(options.body.get('url')).toBe('https://commons.example/a.jpg');
         expect(el._images.map((i) => i.id)).toEqual([42]);
     });
+
+    test('importing a candidate removes it from the offered list', async() => {
+        const el = await mount({ candidates: [{ url: 'https://commons.example/a.jpg', source: 'Wikidata' }] });
+        mockFetch(SAVED);
+        await el._useUrl('https://commons.example/a.jpg');
+        await el.updateComplete;
+        expect(el._candidates).toEqual([]);
+        expect(q(el, '.candidate__img')).toBeNull();
+    });
 });
 
 describe('ol-cover-editor clipboard paste', () => {
@@ -378,13 +396,26 @@ describe('ol-cover-editor image management', () => {
         expect(el._trashed.map((i) => i.id)).toEqual([2]);
     });
 
-    test('clicking an image makes it primary', async() => {
+    test('a trashed image has a restore button', async() => {
         const el = await mount({ images: IMAGES });
-        const fetchMock = manageFetch();
-        el._onCardClick(2);
+        manageFetch();
+        el._trashImage(0);
         await el.updateComplete;
-        expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
-        expect(fetchMock).toHaveBeenCalled();
+        const btn = q(el, '.trash__restore');
+        expect(btn).not.toBeNull();
+
+        btn.click();
+        await el.updateComplete;
+        expect(el._images.map((i) => i.id)).toEqual([1, 2, 3]);
+        expect(el._trashed).toEqual([]);
+    });
+
+    test('clicking an image opens a larger preview', async() => {
+        const el = await mount({ images: IMAGES });
+        el._onCardClick(1);
+        await el.updateComplete;
+        expect(el._lightbox).toBe('https://covers.openlibrary.org/b/id/2-L.jpg');
+        expect(q(el, 'ol-dialog.lightbox')).not.toBeNull();
     });
 
     test('dragging a trashed image back restores it at the drop position', async() => {
@@ -406,7 +437,7 @@ describe('ol-cover-editor image management', () => {
     test('Cmd+Z undoes the last reorder', async() => {
         const el = await mount({ images: IMAGES });
         manageFetch();
-        el._onCardClick(2);
+        el._makePrimary(2);
         await el.updateComplete;
         expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
 
@@ -418,7 +449,7 @@ describe('ol-cover-editor image management', () => {
     test('Cmd+Z steps back through several changes', async() => {
         const el = await mount({ images: IMAGES });
         manageFetch();
-        el._onCardClick(2);
+        el._makePrimary(2);
         await el.updateComplete;
         el._trashImage(0);
         await el.updateComplete;
@@ -450,6 +481,7 @@ describe('ol-cover-editor image management', () => {
 
         expect(el._images.map((i) => i.id)).toEqual([3, 1, 2]);
         expect(fetchMock.mock.calls[0][0]).toBe('/books/OL1M/manage-covers');
+        expect(fetchMock.mock.calls[0][1].body).toBeInstanceOf(URLSearchParams);
         expect(fetchMock.mock.calls[0][1].body.getAll('image')).toEqual(['3', '1', '2', '-1', '-']);
     });
 
@@ -473,16 +505,20 @@ describe('ol-cover-editor image management', () => {
         expect(fetchMock).toHaveBeenCalled();
     });
 
-    test('dragging an image onto another reorders and saves', async() => {
+    test('dragging an image reorders it live and saves on release', async() => {
         const el = await mount({ images: IMAGES });
         const fetchMock = manageFetch();
         const dt = { effectAllowed: '', dropEffect: '', setData() {} };
         el._onCardDragStart({ dataTransfer: dt }, 0);
-        el._onCardDrop({ preventDefault() {}, stopPropagation() {}, dataTransfer: dt }, 2);
+        el._onCardDragOver({ preventDefault() {}, dataTransfer: dt }, 2);
         await el.updateComplete;
-
         expect(el._images.map((i) => i.id)).toEqual([2, 3, 1]);
+
+        el._onCardDragEnd();
+        await el.updateComplete;
         expect(fetchMock).toHaveBeenCalled();
+        expect(fetchMock.mock.calls[0][1].body).toBeInstanceOf(URLSearchParams);
+        expect(fetchMock.mock.calls[0][1].body.getAll('image')).toEqual(['2', '3', '1', '-1', '-']);
     });
 
     test('trashing every image falls back to the blank cover but keeps the bin', async() => {

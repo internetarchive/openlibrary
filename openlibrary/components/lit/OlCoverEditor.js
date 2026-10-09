@@ -1,8 +1,10 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
-// Registers <ol-button> for the actions and <ol-icon> for the glyphs.
+// Registers <ol-button> for the actions, <ol-icon> for the glyphs, and
+// <ol-dialog> for the enlarged preview.
 import './OLButton.js';
 import './OlIcon.js';
+import './OlDialog.js';
 import { translate } from './utils/labels.js';
 
 /**
@@ -30,6 +32,8 @@ export const DEFAULT_LABELS = {
     pasteAria: 'Paste image from clipboard',
     previewAlt: 'Selected image preview',
     removeImage: 'Remove image',
+    restoreImage: 'Restore image',
+    imagePreview: 'Image preview',
     upload: 'Upload',
     uploading: 'Uploading…',
     saving: 'Saving…',
@@ -101,6 +105,8 @@ export class OlCoverEditor extends LitElement {
         _status: { state: true },
         _announce: { state: true },
         _trashed: { state: true },
+        _candidates: { state: true },
+        _lightbox: { state: true },
         _focusIndex: { state: true },
     };
 
@@ -188,7 +194,7 @@ export class OlCoverEditor extends LitElement {
             display: block;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             pointer-events: none;
         }
 
@@ -217,22 +223,40 @@ export class OlCoverEditor extends LitElement {
             height: 22px;
         }
 
+        .trash__item {
+            position: relative;
+            flex: none;
+        }
+
         .trash__img {
             display: block;
-            flex: none;
-            width: 40px;
-            height: 60px;
-            object-fit: cover;
+            width: 48px;
+            height: 72px;
+            object-fit: contain;
             border-radius: var(--border-radius-thumbnail);
             background: var(--color-surface-sunken);
             cursor: grab;
-            opacity: 0.7;
+            opacity: 0.75;
+        }
+
+        .trash__restore {
+            position: absolute;
+            top: 0;
+            right: 0;
         }
 
         .trash--active {
             border-color: var(--color-border-error);
             background: var(--color-error-bg);
             color: var(--color-error-fg);
+        }
+
+        .lightbox__img {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            margin: 0 auto;
+            border-radius: var(--border-radius-thumbnail);
         }
 
         /* ── Add panel (whole panel is a drop target) ─────────────────── */
@@ -375,6 +399,10 @@ export class OlCoverEditor extends LitElement {
         this._status = '';
         this._announce = '';
         this._trashed = [];
+        this._candidates = [];
+        this._lightbox = null;
+        this._dragOrigin = null;
+        this._pendingFlip = null;
         this._focusIndex = null;
         this._imagesEdited = false;
         /** Snapshots of the image + trash lists for undo (⌘Z). */
@@ -428,14 +456,49 @@ export class OlCoverEditor extends LitElement {
         if (!this._imagesEdited && changed.has('images')) {
             this._images = (this.images ?? []).map((image) => ({ ...image }));
         }
+        if (changed.has('candidates')) {
+            this._candidates = (this.candidates ?? []).map((candidate) => ({ ...candidate }));
+        }
     }
 
     updated(changed) {
         super.updated?.(changed);
+        if (changed.has('_images') && this._pendingFlip) {
+            this._applyFlip(this._pendingFlip);
+            this._pendingFlip = null;
+        }
         if (changed.has('_images') && this._focusIndex !== null) {
             const index = this._focusIndex;
             this._focusIndex = null;
             requestAnimationFrame(() => this.renderRoot.querySelectorAll('.image')[index]?.focus());
+        }
+    }
+
+    /** Rects of the current thumbnails, keyed by image id (for FLIP). */
+    _captureImageRects() {
+        const rects = new Map();
+        for (const el of this.renderRoot.querySelectorAll('.image[data-id]')) {
+            rects.set(el.dataset.id, el.getBoundingClientRect());
+        }
+        return rects;
+    }
+
+    /**
+     * FLIP: slide each thumbnail from where it was to where it now is, so a
+     * reorder reads as movement rather than a jump.
+     */
+    _applyFlip(before) {
+        for (const el of this.renderRoot.querySelectorAll('.image[data-id]')) {
+            const from = before.get(el.dataset.id);
+            if (!from || typeof el.animate !== 'function') continue;
+            const to = el.getBoundingClientRect();
+            const dx = from.left - to.left;
+            const dy = from.top - to.top;
+            if (!dx && !dy) continue;
+            el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
+                duration: 180,
+                easing: 'ease',
+            });
         }
     }
 
@@ -615,7 +678,9 @@ export class OlCoverEditor extends LitElement {
     async _useUrl(url) {
         const data = new FormData();
         data.append('url', url);
-        await this._post(data);
+        const id = await this._post(data);
+        // Imported: don't keep offering the same remote image.
+        if (id) this._candidates = this._candidates.filter((candidate) => candidate.url !== url);
     }
 
     async _onSubmit() {
@@ -629,6 +694,7 @@ export class OlCoverEditor extends LitElement {
         await this._post(data);
     }
 
+    /** @returns {Promise<Number|null>} the new image id, or null on failure. */
     async _post(data) {
         this._busy = true;
         this._error = '';
@@ -642,7 +708,7 @@ export class OlCoverEditor extends LitElement {
             const id = response.ok ? this._extractCoverId(markup) : null;
             if (!id) {
                 this._error = this.t('uploadFailed');
-                return;
+                return null;
             }
             this._clearImage();
             this._imagesEdited = true;
@@ -653,8 +719,10 @@ export class OlCoverEditor extends LitElement {
             this.dispatchEvent(
                 new CustomEvent('ol-cover-editor-add', { bubbles: true, composed: true, detail: { id } }),
             );
+            return id;
         } catch {
             this._error = this.t('uploadFailed');
+            return null;
         } finally {
             this._busy = false;
         }
@@ -721,6 +789,10 @@ export class OlCoverEditor extends LitElement {
     _onCardDragStart(event, index) {
         this._dragSource = 'images';
         this._dragIndex = index;
+        this._dragOrigin = {
+            images: this._images.map((image) => ({ ...image })),
+            trashed: this._trashed.map((image) => ({ ...image })),
+        };
         event.dataTransfer.effectAllowed = 'move';
         // Some browsers refuse to start a drag without payload.
         event.dataTransfer.setData('text/plain', String(index));
@@ -733,10 +805,19 @@ export class OlCoverEditor extends LitElement {
         event.dataTransfer.setData('text/plain', String(index));
     }
 
-    _onCardDragOver(event) {
+    _onCardDragOver(event, index) {
         if (this._dragSource === null) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
+        // Live-preview the reorder so the strip moves as you drag.
+        if (this._dragSource === 'images' && index !== this._dragIndex) {
+            this._pendingFlip = this._captureImageRects();
+            const images = [...this._images];
+            const [moved] = images.splice(this._dragIndex, 1);
+            images.splice(index, 0, moved);
+            this._images = images;
+            this._dragIndex = index;
+        }
     }
 
     _onCardDrop(event, index) {
@@ -744,13 +825,11 @@ export class OlCoverEditor extends LitElement {
         event.stopPropagation();
         const source = this._dragSource;
         const from = this._dragIndex;
-        this._resetDrag();
-        if (from === null) return;
         if (source === 'trash') {
+            this._resetDrag();
             this._restoreImage(from, index);
-        } else if (source === 'images' && from !== index) {
-            this._moveImage(from, index);
         }
+        // A dragged strip image is already reordered live; dragend commits it.
     }
 
     /** Dropping in the gaps of the strip appends (e.g. every image was trashed). */
@@ -769,7 +848,7 @@ export class OlCoverEditor extends LitElement {
     }
 
     _onCardDragEnd() {
-        this._resetDrag();
+        this._commitDrag();
     }
 
     _onTrashDragOver(event) {
@@ -791,9 +870,30 @@ export class OlCoverEditor extends LitElement {
         if (from !== null) this._trashImage(from);
     }
 
+    /** Persist a live-reordered drag; ⌘Z steps back to the pre-drag order. */
+    _commitDrag() {
+        const origin = this._dragOrigin;
+        const changed = this._dragSource === 'images' && origin && !this._sameOrder(origin.images, this._images);
+        const position = this._dragIndex;
+        this._resetDrag();
+        if (!changed) return;
+        this._history.push(origin);
+        if (this._history.length > 30) this._history.shift();
+        this._imagesEdited = true;
+        this._status = '';
+        this._announce = this.t('movedImage', { position: position + 1, total: this._images.length });
+        this._syncPageCover();
+        this._saveOrder();
+    }
+
+    _sameOrder(a, b) {
+        return a.length === b.length && a.every((image, i) => image.id === b[i].id);
+    }
+
     _resetDrag() {
         this._dragIndex = null;
         this._dragSource = null;
+        this._dragOrigin = null;
         this._trashActive = false;
     }
 
@@ -836,6 +936,7 @@ export class OlCoverEditor extends LitElement {
     _moveImage(from, to) {
         if (from === to || from < 0 || to < 0 || from >= this._images.length || to >= this._images.length) return;
         this._pushHistory();
+        this._pendingFlip = this._captureImageRects();
         const images = [...this._images];
         const [moved] = images.splice(from, 1);
         images.splice(to, 0, moved);
@@ -853,10 +954,11 @@ export class OlCoverEditor extends LitElement {
         this._moveImage(index, 0);
     }
 
-    /** Clicking an image promotes it to primary (front of the list). */
+    /** Clicking an image opens a larger preview of it. */
     _onCardClick(index) {
-        if (index === 0) return;
-        this._moveImage(index, 0);
+        const image = this._images[index];
+        if (!image) return;
+        this._lightbox = image.url.replace(/-M\.jpg$/, '-L.jpg');
     }
 
     /** Move an image off the strip into the trash bin (unlink + save). */
@@ -866,12 +968,12 @@ export class OlCoverEditor extends LitElement {
         this._pushHistory();
         this._imagesEdited = true;
         this._images = this._images.filter((_, i) => i !== index);
-        this._trashed = [...this._trashed, image];
+        this._trashed = [...this._trashed, { ...image, _from: index }];
         this._syncPageCover();
         this._saveOrder();
     }
 
-    /** Drag a trashed image back onto the strip at the given index. */
+    /** Drag a trashed image back onto the strip (at `targetIndex`, or where it was). */
     _restoreImage(trashIndex, targetIndex) {
         const image = this._trashed[trashIndex];
         if (!image) return;
@@ -879,8 +981,9 @@ export class OlCoverEditor extends LitElement {
         this._imagesEdited = true;
         this._trashed = this._trashed.filter((_, i) => i !== trashIndex);
         const images = [...this._images];
-        const at = Math.max(0, Math.min(targetIndex ?? images.length, images.length));
-        images.splice(at, 0, image);
+        const desired = targetIndex ?? image._from ?? images.length;
+        const at = Math.max(0, Math.min(desired, images.length));
+        images.splice(at, 0, { id: image.id, url: image.url });
         this._images = images;
         this._syncPageCover();
         this._saveOrder();
@@ -909,10 +1012,15 @@ export class OlCoverEditor extends LitElement {
      * Persist the ordered id list. The manage endpoint reads repeated `image`
      * fields, ended by `-`; the `-1` marker keeps the list non-empty so an
      * emptied set doesn't fall back to coverstore-discovered covers.
+     *
+     * Sent urlencoded, NOT as FormData: the legacy `manage_covers.POST` reads
+     * `web.input(image=[])`, which only returns a list for urlencoded repeated
+     * fields — as multipart it yields the last value, so `"-" in images`
+     * matches a single `"-"` and the whole cover list is cleared.
      */
     async _saveOrder() {
         if (!this.manageUrl) return;
-        const data = new FormData();
+        const data = new URLSearchParams();
         for (const image of this._images) data.append('image', image.id);
         data.append('image', '-1');
         data.append('image', '-');
@@ -951,7 +1059,21 @@ export class OlCoverEditor extends LitElement {
             ${this._renderAdd()} ${this._renderCandidates()} ${this._renderImages()} ${this._renderStatus()}
 
             <p class="sr-only" role="status" aria-live="polite">${this._announce}</p>
+
+            <ol-dialog
+                class="lightbox"
+                label=${this.t('imagePreview')}
+                width="medium"
+                ?open=${!!this._lightbox}
+                @ol-close=${this._closeLightbox}
+            >
+                ${this._lightbox ? html`<img class="lightbox__img" src=${this._lightbox} alt="" />` : nothing}
+            </ol-dialog>
         `;
+    }
+
+    _closeLightbox() {
+        this._lightbox = null;
     }
 
     _renderImages() {
@@ -969,13 +1091,14 @@ export class OlCoverEditor extends LitElement {
         'image--primary': index === 0,
         'image--dragging': this._dragIndex === index,
     })}"
+                                    data-id=${image.id}
                                     draggable="true"
                                     tabindex="0"
                                     aria-label=${this.t('imagePosition', { position: index + 1, total: this._images.length })}
                                     @click=${() => this._onCardClick(index)}
                                     @keydown=${(e) => this._onCardKeydown(e, index)}
                                     @dragstart=${(e) => this._onCardDragStart(e, index)}
-                                    @dragover=${(e) => this._onCardDragOver(e)}
+                                    @dragover=${(e) => this._onCardDragOver(e, index)}
                                     @drop=${(e) => this._onCardDrop(e, index)}
                                 >
                                     <img class="image__img" src=${image.url} alt="" draggable="false" />
@@ -993,13 +1116,25 @@ export class OlCoverEditor extends LitElement {
                         <ol-icon class="trash__icon" name="trash"></ol-icon>
                         ${this._trashed.map(
         (image, index) => html`
-                                <img
-                                    class="trash__img"
-                                    src=${image.url}
-                                    alt=""
-                                    draggable="true"
-                                    @dragstart=${(e) => this._onTrashedDragStart(e, index)}
-                                />
+                                <div class="trash__item">
+                                    <img
+                                        class="trash__img"
+                                        src=${image.url}
+                                        alt=""
+                                        draggable="true"
+                                        @dragstart=${(e) => this._onTrashedDragStart(e, index)}
+                                    />
+                                    <ol-button
+                                        class="trash__restore"
+                                        shape="icon"
+                                        size="small"
+                                        variant="secondary"
+                                        aria-label=${this.t('restoreImage')}
+                                        @click=${() => this._restoreImage(index)}
+                                    >
+                                        <ol-icon name="undo"></ol-icon>
+                                    </ol-button>
+                                </div>
                             `,
     )}
                     </div>
@@ -1075,7 +1210,7 @@ export class OlCoverEditor extends LitElement {
     /** Server-supplied remote images (Wikidata, Internet Archive), grouped by source. */
     _renderCandidates() {
         const groups = new Map();
-        for (const candidate of this.candidates ?? []) {
+        for (const candidate of this._candidates ?? []) {
             if (!candidate?.url) continue;
             const source = candidate.source ?? '';
             if (!groups.has(source)) groups.set(source, []);
