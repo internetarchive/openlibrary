@@ -501,9 +501,15 @@ def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests
 
 
 def _render_head(monkeypatch, **ctx_values):
-    """Render site/head.html.jinja from a real LayoutContext plus per-page ctx."""
+    """Render site/head.html.jinja from a real LayoutContext plus per-page ctx.
+
+    Reset the shared infogami context first so a stray ``cssfile``/``description``
+    etc. left by an earlier test in the same session can't flip the head's
+    defaults (e.g. page-user.css -> page-work.css).
+    """
     env = get_jinja_env()
     monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
+    infogami_context.clear()
     try:
         for key, value in ctx_values.items():
             if key != "_title":
