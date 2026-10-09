@@ -88,7 +88,8 @@ def get_playbooks() -> dict[str, Playbook]:
             action=_("Fill in page count"),
             question=_("How many pages does this edition have?"),
             how=_(
-                "WorldCat lists the page count in the record's description. Google Books calls it Length. Make sure the record is for this ISBN, not another printing."
+                "WorldCat lists the page count in the record's description. Google Books calls it Length. "
+                "Make sure the record is for this ISBN, not another printing."
             ),
             sources=[worldcat, google, amazon],
             notes=[
