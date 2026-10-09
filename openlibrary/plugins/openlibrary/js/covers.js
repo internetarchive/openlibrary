@@ -1,43 +1,15 @@
 import $ from 'jquery';
 /**
- * Functionality for templates/covers
+ * Functionality for the standalone covers/add and covers/manage pages.
+ *
+ * The in-dialog editor is a Lit component (<ol-cover-editor>); this file only
+ * backs the no-JS fallback pages (`/add-cover`, `/manage-covers`, …) that are
+ * still reachable directly.
  */
 import './jquery-ui-sortable'; // disable-selection + sortable for drag-to-reorder
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
 import { closePopup } from './utils';
-
-//cover/change.html
-export function initCoversChange() {
-    // The add panel is a Lit component (<ol-cover-upload>) rendered by the
-    // template, so only the manage panel is still an iframe. Load it lazily on
-    // open so the page doesn't fetch it up front.
-    const data_config_json = $('.manageCovers').data('config');
-    const manage_url = data_config_json['manage_url'];
-
-    $('.coverPop').on('click', function() {
-        $('.imagesManage').html('');
-        setTimeout(function() {
-            // add iframe to manage images
-            add_iframe('.imagesManage', manage_url);
-        }, 0);
-    });
-
-    // Stop the manage iframe on close and reset the add component to its initial
-    // state. Waits for the close animation so it doesn't empty mid-fade.
-    const coverDialog = document.querySelector('.imagesAdd')?.closest('ol-dialog');
-    coverDialog?.addEventListener('ol-after-close', () => {
-        document.querySelectorAll('.imagesManage').forEach((el) => el.replaceChildren());
-        coverDialog.querySelector('ol-cover-upload')?.reset?.();
-    });
-}
-
-function add_iframe(selector, src) {
-    $(selector)
-        .append('<iframe height="580" width="100%" style="border: 0;"></iframe>')
-        .find('iframe')
-        .attr('src', src);
-}
 
 function showLoadingIndicator() {
     const loadingIndicator = document.querySelector('.loadingIndicator');

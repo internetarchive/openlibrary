@@ -1848,7 +1848,7 @@ msgstr ""
 msgid "Imports"
 msgstr ""
 
-#: TestingEnvironment.html.jinja admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
+#: TestingEnvironment.html.jinja admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -4070,6 +4070,31 @@ msgid "Learn more by reading our"
 msgstr ""
 
 #: covers/change.html
+msgid "Your images"
+msgstr ""
+
+#: covers/change.html
+msgid "Drag to reorder — the first image is the one shown on the page."
+msgstr ""
+
+#: covers/change.html merge/authors.html recentchanges/merge/view.html
+msgid "Primary"
+msgstr ""
+
+#: covers/change.html
+msgid "Make primary"
+msgstr ""
+
+#: covers/change.html
+msgid "Reorder image"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "Image %(position)s of %(total)s"
+msgstr ""
+
+#: covers/change.html
 msgid "Choose an image"
 msgstr ""
 
@@ -4102,20 +4127,21 @@ msgstr ""
 msgid "Remove image"
 msgstr ""
 
-#: covers/change.html covers/saved.html
-msgid "Saved!"
+#: covers/change.html
+msgid "Saving..."
 msgstr ""
 
-#: covers/change.html covers/saved.html
-msgid "New book cover"
+#: covers/change.html
+msgid "Image added."
 msgstr ""
 
-#: covers/change.html covers/saved.html
-msgid "Add another image"
+#: covers/change.html
+msgid "Order saved."
 msgstr ""
 
-#: covers/change.html covers/saved.html
-msgid "Finished"
+#: covers/change.html
+#, python-format
+msgid "Moved image to position %(position)s of %(total)s."
 msgstr ""
 
 #: covers/change.html
@@ -4132,11 +4158,11 @@ msgid "Could not upload the image. Please try again."
 msgstr ""
 
 #: covers/change.html
-msgid "No image found in clipboard"
+msgid "Could not save your changes. Please try again."
 msgstr ""
 
 #: covers/change.html
-msgid "Manage"
+msgid "No image found in clipboard"
 msgstr ""
 
 #: covers/external_image.html
@@ -4149,7 +4175,23 @@ msgid "You can drag and drop thumbnails to reorder, or into the trash to delete 
 msgstr ""
 
 #: covers/saved.html
+msgid "New book cover"
+msgstr ""
+
+#: covers/saved.html
+msgid "Saved!"
+msgstr ""
+
+#: covers/saved.html
 msgid "Notes:"
+msgstr ""
+
+#: covers/saved.html
+msgid "Add another image"
+msgstr ""
+
+#: covers/saved.html
+msgid "Finished"
 msgstr ""
 
 #: email/account/pd_request.html
@@ -5028,10 +5070,6 @@ msgstr ""
 
 #: merge/authors.html
 msgid "Merge in and redirect"
-msgstr ""
-
-#: merge/authors.html recentchanges/merge/view.html
-msgid "Primary"
 msgstr ""
 
 #: merge/authors.html

@@ -39,6 +39,12 @@ $code:
         "learnMore": _("Learn more by reading our"),
         "guidelinesCover": _("Cover Guidelines"),
         "guidelinesPhoto": _("Image Guidelines"),
+        "yourImages": _("Your images"),
+        "reorderHint": _("Drag to reorder — the first image is the one shown on the page."),
+        "coverPrimary": _("Primary"),
+        "makePrimary": _("Make primary"),
+        "reorderImage": _("Reorder image"),
+        "imagePosition": _("Image %(position)s of %(total)s"),
         "chooseFile": _("Choose an image"),
         "browse": _("Browse"),
         "dropHint": _("Drag and drop an image here"),
@@ -52,15 +58,24 @@ $code:
         "removeImage": _("Remove image"),
         "upload": _("Upload"),
         "uploading": _("Uploading..."),
-        "saved": _("Saved!"),
-        "savedAlt": _("New book cover"),
-        "addAnother": _("Add another image"),
-        "finished": _("Finished"),
+        "saving": _("Saving..."),
+        "imageAdded": _("Image added."),
+        "orderSaved": _("Order saved."),
+        "movedImage": _("Moved image to position %(position)s of %(total)s."),
         "noFile": _("Please choose an image first."),
         "invalidType": _("That file type isn't supported. Please use one of these image types: %(types)s."),
         "uploadFailed": _("Could not upload the image. Please try again."),
+        "saveFailed": _("Could not save your changes. Please try again."),
         "noClipboardImage": _("No image found in clipboard"),
     }
+
+    # The document's current images, first one primary. `get_covers()` already
+    # runs above for the button label (with its Solr fallback on works), so this
+    # adds no extra lookup.
+    cover_editor_images = [
+        {'id': image.id, 'url': image.url('M')}
+        for image in (doc.get_photos() if doc.type.key == '/type/author' else doc.get_covers())
+    ]
 
     # Remote images offered as one-click imports, mirroring the old
     # covers/external_image forms: an author's Wikidata image, or the
@@ -78,24 +93,13 @@ $code:
         ]
 
 <ol-dialog id="addImage-$imagesId" label="$title" width="large">
-    <div id="tabsImages" class="ol-tabs tabsPop">
-        <ul>
-            <li><a href="#imagesAdd-$imagesId">$_('Add')</a></li>
-            <li><a href="#imagesManage-$imagesId">$_('Manage')</a></li>
-        </ul>
-
-        <div class="imagesAdd" id="imagesAdd-$imagesId">
-            <ol-cover-upload
-                action="$add_url"
-                doc-type="$doc.type.key"
-                cover-selector="$cover_selector"
-                coverstore-url="$(get_coverstore_public_url())"
-                labels="$json_encode(cover_upload_labels)"
-                candidates="$json_encode(cover_upload_candidates)"></ol-cover-upload>
-        </div>
-
-        <div class="imagesManage" id="imagesManage-$imagesId">
-            $# manage images iframe is added here when the popup is loaded
-        </div>
-    </div>
+    <ol-cover-editor
+        action="$add_url"
+        manage-url="$manage_url"
+        doc-type="$doc.type.key"
+        cover-selector="$cover_selector"
+        coverstore-url="$(get_coverstore_public_url())"
+        labels="$json_encode(cover_upload_labels)"
+        images="$json_encode(cover_editor_images)"
+        candidates="$json_encode(cover_upload_candidates)"></ol-cover-editor>
 </ol-dialog>
