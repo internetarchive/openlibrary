@@ -4103,16 +4103,12 @@ msgid "Browse"
 msgstr ""
 
 #: covers/change.html
-msgid "Drag and drop an image here"
+msgid "Drag and drop or paste an image here"
 msgstr ""
 
 #: covers/change.html
 #, python-format
 msgid "Or, use an image from %(source)s"
-msgstr ""
-
-#: covers/change.html
-msgid "Or paste with Ctrl/⌘+V"
 msgstr ""
 
 #: covers/change.html

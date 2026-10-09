@@ -84,9 +84,9 @@ describe('ol-cover-editor add form', () => {
     });
 
     test('translated labels override the English defaults', async() => {
-        const el = await mount({ labels: { upload: 'Téléverser', chooseFile: 'Choisir' } });
+        const el = await mount({ labels: { upload: 'Téléverser', browse: 'Parcourir' } });
         expect(el.renderRoot.textContent).toContain('Téléverser');
-        expect(el.renderRoot.textContent).toContain('Choisir');
+        expect(el.renderRoot.textContent).toContain('Parcourir');
     });
 
     test('choosing a file records it and shows a preview', async() => {

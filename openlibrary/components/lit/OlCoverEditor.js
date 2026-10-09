@@ -23,11 +23,10 @@ export const DEFAULT_LABELS = {
     imagePosition: 'Image %(position)s of %(total)s',
     chooseFile: 'Choose an image',
     browse: 'Browse',
-    dropHint: 'Drag and drop an image here',
+    dropHint: 'Drag and drop or paste an image here',
     useImageFrom: 'Or, use an image from %(source)s',
     uploadImage: 'Upload Image',
     paste: 'Paste Image',
-    pasteHint: 'Or paste with Ctrl/⌘+V',
     changeImage: 'Change Image',
     pasteAria: 'Paste image from clipboard',
     previewAlt: 'Selected image preview',
@@ -238,6 +237,18 @@ export class OlCoverEditor extends LitElement {
 
         .file {
             display: none;
+        }
+
+        /* Desktop has Ctrl/⌘V and drag-and-drop, so the Paste button is only a
+           touch affordance (there's no keyboard shortcut there). */
+        .paste-button {
+            display: none;
+        }
+
+        @media (hover: none) {
+            .paste-button {
+                display: inline-block;
+            }
         }
 
         .preview-wrap {
@@ -824,7 +835,6 @@ export class OlCoverEditor extends LitElement {
                 @dragleave=${this._onDragLeave}
                 @drop=${this._onDrop}
             >
-                <h3 class="heading">${this.t('chooseFile')}</h3>
                 <input
                     class="file"
                     type="file"
@@ -843,7 +853,6 @@ export class OlCoverEditor extends LitElement {
                     >
                     ${upload}
                 </div>
-                <p class="hint">${this.t('pasteHint')}</p>
             </div>
         `;
     }
