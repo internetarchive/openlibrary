@@ -935,7 +935,7 @@ msgstr ""
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html lib/nav_foot.html.jinja openlibrary/plugins/upstream/mybooks.py search/search_modal_i18n.html work_search.html
+#: SearchNavigation.html account/sidebar.html lib/nav_foot.html.jinja openlibrary/plugins/upstream/mybooks.py search/search_modal_i18n.html work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1671,6 +1671,10 @@ msgstr ""
 msgid "Make profile public to share"
 msgstr ""
 
+#: ShareModal.html account/sidebar.html type/edition/modal_links.html type/edition/title_and_author.html
+msgid "Share"
+msgstr ""
+
 #: account/sidebar.html openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
 msgstr ""
@@ -1746,7 +1750,15 @@ msgid "My Books Menu"
 msgstr ""
 
 #: account/sidebar.html
+msgid "Books menu"
+msgstr ""
+
+#: account/sidebar.html
 msgid "Open My Books menu"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Open books menu"
 msgstr ""
 
 #: account/sidebar.html
@@ -6393,10 +6405,6 @@ msgstr ""
 
 #: type/edition/modal_links.html
 msgid "adding notes to"
-msgstr ""
-
-#: ShareModal.html type/edition/modal_links.html type/edition/title_and_author.html
-msgid "Share"
 msgstr ""
 
 #: type/edition/notes_modal_i18n.html

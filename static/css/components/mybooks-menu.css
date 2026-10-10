@@ -164,6 +164,19 @@
   flex-shrink: 0;
 }
 
+/* Visitor row holds only the share control: stretch the wrapper and the
+   popover host full-width; the popover's `block` trigger slot carries the
+   button the rest of the way to the row's edges. */
+.sb-profile-actions > .share-popover-component:only-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.sb-profile-actions > :only-child > .share-popover {
+  flex: 1;
+  min-width: 0;
+}
+
 .sb-divider {
   border: none;
   border-top: 1px solid var(--color-border-subtle);
