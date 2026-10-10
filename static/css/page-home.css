@@ -7,6 +7,9 @@
 @import "base/helpers-common.css";
 @import "base/common.css";
 
+/* The librarian call-out's headline and the stats figures are set in Literata. */
+@import "fonts/literata.css";
+
 /* layout rules */
 @import "layout/index.css";
 
@@ -24,5 +27,6 @@
 @import "components/category-item.css";
 @import "components/loading-indicator.css";
 @import "components/home.css";
+@import "components/library-row.css";
 @import "components/footer.css";
 @import "components/language.css";

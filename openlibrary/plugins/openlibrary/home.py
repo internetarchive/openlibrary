@@ -10,6 +10,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core import admin, cache, env
 from openlibrary.core.carousels import get_carousel_data
+from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
@@ -42,9 +43,63 @@ def get_homepage(devmode):
         blog_posts=blog_posts,
         featured_subjects=featured_subjects,
         carousel_data=carousel_data,
+        library_stats=get_library_stats(stats),
     )
     # Convert to a dict so it can be cached
     return dict(page)
+
+
+# The "Around the library" card (home/library_row.html.jinja): four of admin.get_stats's series,
+# each summed over the last 28 days, with a sparkline of the daily counts drawn in a 120x28 box.
+LIBRARY_STATS_DAYS = 28
+SPARKLINE_WIDTH = 120
+SPARKLINE_HEIGHT = 28
+
+
+def compact_number(n: int) -> str:
+    """1234 -> "1.2K", 96400 -> "96K", 1200000 -> "1.2M"; under a thousand, the number itself."""
+    for threshold, suffix in ((1_000_000, "M"), (1_000, "K")):
+        if n >= threshold:
+            value = n / threshold
+            text = f"{value:.1f}" if value < 10 else f"{value:.0f}"
+            if "." in text:
+                text = text.rstrip("0").rstrip(".")
+            return text + suffix
+    return commify(n)
+
+
+def sparkline_points(values: list[int], width: int = SPARKLINE_WIDTH, height: int = SPARKLINE_HEIGHT, pad: int = 2) -> str:
+    """SVG polyline points for the daily values, oldest first, scaled to fill the box.
+    A flat series draws a midline rather than hugging the floor."""
+    if not values:
+        return ""
+    low, high = min(values), max(values)
+    span = high - low
+    step = (width - 2 * pad) / max(len(values) - 1, 1)
+
+    def y(value: int) -> float:
+        return height / 2 if not span else pad + (height - 2 * pad) * (1 - (value - low) / span)
+
+    return " ".join(f"{pad + i * step:.1f},{y(value):.1f}" for i, value in enumerate(values))
+
+
+def get_library_stats(stats) -> list[dict]:
+    """The card's metrics, in reading order. A series with nothing in the window (visitors, when
+    graphite can't be reached) is left off rather than shown as zero."""
+    if not stats:
+        return []
+    series = [
+        ("visitors", _("unique visitors"), "//archive.org/stats"),
+        ("members", _("new members"), "/stats"),
+        ("human_edits", _("catalog edits"), "/recentchanges"),
+        ("loans", _("ebooks borrowed"), "/subjects/in_library#ebooks=true"),
+    ]
+    metrics = []
+    for key, label, href in series:
+        values = [count for _day, count in stats[key].get_counts(LIBRARY_STATS_DAYS)]
+        if total := sum(values):
+            metrics.append({"label": label, "value": compact_number(total), "href": href, "points": sparkline_points(values)})
+    return metrics
 
 
 def get_cached_homepage():

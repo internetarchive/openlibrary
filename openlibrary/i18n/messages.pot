@@ -2007,7 +2007,7 @@ msgstr ""
 msgid "Last 7 days"
 msgstr ""
 
-#: admin/index.html
+#: admin/index.html home/library_row.html.jinja
 msgid "Last 28 days"
 msgstr ""
 
@@ -2051,7 +2051,7 @@ msgstr ""
 msgid "Covers Added"
 msgstr ""
 
-#: admin/index.html home/stats.html
+#: admin/index.html
 msgid "New Members"
 msgstr ""
 
@@ -2103,7 +2103,7 @@ msgstr ""
 msgid "Star Rating Patrons"
 msgstr ""
 
-#: admin/index.html home/stats.html
+#: admin/index.html
 msgid "Unique Visitors"
 msgstr ""
 
@@ -4215,64 +4215,44 @@ msgstr ""
 msgid "Books in Local Environment"
 msgstr ""
 
-#: home/stats.html
+#: home/library_row.html.jinja
+msgid "A library owned by the people who use it."
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Not a store, not a feed. A catalog of every book ever published, written and corrected by readers, with every byte of it free for anyone to take."
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "See how librarians help"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Editable"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "By anyone, like Wikipedia"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Public"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Every record, free to download"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Nonprofit"
+msgstr ""
+
+#: home/library_row.html.jinja
+msgid "Run by the Internet Archive"
+msgstr ""
+
+#: home/library_row.html.jinja
 msgid "Around the Library"
-msgstr ""
-
-#: home/stats.html
-msgid "Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>"
-msgstr ""
-
-#: home/stats.html
-msgid "See all visitors to OpenLibrary.org"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of recent unique visitors"
-msgstr ""
-
-#: home/stats.html
-msgid "How many new Open Library members have we welcomed?"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of new members"
-msgstr ""
-
-#: home/stats.html
-msgid "People are constantly updating the catalog"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of recent catalog edits"
-msgstr ""
-
-#: home/stats.html
-msgid "Catalog Edits"
-msgstr ""
-
-#: home/stats.html
-msgid "Members can create Lists"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of lists created recently"
-msgstr ""
-
-#: home/stats.html
-msgid "Lists Created"
-msgstr ""
-
-#: home/stats.html
-msgid "We're a library, so we lend books, too"
-msgstr ""
-
-#: home/stats.html
-msgid "Area graph of ebooks borrowed recently"
-msgstr ""
-
-#: home/stats.html
-msgid "eBooks Borrowed"
 msgstr ""
 
 #: home/welcome.html
@@ -4313,14 +4293,6 @@ msgstr ""
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
-
-#: home/welcome.html
-msgid "Be an Open Librarian"
-msgstr ""
-
-#: home/welcome.html
-msgid "Dozens of ways you can help improve the library"
 msgstr ""
 
 #: home/welcome.html
@@ -8247,6 +8219,22 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "unique visitors"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "new members"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "catalog edits"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "ebooks borrowed"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
