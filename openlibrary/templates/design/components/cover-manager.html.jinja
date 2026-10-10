@@ -1,0 +1,49 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        The dialog for choosing a book's cover or an author's photo. It lists every image attached to the record after the ones that are always on offer — Internet Archive scan pages, a Wikidata photo, a work's edition covers — so picking a suggestion is one click and adding an image is a drop, a paste or a file pick. Nothing is saved until Save; uploaded images can be removed from the record and restored from its history.
+    </p>
+    {% call ex.example("In a dialog", "It loads when its ol-dialog opens and closes the dialog on Save or Cancel. This demo answers its requests with sample data, so nothing is saved — drop or paste an image to see an upload.",
+        code="<ol-dialog id=\"cover-dialog\" label=\"Book Covers\" width=\"large\" fullscreen-on-mobile>\n  <ol-cover-manager doc-key=\"/books/OL1M\"\n                    labels=\"$json_encode(labels)\">\n  </ol-cover-manager>\n</ol-dialog>\n\n// The page updates its own cover once the dialog saves\ndocument.addEventListener('ol-cover-manager-save', (e) => e.detail.coverId);",
+        output_style="display: flex; gap: 12px;") %}
+        <ol-button id="demo-cover-manager-open">
+            Manage covers
+        </ol-button>
+        <ol-dialog id="demo-cover-manager" label="Book Covers" width="large" fullscreen-on-mobile>
+            <ol-cover-manager doc-key="/books/OL0M">
+            </ol-cover-manager>
+        </ol-dialog>
+        <script>
+            (function () {
+                const DOC = '/books/OL0M/covers';
+                const scan = 'https://archive.org/download/goodytwoshoes00newyiala/page';
+                let items = [
+                    { id: 'suggestion:archive-cover', kind: 'archive_cover', suggestion: 'archive-cover', image_id: null, thumb: scan + '/cover_w360.jpg', removable: false },
+                    { id: 'suggestion:archive-title', kind: 'archive_title', suggestion: 'archive-title', image_id: null, thumb: scan + '/title_w360.jpg', removable: false },
+                    { id: 'img:12622062', kind: 'upload', image_id: 12622062, thumb: 'https://covers.openlibrary.org/b/id/12622062-M.jpg', added_by: { key: '/people/ada', name: 'ada' }, created: '2024-03-02T00:00:00', removable: true },
+                ];
+                let current = 'img:12622062';
+                let nextId = 1;
+                const reply = (body) => new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
+                // Answers only this demo's record; every other request goes to the network.
+                const realFetch = window.fetch.bind(window);
+                window.fetch = async (url, init = {}) => {
+                    if (typeof url !== 'string' || !url.startsWith(DOC)) return realFetch(url, init);
+                    if (url.endsWith('/upload.json')) {
+                        const id = nextId++;
+                        return reply({ id: 'img:' + id, kind: 'upload', image_id: id, thumb: '', added_by: { key: '/people/you', name: 'you' }, removable: true });
+                    }
+                    if (init.method === 'POST') {
+                        const { selected, added, removed } = JSON.parse(init.body);
+                        items = items.filter((item) => !removed.includes(item.image_id));
+                        current = selected;
+                        return reply({ cover_id: Number(selected.split(':')[1]) || null, state: { key: '/books/OL0M', current, items } });
+                    }
+                    return reply({ key: '/books/OL0M', current, items });
+                };
+                const dialog = document.getElementById('demo-cover-manager');
+                document.getElementById('demo-cover-manager-open').addEventListener('click', () => { dialog.open = true; });
+            })();
+        </script>
+    {% endcall %}
+{% endmacro %}

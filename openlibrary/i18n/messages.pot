@@ -435,7 +435,7 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html covers/change.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -626,7 +626,7 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html covers/add.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/add.html covers/change.html showia.html type/edition/view.html type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -1444,7 +1444,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html covers/manage.html my_books/shelf_button_i18n.html
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html covers/change.html covers/manage.html my_books/shelf_button_i18n.html
 msgid "Save"
 msgstr ""
 
@@ -1882,7 +1882,7 @@ msgstr ""
 msgid "Imports"
 msgstr ""
 
-#: TestingEnvironment.html.jinja admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
+#: TestingEnvironment.html.jinja admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -3969,7 +3969,7 @@ msgstr ""
 msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Image Guidelines"
 msgstr ""
 
@@ -3977,16 +3977,16 @@ msgstr ""
 msgid "There are a few ways to put a cover image on Open Library."
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Cover Guidelines"
 msgstr ""
 
 #: covers/add.html
-msgid "Please provide a valid image."
+msgid "Please provide an image URL."
 msgstr ""
 
 #: covers/add.html
-msgid "Please provide an image URL."
+msgid "Please provide a valid image."
 msgstr ""
 
 #: covers/add.html
@@ -4034,7 +4034,7 @@ msgstr ""
 msgid "Uploading..."
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html covers/change.html
 msgid "Wikidata"
 msgstr ""
 
@@ -4096,7 +4096,149 @@ msgid "Add Cover Image"
 msgstr ""
 
 #: covers/change.html
-msgid "Manage"
+msgid "Choose the photo to show for this author, or add a new one."
+msgstr ""
+
+#: covers/change.html
+msgid "Choose the image to show as this book's cover, or add a new one."
+msgstr ""
+
+#: covers/change.html
+msgid "Images"
+msgstr ""
+
+#: covers/change.html
+msgid "Add image"
+msgstr ""
+
+#: covers/change.html
+msgid "Drop a file, paste, or browse"
+msgstr ""
+
+#: covers/change.html
+msgid "Drop the image to upload it"
+msgstr ""
+
+#: covers/change.html type/language/view.html
+msgid "Current"
+msgstr ""
+
+#: covers/change.html type/work/editions_datatable.html
+msgid "Edition"
+msgstr ""
+
+#: covers/change.html
+msgid "Uploaded"
+msgstr ""
+
+#: covers/change.html
+msgid "Scan · cover page"
+msgstr ""
+
+#: covers/change.html
+msgid "Scan · title page"
+msgstr ""
+
+#: covers/change.html
+msgid "Wikimedia Commons"
+msgstr ""
+
+#: covers/change.html
+msgid "Cover of an edition"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "%(name)s · %(date)s"
+msgstr ""
+
+#: covers/change.html
+msgid "You · just now"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "%(name)s (current cover)"
+msgstr ""
+
+#: TestingEnvironment.html.jinja covers/change.html lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
+msgid "Remove"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "Remove %(name)s"
+msgstr ""
+
+#: covers/change.html my_books/shelf_button_i18n.html
+msgid "Undo"
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "Keep %(name)s"
+msgstr ""
+
+#: covers/change.html
+msgid "Uploading…"
+msgstr ""
+
+#: covers/change.html
+msgid "Removed images can be restored from the edit history."
+msgstr ""
+
+#: covers/change.html
+msgid "When you save, the selected image becomes the cover."
+msgstr ""
+
+#: covers/change.html
+#, python-format
+msgid "%(count)s new image will be added."
+msgid_plural "%(count)s new images will be added."
+msgstr[0] ""
+msgstr[1] ""
+
+#: covers/change.html
+#, python-format
+msgid "%(count)s image will be removed."
+msgid_plural "%(count)s images will be removed."
+msgstr[0] ""
+msgstr[1] ""
+
+#: covers/change.html
+msgid "Photo updated"
+msgstr ""
+
+#: covers/change.html
+msgid "Cover updated"
+msgstr ""
+
+#: covers/change.html
+msgid "Loading images…"
+msgstr ""
+
+#: covers/change.html
+msgid "The images couldn’t be loaded."
+msgstr ""
+
+#: TestingEnvironment.html.jinja covers/change.html
+msgid "Try again"
+msgstr ""
+
+#: covers/change.html
+msgid "Choose a JPG, GIF, PNG or WebP image."
+msgstr ""
+
+#: covers/change.html
+msgid "Images must be 10 MB or smaller."
+msgstr ""
+
+#: covers/change.html
+msgid "That image couldn’t be uploaded."
+msgstr ""
+
+#: covers/change.html
+msgid "Your changes couldn’t be saved. Try again."
 msgstr ""
 
 #: covers/external_image.html
@@ -4897,10 +5039,6 @@ msgstr ""
 msgid "Remove from this list?"
 msgstr ""
 
-#: TestingEnvironment.html.jinja lists/lists.html type/list/edit.html type/list/view_body.html type/series/edit.html
-msgid "Remove"
-msgstr ""
-
 #: lists/lists.html
 #, python-format
 msgid "<strong>%(title)s</strong> will be removed from this list."
@@ -5397,10 +5535,6 @@ msgstr ""
 #: my_books/shelf_button_i18n.html
 #, python-format
 msgid "Moved to %(shelf)s"
-msgstr ""
-
-#: my_books/shelf_button_i18n.html
-msgid "Undo"
 msgstr ""
 
 #: observations/review_component.html
@@ -6579,10 +6713,6 @@ msgid "Code"
 msgstr ""
 
 #: type/language/view.html
-msgid "Current"
-msgstr ""
-
-#: type/language/view.html
 #, python-format
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
 msgstr ""
@@ -7038,10 +7168,6 @@ msgstr[1] ""
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr ""
-
-#: type/work/editions_datatable.html
-msgid "Edition"
 msgstr ""
 
 #: OlPagination.html OlPaginationArrows.html type/work/editions_datatable.html
@@ -7574,10 +7700,6 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "Could not load the testing environment."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Try again"
 msgstr ""
 
 #: TestingEnvironment.html.jinja

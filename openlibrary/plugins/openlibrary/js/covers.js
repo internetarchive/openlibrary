@@ -5,46 +5,37 @@ import $ from 'jquery';
 import './jquery-ui-sortable'; // disable-selection + sortable for drag-to-reorder
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
-import { closePopup } from './utils';
-
-//cover/change.html
+// covers/change.html: show the cover <ol-cover-manager> just saved on the page behind it.
 export function initCoversChange() {
-    // Pull data from data-config of class "manageCovers" in covers/manage.html
-    const data_config_json = $('.manageCovers').data('config');
-    const doc_type_key = data_config_json['key'];
-    const add_url = data_config_json['add_url'];
-    const manage_url = data_config_json['manage_url'];
+    document.addEventListener('ol-cover-manager-save', (event) => {
+        const dialogId = event.target.closest('ol-dialog')?.id;
+        const trigger = dialogId && document.querySelector(`.manageCovers[aria-controls="${dialogId}"]`);
+        if (!trigger) return;
+        const { key, url, selector } = JSON.parse(trigger.dataset.config);
+        const { coverId } = event.detail;
+        const covers = document.querySelectorAll(selector);
 
-    // Add iframes lazily when the dialog opens, clearing them first so they
-    // reload fresh each time. This avoids fetching the iframes with the page.
-    $('.coverPop')
-        .on('click', function() {
-            $('.imagesAdd').html('');
-            $('.imagesManage').html('');
-            if (doc_type_key === '/type/work') {
-                $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
+        if (key === '/type/author') {
+            covers.forEach((img) => { img.src = coverId ? `${url}/a/id/${coverId}-M.jpg` : '/static/images/icons/avatar_author-lg.png'; });
+            if (coverId) updateCoverPreview(`${url}/a/id/${coverId}-L.jpg`);
+            return;
+        }
+        if (!coverId) return;
+        const coverUrl = `${url}/b/id/${coverId}-M.jpg`;
+        covers.forEach((img) => {
+            img.src = coverUrl;
+            img.srcset = `${url}/b/id/${coverId}-L.jpg 2x`;
+            // The old cover's aspect ratio would stretch the new one.
+            img.style.aspectRatio = '';
+            // A book that had no cover shows a blank placeholder beside the hidden image.
+            const wrapper = img.closest('div');
+            if (wrapper) {
+                wrapper.style.display = '';
+                if (wrapper.nextElementSibling) wrapper.nextElementSibling.style.display = 'none';
             }
-            setTimeout(function() {
-                // add iframe to add images
-                add_iframe('.imagesAdd', add_url);
-                // add iframe to manage images
-                add_iframe('.imagesManage', manage_url);
-            }, 0);
         });
-
-    // Clear the add/manage iframes once the dialog has closed so they stop running;
-    // the next open rebuilds them. Waits for the close animation so it doesn't empty mid-fade.
-    const coverDialog = document.querySelector('.imagesAdd')?.closest('ol-dialog');
-    coverDialog?.addEventListener('ol-after-close', () => {
-        document.querySelectorAll('.imagesAdd, .imagesManage').forEach((el) => el.replaceChildren());
+        updateCoverPreview(`${url}/b/id/${coverId}-L.jpg`);
     });
-}
-
-function add_iframe(selector, src) {
-    $(selector)
-        .append('<iframe height="580" width="100%" style="border: 0;"></iframe>')
-        .find('iframe')
-        .attr('src', src);
 }
 
 function showLoadingIndicator() {
@@ -73,60 +64,13 @@ export function initCoversAddManage() {
     $('.trash').disableSelection();
 }
 
-// covers/saved.html
-// Uses parent.$ in place of $ where elements lie outside of the "saved" window
-export function initCoversSaved() {
-    // Save the new image
-    // Pull data from data-config of class "imageSaved" in covers/saved.html
-    const data_config_json = parent.$('.manageCovers').data('config');
-    const doc_type_key = data_config_json['key'];
-    const coverstore_url = data_config_json['url'];
-    const cover_selector = data_config_json['selector'];
-    const image = $('.imageSaved').data('imageId');
-    var cover_url;
-
-    $('.popClose').on('click', closePopup);
-
-    // Update the image for the cover
-    if (['/type/edition', '/type/work', '/edit'].includes(doc_type_key)) {
-        if (image) {
-            cover_url = `${coverstore_url}/b/id/${image}-M.jpg`;
-            updateCoverPreview(`${coverstore_url}/b/id/${image}-L.jpg`);
-            // XXX-Anand: Fix this hack
-            // set url and  show SRPCover  and hide SRPCoverBlank
-            parent.$(cover_selector).attr('src', cover_url)
-                .parents('div:first').show()
-                .next().hide();
-            parent.$(cover_selector).attr('srcset', cover_url)
-                .parents('div:first').show()
-                .next().hide();
-        }
-        else {
-            // hide SRPCover and show SRPCoverBlank
-            parent.$(cover_selector)
-                .parents('div:first').hide()
-                .next().show();
-        }
-    }
-    else {
-        if (image) {
-            cover_url = `${coverstore_url}/a/id/${image}-M.jpg`;
-            updateCoverPreview(`${coverstore_url}/a/id/${image}-L.jpg`);
-        }
-        else {
-            cover_url = '/static/images/icons/avatar_author-lg.png';
-        }
-        parent.$(cover_selector).attr('src', cover_url);
-    }
-}
-
 // Point the enlarged preview dialog, and its trigger's fallback link, at the newly saved image.
 function updateCoverPreview(largeUrl) {
-    const preview = parent.document.querySelector('#seeImage img.cover-preview');
+    const preview = document.querySelector('#seeImage img.cover-preview');
     if (preview) {
         preview.src = largeUrl;
     }
-    parent.document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach((link) => { link.href = largeUrl; });
+    document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach((link) => { link.href = largeUrl; });
 }
 
 // This function will be triggered when the user clicks the "Paste" button

@@ -553,7 +553,7 @@ class Work(models.Work):
             if "cover_id" in w:
                 return [Image(self._site, "w", int(w["cover_id"]))]
             elif "cover_edition_key" in w:
-                cover_edition = cast(Edition, web.ctx.site.get("/books/" + w["cover_edition_key"]))
+                cover_edition = cast(Edition, self._site.get("/books/" + w["cover_edition_key"]))
                 cover = cover_edition and cover_edition.get_cover()
                 if cover:
                     return [cover]
@@ -740,8 +740,8 @@ class Work(models.Work):
     first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
 
     def get_edition_covers(self):
-        editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
-        existing = {int(c.id) for c in self.get_covers()}
+        editions = self._site.get_many(self._site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
+        existing = {int(c.id) for c in self.get_covers(use_solr=False)}
         covers = [e.get_cover() for e in editions]
         return [c for c in covers if c and int(c.id) not in existing]
 

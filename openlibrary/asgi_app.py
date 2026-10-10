@@ -135,6 +135,7 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.borrow import router as borrow_router
     from openlibrary.fastapi.cdn import router as cdn_router
     from openlibrary.fastapi.checkins import router as checkins_router
+    from openlibrary.fastapi.covers import router as covers_router
     from openlibrary.fastapi.importapi import router as importapi_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
@@ -156,6 +157,7 @@ def _include_routers(app: FastAPI) -> None:
     app.include_router(borrow_router)
     app.include_router(cdn_router)
     app.include_router(checkins_router)
+    app.include_router(covers_router)
     app.include_router(importapi_router)
     app.include_router(internal_router)
     app.include_router(languages_router)

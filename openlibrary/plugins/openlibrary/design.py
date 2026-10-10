@@ -417,6 +417,14 @@ COMPONENTS = (
         group="Books",
         tag="ol-shelf-actions",
     ),
+    Component(
+        "cover-manager",
+        "Cover Manager",
+        "design/components/cover-manager.html.jinja",
+        group="Books",
+        tag="ol-cover-manager",
+        avoid="Lives in an ol-dialog on a book, work or author page; it isn't a general image uploader.",
+    ),
 )
 
 # Icon sources, one SVG per icon, grouped into folders by provenance. The file

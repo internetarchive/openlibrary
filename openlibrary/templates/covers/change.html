@@ -27,24 +27,66 @@ $else:
         $ change = _('Add Cover Image')
         $ size = "smallest"
 
+$ is_author = doc.type.key == '/type/author'
+$code:
+    # Keys and English strings must match DEFAULT_LABELS in OlCoverManager.js.
+    labels = {
+        "intro": _("Choose the photo to show for this author, or add a new one.") if is_author else _("Choose the image to show as this book's cover, or add a new one."),
+        "images": _("Images"),
+        "addImage": _("Add image"),
+        "addHint": _("Drop a file, paste, or browse"),
+        "dropHere": _("Drop the image to upload it"),
+        "current": _("Current"),
+        "sourceArchive": _("Internet Archive"),
+        "sourceWikidata": _("Wikidata"),
+        "sourceEdition": _("Edition"),
+        "sourceUpload": _("Uploaded"),
+        "detailScanCover": _("Scan · cover page"),
+        "detailScanTitle": _("Scan · title page"),
+        "detailWikidata": _("Wikimedia Commons"),
+        "detailEdition": _("Cover of an edition"),
+        "detailUploadBy": _("%(name)s · %(date)s"),
+        "detailYou": _("You · just now"),
+        "pickLabelCurrent": _("%(name)s (current cover)"),
+        "remove": _("Remove"),
+        "removeLabel": _("Remove %(name)s"),
+        "undo": _("Undo"),
+        "undoLabel": _("Keep %(name)s"),
+        "uploading": _("Uploading…"),
+        "statusIdle": _("Removed images can be restored from the edit history."),
+        "statusSelect": _("When you save, the selected image becomes the cover."),
+        "statusAdd": {
+            "one": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 1),
+            "two": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 2),
+            "few": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 3),
+            "many": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 11),
+            "other": ungettext("%(count)s new image will be added.", "%(count)s new images will be added.", 100),
+        },
+        "statusRemove": {
+            "one": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 1),
+            "two": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 2),
+            "few": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 3),
+            "many": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 11),
+            "other": ungettext("%(count)s image will be removed.", "%(count)s images will be removed.", 100),
+        },
+        "guidelines": _("Image Guidelines") if is_author else _("Cover Guidelines"),
+        "cancel": _("Cancel"),
+        "save": _("Save"),
+        "saved": _("Photo updated") if is_author else _("Cover updated"),
+        "loading": _("Loading images…"),
+        "errorLoad": _("The images couldn’t be loaded."),
+        "retry": _("Try again"),
+        "errorType": _("Choose a JPG, GIF, PNG or WebP image."),
+        "errorSize": _("Images must be 10 MB or smaller."),
+        "errorUpload": _("That image couldn’t be uploaded."),
+        "errorSave": _("Your changes couldn’t be saved. Try again."),
+    }
+
 <!-- The below style is inlined to avoid repaints -->
 <div class="$size manageCoversContainer" style="position: absolute; bottom: 15px">
-  <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers coverPop dialog--open" href="$(manage_url if doc.get_cover() else add_url)" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</ol-button>
+  <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers dialog--open" href="$(manage_url if doc.get_cover() else add_url)" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector})">$change</ol-button>
 </div>
 
-<ol-dialog id="addImage-$imagesId" label="$title" width="large">
-    <div id="tabsImages" class="ol-tabs tabsPop">
-        <ul>
-            <li><a href="#imagesAdd-$imagesId">$_('Add')</a></li>
-            <li><a href="#imagesManage-$imagesId">$_('Manage')</a></li>
-        </ul>
-
-        <div class="imagesAdd" id="imagesAdd-$imagesId">
-            $# add image iframe is added here when the popup is loaded
-        </div>
-
-        <div class="imagesManage" id="imagesManage-$imagesId">
-            $# manage images iframe is added here when the popup is loaded
-        </div>
-    </div>
+<ol-dialog id="addImage-$imagesId" label="$title" width="large" fullscreen-on-mobile>
+    <ol-cover-manager doc-key="$doc.key" guidelines-url="/help/faq/editing#picture" labels="$json_encode(labels)"></ol-cover-manager>
 </ol-dialog>
