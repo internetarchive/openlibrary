@@ -1,5 +1,6 @@
 import functools
 import logging
+import time
 import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -10,6 +11,7 @@ import web
 from web import uniq
 
 from openlibrary.app import render_template
+from openlibrary.core.provider_loans import get_provider_loan
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
@@ -227,6 +229,7 @@ class AbstractBookProvider[TProviderMetadata]:
         ed_or_solr: Edition | dict,
         analytics_attr: Callable[[str], str],
         show_locate: bool = False,
+        check_loan_status: bool = False,
     ) -> TemplateResult | str:
         acq_sorted = sorted(
             (p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED),
@@ -237,6 +240,10 @@ class AbstractBookProvider[TProviderMetadata]:
             return ""
 
         acquisition = acq_sorted[0]
+        # Asked here rather than in the template so the lookup needs no template
+        # global, and only when the caller says this page is worth asking on --
+        # see LoanStatus.html, which keeps it off carousels and search results.
+        provider_loan = get_provider_loan(ed_or_solr.get("key"), None) if check_loan_status else None
         # pre-process acquisition.url so ParseResult.netloc is always the domain. Only netloc is used.
         url = "https://" + acquisition.url if not acquisition.url.startswith("http") else acquisition.url
         parsed_url = parse.urlparse(url)
@@ -248,6 +255,7 @@ class AbstractBookProvider[TProviderMetadata]:
             self.long_name or domain,
             analytics_attr,
             show_locate=show_locate,
+            provider_loan=provider_loan,
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None) -> TemplateResult:
@@ -638,6 +646,221 @@ class WikisourceProvider(AbstractBookProvider):
         ]
 
 
+# How often one process may scan `acquisitions` for Lenny provider names it
+# cannot serve. An hour: the thing being watched for is a library deciding to
+# stand up a node, which happens on a scale of days.
+_LENNY_PROVIDER_SCAN_INTERVAL = 3600.0
+_lenny_provider_scan_deadline = 0.0
+
+
+def _is_lenny_provider_name(provider_name: str) -> bool:
+    """``lenny`` itself, or a per-node ``lenny_<host>``.
+
+    Not a bare ``startswith``, which would also claim a hypothetical
+    ``lennylibrary`` -- a different provider that merely sorts next to this
+    one, and whose rows are not evidence of anything.
+    """
+    prefix = LennyProvider.short_name
+    return provider_name == prefix or provider_name.startswith(f"{prefix}_")
+
+
+def _warn_about_unservable_lenny_rows() -> None:
+    """Log harvested Lenny rows that no name this code reads can serve.
+
+    Lenny is built for many nodes, each harvested under its own
+    ``provider_name``: ``lenny``, then ``lenny_<host>`` for every node after
+    the first (Lenny's own ``_provider_name()``, shipped in 0.2.22). Open
+    Library reads exactly one of those names. So on the day a second library
+    registers, its books lose their borrow button and nothing anywhere records
+    it -- the row is harvested, the lookup misses, and ``get_acquisitions``
+    returns an empty list indistinguishable from a book nobody lends.
+
+    This does not fix that, and the button still vanishes. It makes the
+    vanishing audible, because the trigger is a third party deciding to run a
+    node and there is nobody here who can watch for that.
+
+    Deliberately NOT gated on the calling read having come up empty. The
+    editions that break never reach ``_harvested_lenny_entries`` at all: they
+    carry ``identifiers.lenny_<host>``, and ``get_book_providers`` only yields
+    a provider whose ``get_identifiers`` is non-empty, which reads
+    ``identifiers["lenny"]``. Every call that does arrive here is therefore a
+    healthy one, and gating on this call having failed would keep this silent
+    in precisely the case it exists for. A healthy call is the only trigger
+    available.
+
+    Silent while one node is registered, which is today: production holds 94
+    works and every one is plain ``lenny`` (``search.json?q=id_lenny:*`` -> 94,
+    ``q=id_lenny_lennyforlibraries_org:*`` -> 0). That figure is the one this
+    module already records for 2026-09-20 and was not re-measured here;
+    re-derive it with those two queries rather than trusting this line.
+    """
+    global _lenny_provider_scan_deadline
+    now = time.monotonic()
+    if now < _lenny_provider_scan_deadline:
+        return
+    # Moved BEFORE the query, not after: this runs once per Lenny edition per
+    # page render and a search page lists many, so a slow or failing scan must
+    # not be retried by every remaining edition on the page. Two threads can
+    # still race past the check and scan twice; the cost of that is one extra
+    # query an hour, so it does not buy a lock.
+    #
+    # This is a throttle, not the memo that `_harvested_lenny_entries` forbids
+    # below. What that ban protects against is per-edition data outliving its
+    # request, so that an edition with no row starts answering with another
+    # edition's. The only thing kept here is when this process last looked at
+    # the table, which is the same fact for every edition and cannot be
+    # attributed to the wrong one. Per process, so N web workers say it N
+    # times an hour -- bounded, and a warning emitted once a day is one that
+    # nobody is awake for.
+    _lenny_provider_scan_deadline = now + _LENNY_PROVIDER_SCAN_INTERVAL
+    try:
+        from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
+
+        harvested = StoredAcquisition.distinct_provider_names()
+    except Exception:
+        # Inherits the caller's contract: this is a log line, and there is no
+        # outcome it is allowed to change. `debug`, not `exception`, because
+        # the read that got us here already succeeded -- anything failing now
+        # is this scan's own problem and must not look like a lending fault.
+        logger.debug("could not check for unservable Lenny provider names", exc_info=True)
+        return
+    # Derived from what the lookup actually asks for, never a literal, so that
+    # widening the lookup silences this by itself instead of leaving behind a
+    # warning that outlived the defect it described.
+    servable = {LennyProvider.short_name}
+    unservable = sorted(name for name in harvested if _is_lenny_provider_name(name) and name not in servable)
+    if unservable:
+        logger.warning(
+            "acquisitions harvested under Lenny provider name(s) %s, which Open Library cannot "
+            "read back -- it serves only %s. Editions from those nodes render no borrow button. "
+            "See #13686.",
+            ", ".join(unservable),
+            ", ".join(sorted(servable)),
+        )
+
+
+def _harvested_lenny_entries(local_id: str) -> list[dict]:
+    """The acquisition entries the harvester stored for one Lenny id.
+
+    Read from the Trusted Book Provider ``acquisitions`` table, not from the
+    edition's ``providers`` field. The two are different stores that share a
+    class name, and the import pipeline writes only the first --
+    ``add_book._save_acquisitions`` calls ``Acquisition.upsert`` and nothing in
+    ``catalog/add_book`` or ``bookworm`` assigns ``providers`` at all. So on a
+    Lenny edition ``providers`` holds whatever a patron typed into the
+    edit-book form, or nothing: of the 50 Lenny editions in the live feed,
+    checked on production 2026-09-20, exactly one had the field and it pointed
+    at a GitHub URL unrelated to Lenny.
+
+    One indexed single-row read per call. Do not memoize this on ``web.ctx``:
+    only web.py clears it per request (``web/application.py:427``), so under
+    FastAPI, in a script, or in the test suite the entry outlives its request
+    and an edition with no row starts answering with another edition's -- a
+    stale access kind puts a patron on ``/read`` for a book they must borrow.
+    Batching belongs at the call site, where
+    ``WorkSearchScheme.add_non_solr_fields`` already holds every row for the
+    page; that needs a channel ``get_acquisitions`` does not have. Until then
+    the cost is bounded by how many editions carry ``identifiers.lenny`` at
+    all -- 94 works on production, 2026-09-20.
+
+    Returns ``[]`` on any database failure, because both callers are places an
+    exception cannot go: page rendering, where it would 500 a book page, and
+    the Solr indexer, which need not have this database configured at all.
+    """
+    entries: list[dict] = []
+    database_answered = True
+    try:
+        from openlibrary.core.acquisitions import Acquisition as StoredAcquisition
+
+        row = StoredAcquisition.find_many(LennyProvider.short_name, [local_id]).get(local_id)
+    except Exception:
+        logger.exception("failed to read Lenny acquisitions for %s; rendering none", local_id)
+        row = None
+        database_answered = False
+    if database_answered:
+        # Only when the database answered. Where it does not -- the Solr
+        # indexer need not have this database configured at all -- there is
+        # nothing to scan, and the sole effect would be one failing query an
+        # hour forever.
+        _warn_about_unservable_lenny_rows()
+    if row is not None:
+        # `data` is jsonb written from an external feed: its top level can be
+        # any JSON type, and `_from_row` leaves an unparsable blob as a string.
+        data = row.data if isinstance(row.data, dict) else {}
+        stored = data.get("acquisitions")
+        if isinstance(stored, list):
+            entries = [entry for entry in stored if isinstance(entry, dict)]
+    return entries
+
+
+class LennyProvider(AbstractBookProvider):
+    """A Lenny node -- a library running its own lending server.
+
+    Alone among the providers here, the access kind varies from book to book:
+    25 of the 50 publications in https://lennyforlibraries.org/v1/api/opds are
+    ``open-access`` and 25 are ``borrow`` (counted 2026-09-20). ``identifiers.lenny``
+    cannot tell the two apart, which is why this reads the harvested row rather
+    than synthesizing a URL from the identifier the way its neighbours do.
+
+    The distinction is not cosmetic, because the endpoints are not
+    interchangeable. Against the live node on 2026-09-20:
+
+    - ``/v1/api/items/46539165/read`` (borrowable) -> ``401`` with an OPDS
+      Authentication Document, for ``Accept: text/html`` as well as ``*/*``.
+      A "Read" link on a borrowable title is a dead end in a browser.
+    - ``/v1/api/items/46539165/borrow`` -> ``303`` to the node's own sign-in
+      for ``Accept: text/html``, which is what a browser sends. So the borrow
+      CTA works with nothing built on this side; the OAuth handshake that
+      keeps the patron on Open Library is #13688.
+    """
+
+    short_name = "lenny"
+    long_name = "Lenny"
+    identifier_key = "lenny"
+
+    @override
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        # A node holds its own files; none of its content is archived under an
+        # IA identifier.
+        return False
+
+    @override
+    def get_acquisitions(self, ed_or_solr: Edition | dict) -> list[Acquisition]:
+        acquisitions = []
+        for entry in _harvested_lenny_entries(self.get_best_identifier(ed_or_solr)):
+            access = entry.get("access")
+            url = entry.get("url")
+            if access not in typing.get_args(AcquisitionAccessLiteral):
+                continue
+            if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
+                # The feed authored this and a template renders it as an href.
+                continue
+            acquisitions.append(
+                Acquisition(
+                    access=cast(AcquisitionAccessLiteral, access),
+                    # Always `web`, not the stored mimetype: both Lenny URLs are
+                    # the node's HTML entry points -- `/read` redirects into its
+                    # reader, `/borrow` into its sign-in. The epub behind a
+                    # borrow link is fulfilled inside Lenny, after the loan, and
+                    # is not what this URL points at.
+                    format="web",
+                    price=None,
+                    url=url,
+                    provider_name=self.short_name,
+                )
+            )
+        return acquisitions
+
+    @override
+    def get_access(self, edition: dict, metadata: TProviderMetadata | None = None) -> EbookAccess:
+        # Not the base class's unconditional PUBLIC: half this catalogue needs a
+        # loan, and this value becomes Solr's `ebook_access`, which drives
+        # `public_scan_b` and `has_fulltext`. NO_EBOOK when nothing is stored --
+        # including when the database read above failed -- so an unknown reads
+        # as a claim not made rather than as a free book.
+        return max((acquisition.ebook_access for acquisition in self.get_acquisitions(edition)), default=EbookAccess.NO_EBOOK)
+
+
 class BetterWorldBooksProvider(AbstractBookProvider):
     short_name = "betterworldbooks"
     long_name = "Better World Books"
@@ -689,6 +912,11 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     WikisourceProvider(),
     # Then link to IA
     InternetArchiveProvider(),
+    # Then to a library lending node. Below IA deliberately: an edition that
+    # already renders an IA button keeps rendering it, so adding this provider
+    # changes no button that exists today and only fills in where nothing else
+    # offers the book.
+    LennyProvider(),
     # Then link to purchase options
     BetterWorldBooksProvider(),
 ]

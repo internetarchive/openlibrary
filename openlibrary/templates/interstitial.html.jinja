@@ -6,6 +6,9 @@
      fastapi       (bool)     — True when rendered by FastAPI (adds inline style/script)
      book_provider (Markup)   — pre-escaped "<strong>Provider Name</strong>" HTML fragment
 
+   Every caller is handing the patron to a third party; a borrow Open Library
+   runs itself redirects straight through instead.
+
    The doctype is required for the standalone FastAPI page (standards mode);
    when this fragment is embedded in the web.py site layout, browsers ignore
    a stray doctype mid-document, so it is harmless there.
