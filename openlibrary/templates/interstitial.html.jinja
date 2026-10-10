@@ -6,10 +6,8 @@
      fastapi       (bool)     — True when rendered by FastAPI (adds inline style/script)
      book_provider (Markup)   — pre-escaped "<strong>Provider Name</strong>" HTML fragment
 
-   Every caller is handing the patron to a third party. There was a second
-   wording for a borrow Open Library runs itself; it went when that path
-   stopped stopping here (#13865), because a screen whose message is "this is
-   not a handoff" is a handoff screen with nothing to say.
+   Every caller is handing the patron to a third party; a borrow Open Library
+   runs itself redirects straight through instead.
 
    The doctype is required for the standalone FastAPI page (standards mode);
    when this fragment is embedded in the web.py site layout, browsers ignore

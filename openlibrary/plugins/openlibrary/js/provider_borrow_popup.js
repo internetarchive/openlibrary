@@ -1,16 +1,10 @@
 /**
  * Borrow a book held by another library without leaving the book page (#13688).
  *
- * The CTA's href already borrows correctly on its own: it is
- * `/books/<olid>/-/borrow?action=borrow`, which redirects to `lenny_borrow`
- * and from there either borrows with a grant the patron already gave this
- * library or runs Open Library's OAuth handshake with it. All this module does
- * is put that same navigation in a popup window, so the page the patron
- * started on is still there when the loan is made, and refresh it.
- *
- * It does not open the book. The popup's last page does that, by navigating
- * itself to the node's reader (#13865); this module's only job on success is
- * to refresh the opener and keep its hands off that window.
+ * The CTA's href already borrows on its own. All this module does is put that
+ * navigation in a popup, so the page the patron started on is still there when
+ * the loan is made, and refresh it. It does not open the book -- the popup's
+ * last page navigates itself to the node's reader.
  *
  * ## A popup, not an iframe
  *
@@ -96,11 +90,9 @@ function onBorrowClick(event, refresh) {
     }
 
     // Opened before preventDefault, so a blocked popup falls through to the
-    // anchor's own target="_blank". That path still borrows, and since #13865
-    // it ends in the node's reader too -- the callback page navigates whatever
-    // window it is in. What it cannot do is refresh this one, because it has
-    // no opener to talk to. Opening inside the click keeps the user activation
-    // the browser requires.
+    // anchor's target="_blank": that path still borrows and still ends in the
+    // reader, it just has no opener to refresh. Opening inside the click keeps
+    // the user activation the browser requires.
     const popup = window.open(event.currentTarget.href, POPUP_NAME, POPUP_FEATURES);
     if (!popup) {
         return;
@@ -112,13 +104,10 @@ function onBorrowClick(event, refresh) {
 /**
  * Refresh this page once the popup reports a loan.
  *
- * Only an explicit success refreshes. A popup that simply closes is a patron
- * who backed out -- at the node's consent screen, now that Open Library's own
- * interstitial is gone from this path (#13865) -- and refreshing them is churn
- * with nothing to show. The cost of that choice: if the message is ever lost
- * while the loan succeeded, this page stays stale until the next navigation.
- * That is recoverable by clicking Borrow again, and the node treats a second
- * borrow of a book already on loan as the existing loan.
+ * Only an explicit success refreshes; a popup that simply closes is a patron
+ * who backed out. If the message is ever lost the page stays stale until the
+ * next navigation, which clicking Borrow again recovers -- the node treats a
+ * second borrow of a book already on loan as the existing loan.
  *
  * @param {Window} popup
  * @param {() => void} refresh
@@ -133,12 +122,8 @@ function awaitLoan(popup, refresh) {
             return;
         }
         stop();
-        // The popup is NOT closed here, and that is the contract with
-        // provider_popup_result.html.jinja: on success that window navigates
-        // itself to the node's reader, because a patron who clicked Borrow
-        // asked for a book (#13865). Closing it from here would kill the
-        // reader as it loads, and the race is invisible from either side
-        // alone.
+        // Deliberately NOT closed: provider_popup_result.html.jinja navigates
+        // that window to the node's reader, and closing it here kills it.
         refresh();
     };
 

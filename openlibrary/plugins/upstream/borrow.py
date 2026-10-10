@@ -193,23 +193,11 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         raw_name = acquisitions[0].provider_name or ""
         display_name = raw_name.replace("_", " ").title()
         if acquisitions[0].access == "borrow":
-            # A lending node Open Library holds OAuth credentials for is
-            # borrowed *through* Open Library, not at the node: the patron
-            # stays here and the loan is created by `lenny_borrow` or its
-            # callback (#13688).
-            #
-            # No interstitial on that path, and the reason is what the screen
-            # is for. It warns a patron that the next page belongs to somebody
-            # else. Here the next page is an openlibrary.org route, so the
-            # warning was addressed to a situation that was not happening --
-            # the mediated wording even said so in as many words -- and all it
-            # bought was a five-second countdown in front of the patron's own
-            # library (#13865).
-            #
-            # `mediated_borrow` returns None for a node with no credentials
-            # configured, which falls back to the URL the feed gave us -- the
-            # node's own sign-in. That *is* a handoff to somebody else's site,
-            # so it keeps the interstitial below.
+            # Borrowed *through* Open Library, so no interstitial: that screen
+            # warns the patron they are leaving for a third party, and the next
+            # page here is an openlibrary.org route. A node with no configured
+            # credentials returns None and keeps the interstitial below, since
+            # that one really is a handoff to the node's own sign-in.
             from openlibrary.plugins.upstream import lenny
 
             if mediated := lenny.mediated_borrow(key):

@@ -246,12 +246,8 @@ class TestReadButtonTemplate:
         )
 
     def test_a_held_loan_offers_read_in_its_own_window(self):
-        """Already true when this was written, and pinned rather than fixed:
-        of the three places Open Library renders a Lenny reader link, this is
-        the one that was right. The audit that found the other two is in the
-        #13865 PR body; the point of this test is that the count stays at
-        three and the right answer stays the right answer.
-        """
+        """Pinned rather than fixed: of the three places a Lenny reader link is
+        rendered, this one was already right."""
         html = self.render("borrow", BORROW_URL, provider_loan={"read_url": READ_URL})
         assert f'href="{READ_URL}"' in html
         assert 'target="_blank"' in html

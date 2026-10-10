@@ -290,10 +290,8 @@ def node_display_name(provider_name: str, node: dict[str, str]) -> str:
 def borrow_path(edition_olid: str) -> str:
     """Where a borrow of this edition starts, as one definition.
 
-    :class:`lenny_borrow` serves it, :func:`mediated_borrow` names it as where
-    ``/-/borrow`` redirects, and the handler hands it back to itself through
-    the sign-in redirect. Three spellings of one path is how one of them ends
-    up wrong.
+    :class:`lenny_borrow` serves it, :func:`mediated_borrow` names it, and the
+    handler hands it back to itself through the sign-in redirect.
     """
     return f"/borrow/lenny/{edition_olid}"
 
@@ -301,24 +299,9 @@ def borrow_path(edition_olid: str) -> str:
 def mediated_borrow(edition_key: str) -> str | None:
     """The Open Library path that borrows this edition, or None.
 
-    It used to return the library's name alongside, for an interstitial to
-    print. That screen is gone from this path (#13865) and the name is resolved
-    where it is now used -- on the page the patron lands on, by
-    :func:`borrowed_page`, from config read at that moment rather than at the
-    click.
-
-    What comes back is an Open Library path -- :class:`lenny_borrow`, which
-    either borrows with a stored grant or turns the click into an authorization
-    request -- so the patron's browser only ever navigates to Open Library and
-    to the node holding the book. ``handle_borrow_async`` redirects straight
-    there, with no interstitial: that screen warns a patron they are leaving
-    for somebody else's site, and on this path they are not (#13865).
-
-    None means no *configured* node lends this edition. A harvested row can
-    name a Lenny node Open Library holds no credentials for, and then there is
-    no handshake to run: the caller falls back to the feed's own URL, which is
-    the node's sign-in and completes a loan with nothing built on this side
-    (#13686).
+    None means no *configured* node lends it: a harvested row can name a node
+    Open Library holds no credentials for, and the caller then falls back to
+    the feed's own URL -- the node's sign-in (#13686).
     """
     if not nodes():
         # Checked before `node_for_edition`, which reads the acquisitions
@@ -863,38 +846,17 @@ def borrow_with_stored_grant(
     node: dict[str, str],
     edition_key: str,
 ) -> dict[str, Any] | None:
-    """Borrow with the grant the patron already gave this library, or None.
+    """The loan, or None when the caller should run the OAuth handshake instead.
 
-    None means "run the handshake": no stored grant, a grant the node refused,
-    a node that did not answer, or a token store that could not be read. The
-    caller falls back to :func:`authorize_url`, which works from a cold start
-    and is what a patron with no grant gets anyway.
-
-    It **raises** :class:`LennyBorrowError` for a refusal authorizing again
-    would not change -- "every copy is out", "you have too many books out".
-    That distinction is the whole value of the function: re-running the
-    handshake on those mails the patron a one-time code, spends a minute of
-    their time, and arrives at the same refusal. A 401 or a 403 is the opposite
-    case; see :data:`REJECTED_TOKEN_STATUSES`.
-
-    A grant the node rejects is left in the store rather than deleted. The
-    patron is on their way to authorize again, and ``upsert`` overwrites it
-    when they land, so deleting here would only add a write to the failing
-    path. :meth:`ProviderToken.get_fresh` cannot see this case at all -- a
-    revoked grant is locally unexpired forever -- which is why the refused
-    borrow is the only place it surfaces.
+    Raises :class:`LennyBorrowError` for a refusal re-authorizing would not
+    change ("every copy is out"); a 401/403 returns None so the caller retries
+    through the handshake.
     """
     try:
         token = access_token_for(username, provider_name)
     except Exception:
-        # `access_token_for` absorbs `TokenRefreshFailed`, so anything arriving
-        # here is the store itself -- most likely `provider_tokens` not
-        # existing, which is the documented state of any database that was not
-        # initialised from `schema.sql`. Falling through to the handshake keeps
-        # the old behaviour on such a host: the borrow starts, and the
-        # callback's `upsert` reports the storage failure in words. Raising
-        # here would 500 on the first click instead. `_patron_tokens` guards
-        # its own call for the same reason.
+        # An unreadable store (commonly: no `provider_tokens` table) must not
+        # 500 the button. `_patron_tokens` guards its own call the same way.
         logger.exception("lenny could not read a stored grant for %s at %s", username, provider_name)
         return None
     if not token:
@@ -922,17 +884,11 @@ def borrowed_page(
     edition_key: str,
     loan: dict[str, Any],
 ) -> delegate.RawText:
-    """The ending both borrow paths share: tell the book page, then render.
-
-    One function because the two paths -- a reused grant, and a fresh
-    handshake -- have to agree about what the patron sees and about what the
-    CTA behind the popup is told. They did not before: nothing told it
-    anything.
-    """
+    """The ending both borrow paths share: tell the book page, then render."""
     if cached := loan_from_node(provider_name, issuer, username, loan):
         prime_provider_loans(username, cached)
-    # The node's config, not the one captured when the flow started: a display
-    # name is the one thing here an operator may have corrected since.
+    # The node's config, not the flow's snapshot: an operator may have
+    # corrected the display name since.
     library = node_display_name(provider_name, nodes().get(provider_name, {}))
     return render_borrowed(edition_key, loan, read_url(issuer, edition_key, loan), library)
 
@@ -956,10 +912,7 @@ class lenny_borrow(delegate.page):
         # store and `anonymize` both use.
         username = user.get_username()
 
-        # A patron who has authorized this library before does not authorize it
-        # again (#13865). This is what `provider_tokens` is for, and until now
-        # nothing on the borrow path read it: every click ran a full handshake
-        # for a credential already in the table.
+        # A patron who has authorized this library before does not do it again.
         try:
             if loan := borrow_with_stored_grant(username, provider_name, node, edition_key):
                 logger.info("lenny loan created on %s for %s with a stored grant", provider_name, edition_key)
@@ -1058,14 +1011,8 @@ class lenny_callback(delegate.page):
 def read_url(issuer: str, edition_key: str, loan: dict[str, Any]) -> str:
     """Where the patron reads what they just borrowed.
 
-    **The node's reader wants the node's own browser session, not a token.** On
-    the handshake path the patron has one: they signed in there a moment ago.
-    On the reused-grant path (#13865) they may not -- Open Library's grant
-    outlives that session, which is the point of storing it -- and then the
-    reader asks them to sign in before showing the book. That is the same thing
-    that happens to anyone clicking Read on a loan from last week, so it is a
-    sign-in rather than a dead end; it is written down because the shorter path
-    makes it more common, not because it is new.
+    The node's reader wants the node's own browser session, not a token, so a
+    patron borrowing with a reused grant may be asked to sign in there first.
     """
     edition_id = loan.get("edition_id") or extract_numeric_id_from_olid(edition_key)
     return item_read_url(issuer, edition_id)
@@ -1098,14 +1045,14 @@ def _popup_page(**kwargs: Any) -> delegate.RawText:
     (``vendor/infogami/infogami/utils/flash.py:18-21, 42-50``). The site layout
     calls it on every render (``openlibrary/core/layout.py:101-112``). So a
     page that renders the layout shows the message here -- inside a window that
-    is about to close -- and leaves ``web.ctx.flash`` empty, matching the empty
+    is about to leave -- and leaves ``web.ctx.flash`` empty, matching the empty
     request value, so no cookie is written and the page that opened the popup
     never hears about the loan. Skipping ``render_site`` is what keeps the
     message for the opener (``utils/delegate.py:89-92``).
 
     The popup is also the one place in Open Library where dropping the layout
-    costs nothing: it is 520px wide, it closes on its own, and the patron is
-    looking at the real Open Library page behind it the whole time.
+    costs nothing: it is a 520px window on its way to the node's reader, and
+    the patron is looking at the real Open Library page behind it.
     """
     return delegate.RawText(render_jinja_template("borrow/provider_popup_result.html.jinja", **kwargs))
 
@@ -1128,21 +1075,15 @@ def render_error(message: str, return_url: str = "/") -> delegate.RawText:
 
 
 def render_borrowed(edition_key: str, loan: dict[str, Any], read: str, library: str) -> delegate.RawText:
-    """The popup's success page: it closes itself and refreshes the book page.
+    """The popup's success page: it refreshes the book page, then becomes the reader.
 
-    The flash is the confirmation the patron actually reads, because the popup
-    closes before it can be read there. It is plain text on purpose -- the
+    The flash is the confirmation the patron actually reads, because this page
+    navigates away before it can be read here. It is plain text on purpose -- the
     layout renders it escaped (``site.html.jinja``), so it cannot carry the
     "Read it now" link.
 
-    ``read`` is what the page's script navigates this window to, so the patron
-    ends up in the book rather than on a receipt (#13865). It is also rendered
-    as a link, for the one path with no script to run: JavaScript off.
-
-    The book page behind is no longer the fallback it once was -- #13706 made
-    the CTA say Read once a provider loan exists, and :func:`borrowed_page`
-    primes that lookup here so the refresh behind the popup sees this loan
-    rather than the cache entry written before it.
+    ``read`` is where the page's script sends this window; it is also rendered
+    as a link, for the scriptless path.
     """
     if due := loan.get("due_at"):
         add_flash_message("info", _("Borrowed from %(library)s. Your loan is due %(due)s.", library=library, due=due))

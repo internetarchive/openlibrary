@@ -97,14 +97,8 @@ class TestAProviderLoanIsNotAnInternetArchiveLoan:
         assert "/v1/api/items/37044497/read" in out
 
     def test_the_node_reader_opens_in_its_own_window(self, render_actions):
-        """Asked for directly (Mek, 2026-10-09: "I'd like the book to open up
-        in Lenny in a new window"), and the loans page is the one Read link
-        that did not already do it -- the book page's CTA has carried
-        `target="_blank"` since #13706.
-
-        `rel` as well as `target`: the reader is another origin, and a named
-        target hands it a live `window.opener` it has no use for.
-        """
+        """`rel` as well as `target`: a named target otherwise hands another
+        origin a live `window.opener`."""
         out = render_actions(PROVIDER_LOAN)
         assert 'target="_blank"' in out
         assert "noopener" in out

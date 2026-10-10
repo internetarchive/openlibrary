@@ -8,9 +8,9 @@
      due          (str|None)  — the due date as the node reported it, if it gave one
      message_type (str)       — must equal lenny.POPUP_MESSAGE_TYPE
 
-   Not a 303 back to the book, which would be shorter: a redirect cannot close
-   the window it is in, and the popup has to close for the patron to end up
-   looking at the page they started on. The script below is what closes it.
+   Not a 303 back to the book, which would be shorter: the script below has to
+   tell the opener a loan exists before this window goes anywhere, and a
+   redirect cannot run a script.
 
    The content is rendered rather than hidden-until-needed, because it is what
    the patron reads on the one path with no script to run it: JavaScript off.
@@ -71,9 +71,6 @@
       if (!result) return;
       const ok = result.dataset.ok === '1';
 
-      // Same-origin by the time we are back on an Open Library path, so this
-      // read is allowed -- but a popup the patron reused, or one whose opener
-      // navigated away, can still throw or be closed.
       let opener = null;
       try {
           opener = window.opener && !window.opener.closed ? window.opener : null;
@@ -81,52 +78,41 @@
           opener = null;
       }
 
-      // Before this window navigates anywhere. An unload partway through loses
-      // the message, and the message is the only thing that refreshes the book
-      // page: the patron would get their reader and come back to a CTA still
-      // offering Borrow.
+      // Before navigating: an unload partway through loses the message, and
+      // the message is the only thing that refreshes the book page.
       if (opener) {
           opener.postMessage({type: result.dataset.messageType, ok}, window.location.origin);
       }
 
       if (ok) {
-          // This window becomes the reader rather than closing on a
-          // confirmation nobody stays to read. A navigation, not a
-          // `window.open`: the browser's transient activation from the Borrow
-          // click expired several screens ago -- the node mails a one-time
-          // code and waits for it -- so a popup opened from here would be
-          // blocked. A window that is already open can always navigate itself,
-          // and this is the same window on the no-opener path too, which is
-          // how a blocked popup also ends up in the reader.
-          //
-          // provider_borrow_popup.js deliberately stops closing this window.
-          // The two sides have to agree, or the reader is killed as it loads.
+          // This window becomes the reader. A navigation, not window.open:
+          // the Borrow click's user activation expired during the OAuth round
+          // trip, so a popup opened here would be blocked.
+          // provider_borrow_popup.js must NOT close this window.
+          // `issuer` is f-stringed into this URL from config and the
+          // stored-grant path never calls discover(), so nothing else vets it.
           const read = result.dataset.readUrl;
-          if (!read) {
+          if (!/^https?:\/\//i.test(read)) {
               if (opener) window.close();
               return;
           }
           if (opener) {
-              // Opened at 520px, which is a consent screen and not a book.
-              // Best effort: a browser that refuses leaves a small reader,
-              // and nothing below depends on this having worked.
               try {
                   window.resizeTo(Math.min(screen.availWidth, 1200), Math.min(screen.availHeight, 1000));
               } catch {
                   // Some browsers refuse to resize a window they did not size.
               }
           }
-          // `replace`, not `assign`: the URL this page was served from carries
-          // a spent authorization code and a `state` that `take_state` deleted
-          // on read. Leaving it in this window's history means Back re-sends
-          // it and the patron is told their borrow request expired.
+          // Severed first: otherwise the node keeps a live cross-origin handle
+          // to the patron's book-page window. replace(), so Back does not
+          // re-send a spent code and state.
+          window.opener = null;
           window.location.replace(read);
           return;
       }
 
-      // A failure stays on screen to be read. Its link then acts on the page
-      // the patron actually came from, rather than loading a full book page
-      // into a 520px window.
+      // A failure stays on screen to be read; its link acts on the opener
+      // rather than loading a book page into a 520px window.
       if (!opener) return;
       const back = result.querySelector('.js-provider-borrow-return');
       if (back) {

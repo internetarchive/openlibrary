@@ -166,33 +166,20 @@ class TestMediatedProviderBorrow:
         assert result == borrow.BorrowRedirect(self.MEDIATED_URL)
 
     def test_a_configured_node_shows_no_interstitial(self):
-        """The interstitial exists to warn that the next page is somebody
-        else's site. On this path it is not: the next page is an Open Library
-        route that borrows server-side, so the screen had nothing to disclose
-        and only cost the patron five seconds (Mek, walking the live flow
-        2026-10-09: "There was a long interstitial page when I clicked
-        borrow").
-
-        Asserted alongside the redirect above rather than instead of it: "no
-        interstitial" is also true of a 404, so on its own it would pass
-        against a handler that had stopped serving this path at all.
-        """
+        """Asserted alongside the redirect, not instead of it: "no
+        interstitial" is also true of a 404."""
         result, mock_render, _mediated = self._handle(self._provider(), self.MEDIATED_URL)
         assert isinstance(result, borrow.BorrowRedirect)
         mock_render.assert_not_called()
 
     def test_an_unconfigured_node_still_sees_the_third_party_interstitial(self):
-        """#13686's behaviour, unchanged, and the reason the screen survives at
-        all: no credentials means the node's own sign-in, which *is* a handoff
-        to somebody else's website and is what the interstitial is for."""
+        """#13686's behaviour, unchanged: no credentials means the node's own
+        sign-in, which really is a handoff."""
         result, mock_render, _mediated = self._handle(self._provider(), None)
         assert not isinstance(result, borrow.BorrowRedirect)
         assert mock_render.call_args.kwargs["url"] == self.BORROW_URL
 
     def test_the_handshake_is_asked_about_by_edition_key(self):
-        """The library's own name used to come back from here, for an
-        interstitial to print. It is resolved on the page the patron lands on
-        now, so all this call returns is where to send them."""
         _result, _render, mock_mediated = self._handle(self._provider(), self.MEDIATED_URL)
         mock_mediated.assert_called_once_with("/books/OL46539165M")
 
@@ -210,14 +197,7 @@ class TestMediatedProviderBorrow:
 
 
 class TestInterstitialWording:
-    """The screen a patron sees before being handed to somebody else's site.
-
-    It used to have a second wording, for a borrow Open Library runs itself:
-    "you are not going anywhere, Open Library finishes the loan for you". That
-    branch is gone with the screen itself on that path (#13865) -- a stop whose
-    whole message was "this is not a handoff" was five seconds spent saying
-    nothing. What is left is the handoff it was built for.
-    """
+    """The screen a patron sees before being handed to somebody else's site."""
 
     LIBRARY = Markup("<strong>Archive Labs Lenny</strong>")
 
@@ -244,9 +224,6 @@ class TestInterstitialWording:
         assert "<strong>Archive Labs Lenny</strong>" in self._render()
 
     def test_a_hand_off_still_offers_a_way_out(self):
-        """The Cancel link is the only part of this screen a patron can act on
-        before the countdown fires, so it is pinned separately from the
-        wording."""
         assert "close-window" in self._render()
 
 

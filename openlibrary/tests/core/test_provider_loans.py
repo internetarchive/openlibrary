@@ -205,24 +205,12 @@ def test_unreachable_and_unauthorized_nodes_are_dropped(monkeypatch):
 
 
 class TestWhatTheBookPageSeesRightAfterABorrow:
-    """The gap Mek walked into on 2026-10-09: the loan was created, the book
-    page reloaded itself, and the CTA still said Borrow. A manual refresh a
-    moment later said Read.
-
-    Nothing in the borrow flow told this cache the patron's holdings had
-    changed, so the page re-rendered from the entry written *before* the
-    borrow. `invalidate_provider_loans` was written for exactly this and has
-    never had a caller outside its own test.
-    """
+    """The page re-renders from the entry written *before* the borrow unless
+    the flow tells this cache otherwise."""
 
     def test_invalidating_alone_still_leaves_the_page_saying_borrow(self, memo):
-        """Characterization, green before and after this change, and the reason
-        the borrow flow does not simply call `invalidate_provider_loans`.
-
-        A cold entry does not fetch inline -- that is the whole design of this
-        module -- so the render that follows an invalidation answers "no loans"
-        and only *starts* asking the node. The patron sees Borrow on the page
-        they just borrowed from, which is the bug, one request later.
+        """Characterization, green before and after: a cold entry never fetches
+        inline, so the render after an invalidation still answers "no loans".
         """
         fake = memo(cached=fresh([]))
         provider_loans.invalidate_provider_loans("patron")
@@ -237,9 +225,8 @@ class TestWhatTheBookPageSeesRightAfterABorrow:
         assert loan["read_url"] == "https://lenny.example/read/1"
 
     def test_a_primed_entry_is_stale_on_arrival(self, memo):
-        """Served now, re-asked behind it. What we write is one loan we know
-        about, not the patron's holdings -- the node is the authority on those,
-        and the next render starts that fetch."""
+        """Served now, re-asked behind it: the node is the authority on the
+        patron's holdings."""
         fake = memo(cached=fresh([]))
         provider_loans.prime_provider_loans("patron", make_loan())
         assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
@@ -253,9 +240,8 @@ class TestWhatTheBookPageSeesRightAfterABorrow:
         assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
 
     def test_borrowing_the_same_edition_twice_leaves_one_loan(self, memo):
-        """Lenny's borrow is idempotent, so a patron who clicks twice gets the
-        same loan back. Two entries for one edition would be served to a page
-        that reads the first match and would quietly diverge on due date."""
+        """Lenny's borrow is idempotent, so clicking twice must not leave two
+        entries for one edition."""
         fake = memo(cached=fresh([]))
         provider_loans.prime_provider_loans("patron", make_loan(expiry="2026-10-06T12:00:00"))
         provider_loans.prime_provider_loans("patron", make_loan(expiry="2026-11-06T12:00:00"))
@@ -269,39 +255,25 @@ class TestWhatTheBookPageSeesRightAfterABorrow:
         assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
 
     def test_a_broken_cache_does_not_break_the_borrow(self, memo):
-        """The loan exists at the node by the time this is called. Raising here
-        would turn a successful borrow into an error page."""
         fake = memo(raises=True)
         provider_loans.prime_provider_loans("patron", make_loan())
         assert fake.sets == []
 
     def test_a_loan_with_no_usable_read_url_is_not_primed(self, memo):
-        """`get_provider_loan` would drop it anyway. Writing it would leave the
-        patron's real holdings masked by a row that renders nothing until the
-        background refresh lands."""
+        """`get_provider_loan` would drop it anyway; writing it would mask the
+        patron's real holdings until the background refresh lands."""
         fake = memo(cached=fresh([]))
         provider_loans.prime_provider_loans("patron", make_loan(read_url="javascript:alert(1)"))
         assert fake.sets == []
 
 
 class TestItSurvivesTheRealCacheAndNotJustTheFake:
-    """The class above swaps in a `FakeMemo` that stores the Python object, so
-    it never crosses the thing that actually sits between a borrow and the next
-    render: `memcache_memoize`, which round-trips every value through JSON.
+    """The class above uses a `FakeMemo` that stores the Python object, so it
+    never crosses `memcache_memoize`'s JSON round-trip. These use the shipping
+    memoizer so `memcache_set`/`memcache_get` do their real encoding.
 
-    These use the shipping `get_cached_provider_loans` with the same dummy
-    client `cache.memcache_memoize.memcache` falls back to when no servers are
-    configured, so `memcache_set` and `memcache_get` do their real encoding.
-    A loan carrying anything `json.dumps` refuses would pass every test above
-    and fail on the first real borrow. Measured: with a `set()` written into
-    the loan, all four tests here go red and all eight above stay green.
-
-    One thing that trip found, worth knowing before writing the next fixture:
-    a `datetime` is *not* such a value. `helpers.NothingEncoder` coerces any
-    `date` to its ISO string, so it encodes cleanly and comes back a `str` --
-    a silent type change rather than an error. Nothing in a loan is a
-    `datetime` today (`loan_from_node` emits only `str`, `float` and `None`),
-    which is why this is a note and not a test.
+    Note a `datetime` would NOT fail here: `helpers.NothingEncoder` coerces any
+    `date` to an ISO string, so it round-trips to a `str` silently.
     """
 
     @pytest.fixture
@@ -312,8 +284,8 @@ class TestItSurvivesTheRealCacheAndNotJustTheFake:
             MockMemcacheClient(),
         )
         started: list[str] = []
-        # The primed entry is stale on purpose, so every read below starts a
-        # refresh. Left alone it spawns a thread that asks a real node.
+        # A primed entry is stale, so every read below would otherwise spawn a
+        # thread that asks a real node.
         monkeypatch.setattr(provider_loans, "_refresh_in_background", started.append)
         return started
 
@@ -330,10 +302,8 @@ class TestItSurvivesTheRealCacheAndNotJustTheFake:
         assert real_cache == ["patron"]
 
     def test_the_loan_shape_a_borrow_actually_produces_is_encodable(self, real_cache):
-        """Built by `lenny.loan_from_node` from a node's borrow response rather
-        than hand-written here, so the fixture cannot agree with the code by
-        being written to.
-        """
+        """Built by `loan_from_node` rather than hand-written, so the fixture
+        cannot agree with the code by being written to it."""
         lenny = pytest.importorskip("openlibrary.plugins.upstream.lenny")
         loan = lenny.loan_from_node(
             "lenny",
@@ -347,8 +317,7 @@ class TestItSurvivesTheRealCacheAndNotJustTheFake:
         assert held["read_url"] == "https://lennyforlibraries.org/v1/api/items/37044497/read"
 
     def test_a_borrow_with_no_borrowed_at_still_reaches_the_page(self, real_cache):
-        """`borrowed_at` is documented nullable and a borrow response need not
-        carry one, so the value `_epoch` substitutes has to survive the trip."""
+        """`borrowed_at` is nullable, so `_epoch`'s substitute must encode."""
         lenny = pytest.importorskip("openlibrary.plugins.upstream.lenny")
         loan = lenny.loan_from_node("lenny", "https://lennyforlibraries.org", "patron", {"edition_id": 37044497})
         provider_loans.prime_provider_loans("patron", loan)

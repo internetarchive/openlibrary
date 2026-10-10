@@ -681,17 +681,13 @@ class TestCallback:
         assert flow["stored"] == []
 
     def test_the_handshake_path_also_tells_the_book_page_about_the_new_loan(self, flow, monkeypatch):
-        """The same ending as a reused grant (#13865). This is the path Mek
-        walked on 2026-10-09, where the popup refreshed the book page and the
-        CTA still said Borrow."""
         self._call(monkeypatch)
         assert [username for username, _loan in flow["primed"]] == ["patron"]
         assert flow["primed"][0][1]["book"] == "/books/OL51008637M"
         assert flow["primed"][0][1]["read_url"] == "https://lennyforlibraries.org/v1/api/items/51008637/read"
 
     def test_a_refused_loan_tells_the_book_page_nothing(self, flow, monkeypatch):
-        """Priming on a refusal would put a loan on the CTA that does not
-        exist, and the patron would get a Read button leading nowhere."""
+        """A Read button for a loan that does not exist leads nowhere."""
 
         def refused(pending, token, edition_id):
             raise lenny.LennyBorrowError("unavailable", 409)
@@ -878,7 +874,7 @@ class TestPopupEndings:
     layout calls `get_flash_messages()`, which *drains* `web.ctx.flash`, and
     `flash_processor` then writes no cookie because the drained value matches
     the empty one that arrived. The message would be shown inside a window
-    about to close and never reach the page that opened it.
+    about to navigate away, and never reach the page that opened it.
     """
 
     @pytest.fixture(autouse=True)
@@ -922,51 +918,32 @@ class TestPopupEndings:
         assert self.READ in self._borrowed().rawtext
 
     def test_the_success_page_carries_the_reader_for_its_script_to_use(self):
-        """Read from a data attribute rather than interpolated into the script,
-        so the URL is escaped as an attribute value by the same template engine
-        that escapes every other one."""
+        """A data attribute, so the template engine escapes the URL."""
         assert f'data-read-url="{self.READ}"' in self._borrowed().rawtext
 
     def test_a_borrowed_window_goes_to_the_reader_rather_than_closing(self):
-        """What Mek asked for on 2026-10-09: "Clicking borrow shows 'Borrowed
-        from Lenny' but did not bring me to the book."
-
-        A navigation of this window, not a `window.open`: by the time the node
-        has mailed a code and the patron has typed it, the browser's transient
-        user activation from the Borrow click is long gone, so a popup opened
-        from here would be blocked. A window that is already open can always
-        navigate itself.
-        """
+        """A navigation, not `window.open`: the Borrow click's user activation
+        is long gone by the time the callback runs."""
         rawtext = self._borrowed().rawtext
         assert "window.location.replace(" in rawtext
 
     def test_the_opener_is_told_before_this_window_navigates(self):
-        """The ordering is the contract. A window that starts unloading before
-        `postMessage` runs loses the message, and the message is the only thing
-        that refreshes the book page -- so the patron would get their reader
-        and come back to a CTA still saying Borrow.
-        """
+        """An unload before `postMessage` loses the only thing that refreshes
+        the book page."""
         rawtext = self._borrowed().rawtext
         assert rawtext.index("postMessage(") < rawtext.index("window.location.replace(")
 
     def test_the_read_link_opens_in_its_own_window(self):
-        """The link the scriptless path falls back on. Without a target it
-        loads the reader into a 520px consent popup."""
+        """Without a target the scriptless path loads a reader into a 520px
+        popup."""
         rawtext = self._borrowed().rawtext
         assert f'href="{self.READ}" target="_blank" rel="noopener"' in rawtext
 
     def test_the_navigation_is_gated_on_a_loan_existing(self):
-        """The error page is the one ending with something to read, so it must
-        not be navigated away from.
-
-        Both pages carry the *same* script -- only `data-ok` differs -- so
-        "the string is absent from the failure page" is not a claim that can be
-        true, and an earlier version of this test asserting it failed for that
-        reason rather than finding a defect. What is checkable from here is
-        that the navigation sits inside the `ok` branch; `data-ok="0"` on the
-        failure page is pinned separately above. The branch *taken* at runtime
-        is not covered: this script is inline in a Jinja template, so the
-        vitest suite cannot reach it. See the #13865 PR body.
+        """Both pages carry the same script and differ only in `data-ok`, so
+        all that is checkable here is that the navigation sits inside the `ok`
+        branch; the branch actually taken is covered by
+        tests/unit/js/provider_popup_result.test.js.
         """
         rawtext = self._borrowed().rawtext
         assert rawtext.index("if (ok) {") < rawtext.index("window.location.replace(")
@@ -1362,19 +1339,7 @@ class TestTheTokenPhaseIsBounded:
 
 
 class TestTheStoredGrantIsReused:
-    """A patron who has already authorized this library does not authorize it
-    again (#13865).
-
-    `provider_tokens` exists so Open Library can borrow on the patron's behalf
-    later. Before this, the borrow handler read no grant at all: every click
-    went out to the node's consent screen, signed in by one-time code, and came
-    back -- for a credential already sitting in the table, which was then
-    overwritten with an equivalent one.
-
-    What that costs is not just time. The node mails a code each round, and a
-    patron who abandons at the OTP screen has disclosed their email to the node
-    for a loan that never happened.
-    """
+    """A patron who has already authorized this library does not do it again."""
 
     LOAN: ClassVar[dict] = {"status": "borrowed", "edition_id": 51008637, "due_at": "2026-10-04"}
 
@@ -1424,8 +1389,6 @@ class TestTheStoredGrantIsReused:
         assert reuse["borrows"] == [(NODE["issuer"], "stored-at", 51008637)]
 
     def test_a_reused_grant_starts_no_authorization(self, reuse):
-        """No pending state, so no PKCE verifier and no `state` to replay. The
-        handshake is not merely skipped on the way out -- it is never begun."""
         self._go()
         assert reuse["memcache"].store == {}
 
@@ -1433,8 +1396,6 @@ class TestTheStoredGrantIsReused:
         assert "https://lennyforlibraries.org/v1/api/items/51008637/read" in self._go().rawtext
 
     def test_a_reused_borrow_tells_the_book_page_about_the_new_loan(self, reuse):
-        """Without this the CTA behind the popup re-renders from the cache
-        entry written before the borrow and still says Borrow."""
         self._go()
         assert [username for username, _loan in reuse["primed"]] == ["patron"]
         assert reuse["primed"][0][1]["book"] == "/books/OL51008637M"
@@ -1448,10 +1409,8 @@ class TestTheStoredGrantIsReused:
 
     @pytest.mark.parametrize("status", [401, 403])
     def test_a_grant_the_node_rejects_falls_back_to_authorizing_again(self, reuse, monkeypatch, status):
-        """A grant can be locally unexpired and rejected at the node -- revoked
-        there, or the whole family lost to a replayed refresh token. The store
-        cannot see that, so the only place it shows up is a refused borrow, and
-        the one action that fixes it is the handshake."""
+        """A revoked grant stays locally unexpired, so a refused borrow is the
+        only place it surfaces."""
 
         def rejected(pending, token, edition_id):
             raise lenny.LennyBorrowError("invalid_token", status)
@@ -1462,9 +1421,6 @@ class TestTheStoredGrantIsReused:
         assert excinfo.value.url.startswith(DISCOVERY["authorization_endpoint"])
 
     def test_a_refusal_the_handshake_cannot_fix_is_shown_instead(self, reuse, monkeypatch):
-        """ "You have too many books out" is the node's answer, not a sign the
-        credential is stale. Re-authorizing would mail the patron a code, spend
-        their time, and arrive at the same refusal."""
 
         def refused(pending, token, edition_id):
             raise lenny.LennyBorrowError("loan_limit_reached", 409)
@@ -1475,21 +1431,8 @@ class TestTheStoredGrantIsReused:
         assert 'data-ok="0"' in page.rawtext
 
     def test_an_unreadable_token_store_falls_back_to_authorizing_again(self, reuse, monkeypatch):
-        """The regression this guards is not hypothetical: `schema.sql` is
-        applied at database *init* only, so until an operator runs the
-        `CREATE TABLE` by hand -- which is the documented state of
-        `testing.openlibrary.org` and of production -- `DbTokenStore` raises
-        `relation "provider_tokens" does not exist` on every read.
-
-        Before the borrow path read the store at all, a click on such a host
-        started the handshake and failed politely at the callback's `upsert`,
-        with "That library could not complete the loan." Letting this raise
-        would turn that into a 500 on the first click, on the one deployment
-        this feature is being demoed from.
-
-        `_patron_tokens` guards its own `access_token_for` call for the same
-        reason and says so; this is the second caller.
-        """
+        """A host with no `provider_tokens` table must still reach the
+        handshake, not 500 on the first click."""
 
         def unreadable(username, provider_name):
             raise RuntimeError('relation "provider_tokens" does not exist')
@@ -1500,8 +1443,6 @@ class TestTheStoredGrantIsReused:
         assert excinfo.value.url.startswith(DISCOVERY["authorization_endpoint"])
 
     def test_a_node_that_cannot_be_reached_falls_back_to_authorizing_again(self, reuse, monkeypatch):
-        """A timeout says nothing about the grant, so the patron is offered the
-        path that works from a cold start rather than an error page."""
 
         def boom(pending, token, edition_id):
             raise RuntimeError("connection reset")
@@ -1512,11 +1453,6 @@ class TestTheStoredGrantIsReused:
         assert excinfo.value.url.startswith(DISCOVERY["authorization_endpoint"])
 
     def test_a_reused_borrow_is_confirmed_on_the_page_behind_the_popup(self, reuse):
-        """Same ending as the handshake path: the popup closes, so the flash on
-        the opener is the confirmation the patron actually reads.
-
-        "Lenny" rather than a library name because `NODE` carries no `name`;
-        `node_display_name` falls back to the feed's provider name.
-        """
+        """ "Lenny" rather than a library name: `NODE` carries no `name`."""
         self._go()
         assert [(m.type, m.message) for m in web.ctx.flash] == [("info", "Borrowed from Lenny. Your loan is due 2026-10-04.")]

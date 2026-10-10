@@ -117,10 +117,8 @@ describe('initProviderBorrowPopup', () => {
     });
 
     test('the popup is left alone on success, because it is becoming the reader', () => {
-        // provider_popup_result.html.jinja navigates that window to the node's
-        // reader once it has posted this message (#13865). Closing it from
-        // here kills the book the patron just borrowed, mid-load, and the two
-        // sides cannot both be right.
+        // provider_popup_result.html.jinja navigates that window to the
+        // reader; closing it here kills the book mid-load.
         const link = borrowLink('lenny');
         initProviderBorrowPopup([link], reload);
         click(link);
@@ -131,9 +129,8 @@ describe('initProviderBorrowPopup', () => {
     });
 
     test('the listener goes away once a loan is reported', () => {
-        // It used to be torn down by the reload this handler triggers. The
-        // reload is injected in these tests and the window survives, so
-        // without an explicit teardown a second message would reload twice.
+        // The reload is injected here, so the window survives it; without an
+        // explicit teardown a second message would reload twice.
         vi.useFakeTimers();
         const link = borrowLink('lenny');
         initProviderBorrowPopup([link], reload);
@@ -178,10 +175,8 @@ describe('initProviderBorrowPopup', () => {
     });
 
     test('a patron who backs out is not refreshed at, and the listener goes away', () => {
-        // Deliberate: the only evidence a loan exists is the callback saying
-        // so. A closed popup is someone backing out -- at the node's consent
-        // screen, now that the Open Library interstitial is gone from this
-        // path (#13865) -- and refreshing them is churn with nothing to show.
+        // The only evidence a loan exists is the callback saying so; a closed
+        // popup is someone backing out at the node's consent screen.
         vi.useFakeTimers();
         const link = borrowLink('lenny');
         initProviderBorrowPopup([link], reload);
