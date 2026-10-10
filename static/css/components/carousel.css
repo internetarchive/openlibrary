@@ -17,6 +17,21 @@
   margin-top: 1.75em;
 }
 
+/* A row with a sort control (books/custom_carousel.html.jinja): the control sits at the end of
+   the heading line, and drops under the heading when there is no room. */
+.carousel-section-header--sortable {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-stack-xs) var(--spacing-inline-lg);
+  margin: 1.75em 0 0.5em;
+}
+
+.carousel-section-header--sortable > .home-h2 {
+  margin: 0;
+}
+
 /* Only headings that link somewhere read as links. */
 .home-h2 a {
   color: var(--color-link);
@@ -26,6 +41,40 @@
 .lazy-carousel {
   margin: 0 -20px;
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
+}
+
+/* The page's Readable-online switch (home/readable_filter.html.jinja) sits at the end of a
+   row above the carousels it governs. */
+.readable-filter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-stack-lg);
+}
+
+.readable-filter__toggle {
+  --toggle-font-weight: var(--font-weight-medium);
+}
+
+.carousel-empty {
+  margin: 0 0 var(--spacing-stack-md);
+  padding: var(--spacing-inset-lg);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+/* A carousel being re-fetched keeps its cards on screen, dimmed, until the new ones land. */
+.lazy-carousel-loaded--refreshing .carousel-container {
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-state);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lazy-carousel-loaded--refreshing .carousel-container {
+    transition: none;
+  }
 }
 
 .carousel {
@@ -58,6 +107,18 @@
   min-height: 1px;
   overflow: hidden;
   box-sizing: border-box;
+}
+
+/* A row rendered as <ol-carousel> (books/custom_carousel.html.jinja, layout "ol-carousel"):
+   the component sizes and spaces the cards, so the slick-era item box is reset. */
+.carousel--native {
+  --ol-carousel-viewport-padding: var(--spacing-inset-xs);
+}
+
+.carousel--native > .carousel__item {
+  float: none;
+  margin: 0;
+  text-align: center;
 }
 
 .carousel.carousel--grid .carousel__item {
@@ -115,11 +176,6 @@
   background: var(--book-cover-carousel-background);
   border-bottom: 1px solid var(--book-cover-carousel-border-bottom);
   border-top: 1px solid var(--book-cover-carousel-border-top);
-}
-
-/* TODO: Document where this is used. This is unlikely to need to be so specific. */
-.carousel-section .SRPCover img {
-  box-shadow: 1px 2px 5px 0 var(--book-cover-shadow-color);
 }
 
 /* Hide horizontal scroll bar if JS is going to be loaded */
@@ -184,6 +240,13 @@
   margin: 0 auto;
   width: 130px;
   box-sizing: border-box;
+}
+
+/* A blank cover is a fixed 130px for slick; in the native row it follows the card. */
+.carousel--native .carousel__item__blankcover {
+  width: 100%;
+  max-width: 130px;
+  margin: 0 auto;
 }
 
 /* Styles for lazy-loading carousel placeholder element */

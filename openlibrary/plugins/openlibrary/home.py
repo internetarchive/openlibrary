@@ -10,7 +10,9 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core import admin, cache, env
 from openlibrary.core.carousels import get_carousel_data
+from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary import home_genres
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
     get_blog_feeds,
@@ -23,14 +25,15 @@ from openlibrary.utils.request_context import caching_prethread, req_context
 logger = logging.getLogger("openlibrary.home")
 
 
-def get_homepage(devmode):
+def get_homepage(devmode, logged_in=False):
     try:
         stats = admin.get_stats(use_mock_data=devmode)
     except Exception:
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
-    featured_subjects = get_cached_featured_subjects()
+    # Random order so the rail leads with different shelves; the template reshuffles per visit.
+    featured_genres = random.sample(get_cached_featured_genres(), k=len(get_cached_featured_genres()))
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
@@ -40,14 +43,15 @@ def get_homepage(devmode):
         "home/index",
         stats=stats,
         blog_posts=blog_posts,
-        featured_subjects=featured_subjects,
+        featured_genres=featured_genres,
         carousel_data=carousel_data,
+        logged_in=logged_in,
     )
     # Convert to a dict so it can be cached
     return dict(page)
 
 
-def get_cached_homepage():
+def get_cached_homepage(logged_in=False):
     from openlibrary.plugins.openlibrary.code import is_bot
 
     five_minutes = 5 * dateutil.MINUTE_SECS
@@ -63,11 +67,12 @@ def get_cached_homepage():
 
     mc = cache.memcache_memoize(get_homepage, key, timeout=five_minutes, prethread=caching_prethread())
     devmode = env.get_ol_env().LOCAL_DEV
-    page = mc(devmode)
+    # logged_in is part of the memoize key, so members and visitors get separate cached pages.
+    page = mc(devmode, logged_in)
 
     if not page:
-        mc.memcache_delete_by_args(devmode)
-        mc(devmode)
+        mc.memcache_delete_by_args(devmode, logged_in)
+        mc(devmode, logged_in)
 
     return page
 
@@ -76,10 +81,11 @@ class home(delegate.page):
     path = "/"
 
     def GET(self):
+        logged_in = bool(web.ctx.site.get_user())
         if devmode := env.get_ol_env().LOCAL_DEV:
-            homepage_data = get_homepage(devmode)
+            homepage_data = get_homepage(devmode, logged_in)
         else:
-            homepage_data = get_cached_homepage()
+            homepage_data = get_cached_homepage(logged_in)
 
         # when homepage is cached, home/index.html template
         # doesn't run ctx.setdefault to set the cssfile so we must do so here:
@@ -213,6 +219,73 @@ def get_cached_featured_subjects():
         get_featured_subjects,
         f"home.featured_subjects.{web.ctx.lang}",
         timeout=dateutil.HOUR_SECS,
+        prethread=caching_prethread(),
+    )()
+
+
+# Covers shown fanned on each genre tile.
+GENRE_TILE_COVERS = 3
+
+
+def subject_tile_labels() -> dict[str, str]:
+    """Translated names for the subject tiles in home_genres.json (keyed by slug). Genre names
+    come from the tags vocabulary and aren't translated yet."""
+    return {
+        "kids": _("Kids"),
+        "history": _("History"),
+        "biography": _("Biography"),
+        "philosophy": _("Philosophy"),
+        "psychology": _("Psychology"),
+        "poetry": _("Poetry"),
+        "travel": _("Travel"),
+        "science": _("Science"),
+        "cooking": _("Cooking"),
+        "religion": _("Religion"),
+        "art": _("Art"),
+        "textbooks": _("Textbooks"),
+    }
+
+
+def get_featured_genres():
+    """Genre tiles for home/browse_stacks.html.jinja: the vocabulary tree plus live counts
+    and a few trending covers per genre. Two Solr queries per genre, cached for a day."""
+    if "env" not in web.ctx:
+        delegate.fakeload()
+    solr = search.get_solr()
+    labels = subject_tile_labels()
+    genres = []
+    for genre in home_genres.load_home_genres():
+        # Raw Solr defaults to OR between clauses, so the ANDs are load-bearing.
+        query = home_genres.solr_query(genre)
+        readable = solr.select(
+            f'{query} AND {home_genres.READABLE_CLAUSE} AND NOT subject:"content_warning:cover"',
+            fields=["cover_i"],
+            rows=GENRE_TILE_COVERS * 2,
+            sort="def(trending_z_score,0) desc",
+        )
+        total = solr.select(query, fields=["key"], rows=0)
+        covers = [doc["cover_i"] for doc in readable["docs"] if doc.get("cover_i")][:GENRE_TILE_COVERS]
+        genres.append(
+            {
+                **genre,
+                "name": labels.get(genre["slug"], genre["name"]) if genre["kind"] == "subject" else genre["name"],
+                "work_count": total["num_found"],
+                "readable_count": readable["num_found"],
+                "work_count_str": commify(total["num_found"]),
+                "readable_count_str": commify(readable["num_found"]),
+                "covers": covers,
+                "url": home_genres.browse_url(genre),
+            }
+        )
+    # Nothing readable, no tile. Order is decided at render time.
+    return [g for g in genres if g["readable_count"]]
+
+
+def get_cached_featured_genres():
+    return cache.memcache_memoize(
+        get_featured_genres,
+        "home.featured_genres",
+        timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
     )()
 

@@ -32,6 +32,8 @@ $def with (title)
     $# client JS (<ol-icon>) reads the hashed URL from. Deliberately not a rel=preload:
     $# an as=image preload isn't credited against the <use> fetch, so it double-fetches.
     <meta name="ol-icon-sprite" content="$icon_sprite_url()">
+    $# Serif webfont, declared in static/css/fonts/literata.css. Fonts need crossorigin even same-origin.
+    <link rel="preload" href="/static/fonts/literata/literata-latin.woff2" as="font" type="font/woff2" crossorigin />
     $# Loaded separately from page-*.css so they cache once and serve every page from cache.
     <link href="$static_url('build/css/tokens.css')" rel="stylesheet" type="text/css" />
     <link href="$static_url('build/css/ol-components.css')" rel="stylesheet" type="text/css" />

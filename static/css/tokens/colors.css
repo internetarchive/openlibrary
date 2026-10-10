@@ -94,7 +94,7 @@
 
   /* Text */
   --color-text: var(--neutral-800);
-  --color-text-heading: var(--neutral-800); /* same ink as body; size and weight carry the hierarchy */
+  --color-text-heading: var(--neutral-900); /* one step darker than body ink, so headings sit in front of their copy */
   --color-text-secondary: var(--neutral-600);
   --color-text-muted: var(--neutral-500); /* only readable on white or --neutral-50 */
   --color-text-inverse: var(--white);
