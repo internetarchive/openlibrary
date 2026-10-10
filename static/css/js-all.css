@@ -3,7 +3,7 @@
  * At time of writing, this stylesheet is not render blocking.
  */
 
-@import "components/cbox.css";
+@import "components/cover-form.css";
 @import "components/native-dialog.css";
 @import "components/flash-messages.css";
 @import "components/jquery.autocomplete.css";
