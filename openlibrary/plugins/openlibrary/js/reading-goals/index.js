@@ -112,7 +112,9 @@ function addGoalSubmissionListener(submitButton) {
                 if (!response.ok) {
                     throw new Error('Failed to set reading goal');
                 }
-                const modal = form.closest('dialog');
+                // The form lives in a native <dialog> or slotted in an
+                // <ol-dialog>; both expose close().
+                const modal = form.closest('dialog, ol-dialog');
                 if (modal) {
                     modal.close();
                 }

@@ -18,7 +18,9 @@ describe('initDialogTriggers', () => {
         restoreDom = installDialogStubs();
         document.body.innerHTML = `
             <dialog id="yearly-goal-modal" class="native-dialog"></dialog>
+            <div id="goal-ol-dialog"></div>
             <a id="edit-trigger" href="javascript:;" data-dialog-trigger="#yearly-goal-modal">Edit</a>
+            <a id="ol-trigger" href="javascript:;" data-dialog-trigger="#goal-ol-dialog">Edit</a>
             <a id="missing-trigger" href="javascript:;" data-dialog-trigger="#no-such-dialog">Missing</a>
         `;
     });
@@ -34,6 +36,15 @@ describe('initDialogTriggers', () => {
         expect(dialog.open).toBe(false);
 
         document.querySelector('#edit-trigger').click();
+        expect(dialog.open).toBe(true);
+    });
+
+    test('a trigger pointing at an ol-dialog sets its open property', () => {
+        initDialogTriggers(document.querySelectorAll('[data-dialog-trigger]'));
+        const dialog = document.querySelector('#goal-ol-dialog');
+        expect(dialog.open).toBeUndefined();
+
+        document.querySelector('#ol-trigger').click();
         expect(dialog.open).toBe(true);
     });
 

@@ -1,9 +1,9 @@
 /**
- * Opens the referenced native dialog when a trigger is activated.
+ * Opens the referenced dialog when a trigger is activated.
  *
  * Triggers carry `data-dialog-trigger="#some-dialog-id"` (e.g. the Reading
- * Goal card's edit pencil and Set now button). The dialog itself only needs
- * to exist in the DOM; its close behavior comes from initDialogs.
+ * Goal card's edit pencil and Set now button). Native <dialog> elements open
+ * via showModal(); <ol-dialog> components open via their `open` property.
  * @param {NodeList<HTMLElement>} triggers Elements with a data-dialog-trigger attribute
  */
 export function initDialogTriggers(triggers) {
@@ -11,8 +11,13 @@ export function initDialogTriggers(triggers) {
         trigger.addEventListener('click', (event) => {
             event.preventDefault();
             const dialog = document.querySelector(trigger.dataset.dialogTrigger);
-            if (dialog) {
+            if (!dialog) {
+                return;
+            }
+            if (typeof dialog.showModal === 'function') {
                 dialog.showModal();
+            } else {
+                dialog.open = true;
             }
         });
     }

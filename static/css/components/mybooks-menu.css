@@ -22,7 +22,15 @@
 .mybooks-menu {
   width: 25%;
   background: var(--color-surface-header);
-  border-radius: inherit;
+  border-top-left-radius: var(--border-radius-card);
+  border-bottom-left-radius: var(--border-radius-card);
+  padding: var(--spacing-md);
+}
+
+.mybooks-menu-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
 /* ── 2. Cards ───────────────────────────────────────────────────── */
@@ -30,16 +38,14 @@
   background: var(--color-surface);
   border-radius: var(--border-radius-card);
   box-shadow: var(--box-shadow-raised);
-  margin: var(--spacing-md) var(--spacing-sm);
   overflow: hidden;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
 }
 
 /* ── 3. Profile card ────────────────────────────────────────────── */
 .sb-profile-card {
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
   position: relative;
 }
 
@@ -59,7 +65,7 @@
   display: block;
   width: 64px;
   height: 64px;
-  border-radius: var(--border-radius-xl);
+  border-radius: var(--border-radius-avatar);
   object-fit: cover;
   background: var(--background-grey);
 }
@@ -171,8 +177,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-radius: 18px;
-  padding: var(--spacing-inset-md);
 }
 
 .sb-goal-row {
@@ -277,7 +281,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-stack-xs);
+  margin-bottom: var(--spacing-stack-sm);
   display: flex;
   justify-content: space-between;
 }
@@ -424,7 +428,7 @@ a.sb-activity-tile:hover {
   align-items: center;
   justify-content: center;
   height: 24px;
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .sb-activity-label {
@@ -506,7 +510,7 @@ a.sb-activity-tile:hover {
   .mobile-avatar {
     width: 32px;
     height: 32px;
-    border-radius: var(--border-radius-avatar);
+    border-radius: var(--border-radius-card);
     object-fit: cover;
     border: 2px solid var(--color-border-subtle);
     flex-shrink: 0;
