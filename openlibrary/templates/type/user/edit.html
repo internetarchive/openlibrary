@@ -16,6 +16,33 @@ $var title: $_('Editing %(name)s', name=page.displayname)
     <form method="POST" class="olform">
         <input type="hidden" name="type.key" id="type.key" value="/type/user"/>
 
+        <div class="formElement avatar" data-i18n="$:render_template('type/user/avatar_i18n')">
+            <div class="label">
+                <label for="avatar-file-input">$_("Profile Picture")</label>
+            </div>
+            <div class="input avatar-container">
+                <div class="avatar-preview-container">
+                    <img id="avatar-preview-img"
+                         src="$(page.key)/avatar"
+                         data-base-src="$(page.key)/avatar"
+                         alt=""
+                         width="80"
+                         height="80"
+                         onerror="this.onerror=null; this.src='https://archive.org/images/person2.png';" />
+                </div>
+                <div class="avatar-controls">
+                    <div>
+                        <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp,image/gif" />
+                    </div>
+                    <div class="avatar-button-group">
+                        <button type="button" id="avatar-upload-btn" class="avatar-btn avatar-btn--upload">$_("Upload Photo")</button>
+                        <button type="button" id="avatar-remove-btn" class="avatar-btn avatar-btn--remove">$_("Remove Photo")</button>
+                    </div>
+                    <span id="avatar-upload-status" class="avatar-upload-status" role="status" aria-live="polite"></span>
+                </div>
+            </div>
+        </div>
+
         <div class="formElement title">
             <div class="label">
                 <label for="title">$_("Display Name")</label>
