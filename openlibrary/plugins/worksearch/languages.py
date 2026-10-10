@@ -1,6 +1,7 @@
 """Language pages"""
 
 import logging
+import unicodedata
 from dataclasses import dataclass
 from typing import Literal, override
 
@@ -15,6 +16,19 @@ from openlibrary.utils.async_utils import async_bridge
 from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
+
+
+def language_name_sort_key(name: str) -> tuple[str, str]:
+    """Sort names case- and accent-insensitively with a stable tie-break.
+
+    NFKD exposes combining accents (for example Č -> C + caron); removing
+    marks from the primary key groups such names with the base letter.
+    The original casefolded name resolves ties deterministically.
+    """
+    folded = name.casefold()
+    normalized = unicodedata.normalize("NFKD", folded)
+    base = "".join(char for char in normalized if not unicodedata.combining(char))
+    return base, folded
 
 
 async def get_top_languages(
@@ -33,7 +47,10 @@ async def get_top_languages(
         )
         for (lang_key, count) in await get_all_language_counts("work")
     ]
-    results.sort(key=lambda x: x[sort].casefold() if sort == "name" else x[sort], reverse=sort in ("count", "ebook_edition_count"))
+    results.sort(
+        key=lambda x: language_name_sort_key(x.name) if sort == "name" else x[sort],
+        reverse=sort in ("count", "ebook_edition_count"),
+    )
     return results[:limit]
 
 
