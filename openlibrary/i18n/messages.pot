@@ -758,12 +758,12 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/sidebar.html my_books/shelf_button_i18n.html openlibrary/plugins/openlibrary/nav.py search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
 #. Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html openlibrary/plugins/openlibrary/nav.py search/sort_options.html trending.html
 msgid "Currently Reading"
 msgstr ""
 
@@ -772,7 +772,7 @@ msgid "Read"
 msgstr ""
 
 #. Display name for the "stopped-reading" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html openlibrary/plugins/openlibrary/nav.py search/sort_options.html trending.html
 msgid "Stopped Reading"
 msgstr ""
 
@@ -1345,12 +1345,12 @@ msgstr ""
 msgid "No books are on this shelf"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+#: account/mybooks.html account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/upstream/account.py
 msgid "Loans & History"
 msgstr ""
 
 #. Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/shelf_button_i18n.html openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
 msgstr ""
 
@@ -1371,15 +1371,15 @@ msgstr ""
 msgid "My Stats"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html account/topmenu.html
+#: account/mybooks.html account/sidebar.html account/topmenu.html openlibrary/plugins/openlibrary/nav.py
 msgid "My Reading Stats"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html
+#: account/mybooks.html account/sidebar.html openlibrary/plugins/openlibrary/nav.py
 msgid "My Notes"
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html
+#: account/mybooks.html account/sidebar.html openlibrary/plugins/openlibrary/nav.py
 msgid "My Reviews"
 msgstr ""
 
@@ -1602,7 +1602,7 @@ msgstr ""
 msgid "My %(shelf_name)s Stats"
 msgstr ""
 
-#: account/readinglog_stats.html lib/nav_head.html
+#: account/readinglog_stats.html lib/mybooks_popover.html lib/nav_head.html openlibrary/plugins/openlibrary/nav.py
 msgid "My Books"
 msgstr ""
 
@@ -1671,7 +1671,7 @@ msgstr ""
 msgid "Click on a bar to see matching works"
 msgstr ""
 
-#: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
 msgstr ""
 
@@ -4425,10 +4425,6 @@ msgstr ""
 msgid "Copy Wikipedia citation"
 msgstr ""
 
-#: lib/header_dropdown.html lib/nav_head.html
-msgid "Menu"
-msgstr ""
-
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
 msgstr ""
@@ -4457,6 +4453,18 @@ msgstr ""
 #: lib/history.html
 #, python-format
 msgid "Edited by %(user)s"
+msgstr ""
+
+#: lib/mybooks_popover.html
+msgid "Your shelves at a glance"
+msgstr ""
+
+#: lib/mybooks_popover.html
+msgid "Borrowed books and history"
+msgstr ""
+
+#: lib/mybooks_popover.html
+msgid "Books you have collected"
 msgstr ""
 
 #: lib/nav_foot.html.jinja openlibrary/plugins/openlibrary/api.py site/head.html
@@ -4654,6 +4662,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Search by barcode"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Menu"
 msgstr ""
 
 #: lib/nav_head.html
@@ -6998,7 +7010,7 @@ msgstr ""
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
 msgstr ""
 
-#: type/user/view.html
+#: openlibrary/plugins/openlibrary/nav.py type/user/view.html
 msgid "My Lists"
 msgstr ""
 
@@ -8347,6 +8359,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/nav.py
 msgid "Random Book"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/nav.py
+msgid "Import & Export Options"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

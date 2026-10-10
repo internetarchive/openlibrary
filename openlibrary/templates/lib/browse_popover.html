@@ -13,7 +13,7 @@ $# in visual top-to-bottom order (featured first, then the simple links) so we
 $# can see how far down the single column patrons reach.
 $#   data-ol-link-track — link clicks; ol.analytics.js delegates on click.
 $#   data-ol-open-track — one event per open (pointer or keyboard), sent by the
-$#     browse-scoped ol-popover-open listener in main.js.
+$#     nav-popover ol-popover-open listener in main.js.
 $#
 $# Destinations come from openlibrary/plugins/openlibrary/nav.py so this panel
 $# and the hamburger drawer can't drift apart. Only the icons and the featured
@@ -44,28 +44,28 @@ $     'RandomBook': 'dices',
 $     'AdvancedSearch': 'search',
 $ }
 <div class="browse-component header-dropdown">
-  <ol-popover class="browse-popover" placement="bottom-center" aria-label="$_('Browse')" data-ol-open-track="$(pfx)|BrowseOpen">
-    <button type="button" slot="trigger" class="ol-button-static ol-button-static--ghost browse-popover__trigger">
+  <ol-popover class="nav-popover browse-popover" placement="bottom-center" aria-label="$_('Browse')" data-ol-open-track="$(pfx)|BrowseOpen">
+    <button type="button" slot="trigger" class="ol-button-static ol-button-static--ghost nav-popover__trigger">
       $:macros.icon("book-open-text", size="sm", extra_class="ol-button-static__icon")
       $_('Browse')
       $:macros.icon("chevron-down", size="sm", extra_class="down-arrow")
     </button>
-    <div class="browse-popover__panel">
-      <div class="browse-popover__featured">
+    <div class="nav-popover__panel">
+      <div class="nav-popover__featured">
         $for link in featuredLinks:
-          <a class="browse-feature" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(loop.index)">
-            <span class="browse-feature__icon">$:macros.icon(navIcons.get(link.track, 'link'))</span>
-            <span class="browse-feature__body">
-              <span class="browse-feature__title">$(link.text)</span>
+          <a class="nav-feature" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(loop.index)">
+            <span class="nav-feature__icon">$:macros.icon(navIcons.get(link.track, 'link'))</span>
+            <span class="nav-feature__body">
+              <span class="nav-feature__title">$(link.text)</span>
               $if link.track in featuredDetail:
-                <span class="browse-feature__desc">$(featuredDetail[link.track])</span>
+                <span class="nav-feature__desc">$(featuredDetail[link.track])</span>
             </span>
           </a>
       </div>
-      <hr class="browse-popover__divider">
-      <ul class="browse-popover__links">
+      <hr class="nav-popover__divider">
+      <ul class="nav-popover__links">
         $for link in simpleLinks:
-          <li><a class="browse-popover__link" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(BROWSE_FEATURED_COUNT + loop.index)">$:macros.icon(navIcons.get(link.track, 'link'), size="sm")$(link.text)</a></li>
+          <li><a class="nav-popover__link" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(BROWSE_FEATURED_COUNT + loop.index)">$:macros.icon(navIcons.get(link.track, 'link'), size="sm")$(link.text)</a></li>
       </ul>
     </div>
   </ol-popover>
