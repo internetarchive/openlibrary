@@ -106,6 +106,9 @@ export function isValidLccn(lccn) {
 
 /**
  * Parses and cleans up OCLC/WorldCat identifier input.
+ * Strips standard MARC prefixes (ocm, ocn, on, (OCoLC)) that may appear in
+ * exported records. See:
+ * https://help.oclc.org/Metadata_Services/OCLC_MARC_records/Summary_of_processing_changes/History_of_the_OCLC_number
  * @param {String} oclc  OCLC string for parsing
  * @returns {String}  parsed OCLC string
  */
@@ -114,6 +117,9 @@ export function parseOclc(oclc) {
     return oclc
         // remove any whitespace
         .replace(/\s/g, '')
+        // remove standard MARC prefixes, case-insensitively
+        .replace(/^\(OCoLC\)/i, '')
+        .replace(/^(ocm|ocn|on)/i, '')
         // remove leading/padding zeroes
         .replace(/^0+/, '');
 }
@@ -121,7 +127,9 @@ export function parseOclc(oclc) {
 /**
  * Verify OCLC Control Number syntax. OCLC Numbers are “unique, sequentially
  * assigned number[s] associated with a record in WorldCat.”
- * They only contains digits and aren’t normally 0-padded.
+ * They only contain digits and aren’t normally 0-padded. As of writing,
+ * assigned numbers fit comfortably in 10 digits; we cap at 15 to leave
+ * generous headroom while excluding obviously-too-long numeric inputs.
  * See https://help.oclc.org/Metadata_Services/OCLC_MARC_records/Summary_of_processing_changes/History_of_the_OCLC_number
  * and https://help.oclc.org/Library_Management/WorldShare_Reports/Report_objects/Report_objects_A_to_Z/Report_objects_M-P#O
  * @param {String} oclc  OCLC string to test for valid syntax
@@ -129,7 +137,7 @@ export function parseOclc(oclc) {
  */
 export function isValidOclc(oclc) {
     // matching parsed entry to regex representing valid oclc
-    const regex = /^[1-9][0-9]*$/;
+    const regex = /^[1-9][0-9]{0,14}$/;
     return regex.test(oclc);
 }
 
