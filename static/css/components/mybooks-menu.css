@@ -291,6 +291,7 @@
 }
 
 .sb-card-section a {
+  position: relative;
   display: inline-flex;
   justify-content: space-between;
   align-items: center;
@@ -299,11 +300,9 @@
   font-size: var(--font-size-body-medium);
   line-height: var(--line-height-control);
   color: var(--color-text) !important;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
   transition:
     background 0.1s,
-    border-color 0.1s;
+    color 0.1s;
 }
 
 .sb-card-section a:hover {
@@ -315,11 +314,25 @@
   vertical-align: -3px;
 }
 
-.sb-card-section a.selected {
-  border-left-color: var(--color-primary);
+/* Active nav row: tinted rounded background, blue label + icon, and a 4px
+   accent bar aligned with the card's leading edge (the negative offset
+   cancels the card's own padding). */
+.sb-card-section a[aria-current="page"] {
+  background: var(--background-grey);
+  border-radius: var(--border-radius-menu-row);
   color: var(--color-primary) !important;
-  font-weight: var(--font-weight-semibold);
-  background: var(--color-control-hover);
+  font-weight: 700;
+}
+
+.sb-card-section a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--spacing-sm));
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--color-primary);
 }
 
 /* Global link styles */

@@ -69,9 +69,9 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         <ul class="sb-card-section">
           <li>
             <a
-              class="$('selected' if key == 'mybooks' else '')"
               href="/people/$username/books"
               data-ol-link-track="MyBooksSidebar|MyBooks"
+              $if key == 'mybooks': aria-current="page"
             >
               <span><ol-icon name="book" size="sm" class="sb-nav-icon"></ol-icon> $_("My Books")</span>
             </a>
@@ -79,27 +79,27 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
           $if owners_page:
             <li>
               <a
-                class="$('selected' if key=='feed' else '')"
                 data-ol-link-track="MyBooksSidebar|MyFeed"
                 href="/people/$username/books/feed"
+                $if key == 'feed': aria-current="page"
               >
                 <span><ol-icon name="rss" size="sm" class="sb-nav-icon"></ol-icon> $_('My Feed')</span>
               </a>
             </li>
             <li>
               <a
-                class="$('selected' if key == 'stats' else '')"
                 data-ol-link-track="MyBooksSidebar|ReadingStats"
                 href="/account/books/already-read/stats"
+                $if key == 'stats': aria-current="page"
               >
                 <span><ol-icon name="chart-column" size="sm" class="sb-nav-icon"></ol-icon> $_('My Reading Stats')</span>
               </a>
             </li>
             <li>
               <a
-                class="$('selected' if key=='imports' else '')"
                 data-ol-link-track="MyBooksSidebar|Import"
                 href="/account/import"
+                $if key == 'imports': aria-current="page"
               >
                 <span><ol-icon name="download" size="sm" class="sb-nav-icon"></ol-icon> $_("Import your data")</span>
               </a>
