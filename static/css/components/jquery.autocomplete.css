@@ -129,17 +129,3 @@
 .ac_work .first_publish_year {
   font-size: var(--font-size-label-medium);
 }
-
-.ac_loading {
-  background: var(--white) url(/static/images/indicator.gif) right center
-    no-repeat;
-}
-
-.ac_odd {
-  background-color: var(--lightest-grey);
-}
-
-.ac_even,
-.ac_odd {
-  background-color: inherit;
-}

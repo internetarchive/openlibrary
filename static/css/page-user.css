@@ -171,23 +171,144 @@ div#editHistory {
   display: none;
 }
 /* stylelint-enable selector-max-specificity */
-div#subjectsPage {
-  columns: 2;
+
+/* ── Data Transfer Pages (Import/Export) ──────────────────────────── */
+.data-transfer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
 }
 
-/* @width-breakpoint-tablet = 768px */
-@media only screen and (min-width: 768px) {
-  div#subjectsPage {
-    columns: 4;
-  }
+.data-transfer-card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-div#subjectsPage h3 {
-  break-after: avoid;
+.data-transfer-card--flex {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-div#subjectsPage ul {
-  display: inline-block;
+.data-transfer-card--flex > div:first-child {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: flex-start;
+}
+
+.data-transfer-illustration {
+  text-align: center;
+  margin: auto;
+  padding: var(--spacing-lg) 0;
+}
+
+.data-transfer-illustration__icon {
+  color: var(--color-icon-muted);
+}
+
+.data-transfer-card--full-width {
+  grid-column: 1 / -1;
+}
+
+.data-transfer-section-heading {
+  margin-top: var(--spacing-2xl);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.25rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.data-transfer-card h3 {
+  margin: 0;
+}
+
+.data-transfer-card__badge {
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+/* ── Dropzone (reusable) ─────────────────────────────────────────── */
+.dropzone {
+  position: relative;
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  background: var(--color-surface-sunken);
+  margin-bottom: var(--spacing-lg);
+}
+
+.dropzone:hover,
+.dropzone.drag-active {
+  background: var(--color-primary-subtle);
+}
+
+.dropzone-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: var(--z-index-base);
+}
+
+.dropzone-icon {
+  color: var(--color-icon-muted);
+  margin: 0 auto var(--spacing-md);
+  transition: color 0.2s ease;
+}
+
+.dropzone:hover .dropzone-icon,
+.dropzone.drag-active .dropzone-icon {
+  color: var(--primary-blue);
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dropzone-browse {
+  background: none;
+  border: none;
+  color: var(--primary-blue);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.dropzone-browse:hover {
+  color: var(--dark-blue);
+}
+
+.dropzone-text {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.dropzone-filename {
+  display: none;
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.dropzone.has-file .dropzone-text {
+  display: none;
+}
+
+.dropzone.has-file .dropzone-filename {
+  display: block;
 }
 
 div.lists {
@@ -285,22 +406,6 @@ tr.table-row.selected {
   border: 2px solid var(--lightest-grey);
   padding: 20px;
   border-radius: 5px;
-}
-
-.login-big-or {
-  display: flex;
-  gap: 10px;
-  margin-top: var(--spacing-stack-sm);
-  max-width: 600px;
-}
-
-.login-big-or::before,
-.login-big-or::after {
-  content: "";
-  display: block;
-  flex: 1;
-  border-bottom: 1px solid currentColor;
-  transform: translateY(-50%);
 }
 
 textarea.toc-editor {

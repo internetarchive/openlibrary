@@ -3,7 +3,7 @@
  * ======
  * Primitive ramps, the `--color-*` semantic layer built on them, and a
  * deprecated alias for every legacy name. Use the semantic layer.
- * See docs/ai/design.md.
+ * See docs/frontend/design.md.
  */
 
 /**
@@ -129,6 +129,10 @@
   --color-primary: var(--blue-500);
   --color-primary-hover: var(--blue-600);
   --color-primary-active: var(--blue-700);
+  /* Edge of a raised primary control: a half-step below the fill, as
+     --color-control-border is for the neutral one, so the shape reads without
+     an outline. */
+  --color-primary-border: color-mix(in srgb, var(--blue-500), var(--blue-600));
   --color-primary-subtle: var(--blue-50);
   --color-on-primary: var(--white);
   /* Destructive action fill (delete, remove). Pair with --color-on-primary. */
@@ -216,7 +220,7 @@
 /**
  * 3. Which token do I use?
  * ------------------------
- * Pick by purpose, not by shade — full guidance in docs/ai/design.md.
+ * Pick by purpose, not by shade — full guidance in docs/frontend/design.md.
  *
  *   1. New code uses a semantic token, never a primitive (`--neutral-500`) or a
  *      raw `hsl()`. If none fits, add one here and name it for its job.

@@ -1,5 +1,7 @@
 """Loan Stats"""
 
+import contextlib
+import datetime
 from collections.abc import Iterable
 
 import web
@@ -39,12 +41,54 @@ def reading_log_summary():
         delegate.fakeload()
 
     stats = Bookshelves.summary()
-    stats.update(YearlyReadingGoals.summary())
+    stats.update(YearlyReadingGoals.summary_sync())
     stats.update(Ratings.summary())
     stats.update(Observations.summary())
     stats.update(Booknotes.summary())
     stats.update(PubSub.summary())
     return stats
+
+
+DEFAULT_TRENDING_SHELF_IDS = [
+    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+]
+TRENDING_NOW_LIMIT = 20
+TRENDING_NOW_CACHE_SECS = 10
+
+
+@cache.memoize(
+    "memcache",
+    key=lambda limit=TRENDING_NOW_LIMIT, page=1: cache.build_memcache_key("stats.trending_now", limit=int(limit), page=int(page)),
+    expires=TRENDING_NOW_CACHE_SECS,
+)
+def _cached_get_trending_now(limit: int = TRENDING_NOW_LIMIT, page: int = 1) -> list[dict]:
+    rows = Bookshelves.get_recently_logged_books(shelf_ids=DEFAULT_TRENDING_SHELF_IDS, limit=limit, page=page)
+    result = []
+    for row in rows:
+        d = dict(row)
+        if isinstance(d.get("created"), datetime.date):
+            d["created"] = d["created"].isoformat()
+        if isinstance(d.get("updated"), datetime.date):
+            d["updated"] = d["updated"].isoformat()
+        result.append(d)
+    return result
+
+
+def cached_get_trending_now(limit: int = TRENDING_NOW_LIMIT, page: int = 1) -> list[web.storage]:
+    items = _cached_get_trending_now(limit=limit, page=page)
+    result = []
+    for item in items:
+        d = web.storage(item)
+        if isinstance(d.get("created"), str):
+            with contextlib.suppress(ValueError):
+                d["created"] = datetime.datetime.fromisoformat(d["created"])
+        if isinstance(d.get("updated"), str):
+            with contextlib.suppress(ValueError):
+                d["updated"] = datetime.datetime.fromisoformat(d["updated"])
+        result.append(d)
+    return result
 
 
 async def get_trending_books(
@@ -57,22 +101,10 @@ async def get_trending_books(
     fields: Iterable[str] | None = None,
 ):
     logged_books = (
-        Bookshelves.get_recently_logged_books(
-            shelf_ids=[
-                Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-            ],
-            limit=limit,
-            page=page,
-        )
+        cached_get_trending_now(limit=limit, page=page)
         if (since_days == 0 and since_hours == 0)
         else Bookshelves.most_logged_books(
-            shelf_ids=[
-                Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-            ],
+            shelf_ids=DEFAULT_TRENDING_SHELF_IDS,
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
             limit=limit,
             page=page,
@@ -153,28 +185,16 @@ class activity_stream(app.view):
 
     def GET(self, mode=""):
         i = web.input(page=1)
-        page = i.page
+        page = int(i.page or 1)
         if not mode:
             raise web.seeother("/trending/now")
         mode = mode[1:]  # remove slash
-        limit = 20
+        limit = TRENDING_NOW_LIMIT
         if mode == "now":
-            logged_books = Bookshelves.get_recently_logged_books(
-                shelf_ids=[
-                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-                ],
-                limit=limit,
-                page=page,
-            )
+            logged_books = cached_get_trending_now(limit=limit, page=page)
         else:
             logged_books = cached_get_most_logged_books(
-                shelf_ids=[
-                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-                ],
+                shelf_ids=DEFAULT_TRENDING_SHELF_IDS,
                 since_days=SINCE_DAYS[mode],
                 limit=limit,
                 page=page,

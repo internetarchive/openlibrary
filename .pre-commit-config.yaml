@@ -102,6 +102,19 @@ repos:
           - types-requests
           - types-simplejson
           - fastapi
+          - psycopg[binary,pool]==3.3.5
+
+  - repo: https://github.com/oxc-project/mirrors-oxfmt
+    # Mirror tag lags npm; pin the same version as package.json.
+    rev: v0.71.0
+    hooks:
+      - id: oxfmt
+        name: oxfmt
+        # Mirror hook targets JS/TS by default.
+        types_or: [css]
+        args: [--no-error-on-unmatched-pattern]
+        additional_dependencies:
+          - oxfmt@0.72.0
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
     rev: 0.0.2
@@ -111,7 +124,6 @@ repos:
         additional_dependencies: &stylelint_deps
           - stylelint@16.26.1
           - stylelint-declaration-strict-value@1.11.1
-          - stylelint-prettier@5.0.3
           - postcss-lit@1.4.1
         # --allow-empty-input: pre-commit passes the staged .css files, and
         # stylelint fails with AllFilesIgnoredError if .stylelintignore excludes

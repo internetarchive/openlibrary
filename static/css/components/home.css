@@ -49,7 +49,6 @@ div.tutorial__item img {
 }
 
 /* stylelint-disable selector-max-specificity */
-div.chartHome a:hover,
 #home-stats-charts .statschart:hover a {
   color: var(--color-link);
   text-decoration: underline;
@@ -108,11 +107,6 @@ div.chartHome a:hover,
 }
 /* stylelint-enable no-descending-specificity */
 /* stylelint-enable max-nesting-depth */
-
-#home-resource {
-  font-size: 13px;
-  text-align: left;
-}
 
 #home-about {
   display: flex;
