@@ -946,6 +946,8 @@ async def gather_lazy_carousel_data_async(
 
 
 LIST_KEY_RE = re.compile(r"^(/people/[^/]+)?/lists/OL\d+L")
+# Read at most this many pages' worth of seeds per request, so readable-only carousels over mostly unreadable lists stay cheap
+_LIST_SCAN_PAGES = 5
 
 
 class ListCarouselData(TypedDict):
@@ -968,13 +970,15 @@ async def gather_list_carousel_data_async(
     limit: int,
     has_fulltext_only: bool,
 ) -> ListCarouselData:
-    """Fetch the carousel docs for ``limit`` seeds of the list that ``query`` starts with,
+    """Fetch up to ``limit`` carousel docs from the list that ``query`` starts with,
     beginning at seed ``offset``. Whatever follows the list key in ``query`` filters the docs.
 
     There is one doc per work or edition seed that Solr has, in list order; an edition
-    seed's doc carries that edition in ``editions.docs``. ``next_offset`` is the seed to
-    resume from, or None at the end of the list. It counts seeds, not docs, so seeds that
-    have no doc (unreadable, not indexed, subjects, ...) can't make a later page repeat.
+    seed's doc carries that edition in ``editions.docs``. Seeds that yield no doc
+    (unreadable, not indexed, subjects, ...) are skipped and the next seeds are read
+    instead, so a page is only short at the end of the list or after scanning
+    ``_LIST_SCAN_PAGES`` pages' worth of seeds. ``next_offset`` is the seed to resume
+    from, or None at the end of the list.
     """
     if not (list_match := LIST_KEY_RE.match(query)):
         return {"docs": [], "next_offset": None}
@@ -982,9 +986,6 @@ async def gather_list_carousel_data_async(
     extra_query = query.removeprefix(list_key)
     lst = site.get().get(list_key)
     seeds = lst.get_seeds() if lst else []
-    seed_keys = [seed.key for seed in seeds[offset : offset + limit]]
-    end = offset + len(seed_keys)
-    next_offset = None if end >= len(seeds) else end
 
     async def search(term: str, count: int) -> dict:
         search_params = {"q": f"{term}{extra_query}"}
@@ -998,27 +999,58 @@ async def gather_list_carousel_data_async(
             request_label="BOOK_CAROUSEL",
         )
 
-    docs_by_seed: dict[str, dict] = {}
-    error = False
+    async def find_docs(seed_keys: list[str]) -> dict[str, dict] | None:
+        """Map each seed key to its doc, or return None if Solr errored."""
+        targets = _follow_redirects([key for key in seed_keys if key.startswith(("/works/", "/books/"))])
+        docs_by_key: dict[str, dict] = {}
 
-    if work_keys := [key for key in seed_keys if key.startswith("/works/")]:
-        results = await search(f"key:({' OR '.join(work_keys)})", len(work_keys))
-        error |= "error" in results
-        docs_by_seed.update({doc["key"]: doc for doc in results.get("docs", [])})
+        if work_keys := sorted({key for key in targets.values() if key.startswith("/works/")}):
+            results = await search(f"key:({' OR '.join(work_keys)})", len(work_keys))
+            if "error" in results:
+                return None
+            docs_by_key.update({doc["key"]: doc for doc in results.get("docs", [])})
 
-    # Solr gives one edition per work, so editions of the same work need a query each
-    pending = [key for key in seed_keys if key.startswith("/books/")]
-    while pending and not error:
-        olids = [key.removeprefix("/books/") for key in pending]
-        results = await search(f"edition_key:({' OR '.join(olids)})", len(pending))
-        error |= "error" in results
-        found = {doc["editions"]["docs"][0]["key"]: doc for doc in results.get("docs", []) if doc.get("editions", {}).get("docs")}
-        docs_by_seed.update(found)
-        pending = [key for key in pending if key not in found] if found else []
+        # Solr gives one edition per work, so editions of the same work need a query each
+        pending = sorted({key for key in targets.values() if key.startswith("/books/")})
+        while pending:
+            olids = [key.removeprefix("/books/") for key in pending]
+            results = await search(f"edition_key:({' OR '.join(olids)})", len(pending))
+            if "error" in results:
+                return None
+            found = {doc["editions"]["docs"][0]["key"]: doc for doc in results.get("docs", []) if doc.get("editions", {}).get("docs")}
+            docs_by_key.update(found)
+            pending = [key for key in pending if key not in found] if found else []
 
-    if error:
-        return {"docs": [], "next_offset": None, "error": True}
-    return {"docs": [docs_by_seed[key] for key in seed_keys if key in docs_by_seed], "next_offset": next_offset}
+        return {seed_key: docs_by_key[target] for seed_key, target in targets.items() if target in docs_by_key}
+
+    docs: list[dict] = []
+    pos = offset
+    scan_end = min(len(seeds), offset + limit * _LIST_SCAN_PAGES)
+    while pos < scan_end and len(docs) < limit:
+        window = [seed.key for seed in seeds[pos : min(pos + limit, scan_end)]]
+        if (found := await find_docs(window)) is None:
+            return {"docs": [], "next_offset": None, "error": True}
+        for key in window:
+            pos += 1
+            if key in found:
+                docs.append(found[key])
+                if len(docs) == limit:
+                    break
+
+    return {"docs": docs, "next_offset": pos if pos < len(seeds) else None}
+
+
+def _follow_redirects(keys: list[str]) -> dict[str, str]:
+    """Map each key to where its doc lives now; merged works and editions leave redirects behind."""
+    resolved = {key: key for key in keys}
+    for _hop in range(3):  # redirects can chain when a merged work is merged again
+        if not resolved:
+            break
+        things = site.get().get_many(list(set(resolved.values())))
+        if not (redirects := {thing.key: thing.location for thing in things if thing.type.key == "/type/redirect"}):
+            break
+        resolved = {key: redirects.get(target, target) for key, target in resolved.items()}
+    return resolved
 
 
 # Query carousels. Was macros/RawQueryCarousel.html + books/custom_carousel.html;

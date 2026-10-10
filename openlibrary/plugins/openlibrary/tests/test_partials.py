@@ -12,6 +12,7 @@ from pydantic import ValidationError
 from openlibrary.core.vendors import betterworldbooks_fmt
 from openlibrary.plugins.openlibrary import code  # noqa: F401  # code.setup() imports partials; import it first
 from openlibrary.plugins.openlibrary.partials import (
+    _LIST_SCAN_PAGES,
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
@@ -386,13 +387,19 @@ _gather_list_carousel_data = gather_list_carousel_data_async.__wrapped__
 LIST_KEY = "/people/curator/lists/OL1L"
 
 
-def _fake_list_carousel_env(seed_keys, solr_works):
+def _fake_list_carousel_env(seed_keys, solr_works, redirects=None):
     """Patch the list and Solr that gather_list_carousel_data_async talks to.
 
     ``solr_works`` maps a work key to ``{edition key: is_readable}``. The fake Solr
     answers like the real one: a work doc per matching work, carrying one edition.
+    ``redirects`` maps a seed key to the key it now redirects to.
     """
     lst = SimpleNamespace(get_seeds=lambda: [SimpleNamespace(key=key) for key in seed_keys])
+    redirects = redirects or {}
+
+    def get_many(keys):
+        return [SimpleNamespace(key=key, location=redirects[key], type=SimpleNamespace(key="/type/redirect")) for key in keys if key in redirects]
+
     queries = []
 
     async def work_search(param, **kwargs):
@@ -413,7 +420,7 @@ def _fake_list_carousel_env(seed_keys, solr_works):
         return {"docs": docs}
 
     patches = (
-        patch("openlibrary.plugins.openlibrary.partials.site", Mock(get=Mock(return_value=Mock(get=Mock(return_value=lst))))),
+        patch("openlibrary.plugins.openlibrary.partials.site", Mock(get=Mock(return_value=Mock(get=Mock(return_value=lst), get_many=get_many)))),
         patch("openlibrary.plugins.openlibrary.partials.work_search_async", side_effect=work_search),
     )
     return patches, queries
@@ -475,20 +482,56 @@ class TestGatherListCarouselDataAsync:
         assert queries[-1]["has_fulltext"] == "true"
 
     @pytest.mark.asyncio
-    async def test_resumes_from_the_seed_offset_not_the_number_of_docs(self):
-        """Seeds without a doc are still consumed, so the next page starts after them."""
-        seeds = [f"/books/OL{n}M" for n in range(1, 7)]
-        solr_works = {f"/works/OL{n}W": {f"/books/OL{n}M": n in (1, 5)} for n in range(1, 7)}
+    async def test_reads_past_seeds_without_a_doc_to_fill_the_page(self):
+        """A short page would leave the carousel nothing to scroll, so load-more would never fire."""
+        seeds = [f"/books/OL{n}M" for n in range(1, 9)]
+        solr_works = {f"/works/OL{n}W": {f"/books/OL{n}M": n in (1, 5, 6, 8)} for n in range(1, 9)}
         patches, _ = _fake_list_carousel_env(seeds, solr_works)
 
         with patches[0], patches[1]:
-            first = await _gather_list_carousel_data(LIST_KEY, 0, 4, True)
-            second = await _gather_list_carousel_data(LIST_KEY, first["next_offset"], 4, True)
+            first = await _gather_list_carousel_data(LIST_KEY, 0, 2, True)
+            second = await _gather_list_carousel_data(LIST_KEY, first["next_offset"], 2, True)
 
-        assert [doc["key"] for doc in first["docs"]] == ["/works/OL1W"]
-        assert first["next_offset"] == 4
-        assert [doc["key"] for doc in second["docs"]] == ["/works/OL5W"]
+        assert [doc["key"] for doc in first["docs"]] == ["/works/OL1W", "/works/OL5W"]
+        assert first["next_offset"] == 5
+        assert [doc["key"] for doc in second["docs"]] == ["/works/OL6W", "/works/OL8W"]
         assert second["next_offset"] is None
+
+    @pytest.mark.asyncio
+    async def test_first_page_is_not_empty_when_the_list_opens_with_unreadable_seeds(self):
+        seeds = [f"/books/OL{n}M" for n in range(1, 8)]
+        solr_works = {f"/works/OL{n}W": {f"/books/OL{n}M": n == 7} for n in range(1, 8)}
+        patches, _ = _fake_list_carousel_env(seeds, solr_works)
+
+        with patches[0], patches[1]:
+            data = await _gather_list_carousel_data(LIST_KEY, 0, 3, True)
+
+        assert [doc["key"] for doc in data["docs"]] == ["/works/OL7W"]
+        assert data["next_offset"] is None
+
+    @pytest.mark.asyncio
+    async def test_scanning_stops_after_a_few_pages_of_seeds(self):
+        seeds = [f"/books/OL{n}M" for n in range(1, 21)]
+        solr_works = {f"/works/OL{n}W": {f"/books/OL{n}M": n == 20} for n in range(1, 21)}
+        patches, queries = _fake_list_carousel_env(seeds, solr_works)
+
+        with patches[0], patches[1]:
+            data = await _gather_list_carousel_data(LIST_KEY, 0, 2, True)
+
+        assert data == {"docs": [], "next_offset": 2 * _LIST_SCAN_PAGES}
+        assert len(queries) == _LIST_SCAN_PAGES
+
+    @pytest.mark.asyncio
+    async def test_redirected_seeds_show_the_doc_they_were_merged_into(self):
+        seeds = ["/works/OL1W", "/books/OL2M", "/books/OL3M"]
+        solr_works = {"/works/OL9W": {"/books/OL9M": True}, "/works/OL8W": {"/books/OL8M": True}, "/works/OL3W": {"/books/OL3M": True}}
+        redirects = {"/works/OL1W": "/works/OL9W", "/books/OL2M": "/books/OL7M", "/books/OL7M": "/books/OL8M"}
+        patches, _ = _fake_list_carousel_env(seeds, solr_works, redirects)
+
+        with patches[0], patches[1]:
+            data = await _gather_list_carousel_data(LIST_KEY, 0, 20, False)
+
+        assert [doc["key"] for doc in data["docs"]] == ["/works/OL9W", "/works/OL8W", "/works/OL3W"]
 
     @pytest.mark.asyncio
     async def test_readable_only_list_with_unreadable_seeds_has_no_duplicates_and_reaches_the_end(self):
