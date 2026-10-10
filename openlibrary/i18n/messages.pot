@@ -49,8 +49,12 @@ msgstr ""
 msgid "View or Edit your Lists"
 msgstr ""
 
-#: account.html
-msgid "Import and Export Options"
+#: account.html account/mybooks.html account/sidebar.html account/topmenu.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+msgid "Import your data"
+msgstr ""
+
+#: account.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+msgid "Export your data"
 msgstr ""
 
 #: account.html
@@ -651,6 +655,10 @@ msgid "Next"
 msgstr ""
 
 #: site.html.jinja
+msgid "Skip to main content"
+msgstr ""
+
+#: site.html.jinja
 msgid "It looks like you're offline."
 msgstr ""
 
@@ -1072,6 +1080,52 @@ msgstr ""
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
 msgstr ""
 
+#: account/export.html
+msgid "Export your Reading Log"
+msgstr ""
+
+#: account/export.html
+#, python-format
+msgid "Download a copy of your %(link_start)sreading log%(link_end)s."
+msgstr ""
+
+#: account/export.html
+msgid "Download (.csv format)"
+msgstr ""
+
+#: account/export.html
+msgid "Export your book notes"
+msgstr ""
+
+#: account/export.html
+msgid "Download a copy of your <a href=\"/help/faq/book-notes\">book notes</a>."
+msgstr ""
+
+#: account/export.html
+msgid "Export your reviews"
+msgstr ""
+
+#: account/export.html
+msgid "Download a copy of your <a href=\"/help/faq/reviews#book-tags\">review tags</a>."
+msgstr ""
+
+#: account/export.html
+msgid "Export your list overview"
+msgstr ""
+
+#: account/export.html
+msgid "Download a summary of your <a href=\"/help/faq/reading-log.en#lists\">lists</a>."
+msgstr ""
+
+#: account/export.html
+msgid "Export your star ratings"
+msgstr ""
+
+#: account/export.html
+#, python-format
+msgid "Download a copy of your %(link_start)sstar ratings%(link_end)s."
+msgstr ""
+
 #: account/follows.html
 msgid "There is nothing to see here yet."
 msgstr ""
@@ -1085,11 +1139,19 @@ msgid "Import from Goodreads"
 msgstr ""
 
 #: account/import.html
-msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
+msgid "Format: .csv (Max 10MB)"
 msgstr ""
 
 #: account/import.html
-msgid "File size limit 10MB and .csv file type only"
+msgid "How to export?"
+msgstr ""
+
+#: account/import.html
+msgid "Drag & drop your CSV file here, or"
+msgstr ""
+
+#: account/import.html
+msgid "click to browse"
 msgstr ""
 
 #: account/import.html
@@ -1097,67 +1159,47 @@ msgid "Load Books"
 msgstr ""
 
 #: account/import.html
-msgid "Export your Reading Log"
+msgid "Scan barcodes"
 msgstr ""
 
 #: account/import.html
-msgid "Download a copy of your reading log."
+msgid "Instantly add physical books to your reading log by scanning their barcodes with your device's camera."
 msgstr ""
 
 #: account/import.html
-msgid "What is a reading log?"
+msgid "Launch Barcode Scanner"
 msgstr ""
 
 #: account/import.html
-msgid "Download (.csv format)"
+msgid "Looking for exports? They've moved to a separate page - click here to export your data."
 msgstr ""
 
 #: account/import.html
-msgid "Export your book notes"
+msgid "Help us decide which importers to build next"
 msgstr ""
 
 #: account/import.html
-msgid "Download a copy of your book notes."
+msgid "Tell us where your books live now. We count requests when we plan the next importer."
 msgstr ""
 
 #: account/import.html
-msgid "What are book notes?"
+msgid "LibraryThing"
 msgstr ""
 
 #: account/import.html
-msgid "Export your reviews"
+msgid "Import your books and catalogs from LibraryThing."
 msgstr ""
 
 #: account/import.html
-msgid "Download a copy of your review tags."
+msgid "Express interest in this"
 msgstr ""
 
 #: account/import.html
-msgid "What are review tags?"
+msgid "StoryGraph"
 msgstr ""
 
 #: account/import.html
-msgid "Export your list overview"
-msgstr ""
-
-#: account/import.html
-msgid "Download a summary of your lists and their contents."
-msgstr ""
-
-#: account/import.html
-msgid "What are lists?"
-msgstr ""
-
-#: account/import.html
-msgid "Export your star ratings"
-msgstr ""
-
-#: account/import.html
-msgid "Download a copy of your star ratings."
-msgstr ""
-
-#: account/import.html
-msgid "What are star ratings?"
+msgid "Import your reading logs and challenges from StoryGraph."
 msgstr ""
 
 #: account/import.html
@@ -1339,10 +1381,6 @@ msgstr ""
 
 #: account/mybooks.html account/sidebar.html openlibrary/plugins/openlibrary/nav.py
 msgid "My Reviews"
-msgstr ""
-
-#: account/mybooks.html account/sidebar.html openlibrary/plugins/openlibrary/nav.py
-msgid "Import & Export Options"
 msgstr ""
 
 #: BookByline.html SearchResultsWork.html account/notes.html account/observations.html
@@ -1669,10 +1707,6 @@ msgstr ""
 
 #: account/sidebar.html
 msgid "Untitled list"
-msgstr ""
-
-#: account/topmenu.html
-msgid "Import & Export"
 msgstr ""
 
 #: account/topmenu.html
@@ -3354,10 +3388,6 @@ msgstr ""
 
 #: NotesModalDialog.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
 msgid "Notes"
-msgstr ""
-
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
-msgid "Imports and Exports"
 msgstr ""
 
 #: books/series-autocomplete.html
@@ -8329,6 +8359,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/nav.py
 msgid "Random Book"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/nav.py
+msgid "Import & Export Options"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
