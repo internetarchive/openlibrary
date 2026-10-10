@@ -1,0 +1,1026 @@
+/**
+ * Open Library Tasks (/tasks). `contrib-` namespaces everything.
+ * Mobile-first: one column, the answer block sticks to the bottom on phones.
+ */
+
+.contrib-page,
+.contrib-dash {
+  margin: 0 auto;
+  padding-inline: var(--spacing-page-gutter);
+  padding-block: var(--spacing-stack-lg) var(--spacing-section-gap-desktop);
+  font-family: var(--font-family-body);
+  /* Dense librarian UI: 14px body, so the page reads as a workbench. */
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+}
+
+.contrib-page {
+  max-width: 760px;
+  display: grid;
+}
+
+/* Sections are spaced by bottom margins; gap is for tightly related items within one. */
+.contrib-page > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.contrib-page :is(h1, h2) {
+  margin: 0;
+}
+
+.contrib-page p {
+  margin: 0;
+  line-height: var(--line-height-body);
+}
+
+.contrib-overline,
+.contrib-h {
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
+  color: var(--color-text-secondary);
+}
+
+.contrib-title {
+  font-size: var(--font-size-headline-medium);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+.contrib-h {
+  display: block;
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.contrib-muted {
+  color: var(--color-text-secondary);
+}
+
+.contrib-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Hero */
+.contrib-hero {
+  display: grid;
+}
+
+.contrib-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+}
+
+/* Book header */
+.contrib-book {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  align-items: flex-start;
+}
+
+/* Covers link to the edition like the title does; the link adds no box, so the cover keeps its layout. */
+.contrib-cover-link {
+  display: contents;
+}
+
+.contrib-book__cover {
+  flex: none;
+  width: 60px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--shadow-card, 0 1px 2px rgb(0 0 0 / 12%));
+}
+
+.contrib-book--compact .contrib-book__cover {
+  width: 40px;
+  height: 60px;
+}
+
+.contrib-book__cover--empty {
+  display: grid;
+  place-items: center;
+  color: var(--color-icon-muted);
+}
+
+.contrib-book__meta {
+  display: grid;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+}
+
+.contrib-book__title {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+.contrib-book--compact .contrib-book__title {
+  font-size: var(--font-size-title-medium);
+}
+
+.contrib-book__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .contrib-book__title a:hover {
+    text-decoration: underline;
+  }
+}
+
+.contrib-book__authors {
+  font-size: var(--font-size-body-medium);
+}
+
+.contrib-book__line,
+.contrib-book__why {
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--spacing-inline-md);
+}
+
+.contrib-book__line span + span::before {
+  content: "·";
+  margin-inline-end: var(--spacing-inline-md);
+}
+
+/* View/edit shortcuts for cards whose cover and title aren't links; shown on
+   card hover or keyboard focus, and hidden on touch screens. */
+.contrib-book__actions {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-book__actions {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-stack-xs);
+    margin-inline-start: auto;
+    opacity: 0;
+    transition: opacity 120ms ease-out;
+  }
+
+  .contrib-row:hover .contrib-book__actions,
+  .contrib-row:focus-within .contrib-book__actions {
+    opacity: 1;
+  }
+}
+
+/* Sections */
+.contrib-section {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-md);
+  background: var(--color-surface);
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+.contrib-question {
+  gap: var(--spacing-stack-xs);
+}
+
+/* The way back up to the list. */
+.contrib-back {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  color: var(--color-link);
+}
+
+@media (hover: hover) {
+  .contrib-back:hover {
+    color: var(--color-link-hover);
+  }
+}
+
+/* It points back along the reading direction, so it mirrors. */
+.contrib-back:dir(rtl) .ol-icon {
+  transform: scaleX(-1);
+}
+
+/* Task page: the question and the record in one column, help beside it on desktop. */
+.contrib-task__main,
+.contrib-task__help {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+}
+
+.contrib-task__main > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.contrib-question__text {
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+/* The record, with the missing field as the live input. Phones: a small cover beside the title, fields full width. */
+.contrib-record {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-areas:
+    "cover head"
+    "fields fields";
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  align-items: start;
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  padding: var(--spacing-inset-md);
+}
+
+/* A shortcut to the full edit form; desktop only, where the card has room for it. */
+.contrib-record__edit {
+  display: none;
+}
+
+.contrib-record__cover {
+  grid-area: cover;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--shadow-card, 0 1px 2px rgb(0 0 0 / 12%));
+}
+
+.contrib-record__head {
+  grid-area: head;
+  align-self: center;
+  display: grid;
+  gap: var(--spacing-stack-xs);
+}
+
+@media (min-width: 768px) {
+  .contrib-record {
+    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-areas:
+      "cover head"
+      "cover fields";
+    column-gap: var(--spacing-2xl);
+    padding: var(--spacing-inset-lg);
+    position: relative;
+  }
+
+  .contrib-record__head {
+    align-self: start;
+    padding-inline-end: var(--spacing-xl);
+  }
+
+  .contrib-record__edit {
+    display: block;
+    position: absolute;
+    inset-block-start: var(--spacing-inset-sm);
+    inset-inline-end: var(--spacing-inset-sm);
+  }
+}
+
+.contrib-record__fields {
+  grid-area: fields;
+  margin: 0;
+  display: grid;
+}
+
+.contrib-record__row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: var(--spacing-inline-lg);
+  align-items: baseline;
+  padding-block: var(--spacing-sm);
+  border-block-start: var(--border-width) solid var(--color-border-subtle);
+}
+
+.contrib-record__row dt {
+  color: var(--color-text-secondary);
+}
+
+.contrib-record__row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The blank being filled: tinted like a selected control, bleeding past the row edges. */
+.contrib-record__row--ask {
+  align-items: start;
+  margin-inline: calc(-1 * var(--spacing-md));
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-control-selected-border);
+  border-radius: var(--border-radius-card);
+  background: var(--color-control-selected-bg);
+}
+
+/* No divider on the row after the blank; the tint already separates it. */
+.contrib-record__row--ask + .contrib-record__row {
+  border-block-start-color: transparent;
+}
+
+.contrib-record__row--ask dt {
+  color: var(--color-link);
+  font-weight: var(--font-weight-semibold);
+  /* Centered on the 36px control beside it. */
+  line-height: var(--control-height-large);
+}
+
+.contrib-record__row--ask dd {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  justify-items: start;
+}
+
+.contrib-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-sm) var(--spacing-inline-md);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+/* Help column */
+.contrib-task__help > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+  padding-block-end: var(--spacing-stack-lg);
+  border-block-end: var(--border-width) solid var(--color-border-subtle);
+}
+
+.contrib-help {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-help .contrib-h {
+  margin-block-end: 0;
+}
+
+.contrib-steps {
+  counter-reset: contrib-step;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+.contrib-steps > li {
+  counter-increment: contrib-step;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--spacing-stack-sm) var(--spacing-inline-lg);
+}
+
+.contrib-steps > li::before {
+  content: counter(contrib-step);
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-pill);
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.contrib-linkouts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm) var(--spacing-inline-xl);
+}
+
+.contrib-linkouts a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Per-value counts across the other editions, as a small bar chart. */
+.contrib-tally {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(48px, 1fr) auto;
+  gap: var(--spacing-stack-sm) var(--spacing-inline-lg);
+  align-items: center;
+}
+
+.contrib-tally > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.contrib-tally__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contrib-tally__bar {
+  height: 8px;
+  border-radius: var(--border-radius-pill);
+  background: linear-gradient(
+    to right,
+    var(--color-primary) var(--contrib-share),
+    var(--color-surface-sunken) var(--contrib-share)
+  );
+}
+
+.contrib-tally__bar--empty {
+  background: linear-gradient(
+    to right,
+    var(--color-border) var(--contrib-share),
+    var(--color-surface-sunken) var(--contrib-share)
+  );
+}
+
+.contrib-tally__bar:dir(rtl) {
+  transform: scaleX(-1);
+}
+
+.contrib-tally__count {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.contrib-disclosure summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--color-link);
+}
+
+.contrib-disclosure[open] summary {
+  margin-block-end: var(--spacing-stack-sm);
+}
+
+.contrib-siblings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.contrib-siblings li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--spacing-inline-md);
+  padding-block: var(--spacing-xs);
+  border-block-end: var(--border-width) solid var(--color-border-subtle);
+}
+
+.contrib-siblings__value {
+  flex: 0 0 7em;
+}
+
+/* Answer: on phones only the action bar sticks, so the help below stays readable while it does. */
+.contrib-answer {
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+.contrib-page [hidden] {
+  display: none;
+}
+
+/* Sized to its trigger, so the panel opens under the button rather than the column. */
+.contrib-picker {
+  justify-self: start;
+  /* Short enough to open below the trigger on a laptop screen. */
+  --ol-popover-content-max-height: min(50vh, 360px);
+}
+
+.contrib-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: var(--font-size-body-medium);
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.contrib-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* iOS zooms in on focus when the field's font is < 16px. */
+@media screen and (max-width: 767px) {
+  .contrib-input {
+    font-size: var(--font-size-body-large);
+  }
+}
+
+.contrib-record__row--ask .contrib-input {
+  max-width: 24rem;
+}
+
+.contrib-record__row--ask .contrib-input--number {
+  max-width: 12rem;
+}
+
+.contrib-answer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-stack-sm) var(--spacing-inline-md);
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-index-sticky);
+  background: var(--color-surface);
+  padding-block: var(--spacing-inset-sm);
+}
+
+.contrib-answer__save {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+}
+
+/* Skipping sits apart from saving, at the far end. */
+.contrib-answer__actions > [data-skip] {
+  margin-inline-start: auto;
+}
+
+.contrib-answer__next {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* List */
+.contrib-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-stack-md);
+}
+
+/* A card per book; its tasks stack under it as menu-style rows. */
+.contrib-row {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  padding: var(--spacing-inset-md);
+}
+
+.contrib-row__tasks {
+  list-style: none;
+  margin: var(--spacing-stack-sm) 0 0;
+  padding: 0;
+  display: grid;
+  justify-items: start;
+}
+
+/* Indent past the compact cover so the actions line up with the title. */
+.contrib-book--compact + .contrib-row__tasks {
+  padding-inline-start: calc(40px + var(--spacing-inline-lg));
+}
+
+/* Rows follow the menu-row contract (see popover-menu.css); the negative inset
+   lines the icon up with the book text while the hover fill bleeds past it. */
+.contrib-row__task a {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  margin-inline-start: calc(-1 * var(--menu-row-padding-inline));
+  border-radius: var(--border-radius-button);
+  color: var(--color-link);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  --contrib-badge-bg: var(--color-info-bg);
+}
+
+/* The badge says which kind of task this is before the label is read: blue for
+   a gap to fill in, amber for a value the catalogs dispute. Same amber as the
+   task page, where it already means "needs your eye". */
+.contrib-row__badge {
+  display: grid;
+  place-items: center;
+  flex: none;
+  padding: var(--spacing-inset-xs);
+  border-radius: var(--border-radius-badge);
+  background: var(--contrib-badge-bg);
+  color: var(--color-info-fg);
+}
+
+/* Blue-tinted hover to match the blue label; the badge steps down a shade so
+   it doesn't vanish into the fill. */
+.contrib-row__task a:focus-visible,
+.contrib-row__task a:active {
+  background-color: var(--color-primary-subtle);
+  --contrib-badge-bg: var(--color-info-bg-hover);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-row__task a:hover {
+    background-color: var(--color-primary-subtle);
+    --contrib-badge-bg: var(--color-info-bg-hover);
+  }
+}
+
+.contrib-empty {
+  border: 1px dashed var(--color-border-muted);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-lg);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+/* Receipt */
+.contrib-receipt {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  align-items: flex-start;
+  border: 1px solid var(--color-success-border);
+  background: var(--color-success-bg);
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-md);
+}
+
+.contrib-receipt > div {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-receipt__icon {
+  color: var(--color-success-fg);
+  flex: none;
+}
+
+.contrib-receipt__title {
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+}
+
+/* Next task on the receipt */
+.contrib-next {
+  gap: var(--spacing-stack-sm);
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .contrib-page,
+  .contrib-dash {
+    padding-inline: var(--spacing-page-gutter-desktop);
+  }
+
+  .contrib-answer__actions {
+    position: static;
+    padding-block: 0;
+    margin-block-end: 0;
+  }
+}
+
+/* Desktop and up */
+@media (min-width: 960px) {
+  .contrib-page--task {
+    max-width: 1120px;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas:
+      "back back"
+      "main help";
+    column-gap: var(--spacing-section-gap-desktop);
+  }
+
+  .contrib-page--task > .contrib-back {
+    grid-area: back;
+  }
+
+  .contrib-task__main {
+    grid-area: main;
+  }
+
+  /* Shares its row with the help column, so nothing follows it. */
+  .contrib-page > .contrib-task__main {
+    margin-block-end: 0;
+  }
+
+  .contrib-task__help {
+    grid-area: help;
+    padding-block-start: var(--spacing-stack-xs);
+  }
+}
+
+/* --- Identifier tasks -----------------------------------------------------
+   A wrong identifier is worse than none, so these pages list the usual
+   mistakes and gate the answer behind a confirmation. */
+
+.contrib-traps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+.contrib-trap {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: flex-start;
+  line-height: var(--line-height-body);
+}
+
+.contrib-trap ol-icon {
+  flex: none;
+  margin-block-start: calc((1lh - var(--icon-size-sm)) / 2);
+  color: var(--color-warning-fg);
+}
+
+.contrib-confirm {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: flex-start;
+  font-size: var(--font-size-body-medium);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+}
+
+.contrib-confirm input {
+  flex: none;
+  margin-block-start: 2px;
+}
+
+.contrib-field__verdict {
+  margin: 0;
+  font-size: var(--font-size-body-medium);
+  min-height: 1lh; /* reserve the line so the form doesn't jump as you type */
+}
+
+.contrib-field__verdict[data-state="ok"] {
+  color: var(--color-success-fg);
+}
+
+.contrib-field__verdict[data-state="bad"] {
+  color: var(--color-error-fg);
+}
+
+/* Dashboard (/tasks): a rail of filters beside the list.
+   One column on phones; the rail joins at desktop width. */
+.contrib-dash {
+  max-width: 1320px;
+}
+
+.contrib-dash :is(h1, h2, p) {
+  margin: 0;
+}
+
+.contrib-dash p {
+  line-height: var(--line-height-body);
+}
+
+.contrib-dash > :not(:last-child) {
+  margin-block-end: var(--spacing-stack-lg);
+}
+
+.contrib-dash__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
+  padding-block-end: var(--spacing-stack-lg);
+  border-block-end: var(--border-divider);
+}
+
+.contrib-dash__one {
+  display: grid;
+  justify-items: end;
+  margin-inline-start: auto;
+  text-align: end;
+  gap: var(--spacing-stack-sm);
+}
+
+@media (max-width: 767px) {
+  .contrib-dash__one {
+    flex-basis: 100%;
+    justify-items: stretch;
+    text-align: center;
+  }
+}
+
+.contrib-dash__h2 {
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  text-wrap: balance;
+}
+
+.contrib-dash__body {
+  display: grid;
+  gap: var(--spacing-section-gap);
+}
+
+/* Rail: wrapping pills on phones, a vertical menu from desktop width. */
+.contrib-rail {
+  display: grid;
+  gap: var(--spacing-stack-md);
+  align-content: start;
+}
+
+.contrib-rail__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+
+.contrib-rail__group > .contrib-overline {
+  flex-basis: 100%;
+}
+
+.contrib-rail .contrib-rail__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-inline-md);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-pill);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-large);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+/* The selected look ol-button[selected] and ol-toggle share: a blue tint, link-blue text. */
+.contrib-rail .contrib-rail__item.is-on {
+  border-color: var(--color-control-selected-border);
+  background: var(--color-control-selected-bg);
+  color: var(--color-link);
+}
+
+.contrib-rail .contrib-rail__item:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contrib-rail__item:not(.is-on):hover {
+    background-color: var(--color-hover-overlay);
+    color: var(--color-text);
+  }
+}
+
+.contrib-dash__main {
+  min-width: 0;
+}
+
+.contrib-dash__main .contrib-dash__listhead {
+  margin-block-end: var(--spacing-stack-md);
+}
+
+.contrib-dash__main .contrib-rows {
+  margin-block-end: var(--spacing-stack-md);
+}
+
+/* Desktop and up: the rail becomes a vertical menu. */
+@media (min-width: 960px) {
+  .contrib-dash__body {
+    grid-template-columns: 200px minmax(0, 1fr);
+    column-gap: var(--spacing-section-gap);
+  }
+
+  .contrib-rail {
+    gap: var(--spacing-stack-lg);
+  }
+
+  .contrib-rail__group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+
+  .contrib-rail__group > .contrib-overline {
+    flex-basis: auto;
+    padding-inline: var(--menu-row-padding-inline);
+    margin-block-end: var(--spacing-stack-xs);
+  }
+
+  .contrib-rail .contrib-rail__item {
+    display: flex;
+    border-color: transparent;
+    border-radius: var(--border-radius-menu-row);
+  }
+
+  .contrib-rail .contrib-rail__item.is-on {
+    border-color: transparent;
+  }
+}
+
+/* "Your recent fixes" in the dashboard's right column. */
+.contrib-recent {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contrib-recent__item {
+  display: grid;
+  gap: var(--spacing-3xs);
+  padding-block-end: var(--spacing-stack-sm);
+  border-block-end: 1px solid var(--color-border-subtle);
+}
+
+a.contrib-recent__title {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  a.contrib-recent__title:hover {
+    text-decoration: underline;
+  }
+}
+
+.contrib-recent__all {
+  justify-self: start;
+  font-size: var(--font-size-body-medium);
+}
+
+.contrib-recent__meta {
+  font-size: var(--font-size-body-small);
+}
+
+.contrib-dash__aside {
+  display: grid;
+  gap: var(--spacing-section-gap);
+  align-content: start;
+}
+
+.contrib-side {
+  display: grid;
+  gap: var(--spacing-stack-sm);
+}
+
+/* Desktop: the aside sits under the list until there is room beside it. */
+@media (min-width: 960px) {
+  .contrib-dash__aside {
+    grid-column: 2;
+  }
+}
+
+@media (min-width: 1200px) {
+  .contrib-dash__body {
+    grid-template-columns: 200px minmax(0, 1fr) 280px;
+  }
+
+  .contrib-dash__aside {
+    grid-column: auto;
+  }
+
+  /* The header shares the body's columns, so the action sits over the aside. */
+  .contrib-dash__head {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr) 280px;
+    column-gap: var(--spacing-section-gap);
+  }
+
+  .contrib-hero {
+    grid-column: 1 / 3;
+  }
+
+  .contrib-dash__one {
+    justify-items: stretch;
+    margin-inline-start: 0;
+    text-align: center;
+  }
+}

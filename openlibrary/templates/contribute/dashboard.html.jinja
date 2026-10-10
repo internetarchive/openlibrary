@@ -1,0 +1,73 @@
+{#- /tasks — Open Library Tasks: one task at random, or a list narrowed by the rail.
+    Which books, and in what order, is decided in contribute.py; this page only shows them. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="contrib-dash" data-contribute-list>
+    <header class="contrib-dash__head">
+        <div class="contrib-hero">
+            <h1 class="contrib-title">{{ _("Tasks") }}</h1>
+            <p class="contrib-muted">{{ _("Fill in what's missing on real books, one detail at a time.") }}</p>
+        </div>
+        <div class="contrib-dash__one">
+            <ol-button variant="primary" full-width href="{{ data.one_task_url }}">
+                {{ icon("dices", slot="icon-start") }}
+                {{ _("Surprise me") }}
+            </ol-button>
+            <span class="contrib-muted">{{ _("A random book that needs a hand.") }}</span>
+        </div>
+    </header>
+    <div class="contrib-dash__body">
+        <nav class="contrib-rail" aria-label="{{ _('Filter tasks') }}">
+            <div class="contrib-rail__group">
+                <a class="contrib-rail__item{{ ' is-on' if data.rail.all.on else '' }}"
+                   href="{{ data.rail.all.url }}"
+                   {% if data.rail.all.on %}aria-current="page"{% endif %}>{{ data.rail.all.label }}</a>
+            </div>
+            <div class="contrib-rail__group">
+                <span class="contrib-overline">{{ _("Missing") }}</span>
+                {% for item in data.rail.filters %}
+                    <a class="contrib-rail__item{{ ' is-on' if item.on else '' }}"
+                       href="{{ item.url }}"
+                       {% if item.on %}aria-current="true"{% endif %}>{{ item.label }}</a>
+                {% endfor %}
+            </div>
+        </nav>
+        <main class="contrib-dash__main">
+            <h2 class="contrib-dash__h2 contrib-dash__listhead">{{ data.heading }}</h2>
+            <ol class="contrib-rows">
+                {% for row in data.rows %}
+                    <li class="contrib-row" data-book-row>
+                        {{ parts.book_header(row.book, compact=True, linked=False) }}
+                        <ul class="contrib-row__tasks">
+                            {% for task in row.tasks %}
+                                {{ parts.task_row(task) }}
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ol>
+            <div class="contrib-empty"
+                 data-list-empty
+                 {% if data.rows %}hidden{% endif %}>
+                <p>{{ data.empty }}</p>
+            </div>
+        </main>
+        <aside class="contrib-dash__aside">
+            <section class="contrib-side">
+                <h2 class="contrib-dash__h2">{{ _("Your recent fixes") }}</h2>
+                {% if data.recent %}
+                    <ul class="contrib-recent">
+                        {% for fix in data.recent %}
+                            <li class="contrib-recent__item">
+                                <a class="contrib-recent__title" href="{{ fix.url }}">{{ fix.title }}</a>
+                                <span class="contrib-muted contrib-recent__meta">{{ fix.when }}{% if fix.field_label %} · {{ fix.field_label }}{% endif %}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <a class="contrib-recent__all" href="{{ data.history_url }}">{{ _("See all your edits") }}</a>
+                {% else %}
+                    <p class="contrib-muted">{{ _("Fixes you save here show up in this list.") }}</p>
+                {% endif %}
+            </section>
+        </aside>
+    </div>
+</div>

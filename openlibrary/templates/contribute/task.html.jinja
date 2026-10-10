@@ -1,0 +1,34 @@
+{#- /tasks/task/OL…M/<field> — one book, one missing field, answered in place on the record. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="contrib-page contrib-page--task" data-contribute-task>
+    <a class="contrib-back" href="{{ data.list_url }}">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
+    <div class="contrib-task__main">
+        <div class="contrib-question">
+            <h1 class="contrib-question__text">{{ data.field_guide.question }}</h1>
+            {% if data.field_guide.why %}<p class="contrib-muted">{{ data.field_guide.why }}</p>{% endif %}
+        </div>
+        {{ parts.record_form(data) }}
+    </div>
+    <aside class="contrib-task__help">
+        {{ parts.how_to(data.field_guide, data.link_outs) }}
+        {% if data.field_guide.traps %}{{ parts.traps(data.field_guide.traps) }}{% endif %}
+        {% if data.siblings %}
+            {{ parts.sibling_tally(data.tally, data.siblings, data.sibling_total, data.field_guide.sibling_hint) }}
+        {% endif %}
+    </aside>
+    {% if data.receipt %}
+        {%- set r = data.receipt -%}
+        <ol-toast-region>
+            <ol-toast type="success" timeout="6000" label-close="{{ _('Close') }}" data-receipt>
+                {#- One span: the toast body is a flex column, so bare text and the link would stack. -#}
+                <span>
+                    {% if r.value %}
+                        {{ _("Saved %(field)s for %(link_start)s%(title)s%(link_end)s: %(value)s", field=r.field_label, title=r.title, value=r.value, link_start='<a href="%s">'|safe % r.url, link_end="</a>"|safe) }}
+                    {% else %}
+                        {{ _("Saved %(field)s for %(link_start)s%(title)s%(link_end)s", field=r.field_label, title=r.title, link_start='<a href="%s">'|safe % r.url, link_end="</a>"|safe) }}
+                    {% endif %}
+                </span>
+            </ol-toast>
+        </ol-toast-region>
+    {% endif %}
+</div>

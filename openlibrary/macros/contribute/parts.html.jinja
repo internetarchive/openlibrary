@@ -1,0 +1,302 @@
+{#- Shared pieces of the /tasks pages. Data arrives precomputed from
+    openlibrary/plugins/openlibrary/contribute.py; nothing here calls functions on it. -#}
+{% macro book_header(book, compact=False, linked=True) %}
+    {#- linked=False (dashboard cards): cover and title aren't links, so a stray click can't be mistaken
+        for starting a task; view/edit buttons in the corner reach the book instead. -#}
+    {% set cover %}
+        {% if book.cover_url %}
+            <img class="contrib-book__cover"
+                 src="{{ book.cover_url }}"
+                 alt=""
+                 width="60"
+                 height="90"
+                 loading="lazy" />
+        {% else %}
+            <div class="contrib-book__cover contrib-book__cover--empty"
+                 aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+        {% endif %}
+    {% endset %}
+    <div class="contrib-book{% if compact %} contrib-book--compact{% endif %}">
+        {% if linked %}
+            {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
+            <a class="contrib-cover-link"
+               href="{{ book.key }}"
+               tabindex="-1"
+               aria-hidden="true">{{ cover }}</a>
+        {% else %}
+            {{ cover }}
+        {% endif %}
+        <div class="contrib-book__meta">
+            <div class="contrib-book__title">
+                {% if linked %}
+                    <a href="{{ book.key }}">{{ book.title }}</a>
+                {% else %}
+                    {{ book.title }}
+                {% endif %}
+            </div>
+            {% if book.authors %}<div class="contrib-book__authors">{{ book.authors }}</div>{% endif %}
+            <div class="contrib-book__line">
+                {% if book.edition_line %}<span>{{ book.edition_line }}</span>{% endif %}
+                {% if book.isbn13 %}<span>ISBN {{ book.isbn13 }}</span>{% endif %}
+                {% if book.edition_count and book.edition_count > 1 %}
+                    <span>{{ _("one of %(count)s editions of this work", count=book.edition_count) }}</span>
+                {% endif %}
+            </div>
+            {% if book.readers and not compact %}
+                <div class="contrib-book__why">{{ _("Why this book: on about %(count)s readers' shelves.", count="{:,}".format(book.readers)) }}</div>
+            {% endif %}
+        </div>
+        {% if not linked %}
+            <div class="contrib-book__actions">
+                <ol-tooltip content="{{ _('Go to book page') }}">
+                    <ol-button variant="ghost" shape="icon" size="small" href="{{ book.key }}" aria-label="{{ _('Go to book page') }}">
+                        {{ icon("eye", size="sm") }}
+                    </ol-button>
+                </ol-tooltip>
+                <ol-tooltip content="{{ _('Go to edit page') }}">
+                    <ol-button variant="ghost" shape="icon" size="small" href="{{ book.edit_url }}" aria-label="{{ _('Go to edit page') }}">
+                        {{ icon("pencil", size="sm") }}
+                    </ol-button>
+                </ol-tooltip>
+            </div>
+        {% endif %}
+    </div>
+{% endmacro %}
+{% macro task_row(task) %}
+    {#- One to-do per field, styled as a menu item: an icon and the action it leads to. -#}
+    <li class="contrib-row__task" data-task-key="{{ task.key }}">
+        <a href="{{ task.url }}">
+            <span class="contrib-row__badge">{{ icon("plus", size="sm") }}</span>
+            <span>{{ task.action_label }}</span>
+        </a>
+    </li>
+{% endmacro %}
+{% macro how_to(field_guide, links) %}
+    <section class="contrib-help">
+        <h2 class="contrib-h">{{ _("How to answer") }}</h2>
+        <ol class="contrib-steps">
+            <li>
+                <p>{{ field_guide.how }}</p>
+                {% if links %}
+                    <ul class="contrib-linkouts">
+                        {% for link in links %}
+                            <li>
+                                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}{{ icon("external-link", size="sm") }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="contrib-muted">{{ _("This edition has no ISBN to search by, so look it up by title and author.") }}</p>
+                {% endif %}
+            </li>
+            {% for note in field_guide.notes %}
+                <li>
+                    <p>
+                        {{ note.text }}
+                        {% if note.href %}<a href="{{ note.href }}" target="_blank" rel="noopener noreferrer">{{ _("Guideline") }}</a>{% endif %}
+                    </p>
+                </li>
+            {% endfor %}
+        </ol>
+    </section>
+{% endmacro %}
+{% macro traps(items) %}
+    <section class="contrib-help">
+        <h2 class="contrib-h">{{ _("How this edit goes wrong") }}</h2>
+        <ul class="contrib-traps">
+            {% for trap in items %}
+                <li class="contrib-trap">
+                    {{ icon("triangle-alert", size="sm") }}
+                    <span>{{ trap }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endmacro %}
+{% macro sibling_tally(tally, siblings, total, hint) %}
+    {#- What the work's other editions put in this field: a count per value, then each edition behind a disclosure. -#}
+    <section class="contrib-help">
+        <h2 class="contrib-h">{{ ngettext("The other edition", "The other %(count)d editions", total, count=total) }}</h2>
+        {% if hint %}<p>{{ hint }}</p>{% endif %}
+        <ul class="contrib-tally">
+            {% for t in tally["values"] %}
+                <li>
+                    <span class="contrib-tally__label">{{ t.label }}</span>
+                    <span class="contrib-tally__bar"
+                          style="--contrib-share: {{ t.share }}%"
+                          aria-hidden="true"></span>
+                    <span class="contrib-tally__count">{{ t.count }}</span>
+                </li>
+            {% endfor %}
+            {% if tally.more %}
+                <li class="contrib-muted">{{ ngettext("1 other value", "%(count)d other values", tally.more, count=tally.more) }}</li>
+            {% endif %}
+            {% if tally.unfilled %}
+                <li class="contrib-muted">
+                    <span class="contrib-tally__label">{{ _("Not filled in") }}</span>
+                    <span class="contrib-tally__bar contrib-tally__bar--empty"
+                          style="--contrib-share: {{ (100 * tally.unfilled / total) | round | int }}%"
+                          aria-hidden="true"></span>
+                    <span class="contrib-tally__count">{{ tally.unfilled }}</span>
+                </li>
+            {% endif %}
+        </ul>
+        <details class="contrib-disclosure">
+            <summary>{{ _("See each edition") }}</summary>
+            <ul class="contrib-siblings">
+                {% for s in siblings %}
+                    <li>
+                        <span class="contrib-siblings__value{% if not s.value %} contrib-muted{% endif %}">{{ s.value or _("Not filled in") }}</span>
+                        {% if s.about %}<a href="{{ s.url }}">{{ s.about }}</a>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+            {% if total > siblings|length %}
+                <p class="contrib-muted">{{ _("And %(count)s more.", count=total - siblings|length) }}</p>
+            {% endif %}
+        </details>
+    </section>
+{% endmacro %}
+{% macro answer_control(task, field_guide, is_identifier, value, languages) %}
+    {% if is_identifier %}
+        <input id="contrib-other-value"
+               type="text"
+               name="value"
+               class="contrib-input contrib-input--id"
+               placeholder="{{ field_guide.placeholder }}"
+               inputmode="numeric"
+               autocomplete="off"
+               data-id-input
+               data-id-field="{{ task.field }}"
+               value="{{ value }}"
+               data-msg-ok="{{ _('That looks like a valid number.') }}"
+               data-msg-tidied="{{ _('Will be stored as %(value)s.', value='__VALUE__') }}"
+               data-msg-url="{{ _('Paste only the number, not the web address.') }}"
+               data-msg-bad="{{ _('That is not a valid number for this catalog.') }}" />
+    {% elif languages %}
+        <ol-options-popover id="contrib-other-value" class="contrib-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ field_guide.label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
+        </ol-options-popover>
+    {% else %}
+        <input id="contrib-other-value"
+               type="{{ field_guide.input_type }}"
+               name="value"
+               class="contrib-input{% if field_guide.input_type == 'number' %} contrib-input--number{% endif %}"
+               placeholder="{{ field_guide.placeholder }}"
+               {% if field_guide.input_type == "number" %}min="1"{% endif %}
+               value="{{ value }}"
+               autocomplete="off" />
+    {% endif %}
+{% endmacro %}
+{% macro record_form(data) %}
+    {#- The edition's record with the missing field as the live input, so the answer has an obvious place.
+        An identifier answer is gated behind "I opened the record": a wrong number silently corrupts record matching. -#}
+    {% set task = data.task %}
+    {% set book = data.book %}
+    <form method="post"
+          action="{{ task.url }}"
+          class="contrib-answer"
+          data-task-form
+          {% if data.is_identifier %}data-id-form{% endif %}
+          data-task-key="{{ task.key }}">
+        {% if data.error %}<p class="ol-message ol-message--error" role="alert">{{ data.error }}</p>{% endif %}
+        <div class="contrib-record">
+            {#- A second way to the title's link, so keep it out of the tab order and the accessibility tree. -#}
+            <a class="contrib-cover-link"
+               href="{{ book.key }}"
+               tabindex="-1"
+               aria-hidden="true">
+                {% if book.cover_url %}
+                    <img class="contrib-record__cover"
+                         src="{{ book.cover_url }}"
+                         alt=""
+                         width="96"
+                         height="144"
+                         loading="lazy" />
+                {% else %}
+                    <div class="contrib-record__cover contrib-book__cover--empty"
+                         aria-hidden="true">{{ icon("book-open", size="md") }}</div>
+                {% endif %}
+            </a>
+            <div class="contrib-record__head">
+                <div class="contrib-book__title">
+                    <a href="{{ book.key }}">{{ book.title }}</a>
+                </div>
+                {% if book.authors %}<div class="contrib-book__authors">{{ book.authors }}</div>{% endif %}
+            </div>
+            <ol-tooltip class="contrib-record__edit" content="{{ _('Go to edit page') }}">
+                <ol-button variant="ghost" shape="icon" size="small" href="{{ book.edit_url }}" aria-label="{{ _('Go to edit page') }}">
+                    {{ icon("pencil", size="sm") }}
+                </ol-button>
+            </ol-tooltip>
+            <dl class="contrib-record__fields">
+                {% for row in data.record_fields %}
+                    {% if row.ask %}
+                        <div class="contrib-record__row contrib-record__row--ask">
+                            <dt>
+                                <label for="contrib-other-value">{{ row.label }}</label>
+                            </dt>
+                            <dd>
+                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages) }}
+                                {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
+                                {% if data.suggestions %}
+                                    <div class="contrib-suggest" data-suggest>
+                                        <span>{{ _("Other editions say") }}</span>
+                                        {% for s in data.suggestions %}
+                                            <ol-chip size="small" count="{{ s.count }}" data-value="{{ s.value }}" accessible-label="{{ ngettext('%(value)s, on 1 edition', '%(value)s, on %(count)d editions', s.count, value=s.label, count=s.count) }}">
+                                                {{ s.label }}
+                                            </ol-chip>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if data.is_identifier %}
+                                    <label class="contrib-confirm">
+                                        <input type="checkbox" name="confirmed" value="1" required />
+                                        <span>{{ _("I opened the record and the year and publisher match this edition.") }}</span>
+                                    </label>
+                                {% endif %}
+                            </dd>
+                        </div>
+                    {% else %}
+                        <div class="contrib-record__row">
+                            <dt>{{ row.label }}</dt>
+                            <dd>
+                                {{ row.value }}
+                            </dd>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </dl>
+        </div>
+        <details class="contrib-disclosure"{% if data.note %} open{% endif %}>
+            <summary>{{ _("Add a comment about your edit") }}</summary>
+            <label class="contrib-visually-hidden" for="contrib-note">{{ _("Edit comment") }}</label>
+            <textarea id="contrib-note"
+                      name="note"
+                      rows="2"
+                      class="contrib-input"
+                      placeholder="{{ _('Where you found it') }}">{{ data.note }}</textarea>
+        </details>
+        <div class="contrib-answer__actions">
+            <div class="contrib-answer__save">
+                {#- First in the form, so Enter in the answer field saves and moves on. -#}
+                <ol-button variant="primary" type="submit" name="then" value="next">
+                    {{ _("Save and next") }}
+                </ol-button>
+                <ol-button variant="secondary" type="submit" name="then" value="done">
+                    {{ _("Save") }}
+                </ol-button>
+            </div>
+            <ol-button variant="ghost" href="{{ task.skip_url }}" data-skip>
+                {{ _("I couldn't find it") }}
+                {{ icon("arrow-right", slot="icon-end") }}
+            </ol-button>
+            <p class="contrib-muted contrib-answer__next">
+                {% if data.next_scope %}
+                    {{ _("Next: a random task from %(filter)s", filter=data.next_scope) }}
+                {% else %}
+                    {{ _("Next: a random task from all open tasks") }}
+                {% endif %}
+            </p>
+        </div>
+    </form>
+{% endmacro %}

@@ -58,6 +58,12 @@ $(function() {
             .then((module) => module.init($));
     }
 
+    // Open Library Tasks pages (/tasks)
+    if (document.querySelector('[data-contribute-list], [data-contribute-task], [data-contribute-done]')) {
+        import('./contribute')
+            .then((module) => module.init());
+    }
+
     // hide all images in .no-img
     $('.no-img img').hide();
 
