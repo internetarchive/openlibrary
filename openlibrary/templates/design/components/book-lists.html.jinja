@@ -1,0 +1,22 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        The reader's lists that hold a book, under the shelf button on its page. It renders from the same lists store as the <a href="#shelf-actions">Shelf Actions</a> popover, so adding the book to a list there shows the row here at once, and removing it here unticks it there. Nothing renders until a list holds the book.
+    </p>
+    {% call ex.example("With a shelf button", "Signed in, add The Secret Garden to a list from the chevron and the row appears below. Hover a row to take the book out of that list; this demo saves to your account.",
+        code="<ol-shelf-button\n  user-key=\"/people/you\"\n  work-key=\"/works/OL69612W\"\n  book-title=\"The Secret Garden\">\n</ol-shelf-button>\n<ol-book-lists seed-keys='[\"/works/OL69612W\"]'></ol-book-lists>",
+        output_style="width: 220px;") %}
+        <ol-shelf-button user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden">
+        </ol-shelf-button>
+        <ol-book-lists seed-keys='["/works/OL69612W"]'>
+        </ol-book-lists>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Seed keys.</b> A list can hold the work or one of its editions, so the book page passes both. A list holding either shows one row, and removing it takes out every key it holds.
+        </p>
+        <p>
+            <b>No byline, no cover.</b> The store only holds the signed-in reader's own lists, so there is no one else's name to show. Only render it for signed-in readers: <code>lists/widget.html</code> is the one caller.
+        </p>
+    </div>
+{% endmacro %}
