@@ -11,6 +11,8 @@ text rather than real quote delimiters. The fix places the value inside a
 of regardless of what the value contains.
 """
 
+from unittest.mock import MagicMock, patch
+
 import web
 from bs4 import BeautifulSoup
 
@@ -103,3 +105,45 @@ def test_icon_link_pattern_blocks_attribute_injection(render_template, request_c
     a = BeautifulSoup(html, "lxml").find("a")
     assert a.get("onmouseover") is None
     assert a["data-ol-link-track"] == INJECTION_PAYLOAD
+
+
+def test_read_button_special_access_omits_action_read(render_template, request_context_fixture):
+    """Special Access (printdisabled=True) buttons must not append &action=read."""
+    request_context_fixture(lang="en")
+    macro.load_macros("openlibrary", lazy=True)
+
+    def analytics_attr(action):
+        return f'data-analytics="{action}"'
+
+    mock_site = MagicMock()
+    mock_site.get_user.return_value = None
+    mock_site_context = MagicMock()
+    mock_site_context.get.return_value = mock_site
+    with patch("openlibrary.accounts.__init__.site", mock_site_context):
+        html = str(render_template("tests/read_button_check", "OL123M", analytics_attr, printdisabled=True))
+    a = BeautifulSoup(html, "lxml").find("a")
+    assert a is not None
+    href = a["href"]
+    assert "action=read" not in href
+    assert "Special Access" in a.text
+
+
+def test_read_button_normal_read_includes_action_read(render_template, request_context_fixture):
+    """Normal Read buttons must append &action=read."""
+    request_context_fixture(lang="en")
+    macro.load_macros("openlibrary", lazy=True)
+
+    def analytics_attr(action):
+        return f'data-analytics="{action}"'
+
+    mock_site = MagicMock()
+    mock_site.get_user.return_value = None
+    mock_site_context = MagicMock()
+    mock_site_context.get.return_value = mock_site
+    with patch("openlibrary.accounts.__init__.site", mock_site_context):
+        html = str(render_template("tests/read_button_check", "OL123M", analytics_attr, printdisabled=False))
+    a = BeautifulSoup(html, "lxml").find("a")
+    assert a is not None
+    href = a["href"]
+    assert "action=read" in href
+    assert "Read" in a.text

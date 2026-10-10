@@ -829,13 +829,23 @@ class account_privacy(delegate.page):
 
     @require_login
     def POST(self):
-        i = web.input(public_readlog="", safe_mode="")
+        i = web.input(public_readlog="", safe_mode="", track_read_history="")
         user = accounts.get_current_user()
         if user.get_safe_mode() != "yes" and i.safe_mode == "yes":
             stats.increment("ol.account.safe_mode")
 
+        old_prefs = user.preferences()
         user.save_preferences(i)
         username = user.key.split("/")[-1]
+
+        # Auto-clear read history if user opts out of tracking
+        from openlibrary.core.read_history import ReadHistory
+
+        old_track = old_prefs.get("track_read_history", "yes")
+        new_track = i.track_read_history or "yes"
+        if old_track == "yes" and new_track == "no":
+            ReadHistory.clear_history(username)
+
         PubSub.toggle_privacy(username, private=i.public_readlog == "no")
         web.setcookie("sfw", i.safe_mode, expires="" if i.safe_mode.lower() == "yes" else -1)
         add_flash_message("note", _("Notification preferences have been updated successfully."))
