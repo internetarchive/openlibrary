@@ -420,9 +420,17 @@ $(function() {
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog');
-    if (nativeDialogs.length) {
+    const dialogTriggers = document.querySelectorAll('[data-dialog-trigger]');
+    if (nativeDialogs.length || dialogTriggers.length) {
         import('./native-dialog')
-            .then(module => module.initDialogs(nativeDialogs));
+            .then(module => {
+                if (nativeDialogs.length) {
+                    module.initDialogs(nativeDialogs);
+                }
+                if (dialogTriggers.length) {
+                    module.initDialogTriggers(dialogTriggers);
+                }
+            });
     }
 
     // Yearly reading goal functionality

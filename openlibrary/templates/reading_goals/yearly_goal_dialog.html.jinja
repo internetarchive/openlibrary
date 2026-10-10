@@ -1,7 +1,8 @@
 {# Standalone yearly-goal modal for account/view.html (Templetor).
-   Rendered by render_yearly_goal_dialog(year) in
-   openlibrary/plugins/openlibrary/reading_goals.py.
-   Composes macros — no HTML is passed from Python, only the primitive `year`. #}
+   `goal` is the existing target for `year`, or undefined/None when unset:
+   the form renders as an update (with the "enter 0 to unset" note) when a
+   goal exists, otherwise as a create. Omit `goal` for a create form. #}
 {% from "reading_goals/reading_goal_form.html.jinja" import goal_form %}
 {% from "native_dialog.html.jinja" import dialog %}
-{{ dialog(id="yearly-goal-modal", title=_("Yearly Reading Goal"), content=goal_form(none, year, false)) }}
+{% set update = true if goal else false %}
+{{ dialog(id="yearly-goal-modal", title=_("Yearly Reading Goal"), content=goal_form(goal or none, year, update)) }}

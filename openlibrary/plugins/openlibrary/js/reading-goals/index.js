@@ -117,6 +117,14 @@ function addGoalSubmissionListener(submitButton) {
                     modal.close();
                 }
 
+                // The sidebar goal card is server-rendered (the ring's arc and
+                // books-read count come from the server), so refresh the page
+                // to show the new target instead of patching the DOM.
+                if (document.querySelector('.sb-goal-card')) {
+                    location.reload();
+                    return;
+                }
+
                 const yearlyGoalSections = document.querySelectorAll('.yearly-goal-section');
                 if (formData.get('is_update')) {  // Progress component exists on page
                     yearlyGoalSections.forEach((yearlyGoalSection) => {

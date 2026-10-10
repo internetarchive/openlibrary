@@ -1701,7 +1701,8 @@ msgid "No goal set yet"
 msgstr ""
 
 #: account/sidebar.html
-msgid "Set now"
+#, python-format
+msgid "Set goal for %(year)d"
 msgstr ""
 
 #: account/sidebar.html

@@ -8,8 +8,9 @@ $var title: $header_title
 
 <div class="mybooks">
   $if mb.is_my_page:
-    $:render_jinja_template("reading_goals/yearly_goal_dialog.html.jinja", year=current_year())
-  
+    $ goal_target = mb.current_goal.goal if mb.current_goal else None
+    $:render_jinja_template("reading_goals/yearly_goal_dialog.html.jinja", year=current_year(), goal=goal_target)
+
   $:mb.render_sidebar()
 
   <div class="mybooks-details">
@@ -53,7 +54,7 @@ $var title: $header_title
       $if not mb.is_my_page and mb.is_subscribed != -1:
         $:render_template('follow/follow', mb.username, following=mb.is_subscribed, link_track='MyBooksPageHeader|Follow')
     </header>
-    
+
     <div class="details-databar">
       $if page and mb.is_my_page:
         $:macros.databarView(page)

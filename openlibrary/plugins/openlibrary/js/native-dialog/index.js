@@ -1,4 +1,24 @@
 /**
+ * Opens the referenced native dialog when a trigger is activated.
+ *
+ * Triggers carry `data-dialog-trigger="#some-dialog-id"` (e.g. the Reading
+ * Goal card's edit pencil and Set now button). The dialog itself only needs
+ * to exist in the DOM; its close behavior comes from initDialogs.
+ * @param {NodeList<HTMLElement>} triggers Elements with a data-dialog-trigger attribute
+ */
+export function initDialogTriggers(triggers) {
+    for (const trigger of triggers) {
+        trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            const dialog = document.querySelector(trigger.dataset.dialogTrigger);
+            if (dialog) {
+                dialog.showModal();
+            }
+        });
+    }
+}
+
+/**
  * Adds close functionality to each given dialog element.
  *
  * Dialog will be closed if:
