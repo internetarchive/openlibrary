@@ -18,6 +18,7 @@ import './OlIcon.js';
  * @prop {String} href - When set, the chip renders as a link
  * @prop {String} count - Optional count displayed to the right of the label
  * @prop {String} accessibleLabel - Override aria-label on the inner interactive element
+ * @prop {Boolean} hideDismiss - Hide the close/dismiss icon when selected. Default: false.
  *
  * @fires ol-chip-select - Fired on click. detail: { selected: Boolean }
  *
@@ -35,6 +36,10 @@ import './OlIcon.js';
  *
  * @example
  * <ol-chip size="small" count="76" href="/subjects/fiction">Fiction</ol-chip>
+ *
+ * @example
+ * <!-- Selected but without close icon -->
+ * <ol-chip selected hide-dismiss>All lists</ol-chip>
  */
 export class OLChip extends FocusableHostMixin(LitElement) {
     static properties = {
@@ -44,6 +49,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         href: { type: String },
         count: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
+        hideDismiss: { type: Boolean, attribute: 'hide-dismiss', reflect: true },
     };
 
     static styles = css`
@@ -249,6 +255,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         this.href = null;
         this.count = null;
         this.accessibleLabel = null;
+        this.hideDismiss = false;
     }
 
     _handleClick() {
@@ -260,7 +267,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
     }
 
     _renderIcons() {
-        if (!this.selected) return nothing;
+        if (!this.selected || this.hideDismiss) return nothing;
 
         return html`
             <span class="icon-slot">

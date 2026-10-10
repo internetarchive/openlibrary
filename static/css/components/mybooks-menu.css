@@ -7,19 +7,22 @@
  *   1. Container            .mybooks-menu
  *   2. Cards                .sb-card
  *   3. Profile card         .sb-profile-card
- *        settings button -> avatar -> welcome -> social info
- *        -> status pill -> divider -> profile nav
- *   4. Card section header  .sb-card > .section-header
- *   5. Card section links   .sb-card-section a
- *   6. Responsive           desktop / tablet and mobile
+ *        header (avatar | info) + corner icon-button -> divider
+ *        -> actions (primary + share) -> divider -> profile nav
+ *   4. Reading goal card    .sb-goal-*
+ *   5. Section headers      .sb-card > .section-header
+ *   6. Profile nav rows     .sb-card-section
+ *   7. Bookshelf tiles      .sb-shelf-*
+ *   8. Activity tiles       .sb-activity-*
+ *   9. Lists                .sb-lists-*, ol-chip-group
+ *   10. Responsive          desktop / tablet and mobile
  */
 
 /* ── 1. Container ───────────────────────────────────────────────── */
 .mybooks-menu {
-  width: 250px;
-  border-radius: var(--border-radius-card) 0 0 var(--border-radius-card);
-  background: var(--grey-fafafa);
-  box-shadow: inset -4px 0 10px var(--lightest-grey);
+  width: 25%;
+  background: var(--color-surface-header);
+  border-radius: inherit;
 }
 
 /* ── 2. Cards ───────────────────────────────────────────────────── */
@@ -29,64 +32,92 @@
   box-shadow: var(--box-shadow-raised);
   margin: var(--spacing-md) var(--spacing-sm);
   overflow: hidden;
-  padding-bottom: var(--spacing-sm);
+  padding: var(--spacing-md);
 }
 
 /* ── 3. Profile card ────────────────────────────────────────────── */
 .sb-profile-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: var(--spacing-md) 0 var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
   position: relative;
 }
 
-/* 3a. Settings button */
-.sb-settings-btn {
+/* 3b. Profile header (horizontal layout: avatar | text | settings) */
+.sb-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sb-avatar-link {
+  display: block;
+  flex-shrink: 0;
+}
+
+.sb-avatar {
+  display: block;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--border-radius-xl);
+  object-fit: cover;
+  background: var(--background-grey);
+}
+
+.sb-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Shared corner icon-button (settings gear, goal pencil): absolutely
+   positioned top-right of its card, a muted icon that goes solid primary
+   on hover. */
+.sb-icon-btn {
   position: absolute;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
-  border: none;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
   cursor: pointer;
   opacity: 0.6;
   transition:
-    opacity 0.15s,
-    background-color 0.15s,
-    color 0.15s;
+    opacity 0.15s ease,
+    color 0.15s ease;
 }
 
-.sb-settings-btn:hover {
+/* Outrank base a:link / a:visited so the icon stays muted, not navy */
+.sb-icon-btn:link,
+.sb-icon-btn:visited {
+  color: var(--color-text-secondary);
+}
+
+.sb-icon-btn:hover {
   opacity: 1;
   color: var(--color-primary);
 }
 
-/* 3b. Avatar */
-.sb-avatar-link {
-  display: block;
-  margin-bottom: var(--spacing-sm);
-}
-
-.sb-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: var(--border-radius-avatar);
-  object-fit: cover;
-  border: 2px solid var(--color-border-subtle);
-}
-
 /* 3c. Welcome message */
 .sb-welcome {
-  margin: var(--spacing-3xs) 0 var(--spacing-2xs);
+  margin: 0 0 var(--spacing-2xs);
+  font-size: var(--font-size-title-medium);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.sb-welcome span {
+  font-weight: 800;
 }
 
 /* 3d. Social info (followers / following) */
 .sb-social-info {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-inline-lg);
+  gap: var(--spacing-inline-sm);
   font-size: var(--font-size-label-medium);
   color: var(--color-text-secondary);
+  flex-wrap: wrap;
 }
 
 .sb-social-link {
@@ -105,74 +136,147 @@
   color: var(--color-border-muted);
 }
 
-/* 3e. Status pill (profile | share) */
-.sb-profile-status-pill {
-  margin: var(--spacing-md) 0;
-  display: inline-flex;
-  background: var(--background-grey);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--border-radius-chip);
-  overflow: hidden;
+/* 3e. Profile actions (primary button + separate share button) */
+.sb-profile-actions {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
 }
 
-.sb-profile-status-link__profile,
-.sb-profile-status-link__share {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  font-size: var(--font-size-label-medium);
-  font-weight: 500;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
+/* The profile link button stretches; the share icon-button keeps its square */
+.sb-profile-actions > ol-button {
+  flex: 1;
 }
 
-/* Profile link */
-.sb-profile-status-link__profile:hover {
-  background: var(--color-hover-overlay);
-}
-
-/* Divider between profile and share */
-.sb-profile-status-divider {
-  width: 1px;
-  height: 28px;
-  background: var(--color-border-subtle);
-  flex-shrink: 0;
-}
-
-/* Share button */
-.sb-profile-status-link__share {
-  padding: 6px 10px 6px 6px;
-}
-
-.sb-profile-status-link__share:hover:not([aria-disabled="true"]) {
-  background: var(--color-hover-overlay);
-}
-
-.sb-profile-status-link__share[aria-disabled="true"] {
-  color: var(--color-text-secondary);
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.sb-profile-status-link__share[aria-disabled="true"]:hover {
-  background: transparent;
-}
-
-.sb-divider {
+.sb-profile-actions > ol-button::part(control) {
   width: 100%;
 }
 
-/* ── 4. Card section ─────────────────────────────────────── */
+/* ShareModal wrapper participates in the flex row without breaking it */
+.sb-profile-actions .share-popover-component {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.sb-divider {
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
+  margin: var(--spacing-sm) 0;
+  width: 100%;
+}
+
+/* ── Reading Goal card ─────────────────────────────────────────── */
+.sb-card.sb-goal-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 18px;
+  padding: var(--spacing-inset-md);
+}
+
+.sb-goal-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sb-goal-ring {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+}
+
+.sb-goal-ring svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sb-goal-track {
+  fill: none;
+  stroke: var(--grey-fafafa);
+  stroke-width: 8;
+}
+
+.sb-goal-arc {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.sb-goal-ring-text {
+  font-size: 17px;
+  font-weight: 800;
+  fill: var(--color-text);
+  text-anchor: middle;
+}
+
+.sb-goal-ring-q {
+  font-size: 22px;
+  font-weight: 800;
+  fill: var(--color-text-secondary);
+  text-anchor: middle;
+}
+
+.sb-goal-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sb-goal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sb-goal-title {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.sb-goal-sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.sb-goal-set-full {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: var(--border-radius-lg);
+  background: var(--color-primary);
+  color: var(--white);
+  font-size: var(--font-size-body-medium);
+  font-weight: 700;
+}
+
+/* Outrank base a:link / a:visited so the label stays white, not navy */
+.sb-goal-set-full:link,
+.sb-goal-set-full:visited {
+  color: var(--white);
+}
+
+.sb-goal-set-full:hover {
+  background: var(--color-primary-hover);
+  color: var(--white);
+}
+
+/* ── 5. Section headers + 6. Profile nav rows ─────────────────── */
 .sb-card > .section-header {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-weight: bold;
-  background: var(--background-grey);
-  border: 1px solid var(--color-border-subtle);
-  border-top-left-radius: inherit;
-  border-top-right-radius: inherit;
+  font-size: var(--font-size-label-medium);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-stack-xs);
   display: flex;
   justify-content: space-between;
@@ -202,6 +306,11 @@
   background: var(--color-control-hover);
 }
 
+.sb-nav-icon {
+  margin-right: var(--spacing-inline-sm);
+  vertical-align: -3px;
+}
+
 .sb-card-section a.selected {
   border-left-color: var(--color-primary);
   color: var(--color-primary) !important;
@@ -219,7 +328,142 @@
   text-decoration: none !important;
 }
 
-/* ── 6. Responsive ──────────────────────────────────────────────── */
+/* ── Bookshelf tiles (wrap by width: 2x2 narrow, 4-in-a-row wide) ── */
+.sb-shelf-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+.sb-shelf-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  min-width: 80px;
+  max-width: 240px;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius-lg);
+  background: var(--background-grey);
+  text-align: center;
+  transition:
+    background 0.1s ease,
+    border-color 0.1s ease;
+}
+
+a.sb-shelf-tile:hover {
+  background: var(--color-control-hover);
+}
+
+.sb-shelf-tile.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.sb-shelf-count {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+
+.sb-shelf-label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.sb-shelf-tile.selected .sb-shelf-count,
+.sb-shelf-tile.selected .sb-shelf-label {
+  color: var(--color-primary);
+}
+
+/* ── Activity tiles ────────────────────────────────────────────── */
+.sb-activity-tiles {
+  display: flex;
+  gap: 8px;
+}
+
+.sb-activity-tile {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius-lg);
+  background: var(--background-grey);
+  text-align: center;
+  transition:
+    background 0.1s ease,
+    border-color 0.1s ease;
+}
+
+a.sb-activity-tile:hover {
+  background: var(--color-control-hover);
+}
+
+.sb-activity-tile.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.sb-activity-count {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.sb-activity-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  color: var(--color-primary);
+}
+
+.sb-activity-label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.sb-activity-tile.selected .sb-activity-count,
+.sb-activity-tile.selected .sb-activity-label {
+  color: var(--color-primary);
+}
+
+.sb-lists-new-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-label-medium);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  /* Opt out of the section header's uppercase; render sentence-case "New +" */
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Outrank base a:link / a:visited / a:hover so New stays primary blue */
+.sb-lists-new-link:link,
+.sb-lists-new-link:visited,
+.sb-lists-new-link:hover {
+  color: var(--color-primary);
+}
+
+.sb-lists-new-link:hover {
+  text-decoration: underline;
+}
+
+/* ── 10. Responsive ─────────────────────────────────────────────── */
 @media only screen and (min-width: 769px) /* @width-breakpoint-tablet + 1 */ {
   .mybooks-menu-mobile {
     display: none;
