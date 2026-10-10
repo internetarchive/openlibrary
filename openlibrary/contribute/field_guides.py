@@ -1,4 +1,4 @@
-"""One playbook per field: the question, where to look it up, and the conventions to follow.
+"""One field guide per field: the question, where to look it up, and the conventions to follow.
 
 The page links to each source on the edition's ISBN; Open Library fetches nothing from them.
 """
@@ -33,7 +33,7 @@ class LookupSource:
 
 
 @dataclass(frozen=True)
-class Playbook:
+class FieldGuide:
     field: str
     label: str
     action: str
@@ -50,13 +50,13 @@ class Playbook:
     input_type: str = "text"
 
 
-def get_playbooks() -> dict[str, Playbook]:
+def get_field_guides() -> dict[str, FieldGuide]:
     worldcat = LookupSource(_("WorldCat"), WORLDCAT)
     google = LookupSource(_("Google Books"), GOOGLE_BOOKS)
     amazon = LookupSource(_("Amazon"), AMAZON)
     loc = LookupSource(_("Library of Congress"), LOC)
     return {
-        "languages": Playbook(
+        "languages": FieldGuide(
             field="languages",
             label=_("Language"),
             action=_("Fill in language"),
@@ -74,7 +74,7 @@ def get_playbooks() -> dict[str, Playbook]:
             ],
             placeholder=_("For example English"),
         ),
-        "number_of_pages": Playbook(
+        "number_of_pages": FieldGuide(
             field="number_of_pages",
             label=_("Page count"),
             action=_("Fill in page count"),
@@ -96,7 +96,7 @@ def get_playbooks() -> dict[str, Playbook]:
             placeholder=_("For example 320"),
             input_type="number",
         ),
-        "publishers": Playbook(
+        "publishers": FieldGuide(
             field="publishers",
             label=_("Publisher"),
             action=_("Fill in publisher"),
@@ -112,7 +112,7 @@ def get_playbooks() -> dict[str, Playbook]:
             ],
             placeholder=_("Publisher as printed"),
         ),
-        "lccn": Playbook(
+        "lccn": FieldGuide(
             field="lccn",
             label=_("Library of Congress number (LCCN)"),
             action=_("Fill in LCCN"),
@@ -135,7 +135,7 @@ def get_playbooks() -> dict[str, Playbook]:
             ],
             placeholder=_("For example 75425165"),
         ),
-        "oclc_numbers": Playbook(
+        "oclc_numbers": FieldGuide(
             field="oclc_numbers",
             label=_("OCLC/WorldCat number"),
             action=_("Fill in OCLC number"),
@@ -164,8 +164,8 @@ def get_playbooks() -> dict[str, Playbook]:
     }
 
 
-def link_outs(playbook: Playbook, isbn13: str | None) -> list[LookupSource]:
-    """The playbook's sources, opened on this ISBN."""
+def build_link_outs(field_guide: FieldGuide, isbn13: str | None) -> list[LookupSource]:
+    """The field guide's sources, opened on this ISBN."""
     if not isbn13:
         return []
-    return [LookupSource(s.label, s.url.format(isbn=isbn13)) for s in playbook.sources]
+    return [LookupSource(s.label, s.url.format(isbn=isbn13)) for s in field_guide.sources]

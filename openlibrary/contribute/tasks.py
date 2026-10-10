@@ -2,7 +2,14 @@
 
 from dataclasses import dataclass
 
-# The fields on offer, most valuable first. Points are the Edition Scorecard weights.
+# The fields on offer, most valuable first. Three weights match a same-named Edition Scorecard
+# check exactly: languages == ``language`` (15), publishers == ``publisher`` (2),
+# number_of_pages == ``page_count`` (10). The scorecard has no check specific to lccn or oclc,
+# though an OCLC number (like an ISBN) satisfies its ``library_options`` check (score 25, which is
+# why oclc_numbers is weighted 25 here); lccn has no scorecard counterpart at all. Kept local
+# rather than imported because the scorecard exposes no field -> weight mapping: its checks are
+# attributes spread across section classes, under their own names.
+
 POINTS = {
     "lccn": 25,
     "oclc_numbers": 25,

@@ -881,7 +881,7 @@ msgstr ""
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search/inside.html search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py search/inside.html search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
@@ -3597,7 +3597,7 @@ msgstr ""
 msgid "For example: <em>edited by David Anderson</em>"
 msgstr ""
 
-#: books/edit/edition.html openlibrary/contribute/playbooks.py
+#: books/edit/edition.html openlibrary/contribute/field_guides.py
 msgid "What language is this edition written in?"
 msgstr ""
 
@@ -5546,7 +5546,7 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/contribute.py openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
 msgstr ""
 
@@ -8092,155 +8092,155 @@ msgstr ""
 msgid "Next: a random task from all open tasks"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "WorldCat"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Google Books"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py openlibrary/plugins/openlibrary/partials.py
+#: openlibrary/contribute/field_guides.py openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Library of Congress"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Fill in language"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Look the ISBN up in WorldCat or Google Books; both list the language of the text. The title page and cover tell you too."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Editions of a work usually share a language, but a translation won't. Check this edition's own text."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Record the language of the text, not the language of the title page. A translation is in the language it was translated into."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "For example English"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Page count"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Fill in page count"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "How many pages does this edition have?"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "WorldCat lists the page count in the record's description. Google Books calls it Length. Make sure the record is for this ISBN, not another printing."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Catalogs count front matter differently, so numbers within a few pages of each other are the same count. Use the last numbered page of the main text."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "For example 320"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Fill in publisher"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Who published this edition?"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "The imprint is printed on the title page and the spine. WorldCat and the Library of Congress list it under Publisher."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Open Library records the imprint printed on the book, not the parent company. Anchor Books, not Penguin Random House."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Publisher as printed"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Library of Congress number (LCCN)"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Fill in LCCN"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "What is this edition's Library of Congress number?"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Search the Library of Congress catalog for this ISBN. Open the record whose year and publisher match this edition, and copy the number shown as LCCN."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Hyphenated and padded forms are the same number: 75-425165 and 75425165. Paste either; Open Library stores the padded form."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "The number belongs to a different printing. Search results lead with the best-known one, not with yours."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "The number is already on another edition of this work, which means one of the two records is wrong."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Pasting the web address instead of the number itself."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "For example 75425165"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "OCLC/WorldCat number"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Fill in OCLC number"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "What is this edition's WorldCat (OCLC) number?"
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Search WorldCat for this ISBN. Open the record whose year, publisher and format match this edition, and copy the number shown as OCLC Number."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "The OCLC number is how libraries the world over refer to one catalogued edition. It is one of the few fields Open Library uses to find duplicates of this book when new records arrive."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "The prefixes ocm, ocn, on and (OCoLC) are padding added by library systems, not part of the number. ocm00047810608 is 47810608."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "The number belongs to a different printing, a book club edition, or the ebook rather than the print copy."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Pasting the web address, or leaving the ocm/ocn prefix on."
 msgstr ""
 
-#: openlibrary/contribute/playbooks.py
+#: openlibrary/contribute/field_guides.py
 msgid "Digits only, for example 47810608"
 msgstr ""
 

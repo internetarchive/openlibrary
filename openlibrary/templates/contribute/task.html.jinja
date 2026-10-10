@@ -4,16 +4,16 @@
     <a class="contrib-back" href="{{ data.list_url }}">{{ icon("chevron-left", size="sm") }}{{ _("Back to the list") }}</a>
     <div class="contrib-task__main">
         <div class="contrib-question">
-            <h1 class="contrib-question__text">{{ data.playbook.question }}</h1>
-            {% if data.playbook.why %}<p class="contrib-muted">{{ data.playbook.why }}</p>{% endif %}
+            <h1 class="contrib-question__text">{{ data.field_guide.question }}</h1>
+            {% if data.field_guide.why %}<p class="contrib-muted">{{ data.field_guide.why }}</p>{% endif %}
         </div>
         {{ parts.record_form(data) }}
     </div>
     <aside class="contrib-task__help">
-        {{ parts.how_to(data.playbook, data.link_outs) }}
-        {% if data.playbook.traps %}{{ parts.traps(data.playbook.traps) }}{% endif %}
+        {{ parts.how_to(data.field_guide, data.link_outs) }}
+        {% if data.field_guide.traps %}{{ parts.traps(data.field_guide.traps) }}{% endif %}
         {% if data.siblings %}
-            {{ parts.sibling_tally(data.tally, data.siblings, data.sibling_total, data.playbook.sibling_hint) }}
+            {{ parts.sibling_tally(data.tally, data.siblings, data.sibling_total, data.field_guide.sibling_hint) }}
         {% endif %}
     </aside>
     {% if data.receipt %}

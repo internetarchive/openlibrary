@@ -71,12 +71,12 @@
         </a>
     </li>
 {% endmacro %}
-{% macro how_to(playbook, links) %}
+{% macro how_to(field_guide, links) %}
     <section class="contrib-help">
         <h2 class="contrib-h">{{ _("How to answer") }}</h2>
         <ol class="contrib-steps">
             <li>
-                <p>{{ playbook.how }}</p>
+                <p>{{ field_guide.how }}</p>
                 {% if links %}
                     <ul class="contrib-linkouts">
                         {% for link in links %}
@@ -89,7 +89,7 @@
                     <p class="contrib-muted">{{ _("This edition has no ISBN to search by, so look it up by title and author.") }}</p>
                 {% endif %}
             </li>
-            {% for note in playbook.notes %}
+            {% for note in field_guide.notes %}
                 <li>
                     <p>
                         {{ note.text }}
@@ -157,13 +157,13 @@
         </details>
     </section>
 {% endmacro %}
-{% macro answer_control(task, playbook, is_identifier, value, languages) %}
+{% macro answer_control(task, field_guide, is_identifier, value, languages) %}
     {% if is_identifier %}
         <input id="contrib-other-value"
                type="text"
                name="value"
                class="contrib-input contrib-input--id"
-               placeholder="{{ playbook.placeholder }}"
+               placeholder="{{ field_guide.placeholder }}"
                inputmode="numeric"
                autocomplete="off"
                data-id-input
@@ -174,15 +174,15 @@
                data-msg-url="{{ _('Paste only the number, not the web address.') }}"
                data-msg-bad="{{ _('That is not a valid number for this catalog.') }}" />
     {% elif languages %}
-        <ol-options-popover id="contrib-other-value" class="contrib-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ playbook.label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
+        <ol-options-popover id="contrib-other-value" class="contrib-picker" name="value" label="{{ _('Choose a language') }}" heading="{{ _('Languages') | upper }}" aria-label="{{ field_guide.label }}" placeholder="{{ _('Filter languages') }}" no-matches-label="{{ _('No matching language') }}" show-selection selected="{{ value }}" items='{{ languages | tojson }}'>
         </ol-options-popover>
     {% else %}
         <input id="contrib-other-value"
-               type="{{ playbook.input_type }}"
+               type="{{ field_guide.input_type }}"
                name="value"
-               class="contrib-input{% if playbook.input_type == 'number' %} contrib-input--number{% endif %}"
-               placeholder="{{ playbook.placeholder }}"
-               {% if playbook.input_type == "number" %}min="1"{% endif %}
+               class="contrib-input{% if field_guide.input_type == 'number' %} contrib-input--number{% endif %}"
+               placeholder="{{ field_guide.placeholder }}"
+               {% if field_guide.input_type == "number" %}min="1"{% endif %}
                value="{{ value }}"
                autocomplete="off" />
     {% endif %}
@@ -236,7 +236,7 @@
                                 <label for="contrib-other-value">{{ row.label }}</label>
                             </dt>
                             <dd>
-                                {{ answer_control(task, data.playbook, data.is_identifier, data.value, data.languages) }}
+                                {{ answer_control(task, data.field_guide, data.is_identifier, data.value, data.languages) }}
                                 {% if data.is_identifier %}<p class="contrib-field__verdict" data-id-verdict role="status"></p>{% endif %}
                                 {% if data.suggestions %}
                                     <div class="contrib-suggest" data-suggest>
