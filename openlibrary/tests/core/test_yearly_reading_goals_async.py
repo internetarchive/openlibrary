@@ -13,7 +13,7 @@ import pytest
 
 from openlibrary.core import async_db
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoal, YearlyReadingGoals
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import date_one_month_ago, date_one_week_ago
 
 
 @pytest.fixture
@@ -114,7 +114,7 @@ async def test_summary_counts_every_window_in_one_query(helpers):
     (query, params), _kwargs = helpers.fetch_one.await_args
     assert "count(*) FILTER (WHERE updated >= %(month_ago)s)" in query
     assert "count(*) FILTER (WHERE updated >= %(week_ago)s)" in query
-    assert params == {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO}
+    assert params == {"month_ago": date_one_month_ago(), "week_ago": date_one_week_ago()}
 
 
 # --- Integration tests (real postgres, marked `integration`) -------------------

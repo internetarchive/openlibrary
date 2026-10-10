@@ -142,7 +142,7 @@ def reading_log_leaderboard(limit: int):
     most_wanted_month = Bookshelves.most_logged_books(
         shelf_ids=[Bookshelves.PRESET_BOOKSHELVES["Want to Read"]],
         limit=limit,
-        since=dateutil.DATE_ONE_MONTH_AGO,
+        since=dateutil.date_one_month_ago(),
     )
     return {
         "leaderboard": {

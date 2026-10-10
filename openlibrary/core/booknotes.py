@@ -1,4 +1,4 @@
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import date_one_month_ago, date_one_week_ago
 
 from . import db
 
@@ -14,13 +14,13 @@ class Booknotes(db.CommonExtras):
         return {
             "total_notes_created": {
                 "total": cls.total_booknotes(),
-                "month": cls.total_booknotes(since=DATE_ONE_MONTH_AGO),
-                "week": cls.total_booknotes(since=DATE_ONE_WEEK_AGO),
+                "month": cls.total_booknotes(since=date_one_month_ago()),
+                "week": cls.total_booknotes(since=date_one_week_ago()),
             },
             "total_note_takers": {
                 "total": cls.total_unique_users(),
-                "month": cls.total_unique_users(since=DATE_ONE_MONTH_AGO),
-                "week": cls.total_unique_users(since=DATE_ONE_WEEK_AGO),
+                "month": cls.total_unique_users(since=date_one_month_ago()),
+                "week": cls.total_unique_users(since=date_one_week_ago()),
             },
         }
 

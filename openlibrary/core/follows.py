@@ -2,7 +2,7 @@ import logging
 from typing import cast
 
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import date_one_month_ago, date_one_week_ago
 
 from . import db
 
@@ -146,8 +146,8 @@ class PubSub:
         return {
             "total_following_count": {
                 "total": cls.total_followers(),
-                "month": cls.total_followers(since=DATE_ONE_MONTH_AGO),
-                "week": cls.total_followers(since=DATE_ONE_WEEK_AGO),
+                "month": cls.total_followers(since=date_one_month_ago()),
+                "week": cls.total_followers(since=date_one_week_ago()),
             }
         }
 

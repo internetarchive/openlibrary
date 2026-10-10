@@ -4,7 +4,7 @@ from typing import ClassVar
 
 from openlibrary.core.async_db import class_row, execute, fetch_all, fetch_one
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import date_one_month_ago, date_one_week_ago
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,7 +29,7 @@ class YearlyReadingGoals:
             f" count(*) FILTER (WHERE updated >= %(week_ago)s) AS week"
             f" FROM {cls.TABLENAME}"
         )
-        row = await fetch_one(query, {"month_ago": DATE_ONE_MONTH_AGO, "week_ago": DATE_ONE_WEEK_AGO})
+        row = await fetch_one(query, {"month_ago": date_one_month_ago(), "week_ago": date_one_week_ago()})
         assert row is not None
         return {
             "total_yearly_reading_goals": {
