@@ -42,7 +42,7 @@ def _render(template: str, title: str, **params):
     return render_template("contribute", web.storage(template=template, title=title, params=params))
 
 
-def _gate(path: str):
+def require_librarian_access(path: str):
     """Login for visitors, permission denied for anyone below librarian. None when the user may continue."""
     user = accounts.get_current_user()
     if not user:
@@ -95,7 +95,7 @@ def _display(edition, fld: str) -> str:
     return ", ".join(str(v) for v in values)
 
 
-def _record(edition, fld: str) -> list[dict]:
+def _edition_field_rows(edition, fld: str) -> list[dict]:
     """The edition's record as the task page shows it: the fields it has, plus the one being asked about, in place."""
     rows = [
         ("publishers", _("Publisher")),
@@ -156,7 +156,7 @@ def _book(edition, readers: int | None = None) -> dict:
     """What the book header shows. Live from the local record."""
     work = edition.works[0] if edition.works else None
     year = edition.get_publish_year()
-    parts = [p for p in [", ".join(edition.get("publishers") or []), str(year) if year else "", edition.get("physical_format") or ""] if p]
+    edition_line_parts = [p for p in [", ".join(edition.get("publishers") or []), str(year) if year else "", edition.get("physical_format") or ""] if p]
     seen: set[str] = set()
     author_names = []
     for a in edition.get_authors():
@@ -170,7 +170,7 @@ def _book(edition, readers: int | None = None) -> dict:
         "title": edition.get_title(),
         "authors": ", ".join(author_names),
         "cover_url": edition.get_cover_url("M"),
-        "edition_line": " · ".join(parts),
+        "edition_line": " · ".join(edition_line_parts),
         "isbn13": edition.get_isbn13(),
         "edition_count": work.get_edition_count() if work else 1,
         "work_key": work.key if work else None,
@@ -230,7 +230,7 @@ class contribute_index(delegate.page):
 
     def GET(self):
         task = _task_filter(query_param("task", ""))
-        if denied := _gate(_dashboard_url(task)):
+        if denied := require_librarian_access(_dashboard_url(task)):
             return denied
         user = accounts.get_current_user()
         return _render(
@@ -253,7 +253,7 @@ class contribute_one(delegate.page):
 
     def GET(self):
         task = _task_filter(query_param("task", ""))
-        if denied := _gate(_dashboard_url(task, base=self.path)):
+        if denied := require_librarian_access(_dashboard_url(task, base=self.path)):
             return denied
         exclude = f"/books/{query_param('exclude', '')}"
         options = [t for row in _rows(task) if row["book"]["key"] != exclude for t in row["tasks"]]
@@ -294,7 +294,7 @@ def _task_context(edition, task: tasks.Task, back: str, error: str = "", value: 
         "tally": tally,
         # Quick picks for the answer, only where the other editions are good evidence for this one.
         "suggestions": tally["values"][:3] if playbook.suggest_from_siblings else [],
-        "record": _record(edition, task.field),
+        "record_fields": _edition_field_rows(edition, task.field),
         "list_url": _dashboard_url(back),
         "next_scope": _filters()[back][0] if back else "",
         "languages": save.language_options() if task.field == "languages" else [],
@@ -336,7 +336,7 @@ class contribute_task(delegate.page):
     path = TASK_PATH
 
     def GET(self, olid, fld):
-        if denied := _gate(f"/tasks/task/{olid}/{fld}"):
+        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}"):
             return denied
         back = _back()
         edition = _edition_or_404(olid)
@@ -346,7 +346,7 @@ class contribute_task(delegate.page):
         return _render("contribute/task.html.jinja", get_playbooks()[fld].question, **context)
 
     def POST(self, olid, fld):
-        if denied := _gate(f"/tasks/task/{olid}/{fld}"):
+        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}"):
             return denied
         i = web.input(value="", note="", back="", confirmed="", then="")
         back = _task_filter(i.back)
@@ -371,7 +371,7 @@ class contribute_done(delegate.page):
     path = TASK_PATH + "/done"
 
     def GET(self, olid, fld):
-        if denied := _gate(f"/tasks/task/{olid}/{fld}/done"):
+        if denied := require_librarian_access(f"/tasks/task/{olid}/{fld}/done"):
             return denied
         back = _back()
         edition = _edition_or_404(olid)

@@ -21,13 +21,13 @@ LOC = "https://catalog.loc.gov/vwebv/search?searchArg={isbn}&searchCode=GKEY%5E*
 
 
 @dataclass(frozen=True)
-class Note:
+class GuidelineNote:
     text: str
     href: str | None = None
 
 
 @dataclass(frozen=True)
-class Source:
+class LookupSource:
     label: str
     url: str  # may hold an {isbn} placeholder
 
@@ -39,22 +39,22 @@ class Playbook:
     action: str
     question: str
     how: str  # where to look and what to copy
-    sources: list[Source] = dc_field(default_factory=list)
+    sources: list[LookupSource] = dc_field(default_factory=list)
     why: str = ""
     show_siblings: bool = False  # set only for fields where other editions' values help
     sibling_hint: str = ""
     suggest_from_siblings: bool = False  # offer the other editions' values as one-click answers
-    notes: list[Note] = dc_field(default_factory=list)
+    notes: list[GuidelineNote] = dc_field(default_factory=list)
     traps: list[str] = dc_field(default_factory=list)
     placeholder: str = ""
     input_type: str = "text"
 
 
 def get_playbooks() -> dict[str, Playbook]:
-    worldcat = Source(_("WorldCat"), WORLDCAT)
-    google = Source(_("Google Books"), GOOGLE_BOOKS)
-    amazon = Source(_("Amazon"), AMAZON)
-    loc = Source(_("Library of Congress"), LOC)
+    worldcat = LookupSource(_("WorldCat"), WORLDCAT)
+    google = LookupSource(_("Google Books"), GOOGLE_BOOKS)
+    amazon = LookupSource(_("Amazon"), AMAZON)
+    loc = LookupSource(_("Library of Congress"), LOC)
     return {
         "languages": Playbook(
             field="languages",
@@ -67,7 +67,7 @@ def get_playbooks() -> dict[str, Playbook]:
             suggest_from_siblings=True,
             sibling_hint=_("Editions of a work usually share a language, but a translation won't. Check this edition's own text."),
             notes=[
-                Note(
+                GuidelineNote(
                     _("Record the language of the text, not the language of the title page. A translation is in the language it was translated into."),
                     f"{HELP_BASE}#edit-metadata-language",
                 ),
@@ -85,7 +85,7 @@ def get_playbooks() -> dict[str, Playbook]:
             ),
             sources=[worldcat, google, amazon],
             notes=[
-                Note(
+                GuidelineNote(
                     _(
                         "Catalogs count front matter differently, so numbers within a few pages of each other are the same count. "
                         "Use the last numbered page of the main text."
@@ -105,7 +105,7 @@ def get_playbooks() -> dict[str, Playbook]:
             sources=[worldcat, loc, google],
             show_siblings=True,
             notes=[
-                Note(
+                GuidelineNote(
                     _("Open Library records the imprint printed on the book, not the parent company. Anchor Books, not Penguin Random House."),
                     f"{HELP_BASE}#publisher",
                 ),
@@ -123,7 +123,7 @@ def get_playbooks() -> dict[str, Playbook]:
             ),
             sources=[loc],
             notes=[
-                Note(
+                GuidelineNote(
                     _("Hyphenated and padded forms are the same number: 75-425165 and 75425165. Paste either; Open Library stores the padded form."),
                     LCCN_SPEC,
                 ),
@@ -149,7 +149,7 @@ def get_playbooks() -> dict[str, Playbook]:
                 "It is one of the few fields Open Library uses to find duplicates of this book when new records arrive."
             ),
             notes=[
-                Note(
+                GuidelineNote(
                     _("The prefixes ocm, ocn, on and (OCoLC) are padding added by library systems, not part of the number. ocm00047810608 is 47810608."),
                     OCLC_SPEC,
                 ),
@@ -164,8 +164,8 @@ def get_playbooks() -> dict[str, Playbook]:
     }
 
 
-def link_outs(playbook: Playbook, isbn13: str | None) -> list[Source]:
+def link_outs(playbook: Playbook, isbn13: str | None) -> list[LookupSource]:
     """The playbook's sources, opened on this ISBN."""
     if not isbn13:
         return []
-    return [Source(s.label, s.url.format(isbn=isbn13)) for s in playbook.sources]
+    return [LookupSource(s.label, s.url.format(isbn=isbn13)) for s in playbook.sources]
