@@ -30,8 +30,9 @@ beforeAll(() => {
     };
 
     global.IntersectionObserver = class {
-        constructor(callback) {
+        constructor(callback, options = {}) {
             this.callback = callback;
+            this.options = options;
             this.elements = [];
             intersectionObservers.push(this);
         }
@@ -498,10 +499,13 @@ describe('near-end event', () => {
     });
 });
 
+// The carousel also runs a page-ahead observer for deferred items; this is the in-view one.
+const inViewObserver = () => intersectionObservers.find((io) => io.options.threshold !== undefined);
+
 describe('in-view tracking', () => {
     it('marks intersecting items with data-in-view and reports their indices', async() => {
         const { el } = await mountCarousel(18);
-        const io = intersectionObservers[intersectionObservers.length - 1];
+        const io = inViewObserver();
         io.trigger([el.children[0], el.children[1]]);
         expect(el.children[0].hasAttribute('data-in-view')).toBe(true);
         expect(el.children[2].hasAttribute('data-in-view')).toBe(false);
@@ -510,7 +514,7 @@ describe('in-view tracking', () => {
 
     it('clears the mark when an item leaves the viewport', async() => {
         const { el } = await mountCarousel(18);
-        const io = intersectionObservers[intersectionObservers.length - 1];
+        const io = inViewObserver();
         io.trigger([el.children[0]]);
         io.trigger([el.children[8]]);
         expect(el.children[0].hasAttribute('data-in-view')).toBe(false);
@@ -520,7 +524,7 @@ describe('in-view tracking', () => {
     it('observes items appended later', async() => {
         const { el, appendItems } = await mountCarousel(18);
         await appendItems(2);
-        const io = intersectionObservers[intersectionObservers.length - 1];
+        const io = inViewObserver();
         expect(io.elements).toHaveLength(20);
         expect(io.elements).toContain(el.children[19]);
     });
@@ -1023,10 +1027,10 @@ describe('teardown', () => {
         expect(resizeObservers[0].elements).toHaveLength(0);
     });
 
-    it('disconnects the item observer when removed', async() => {
+    it('disconnects the item observers when removed', async() => {
         const { el } = await mountCarousel(18);
-        const io = intersectionObservers[intersectionObservers.length - 1];
         el.remove();
-        expect(io.elements).toHaveLength(0);
+        expect(intersectionObservers.length).toBeGreaterThan(0);
+        intersectionObservers.forEach((io) => expect(io.elements).toHaveLength(0));
     });
 });

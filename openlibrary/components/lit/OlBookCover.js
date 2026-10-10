@@ -19,6 +19,8 @@ export const DEFAULT_LABELS = {
  * `ol-tooltip` arms on the same media query a cover-card layout uses to
  * hide that text below the cover, so exactly one of the two shows.
  *
+ * A linked cover's hover/focus ring reaches 4px outside it; leave that much room.
+ *
  * @element ol-book-cover
  *
  * @prop {String} src - Cover image URL; empty draws the generated blank cover
@@ -29,6 +31,7 @@ export const DEFAULT_LABELS = {
  * @prop {String} href - Link target; empty renders the cover unlinked
  * @prop {String} size - "medium" (default) or "small"; small drops the author
  *     from the blank cover, which has no room for it
+ * @prop {Boolean} deferred - Holds the artwork back until removed (ol-carousel removes it near view)
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @slot overlay - Pinned to the cover's top-right corner, over the artwork
@@ -43,6 +46,7 @@ export class OlBookCover extends LitElement {
         year: { type: String },
         href: { type: String },
         size: { type: String, reflect: true },
+        deferred: { type: Boolean, reflect: true },
         labels: { type: Object },
     };
 
@@ -60,19 +64,67 @@ export class OlBookCover extends LitElement {
         .link {
             display: block;
             height: 100%;
+            outline: none;
         }
 
-        /* Wraps the cover link only, keeping the overlay out of the trigger area. */
+        @media (hover: hover) and (pointer: fine) {
+            /* Zero-width at rest so hover grows it. Tucked under the edge to hide the corner seam. */
+            :host([href]) {
+                outline: 0 solid var(--color-border-pointed);
+                outline-offset: calc(-1 * var(--border-width-media));
+                transition: outline-width var(--duration-fast) var(--ease-exit);
+            }
+
+            :host([href]) .link {
+                transition: filter var(--duration-fast) var(--ease-exit);
+            }
+        }
+
+        :host([link-focus]) {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            :host([href]:hover) {
+                outline: calc(var(--pointed-ring-width) + var(--border-width-media)) solid var(--color-border-pointed);
+                outline-offset: calc(-1 * var(--border-width-media));
+                transition-timing-function: var(--ease-enter);
+            }
+
+            :host([href]:hover) .link {
+                filter: var(--filter-pointed-dim);
+                transition-timing-function: var(--ease-enter);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            :host([href]),
+            :host([href]) .link {
+                transition: none;
+            }
+        }
+
+        /* Wraps the overlay too, so hovering the save button keeps the card up. */
         ol-tooltip {
             display: block;
             height: 100%;
         }
 
+        /* Inset so a pale cover still separates from a pale page. */
         .img {
             display: block;
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: var(--border-radius-thumbnail);
+            outline: var(--border-width-media) solid var(--color-border-media);
+            outline-offset: calc(-1 * var(--border-width-media));
+        }
+
+        .pending {
+            display: block;
+            height: 100%;
         }
 
         .blank {
@@ -155,6 +207,7 @@ export class OlBookCover extends LitElement {
         this.year = '';
         this.href = '';
         this.size = 'medium';
+        this.deferred = false;
         this.labels = {};
     }
 
@@ -168,15 +221,42 @@ export class OlBookCover extends LitElement {
 
     render() {
         const art = this.href
-            ? html`<a class="link" href=${this.href} @click=${this._onClick}>${this._renderArt()}</a>`
+            ? html`<a class="link" href=${this.href} @click=${this._onClick} @focus=${this._onFocus} @blur=${this._onBlur}>${this._renderArt()}</a>`
             : this._renderArt();
         return html`
-            <ol-tooltip placement="top" arrow>${art}${this._renderTip()}</ol-tooltip>
-            <slot name="overlay"></slot>
+            <ol-tooltip placement="top" arrow>
+                ${art}${this._renderTip()}
+                <slot
+                    name="overlay"
+                    @pointerdown=${this._hideTip}
+                    @ol-popover-open=${this._onOverlayOpen}
+                    @ol-popover-close=${this._onOverlayClose}
+                ></slot>
+            </ol-tooltip>
         `;
     }
 
+    get _tooltip() {
+        return this.renderRoot.querySelector('ol-tooltip');
+    }
+
+    _hideTip() {
+        this._tooltip?.hide();
+    }
+
+    _onOverlayOpen() {
+        this._tooltip.disabled = true;
+        this._tooltip.hide();
+    }
+
+    _onOverlayClose(e) {
+        if (!e.defaultPrevented) this._tooltip.disabled = false;
+    }
+
     _renderArt() {
+        if (this.src && this.deferred) {
+            return html`<span class="pending" role="img" aria-label=${this._alt}></span>`;
+        }
         if (this.src) {
             return html`<img class="img" src=${this.src} alt=${this._alt} loading="lazy" />`;
         }
@@ -198,6 +278,15 @@ export class OlBookCover extends LitElement {
                 ${this.authors ? html`<div class="tip__byline">${this.authors}</div>` : nothing}
             </div>
         `;
+    }
+
+    /** The host draws the focus ring. */
+    _onFocus(e) {
+        this.toggleAttribute('link-focus', e.target.matches(':focus-visible'));
+    }
+
+    _onBlur() {
+        this.removeAttribute('link-focus');
     }
 
     _onClick() {

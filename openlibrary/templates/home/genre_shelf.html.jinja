@@ -1,0 +1,41 @@
+{# Rendered by HomeGenrePartial. The skeleton in home/browse_stacks.html.jinja mirrors this shape. #}
+{% if genre is defined %}
+    <div class="genre-shelf"
+         data-genre="{{ genre.slug }}"
+         data-sort="{{ sort }}"
+         role="region"
+         aria-label="{{ name }}"
+         tabindex="-1">
+        <div class="genre-shelf__header">
+            <div class="genre-shelf__heading">
+                <h2 class="genre-shelf__title">{{ name }}</h2>
+                {% if jump_links %}
+                    <nav class="genre-shelf__jump"
+                         aria-label="{{ _('%(genre)s subgenres', genre=name) }}">
+                        <span class="genre-shelf__jump-label">{{ _("Jump to") }}</span>
+                        {% for link in jump_links %}
+                            {# The href is the row's id, so the label is its carousel key. #}
+                            <a class="genre-shelf__jump-link"
+                               href="{{ link.href }}"
+                               data-ol-link-track="BrowseStacks|JumpTo|{{ link.href[1:] }}">{{ link.name }}</a>
+                        {% endfor %}
+                    </nav>
+                {% endif %}
+            </div>
+            {# Trending is already an order, so its shelf has no sort. #}
+            {% if genre.kind != "trending" %}
+                {% set sort_items = [
+                    {"value": "trending", "label": _("Trending")},
+                    {"value": "new", "label": _("Newest")},
+                    {"value": "rating", "label": _("Top rated")},
+                ] %}
+                <ol-menu-popover class="genre-shelf__sort" label="{{ _('Sort by') }}" heading="{{ _('Sort by') }}" value="{{ sort }}" items="{{ sort_items | tojson | forceescape }}">
+                </ol-menu-popover>
+            {% endif %}
+        </div>
+        <div class="lazy-carousel-loaded" data-config="{{ config_json }}">{{ carousel | safe }}</div>
+        {% for row in subgenre_rows %}
+            {{ row | safe }}
+        {% endfor %}
+    </div>
+{% endif %}

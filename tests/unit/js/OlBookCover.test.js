@@ -85,7 +85,7 @@ describe('ol-book-cover link and hover card', () => {
         expect(q(el, '.img')).not.toBeNull();
     });
 
-    test('the hover card carries title, year and author, and wraps the link only', async() => {
+    test('the hover card carries title, year and author', async() => {
         const el = await mount({ src: '/c.jpg', href: '/works/OL1W', year: '1954' });
         const tip = q(el, 'ol-tooltip');
         expect(tip.querySelector('.link')).not.toBeNull();
@@ -109,8 +109,63 @@ describe('ol-book-cover overlay', () => {
         );
         const slot = q(el, 'slot[name="overlay"]');
         expect(slot.assignedElements()[0].textContent).toBe('Save');
-        // The tooltip wraps the link only, so hovering the save button is not
-        // hovering the cover.
-        expect(q(el, 'ol-tooltip').contains(slot)).toBe(false);
+        expect(q(el, '.link').contains(slot)).toBe(false);
+    });
+
+    test('the hover area spans the overlay, but the link stays the trigger', async() => {
+        const el = await mount(
+            { src: '/c.jpg', href: '/w' },
+            '<button slot="overlay">Save</button>',
+        );
+        const tip = q(el, 'ol-tooltip');
+        expect(tip.contains(q(el, 'slot[name="overlay"]'))).toBe(true);
+        await tip.updateComplete;
+        expect(tip._triggerEl).toBe(q(el, '.link'));
+    });
+
+    test('pressing the overlay hides the card; its popover keeps it off until closed', async() => {
+        const el = await mount(
+            { src: '/c.jpg', href: '/w' },
+            '<button slot="overlay">Save</button>',
+        );
+        const tip = q(el, 'ol-tooltip');
+        const button = el.querySelector('button');
+        const hide = vi.spyOn(tip, 'hide');
+
+        button.dispatchEvent(new Event('pointerdown', { bubbles: true, composed: true }));
+        expect(hide).toHaveBeenCalledTimes(1);
+
+        button.dispatchEvent(new CustomEvent('ol-popover-open', { bubbles: true, composed: true }));
+        expect(tip.disabled).toBe(true);
+
+        const kept = new CustomEvent('ol-popover-close', { bubbles: true, composed: true, cancelable: true });
+        kept.preventDefault();
+        button.dispatchEvent(kept);
+        expect(tip.disabled).toBe(true);
+
+        button.dispatchEvent(new CustomEvent('ol-popover-close', { bubbles: true, composed: true }));
+        expect(tip.disabled).toBe(false);
+    });
+});
+
+describe('ol-book-cover deferred', () => {
+    test('a deferred cover holds the image back, keeping its name', async() => {
+        const el = await mount({ src: '/covers/1-M.jpg', deferred: true });
+        expect(q(el, '.img')).toBeNull();
+        expect(q(el, '.blank')).toBeNull();
+        expect(q(el, '.pending').getAttribute('aria-label')).toBe('The Two Towers by J.R.R. Tolkien');
+    });
+
+    test('removing the attribute loads the image', async() => {
+        const el = await mount({ src: '/covers/1-M.jpg', deferred: true });
+        el.removeAttribute('deferred');
+        await el.updateComplete;
+        expect(q(el, '.img').getAttribute('src')).toBe('/covers/1-M.jpg');
+        expect(q(el, '.pending')).toBeNull();
+    });
+
+    test('a deferred cover with no artwork still draws the blank cover', async() => {
+        const el = await mount({ deferred: true });
+        expect(q(el, '.blank')).not.toBeNull();
     });
 });

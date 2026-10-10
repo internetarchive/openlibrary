@@ -6,8 +6,8 @@ import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top
  * A tooltip component that displays contextual information on hover/focus.
  *
  * Wraps a trigger element and shows a tooltip panel with configurable placement
- * and arrow. The tooltip appears after a short delay and is shown/hidden
- * instantly with no animation. Each tooltip is independent — moving from one
+ * and arrow. The tooltip appears after a short delay and fades in and out
+ * (instant under prefers-reduced-motion). Each tooltip is independent — moving from one
  * trigger to another hides the old tooltip and shows the new one.
  *
  * The panel is promoted to the top layer via the Popover API so it escapes
@@ -82,6 +82,12 @@ export class OlTooltip extends LitElement {
             pointer-events: none;
             user-select: none;
             width: max-content;
+            opacity: 0;
+            /* Keep it displayed and in the top layer until the fade-out ends. */
+            transition:
+                opacity var(--duration-fast) var(--ease-exit),
+                display var(--duration-fast) allow-discrete,
+                overlay var(--duration-fast) allow-discrete;
         }
 
         /* Undo the UA [popover] defaults this rule does not already override.
@@ -97,6 +103,22 @@ export class OlTooltip extends LitElement {
 
         .tooltip[data-visible] {
             display: block;
+            opacity: 1;
+            /* Not --ease-enter: a quint curve makes an opacity fade read as a pop. */
+            transition-duration: var(--duration-base);
+            transition-timing-function: ease-out;
+        }
+
+        @starting-style {
+            .tooltip[data-visible] {
+                opacity: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tooltip {
+                transition: none;
+            }
         }
 
         /* ── Arrow ── */
@@ -266,12 +288,17 @@ export class OlTooltip extends LitElement {
 
     // ── Show / Hide ──
 
+    hide() {
+        this._clearTimers();
+        this._hide();
+    }
+
     _show() {
         if (this._visible) return;
 
         // Render off-screen first so we can measure the panel, then position it.
-        // The off-screen frame is never seen on-screen, so the tooltip simply
-        // pops into place once positioned — no flash at the wrong spot.
+        // The off-screen frame is never seen on-screen, so the tooltip fades
+        // in at its final position — no flash at the wrong spot.
         this._position = { top: -9999, left: -9999 };
         this._visible = true;
 

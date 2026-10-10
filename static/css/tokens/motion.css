@@ -26,4 +26,5 @@
   --duration-slow: 300ms; /* exit of large surfaces */
   --duration-slower: 400ms; /* enter of large surfaces: drawer, toast */
   --duration-spin: 700ms; /* one revolution of any spinner, linear */
+  --duration-shimmer: 1600ms; /* one sweep of a loading skeleton's highlight, linear */
 }

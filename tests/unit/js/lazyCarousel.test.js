@@ -1,4 +1,4 @@
-import { initLazyCarousel } from '../../../openlibrary/plugins/openlibrary/js/lazy-carousel.js';
+import { initLazyCarousel, initLoadedCarousels } from '../../../openlibrary/plugins/openlibrary/js/lazy-carousel.js';
 
 // Must be `mock`-prefixed: vitest hoists the factory above the declarations.
 const mockTrackEvent = vi.fn();
@@ -29,7 +29,7 @@ function makePlaceholder(config) {
     elem.className = 'lazy-carousel';
     elem.dataset.config = JSON.stringify(config);
     elem.innerHTML = `
-        <div class="loadingIndicator"></div>
+        <div class="carousel-skeleton"></div>
         <div class="lazy-carousel-retry hidden"><a class="retry-btn"></a></div>
         <div class="lazy-carousel-fallback hidden"></div>`;
     document.body.replaceChildren(elem);
@@ -77,5 +77,65 @@ describe('lazy carousel impressions', () => {
         await flushPromises();
 
         expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+});
+
+describe('pre-loaded row impressions', () => {
+    const originalIntersectionObserver = global.IntersectionObserver;
+
+    beforeEach(() => {
+        mockTrackEvent.mockClear();
+        global.IntersectionObserver = ImmediatelyVisibleObserver;
+    });
+
+    afterEach(() => {
+        global.IntersectionObserver = originalIntersectionObserver;
+    });
+
+    test('reports an impression for a row that arrives loaded', async() => {
+        const shelf = document.createElement('div');
+        shelf.innerHTML = `
+            <div class="lazy-carousel-loaded" data-config='{"key": "genre-horror"}'>
+                <div class="carousel carousel--progressively-enhanced"></div>
+            </div>
+            <div class="lazy-carousel-loaded" data-config='{"key": "genre-horror-empty"}'></div>`;
+        document.body.replaceChildren(shelf);
+        initLoadedCarousels(shelf);
+        await flushPromises();
+
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        expect(mockTrackEvent).toHaveBeenCalledWith('BookCarousel', 'Impression', 'genre-horror');
+    });
+});
+
+describe('lazy carousel empty rows', () => {
+    const originalFetch = global.fetch;
+    const originalIntersectionObserver = global.IntersectionObserver;
+
+    beforeEach(() => {
+        global.IntersectionObserver = ImmediatelyVisibleObserver;
+    });
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+        global.IntersectionObserver = originalIntersectionObserver;
+    });
+
+    test('drops a row that loads with nothing to show', async() => {
+        respondWith('<div class="carousel-section"></div>');
+        initLazyCarousel([makePlaceholder({key: 'genre-horror-gothic'})]);
+        await flushPromises();
+
+        expect(document.querySelector('.lazy-carousel')).toBeNull();
+        expect(document.querySelector('.lazy-carousel-loaded')).toBeNull();
+    });
+
+    test('keeps a grid row, which has cards but no carousel to initialize', async() => {
+        respondWith('<div class="carousel carousel--grid"></div>');
+        initLazyCarousel([makePlaceholder({key: 'grid-row', layout: 'grid'})]);
+        await flushPromises();
+
+        expect(document.querySelector('.lazy-carousel')).toBeNull();
+        expect(document.querySelector('.lazy-carousel-loaded .carousel--grid')).not.toBeNull();
     });
 });
