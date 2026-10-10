@@ -56,6 +56,7 @@ def _solr_picks(fields: list[str], limit: int) -> list[list]:
         editions_rows=1,
         _timeout=FILL_TIMEOUT_SECONDS,
         _pass_time_allowed=False,
+        request_label="CONTRIBUTE_TASKS",
     )
     if result.partial:
         raise PartialResults(edition_q)
