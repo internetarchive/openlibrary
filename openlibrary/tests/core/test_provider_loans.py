@@ -42,6 +42,7 @@ class FakeMemo:
         self.raises = raises
         self.refreshes: list[str] = []
         self.deletes: list[str] = []
+        self.sets: list[tuple] = []
         self.inline_calls = 0
 
     def __call__(self, username):
@@ -59,6 +60,13 @@ class FakeMemo:
 
     def memcache_delete_by_args(self, username):
         self.deletes.append(username)
+        self.cached = None
+
+    def memcache_set(self, args, kw, value, t):
+        if self.raises:
+            raise RuntimeError("memcache down")
+        self.sets.append((args, value, t))
+        self.cached = (value, t)
 
 
 @pytest.fixture
@@ -193,3 +201,83 @@ def test_unreachable_and_unauthorized_nodes_are_dropped(monkeypatch):
 
     monkeypatch.setitem(__import__("sys").modules, "openlibrary.plugins.upstream.lenny", Lenny)
     assert provider_loans._fetch_provider_loans("patron") == [make_loan()]
+
+
+class TestWhatTheBookPageSeesRightAfterABorrow:
+    """The gap Mek walked into on 2026-10-09: the loan was created, the book
+    page reloaded itself, and the CTA still said Borrow. A manual refresh a
+    moment later said Read.
+
+    Nothing in the borrow flow told this cache the patron's holdings had
+    changed, so the page re-rendered from the entry written *before* the
+    borrow. `invalidate_provider_loans` was written for exactly this and has
+    never had a caller outside its own test.
+    """
+
+    def test_invalidating_alone_still_leaves_the_page_saying_borrow(self, memo):
+        """Characterization, green before and after this change, and the reason
+        the borrow flow does not simply call `invalidate_provider_loans`.
+
+        A cold entry does not fetch inline -- that is the whole design of this
+        module -- so the render that follows an invalidation answers "no loans"
+        and only *starts* asking the node. The patron sees Borrow on the page
+        they just borrowed from, which is the bug, one request later.
+        """
+        fake = memo(cached=fresh([]))
+        provider_loans.invalidate_provider_loans("patron")
+        assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is None
+        assert fake.inline_calls == 0
+
+    def test_a_primed_loan_is_on_the_page_at_the_very_next_render(self, memo):
+        memo(cached=fresh([]))
+        provider_loans.prime_provider_loans("patron", make_loan())
+        loan = provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser())
+        assert loan is not None
+        assert loan["read_url"] == "https://lenny.example/read/1"
+
+    def test_a_primed_entry_is_stale_on_arrival(self, memo):
+        """Served now, re-asked behind it. What we write is one loan we know
+        about, not the patron's holdings -- the node is the authority on those,
+        and the next render starts that fetch."""
+        fake = memo(cached=fresh([]))
+        provider_loans.prime_provider_loans("patron", make_loan())
+        assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
+        assert fake.refreshes == ["patron"]
+
+    def test_priming_keeps_the_loans_already_cached(self, memo):
+        other = make_loan(book="/books/OL999M", read_url="https://lenny.example/read/999")
+        memo(cached=fresh([other]))
+        provider_loans.prime_provider_loans("patron", make_loan())
+        assert provider_loans.get_provider_loan("/books/OL999M", user=FakeUser()) is not None
+        assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
+
+    def test_borrowing_the_same_edition_twice_leaves_one_loan(self, memo):
+        """Lenny's borrow is idempotent, so a patron who clicks twice gets the
+        same loan back. Two entries for one edition would be served to a page
+        that reads the first match and would quietly diverge on due date."""
+        fake = memo(cached=fresh([]))
+        provider_loans.prime_provider_loans("patron", make_loan(expiry="2026-10-06T12:00:00"))
+        provider_loans.prime_provider_loans("patron", make_loan(expiry="2026-11-06T12:00:00"))
+        loans, _t = fake.cached
+        assert [loan["book"] for loan in loans] == [EDITION_KEY]
+        assert loans[0]["expiry"] == "2026-11-06T12:00:00"
+
+    def test_a_cold_cache_is_primed_rather_than_left_empty(self, memo):
+        memo(cached=None)
+        provider_loans.prime_provider_loans("patron", make_loan())
+        assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
+
+    def test_a_broken_cache_does_not_break_the_borrow(self, memo):
+        """The loan exists at the node by the time this is called. Raising here
+        would turn a successful borrow into an error page."""
+        fake = memo(raises=True)
+        provider_loans.prime_provider_loans("patron", make_loan())
+        assert fake.sets == []
+
+    def test_a_loan_with_no_usable_read_url_is_not_primed(self, memo):
+        """`get_provider_loan` would drop it anyway. Writing it would leave the
+        patron's real holdings masked by a row that renders nothing until the
+        background refresh lands."""
+        fake = memo(cached=fresh([]))
+        provider_loans.prime_provider_loans("patron", make_loan(read_url="javascript:alert(1)"))
+        assert fake.sets == []
