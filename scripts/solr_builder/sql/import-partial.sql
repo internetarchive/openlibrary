@@ -1,15 +1,15 @@
 CREATE TEMP TABLE tmp_table
 AS
-SELECT * FROM test
+SELECT * FROM test  -- noqa: AM04
 WITH NO DATA;
 -- 0s
 
 COPY tmp_table FROM :source
-WITH delimiter E'\t' quote E'\b' csv;
+WITH (FORMAT csv, DELIMITER E'\t', QUOTE E'\b');
 -- <1 min for ~1 Month (363877 rows)
 
 INSERT INTO test
-SELECT * FROM tmp_table
+SELECT * FROM tmp_table  -- noqa: AM04
 ON CONFLICT ("Key") DO UPDATE SET
     "Type" = EXCLUDED."Type",
     "Revision" = EXCLUDED."Revision",
