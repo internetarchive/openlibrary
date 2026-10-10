@@ -42,7 +42,7 @@ $jsdef render_seed_field(i, seed):
             <button class="mia__move" type="button">$_("Move...")</button>
             <button class="mia__remove" type="button">$_("Remove")</button>
         </div>
-        <main>
+        <div class="mia__main">
             <input class="ac-input__value" name="seeds--$i--thing--key" type="hidden" value="$key" />
             $# Displayed
             <input
@@ -88,7 +88,7 @@ $jsdef render_seed_field(i, seed):
                     placeholder="$_('Notes (optional)')"
                 >$(jsdef_get(seed, 'notes') or '')</textarea>
             </div>
-        </main>
+        </div>
     </li>
 
 $# import the side-effect of the jsdef function
