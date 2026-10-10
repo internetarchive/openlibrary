@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from pymemcache.test.utils import MockMemcacheClient
 
 from openlibrary.core import provider_loans
 
@@ -281,3 +282,74 @@ class TestWhatTheBookPageSeesRightAfterABorrow:
         fake = memo(cached=fresh([]))
         provider_loans.prime_provider_loans("patron", make_loan(read_url="javascript:alert(1)"))
         assert fake.sets == []
+
+
+class TestItSurvivesTheRealCacheAndNotJustTheFake:
+    """The class above swaps in a `FakeMemo` that stores the Python object, so
+    it never crosses the thing that actually sits between a borrow and the next
+    render: `memcache_memoize`, which round-trips every value through JSON.
+
+    These use the shipping `get_cached_provider_loans` with the same dummy
+    client `cache.memcache_memoize.memcache` falls back to when no servers are
+    configured, so `memcache_set` and `memcache_get` do their real encoding.
+    A loan carrying anything `json.dumps` refuses would pass every test above
+    and fail on the first real borrow. Measured: with a `set()` written into
+    the loan, all four tests here go red and all eight above stay green.
+
+    One thing that trip found, worth knowing before writing the next fixture:
+    a `datetime` is *not* such a value. `helpers.NothingEncoder` coerces any
+    `date` to its ISO string, so it encodes cleanly and comes back a `str` --
+    a silent type change rather than an error. Nothing in a loan is a
+    `datetime` today (`loan_from_node` emits only `str`, `float` and `None`),
+    which is why this is a note and not a test.
+    """
+
+    @pytest.fixture
+    def real_cache(self, monkeypatch):
+        monkeypatch.setattr(
+            provider_loans.get_cached_provider_loans,
+            "_memcache",
+            MockMemcacheClient(),
+        )
+        started: list[str] = []
+        # The primed entry is stale on purpose, so every read below starts a
+        # refresh. Left alone it spawns a thread that asks a real node.
+        monkeypatch.setattr(provider_loans, "_refresh_in_background", started.append)
+        return started
+
+    def test_a_primed_loan_comes_back_through_a_real_encode_and_decode(self, real_cache):
+        provider_loans.prime_provider_loans("patron", make_loan())
+        loan = provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser())
+        assert loan is not None
+        assert loan["read_url"] == "https://lenny.example/read/1"
+        assert loan["book"] == EDITION_KEY
+
+    def test_the_render_that_is_served_the_primed_loan_also_asks_the_node(self, real_cache):
+        provider_loans.prime_provider_loans("patron", make_loan())
+        assert provider_loans.get_provider_loan(EDITION_KEY, user=FakeUser()) is not None
+        assert real_cache == ["patron"]
+
+    def test_the_loan_shape_a_borrow_actually_produces_is_encodable(self, real_cache):
+        """Built by `lenny.loan_from_node` from a node's borrow response rather
+        than hand-written here, so the fixture cannot agree with the code by
+        being written to.
+        """
+        lenny = pytest.importorskip("openlibrary.plugins.upstream.lenny")
+        loan = lenny.loan_from_node(
+            "lenny",
+            "https://lennyforlibraries.org",
+            "patron",
+            {"status": "borrowed", "edition_id": 37044497, "due_at": "2026-10-06T12:00:00+00:00"},
+        )
+        provider_loans.prime_provider_loans("patron", loan)
+        held = provider_loans.get_provider_loan("/books/OL37044497M", user=FakeUser())
+        assert held is not None
+        assert held["read_url"] == "https://lennyforlibraries.org/v1/api/items/37044497/read"
+
+    def test_a_borrow_with_no_borrowed_at_still_reaches_the_page(self, real_cache):
+        """`borrowed_at` is documented nullable and a borrow response need not
+        carry one, so the value `_epoch` substitutes has to survive the trip."""
+        lenny = pytest.importorskip("openlibrary.plugins.upstream.lenny")
+        loan = lenny.loan_from_node("lenny", "https://lennyforlibraries.org", "patron", {"edition_id": 37044497})
+        provider_loans.prime_provider_loans("patron", loan)
+        assert provider_loans.get_provider_loan("/books/OL37044497M", user=FakeUser()) is not None
