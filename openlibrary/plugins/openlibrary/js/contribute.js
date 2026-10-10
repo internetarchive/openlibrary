@@ -15,7 +15,11 @@ const ID_RULES = {
     oclc_numbers: { parse: parseOclc, isValid: isValidOclc },
 };
 
-function readSkipped() {
+/**
+ * The task keys skipped this browser session.
+ * @returns {Set<string>} the stored skipped-task keys (empty if none/unavailable)
+ */
+function readSkippedTaskKeys() {
     try {
         return new Set(JSON.parse(sessionStorage.getItem(SKIPPED_KEY) || '[]'));
     } catch (e) {
@@ -23,8 +27,13 @@ function readSkipped() {
     }
 }
 
-function markSkipped(key) {
-    const skipped = readSkipped();
+/**
+ * Remember a task as skipped for this browser session.
+ * @param {string} key - the task key (``OL…M/<field>``) to mark skipped
+ * @returns {void}
+ */
+function markTaskSkipped(key) {
+    const skipped = readSkippedTaskKeys();
     skipped.add(key);
     try {
         sessionStorage.setItem(SKIPPED_KEY, JSON.stringify([...skipped]));
@@ -33,9 +42,14 @@ function markSkipped(key) {
     }
 }
 
-/** Hide skipped tasks, then any group (book row, same-book section) left with none. */
-function hideSkipped(root, groupSelector) {
-    const skipped = readSkipped();
+/**
+ * Hide skipped tasks, then any group (book row, same-book section) left with none.
+ * @param {ParentNode} root - the subtree to hide within
+ * @param {string} groupSelector - selector for the grouping element to collapse when empty
+ * @returns {void}
+ */
+function hideSkippedTasks(root, groupSelector) {
+    const skipped = readSkippedTaskKeys();
     root.querySelectorAll('[data-task-key]').forEach((el) => {
         if (skipped.has(el.dataset.taskKey)) el.hidden = true;
     });
@@ -44,45 +58,59 @@ function hideSkipped(root, groupSelector) {
     });
 }
 
-function initList(root) {
-    hideSkipped(root, '[data-book-row]');
+/**
+ * Hide skipped rows in the dashboard list and toggle its empty state.
+ * @param {ParentNode} root - the ``[data-contribute-list]`` container
+ * @returns {void}
+ */
+function initTaskList(root) {
+    hideSkippedTasks(root, '[data-book-row]');
     const empty = root.querySelector('[data-list-empty]');
     if (empty) empty.hidden = !!root.querySelector('[data-book-row]:not([hidden])');
 }
 
-function initSkip(form) {
-    form.querySelector('[data-skip]')?.addEventListener('click', () => markSkipped(form.dataset.taskKey));
+/**
+ * Remember this task as skipped when its "I couldn't find it" control is clicked.
+ * @param {HTMLFormElement} form - a ``[data-task-form]`` whose ``data-task-key`` identifies the task
+ * @returns {void}
+ */
+function initSkipButton(form) {
+    form.querySelector('[data-skip]')?.addEventListener('click', () => markTaskSkipped(form.dataset.taskKey));
 }
 
 /**
- * "Other editions say" chips fill the answer with a sibling's value. The chip
- * matching the current answer shows selected; clicking it again clears it.
+ * Wire the "Other editions say" chips to the answer control. The chip matching
+ * the current answer shows selected; clicking it again clears it.
+ * @param {HTMLFormElement} form - the task form holding the chips and answer control
+ * @returns {void}
  */
-function initSuggestions(form) {
+function initSiblingSuggestions(form) {
     const group = form.querySelector('[data-suggest]');
     const control = form.querySelector('#contrib-other-value');
     if (!group || !control) return;
     const isPicker = control.tagName === 'OL-OPTIONS-POPOVER';
-    const current = () => (isPicker ? control.selected : control.value.trim());
+    const currentAnswer = () => (isPicker ? control.selected : control.value.trim());
     const chips = [...group.querySelectorAll('ol-chip')];
-    const sync = () => chips.forEach((chip) => { chip.selected = chip.dataset.value === current(); });
+    const syncChipSelection = () => chips.forEach((chip) => { chip.selected = chip.dataset.value === currentAnswer(); });
 
     group.addEventListener('ol-chip-select', (event) => {
         const chip = event.target.closest('ol-chip');
         const value = event.detail.selected ? chip.dataset.value : '';
         if (isPicker) control.selected = value;
         else control.value = value;
-        sync();
+        syncChipSelection();
     });
-    control.addEventListener(isPicker ? 'ol-options-popover-change' : 'input', sync);
-    sync();
+    control.addEventListener(isPicker ? 'ol-options-popover-change' : 'input', syncChipSelection);
+    syncChipSelection();
 }
 
 /**
- * Identifier tasks check the number as it's typed: a wrong identifier
- * corrupts record matching silently.
+ * Check an identifier answer as it's typed: a wrong identifier corrupts record
+ * matching silently, so the verdict mirrors the server's normalization.
+ * @param {HTMLFormElement} form - a ``[data-id-form]`` whose input carries ``data-id-field``
+ * @returns {void}
  */
-function initIdForm(form) {
+function initIdentifierForm(form) {
     const input = form.querySelector('[data-id-input]');
     const verdict = form.querySelector('[data-id-verdict]');
     if (!input || !verdict) return;
@@ -110,23 +138,30 @@ function initIdForm(form) {
     });
 }
 
-/** Drop the "Save and next" receipt from the URL, so a reload doesn't show its toast again. */
-function clearReceipt() {
+/**
+ * Drop the "Save and next" receipt from the URL, so a reload doesn't show its toast again.
+ * @returns {void}
+ */
+function clearSavedReceipt() {
     const url = new URL(window.location.href);
     if (!url.searchParams.has('saved')) return;
     url.searchParams.delete('saved');
     history.replaceState(history.state, '', url);
 }
 
+/**
+ * Entry point for the Tasks pages; wires the list, task forms, and done page.
+ * @returns {void}
+ */
 export function init() {
     document.querySelectorAll('[data-contribute-list]').forEach((root) => {
-        initList(root);
+        initTaskList(root);
     });
     document.querySelectorAll('form[data-task-form]').forEach((form) => {
-        initSkip(form);
-        initSuggestions(form);
+        initSkipButton(form);
+        initSiblingSuggestions(form);
     });
-    if (document.querySelector('[data-receipt]')) clearReceipt();
-    document.querySelectorAll('form[data-id-form]').forEach(initIdForm);
-    document.querySelectorAll('[data-contribute-done]').forEach((root) => hideSkipped(root, '[data-same-book]'));
+    if (document.querySelector('[data-receipt]')) clearSavedReceipt();
+    document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
+    document.querySelectorAll('[data-contribute-done]').forEach((root) => hideSkippedTasks(root, '[data-same-book]'));
 }
