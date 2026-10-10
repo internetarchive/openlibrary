@@ -62,7 +62,7 @@ $jsdef render_excluded_works_list(works, total):
         position: sticky;
         top: 0;
     }
-    .selected-works main { padding: 5px 10px 10px 10px; }
+    .selected-works--body { padding: 5px 10px 10px 10px; }
     .selected-works--empty { display: none; }
     .selected-works--list:empty+.selected-works--empty {
         display: block;
@@ -167,10 +167,10 @@ $jsdef render_excluded_works_list(works, total):
 
 <details class="selected-works" open>
     <summary>$_("Matching works")</summary>
-    <main>
+    <div class="selected-works--body">
         <div class="selected-works--list"></div>
         <div class="selected-works--empty">
             $_("Click on a bar to see matching works")
         </div>
-    </main>
+    </div>
 </details>

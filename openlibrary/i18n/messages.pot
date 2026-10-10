@@ -655,6 +655,10 @@ msgid "Next"
 msgstr ""
 
 #: site.html.jinja
+msgid "Skip to main content"
+msgstr ""
+
+#: site.html.jinja
 msgid "It looks like you're offline."
 msgstr ""
 
