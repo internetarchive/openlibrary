@@ -1688,7 +1688,7 @@ msgstr ""
 msgid "%(read)d of %(goal)d books read"
 msgstr ""
 
-#: account/sidebar.html reading_goals/reading_goal_progress.html.jinja
+#: account/sidebar.html
 msgid "Reading Goal"
 msgstr ""
 
@@ -5524,7 +5524,8 @@ msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved.
 msgstr ""
 
 #: reading_goals/reading_goal_progress.html.jinja
-msgid "books"
+#, python-format
+msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
 msgstr ""
 
 #: reading_goals/reading_goal_progress.html.jinja

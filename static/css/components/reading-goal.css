@@ -153,6 +153,7 @@
   left: 0;
   top: 0;
   height: 100%;
+  width: var(--progress-width, 0%);
   background-color: var(--color-primary);
   border-radius: inherit;
   transition: width 0.3s ease;
