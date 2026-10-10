@@ -7,6 +7,7 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import web
 import yaml
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -52,7 +53,7 @@ def _load_legacy_wsgi():
     from infogami import config  # type: ignore
 
     # match scripts/openlibrary-server behavior
-    from infogami.utils import delegate as _delegate  # noqa: F401 - side-effects
+    from infogami.utils import delegate as _delegate
 
     ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
     ol_config_file = os.environ.get("OL_CONFIG", str(ol_config_path))
@@ -72,8 +73,14 @@ def _load_legacy_wsgi():
 
     config.middleware.append(_https_middleware)
 
-    # Finish infogami setup and build WSGI app with middleware + static handler
-    infogami._setup()
+    # Initialize only the legacy state required by FastAPI.
+    web.config.db_parameters = config.db_parameters
+    web.config.db_printing = config.db_printing
+
+    if config.get("debug", None) is not None:
+        web.config.debug = config.debug
+
+    _delegate.fakeload()
 
 
 # ---- FastAPI app -----------------------------------------------------------
