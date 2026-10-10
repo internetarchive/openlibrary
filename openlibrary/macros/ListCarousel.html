@@ -1,16 +1,17 @@
-$def with (list_key, title=None, sort='new', key='', limit=20, has_fulltext_only=False, url=None, layout='carousel', safe_mode=True)
+$def with (list_key, title=None, sort='', key='', limit=20, has_fulltext_only=False, url=None, layout='carousel', safe_mode=True)
 
+$# Shows the list's first 100 seeds in one go, with no load-more; the title links to the whole list.
 $# Takes following parameters
 $# * list_key (str) -- A list key e.g. /people/mekBot/lists/OL104041L
-$# * title (str) -- A title to show above the carousel (links to /search?q=query)
-$# * sort (str) -- optional sort param
+$# * title (str) -- A title to show above the carousel (links to the list, or to url)
+$# * sort (str) -- 'old' or 'new' to order by first publish year; by default the list's own order
 $# * key (str) -- unique name of the carousel in analytics
-$# * limit (int) -- initial number of books to pull
+$# * limit (int) -- unused; kept so existing pages still render
 $# * has_fulltext_only (bool) -- only include readable titles; by default every seed in the list is shown
-$# * url (str) -- whether to make title a link to url
+$# * url (str) -- where the title links to, default the list itself
 $# * layout (str) -- layout type, default 'carousel', currently also supports 'grid'
-$# * safe_mode (bool) -- When True, blurs covers of books that have a `content_warning` tag
+$# * safe_mode (bool) -- When True, hides books that have a `content_warning` tag
 
-$ carousel = build_carousel_placeholder_config(query=list_key, title=title, sort=sort, key=key, limit=limit, has_fulltext_only=has_fulltext_only, url=url, layout=layout, safe_mode=safe_mode, by_seed=True)
+$ carousel = build_carousel_placeholder_config(query=list_key, title=title, sort=sort, key=key, limit=limit, has_fulltext_only=has_fulltext_only, url=url or list_key, layout=layout, safe_mode=safe_mode, by_seed=True)
 
 $:render_jinja_template("RawQueryCarouselPlaceholder.html.jinja", **carousel)

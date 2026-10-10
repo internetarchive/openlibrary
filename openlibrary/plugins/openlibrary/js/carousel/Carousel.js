@@ -14,8 +14,7 @@ import { buildPartialsUrl } from  '../utils.js';
  * @property {Object} [loadMore] configuration for loading more items
  * @property {String} loadMore.queryType query category used to fetch more items (e.g. 'SEARCH', 'BROWSE', 'SUBJECTS')
  * @property {Number} loadMore.limit of new items to receive
- * @property {'page' | 'offset' | 'cursor'} loadMore.pageMode
- *      'cursor' means the server owns the position: each response says where to resume (`nextOffset`)
+ * @property {'page' | 'offset'} loadMore.pageMode
  * -- INTERNAL --
  * @property {boolean} loadMore.locked PRIVATE used internally to prevent multiple requests
  * @property {boolean} loadMore.allDone PRIVATE used internally to indicate no more items to load
@@ -154,7 +153,7 @@ export class Carousel {
 
                     if (loadMore.pageMode === 'page') {
                         loadMore.page++;
-                    } else if (loadMore.pageMode === 'offset') { // start from last slide
+                    } else { // i.e. offset, start from last slide
                         loadMore.page = totalSlides;
                     }
 
@@ -200,16 +199,7 @@ export class Carousel {
                 const cards = results.partials || [];
                 cards.forEach(card => this.slick.addSlide(card));
 
-                if (loadMore.pageMode === 'cursor') {
-                    // Cards can be fewer than the items consumed, so only the server knows where to resume
-                    loadMore.page = results.nextOffset ?? null;
-                    loadMore.allDone = loadMore.page === null;
-                    if (!cards.length && !loadMore.allDone) {
-                        // Nothing new to scroll to, which would leave nothing to trigger the next load
-                        this.fetchPartials();
-                        return;
-                    }
-                } else if (!cards.length) {
+                if (!cards.length) {
                     loadMore.allDone = true;
                 }
                 loadMore.locked = false;
