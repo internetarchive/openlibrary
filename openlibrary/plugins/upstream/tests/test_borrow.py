@@ -158,88 +158,96 @@ class TestMediatedProviderBorrow:
             patch("openlibrary.plugins.upstream.lenny.mediated_borrow", return_value=mediated) as mock_mediated,
         ):
             mock_site.get.return_value.get.return_value = edition
-            borrow.handle_borrow("/books/OL46539165M", borrow.BorrowParams(action=action), s3_cookie=None)
-        return mock_render, mock_mediated
+            result = borrow.handle_borrow("/books/OL46539165M", borrow.BorrowParams(action=action), s3_cookie=None)
+        return result, mock_render, mock_mediated
 
-    def test_a_configured_node_sends_the_patron_through_open_library(self):
-        mock_render, _ = self._handle(self._provider(), (self.MEDIATED_URL, "Archive Labs Lenny"))
-        assert mock_render.call_args.kwargs["url"] == self.MEDIATED_URL
-        assert mock_render.call_args.kwargs["borrowing"] is True
+    def test_a_configured_node_sends_the_patron_straight_to_the_handshake(self):
+        result, _render, _mediated = self._handle(self._provider(), self.MEDIATED_URL)
+        assert result == borrow.BorrowRedirect(self.MEDIATED_URL)
 
-    def test_the_library_is_named_from_the_node_not_the_feed_provider(self):
-        """ "Lenny" is the software. The sentence the patron reads names the
-        library, and only the node's own config knows what that is."""
-        mock_render, _ = self._handle(self._provider(), (self.MEDIATED_URL, "Archive Labs Lenny"))
-        assert "Archive Labs Lenny" in str(mock_render.call_args.kwargs["book_provider"])
+    def test_a_configured_node_shows_no_interstitial(self):
+        """The interstitial exists to warn that the next page is somebody
+        else's site. On this path it is not: the next page is an Open Library
+        route that borrows server-side, so the screen had nothing to disclose
+        and only cost the patron five seconds (Mek, walking the live flow
+        2026-10-09: "There was a long interstitial page when I clicked
+        borrow").
 
-    def test_an_unconfigured_node_still_reaches_its_own_sign_in(self):
-        """#13686's behaviour, unchanged: no credentials means the node's own
-        sign-in, which completes a loan with nothing built on this side."""
-        mock_render, _ = self._handle(self._provider(), None)
+        Asserted alongside the redirect above rather than instead of it: "no
+        interstitial" is also true of a 404, so on its own it would pass
+        against a handler that had stopped serving this path at all.
+        """
+        result, mock_render, _mediated = self._handle(self._provider(), self.MEDIATED_URL)
+        assert isinstance(result, borrow.BorrowRedirect)
+        mock_render.assert_not_called()
+
+    def test_an_unconfigured_node_still_sees_the_third_party_interstitial(self):
+        """#13686's behaviour, unchanged, and the reason the screen survives at
+        all: no credentials means the node's own sign-in, which *is* a handoff
+        to somebody else's website and is what the interstitial is for."""
+        result, mock_render, _mediated = self._handle(self._provider(), None)
+        assert not isinstance(result, borrow.BorrowRedirect)
         assert mock_render.call_args.kwargs["url"] == self.BORROW_URL
-        assert mock_render.call_args.kwargs["borrowing"] is False
+
+    def test_the_handshake_is_asked_about_by_edition_key(self):
+        """The library's own name used to come back from here, for an
+        interstitial to print. It is resolved on the page the patron lands on
+        now, so all this call returns is where to send them."""
+        _result, _render, mock_mediated = self._handle(self._provider(), self.MEDIATED_URL)
+        mock_mediated.assert_called_once_with("/books/OL46539165M")
 
     def test_an_open_access_title_is_never_routed_through_the_handshake(self):
         """There is no loan to create, so there is nothing to authorize. Asking
         at all would be a database read on every Read button."""
-        mock_render, mock_mediated = self._handle(
+        result, mock_render, mock_mediated = self._handle(
             self._provider("open-access"),
-            (self.MEDIATED_URL, "Archive Labs Lenny"),
+            self.MEDIATED_URL,
             action="read",
         )
         mock_mediated.assert_not_called()
-        assert mock_render.call_args.kwargs["borrowing"] is False
+        assert not isinstance(result, borrow.BorrowRedirect)
+        assert mock_render.call_args.kwargs["url"] == self.BORROW_URL
 
 
 class TestInterstitialWording:
-    """The one screen that explains the relationship, so it has to be right.
+    """The screen a patron sees before being handed to somebody else's site.
 
-    The two wordings say opposite things -- "a third party we are handing you
-    to" against "a trusted provider, and you are not going anywhere" -- and
-    which one renders is decided by a single boolean. Nothing else in the
-    request distinguishes them.
+    It used to have a second wording, for a borrow Open Library runs itself:
+    "you are not going anywhere, Open Library finishes the loan for you". That
+    branch is gone with the screen itself on that path (#13865) -- a stop whose
+    whole message was "this is not a handoff" was five seconds spent saying
+    nothing. What is left is the handoff it was built for.
     """
 
     LIBRARY = Markup("<strong>Archive Labs Lenny</strong>")
 
-    def _render(self, borrowing, url="/borrow/lenny/OL46539165M"):
+    def _render(self, url="https://standardebooks.org/x"):
         return render_jinja_template(
             "interstitial.html.jinja",
             url=url,
             book_provider=self.LIBRARY,
             wait=5,
             fastapi=False,
-            borrowing=borrowing,
         )
 
     @pytest.fixture(autouse=True)
     def context(self, request_context_fixture):
         request_context_fixture(lang="en")
 
-    def test_a_mediated_borrow_names_the_library_as_a_trusted_provider(self):
-        html = self._render(borrowing=True)
-        assert "borrowable for free from <strong>Archive Labs Lenny</strong>" in html
-        assert "trusted Open Library book provider" in html
-
-    def test_a_mediated_borrow_does_not_call_the_library_a_third_party(self):
-        assert "third-party" not in self._render(borrowing=True)
-
-    def test_a_mediated_borrow_shows_no_destination(self):
-        """The destination is an openlibrary.org path. Printing it invites the
-        question the whole screen exists to answer.
-
-        Shown, not absent: it stays in `data-url` and in the Continue link's
-        `href`, which is how the patron gets there at all.
-        """
-        html = self._render(borrowing=True)
-        assert ">/borrow/lenny/OL46539165M<" not in html
-        assert 'data-url="/borrow/lenny/OL46539165M"' in html
-
     def test_a_hand_off_still_warns_that_the_book_is_elsewhere(self):
         """#13690's path, and every other Trusted Book Provider: unchanged."""
-        html = self._render(borrowing=False, url="https://standardebooks.org/x")
+        html = self._render()
         assert "third-party Open Library Trusted Book Provider" in html
         assert 'href="https://standardebooks.org/x"' in html
+
+    def test_a_hand_off_still_names_the_provider(self):
+        assert "<strong>Archive Labs Lenny</strong>" in self._render()
+
+    def test_a_hand_off_still_offers_a_way_out(self):
+        """The Cancel link is the only part of this screen a patron can act on
+        before the countdown fires, so it is pinned separately from the
+        wording."""
+        assert "close-window" in self._render()
 
 
 class TestBorrowPostAdapter:

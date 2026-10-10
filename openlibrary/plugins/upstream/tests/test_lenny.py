@@ -654,6 +654,8 @@ class TestCallback:
         monkeypatch.setattr(lenny.ProviderToken, "upsert", staticmethod(fake_upsert))
         monkeypatch.setattr(lenny, "borrow", fake_borrow)
         monkeypatch.setattr(lenny.web, "setcookie", lambda *a, **k: recorded["cookies"].append(a))
+        recorded["primed"] = []
+        monkeypatch.setattr(lenny, "prime_provider_loans", lambda username, loan: recorded["primed"].append((username, loan)))
         return recorded
 
     def _call(self, monkeypatch, **params):
@@ -677,6 +679,26 @@ class TestCallback:
     def test_a_mismatched_iss_leaves_no_grant_stored(self, flow, monkeypatch):
         self._call(monkeypatch, iss=OTHER_NODE_ISS)
         assert flow["stored"] == []
+
+    def test_the_handshake_path_also_tells_the_book_page_about_the_new_loan(self, flow, monkeypatch):
+        """The same ending as a reused grant (#13865). This is the path Mek
+        walked on 2026-10-09, where the popup refreshed the book page and the
+        CTA still said Borrow."""
+        self._call(monkeypatch)
+        assert [username for username, _loan in flow["primed"]] == ["patron"]
+        assert flow["primed"][0][1]["book"] == "/books/OL51008637M"
+        assert flow["primed"][0][1]["read_url"] == "https://lennyforlibraries.org/v1/api/items/51008637/read"
+
+    def test_a_refused_loan_tells_the_book_page_nothing(self, flow, monkeypatch):
+        """Priming on a refusal would put a loan on the CTA that does not
+        exist, and the patron would get a Read button leading nowhere."""
+
+        def refused(pending, token, edition_id):
+            raise lenny.LennyBorrowError("unavailable", 409)
+
+        monkeypatch.setattr(lenny, "borrow", refused)
+        self._call(monkeypatch)
+        assert flow["primed"] == []
 
     def test_the_grant_is_stored_before_the_loan_is_created(self, flow, monkeypatch):
         """A loan made with a grant Open Library failed to keep is a live
@@ -832,13 +854,13 @@ class TestMediatedBorrow:
 
     def test_a_configured_node_borrows_through_open_library(self, lends):
         lends({"lenny": {**NODE, "name": "Archive Labs Lenny"}})
-        assert lenny.mediated_borrow("/books/OL51008637M") == ("/borrow/lenny/OL51008637M", "Archive Labs Lenny")
+        assert lenny.mediated_borrow("/books/OL51008637M") == "/borrow/lenny/OL51008637M"
 
     def test_the_url_is_an_open_library_path(self, lends):
         """Relative on purpose: the patron's address bar must not change host,
         which is the whole requirement behind #13688."""
         lends({"lenny": NODE})
-        url, _name = lenny.mediated_borrow("/books/OL51008637M")
+        url = lenny.mediated_borrow("/books/OL51008637M")
         assert url.startswith("/borrow/")
         assert "://" not in url
 
@@ -897,9 +919,58 @@ class TestPopupEndings:
         assert self._flash() == []
 
     def test_the_success_page_keeps_a_route_to_the_book(self):
-        """The only route, on the paths with no opener to refresh: Open
-        Library's own button still says "Borrow" after a loan."""
         assert self.READ in self._borrowed().rawtext
+
+    def test_the_success_page_carries_the_reader_for_its_script_to_use(self):
+        """Read from a data attribute rather than interpolated into the script,
+        so the URL is escaped as an attribute value by the same template engine
+        that escapes every other one."""
+        assert f'data-read-url="{self.READ}"' in self._borrowed().rawtext
+
+    def test_a_borrowed_window_goes_to_the_reader_rather_than_closing(self):
+        """What Mek asked for on 2026-10-09: "Clicking borrow shows 'Borrowed
+        from Lenny' but did not bring me to the book."
+
+        A navigation of this window, not a `window.open`: by the time the node
+        has mailed a code and the patron has typed it, the browser's transient
+        user activation from the Borrow click is long gone, so a popup opened
+        from here would be blocked. A window that is already open can always
+        navigate itself.
+        """
+        rawtext = self._borrowed().rawtext
+        assert "window.location.replace(" in rawtext
+
+    def test_the_opener_is_told_before_this_window_navigates(self):
+        """The ordering is the contract. A window that starts unloading before
+        `postMessage` runs loses the message, and the message is the only thing
+        that refreshes the book page -- so the patron would get their reader
+        and come back to a CTA still saying Borrow.
+        """
+        rawtext = self._borrowed().rawtext
+        assert rawtext.index("postMessage(") < rawtext.index("window.location.replace(")
+
+    def test_the_read_link_opens_in_its_own_window(self):
+        """The link the scriptless path falls back on. Without a target it
+        loads the reader into a 520px consent popup."""
+        rawtext = self._borrowed().rawtext
+        assert f'href="{self.READ}" target="_blank" rel="noopener"' in rawtext
+
+    def test_the_navigation_is_gated_on_a_loan_existing(self):
+        """The error page is the one ending with something to read, so it must
+        not be navigated away from.
+
+        Both pages carry the *same* script -- only `data-ok` differs -- so
+        "the string is absent from the failure page" is not a claim that can be
+        true, and an earlier version of this test asserting it failed for that
+        reason rather than finding a defect. What is checkable from here is
+        that the navigation sits inside the `ok` branch; `data-ok="0"` on the
+        failure page is pinned separately above. The branch *taken* at runtime
+        is not covered: this script is inline in a Jinja template, so the
+        vitest suite cannot reach it. See the #13865 PR body.
+        """
+        rawtext = self._borrowed().rawtext
+        assert rawtext.index("if (ok) {") < rawtext.index("window.location.replace(")
+        assert 'data-ok="0"' in lenny.render_error("Nope.", "/books/OL51008637M").rawtext
 
     def test_the_success_page_carries_the_type_the_opener_listens_for(self):
         """A mismatch here is the loan created and the page never refreshed."""
@@ -1288,3 +1359,139 @@ class TestTheTokenPhaseIsBounded:
         result = lenny.provider_loans("patron")
         assert sorted(result.unreachable) == ["lenny", "lenny_b"]
         assert result.loans == []
+
+
+class TestTheStoredGrantIsReused:
+    """A patron who has already authorized this library does not authorize it
+    again (#13865).
+
+    `provider_tokens` exists so Open Library can borrow on the patron's behalf
+    later. Before this, the borrow handler read no grant at all: every click
+    went out to the node's consent screen, signed in by one-time code, and came
+    back -- for a credential already sitting in the table, which was then
+    overwritten with an equivalent one.
+
+    What that costs is not just time. The node mails a code each round, and a
+    patron who abandons at the OTP screen has disclosed their email to the node
+    for a loan that never happened.
+    """
+
+    LOAN: ClassVar[dict] = {"status": "borrowed", "edition_id": 51008637, "due_at": "2026-10-04"}
+
+    @pytest.fixture
+    def reuse(self, memcache, monkeypatch, request_context_fixture):
+        request_context_fixture(lang="en")
+        web.ctx.flash = []
+        recorded: dict = {"borrows": [], "primed": [], "token": None}
+
+        class FakeUser:
+            key = "/people/patron"
+
+            def get_username(self):
+                return "patron"
+
+            def get_email(self):
+                return "patron@example.org"
+
+        def seeother(url):
+            raise Redirected(url)
+
+        def fake_borrow(pending, token, edition_id):
+            recorded["borrows"].append((pending["issuer"], token, edition_id))
+            return dict(TestTheStoredGrantIsReused.LOAN)
+
+        monkeypatch.setattr(lenny, "get_current_user", FakeUser)
+        monkeypatch.setattr(lenny, "nodes", lambda: {"lenny": NODE})
+        monkeypatch.setattr(lenny, "node_for_edition", lambda key: ("lenny", NODE))
+        monkeypatch.setattr(lenny, "discover", lambda issuer, timeout=None: DISCOVERY)
+        monkeypatch.setattr(lenny.web, "seeother", seeother)
+        monkeypatch.setattr(lenny, "borrow", fake_borrow)
+        monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: "stored-at")
+        monkeypatch.setattr(lenny, "prime_provider_loans", lambda username, loan: recorded["primed"].append((username, loan)))
+        recorded["memcache"] = memcache
+        return recorded
+
+    @staticmethod
+    def _go():
+        return lenny.lenny_borrow().GET("OL51008637M")
+
+    def test_a_stored_grant_borrows_without_sending_the_patron_to_the_node(self, reuse):
+        page = self._go()
+        assert 'data-ok="1"' in page.rawtext
+
+    def test_the_stored_grant_is_what_is_presented_to_the_node(self, reuse):
+        self._go()
+        assert reuse["borrows"] == [(NODE["issuer"], "stored-at", 51008637)]
+
+    def test_a_reused_grant_starts_no_authorization(self, reuse):
+        """No pending state, so no PKCE verifier and no `state` to replay. The
+        handshake is not merely skipped on the way out -- it is never begun."""
+        self._go()
+        assert reuse["memcache"].store == {}
+
+    def test_a_reused_borrow_offers_the_book_it_just_borrowed(self, reuse):
+        assert "https://lennyforlibraries.org/v1/api/items/51008637/read" in self._go().rawtext
+
+    def test_a_reused_borrow_tells_the_book_page_about_the_new_loan(self, reuse):
+        """Without this the CTA behind the popup re-renders from the cache
+        entry written before the borrow and still says Borrow."""
+        self._go()
+        assert [username for username, _loan in reuse["primed"]] == ["patron"]
+        assert reuse["primed"][0][1]["book"] == "/books/OL51008637M"
+
+    def test_no_stored_grant_still_runs_the_full_handshake(self, reuse, monkeypatch):
+        monkeypatch.setattr(lenny, "access_token_for", lambda username, provider_name: None)
+        with pytest.raises(Redirected) as excinfo:
+            self._go()
+        assert excinfo.value.url.startswith(DISCOVERY["authorization_endpoint"])
+        assert reuse["borrows"] == []
+
+    @pytest.mark.parametrize("status", [401, 403])
+    def test_a_grant_the_node_rejects_falls_back_to_authorizing_again(self, reuse, monkeypatch, status):
+        """A grant can be locally unexpired and rejected at the node -- revoked
+        there, or the whole family lost to a replayed refresh token. The store
+        cannot see that, so the only place it shows up is a refused borrow, and
+        the one action that fixes it is the handshake."""
+
+        def rejected(pending, token, edition_id):
+            raise lenny.LennyBorrowError("invalid_token", status)
+
+        monkeypatch.setattr(lenny, "borrow", rejected)
+        with pytest.raises(Redirected) as excinfo:
+            self._go()
+        assert excinfo.value.url.startswith(DISCOVERY["authorization_endpoint"])
+
+    def test_a_refusal_the_handshake_cannot_fix_is_shown_instead(self, reuse, monkeypatch):
+        """ "You have too many books out" is the node's answer, not a sign the
+        credential is stale. Re-authorizing would mail the patron a code, spend
+        their time, and arrive at the same refusal."""
+
+        def refused(pending, token, edition_id):
+            raise lenny.LennyBorrowError("loan_limit_reached", 409)
+
+        monkeypatch.setattr(lenny, "borrow", refused)
+        page = self._go()
+        assert "loan limit" in page.rawtext
+        assert 'data-ok="0"' in page.rawtext
+
+    def test_a_node_that_cannot_be_reached_falls_back_to_authorizing_again(self, reuse, monkeypatch):
+        """A timeout says nothing about the grant, so the patron is offered the
+        path that works from a cold start rather than an error page."""
+
+        def boom(pending, token, edition_id):
+            raise RuntimeError("connection reset")
+
+        monkeypatch.setattr(lenny, "borrow", boom)
+        with pytest.raises(Redirected) as excinfo:
+            self._go()
+        assert excinfo.value.url.startswith(DISCOVERY["authorization_endpoint"])
+
+    def test_a_reused_borrow_is_confirmed_on_the_page_behind_the_popup(self, reuse):
+        """Same ending as the handshake path: the popup closes, so the flash on
+        the opener is the confirmation the patron actually reads.
+
+        "Lenny" rather than a library name because `NODE` carries no `name`;
+        `node_display_name` falls back to the feed's provider name.
+        """
+        self._go()
+        assert [(m.type, m.message) for m in web.ctx.flash] == [("info", "Borrowed from Lenny. Your loan is due 2026-10-04.")]

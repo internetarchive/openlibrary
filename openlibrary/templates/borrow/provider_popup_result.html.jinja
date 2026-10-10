@@ -13,12 +13,10 @@
    looking at the page they started on. The script below is what closes it.
 
    The content is rendered rather than hidden-until-needed, because it is what
-   the patron reads on every path where there is no opener to talk to: no
-   JavaScript, or the CTA's target="_blank" fallback, which has no opener by
-   construction. On those paths `read_url` is the only route to the book —
-   Open Library's own button still says "Borrow" after a loan, because it
-   renders from the harvested acquisitions row and a loan does not touch it
-   (#13694).
+   the patron reads on the one path with no script to run it: JavaScript off.
+   Everywhere else the script below sends this window to `read_url` as soon as
+   it has told the opener, because a patron who clicked Borrow asked for a
+   book and not for a receipt (#13865).
 
    Standalone rather than wrapped in the site layout, and the reason is in
    lenny._popup_page: the layout drains the flash message this page is trying
@@ -49,6 +47,7 @@
      class="provider-borrow-result"
      data-ok="{{ '1' if ok else '0' }}"
      data-return-url="{{ return_url }}"
+     data-read-url="{{ read_url or '' }}"
      data-message-type="{{ message_type }}">
     {% if ok %}
         <h1>{{ _("Borrowed") }}</h1>
@@ -58,7 +57,7 @@
             <p>{{ _("Your loan has been created.") }}</p>
         {% endif %}
         {% if read_url %}
-            <p><a href="{{ read_url }}">{{ _("Read it now") }}</a></p>
+            <p><a href="{{ read_url }}" target="_blank" rel="noopener">{{ _("Read it now") }}</a></p>
         {% endif %}
     {% else %}
         <h1>{{ _("Borrow") }}</h1>
@@ -70,6 +69,7 @@
   (() => {
       const result = document.getElementById('provider-borrow-result');
       if (!result) return;
+      const ok = result.dataset.ok === '1';
 
       // Same-origin by the time we are back on an Open Library path, so this
       // read is allowed -- but a popup the patron reused, or one whose opener
@@ -80,24 +80,54 @@
       } catch {
           opener = null;
       }
-      if (!opener) return;
 
-      opener.postMessage(
-          {type: result.dataset.messageType, ok: result.dataset.ok === '1'},
-          window.location.origin
-      );
+      // Before this window navigates anywhere. An unload partway through loses
+      // the message, and the message is the only thing that refreshes the book
+      // page: the patron would get their reader and come back to a CTA still
+      // offering Borrow.
+      if (opener) {
+          opener.postMessage({type: result.dataset.messageType, ok}, window.location.origin);
+      }
 
-      if (result.dataset.ok === '1') {
-          // provider_borrow_popup.js refreshes the opener when it gets that
-          // message. Closing here as well as there means the window goes away
-          // even if the opener has since stopped listening.
-          window.close();
+      if (ok) {
+          // This window becomes the reader rather than closing on a
+          // confirmation nobody stays to read. A navigation, not a
+          // `window.open`: the browser's transient activation from the Borrow
+          // click expired several screens ago -- the node mails a one-time
+          // code and waits for it -- so a popup opened from here would be
+          // blocked. A window that is already open can always navigate itself,
+          // and this is the same window on the no-opener path too, which is
+          // how a blocked popup also ends up in the reader.
+          //
+          // provider_borrow_popup.js deliberately stops closing this window.
+          // The two sides have to agree, or the reader is killed as it loads.
+          const read = result.dataset.readUrl;
+          if (!read) {
+              if (opener) window.close();
+              return;
+          }
+          if (opener) {
+              // Opened at 520px, which is a consent screen and not a book.
+              // Best effort: a browser that refuses leaves a small reader,
+              // and nothing below depends on this having worked.
+              try {
+                  window.resizeTo(Math.min(screen.availWidth, 1200), Math.min(screen.availHeight, 1000));
+              } catch {
+                  // Some browsers refuse to resize a window they did not size.
+              }
+          }
+          // `replace`, not `assign`: the URL this page was served from carries
+          // a spent authorization code and a `state` that `take_state` deleted
+          // on read. Leaving it in this window's history means Back re-sends
+          // it and the patron is told their borrow request expired.
+          window.location.replace(read);
           return;
       }
 
       // A failure stays on screen to be read. Its link then acts on the page
       // the patron actually came from, rather than loading a full book page
       // into a 520px window.
+      if (!opener) return;
       const back = result.querySelector('.js-provider-borrow-return');
       if (back) {
           back.addEventListener('click', (event) => {

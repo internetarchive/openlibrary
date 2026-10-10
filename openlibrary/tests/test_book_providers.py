@@ -218,7 +218,12 @@ class TestReadButtonTemplate:
     string -- a provider registered and a patron shown nothing."""
 
     @staticmethod
-    def render(access: AcquisitionAccessLiteral, url: str, provider_name: str | None = "lenny") -> str:
+    def render(
+        access: AcquisitionAccessLiteral,
+        url: str,
+        provider_name: str | None = "lenny",
+        provider_loan: dict | None = None,
+    ) -> str:
         path = Path("openlibrary/templates/book_providers/read_button.html")
         template = Template(
             path.read_text(encoding="utf-8"),
@@ -230,7 +235,27 @@ class TestReadButtonTemplate:
         # `AttributeError` the moment the template reads it, which reports as
         # the template being broken.
         acquisition = Acquisition(access=access, format="web", price=None, url=url, provider_name=provider_name)
-        return str(template("OL46539165M", acquisition, "Lenny", lambda action: f'data-ol-link-track="CTAClick|{action}"'))
+        return str(
+            template(
+                "OL46539165M",
+                acquisition,
+                "Lenny",
+                lambda action: f'data-ol-link-track="CTAClick|{action}"',
+                provider_loan=provider_loan,
+            )
+        )
+
+    def test_a_held_loan_offers_read_in_its_own_window(self):
+        """Already true when this was written, and pinned rather than fixed:
+        of the three places Open Library renders a Lenny reader link, this is
+        the one that was right. The audit that found the other two is in the
+        #13865 PR body; the point of this test is that the count stays at
+        three and the right answer stays the right answer.
+        """
+        html = self.render("borrow", BORROW_URL, provider_loan={"read_url": READ_URL})
+        assert f'href="{READ_URL}"' in html
+        assert 'target="_blank"' in html
+        assert "noopener" in html
 
     def test_a_borrow_acquisition_renders_a_button(self):
         html = self.render("borrow", BORROW_URL)

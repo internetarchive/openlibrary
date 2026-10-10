@@ -418,28 +418,6 @@ msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous pa
 msgstr ""
 
 #: interstitial.html.jinja
-msgid "Getting your book"
-msgstr ""
-
-#: interstitial.html.jinja
-#, python-format
-msgid "This book is borrowable for free from %(book_provider)s, a trusted Open Library book provider"
-msgstr ""
-
-#: interstitial.html.jinja
-#, python-format
-msgid "In %(time)s seconds, that library will ask you to sign in. Open Library finishes the loan for you."
-msgstr ""
-
-#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
-msgid "Cancel"
-msgstr ""
-
-#: interstitial.html.jinja
-msgid "Continue without waiting"
-msgstr ""
-
-#: interstitial.html.jinja
 msgid "You are being redirected to your book"
 msgstr ""
 
@@ -451,6 +429,14 @@ msgstr ""
 #: interstitial.html.jinja
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
+msgstr ""
+
+#: EditButtons.html PreviewSearchInside.html account/loans.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja lists/lists.html merge/authors.html type/edition/notes_modal_i18n.html type/list/edit.html type/list/view_body.html type/series/edit.html type/tag/form.html
+msgid "Cancel"
+msgstr ""
+
+#: interstitial.html.jinja
+msgid "Continue without waiting"
 msgstr ""
 
 #: library_explorer.html openlibrary/plugins/openlibrary/nav.py
