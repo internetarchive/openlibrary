@@ -1,0 +1,164 @@
+/* Cover add/manage forms: covers/add.html, covers/manage.html,
+   covers/external_image.html. */
+/* For changes in this file to take effect you must run make js instead of the usual make css because this is imported by main.js (via js-all.css) */
+/* stylelint-disable selector-max-specificity */
+
+.floatform,
+.ol-cover-form {
+  font-family: var(--font-family-body);
+}
+
+.floatform button[type="submit"],
+.ol-cover-form button[type="submit"] {
+  font-size: 1em;
+  width: auto;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.floatform .label,
+.ol-cover-form .label {
+  padding-bottom: var(--spacing-inset-xs);
+}
+
+.floatform .label label,
+.ol-cover-form .label label {
+  font-size: 1em;
+  font-family: var(--font-family-body);
+  font-weight: 700;
+}
+
+.floatform .label span,
+.ol-cover-form .label span {
+  font-weight: normal;
+}
+
+.floatform input[type="text"],
+.floatform input[type="url"],
+.floatform input[type="file"],
+.ol-cover-form input[type="text"],
+.ol-cover-form input[type="url"],
+.ol-cover-form input[type="file"] {
+  font-size: 1.125em;
+  font-family: var(--font-family-body);
+  padding: var(--spacing-inset-xs);
+}
+
+.floatform input::file-selector-button,
+.ol-cover-form input::file-selector-button {
+  cursor: pointer;
+}
+
+.floatform a,
+.ol-cover-form a {
+  cursor: pointer;
+}
+
+.ol-cover-form {
+  background-color: var(--lightest-grey);
+  border-radius: 10px;
+  padding: var(--spacing-inset-sm);
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+.ol-cover-form .input {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  align-items: center;
+}
+
+.ol-cover-form .input > :first-child {
+  flex: 1;
+}
+
+.ol-cover-form button[type="submit"] {
+  margin-top: 0;
+}
+
+.ol-cover-form .carousel-container {
+  padding: var(--spacing-inset-sm) 0;
+  margin: 0;
+  border-radius: 10px;
+}
+
+.ol-cover-form .carousel {
+  padding: 0;
+}
+
+.ol-cover-form .carousel__item {
+  margin: 0;
+}
+
+.ol-cover-form .book-cover {
+  height: auto;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+}
+
+.ol-cover-form .carousel .cta-btn {
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border-muted);
+  border-radius: 6px;
+  position: relative;
+}
+
+.ol-cover-form--external a {
+  text-decoration: none;
+}
+
+.ol-cover-form--external .ol-cover-form--external_image {
+  display: block;
+}
+
+.ol-cover-form--external .input {
+  flex-direction: column;
+}
+
+.ol-cover-form--external .input-container {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-inline-sm);
+}
+
+.ol-cover-form--external button[type="submit"] {
+  width: 135px;
+}
+
+#coverFile {
+  min-width: 1px;
+}
+
+div#covers.input {
+  max-height: 132px;
+  overflow: hidden;
+  margin-left: -80px;
+  text-align: center;
+}
+
+div.imageIntro {
+  margin: 0 0 var(--spacing-stack-sm);
+}
+
+@media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
+  .floatform div#covers.input,
+  .floatform .label,
+  .floatform .input {
+    width: 560px;
+    padding-top: var(--spacing-inset-md);
+  }
+
+  .floatform > div {
+    margin: 0 80px;
+    text-align: left;
+  }
+
+  .floatform input[type="text"],
+  .floatform input[type="url"],
+  .floatform input[type="file"] {
+    width: 350px;
+  }
+
+  div.imageIntro {
+    margin: var(--spacing-stack-sm);
+  }
+}

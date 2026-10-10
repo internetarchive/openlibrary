@@ -27,7 +27,11 @@
 
 .social-wrapper {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+}
+
+.social-wrapper .ol-button-static__icon {
+  color: var(--color-icon-muted);
 }
 
 .follow-row {
@@ -136,6 +140,7 @@
 
   .social-wrapper {
     flex-direction: column;
+    align-items: flex-start;
   }
 
   .mybooks-details {
