@@ -49,7 +49,12 @@ ul.listLists li .owner {
   line-height: 1.125em;
   margin: 5px 0;
 }
+/* An li so the <ul> stays valid while loading, without any of the row chrome. */
 ul.listLists .list-overview-loading-indicator {
+  display: block;
+  padding: 0;
+  background: none;
+  border-bottom: 0;
   font-size: 8px;
   text-transform: uppercase;
   text-align: center;
