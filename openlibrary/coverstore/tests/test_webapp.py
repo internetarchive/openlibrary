@@ -178,6 +178,36 @@ class TestUploadedCoverRedirect:
         assert r.status_code == 304
 
 
+class TestMalformedSizeFilename:
+    """A row whose size filename is NULL and whose original is tar-style.
+
+    read_image falls back to `<original>-L.jpg`, which for a tar-style original
+    leaves `covers_NNNN_NN.tar:<offset>:<size>-L.jpg`. read_file splits that on
+    ":" and int()s the last field, so a tar that exists raises ValueError rather
+    than OSError. The row is malformed, not the request, so it is still a 404.
+    """
+
+    @pytest.fixture
+    def client(self, monkeypatch, tmpdir):
+        tmpdir.mkdir("items").mkdir("covers_0003").join("covers_0003_38.tar").write_binary(b"x" * 1024)
+        monkeypatch.setattr(config, "data_root", str(tmpdir))
+        details = web.storage(
+            id=3_385_000,
+            uploaded=False,
+            created=datetime.datetime(2021, 9, 26, 0, 45, 9),
+            filename="covers_0003_38.tar:512:3",
+            filename_l=None,
+        )
+        monkeypatch.setattr(code, "get_details", lambda coverid, size="": details)
+        return TestClient(make_app())
+
+    def test_unparsable_size_is_a_404(self, client):
+        assert client.get("/b/id/3385000-L.jpg", follow_redirects=False).status_code == 404
+
+    def test_the_original_size_still_serves(self, client):
+        assert client.get("/b/id/3385000.jpg", follow_redirects=False).status_code == 200
+
+
 class TestProxyScheme:
     """nginx terminates TLS and proxies to us over plain http. The archive.org
     redirects are built from request.url.scheme, so if the scheme doesn't survive the
