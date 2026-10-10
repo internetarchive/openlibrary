@@ -866,9 +866,9 @@ def borrow_with_stored_grant(
     """Borrow with the grant the patron already gave this library, or None.
 
     None means "run the handshake": no stored grant, a grant the node refused,
-    or a node that did not answer. The caller falls back to
-    :func:`authorize_url`, which works from a cold start and is what a patron
-    with no grant gets anyway.
+    a node that did not answer, or a token store that could not be read. The
+    caller falls back to :func:`authorize_url`, which works from a cold start
+    and is what a patron with no grant gets anyway.
 
     It **raises** :class:`LennyBorrowError` for a refusal authorizing again
     would not change -- "every copy is out", "you have too many books out".
@@ -884,7 +884,20 @@ def borrow_with_stored_grant(
     revoked grant is locally unexpired forever -- which is why the refused
     borrow is the only place it surfaces.
     """
-    if not (token := access_token_for(username, provider_name)):
+    try:
+        token = access_token_for(username, provider_name)
+    except Exception:
+        # `access_token_for` absorbs `TokenRefreshFailed`, so anything arriving
+        # here is the store itself -- most likely `provider_tokens` not
+        # existing, which is the documented state of any database that was not
+        # initialised from `schema.sql`. Falling through to the handshake keeps
+        # the old behaviour on such a host: the borrow starts, and the
+        # callback's `upsert` reports the storage failure in words. Raising
+        # here would 500 on the first click instead. `_patron_tokens` guards
+        # its own call for the same reason.
+        logger.exception("lenny could not read a stored grant for %s at %s", username, provider_name)
+        return None
+    if not token:
         return None
     try:
         edition_id = int(extract_numeric_id_from_olid(edition_key))

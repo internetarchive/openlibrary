@@ -1474,6 +1474,31 @@ class TestTheStoredGrantIsReused:
         assert "loan limit" in page.rawtext
         assert 'data-ok="0"' in page.rawtext
 
+    def test_an_unreadable_token_store_falls_back_to_authorizing_again(self, reuse, monkeypatch):
+        """The regression this guards is not hypothetical: `schema.sql` is
+        applied at database *init* only, so until an operator runs the
+        `CREATE TABLE` by hand -- which is the documented state of
+        `testing.openlibrary.org` and of production -- `DbTokenStore` raises
+        `relation "provider_tokens" does not exist` on every read.
+
+        Before the borrow path read the store at all, a click on such a host
+        started the handshake and failed politely at the callback's `upsert`,
+        with "That library could not complete the loan." Letting this raise
+        would turn that into a 500 on the first click, on the one deployment
+        this feature is being demoed from.
+
+        `_patron_tokens` guards its own `access_token_for` call for the same
+        reason and says so; this is the second caller.
+        """
+
+        def unreadable(username, provider_name):
+            raise RuntimeError('relation "provider_tokens" does not exist')
+
+        monkeypatch.setattr(lenny, "access_token_for", unreadable)
+        with pytest.raises(Redirected) as excinfo:
+            self._go()
+        assert excinfo.value.url.startswith(DISCOVERY["authorization_endpoint"])
+
     def test_a_node_that_cannot_be_reached_falls_back_to_authorizing_again(self, reuse, monkeypatch):
         """A timeout says nothing about the grant, so the patron is offered the
         path that works from a cold start rather than an error page."""
