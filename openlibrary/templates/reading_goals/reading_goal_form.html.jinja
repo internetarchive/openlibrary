@@ -24,7 +24,8 @@
                    value="{{ goal if goal else '' }}"
                    max="10000"
                    aria-labelledby="yearly-goal-prompt"
-                   required>
+                   required
+                   autofocus>
             <button class="cta-btn cta-btn--shell reading-goal-submit-button"
                     type="submit"
                     data-ol-link-track="YearlyReadingGoals|SubmitGoal">{{ _("Submit") }}</button>

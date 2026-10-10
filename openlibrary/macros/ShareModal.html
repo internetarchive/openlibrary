@@ -1,4 +1,4 @@
-$def with (share_links, page_url, link_markup, classes='', show_embed=True)
+$def with (share_links, page_url, link_markup, classes='', show_embed=True, block=False)
 $# Share menu as an <ol-popover> (see openlibrary/components/lit/OlPopover.js),
 $# matching the Browse popover's icon + label rows.
 $#
@@ -7,12 +7,19 @@ $# :param str page_url: absolute url excluding params (used for Embed iframe src
 $# :param str link_markup: Markup for the element that opens the popover; must carry slot="trigger"
 $# :param str classes: Extra HTML classes on the host wrapper
 $# :param bool show_embed: When False (e.g. My Books), hide the Embed row
+$# :param bool block: When True, the trigger stretches to fill its row
+$#   (ol-popover `block`); pair with a full-width trigger element
 
 $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="//$request.domain$page_url/widget"></iframe>
 
 <div class="share-popover-component $classes">
-  <ol-popover class="share-popover" placement="bottom-start" aria-label="$_('Share')">
+  <ol-popover
+    class="share-popover"
+    placement="bottom-start"
+    aria-label="$_('Share')"
+    $if block: block
+  >
     $:link_markup
     <div class="share-popover__panel">
       <ul class="share-popover__links">

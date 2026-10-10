@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: account.html account/notifications.html account/privacy.html lib/nav_head.html type/user/view.html
+#: account.html account/notifications.html account/privacy.html account/sidebar.html lib/nav_head.html type/user/view.html
 msgid "Settings"
 msgstr ""
 
@@ -49,11 +49,11 @@ msgstr ""
 msgid "View or Edit your Lists"
 msgstr ""
 
-#: account.html account/mybooks.html account/sidebar.html account/topmenu.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+#: account.html account/sidebar.html openlibrary/plugins/upstream/account.py
 msgid "Import your data"
 msgstr ""
 
-#: account.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+#: account.html openlibrary/plugins/upstream/account.py
 msgid "Export your data"
 msgstr ""
 
@@ -536,7 +536,7 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
+#: ObservationsModal.html account/loans.html lists/lists.html merge/authors.html native_dialog.html.jinja reading_goals/yearly_goal_dialog.html.jinja type/edition/notes_modal_i18n.html type/list/view_body.html
 msgid "Close"
 msgstr ""
 
@@ -939,7 +939,7 @@ msgstr ""
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html.jinja openlibrary/plugins/upstream/mybooks.py search/search_modal_i18n.html work_search.html
+#: SearchNavigation.html account/sidebar.html lib/nav_foot.html.jinja openlibrary/plugins/upstream/mybooks.py search/search_modal_i18n.html work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1341,11 +1341,7 @@ msgstr ""
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
 msgstr ""
 
-#: account/mybooks.html
-msgid "No books are on this shelf"
-msgstr ""
-
-#: account/mybooks.html account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+#: account/mybooks.html account/sidebar.html openlibrary/plugins/upstream/account.py
 msgid "Loans & History"
 msgstr ""
 
@@ -1354,33 +1350,12 @@ msgstr ""
 msgid "Already Read"
 msgstr ""
 
+#: account/mybooks.html
+msgid "No books are on this shelf"
+msgstr ""
+
 #: account/mybooks.html type/user/view.html
 msgid "This reader has chosen to make their Reading Log private."
-msgstr ""
-
-#: account/mybooks.html
-#, python-format
-msgid "%(year_span)s reading goal"
-msgstr ""
-
-#: account/mybooks.html
-msgid "View All Lists"
-msgstr ""
-
-#: account/mybooks.html
-msgid "My Stats"
-msgstr ""
-
-#: account/mybooks.html account/sidebar.html account/topmenu.html
-msgid "My Reading Stats"
-msgstr ""
-
-#: account/mybooks.html account/sidebar.html
-msgid "My Notes"
-msgstr ""
-
-#: account/mybooks.html account/sidebar.html
-msgid "My Reviews"
 msgstr ""
 
 #: BookByline.html SearchResultsWork.html account/notes.html account/observations.html
@@ -1448,7 +1423,7 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: EditionNavBar.html account/observations.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: EditionNavBar.html account/observations.html account/sidebar.html openlibrary/plugins/upstream/mybooks.py
 msgid "Reviews"
 msgstr ""
 
@@ -1602,7 +1577,7 @@ msgstr ""
 msgid "My %(shelf_name)s Stats"
 msgstr ""
 
-#: account/readinglog_stats.html lib/nav_head.html
+#: account/readinglog_stats.html account/sidebar.html lib/nav_head.html
 msgid "My Books"
 msgstr ""
 
@@ -1671,22 +1646,87 @@ msgstr ""
 msgid "Click on a bar to see matching works"
 msgstr ""
 
-#: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: account/sidebar.html
+#, python-format
+msgid "Hi, <span>%(name)s</span>!"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Following"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Followers"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Public profile"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Share profile"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Private profile"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Make profile public to share"
+msgstr ""
+
+#: ShareModal.html account/sidebar.html type/edition/modal_links.html type/edition/title_and_author.html
+msgid "Share"
+msgstr ""
+
+#: account/sidebar.html openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
 msgstr ""
 
 #: account/sidebar.html
-#, python-format
-msgid "%(year)d Reading Goal"
+msgid "My Reading Stats"
 msgstr ""
 
 #: account/sidebar.html
 #, python-format
-msgid "Set %(year_span)s reading goal"
+msgid "%(read)d of %(goal)d books read"
 msgstr ""
 
-#: account/sidebar.html search/sort_options.html type/user/view.html
-msgid "Reading Log"
+#: account/sidebar.html
+msgid "Reading Goal"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Edit reading goal"
+msgstr ""
+
+#: account/sidebar.html
+msgid "No reading goal set"
+msgstr ""
+
+#: account/sidebar.html
+msgid "No goal set yet"
+msgstr ""
+
+#: account/sidebar.html
+#, python-format
+msgid "Set goal for %(year)d"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Bookshelves"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Activity"
+msgstr ""
+
+#: NotesModalDialog.html account/sidebar.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
+msgid "Notes"
+msgstr ""
+
+#: account/sidebar.html admin/people/view.html type/user/view.html
+msgid "Loans"
 msgstr ""
 
 #: account/sidebar.html
@@ -1697,21 +1737,40 @@ msgstr ""
 msgid "Lists"
 msgstr ""
 
-#: account/sidebar.html type/user/view.html
-msgid "See All"
+#: AffiliateLinks.html.jinja account/sidebar.html
+msgid "New"
 msgstr ""
 
-#: account/sidebar.html my_books/shelf_button_i18n.html type/list/edit.html type/series/edit.html
-msgid "Create a list"
+#: account/sidebar.html
+msgid "All lists"
 msgstr ""
 
 #: account/sidebar.html
 msgid "Untitled list"
 msgstr ""
 
-#: account/topmenu.html
-#, python-format
-msgid "Privacy settings: %(public)s"
+#: account/sidebar.html
+msgid "My Books Menu"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Books menu"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Open My Books menu"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Open books menu"
+msgstr ""
+
+#: account/sidebar.html
+msgid "My Notes"
+msgstr ""
+
+#: account/sidebar.html
+msgid "My Reviews"
 msgstr ""
 
 #: account/verify.html
@@ -1730,18 +1789,6 @@ msgstr ""
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
-msgstr ""
-
-#: account/view.html books/mybooks_breadcrumb_select.html
-msgid "Following"
-msgstr ""
-
-#: account/view.html books/mybooks_breadcrumb_select.html
-msgid "Followers"
-msgstr ""
-
-#: ShareModal.html account/view.html type/edition/modal_links.html type/edition/title_and_author.html
-msgid "Share"
 msgstr ""
 
 #: account/view.html
@@ -2663,10 +2710,6 @@ msgstr ""
 msgid "Anonymize Account"
 msgstr ""
 
-#: admin/people/view.html type/user/view.html
-msgid "Loans"
-msgstr ""
-
 #: admin/people/view.html
 msgid "Account not activated yet."
 msgstr ""
@@ -3351,43 +3394,6 @@ msgstr ""
 #: books/mobile_carousel.html openlibrary/plugins/openlibrary/partials.py
 #, python-format
 msgid " by %(name)s"
-msgstr ""
-
-#. Page title for the "Want to Read" shelf page.
-#. Example: "Want to Read (17)". %(count)d is the number of books on this shelf.
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#, python-format
-msgid "Want to Read (%(count)d)"
-msgstr ""
-
-#. Page title for the "Currently Reading" shelf page.
-#. Example: "Currently Reading (42)". %(count)d is the number of books on this shelf.
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#, python-format
-msgid "Currently Reading (%(count)d)"
-msgstr ""
-
-#. Page title for the "Already Read" shelf page.
-#. Example: "Already Read (203)". %(count)d is the number of books on this shelf.
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#, python-format
-msgid "Already Read (%(count)d)"
-msgstr ""
-
-#. Page title for the "Stopped Reading" shelf page.
-#. Example: "Stopped Reading (8)". %(count)d is the number of books on this shelf.
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#, python-format
-msgid "Stopped Reading (%(count)d)"
-msgstr ""
-
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/openlibrary/lists.py
-#, python-format
-msgid "Lists (%(count)d)"
-msgstr ""
-
-#: NotesModalDialog.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
-msgid "Notes"
 msgstr ""
 
 #: books/series-autocomplete.html
@@ -5278,6 +5284,10 @@ msgstr ""
 msgid "Add to list"
 msgstr ""
 
+#: my_books/shelf_button_i18n.html type/list/edit.html type/series/edit.html
+msgid "Create a list"
+msgstr ""
+
 #: my_books/shelf_button_i18n.html
 msgid "List name"
 msgstr ""
@@ -6009,6 +6019,10 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Top Rated"
+msgstr ""
+
+#: search/sort_options.html type/user/view.html
+msgid "Reading Log"
 msgstr ""
 
 #: search/sort_options.html
@@ -7003,6 +7017,10 @@ msgid "My Lists"
 msgstr ""
 
 #: type/user/view.html
+msgid "See All"
+msgstr ""
+
+#: type/user/view.html
 msgid "No edits. Yet."
 msgstr ""
 
@@ -7068,10 +7086,6 @@ msgstr ""
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
-msgstr ""
-
-#: AffiliateLinks.html.jinja
-msgid "New"
 msgstr ""
 
 #: AffiliateLinks.html.jinja
@@ -8337,6 +8351,11 @@ msgstr ""
 msgid "Has number of pages"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Lists (%(count)d)"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/nav.py
 msgid "K-12 Student Library"
 msgstr ""
@@ -8552,6 +8571,34 @@ msgstr ""
 #: openlibrary/plugins/upstream/models.py
 #, python-format
 msgid "This merge cannot be undone automatically because %(record)s references %(reference)s, which has since been merged into another record."
+msgstr ""
+
+#. Page title for the "Currently Reading" shelf page.
+#. Example: "Currently Reading (42)". %(count)d is the number of books on this shelf.
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Currently Reading (%(count)d)"
+msgstr ""
+
+#. Page title for the "Want to Read" shelf page.
+#. Example: "Want to Read (17)". %(count)d is the number of books on this shelf.
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Want to Read (%(count)d)"
+msgstr ""
+
+#. Page title for the "Already Read" shelf page.
+#. Example: "Already Read (203)". %(count)d is the number of books on this shelf.
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Already Read (%(count)d)"
+msgstr ""
+
+#. Page title for the "Stopped Reading" shelf page.
+#. Example: "Stopped Reading (8)". %(count)d is the number of books on this shelf.
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Stopped Reading (%(count)d)"
 msgstr ""
 
 #: openlibrary/plugins/upstream/mybooks.py

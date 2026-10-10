@@ -83,6 +83,9 @@ function _removeFromOverlayStack(el) {
  *     menu. The popover stays non-modal for assistive tech. Default: false
  *
  * @attr aria-label - Forwarded to the inner dialog as its accessible name.
+ * @attr block - Stretch the trigger slot to fill the host, so a width:100%
+ *   trigger (e.g. ol-button[full-width]) reaches the row's edges instead of
+ *   shrink-wrapping its label. Opt-in; the default stays compact.
  *
  * @cssprop [--ol-popover-content-max-width] - Width cap for slotted content; the
  *     panel is `width: auto` and never shrinks, so long content clamps itself.
@@ -321,6 +324,16 @@ export class OlPopover extends LitElement {
             height: 4px;
             border-radius: 2px;
             background: var(--color-drag-handle);
+        }
+
+        /* ── Full-width trigger (opt-in via [block]) ── */
+
+        /* The trigger slot shrink-wraps its content by default. With [block]
+           it fills the host instead, so a width:100% trigger reaches the
+           row's edges (e.g. a lone share button stretching its row). */
+        :host([block]) slot[name="trigger"] {
+            flex: 1 1 auto;
+            min-width: 0;
         }
 
         /* ── Focus sentinel (visually hidden) ── */
