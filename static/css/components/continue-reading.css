@@ -1,0 +1,94 @@
+/* Homepage "Continue Reading" row: see templates/home/continue_reading.html.jinja */
+
+/* A grid, never a scroller: 3×2 on phones, one row of 6 on tablets, 7 on desktop.
+   The 7 is ContinueReadingPartial.MAX_ITEMS in plugins/openlibrary/partials.py; change both together. */
+.continue-reading__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-stack-lg) var(--spacing-inline-lg);
+  margin: 0;
+  padding: var(--spacing-inset-xs) 0 var(--spacing-inset-sm);
+  list-style: none;
+}
+
+.continue-reading__item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+/* Phones and tablets show six. */
+.continue-reading__item:nth-child(n + 7) {
+  display: none;
+}
+
+.continue-reading__cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--border-radius-thumbnail);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--box-shadow-raised);
+  transition: transform var(--duration-press);
+}
+
+/* :is() outranks the global a:link underline. */
+.continue-reading__cover:is(:link, :visited) {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.continue-reading__cover:active {
+  transform: scale(var(--press-scale));
+}
+
+.continue-reading__cover:focus-visible {
+  outline: none;
+  box-shadow: var(--box-shadow-focus);
+}
+
+.continue-reading__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.continue-reading__cover-title {
+  display: -webkit-box;
+  padding: var(--spacing-inset-xs);
+  overflow: hidden;
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-snug);
+  text-align: center;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.continue-reading__status {
+  font-size: var(--font-size-label-small);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-snug);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+/* @width-breakpoint-tablet: 768px */
+@media only screen and (min-width: 768px) {
+  .continue-reading__row {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+/* @width-breakpoint-desktop: 960px */
+@media only screen and (min-width: 960px) {
+  .continue-reading__row {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .continue-reading__item:nth-child(n + 7) {
+    display: flex;
+  }
+}

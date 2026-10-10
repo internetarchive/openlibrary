@@ -19,6 +19,11 @@ document.addEventListener('click', (e) => {
  */
 export function initLazyCarousel(elems) {
     elems.forEach(elem => {
+        // Per-patron rows (e.g. Continue Reading) have nothing to show logged out; skip the request.
+        if (JSON.parse(elem.dataset.config).requires_user && !document.body.dataset.userKey) {
+            elem.remove();
+            return;
+        }
         whenVisible(elem).then(() => doFetchAndUpdate(elem));
 
         // Add retry listener
@@ -33,14 +38,14 @@ export function initLazyCarousel(elems) {
 /**
  * Prepares and makes a request for carousel HTML.
  *
- * `config.partial` picks the partials endpoint (default: LazyCarousel);
- * everything else in the config is sent as query params.
+ * `config.partial` picks the partials endpoint (default: LazyCarousel) and
+ * `config.requires_user` is client-only; everything else is sent as query params.
  *
  * @param config {object}
  * @returns {Promise<Response>}
  */
 async function fetchPartials(config) {
-    const { partial = 'LazyCarousel', ...params } = config;
+    const { partial = 'LazyCarousel', requires_user, ...params } = config; // eslint-disable-line no-unused-vars
     return fetch(buildPartialsUrl(partial, params));
 }
 

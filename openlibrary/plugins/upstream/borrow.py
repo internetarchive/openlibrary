@@ -228,6 +228,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         ia_itemname = account.itemname if account else None
         s3_keys = parse_s3_cookie(s3_cookie)
         lending.get_cached_loans_of_user.memcache_delete(user.key, {})  # invalidate cache for user loans
+        lending.invalidate_loan_history_cache(user.key.split("/")[-1])
     if not user or not ia_itemname or not s3_keys:
         return_path = f"{edition_redirect}/borrow?action={action}"
         redirect_url = f"/account/login?redirect={urllib.parse.quote(return_path, safe='')}"

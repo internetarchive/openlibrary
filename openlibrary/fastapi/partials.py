@@ -23,6 +23,7 @@ from openlibrary.plugins.openlibrary.partials import (
     CarouselCardPartial,
     CarouselLoadMoreParams,
     CarouselPartial,
+    ContinueReadingPartial,
     FullTextSuggestionsPartial,
     LazyCarouselParams,
     MyBooksDropperListsPartial,
@@ -150,6 +151,17 @@ async def reading_goal_progress_partial(
         username=user.username,
         year=year or datetime.now().year,
     )
+
+
+@router.get("/partials/ContinueReading.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+def continue_reading_partial(
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
+    s3: Annotated[str | None, Cookie()] = None,
+) -> dict:
+    """The current user's active loans and recent returns as a row of covers; empty when logged out."""
+    if not user:
+        return {"partials": ""}
+    return ContinueReadingPartial.generate(user.username, user.user_key, s3)
 
 
 @router.get("/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
