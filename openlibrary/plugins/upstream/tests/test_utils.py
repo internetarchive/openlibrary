@@ -359,6 +359,24 @@ def test_get_language_name(add_languages):  # noqa: F811
     assert utils.get_language_name("/languages/ger", "fr") == "Deutsch"
 
 
+def test_get_lang_tag(add_languages):  # noqa: F811
+    # ISO 639-1 when the language record has one, else the MARC code
+    assert utils.get_lang_tag(["/languages/spa"], "Cien años de soledad") == "es"
+    assert utils.get_lang_tag(["fre"]) == "fre"
+    assert utils.get_lang_tag([{"key": "/languages/spa"}]) == "es"
+    assert utils.get_lang_tag([web.storage(key="/languages/spa")]) == "es"
+    # Only a single declared language qualifies
+    assert utils.get_lang_tag([]) is None
+    assert utils.get_lang_tag(None) is None
+    assert utils.get_lang_tag(["eng", "fre"]) is None
+    assert utils.get_lang_tag(["und"]) is None
+    assert utils.get_lang_tag(["mul"]) is None
+    # A romanized title in a non-Latin-script language keeps the page language
+    assert utils.get_lang_tag(["yid"], "Faust: a ṭrageyde in tsṿey ṭeyl") is None
+    assert utils.get_lang_tag(["yid"], "פאוסט") == "yid"
+    assert utils.get_lang_tag(["yid"]) == "yid"
+
+
 def test_json_encode():
     assert utils.json_encode({"a": 1, "b": 2}) == '{"a": 1, "b": 2}'
     assert utils.json_encode({"description": "</script><script>alert('xss')</script>"}) == (
