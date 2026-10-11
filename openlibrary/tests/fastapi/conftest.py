@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -17,11 +18,24 @@ from openlibrary.plugins.worksearch.code import SearchResponse
 
 @pytest.fixture(scope="session")
 def fastapi_client():
-    """Create a test client for the FastAPI app (session-scoped for speed)."""
+    """Create a test client for the FastAPI app (session-scoped for speed).
+
+    The app is built with LOCAL_DEV forced off. It is read once, when
+    create_app() decides whether to register the catch-all proxy to web.py,
+    so patching it around that call is enough; the requests themselves still
+    see the real value.
+
+    The `home` container sets LOCAL_DEV=true, which registers that proxy, and
+    it then swallows the requests the route-registration tests expect to 404
+    or 405. CI never sets it, so without this the documented local test
+    command fails on a clean checkout while CI is green on the same commit.
+    See #13587.
+    """
     with patch("openlibrary.asgi_app.set_context_from_fastapi", autospec=True):
         from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
-        app = create_app()
+        with patch.object(get_ol_env(), "LOCAL_DEV", False):
+            app = create_app()
         client = TestClient(app)
         try:
             yield client
