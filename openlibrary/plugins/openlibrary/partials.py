@@ -14,6 +14,7 @@ from markupsafe import Markup
 from pydantic import BaseModel, Field
 
 from infogami.utils.view import public
+from openlibrary.book_providers import EbookAccess
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
 from openlibrary.core.fulltext import FulltextRow, exclude_ocaids, fulltext_page, fulltext_search_async, phrase_query
@@ -59,6 +60,7 @@ from openlibrary.plugins.worksearch.subjects import (
     get_subject_async,
 )
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.request_context import site
 from openlibrary.views.loanstats import get_trending_books
 
 if TYPE_CHECKING:
@@ -793,6 +795,7 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
+    by_seed: bool = False
 
 
 class CarouselPartial:
@@ -803,28 +806,36 @@ class CarouselPartial:
 
     @classmethod
     async def generate_async(cls, params: LazyCarouselParams, full_path: str = "/") -> dict:
-        books = await gather_lazy_carousel_data_async(
-            query=params.query,
-            sort=params.sort,
-            limit=params.limit,
-            has_fulltext_only=params.has_fulltext_only,
-            safe_mode=params.safe_mode,
-        )
         # Build eager data here. Keep lazy logic in build_carousel_placeholder_config.
         # Apply safe_mode to the query for the book carousel as build_carousel_placeholder_config does for lazy.
         effective_query = f"{params.query} {_SAFE_MODE_FILTER}" if params.safe_mode else params.query
-        book_data = get_book_carousel_data(
-            books=[web.storage(b) for b in books["docs"]],
-            title=params.title,
-            url=params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort}),
-            key=params.key,
-            load_more={
+        if params.by_seed and (list_match := LIST_KEY_RE.match(effective_query)):
+            # The whole list in one go, with no load-more; collection pages pass limit as a page size, so it's ignored
+            list_key = list_match.group(0)
+            docs = await gather_list_carousel_docs_async(list_key, effective_query.removeprefix(list_key), params.has_fulltext_only, params.sort)
+            load_more = None
+        else:
+            books = await gather_lazy_carousel_data_async(
+                query=params.query,
+                sort=params.sort,
+                limit=params.limit,
+                has_fulltext_only=params.has_fulltext_only,
+                safe_mode=params.safe_mode,
+            )
+            docs = books["docs"]
+            load_more = {
                 "queryType": "SEARCH",
                 "q": effective_query,
                 "limit": params.limit,
                 "sorts": params.sort,
                 "hasFulltextOnly": params.has_fulltext_only,
-            },
+            }
+        book_data = get_book_carousel_data(
+            books=[web.storage(b) for b in docs],
+            title=params.title,
+            url=params.url or "/search?" + urlencode({"q": effective_query, "sort": params.sort}),
+            key=params.key,
+            load_more=load_more,
             layout=params.layout,
             full_path=full_path,
         )
@@ -916,6 +927,82 @@ async def gather_lazy_carousel_data_async(
     return return_dict
 
 
+LIST_KEY_RE = re.compile(r"^(/people/[^/]+)?/lists/OL\d+L")
+LIST_CAROUSEL_MAX = 100  # a list carousel shows at most this many of the list's first seeds
+_LIST_EDITION_FIELDS = ["key", "title", "subtitle", "cover_i", "ia", "ebook_access", "providers"]
+
+
+async def gather_list_carousel_docs_async(list_key: str, extra_query: str, has_fulltext_only: bool, sort: str = "") -> list[dict]:
+    """Carousel docs for the first ``LIST_CAROUSEL_MAX`` seeds of a list, in list order,
+    or by first publish year when ``sort`` is "old" or "new", as on the search page.
+
+    A work seed shows its work; an edition seed shows that edition on its work's card.
+    Seeds that aren't books, aren't in Solr, or don't match ``extra_query`` /
+    ``has_fulltext_only`` are skipped.
+    """
+    lst = site.get().get(list_key)
+    things = _get_seed_things([seed.key for seed in lst.get_seeds()[:LIST_CAROUSEL_MAX]] if lst else [])
+
+    work_key_of: dict[str, str] = {}  # seed key -> the work whose card shows it
+    for thing in things:
+        if thing.type.key == "/type/work":
+            work_key_of[thing.key] = thing.key
+        elif thing.type.key == "/type/edition" and thing.get("works"):
+            work_key_of[thing.key] = thing.works[0].key
+    if not work_key_of:
+        return []
+
+    work_keys = sorted(set(work_key_of.values()))
+    search_params = {"q": f"key:({' OR '.join(work_keys)}){extra_query}"}
+    if has_fulltext_only:
+        search_params["has_fulltext"] = "true"
+    fields = ",".join([*_CAROUSEL_FIELDS, "first_publish_year"])
+    works = await work_search_async(search_params, fields=fields, limit=len(work_keys), facet=False, request_label="BOOK_CAROUSEL")
+    works_by_key = {doc["key"]: doc for doc in works.get("docs", [])}
+
+    from openlibrary.plugins.worksearch.search import get_solr
+
+    edition_keys = [key for key in work_key_of if key.startswith("/books/")]
+    editions = await get_solr().get_many_async(edition_keys, fields=_LIST_EDITION_FIELDS, doc_wrapper=dict)
+    await add_availability_async(editions)
+    editions_by_key = {doc["key"]: doc for doc in editions}
+
+    docs: list[dict] = []
+    for key, work_key in work_key_of.items():
+        if not (work := works_by_key.get(work_key)):
+            continue
+        if key.startswith("/books/"):
+            edition = editions_by_key.get(key)
+            if not edition or (has_fulltext_only and EbookAccess.from_solr_str(edition.get("ebook_access", "no_ebook")) == EbookAccess.NO_EBOOK):
+                continue
+            work = {**work, "editions": {"docs": [edition]}}
+        docs.append(work)
+
+    if sort in ("old", "new"):
+        # Books with no year go last, as on the search page
+        dated = sorted((doc for doc in docs if doc.get("first_publish_year")), key=lambda doc: doc["first_publish_year"], reverse=sort == "new")
+        docs = dated + [doc for doc in docs if not doc.get("first_publish_year")]
+    return docs
+
+
+def _get_seed_things(keys: list[str]) -> list:
+    """The things ``keys`` point to, in order, following redirects and dropping duplicates."""
+    target_of = {key: key for key in keys}
+    things: dict = {}
+    for _hop in range(3):  # a merged work can be merged again
+        if new_keys := {target for target in target_of.values() if target not in things}:
+            things.update({thing.key: thing for thing in site.get().get_many(list(new_keys))})
+        redirects = {key: things[target].location for key, target in target_of.items() if target in things and things[target].type.key == "/type/redirect"}
+        if not redirects:
+            break
+        target_of.update(redirects)
+    resolved: dict = {}
+    for target in target_of.values():
+        if (thing := things.get(target)) and thing.type.key != "/type/redirect":
+            resolved.setdefault(thing.key, thing)
+    return list(resolved.values())
+
+
 # Query carousels. Was macros/RawQueryCarousel.html + books/custom_carousel.html;
 # the logic those two Templetor files carried lives here now.
 
@@ -960,6 +1047,7 @@ class CarouselQueryParams(CarouselCommonData):
     layout: str
     fallback: str | bool | None
     safe_mode: bool
+    by_seed: NotRequired[bool]
 
 
 class BookCarouselData(CarouselCommonData):
@@ -1090,6 +1178,7 @@ def build_carousel_placeholder_config(**params: Unpack[CarouselQueryParams]) -> 
         "has_fulltext_only": params.get("has_fulltext_only", True),
         "layout": params.get("layout", "carousel"),
         "fallback": params.get("fallback"),
+        **({"by_seed": True} if params.get("by_seed") else {}),
         **({"title": params["title"]} if params.get("title") else {}),
         **({"url": params["url"]} if params.get("url") else {}),
     }

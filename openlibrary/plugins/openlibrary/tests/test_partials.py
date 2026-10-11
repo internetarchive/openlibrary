@@ -1,6 +1,8 @@
 """Tests for partials.py functionality."""
 
 import json
+import re
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -10,15 +12,20 @@ from pydantic import ValidationError
 from openlibrary.core.vendors import betterworldbooks_fmt
 from openlibrary.plugins.openlibrary import code  # noqa: F401  # code.setup() imports partials; import it first
 from openlibrary.plugins.openlibrary.partials import (
+    LIST_CAROUSEL_MAX,
     AffiliateOffer,
     AffiliateStoreBuildContext,
     BookPageListsPartial,
+    CarouselPartial,
+    LazyCarouselParams,
     NearbyBooksParams,
     NearbyBooksPartial,
     ReadingGoalProgressPartial,
     _solr_query_to_subject_key,
+    build_carousel_placeholder_config,
     build_nearby_books_placeholder_config,
     build_stores,
+    gather_list_carousel_docs_async,
     gather_nearby_books_async,
 )
 from openlibrary.plugins.upstream.yearly_reading_goals import YearlyGoal
@@ -369,3 +376,186 @@ class TestStoreLinks:
 
     def test_nothing_to_search_by_leaves_only_the_bwb_row(self):
         assert list(_stores(title="", isbn=None, asin=None)) == ["betterworldbooks"]
+
+
+LIST_KEY = "/people/curator/lists/OL1L"
+
+
+def _thing(key, type_, **data):
+    thing = SimpleNamespace(key=key, type=SimpleNamespace(key=f"/type/{type_}"), **data)
+    thing.get = lambda name, default=None: getattr(thing, name, default)
+    return thing
+
+
+def _fake_list_env(seed_keys, things, solr_works, solr_editions=None, years=None):
+    """Patch the list, infobase and Solr that gather_list_carousel_docs_async reads.
+
+    ``things`` are the infobase records by key; ``solr_works`` maps an indexed work key
+    to whether it is readable; ``solr_editions`` maps an indexed edition key to its ebook_access;
+    ``years`` maps a work key to its first publish year.
+    """
+    lst = SimpleNamespace(get_seeds=lambda: [SimpleNamespace(key=key) for key in seed_keys])
+    infobase = Mock(get=Mock(return_value=lst), get_many=Mock(side_effect=lambda keys: [things[key] for key in keys if key in things]))
+    solr_editions = solr_editions or {}
+    years = years or {}
+
+    async def work_search(param, **kwargs):
+        wanted = set(re.findall(r"/works/OL\d+W", param["q"]))
+        readable_only = param.get("has_fulltext") == "true"
+        docs = [{"key": key, "first_publish_year": years.get(key)} for key, readable in solr_works.items() if key in wanted and (readable or not readable_only)]
+        return {"docs": docs}
+
+    async def get_many_async(keys, **kwargs):
+        return [{"key": key, "ebook_access": solr_editions[key]} for key in keys if key in solr_editions]
+
+    work_search_mock = AsyncMock(side_effect=work_search)
+    patches = (
+        patch("openlibrary.plugins.openlibrary.partials.site", Mock(get=Mock(return_value=infobase))),
+        patch("openlibrary.plugins.openlibrary.partials.work_search_async", work_search_mock),
+        patch("openlibrary.plugins.worksearch.search.get_solr", Mock(return_value=Mock(get_many_async=get_many_async))),
+        patch("openlibrary.plugins.openlibrary.partials.add_availability_async", AsyncMock()),
+    )
+    return patches, work_search_mock, infobase
+
+
+async def _gather(seed_keys, things, solr_works, solr_editions=None, *, years=None, has_fulltext_only=False, sort=""):
+    patches, _, _ = _fake_list_env(seed_keys, things, solr_works, solr_editions, years)
+    with patches[0], patches[1], patches[2], patches[3]:
+        return await gather_list_carousel_docs_async(LIST_KEY, "", has_fulltext_only, sort)
+
+
+def _shown(docs):
+    """What each card shows: its edition if it has one, else its work."""
+    return [doc["editions"]["docs"][0]["key"] if "editions" in doc else doc["key"] for doc in docs]
+
+
+class TestGatherListCarouselDocsAsync:
+    @pytest.mark.asyncio
+    async def test_cards_follow_list_order_and_keep_edition_picks(self):
+        """Solr returns works in its own order, and one edition per work; neither may leak into the carousel."""
+        things = {
+            "/books/OL2M": _thing("/books/OL2M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),
+            "/works/OL2W": _thing("/works/OL2W", "work"),
+            "/books/OL1M": _thing("/books/OL1M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),
+            "/books/OL9M": _thing("/books/OL9M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),  # not indexed yet
+        }
+        solr_editions = {"/books/OL1M": "public", "/books/OL2M": "public"}
+        seeds = ["/books/OL2M", "/works/OL2W", "subject:history", "/books/OL9M", "/books/OL1M"]
+
+        docs = await _gather(seeds, things, {"/works/OL2W": True, "/works/OL1W": True}, solr_editions)
+
+        assert _shown(docs) == ["/books/OL2M", "/works/OL2W", "/books/OL1M"]
+        assert [doc["key"] for doc in docs] == ["/works/OL1W", "/works/OL2W", "/works/OL1W"]
+
+    @pytest.mark.asyncio
+    async def test_makes_one_work_query_however_many_editions_share_a_work(self):
+        """Querying by edition_key yields one edition per work, which forces a query per edition."""
+        seeds = [f"/books/OL{n}M" for n in range(1, 21)]
+        things = {key: _thing(key, "edition", works=[SimpleNamespace(key="/works/OL1W")]) for key in seeds}
+        patches, work_search, _ = _fake_list_env(seeds, things, {"/works/OL1W": True}, dict.fromkeys(seeds, "borrowable"))
+
+        with patches[0], patches[1], patches[2], patches[3]:
+            docs = await gather_list_carousel_docs_async(LIST_KEY, "", False)
+
+        assert _shown(docs) == seeds
+        work_search.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_readable_only_drops_unreadable_works_and_editions(self):
+        """A readable work can have an unreadable edition; filtering the work alone isn't enough."""
+        things = {
+            "/works/OL1W": _thing("/works/OL1W", "work"),
+            "/works/OL2W": _thing("/works/OL2W", "work"),
+            "/books/OL3M": _thing("/books/OL3M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),
+            "/books/OL4M": _thing("/books/OL4M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),
+        }
+        solr_editions = {"/books/OL3M": "no_ebook", "/books/OL4M": "borrowable"}
+        seeds = list(things)
+
+        everything = await _gather(seeds, things, {"/works/OL1W": True, "/works/OL2W": False}, solr_editions)
+        readable = await _gather(seeds, things, {"/works/OL1W": True, "/works/OL2W": False}, solr_editions, has_fulltext_only=True)
+
+        assert _shown(everything) == seeds
+        assert _shown(readable) == ["/works/OL1W", "/books/OL4M"]
+
+    @pytest.mark.asyncio
+    async def test_redirected_seeds_show_where_they_were_merged_once(self):
+        """Lists keep the keys of merged records, and a merge can chain or land on another seed."""
+        things = {
+            "/works/OL1W": _thing("/works/OL1W", "redirect", location="/works/OL2W"),
+            "/works/OL2W": _thing("/works/OL2W", "redirect", location="/works/OL3W"),
+            "/works/OL3W": _thing("/works/OL3W", "work"),
+            "/works/OL4W": _thing("/works/OL4W", "work"),
+        }
+
+        docs = await _gather(["/works/OL1W", "/works/OL4W", "/works/OL3W"], things, {"/works/OL3W": True, "/works/OL4W": True})
+
+        assert _shown(docs) == ["/works/OL3W", "/works/OL4W"]
+
+    @pytest.mark.asyncio
+    async def test_shows_the_whole_list_up_to_the_cap(self):
+        """Collection lists of 20-60 books must show in full, but a 754-book list must not cost 754 lookups."""
+        seeds = [f"/works/OL{n}W" for n in range(1, 121)]
+        things = {key: _thing(key, "work") for key in seeds}
+
+        docs = await _gather(seeds, things, dict.fromkeys(seeds, True))
+
+        assert _shown(docs) == seeds[:LIST_CAROUSEL_MAX]
+
+    @pytest.mark.asyncio
+    async def test_old_and_new_sort_by_first_publish_year(self):
+        """The Haunted Library's series grids pass sort='old' to show each series in publication order."""
+        seeds = ["/works/OL1W", "/works/OL2W", "/works/OL3W", "/works/OL4W"]
+        things = {key: _thing(key, "work") for key in seeds}
+        years = {"/works/OL1W": 1995, "/works/OL2W": None, "/works/OL3W": 1990, "/works/OL4W": 2001}
+        solr_works = dict.fromkeys(seeds, True)
+
+        assert _shown(await _gather(seeds, things, solr_works, years=years)) == seeds
+        assert _shown(await _gather(seeds, things, solr_works, years=years, sort="old")) == ["/works/OL3W", "/works/OL1W", "/works/OL4W", "/works/OL2W"]
+        assert _shown(await _gather(seeds, things, solr_works, years=years, sort="new")) == ["/works/OL4W", "/works/OL1W", "/works/OL3W", "/works/OL2W"]
+
+    @pytest.mark.asyncio
+    async def test_text_after_the_list_key_filters_the_works(self):
+        """This is how safe mode keeps content-warning books off collection pages."""
+        patches, work_search, _ = _fake_list_env(["/works/OL1W"], {"/works/OL1W": _thing("/works/OL1W", "work")}, {"/works/OL1W": True})
+
+        with patches[0], patches[1], patches[2], patches[3]:
+            await gather_list_carousel_docs_async(LIST_KEY, ' -subject:"content_warning:cover"', False)
+
+        assert work_search.call_args.args[0]["q"].endswith(' -subject:"content_warning:cover"')
+
+
+class TestCarouselPartialBySeed:
+    @staticmethod
+    async def _generate(params, **patches):
+        book_data = dict.fromkeys(("show", "title", "url", "key", "grid", "compact", "loadjs", "config_json", "cards", "count", "shelf"))
+        with (
+            patch("openlibrary.plugins.openlibrary.partials.get_book_carousel_data", Mock(return_value=book_data)) as get_data,
+            patch("openlibrary.plugins.openlibrary.partials.render_jinja_template", Mock(return_value="")),
+            patch.multiple("openlibrary.plugins.openlibrary.partials", **patches),
+        ):
+            await CarouselPartial.generate_async(params)
+        return get_data.call_args.kwargs
+
+    @pytest.mark.asyncio
+    async def test_list_carousel_loads_once_with_no_load_more(self):
+        """The default SEARCH load-more would append Solr-ordered, edition-collapsed cards to a list carousel,
+        and collection pages pass limit as a page size (6, 10, 20), so honouring it would cut lists short."""
+        gather = AsyncMock(return_value=[{"key": "/works/OL1W"}])
+        params = LazyCarouselParams(query=LIST_KEY, limit=6, sort="old", has_fulltext_only=False, by_seed=True, safe_mode=True)
+
+        kwargs = await self._generate(params, gather_list_carousel_docs_async=gather)
+
+        gather.assert_awaited_once_with(LIST_KEY, ' -subject:"content_warning:cover"', False, "old")
+        assert kwargs["load_more"] is None
+
+
+class TestBuildCarouselPlaceholderConfig:
+    @staticmethod
+    def _config(**params):
+        with patch("openlibrary.plugins.openlibrary.partials.render_macro", return_value={"__body__": ""}):
+            return json.loads(build_carousel_placeholder_config(query=LIST_KEY, **params)["lazy_config_json"])
+
+    def test_by_seed_reaches_the_lazy_partial(self):
+        """Without it the lazy carousel silently falls back to the search path and loses edition picks."""
+        assert self._config(by_seed=True)["by_seed"] is True
