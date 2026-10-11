@@ -178,7 +178,7 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: batch_import_pending_view.html batch_import_view.html merge_request_table/table_header.html
+#: batch_import_pending_view.html batch_import_view.html merge_request_table/merge_request_stats.html merge_request_table/table_header.html
 msgid "Submitter"
 msgstr ""
 
@@ -5249,16 +5249,16 @@ msgstr ""
 msgid "Submitters"
 msgstr ""
 
-#: merge_request_table/merge_request_stats.html
-msgid "Librarian"
+#: merge_request_table/merge_request_stats.html merge_request_table/table_header.html
+msgid "Reviewer"
 msgstr ""
 
 #: merge_request_table/merge_request_stats.html
-msgid "Author merges"
+msgid "Author requests"
 msgstr ""
 
 #: merge_request_table/merge_request_stats.html
-msgid "Work merges"
+msgid "Work requests"
 msgstr ""
 
 #: merge_request_table/merge_request_stats.html merge_request_table/merge_request_table.html
@@ -5328,10 +5328,6 @@ msgstr ""
 
 #: merge_request_table/table_header.html
 msgid "Reviewer ▾"
-msgstr ""
-
-#: merge_request_table/table_header.html
-msgid "Reviewer"
 msgstr ""
 
 #: merge_request_table/table_header.html
