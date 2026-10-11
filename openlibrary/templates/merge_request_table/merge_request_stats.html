@@ -29,12 +29,12 @@ $ columns = [('total', _('Requests')), ('merged', _('Merged')), ('declined', _('
   <table class="mr-stats-table">
     <thead>
       <tr>
-        <th>$_('Librarian')</th>
+        <th>$(_('Reviewer') if group == 'reviewers' else _('Submitter'))</th>
         $for value, label in columns:
           $ next_order = 'asc' if (sort == value and order == 'desc') else 'desc'
           <th><a href="$changequery(sort=value, order=next_order, page=None)">$label$(' ▾' if sort == value and order == 'desc' else (' ▴' if sort == value else ''))</a></th>
-        <th>$_('Author merges')</th>
-        <th>$_('Work merges')</th>
+        <th>$_('Author requests')</th>
+        <th>$_('Work requests')</th>
       </tr>
     </thead>
     <tbody>
