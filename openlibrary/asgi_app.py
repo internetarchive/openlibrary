@@ -135,6 +135,7 @@ def _include_routers(app: FastAPI) -> None:
     from openlibrary.fastapi.borrow import router as borrow_router
     from openlibrary.fastapi.cdn import router as cdn_router
     from openlibrary.fastapi.checkins import router as checkins_router
+    from openlibrary.fastapi.feature_interest import router as feature_interest_router
     from openlibrary.fastapi.importapi import router as importapi_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
@@ -169,6 +170,7 @@ def _include_routers(app: FastAPI) -> None:
     app.include_router(status_router)
     app.include_router(subjects_router)
     app.include_router(yearly_reading_goals_router)
+    app.include_router(feature_interest_router)
 
 
 @asynccontextmanager
