@@ -6,7 +6,7 @@ from typing import Literal
 from infogami import config
 from infogami.utils.view import public
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import date_one_month_ago, date_one_week_ago
 
 from . import cache, db
 
@@ -731,18 +731,18 @@ class Observations(db.CommonExtras):
         return {
             "total_reviews": {
                 "total": Observations.total_reviews(),
-                "month": Observations.total_reviews(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_reviews(since=DATE_ONE_WEEK_AGO),
+                "month": Observations.total_reviews(since=date_one_month_ago()),
+                "week": Observations.total_reviews(since=date_one_week_ago()),
             },
             "total_books_reviewed": {
                 "total": Observations.total_books_reviewed(),
-                "month": Observations.total_books_reviewed(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_books_reviewed(since=DATE_ONE_WEEK_AGO),
+                "month": Observations.total_books_reviewed(since=date_one_month_ago()),
+                "week": Observations.total_books_reviewed(since=date_one_week_ago()),
             },
             "total_reviewers": {
                 "total": Observations.total_unique_respondents(),
-                "month": Observations.total_unique_respondents(since=DATE_ONE_MONTH_AGO),
-                "week": Observations.total_unique_respondents(since=DATE_ONE_WEEK_AGO),
+                "month": Observations.total_unique_respondents(since=date_one_month_ago()),
+                "week": Observations.total_unique_respondents(since=date_one_week_ago()),
             },
         }
 

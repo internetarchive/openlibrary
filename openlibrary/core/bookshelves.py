@@ -12,7 +12,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.dateutil import date_one_month_ago, date_one_week_ago
 from openlibrary.utils.request_context import site
 
 from . import db
@@ -40,13 +40,13 @@ class Bookshelves(db.CommonExtras):
         return {
             "total_books_logged": {
                 "total": Bookshelves.total_books_logged(),
-                "month": Bookshelves.total_books_logged(since=DATE_ONE_MONTH_AGO),
-                "week": Bookshelves.total_books_logged(since=DATE_ONE_WEEK_AGO),
+                "month": Bookshelves.total_books_logged(since=date_one_month_ago()),
+                "week": Bookshelves.total_books_logged(since=date_one_week_ago()),
             },
             "total_users_logged": {
                 "total": Bookshelves.total_unique_users(),
-                "month": Bookshelves.total_unique_users(since=DATE_ONE_MONTH_AGO),
-                "week": Bookshelves.total_unique_users(since=DATE_ONE_WEEK_AGO),
+                "month": Bookshelves.total_unique_users(since=date_one_month_ago()),
+                "week": Bookshelves.total_unique_users(since=date_one_week_ago()),
             },
         }
 

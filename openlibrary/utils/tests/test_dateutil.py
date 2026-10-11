@@ -44,3 +44,34 @@ def test_parse_daterange():
         datetime.date(2010, 2, 3),
         datetime.date(2010, 2, 4),
     )
+
+
+def test_date_cutoffs_are_computed_at_call_time(monkeypatch):
+    """Regression test: the "one week/month ago" cutoffs must follow the current
+    date instead of being frozen when the module is imported."""
+
+    def set_today(today: datetime.date):
+        class FakeDate(datetime.date):
+            @classmethod
+            def today(cls):
+                return today
+
+        class FakeDatetime(datetime.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return datetime.datetime(today.year, today.month, today.day)
+
+        monkeypatch.setattr(dateutil.datetime, "date", FakeDate)
+        monkeypatch.setattr(dateutil.datetime, "datetime", FakeDatetime)
+
+    set_today(datetime.date(2026, 9, 1))
+    assert dateutil.date_one_day_ago() == datetime.date(2026, 8, 31)
+    assert dateutil.date_one_week_ago() == datetime.date(2026, 8, 25)
+    assert dateutil.date_one_month_ago() == datetime.date(2026, 8, 2)
+
+    # Same process, a month later: the cutoffs must move with the clock.
+    set_today(datetime.date(2026, 10, 2))
+    assert dateutil.date_one_day_ago() == datetime.date(2026, 10, 1)
+    assert dateutil.date_one_week_ago() == datetime.date(2026, 9, 25)
+    assert dateutil.date_one_month_ago() == datetime.date(2026, 9, 1)
+    assert dateutil.date_one_year_ago() == datetime.date(2025, 10, 2)
