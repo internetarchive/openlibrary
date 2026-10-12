@@ -72,7 +72,9 @@ _GENRE_KEYS = _NODE_KEYS | {"kind", "children"}
 
 
 def _valid_node(node: object, *, keys: frozenset[str]) -> bool:
-    return isinstance(node, dict) and keys <= node.keys() and isinstance(node.get("count"), int)
+    count = node.get("count") if isinstance(node, dict) else None
+    # bool is an int subclass; a True/False count is not a real count.
+    return isinstance(node, dict) and keys <= node.keys() and isinstance(count, int) and not isinstance(count, bool)
 
 
 def _valid_genres(genres: object) -> bool:
@@ -136,10 +138,12 @@ def load_home_genre_nodes() -> list[dict]:
     shows within ``GENRES_CACHE_TTL`` without pinning a doc read for the process lifetime (what the
     old ``@functools.cache`` did) or re-reading infobase on every drill-down request."""
     global _nodes_cache
+    cached = _nodes_cache  # snapshot: reset_genres_cache() may null the global on another thread
     now = time.monotonic()
-    if _nodes_cache is None or now >= _nodes_cache[0]:
-        _nodes_cache = (now + GENRES_CACHE_TTL, _load_home_genre_nodes())
-    return _nodes_cache[1]
+    if cached is None or now >= cached[0]:
+        cached = (now + GENRES_CACHE_TTL, _load_home_genre_nodes())
+        _nodes_cache = cached
+    return cached[1]
 
 
 def load_home_genres() -> list[Genre]:

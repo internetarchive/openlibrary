@@ -125,6 +125,14 @@ class TestHomeTemplates:
         assert "About the Project" in html
 
 
+@pytest.fixture(autouse=True)
+def _reset_home_genres_cache():
+    """load_home_genres() reads a process-global TTL node cache; keep these tests order-independent."""
+    home.home_genres.reset_genres_cache()
+    yield
+    home.home_genres.reset_genres_cache()
+
+
 TILE_GENRES = [
     {"name": "Horror", "slug": "horror", "query": "horror*", "kind": "genre", "subgenres": []},
     {"name": "History", "slug": "history", "query": "history*", "kind": "subject", "subgenres": []},

@@ -46,6 +46,7 @@ class TestValidation:
             [{"name": "x", "slug": "x", "kind": "genre", "query": "x*", "count": 1}],  # no children
             [{"slug": "x", "kind": "genre", "query": "x*", "count": 1, "children": []}],  # no name
             [{"name": "x", "slug": "x", "kind": "genre", "query": "x*", "count": "1", "children": []}],  # count str
+            [{"name": "x", "slug": "x", "kind": "genre", "query": "x*", "count": True, "children": []}],  # bool count
             [{"name": "x", "slug": "x", "kind": "genre", "query": "x*", "count": 1, "children": {}}],  # children dict
             [  # a child is missing a required key
                 {
