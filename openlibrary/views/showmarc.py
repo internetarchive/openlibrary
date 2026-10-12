@@ -9,6 +9,8 @@ import web
 
 from .. import app
 
+IA_GET_TIMEOUT = 30
+
 
 class old_show_marc(app.view):
     path = "/show-marc/(.*)"
@@ -24,7 +26,7 @@ class show_ia(app.view):
         error_404 = False
         url = f"https://archive.org/download/{ia}/{ia}_meta.mrc"
         try:
-            response = requests.get(url, timeout=30)
+            response = requests.get(url, timeout=IA_GET_TIMEOUT)
             response.raise_for_status()
             data = response.content
         except requests.Timeout:
@@ -38,7 +40,7 @@ class show_ia(app.view):
         if error_404:  # no MARC record
             url = f"https://archive.org/download/{ia}/{ia}_meta.xml"
             try:
-                response = requests.get(url, timeout=3)
+                response = requests.get(url, timeout=IA_GET_TIMEOUT)
                 response.raise_for_status()
                 data = response.content
             except requests.Timeout:
@@ -131,7 +133,7 @@ class show_marc(app.view):
         headers = {"Range": "bytes=%d-%d" % (r0, r1)}
 
         try:
-            response = requests.get(url, headers=headers, timeout=3)
+            response = requests.get(url, headers=headers, timeout=IA_GET_TIMEOUT)
             response.raise_for_status()
             result = response.content[:length]
         except requests.Timeout:
