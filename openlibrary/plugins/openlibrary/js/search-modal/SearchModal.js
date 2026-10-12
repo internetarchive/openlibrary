@@ -4,7 +4,7 @@ import { repeat } from 'lit/directives/repeat.js';
 // The <ol-*> custom elements this modal uses (ol-icon, ol-dialog, ol-toggle,
 // ol-select-popover) are registered by the site-wide
 // Lit bundle: build/components/production/ol-components.js, loaded from
-// openlibrary/templates/site.html.jinja. Do NOT re-import those component
+// openlibrary/templates/shell/base.html.jinja. Do NOT re-import those component
 // modules here — re-running customElements.define() throws NotSupportedError,
 // which aborts the rest of that bundle and unregisters every other component.
 import { debounce } from '../nonjquery_utils.js';
@@ -2582,7 +2582,7 @@ export function initSearchModal(trigger) {
     // from ctx.user.is_printdisabled()). Widens the "Readable" badge to
     // printdisabled scans for these patrons, matching the readable count.
     modal._printDisabled = trigger.dataset.printDisabled === 'true';
-    // For the rows' shelf buttons (site.html.jinja, my_books/shelf_button_i18n).
+    // For the rows' shelf buttons (shell/base.html.jinja, my_books/shelf_button_i18n).
     modal._userKey = document.body.dataset.userKey || '';
     modal._shelfLabels = readLabels();
 

@@ -52,7 +52,7 @@ afterEach(() => {
 });
 
 describe('readLabels', () => {
-    test('parses the hidden input site.html.jinja renders', () => {
+    test('parses the hidden input shell/base.html.jinja renders', () => {
         page();
         expect(readLabels()).toEqual(LABELS);
     });

@@ -147,7 +147,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
     rendered = "<html>"
 
     def mock_render(template_name, **kwargs):
-        assert template_name == "site.html.jinja"
+        assert template_name == "shell/base.html.jinja"
         assert kwargs["page"] == "page"
         # Layout context is namespaced under `layout` to avoid collisions with page body
         assert "layout" in kwargs
@@ -213,7 +213,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
     monkeypatch.setattr(jinja_module, "render_jinja_template", mock_render)
 
     site_template = layout_module.SiteLayoutTemplate()
-    assert site_template.filename == "openlibrary/templates/site.html.jinja"
+    assert site_template.filename == "openlibrary/templates/shell/base.html.jinja"
     assert site_template("page") == rendered
 
 
@@ -474,7 +474,7 @@ def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests
 
 
 def _render_head(monkeypatch, **ctx_values):
-    """Render site/head.html.jinja from a real LayoutContext plus per-page ctx.
+    """Render shell/head.html.jinja from a real LayoutContext plus per-page ctx.
 
     Reset the shared infogami context first so a stray ``cssfile``/``description``
     etc. left by an earlier test in the same session can't flip the head's
@@ -488,7 +488,7 @@ def _render_head(monkeypatch, **ctx_values):
             if key != "_title":
                 infogami_context[key] = value
         layout = layout_module.LayoutContext.build(title=ctx_values.get("_title", ""))
-        return env.get_template("site/head.html.jinja").render(layout=layout)
+        return env.get_template("shell/head.html.jinja").render(layout=layout)
     finally:
         infogami_context.clear()
 
@@ -553,7 +553,7 @@ def test_head_embeds_sentry_config_when_enabled(monkeypatch, request_context_fix
 
 
 def test_site_shell_renders_with_real_layout_context(monkeypatch, request_context_fixture):
-    """site.html.jinja must render end-to-end with a real LayoutContext.
+    """shell/base.html.jinja must render end-to-end with a real LayoutContext.
 
     Uses StrictUndefined (the real env), so a missing head field or an
     unwired include fails loudly here rather than in production.
@@ -564,7 +564,7 @@ def test_site_shell_renders_with_real_layout_context(monkeypatch, request_contex
     monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
     monkeypatch.setitem(env.globals, "render_templetor_template", lambda name, *a, **kw: "")
     layout = layout_module.LayoutContext.build(title="Shell Test")
-    html = env.get_template("site.html.jinja").render(page="<p>hi</p>", layout=layout)
+    html = env.get_template("shell/base.html.jinja").render(page="<p>hi</p>", layout=layout)
     assert "<head>" in html
     assert "<title>Shell Test | Open Library</title>" in html
     assert '<meta name="ol-icon-sprite"' in html
@@ -583,7 +583,7 @@ def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatc
     monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
     monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
     layout = layout_module.LayoutContext.build(title="x")
-    html = env.get_template("lib/nav_head.html.jinja").render(layout=layout)
+    html = env.get_template("shell/header.html.jinja").render(layout=layout)
     trigger = BeautifulSoup(html, "lxml").find("button", class_="search-bar-trigger")
     availability = json.loads(trigger["data-i18n"])
     strings = json.loads(trigger["data-i18n-ui"])

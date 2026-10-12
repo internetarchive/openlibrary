@@ -1079,7 +1079,7 @@ def render_borrowed(edition_key: str, loan: dict[str, Any], read: str, library: 
 
     The flash is the confirmation the patron actually reads, because this page
     navigates away before it can be read here. It is plain text on purpose -- the
-    layout renders it escaped (``site.html.jinja``), so it cannot carry the
+    layout renders it escaped (``shell/base.html.jinja``), so it cannot carry the
     "Read it now" link.
 
     ``read`` is where the page's script sends this window; it is also rendered

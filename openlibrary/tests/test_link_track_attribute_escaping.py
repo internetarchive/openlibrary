@@ -22,7 +22,7 @@ INJECTION_PAYLOAD = "x onmouseover=alert(document.cookie)//"
 
 def _header_dropdown(props, track_prefix):
     """Invoke the header_dropdown macro with explicit arguments."""
-    tpl = get_jinja_env().get_template("lib/header_dropdown.html.jinja")
+    tpl = get_jinja_env().get_template("shell/header_dropdown.html.jinja")
     return tpl.module.header_dropdown(props, track_prefix)
 
 

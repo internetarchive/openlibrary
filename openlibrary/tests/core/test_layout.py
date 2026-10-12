@@ -26,16 +26,16 @@ def _patch_get_current_user(monkeypatch):
 
 TEMPLATES_DIR = pathlib.Path(__file__).resolve().parents[3] / "openlibrary" / "templates"
 LAYOUT_TEMPLATES = [
-    TEMPLATES_DIR / "site.html.jinja",
-    TEMPLATES_DIR / "site" / "alert.html.jinja",
-    TEMPLATES_DIR / "site" / "banner.html.jinja",
-    TEMPLATES_DIR / "site" / "head.html.jinja",
-    TEMPLATES_DIR / "lib" / "nav_foot.html.jinja",
-    TEMPLATES_DIR / "lib" / "nav_head.html.jinja",
-    TEMPLATES_DIR / "lib" / "browse_popover.html.jinja",
-    TEMPLATES_DIR / "lib" / "header_dropdown.html.jinja",
-    TEMPLATES_DIR / "languages" / "language_list.html.jinja",
-    TEMPLATES_DIR / "site" / "stats.html.jinja",
+    TEMPLATES_DIR / "shell" / "base.html.jinja",
+    TEMPLATES_DIR / "shell" / "alert.html.jinja",
+    TEMPLATES_DIR / "shell" / "banner.html.jinja",
+    TEMPLATES_DIR / "shell" / "head.html.jinja",
+    TEMPLATES_DIR / "shell" / "footer.html.jinja",
+    TEMPLATES_DIR / "shell" / "header.html.jinja",
+    TEMPLATES_DIR / "shell" / "browse_popover.html.jinja",
+    TEMPLATES_DIR / "shell" / "header_dropdown.html.jinja",
+    TEMPLATES_DIR / "shell" / "language_list.html.jinja",
+    TEMPLATES_DIR / "shell" / "stats.html.jinja",
 ]
 
 

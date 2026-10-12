@@ -1,6 +1,6 @@
 """Site layout context for the Jinja shell.
 
-This module owns the data that drives ``site.html.jinja``. It is
+This module owns the data that drives ``shell/base.html.jinja``. It is
 deliberately separate from ``openlibrary.core.jinja`` so the Jinja
 environment (loaders, globals, filters, i18n) stays easy to reason about
 in isolation. Templates remain pure: Python prepares data, Jinja renders it.
@@ -343,7 +343,7 @@ def _extract_search_modal_i18n() -> SearchModalContext:
 
 @dataclass(frozen=True)
 class HeaderContext:
-    """Precomputed data for the site header (``lib/nav_head.html.jinja``).
+    """Precomputed data for the site header (``shell/header.html.jinja``).
 
     Grouped separately from the rest of ``LayoutContext`` for the same reason as
     ``HeadContext``: the header is its own concern and pulls from its own set of
@@ -405,7 +405,7 @@ class SentryContext:
 
 @dataclass(frozen=True)
 class HeadContext:
-    """Precomputed data for the site head (``site/head.html.jinja``).
+    """Precomputed data for the site head (``shell/head.html.jinja``).
 
     Grouped separately from the rest of ``LayoutContext`` because the head is
     its own concern and pulls from a distinct set of per-page values.
@@ -550,10 +550,10 @@ class LayoutContext:
 class SiteLayoutTemplate:
     """``site`` pile entry whose ``filename`` satisfies saferender()'s error path."""
 
-    filename = "openlibrary/templates/site.html.jinja"
+    filename = "openlibrary/templates/shell/base.html.jinja"
 
     def __call__(self, page: Any) -> str:
         from openlibrary.core.jinja import render_jinja_template
 
         layout = LayoutContext.build(title=getattr(page, "title", "") or "")
-        return render_jinja_template("site.html.jinja", page=page, layout=layout)
+        return render_jinja_template("shell/base.html.jinja", page=page, layout=layout)
