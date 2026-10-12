@@ -2567,10 +2567,10 @@ export function initSearchModal(trigger) {
 
     const modal = document.createElement('ol-search-modal');
 
-    // Translated strings are rendered into the trigger's data-i18n
-    // (availability options) and data-i18n-ui (chrome) attributes by
-    // search/availability_i18n.html and search/search_modal_i18n.html. Apply
-    // them before the modal mounts so the first render is already localized.
+    // Translated strings are built in openlibrary/core/layout.py and serialized
+    // into the trigger's data-i18n (availability options) and data-i18n-ui
+    // (chrome) attributes. Apply them before the modal mounts so the first
+    // render is already localized.
     modal._availabilityOptions = availabilityOptionsFromElement(trigger);
     modal._i18n = searchModalStringsFromElement(trigger);
     // The patron's site language as a MARC code, matching Solr's `language`

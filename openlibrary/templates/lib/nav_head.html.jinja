@@ -47,8 +47,8 @@
                     class="search-bar-trigger"
                     aria-haspopup="dialog"
                     aria-label="{{ _('Search') }}"
-                    data-i18n="{% include 'search/availability_i18n.html.jinja' %}"
-                    data-i18n-ui="{% include 'search/search_modal_i18n.html.jinja' %}"
+                    data-i18n="{{ layout.search_modal.availability | tojson | force_escape }}"
+                    data-i18n-ui="{{ layout.search_modal.strings | tojson | force_escape }}"
                     data-search-lang="{{ layout.lang or 'en' }}"
                     data-print-disabled="{{ 'true' if layout.is_print_disabled else 'false' }}">
                 <span class="search-bar-trigger__label">{{ _("Search") }}</span>

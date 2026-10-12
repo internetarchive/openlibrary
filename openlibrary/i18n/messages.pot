@@ -865,7 +865,7 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html.jinja search/inside.html type/author/view.html work_search.html
+#: account/reading_log.html openlibrary/core/layout.py openlibrary/plugins/worksearch/code.py search/inside.html type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
@@ -873,19 +873,19 @@ msgstr ""
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py search/inside.html search/search_modal_i18n.html.jinja type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/core/layout.py openlibrary/plugins/worksearch/code.py search/inside.html type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
-#: search/inside.html search/search_modal_i18n.html.jinja work_search.html
+#: openlibrary/core/layout.py search/inside.html work_search.html
 msgid "Search languages…"
 msgstr ""
 
-#: books/edit/edition.html languages/index.html search/search_modal_i18n.html.jinja work_search.html
+#: books/edit/edition.html languages/index.html openlibrary/core/layout.py work_search.html
 msgid "Languages"
 msgstr ""
 
-#: search/inside.html search/search_modal_i18n.html.jinja work_search.html
+#: openlibrary/core/layout.py search/inside.html work_search.html
 msgid "Loading…"
 msgstr ""
 
@@ -919,7 +919,7 @@ msgstr ""
 msgid "Full URL:"
 msgstr ""
 
-#: search/search_modal_i18n.html.jinja work_search.html
+#: openlibrary/core/layout.py work_search.html
 msgid "No matching books or authors"
 msgstr ""
 
@@ -927,11 +927,11 @@ msgstr ""
 msgid "Add a new book"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html.jinja lib/nav_foot.html.jinja merge/authors.html openlibrary/plugins/openlibrary/authors.py publishers/view.html search/search_modal_i18n.html.jinja work_search.html
+#: SearchNavigation.html authors/index.html.jinja lib/nav_foot.html.jinja merge/authors.html openlibrary/core/layout.py openlibrary/plugins/openlibrary/authors.py publishers/view.html work_search.html
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html.jinja openlibrary/plugins/upstream/mybooks.py search/search_modal_i18n.html.jinja work_search.html
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html.jinja openlibrary/core/layout.py openlibrary/plugins/upstream/mybooks.py work_search.html
 msgid "Books"
 msgstr ""
 
@@ -2666,7 +2666,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lib/nav_head.html.jinja lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html.jinja search/searchbox.html type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lib/nav_head.html.jinja lists/home.html openlibrary/core/layout.py publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/searchbox.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -2969,7 +2969,7 @@ msgstr ""
 msgid "Required field"
 msgstr ""
 
-#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html search/search_modal_i18n.html.jinja
+#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/core/layout.py openlibrary/plugins/worksearch/code.py openlibrary/plugins/worksearch/facets.py search/advancedsearch.html
 msgid "Author"
 msgstr ""
 
@@ -5694,24 +5694,12 @@ msgstr ""
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html.jinja
-msgid "All books"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html.jinja
-msgid "Free to read now"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html.jinja
-msgid "Borrow online"
-msgstr ""
-
 #: search/inside.html
 #, python-format
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: SearchNavigation.html search/inside.html search/search_modal_i18n.html.jinja
+#: SearchNavigation.html openlibrary/core/layout.py search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -5771,153 +5759,6 @@ msgstr ""
 
 #: search/publishers.html
 msgid "Publishers Search"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Search Open Library"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Search books and authors…"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Close search"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Clear search"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "See results"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Go to full search"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "See %s book"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "See %s books"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "See all %s books"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "All %s books"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Clear all"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Search scope"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Inside books"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Search filters"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja type/work/editions_datatable.html
-msgid "Availability"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Searching books and authors…"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Searching inside books…"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "No results found"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "Showing %s of %s results"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Untitled"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Readable"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "Readable in %s"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Recent searches"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "Remove \"%s\" from recent searches"
-msgstr ""
-
-#: FulltextSearchSuggestion.html.jinja search/search_modal_i18n.html.jinja
-msgid "Search inside books"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "Search Inside %s book"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "Search Inside %s books"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "View all"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Search inside books…"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Type a word or phrase to find it on the pages of millions of books."
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "No matches inside books"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-msgid "Search inside books is temporarily unavailable. Please try again later."
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "%s match found inside books"
-msgstr ""
-
-#: search/search_modal_i18n.html.jinja
-#, python-format
-msgid "%s matches found inside books"
 msgstr ""
 
 #: search/sort_options.html
@@ -7018,6 +6859,10 @@ msgstr ""
 msgid "Edition"
 msgstr ""
 
+#: openlibrary/core/layout.py type/work/editions_datatable.html
+msgid "Availability"
+msgstr ""
+
 #: OlPagination.html OlPaginationArrows.html type/work/editions_datatable.html
 msgid "Go to previous page"
 msgstr ""
@@ -7205,6 +7050,10 @@ msgstr ""
 #: FulltextResultIA.html.jinja
 #, python-format
 msgid "by %(authors)s"
+msgstr ""
+
+#: FulltextSearchSuggestion.html.jinja openlibrary/core/layout.py
+msgid "Search inside books"
 msgstr ""
 
 #: FulltextSearchSuggestion.html.jinja
@@ -7837,6 +7686,157 @@ msgstr ""
 
 #: openlibrary/core/edits.py
 msgid "Unknown"
+msgstr ""
+
+#: openlibrary/core/layout.py openlibrary/plugins/worksearch/code.py
+msgid "All books"
+msgstr ""
+
+#: openlibrary/core/layout.py openlibrary/plugins/worksearch/code.py
+msgid "Free to read now"
+msgstr ""
+
+#: openlibrary/core/layout.py openlibrary/plugins/worksearch/code.py
+msgid "Borrow online"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Search Open Library"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Search books and authors…"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Close search"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Clear search"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "See results"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Go to full search"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "See %s book"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "See %s books"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "See all %s books"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "All %s books"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Clear all"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Search scope"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Inside books"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Search filters"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Searching books and authors…"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Searching inside books…"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "No results found"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "Showing %s of %s results"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Untitled"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Readable"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "Readable in %s"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Recent searches"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "Remove \"%s\" from recent searches"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "Search Inside %s book"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "Search Inside %s books"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "View all"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Search inside books…"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Type a word or phrase to find it on the pages of millions of books."
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "No matches inside books"
+msgstr ""
+
+#: openlibrary/core/layout.py
+msgid "Search inside books is temporarily unavailable. Please try again later."
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "%s match found inside books"
+msgstr ""
+
+#: openlibrary/core/layout.py
+#, python-format
+msgid "%s matches found inside books"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py

@@ -11,6 +11,7 @@ from openlibrary.core.layout import (
     AnnouncementBanner,
     HeadContext,
     LayoutContext,
+    SearchModalContext,
     SentryContext,
     can_show_librarian_tools,
 )
@@ -32,8 +33,6 @@ LAYOUT_TEMPLATES = [
     TEMPLATES_DIR / "lib" / "nav_head.html.jinja",
     TEMPLATES_DIR / "lib" / "browse_popover.html.jinja",
     TEMPLATES_DIR / "lib" / "header_dropdown.html.jinja",
-    TEMPLATES_DIR / "search" / "availability_i18n.html.jinja",
-    TEMPLATES_DIR / "search" / "search_modal_i18n.html.jinja",
     TEMPLATES_DIR / "languages" / "language_list.html.jinja",
     TEMPLATES_DIR / "site" / "stats.html.jinja",
 ]
@@ -107,6 +106,7 @@ def test_layout_context_is_frozen():
         featured_browse_links=[],
         simple_browse_links=[],
         browse_featured_count=4,
+        search_modal=SearchModalContext(availability={}, strings={}),
         head=HeadContext(
             title="",
             domain="",
@@ -264,6 +264,20 @@ def test_layout_build_header_navigation(request_context_fixture):
     assert len(layout.featured_browse_links) == 4
     assert len(layout.simple_browse_links) == len(layout.browse_links) - 4
     assert layout.ol_env in ("production", "development", "testing")
+
+
+def test_layout_build_search_modal_preserves_client_fill_placeholders(request_context_fixture):
+    """Client-fill strings must keep their ``%s`` for browser-side ``sprintf``.
+
+    Building them in Python (rather than a Jinja template) is what keeps Jinja's
+    formatting ``_`` away from placeholders it cannot fill.
+    """
+    request_context_fixture(lang="en")
+    modal = LayoutContext.build().search_modal
+    assert modal.availability["all"]["label"] == "All books"
+    assert modal.strings["seeOne"] == "See %s book"
+    assert modal.strings["resultsAnnounce"] == "Showing %s of %s results"
+    assert modal.strings["removeRecent"] == 'Remove "%s" from recent searches'
 
 
 def test_layout_build_head_defaults(request_context_fixture):

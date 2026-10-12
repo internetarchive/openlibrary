@@ -2,6 +2,7 @@
 
 import builtins
 import io
+import json
 import pathlib
 import textwrap
 from typing import Any
@@ -10,9 +11,9 @@ import jinja2
 import jinja2.exceptions
 import pytest
 import web
+from bs4 import BeautifulSoup
 from lxml import html as lxml_html
 from lxml.etree import ParseError as LxmlParseError
-from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
 
 from infogami.utils.context import context as infogami_context
@@ -83,34 +84,12 @@ def _create_validation_env() -> jinja2.Environment:
         extensions=["jinja2.ext.i18n"],
     )
     env.install_gettext_callables(_gettext, _ngettext, newstyle=True)
-    original_gettext = env.globals["gettext"]
-    original_ngettext = env.globals["ngettext"]
-
-    @jinja2.pass_context
-    def _safe_gettext(context: Any, string: str, **variables: Any) -> str:
-        if not variables:
-            rv = context.call(_gettext, string)
-            if "%%" in rv:
-                rv = rv.replace("%%", "%")
-            return Markup(rv) if context.eval_ctx.autoescape else rv
-        return original_gettext(context, string, **variables)
-
-    @jinja2.pass_context
-    def _safe_ngettext(context: Any, singular: str, plural: str, n: int, **variables: Any) -> str:
-        if not variables:
-            rv = context.call(_ngettext, singular, plural, n)
-            if "%(num)" in rv:
-                # Keep in sync with openlibrary/core/jinja.py's _safe_ngettext.
-                rv = rv % {"num": n}
-            elif "%%" in rv:
-                rv = rv.replace("%%", "%")
-            return Markup(rv) if context.eval_ctx.autoescape else rv
-        return original_ngettext(context, singular, plural, n, **variables)
-
-    env.globals["gettext"] = _safe_gettext
-    env.globals["_"] = _safe_gettext
-    env.globals["ngettext"] = _safe_ngettext
     env.policies["ext.i18n.trimmed"] = True
+
+    # Structural validation renders with ``RenderableUndefined`` data, so
+    # ``tojson`` (used for the search trigger's ``data-i18n`` payloads) must
+    # coerce unknown values instead of raising. ``str(undefined)`` is ``""``.
+    env.policies["json.dumps_function"] = lambda obj, **kwargs: json.dumps(obj, default=str, **kwargs)
 
     # Stubbed: this env only validates template structure, without infogami's
     # runtime template disk-loading or template globals.
@@ -200,6 +179,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.browse_links, list)
         assert isinstance(layout.featured_browse_links, list)
         assert isinstance(layout.simple_browse_links, list)
+        assert isinstance(layout.search_modal, layout_module.SearchModalContext)
         assert isinstance(layout.head, layout_module.HeadContext)
         # No flat layout keys should leak into root context
         for key in (
@@ -451,24 +431,19 @@ class TestGetJinjaEnv:
         assert tpl.render() == "Hello"
 
 
-def test_bare_ngettext_substitutes_implicit_num(request_context_fixture):
-    """Bare ngettext calls keep Jinja's implicit ``num`` substitution.
+def test_ngettext_formats_named_placeholders(request_context_fixture):
+    """Standard Jinja newstyle ngettext formats ``%(num)s`` placeholders.
 
-    Before the _safe_* wrappers, newstyle ngettext always %-formatted with
-    an implicit num: ``{{ ngettext('%(num)d book', '%(num)d books', 3) }}``
-    rendered "3 books" with no explicit ``num=`` argument. The wrapper skips
-    formatting to keep client-side sprintf strings raw; it must still
-    substitute %(num) strings so bare calls keep rendering counts.
+    Client-fill strings — which must reach the browser with their ``%s``
+    placeholders intact — are built in Python and serialized to JSON rather
+    than rendered through ``_`` (see ``SearchModalContext`` in
+    ``openlibrary/core/layout.py``).
     """
     request_context_fixture(lang="en")
     env = get_jinja_env()
-    # implicit num restored:
     assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 3) }}").render() == "3 books"
     assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 1) }}").render() == "1 book"
-    # explicit variables interpolate through the original path:
     assert env.from_string("{{ ngettext('%(num)d book', '%(num)d books', 3, num=7) }}").render() == "7 books"
-    # sprintf-style strings without variables stay raw (the wrappers' purpose):
-    assert env.from_string("{{ ngettext('%s book', '%s books', 3) }}").render() == "%s books"
 
 
 def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests):
@@ -596,3 +571,24 @@ def test_site_shell_renders_with_real_layout_context(monkeypatch, request_contex
     assert "<title>Shell Test | Open Library</title>" in html
     assert '<meta name="ol-icon-sprite"' in html
     assert "<p>hi</p>" in html
+
+
+def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatch, request_context_fixture):
+    """The search trigger ships client-fill strings as JSON with ``%s`` intact.
+
+    These strings are interpolated in the browser (``sprintf``), so they are
+    built in Python and serialized — never rendered through Jinja's formatting
+    ``_``, which would turn ``"See %s book"`` into ``"See {} book"``.
+    """
+    request_context_fixture(lang="en")
+    env = get_jinja_env()
+    monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
+    monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
+    layout = layout_module.LayoutContext.build(title="x")
+    html = env.get_template("lib/nav_head.html.jinja").render(layout=layout)
+    trigger = BeautifulSoup(html, "lxml").find("button", class_="search-bar-trigger")
+    availability = json.loads(trigger["data-i18n"])
+    strings = json.loads(trigger["data-i18n-ui"])
+    assert availability["all"]["label"] == "All books"
+    assert strings["seeOne"] == "See %s book"
+    assert strings["resultsAnnounce"] == "Showing %s of %s results"
