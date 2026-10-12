@@ -1,18 +1,16 @@
 <template>
-  <div class="value-card">
-    <CardHeader
-      :description="description"
-    />
-    <CardBody
-      ref="card-body"
-      :values="values"
-      :multi-select="multiSelect"
-      :type="type"
-      :all-selected-values="allSelectedValues"
-      :work-key="workKey"
-      :username="username"
-    />
-  </div>
+    <div class="value-card">
+        <CardHeader :description="description" />
+        <CardBody
+            ref="card-body"
+            :values="values"
+            :multi-select="multiSelect"
+            :type="type"
+            :all-selected-values="allSelectedValues"
+            :work-key="workKey"
+            :username="username"
+        />
+    </div>
 </template>
 
 <script>
@@ -54,9 +52,9 @@ export default {
         values: {
             type: Array,
             required: true,
-            validator: function(arr) {
+            validator: function (arr) {
                 for (const item of arr) {
-                    if (typeof(item) !== 'string') {
+                    if (typeof item !== 'string') {
                         return false;
                     }
                 }
@@ -93,15 +91,15 @@ export default {
             type: String,
             required: true
         }
-    },
+    }
 };
 </script>
 
 <style scoped>
 .value-card {
-  border: 1px solid #999999;
-  border-radius: 4px;
-  margin: 1em 3em;
+    border: 1px solid #999999;
+    border-radius: 4px;
+    margin: 1em 3em;
 }
 
 @media (max-width: 768px) {
@@ -109,5 +107,4 @@ export default {
         margin: unset;
     }
 }
-
 </style>
