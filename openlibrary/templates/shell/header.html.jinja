@@ -41,8 +41,9 @@
             data-print-disabled is whether the patron is verified for print-disabled
             access; the modal widens the "Readable" badge to printdisabled scans for
             them, matching the server's per-patron readable count (get_fulltext_min).
-            Read straight from the `pd` cookie — the same (login-independent) signal
-            request_context derives print_disabled from, so badge and count agree. #}
+            Read from the `pd` cookie, falling back to request_context's
+            print_disabled (derived from that same login-independent cookie),
+            so badge and count agree. #}
             <button type="button"
                     class="search-bar-trigger"
                     aria-haspopup="dialog"

@@ -25,7 +25,6 @@ from openlibrary.core.batch_imports import (
 from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.core.shell import SiteLayoutTemplate
-from openlibrary.core.shell.nav import BROWSE_FEATURED_COUNT, browse_links
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
@@ -1127,8 +1126,6 @@ def setup_template_globals():
             "get_sentry": get_sentry,
             "get_ol_env": get_ol_env,
             "get_deployment_name": get_deployment_name,
-            "browse_links": browse_links,
-            "BROWSE_FEATURED_COUNT": BROWSE_FEATURED_COUNT,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
