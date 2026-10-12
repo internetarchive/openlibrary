@@ -24,7 +24,7 @@ class show_ia(app.view):
         error_404 = False
         url = f"https://archive.org/download/{ia}/{ia}_meta.mrc"
         try:
-            response = requests.get(url, timeout=3)
+            response = requests.get(url, timeout=30)
             response.raise_for_status()
             data = response.content
         except requests.Timeout:
@@ -126,14 +126,14 @@ class show_marc(app.view):
         offset = int(offset)
         length = int(length)
 
-        r0, r1 = offset, offset + 100000
+        r0, r1 = offset, offset + length
         url = "https://archive.org/download/%s" % filename
         headers = {"Range": "bytes=%d-%d" % (r0, r1)}
 
         try:
             response = requests.get(url, headers=headers, timeout=3)
             response.raise_for_status()
-            result = response.content[:100000]
+            result = response.content[:length]
         except requests.Timeout:
             return "ERROR: archive.org timed out"
         except requests.HTTPError as e:
