@@ -64,13 +64,14 @@ export function initCoversAddManage() {
     $('.trash').disableSelection();
 }
 
-// Point the enlarged preview dialog, and its trigger's fallback link, at the newly saved image.
+// Point every enlarged preview dialog, and its trigger's fallback link, at the newly saved image.
+// Author pages render two (`seeImage-mobile`, `seeImage-desktop`); book pages one (`seeImage`).
 function updateCoverPreview(largeUrl) {
-    const preview = document.querySelector('#seeImage img.cover-preview');
-    if (preview) {
-        preview.src = largeUrl;
-    }
-    document.querySelectorAll('.coverLook[aria-controls="seeImage"]').forEach((link) => { link.href = largeUrl; });
+    document.querySelectorAll('.coverLook[aria-controls^="seeImage"]').forEach((link) => {
+        link.href = largeUrl;
+        const preview = document.getElementById(link.getAttribute('aria-controls'))?.querySelector('img.cover-preview');
+        if (preview) preview.src = largeUrl;
+    });
 }
 
 // This function will be triggered when the user clicks the "Paste" button
