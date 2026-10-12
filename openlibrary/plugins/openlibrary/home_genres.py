@@ -4,18 +4,37 @@
 scripts/generate_home_genres.py. Works aren't tagged with genres yet (#13151), so each node
 approximates its genre with a `subject_key` clause; a subgenre searches on its own unless
 `requiresIntersection` scopes it to its parent.
+
+The effective genres come from the editable /config/home doc (#13893) when it's present and valid,
+and from the bundled file otherwise — a bad or missing doc can never blank the homepage.
 """
 
 import functools
+import hashlib
 import json
+import logging
+import time
 from pathlib import Path
 from typing import NotRequired, TypedDict, cast
 
+import web
+
 from openlibrary.i18n import gettext as _
+from openlibrary.utils import dateutil
+
+logger = logging.getLogger("openlibrary.home_genres")
 
 GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
 # Hand-picked, not generated.
 GENRE_COVERS_JSON_PATH = Path(__file__).parent / "home_genre_covers.json"
+
+# The editable homepage-config doc (#13893). A `/type/object` like /config/edition, read with
+# web.ctx.site.get(). Only its `genres` key is read here; a bad or missing doc falls back to the
+# bundled file so an edit can never blank the homepage.
+HOME_CONFIG_KEY = "/config/home"
+# Staff edits to /config/home appear within this window, with no restart. Short enough to feel
+# live, long enough that the drill-down partials don't read infobase on every request.
+GENRES_CACHE_TTL = 5 * dateutil.MINUTE_SECS
 
 # Minimum readable (borrowable or public) books, counted against production when the JSON was
 # generated, for a tile or a subgenre row to be worth showing.
@@ -47,9 +66,82 @@ TRENDING: Genre = {
 }
 
 
-@functools.cache
+# The keys load_home_genres() and its consumers rely on. Top-level nodes additionally carry `kind`
+# (display_name/solr_query subscript it) and a `children` list; children don't.
+_NODE_KEYS = frozenset({"name", "slug", "query", "count"})
+_GENRE_KEYS = _NODE_KEYS | {"kind", "children"}
+
+
+def _valid_node(node: object, *, keys: frozenset[str]) -> bool:
+    return isinstance(node, dict) and keys <= node.keys() and isinstance(node.get("count"), int)
+
+
+def _valid_genres(genres: object) -> bool:
+    """A usable `genres` value: a non-empty list of genre nodes, each with a list of child nodes."""
+    return (
+        isinstance(genres, list)
+        and len(genres) > 0
+        and all(
+            _valid_node(node, keys=_GENRE_KEYS) and isinstance(node["children"], list) and all(_valid_node(child, keys=_NODE_KEYS) for child in node["children"])
+            for node in genres
+        )
+    )
+
+
+def _config_home_genres() -> list | None:
+    """The `genres` value from /config/home, or None when there's no site, no doc, or no key.
+
+    Nested genre nodes come back as infogami Things; .dict() round-trips the keyless ones to plain
+    dicts (client.Thing._dictrepr), matching home_genres.json.
+    """
+    site = getattr(web.ctx, "site", None)
+    if site is None:
+        return None
+    doc = site.get(HOME_CONFIG_KEY)
+    if not doc:
+        return None
+    return doc.dict().get("genres")
+
+
+def _load_home_genre_nodes() -> list[dict]:
+    """Effective raw ClassificationNode list: /config/home's `genres` when valid, else the file."""
+    try:
+        genres = _config_home_genres()
+    except Exception:
+        logger.exception("Reading %s failed; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
+        genres = None
+    if genres is not None:
+        if _valid_genres(genres):
+            return genres
+        logger.error("%s has an invalid `genres`; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
+    return json.loads(GENRES_JSON_PATH.read_text())
+
+
+# (expiry_monotonic, nodes). Per-process, like the old @functools.cache but with a TTL instead of
+# forever. Deliberately not memcache_memoize: its stale-while-revalidate refresh runs on a worker
+# thread that does NOT carry web.ctx.site, so the refresh would read the file, not the doc. Reading
+# on the calling thread keeps the site in scope. reset_genres_cache() clears it (tests, or a future
+# edit hook).
+_nodes_cache: tuple[float, list[dict]] | None = None
+
+
+def reset_genres_cache() -> None:
+    global _nodes_cache
+    _nodes_cache = None
+
+
+def load_home_genre_nodes() -> list[dict]:
+    """``_load_home_genre_nodes`` behind a short per-process TTL, so a staff edit to /config/home
+    shows within ``GENRES_CACHE_TTL`` without pinning a doc read for the process lifetime (what the
+    old ``@functools.cache`` did) or re-reading infobase on every drill-down request."""
+    global _nodes_cache
+    now = time.monotonic()
+    if _nodes_cache is None or now >= _nodes_cache[0]:
+        _nodes_cache = (now + GENRES_CACHE_TTL, _load_home_genre_nodes())
+    return _nodes_cache[1]
+
+
 def load_home_genres() -> list[Genre]:
-    nodes = json.loads(GENRES_JSON_PATH.read_text())
     return [
         cast(
             Genre,
@@ -58,9 +150,17 @@ def load_home_genres() -> list[Genre]:
                 "subgenres": [c for c in node["children"] if c["count"] >= MIN_SUBGENRE_READABLE],
             },
         )
-        for node in nodes
+        for node in load_home_genre_nodes()
         if node["count"] >= MIN_GENRE_READABLE
     ]
+
+
+def genres_fingerprint() -> str:
+    """A short, stable hash of the effective genre config, for cache keys that must bust the moment
+    a staff edit lands — see home.get_cached_featured_genres. Reads the TTL-cached nodes, so it's
+    cheap and changes exactly when the config (doc or file) does."""
+    blob = json.dumps(load_home_genre_nodes(), sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha1(blob).hexdigest()[:12]
 
 
 @functools.cache

@@ -251,9 +251,14 @@ def get_featured_genres():
 
 
 def get_cached_featured_genres():
+    # Keyed on the genres fingerprint so a staff edit to /config/home busts this day cache at once,
+    # keeping the tiles in step with the drill-down rows (both ~5 min behind an edit). Without the
+    # fingerprint the tiles would lag a full day behind the rows and read as a bug. The DAY timeout
+    # still protects the per-build Solr/cover queries when nothing is edited (one build per day).
+    key = f"home.featured_genres.{home_genres.genres_fingerprint()}"
     return cache.memcache_memoize(
         get_featured_genres,
-        "home.featured_genres",
+        key,
         timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
     )()
