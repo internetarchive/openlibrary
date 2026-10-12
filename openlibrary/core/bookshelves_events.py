@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import IntEnum
 
-from openlibrary.core.async_db import class_row, fetch_all, fetch_one, fetch_val
+from openlibrary.core.async_db import class_row, execute, fetch_one, fetch_val
 
 from . import db
 
@@ -163,7 +163,8 @@ class BookshelvesEvents(db.CommonExtras):
 
     # Update methods:
     @classmethod
-    async def update_event(cls, pid: int, edition_id: int | None = None, event_date: str | None = None, data: str | None = None) -> int:
+    async def update_event(cls, pid: int, edition_id: int | None = None, event_date: str | None = None, data: str | None = None) -> None:
+        """Update the given fields on an event. A no-op when no fields are passed."""
         updates: dict[str, str | int | datetime] = {}
         if event_date:
             updates["event_date"] = event_date
@@ -171,13 +172,12 @@ class BookshelvesEvents(db.CommonExtras):
             updates["data"] = data
         if edition_id:
             updates["edition_id"] = edition_id
-        if updates:
-            updates["updated"] = datetime.now()
-            params = {"id": pid, **updates}
-            assignments = ", ".join(f"{column} = %({column})s" for column in updates)
-            rows = await fetch_all(f"UPDATE {cls.TABLENAME} SET {assignments} WHERE id = %(id)s RETURNING id", params)
-            return len(rows)
-        return 0
+        if not updates:
+            return
+        updates["updated"] = datetime.now()
+        params = {"id": pid, **updates}
+        assignments = ", ".join(f"{column} = %({column})s" for column in updates)
+        await execute(f"UPDATE {cls.TABLENAME} SET {assignments} WHERE id = %(id)s", params)
 
     @classmethod
     def update_event_date(cls, pid, event_date):
@@ -212,9 +212,8 @@ class BookshelvesEvents(db.CommonExtras):
 
     # Delete methods:
     @classmethod
-    async def delete_by_id(cls, pid: int) -> int:
-        rows = await fetch_all(f"DELETE FROM {cls.TABLENAME} WHERE id = %(id)s RETURNING id", {"id": pid})
-        return len(rows)
+    async def delete_by_id(cls, pid: int) -> None:
+        await execute(f"DELETE FROM {cls.TABLENAME} WHERE id = %(id)s", {"id": pid})
 
     @classmethod
     def delete_by_username(cls, username):
