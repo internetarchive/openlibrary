@@ -7,6 +7,8 @@ import re
 import requests
 import web
 
+from openlibrary.catalog.get_ia import MAX_MARC_LENGTH
+
 from .. import app
 
 IA_GET_TIMEOUT = 30
@@ -128,7 +130,9 @@ class show_marc(app.view):
         offset = int(offset)
         length = int(length)
 
-        r0, r1 = offset, offset + length
+        if not 0 < length < MAX_MARC_LENGTH:
+            raise web.badrequest("Invalid MARC record length - must be between 1 and %d" % MAX_MARC_LENGTH)
+        r0, r1 = offset, offset + length - 1
         url = "https://archive.org/download/%s" % filename
         headers = {"Range": "bytes=%d-%d" % (r0, r1)}
 
