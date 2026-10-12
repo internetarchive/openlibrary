@@ -57,6 +57,9 @@ export function len(array) {
 
 // used in templates/type/permission/edit.html
 export function enumerate(a) {
+    // Keep new Array(n): it preserves holes for sparse input, which
+    // Array.from({ length }) would turn into undefined entries.
+    // oxlint-disable-next-line unicorn/no-new-array
     var b = new Array(a.length);
     var i;
     for (i in a) {

@@ -158,15 +158,19 @@ export async function getTestingStatus() {
  * Send a JSON action request and resolve its JSON body.
  */
 export async function postAction(action, fields = {}, method = 'POST') {
-    const response = await fetch(action, {
+    const init = {
         method,
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json'
         },
-        credentials: 'same-origin',
-        body: JSON.stringify(fields)
-    });
+        credentials: 'same-origin'
+    };
+    // fetch() throws if a GET or HEAD request carries a body.
+    if (method !== 'GET' && method !== 'HEAD') {
+        init.body = JSON.stringify(fields);
+    }
+    const response = await fetch(action, init);
     if (!response.ok) {
         throw new Error(`${action} failed: ${response.status}`);
     }

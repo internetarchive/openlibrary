@@ -1492,7 +1492,7 @@ describe('ol-shelf-actions check-in pane', () => {
     // The old prompt and form reported under these names; the dashboards
     // built on them must keep counting when the same answers move in here.
     describe('analytics', () => {
-        const events = () => window._paq.filter(e => e[0] === 'trackEvent' && /^CheckIn/.test(e[1])).map(e => e.slice(1));
+        const events = () => window._paq.filter(e => e[0] === 'trackEvent' && String(e[1]).startsWith('CheckIn')).map(e => e.slice(1));
 
         beforeEach(() => {
             window._paq = [];

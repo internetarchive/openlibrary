@@ -124,7 +124,9 @@ export class ShowcaseItem {
             return;
         }
         this.removeSelf();
-        // Remove other showcase items that are associated with the list and seed key:
+        // Remove other showcase items that are associated with the list and seed key.
+        // removeSelf() splices `showcases`, so iterate over a copy.
+        // oxlint-disable-next-line unicorn/no-useless-spread
         for (const showcase of [...showcases]) {
             if (showcase.isShowcaseForListAndSeed(this.listKey, this.seedKey)) {
                 showcase.removeSelf();

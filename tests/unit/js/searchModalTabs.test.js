@@ -21,7 +21,9 @@ function modalSetup({ query = 'white whale' } = {}) {
     modal._saveCurrentSearch = vi.fn();
     modal._debouncedFetch = vi.fn();
     modal._query = query;
-    // No render root on a bare instance for _selectMode to focus.
+    // No render root on a bare instance for _selectMode to focus. The stub
+    // only needs a never-resolving .then(), so it is deliberately thenable.
+    // oxlint-disable-next-line unicorn/no-thenable
     Object.defineProperty(modal, 'updateComplete', { value: { then: () => {} } });
     return modal;
 }

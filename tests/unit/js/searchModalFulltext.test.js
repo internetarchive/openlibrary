@@ -471,7 +471,7 @@ describe('catalog see-all labels', () => {
         const modal = new SearchModal();
         modal._hasSearched = true;
         modal._numFound = 1204;
-        modal._results = new Array(7).fill({});
+        modal._results = Array.from({ length: 7 }, () => ({}));
         expect(modal._seeAllLabels()).toEqual({ wide: 'See all 1,204 books', narrow: 'All 1.2K books' });
     });
 

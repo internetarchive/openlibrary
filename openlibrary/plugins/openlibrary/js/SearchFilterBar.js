@@ -219,7 +219,7 @@ export function initSearchFilterBar(container) {
 
     // Build the facet field config now that we have element references.
     // Future filters: add an entry here.
-    POPOVER_FIELD_CONFIG = new Map([...(languageEl ? [[languageEl, 'language']] : [])]);
+    POPOVER_FIELD_CONFIG = new Map(languageEl ? [[languageEl, 'language']] : []);
 
     // True when the page has a meaningful search query — facet counts are only
     // fetched in this case. An empty or whitespace-only q= is treated as no
