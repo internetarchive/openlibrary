@@ -1,22 +1,27 @@
 {# djlint:off H016,H030 #}
-{# TODO: Remove H016/H030 ignore after migrating site/head.html to Jinja (head currently rendered via Templetor) #}
+{# The <title> and <meta name="description"> live in the included
+   shell/head.html.jinja. djLint lints each file in isolation, so it can't see
+   them here. #}
 <!DOCTYPE html>
 <html lang="{{ layout.lang }}">
-    {{ render_templetor_template("site/head", title=page.title) }}
+    {% include "shell/head.html.jinja" %}
     <body class="{{ layout.body_class }}"
           {% for attr in layout.body_attrs %} {{ attr | safe }}{% endfor %}>
         <script>
             // Provide a signal that JS will load
             document.body.className += ' client-js';
         </script>
+        {% if layout.show_ol_shell %}
+            <a class="skip-link" href="#test-body-mobile">{{ _("Skip to main content") }}</a>
+        {% endif %}
         <span id="top"></span>
         <div id="offline-info">{{ _("It looks like you're offline.") }}</div>
         {% if layout.show_ol_shell %}
-            {% include "site/alert.html.jinja" %}
-            {{ render_templetor_template('lib/nav_head', None) }}
+            {% include "shell/alert.html.jinja" %}
+            {% include "shell/header.html.jinja" %}
             {{ render_templetor_template("my_books/shelf_button_i18n") }}
         {% endif %}
-        <main{% if layout.show_ol_shell %} id="test-body-mobile"{% endif %}>
+        <main {% if layout.show_ol_shell %} id="test-body-mobile" tabindex="-1"{% endif %}>
             {% if layout.show_ol_shell %}
                 {% if layout.flash_messages %}
                     <div class="flash-messages">
@@ -26,7 +31,7 @@
                     </div>
                 {% endif %}
                 {% if layout.announcement_banner %}
-                    {% include "site/banner.html.jinja" %}
+                    {% include "shell/banner.html.jinja" %}
                 {% endif %}
             {% endif %}
             {% block content %}
@@ -35,10 +40,10 @@
         </main>
         {% if layout.show_ol_shell %}
             <div class="clearfix"></div>
-            {% include "lib/nav_foot.html.jinja" %}
+            {% include "shell/footer.html.jinja" %}
         {% endif %}
         {% if layout.is_debug %}
-            {% include "site/stats.html.jinja" %}
+            {% include "shell/stats.html.jinja" %}
         {% endif %}
         {% if not layout.is_bot %}
             <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>

@@ -60,6 +60,11 @@ $(function () {
         import('./autocomplete').then(module => module.init($));
     }
 
+    // Open Library Tasks pages (/tasks)
+    if (document.querySelector('[data-contribute-list], [data-contribute-task], [data-contribute-done]')) {
+        import('./contribute').then(module => module.init());
+    }
+
     // hide all images in .no-img
     $('.no-img img').hide();
 
@@ -452,7 +457,7 @@ $(function () {
     // ol-popover-open listener — other popovers can opt into tracking with
     // their own wiring once we know how we want to measure them. The
     // "category|action|label" string is set server-side per surface (desktop
-    // vs. mobile tray) in browse_popover.html.
+    // vs. mobile tray) in browse_popover.html.jinja.
     document.querySelectorAll('.browse-popover[data-ol-open-track]').forEach(popover => {
         popover.addEventListener('ol-popover-open', () => {
             const ping = popover.getAttribute('data-ol-open-track').split('|');
@@ -550,6 +555,11 @@ $(function () {
     const interstitial = document.querySelector('.interstitial');
     if (interstitial) {
         import('./interstitial').then(module => module.initInterstitial(interstitial));
+    }
+
+    const providerBorrowLinks = document.querySelectorAll('a.cta-btn--borrow[data-ol-provider]');
+    if (providerBorrowLinks.length) {
+        import('./provider_borrow_popup').then(module => module.initProviderBorrowPopup(providerBorrowLinks));
     }
 
     const leaveWaitlistLinks = document.querySelectorAll('a.leave');

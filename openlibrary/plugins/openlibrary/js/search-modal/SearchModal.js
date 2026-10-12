@@ -4,7 +4,7 @@ import { repeat } from 'lit/directives/repeat.js';
 // The <ol-*> custom elements this modal uses (ol-icon, ol-dialog, ol-toggle,
 // ol-select-popover) are registered by the site-wide
 // Lit bundle: build/components/production/ol-components.js, loaded from
-// openlibrary/templates/site.html.jinja. Do NOT re-import those component
+// openlibrary/templates/shell/base.html.jinja. Do NOT re-import those component
 // modules here — re-running customElements.define() throws NotSupportedError,
 // which aborts the rest of that bundle and unregisters every other component.
 import { debounce } from '../nonjquery_utils.js';
@@ -2591,10 +2591,10 @@ export function initSearchModal(trigger) {
 
     const modal = document.createElement('ol-search-modal');
 
-    // Translated strings are rendered into the trigger's data-i18n
-    // (availability options) and data-i18n-ui (chrome) attributes by
-    // search/availability_i18n.html and search/search_modal_i18n.html. Apply
-    // them before the modal mounts so the first render is already localized.
+    // Translated strings are built in openlibrary/core/shell/search_modal.py and serialized
+    // into the trigger's data-i18n (availability options) and data-i18n-ui
+    // (chrome) attributes. Apply them before the modal mounts so the first
+    // render is already localized.
     modal._availabilityOptions = availabilityOptionsFromElement(trigger);
     modal._i18n = searchModalStringsFromElement(trigger);
     // The patron's site language as a MARC code, matching Solr's `language`
@@ -2606,7 +2606,7 @@ export function initSearchModal(trigger) {
     // from ctx.user.is_printdisabled()). Widens the "Readable" badge to
     // printdisabled scans for these patrons, matching the readable count.
     modal._printDisabled = trigger.dataset.printDisabled === 'true';
-    // For the rows' shelf buttons (site.html.jinja, my_books/shelf_button_i18n).
+    // For the rows' shelf buttons (shell/base.html.jinja, my_books/shelf_button_i18n).
     modal._userKey = document.body.dataset.userKey || '';
     modal._shelfLabels = readLabels();
 
