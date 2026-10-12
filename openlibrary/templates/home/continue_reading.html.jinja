@@ -1,0 +1,33 @@
+{#
+  Homepage "Continue Reading" row: active loans, then recent returns.
+  Items come from ContinueReadingPartial in plugins/openlibrary/partials.py.
+#}
+{% set items = items | default([]) %}
+{% if items %}
+    <section class="continue-reading" aria-labelledby="continue-reading-title">
+        <div class="carousel-section-header">
+            <h2 class="home-h2" id="continue-reading-title">
+                <a href="/account/loans"
+                   data-ol-link-track="ContinueReading|HeaderClick">{{ _("Continue Reading") }}</a>
+            </h2>
+        </div>
+        <ul class="continue-reading__row">
+            {% for item in items %}
+                <li class="continue-reading__item">
+                    <a class="continue-reading__cover"
+                       href="{{ item.book_url }}"
+                       title="{{ item.title }}"
+                       data-ol-link-track="ContinueReading|CoverClick">
+                        {% if item.cover_url %}
+                            <img src="{{ item.cover_url }}" alt="{{ item.title }}" loading="lazy">
+                        {% else %}
+                            <span class="continue-reading__cover-title">{{ item.title }}</span>
+                        {% endif %}
+                    </a>
+                    <div class="continue-reading__action">{{ item.loan_status_html }}</div>
+                    <span class="continue-reading__status">{{ item.status }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}

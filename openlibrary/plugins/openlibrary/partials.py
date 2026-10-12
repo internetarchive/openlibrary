@@ -3,8 +3,10 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import time
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import UTC
 from hashlib import md5
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Unpack
 from urllib.parse import parse_qs, quote, quote_plus
@@ -13,6 +15,7 @@ import web
 from markupsafe import Markup
 from pydantic import BaseModel, Field
 
+from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.core.follows import PubSub
@@ -28,6 +31,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
+from openlibrary.i18n import ungettext
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import (
     convert_list,
@@ -35,7 +39,7 @@ from openlibrary.plugins.openlibrary.lists import (
     get_user_lists,
 )
 from openlibrary.plugins.upstream.borrow import datetime_from_isoformat
-from openlibrary.plugins.upstream.mybooks import shelf_button_for
+from openlibrary.plugins.upstream.mybooks import LoanEntry, get_loans_and_history, shelf_button_for
 from openlibrary.plugins.upstream.utils import (
     get_user_object,
     json_encode,
@@ -97,6 +101,79 @@ class ReadingGoalProgressPartial:
         goal = await get_reading_goals_async(username, year)
         component = render_jinja_template("reading_goals/reading_goal_progress.html.jinja", entries=[goal] if goal else [])
         return {"partials": component}
+
+
+class ContinueReadingItem(TypedDict):
+    title: str
+    cover_url: str | Literal[False]
+    book_url: str
+    status: str
+    loan_status_html: Markup
+
+
+class ContinueReadingPartial:
+    """Active loans plus recent returns, as a row of covers on the homepage.
+
+    Both lists come from get_loans_and_history(), the same merge as My Books'
+    "Loans & History" carousel; this only narrows it to what's worth resuming.
+    """
+
+    RECENT_DAYS = 14
+    # One desktop row: user_max_loans (5) plus a couple of recent returns.
+    # The grid in static/css/components/continue-reading.css is sized to it.
+    MAX_ITEMS = 7
+
+    @classmethod
+    def generate(cls, username: str, user_key: str, s3_cookie: str | None) -> dict:
+        # FastAPI runs this sync handler on a threadpool worker with no web.ctx;
+        # the LoanStatus macro's query_param() needs web.ctx.env.
+        if "env" not in web.ctx:
+            delegate.fakeload()
+        entries = get_loans_and_history(user_key, username, cached=True, s3_cookie=s3_cookie)
+        return cls._render(entries)
+
+    @classmethod
+    def _render(cls, entries: list[LoanEntry]) -> dict:
+        now = time.time()
+        cutoff = now - cls.RECENT_DAYS * 86400
+        picked = [e for e in entries if e.is_active or e.timestamp >= cutoff]
+        items = [cls._item(e, now) for e in picked[: cls.MAX_ITEMS]]
+        html = render_jinja_template("home/continue_reading.html.jinja", items=items) if items else ""
+        return {"partials": html}
+
+    @staticmethod
+    def _item(entry: LoanEntry, now: float) -> ContinueReadingItem:
+        book = entry.book
+        if entry.is_active:
+            expiry = datetime_from_isoformat(book.loan.get("expiry"))
+            status = _loan_due_status(expiry.replace(tzinfo=UTC).timestamp() - now if expiry else None)
+        else:
+            days = int((now - entry.timestamp) // 86400)
+            status = ungettext("Returned %(n)d day ago", "Returned %(n)d days ago", days, n=days) if days else _("Returned today")
+        works = book.get("works")
+        return {
+            "title": book.get("title") or "",
+            "cover_url": _resolve_carousel_card_cover_url(book),
+            "book_url": book.key,
+            "status": status,
+            # Same Read / Borrow / Waitlist / Learn More button as the homepage carousels;
+            # an active loan's `book.loan` makes it resolve to Read.
+            "loan_status_html": _render_carousel_card_loan_status(book, work_key=works[0].key if works else book.key, key="continue_reading"),
+        }
+
+
+def _loan_due_status(seconds: float | None) -> str:
+    """Time left on a loan, in the largest whole unit."""
+    if seconds is None:
+        return _("Borrowed")
+    if seconds < 3600:
+        minutes = max(1, int(seconds // 60))
+        return ungettext("Due in %(n)d minute", "Due in %(n)d minutes", minutes, n=minutes)
+    if seconds < 86400:
+        hours = int(seconds // 3600)
+        return ungettext("Due in %(n)d hour", "Due in %(n)d hours", hours, n=hours)
+    days = int(seconds // 86400)
+    return ungettext("Due in %(n)d day", "Due in %(n)d days", days, n=days)
 
 
 class MyBooksDropperListsPartial:

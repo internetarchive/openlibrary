@@ -79,3 +79,38 @@ describe('lazy carousel impressions', () => {
         expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 });
+
+describe('lazy carousel requires_user', () => {
+    const originalFetch = global.fetch;
+    const originalIntersectionObserver = global.IntersectionObserver;
+
+    beforeEach(() => {
+        global.IntersectionObserver = ImmediatelyVisibleObserver;
+    });
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+        global.IntersectionObserver = originalIntersectionObserver;
+        delete document.body.dataset.userKey;
+    });
+
+    test('removes the placeholder without fetching when logged out', () => {
+        respondWith('');
+        const elem = makePlaceholder({partial: 'ContinueReading', requires_user: true});
+        initLazyCarousel([elem]);
+
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(elem.isConnected).toBe(false);
+    });
+
+    test('fetches when logged in, without sending the flag', async() => {
+        respondWith('');
+        document.body.dataset.userKey = '/people/openlibrary';
+        initLazyCarousel([makePlaceholder({partial: 'ContinueReading', requires_user: true})]);
+        await flushPromises();
+
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(String(global.fetch.mock.calls[0][0])).toContain('ContinueReading');
+        expect(String(global.fetch.mock.calls[0][0])).not.toContain('requires_user');
+    });
+});
