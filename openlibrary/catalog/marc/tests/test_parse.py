@@ -12,6 +12,7 @@ from openlibrary.catalog.marc.parse import (
     NoTitle,
     SeeAlsoAsTitle,
     read_author_person,
+    read_description,
     read_edition,
 )
 
@@ -184,3 +185,26 @@ class TestParse:
         assert result["death_date"] == "1865"
         assert result["entity_type"] == "person"
         assert result["remote_ids"] == {"lc_naf": "no2003007242"}
+
+
+@pytest.mark.parametrize(
+    ("summary", "expect"),
+    [
+        ('...which one of them is a killer?"--', '...which one of them is a killer?"'),
+        ('...caught in its widening gyre" --', '...caught in its widening gyre"'),
+        ("...in the author's own words'-- ", "...in the author's own words'"),
+        ("A summary with no source.", "A summary with no source."),
+        ("Volume one -- volume two.", "Volume one -- volume two."),
+    ],
+)
+def test_read_description_strips_trailing_dashes(summary, expect):
+    xml = f"""
+    <record xmlns="http://www.loc.gov/MARC21/slim">
+      <leader>00000cam a2200000 a 4500</leader>
+      <datafield tag="520" ind1=" " ind2=" ">
+        <subfield code="a">{summary}</subfield>
+        <subfield code="c">Provided by publisher.</subfield>
+      </datafield>
+    </record>"""
+    rec = MarcXml(etree.fromstring(xml, parser=lxml.etree.XMLParser(resolve_entities=False)))
+    assert read_description(rec) == expect
