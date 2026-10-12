@@ -169,17 +169,18 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.donate_script_url, str)
         assert layout.flash_messages == [] or isinstance(layout.flash_messages, list)
         assert layout.announcement_banner is None or hasattr(layout.announcement_banner, "content")
-        assert layout.user is None or hasattr(layout.user, "key")
+        assert layout.header.user is None or hasattr(layout.header.user, "key")
         assert isinstance(layout.ol_env, str)
-        assert isinstance(layout.page_status_url, str)
-        assert isinstance(layout.is_recognized_bot, bool)
-        assert isinstance(layout.is_print_disabled, bool)
-        assert isinstance(layout.homepath, str)
-        assert isinstance(layout.my_books_props, dict)
-        assert isinstance(layout.browse_links, list)
-        assert isinstance(layout.featured_browse_links, list)
-        assert isinstance(layout.simple_browse_links, list)
-        assert isinstance(layout.search_modal, layout_module.SearchModalContext)
+        assert isinstance(layout.header.page_status_url, str)
+        assert isinstance(layout.header.is_recognized_bot, bool)
+        assert isinstance(layout.header.is_print_disabled, bool)
+        assert isinstance(layout.header.homepath, str)
+        assert isinstance(layout.header.my_books_props, dict)
+        assert isinstance(layout.header.browse_links, list)
+        assert isinstance(layout.header.featured_browse_links, list)
+        assert isinstance(layout.header.simple_browse_links, list)
+        assert isinstance(layout.header.search_modal, layout_module.SearchModalContext)
+        assert isinstance(layout.header, layout_module.HeaderContext)
         assert isinstance(layout.head, layout_module.HeadContext)
         # No flat layout keys should leak into root context
         for key in (
@@ -207,6 +208,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
             "browse_links",
             "featured_browse_links",
             "simple_browse_links",
+            "header",
             "head",
         ):
             assert key not in kwargs

@@ -10,6 +10,7 @@ from infogami.utils.context import context as infogami_ctx
 from openlibrary.core.layout import (
     AnnouncementBanner,
     HeadContext,
+    HeaderContext,
     LayoutContext,
     SearchModalContext,
     SentryContext,
@@ -94,19 +95,21 @@ def test_layout_context_is_frozen():
         body_attrs=[],
         donate_script_url="",
         flash_messages=[],
-        user=None,
         ol_env="production",
         is_local_dev=False,
-        page_status_url="",
-        is_recognized_bot=False,
-        is_print_disabled=False,
-        homepath="",
-        my_books_props={},
-        browse_links=[],
-        featured_browse_links=[],
-        simple_browse_links=[],
-        browse_featured_count=4,
-        search_modal=SearchModalContext(availability={}, strings={}),
+        header=HeaderContext(
+            user=None,
+            page_status_url="",
+            is_recognized_bot=False,
+            is_print_disabled=False,
+            homepath="",
+            my_books_props={},
+            browse_links=[],
+            featured_browse_links=[],
+            simple_browse_links=[],
+            browse_featured_count=4,
+            search_modal=SearchModalContext(availability={}, strings={}),
+        ),
         head=HeadContext(
             title="",
             domain="",
@@ -220,7 +223,7 @@ def test_layout_build_header_user_logged_out(request_context_fixture):
     """LayoutContext should have user=None when no user is logged in."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
-    assert layout.user is None
+    assert layout.header.user is None
 
 
 def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture):
@@ -242,27 +245,27 @@ def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture
     monkeypatch.setattr("openlibrary.core.layout.cached_get_counts_by_mode", lambda mode="open": 42)
 
     layout = LayoutContext.build()
-    assert layout.user is not None
-    assert layout.user.key == "/people/super_librarian"
-    assert layout.user.username == "super_librarian"
-    assert layout.user.ia_id == "ia_bob"
-    assert "super_librarian" in layout.user.account_title
-    assert layout.user.is_privileged_user is True
-    assert layout.user.shows_merge_count is True
-    assert layout.user.open_merges_count == 42
+    assert layout.header.user is not None
+    assert layout.header.user.key == "/people/super_librarian"
+    assert layout.header.user.username == "super_librarian"
+    assert layout.header.user.ia_id == "ia_bob"
+    assert "super_librarian" in layout.header.user.account_title
+    assert layout.header.user.is_privileged_user is True
+    assert layout.header.user.shows_merge_count is True
+    assert layout.header.user.open_merges_count == 42
 
 
 def test_layout_build_header_navigation(request_context_fixture):
     """LayoutContext should build header navigation props and browse links."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
-    assert layout.my_books_props["name"] == "mybooks"
-    assert layout.my_books_props["label"] == "My Books"
-    assert len(layout.my_books_props["links"]) == 1
-    assert layout.my_books_props["links"][0]["track"] == "MyBooks"
-    assert len(layout.browse_links) > 0
-    assert len(layout.featured_browse_links) == 4
-    assert len(layout.simple_browse_links) == len(layout.browse_links) - 4
+    assert layout.header.my_books_props["name"] == "mybooks"
+    assert layout.header.my_books_props["label"] == "My Books"
+    assert len(layout.header.my_books_props["links"]) == 1
+    assert layout.header.my_books_props["links"][0]["track"] == "MyBooks"
+    assert len(layout.header.browse_links) > 0
+    assert len(layout.header.featured_browse_links) == 4
+    assert len(layout.header.simple_browse_links) == len(layout.header.browse_links) - 4
     assert layout.ol_env in ("production", "development", "testing")
 
 
@@ -273,7 +276,7 @@ def test_layout_build_search_modal_preserves_client_fill_placeholders(request_co
     formatting ``_`` away from placeholders it cannot fill.
     """
     request_context_fixture(lang="en")
-    modal = LayoutContext.build().search_modal
+    modal = LayoutContext.build().header.search_modal
     assert modal.availability["all"]["label"] == "All books"
     assert modal.strings["seeOne"] == "See %s book"
     assert modal.strings["resultsAnnounce"] == "Showing %s of %s results"

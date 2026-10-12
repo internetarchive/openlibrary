@@ -13,9 +13,9 @@
                      alt="{{ _('Open Library logo') }}">
             </div>
         </a>
-        {% if not layout.is_recognized_bot %}
+        {% if not layout.header.is_recognized_bot %}
             {# detect-missing-i18n-skip-line #}
-            <a href="{{ layout.page_status_url }}"
+            <a href="{{ layout.header.page_status_url }}"
                style="color:transparent;
                       position:absolute;
                       pointer-events:none"
@@ -24,8 +24,8 @@
         {% endif %}
     </div>
     <ul class="navigation-component">
-        <li>{{ header_dropdown(layout.my_books_props, "MainNav") }}</li>
-        <li>{{ browse_popover(layout.featured_browse_links, layout.simple_browse_links, layout.browse_featured_count, "MainNav") }}</li>
+        <li>{{ header_dropdown(layout.header.my_books_props, "MainNav") }}</li>
+        <li>{{ browse_popover(layout.header.featured_browse_links, layout.header.simple_browse_links, layout.header.browse_featured_count, "MainNav") }}</li>
     </ul>
     <div class="search-component">
         <div class="search-bar-component">
@@ -47,10 +47,10 @@
                     class="search-bar-trigger"
                     aria-haspopup="dialog"
                     aria-label="{{ _('Search') }}"
-                    data-i18n="{{ layout.search_modal.availability | tojson | force_escape }}"
-                    data-i18n-ui="{{ layout.search_modal.strings | tojson | force_escape }}"
+                    data-i18n="{{ layout.header.search_modal.availability | tojson | force_escape }}"
+                    data-i18n-ui="{{ layout.header.search_modal.strings | tojson | force_escape }}"
                     data-search-lang="{{ layout.lang or 'en' }}"
-                    data-print-disabled="{{ 'true' if layout.is_print_disabled else 'false' }}">
+                    data-print-disabled="{{ 'true' if layout.header.is_print_disabled else 'false' }}">
                 <span class="search-bar-trigger__label">{{ _("Search") }}</span>
                 {# Decorative: the button carries the accessible name. #}
                 {{ icon("search", size="md", extra_class="search-bar-trigger__icon") }}
@@ -67,7 +67,7 @@
             {{ icon("scan-barcode", size="lg") }}
         </a>
     </div>
-    {% if not layout.user %}
+    {% if not layout.header.user %}
         <ul class="auth-component">
             <li class="hide-me">
                 <a class="ol-button-static ol-button-static--ghost"
@@ -83,20 +83,20 @@
         <button class="hamburger-trigger"
                 aria-label="{{ _('Menu') }}"
                 aria-expanded="false">
-            {% if layout.user %}
+            {% if layout.header.user %}
                 {# No linked archive.org account means no avatar to fetch (that URL 403s), so
                 use the glyph instead. A linked account with no picture still 200s --
                 archive.org serves its own silhouette there. #}
-                {% if layout.user.ia_id %}
+                {% if layout.header.user.ia_id %}
                     <img class="account__icon"
-                         src="https://archive.org/services/img/{{ layout.user.ia_id }}"
+                         src="https://archive.org/services/img/{{ layout.header.user.ia_id }}"
                          alt="{{ _('My account') }}"
-                         title="{{ layout.user.account_title }}">
+                         title="{{ layout.header.user.account_title }}">
                 {% else %}
                     {{ icon("circle-user-round", size="lg", label=_("My account"), extra_class="account__icon-glyph") }}
                 {% endif %}
-                {% if layout.user.shows_merge_count and layout.user.open_merges_count > 0 %}
-                    <span class="mr-notifications">{{ layout.user.open_merges_count }}</span>
+                {% if layout.header.user.shows_merge_count and layout.header.user.open_merges_count > 0 %}
+                    <span class="mr-notifications">{{ layout.header.user.open_merges_count }}</span>
                 {% endif %}
             {% endif %}
             {# Decorative — the button carries the accessible name. #}
@@ -108,7 +108,7 @@
     <ul class="drawer-menu hamburger-drawer-menu">
         {# ── My Open Library ── #}
         <li class="drawer-menu__subsection">{{ _("My Open Library") }}</li>
-        {% if layout.user %}
+        {% if layout.header.user %}
             <li class="drawer-menu__item">
                 {# Two spans, not a <br>: the row is a column flex container, where a
                 line break is an empty flex item rather than a break. #}
@@ -118,19 +118,20 @@
                 </a>
             </li>
             <li class="drawer-menu__item">
-                <a href="{{ layout.user.key }}" data-ol-link-track="Hamburger|MyProfile">{{ _("My Profile") }}</a>
+                <a href="{{ layout.header.user.key }}"
+                   data-ol-link-track="Hamburger|MyProfile">{{ _("My Profile") }}</a>
             </li>
-            {% if layout.user.is_privileged_user %}
+            {% if layout.header.user.is_privileged_user %}
                 <li class="drawer-menu__item">
-                    {% if layout.user.shows_merge_count and layout.user.open_merges_count > 0 %}
-                        <div class="drawer-menu__badge">{{ layout.user.open_merges_count }}</div>
+                    {% if layout.header.user.shows_merge_count and layout.header.user.open_merges_count > 0 %}
+                        <div class="drawer-menu__badge">{{ layout.header.user.open_merges_count }}</div>
                     {% endif %}
-                    <a href="{{ layout.homepath }}/merges"
+                    <a href="{{ layout.header.homepath }}/merges"
                        data-ol-link-track="Hamburger|MyRequests">{{ _("Pending Merge Requests") }}</a>
                 </li>
             {% endif %}
             <li class="drawer-menu__item">
-                <a href="{{ layout.homepath }}/account"
+                <a href="{{ layout.header.homepath }}/account"
                    data-ol-link-track="Hamburger|MySettings">{{ _("Settings") }}</a>
             </li>
             <li class="drawer-menu__item">
@@ -151,7 +152,7 @@
         <li class="drawer-menu__subsection">{{ _("Browse") }}</li>
         {# Two-part track values, matching the drawer's other rows — the popover's
         positional rank is its own thing and mixing formats muddies the data. #}
-        {% for link in layout.browse_links %}
+        {% for link in layout.header.browse_links %}
             <li class="drawer-menu__item">
                 <a href="{{ link.href }}"
                    data-ol-link-track="Hamburger|{{ link.track }}">{{ link.text }}</a>
@@ -180,9 +181,9 @@
 </ol-drawer>
 <header class="header-bar mobile">
     <ul class="navigation-component mobile">
-        <li>{{ header_dropdown(layout.my_books_props, "MainNav") }}</li>
+        <li>{{ header_dropdown(layout.header.my_books_props, "MainNav") }}</li>
         {# Distinct prefix so browse analytics separate the mobile tray from the
         desktop popover (see the tracking note in browse_popover.html). #}
-        <li>{{ browse_popover(layout.featured_browse_links, layout.simple_browse_links, layout.browse_featured_count, "MainNavMobile") }}</li>
+        <li>{{ browse_popover(layout.header.featured_browse_links, layout.header.simple_browse_links, layout.header.browse_featured_count, "MainNavMobile") }}</li>
     </ul>
 </header>

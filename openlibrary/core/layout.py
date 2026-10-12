@@ -350,6 +350,49 @@ def _extract_search_modal_i18n() -> SearchModalContext:
 
 
 @dataclass(frozen=True)
+class HeaderContext:
+    """Precomputed data for the site header (``lib/nav_head.html.jinja``).
+
+    Grouped separately from the rest of ``LayoutContext`` for the same reason as
+    ``HeadContext``: the header is its own concern and pulls from its own set of
+    per-request values. ``ol_env``/``is_local_dev`` stay on ``LayoutContext``
+    because the head consumes them too.
+    """
+
+    user: HeaderUser | None
+    page_status_url: str
+    is_recognized_bot: bool
+    is_print_disabled: bool
+    homepath: str
+    my_books_props: dict[str, Any]
+    browse_links: list[NavLink]
+    featured_browse_links: list[NavLink]
+    simple_browse_links: list[NavLink]
+    browse_featured_count: int
+    search_modal: SearchModalContext
+
+    @classmethod
+    def build(cls, *, user: User | None) -> HeaderContext:
+        """Assemble header data with safe fallbacks."""
+        homepath = _extract_homepath()
+        all_browse, featured_browse, simple_browse = _extract_browse_links()
+
+        return cls(
+            user=_extract_header_user(user),
+            page_status_url=_extract_page_status_url(),
+            is_recognized_bot=_extract_is_recognized_bot(),
+            is_print_disabled=_extract_is_print_disabled(),
+            homepath=homepath,
+            my_books_props=_extract_my_books_props(homepath),
+            browse_links=all_browse,
+            featured_browse_links=featured_browse,
+            simple_browse_links=simple_browse,
+            browse_featured_count=BROWSE_FEATURED_COUNT,
+            search_modal=_extract_search_modal_i18n(),
+        )
+
+
+@dataclass(frozen=True)
 class SentryContext:
     """Precomputed Sentry values for the site head, if Sentry is enabled."""
 
@@ -451,19 +494,9 @@ class LayoutContext:
     body_attrs: list[str]
     donate_script_url: str
     flash_messages: list[dict[str, str]]
-    user: HeaderUser | None
     ol_env: str
     is_local_dev: bool
-    page_status_url: str
-    is_recognized_bot: bool
-    is_print_disabled: bool
-    homepath: str
-    my_books_props: dict[str, Any]
-    browse_links: list[NavLink]
-    featured_browse_links: list[NavLink]
-    simple_browse_links: list[NavLink]
-    browse_featured_count: int
-    search_modal: SearchModalContext
+    header: HeaderContext
     head: HeadContext
     announcement_banner: AnnouncementBanner | None = None
 
@@ -498,8 +531,6 @@ class LayoutContext:
         from openlibrary.plugins.openlibrary.status import get_git_revision_short_hash
         from openlibrary.utils.request_context import get_request_lang, req_context
 
-        homepath = _extract_homepath()
-        all_browse, featured_browse, simple_browse = _extract_browse_links()
         user = _safe(get_current_user, None)
 
         return cls(
@@ -516,19 +547,9 @@ class LayoutContext:
             body_attrs=_extract_body_attrs(user),
             donate_script_url=_safe(_extract_donate_script_url, "/cdn/archive.org/donate.js"),
             flash_messages=_extract_flash_messages(),
-            user=_extract_header_user(user),
             ol_env=_extract_ol_env(),
             is_local_dev=get_ol_env().LOCAL_DEV,
-            page_status_url=_extract_page_status_url(),
-            is_recognized_bot=_extract_is_recognized_bot(),
-            is_print_disabled=_extract_is_print_disabled(),
-            homepath=homepath,
-            my_books_props=_extract_my_books_props(homepath),
-            browse_links=all_browse,
-            featured_browse_links=featured_browse,
-            simple_browse_links=simple_browse,
-            browse_featured_count=BROWSE_FEATURED_COUNT,
-            search_modal=_extract_search_modal_i18n(),
+            header=HeaderContext.build(user=user),
             head=HeadContext.build(title=title, user=user),
             announcement_banner=_extract_announcement_banner(),
         )
