@@ -1105,6 +1105,7 @@ def setup_template_globals():
         get_book_provider_by_name,
         get_cover_url,
     )
+    from openlibrary.plugins.upstream.covers import get_cover_upload_candidates
 
     web.template.Template.globals.update(
         {
@@ -1123,6 +1124,7 @@ def setup_template_globals():
             "get_book_provider": get_book_provider,
             "get_book_provider_by_name": get_book_provider_by_name,
             "get_cover_url": get_cover_url,
+            "get_cover_upload_candidates": get_cover_upload_candidates,
             "render_jinja_template": render_jinja_template,
             "get_sentry": get_sentry,
             "get_ol_env": get_ol_env,

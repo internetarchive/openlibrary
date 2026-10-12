@@ -309,6 +309,102 @@ describe('ol-cover-editor external images', () => {
     });
 });
 
+describe('ol-cover-editor lazy candidates', () => {
+    // What covers/add.html renders for an edition with a scan.
+    const ADD_PAGE = `<html><body>
+        <form class="ol-cover-form ol-cover-form--external" method="post">
+            <div class="label"><label>Or, use an image from Internet Archive</label></div>
+            <div class="input-container">
+                <div class="input">
+                    <button type="submit" name="url" value="https://archive.org/download/ia1/page/cover">Upload Image</button>
+                </div>
+                <div class="input">
+                    <button type="submit" name="url" value="https://archive.org/download/ia1/page/title">Upload Image</button>
+                </div>
+            </div>
+        </form>
+    </body></html>`;
+
+    test('pulls candidates from the add page when the dialog opens', async() => {
+        const el = await mount({ candidatesSource: 'Internet Archive' });
+        const fetchMock = mockFetch(ADD_PAGE);
+
+        el._onDialogOpen();
+        await vi.waitFor(() => expect(el._candidates).toHaveLength(2));
+
+        expect(fetchMock.mock.calls[0][0]).toBe('/books/OL1M/add-cover');
+        expect(el._candidates).toEqual([
+            { url: 'https://archive.org/download/ia1/page/cover', source: 'Internet Archive' },
+            { url: 'https://archive.org/download/ia1/page/title', source: 'Internet Archive' },
+        ]);
+        expect(qa(el, '.candidate__img')).toHaveLength(2);
+    });
+
+    test('does not fetch when candidates came inline, without a source label, and fetches only once', async() => {
+        // Inline (librarian) candidates: no fetch needed.
+        const inline = await mount({ candidates: [{ url: 'https://commons.example/a.jpg', source: 'Wikidata' }] });
+        const fetchMock = mockFetch(ADD_PAGE);
+        inline._onDialogOpen();
+        await inline.updateComplete;
+        expect(fetchMock).not.toHaveBeenCalled();
+
+        // No source label (e.g. a work): nothing to look for.
+        const unlabeled = await mount();
+        unlabeled._onDialogOpen();
+        await unlabeled.updateComplete;
+        expect(fetchMock).not.toHaveBeenCalled();
+
+        // With a source label, a reopen does not re-fetch.
+        const el = await mount({ candidatesSource: 'Internet Archive' });
+        global.fetch = vi.fn(async() => ({ ok: true, text: async() => ADD_PAGE }));
+        el._onDialogOpen();
+        el._onDialogOpen();
+        await el.updateComplete;
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    test('updates every matching cover image and the enlarged preview', async() => {
+        // Two instances, like the author page's mobile + desktop infoboxes.
+        document.body.insertAdjacentHTML(
+            'afterbegin',
+            `<div class="coverMagic">
+                <div class="SRPCover bookCover" style="display: none">
+                    <a class="coverLook" aria-controls="seeImage-1" href="/old-L.jpg"><img class="cover" src="/old-M.jpg" alt=""></a>
+                </div>
+                <div class="SRPCoverBlank" style="display: block"></div>
+            </div>
+            <ol-dialog id="seeImage-1"><img class="cover-preview" src="/old-L.jpg" alt=""></ol-dialog>
+            <div class="coverMagic">
+                <div class="SRPCover bookCover" style="display: none">
+                    <a class="coverLook" aria-controls="seeImage-2" href="/old-L.jpg"><img class="cover" src="/old-M.jpg" alt=""></a>
+                </div>
+                <div class="SRPCoverBlank" style="display: block"></div>
+            </div>
+            <ol-dialog id="seeImage-2"><img class="cover-preview" src="/old-L.jpg" alt=""></ol-dialog>`,
+        );
+        const el = await mount();
+
+        el._applyCover(42);
+        await el.updateComplete;
+
+        const imgs = [...document.querySelectorAll('.bookCover img')];
+        expect(imgs).toHaveLength(2);
+        expect(imgs.every((img) => img.getAttribute('src') === 'https://covers.openlibrary.org/b/id/42-M.jpg')).toBe(true);
+        expect(imgs.every((img) => img.getAttribute('srcset') === 'https://covers.openlibrary.org/b/id/42-L.jpg 2x')).toBe(true);
+        expect(imgs.every((img) => img.closest('div').style.display === 'block')).toBe(true);
+        const blanks = [...document.querySelectorAll('.SRPCoverBlank')];
+        expect(blanks.every((blank) => blank.style.display === 'none')).toBe(true);
+        // The preview dialogs and their triggers' hrefs follow along.
+        for (const id of ['seeImage-1', 'seeImage-2']) {
+            expect(document.getElementById(id).querySelector('img').getAttribute('src')).toBe(
+                'https://covers.openlibrary.org/b/id/42-L.jpg',
+            );
+        }
+        const links = [...document.querySelectorAll('a.coverLook')];
+        expect(links.every((a) => a.getAttribute('href') === 'https://covers.openlibrary.org/b/id/42-L.jpg')).toBe(true);
+    });
+});
+
 describe('ol-cover-editor clipboard paste', () => {
     function mockClipboard(items) {
         Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { read: vi.fn(async() => items) } });
@@ -456,6 +552,8 @@ describe('ol-cover-editor image management', () => {
         await el.updateComplete;
         expect(el._images.map((i) => i.id)).toEqual([2, 1, 3]);
         expect(el._trashed).toEqual([]);
+        // Saves are chained, so wait for both to drain.
+        await el._saveChain;
         expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
@@ -688,5 +786,34 @@ describe('ol-cover-editor image management', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
         await el.updateComplete;
         expect(q(el, '.status--error').textContent).toContain('Could not save');
+    });
+
+    test('overlapping saves run one at a time and end on the latest list', async() => {
+        const el = await mount({ images: IMAGES });
+        const bodies = [];
+        let releaseFirst;
+        global.fetch = vi.fn((_url, options) => {
+            bodies.push(options.body.getAll('image'));
+            if (bodies.length === 1) {
+                return new Promise((resolve) => {
+                    releaseFirst = resolve;
+                });
+            }
+            return Promise.resolve({ ok: true, text: async() => '' });
+        });
+
+        el._trashImage(0); // queue save 1
+        el._trashImage(0); // queue save 2
+        await el.updateComplete;
+        // Save 2 waits for save 1; nothing runs concurrently.
+        expect(bodies).toHaveLength(1);
+        // A queued save reads the list when it runs, so it already carries the
+        // newest state — rapid edits coalesce into the final order.
+        expect(bodies[0]).toEqual(['3', '-1', '-']);
+
+        releaseFirst({ ok: true, text: async() => '' });
+        await el._saveChain;
+        expect(bodies).toHaveLength(2);
+        expect(bodies[1]).toEqual(['3', '-1', '-']);
     });
 });

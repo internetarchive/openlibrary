@@ -77,36 +77,24 @@ $code:
         for image in (doc.get_photos() if doc.type.key == '/type/author' else doc.get_covers())
     ]
 
-    # Remote images offered as one-click imports, mirroring the old
-    # covers/external_image forms: an author's Wikidata image, or the Internet
-    # Archive cover/title scan for an edition. Skip any we already have — a
-    # coverstore image records the `source_url` it was imported from, so we can
-    # match it against the remote URLs. `info()` is one coverstore call per
-    # local image, and only runs when there is something to offer.
-    cover_editor_local_images = doc.get_photos() if doc.type.key == '/type/author' else doc.get_covers()
-    cover_remote_source = ''
+    # Remote images offered as one-click imports (see
+    # get_cover_upload_candidates). Computing them costs one coverstore
+    # `info()` call per local image, so page render only pays that for
+    # librarians. Everyone else's editor pulls the same list from the
+    # add-cover/add-photo page when the dialog opens (the old iframe's
+    # trick), and only needs to know which source to label it with — which
+    # is free to compute here.
     if doc.type.key == '/type/author':
-        wikidata = doc.wikidata() if hasattr(doc, 'wikidata') else None
-        cover_remote_images = wikidata.get_image_urls() if wikidata else []
-        cover_remote_source = _('Wikidata')
+        cover_candidate_source = _('Wikidata')
     elif doc.type.key == '/type/edition' and doc.get('ocaid'):
-        cover_remote_images = ['https://archive.org/download/%s/page/%s' % (doc.ocaid, kind) for kind in ('cover', 'title')]
-        cover_remote_source = _('Internet Archive')
+        cover_candidate_source = _('Internet Archive')
     else:
-        cover_remote_images = []
+        cover_candidate_source = ''
 
-    cover_upload_candidates = []
-    if cover_remote_images:
-        existing_source_urls = set()
-        for image in cover_editor_local_images:
-            image_info = image.info(fetch_author=False)
-            if image_info and image_info.get('source_url'):
-                existing_source_urls.add(image_info['source_url'])
-        cover_upload_candidates = [
-            {'url': url, 'source': cover_remote_source}
-            for url in cover_remote_images
-            if url not in existing_source_urls
-        ]
+    if ctx.user.is_librarian_or_higher():
+        cover_upload_candidates = get_cover_upload_candidates(doc)
+    else:
+        cover_upload_candidates = []
 
 <ol-dialog id="addImage-$imagesId" label="$title" width="large">
     <ol-cover-editor
@@ -117,5 +105,6 @@ $code:
         coverstore-url="$(get_coverstore_public_url())"
         labels="$json_encode(cover_upload_labels)"
         images="$json_encode(cover_editor_images)"
-        candidates="$json_encode(cover_upload_candidates)"></ol-cover-editor>
+        candidates="$json_encode(cover_upload_candidates)"
+        candidates-source="$cover_candidate_source"></ol-cover-editor>
 </ol-dialog>

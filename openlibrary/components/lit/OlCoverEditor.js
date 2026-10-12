@@ -76,6 +76,9 @@ const EXTENSION_MIME = {
  * @prop {String} accept - Accepted file types
  * @prop {Array} images - Current images, `[{ id, url }]`, first is primary
  * @prop {Array} candidates - Importable remote images, `[{ url, source }]`
+ * @prop {String} candidatesSource - Label for lazily-loaded candidates (e.g.
+ *  "Wikidata"); when page render skips the `candidates` work, the editor
+ *  fetches them from `action` on dialog open under this name
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @fires ol-cover-editor-add - An image was added. detail: { id }
@@ -91,6 +94,7 @@ export class OlCoverEditor extends LitElement {
         accept: { type: String },
         images: { type: Array },
         candidates: { type: Array },
+        candidatesSource: { type: String, attribute: 'candidates-source' },
         labels: { type: Object },
         _images: { state: true },
         _file: { state: true },
@@ -105,6 +109,7 @@ export class OlCoverEditor extends LitElement {
         _announce: { state: true },
         _trashed: { state: true },
         _candidates: { state: true },
+        _candidatesLoaded: { state: true },
         _lightbox: { state: true },
         _focusIndex: { state: true },
     };
@@ -431,6 +436,7 @@ export class OlCoverEditor extends LitElement {
         this.accept = '.jpg,.jpeg,.gif,.png,.webp';
         this.images = [];
         this.candidates = [];
+        this.candidatesSource = '';
         this.labels = {};
         this._images = [];
         this._file = null;
@@ -446,6 +452,7 @@ export class OlCoverEditor extends LitElement {
         this._announce = '';
         this._trashed = [];
         this._candidates = [];
+        this._candidatesLoaded = false;
         this._lightbox = null;
         this._pendingFlip = null;
         this._focusIndex = null;
@@ -453,8 +460,11 @@ export class OlCoverEditor extends LitElement {
         /** Snapshots of the image + trash lists for undo (⌘Z) / redo (⇧⌘Z). */
         this._history = [];
         this._redoStack = [];
+        /** Serialized manage-covers saves, so they can't land out of order. */
+        this._saveChain = Promise.resolve();
         this._onPasteEvent = this._onPasteEvent.bind(this);
         this._onDialogClose = this._onDialogClose.bind(this);
+        this._onDialogOpen = this._onDialogOpen.bind(this);
         this._onKeydown = this._onKeydown.bind(this);
     }
 
@@ -486,6 +496,7 @@ export class OlCoverEditor extends LitElement {
         document.addEventListener('paste', this._onPasteEvent);
         document.addEventListener('keydown', this._onKeydown);
         this.closest('ol-dialog')?.addEventListener('ol-after-close', this._onDialogClose);
+        this.closest('ol-dialog')?.addEventListener('ol-after-open', this._onDialogOpen);
     }
 
     disconnectedCallback() {
@@ -493,7 +504,42 @@ export class OlCoverEditor extends LitElement {
         document.removeEventListener('paste', this._onPasteEvent);
         document.removeEventListener('keydown', this._onKeydown);
         this.closest('ol-dialog')?.removeEventListener('ol-after-close', this._onDialogClose);
+        this.closest('ol-dialog')?.removeEventListener('ol-after-open', this._onDialogOpen);
         this._revokePreview();
+    }
+
+    /** First open of the dialog: fetch the candidates if they're not inline. */
+    _onDialogOpen() {
+        this._loadCandidates();
+    }
+
+    /**
+     * Load the remote import candidates (Wikidata / Internet Archive) if page
+     * render skipped them. Only librarians get them inline: the dedup against
+     * already-imported images costs a coverstore `info()` call per image, and
+     * doing that on every page view is too expensive. Instead the editor pulls
+     * them from the add page this form posts to — which renders the same
+     * deduped list, and is exactly what the old iframe loaded on dialog open.
+     * Runs once; candidates are optional, so a failure just means the section
+     * stays empty.
+     */
+    async _loadCandidates() {
+        if (!this.action || !this.candidatesSource || this._candidates.length || this._candidatesLoaded) return;
+        this._candidatesLoaded = true;
+        try {
+            const response = await fetch(this.action, { credentials: 'same-origin' });
+            if (!response.ok) return;
+            const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+            // covers/external_image.html renders one submit button per URL.
+            const urls = [...page.querySelectorAll('.ol-cover-form--external button[name="url"]')].map(
+                (button) => button.value,
+            );
+            if (urls.length) {
+                this._candidates = urls.map((url) => ({ url, source: this.candidatesSource }));
+            }
+        } catch {
+            // Leave the editor usable without candidates.
+        }
     }
 
     willUpdate(changed) {
@@ -802,42 +848,64 @@ export class OlCoverEditor extends LitElement {
      * Update the cover the user sees. Mirrors the old `initCoversSaved`
      * handler, which reached into the parent document from the iframe; now it
      * is the same document, so a plain querySelector + display toggle does it.
+     *
+     * Updates *every* match of `coverSelector`: the author page renders the
+     * infobox (and so this editor) twice, mobile + desktop, and both copies
+     * show the same photo. Also keeps the enlarged-preview dialog in step, the
+     * way the old iframe handler did.
      * @param {Number} id
      */
     _applyCover(id) {
-        const img = document.querySelector(this.coverSelector);
-        if (!img) return;
-        img.setAttribute('src', this._coverUrl(id, 'M'));
-        if (this._isPhoto) return;
+        const url = this._coverUrl(id, 'M');
         // Match `covers/book_cover.html`: an M `src` with an L `srcset 2x`, so a
         // retina screen keeps using the high-res image after a JS update (setting
         // the `2x` slot to M would pin it to the blurry medium copy until reload).
-        img.setAttribute('srcset', `${this._coverUrl(id, 'L')} 2x`);
-        // Book covers sit over a generated blank panel; swap which one shows.
-        const cover = img.closest('div');
-        if (cover) {
-            cover.style.display = 'block';
-            const blank = cover.nextElementSibling;
-            if (blank) blank.style.display = 'none';
+        const urlLarge = this._coverUrl(id, 'L');
+        for (const img of document.querySelectorAll(this.coverSelector)) {
+            img.setAttribute('src', url);
+            if (!this._isPhoto) img.setAttribute('srcset', `${urlLarge} 2x`);
+            // Book covers sit over a generated blank panel; swap which one shows.
+            const cover = img.closest('div');
+            if (cover) {
+                cover.style.display = 'block';
+                const blank = cover.nextElementSibling;
+                if (blank) blank.style.display = 'none';
+            }
+            this._refreshPagePreview(img, urlLarge);
         }
     }
 
     /** No images left: show the generated blank cover again. */
     _clearPageCover() {
-        const img = document.querySelector(this.coverSelector);
-        if (!img) return;
-        if (this._isPhoto) {
-            img.setAttribute('src', '/static/images/icons/avatar_author-lg.png');
-            return;
+        for (const img of document.querySelectorAll(this.coverSelector)) {
+            if (this._isPhoto) {
+                img.setAttribute('src', '/static/images/icons/avatar_author-lg.png');
+                continue;
+            }
+            img.removeAttribute('src');
+            img.removeAttribute('srcset');
+            const cover = img.closest('div');
+            if (cover) {
+                cover.style.display = 'none';
+                const blank = cover.nextElementSibling;
+                if (blank) blank.style.display = 'block';
+            }
         }
-        img.removeAttribute('src');
-        img.removeAttribute('srcset');
-        const cover = img.closest('div');
-        if (cover) {
-            cover.style.display = 'none';
-            const blank = cover.nextElementSibling;
-            if (blank) blank.style.display = 'block';
-        }
+    }
+
+    /**
+     * The enlarged-preview dialog next to the cover (`seeImage`): point its
+     * image and the trigger's fallback href at the new image, so a click after
+     * an update doesn't show the stale one.
+     * @param {HTMLImageElement} img - One of the page's cover images
+     * @param {String} urlLarge
+     */
+    _refreshPagePreview(img, urlLarge) {
+        const link = img.closest('div')?.querySelector('a.coverLook');
+        if (!link) return;
+        link.setAttribute('href', urlLarge);
+        const dialog = link.getAttribute('aria-controls') && document.getElementById(link.getAttribute('aria-controls'));
+        dialog?.querySelector('img')?.setAttribute('src', urlLarge);
     }
 
     // ── Reorder / delete ───────────────────────────────────────────────
@@ -1081,9 +1149,20 @@ export class OlCoverEditor extends LitElement {
      * `web.input(image=[])`, which only returns a list for urlencoded repeated
      * fields — as multipart it yields the last value, so `"-" in images`
      * matches a single `"-"` and the whole cover list is cleared.
+     *
+     * Saves are chained, not fired concurrently: every action saves
+     * immediately, so rapid ones (a quick reorder, or a held ⌘Z repeating)
+     * would overlap, and two responses landing out of order would leave the
+     * server on the older list. Each request carries the full current list,
+     * so serializing them makes the last one win.
      */
     async _saveOrder() {
         if (!this.manageUrl) return;
+        this._saveChain = this._saveChain.then(() => this._postOrder());
+        await this._saveChain;
+    }
+
+    async _postOrder() {
         const data = new URLSearchParams();
         for (const image of this._images) data.append('image', image.id);
         data.append('image', '-1');

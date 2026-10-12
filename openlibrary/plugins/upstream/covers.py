@@ -2,6 +2,7 @@
 
 import os
 from logging import getLogger
+from typing import TYPE_CHECKING
 
 import requests
 import web
@@ -11,6 +12,7 @@ from PIL import UnidentifiedImageError
 from infogami.utils import delegate
 from infogami.utils.view import safeint
 from openlibrary import accounts
+from openlibrary.i18n import _
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import (
     get_coverstore_public_url,
@@ -18,11 +20,46 @@ from openlibrary.plugins.upstream.utils import (
     render_template,
 )
 
+if TYPE_CHECKING:
+    from openlibrary.core.models import Thing
+
 logger = getLogger("openlibrary.plugins.upstream.covers")
 
 
 def setup():
     pass
+
+
+def get_cover_upload_candidates(doc: Thing) -> list[dict]:
+    """Remote images offered as one-click imports in the cover editor: an
+    author's Wikidata image, or the Internet Archive cover/title scan for an
+    edition with a scan. Skips any we already have — a coverstore image records
+    the `source_url` it was imported from, so we can match it against the
+    remote URLs. Each local image costs one coverstore `info()` call, so this
+    only runs for librarians' page renders; everyone else gets the same list
+    from the add-cover/add-photo page when they open the editor.
+    """
+    if doc.type.key == "/type/author":
+        wikidata = doc.wikidata() if hasattr(doc, "wikidata") else None
+        remote_images = wikidata.get_image_urls() if wikidata else []
+        source = _("Wikidata")
+    elif doc.type.key == "/type/edition" and doc.get("ocaid"):
+        remote_images = ["https://archive.org/download/%s/page/%s" % (doc.ocaid, kind) for kind in ("cover", "title")]
+        source = _("Internet Archive")
+    else:
+        return []
+
+    if not remote_images:
+        return []
+
+    existing_source_urls = set()
+    local_images = doc.get_photos() if doc.type.key == "/type/author" else doc.get_covers()
+    for image in local_images:
+        image_info = image.info(fetch_author=False)
+        if image_info and image_info.get("source_url"):
+            existing_source_urls.add(image_info["source_url"])
+
+    return [{"url": url, "source": source} for url in remote_images if url not in existing_source_urls]
 
 
 class image_validator:

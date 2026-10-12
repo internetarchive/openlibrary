@@ -622,7 +622,7 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html covers/add.html covers/change.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/add.html covers/change.html openlibrary/plugins/upstream/covers.py showia.html type/edition/view.html type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -4004,7 +4004,7 @@ msgstr ""
 msgid "Uploading..."
 msgstr ""
 
-#: covers/add.html covers/change.html
+#: covers/add.html covers/change.html openlibrary/plugins/upstream/covers.py
 msgid "Wikidata"
 msgstr ""
 
