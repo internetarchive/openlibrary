@@ -3,6 +3,7 @@
 This should go into infogami.
 """
 
+import datetime
 import json
 import logging
 import math
@@ -24,10 +25,29 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_changes
 from openlibrary.utils import dateutil
 
+MAX_OFFSET = 10000
+
 
 @public
 def recentchanges(query):
     return web.ctx.site.recentchanges(query)
+
+
+def json_bad_request(message: str) -> web.HTTPError:
+    return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, json.dumps({"error": message}))
+
+
+def parse_timestamp(value: str, name: str) -> datetime.datetime | None:
+    """Parses an ISO 8601 timestamp into a naive UTC datetime (transaction.created is naive UTC)."""
+    if not value:
+        return None
+    try:
+        timestamp = datetime.datetime.fromisoformat(value)
+    except ValueError:
+        raise json_bad_request(f"Invalid {name} timestamp {value!r}; expected ISO 8601, e.g. 2026-08-28T01:00:00") from None
+    if timestamp.tzinfo:
+        timestamp = timestamp.astimezone(datetime.UTC).replace(tzinfo=None)
+    return timestamp
 
 
 class index2(delegate.page):
@@ -60,7 +80,7 @@ class index(delegate.page):
         return render_template("recentchanges/index", query)
 
     def handle_encoding(self, query, encoding):
-        i = web.input(bot="", limit=100, offset=0, text="false", author="")
+        i = web.input(bot="", limit=100, offset=0, text="false", author="", begin="", end="")
 
         # The bot stuff is handled in the template for the regular path.
         # We need to handle it here for api.
@@ -87,7 +107,23 @@ class index(delegate.page):
 
         # constrain limit and offset for performance reasons
         limit = constrain(limit, 0, 1000)
-        offset = constrain(offset, 0, 10000)
+        offset = max(offset, 0)
+        if offset > MAX_OFFSET:
+            raise json_bad_request(f"offset may not exceed {MAX_OFFSET}; use begin/end to narrow the time window instead")
+
+        # begin/end narrow the window given by the path (if any) to arbitrary timestamps,
+        # so that busy days can be read in chunks without exceeding MAX_OFFSET.
+        if i.begin or i.end:
+            path_begin = datetime.datetime.fromisoformat(query["begin_date"]) if "begin_date" in query else None
+            path_end = datetime.datetime.fromisoformat(query["end_date"]) if "end_date" in query else None
+            begin = max(filter(None, [parse_timestamp(i.begin, "begin"), path_begin]), default=None)
+            end = min(filter(None, [parse_timestamp(i.end, "end"), path_end]), default=None)
+            if begin and end and begin >= end:
+                raise json_bad_request("begin must be before end, and both must overlap the date in the URL")
+            if begin:
+                query["begin_date"] = begin.isoformat()
+            if end:
+                query["end_date"] = end.isoformat()
 
         query["limit"] = limit
         query["offset"] = offset
