@@ -474,7 +474,7 @@ $(function() {
     // ol-popover-open listener — other popovers can opt into tracking with
     // their own wiring once we know how we want to measure them. The
     // "category|action|label" string is set server-side per surface (desktop
-    // vs. mobile tray) in browse_popover.html.
+    // vs. mobile tray) in browse_popover.html.jinja.
     document.querySelectorAll('.browse-popover[data-ol-open-track]').forEach((popover) => {
         popover.addEventListener('ol-popover-open', () => {
             const ping = popover.getAttribute('data-ol-open-track').split('|');
