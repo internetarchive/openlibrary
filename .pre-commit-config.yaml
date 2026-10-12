@@ -186,7 +186,7 @@ repos:
       require_serial: true
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.3.0
+    rev: 4.4.0
     hooks:
       - id: sqlfluff-lint
         args: [--dialect, postgres]
