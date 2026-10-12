@@ -34,7 +34,7 @@ async function main() {
 
     // Fetch linked issue, if any
     const issue = await findLinkedIssue(prBody, repoOwner, repoName);
-    let prLabelSet = new Set();
+    const prLabelSet = new Set();
     if (!issue) {
         console.log('No linked issue found for this pull request.');
         prLabelSet.add('Needs: Lead');

@@ -10,17 +10,11 @@
   },
   "ignorePatterns": [
     "**/*.vue",
-    "*.config.js",
-    "*.config.mjs",
-    "*.config.cjs",
-    "*.config.ts",
-    "conf/",
     "config/",
     "docker/",
     "docs/wiki/",
     "infogami/",
     "openlibrary/components/lit/icons.generated.js",
-    "scripts/gh_scripts/",
     "static/build/",
     "provisioning/",
     "vendor/",
@@ -97,11 +91,23 @@
       "files": [
         "**/*.mjs",
         "**/*.cjs",
+        "**/*.config.js",
         "**/*.config.ts",
         "tests/e2e/**/*.ts"
       ],
       "env": {
         "node": true
+      }
+    },
+    {
+      "files": [
+        "**/*.config.js",
+        "**/*.config.mjs",
+        "**/*.config.cjs",
+        "**/*.config.ts"
+      ],
+      "rules": {
+        "no-warning-comments": "off"
       }
     },
     {

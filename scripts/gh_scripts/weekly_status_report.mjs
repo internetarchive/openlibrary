@@ -70,11 +70,7 @@ function getConfig() {
         throw new Error('Unexpected amount of arguments');
     }
     const configPath = process.argv[2];
-    try {
-        return JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    } catch (err) {
-        throw err;
-    }
+    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }
 
 /**
@@ -140,7 +136,7 @@ async function prepareRecentComments(leads) {
             }
             return false;
         });
-        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+label%3A%22Needs%3A+Response%22+label%3A${encodeURIComponent('"' + lead.leadLabel + '"')}`;
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+label%3A%22Needs%3A+Response%22+label%3A${encodeURIComponent(`"${lead.leadLabel}"`)}`;
         if (leadIssuesAwaitingComments.length > 0) {
             output.push(`  • <${searchResultsUrl}|${leadIssuesAwaitingComments.length} issue(s)> need response from ${lead.slackId}`);
             isUpToDate = false;
@@ -267,7 +263,7 @@ async function prepareReviewAssigneeIssues(leads) {
             }
             return false;
         });
-        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Review+Assignee%22+label%3A${encodeURIComponent('"' + lead.leadLabel + '"')}`;
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Review+Assignee%22+label%3A${encodeURIComponent(`"${lead.leadLabel}"`)}`;
         if (issuesForLead.length > 0) {
             output.push(`  • <${searchResultsUrl}|${issuesForLead.length} issue(s)> need follow-up from ${lead.slackId}`);
             noStaleIssuesFound = false;
@@ -330,13 +326,13 @@ function prepareAssignedPullRequests(pullRequests, leads) {
         if (p0Count || p1Count || p2Count) {
             statusText += ' [';
             if (p0Count) {
-                statusText += `<${searchResultsUrl + '+label%3A"Priority%3A+0"'}|P0:${p0Count}>, `;
+                statusText += `<${searchResultsUrl}+label%3A"Priority%3A+0"|P0:${p0Count}>, `;
             }
             if (p1Count) {
-                statusText += `<${searchResultsUrl + '+label%3A"Priority%3A+1"'}|P1:${p1Count}>, `;
+                statusText += `<${searchResultsUrl}+label%3A"Priority%3A+1"|P1:${p1Count}>, `;
             }
             if (p2Count) {
-                statusText += `<${searchResultsUrl + '+label%3A"Priority%3A+2"'}|P2:${p2Count}>`;
+                statusText += `<${searchResultsUrl}+label%3A"Priority%3A+2"|P2:${p2Count}>`;
             } else {
                 // Remove the trailing `, ` characters:
                 statusText = statusText.substring(0, statusText.length - 3);
