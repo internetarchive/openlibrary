@@ -207,6 +207,21 @@ class TestFeaturedGenres:
         assert set(picked) == slugs
         assert all(len(covers) == home.GENRE_TILE_COVERS for covers in picked.values())
 
+    def test_tiles_are_built_from_the_passed_genres_not_a_reread(self):
+        """get_cached_featured_genres keys the day cache on the genres it passes in, so the build
+        must use exactly those — not a fresh read. Otherwise memcache_memoize's stale-while-
+        revalidate refresh could build file-tiles and cache them under the doc's fingerprint for a
+        day (the tile-lag race). Passing a genre absent from load_home_genres proves the arg wins."""
+        passed = [{"name": "Aye", "slug": "aye", "query": "a*", "kind": "genre", "subgenres": []}]
+        with (
+            patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),  # a different set
+            patch.object(home.home_genres, "load_tile_covers", return_value={"aye": [1, 2, 3]}),
+            patch.object(home, "get_trending_tile_covers", return_value=[]),
+        ):
+            web.ctx.env = {}
+            genres = home.get_featured_genres(passed)
+        assert [g["slug"] for g in genres] == ["trending", "aye"]
+
 
 class TestTrendingStack:
     """The Trending stack isn't in the vocabulary: it's one clause across every genre."""

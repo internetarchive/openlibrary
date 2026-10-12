@@ -241,27 +241,39 @@ def get_trending_tile_covers() -> list[int]:
     return [doc["cover_i"] for doc in results.get("docs", []) if doc.get("cover_i")][:GENRE_TILE_COVERS]
 
 
-def get_featured_genres():
-    """Tiles for home/browse_stacks.html.jinja, Trending first. A genre without picked covers gets no tile."""
+def get_featured_genres(genres=None):
+    """Tiles for home/browse_stacks.html.jinja, Trending first. A genre without picked covers gets no tile.
+
+    ``genres`` is passed in by get_cached_featured_genres so the tiles are built from the exact same
+    genres the cache key is derived from — see the note there. Defaults to a fresh read for direct
+    (uncached) callers.
+    """
     if "env" not in web.ctx:
         delegate.fakeload()
+    if genres is None:
+        genres = home_genres.load_home_genres()
     picked = {home_genres.TRENDING["slug"]: get_trending_tile_covers(), **home_genres.load_tile_covers()}
-    nodes = [home_genres.TRENDING, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
+    nodes = [home_genres.TRENDING, *(genre for genre in genres if picked.get(genre["slug"]))]
     return [{**genre, "covers": picked[genre["slug"]][:GENRE_TILE_COVERS]} for genre in nodes]
 
 
 def get_cached_featured_genres():
-    # Keyed on the genres fingerprint so a staff edit to /config/home busts this day cache at once,
-    # keeping the tiles in step with the drill-down rows (both ~5 min behind an edit). Without the
-    # fingerprint the tiles would lag a full day behind the rows and read as a bug. The DAY timeout
-    # still protects the per-build Solr/cover queries when nothing is edited (one build per day).
-    key = f"home.featured_genres.{home_genres.genres_fingerprint()}"
+    # Resolve the genres ONCE here, on the request thread, and both key on them and pass them into
+    # the build. This keeps the day cache's key and value from the same read: a staff edit to
+    # /config/home busts the cache at once (fingerprint changes within the node TTL), so the tiles
+    # stay in step with the drill-down rows (both ~5 min behind an edit) rather than lagging a day.
+    # Passing genres in also closes a race — memcache_memoize's stale-while-revalidate rebuild runs
+    # get_featured_genres on a worker thread; were it to re-read the genres there, a transient read
+    # could store file-tiles under the doc's fingerprint for a DAY. The DAY timeout still protects
+    # the per-build Solr/cover queries when nothing is edited (one build per day).
+    genres = home_genres.load_home_genres()
+    key = f"home.featured_genres.{home_genres.genres_fingerprint(genres)}"
     return cache.memcache_memoize(
         get_featured_genres,
         key,
         timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
-    )()
+    )(genres)
 
 
 def setup():

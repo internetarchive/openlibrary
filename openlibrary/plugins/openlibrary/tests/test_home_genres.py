@@ -117,18 +117,16 @@ class TestLoadHomeGenres:
 
 
 class TestFingerprint:
-    """home.get_cached_featured_genres keys its day cache on this, so an edit busts it at once."""
+    """home.get_cached_featured_genres keys its day cache on this, so an edit busts it at once.
+    It's pure in its argument so the caller hashes the exact list it builds from (no re-read drift)."""
 
-    def test_changes_when_the_config_changes(self, monkeypatch):
-        monkeypatch.setattr(home_genres, "load_home_genre_nodes", lambda: DOC_GENRES)
-        first = home_genres.genres_fingerprint()
+    def test_changes_when_the_config_changes(self):
+        first = home_genres.genres_fingerprint(DOC_GENRES)
         edited = [{**DOC_GENRES[0], "count": DOC_GENRES[0]["count"] + 1}]
-        monkeypatch.setattr(home_genres, "load_home_genre_nodes", lambda: edited)
-        assert home_genres.genres_fingerprint() != first
+        assert home_genres.genres_fingerprint(edited) != first
 
-    def test_stable_for_the_same_config(self, monkeypatch):
-        monkeypatch.setattr(home_genres, "load_home_genre_nodes", lambda: DOC_GENRES)
-        assert home_genres.genres_fingerprint() == home_genres.genres_fingerprint()
+    def test_stable_for_the_same_config(self):
+        assert home_genres.genres_fingerprint(DOC_GENRES) == home_genres.genres_fingerprint(DOC_GENRES)
 
 
 class TestTTLCache:

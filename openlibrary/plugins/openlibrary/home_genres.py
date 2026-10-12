@@ -118,10 +118,12 @@ def _load_home_genre_nodes() -> list[dict]:
 
 
 # (expiry_monotonic, nodes). Per-process, like the old @functools.cache but with a TTL instead of
-# forever. Deliberately not memcache_memoize: its stale-while-revalidate refresh runs on a worker
-# thread that does NOT carry web.ctx.site, so the refresh would read the file, not the doc. Reading
-# on the calling thread keeps the site in scope. reset_genres_cache() clears it (tests, or a future
-# edit hook).
+# forever. Deliberately not memcache_memoize: _load_home_genre_nodes does not establish a request
+# context, so a stale-while-revalidate refresh of IT on memcache's worker thread would run with no
+# web.ctx.site and read the file, not the doc. (home.get_featured_genres avoids this by calling
+# delegate.fakeload(), which sets a site; this loader has no such hook.) A per-process TTL read on
+# the calling thread keeps the site in scope and skips the memcache round-trip. reset_genres_cache()
+# clears it (tests, or a future edit hook).
 _nodes_cache: tuple[float, list[dict]] | None = None
 
 
@@ -155,11 +157,11 @@ def load_home_genres() -> list[Genre]:
     ]
 
 
-def genres_fingerprint() -> str:
-    """A short, stable hash of the effective genre config, for cache keys that must bust the moment
-    a staff edit lands — see home.get_cached_featured_genres. Reads the TTL-cached nodes, so it's
-    cheap and changes exactly when the config (doc or file) does."""
-    blob = json.dumps(load_home_genre_nodes(), sort_keys=True, separators=(",", ":")).encode()
+def genres_fingerprint(genres: object) -> str:
+    """A short, stable hash of a resolved genres value, for cache keys that must bust the moment a
+    staff edit lands — see home.get_cached_featured_genres. Pure in its argument so the caller can
+    hash the exact list it also builds from, rather than re-reading (which could drift)."""
+    blob = json.dumps(genres, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha1(blob).hexdigest()[:12]
 
 
