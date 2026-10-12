@@ -83,15 +83,14 @@ async def create_or_update_patron_check_in(
     date_str = make_date_string(data.year, data.month, data.day)
 
     if data.event_id:
-        events = await BookshelvesEvents.select_by_id(data.event_id)
-        if not events:
+        event = await BookshelvesEvents.select_by_id(data.event_id)
+        if event is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Event not found",
             )
 
-        event = events[0]
-        if user.username != event["username"]:
+        if user.username != event.username:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Forbidden",
@@ -115,15 +114,14 @@ async def delete_patron_check_in(
     The user can only delete their own check-in events.
     Returns 200 OK with empty body on success (matching web.py behavior).
     """
-    events = await BookshelvesEvents.select_by_id(check_in_id)
-    if not events:
+    event = await BookshelvesEvents.select_by_id(check_in_id)
+    if event is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Event does not exist",
         )
 
-    event = events[0]
-    if user.username != event["username"]:
+    if user.username != event.username:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden",

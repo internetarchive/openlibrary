@@ -4,7 +4,11 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from openlibrary.core.bookshelves_events import BookshelfEvent
+from openlibrary.core.bookshelves_events import BookshelfEvent, CheckInEvent
+
+
+def _check_in_event(username: str) -> CheckInEvent:
+    return CheckInEvent(id=123, username=username, work_id=1, edition_id=1, event_type=BookshelfEvent.START, event_date="2026-05-10")
 
 
 @pytest.mark.parametrize("path", ["/works/OL1W/check-ins", "/works/OL1W/check-ins.json"])
@@ -33,9 +37,9 @@ def test_update_checkin_success(fastapi_client, mock_authenticated_user):
         "edition_key": "OL100M",
         "event_id": 123,
     }
-    event = {"username": "testuser"}
+    event = _check_in_event("testuser")
     with (
-        patch("openlibrary.fastapi.checkins.BookshelvesEvents.select_by_id", new_callable=AsyncMock, return_value=[event]) as mock_select,
+        patch("openlibrary.fastapi.checkins.BookshelvesEvents.select_by_id", new_callable=AsyncMock, return_value=event) as mock_select,
         patch("openlibrary.fastapi.checkins.BookshelvesEvents.update_event", new_callable=AsyncMock) as mock_update,
     ):
         response = fastapi_client.post("/works/OL1W/check-ins", json=payload)
@@ -58,7 +62,7 @@ def test_update_checkin_missing_or_owned_by_another_user(fastapi_client, mock_au
         patch(
             "openlibrary.fastapi.checkins.BookshelvesEvents.select_by_id",
             new_callable=AsyncMock,
-            side_effect=[[], [{"username": "another-user"}]],
+            side_effect=[None, _check_in_event("another-user")],
         ) as mock_select,
         patch("openlibrary.fastapi.checkins.BookshelvesEvents.update_event", new_callable=AsyncMock) as mock_update,
     ):
@@ -72,9 +76,9 @@ def test_update_checkin_missing_or_owned_by_another_user(fastapi_client, mock_au
 
 
 def test_delete_checkin_success(fastapi_client, mock_authenticated_user):
-    event = {"username": "testuser"}
+    event = _check_in_event("testuser")
     with (
-        patch("openlibrary.fastapi.checkins.BookshelvesEvents.select_by_id", new_callable=AsyncMock, return_value=[event]) as mock_select,
+        patch("openlibrary.fastapi.checkins.BookshelvesEvents.select_by_id", new_callable=AsyncMock, return_value=event) as mock_select,
         patch("openlibrary.fastapi.checkins.BookshelvesEvents.delete_by_id", new_callable=AsyncMock) as mock_delete,
     ):
         response = fastapi_client.delete("/check-ins/123")
@@ -90,7 +94,7 @@ def test_delete_checkin_missing_or_owned_by_another_user(fastapi_client, mock_au
         patch(
             "openlibrary.fastapi.checkins.BookshelvesEvents.select_by_id",
             new_callable=AsyncMock,
-            side_effect=[[], [{"username": "another-user"}]],
+            side_effect=[None, _check_in_event("another-user")],
         ) as mock_select,
         patch("openlibrary.fastapi.checkins.BookshelvesEvents.delete_by_id", new_callable=AsyncMock) as mock_delete,
     ):

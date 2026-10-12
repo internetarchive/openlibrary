@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from openlibrary.core import async_db
-from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents, CheckInEvent
 
 # --- Unit test (no postgres required) ------------------------------------------
 
@@ -61,14 +61,14 @@ async def test_create_event(helpers):
 
 @pytest.mark.asyncio
 async def test_select_by_id(helpers):
-    expected = [{"id": 123, "username": "alice"}]
-    helpers.fetch_all.return_value = expected
+    expected = CheckInEvent(id=123, username="alice", work_id=1, edition_id=1, event_type=1, event_date="2026-05-10")
+    helpers.fetch_one.return_value = expected
 
-    rows = await BookshelvesEvents.select_by_id(123)
+    event = await BookshelvesEvents.select_by_id(123)
 
-    assert rows == expected
-    (query, params), _kwargs = helpers.fetch_all.await_args
-    assert query == "SELECT * FROM bookshelves_events WHERE id = %(id)s"
+    assert event == expected
+    (query, params), _kwargs = helpers.fetch_one.await_args
+    assert query == "SELECT id, username, work_id, edition_id, event_type, event_date FROM bookshelves_events WHERE id = %(id)s"
     assert params == {"id": 123}
 
 
@@ -112,18 +112,19 @@ class TestBookshelvesEventsCheckinIntegration:
     @pytest.mark.asyncio
     async def test_create_select_update_delete(self, pg_db):
         event_id = await BookshelvesEvents.create_event("alice", 42, None, "2026-05-10", event_type=BookshelfEvent.START)
-        rows = await BookshelvesEvents.select_by_id(event_id)
-        assert len(rows) == 1
-        assert rows[0]["username"] == "alice"
-        assert rows[0]["edition_id"] == BookshelvesEvents.NULL_EDITION_ID
+        event = await BookshelvesEvents.select_by_id(event_id)
+        assert event is not None
+        assert event.username == "alice"
+        assert event.edition_id == BookshelvesEvents.NULL_EDITION_ID
 
         assert await BookshelvesEvents.update_event(event_id, edition_id=99, event_date="2026-05-11") == 1
         updated = await BookshelvesEvents.select_by_id(event_id)
-        assert updated[0]["edition_id"] == 99
-        assert updated[0]["event_date"] == "2026-05-11"
+        assert updated is not None
+        assert updated.edition_id == 99
+        assert updated.event_date == "2026-05-11"
 
         assert await BookshelvesEvents.delete_by_id(event_id) == 1
-        assert await BookshelvesEvents.select_by_id(event_id) == []
+        assert await BookshelvesEvents.select_by_id(event_id) is None
 
 
 @pytest.mark.integration

@@ -1,7 +1,8 @@
+from dataclasses import dataclass
 from datetime import datetime
 from enum import IntEnum
 
-from openlibrary.core.async_db import fetch_all, fetch_one, fetch_val
+from openlibrary.core.async_db import class_row, fetch_all, fetch_one, fetch_val
 
 from . import db
 
@@ -14,6 +15,18 @@ class BookshelfEvent(IntEnum):
     @classmethod
     def has_value(cls, value: int) -> bool:
         return value in (item.value for item in BookshelfEvent.__members__.values())
+
+
+@dataclass(frozen=True, slots=True)
+class CheckInEvent:
+    """A row from the ``bookshelves_events`` table."""
+
+    id: int
+    username: str
+    work_id: int
+    edition_id: int
+    event_type: int
+    event_date: str
 
 
 class BookshelvesEvents(db.CommonExtras):
@@ -46,8 +59,10 @@ class BookshelvesEvents(db.CommonExtras):
 
     # Read methods:
     @classmethod
-    async def select_by_id(cls, pid: int) -> list[dict]:
-        return await fetch_all(f"SELECT * FROM {cls.TABLENAME} WHERE id = %(id)s", {"id": pid})
+    async def select_by_id(cls, pid: int) -> CheckInEvent | None:
+        """The event with ``id = pid``, or None if it does not exist."""
+        query = f"SELECT id, username, work_id, edition_id, event_type, event_date FROM {cls.TABLENAME} WHERE id = %(id)s"
+        return await fetch_one(query, {"id": pid}, row_factory=class_row(CheckInEvent))
 
     @classmethod
     def get_latest_event_date(cls, username, work_id, event_type):
