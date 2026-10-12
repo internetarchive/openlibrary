@@ -69,7 +69,7 @@ def _extract_page_status_url() -> str:
     try:
         import web
 
-        return web.changequery(show_page_status=1)
+        return web.changequery({"show_page_status": 1})
     except Exception:  # noqa: BLE001
         return "?show_page_status=1"
 
