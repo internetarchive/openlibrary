@@ -42,8 +42,8 @@ class Test_BinaryDataField:
     def test_translate_nonsorting_UTF8(self):
         bdf = BinaryDataField(MockMARC("utf8"), b"")
         r = bdf.translate(b"\xc2\x98The \xc2\x9cTitle")
-        assert len(r) == 11
-        assert r == "\u0098The \u009cTitle"
+        assert len(r) == 9
+        assert r == "The Title"
 
     def test_bad_marc_line(self):
         line = b"0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e"
