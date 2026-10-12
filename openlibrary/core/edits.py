@@ -324,3 +324,47 @@ def cached_get_counts_by_mode(mode: ApiMode = "all", reviewer="", **kwargs):
         f"librarian_queue_counts_{mode}",
         timeout=dateutil.MINUTE_SECS,
     )(mode=mode, reviewer=reviewer, **kwargs)
+
+
+# Monkeypatch Thing.validate to restrict 'works' modifications on editions
+from infogami.utils.storage import Thing
+
+_original_thing_validate = Thing.validate
+
+
+def _custom_thing_validate(self):
+    _original_thing_validate(self)
+    if hasattr(self, "type") and self.type and self.type.key == "/type/edition":
+        import web
+
+        user = web.ctx.get("user")
+        is_authorized = user and (user.is_admin() or user.is_super_librarian())
+
+        if not is_authorized:
+
+            def get_work_keys(works_list):
+                if not works_list:
+                    return []
+                if not isinstance(works_list, list):
+                    works_list = [works_list]
+                keys = []
+                for w in works_list:
+                    if isinstance(w, str):
+                        keys.append(w)
+                    elif hasattr(w, "key"):
+                        keys.append(w.key)
+                    elif isinstance(w, dict) and "key" in w:
+                        keys.append(w["key"])
+                return sorted(keys)
+
+            old_works = []
+            if hasattr(self, "_original") and isinstance(self._original, dict):
+                old_works = get_work_keys(self._original.get("works"))
+            new_works = get_work_keys(self.get("works"))
+
+            is_new_record = not (hasattr(self, "revision") and self.revision)
+            if not is_new_record and old_works != new_works:
+                raise ValueError(_("Only super librarians and admins can modify 'What work is this an edition of?'."))
+
+
+Thing.validate = _custom_thing_validate
