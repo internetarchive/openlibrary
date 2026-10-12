@@ -188,11 +188,10 @@ def test_layout_build_active_ui_lang(request_context_fixture):
 
 
 def test_layout_build_donate_script_url(monkeypatch, request_context_fixture):
-    """LayoutContext should set donate_script_url and backward-compatible donate_script_src."""
+    """LayoutContext should set donate_script_url."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
     assert layout.donate_script_url == "/cdn/archive.org/donate.js"
-    assert layout.donate_script_src == "/cdn/archive.org/donate.js"
 
 
 def test_layout_build_flash_messages(monkeypatch, request_context_fixture):

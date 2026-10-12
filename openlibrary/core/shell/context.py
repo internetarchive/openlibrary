@@ -60,11 +60,6 @@ class LayoutContext:
     announcement_banner: AnnouncementBanner | None = None
 
     @property
-    def donate_script_src(self) -> str:
-        """Backward-compatibility alias for donate_script_url."""
-        return self.donate_script_url
-
-    @property
     def body_class(self) -> str:
         """Backward-compatibility property returning joined body classes."""
         return " ".join(self.body_classes)
