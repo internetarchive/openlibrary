@@ -10,6 +10,7 @@ from openlibrary.catalog.marc.marc_base import (
     MarcException,
     MarcFieldBase,
 )
+from openlibrary.catalog.utils import strip_c1_controls
 
 marc8 = MARC8ToUnicode(quiet=True)
 
@@ -61,8 +62,10 @@ class BinaryDataField(MarcFieldBase):
         """
         if self.rec.marc8():
             data = mnemonics.read(data)
-            return marc8.translate(data)
-        return normalize("NFC", data.decode("utf8"))
+            s = marc8.translate(data)
+        else:
+            s = data.decode("utf8")
+        return normalize("NFC", strip_c1_controls(s))
 
     def ind1(self) -> str:
         return chr(self.line[0])
