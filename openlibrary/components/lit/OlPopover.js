@@ -679,7 +679,7 @@ export class OlPopover extends LitElement {
      * Compute the final position of the popover panel, flipping and shifting
      * as needed to keep it within the viewport.
      */
-    _computePosition(panelW, panelH) {
+    _computePosition(panelW, panelH, { keepSide = false } = {}) {
         const anchorEl = this._anchorEl;
         if (!anchorEl) return;
 
@@ -696,11 +696,13 @@ export class OlPopover extends LitElement {
         const [reqSide, reqAlign] = this._parsePlacement(this.placement);
 
         // Determine side (top or bottom), flipping if it would overflow
-        let side = reqSide;
+        let side = keepSide && this._side ? this._side : reqSide;
         const spaceBelow = viewH - anchor.bottom - gap;
         const spaceAbove = anchor.top - gap;
 
-        if (side === 'bottom' && panelH > spaceBelow && spaceAbove > spaceBelow) {
+        if (keepSide && this._side) {
+            // Content resized under the pointer: re-anchor, don't flip.
+        } else if (side === 'bottom' && panelH > spaceBelow && spaceAbove > spaceBelow) {
             side = 'top';
         } else if (side === 'top' && panelH > spaceAbove && spaceBelow > spaceAbove) {
             side = 'bottom';
@@ -755,6 +757,7 @@ export class OlPopover extends LitElement {
         const anchorCenterInPanel = anchorCenter - left;
         const originX = `${anchorCenterInPanel}px`;
 
+        this._side = side;
         this._position = { top, left };
         this._minWidth = anchor.width;
         this._transformOrigin = `${originX} ${originY}`;
@@ -784,26 +787,38 @@ export class OlPopover extends LitElement {
     _addScrollResizeListeners() {
         window.addEventListener('scroll', this._onScrollResize, { capture: true, passive: true });
         window.addEventListener('resize', this._onScrollResize, { passive: true });
+        // A panel whose content changes size (e.g. a filtered list) has to
+        // re-anchor, or a panel above its trigger drifts away from it.
+        const panel = this.shadowRoot?.querySelector('.panel');
+        if (panel && typeof ResizeObserver !== 'undefined') {
+            this._resizeObserver ??= new ResizeObserver(() => this._onScrollResize({ type: 'panel-resize' }));
+            this._resizeObserver.observe(panel);
+        }
     }
 
     _removeScrollResizeListeners() {
         window.removeEventListener('scroll', this._onScrollResize, { capture: true });
         window.removeEventListener('resize', this._onScrollResize);
+        this._resizeObserver?.disconnect();
         if (this._rafId) {
             cancelAnimationFrame(this._rafId);
             this._rafId = null;
         }
     }
 
-    _onScrollResize() {
+    _onScrollResize(e) {
+        // Any viewport change in the same frame may flip; a panel resize alone keeps its side.
+        if (e?.type !== 'panel-resize') this._flipAllowed = true;
         if (this._rafId) return;
         this._rafId = requestAnimationFrame(() => {
             this._rafId = null;
+            const keepSide = !this._flipAllowed;
+            this._flipAllowed = false;
             if (this._mobile) return;
             if (this._animState !== 'open' && this._animState !== 'entering') return;
             const panel = this.shadowRoot?.querySelector('.panel');
             if (panel) {
-                this._computePosition(panel.offsetWidth, panel.offsetHeight);
+                this._computePosition(panel.offsetWidth, panel.offsetHeight, { keepSide });
             }
         });
     }
