@@ -10,7 +10,6 @@ and from the bundled file otherwise — a bad or missing doc can never blank the
 """
 
 import functools
-import hashlib
 import json
 import logging
 import time
@@ -155,14 +154,6 @@ def load_home_genres() -> list[Genre]:
         for node in load_home_genre_nodes()
         if node["count"] >= MIN_GENRE_READABLE
     ]
-
-
-def genres_fingerprint(genres: object) -> str:
-    """A short, stable hash of a resolved genres value, for cache keys that must bust the moment a
-    staff edit lands — see home.get_cached_featured_genres. Pure in its argument so the caller can
-    hash the exact list it also builds from, rather than re-reading (which could drift)."""
-    blob = json.dumps(genres, sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha1(blob).hexdigest()[:12]
 
 
 @functools.cache

@@ -116,19 +116,6 @@ class TestLoadHomeGenres:
         assert home_genres.find_genre("action") is not None
 
 
-class TestFingerprint:
-    """home.get_cached_featured_genres keys its day cache on this, so an edit busts it at once.
-    It's pure in its argument so the caller hashes the exact list it builds from (no re-read drift)."""
-
-    def test_changes_when_the_config_changes(self):
-        first = home_genres.genres_fingerprint(DOC_GENRES)
-        edited = [{**DOC_GENRES[0], "count": DOC_GENRES[0]["count"] + 1}]
-        assert home_genres.genres_fingerprint(edited) != first
-
-    def test_stable_for_the_same_config(self):
-        assert home_genres.genres_fingerprint(DOC_GENRES) == home_genres.genres_fingerprint(DOC_GENRES)
-
-
 class TestTTLCache:
     def test_value_is_held_until_reset(self, monkeypatch):
         calls = []

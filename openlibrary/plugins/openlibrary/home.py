@@ -258,21 +258,22 @@ def get_featured_genres(genres=None):
 
 
 def get_cached_featured_genres():
-    # Resolve the genres ONCE here, on the request thread, and both key on them and pass them into
-    # the build. This keeps the day cache's key and value from the same read: a staff edit to
-    # /config/home busts the cache at once (fingerprint changes within the node TTL), so the tiles
-    # stay in step with the drill-down rows (both ~5 min behind an edit) rather than lagging a day.
-    # Passing genres in also closes a race — memcache_memoize's stale-while-revalidate rebuild runs
-    # get_featured_genres on a worker thread; were it to re-read the genres there, a transient read
-    # could store file-tiles under the doc's fingerprint for a DAY. The DAY timeout still protects
-    # the per-build Solr/cover queries when nothing is edited (one build per day).
+    # Resolve the genres ONCE here, on the request thread, and pass them straight into the build, so
+    # the day cache's key and its tiles come from the same read. hash_args md5s the genres into the
+    # key: the list is kilobytes and the raw args would blow past memcache's 250-char key limit (see
+    # subjects.notable_authors, which uses hash_args for the same reason), silently disabling the
+    # cache. That md5 IS the fingerprint — a staff edit to /config/home changes it and busts the
+    # cache at once, so the tiles stay in step with the drill-down rows (both ~5 min behind an edit)
+    # rather than lagging a day. memcache_memoize hands the same genres to its stale-while-revalidate
+    # rebuild worker, so a transient re-read there can't cache file-tiles under the doc's key. The
+    # DAY timeout still protects the per-build Solr/cover queries when nothing is edited.
     genres = home_genres.load_home_genres()
-    key = f"home.featured_genres.{home_genres.genres_fingerprint(genres)}"
     return cache.memcache_memoize(
         get_featured_genres,
-        key,
+        "home.featured_genres",
         timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
+        hash_args=True,
     )(genres)
 
 

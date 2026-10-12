@@ -222,6 +222,31 @@ class TestFeaturedGenres:
             genres = home.get_featured_genres(passed)
         assert [g["slug"] for g in genres] == ["trending", "aye"]
 
+    def test_featured_genres_cache_key_fits_memcache(self):
+        """The genres list is kilobytes, so its day cache must hash its args (hash_args=True). The
+        raw-args key would overflow memcache's 250-char limit and silently disable the cache —
+        emptying the genre rail and running the Solr/cover queries on every homepage load."""
+        captured = {}
+        real_memoize = home.cache.memcache_memoize
+
+        def spy(f, key_prefix, **kw):
+            mc = real_memoize(f, key_prefix, **kw)
+
+            def call(*args, **kwargs):
+                captured["key"] = mc.compute_key(args, kwargs)
+                return []
+
+            return call
+
+        with (
+            patch.object(home.cache, "memcache_memoize", spy),
+            patch.object(home, "caching_prethread", return_value=None),
+        ):
+            home.get_cached_featured_genres()
+        key = captured["key"]
+        assert len(key) <= 250, f"cache key is {len(key)} chars (> memcache's 250 limit)"
+        assert not any(ch.isspace() or ord(ch) < 33 for ch in key)
+
 
 class TestTrendingStack:
     """The Trending stack isn't in the vocabulary: it's one clause across every genre."""
