@@ -8,6 +8,9 @@ const globals = require('globals');
 module.exports = [
     {
         ignores: [
+            // Keep editor integrations and a bare `eslint .` off non-Vue files;
+            // without this, the recommended configs below apply to all JS.
+            '**/*.{js,mjs,cjs,ts}',
             '.*',
             'conf/',
             'config/',

@@ -47,7 +47,13 @@
     ],
     "vars-on-top": "error",
     "prefer-const": "error",
-    "no-unused-expressions": "off"
+    "no-unused-expressions": "off",
+    "no-case-declarations": "error",
+    "no-empty": "error",
+    "no-fallthrough": "error",
+    "no-prototype-builtins": "error",
+    "no-regex-spaces": "error",
+    "no-unexpected-multiline": "error"
   },
   "overrides": [
     {

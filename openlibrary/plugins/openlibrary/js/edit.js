@@ -14,15 +14,8 @@ import { init as initAutocomplete } from './autocomplete';
 import { init as initJqueryRepeat } from './jquery.repeat';
 import { trimInputValues } from './utils.js';
 
-/* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
-/* Globals are provided by the edit edition template */
-
-/* global render_author, render_author_autocomplete_item */
-/* global render_series, render_series_autocomplete_item */
-/* Globals are provided by the author-autocomplete template */
-
-/* global render_subject_autocomplete_item */
-/* Globals are provided by the edit about template */
+// render_* globals are provided by the edit edition, author-autocomplete and
+// edit about templates; they are declared for oxlint in .oxlintrc.json.
 
 function error(errordiv, input, message) {
     $(errordiv).show().html(message);
