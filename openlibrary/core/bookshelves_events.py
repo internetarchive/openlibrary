@@ -2,7 +2,6 @@ from datetime import datetime
 from enum import IntEnum
 
 from openlibrary.core.async_db import fetch_all, fetch_one, fetch_val
-from openlibrary.utils.async_utils import async_bridge
 
 from . import db
 
@@ -45,25 +44,10 @@ class BookshelvesEvents(db.CommonExtras):
         assert row is not None
         return row["id"]
 
-    @classmethod
-    def create_event_sync(
-        cls,
-        username: str,
-        work_id: int,
-        edition_id: int | None,
-        event_date: str,
-        event_type=BookshelfEvent.START.value,
-    ) -> int:
-        return async_bridge.run(cls.create_event(username, work_id, edition_id, event_date, event_type=event_type))
-
     # Read methods:
     @classmethod
     async def select_by_id(cls, pid: int) -> list[dict]:
         return await fetch_all(f"SELECT * FROM {cls.TABLENAME} WHERE id = %(id)s", {"id": pid})
-
-    @classmethod
-    def select_by_id_sync(cls, pid: int) -> list[dict]:
-        return async_bridge.run(cls.select_by_id(pid))
 
     @classmethod
     def get_latest_event_date(cls, username, work_id, event_type):
@@ -181,10 +165,6 @@ class BookshelvesEvents(db.CommonExtras):
         return 0
 
     @classmethod
-    def update_event_sync(cls, pid: int, edition_id: int | None = None, event_date: str | None = None, data: str | None = None) -> int:
-        return async_bridge.run(cls.update_event(pid, edition_id=edition_id, event_date=event_date, data=data))
-
-    @classmethod
     def update_event_date(cls, pid, event_date):
         oldb = db.get_db()
 
@@ -220,10 +200,6 @@ class BookshelvesEvents(db.CommonExtras):
     async def delete_by_id(cls, pid: int) -> int:
         rows = await fetch_all(f"DELETE FROM {cls.TABLENAME} WHERE id = %(id)s RETURNING id", {"id": pid})
         return len(rows)
-
-    @classmethod
-    def delete_by_id_sync(cls, pid: int) -> int:
-        return async_bridge.run(cls.delete_by_id(pid))
 
     @classmethod
     def delete_by_username(cls, username):
