@@ -26,6 +26,8 @@
     "lint:css": "stylelint \"static/**/*.css\" \"openlibrary/**/*.css\" \"openlibrary/**/*.js\"",
     "lint-fix": "npm run lint-fix:js && npm run lint-fix:css",
     "lint-fix:js": "oxlint --fix && oxfmt \"**/*.{js,mjs,cjs,ts}\" && eslint --fix \"**/*.vue\"",
+    "lint-fix:css": "stylelint --fix \"static/**/*.css\" \"openlibrary/**/*.css\"",
+    "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
     "pretest:js": "node scripts/build_icon_sprite.mjs",
     "test:js": "vitest run",
