@@ -73,6 +73,7 @@ def _solr_result(docs):
 
 # Bypass the memcache memoization so results don't leak between tests.
 _gather_nearby_books = gather_nearby_books_async.__wrapped__
+_gather_list_docs = gather_list_carousel_docs_async.__wrapped__
 
 
 class TestGatherNearbyBooksAsync:
@@ -400,7 +401,7 @@ def _fake_list_env(seed_keys, things, solr_works, solr_editions=None, years=None
     years = years or {}
 
     async def work_search(param, **kwargs):
-        wanted = set(re.findall(r"/works/OL\d+W", param["q"]))
+        wanted = set(re.findall(r"/works/OL\d+[WM]", param["q"]))
         readable_only = param.get("has_fulltext") == "true"
         docs = [{"key": key, "first_publish_year": years.get(key)} for key, readable in solr_works.items() if key in wanted and (readable or not readable_only)]
         return {"docs": docs}
@@ -421,7 +422,7 @@ def _fake_list_env(seed_keys, things, solr_works, solr_editions=None, years=None
 async def _gather(seed_keys, things, solr_works, solr_editions=None, *, years=None, has_fulltext_only=False, sort=""):
     patches, _, _ = _fake_list_env(seed_keys, things, solr_works, solr_editions, years)
     with patches[0], patches[1], patches[2], patches[3]:
-        return await gather_list_carousel_docs_async(LIST_KEY, "", has_fulltext_only, sort)
+        return (await _gather_list_docs(LIST_KEY, "", has_fulltext_only, sort))["docs"]
 
 
 def _shown(docs):
@@ -438,14 +439,15 @@ class TestGatherListCarouselDocsAsync:
             "/works/OL2W": _thing("/works/OL2W", "work"),
             "/books/OL1M": _thing("/books/OL1M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),
             "/books/OL9M": _thing("/books/OL9M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),  # not indexed yet
+            "/books/OL5M": _thing("/books/OL5M", "edition"),  # no work; Solr indexes it as /works/OL5M
         }
-        solr_editions = {"/books/OL1M": "public", "/books/OL2M": "public"}
-        seeds = ["/books/OL2M", "/works/OL2W", "subject:history", "/books/OL9M", "/books/OL1M"]
+        solr_editions = {"/books/OL1M": "public", "/books/OL2M": "public", "/books/OL5M": "public"}
+        seeds = ["/books/OL2M", "/works/OL2W", "subject:history", "/books/OL9M", "/books/OL1M", "/books/OL5M"]
 
-        docs = await _gather(seeds, things, {"/works/OL2W": True, "/works/OL1W": True}, solr_editions)
+        docs = await _gather(seeds, things, {"/works/OL2W": True, "/works/OL1W": True, "/works/OL5M": True}, solr_editions)
 
-        assert _shown(docs) == ["/books/OL2M", "/works/OL2W", "/books/OL1M"]
-        assert [doc["key"] for doc in docs] == ["/works/OL1W", "/works/OL2W", "/works/OL1W"]
+        assert _shown(docs) == ["/books/OL2M", "/works/OL2W", "/books/OL1M", "/books/OL5M"]
+        assert [doc["key"] for doc in docs] == ["/works/OL1W", "/works/OL2W", "/works/OL1W", "/works/OL5M"]
 
     @pytest.mark.asyncio
     async def test_makes_one_work_query_however_many_editions_share_a_work(self):
@@ -455,21 +457,23 @@ class TestGatherListCarouselDocsAsync:
         patches, work_search, _ = _fake_list_env(seeds, things, {"/works/OL1W": True}, dict.fromkeys(seeds, "borrowable"))
 
         with patches[0], patches[1], patches[2], patches[3]:
-            docs = await gather_list_carousel_docs_async(LIST_KEY, "", False)
+            docs = (await _gather_list_docs(LIST_KEY, "", False))["docs"]
 
         assert _shown(docs) == seeds
         work_search.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_readable_only_drops_unreadable_works_and_editions(self):
-        """A readable work can have an unreadable edition; filtering the work alone isn't enough."""
+        """A readable work can have an unreadable edition; filtering the work alone isn't enough.
+        "unclassified" counts as unreadable, as it does for Solr's has_fulltext."""
         things = {
             "/works/OL1W": _thing("/works/OL1W", "work"),
             "/works/OL2W": _thing("/works/OL2W", "work"),
             "/books/OL3M": _thing("/books/OL3M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),
             "/books/OL4M": _thing("/books/OL4M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),
+            "/books/OL5M": _thing("/books/OL5M", "edition", works=[SimpleNamespace(key="/works/OL1W")]),
         }
-        solr_editions = {"/books/OL3M": "no_ebook", "/books/OL4M": "borrowable"}
+        solr_editions = {"/books/OL3M": "no_ebook", "/books/OL4M": "borrowable", "/books/OL5M": "unclassified"}
         seeds = list(things)
 
         everything = await _gather(seeds, things, {"/works/OL1W": True, "/works/OL2W": False}, solr_editions)
@@ -480,10 +484,11 @@ class TestGatherListCarouselDocsAsync:
 
     @pytest.mark.asyncio
     async def test_redirected_seeds_show_where_they_were_merged_once(self):
-        """Lists keep the keys of merged records, and a merge can chain or land on another seed."""
+        """Lists keep the keys of merged records, and a merge can chain (up to three hops) or land on another seed."""
         things = {
             "/works/OL1W": _thing("/works/OL1W", "redirect", location="/works/OL2W"),
-            "/works/OL2W": _thing("/works/OL2W", "redirect", location="/works/OL3W"),
+            "/works/OL2W": _thing("/works/OL2W", "redirect", location="/works/OL5W"),
+            "/works/OL5W": _thing("/works/OL5W", "redirect", location="/works/OL3W"),
             "/works/OL3W": _thing("/works/OL3W", "work"),
             "/works/OL4W": _thing("/works/OL4W", "work"),
         }
@@ -491,6 +496,18 @@ class TestGatherListCarouselDocsAsync:
         docs = await _gather(["/works/OL1W", "/works/OL4W", "/works/OL3W"], things, {"/works/OL3W": True, "/works/OL4W": True})
 
         assert _shown(docs) == ["/works/OL3W", "/works/OL4W"]
+
+    @pytest.mark.asyncio
+    async def test_solr_failure_is_not_cached(self):
+        """The result is cached for five minutes; a Solr error must not blank a collection carousel for that long."""
+        patches, work_search, _ = _fake_list_env(["/works/OL1W"], {"/works/OL1W": _thing("/works/OL1W", "work")}, {"/works/OL1W": True})
+        work_search.side_effect = None
+        work_search.return_value = {"docs": [], "error": "timeout"}
+
+        with patches[0], patches[1], patches[2], patches[3]:
+            result = await _gather_list_docs(LIST_KEY, "", False)
+
+        assert "error" in result
 
     @pytest.mark.asyncio
     async def test_shows_the_whole_list_up_to_the_cap(self):
@@ -520,7 +537,7 @@ class TestGatherListCarouselDocsAsync:
         patches, work_search, _ = _fake_list_env(["/works/OL1W"], {"/works/OL1W": _thing("/works/OL1W", "work")}, {"/works/OL1W": True})
 
         with patches[0], patches[1], patches[2], patches[3]:
-            await gather_list_carousel_docs_async(LIST_KEY, ' -subject:"content_warning:cover"', False)
+            await _gather_list_docs(LIST_KEY, ' -subject:"content_warning:cover"', False)
 
         assert work_search.call_args.args[0]["q"].endswith(' -subject:"content_warning:cover"')
 
@@ -541,7 +558,7 @@ class TestCarouselPartialBySeed:
     async def test_list_carousel_loads_once_with_no_load_more(self):
         """The default SEARCH load-more would append Solr-ordered, edition-collapsed cards to a list carousel,
         and collection pages pass limit as a page size (6, 10, 20), so honouring it would cut lists short."""
-        gather = AsyncMock(return_value=[{"key": "/works/OL1W"}])
+        gather = AsyncMock(return_value={"docs": [{"key": "/works/OL1W"}]})
         params = LazyCarouselParams(query=LIST_KEY, limit=6, sort="old", has_fulltext_only=False, by_seed=True, safe_mode=True)
 
         kwargs = await self._generate(params, gather_list_carousel_docs_async=gather)

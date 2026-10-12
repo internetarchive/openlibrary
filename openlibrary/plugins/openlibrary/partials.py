@@ -812,7 +812,7 @@ class CarouselPartial:
         if params.by_seed and (list_match := LIST_KEY_RE.match(effective_query)):
             # The whole list in one go, with no load-more; collection pages pass limit as a page size, so it's ignored
             list_key = list_match.group(0)
-            docs = await gather_list_carousel_docs_async(list_key, effective_query.removeprefix(list_key), params.has_fulltext_only, params.sort)
+            docs = (await gather_list_carousel_docs_async(list_key, effective_query.removeprefix(list_key), params.has_fulltext_only, params.sort))["docs"]
             load_more = None
         else:
             books = await gather_lazy_carousel_data_async(
@@ -932,7 +932,15 @@ LIST_CAROUSEL_MAX = 100  # a list carousel shows at most this many of the list's
 _LIST_EDITION_FIELDS = ["key", "title", "subtitle", "cover_i", "ia", "ebook_access", "providers"]
 
 
-async def gather_list_carousel_docs_async(list_key: str, extra_query: str, has_fulltext_only: bool, sort: str = "") -> list[dict]:
+@cache.memoize(
+    engine="memcache",
+    key=lambda list_key, extra_query, has_fulltext_only, sort="": (
+        "ListCarouselData-" + md5(f"{list_key}-{extra_query}-{has_fulltext_only}-{sort}".encode()).hexdigest()
+    ),
+    expires=300,
+    cacheable=lambda key, value: "error" not in value,
+)
+async def gather_list_carousel_docs_async(list_key: str, extra_query: str, has_fulltext_only: bool, sort: str = "") -> CarouselData:
     """Carousel docs for the first ``LIST_CAROUSEL_MAX`` seeds of a list, in list order,
     or by first publish year when ``sort`` is "old" or "new", as on the search page.
 
@@ -947,10 +955,11 @@ async def gather_list_carousel_docs_async(list_key: str, extra_query: str, has_f
     for thing in things:
         if thing.type.key == "/type/work":
             work_key_of[thing.key] = thing.key
-        elif thing.type.key == "/type/edition" and thing.get("works"):
-            work_key_of[thing.key] = thing.works[0].key
+        elif thing.type.key == "/type/edition":
+            # Solr indexes an edition with no work as a stand-in work under the edition's id
+            work_key_of[thing.key] = thing.works[0].key if thing.get("works") else thing.key.replace("/books/", "/works/")
     if not work_key_of:
-        return []
+        return {"docs": []}
 
     work_keys = sorted(set(work_key_of.values()))
     search_params = {"q": f"key:({' OR '.join(work_keys)}){extra_query}"}
@@ -973,7 +982,7 @@ async def gather_list_carousel_docs_async(list_key: str, extra_query: str, has_f
             continue
         if key.startswith("/books/"):
             edition = editions_by_key.get(key)
-            if not edition or (has_fulltext_only and EbookAccess.from_solr_str(edition.get("ebook_access", "no_ebook")) == EbookAccess.NO_EBOOK):
+            if not edition or (has_fulltext_only and EbookAccess.from_solr_str(edition.get("ebook_access", "no_ebook")) <= EbookAccess.UNCLASSIFIED):
                 continue
             work = {**work, "editions": {"docs": [edition]}}
         docs.append(work)
@@ -982,14 +991,17 @@ async def gather_list_carousel_docs_async(list_key: str, extra_query: str, has_f
         # Books with no year go last, as on the search page
         dated = sorted((doc for doc in docs if doc.get("first_publish_year")), key=lambda doc: doc["first_publish_year"], reverse=sort == "new")
         docs = dated + [doc for doc in docs if not doc.get("first_publish_year")]
-    return docs
+    result: CarouselData = {"docs": docs}
+    if "error" in works:
+        result["error"] = True  # don't cache a Solr failure
+    return result
 
 
 def _get_seed_things(keys: list[str]) -> list:
-    """The things ``keys`` point to, in order, following redirects and dropping duplicates."""
-    target_of = {key: key for key in keys}
+    """The book records ``keys`` point to, in order, following redirects and dropping duplicates."""
+    target_of = {key: key for key in keys if key.startswith(("/works/", "/books/"))}  # not subjects or authors
     things: dict = {}
-    for _hop in range(3):  # a merged work can be merged again
+    for _hop in range(4):  # follows up to three redirects, as a merged work can be merged again
         if new_keys := {target for target in target_of.values() if target not in things}:
             things.update({thing.key: thing for thing in site.get().get_many(list(new_keys))})
         redirects = {key: things[target].location for key, target in target_of.items() if target in things and things[target].type.key == "/type/redirect"}
