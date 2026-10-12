@@ -226,6 +226,10 @@ describe('ol-cover-editor submission', () => {
         expect(document.querySelector('.bookCover img').getAttribute('src')).toBe(
             'https://covers.openlibrary.org/b/id/42-M.jpg',
         );
+        // The L copy fills the `2x` slot, as the server template does.
+        expect(document.querySelector('.bookCover img').getAttribute('srcset')).toBe(
+            'https://covers.openlibrary.org/b/id/42-L.jpg 2x',
+        );
         expect(document.querySelector('.SRPCover').style.display).toBe('block');
         expect(document.querySelector('.SRPCoverBlank').style.display).toBe('none');
         expect(seen).toEqual([{ id: 42 }]);

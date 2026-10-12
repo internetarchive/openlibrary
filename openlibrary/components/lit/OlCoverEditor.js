@@ -793,9 +793,9 @@ export class OlCoverEditor extends LitElement {
         return value && /^\d+$/.test(value) ? Number(value) : null;
     }
 
-    _coverUrl(id) {
+    _coverUrl(id, size = 'M') {
         const category = this._isPhoto ? 'a' : 'b';
-        return `${this.coverstoreUrl}/${category}/id/${id}-M.jpg`;
+        return `${this.coverstoreUrl}/${category}/id/${id}-${size}.jpg`;
     }
 
     /**
@@ -807,11 +807,13 @@ export class OlCoverEditor extends LitElement {
     _applyCover(id) {
         const img = document.querySelector(this.coverSelector);
         if (!img) return;
-        const url = this._coverUrl(id);
-        img.setAttribute('src', url);
+        img.setAttribute('src', this._coverUrl(id, 'M'));
         if (this._isPhoto) return;
+        // Match `covers/book_cover.html`: an M `src` with an L `srcset 2x`, so a
+        // retina screen keeps using the high-res image after a JS update (setting
+        // the `2x` slot to M would pin it to the blurry medium copy until reload).
+        img.setAttribute('srcset', `${this._coverUrl(id, 'L')} 2x`);
         // Book covers sit over a generated blank panel; swap which one shows.
-        img.setAttribute('srcset', url);
         const cover = img.closest('div');
         if (cover) {
             cover.style.display = 'block';
