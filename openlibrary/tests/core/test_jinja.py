@@ -19,7 +19,7 @@ from markupsafe import escape as _markupsafe_escape
 from infogami.utils.context import context as infogami_context
 from openlibrary import i18n as i18n_module
 from openlibrary.core import jinja as jinja_module
-from openlibrary.core import layout as layout_module
+from openlibrary.core import shell as shell_module
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.i18n import load_translations
 from openlibrary.plugins.upstream.code import static_url as upstream_static_url
@@ -152,7 +152,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         # Layout context is namespaced under `layout` to avoid collisions with page body
         assert "layout" in kwargs
         layout = kwargs["layout"]
-        assert isinstance(layout, layout_module.LayoutContext)
+        assert isinstance(layout, shell_module.LayoutContext)
         assert layout.show_ol_shell in (True, False)
         assert isinstance(layout.is_debug, bool)
         assert isinstance(layout.is_bot, bool)
@@ -177,9 +177,9 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.header.homepath, str)
         assert isinstance(layout.header.my_books_props, dict)
         assert isinstance(layout.header.browse_links, list)
-        assert isinstance(layout.header.search_modal, layout_module.SearchModalContext)
-        assert isinstance(layout.header, layout_module.HeaderContext)
-        assert isinstance(layout.head, layout_module.HeadContext)
+        assert isinstance(layout.header.search_modal, shell_module.SearchModalContext)
+        assert isinstance(layout.header, shell_module.HeaderContext)
+        assert isinstance(layout.head, shell_module.HeadContext)
         # No flat layout keys should leak into root context
         for key in (
             "show_ol_shell",
@@ -212,7 +212,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
 
     monkeypatch.setattr(jinja_module, "render_jinja_template", mock_render)
 
-    site_template = layout_module.SiteLayoutTemplate()
+    site_template = shell_module.SiteLayoutTemplate()
     assert site_template.filename == "openlibrary/templates/shell/base.html.jinja"
     assert site_template("page") == rendered
 
@@ -435,7 +435,7 @@ def test_ngettext_formats_named_placeholders(request_context_fixture):
     Client-fill strings — which must reach the browser with their ``%s``
     placeholders intact — are built in Python and serialized to JSON rather
     than rendered through ``_`` (see ``SearchModalContext`` in
-    ``openlibrary/core/layout.py``).
+    ``openlibrary/core/shell/search_modal.py``).
     """
     request_context_fixture(lang="en")
     env = get_jinja_env()
@@ -487,7 +487,7 @@ def _render_head(monkeypatch, **ctx_values):
         for key, value in ctx_values.items():
             if key != "_title":
                 infogami_context[key] = value
-        layout = layout_module.LayoutContext.build(title=ctx_values.get("_title", ""))
+        layout = shell_module.LayoutContext.build(title=ctx_values.get("_title", ""))
         return env.get_template("shell/head.html.jinja").render(layout=layout)
     finally:
         infogami_context.clear()
@@ -563,7 +563,7 @@ def test_site_shell_renders_with_real_layout_context(monkeypatch, request_contex
     monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
     monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
     monkeypatch.setitem(env.globals, "render_templetor_template", lambda name, *a, **kw: "")
-    layout = layout_module.LayoutContext.build(title="Shell Test")
+    layout = shell_module.LayoutContext.build(title="Shell Test")
     html = env.get_template("shell/base.html.jinja").render(page="<p>hi</p>", layout=layout)
     assert "<head>" in html
     assert "<title>Shell Test | Open Library</title>" in html
@@ -582,7 +582,7 @@ def test_header_search_i18n_attributes_are_json_with_raw_placeholders(monkeypatc
     env = get_jinja_env()
     monkeypatch.setitem(env.globals, "static_url", lambda p: f"/static/{p}")
     monkeypatch.setitem(env.globals, "icon", lambda *a, **kw: "")
-    layout = layout_module.LayoutContext.build(title="x")
+    layout = shell_module.LayoutContext.build(title="x")
     html = env.get_template("shell/header.html.jinja").render(layout=layout)
     trigger = BeautifulSoup(html, "lxml").find("button", class_="search-bar-trigger")
     availability = json.loads(trigger["data-i18n"])

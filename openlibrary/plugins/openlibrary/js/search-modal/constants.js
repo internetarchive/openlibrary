@@ -3,7 +3,7 @@
  */
 
 // Availability values and their display labels. The labels are the English
-// source/fallback for the localized strings in openlibrary/core/layout.py;
+// source/fallback for the localized strings in openlibrary/core/shell/search_modal.py;
 // keep the two in sync. The header modal and the search-page filter row both
 // surface availability as a binary "Readable Only" toggle, so only the
 // `readable` label is rendered today; the full set mirrors the taxonomy in
@@ -24,7 +24,7 @@ export const DEFAULT_AVAILABILITY = 'all';
  * omit keeps its built-in text, so a missing or partial translation never
  * blanks out an option.
  *
- * The translated strings are built server-side in openlibrary/core/layout.py
+ * The translated strings are built server-side in openlibrary/core/shell/search_modal.py
  * and serialized into the `data-i18n` attribute; the JS-side `ugettext` is only
  * a pass-through.
  *
@@ -42,7 +42,7 @@ export function localizeAvailabilityOptions(i18nStrings) {
 
 /**
  * Reads translated availability strings from an element's `data-i18n` JSON
- * attribute (built in openlibrary/core/layout.py) and returns the
+ * attribute (built in openlibrary/core/shell/search_modal.py) and returns the
  * localized option list. Falls back to the English defaults when the attribute
  * is absent or malformed.
  *
@@ -61,7 +61,7 @@ export function availabilityOptionsFromElement(el) {
 /**
  * English source/fallback for the header search modal's chrome strings (labels,
  * placeholders, aria-labels, status messages). Built server-side in
- * openlibrary/core/layout.py and serialized into the `data-i18n-ui` attribute;
+ * openlibrary/core/shell/search_modal.py and serialized into the `data-i18n-ui` attribute;
  * this object is what ships when no translation is present.
  */
 export const DEFAULT_SEARCH_MODAL_STRINGS = {
@@ -140,7 +140,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
 
 /**
  * Reads translated modal chrome strings from an element's `data-i18n-ui` JSON
- * attribute (built in openlibrary/core/layout.py) and merges them over
+ * attribute (built in openlibrary/core/shell/search_modal.py) and merges them over
  * DEFAULT_SEARCH_MODAL_STRINGS, so any key the translations omit keeps its
  * English text. Falls back to the full English set when the attribute is absent
  * or malformed.

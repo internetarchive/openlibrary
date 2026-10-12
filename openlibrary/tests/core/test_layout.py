@@ -1,4 +1,4 @@
-"""Tests for openlibrary.core.layout — guarantee layout is data-only."""
+"""Tests for openlibrary.core.shell — guarantee layout is data-only."""
 
 import pathlib
 import re
@@ -7,7 +7,7 @@ import pytest
 
 import infogami.utils.flash as flash_module
 from infogami.utils.context import context as infogami_ctx
-from openlibrary.core.layout import (
+from openlibrary.core.shell import (
     AnnouncementBanner,
     HeadContext,
     HeaderContext,
@@ -21,7 +21,7 @@ from openlibrary.core.layout import (
 @pytest.fixture(autouse=True)
 def _patch_get_current_user(monkeypatch):
     """Default get_current_user to None for layout tests so LayoutContext.build() is safe."""
-    monkeypatch.setattr("openlibrary.core.layout.get_current_user", lambda: None)
+    monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", lambda: None)
 
 
 TEMPLATES_DIR = pathlib.Path(__file__).resolve().parents[3] / "openlibrary" / "templates"
@@ -165,7 +165,7 @@ def test_layout_build_body_classes_and_librarian_tools(monkeypatch, request_cont
     infogami_ctx["show_ol_shell"] = True
     infogami_ctx["path"] = "/works/OL12345W"
     infogami_ctx["user"] = mock_user
-    monkeypatch.setattr("openlibrary.core.layout.get_current_user", lambda: mock_user)
+    monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", lambda: mock_user)
 
     layout = LayoutContext.build()
     assert "custom-class" in layout.body_classes
@@ -238,9 +238,9 @@ def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture
         def is_super_librarian_or_higher(self):
             return True
 
-    monkeypatch.setattr("openlibrary.core.layout.get_current_user", MockUser)
-    monkeypatch.setattr("openlibrary.core.layout.get_internet_archive_id", lambda key: "ia_bob")
-    monkeypatch.setattr("openlibrary.core.layout.cached_get_counts_by_mode", lambda mode="open": 42)
+    monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", MockUser)
+    monkeypatch.setattr("openlibrary.core.shell.header.get_internet_archive_id", lambda key: "ia_bob")
+    monkeypatch.setattr("openlibrary.core.shell.header.cached_get_counts_by_mode", lambda mode="open": 42)
 
     layout = LayoutContext.build()
     assert layout.header.user is not None

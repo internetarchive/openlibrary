@@ -1043,7 +1043,7 @@ def _popup_page(**kwargs: Any) -> delegate.RawText:
     differs from what arrived in the request, and ``get_flash_messages()``
     *drains* ``web.ctx.flash`` as a side effect of reading it
     (``vendor/infogami/infogami/utils/flash.py:18-21, 42-50``). The site layout
-    calls it on every render (``openlibrary/core/layout.py:101-112``). So a
+    calls it on every render (``_extract_flash_messages`` in ``openlibrary/core/shell/chrome.py``). So a
     page that renders the layout shows the message here -- inside a window that
     is about to leave -- and leaves ``web.ctx.flash`` empty, matching the empty
     request value, so no cookie is written and the page that opened the popup

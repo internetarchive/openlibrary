@@ -2567,7 +2567,7 @@ export function initSearchModal(trigger) {
 
     const modal = document.createElement('ol-search-modal');
 
-    // Translated strings are built in openlibrary/core/layout.py and serialized
+    // Translated strings are built in openlibrary/core/shell/search_modal.py and serialized
     // into the trigger's data-i18n (availability options) and data-i18n-ui
     // (chrome) attributes. Apply them before the modal mounts so the first
     // render is already localized.
