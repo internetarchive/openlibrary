@@ -1,9 +1,11 @@
 const js = require('@eslint/js');
+const prettierConfig = require('eslint-config-prettier/flat');
 const vuePlugin = require('eslint-plugin-vue');
 const globals = require('globals');
 
 // ESLint is only used for Vue files (see .pre-commit-config.yaml). JS is
-// linted by oxlint (.oxlintrc.json) and formatted by oxfmt (.oxfmtrc.json).
+// linted by oxlint (.oxlintrc.json), and JS and Vue are formatted by oxfmt
+// (.oxfmtrc.json).
 /** @type {import('eslint').Linter.Config[]} */
 module.exports = [
     {
@@ -74,22 +76,6 @@ module.exports = [
             'vars-on-top': 'error',
             'prefer-const': 'error',
 
-            // Formatting rules: Vue script blocks are not covered by oxfmt
-            quotes: ['error', 'single'],
-            'eol-last': ['error', 'always'],
-            indent: 2,
-            'no-mixed-spaces-and-tabs': 'error',
-            'no-extra-semi': 'error',
-            'no-trailing-spaces': 'error',
-            'space-in-parens': 'error',
-            'template-curly-spacing': 'error',
-            'quote-props': ['error', 'as-needed'],
-            'keyword-spacing': ['error', { before: true, after: true }],
-            'key-spacing': ['error', { mode: 'strict' }],
-            semi: ['error', 'always'],
-            'space-before-function-paren': ['error', 'never'],
-            'comma-spacing': ['error', { before: false, after: true }],
-
             'vue/no-mutating-props': 'off',
             'vue/multi-word-component-names': [
                 'error',
@@ -103,5 +89,10 @@ module.exports = [
             'vue/no-v-html': 'error',
             'vue/no-template-shadow': 'error'
         }
-    }
+    },
+
+    // Last, so it switches off every formatting rule enabled above (including
+    // eslint-plugin-vue's layout rules); oxfmt owns formatting, and the eslint
+    // hook's --fix would otherwise undo its output.
+    prettierConfig
 ];

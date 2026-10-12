@@ -40,6 +40,7 @@
     {
       "matchPackageNames": [
         "eslint",
+        "eslint-config-prettier",
         "eslint-plugin-vue"
       ],
       "groupName": "eslint",
