@@ -126,6 +126,11 @@ repos:
         # Mirror hook targets JS/TS by default.
         types_or: [javascript, ts]
         files: \.(js|mjs|cjs|ts)$
+        # --no-error-on-unmatched-pattern: oxlint exits 1 when every staged path
+        # is excluded by .oxlintrc.json's ignorePatterns (e.g. a commit that
+        # only touches vitest.config.mjs or scripts/gh_scripts/), which would
+        # otherwise spuriously fail the hook. Mirrors the oxfmt hook above.
+        args: [--no-error-on-unmatched-pattern]
         additional_dependencies:
           - oxlint@1.87.0
 
