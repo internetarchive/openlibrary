@@ -65,12 +65,6 @@ def _extract_header_user(user: User | None) -> HeaderUser | None:
     )
 
 
-def _extract_is_recognized_bot() -> bool:
-    from openlibrary.utils.request_context import req_context
-
-    return _safe(lambda: req_context.get().is_recognized_bot, False)
-
-
 def _extract_page_status_url() -> str:
     try:
         import web
@@ -78,22 +72,6 @@ def _extract_page_status_url() -> str:
         return web.changequery(show_page_status=1)
     except Exception:  # noqa: BLE001
         return "?show_page_status=1"
-
-
-def _extract_is_print_disabled() -> bool:
-    try:
-        import web
-
-        if web.cookies().get("pd"):
-            return True
-    except Exception:  # noqa: BLE001
-        pass
-    try:
-        from openlibrary.utils.request_context import req_context
-
-        return bool(req_context.get().print_disabled)
-    except Exception:  # noqa: BLE001
-        return False
 
 
 def _extract_homepath() -> str:
@@ -140,14 +118,16 @@ class HeaderContext:
     @classmethod
     def build(cls, *, user: User | None) -> HeaderContext:
         """Assemble header data with safe fallbacks."""
+        from openlibrary.utils.request_context import req_context
+
         homepath = _extract_homepath()
         links: list[NavLink] = _safe(browse_links, [])
 
         return cls(
             user=_extract_header_user(user),
             page_status_url=_extract_page_status_url(),
-            is_recognized_bot=_extract_is_recognized_bot(),
-            is_print_disabled=_extract_is_print_disabled(),
+            is_recognized_bot=_safe(lambda: req_context.get().is_recognized_bot, False),
+            is_print_disabled=_safe(lambda: req_context.get().print_disabled, False),
             homepath=homepath,
             my_books_props=_extract_my_books_props(homepath),
             browse_links=links,
