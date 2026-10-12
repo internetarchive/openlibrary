@@ -56,7 +56,11 @@ export class IntegratedLibrarianEnvironment {
      */
     reset() {
         for (const elem of $('.ile-selected')) {
-            elem.classList.remove('ile-selected');
+            // Not just the class: selecting an element also sets draggable and
+            // binds drag listeners, and a still-draggable link starts a native
+            // drag instead of a text selection. Dropping only the class left
+            // author names unselectable after "Clear Selections".
+            this.selectionManager.setElementSelectionAttributes(elem, false);
         }
         this.setStatusText('');
         this.$selectionActions.empty();

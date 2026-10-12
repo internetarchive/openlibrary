@@ -101,16 +101,6 @@
   padding-top: 68px;
   margin-bottom: 0;
 }
-.description__role {
-  padding-top: 5px;
-  padding-bottom: 5px;
-  height: 28px;
-}
-.description__department {
-  font-weight: 400;
-  height: 40px;
-  font-size: 18px;
-}
 .description__title {
   font-weight: 400;
   height: 40px;
@@ -139,14 +129,6 @@
   width: 100%;
   justify-content: space-evenly;
   align-items: center;
-}
-.description__role,
-.description__name,
-.description__department {
-  margin: 0;
-  padding-left: 15px;
-  padding-right: 15px;
-  text-align: center;
 }
 .links__site,
 .links__book {

@@ -4,8 +4,13 @@ Covers the batch-fetch of works missed by Solr (internetarchive/openlibrary#1243
 which replaced per-work web.ctx.site.get() calls with a single get_many() lookup.
 """
 
+import datetime
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 import web
 
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.views import loanstats
 
 FAKE_LEADERBOARD = {
@@ -119,3 +124,54 @@ class TestReadinglogStats:
         assert works_by_id[3] is None
         assert works_by_id[4]["key"] == "/works/OL4W"
         assert works_by_id[5] is None
+
+
+class TestTrendingNowCaching:
+    def test_cached_get_trending_now_hits_cache(self, monkeypatch):
+        now = datetime.datetime.now()
+        fake_books = [
+            web.storage(work_id=101, bookshelf_id=1, created=now, updated=now),
+            web.storage(work_id=102, bookshelf_id=2, created=now, updated=now),
+        ]
+        mock_get_recent = MagicMock(return_value=fake_books)
+        monkeypatch.setattr(Bookshelves, "get_recently_logged_books", mock_get_recent)
+
+        # First call hits the mock DB
+        res1 = loanstats.cached_get_trending_now(limit=99, page=99)
+        assert len(res1) == 2
+        assert res1[0]["work_id"] == 101
+        assert isinstance(res1[0]["created"], datetime.datetime)
+        assert mock_get_recent.call_count == 1
+
+        # Second call with the same parameters must be served from cache
+        res2 = loanstats.cached_get_trending_now(limit=99, page=99)
+        assert len(res2) == 2
+        assert res2[0]["work_id"] == 101
+        assert isinstance(res2[0]["created"], datetime.datetime)
+        assert mock_get_recent.call_count == 1
+
+        # In-place mutations on returned items must not poison the cache
+        res1[0]["work"] = {"title": "Mutated Work"}
+        res3 = loanstats.cached_get_trending_now(limit=99, page=99)
+        assert "work" not in res3[0]
+
+    @pytest.mark.asyncio
+    async def test_get_trending_books_now_calls_cached_helper(self, monkeypatch):
+        fake_result = [web.storage(work_id=201, work={"key": "/works/OL201W"})]
+        mock_cached = MagicMock(return_value=fake_result)
+        monkeypatch.setattr(loanstats, "cached_get_trending_now", mock_cached)
+        monkeypatch.setattr(Bookshelves, "add_solr_works_async", AsyncMock())
+
+        res = await loanstats.get_trending_books(since_days=0, since_hours=0, limit=20, page=1)
+        mock_cached.assert_called_once_with(limit=20, page=1)
+        assert res == [{"key": "/works/OL201W"}]
+
+    def test_activity_stream_now_calls_cached_helper(self, monkeypatch):
+        web.ctx.env = web.ctx.environ = web.storage(REQUEST_METHOD="GET", QUERY_STRING="page=1")
+        mock_cached = MagicMock(return_value=[])
+        monkeypatch.setattr(loanstats, "cached_get_trending_now", mock_cached)
+        monkeypatch.setattr(Bookshelves, "add_solr_works", MagicMock())
+        monkeypatch.setattr(loanstats.app, "render_template", lambda *a, **kw: web.storage())
+
+        loanstats.activity_stream().GET(mode="/now")
+        mock_cached.assert_called_once_with(limit=loanstats.TRENDING_NOW_LIMIT, page=1)

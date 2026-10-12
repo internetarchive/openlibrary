@@ -3,10 +3,6 @@ import {
     notesModalStrings,
 } from '../../../openlibrary/plugins/openlibrary/js/modals';
 
-// jquery-colorbox needs browser globals jsdom doesn't provide, and the strings
-// reader under test never touches it.
-vi.mock('jquery-colorbox', () => ({}));
-
 describe('notesModalStrings', () => {
     function elementWith(dataI18n) {
         const el = document.createElement('div');

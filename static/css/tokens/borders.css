@@ -75,7 +75,7 @@
      scrim, the popover's mobile tray, which should all read as the same
      gesture. The blur is what pushes the page back; the dim is what makes it
      inert. Blur follows modality, never a breakpoint; a non-modal overlay gets
-     neither. See docs/ai/design.md#blur-follows-modality-not-viewport-width. */
+     neither. See docs/frontend/design.md#blur-follows-modality-not-viewport-width. */
   --overlay-backdrop-color: hsla(0, 0%, 0%, 0.32);
   --overlay-backdrop-blur: 3px;
 }

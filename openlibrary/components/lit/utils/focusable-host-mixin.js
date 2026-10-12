@@ -8,7 +8,7 @@
  *
  * Do NOT add `tabindex` to the host: combined with `delegatesFocus` it produces
  * a double tab stop. Our focus traps find the inner element via the
- * shadow-piercing walker in focus-utils.js. See docs/ai/web-components.md.
+ * shadow-piercing walker in focus-utils.js. See docs/frontend/web-components.md.
  *
  * NOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain
  * LitElement — the trigger is the focusable, e.g. <ol-select-popover> and

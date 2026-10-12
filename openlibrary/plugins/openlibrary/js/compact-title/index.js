@@ -1,4 +1,3 @@
-import $ from 'jquery';
 /**
  * Defines functions related to the compact title component.
  * @module compact-title/index
@@ -54,13 +53,13 @@ function onScroll(navbar, title) {
             // Display compact title
             title.classList.remove('hidden');
             // Animate navbar
-            $(navbar).addClass('nav-bar-wrapper--slidedown')
-                .one('animationend', () => {
-                    $(navbar).addClass('sticky--lowest');
-                    $(navbar).removeClass('nav-bar-wrapper--slidedown');
-                    // Ensure correct nav item is selected after compact title slides in:
-                    updateSelectedNavItem();
-                });
+            navbar.classList.add('nav-bar-wrapper--slidedown');
+            navbar.addEventListener('animationend', () => {
+                navbar.classList.add('sticky--lowest');
+                navbar.classList.remove('nav-bar-wrapper--slidedown');
+                // Ensure correct nav item is selected after compact title slides in:
+                updateSelectedNavItem();
+            }, {once: true});
         } else {
             if (navbarBounds.top < compactTitleBounds.bottom) {  // We've scrolled to the bottom of the container, and the navbar is unstuck
                 title.classList.add('hidden');
@@ -71,11 +70,11 @@ function onScroll(navbar, title) {
     } else {  // At least some of the main title is below the navbar
         if (!title.classList.contains('hidden')) {
             title.classList.add('hidden');
-            $(navbar).addClass('nav-bar-wrapper--slideup')
-                .one('animationend', () => {
-                    $(navbar).removeClass('sticky--lowest');
-                    $(navbar).removeClass('nav-bar-wrapper--slideup');
-                });
+            navbar.classList.add('nav-bar-wrapper--slideup');
+            navbar.addEventListener('animationend', () => {
+                navbar.classList.remove('sticky--lowest');
+                navbar.classList.remove('nav-bar-wrapper--slideup');
+            }, {once: true});
         }
     }
 }

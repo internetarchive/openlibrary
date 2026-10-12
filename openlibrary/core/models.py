@@ -890,6 +890,8 @@ class Author(Thing):
                     raise AuthorRemoteIdConflictError(f"Conflicting remote IDs for author {self.key}: {output[identifier]} vs {incoming_ids[identifier]}")
                 else:
                     matches = matches + 1
+            elif identifier in incoming_ids:  # Do the merge
+                output[identifier] = incoming_ids[identifier]
         return output, matches
 
 

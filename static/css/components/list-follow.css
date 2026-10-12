@@ -52,10 +52,6 @@ a.list-follow-card__header {
   text-decoration: none;
 }
 
-.list-follow-card__name-avatar {
-  display: flex;
-}
-
 .list-follow-card__bottom {
   background: var(--grey-f4f4f4);
   display: flex;
@@ -109,11 +105,6 @@ a.list-follow-card__username-link {
   display: inline-block;
   position: relative;
   top: 0.2rem;
-}
-
-.list-follow-card__text {
-  display: flex;
-  flex-direction: column;
 }
 
 .list-follow-card__follow-button {
@@ -201,11 +192,6 @@ a.list-follow-card__username-link {
 .list-follow-card__num-books {
   color: var(--grey-555);
   font-size: var(--font-size-label-medium);
-}
-
-.list-follow-card__info {
-  flex: 1;
-  flex-direction: row;
 }
 
 .list-follow-card__covers {

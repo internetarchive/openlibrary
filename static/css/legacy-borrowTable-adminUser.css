@@ -24,9 +24,6 @@
 .borrow-table table th.titles {
   text-align: left;
 }
-.borrow-table table th.xtitles {
-  text-align: left !important;
-}
 
 .borrow-table tr.row-available {
   background: var(--admin-row-background) !important;
@@ -47,16 +44,6 @@
   width: 20px;
 }
 
-.borrow-table .current-loan tbody tr {
-  background: var(--soft-green) !important;
-}
-
-.borrow-table .checkedout-elsewhere {
-  padding: var(--spacing-inset-md);
-  background: var(--orange-four) !important;
-  border: 1px solid var(--orange-five);
-}
-
 .borrow-table .available {
   padding: var(--spacing-inset-md);
   background: var(--soft-green) !important;
@@ -71,10 +58,6 @@
   margin: 1em 0 0.5em;
 }
 
-.borrow-table div#alert0 {
-  background-color: var(--admin-row-background) !important;
-  border: 1px solid var(--orange-five);
-}
 .borrow-table ul.inner {
   margin-bottom: 0 !important;
 }

@@ -1,4 +1,4 @@
-"""Unit and integration tests for the async BookshelvesEvents queries. See ``docs/ai/database.md``."""
+"""Unit and integration tests for the async BookshelvesEvents queries. See ``docs/core/database.md``."""
 
 from unittest.mock import AsyncMock, patch
 

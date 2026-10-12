@@ -68,20 +68,12 @@
 /* stylelint-disable no-descending-specificity */
 .ui-tabs-nav a:hover,
 .ui-tabs-nav a:focus,
-.ui-tabs-nav a:active,
-.ui-tabs-nav .ui-tabs-deselectable a:hover,
-.ui-tabs-nav .ui-tabs-deselectable a:focus,
-.ui-tabs-nav .ui-tabs-deselectable a:active {
+.ui-tabs-nav a:active {
   /* @ Opera, we need to be explicit again here now... */
   cursor: pointer;
 }
 /* stylelint-enable no-descending-specificity */
 /* stylelint-enable selector-max-specificity */
-
-.ui-tabs-disabled {
-  opacity: 0.4;
-  filter: alpha(opacity=40);
-}
 
 .ui-tabs-panel {
   border: 3px solid var(--lightest-grey);
@@ -96,7 +88,7 @@
 /* These rules apply within overlays */
 /* e.g. when you click "change cover" on a books page */
 /* Need to investigate whether these can be generalised somehow. */
-.floater .ui-tabs-panel {
+ol-dialog .ui-tabs-panel {
   border: none;
   background: var(--white);
   /* declare background color for container to avoid distorted fonts in IE while fading */
@@ -116,14 +108,10 @@
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
-  .floater .ui-tabs-panel {
+  ol-dialog .ui-tabs-panel {
     border-top: 3px solid var(--lightest-grey);
     padding: 15px 30px !important;
     /* declare background color for container to avoid distorted fonts in IE while fading */
-  }
-
-  .tabs-panel {
-    padding: 15px 30px 20px !important;
   }
 
   .ui-tabs-nav {
@@ -140,14 +128,5 @@
 
   .ui-tabs-nav .ui-tabs-active a {
     padding: 2px 8px 3px;
-  }
-}
-
-/* Caution! Ensure accessibility in print and other media types... */
-@media projection, screen, print {
-  /* Use class for showing/hiding tab content,
-  so that visibility can be better controlled in different media types... */
-  .ui-tabs-hide {
-    display: none;
   }
 }

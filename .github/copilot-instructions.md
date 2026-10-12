@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-> **Canonical guides:** [`AGENTS.md`](../AGENTS.md) for stack, commands, and conventions; [`docs/ai/README.md`](../docs/ai/README.md) for architecture and data-model. Path-specific review guidance lives in [`instructions/`](instructions/).
+> **Canonical guides:** [`AGENTS.md`](../AGENTS.md) for stack, commands, and conventions; [`docs/ai-coding-guide.md`](../docs/ai-coding-guide.md) for architecture and data-model. Path-specific review guidance lives in [`instructions/`](instructions/).
 
 ### Code Style
 

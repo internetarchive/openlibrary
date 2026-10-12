@@ -523,3 +523,70 @@ class TestSearchInsideEndpoint:
         response = fastapi_client.get("/search/inside.json?q=hello&readable=true&language=ger")
         assert response.status_code == 200
         mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, language="German")
+
+
+class TestEditionSearchEndpoint:
+    """Tests for the /search/editions.json endpoint."""
+
+    def test_returns_200_with_query(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?q=harry+potter")
+        assert response.status_code == 200
+        data = response.json()
+        assert "numFound" in data
+        assert "num_found" in data
+        assert "docs" in data
+        assert "q" in data
+        assert data["q"] == "harry potter"
+
+    def test_returns_200_without_query(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json")
+        assert response.status_code == 200
+        data = response.json()
+        assert "numFound" in data
+        assert "num_found" in data
+        assert "docs" in data
+        assert data["q"] == ""
+
+    def test_work_key_filter_passed_to_solr_with_work_path(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?work_key=/works/OL82536W")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        extra = call_kwargs.get("extra_params") or []
+        assert any('work_key:"OL82536W"' in v for _, v in extra)
+
+    def test_work_key_filter_passed_to_solr_with_olid(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?work_key=OL82536W")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        extra = call_kwargs.get("extra_params") or []
+        assert any('work_key:"OL82536W"' in v for _, v in extra)
+
+    def test_endpoint_in_openapi_spec(self, fastapi_client):
+        response = fastapi_client.get("/openapi.json")
+        assert response.status_code == 200
+        openapi = response.json()
+        assert "/search/editions.json" in openapi["paths"]
+
+    @pytest.mark.parametrize("sort_option", ["new", "old"])
+    def test_sort_parameter_valid(self, fastapi_client, mock_edition_solr_query, sort_option):
+        response = fastapi_client.get(f"/search/editions.json?sort={sort_option}")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        assert call_kwargs.get("sort") == sort_option
+
+    def test_sort_parameter_invalid(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?sort=invalid_sort_option")
+        assert response.status_code == 422
+
+    def test_pagination_parameters(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?limit=10&page=2")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        assert call_kwargs.get("rows") == 10
+        assert call_kwargs.get("page") == 2
+
+    def test_fields_parameter_parsing(self, fastapi_client, mock_edition_solr_query):
+        response = fastapi_client.get("/search/editions.json?fields=key,title,isbn")
+        assert response.status_code == 200
+        call_kwargs = mock_edition_solr_query.call_args[1]
+        assert call_kwargs.get("fields") == ["key", "title", "isbn"]

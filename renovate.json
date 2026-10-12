@@ -56,8 +56,7 @@
         "bundlesize2",
         "stylelint",
         "stylelint-declaration-strict-value",
-        "stylelint-prettier",
-        "prettier"
+        "oxfmt"
       ],
       "automerge": false
     },

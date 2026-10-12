@@ -1,0 +1,19 @@
+/**
+ * Stylesheet entry point for the Open Library Tasks pages at /tasks.
+ * See openlibrary/templates/contribute/*.html.jinja
+ */
+@import "base/common.css";
+@import "base/headings.css";
+@import "base/helpers-common.css";
+@import "layout/index.css";
+@import "components/header-bar.css";
+@import "components/skip-link.css";
+@import "components/iaBar.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "components/page-banner.css";
+@import "components/header.css";
+@import "components/footer.css";
+@import "components/language.css";
+@import "components/ol-message.css";
+@import "components/contribute.css";

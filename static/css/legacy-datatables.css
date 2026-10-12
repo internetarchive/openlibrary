@@ -85,49 +85,12 @@ tr.odd {
   border-bottom: 1px solid var(--color-border-muted);
 }
 
-/*
- * KeyTable
- */
-table.KeyTable td {
-  border: 3px solid transparent;
-}
-
-table.KeyTable td.focus {
-  border: 3px solid var(--color-border-focused);
-}
-
-table.display tr.gradeA {
-  background-color: var(--color-success-bg);
-}
-
-table.display tr.gradeC {
-  background-color: var(--color-primary-subtle);
-}
-
-table.display tr.gradeX {
-  background-color: var(--color-error-bg);
-}
-
-table.display tr.gradeU {
-  background-color: var(--lighter-grey);
-}
-
 div.box {
   height: 100px;
   padding: var(--spacing-inset-sm);
   overflow: auto;
   border: 1px solid var(--dark-baby-blue);
   background-color: var(--color-primary-subtle);
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Misc
- */
-.dataTable_wrapper .top,
-.dataTable_wrapper .bottom {
-  padding: var(--spacing-inset-md);
-  background-color: transparent;
-  border: none;
 }
 
 .top .dataTables_info {
@@ -146,10 +109,6 @@ tfoot input {
   margin: 0.5em 0;
   width: 100%;
   color: var(--darker-grey);
-}
-
-tfoot input.search_init {
-  color: var(--color-text-secondary);
 }
 
 td.group {
@@ -176,133 +135,6 @@ div.dataTables_filter {
   border-radius: var(--border-radius-input);
   padding: var(--spacing-inset-xs);
   border: 1px solid var(--grey);
-}
-
-table.display tr.even.row_selected td {
-  background-color: var(--blue-b0bed9);
-}
-
-table.display tr.odd.row_selected td {
-  background-color: var(--blue-9fafd1);
-}
-
-/* For the Conditional-CSS grading rows */
-/*
- 	Colour calculations (based off the main row colours)
-  Level 1:
-		dd > c4
-		ee > d5
-	Level 2:
-	  dd > d1
-	  ee > e2
- */
-tr.odd.gradeA td.sorting_1 {
-  background-color: var(--mid-baby-green);
-}
-
-tr.odd.gradeA td.sorting_2 {
-  background-color: var(--color-success-bg);
-}
-
-tr.odd.gradeA td.sorting_3 {
-  background-color: var(--color-success-bg);
-}
-
-tr.even.gradeA td.sorting_1 {
-  background-color: var(--color-success-bg);
-}
-
-tr.even.gradeA td.sorting_2 {
-  background-color: var(--color-success-bg);
-}
-
-tr.even.gradeA td.sorting_3 {
-  background-color: var(--color-success-bg);
-}
-
-tr.odd.gradeC td.sorting_1 {
-  background-color: var(--mid-baby-blue);
-}
-
-tr.odd.gradeC td.sorting_2 {
-  background-color: var(--color-primary-subtle);
-}
-
-tr.odd.gradeC td.sorting_3 {
-  background-color: var(--color-primary-subtle);
-}
-
-tr.even.gradeC td.sorting_1 {
-  background-color: var(--color-primary-subtle);
-}
-
-tr.even.gradeC td.sorting_2 {
-  background-color: var(--color-primary-subtle);
-}
-
-tr.even.gradeC td.sorting_3 {
-  background-color: var(--color-primary-subtle);
-}
-
-tr.odd.gradeX td.sorting_1 {
-  background-color: var(--mid-baby-pink);
-}
-
-tr.odd.gradeX td.sorting_2 {
-  background-color: var(--color-error-bg);
-}
-
-tr.odd.gradeX td.sorting_3 {
-  background-color: var(--color-error-bg);
-}
-
-tr.even.gradeX td.sorting_1 {
-  background-color: var(--color-error-bg);
-}
-
-tr.even.gradeX td.sorting_2 {
-  background-color: var(--color-error-bg);
-}
-
-tr.even.gradeX td.sorting_3 {
-  background-color: var(--color-error-bg);
-}
-
-tr.odd.gradeU td.sorting_1 {
-  background-color: var(--mid-grey);
-}
-
-tr.odd.gradeU td.sorting_2 {
-  background-color: var(--mid-grey);
-}
-
-tr.odd.gradeU td.sorting_3 {
-  background-color: var(--mid-grey);
-}
-
-tr.even.gradeU td.sorting_1 {
-  background-color: var(--lighter-grey);
-}
-
-tr.even.gradeU td.sorting_2 {
-  background-color: var(--lighter-grey);
-}
-
-tr.even.gradeU td.sorting_3 {
-  background-color: var(--lighter-grey);
-}
-
-/*
- * Row highlighting example
- */
-.ex_highlight #example tbody tr.even:hover,
-#example tbody tr.even td.highlighted {
-  background-color: var(--lime-green);
-}
-
-.ex_highlight #example tbody tr.odd:hover,
-#example tbody tr.odd td.highlighted {
-  background-color: var(--lime-green);
 }
 
 @media only screen and (max-width: 768px) {

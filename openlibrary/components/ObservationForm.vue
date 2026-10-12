@@ -1,8 +1,5 @@
 <template>
-  <div
-    ref="form"
-    class="observation-form"
-  >
+  <div class="observation-form">
     <SavedTags
       :all-selected-values="allSelectedValues"
       :work-key="workKey"
@@ -34,7 +31,7 @@ import CategorySelector from './ObservationForm/components/CategorySelector.vue'
 import SavedTags from './ObservationForm/components/SavedTags.vue';
 import ValueCard from './ObservationForm/components/ValueCard.vue';
 
-import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils';
+import { decodeAndParseJSON } from './ObservationForm/Utils';
 
 export default {
     name: 'ObservationForm',
@@ -132,18 +129,6 @@ export default {
         this.observationsArray = decodeAndParseJSON(this.schema)['observations'];
         this.allSelectedValues = decodeAndParseJSON(this.observations);
         this.selectRandomObservation();
-    },
-    mounted: function() {
-        this.observer = new ResizeObserver(() => {
-            resizeColorbox();
-        });
-
-        this.observer.observe(this.$refs.form);
-    },
-    beforeUnmount: function() {
-        if (this.observer) {
-            this.observer.disconnect();
-        }
     },
     methods: {
         /**

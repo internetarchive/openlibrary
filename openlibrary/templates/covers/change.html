@@ -32,26 +32,19 @@ $else:
   <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers coverPop dialog--open" href="$(manage_url if doc.get_cover() else add_url)" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</ol-button>
 </div>
 
-<div class="hidden">
-    <div class="floater" id="addImage-$imagesId">
-        <div class="floaterHead">
-            <h2>$title</h2>
-            <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+<ol-dialog id="addImage-$imagesId" label="$title" width="large">
+    <div id="tabsImages" class="ol-tabs tabsPop">
+        <ul>
+            <li><a href="#imagesAdd-$imagesId">$_('Add')</a></li>
+            <li><a href="#imagesManage-$imagesId">$_('Manage')</a></li>
+        </ul>
+
+        <div class="imagesAdd" id="imagesAdd-$imagesId">
+            $# add image iframe is added here when the popup is loaded
         </div>
 
-        <div id="tabsImages" class="ol-tabs tabsPop">
-            <ul>
-                <li><a href="#imagesAdd-$imagesId">$_('Add')</a></li>
-                <li><a href="#imagesManage-$imagesId">$_('Manage')</a></li>
-            </ul>
-
-            <div class="imagesAdd" id="imagesAdd-$imagesId">
-                $# add image iframe is added here when the popup is loaded
-            </div>
-
-            <div class="imagesManage" id="imagesManage-$imagesId">
-                $# manage images iframe is added here when the popup is loaded
-            </div>
+        <div class="imagesManage" id="imagesManage-$imagesId">
+            $# manage images iframe is added here when the popup is loaded
         </div>
     </div>
-</div>
+</ol-dialog>

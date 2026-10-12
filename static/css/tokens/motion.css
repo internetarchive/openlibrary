@@ -4,7 +4,7 @@
  * Durations and easing. Two tiers, like colors: primitives are named Penner
  * curves; semantic tokens name what a component is doing. Reach for the
  * semantic token; add a primitive only when a semantic token references it.
- * Hover never transitions color (see docs/ai/design.md, "Animations").
+ * Hover never transitions color (see docs/frontend/design.md, "Animations").
  * --ease-move and --ease-state have no callers yet — they are vocabulary.
  */
 :root {

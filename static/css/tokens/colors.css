@@ -3,7 +3,7 @@
  * ======
  * Primitive ramps, the `--color-*` semantic layer built on them, and a
  * deprecated alias for every legacy name. Use the semantic layer.
- * See docs/ai/design.md.
+ * See docs/frontend/design.md.
  */
 
 /**
@@ -197,6 +197,7 @@
   /* Messages and notices. Info borrows the blue ramp rather than its own hue. */
   --color-info-fg: var(--blue-600);
   --color-info-bg: var(--blue-50);
+  --color-info-bg-hover: var(--blue-100); /* info chip on a --color-primary-subtle hover */
   --color-info-border: var(--blue-200);
   --color-success-fg: var(--green-600);
   --color-success-bg: var(--green-50);
@@ -220,7 +221,7 @@
 /**
  * 3. Which token do I use?
  * ------------------------
- * Pick by purpose, not by shade — full guidance in docs/ai/design.md.
+ * Pick by purpose, not by shade — full guidance in docs/frontend/design.md.
  *
  *   1. New code uses a semantic token, never a primitive (`--neutral-500`) or a
  *      raw `hsl()`. If none fits, add one here and name it for its job.

@@ -175,18 +175,6 @@ a.cta-btn--vanilla:link {
   border-radius: 6px;
 }
 
-.cta-btn--unstyled,
-.cta-btn--unstyled:visited,
-.cta-btn--unstyled:link,
-a.cta-btn--unstyled,
-a.cta-btn--unstyled:visited,
-a.cta-btn--unstyled:link {
-  padding: var(--spacing-inset-sm);
-  background: var(--white);
-  color: var(--color-text-secondary);
-  border-radius: 6px;
-}
-
 .cta-btn--delete,
 a.cta-btn--delete {
   background-color: var(--red);

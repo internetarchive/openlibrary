@@ -266,10 +266,6 @@ def find_entity(author: AuthorImportDict) -> Author | None:
     """
     assert isinstance(author, dict)
     things = find_author(author)
-    if "remote_ids" in author:
-        for index, t in enumerate(things):
-            t.remote_ids, _ = t.merge_remote_ids(author["remote_ids"])
-            things[index] = t
     return things[0] if things else None
 
 
@@ -324,6 +320,10 @@ def author_import_record_to_author(author_import_record_dict: dict, eastern=Fals
         new = existing
         if "death_date" in author_import_record and "death_date" not in existing:
             new["death_date"] = author_import_record["death_date"]
+        # Merge incoming author identifiers (like ISNI)
+        if "remote_ids" in author_import_record:
+            remote_ids, _ = new.merge_remote_ids(author_import_record["remote_ids"])
+            new["remote_ids"] = remote_ids
         return new
     a: dict[str, Any] = {"type": {"key": "/type/author"}}
     for f in (
