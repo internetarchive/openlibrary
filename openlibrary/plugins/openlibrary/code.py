@@ -1155,6 +1155,7 @@ def setup():
     from openlibrary.plugins.importapi import import_ui
     from openlibrary.plugins.openlibrary import (
         authors,
+        contribute,
         design,
         events,
         home,
@@ -1175,6 +1176,7 @@ def setup():
     sentry.setup()
     home.setup()
     design.setup()
+    contribute.setup()
     stats.setup()
     events.setup()
     status.setup()

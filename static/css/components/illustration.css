@@ -19,8 +19,8 @@
   border-radius: var(--border-radius-thumbnail);
   box-shadow: 1px 1px 2px 0 var(--book-cover-shadow-color);
 }
-/* Enlarged cover in the preview <ol-dialog>, inside .illustration. Shown at its
-   intrinsic size (as Colorbox did), capped to the dialog's max height minus body
+/* Enlarged cover in the preview <ol-dialog>, inside .illustration. Shown at
+   intrinsic size, capped to the dialog's max height minus body
    padding and the ~3rem title row, so it never scrolls. */
 ol-dialog img.cover-preview {
   display: block;

@@ -205,3 +205,44 @@ observation_cache_duration: 86400
 # Format: full author keys, e.g. ["/authors/OL123A"].
 # The value below is intentionally empty so dev behaves like a normal site.
 author_exclusions: []
+
+# Lenny nodes Open Library can borrow from on a patron's behalf (#12844).
+#
+# Credentials are per-node and are issued by that node's operator, so they are
+# never committed. Register Open Library as a client on the node itself:
+#
+#   docker compose exec api python3 scripts/oauth2_client.py register \
+#       "Open Library (local)" "http://localhost:8080/borrow/lenny/callback"
+#
+# It prints the client secret once. The redirect_uri is matched byte-for-byte
+# against what was registered, so `lenny_redirect_uri` below must be identical
+# to the one given to that command -- including scheme, port and trailing path.
+#
+# The key under `lenny_nodes` is the `provider_name` the harvest wrote into the
+# `acquisitions` table, which today is the literal `lenny` for every node
+# (per-node names are #13686).
+#
+# lenny_redirect_uri: http://localhost:8080/borrow/lenny/callback
+# lenny_nodes:
+#   lenny:
+#     name: Lenny for Libraries
+#     issuer: https://lennyforlibraries.org
+#     client_id: <from the register command>
+#     client_secret: <from the register command>
+#
+# On a deployed host the same keys go in olsystem's openlibrary.yml, not here:
+# compose.production.yaml and compose.staging.yaml both set
+# OL_CONFIG=/olsystem/etc/openlibrary.yml and mount ../olsystem, so this file is
+# read in development only. For testing.openlibrary.org the redirect_uri is
+#
+#   https://testing.openlibrary.org/borrow/lenny/callback
+#
+# and it is https, so the `ptok` cookie's Secure flag is honoured there. It is
+# only on plain-http localhost that an unconditional Secure=True would make the
+# browser drop the cookie silently -- see openlibrary/core/provider_tokens.py.
+#
+# The patron's grant is stored in the `provider_tokens` table, which
+# openlibrary/core/schema.sql declares but which an EXISTING database will not
+# have: schema.sql runs at database init only and there is no DDL-migration
+# mechanism. Run the CREATE TABLE by hand on that host first, or every borrow
+# fails on a missing relation.

@@ -197,6 +197,7 @@
   /* Messages and notices. Info borrows the blue ramp rather than its own hue. */
   --color-info-fg: var(--blue-600);
   --color-info-bg: var(--blue-50);
+  --color-info-bg-hover: var(--blue-100); /* info chip on a --color-primary-subtle hover */
   --color-info-border: var(--blue-200);
   --color-success-fg: var(--green-600);
   --color-success-bg: var(--green-50);

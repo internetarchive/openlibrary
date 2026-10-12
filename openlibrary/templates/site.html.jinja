@@ -9,6 +9,9 @@
             // Provide a signal that JS will load
             document.body.className += ' client-js';
         </script>
+        {% if layout.show_ol_shell %}
+            <a class="skip-link" href="#test-body-mobile">{{ _("Skip to main content") }}</a>
+        {% endif %}
         <span id="top"></span>
         <div id="offline-info">{{ _("It looks like you're offline.") }}</div>
         {% if layout.show_ol_shell %}
@@ -16,7 +19,7 @@
             {{ render_templetor_template('lib/nav_head', None) }}
             {{ render_templetor_template("my_books/shelf_button_i18n") }}
         {% endif %}
-        <main{% if layout.show_ol_shell %} id="test-body-mobile"{% endif %}>
+        <main {% if layout.show_ol_shell %} id="test-body-mobile" tabindex="-1"{% endif %}>
             {% if layout.show_ol_shell %}
                 {% if layout.flash_messages %}
                     <div class="flash-messages">
