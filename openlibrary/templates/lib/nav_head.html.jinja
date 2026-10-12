@@ -25,7 +25,7 @@
     </div>
     <ul class="navigation-component">
         <li>{{ header_dropdown(layout.header.my_books_props, "MainNav") }}</li>
-        <li>{{ browse_popover(layout.header.featured_browse_links, layout.header.simple_browse_links, layout.header.browse_featured_count, "MainNav") }}</li>
+        <li>{{ browse_popover(layout.header.browse_links, layout.header.browse_featured_count, "MainNav") }}</li>
     </ul>
     <div class="search-component">
         <div class="search-bar-component">
@@ -184,6 +184,6 @@
         <li>{{ header_dropdown(layout.header.my_books_props, "MainNav") }}</li>
         {# Distinct prefix so browse analytics separate the mobile tray from the
         desktop popover (see the tracking note in browse_popover.html). #}
-        <li>{{ browse_popover(layout.header.featured_browse_links, layout.header.simple_browse_links, layout.header.browse_featured_count, "MainNavMobile") }}</li>
+        <li>{{ browse_popover(layout.header.browse_links, layout.header.browse_featured_count, "MainNavMobile") }}</li>
     </ul>
 </header>

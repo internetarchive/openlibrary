@@ -2,8 +2,13 @@
 Browse menu rendered with the <ol-popover> web component (see
 openlibrary/components/lit/OlPopover.js) instead of a native <details>
 dropdown. Imported as a macro by lib/nav_head.html.jinja.
+
+Takes the full destination list plus the number to promote to featured rows,
+and derives the featured/simple split itself, so callers pass one list.
 #}
-{% macro browse_popover(featured_links, simple_links, featured_count, track_prefix) %}
+{% macro browse_popover(browse_links, featured_count, track_prefix) %}
+    {% set featured_links = browse_links[:featured_count] %}
+    {% set simple_links = browse_links[featured_count:] %}
     {% set featured_detail = {
         'Subjects': _('Browse books by topic'),
         'Trending': _('Most popular right now'),

@@ -262,14 +262,6 @@ def _extract_my_books_props(homepath: str) -> dict[str, Any]:
     }
 
 
-def _extract_browse_links() -> tuple[list[NavLink], list[NavLink], list[NavLink]]:
-    empty_links: list[NavLink] = []
-    links = _safe(browse_links, empty_links)
-    featured = links[:BROWSE_FEATURED_COUNT]
-    simple = links[BROWSE_FEATURED_COUNT:]
-    return links, featured, simple
-
-
 @dataclass(frozen=True)
 class SearchModalContext:
     """Translated strings for the header search modal.
@@ -366,8 +358,6 @@ class HeaderContext:
     homepath: str
     my_books_props: dict[str, Any]
     browse_links: list[NavLink]
-    featured_browse_links: list[NavLink]
-    simple_browse_links: list[NavLink]
     browse_featured_count: int
     search_modal: SearchModalContext
 
@@ -375,7 +365,7 @@ class HeaderContext:
     def build(cls, *, user: User | None) -> HeaderContext:
         """Assemble header data with safe fallbacks."""
         homepath = _extract_homepath()
-        all_browse, featured_browse, simple_browse = _extract_browse_links()
+        links: list[NavLink] = _safe(browse_links, [])
 
         return cls(
             user=_extract_header_user(user),
@@ -384,9 +374,7 @@ class HeaderContext:
             is_print_disabled=_extract_is_print_disabled(),
             homepath=homepath,
             my_books_props=_extract_my_books_props(homepath),
-            browse_links=all_browse,
-            featured_browse_links=featured_browse,
-            simple_browse_links=simple_browse,
+            browse_links=links,
             browse_featured_count=BROWSE_FEATURED_COUNT,
             search_modal=_extract_search_modal_i18n(),
         )

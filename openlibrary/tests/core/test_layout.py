@@ -105,8 +105,6 @@ def test_layout_context_is_frozen():
             homepath="",
             my_books_props={},
             browse_links=[],
-            featured_browse_links=[],
-            simple_browse_links=[],
             browse_featured_count=4,
             search_modal=SearchModalContext(availability={}, strings={}),
         ),
@@ -264,8 +262,7 @@ def test_layout_build_header_navigation(request_context_fixture):
     assert len(layout.header.my_books_props["links"]) == 1
     assert layout.header.my_books_props["links"][0]["track"] == "MyBooks"
     assert len(layout.header.browse_links) > 0
-    assert len(layout.header.featured_browse_links) == 4
-    assert len(layout.header.simple_browse_links) == len(layout.header.browse_links) - 4
+    assert layout.header.browse_featured_count == 4
     assert layout.ol_env in ("production", "development", "testing")
 
 

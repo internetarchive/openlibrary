@@ -177,8 +177,6 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
         assert isinstance(layout.header.homepath, str)
         assert isinstance(layout.header.my_books_props, dict)
         assert isinstance(layout.header.browse_links, list)
-        assert isinstance(layout.header.featured_browse_links, list)
-        assert isinstance(layout.header.simple_browse_links, list)
         assert isinstance(layout.header.search_modal, layout_module.SearchModalContext)
         assert isinstance(layout.header, layout_module.HeaderContext)
         assert isinstance(layout.head, layout_module.HeadContext)
@@ -206,8 +204,6 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
             "homepath",
             "my_books_props",
             "browse_links",
-            "featured_browse_links",
-            "simple_browse_links",
             "header",
             "head",
         ):
