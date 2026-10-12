@@ -7,8 +7,6 @@ import re
 import requests
 import web
 
-from openlibrary.catalog.marc.fetch import MarcFetchTimeout, fetch_range
-
 from .. import app
 
 
@@ -128,13 +126,15 @@ class show_marc(app.view):
         offset = int(offset)
         length = int(length)
 
-        r0 = offset
+        r0, r1 = offset, offset + length
         url = "https://archive.org/download/%s" % filename
+        headers = {"Range": "bytes=%d-%d" % (r0, r1)}
 
         try:
-            _status, content = fetch_range(url, r0, 100000)
-            result = content
-        except MarcFetchTimeout:
+            response = requests.get(url, headers=headers, timeout=3)
+            response.raise_for_status()
+            result = response.content
+        except requests.Timeout:
             return "ERROR: archive.org timed out"
         except requests.HTTPError as e:
             return "ERROR:" + str(e)
