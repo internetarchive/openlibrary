@@ -26,7 +26,7 @@ export function initHistory(pageHistoryElement) {
      */
     function readSelection() {
         const params = new URLSearchParams(window.location.search);
-        const parse = (key) => {
+        const parse = key => {
             const value = parseInt(params.get(key), 10);
             return Number.isInteger(value) && value > 0 ? value : null;
         };
@@ -52,8 +52,7 @@ export function initHistory(pageHistoryElement) {
         window.history.replaceState(null, '', url);
         // <ol-pagination> derives its hrefs from window.location.href at render
         // time, so force a re-render now that the URL has changed.
-        document.querySelectorAll('ol-pagination')
-            .forEach((el) => el.requestUpdate && el.requestUpdate());
+        document.querySelectorAll('ol-pagination').forEach(el => el.requestUpdate && el.requestUpdate());
     }
 
     /**
@@ -62,15 +61,12 @@ export function initHistory(pageHistoryElement) {
      * @param {{a: ?number, b: ?number}} selection
      */
     function syncRows({ a, b }) {
-        pageHistoryElement.querySelectorAll('input[name="a"], input[name="b"]')
-            .forEach((radio) => {
-                const value = parseInt(radio.value, 10);
-                radio.checked = (radio.name === 'a' && value === a) ||
-                    (radio.name === 'b' && value === b);
-            });
-        pageHistoryElement.querySelectorAll('tr.pick-ab-selected')
-            .forEach((row) => row.classList.remove('pick-ab-selected'));
-        [a, b].forEach((value) => {
+        pageHistoryElement.querySelectorAll('input[name="a"], input[name="b"]').forEach(radio => {
+            const value = parseInt(radio.value, 10);
+            radio.checked = (radio.name === 'a' && value === a) || (radio.name === 'b' && value === b);
+        });
+        pageHistoryElement.querySelectorAll('tr.pick-ab-selected').forEach(row => row.classList.remove('pick-ab-selected'));
+        [a, b].forEach(value => {
             if (!value) return;
             const radio = pageHistoryElement.querySelector(`input[value="${value}"]`);
             if (radio) radio.closest('tr').classList.add('pick-ab-selected');
@@ -86,15 +82,13 @@ export function initHistory(pageHistoryElement) {
      * @param {{a: ?number, b: ?number}} selection
      */
     function renderBar(selection) {
-        const [first, second] = pickOrder.map((slot) => selection[slot]).filter(Boolean);
+        const [first, second] = pickOrder.map(slot => selection[slot]).filter(Boolean);
         if (!first) {
             bar.hidden = true;
             return;
         }
         bar.hidden = false;
-        compareLink.textContent = i18n.compare_label
-            .replace('%(a)s', first)
-            .replace('%(b)s', second || '?');
+        compareLink.textContent = i18n.compare_label.replace('%(a)s', first).replace('%(b)s', second || '?');
 
         if (second && first !== second) {
             const [lower, higher] = first < second ? [first, second] : [second, first];
@@ -120,7 +114,7 @@ export function initHistory(pageHistoryElement) {
 
     // A radio change updates only its own side, merging with the opposite side
     // already stored in the URL (which may point to an off-page revision).
-    pageHistoryElement.addEventListener('change', (event) => {
+    pageHistoryElement.addEventListener('change', event => {
         const { name, value } = event.target;
         if (name !== 'a' && name !== 'b') return;
         const selection = readSelection();
@@ -139,6 +133,6 @@ export function initHistory(pageHistoryElement) {
 
     // Restore from the URL on load.
     const initial = readSelection();
-    pickOrder = ['a', 'b'].filter((slot) => initial[slot]);
+    pickOrder = ['a', 'b'].filter(slot => initial[slot]);
     update(initial);
 }

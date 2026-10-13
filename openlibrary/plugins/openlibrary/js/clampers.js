@@ -7,13 +7,12 @@ export function initClampers(clampers) {
         if (clamper.clientHeight === clamper.scrollHeight) {
             clamper.classList.remove('clamp');
         } else {
-
             /*
                 Clamper used to collapse category list by toggling `hidden`
                 style on parent element
             */
 
-            clamper.addEventListener('click', (event) => {
+            clamper.addEventListener('click', event => {
                 if (event.composedPath().some(el => el instanceof HTMLAnchorElement)) {
                     return;
                 }

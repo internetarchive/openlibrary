@@ -33,6 +33,17 @@
             ];
         </script>
     {% endcall %}
+    {% call ex.example("Searchable field", "Past search-threshold items (8 by default, shared with ol-select-popover) a filter input appears; arrows then move focus without changing the value, and Enter picks the only match. show-selection puts the chosen label on the trigger, for use as a form field.",
+        code='<ol-options-popover\n  name="language"\n  label="Choose a language"\n  placeholder="Filter languages"\n  show-selection\n  items=\'[{"value":"eng","label":"English"}, ...]\'>\n</ol-options-popover>') %}
+        <ol-options-popover id="demo-options-search" name="language" label="Choose a language" heading="LANGUAGES" placeholder="Filter languages" show-selection aria-label="Language">
+        </ol-options-popover>
+        <script>
+            document.getElementById('demo-options-search').items = [
+                'Arabic', 'Bengali', 'Chinese', 'Dutch', 'English', 'French', 'German', 'Hindi', 'Italian',
+                'Japanese', 'Korean', 'Persian', 'Polish', 'Portuguese', 'Russian', 'Spanish', 'Swahili', 'Turkish'
+            ].map((label) => ({ value: label.slice(0, 3).toLowerCase(), label }));
+        </script>
+    {% endcall %}
     {% call ex.example("Custom trigger", "Supply your own trigger when the default button doesn't fit. The component still handles open/close, ARIA wiring, and keyboard navigation (arrows, Home/End, Escape).") %}
         <ol-options-popover id="demo-options-custom" label="Sort by" selected="newest" aria-label="Sort order">
             <button slot="trigger" class="demo-btn">Sort results</button>

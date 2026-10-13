@@ -100,7 +100,7 @@ export class ShowcaseItem {
      */
     initialize() {
         showcases.push(this);
-        this.removeFromListAffordance.addEventListener('click', (event) => {
+        this.removeFromListAffordance.addEventListener('click', event => {
             event.preventDefault();
             this.removeShowcaseItem();
         });
@@ -124,7 +124,9 @@ export class ShowcaseItem {
             return;
         }
         this.removeSelf();
-        // Remove other showcase items that are associated with the list and seed key:
+        // Remove other showcase items that are associated with the list and seed key.
+        // removeSelf() splices `showcases`, so iterate over a copy.
+        // oxlint-disable-next-line unicorn/no-useless-spread
         for (const showcase of [...showcases]) {
             if (showcase.isShowcaseForListAndSeed(this.listKey, this.seedKey)) {
                 showcase.removeSelf();
@@ -152,7 +154,7 @@ export class ShowcaseItem {
      * @return {boolean} `true` if the given keys match this item's keys
      */
     isShowcaseForListAndSeed(listKey, seedKey) {
-        return (this.listKey === listKey) && (this.seedKey === seedKey);
+        return this.listKey === listKey && this.seedKey === seedKey;
     }
 }
 

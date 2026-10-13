@@ -27,10 +27,7 @@ const ENDPOINT = '/languages.json';
  */
 export async function fetchLanguageOptions({ limit = 500, timeout = 8000 } = {}) {
     try {
-        const res = await fetch(
-            `${ENDPOINT}?limit=${limit}&sort=count`,
-            { signal: AbortSignal.timeout?.(timeout) }
-        );
+        const res = await fetch(`${ENDPOINT}?limit=${limit}&sort=count`, { signal: AbortSignal.timeout?.(timeout) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const options = (Array.isArray(data) ? data : [])

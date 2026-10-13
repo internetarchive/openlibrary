@@ -32,7 +32,7 @@ export function lockBodyScroll() {
         width: document.body.style.width,
         overflow: document.body.style.overflow,
         paddingRight: document.body.style.paddingRight,
-        boxSizing: document.body.style.boxSizing,
+        boxSizing: document.body.style.boxSizing
     };
 
     // Pinning <body> removes the document scrollbar. On platforms with classic

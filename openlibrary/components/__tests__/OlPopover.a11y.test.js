@@ -18,7 +18,7 @@ beforeEach(() => setupComponentEnv());
 afterEach(cleanup);
 
 describe('OlPopover a11y', () => {
-    test('closed: the trigger advertises the popover it controls', async() => {
+    test('closed: the trigger advertises the popover it controls', async () => {
         const el = await mount(POPOVER);
 
         const trigger = el.querySelector('[slot="trigger"]');
@@ -28,7 +28,7 @@ describe('OlPopover a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open: the panel is a named dialog and the trigger reports it expanded', async() => {
+    test('open: the panel is a named dialog and the trigger reports it expanded', async () => {
         const el = await openPopover(await mount(POPOVER));
 
         const panel = el.shadowRoot.querySelector('[role="dialog"]');
@@ -43,7 +43,7 @@ describe('OlPopover a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open: the panel is not aria-modal, so Tab can leave it', async() => {
+    test('open: the panel is not aria-modal, so Tab can leave it', async () => {
         // A popover is deliberately non-modal — the focus sentinels close it on
         // exit rather than trapping focus. aria-modal would misreport that to AT.
         const el = await openPopover(await mount(POPOVER));
@@ -51,7 +51,7 @@ describe('OlPopover a11y', () => {
         expect(el.shadowRoot.querySelector('[role="dialog"]').hasAttribute('aria-modal')).toBe(false);
     });
 
-    test('open on mobile: the tray is still a named dialog', async() => {
+    test('open on mobile: the tray is still a named dialog', async () => {
         // The tray renders a backdrop and different markup than the desktop
         // panel, so it needs its own pass rather than riding on the above.
         setupComponentEnv({ mobile: true });
@@ -62,11 +62,11 @@ describe('OlPopover a11y', () => {
         expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('regression guard: a panel with no aria-label is reported as an unnamed dialog', async() => {
+    test('regression guard: a panel with no aria-label is reported as an unnamed dialog', async () => {
         const el = await mount('<ol-popover><button slot="trigger" type="button">Open</button></ol-popover>');
         await openPopover(el);
 
         const results = await checkA11y();
-        expect(results.violations.map((v) => v.id)).toContain('aria-dialog-name');
+        expect(results.violations.map(v => v.id)).toContain('aria-dialog-name');
     });
 });
