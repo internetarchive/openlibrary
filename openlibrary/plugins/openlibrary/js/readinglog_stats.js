@@ -155,6 +155,9 @@ export function init(config) {
                 },
                 // Pick the nearest bar by height, so a tap anywhere across a row counts, not just on the bar
                 interaction: { axis: 'y', intersect: false },
+                // Leave out Chart.js's default touchstart/touchmove: they hover-highlight whatever bar a scroll
+                // starts on, and touch never sends the mouseout that would clear it. Taps still arrive as clicks.
+                events: ['mousemove', 'mouseout', 'click'],
                 onHover: (e, elements) => {
                     canvas.style.cursor = elements.length ? 'pointer' : 'default';
                 },
