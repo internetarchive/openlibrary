@@ -2,17 +2,17 @@ export const sampleData = [
     {
         name: 'Try a Sample...',
         source: '',
-        text: '',
+        text: ''
     },
     {
         name: '1927 Books',
         source: 'https://en.wikipedia.org/wiki/1927_in_literature#New_books',
-        text: 'Djamaluddin Adinegoro - Darah Muda (Young Blood)\nIon Agârbiceanu - Legea minții\nAnthony Berkeley - Cicely Disappears\nArthur Bernède - Belphégor\nTjoe Hong Bok - Setangan Berloemoer Darah (A Glove Covered in Blood)\nJames Boyd - Marching On\nLynn Brock - The Kink\nEdgar Rice Burroughs - The Outlaw of Torn\nJames Branch Cabell - Something About Eve\nWilla Cather - Death Comes for the Archbishop\nBlaise Cendrars - La Confession de Dan Yack\nAgatha Christie - The Big Four\nJ.J. Connington        Murder in the Maze        Tragedy at Ravensthorpe\nJaime de Angulo - The Lariat\nMazo de la Roche - Jalna\nWarwick Deeping - Kitty',
+        text: 'Djamaluddin Adinegoro - Darah Muda (Young Blood)\nIon Agârbiceanu - Legea minții\nAnthony Berkeley - Cicely Disappears\nArthur Bernède - Belphégor\nTjoe Hong Bok - Setangan Berloemoer Darah (A Glove Covered in Blood)\nJames Boyd - Marching On\nLynn Brock - The Kink\nEdgar Rice Burroughs - The Outlaw of Torn\nJames Branch Cabell - Something About Eve\nWilla Cather - Death Comes for the Archbishop\nBlaise Cendrars - La Confession de Dan Yack\nAgatha Christie - The Big Four\nJ.J. Connington        Murder in the Maze        Tragedy at Ravensthorpe\nJaime de Angulo - The Lariat\nMazo de la Roche - Jalna\nWarwick Deeping - Kitty'
     },
     {
         name: '2023 Public Domain Day',
         source: 'https://web.law.duke.edu/cspd/publicdomainday/2023/',
-        text: 'To the Lighthouse - Virginia Woolf\nThe Case-Book of Sherlock Holmes - Arthur Conan Doyle\nDeath Comes for the Archbishop - Willa Cather\nCopper Sun - Countee Cullen\nNow We Are Six - illustrations by E. H. Shepard - A. A. Milne\nThe Bridge of San Luis Rey - Thornton Wilder\nMen Without Women - Ernest Hemingway\nMosquitoes - William Faulkner\nThe Big Four - Agatha Christie\nTwilight Sleep - Edith Wharton\nThe Gangs of New York - Herbert Asbury\nThe Tower Treasure  - Franklin W. Dixon (pseudonym)\nDer Steppenwolf  - Hermann Hesse\nAmerika  - Franz Kafka',
+        text: 'To the Lighthouse - Virginia Woolf\nThe Case-Book of Sherlock Holmes - Arthur Conan Doyle\nDeath Comes for the Archbishop - Willa Cather\nCopper Sun - Countee Cullen\nNow We Are Six - illustrations by E. H. Shepard - A. A. Milne\nThe Bridge of San Luis Rey - Thornton Wilder\nMen Without Women - Ernest Hemingway\nMosquitoes - William Faulkner\nThe Big Four - Agatha Christie\nTwilight Sleep - Edith Wharton\nThe Gangs of New York - Herbert Asbury\nThe Tower Treasure  - Franklin W. Dixon (pseudonym)\nDer Steppenwolf  - Hermann Hesse\nAmerika  - Franz Kafka'
     },
     {
         name: 'Holocaust Wikipedia citations',

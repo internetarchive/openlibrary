@@ -1,72 +1,50 @@
 <template>
-  <table class="main">
-    <thead>
-      <tr>
-        <th />
-        <th
-          v-for="field in fields"
-          :key="field"
-        >
-          {{ field.replace(/\_/g, ' ').replace(/\|/g, ', ') }}
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <MergeRow
-        v-for="record in enhancedRecords"
-        :key="record.key"
-        :record="record"
-        :fields="fields"
-        :editions="editions"
-        :lists="lists"
-        :bookshelves="bookshelves"
-        :ratings="ratings"
-        :class="{ selected: selected[record.key]}"
-        :cell-selected="isCellUsed"
-        :merged="merge ? merge.record : null"
-        :show-diffs="showDiffs"
-      >
-        <template #pre>
-          <td
-            v-if="['/type/edition','/type/work'].includes(record.type.key)"
-            class="col-controls"
-          >
-            <input
-              v-model="master_key"
-              type="radio"
-              name="master_key"
-              title="Primary Record"
-              :value="record.key"
+    <table class="main">
+        <thead>
+            <tr>
+                <th />
+                <th v-for="field in fields" :key="field">
+                    {{ field.replace(/\_/g, ' ').replace(/\|/g, ', ') }}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <MergeRow
+                v-for="record in enhancedRecords"
+                :key="record.key"
+                :record="record"
+                :fields="fields"
+                :editions="editions"
+                :lists="lists"
+                :bookshelves="bookshelves"
+                :ratings="ratings"
+                :class="{ selected: selected[record.key] }"
+                :cell-selected="isCellUsed"
+                :merged="merge ? merge.record : null"
+                :show-diffs="showDiffs"
             >
-            <input
-              v-model="selected[record.key]"
-              type="checkbox"
-              title="Include in Merge"
-            >
-          </td>
-          <td v-else />
-        </template>
-      </MergeRow>
-    </tbody>
-    <tfoot>
-      <MergeRow
-        v-if="merge"
-        :record="enhancedMergeRecord.record"
-        :selected="selected"
-        :fields="fields"
-        :merged="enhancedMergeRecord"
-      >
-        <template #pre>
-          <td />
-        </template>
-      </MergeRow>
-      <tr v-else>
-        <td :colspan="fields ? fields.length+1 : 1">
-          <div>⏳</div>
-        </td>
-      </tr>
-    </tfoot>
-  </table>
+                <template #pre>
+                    <td v-if="['/type/edition', '/type/work'].includes(record.type.key)" class="col-controls">
+                        <input v-model="master_key" type="radio" name="master_key" title="Primary Record" :value="record.key" />
+                        <input v-model="selected[record.key]" type="checkbox" title="Include in Merge" />
+                    </td>
+                    <td v-else />
+                </template>
+            </MergeRow>
+        </tbody>
+        <tfoot>
+            <MergeRow v-if="merge" :record="enhancedMergeRecord.record" :selected="selected" :fields="fields" :merged="enhancedMergeRecord">
+                <template #pre>
+                    <td />
+                </template>
+            </MergeRow>
+            <tr v-else>
+                <td :colspan="fields ? fields.length + 1 : 1">
+                    <div>⏳</div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
 </template>
 
 <script>
@@ -74,7 +52,6 @@
 import MergeRow from './MergeRow.vue';
 import { merge, get_editions, get_lists, get_bookshelves, get_ratings, get_author_names, fetchWithRetry, cloneJSON } from './utils.js';
 import CONFIGS from '../configs.js';
-
 
 function olidToKey(olid) {
     const type = {
@@ -93,9 +70,9 @@ async function fetchRecords(olids) {
     const query = {
         key: olids.map(olidToKey),
         limit: olids.length,
-        '*': null,
+        '*': null
     };
-    const params = new URLSearchParams({query: JSON.stringify(query)});
+    const params = new URLSearchParams({ query: JSON.stringify(query) });
 
     return (await fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json();
 }
@@ -126,11 +103,12 @@ export default {
     asyncComputed: {
         async records() {
             const olidNumber = record => parseFloat(record.key.match(/\d+/)[0]);
-            const records = (await fetchRecords(this.olids)).sort((a, b) =>
-                // Ensure orphaned editions are at the bottom of the list
-                (a.type.key < b.type.key) - (a.type.key > b.type.key) ||
-                // Sort by key, so oldest records are at the top
-                olidNumber(a) - olidNumber(b)
+            const records = (await fetchRecords(this.olids)).sort(
+                (a, b) =>
+                    // Ensure orphaned editions are at the bottom of the list
+                    (a.type.key < b.type.key) - (a.type.key > b.type.key) ||
+                    // Sort by key, so oldest records are at the top
+                    olidNumber(a) - olidNumber(b)
             );
 
             let masterIndex = 0;
@@ -146,7 +124,7 @@ export default {
         },
 
         /** The records, with extra helpful metadata attached for display. Should NOT be saved to Open Library */
-        async enhancedRecords(){
+        async enhancedRecords() {
             if (!this.records) return null;
 
             let author_names;
@@ -160,7 +138,7 @@ export default {
             const enhanced_records = cloneJSON(this.records);
 
             for (const record of enhanced_records) {
-                for (const entry of (record.authors || [])) {
+                for (const entry of record.authors || []) {
                     // Support both author entry shapes: {author: {key: "..."}}, {key: "..."}
                     const authorKey = entry.author?.key ?? entry.key;
                     if (!authorKey) continue;
@@ -173,17 +151,13 @@ export default {
         async editions() {
             if (!this.records) return null;
 
-            const editionPromises = await Promise.all(
-                this.records.map(r => r.type.key.includes('work') ? get_editions(r.key) : {size: 0})
-            );
+            const editionPromises = await Promise.all(this.records.map(r => (r.type.key.includes('work') ? get_editions(r.key) : { size: 0 })));
             const editions = editionPromises.map(p => p.value || p);
-            const editionsMap = Object.fromEntries(
-                this.records.map((work, i) => [work.key, editions[i]])
-            );
+            const editionsMap = Object.fromEntries(this.records.map((work, i) => [work.key, editions[i]]));
 
             // If any of the records are editions, insert the record as its own edition list
             Object.keys(editionsMap).forEach((key, index) => {
-                if (key.includes('M')) editionsMap[key] = {size: 1, entries: [this.records[index]]};
+                if (key.includes('M')) editionsMap[key] = { size: 1, entries: [this.records[index]] };
             });
 
             return editionsMap;
@@ -193,80 +167,37 @@ export default {
             if (!this.records) return null;
 
             // We only need the count, so set limit=0 (waaaay faster!)
-            const promises = await Promise.all(
-                this.records.map(r => (r.type.key === '/type/work') ? get_lists(r.key, 0) : {})
-            );
+            const promises = await Promise.all(this.records.map(r => (r.type.key === '/type/work' ? get_lists(r.key, 0) : {})));
             const responses = promises.map(p => p.value || p);
-            return Object.fromEntries(
-                this.records.map((work, i) => [work.key, responses[i]])
-            );
+            return Object.fromEntries(this.records.map((work, i) => [work.key, responses[i]]));
         },
         async bookshelves() {
             if (!this.records) return null;
 
-            const promises = await Promise.all(
-                this.records.map(r => (r.type.key === '/type/work') ? get_bookshelves(r.key) : {})
-            );
+            const promises = await Promise.all(this.records.map(r => (r.type.key === '/type/work' ? get_bookshelves(r.key) : {})));
             const responses = promises.map(p => p.value || p);
-            return Object.fromEntries(
-                this.records.map((work, i) => [work.key, responses[i]])
-            );
+            return Object.fromEntries(this.records.map((work, i) => [work.key, responses[i]]));
         },
 
         async ratings() {
             if (!this.records) return null;
 
-            const promises = await Promise.all(
-                this.records.map(r => (r.type.key === '/type/work') ? get_ratings(r.key) : {})
-            );
+            const promises = await Promise.all(this.records.map(r => (r.type.key === '/type/work' ? get_ratings(r.key) : {})));
             const responses = promises.map(p => p.value || p);
-            return Object.fromEntries(
-                this.records.map((work, i) => [work.key, responses[i]])
-            );
-        },
+            return Object.fromEntries(this.records.map((work, i) => [work.key, responses[i]]));
+        }
     },
     computed: {
         fields() {
             const at_start = ['covers'];
             const together = ['key', 'title', 'subtitle', 'authors', 'error'];
-            const subjects = [
-                'subjects',
-                'subject_people',
-                'subject_places',
-                'subject_times'
-            ];
-            const record_data = [
-                'created',
-                'last_modified',
-                'revision',
-                'type',
-                'location'
-            ];
-            const identifiers = [
-                'first_publish_date',
-                'dewey_number',
-                'lc_classifications'
-            ];
-            const text_data = [
-                'description',
-                'excerpts',
-                'first_sentence',
-                'links'
-            ];
-            const exclude = [
-                'latest_revision',
-                'id',
-            ];
+            const subjects = ['subjects', 'subject_people', 'subject_places', 'subject_times'];
+            const record_data = ['created', 'last_modified', 'revision', 'type', 'location'];
+            const identifiers = ['first_publish_date', 'dewey_number', 'lc_classifications'];
+            const text_data = ['description', 'excerpts', 'first_sentence', 'links'];
+            const exclude = ['latest_revision', 'id'];
             const recordFields = [...new Set((this.records || []).flatMap(record => Object.keys(record)))];
-            const knownFields = new Set([
-                ...at_start,
-                ...together,
-                ...subjects,
-                ...record_data,
-                ...identifiers,
-                ...text_data,
-                ...exclude
-            ]);
+            const knownFields = new Set([...at_start, ...together, ...subjects, ...record_data, ...identifiers, ...text_data, ...exclude]);
             const otherFields = recordFields.filter(field => !knownFields.has(field));
             const usedIdentifiers = identifiers.filter(field => recordFields.includes(field));
             const usedTextData = text_data.filter(field => recordFields.includes(field));
@@ -294,16 +225,12 @@ export default {
     methods: {
         isCellUsed(record, field) {
             if (!this.merge) return false;
-            return field in this.merge.sources
-                ? this.merge.sources[field].includes(record.key)
-                : record.key === this.master_key;
+            return field in this.merge.sources ? this.merge.sources[field].includes(record.key) : record.key === this.master_key;
         },
 
         build_merge(records) {
             const master = records.find(r => r.key === this.master_key);
-            const all_dupes = records
-                .filter(r => this.selected[r.key])
-                .filter(r => r.key !== this.master_key);
+            const all_dupes = records.filter(r => this.selected[r.key]).filter(r => r.key !== this.master_key);
             const dupes = all_dupes.filter(r => r.type.key === '/type/work');
             const editions_to_move = all_dupes.flatMap(work => this.editions[work.key].entries);
 
@@ -311,14 +238,17 @@ export default {
 
             const extras = {
                 edition_count: records.reduce((total, r) => total + (this.editions[r.key].size || 0), 0),
-                list_count: (this.lists) ? records.reduce((total, r) => total + (this.lists[r.key].size || 0), 0) : null
+                list_count: this.lists ? records.reduce((total, r) => total + (this.lists[r.key].size || 0), 0) : null
             };
 
             const unmergeable_works = records
-                .filter(work => work.type.key === '/type/work' &&
-        this.selected[work.key] &&
-        work.key !== this.master_key &&
-        this.editions[work.key].entries.length < this.editions[work.key].size)
+                .filter(
+                    work =>
+                        work.type.key === '/type/work' &&
+                        this.selected[work.key] &&
+                        work.key !== this.master_key &&
+                        this.editions[work.key].entries.length < this.editions[work.key].size
+                )
                 .map(r => r.key);
 
             return { record, sources, ...extras, dupes, editions_to_move, unmergeable_works };
@@ -329,155 +259,155 @@ export default {
 
 <style>
 :host {
-  --row-height: 105px;
-  --row-padding: 8px;
-  --table-background: rgb(248, 248, 248);
-  --selection-background: rgb(220, 224, 238);
+    --row-height: 105px;
+    --row-padding: 8px;
+    --table-background: rgb(248, 248, 248);
+    --selection-background: rgb(220, 224, 238);
 }
 
 body {
-  font-size: .85em;
+    font-size: 0.85em;
 }
 time {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 
 table.main {
-  border-collapse: collapse;
-  min-width: 100%;
-  /* Contain the sticky header/footer's stacking. A shadow root is not a stacking
+    border-collapse: collapse;
+    min-width: 100%;
+    /* Contain the sticky header/footer's stacking. A shadow root is not a stacking
      context, so without this their z-index competes with the whole page. */
-  isolation: isolate;
+    isolation: isolate;
 }
 table.main thead,
 table.main tfoot {
-  position: sticky;
-  z-index: var(--z-index-local-1);
+    position: sticky;
+    z-index: var(--z-index-local-1);
 }
 table.main > thead {
-  top: 0;
+    top: 0;
 }
 table.main > thead > tr > th {
-  font-variant: small-caps;
-  margin-right: 4px;
-  background: rgb(240, 237, 226);
+    font-variant: small-caps;
+    margin-right: 4px;
+    background: rgb(240, 237, 226);
 }
 table.main > tbody {
-  background: var(--table-background);
+    background: var(--table-background);
 }
 table.main > tfoot {
-  background: var(--selection-background);
-  bottom: 0;
+    background: var(--selection-background);
+    bottom: 0;
 }
 table.main > tfoot > tr {
-  border-top: 4px double;
-  box-shadow: 0 2px 4px inset black;
+    border-top: 4px double;
+    box-shadow: 0 2px 4px inset black;
 }
 table.main > tfoot > tr > td > div {
-  min-height: var(--row-height);
+    min-height: var(--row-height);
 }
 
 table.main > tbody > tr:hover,
 table.main > tfoot > tr:hover {
-  background: rgba(200, 200, 0, .1);
+    background: rgba(200, 200, 0, 0.1);
 }
 table.main > tbody > tr > td,
 table.main > tfoot > tr > td {
-  max-height: var(--row-height);
-  max-width: 300px;
-  position: relative;
-  vertical-align: top;
-  border-bottom: 4px solid rgba(255, 255, 255, 0.9);
-  box-sizing: border-box;
-  padding: 0;
+    max-height: var(--row-height);
+    max-width: 300px;
+    position: relative;
+    vertical-align: top;
+    border-bottom: 4px solid rgba(255, 255, 255, 0.9);
+    box-sizing: border-box;
+    padding: 0;
 }
 table.main > tbody > tr > td > div,
 table.main > tfoot > tr > td > div {
-  height: calc(var(--row-height) - var(--row-padding) * 2);
-  max-height: calc(var(--row-height) - var(--row-padding) * 2);
-  overflow-y: auto;
-  padding: var(--row-padding);
-  margin-right: 4px;
+    height: calc(var(--row-height) - var(--row-padding) * 2);
+    max-height: calc(var(--row-height) - var(--row-padding) * 2);
+    overflow-y: auto;
+    padding: var(--row-padding);
+    margin-right: 4px;
 }
 table.main > tbody > tr > td > div.field-covers,
 table.main > tfoot > tr > td > div.field-covers {
-  width: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  float: left;
-  margin-right: var(--row-padding);
+    width: 100px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    float: left;
+    margin-right: var(--row-padding);
 }
 table.main > tbody > tr > td > div.field-covers .wrapper img,
 table.main > tfoot > tr > td > div.field-covers .wrapper img {
-  width: 100%;
+    width: 100%;
 }
 table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error,
 table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error {
-  min-width: 500px;
-  padding: 0 0 calc(var(--row-padding) * 2) 0;
+    min-width: 500px;
+    padding: 0 0 calc(var(--row-padding) * 2) 0;
 }
 table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error > div,
 table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error > div {
-  padding: var(--row-padding) var(--row-padding) 0 var(--row-padding);
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+    padding: var(--row-padding) var(--row-padding) 0 var(--row-padding);
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error > div:last-child,
 table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error > div:last-child {
-  padding-bottom: var(--row-padding);
+    padding-bottom: var(--row-padding);
 }
 table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error div.field-subtitle,
 table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error div.field-subtitle {
-  padding-left: 1em;
-  padding-top: 0;
+    padding-left: 1em;
+    padding-top: 0;
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location {
-  white-space: nowrap;
-  padding: var(--row-padding) 0 var(--row-padding) 0;
+    white-space: nowrap;
+    padding: var(--row-padding) 0 var(--row-padding) 0;
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div {
-  padding: calc(var(--row-padding) / 2) var(--row-padding) 0 var(--row-padding);
+    padding: calc(var(--row-padding) / 2) var(--row-padding) 0 var(--row-padding);
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(1),
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(2),
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(1),
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(2) {
-  padding-top: var(--row-padding);
+    padding-top: var(--row-padding);
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:last-child,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:last-child {
-  padding-bottom: var(--row-padding);
+    padding-bottom: var(--row-padding);
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created {
-  padding-right: 0;
+    padding-right: 0;
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified {
-  padding-left: 0;
+    padding-left: 0;
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified {
-  display: inline;
-  font-size: 0.95em;
+    display: inline;
+    font-size: 0.95em;
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified::before,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified::before {
-  content: "…";
+    content: '…';
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-revision > div::before,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-revision > div::before {
-  content: "v";
+    content: 'v';
 }
 table.main > tbody > tr > td > .td-container,
 table.main > tfoot > tr > td > .td-container {
-  overflow-y: auto;
-  resize: vertical;
+    overflow-y: auto;
+    resize: vertical;
 }
 table.main > tbody > tr > td.col-key--title--subtitle--authors--error,
 table.main > tbody > tr > .col-subjects--subject_people--subject_places--subject_times,
@@ -485,149 +415,147 @@ table.main > tbody > tr > td.col-editions,
 table.main > tfoot > tr > td.col-key--title--subtitle--authors--error,
 table.main > tfoot > tr > .col-subjects--subject_people--subject_places--subject_times,
 table.main > tfoot > tr > td.col-editions {
-  max-width: 100vw;
+    max-width: 100vw;
 }
 table.main > tbody .work:not(.selected) {
-  opacity: .5;
+    opacity: 0.5;
 }
 
 .field-container {
-  overflow-y: auto;
+    overflow-y: auto;
 }
 
 .field-container.selected {
-  background: var(--selection-background);
+    background: var(--selection-background);
 }
 
 td.col-controls {
-  text-align: center;
-  line-height: 2em;
+    text-align: center;
+    line-height: 2em;
 }
 
 div.field-error {
-  font-weight: 700;
-  color: red;
+    font-weight: 700;
+    color: red;
 }
 
 td.col-description {
-  min-width: 200px;
+    min-width: 200px;
 }
 
 td.col-description,
 td.col-excerpts,
 td.col-first_sentence,
 td.col-links {
-  font-size: .9em;
+    font-size: 0.9em;
 }
 td.col-description div,
 td.col-excerpts div,
 td.col-first_sentence div,
 td.col-links div {
-  max-height: var(--row-height);
+    max-height: var(--row-height);
 }
 td.col-description ul,
 td.col-excerpts ul,
 td.col-first_sentence ul,
 td.col-links ul {
-  padding: 0;
-  margin: 0;
+    padding: 0;
+    margin: 0;
 }
 
-div.field-lc_classifications li, div.field-dewey_number li {
-  font-size: .9em;
-  white-space: nowrap;
+div.field-lc_classifications li,
+div.field-dewey_number li {
+    font-size: 0.9em;
+    white-space: nowrap;
 }
 
 li.excerpt-item {
-  padding-bottom: 0.4em;
+    padding-bottom: 0.4em;
 }
 
-.col-subjects--subject_people--subject_places--subject_times >
-  div.wrap-subjects--subject_people--subject_places--subject_times {
-  height: var(--row-height);
-  max-height: var(--row-height);
-  display: flex;
-  flex-direction: column;
-  padding: 0;
+.col-subjects--subject_people--subject_places--subject_times > div.wrap-subjects--subject_people--subject_places--subject_times {
+    height: var(--row-height);
+    max-height: var(--row-height);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
 }
-.col-subjects--subject_people--subject_places--subject_times >
-  div.wrap-subjects--subject_people--subject_places--subject_times .field-container {
-  min-height: 16px;
-  padding: 4px;
-  border-bottom: 2px solid var(--table-background);
-  flex: 1 1 auto;
+.col-subjects--subject_people--subject_places--subject_times > div.wrap-subjects--subject_people--subject_places--subject_times .field-container {
+    min-height: 16px;
+    padding: 4px;
+    border-bottom: 2px solid var(--table-background);
+    flex: 1 1 auto;
 }
-.col-subjects--subject_people--subject_places--subject_times >
-  div.wrap-subjects--subject_people--subject_places--subject_times .field-container:last-child {
-  border-bottom: 0;
+.col-subjects--subject_people--subject_places--subject_times > div.wrap-subjects--subject_people--subject_places--subject_times .field-container:last-child {
+    border-bottom: 0;
 }
 
 .field-authors td.author-author {
-  padding-right: 6px;
+    padding-right: 6px;
 }
 .field-authors thead,
 .field-authors td.author-index,
 .field-authors td.author-type {
-  display: none;
+    display: none;
 }
 
 ul.reset {
-  padding: 0;
-  margin: 0;
+    padding: 0;
+    margin: 0;
 }
 ul.reset > li {
-  list-style: none;
+    list-style: none;
 }
 
 .pill-list {
-  min-width: 250px;
-  text-align: center;
+    min-width: 250px;
+    text-align: center;
 }
 .pill {
-  font-size: .9em;
-  display: inline-block;
-  white-space: nowrap;
-  border: 1px solid;
-  border-radius: 10px;
-  padding: 0 6px;
-  text-align: center;
-  margin: 0 2px 1px 0;
-  background: rgba(255, 255, 255, .4);
+    font-size: 0.9em;
+    display: inline-block;
+    white-space: nowrap;
+    border: 1px solid;
+    border-radius: 10px;
+    padding: 0 6px;
+    text-align: center;
+    margin: 0 2px 1px 0;
+    background: rgba(255, 255, 255, 0.4);
 }
 
 .field-subject_people::before {
-  content: "👤";
-  float: left;
-  padding-left: 3px;
+    content: '👤';
+    float: left;
+    padding-left: 3px;
 }
 .field-subject_places::before {
-  content: "🌎";
-  float: left;
-  padding-left: 3px;
+    content: '🌎';
+    float: left;
+    padding-left: 3px;
 }
 .field-subject_times::before {
-  content: "🕗";
-  float: left;
-  padding-left: 3px;
+    content: '🕗';
+    float: left;
+    padding-left: 3px;
 }
 
 td.col-editions div.td-container {
-  width: 400px;
-  max-height: calc(var(--row-height) - 30px);
+    width: 400px;
+    max-height: calc(var(--row-height) - 30px);
 }
 
 .col-references > div {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 .col-references > div > div {
-  padding-bottom: var(--row-padding);
+    padding-bottom: var(--row-padding);
 }
 
 div.field-links li {
-  margin-bottom: var(--row-padding);
+    margin-bottom: var(--row-padding);
 }
 
 .bookshelf-counts span:not(:first-child)::before {
-  content: " / ";
+    content: ' / ';
 }
 </style>

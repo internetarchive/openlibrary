@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 describe('rendering', () => {
-    test('inlines the glyph into its own shadow root', async() => {
+    test('inlines the glyph into its own shadow root', async () => {
         const icon = await mount('<ol-icon name="search"></ol-icon>');
         const svg = icon.shadowRoot.querySelector('svg');
 
@@ -42,7 +42,7 @@ describe('rendering', () => {
         expect(svg.querySelector('circle')).not.toBeNull();
     });
 
-    test('draws different glyphs for different names', async() => {
+    test('draws different glyphs for different names', async () => {
         const search = await mount('<ol-icon name="search"></ol-icon>');
         const searchMarkup = search.shadowRoot.innerHTML;
 
@@ -50,7 +50,7 @@ describe('rendering', () => {
         expect(globe.shadowRoot.innerHTML).not.toBe(searchMarkup);
     });
 
-    test('redraws when the name changes', async() => {
+    test('redraws when the name changes', async () => {
         const icon = await mount('<ol-icon name="search"></ol-icon>');
         const before = icon.shadowRoot.innerHTML;
 
@@ -59,12 +59,12 @@ describe('rendering', () => {
         expect(icon.shadowRoot.innerHTML).not.toBe(before);
     });
 
-    test('renders nothing without a name', async() => {
+    test('renders nothing without a name', async () => {
         const icon = await mount('<ol-icon></ol-icon>');
         expect(icon.shadowRoot.querySelector('svg')).toBeNull();
     });
 
-    test('warns and renders nothing for an unknown name', async() => {
+    test('warns and renders nothing for an unknown name', async () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
         const icon = await mount('<ol-icon name="not-an-icon"></ol-icon>');
@@ -75,7 +75,7 @@ describe('rendering', () => {
 });
 
 describe('inside another shadow root', () => {
-    test('draws the same glyph it would in the light DOM', async() => {
+    test('draws the same glyph it would in the light DOM', async () => {
         const host = await mount('<icon-host></icon-host>');
         const icon = host.shadowRoot.querySelector('ol-icon');
         await icon.updateComplete;
@@ -89,14 +89,14 @@ describe('inside another shadow root', () => {
 });
 
 describe('accessibility', () => {
-    test('is hidden from assistive tech without a label', async() => {
+    test('is hidden from assistive tech without a label', async () => {
         const icon = await mount('<ol-icon name="search"></ol-icon>');
 
         expect(icon.getAttribute('aria-hidden')).toBe('true');
         expect(icon.hasAttribute('role')).toBe(false);
     });
 
-    test('a label names the host as an image', async() => {
+    test('a label names the host as an image', async () => {
         const icon = await mount('<ol-icon name="globe" label="Language"></ol-icon>');
 
         expect(icon.getAttribute('role')).toBe('img');
@@ -104,7 +104,7 @@ describe('accessibility', () => {
         expect(icon.hasAttribute('aria-hidden')).toBe(false);
     });
 
-    test('clearing the label hides it again', async() => {
+    test('clearing the label hides it again', async () => {
         const icon = await mount('<ol-icon name="globe" label="Language"></ol-icon>');
 
         icon.label = '';

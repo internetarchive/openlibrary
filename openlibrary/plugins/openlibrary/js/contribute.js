@@ -12,7 +12,7 @@ const SKIPPED_KEY = 'ol-contribute-skipped';
 // Same normalization the server applies, so the verdict on screen matches what is stored.
 const ID_RULES = {
     lccn: { parse: parseLccn, isValid: isValidLccn },
-    oclc_numbers: { parse: parseOclc, isValid: isValidOclc },
+    oclc_numbers: { parse: parseOclc, isValid: isValidOclc }
 };
 
 /**
@@ -50,10 +50,10 @@ function markTaskSkipped(key) {
  */
 function hideSkippedTasks(root, groupSelector) {
     const skipped = readSkippedTaskKeys();
-    root.querySelectorAll('[data-task-key]').forEach((el) => {
+    root.querySelectorAll('[data-task-key]').forEach(el => {
         if (skipped.has(el.dataset.taskKey)) el.hidden = true;
     });
-    root.querySelectorAll(groupSelector).forEach((group) => {
+    root.querySelectorAll(groupSelector).forEach(group => {
         if (!group.querySelector('[data-task-key]:not([hidden])')) group.hidden = true;
     });
 }
@@ -91,9 +91,12 @@ function initSiblingSuggestions(form) {
     const isPicker = control.tagName === 'OL-OPTIONS-POPOVER';
     const currentAnswer = () => (isPicker ? control.selected : control.value.trim());
     const chips = [...group.querySelectorAll('ol-chip')];
-    const syncChipSelection = () => chips.forEach((chip) => { chip.selected = chip.dataset.value === currentAnswer(); });
+    const syncChipSelection = () =>
+        chips.forEach(chip => {
+            chip.selected = chip.dataset.value === currentAnswer();
+        });
 
-    group.addEventListener('ol-chip-select', (event) => {
+    group.addEventListener('ol-chip-select', event => {
         const chip = event.target.closest('ol-chip');
         const value = event.detail.selected ? chip.dataset.value : '';
         if (isPicker) control.selected = value;
@@ -128,9 +131,7 @@ function initIdentifierForm(form) {
         const msg = input.dataset;
         if (rule.isValid(parsed)) {
             verdict.dataset.state = 'ok';
-            verdict.textContent = parsed === raw
-                ? msg.msgOk
-                : msg.msgTidied.replace('__VALUE__', parsed);
+            verdict.textContent = parsed === raw ? msg.msgOk : msg.msgTidied.replace('__VALUE__', parsed);
         } else {
             verdict.dataset.state = 'bad';
             verdict.textContent = /https?:|\//.test(raw) ? msg.msgUrl : msg.msgBad;
@@ -154,14 +155,14 @@ function clearSavedReceipt() {
  * @returns {void}
  */
 export function init() {
-    document.querySelectorAll('[data-contribute-list]').forEach((root) => {
+    document.querySelectorAll('[data-contribute-list]').forEach(root => {
         initTaskList(root);
     });
-    document.querySelectorAll('form[data-task-form]').forEach((form) => {
+    document.querySelectorAll('form[data-task-form]').forEach(form => {
         initSkipButton(form);
         initSiblingSuggestions(form);
     });
     if (document.querySelector('[data-receipt]')) clearSavedReceipt();
     document.querySelectorAll('form[data-id-form]').forEach(initIdentifierForm);
-    document.querySelectorAll('[data-contribute-done]').forEach((root) => hideSkippedTasks(root, '[data-same-book]'));
+    document.querySelectorAll('[data-contribute-done]').forEach(root => hideSkippedTasks(root, '[data-same-book]'));
 }
