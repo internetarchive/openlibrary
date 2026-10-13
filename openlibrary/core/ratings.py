@@ -100,7 +100,7 @@ class Ratings(db.CommonExtras):
             WHERE work_id = %(work_id)s
         """
         row = await fetch_one(query, {"work_id": work_id})
-        if not row:
+        if not row or sum(row.get(f"ratings_count_{i}", 0) for i in range(1, 6)) == 0:
             return None
 
         return cls.work_ratings_summary_from_counts([row[f"ratings_count_{i}"] for i in range(1, 6)])
@@ -159,7 +159,7 @@ class Ratings(db.CommonExtras):
         """work_id must be convertible to int."""
         query = "SELECT * from ratings where username=%(username)s AND work_id=%(work_id)s"
         row = await fetch_one(query, {"username": username, "work_id": int(work_id)})
-        return row.rating if row else None
+        return row["rating"] if row else None
 
     @classmethod
     def get_users_rating_for_work_sync(cls, username: str, work_id: str | int) -> int | None:

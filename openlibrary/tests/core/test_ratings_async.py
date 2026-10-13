@@ -134,6 +134,15 @@ async def test_total_num_unique_raters(helpers):
 
 @pytest.mark.integration
 class TestRatingsIntegration:
+    @pytest.fixture(autouse=True)
+    def mock_bookshelves(self):
+        """Mock sync Bookshelves methods to avoid connection conflicts."""
+        with (
+            patch("openlibrary.core.bookshelves.Bookshelves.get_users_read_status_of_work", return_value=None),
+            patch("openlibrary.core.bookshelves.Bookshelves.add"),
+        ):
+            yield
+
     @pytest.mark.asyncio
     async def test_create_select_update_delete(self, pg_db):
         await Ratings.add("alice", 100, 5, edition_id=1)
