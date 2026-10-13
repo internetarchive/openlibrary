@@ -81,6 +81,11 @@
   --amber-500: hsl(39, 78%, 42%);
   --amber-600: hsl(36, 75%, 32%);
   --amber-700: hsl(33, 70%, 26%);
+
+  /* Pink — data-chart bars only. 400 clears 3:1 on white as a non-text shape;
+     600 is the selected bar, a clear step darker. */
+  --pink-400: hsl(348, 95%, 65%);
+  --pink-600: hsl(345, 62%, 42%);
 }
 
 /**
@@ -216,6 +221,10 @@
   --color-error-object: var(--red-400);
   --color-warning-object: var(--amber-400);
   --color-neutral-object: var(--neutral-300);
+
+  /* Bars in data charts (reading-log stats). Counts sit past the bar end in text ink. */
+  --color-chart-bar: var(--pink-400);
+  --color-chart-bar-selected: var(--pink-600);
 }
 
 /**
