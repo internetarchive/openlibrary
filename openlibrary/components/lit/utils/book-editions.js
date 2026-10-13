@@ -28,7 +28,10 @@ export function resetWorkEditionsCache() {
 export function loadWorkEditionKeys(workKey) {
     if (!workKey?.startsWith('/works/')) return null;
     if (!EDITION_KEYS.has(workKey)) {
-        EDITION_KEYS.set(workKey, fetchWorkEditions(workKey).catch(() => []));
+        EDITION_KEYS.set(
+            workKey,
+            fetchWorkEditions(workKey).catch(() => [])
+        );
     }
     return EDITION_KEYS.get(workKey);
 }

@@ -20,7 +20,7 @@ export const DEFAULT_LABELS = {
     removeWorkAndEditions: { one: 'Remove the work and %(count)s edition from %(name)s', other: 'Remove the work and %(count)s editions from %(name)s' },
     removedFromList: 'Removed from %(name)s',
     removedThisEdition: 'Removed this edition from %(name)s. The book is still on it.',
-    errorGeneric: 'Something went wrong. Please try again.',
+    errorGeneric: 'Something went wrong. Please try again.'
 };
 
 /**
@@ -54,7 +54,7 @@ export class OlBookLists extends LitElement {
         labels: { type: Object },
         _lists: { state: true },
         _editionKeys: { state: true },
-        _announcement: { state: true },
+        _announcement: { state: true }
     };
 
     static styles = css`
@@ -179,7 +179,10 @@ export class OlBookLists extends LitElement {
         super.connectedCallback();
         this._unsubscribe = subscribeToLists(() => this._setLists(getLists()));
         // A failed load leaves the strip empty; the popover reports failures.
-        loadLists().then(lists => this._setLists(lists), () => {});
+        loadLists().then(
+            lists => this._setLists(lists),
+            () => {}
+        );
     }
 
     /**
@@ -220,7 +223,9 @@ export class OlBookLists extends LitElement {
         if (!unknown) return;
         this._editionsRequested = true;
         this._editionKeys = null;
-        loadWorkEditionKeys(this._workKey).then(keys => { this._editionKeys = keys; });
+        loadWorkEditionKeys(this._workKey).then(keys => {
+            this._editionKeys = keys;
+        });
     }
 
     disconnectedCallback() {
@@ -244,7 +249,7 @@ export class OlBookLists extends LitElement {
                 key,
                 name: list.listName,
                 seeds: list.members.filter(m => seeds.has(m)),
-                other: otherForm(list.members, match),
+                other: otherForm(list.members, match)
             }))
             .filter(row => row.seeds.length)
             .map(row => ({ ...row, ...this._removal(row) }));
@@ -275,11 +280,13 @@ export class OlBookLists extends LitElement {
         try {
             for (const seedKey of row.targets) {
                 await toggleListSeed(row.key, seedKey, false);
-                this.dispatchEvent(new CustomEvent('ol-list-change', {
-                    bubbles: true,
-                    composed: true,
-                    detail: { key: row.key, name: row.name, seedKey, member: false },
-                }));
+                this.dispatchEvent(
+                    new CustomEvent('ol-list-change', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { key: row.key, name: row.name, seedKey, member: false }
+                    })
+                );
             }
         } catch (error) {
             if (error?.status === 401) return redirectToLogin();
@@ -307,22 +314,34 @@ export class OlBookLists extends LitElement {
         const rows = this._rows;
         // The live region stays rendered with no rows, so removing the last one is still announced.
         return html`
-            ${rows.length ? html`<ul aria-label=${this.t('onYourLists')}>${repeat(rows, row => row.key, (row, index) => html`<li data-key=${row.key}>
-                        <ol-icon class="icon" name="list" size="sm"></ol-icon>
-                        <span class="text">
-                            <a href=${row.key} title=${row.name}>${row.name}</a>
-                            ${this._renderNote(row.other)}
-                        </span>
-                        <ol-button
-                            class="remove"
-                            shape="icon"
-                            variant="ghost"
-                            size="small"
-                            title=${row.label}
-                            aria-label=${row.label}
-                            @click=${() => this._remove(row, index)}
-                        ><ol-icon name="x" size="sm"></ol-icon></ol-button>
-                    </li>`)}</ul>` : nothing}
+            ${
+                rows.length
+                    ? html`<ul aria-label=${this.t('onYourLists')}>
+                          ${repeat(
+                              rows,
+                              row => row.key,
+                              (row, index) =>
+                                  html`<li data-key=${row.key}>
+                                      <ol-icon class="icon" name="list" size="sm"></ol-icon>
+                                      <span class="text">
+                                          <a href=${row.key} title=${row.name}>${row.name}</a>
+                                          ${this._renderNote(row.other)}
+                                      </span>
+                                      <ol-button
+                                          class="remove"
+                                          shape="icon"
+                                          variant="ghost"
+                                          size="small"
+                                          title=${row.label}
+                                          aria-label=${row.label}
+                                          @click=${() => this._remove(row, index)}
+                                          ><ol-icon name="x" size="sm"></ol-icon
+                                      ></ol-button>
+                                  </li>`
+                          )}
+                      </ul>`
+                    : nothing
+            }
             <div class="visually-hidden" role="status">${this._announcement}</div>
         `;
     }
