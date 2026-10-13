@@ -27,6 +27,16 @@ $if provider_loan:
     >$_('Read')</a>
     $:locate_menu()
   </div>
+  $# A Return control beside Read, matching what an Internet Archive loan shows
+  $# on the book page (macros/LoanStatus.html). `return_url` is the Open Library
+  $# route that ends the loan via the stored token (#13909); `.get` guards a
+  $# loan cached before this field existed -- it degrades to no button for one
+  $# PROVIDER_LOANS_TTL rather than erroring, then self-heals on the next fetch.
+  $# This branch is book-page-only by construction: provider_loan is non-None
+  $# only when render_read_button is called with check_loan_status=True, which
+  $# LoanStatus.html sets solely on an edition book page -- never a carousel.
+  $if provider_loan.get('return_url'):
+    $:macros.ReturnForm(provider_loan['return_url'], provider_loan.get('expiry'), analytics_track="LoanStatus|ReturnClick")
 $elif acquisition.access == 'open-access':
   <div class="$group_class">
     $if acquisition.format == 'audio':

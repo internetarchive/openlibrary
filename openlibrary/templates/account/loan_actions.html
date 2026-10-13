@@ -24,7 +24,7 @@ $if loan.get('provider'):
     <span class="smaller grey sansserif" style="display: block; margin-top: var(--spacing-stack-sm);">$_("Borrowed from %(library)s", library=loan['provider'])</span>
 $elif loan['resource_type'] == 'bookreader':
     $:macros.LoanReadForm(loan['ocaid'])
-    $:macros.ReturnForm(loan['ocaid'], loan['expiry'], analytics_track="LoansAndHistory|ReturnClick")
+    $:macros.ReturnForm('/borrow/ia/%s' % loan['ocaid'], loan['expiry'], analytics_track="LoansAndHistory|ReturnClick")
 $else:
     $if loan['expiry'] is None:
         <span class="red">$_("Not yet downloaded.") </span><br/>

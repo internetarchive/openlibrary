@@ -829,9 +829,13 @@ def return_loan(issuer: str, token: str, edition_id: int) -> dict[str, Any]:
     token. The return reuses the ``borrow`` scope, so the grant a borrow
     already stored works unchanged -- see :data:`SCOPES`.
 
-    Unlike :func:`borrow`, the success body is not read by this flow, so a 204
-    or a plain-text 200 is not an error here; only the error body is parsed,
-    the same way :func:`borrow` parses its failures.
+    Unlike :func:`borrow`, the success body is not read by this flow, so it is
+    not parsed at all: a 2xx ends the loan whatever its body. Parsing it would
+    turn a loose node -- a 200 carrying an ``application/json`` header over an
+    empty or non-JSON body -- into a ``ValueError`` that :class:`lenny_return`
+    catches as a failed return, flashing an error and skipping the cache
+    invalidation for a loan that was in fact returned. Only the *error* body is
+    parsed, the same way :func:`borrow` parses its failures.
     """
     issuer = issuer.rstrip("/")
     resp = requests.post(
@@ -840,11 +844,11 @@ def return_loan(issuer: str, token: str, edition_id: int) -> dict[str, Any]:
         headers={"Authorization": f"Bearer {token}"},
         timeout=HTTP_TIMEOUT_SECONDS,
     )
-    is_json = resp.headers.get("content-type", "").startswith("application/json")
     if resp.status_code >= 400:
+        is_json = resp.headers.get("content-type", "").startswith("application/json")
         error = (resp.json() or {}).get("error") if is_json else None
         raise LennyReturnError(error or "unknown_error", resp.status_code)
-    return resp.json() if is_json else {}
+    return {}
 
 
 class LennyReturnError(Exception):

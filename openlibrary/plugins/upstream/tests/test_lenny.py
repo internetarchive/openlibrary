@@ -1521,6 +1521,25 @@ class TestReturnCall:
         monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: Resp())
         assert lenny.return_loan(NODE["issuer"], "at-123", 1) == {}
 
+    def test_a_json_header_with_an_empty_success_body_does_not_crash(self, monkeypatch):
+        """A node that sets `application/json` on a 200 but returns an empty or
+        unparsable body must not raise. The success body is not read by this
+        flow, and raising here is read upstream (`lenny_return`'s `except
+        Exception`) as a failed return -- flashing an error and SKIPPING the
+        cache invalidation for a loan that was in fact returned. Found by the
+        Phase 7 adversarial review; the text/plain case above did not cover it
+        because `is_json` is then false."""
+
+        class Resp:
+            status_code = 200
+            headers: ClassVar[dict] = {"content-type": "application/json"}
+
+            def json(self):
+                raise ValueError("empty body")
+
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: Resp())
+        assert lenny.return_loan(NODE["issuer"], "at-123", 1) == {}
+
     @pytest.mark.parametrize(("status", "error"), [(401, "invalid_token"), (403, "insufficient_scope"), (404, "not_found"), (409, "conflict")])
     def test_a_failure_status_raises_with_its_status(self, monkeypatch, status, error):
         class Resp:
