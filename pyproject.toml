@@ -5,7 +5,7 @@ requires-python = ">=3.14.5,<3.14.6"
 
 [tool.codespell]
 ignore-words-list = "beng,curren,datas,furst,lightening,nd,nin,ot,ser,spects,te,tha,thirdparty,ue"
-skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
+skip = "./.*,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.mypy]
 ignore_missing_imports = true
