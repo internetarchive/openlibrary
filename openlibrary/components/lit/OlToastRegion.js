@@ -29,7 +29,7 @@ const GAP_PX = 14;
  */
 export class OlToastRegion extends LitElement {
     static properties = {
-        labelRegion: { type: String, attribute: 'label-region' },
+        labelRegion: { type: String, attribute: 'label-region' }
     };
 
     static styles = css`
@@ -105,7 +105,7 @@ export class OlToastRegion extends LitElement {
         // Pass 2 — measure once (single reflow) now that every toast is
         // stacked, then assign cumulative offsets. --ol-toast-offset only feeds
         // a transform, so writing it forces no further layout.
-        const heights = toasts.map((toast) => toast.offsetHeight);
+        const heights = toasts.map(toast => toast.offsetHeight);
         let offset = 0;
         toasts.forEach((toast, i) => {
             toast.style.setProperty('--ol-toast-offset', `${offset}px`);
@@ -116,7 +116,7 @@ export class OlToastRegion extends LitElement {
     _expand() {
         if (this._expanded) return;
         this._expanded = true;
-        this._toasts().forEach((toast) => toast.pauseTimer?.());
+        this._toasts().forEach(toast => toast.pauseTimer?.());
     }
 
     _collapse(e) {
@@ -134,7 +134,7 @@ export class OlToastRegion extends LitElement {
             (e?.type !== 'mouseleave' && this.matches(':hover'));
         if (stillInteracting) return;
         this._expanded = false;
-        this._toasts().forEach((toast) => toast.resumeTimer?.());
+        this._toasts().forEach(toast => toast.resumeTimer?.());
     }
 
     render() {

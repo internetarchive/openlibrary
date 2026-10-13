@@ -12,10 +12,10 @@ let posts;
 function stubFetch(works = {}, { status = 200 } = {}) {
     calls = [];
     posts = [];
-    global.fetch = vi.fn(async(url, init) => {
+    global.fetch = vi.fn(async (url, init) => {
         if (init?.method === 'POST') posts.push({ url: String(url), body: init.body });
         else calls.push(new URL(String(url)));
-        return { ok: status < 400, status, json: async() => ({ user_key: '/people/tester', works }) };
+        return { ok: status < 400, status, json: async () => ({ user_key: '/people/tester', works }) };
     });
 }
 
@@ -38,11 +38,17 @@ const settle = () => new Promise(r => setTimeout(r, HYDRATE_DELAY + 10));
 
 beforeAll(() => {
     window.matchMedia = query => ({
-        matches: false, media: query,
-        addEventListener() {}, removeEventListener() {},
-        addListener() {}, removeListener() {},
+        matches: false,
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+        addListener() {},
+        removeListener() {}
     });
-    global.ResizeObserver = class { observe() {} disconnect() {} };
+    global.ResizeObserver = class {
+        observe() {}
+        disconnect() {}
+    };
 });
 
 afterEach(() => {
@@ -66,7 +72,7 @@ describe('readLabels', () => {
 });
 
 describe('hydrate', () => {
-    test('hands every button its labels and the reader\'s key', async() => {
+    test("hands every button its labels and the reader's key", async () => {
         stubFetch();
         page({ buttons: button('/works/OL1W') + button('/works/OL2W', 'user-key="/people/other" data-hydrated') });
         await hydrate();
@@ -78,18 +84,18 @@ describe('hydrate', () => {
         expect(row.userKey).toBe('/people/other');
     });
 
-    test('fetches state once, for the buttons the server left without it, and applies it', async() => {
+    test('fetches state once, for the buttons the server left without it, and applies it', async () => {
         stubFetch({
             OL1W: { shelf: 2, rating: 4, read_date: null, event_id: null },
-            OL3W: { shelf: null, rating: null, read_date: null, event_id: null },
+            OL3W: { shelf: null, rating: null, read_date: null, event_id: null }
         });
         page({
             buttons: [
                 button('/works/OL1W'),
                 button('/works/OL1W'), // the same work twice on a page
                 button('/works/OL2W', 'data-hydrated shelf="1"'),
-                button('/works/OL3W'),
-            ].join(''),
+                button('/works/OL3W')
+            ].join('')
         });
         await hydrate();
         expect(calls).toHaveLength(1);
@@ -107,11 +113,13 @@ describe('hydrate', () => {
         expect(calls).toHaveLength(1);
     });
 
-    test('holds a button pending until its state lands, so a click in that window cannot unshelve', async() => {
+    test('holds a button pending until its state lands, so a click in that window cannot unshelve', async () => {
         let land;
-        global.fetch = vi.fn(async() => {
-            await new Promise(resolve => { land = resolve; });
-            return { ok: true, status: 200, json: async() => ({ works: { OL1W: { shelf: 1, rating: null, read_date: null, event_id: null } } }) };
+        global.fetch = vi.fn(async () => {
+            await new Promise(resolve => {
+                land = resolve;
+            });
+            return { ok: true, status: 200, json: async () => ({ works: { OL1W: { shelf: 1, rating: null, read_date: null, event_id: null } } }) };
         });
         page({ buttons: button('/works/OL1W') });
         const pass = hydrate();
@@ -123,14 +131,14 @@ describe('hydrate', () => {
         expect(el.shelf).toBe(1);
     });
 
-    test('a button the server hydrated is never held', async() => {
+    test('a button the server hydrated is never held', async () => {
         stubFetch();
         page({ buttons: button('/works/OL1W', 'data-hydrated shelf="2"') });
         await hydrate();
         expect(all()[0].pending).toBe(false);
     });
 
-    test('signed out, applies labels and never asks for state', async() => {
+    test('signed out, applies labels and never asks for state', async () => {
         stubFetch();
         page({ userKey: '', buttons: button('/works/OL1W') });
         await hydrate();
@@ -139,7 +147,7 @@ describe('hydrate', () => {
         expect(all()[0].userKey).toBe('');
     });
 
-    test('asks in batches the server accepts', async() => {
+    test('asks in batches the server accepts', async () => {
         stubFetch();
         const buttons = Array.from({ length: BATCH_SIZE + 1 }, (_, i) => button(`/works/OL${i + 1}W`)).join('');
         page({ buttons });
@@ -149,7 +157,7 @@ describe('hydrate', () => {
         expect(calls[1].searchParams.get('work_ids')).toBe(`OL${BATCH_SIZE + 1}W`);
     });
 
-    test('a failed request is retried on the next pass', async() => {
+    test('a failed request is retried on the next pass', async () => {
         stubFetch({}, { status: 500 });
         page({ buttons: button('/works/OL1W') });
         await hydrate();
@@ -165,7 +173,7 @@ describe('hydrate', () => {
 });
 
 describe('initBookState', () => {
-    test('a shelf change on one button reaches every button for that work', async() => {
+    test('a shelf change on one button reaches every button for that work', async () => {
         stubFetch();
         page({ buttons: button('/works/OL1W', 'data-hydrated') + button('/works/OL1W', 'data-hydrated') + button('/works/OL2W', 'data-hydrated') });
         initBookState();
@@ -173,32 +181,44 @@ describe('initBookState', () => {
         const [a, b, other] = all();
         b.readDate = '2026-08';
         b.eventId = 7;
-        a.dispatchEvent(new CustomEvent('ol-book-state-change', {
-            bubbles: true, composed: true, detail: { key: '/works/OL1W', shelf: 3, rating: 5 },
-        }));
+        a.dispatchEvent(
+            new CustomEvent('ol-book-state-change', {
+                bubbles: true,
+                composed: true,
+                detail: { key: '/works/OL1W', shelf: 3, rating: 5 }
+            })
+        );
         expect([a.shelf, a.rating, b.shelf, b.rating]).toEqual([3, 5, 3, 5]);
         expect(other.shelf).toBeNull();
         expect(b.readDate).toBe('2026-08');
 
         // Off the shelf takes the finish date with it.
-        a.dispatchEvent(new CustomEvent('ol-book-state-change', {
-            bubbles: true, composed: true, detail: { key: '/works/OL1W', shelf: null, rating: 5 },
-        }));
+        a.dispatchEvent(
+            new CustomEvent('ol-book-state-change', {
+                bubbles: true,
+                composed: true,
+                detail: { key: '/works/OL1W', shelf: null, rating: 5 }
+            })
+        );
         expect([b.shelf, b.readDate, b.eventId]).toEqual([null, null, null]);
     });
 
-    test('a saved finish date reaches every button for that work', async() => {
+    test('a saved finish date reaches every button for that work', async () => {
         stubFetch();
         page({ buttons: button('/works/OL1W', 'data-hydrated') + button('/works/OL1W', 'data-hydrated') });
         initBookState();
         const [a, b] = all();
-        a.dispatchEvent(new CustomEvent('ol-book-check-in', {
-            bubbles: true, composed: true, detail: { key: '/works/OL1W', date: '2026-09-08', eventId: 42 },
-        }));
+        a.dispatchEvent(
+            new CustomEvent('ol-book-check-in', {
+                bubbles: true,
+                composed: true,
+                detail: { key: '/works/OL1W', date: '2026-09-08', eventId: 42 }
+            })
+        );
         expect([b.readDate, b.eventId]).toEqual(['2026-09-08', 42]);
     });
 
-    test('buttons that arrive later (a lazy carousel) are hydrated too', async() => {
+    test('buttons that arrive later (a lazy carousel) are hydrated too', async () => {
         stubFetch({ OL9W: { shelf: 4, rating: null, read_date: null, event_id: null } });
         page({ buttons: '' });
         initBookState();
@@ -216,7 +236,7 @@ describe('initBookState', () => {
         expect(late.shelf).toBe(4);
     });
 
-    test('carousels that land in separate macrotasks share one request', async() => {
+    test('carousels that land in separate macrotasks share one request', async () => {
         stubFetch({ OL1W: { shelf: 1 }, OL2W: { shelf: 2 } });
         page({ buttons: '' });
         initBookState();
@@ -248,9 +268,7 @@ describe('a page that lists one shelf', () => {
                 <div class="searchResultItemCTA"><div class="searchResultItemCTA__shelf"></div></div>
             </li>
         </ul>`;
-    const change = (shelf, rating = null) => document.dispatchEvent(
-        new CustomEvent('ol-book-state-change', { detail: { key: '/works/OL1W', shelf, rating } }),
-    );
+    const change = (shelf, rating = null) => document.dispatchEvent(new CustomEvent('ol-book-state-change', { detail: { key: '/works/OL1W', shelf, rating } }));
     const note = () => document.querySelector('.left-shelf-notice');
     const noteText = () => note()?.querySelector('.left-shelf-notice__text').textContent;
     const count = id => document.querySelector(`span[data-shelf-count-for="${id}"]`).textContent;
@@ -283,7 +301,7 @@ describe('a page that lists one shelf', () => {
         expect([count(2), count(3)]).toEqual(['27', '194']);
     });
 
-    test('Undo puts the book back on the shelf and posts it', async() => {
+    test('Undo puts the book back on the shelf and posts it', async () => {
         stubFetch();
         page({ buttons: shelfPage() });
         initBookState();
@@ -300,7 +318,7 @@ describe('a page that lists one shelf', () => {
         expect(posts[0].body.get('bookshelf_id')).toBe('2');
     });
 
-    test('a failed Undo rolls the row back', async() => {
+    test('a failed Undo rolls the row back', async () => {
         stubFetch({}, { status: 500 });
         page({ buttons: shelfPage() });
         initBookState();

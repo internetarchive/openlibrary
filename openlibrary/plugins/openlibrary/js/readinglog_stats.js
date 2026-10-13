@@ -54,10 +54,8 @@ export function init(config) {
 
         for (const work of config.works) {
             const result = getPath(work, chartConfig.key);
-            const allKeys = Array.isArray(result) ? result : (result ? [result] : []);
-            const validKeys = [...new Set(
-                allKeys.filter(key => key !== undefined && !chartConfig.exclude?.includes(key))
-            )];
+            const allKeys = Array.isArray(result) ? result : result ? [result] : [];
+            const validKeys = [...new Set(allKeys.filter(key => key !== undefined && !chartConfig.exclude?.includes(key)))];
             if (!validKeys.length) {
                 excluded.push(work);
                 continue;
@@ -68,26 +66,30 @@ export function init(config) {
             }
         }
 
-        const bars = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length).slice(0, 20);
+        const bars = Object.entries(grouped)
+            .sort((a, b) => b[1].length - a[1].length)
+            .slice(0, 20);
         canvas.height = bars.length * 20 + 5;
-        canvas.width= 400;
+        canvas.width = 400;
         new Chart(canvas.getContext('2d'), {
             type: 'horizontalBar',
             data: {
                 labels: bars.map(b => b[0]),
-                datasets: [{
-                    backgroundColor: 'rgb(255, 99, 132)',
-                    borderColor: 'rgb(255, 99, 132)',
-                    borderWidth: 0,
-                    data: bars.map(b => b[1].length)
-                }]
+                datasets: [
+                    {
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        borderWidth: 0,
+                        data: bars.map(b => b[1].length)
+                    }
+                ]
             },
             options: {
                 responsive: false,
                 legend: { display: false },
                 scales: {
                     xAxes: [{ display: false }],
-                    yAxes: [{ barPercentage: 1, gridLines: { display: false }, stacked: true }],
+                    yAxes: [{ barPercentage: 1, gridLines: { display: false }, stacked: true }]
                 },
                 onClick: (e, [chartEl]) => {
                     if (chartEl) {
@@ -131,24 +133,19 @@ export function init(config) {
                 # of the author's birth
                 FILTER(!BOUND(?country_dissolution) || !BOUND(?dob) || (?dob >= ?country_inception && ?dob <= ?country_dissolution) ).
             `
-        },
+        }
     ];
 
     function buildSparql(authors) {
         return `
             SELECT DISTINCT ?x ?xLabel ?olid
-                ${
-    SPARQL_FIELDS.map(f => `?${f.name} ${f.type === 'uri' ? `?${f.name}Label ` : ''}`).join('')
-}
+                ${SPARQL_FIELDS.map(f => `?${f.name} ${f.type === 'uri' ? `?${f.name}Label ` : ''}`).join('')}
             WHERE {
               VALUES ?olids { ${authors.map(a => `"${a.key.split('/')[2]}"`).join(' ')} }
               ?x wdt:P648 ?olids;
                  wdt:P648 ?olid.
 
-              ${
-    SPARQL_FIELDS.map(f => (f.render || defaultFieldRender)(f))
-        .join('\n')
-}
+              ${SPARQL_FIELDS.map(f => (f.render || defaultFieldRender)(f)).join('\n')}
 
               SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],${config.lang},en". }
             }
@@ -159,7 +156,7 @@ export function init(config) {
 
     const wdPromise = fetch('https://query.wikidata.org/sparql?format=json', {
         method: 'POST',
-        body: new URLSearchParams({query: buildSparql(config.authors)})
+        body: new URLSearchParams({ query: buildSparql(config.authors) })
     })
         .then(r => r.json())
         .then(resp => {
@@ -172,18 +169,20 @@ export function init(config) {
             const records = Object.entries(grouped).map(([qid, bindings]) => {
                 const record = { qid, olids: [...new Set(bindings.map(x => x.olid.value))] };
                 // { qid: Q123, olids: [ { value: }, {value: }], blah: [ {value:}, {value:} ], blahLabel: [{value:}, {value:},
-                for (const {name, type} of SPARQL_FIELDS) {
+                for (const { name, type } of SPARQL_FIELDS) {
                     if (type === 'uri') {
-                    // need to dedupe whilst keeping labels in mind
+                        // need to dedupe whilst keeping labels in mind
                         const deduped = uniqBy(
-                            bindings
-                                .filter(x => x[name])
-                                .map(x => ({ [name]: x[name], [`${name}Label`]: x[`${name}Label`] })),
-                            x => x[name].value);
+                            bindings.filter(x => x[name]).map(x => ({ [name]: x[name], [`${name}Label`]: x[`${name}Label`] })),
+                            x => x[name].value
+                        );
                         record[name] = deduped.map(x => x[name]);
                         record[`${name}Label`] = deduped.map(x => x[`${name}Label`]);
                     } else {
-                        record[name] = uniqBy(bindings.map(x => x[name]), x => x?.value);
+                        record[name] = uniqBy(
+                            bindings.map(x => x[name]),
+                            x => x?.value
+                        );
                     }
                 }
                 return record;
@@ -230,7 +229,7 @@ function getPath(obj, key) {
      * @return {any}
      */
     function main(obj, [head, ...rest]) {
-        if (typeof(obj) === 'undefined') return undefined;
+        if (typeof obj === 'undefined') return undefined;
         if (!head) return obj;
         if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
         else return main(obj[head], rest);

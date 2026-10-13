@@ -2,7 +2,7 @@
 import { approveRequest, declineRequest, createRequest, REQUEST_TYPES } from '../../plugins/openlibrary/js/merge-request-table/MergeRequestService';
 import CONFIGS from '../configs.js';
 
-const collator = new Intl.Collator('en-US', {numeric: true});
+const collator = new Intl.Collator('en-US', { numeric: true });
 export const DEFAULT_EDITION_LIMIT = 200;
 
 /**
@@ -78,19 +78,19 @@ export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDe
  */
 function hash_subel(field, value) {
     switch (field) {
-    case 'authors':{
-        // Handle the two possible formats for authors in works and editions
-        const authorKey = value.author ? value.author.key : value.key;
-        return (value.type.key || value.type) + authorKey;
-    }
-    case 'covers':
-    case 'subjects':
-    case 'subject_people':
-    case 'subject_places':
-    case 'subject_times':
-    case 'excerpts':
-    default:
-        return JSON.stringify(value);
+        case 'authors': {
+            // Handle the two possible formats for authors in works and editions
+            const authorKey = value.author ? value.author.key : value.key;
+            return (value.type.key || value.type) + authorKey;
+        }
+        case 'covers':
+        case 'subjects':
+        case 'subject_people':
+        case 'subject_places':
+        case 'subject_times':
+        case 'excerpts':
+        default:
+            return JSON.stringify(value);
     }
 }
 
@@ -103,7 +103,7 @@ export function merge(master, dupes) {
     const result = cloneJSON(master);
     result.latest_revision++;
     result.revision = result.latest_revision;
-    result.last_modified.value = (new Date()).toISOString().slice(0, -1);
+    result.last_modified.value = new Date().toISOString().slice(0, -1);
     /** @type {{[field: string]: String}} field -> key where it came from */
     const sources = {};
     const subsources = {}; // for array elements
@@ -133,26 +133,23 @@ export function merge(master, dupes) {
 
     // dedup
     for (const key in result) {
-        if (!(result[key] instanceof Array))
-            continue;
+        if (!(result[key] instanceof Array)) continue;
         switch (key) {
-        case 'authors':{
-            const authors = cloneJSON(result.authors);
-            authors
-                .filter(a => typeof a.type === 'string')
-                .forEach(a => a.type = { key: a.type });
-            result.authors = uniqJSON(authors);
-            break;
-        }
-        case 'covers':
-        case 'subjects':
-        case 'subject_people':
-        case 'subject_places':
-        case 'subject_times':
-        case 'excerpts':
-        default:
-            result[key] = uniqJSON(result[key]);
-            break;
+            case 'authors': {
+                const authors = cloneJSON(result.authors);
+                authors.filter(a => typeof a.type === 'string').forEach(a => (a.type = { key: a.type }));
+                result.authors = uniqJSON(authors);
+                break;
+            }
+            case 'covers':
+            case 'subjects':
+            case 'subject_people':
+            case 'subject_places':
+            case 'subject_times':
+            case 'excerpts':
+            default:
+                result[key] = uniqJSON(result[key]);
+                break;
         }
     }
 
@@ -160,28 +157,19 @@ export function merge(master, dupes) {
 }
 
 export async function do_merge(merged_record, dupes, editions, mrid) {
-    editions.forEach(ed => ed.works = [{key: merged_record.key}]);
-    const edits = [
-        merged_record,
-        ...dupes.map(dupe => make_redirect(merged_record.key, dupe)),
-        ...editions
-    ];
+    editions.forEach(ed => (ed.works = [{ key: merged_record.key }]));
+    const edits = [merged_record, ...dupes.map(dupe => make_redirect(merged_record.key, dupe)), ...editions];
 
     let comment = 'Merge works';
     if (mrid) {
         comment += ` (MRID: ${mrid})`;
     }
 
-    return await save_many(
-        edits,
-        comment,
-        'merge-works',
-        {
-            master: merged_record.key,
-            duplicates: dupes.map(dupe => dupe.key),
-            mrid: mrid,
-        },
-    );
+    return await save_many(edits, comment, 'merge-works', {
+        master: merged_record.key,
+        duplicates: dupes.map(dupe => dupe.key),
+        mrid: mrid
+    });
 }
 
 export function make_redirect(master_key, dupe) {
@@ -201,30 +189,30 @@ export function get_editions(work_key) {
         // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
         base = location.host.endsWith('.openlibrary.org') ? 'https://openlibrary.org' : '';
     }
-    return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({limit: DEFAULT_EDITION_LIMIT})}`).then(r => {
+    return fetchWithRetry(`${base}${endpoint}?${new URLSearchParams({ limit: DEFAULT_EDITION_LIMIT })}`).then(r => {
         if (r.ok) return r.json();
         if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
     });
 }
 
-export function get_lists(key, limit=10) {
+export function get_lists(key, limit = 10) {
     return fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
         if (r.ok) return r.json();
-        return {error: true};
+        return { error: true };
     });
 }
 
 export function get_bookshelves(key) {
     return fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}${key}/bookshelves.json`).then(r => {
         if (r.ok) return r.json();
-        return {error: true};
+        return { error: true };
     });
 }
 
 export function get_ratings(key) {
     return fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}${key}/ratings.json`).then(r => {
         if (r.ok) return r.json();
-        return {error: true};
+        return { error: true };
     });
 }
 
@@ -240,8 +228,7 @@ export function get_ratings(key) {
 export function update_merge_request(mrid, action, comment) {
     if (action === 'approve') {
         return approveRequest(mrid, comment);
-    }
-    else if (action === 'decline') {
+    } else if (action === 'decline') {
         return declineRequest(mrid, comment);
     }
 }
@@ -288,7 +275,7 @@ function save_many(items, comment, action, data) {
         Opt: '"http://openlibrary.org/dev/docs/api"; ns=42',
         '42-comment': comment,
         '42-action': action,
-        '42-data': JSON.stringify(data),
+        '42-data': JSON.stringify(data)
     };
 
     return fetchWithRetry(`${CONFIGS.OL_BASE_SAVES}/api/save_many`, {
@@ -304,17 +291,14 @@ function save_many(items, comment, action, data) {
  * @returns {Promise<Record<string,object>} A response to the request
  */
 export async function get_author_names(works) {
-    const authorIds = [...new Set(works)].flatMap(record =>
-        (record.authors || [])
-            .map(authorEntry => authorEntry.author?.key ?? authorEntry.key)
-    );
+    const authorIds = [...new Set(works)].flatMap(record => (record.authors || []).map(authorEntry => authorEntry.author?.key ?? authorEntry.key));
 
     if (!authorIds.length) return {};
 
     const queryParams = new URLSearchParams({
         q: `key:(${authorIds.join(' OR ')})`,
         mode: 'everything',
-        fields: 'key,name',
+        fields: 'key,name'
     });
 
     const response = await fetchWithRetry(`${CONFIGS.OL_BASE_SEARCH}/search/authors.json?${queryParams}`);

@@ -7,10 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { contrastRatio, relativeLuminance } from '../../../openlibrary/plugins/openlibrary/js/design-system/contrast.js';
 
-const css = fs.readFileSync(
-    path.join(__dirname, '../../../static/css/tokens/colors.css'),
-    'utf8'
-);
+const css = fs.readFileSync(path.join(__dirname, '../../../static/css/tokens/colors.css'), 'utf8');
 
 // --token-name: value; declarations (values may be hsl()/hsla()/var()).
 // Comments are stripped first: the file documents itself in prose, and a
@@ -31,13 +28,15 @@ function resolve(name, depth = 0) {
 function hslToRgb(cssValue) {
     const m = cssValue.match(/^hsla?\(\s*([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%/);
     expect(m).not.toBeNull();
-    const h = Number(m[1]) / 360, s = Number(m[2]) / 100, l = Number(m[3]) / 100;
+    const h = Number(m[1]) / 360,
+        s = Number(m[2]) / 100,
+        l = Number(m[3]) / 100;
     if (s === 0) {
         return [l, l, l];
     }
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
-    const hue = (t) => {
+    const hue = t => {
         if (t < 0) t += 1;
         if (t > 1) t -= 1;
         if (t < 1 / 6) return p + (q - p) * 6 * t;
@@ -52,10 +51,7 @@ function hslToRgb(cssValue) {
 // system page badges tokens with the same functions, so the page and this
 // guard can't disagree about where a threshold falls.
 function contrast(fgToken, bgToken) {
-    return contrastRatio(
-        relativeLuminance(hslToRgb(resolve(fgToken))),
-        relativeLuminance(hslToRgb(resolve(bgToken)))
-    );
+    return contrastRatio(relativeLuminance(hslToRgb(resolve(fgToken))), relativeLuminance(hslToRgb(resolve(bgToken))));
 }
 
 // [foreground, background, minimum ratio]
@@ -99,7 +95,7 @@ const MATRIX = [
     ['--color-border', '--color-surface', 3],
     ['--color-focus-ring', '--color-surface', 3],
     ['--color-focus-ring', '--color-background', 3],
-    ['--color-disabled-fg', '--color-disabled-bg', 3],
+    ['--color-disabled-fg', '--color-disabled-bg', 3]
 ];
 
 describe('color token contrast (WCAG AA)', () => {
@@ -108,9 +104,7 @@ describe('color token contrast (WCAG AA)', () => {
     });
 
     test('semantic tokens reference primitives, not literals', () => {
-        const semantic = Object.keys(tokens).filter(
-            (name) => name.startsWith('--color-') && !name.startsWith('--color-chip-')
-        );
+        const semantic = Object.keys(tokens).filter(name => name.startsWith('--color-') && !name.startsWith('--color-chip-'));
         // A bare var(--ramp) or a color-mix() over one — both keep the ramp as
         // the single source of truth. What's banned is a raw color literal.
         for (const name of semantic) {

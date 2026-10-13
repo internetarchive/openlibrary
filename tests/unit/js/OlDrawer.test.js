@@ -14,8 +14,12 @@
 /** jsdom implements neither <dialog>'s modal methods nor scrollIntoView. */
 function installDomStubs() {
     const dialogProto = window.HTMLDialogElement.prototype;
-    dialogProto.showModal = function() { this.open = true; };
-    dialogProto.close = function() { this.open = false; };
+    dialogProto.showModal = function () {
+        this.open = true;
+    };
+    dialogProto.close = function () {
+        this.open = false;
+    };
     Element.prototype.scrollIntoView = vi.fn();
     // The body scroll lock restores the offset through it on release.
     const realScrollTo = window.scrollTo;
@@ -34,7 +38,7 @@ async function mountDrawer() {
     const { OlDrawer } = await import('../../../openlibrary/components/lit/OlDrawer.js');
     const el = new OlDrawer();
     el.label = 'Menu';
-    el.innerHTML = LINKS.map((id) => `<a id="${id}" href="/${id}">${id}</a>`).join('');
+    el.innerHTML = LINKS.map(id => `<a id="${id}" href="/${id}">${id}</a>`).join('');
     document.body.appendChild(el);
     await el.updateComplete;
 
@@ -45,9 +49,14 @@ async function mountDrawer() {
 
 /** Fire Tab at the document, where the trap listens in the capture phase. */
 function pressTab({ shiftKey = false } = {}) {
-    document.dispatchEvent(new KeyboardEvent('keydown', {
-        key: 'Tab', shiftKey, bubbles: true, cancelable: true,
-    }));
+    document.dispatchEvent(
+        new KeyboardEvent('keydown', {
+            key: 'Tab',
+            shiftKey,
+            bubbles: true,
+            cancelable: true
+        })
+    );
 }
 
 describe('ol-drawer Tab trap', () => {
@@ -63,7 +72,7 @@ describe('ol-drawer Tab trap', () => {
         vi.restoreAllMocks();
     });
 
-    it('scrolls the newly focused element into view', async() => {
+    it('scrolls the newly focused element into view', async () => {
         const el = await mountDrawer();
         Element.prototype.scrollIntoView.mockClear();
 
@@ -78,7 +87,7 @@ describe('ol-drawer Tab trap', () => {
         expect(scrollIntoView.mock.contexts).toEqual([second]);
     });
 
-    it('scrolls back up when Tab wraps to the first element', async() => {
+    it('scrolls back up when Tab wraps to the first element', async () => {
         // The wrap is the longest jump in the panel, so it's the one a missing
         // scroll strands the user furthest from.
         const el = await mountDrawer();
@@ -91,7 +100,7 @@ describe('ol-drawer Tab trap', () => {
         expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
     });
 
-    it('scrolls on Shift+Tab too', async() => {
+    it('scrolls on Shift+Tab too', async () => {
         const el = await mountDrawer();
         el.querySelector('#third').focus();
         Element.prototype.scrollIntoView.mockClear();
@@ -102,7 +111,7 @@ describe('ol-drawer Tab trap', () => {
         expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
     });
 
-    it('leaves ancestors alone, so the clipped dialog cannot scroll', async() => {
+    it('leaves ancestors alone, so the clipped dialog cannot scroll', async () => {
         // focus() without preventScroll scrolls every scrollable ancestor; the
         // panel parked off-screen made that scroll the dialog sideways.
         const el = await mountDrawer();
