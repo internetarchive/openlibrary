@@ -174,7 +174,7 @@ def _include_routers(app: FastAPI) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
-    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
+    if get_ol_env().LOCAL_DEV:
         setup_debugpy()
     from openlibrary.core.async_db import close_pool, init_pool
 
@@ -218,7 +218,7 @@ def create_app() -> FastAPI | None:
         version="1.0.0",
         contact={"name": "Open Library Team", "url": "https://openlibrary.org", "email": "openlibrary@archive.org"},
         license_info={"name": "AGPL-3.0", "url": "https://github.com/internetarchive/openlibrary/blob/master/LICENSE"},
-        debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
+        debug=get_ol_env().LOCAL_DEV,
         lifespan=lifespan,
         strict_content_type=False,  # A breaking change and not applicable to our app. See: https://fastapi.tiangolo.com/advanced/strict-content-type/
     )

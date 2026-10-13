@@ -1,22 +1,13 @@
 <template>
-  <div>
-    <OLCarousel
-      :query="`${classification.field}:${activeSection.query} ${filter}`"
-      :offset="activeSection.position"
-    >
-      <template #cover-label="{book}">
-        <span
-          :title="book[classification.field].join('\n')"
-        >{{ book[classification.field][0] }}</span>
-      </template>
-    </OLCarousel>
+    <div>
+        <OLCarousel :query="`${classification.field}:${activeSection.query} ${filter}`" :offset="activeSection.position">
+            <template #cover-label="{ book }">
+                <span :title="book[classification.field].join('\n')">{{ book[classification.field][0] }}</span>
+            </template>
+        </OLCarousel>
 
-    <ClassSlider
-      v-for="(lvl, i) of levels"
-      :key="i"
-      :node="lvl"
-    />
-  </div>
+        <ClassSlider v-for="(lvl, i) of levels" :key="i" :node="lvl" />
+    </div>
 </template>
 
 <script>
@@ -57,7 +48,6 @@ export default {
             return result.reverse();
         }
     },
-    methods: {
-    }
+    methods: {}
 };
 </script>

@@ -94,8 +94,8 @@ class TestAccountLoansJson:
             ("/account/loan-history.json", "openlibrary.fastapi.account.legacy_account.get_account_loan_history_json"),
         ],
     )
-    def test_local_dev_returns_503_with_helpful_message(self, fastapi_client, mock_authenticated_user, endpoint, helper_path, monkeypatch):
-        monkeypatch.setenv("LOCAL_DEV", "true")
+    @pytest.mark.usefixtures("local_dev")
+    def test_local_dev_returns_503_with_helpful_message(self, fastapi_client, mock_authenticated_user, endpoint, helper_path):
         legacy_user = FakeLegacyUser()
 
         with (

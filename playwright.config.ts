@@ -11,34 +11,34 @@ import { defineConfig, devices } from '@playwright/test';
  * checks) run on the `mobile` project only.
  */
 export default defineConfig({
-  testDir: './tests/e2e',
-  timeout: 30_000,
-  retries: 0,
-  reporter: [['list'], ['html', { open: 'never' }]],
+    testDir: './tests/e2e',
+    timeout: 30_000,
+    retries: 0,
+    reporter: [['list'], ['html', { open: 'never' }]],
 
-  use: {
-    baseURL: process.env.OL_BASE_URL || 'http://localhost:8080',
-    headless: true,
-  },
+    use: {
+        baseURL: process.env.OL_BASE_URL || 'http://localhost:8080',
+        headless: true
+    },
 
-  projects: [
-    {
-      name: 'desktop',
-      grepInvert: /@mobile/,
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1280, height: 800 },
-      },
-    },
-    {
-      name: 'mobile',
-      grep: /@mobile/,
-      use: {
-        // Use Pixel 5 (Chromium) instead of iPhone 12 (WebKit).
-        // WebKit headless launch times out on some macOS systems; Chromium is more reliable.
-        ...devices['Pixel 5'],
-        viewport: { width: 390, height: 844 },
-      },
-    },
-  ],
+    projects: [
+        {
+            name: 'desktop',
+            grepInvert: /@mobile/,
+            use: {
+                ...devices['Desktop Chrome'],
+                viewport: { width: 1280, height: 800 }
+            }
+        },
+        {
+            name: 'mobile',
+            grep: /@mobile/,
+            use: {
+                // Use Pixel 5 (Chromium) instead of iPhone 12 (WebKit).
+                // WebKit headless launch times out on some macOS systems; Chromium is more reliable.
+                ...devices['Pixel 5'],
+                viewport: { width: 390, height: 844 }
+            }
+        }
+    ]
 });
