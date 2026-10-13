@@ -68,7 +68,7 @@ export function init(config) {
     Chart.defaults.color = token('--color-text-secondary');
     /** @type {Chart[]} */
     const charts = [];
-    const selectedWorksList = document.querySelector('.selected-works--list');
+    const selectedWorksList = document.querySelector('.selected-works__list');
 
     /**
      * Highlight one bar (or none) across every chart, since the works list shows a single selection
