@@ -124,8 +124,8 @@ export class OlTabs extends LitElement {
         const tab = this._tabs[index];
         if (!tab) return;
         if (focus) tab.focus();
+        if (index === this._selectedIndex) return;
         const id = this._panelIdOf(tab);
-        if (id === this.selected) return;
         this.selected = id;
         if (this.syncHash) history.replaceState(history.state, '', `#${id}`);
         this.dispatchEvent(new CustomEvent('ol-tabs-change', { bubbles: true, composed: true, detail: { selected: id } }));

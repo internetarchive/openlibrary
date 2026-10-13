@@ -140,6 +140,17 @@ describe('ol-tabs', () => {
             expect(onChange.mock.calls[0][0].detail).toEqual({ selected: 'three' });
         });
 
+        it('does nothing when the tab shown by default is clicked', async () => {
+            const el = await mount({ attrs: 'sync-hash' });
+            const onChange = vi.fn();
+            el.addEventListener('ol-tabs-change', onChange);
+
+            click(tabs(el)[0]);
+
+            expect(onChange).not.toHaveBeenCalled();
+            expect(window.location.hash).toBe('');
+        });
+
         it('leaves modified clicks to the browser', async () => {
             const el = await mount();
             const event = click(tabs(el)[1], { ctrlKey: true });
