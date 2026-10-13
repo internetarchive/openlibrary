@@ -20,12 +20,7 @@ import '../../openlibrary/components/lit/OlCarousel.js';
 async function mountCarousel() {
     render(html`
         <ol-carousel label="Trending" style="width: 1200px">
-            ${Array.from(
-                { length: 18 },
-                (_, i) => html`
-                <div style="height: 120px">Card ${i}</div>
-            `
-            )}
+            ${Array.from({ length: 18 }, (_, i) => html` <div style="height: 120px">Card ${i}</div> `)}
         </ol-carousel>
     `);
 

@@ -158,7 +158,9 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
         /* iOS zooms in on focus when the input font is < 16px. */
         @media (max-width: 767px) {
-            .filter-input { font-size: var(--font-size-body-large); }
+            .filter-input {
+                font-size: var(--font-size-body-large);
+            }
         }
 
         .filter-icon {
@@ -359,11 +361,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >
-                <slot
-                    name="trigger"
-                    slot="trigger"
-                    @keydown=${this._onTriggerKeydown}
-                ></slot>
+                <slot name="trigger" slot="trigger" @keydown=${this._onTriggerKeydown}></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
@@ -437,30 +435,27 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
                 ${
                     showSearch
                         ? html`
-                    <div class="filter">
-                        <ol-icon class="filter-icon" name="search"></ol-icon>
-                        <input
-                            type="search"
-                            class="filter-input"
-                            aria-label=${this.placeholder}
-                            aria-controls=${this._panelId}
-                            placeholder=${this.placeholder}
-                            .value=${this._query}
-                            @input=${this._onQueryInput}
-                            @keydown=${this._onFilterKeydown}
-                        />
-                    </div>
-                `
+                              <div class="filter">
+                                  <ol-icon class="filter-icon" name="search"></ol-icon>
+                                  <input
+                                      type="search"
+                                      class="filter-input"
+                                      aria-label=${this.placeholder}
+                                      aria-controls=${this._panelId}
+                                      placeholder=${this.placeholder}
+                                      .value=${this._query}
+                                      @input=${this._onQueryInput}
+                                      @keydown=${this._onFilterKeydown}
+                                  />
+                              </div>
+                          `
                         : nothing
                 }
-                <div
-                    class="list-area"
-                    role="radiogroup"
-                    aria-label=${this.label}
-                    @keydown=${this._onListKeydown}
-                >
+                <div class="list-area" role="radiogroup" aria-label=${this.label} @keydown=${this._onListKeydown}>
                     ${heading ? html`<div class="group-heading" aria-hidden="true">${heading}</div>` : nothing}
-                    <ul class="group" id=${this._panelId}>${rows}</ul>
+                    <ul class="group" id=${this._panelId}>
+                        ${rows}
+                    </ul>
                 </div>
             </div>
         `;
@@ -472,22 +467,15 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // template literal whitespace creates real text nodes that accesslint
         // flags as direct text content inside <ul>.
         return html`<li class="item ${item.nested ? 'item--nested' : ''}">
-                <label class="item-row">
-                    <input
-                        type="radio"
-                        class="item-radio"
-                        name=${this._radioName}
-                        .checked=${isSelected}
-                        .value=${item.value}
-                        @change=${this._onItemChange}
-                    />
-                    <span class="item-content">
-                        <span class="item-label">${item.label}</span>
-                        ${item.description ? html`<span class="item-description">${item.description}</span>` : nothing}
-                    </span>
-                    ${item.count ? html`<span class="item-count">${item.count}</span>` : nothing}
-                </label>
-            </li>`;
+            <label class="item-row">
+                <input type="radio" class="item-radio" name=${this._radioName} .checked=${isSelected} .value=${item.value} @change=${this._onItemChange} />
+                <span class="item-content">
+                    <span class="item-label">${item.label}</span>
+                    ${item.description ? html`<span class="item-description">${item.description}</span>` : nothing}
+                </span>
+                ${item.count ? html`<span class="item-count">${item.count}</span>` : nothing}
+            </label>
+        </li>`;
     }
 
     // ── State helpers ────────────────────────────────────────────

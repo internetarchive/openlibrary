@@ -256,7 +256,7 @@ export class OlShelfActions extends LitElement {
         .group.rating::before,
         .group.lists-entry::before,
         .group.retract::before {
-            content: "";
+            content: '';
             position: absolute;
             inset-inline: var(--spacing-inset-md);
             height: 1px;
@@ -396,12 +396,12 @@ export class OlShelfActions extends LitElement {
 
         /* The shelf a book is on, and the date it was finished on, are the same
            kind of answer — both mark their row the same way. */
-        .row[aria-pressed="true"] {
+        .row[aria-pressed='true'] {
             color: var(--color-link);
             font-weight: 600;
         }
 
-        .row[aria-pressed="true"] .obd-icon {
+        .row[aria-pressed='true'] .obd-icon {
             color: var(--color-link);
         }
 
@@ -445,13 +445,12 @@ export class OlShelfActions extends LitElement {
             white-space: nowrap;
         }
 
-
         /* A request in flight dims the group rather than disabling its rows:
            disabling the focused row would drop focus to the document. The
            handlers ignore clicks while busy, so this is feedback only. */
-        [aria-busy="true"] .row,
-        [aria-busy="true"] .star,
-        [aria-busy="true"] .clear {
+        [aria-busy='true'] .row,
+        [aria-busy='true'] .star,
+        [aria-busy='true'] .clear {
             cursor: default;
             opacity: 0.6;
         }
@@ -676,7 +675,7 @@ export class OlShelfActions extends LitElement {
         }
 
         .lists-footer::before {
-            content: "";
+            content: '';
             position: absolute;
             top: 0;
             inset-inline: var(--spacing-inset-md);
@@ -853,7 +852,9 @@ export class OlShelfActions extends LitElement {
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1041,22 +1042,21 @@ export class OlShelfActions extends LitElement {
                     ${
                         this._warm
                             ? html`
-                        <div
-                            class="track ${classMap({ snap: this._snap })}"
-                            style=${styleMap(track)}
-                        >
-                            ${PANES.map(
-                                name => html`
-                                <div
-                                    class="pane"
-                                    ?inert=${this._pane !== name}
-                                    role=${name === 'lists' ? 'group' : nothing}
-                                    aria-label=${name === 'lists' ? this.t('addToList') : nothing}
-                                >${this._renderPane(name)}</div>
-                            `
-                            )}
-                        </div>
-                    `
+                                  <div class="track ${classMap({ snap: this._snap })}" style=${styleMap(track)}>
+                                      ${PANES.map(
+                                          name => html`
+                                              <div
+                                                  class="pane"
+                                                  ?inert=${this._pane !== name}
+                                                  role=${name === 'lists' ? 'group' : nothing}
+                                                  aria-label=${name === 'lists' ? this.t('addToList') : nothing}
+                                              >
+                                                  ${this._renderPane(name)}
+                                              </div>
+                                          `
+                                      )}
+                                  </div>
+                              `
                             : nothing
                     }
                     <!-- Outside the track: a pane goes inert when it slides
@@ -1098,15 +1098,7 @@ export class OlShelfActions extends LitElement {
                     return row.id === SHELF.ALREADY_READ ? html`<div class="row-split">${toggle}${this._renderDateLink()}</div>` : toggle;
                 })}
             </div>
-            ${
-                this.hideRating || this._starsElsewhere
-                    ? nothing
-                    : html`
-                <div class="group rating" aria-busy=${this._held}>
-                    ${this._renderStars()}
-                </div>
-            `
-            }
+            ${this.hideRating || this._starsElsewhere ? nothing : html` <div class="group rating" aria-busy=${this._held}>${this._renderStars()}</div> `}
             <div class="group lists-entry">
                 <button type="button" class="row" @click=${this._openLists}>
                     <ol-icon class="obd-icon" name="list-plus"></ol-icon>
@@ -1146,12 +1138,7 @@ export class OlShelfActions extends LitElement {
     _renderRecentShortcut(recent, list) {
         const inList = this._holdsSeed(list);
         return html`
-            <button
-                type="button"
-                class="row shortcut"
-                aria-pressed=${inList ? 'true' : 'false'}
-                @click=${() => this._onListToggle(recent.key, !inList)}
-            >
+            <button type="button" class="row shortcut" aria-pressed=${inList ? 'true' : 'false'} @click=${() => this._onListToggle(recent.key, !inList)}>
                 <ol-icon class="obd-icon" name=${inList ? 'check' : 'plus'}></ol-icon>
                 <span class="label">${list?.listName || recent.name}</span>
             </button>
@@ -1212,25 +1199,27 @@ export class OlShelfActions extends LitElement {
                 >
                     ${[1, 2, 3, 4, 5].map(
                         n => html`
-                        <button
-                            type="button"
-                            class="star"
-                            role="radio"
-                            aria-checked=${this.rating === n ? 'true' : 'false'}
-                            aria-label=${this.t('rateStar', { rating: n })}
-                            tabindex=${n === tabStop ? '0' : '-1'}
-                            @mouseenter=${() => {
-                                this._hoverRating = n;
-                            }}
-                            @focus=${() => {
-                                this._hoverRating = n;
-                            }}
-                            @blur=${() => {
-                                this._hoverRating = 0;
-                            }}
-                            @click=${() => this._onRate(n)}
-                        ><ol-icon class="obd-icon" name="star" ?filled=${n <= shown}></ol-icon></button>
-                    `
+                            <button
+                                type="button"
+                                class="star"
+                                role="radio"
+                                aria-checked=${this.rating === n ? 'true' : 'false'}
+                                aria-label=${this.t('rateStar', { rating: n })}
+                                tabindex=${n === tabStop ? '0' : '-1'}
+                                @mouseenter=${() => {
+                                    this._hoverRating = n;
+                                }}
+                                @focus=${() => {
+                                    this._hoverRating = n;
+                                }}
+                                @blur=${() => {
+                                    this._hoverRating = 0;
+                                }}
+                                @click=${() => this._onRate(n)}
+                            >
+                                <ol-icon class="obd-icon" name="star" ?filled=${n <= shown}></ol-icon>
+                            </button>
+                        `
                     )}
                 </span>
                 ${caption}
@@ -1290,35 +1279,25 @@ export class OlShelfActions extends LitElement {
                     this.readDate
                         ? nothing
                         : html`
-                    <button type="button" class="row skip" @click=${this._onSkipDate}>
-                        <ol-icon class="obd-icon" name="arrow-right"></ol-icon>
-                        <span class="label">${this.t('skipDate')}</span>
-                    </button>
-                `
+                              <button type="button" class="row skip" @click=${this._onSkipDate}>
+                                  <ol-icon class="obd-icon" name="arrow-right"></ol-icon>
+                                  <span class="label">${this.t('skipDate')}</span>
+                              </button>
+                          `
                 }
-                <button
-                    type="button"
-                    class="row today"
-                    aria-pressed=${answered === 'today' ? 'true' : 'false'}
-                    @click=${this._onToday}
-                >
+                <button type="button" class="row today" aria-pressed=${answered === 'today' ? 'true' : 'false'} @click=${this._onToday}>
                     <ol-icon class="obd-icon" name="calendar-check"></ol-icon>
                     <span class="label">${this.t('today')}</span>
                     ${answered === 'today' ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
                 </button>
                 ${quickYears().map(
                     year => html`
-                    <button
-                        type="button"
-                        class="row year"
-                        aria-pressed=${answered === String(year) ? 'true' : 'false'}
-                        @click=${() => this._onYear(year)}
-                    >
-                        <ol-icon class="obd-icon" name="calendar"></ol-icon>
-                        <span class="label">${this.t('inYear', { year })}</span>
-                        ${answered === String(year) ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
-                    </button>
-                `
+                        <button type="button" class="row year" aria-pressed=${answered === String(year) ? 'true' : 'false'} @click=${() => this._onYear(year)}>
+                            <ol-icon class="obd-icon" name="calendar"></ol-icon>
+                            <span class="label">${this.t('inYear', { year })}</span>
+                            ${answered === String(year) ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
+                        </button>
+                    `
                 )}
                 <button
                     type="button"
@@ -1342,11 +1321,11 @@ export class OlShelfActions extends LitElement {
             ${
                 this._amending && this.eventId
                     ? html`<div class="group retract">
-                <button type="button" class="row remove-date" @click=${this._onRemoveDate}>
-                    <ol-icon class="obd-icon" name="x"></ol-icon>
-                    <span class="label">${this.t('removeDate')}</span>
-                </button>
-            </div>`
+                          <button type="button" class="row remove-date" @click=${this._onRemoveDate}>
+                              <ol-icon class="obd-icon" name="x"></ol-icon>
+                              <span class="label">${this.t('removeDate')}</span>
+                          </button>
+                      </div>`
                     : nothing
             }
         `;
@@ -1401,65 +1380,63 @@ export class OlShelfActions extends LitElement {
             <div class="lists-header">
                 ${
                     this.listsOnly
-                        ? html`
-                    <span class="lists-title">${this.book.title}</span>
-                `
+                        ? html` <span class="lists-title">${this.book.title}</span> `
                         : html`
-                    <ol-button class="back" variant="ghost" size="small" @click=${this._backToMain}>
-                        <ol-icon slot="icon-start" name="chevron-left"></ol-icon>${this.t('back')}
-                    </ol-button>
-                `
+                              <ol-button class="back" variant="ghost" size="small" @click=${this._backToMain}>
+                                  <ol-icon slot="icon-start" name="chevron-left"></ol-icon>${this.t('back')}
+                              </ol-button>
+                          `
                 }
                 ${
                     creating
                         ? nothing
                         : html`
-                    <ol-button size="small" @click=${this._startCreate}>
-                        <ol-icon slot="icon-start" name="plus"></ol-icon>${this.t('createList')}
-                    </ol-button>
-                `
+                              <ol-button size="small" @click=${this._startCreate}>
+                                  <ol-icon slot="icon-start" name="plus"></ol-icon>${this.t('createList')}
+                              </ol-button>
+                          `
                 }
             </div>
             ${
                 creating
                     ? html`
-                ${this._firstList ? html`<div class="caption">${this.t('createFirstList')}</div>` : nothing}
-                <form class="field" @submit=${this._onCreateSubmit}>
-                    <input
-                        class="input"
-                        name="name"
-                        type="text"
-                        required
-                        maxlength="200"
-                        placeholder=${this.t('listName')}
-                        aria-label=${this.t('listName')}
-                        aria-busy=${this._createBusy}
-                        @keydown=${e => {
-                            if (e.key === 'Escape') {
-                                e.stopPropagation();
-                                this._cancelCreate();
-                            }
-                        }}
-                    />
-                    <ol-button type="submit" variant="primary" size="small">${this.t('create')}</ol-button>
-                </form>
-            `
+                          ${this._firstList ? html`<div class="caption">${this.t('createFirstList')}</div>` : nothing}
+                          <form class="field" @submit=${this._onCreateSubmit}>
+                              <input
+                                  class="input"
+                                  name="name"
+                                  type="text"
+                                  required
+                                  maxlength="200"
+                                  placeholder=${this.t('listName')}
+                                  aria-label=${this.t('listName')}
+                                  aria-busy=${this._createBusy}
+                                  @keydown=${e => {
+                                      if (e.key === 'Escape') {
+                                          e.stopPropagation();
+                                          this._cancelCreate();
+                                      }
+                                  }}
+                              />
+                              <ol-button type="submit" variant="primary" size="small">${this.t('create')}</ol-button>
+                          </form>
+                      `
                     : this._listTotal > FILTER_THRESHOLD
                       ? html`
-                <div class="field">
-                    <input
-                        class="input"
-                        type="search"
-                        placeholder=${this.t('filterLists')}
-                        aria-label=${this.t('filterLists')}
-                        .value=${this._listFilter}
-                        @input=${e => {
-                            this._listFilter = e.target.value;
-                        }}
-                        @keydown=${this._onFilterKeydown}
-                    />
-                </div>
-            `
+                            <div class="field">
+                                <input
+                                    class="input"
+                                    type="search"
+                                    placeholder=${this.t('filterLists')}
+                                    aria-label=${this.t('filterLists')}
+                                    .value=${this._listFilter}
+                                    @input=${e => {
+                                        this._listFilter = e.target.value;
+                                    }}
+                                    @keydown=${this._onFilterKeydown}
+                                />
+                            </div>
+                        `
                       : nothing
             }
             <div class="list-items">${this._renderListItems()}</div>
@@ -1467,12 +1444,12 @@ export class OlShelfActions extends LitElement {
                 !this._listTotal || !this.userKey
                     ? nothing
                     : html`
-                <div class="lists-footer">
-                    <ol-button class="lists-link" variant="ghost" size="small" href=${`${this.userKey}/lists`}>
-                        ${this.t('manageLists')}<ol-icon slot="icon-end" name="arrow-right"></ol-icon>
-                    </ol-button>
-                </div>
-            `
+                          <div class="lists-footer">
+                              <ol-button class="lists-link" variant="ghost" size="small" href=${`${this.userKey}/lists`}>
+                                  ${this.t('manageLists')}<ol-icon slot="icon-end" name="arrow-right"></ol-icon>
+                              </ol-button>
+                          </div>
+                      `
             }
         `;
     }
@@ -1491,17 +1468,12 @@ export class OlShelfActions extends LitElement {
         const target = this._listFilter.trim() ? (pinned[0] ?? rest[0]) : null;
         if (!pinned.length) return this._renderListRows(lists, rest, target);
         const group = (keys, label) => html`
-            <div class="group-lists" role="group" aria-label=${this.t(label)}>
-                ${this._renderListRows(lists, keys, target)}
-            </div>
+            <div class="group-lists" role="group" aria-label=${this.t(label)}>${this._renderListRows(lists, keys, target)}</div>
         `;
         // The pinned group's label follows what is actually in it, so it never
         // promises rows for this book when there are none.
         const pinnedLabel = pinned.some(key => this._members.includes(key)) ? 'pinnedLists' : 'recentLists';
-        return html`
-            ${group(pinned, pinnedLabel)}
-            ${rest.length ? group(rest, 'otherLists') : nothing}
-        `;
+        return html` ${group(pinned, pinnedLabel)} ${rest.length ? group(rest, 'otherLists') : nothing} `;
     }
 
     _renderListRows(lists, keys, target) {
@@ -1516,17 +1488,17 @@ export class OlShelfActions extends LitElement {
                 const checked = this._holdsSeed(list);
                 const other = this._otherForm(list);
                 return html`
-                <label class="list-row ${classMap({ target: key === target, checked })}">
-                    <!-- Still a checkbox to assistive tech and the keyboard; the icon is what shows. -->
-                    <input type="checkbox" .checked=${checked} @change=${e => this._onListToggle(key, e.target.checked)} />
-                    <ol-icon class="obd-icon" name=${checked ? 'check' : 'plus'}></ol-icon>
-                    <span class="text">
-                        <span class="name">${list.listName}</span>
-                        ${other ? html`<span class="other-form">${other.kind === 'edition' ? this.t('otherEditions', { count: other.count }) : this.t('anyEdition')}</span>` : nothing}
-                    </span>
-                    <span class="count" aria-label=${this.t('itemsInList', { count: list.members.length })}>${list.members.length}</span>
-                </label>
-            `;
+                    <label class="list-row ${classMap({ target: key === target, checked })}">
+                        <!-- Still a checkbox to assistive tech and the keyboard; the icon is what shows. -->
+                        <input type="checkbox" .checked=${checked} @change=${e => this._onListToggle(key, e.target.checked)} />
+                        <ol-icon class="obd-icon" name=${checked ? 'check' : 'plus'}></ol-icon>
+                        <span class="text">
+                            <span class="name">${list.listName}</span>
+                            ${other ? html`<span class="other-form">${other.kind === 'edition' ? this.t('otherEditions', { count: other.count }) : this.t('anyEdition')}</span>` : nothing}
+                        </span>
+                        <span class="count" aria-label=${this.t('itemsInList', { count: list.members.length })}>${list.members.length}</span>
+                    </label>
+                `;
             }
         );
     }

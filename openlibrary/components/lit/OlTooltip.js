@@ -109,16 +109,16 @@ export class OlTooltip extends LitElement {
             transform: rotate(45deg);
         }
 
-        :host([data-side="top"]) .arrow {
+        :host([data-side='top']) .arrow {
             bottom: -4px;
         }
-        :host([data-side="bottom"]) .arrow {
+        :host([data-side='bottom']) .arrow {
             top: -4px;
         }
-        :host([data-side="left"]) .arrow {
+        :host([data-side='left']) .arrow {
             right: -4px;
         }
-        :host([data-side="right"]) .arrow {
+        :host([data-side='right']) .arrow {
             left: -4px;
         }
     `;
@@ -194,17 +194,7 @@ export class OlTooltip extends LitElement {
                 style="top: ${this._position.top}px; left: ${this._position.left}px;"
             >
                 <slot name="content">${this.content}</slot>
-                ${
-                    this.arrow
-                        ? html`
-                    <div
-                        class="arrow"
-                        aria-hidden="true"
-                        style="${this._arrowStyle}"
-                    ></div>
-                `
-                        : nothing
-                }
+                ${this.arrow ? html` <div class="arrow" aria-hidden="true" style="${this._arrowStyle}"></div> ` : nothing}
             </div>
         `;
     }

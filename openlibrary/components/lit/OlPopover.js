@@ -140,7 +140,6 @@ export class OlPopover extends LitElement {
             --_tray-handle-height: 16px;
         }
 
-
         .panel {
             position: fixed;
             z-index: var(--z-index-dropdown);
@@ -170,25 +169,25 @@ export class OlPopover extends LitElement {
             color: inherit;
         }
 
-        .panel[data-state="preparing"],
-        .panel[data-state="entering"] {
+        .panel[data-state='preparing'],
+        .panel[data-state='entering'] {
             will-change: transform, opacity;
         }
 
-        .panel[data-state="entering"],
-        .panel[data-state="open"] {
+        .panel[data-state='entering'],
+        .panel[data-state='open'] {
             opacity: 1;
             transform: scale(1);
             pointer-events: auto;
         }
 
-        .panel[data-state="entering"] {
+        .panel[data-state='entering'] {
             transition:
                 opacity var(--duration-base) var(--ease-enter),
                 transform var(--duration-base) var(--ease-enter);
         }
 
-        .panel[data-state="exiting"] {
+        .panel[data-state='exiting'] {
             opacity: 0;
             transform: scale(0.95);
             pointer-events: none;
@@ -222,17 +221,17 @@ export class OlPopover extends LitElement {
             pointer-events: none;
         }
 
-        .backdrop[data-state="entering"],
-        .backdrop[data-state="open"] {
+        .backdrop[data-state='entering'],
+        .backdrop[data-state='open'] {
             opacity: 1;
             pointer-events: auto;
         }
 
-        .backdrop[data-state="entering"] {
+        .backdrop[data-state='entering'] {
             transition: opacity var(--duration-slow) var(--ease-enter);
         }
 
-        .backdrop[data-state="exiting"] {
+        .backdrop[data-state='exiting'] {
             opacity: 0;
             pointer-events: none;
             transition: opacity var(--duration-base) var(--ease-enter);
@@ -274,23 +273,23 @@ export class OlPopover extends LitElement {
             --ol-popover-content-max-height: calc(var(--_tray-max-height) - var(--_tray-handle-height));
         }
 
-        .panel.tray[data-state="preparing"],
-        .panel.tray[data-state="entering"] {
+        .panel.tray[data-state='preparing'],
+        .panel.tray[data-state='entering'] {
             will-change: transform;
         }
 
-        .panel.tray[data-state="entering"],
-        .panel.tray[data-state="open"] {
+        .panel.tray[data-state='entering'],
+        .panel.tray[data-state='open'] {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
         }
 
-        .panel.tray[data-state="entering"] {
+        .panel.tray[data-state='entering'] {
             transition: transform var(--duration-slow) var(--ease-enter);
         }
 
-        .panel.tray[data-state="exiting"] {
+        .panel.tray[data-state='exiting'] {
             opacity: 1;
             transform: translateY(100%);
             pointer-events: none;
@@ -338,12 +337,12 @@ export class OlPopover extends LitElement {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .panel[data-state="entering"],
-            .panel[data-state="exiting"],
-            .panel.tray[data-state="entering"],
-            .panel.tray[data-state="exiting"],
-            .backdrop[data-state="entering"],
-            .backdrop[data-state="exiting"] {
+            .panel[data-state='entering'],
+            .panel[data-state='exiting'],
+            .panel.tray[data-state='entering'],
+            .panel.tray[data-state='exiting'],
+            .backdrop[data-state='entering'],
+            .backdrop[data-state='exiting'] {
                 transition: none;
             }
         }
@@ -392,70 +391,58 @@ export class OlPopover extends LitElement {
             ${
                 showPanel
                     ? html`
-                ${
-                    this._mobile || this.blockOutsideClicks
-                        ? html`
-                    <div
-                        class="backdrop ${this._mobile ? '' : 'guard'}"
-                        popover="${ifDefined(topLayerAttr())}"
-                        data-state="${this._animState}"
-                        @click="${this._onBackdropClick}"
-                    ></div>
-                `
-                        : nothing
-                }
-                <!-- Sentinels bracket the panel (rather than nesting inside it)
+                          ${
+                              this._mobile || this.blockOutsideClicks
+                                  ? html`
+                                        <div
+                                            class="backdrop ${this._mobile ? '' : 'guard'}"
+                                            popover="${ifDefined(topLayerAttr())}"
+                                            data-state="${this._animState}"
+                                            @click="${this._onBackdropClick}"
+                                        ></div>
+                                    `
+                                  : nothing
+                          }
+                          <!-- Sentinels bracket the panel (rather than nesting inside it)
                      so focus reaching one means the user has Tabbed past the
                      panel's edge. A popover is non-modal, so that closes it (see
                      _onSentinelFocus) rather than wrapping — Tab must be able to
                      leave. They're only reached by a genuine boundary crossing. -->
-                <span
-                    class="focus-sentinel"
-                    tabindex="0"
-                    aria-hidden="true"
-                    data-edge="start"
-                    @focus="${this._onSentinelFocus}"
-                ></span>
-                <div
-                    id="${this._panelId}"
-                    class="panel ${this._mobile ? 'tray' : ''}"
-                    popover="${ifDefined(topLayerAttr())}"
-                    data-state="${this._animState}"
-                    role="dialog"
-                    aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
-                    aria-modal="${ifDefined(this._mobile ? 'true' : undefined)}"
-                    tabindex="-1"
-                    style="${
-                        this._mobile
-                            ? ''
-                            : `
+                          <span class="focus-sentinel" tabindex="0" aria-hidden="true" data-edge="start" @focus="${this._onSentinelFocus}"></span>
+                          <div
+                              id="${this._panelId}"
+                              class="panel ${this._mobile ? 'tray' : ''}"
+                              popover="${ifDefined(topLayerAttr())}"
+                              data-state="${this._animState}"
+                              role="dialog"
+                              aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
+                              aria-modal="${ifDefined(this._mobile ? 'true' : undefined)}"
+                              tabindex="-1"
+                              style="${
+                                  this._mobile
+                                      ? ''
+                                      : `
                         top: ${this._position.top}px;
                         left: ${this._position.left}px;
                         min-width: ${this._minWidth}px;
                         transform-origin: ${this._transformOrigin};
                     `
-                    }"
-                    @transitionend="${this._onTransitionEnd}"
-                >
-                    ${
-                        this._mobile
-                            ? html`
-                        <div class="tray-handle" aria-hidden="true">
-                            <div class="tray-handle-bar"></div>
-                        </div>
-                    `
-                            : nothing
-                    }
-                    <slot></slot>
-                </div>
-                <span
-                    class="focus-sentinel"
-                    tabindex="0"
-                    aria-hidden="true"
-                    data-edge="end"
-                    @focus="${this._onSentinelFocus}"
-                ></span>
-            `
+                              }"
+                              @transitionend="${this._onTransitionEnd}"
+                          >
+                              ${
+                                  this._mobile
+                                      ? html`
+                                            <div class="tray-handle" aria-hidden="true">
+                                                <div class="tray-handle-bar"></div>
+                                            </div>
+                                        `
+                                      : nothing
+                              }
+                              <slot></slot>
+                          </div>
+                          <span class="focus-sentinel" tabindex="0" aria-hidden="true" data-edge="end" @focus="${this._onSentinelFocus}"></span>
+                      `
                     : nothing
             }
         `;

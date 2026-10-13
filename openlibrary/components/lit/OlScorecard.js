@@ -60,7 +60,7 @@ class OlScoreGauge extends LitElement {
             font-weight: normal;
         }
 
-        :host([size="small"]) .value {
+        :host([size='small']) .value {
             font-size: var(--font-size-label-medium, 12px);
             font-weight: bold;
         }
@@ -101,10 +101,7 @@ class OlScoreGauge extends LitElement {
         const color = this._colorVar();
 
         return html`
-            <div
-                class="gauge"
-                style="width: ${diameter}px; height: ${diameter}px; color: ${color}"
-            >
+            <div class="gauge" style="width: ${diameter}px; height: ${diameter}px; color: ${color}">
                 <svg viewBox="0 0 ${diameter} ${diameter}" width=${diameter} height=${diameter} aria-hidden="true">
                     <circle class="track" cx=${center} cy=${center} r=${radius} stroke-width=${strokeWidth}></circle>
                     <circle
@@ -286,11 +283,11 @@ export class OlScorecard extends LitElement {
             transform: scale(1.05);
         }
 
-        button.tab[aria-selected="true"] {
+        button.tab[aria-selected='true'] {
             background: var(--color-control-selected-bg);
         }
 
-        button.tab[aria-selected="true"] .tab-label {
+        button.tab[aria-selected='true'] .tab-label {
             font-weight: bold;
         }
 
@@ -582,13 +579,7 @@ export class OlScorecard extends LitElement {
         const passingChecks = section.checks.filter(c => c.passing).sort((a, b) => b.score - a.score);
 
         return html`
-            <div
-                class="section"
-                id=${panelId}
-                role="tabpanel"
-                aria-labelledby=${tabId}
-                ?hidden=${!isActive}
-            >
+            <div class="section" id=${panelId} role="tabpanel" aria-labelledby=${tabId} ?hidden=${!isActive}>
                 <div class="checks-group">
                     <div class="checks-heading">${this._interpolateLabel(this.labelFailingChecks, { count: failingChecks.length })}</div>
                     ${failingChecks.map(check => this._renderCheck(check))}

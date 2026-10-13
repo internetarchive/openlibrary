@@ -169,7 +169,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         /* iOS zooms in on focus when the input font is < 16px; bump it up on
            mobile to suppress that. */
         @media (max-width: 767px) {
-            .filter-input { font-size: var(--font-size-body-large); }
+            .filter-input {
+                font-size: var(--font-size-body-large);
+            }
         }
 
         .filter-icon {
@@ -334,7 +336,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         /* ── Host-driven loading state ───────────────────────────────────────── */
 
         @keyframes ol-sp-spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .loading-row {
@@ -357,7 +361,10 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         }
 
         @media (prefers-reduced-motion: reduce) {
-                .loading-spinner { animation: none; opacity: 0.5; }
+            .loading-spinner {
+                animation: none;
+                opacity: 0.5;
+            }
         }
     `;
 
@@ -431,11 +438,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >
-                <slot
-                    name="trigger"
-                    slot="trigger"
-                    @keydown=${this._onTriggerKeydown}
-                ></slot>
+                <slot name="trigger" slot="trigger" @keydown=${this._onTriggerKeydown}></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
@@ -563,79 +566,64 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
                 ${
                     showSearch
                         ? html`
-                    <div class="filter">
-                        ${OlSelectPopover._searchIcon}
-                        <input
-                            type="search"
-                            class="filter-input"
-                            role="searchbox"
-                            aria-controls=${this._panelId}
-                            placeholder=${this.placeholder}
-                            .value=${this._query}
-                            @input=${this._onQueryInput}
-                            @keydown=${this._onListKeydown}
-                        />
-                    </div>
-                `
+                              <div class="filter">
+                                  ${OlSelectPopover._searchIcon}
+                                  <input
+                                      type="search"
+                                      class="filter-input"
+                                      role="searchbox"
+                                      aria-controls=${this._panelId}
+                                      placeholder=${this.placeholder}
+                                      .value=${this._query}
+                                      @input=${this._onQueryInput}
+                                      @keydown=${this._onListKeydown}
+                                  />
+                              </div>
+                          `
                         : nothing
                 }
                 ${
                     hasSelected
                         ? html`
-                    <ul
-                        class="group group--selected"
-                        role="group"
-                        aria-label=${this.selectedHeading}
-                        @keydown=${this._onListKeydown}
-                    >
-                        <li class="group-heading" aria-hidden="true">${this.selectedHeading}</li>
-                        ${repeat(
-                            selectedItems,
-                            it => it.value,
-                            it => this._renderItem(it)
-                        )}
-                    </ul>
-                `
+                              <ul class="group group--selected" role="group" aria-label=${this.selectedHeading} @keydown=${this._onListKeydown}>
+                                  <li class="group-heading" aria-hidden="true">${this.selectedHeading}</li>
+                                  ${repeat(
+                                      selectedItems,
+                                      it => it.value,
+                                      it => this._renderItem(it)
+                                  )}
+                              </ul>
+                          `
                         : nothing
                 }
                 <div class="list-area" id=${this._panelId} @keydown=${this._onListKeydown}>
                     ${
                         this.loading
-                            ? html`
-                        <div class="loading-row" role="status" aria-live="polite">
-                            <span class="loading-spinner" aria-hidden="true"></span>
-                            <span>${this.loadingLabel}</span>
-                        </div>`
-                            : html`
-                    <ul
-                        class="group group--suggestions"
-                        role="group"
-                        aria-label=${suggestionsHeading}
-                    >
-                        <li class="group-heading" aria-hidden="true">${suggestionsHeading}</li>
-                        ${
-                            filteredSuggestions.length === 0 && query
-                                ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
-                                : repeat(
-                                      filteredSuggestions,
-                                      it => it.value,
-                                      it => this._renderItem(it)
-                                  )
-                        }
-                    </ul>`
+                            ? html` <div class="loading-row" role="status" aria-live="polite">
+                                  <span class="loading-spinner" aria-hidden="true"></span>
+                                  <span>${this.loadingLabel}</span>
+                              </div>`
+                            : html` <ul class="group group--suggestions" role="group" aria-label=${suggestionsHeading}>
+                                  <li class="group-heading" aria-hidden="true">${suggestionsHeading}</li>
+                                  ${
+                                      filteredSuggestions.length === 0 && query
+                                          ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
+                                          : repeat(
+                                                filteredSuggestions,
+                                                it => it.value,
+                                                it => this._renderItem(it)
+                                            )
+                                  }
+                              </ul>`
                     }
                 </div>
                 ${
                     hasSelected
                         ? html`
-                    <div class="footer">
-                        <button
-                            type="button"
-                            class="clear-button"
-                            @click=${this._onClear}
-                        >${this.clearLabel}</button>
-                    </div>
-                `
+                              <div class="footer">
+                                  <button type="button" class="clear-button" @click=${this._onClear}>${this.clearLabel}</button>
+                              </div>
+                          `
                         : nothing
                 }
             </div>
@@ -647,13 +635,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         return html`
             <li class="item">
                 <label class="item-row">
-                    <input
-                        type="checkbox"
-                        class="item-checkbox"
-                        .checked=${isSelected}
-                        .value=${item.value}
-                        @change=${this._onItemToggle}
-                    />
+                    <input type="checkbox" class="item-checkbox" .checked=${isSelected} .value=${item.value} @change=${this._onItemToggle} />
                     <span class="item-label">${item.label}</span>
                     ${
                         item.count !== null && item.count !== undefined

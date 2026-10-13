@@ -153,7 +153,7 @@ export class OlCarousel extends LitElement {
             outline-offset: 2px;
         }
 
-        .indicator[aria-current="true"] {
+        .indicator[aria-current='true'] {
             background: var(--_indicator-active);
         }
 
@@ -1109,25 +1109,20 @@ export class OlCarousel extends LitElement {
     _renderIndicators() {
         if (!this.showIndicators || this._totalPages <= 1) return nothing;
         return html`
-            <div
-                class="indicators"
-                role="tablist"
-                aria-label=${this.labelPages}
-                @keydown=${this._onIndicatorKeydown}
-            >
+            <div class="indicators" role="tablist" aria-label=${this.labelPages} @keydown=${this._onIndicatorKeydown}>
                 ${Array.from(
                     { length: this._totalPages },
                     (_, i) => html`
-                    <button
-                        class="indicator"
-                        role="tab"
-                        aria-label=${this._interpolateLabel(this.labelGoToPage, { page: i + 1, total: this._totalPages })}
-                        aria-current=${i === this._page ? 'true' : 'false'}
-                        aria-selected=${i === this._page ? 'true' : 'false'}
-                        tabindex=${i === this._page ? '0' : '-1'}
-                        @click=${() => this.goToPage(i)}
-                    ></button>
-                `
+                        <button
+                            class="indicator"
+                            role="tab"
+                            aria-label=${this._interpolateLabel(this.labelGoToPage, { page: i + 1, total: this._totalPages })}
+                            aria-current=${i === this._page ? 'true' : 'false'}
+                            aria-selected=${i === this._page ? 'true' : 'false'}
+                            tabindex=${i === this._page ? '0' : '-1'}
+                            @click=${() => this.goToPage(i)}
+                        ></button>
+                    `
                 )}
             </div>
         `;
@@ -1139,23 +1134,15 @@ export class OlCarousel extends LitElement {
         const showNext = multiPage && !this._atEnd;
 
         return html`
-            <section
-                class="carousel"
-                role="region"
-                aria-roledescription="carousel"
-                aria-label=${this.label}
-            >
+            <section class="carousel" role="region" aria-roledescription="carousel" aria-label=${this.label}>
                 ${this._renderIndicators()}
                 <div class="frame">
                     <div class="edge-fade prev" ?hidden=${!showPrev}></div>
                     <div class="edge-fade next" ?hidden=${!showNext}></div>
 
-                    <button
-                        class="arrow prev"
-                        aria-label=${this.labelPrevious}
-                        ?hidden=${!showPrev}
-                        @click=${() => this.prev()}
-                    ><span class="arrow-icon">${OlCarousel._leftArrow}</span></button>
+                    <button class="arrow prev" aria-label=${this.labelPrevious} ?hidden=${!showPrev} @click=${() => this.prev()}>
+                        <span class="arrow-icon">${OlCarousel._leftArrow}</span>
+                    </button>
 
                     <div
                         class="viewport"
@@ -1169,12 +1156,9 @@ export class OlCarousel extends LitElement {
                         <slot @slotchange=${this._onSlotChange}></slot>
                     </div>
 
-                    <button
-                        class="arrow next"
-                        aria-label=${this.labelNext}
-                        ?hidden=${!showNext}
-                        @click=${() => this.next()}
-                    ><span class="arrow-icon">${OlCarousel._rightArrow}</span></button>
+                    <button class="arrow next" aria-label=${this.labelNext} ?hidden=${!showNext} @click=${() => this.next()}>
+                        <span class="arrow-icon">${OlCarousel._rightArrow}</span>
+                    </button>
                 </div>
                 <div class="announcer" aria-live="polite" aria-atomic="true"></div>
             </section>

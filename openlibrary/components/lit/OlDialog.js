@@ -193,13 +193,21 @@ export class OlDialog extends LitElement {
         }
 
         @keyframes backdrop-fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes backdrop-fade-out {
-            from { opacity: 1; }
-            to { opacity: 0; }
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -207,29 +215,29 @@ export class OlDialog extends LitElement {
             dialog.closing,
             dialog::backdrop,
             dialog.closing::backdrop,
-            :host([placement="top"]) dialog[open],
-            :host([placement="top"]) dialog.closing {
+            :host([placement='top']) dialog[open],
+            :host([placement='top']) dialog.closing {
                 animation: none;
             }
         }
 
         /* Top-anchored placement: keeps the dialog's top edge fixed as its
            own height grows or shrinks (search modal / command palette). */
-        :host([placement="top"]) {
+        :host([placement='top']) {
             --ol-dialog-max-height: calc(100dvh - var(--ol-dialog-top-offset) - var(--spacing-xl));
         }
 
-        :host([placement="top"]) dialog {
+        :host([placement='top']) dialog {
             margin-block-start: var(--ol-dialog-top-offset);
             margin-block-end: auto;
             transform-origin: top center;
         }
 
-        :host([placement="top"]) dialog[open] {
+        :host([placement='top']) dialog[open] {
             animation: dialog-open-top var(--ol-dialog-animation-duration) var(--ease-enter);
         }
 
-        :host([placement="top"]) dialog.closing {
+        :host([placement='top']) dialog.closing {
             animation: dialog-close-top var(--ol-dialog-animation-duration) var(--ease-exit);
         }
 
@@ -256,15 +264,15 @@ export class OlDialog extends LitElement {
         }
 
         /* Width variants */
-        :host([width="small"]) dialog {
+        :host([width='small']) dialog {
             width: var(--ol-dialog-width-small);
         }
 
-        :host([width="medium"]) dialog {
+        :host([width='medium']) dialog {
             width: var(--ol-dialog-width-medium);
         }
 
-        :host([width="large"]) dialog {
+        :host([width='large']) dialog {
             width: var(--ol-dialog-width-large);
         }
 
@@ -285,7 +293,7 @@ export class OlDialog extends LitElement {
                 border-radius: 0;
             }
 
-            :host([fullscreen-on-mobile][placement="top"]) dialog {
+            :host([fullscreen-on-mobile][placement='top']) dialog {
                 margin-block-start: 0;
                 margin-block-end: 0;
             }
@@ -810,17 +818,8 @@ export class OlDialog extends LitElement {
                 aria-describedby=${ifDefined(this.alert ? this._bodyId : undefined)}
             >
                 <header class="header ${showDefaultHeader ? '' : 'hidden'}">
-                    <h2 class="title" id=${this._titleId}>
-                        ${this.icon ? html`<ol-icon name=${this.icon}></ol-icon>` : nothing}
-                        ${this.label}
-                    </h2>
-                    <ol-button
-                        class="close-button"
-                        shape="icon"
-                        variant="ghost"
-                        aria-label=${this.labelClose}
-                        @click=${this._handleCloseClick}
-                    >
+                    <h2 class="title" id=${this._titleId}>${this.icon ? html`<ol-icon name=${this.icon}></ol-icon>` : nothing} ${this.label}</h2>
+                    <ol-button class="close-button" shape="icon" variant="ghost" aria-label=${this.labelClose} @click=${this._handleCloseClick}>
                         <ol-icon name="x"></ol-icon>
                     </ol-button>
                 </header>

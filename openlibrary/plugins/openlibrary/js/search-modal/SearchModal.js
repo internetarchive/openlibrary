@@ -200,8 +200,12 @@ export class SearchModal extends LitElement {
             line-height: 1.4;
         }
 
-        .search-input::placeholder { color: var(--color-text-muted); }
-        .search-input:focus         { outline: none; }
+        .search-input::placeholder {
+            color: var(--color-text-muted);
+        }
+        .search-input:focus {
+            outline: none;
+        }
 
         /* Drop the native type="search" clear affordance — the modal renders
            its own clear button (.clear-btn) once the query is non-empty. */
@@ -229,7 +233,9 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .esc-pill:hover { background: var(--color-control-hover); }
+            .esc-pill:hover {
+                background: var(--color-control-hover);
+            }
         }
 
         .esc-pill:focus-visible {
@@ -237,7 +243,11 @@ export class SearchModal extends LitElement {
             outline-offset: 2px;
         }
 
-        @media (hover: none) and (pointer: coarse) { .esc-pill { display: none; } }
+        @media (hover: none) and (pointer: coarse) {
+            .esc-pill {
+                display: none;
+            }
+        }
 
         /* ── Back button (mobile) ──────────────────────────────────── */
 
@@ -264,7 +274,11 @@ export class SearchModal extends LitElement {
             outline-offset: 2px;
         }
 
-        @media (hover: none) and (pointer: coarse) { .back-btn { display: inline-flex; } }
+        @media (hover: none) and (pointer: coarse) {
+            .back-btn {
+                display: inline-flex;
+            }
+        }
 
         /* ── Clear input button ────────────────────────────────────── */
 
@@ -334,7 +348,9 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .tab:hover { color: var(--color-text); }
+            .tab:hover {
+                color: var(--color-text);
+            }
         }
 
         .tab:focus-visible {
@@ -343,7 +359,7 @@ export class SearchModal extends LitElement {
             border-radius: var(--border-radius-sm);
         }
 
-        .tab[aria-selected="true"] {
+        .tab[aria-selected='true'] {
             color: var(--color-text);
             border-bottom-color: var(--color-text);
             font-weight: var(--font-weight-semibold);
@@ -424,7 +440,9 @@ export class SearchModal extends LitElement {
             text-transform: var(--text-transform-overline);
         }
 
-        .results-list + .results-heading { margin-top: var(--spacing-lg); }
+        .results-list + .results-heading {
+            margin-top: var(--spacing-lg);
+        }
 
         .results-heading--icon {
             display: flex;
@@ -447,11 +465,15 @@ export class SearchModal extends LitElement {
         /* Hairline above every row, on the faintest border step so the lines
            read as texture rather than structure. Adjacent rows share one line;
            the first row keeps its rule, closing the gap under the heading. */
-        .results-list li { border-top: 1px solid var(--color-border-extra-subtle); }
+        .results-list li {
+            border-top: 1px solid var(--color-border-extra-subtle);
+        }
 
         /* Sets the author suggestion apart from the "Books" works below.
            The row hairlines draw the dividing line; this just adds air. */
-        .author-suggestion { margin-bottom: var(--spacing-2xs); }
+        .author-suggestion {
+            margin-bottom: var(--spacing-2xs);
+        }
 
         .result {
             display: flex;
@@ -468,7 +490,9 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .result:hover { background: var(--color-hover-overlay); }
+            .result:hover {
+                background: var(--color-hover-overlay);
+            }
         }
 
         /* Both the author suggestion and the work rows are single anchors, so
@@ -479,7 +503,11 @@ export class SearchModal extends LitElement {
             box-shadow: inset var(--focus-width) 0 0 var(--color-focus-ring);
         }
 
-        @media (prefers-reduced-motion: reduce) { .result { transition: none; } }
+        @media (prefers-reduced-motion: reduce) {
+            .result {
+                transition: none;
+            }
+        }
 
         /* The link and the shelf button are siblings (a button cannot live inside
            an anchor); the row carries the hover tint so the two read as one. */
@@ -502,12 +530,20 @@ export class SearchModal extends LitElement {
 
         /* The row owns the tint; a second overlay on the anchor would read darker. */
         @media (hover: hover) and (pointer: fine) {
-            .result-row:hover { background: var(--color-hover-overlay); }
-            .result-row .result:hover { background: none; }
+            .result-row:hover {
+                background: var(--color-hover-overlay);
+            }
+            .result-row .result:hover {
+                background: none;
+            }
         }
 
-        .result-row:focus-within { background: var(--color-hover-overlay); }
-        .result-row .result:focus-visible { background: none; }
+        .result-row:focus-within {
+            background: var(--color-hover-overlay);
+        }
+        .result-row .result:focus-visible {
+            background: none;
+        }
 
         .result__cover-link {
             position: relative;
@@ -591,7 +627,10 @@ export class SearchModal extends LitElement {
             min-width: 0;
         }
 
-        .result__title-line .result__title { flex: 0 1 auto; min-width: 0; }
+        .result__title-line .result__title {
+            flex: 0 1 auto;
+            min-width: 0;
+        }
 
         /* Status badge beside the title: a label, not a button. Bordered so it
            reads as a chip on the hover tint too. Muted by default, which
@@ -616,7 +655,8 @@ export class SearchModal extends LitElement {
             background: var(--color-success-bg);
         }
 
-        .empty, .loading {
+        .empty,
+        .loading {
             padding: var(--spacing-lg) var(--spacing-lg);
             color: var(--color-text-muted);
             font-size: var(--font-size-body-medium);
@@ -645,8 +685,12 @@ export class SearchModal extends LitElement {
             padding-right: var(--spacing-md);
         }
 
-        .ft-band .results-list li { border-top-color: var(--color-border-subtle); }
-        .ft-band .results-list li:first-child { border-top: none; }
+        .ft-band .results-list li {
+            border-top-color: var(--color-border-subtle);
+        }
+        .ft-band .results-list li:first-child {
+            border-top: none;
+        }
 
         /* Styled as a link since it navigates. Pushed to the end of the heading row. */
         .ft-band__view-all {
@@ -667,7 +711,9 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .ft-band__view-all:hover { color: var(--color-link-hover); }
+            .ft-band__view-all:hover {
+                color: var(--color-link-hover);
+            }
         }
 
         .ft-band__view-all:focus-visible {
@@ -676,9 +722,13 @@ export class SearchModal extends LitElement {
             border-radius: var(--border-radius-sm);
         }
 
-        .ft-band__view-all ol-icon { flex-shrink: 0; }
+        .ft-band__view-all ol-icon {
+            flex-shrink: 0;
+        }
 
-        :host(:dir(rtl)) .ft-band__view-all ol-icon { transform: scaleX(-1); }
+        :host(:dir(rtl)) .ft-band__view-all ol-icon {
+            transform: scaleX(-1);
+        }
 
         /* Left rule marks the passage, as .fsi-quote does. Not boxed: the band
            is already a card. */
@@ -727,24 +777,50 @@ export class SearchModal extends LitElement {
            dot 1 is always shown, dot 2 hides only in the first step, dot 3
            shows only in the third. Opacity (not display) keeps all three in
            flow, so the label width never shifts as dots blink. */
-        .loading-dots .dot { opacity: 0; }
-        .loading-dots .dot:nth-child(1) { opacity: 1; }
-        .loading-dots .dot:nth-child(2) { animation: ol-search-dots-2 1.4s linear infinite; }
-        .loading-dots .dot:nth-child(3) { animation: ol-search-dots-3 1.4s linear infinite; }
+        .loading-dots .dot {
+            opacity: 0;
+        }
+        .loading-dots .dot:nth-child(1) {
+            opacity: 1;
+        }
+        .loading-dots .dot:nth-child(2) {
+            animation: ol-search-dots-2 1.4s linear infinite;
+        }
+        .loading-dots .dot:nth-child(3) {
+            animation: ol-search-dots-3 1.4s linear infinite;
+        }
 
         @keyframes ol-search-dots-2 {
-            0%, 24.99%   { opacity: 0; }
-            25%, 100%    { opacity: 1; }
+            0%,
+            24.99% {
+                opacity: 0;
+            }
+            25%,
+            100% {
+                opacity: 1;
+            }
         }
 
         @keyframes ol-search-dots-3 {
-            0%, 49.99%   { opacity: 0; }
-            50%, 74.99%  { opacity: 1; }
-            75%, 100%    { opacity: 0; }
+            0%,
+            49.99% {
+                opacity: 0;
+            }
+            50%,
+            74.99% {
+                opacity: 1;
+            }
+            75%,
+            100% {
+                opacity: 0;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .loading-dots .dot { opacity: 1; animation: none; }
+            .loading-dots .dot {
+                opacity: 1;
+                animation: none;
+            }
         }
 
         /* ── Recent-search row ──────────────────────────────────────────── */
@@ -765,10 +841,14 @@ export class SearchModal extends LitElement {
            single line of text flanked by fixed-height icons — center the query
            and the clock icon so everything lines up on one baseline. */
         .recent-result .result__meta,
-        .recent-result .result__recent-icon { align-self: center; }
+        .recent-result .result__recent-icon {
+            align-self: center;
+        }
 
         /* A past query, not a book title — lighter than the result rows. */
-        .recent-result .result__title { font-weight: 500; }
+        .recent-result .result__title {
+            font-weight: 500;
+        }
 
         .result__recent-icon {
             flex-shrink: 0;
@@ -801,12 +881,16 @@ export class SearchModal extends LitElement {
         }
 
         .recent-result:hover .result__remove-recent,
-        .recent-result:focus-within .result__remove-recent { opacity: 1; }
+        .recent-result:focus-within .result__remove-recent {
+            opacity: 1;
+        }
 
         /* An opaque fill over the row's translucent hover overlay, so the
            button reads as its own target inside the highlighted row. */
         @media (hover: hover) and (pointer: fine) {
-            .result__remove-recent:hover { background: var(--color-control-hover); }
+            .result__remove-recent:hover {
+                background: var(--color-control-hover);
+            }
         }
 
         .result__remove-recent:focus-visible {
@@ -817,10 +901,16 @@ export class SearchModal extends LitElement {
 
         /* Always show remove button on touch devices (no hover state). */
         @media (hover: none) and (pointer: coarse) {
-            .result__remove-recent { opacity: 1; }
+            .result__remove-recent {
+                opacity: 1;
+            }
         }
 
-        @media (prefers-reduced-motion: reduce) { .result__remove-recent { transition: none; } }
+        @media (prefers-reduced-motion: reduce) {
+            .result__remove-recent {
+                transition: none;
+            }
+        }
         /* ── Stale (results a newer query has superseded) ───────────── */
 
         /* Past STALE_DELAY_MS, lingering rows dim so they don't pass for the current
@@ -831,7 +921,9 @@ export class SearchModal extends LitElement {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .results.is-stale { transition: none; }
+            .results.is-stale {
+                transition: none;
+            }
         }
 
         /* ── Navigating (pressed result → page loading) ────────────── */
@@ -841,7 +933,9 @@ export class SearchModal extends LitElement {
            holds full opacity while the rest dim back and its cover darkens
            under a spinner. */
         .results.is-navigating .result,
-        .results.is-navigating ol-shelf-button { opacity: 0.4; }
+        .results.is-navigating ol-shelf-button {
+            opacity: 0.4;
+        }
 
         .results.is-navigating .result.is-target {
             opacity: 1;
@@ -868,7 +962,7 @@ export class SearchModal extends LitElement {
         }
 
         .result__spinner::before {
-            content: "";
+            content: '';
             box-sizing: border-box;
             width: 18px;
             height: 18px;
@@ -877,19 +971,27 @@ export class SearchModal extends LitElement {
             border-radius: var(--border-radius-circle);
         }
 
-        .result.is-target .result__spinner { opacity: 1; }
+        .result.is-target .result__spinner {
+            opacity: 1;
+        }
 
         .result.is-target .result__spinner::before {
             animation: ol-search-result-spin 0.7s linear infinite;
         }
 
         @keyframes ol-search-result-spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .results.is-navigating .result.is-target { transform: none; }
-            .result.is-target .result__spinner::before { animation-duration: 2s; }
+            .results.is-navigating .result.is-target {
+                transform: none;
+            }
+            .result.is-target .result__spinner::before {
+                animation-duration: 2s;
+            }
         }
 
         /* ── Footer ────────────────────────────────────────────────── */
@@ -902,39 +1004,62 @@ export class SearchModal extends LitElement {
             border-top: var(--border-divider);
         }
 
-        .footer ol-button { flex-shrink: 0; }
+        .footer ol-button {
+            flex-shrink: 0;
+        }
 
         /* The primary "See N books" holds the right edge. */
-        .footer ol-button:last-child { margin-left: auto; }
+        .footer ol-button:last-child {
+            margin-left: auto;
+        }
 
         /* Width picks a label form; aria-label keeps the wide one. */
-        .footer .label-narrow { display: none; }
+        .footer .label-narrow {
+            display: none;
+        }
 
         /* ── Mobile overrides ──────────────────────────────────────── */
 
         @media (max-width: 767px) {
-            .search-input { font-size: var(--font-size-body-large); }
-            .results { max-height: none; flex: 1; }
+            .search-input {
+                font-size: var(--font-size-body-large);
+            }
+            .results {
+                max-height: none;
+                flex: 1;
+            }
             /* The footer is pinned by the dialog's flex column (it sits
                outside the scrolling body). */
-            .footer { background: var(--color-surface); }
+            .footer {
+                background: var(--color-surface);
+            }
 
             /* Narrow rows, long counts — swap in the short labels. */
-            .footer .label-wide { display: none; }
-            .footer .label-narrow { display: inline; }
+            .footer .label-wide {
+                display: none;
+            }
+            .footer .label-narrow {
+                display: inline;
+            }
 
             /* Flat search row: no boxed field — the back arrow and input read
                as one line under the bar's bottom divider (kept from the base
                .bar style). The magnifying glass is dropped (the back arrow
                anchors the left edge instead). */
-            .bar { padding: var(--spacing-sm) var(--spacing-md); }
+            .bar {
+                padding: var(--spacing-sm) var(--spacing-md);
+            }
             .search-field {
                 padding: 0;
                 border: none;
                 border-radius: 0;
             }
-            .search-icon { display: none; }
-            .back-btn { margin-left: 0; }
+            .search-icon {
+                display: none;
+            }
+            .back-btn {
+                margin-left: 0;
+            }
         }
     `;
 
@@ -1257,12 +1382,7 @@ export class SearchModal extends LitElement {
                 @ol-after-close=${this._onDialogClosed}
             >
                 <div slot="header" class="bar">
-                    <button
-                        type="button"
-                        class="back-btn"
-                        aria-label=${this._i18n.closeAria}
-                        @click=${this._closeModal}
-                    >${SearchModal._backIcon}</button>
+                    <button type="button" class="back-btn" aria-label=${this._i18n.closeAria} @click=${this._closeModal}>${SearchModal._backIcon}</button>
                     <div class="search-field">
                         ${SearchModal._searchIcon}
                         <input
@@ -1285,21 +1405,13 @@ export class SearchModal extends LitElement {
                         ${
                             this._query.length
                                 ? html`
-                            <button
-                                type="button"
-                                class="clear-btn"
-                                aria-label=${this._i18n.clearAria}
-                                @click=${this._clearInput}
-                            >${SearchModal._closeIcon}</button>
-                        `
+                                      <button type="button" class="clear-btn" aria-label=${this._i18n.clearAria} @click=${this._clearInput}>
+                                          ${SearchModal._closeIcon}
+                                      </button>
+                                  `
                                 : nothing
                         }
-                        <button
-                            type="button"
-                            class="esc-pill"
-                            aria-label=${this._i18n.closeAria}
-                            @click=${this._closeModal}
-                        >ESC</button>
+                        <button type="button" class="esc-pill" aria-label=${this._i18n.closeAria} @click=${this._closeModal}>ESC</button>
                     </div>
                 </div>
 
@@ -1309,27 +1421,16 @@ export class SearchModal extends LitElement {
                      in the a11y tree before its text changes — a live region
                      inserted at the same time as its content isn't reliably
                      announced. -->
-                <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
-                    ${this._resultsAnnouncement()}
-                </div>
+                <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">${this._resultsAnnouncement()}</div>
 
                 ${this._renderTabs()}
-                <div class="filter-section">
-                    ${this._renderFilters()}
-                </div>
+                <div class="filter-section">${this._renderFilters()}</div>
                 <!-- aria-busy on the panel: the results container is replaced between states. -->
-                <div
-                    role="tabpanel"
-                    id="ol-search-panel"
-                    aria-labelledby="ol-search-tab-${this._mode}"
-                    aria-busy=${this._markStale ? 'true' : 'false'}
-                >
+                <div role="tabpanel" id="ol-search-panel" aria-labelledby="ol-search-tab-${this._mode}" aria-busy=${this._markStale ? 'true' : 'false'}>
                     ${this._renderResults()}
                 </div>
 
-                <div slot="footer" class="footer">
-                    ${this._renderSeeAll()}
-                </div>
+                <div slot="footer" class="footer">${this._renderSeeAll()}</div>
             </ol-dialog>
         `;
     }
@@ -1407,8 +1508,7 @@ export class SearchModal extends LitElement {
         `;
         return html`
             <div class="tabs" role="tablist" aria-label=${this._i18n.tabsAria}>
-                ${tab(MODE_BOOKS, this._i18n.tabBooks)}
-                ${tab(MODE_INSIDE, this._i18n.tabInside)}
+                ${tab(MODE_BOOKS, this._i18n.tabBooks)} ${tab(MODE_INSIDE, this._i18n.tabInside)}
             </div>
         `;
     }
@@ -1492,13 +1592,7 @@ export class SearchModal extends LitElement {
                 ></ol-select-popover>
                 ${
                     showClearAll
-                        ? html`
-                    <ol-button
-                        variant="ghost"
-                        class="clear-all"
-                        @click=${this._clearAllFilters}
-                    >${this._i18n.clearAll}</ol-button>
-                `
+                        ? html` <ol-button variant="ghost" class="clear-all" @click=${this._clearAllFilters}>${this._i18n.clearAll}</ol-button> `
                         : nothing
                 }
             </div>
@@ -1530,27 +1624,25 @@ export class SearchModal extends LitElement {
                 ${
                     this._authorSuggestions.length
                         ? html`
-                    <h3 class="results-heading">${this._i18n.authorResults}</h3>
-                    <ul class="results-list author-suggestion">
-                        ${repeat(
-                            this._authorSuggestions,
-                            a => a.key,
-                            (a, i) => this._renderAuthorSuggestion(a, i)
-                        )}
-                    </ul>
-                `
+                              <h3 class="results-heading">${this._i18n.authorResults}</h3>
+                              <ul class="results-list author-suggestion">
+                                  ${repeat(
+                                      this._authorSuggestions,
+                                      a => a.key,
+                                      (a, i) => this._renderAuthorSuggestion(a, i)
+                                  )}
+                              </ul>
+                          `
                         : nothing
                 }
                 <h3 class="results-heading">${this._i18n.topResults}</h3>
-                <ul
-                    class="results-list"
-                    @pointerenter=${this._onShelfIntent}
-                    @focusin=${this._onShelfIntent}
-                >${repeat(
-                    this._results,
-                    r => r.key,
-                    (r, i) => this._renderResult(r, i)
-                )}</ul>
+                <ul class="results-list" @pointerenter=${this._onShelfIntent} @focusin=${this._onShelfIntent}>
+                    ${repeat(
+                        this._results,
+                        r => r.key,
+                        (r, i) => this._renderResult(r, i)
+                    )}
+                </ul>
                 ${this._renderFulltextBand()}
             </div>
         `;
@@ -1585,8 +1677,9 @@ export class SearchModal extends LitElement {
     // animated dots that follow aren't doubled up.
     _renderSearching(text) {
         const label = text.replace(/[.…。]+$/, '');
-        return html`<div class="loading"
-            >${label}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div>`;
+        return html`<div class="loading">
+            ${label}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span>
+        </div>`;
     }
 
     // A fresh answer scrolls to the top; .results is long-lived and would keep the old offset.
@@ -1616,11 +1709,9 @@ export class SearchModal extends LitElement {
             <div class="ft-band">
                 <h3 class="results-heading results-heading--icon">
                     ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
-                    <button
-                        type="button"
-                        class="ft-band__view-all"
-                        @click=${() => this._selectMode(MODE_INSIDE)}
-                    >${this._i18n.viewAllInside}${SearchModal._arrowRightIcon}</button>
+                    <button type="button" class="ft-band__view-all" @click=${() => this._selectMode(MODE_INSIDE)}>
+                        ${this._i18n.viewAllInside}${SearchModal._arrowRightIcon}
+                    </button>
                 </h3>
                 <ul class="results-list">
                     ${hits.map((hit, i) => this._renderFulltextHit(hit, this._ftQuery, i))}
@@ -1641,7 +1732,8 @@ export class SearchModal extends LitElement {
                 ?disabled=${q.length < MIN_QUERY_LENGTH}
                 ?loading=${this._ftSeeAllLoading}
                 @click=${this._onFulltextSeeAll}
-            >${counted ? this._seeAllInsideLabel() : this._i18n.seeAllInsidePlain}</ol-button>
+                >${counted ? this._seeAllInsideLabel() : this._i18n.seeAllInsidePlain}</ol-button
+            >
         `;
     }
 
@@ -1664,25 +1756,34 @@ export class SearchModal extends LitElement {
         const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
         const segments = parseSnippet(hit.snippet);
         return html`<li>
-                <a
-                    class="result ft-result ${this._navigatingKey === href ? 'is-target' : ''}"
-                    href=${href}
-                    @click=${e => this._onResultPress(e, href, { event: 'FulltextClick', label: `rank:${index + 1}` })}
-                >
-                    <span class="result__cover-link">
-                        <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} srcset=${hit.coverSrcset || nothing} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
-                        <span class="result__spinner" aria-hidden="true"></span>
+            <a
+                class="result ft-result ${this._navigatingKey === href ? 'is-target' : ''}"
+                href=${href}
+                @click=${e => this._onResultPress(e, href, { event: 'FulltextClick', label: `rank:${index + 1}` })}
+            >
+                <span class="result__cover-link">
+                    <img
+                        class="result__cover"
+                        src=${hit.coverUrl || COVER_PLACEHOLDER}
+                        srcset=${hit.coverSrcset || nothing}
+                        alt=""
+                        loading="lazy"
+                        width="36"
+                        height="50"
+                        @error=${this._onCoverError}
+                    />
+                    <span class="result__spinner" aria-hidden="true"></span>
+                </span>
+                <span class="result__meta">
+                    <span class="result__title">${hit.title || this._i18n.untitled}</span>
+                    ${hit.author ? html`<span class="result__author">${hit.author}</span>` : nothing}
+                    ${hit.year ? html`<span class="result__year">${hit.year}</span>` : nothing}
+                    <span class="ft-quote">
+                        <span class="ft-quote__text">…${segments.map(s => (s.match ? html`<mark>${s.text}</mark>` : s.text))}…</span>
                     </span>
-                    <span class="result__meta">
-                        <span class="result__title">${hit.title || this._i18n.untitled}</span>
-                        ${hit.author ? html`<span class="result__author">${hit.author}</span>` : nothing}
-                        ${hit.year ? html`<span class="result__year">${hit.year}</span>` : nothing}
-                        <span class="ft-quote">
-                            <span class="ft-quote__text">…${segments.map(s => (s.match ? html`<mark>${s.text}</mark>` : s.text))}…</span>
-                        </span>
-                    </span>
-                </a>
-            </li>`;
+                </span>
+            </a>
+        </li>`;
     }
 
     _renderRecentSearches() {
@@ -1694,32 +1795,32 @@ export class SearchModal extends LitElement {
                         this._recentSearches,
                         s => s,
                         s => html`
-                        <li>
-                            <div
-                                class="result recent-result"
-                                role="button"
-                                tabindex="0"
-                                @click=${() => this._onRecentSearchClick(s)}
-                                @keydown=${e => this._onRecentSearchKeydown(e, s)}
-                            >
-                                <span class="result__recent-icon" aria-hidden="true">
-                                    ${SearchModal._clockIcon}
-                                </span>
-                                <span class="result__meta">
-                                    <span class="result__title">${s}</span>
-                                </span>
-                                <button
-                                    type="button"
-                                    class="result__remove-recent"
-                                    aria-label=${sprintf(this._i18n.removeRecent, s)}
-                                    @click=${e => {
-                                        e.stopPropagation();
-                                        this._recentSearches = removeRecentSearch(s);
-                                    }}
-                                >${SearchModal._closeIcon}</button>
-                            </div>
-                        </li>
-                    `
+                            <li>
+                                <div
+                                    class="result recent-result"
+                                    role="button"
+                                    tabindex="0"
+                                    @click=${() => this._onRecentSearchClick(s)}
+                                    @keydown=${e => this._onRecentSearchKeydown(e, s)}
+                                >
+                                    <span class="result__recent-icon" aria-hidden="true"> ${SearchModal._clockIcon} </span>
+                                    <span class="result__meta">
+                                        <span class="result__title">${s}</span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="result__remove-recent"
+                                        aria-label=${sprintf(this._i18n.removeRecent, s)}
+                                        @click=${e => {
+                                            e.stopPropagation();
+                                            this._recentSearches = removeRecentSearch(s);
+                                        }}
+                                    >
+                                        ${SearchModal._closeIcon}
+                                    </button>
+                                </div>
+                            </li>
+                        `
                     )}
                 </ul>
             </div>
@@ -1758,29 +1859,29 @@ export class SearchModal extends LitElement {
     _renderAuthorSuggestion(author, index = 0) {
         const href = `/authors/${author.key}`;
         return html`<li>
-                <a
-                    class="result ${this._navigatingKey === href ? 'is-target' : ''}"
-                    href=${href}
-                    @click=${e => this._onResultPress(e, href, { event: 'ResultClick', label: `author:${index + 1}` })}
-                >
-                    <span class="result__avatar">
-                        ${SearchModal._personIcon}
-                        <img
-                            class="result__avatar-photo"
-                            src="https://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=false"
-                            srcset="https://covers.openlibrary.org/a/olid/${author.key}-M.jpg?default=false 2x"
-                            alt=""
-                            loading="lazy"
-                            @error=${this._onAvatarError}
-                        />
-                        <span class="result__spinner" aria-hidden="true"></span>
-                    </span>
-                    <span class="result__meta">
-                        <span class="result__title">${author.name}</span>
-                        <span class="result__author">${this._i18n.authorLabel}</span>
-                    </span>
-                </a>
-            </li>`;
+            <a
+                class="result ${this._navigatingKey === href ? 'is-target' : ''}"
+                href=${href}
+                @click=${e => this._onResultPress(e, href, { event: 'ResultClick', label: `author:${index + 1}` })}
+            >
+                <span class="result__avatar">
+                    ${SearchModal._personIcon}
+                    <img
+                        class="result__avatar-photo"
+                        src="https://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=false"
+                        srcset="https://covers.openlibrary.org/a/olid/${author.key}-M.jpg?default=false 2x"
+                        alt=""
+                        loading="lazy"
+                        @error=${this._onAvatarError}
+                    />
+                    <span class="result__spinner" aria-hidden="true"></span>
+                </span>
+                <span class="result__meta">
+                    <span class="result__title">${author.name}</span>
+                    <span class="result__author">${this._i18n.authorLabel}</span>
+                </span>
+            </a>
+        </li>`;
     }
 
     // Direct archive.org cover URLs (used as the IA fallback in _renderResult)
@@ -1924,26 +2025,26 @@ export class SearchModal extends LitElement {
         }
 
         return html`<li class="result-row">
-                <a
-                    class="result ${this._navigatingKey === href ? 'is-target' : ''}"
-                    href=${href}
-                    @click=${e => this._onResultPress(e, href, { event: 'ResultClick', label: `${display === edition ? 'edition' : 'work'}:${index + 1}` })}
-                >
-                    <span class="result__cover-link">
-                        <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
-                        <span class="result__spinner" aria-hidden="true"></span>
+            <a
+                class="result ${this._navigatingKey === href ? 'is-target' : ''}"
+                href=${href}
+                @click=${e => this._onResultPress(e, href, { event: 'ResultClick', label: `${display === edition ? 'edition' : 'work'}:${index + 1}` })}
+            >
+                <span class="result__cover-link">
+                    <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError} />
+                    <span class="result__spinner" aria-hidden="true"></span>
+                </span>
+                <span class="result__meta">
+                    <span class="result__title-line">
+                        <span class="result__title">${title}</span>
+                        ${badge}
                     </span>
-                    <span class="result__meta">
-                        <span class="result__title-line">
-                            <span class="result__title">${title}</span>
-                            ${badge}
-                        </span>
-                        ${author ? html`<span class="result__author">${author}</span>` : nothing}
-                        ${year ? html`<span class="result__year">${year}</span>` : nothing}
-                    </span>
-                </a>
-                ${this._renderShelfButton(work, edition, title)}
-            </li>`;
+                    ${author ? html`<span class="result__author">${author}</span>` : nothing}
+                    ${year ? html`<span class="result__year">${year}</span>` : nothing}
+                </span>
+            </a>
+            ${this._renderShelfButton(work, edition, title)}
+        </li>`;
     }
 
     // ── Shelf buttons ─────────────────────────────────────────────────────
@@ -2032,7 +2133,8 @@ export class SearchModal extends LitElement {
                 ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
                 ?loading=${this._seeAllLoading}
                 @click=${this._onSeeAllResults}
-            >${this._responsiveLabel(wide, narrow)}</ol-button>
+                >${this._responsiveLabel(wide, narrow)}</ol-button
+            >
         `;
     }
 

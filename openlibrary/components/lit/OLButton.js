@@ -192,12 +192,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             --control-highlight-strength: 35%;
             box-shadow:
                 var(--box-shadow-raised),
-                inset 0 1px 0
-                    color-mix(
-                        in srgb,
-                        var(--white) var(--control-highlight-strength),
-                        var(--control-surface)
-                    );
+                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
             cursor: pointer;
             user-select: none;
             text-decoration: none;
@@ -229,13 +224,13 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         /* Sizes */
-        :host([size="small"]) .control {
+        :host([size='small']) .control {
             --ol-button-height: var(--control-height-small);
             padding: 0 var(--spacing-sm);
             font-size: var(--font-size-label-medium);
         }
 
-        :host([size="large"]) .control {
+        :host([size='large']) .control {
             --ol-button-height: var(--control-height-large);
             padding: 0 var(--spacing-lg);
             font-size: var(--font-size-body-large);
@@ -244,32 +239,27 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         /* Icon-only shapes: a square whose side is the size's control height, so it
            sits flush with a same-size text button. The slot holds just the glyph;
            consumers must supply aria-label. */
-        :host([shape="icon"]) .control,
-        :host([shape="circle"]) .control {
+        :host([shape='icon']) .control,
+        :host([shape='circle']) .control {
             width: var(--ol-button-height);
             padding: 0;
         }
 
-        :host([shape="circle"]) .control {
+        :host([shape='circle']) .control {
             border-radius: var(--border-radius-circle);
         }
 
         /* Floating — the control sits over content (cover art, a sticky bar) rather
            than on the page surface, so it carries a heavier drop shadow. The inset
            specular edge is unchanged. */
-        :host([elevation="floating"]) .control {
+        :host([elevation='floating']) .control {
             box-shadow:
                 var(--box-shadow-floating),
-                inset 0 1px 0
-                    color-mix(
-                        in srgb,
-                        var(--white) var(--control-highlight-strength),
-                        var(--control-surface)
-                    );
+                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
         }
 
         /* Primary — opt-in via variant="primary". */
-        :host([variant="primary"]) .control {
+        :host([variant='primary']) .control {
             background-color: var(--color-primary);
             border-color: var(--color-primary-border);
             color: var(--white);
@@ -280,7 +270,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         /* Secondary is the default (already set above). Explicit selector for clarity. */
-        :host([variant="secondary"]) .control {
+        :host([variant='secondary']) .control {
             background-color: var(--color-control-bg);
             border-color: var(--color-control-border);
             color: var(--color-text);
@@ -288,7 +278,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         /* Primary in the danger hue — the same solid fill, swapped to red. */
-        :host([variant="primary"][tone="danger"]) .control {
+        :host([variant='primary'][tone='danger']) .control {
             background-color: var(--color-destructive);
             border-color: var(--color-border-error);
             color: var(--white);
@@ -301,7 +291,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            neutral hover fill. For low-emphasis actions ("Show more", toolbar icons).
            The border stays (transparent) so ghost lines up pixel-for-pixel with
            secondary. */
-        :host([variant="ghost"]) .control {
+        :host([variant='ghost']) .control {
             background-color: transparent;
             border-color: transparent;
             color: var(--color-text);
@@ -318,12 +308,12 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            wherever they sit — and, unlike those, they also outrank [selected]. That
            only matters for a selected danger button, which nothing builds: selected
            marks a popover trigger carrying a choice, not a destructive action. */
-        :host([variant="secondary"][tone="danger"]) .control {
+        :host([variant='secondary'][tone='danger']) .control {
             border-color: var(--color-error-border);
             color: var(--color-error-fg);
         }
 
-        :host([variant="ghost"][tone="danger"]) .control {
+        :host([variant='ghost'][tone='danger']) .control {
             background-color: transparent;
             border-color: transparent;
             color: var(--color-error-fg);
@@ -347,7 +337,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            blown-out white edge once a danger button fills red). Keep
            --control-surface == background-color. */
         @media (hover: hover) and (pointer: fine) {
-            :host([variant="secondary"]) .control:hover {
+            :host([variant='secondary']) .control:hover {
                 background-color: var(--color-control-hover);
                 /* Nudge the border darker in step with the fill so the whole button
                    reads as one shape on hover, rather than the fill darkening inside
@@ -358,7 +348,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 --control-surface: var(--color-control-hover);
             }
 
-            :host([variant="ghost"]) .control:hover {
+            :host([variant='ghost']) .control:hover {
                 background-color: var(--color-control-hover);
             }
 
@@ -375,7 +365,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                brightness() carries the fill, border, and inset specular edge together, so
                there's no per-property override or --control-surface retoning to keep in
                sync. The press-scale on :active still reads as the "down" step. */
-            :host([variant="primary"]) .control:hover {
+            :host([variant='primary']) .control:hover {
                 filter: brightness(1.1);
             }
 
@@ -383,13 +373,13 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                takes the solid fill it was standing in for, secondary warms to the
                red tint. Ghost has no shadow to retone; secondary does, so its
                --control-surface moves with the fill like the neutral one above. */
-            :host([variant="ghost"][tone="danger"]) .control:hover {
+            :host([variant='ghost'][tone='danger']) .control:hover {
                 background-color: var(--color-destructive);
                 border-color: var(--color-destructive);
                 color: var(--white);
             }
 
-            :host([variant="secondary"][tone="danger"]) .control:hover {
+            :host([variant='secondary'][tone='danger']) .control:hover {
                 background-color: var(--color-error-bg);
                 /* Border steps along the red ramp with the fill, the way the
                    neutral secondary goes subtle -> muted, so the whole control
@@ -415,7 +405,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            full-strength colors while still being non-interactive. Links have no
            :disabled; the component sets aria-disabled and drops the href instead. */
         :host(:not([loading])) button.control:disabled,
-        :host(:not([loading])) a.control[aria-disabled="true"] {
+        :host(:not([loading])) a.control[aria-disabled='true'] {
             opacity: 0.55;
             cursor: not-allowed;
         }
@@ -439,19 +429,19 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* Slotted icons take the size's icon dimension regardless of the SVG's own
            width/height attributes, so mixed-source icons line up. */
-        ::slotted([slot="icon-start"]),
-        ::slotted([slot="icon-end"]) {
+        ::slotted([slot='icon-start']),
+        ::slotted([slot='icon-end']) {
             display: block;
             flex-shrink: 0;
             width: var(--_icon-size);
             height: var(--_icon-size);
         }
 
-        :host([size="small"]) .label {
+        :host([size='small']) .label {
             --_icon-size: 14px;
         }
 
-        :host([size="large"]) .label {
+        :host([size='large']) .label {
             --_icon-size: 18px;
         }
 
@@ -481,7 +471,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         .spinner::before {
-            content: "";
+            content: '';
             display: block;
             box-sizing: border-box;
             width: 1em;
@@ -544,7 +534,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* Rotate 180° while the popover is open. aria-expanded="true" only appears on
            disclosure triggers, so [aria-haspopup] is redundant here. */
-        :host([aria-expanded="true"]) .chevron {
+        :host([aria-expanded='true']) .chevron {
             transform: rotate(180deg);
         }
 
@@ -708,7 +698,8 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         // a disclosure trigger (ol-popover / ol-select-popover set aria-haspopup
         // on it). That keeps the trigger affordance automatic — no consumer markup.
         const inert = this.loading || this.isDisabled;
-        const content = html`<span class="label" part="label"><slot name="icon-start"></slot><slot></slot><slot name="icon-end"></slot></span><span class="spinner" aria-hidden="true"></span><span class="chevron" aria-hidden="true"></span>`;
+        const content = html`<span class="label" part="label"><slot name="icon-start"></slot><slot></slot><slot name="icon-end"></slot></span
+            ><span class="spinner" aria-hidden="true"></span><span class="chevron" aria-hidden="true"></span>`;
 
         if (this.href !== undefined && this.href !== null) {
             // A link can't be disabled natively: drop the href (no navigation,
@@ -732,7 +723,8 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                     aria-haspopup=${this.a11yHasPopup ?? nothing}
                     aria-expanded=${this.a11yExpanded ?? nothing}
                     @click=${this._onControlClick}
-                >${content}</a>
+                    >${content}</a
+                >
             `;
         }
 
@@ -750,7 +742,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 aria-haspopup=${this.a11yHasPopup ?? nothing}
                 aria-expanded=${this.a11yExpanded ?? nothing}
                 @click=${this._onControlClick}
-            >${content}</button>
+            >
+                ${content}
+            </button>
         `;
     }
 }

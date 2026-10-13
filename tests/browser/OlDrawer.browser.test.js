@@ -20,21 +20,19 @@ const ROW_HEIGHT = 40;
 /** Mount a drawer whose links overflow the panel, and open it. */
 async function openDrawer() {
     render(html`
-        <ol-drawer
-            label="Menu"
-            style="--ol-drawer-enter-duration: 0ms; --ol-drawer-exit-duration: 0ms"
-        >
+        <ol-drawer label="Menu" style="--ol-drawer-enter-duration: 0ms; --ol-drawer-exit-duration: 0ms">
             <nav>
                 ${Array.from(
                     { length: ITEMS },
                     (_, i) => html`
-                    <a
-                        href="#item-${i}"
-                        style="display: block; height: ${ROW_HEIGHT}px;
+                        <a
+                            href="#item-${i}"
+                            style="display: block; height: ${ROW_HEIGHT}px;
                                line-height: ${ROW_HEIGHT}px; padding: 0 12px;
                                box-sizing: border-box;"
-                    >Item ${i}</a>
-                `
+                            >Item ${i}</a
+                        >
+                    `
                 )}
             </nav>
         </ol-drawer>

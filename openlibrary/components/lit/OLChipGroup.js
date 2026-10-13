@@ -29,11 +29,11 @@ export class OLChipGroup extends LitElement {
             gap: 8px;
         }
 
-        :host([gap="small"]) {
+        :host([gap='small']) {
             gap: 4px;
         }
 
-        :host([gap="large"]) {
+        :host([gap='large']) {
             gap: 12px;
         }
     `;

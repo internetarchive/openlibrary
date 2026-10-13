@@ -259,13 +259,54 @@ export class OlToast extends LitElement {
     `;
 
     /** "i" glyph shown on info toasts (the circle is drawn in CSS) */
-    static _infoIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4.5" x2="12.01" y2="4.5"/><line x1="12" y1="11" x2="12" y2="18"/></svg>`;
+    static _infoIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <line x1="12" y1="4.5" x2="12.01" y2="4.5" />
+        <line x1="12" y1="11" x2="12" y2="18" />
+    </svg>`;
 
     /** Check glyph shown on success toasts (the circle is drawn in CSS) */
-    static _successIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
+    static _successIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <polyline points="20 6 9 17 4 12" />
+    </svg>`;
 
     /** Exclamation glyph shown on error toasts (the circle is drawn in CSS) */
-    static _errorIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="6" x2="12" y2="13"/><line x1="12" y1="19.5" x2="12.01" y2="19.5"/></svg>`;
+    static _errorIcon = html`<svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <line x1="12" y1="6" x2="12" y2="13" />
+        <line x1="12" y1="19.5" x2="12.01" y2="19.5" />
+    </svg>`;
 
     constructor() {
         super();
@@ -420,16 +461,16 @@ export class OlToast extends LitElement {
                     ${
                         this._announce
                             ? html`
-                        <slot @slotchange=${this._handleSlotChange}></slot>
-                        ${
-                            this._hasSlottedContent
-                                ? nothing
-                                : html`
-                            <span class="toast__message">${this.message}</span>
-                            ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
-                        `
-                        }
-                    `
+                                  <slot @slotchange=${this._handleSlotChange}></slot>
+                                  ${
+                                      this._hasSlottedContent
+                                          ? nothing
+                                          : html`
+                                                <span class="toast__message">${this.message}</span>
+                                                ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
+                                            `
+                                  }
+                              `
                             : ''
                     }
                 </span>
@@ -440,7 +481,8 @@ export class OlToast extends LitElement {
                     size="small"
                     aria-label=${this.labelClose}
                     @click=${() => this.close('close-button')}
-                ><ol-icon name="x" size="sm"></ol-icon></ol-button>
+                    ><ol-icon name="x" size="sm"></ol-icon
+                ></ol-button>
                 ${!this.persistent ? html`<div class="toast__progress"></div>` : ''}
             </div>
         `;

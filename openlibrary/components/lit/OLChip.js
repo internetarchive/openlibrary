@@ -78,7 +78,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             display: inline-block;
         }
 
-        :host([size="small"]) {
+        :host([size='small']) {
             --chip-padding-block: var(--spacing-2xs);
             --chip-padding-inline: var(--spacing-sm);
             --chip-icon-size: 12px;
@@ -102,13 +102,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
                layer the focus ring without restating the resting shadow. */
             --control-surface: var(--_chip-bg);
             --_chip-raised-shadow:
-                var(--box-shadow-raised),
-                inset 0 1px 0
-                    color-mix(
-                        in srgb,
-                        var(--white) var(--control-highlight-strength),
-                        var(--control-surface)
-                    );
+                var(--box-shadow-raised), inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
             box-shadow: var(--_chip-raised-shadow);
             cursor: pointer;
             user-select: none;
@@ -160,7 +154,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
            The tint is identical whether or not the chip is selected; selecting
            one only adds the close icon, so a selected variant chip reads as a
            removable, category-colored pill. */
-        :host([variant="language"]) {
+        :host([variant='language']) {
             --_chip-bg: var(--color-chip-language-bg);
             --_chip-fg: var(--color-chip-language-fg);
             --_chip-border: var(--color-chip-language-border);
@@ -168,7 +162,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-count-fg: var(--color-chip-language-fg);
         }
 
-        :host([variant="subject"]) {
+        :host([variant='subject']) {
             --_chip-bg: var(--color-chip-subject-bg);
             --_chip-fg: var(--color-chip-subject-fg);
             --_chip-border: var(--color-chip-subject-border);
@@ -176,7 +170,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-count-fg: var(--color-chip-subject-fg);
         }
 
-        :host([variant="genre"]) {
+        :host([variant='genre']) {
             --_chip-bg: var(--color-chip-genre-bg);
             --_chip-fg: var(--color-chip-genre-fg);
             --_chip-border: var(--color-chip-genre-border);
@@ -184,7 +178,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-count-fg: var(--color-chip-genre-fg);
         }
 
-        :host([variant="author"]) {
+        :host([variant='author']) {
             --_chip-bg: var(--color-chip-author-bg);
             --_chip-fg: var(--color-chip-author-fg);
             --_chip-border: var(--color-chip-author-border);
@@ -192,7 +186,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-count-fg: var(--color-chip-author-fg);
         }
 
-        :host([variant="place"]) {
+        :host([variant='place']) {
             --_chip-bg: var(--color-chip-place-bg);
             --_chip-fg: var(--color-chip-place-fg);
             --_chip-border: var(--color-chip-place-border);
@@ -200,7 +194,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-count-fg: var(--color-chip-place-fg);
         }
 
-        :host([variant="neutral"]) {
+        :host([variant='neutral']) {
             --_chip-bg: var(--color-chip-neutral-bg);
             --_chip-fg: var(--color-chip-neutral-fg);
             --_chip-border: var(--color-chip-neutral-border);
@@ -209,7 +203,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         }
 
         /* Small size */
-        :host([size="small"]) .chip {
+        :host([size='small']) .chip {
             font-size: var(--font-size-label-medium);
         }
 
@@ -221,9 +215,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             flex: none;
             width: var(--chip-icon-size);
             height: var(--chip-icon-size);
-            margin-inline:
-                calc(-1 * var(--_chip-icon-slack))
-                calc(var(--chip-icon-gap) - var(--_chip-icon-slack));
+            margin-inline: calc(-1 * var(--_chip-icon-slack)) calc(var(--chip-icon-gap) - var(--_chip-icon-slack));
         }
 
         .icon {
@@ -295,20 +287,11 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         `;
 
         if (this.href) {
-            return html`
-                <a class="chip" href=${this.href}
-                    aria-label=${this.accessibleLabel || nothing}
-                    @click=${this._handleClick}>
-                    ${content}
-                </a>
-            `;
+            return html` <a class="chip" href=${this.href} aria-label=${this.accessibleLabel || nothing} @click=${this._handleClick}> ${content} </a> `;
         }
 
         return html`
-            <button class="chip" type="button"
-                aria-label=${this.accessibleLabel || nothing}
-                aria-pressed=${this.selected}
-                @click=${this._handleClick}>
+            <button class="chip" type="button" aria-label=${this.accessibleLabel || nothing} aria-pressed=${this.selected} @click=${this._handleClick}>
                 ${content}
             </button>
         `;

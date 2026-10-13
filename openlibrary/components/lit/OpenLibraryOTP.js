@@ -220,7 +220,9 @@ export class OpenLibraryOTP extends LitElement {
     // ---------------------------------------------------------------------------
 
     static styles = css`
-        :host { display: inline-block; }
+        :host {
+            display: inline-block;
+        }
 
         .trigger-btn {
             background: var(--color-primary);
@@ -243,11 +245,7 @@ export class OpenLibraryOTP extends LitElement {
     `;
 
     render() {
-        return html`
-            <button class="trigger-btn" @click=${this._openModal}>
-                Sign in with a one-time code
-            </button>
-        `;
+        return html` <button class="trigger-btn" @click=${this._openModal}>Sign in with a one-time code</button> `;
     }
 
     // ---------------------------------------------------------------------------

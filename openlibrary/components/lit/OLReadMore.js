@@ -76,10 +76,7 @@ export class OLReadMore extends LitElement {
             text-align: center;
             width: 100%;
             padding: var(--spacing-inset-lg) var(--spacing-md) var(--spacing-md) var(--spacing-md);
-            background: linear-gradient(
-                var(--ol-readmore-gradient-color-transparent) 0,
-                var(--ol-readmore-gradient-color) var(--spacing-md)
-            );
+            background: linear-gradient(var(--ol-readmore-gradient-color-transparent) 0, var(--ol-readmore-gradient-color) var(--spacing-md));
             border: none;
             border-radius: 0 0 4px 4px;
             cursor: pointer;
@@ -233,10 +230,7 @@ export class OLReadMore extends LitElement {
         const sizeClass = this.labelSize === 'small' ? 'small' : '';
 
         return html`
-            <div
-                class="content-wrapper ${this._expanded ? 'expanded' : ''}"
-                style="${this._getContentStyle()}"
-            >
+            <div class="content-wrapper ${this._expanded ? 'expanded' : ''}" style="${this._getContentStyle()}">
                 <slot></slot>
             </div>
             <button

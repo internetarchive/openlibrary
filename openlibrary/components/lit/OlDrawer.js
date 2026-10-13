@@ -180,13 +180,13 @@ export class OlDrawer extends LitElement {
             transition-duration: var(--ol-drawer-enter-duration);
         }
 
-        :host(:not([placement="start"])) .panel {
+        :host(:not([placement='start'])) .panel {
             --_ol-drawer-closed-x: 100%;
             right: 0;
             box-shadow: var(--box-shadow-overlay);
         }
 
-        :host([placement="start"]) .panel {
+        :host([placement='start']) .panel {
             --_ol-drawer-closed-x: -100%;
             left: 0;
             box-shadow: var(--box-shadow-overlay);
@@ -250,12 +250,7 @@ export class OlDrawer extends LitElement {
 
     render() {
         return html`
-            <dialog
-                role="dialog"
-                aria-modal="true"
-                aria-label=${ifDefined(this.label || undefined)}
-                @cancel=${this._handleCancel}
-            >
+            <dialog role="dialog" aria-modal="true" aria-label=${ifDefined(this.label || undefined)} @cancel=${this._handleCancel}>
                 <div class="scrim" @click=${this._handleScrimClick}></div>
                 <!-- tabindex so an empty drawer still has somewhere to put focus. -->
                 <div class="panel" tabindex="-1">

@@ -100,11 +100,11 @@ export class OlBookCover extends LitElement {
 
         /* A 72px cover has room for neither the padding nor the type of a
            full-size one. */
-        :host([size="small"]) .blank {
+        :host([size='small']) .blank {
             padding: var(--spacing-inset-xs);
         }
 
-        :host([size="small"]) .blank__title {
+        :host([size='small']) .blank__title {
             font-size: var(--font-size-label-medium);
         }
 
@@ -121,7 +121,7 @@ export class OlBookCover extends LitElement {
         /* The corner is the cover's to own. Whatever is slotted in goes static
            inside it — a wrapper like <ol-shelf-actions> takes the corner and its
            own trigger sits inside that. */
-        slot[name="overlay"]::slotted(*) {
+        slot[name='overlay']::slotted(*) {
             position: absolute;
             top: 4px;
             right: 4px;
