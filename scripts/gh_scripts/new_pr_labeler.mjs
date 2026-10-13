@@ -14,10 +14,17 @@
  * 1. Searches the given PR body for a "closes" statement
  * 2. Fetches the issue referenced by the "closes" statement, storing references
  *    to the first priority and lead label encountered
- * 3. Updates PR, adding same priority label as issue, and assigning the lead (or labeling the issue
- *    as "Needs: Lead")
+ * 3. Updates PR, adding the same priority label as the issue and assigning the lead
+ *
+ * A PR is never labeled "Needs: Lead": an unassigned PR already signals that it
+ * needs a lead, so the label is redundant on PRs. ("Needs: Lead" stays meaningful
+ * on issues, which this script does not touch.)
+ *
+ * The decision logic lives in ./new_pr_labeler_core.mjs so it can be unit tested;
+ * this file keeps the argv parsing and the Octokit I/O.
  */
 import { Octokit } from '@octokit/action';
+import { decideLabelsAndAssignee, getLinkedIssueMetadata } from './new_pr_labeler_core.mjs';
 
 const CLOSES_REGEX = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+#(\d+)/i;
 const DEFAULT_REQUEST_HEADERS = { 'X-GitHub-Api-Version': '2022-11-28' };
@@ -34,40 +41,30 @@ async function main() {
 
     // Fetch linked issue, if any
     const issue = await findLinkedIssue(prBody, repoOwner, repoName);
-    const prLabelSet = new Set();
     if (!issue) {
         console.log('No linked issue found for this pull request.');
-        prLabelSet.add('Needs: Lead');
     }
 
-    const { leadName, priority } = getLinkedIssueMetadata(issue);
-    // Don't assign lead to PR if PR author is the issue lead
-    const assignLead = leadName && !(leadName === prAuthor);
+    const { assignee, labels } = decideLabelsAndAssignee(getLinkedIssueMetadata(issue), prAuthor);
 
-    // If lead was identified, assign lead to PR:
-    if (assignLead) {
+    // If a lead was identified, assign them to the PR:
+    if (assignee) {
         await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/assignees', {
             owner: repoOwner,
             repo: repoName,
             issue_number: prNumber,
-            assignees: [leadName],
+            assignees: [assignee],
             headers: DEFAULT_REQUEST_HEADERS
         });
     }
 
-    if (priority) {
-        prLabelSet.add(priority);
-    }
-    if (!assignLead) {
-        prLabelSet.add('Needs: Lead');
-    }
     // Add labels to PR, if needed:
-    if (prLabelSet.size) {
+    if (labels.length) {
         await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
             owner: repoOwner,
             repo: repoName,
             issue_number: prNumber,
-            labels: Array.from(prLabelSet),
+            labels,
             headers: DEFAULT_REQUEST_HEADERS
         });
     }
@@ -119,29 +116,4 @@ async function findLinkedIssue(body, repoOwner, repoName) {
         issue_number: issueNumber,
         headers: DEFAULT_REQUEST_HEADERS
     });
-}
-
-/**
- * Returns the given issue's lead and priority, if any.
- *
- * @param {OctokitResponse<T>} issue
- * @returns {{lead: string|undefined, priority: string|undefined}}
- */
-function getLinkedIssueMetadata(issue) {
-    let leadName, priority;
-    if (issue) {
-        for (const label of issue.data.labels) {
-            if (!leadName && label.name.startsWith('Lead: @')) {
-                leadName = label.name.split('@')[1];
-            }
-            if (!priority && label.name.match(/Priority: [012]/)) {
-                priority = label.name;
-            }
-        }
-    }
-
-    return {
-        lead: leadName,
-        priority: priority
-    };
 }
