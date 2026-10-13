@@ -1,13 +1,5 @@
-import {
-    SURFACES,
-    selectionFor,
-    stickyFilterParams,
-    syncSessionStorageFromUrl,
-} from '../../../openlibrary/plugins/openlibrary/js/SearchFilterBar';
-import {
-    SS_AVAILABILITY_KEY,
-    SS_LANGUAGES_KEY,
-} from '../../../openlibrary/plugins/openlibrary/js/search-modal/constants';
+import { SURFACES, selectionFor, stickyFilterParams, syncSessionStorageFromUrl } from '../../../openlibrary/plugins/openlibrary/js/SearchFilterBar';
+import { SS_AVAILABILITY_KEY, SS_LANGUAGES_KEY } from '../../../openlibrary/plugins/openlibrary/js/search-modal/constants';
 
 const MULTI = { singleLanguage: false };
 const SINGLE = { singleLanguage: true };
@@ -44,7 +36,7 @@ describe('sticky filter round-trip', () => {
     };
     const storedAvailability = () => sessionStorage.getItem(SS_AVAILABILITY_KEY);
     const storedLanguages = () => JSON.parse(sessionStorage.getItem(SS_LANGUAGES_KEY));
-    const q = (search) => new URLSearchParams(search);
+    const q = search => new URLSearchParams(search);
 
     beforeEach(() => {
         sessionStorage.clear();

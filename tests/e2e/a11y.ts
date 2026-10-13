@@ -75,9 +75,7 @@ export async function a11yCheck(page: Page, options: A11yCheckOptions = {}): Pro
 
 /** One violation rendered as a readable block, with the offending markup. */
 function formatViolation(violation: Result): string {
-    const nodes = violation.nodes
-        .map((node) => `      ${node.html}\n        ${node.failureSummary?.replace(/\n/g, '\n        ')}`)
-        .join('\n');
+    const nodes = violation.nodes.map(node => `      ${node.html}\n        ${node.failureSummary?.replace(/\n/g, '\n        ')}`).join('\n');
     return `  [${violation.impact}] ${violation.id}: ${violation.help}\n    ${violation.helpUrl}\n${nodes}`;
 }
 
@@ -88,8 +86,6 @@ function formatViolation(violation: Result): string {
  */
 export function expectNoViolations(results: AxeResults): void {
     const { violations } = results;
-    const summary = violations.length
-        ? `${violations.length} accessibility violation(s):\n${violations.map(formatViolation).join('\n\n')}`
-        : '';
+    const summary = violations.length ? `${violations.length} accessibility violation(s):\n${violations.map(formatViolation).join('\n\n')}` : '';
     expect(summary, summary).toBe('');
 }

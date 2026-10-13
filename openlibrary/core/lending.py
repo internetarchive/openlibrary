@@ -3,7 +3,6 @@
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
 import logging
-import os
 import time
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
@@ -190,12 +189,12 @@ async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
-    timeout = 2 if os.getenv("LOCAL_DEV") else config_http_request_timeout
+    timeout = 2 if get_ol_env().LOCAL_DEV else config_http_request_timeout
     try:
         response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout)
         response.raise_for_status()
     except httpx.TimeoutException:
-        if os.getenv("LOCAL_DEV"):
+        if get_ol_env().LOCAL_DEV:
             logger.warning("Availability request timed out in LOCAL_DEV environment. Returning empty dictionary.")
             return {}
         else:

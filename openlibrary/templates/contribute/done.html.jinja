@@ -1,0 +1,44 @@
+{#- /tasks/task/OL…M/<field>/done — the receipt, and what happens next. -#}
+{% import "contribute/parts.html.jinja" as parts %}
+<div class="contrib-page" data-contribute-done>
+    <section class="contrib-receipt">
+        <span class="contrib-receipt__icon">{{ icon("circle-check" if data.saved else "arrow-right", size="lg") }}</span>
+        <div>
+            <p class="contrib-overline">{% if data.saved %}{{ _("Saved") }}{% else %}{{ _("Skipped") }}{% endif %}</p>
+            <h1 class="contrib-receipt__title">
+                {% if data.saved and data.value %}
+                    {{ _("%(field)s for %(title)s: %(value)s", field=data.field_label, title=data.book.title, value=data.value) }}
+                {% else %}
+                    {{ _("%(field)s for %(title)s", field=data.field_label, title=data.book.title) }}
+                {% endif %}
+            </h1>
+            {% if data.saved %}
+                <p>
+                    {{ _("The record is updated.") }}
+                    <a href="{{ data.history_url }}">{{ _("See it in the record's history") }}</a>
+                </p>
+            {% else %}
+                <p>{{ _("Nothing on the record changed.") }}</p>
+            {% endif %}
+        </div>
+    </section>
+    {% if data.same_book %}
+        <section class="contrib-section contrib-next" data-same-book>
+            <span class="contrib-h">{{ _("While you're on this book") }}</span>
+            {{ parts.book_header(data.book, compact=True) }}
+            <ul class="contrib-row__tasks">
+                {% for task in data.same_book %}
+                    {{ parts.task_row(task) }}
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+    <div class="contrib-hero__actions">
+        <ol-button variant="primary" href="{{ data.next_url }}">
+            {{ _("Next task") }}
+        </ol-button>
+        <ol-button href="{{ data.list_url }}">
+            {{ _("Pick a different book") }}
+        </ol-button>
+    </div>
+</div>

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from datetime import datetime
 from typing import Annotated
@@ -9,6 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, BeforeValidator
 
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -39,7 +39,7 @@ from openlibrary.plugins.openlibrary.partials import (
 router = APIRouter()
 
 # Only show partials endpoints in OpenAPI schema in local dev
-SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_PARTIALS_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
 
 @router.get("/partials/SearchFacets.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

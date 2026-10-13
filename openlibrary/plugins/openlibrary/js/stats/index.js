@@ -9,13 +9,12 @@ export async function initUniqueLoginCounts(containerElem) {
     const loadingIndicator = containerElem.querySelector('.loadingIndicator');
     const i18nStrings = JSON.parse(containerElem.dataset.i18n);
 
-    const counts = await fetchCounts()
-        .then((resp) => {
-            if (resp.status !== 200) {
-                throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
-            }
-            return resp.json();
-        });
+    const counts = await fetchCounts().then(resp => {
+        if (resp.status !== 200) {
+            throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
+        }
+        return resp.json();
+    });
 
     const countDiv = document.createElement('DIV');
     countDiv.innerHTML = i18nStrings.uniqueLoginsCopy;
