@@ -106,6 +106,26 @@ def decrypt_s3_keys(token: str) -> tuple[str, str]:
     return access, secret
 
 
+def encrypt_token(token: str) -> str:
+    """Encrypt a single OAuth token for storage.
+
+    Same Fernet key and pattern as :func:`encrypt_s3_keys` above -- one secret,
+    one scheme. Deliberately *not* a digest: Open Library presents these tokens
+    to a provider, so they have to come back out. Hashing is correct on the
+    node, which verifies; wrong here, which sends.
+    """
+    return _get_fernet().encrypt(token.encode()).decode()
+
+
+def decrypt_token(ciphertext: str) -> str:
+    """Decrypt a token written by :func:`encrypt_token`.
+
+    Raises ``cryptography.fernet.InvalidToken`` on tampered input or input
+    encrypted under a rotated secret, like :func:`decrypt_s3_keys`.
+    """
+    return _get_fernet().decrypt(ciphertext.encode()).decode()
+
+
 def parse_s3_cookie(s3_cookie: str | None) -> dict | None:
     """Decrypt an "s3" cookie value into {"access": ..., "secret": ...}.
 

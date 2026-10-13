@@ -72,12 +72,20 @@ export class FulltextBand {
         this.error = false;
         // Both check the mode and the pending query at fire time, so a tab
         // switch or an edit cancels the other's timer.
-        this._debouncedPassageFetch = debounce((query) => {
-            if (!this.explicit && query === this._pendingQuery && isPassageQuery(query)) this._fetch(query);
-        }, PASSAGE_DEBOUNCE_MS, false);
-        this._debouncedExplicitFetch = debounce((query) => {
-            if (this.explicit && query === this._pendingQuery) this._fetch(query, INSIDE_LIMIT);
-        }, EXPLICIT_DEBOUNCE_MS, false);
+        this._debouncedPassageFetch = debounce(
+            query => {
+                if (!this.explicit && query === this._pendingQuery && isPassageQuery(query)) this._fetch(query);
+            },
+            PASSAGE_DEBOUNCE_MS,
+            false
+        );
+        this._debouncedExplicitFetch = debounce(
+            query => {
+                if (this.explicit && query === this._pendingQuery) this._fetch(query, INSIDE_LIMIT);
+            },
+            EXPLICIT_DEBOUNCE_MS,
+            false
+        );
     }
 
     /**
@@ -141,7 +149,7 @@ export class FulltextBand {
             searchKey: this.searchKey,
             query: this.query,
             loading: this.loading,
-            error: this.error,
+            error: this.error
         });
     }
 
@@ -193,17 +201,12 @@ export class FulltextBand {
         this._inFlightUrl = url;
 
         fetch(url)
-            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Fulltext search failed: ${r.status}`)))
+            .then(r => (r.ok ? r.json() : Promise.reject(new Error(`Fulltext search failed: ${r.status}`))))
             .then(data => {
                 if (this._inFlightUrl === url) this._inFlightUrl = null;
                 if (this._fetchKey !== url) return;
                 const hits = data?.hits?.hits || [];
-                this._set(
-                    hits.map(fulltextHitDisplay).filter(Boolean),
-                    typeof data?.hits?.total === 'number' ? data.hits.total : null,
-                    searchKey,
-                    trimmed,
-                );
+                this._set(hits.map(fulltextHitDisplay).filter(Boolean), typeof data?.hits?.total === 'number' ? data.hits.total : null, searchKey, trimmed);
                 this._onAttempt('resolved');
             })
             // The band renders nothing on failure; only the Inside tab says so.
