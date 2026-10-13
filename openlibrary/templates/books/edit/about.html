@@ -42,6 +42,36 @@ $jsdef render_subject_autocomplete_item(item):
 
     <div class="formElement">
         <div class="label">
+            <label for="work-genres">$_("Genres?")</label>
+            <span class="tip">$_("Add one or more literary genres for this work.")</span>
+        </div>
+        $# Genre keys may be stored as refs ({"key": "/tags/OL…T"}) or, on works from
+        $# the scripted backfill, as plain strings. Accept both when rendering.
+        $code:
+            genre_keys = []
+            for g in (work.get('genres') or []):
+                if isinstance(g, dict):
+                    gk = g.get('key')
+                elif hasattr(g, 'key'):
+                    gk = g.key
+                else:
+                    gk = g
+                if gk:
+                    genre_keys.append(gk)
+        <div class="input work-genres">
+            $# The picker is a name-less UI control: the hidden inputs below are the
+            $# authoritative form values, so a work's genres survive even if the
+            $# picker's JavaScript fails to load (edit.js initGenresTagPicker syncs them).
+            <ol-tag-picker id="work-genres" tag-type="genres" value="$json_encode(genre_keys)"></ol-tag-picker>
+            <span class="work-genres__inputs">
+                $for idx, gk in enumerate(genre_keys):
+                    <input type="hidden" name="work--genres--$idx--key" value="$gk"/>
+            </span>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
             <label for="about-subject_people">$_("A person? Or, people?")</label>
             <span class="tip">$:_('For example: <i><a href="/subjects/person:Theodore_Roosevelt">Theodore Roosevelt</a>, <a href="/subjects/person:Julian_of_Norwich">Julian of Norwich</a>, <a href="/subjects/person:Tintin">Tintin</a></i>')</span>
         </div>

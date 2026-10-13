@@ -3405,6 +3405,14 @@ msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subje
 msgstr ""
 
 #: books/edit/about.html
+msgid "Genres?"
+msgstr ""
+
+#: books/edit/about.html
+msgid "Add one or more literary genres for this work."
+msgstr ""
+
+#: books/edit/about.html
 msgid "A person? Or, people?"
 msgstr ""
 
