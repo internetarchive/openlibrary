@@ -5,7 +5,7 @@ Focuses on testing the pure mathematical functions that compute rating statistic
 These functions don't require database access and test the core rating logic.
 """
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -31,14 +31,16 @@ class TestAddAutoShelve:
             (ALREADY_READ, False),  # Already there; nothing to do
         ],
     )
-    def test_add_only_auto_shelves_unshelved_and_want_to_read(self, read_status, should_auto_shelve):
+    @pytest.mark.asyncio
+    async def test_add_only_auto_shelves_unshelved_and_want_to_read(self, read_status, should_auto_shelve):
         with (
             patch("openlibrary.core.ratings.db.get_db"),
             patch("openlibrary.core.bookshelves.Bookshelves.get_users_read_status_of_work", return_value=read_status),
             patch("openlibrary.core.bookshelves.Bookshelves.add") as bookshelves_add,
             patch.object(Ratings, "get_users_rating_for_work", return_value=None),
+            patch("openlibrary.core.ratings.execute", new_callable=AsyncMock),
         ):
-            Ratings.add("testuser", 123, rating=4)
+            await Ratings.add("testuser", 123, rating=4)
 
         if should_auto_shelve:
             bookshelves_add.assert_called_once_with("testuser", self.ALREADY_READ, 123, edition_id=None)
