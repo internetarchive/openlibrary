@@ -768,14 +768,22 @@ class SaveBookHelper:
         whose ``tag_type`` matches ``tag_type`` (the plural form, e.g.
         ``"genres"``). This is deliberate: re-validating stored keys would turn
         any unrelated edit (fixing a title typo) into a silent data migration,
-        dropping a genre whose Tag was since deleted, retyped, or carries a
-        legacy singular ``tag_type`` (e.g. ``/tags/OL84T``). Addition is the only
-        operation that validates; a stored key is removed only when the editor
-        drops it from the picker, so it is no longer in the posted set.
+        dropping a genre whose Tag was retyped or carries a legacy singular
+        ``tag_type`` (e.g. ``/tags/OL84T``) — both of which are still live
+        ``/type/tag`` docs that Infobase accepts. Addition is the only operation
+        that validates; a stored key is removed only when the editor drops it
+        from the picker, so it is no longer in the posted set.
 
         Validating additions still matters: a reference to a missing Tag fails
         the save, and ``save_many`` is atomic, so one bad key would reject the
         whole edit.
+
+        Known gap (tracked with the #13753 deploy-order work, not fixed here): a
+        stored ref to a Tag since **deleted or merged** also passes through, and
+        once ``/type/work`` declares ``genres`` with ``expected_type /type/tag``,
+        Infobase rejects that dangling ref — but only when the genre list is
+        *changed* (an unchanged value is skipped at save), so a genre-set edit on
+        such a work would fail until the dead ref is removed.
 
         :param values: the posted value — a list of key strings and/or
             ``{"key": …}`` refs, or ``None`` when nothing is selected.
