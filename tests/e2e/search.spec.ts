@@ -16,7 +16,10 @@ const RESULT_ITEM = '.searchResultItem';
 async function gotoResults(page: Page): Promise<number> {
     await page.goto(SEARCH_URL);
     const items = page.locator(RESULT_ITEM);
-    await items.first().waitFor({ timeout: 10_000 }).catch(() => {});
+    await items
+        .first()
+        .waitFor({ timeout: 10_000 })
+        .catch(() => {});
     return items.count();
 }
 
