@@ -175,7 +175,7 @@ async def get_unique_logins_since(since_days=30):
     date_str = since_date.strftime("%Y-%m-%d")
 
     query = """
-        SELECT COUNT(id) FROM store_index
+        SELECT COUNT(*) FROM store_index
             WHERE type = 'account'
             AND name = 'last_login'
             AND value > %(date)s
