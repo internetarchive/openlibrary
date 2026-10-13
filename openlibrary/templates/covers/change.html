@@ -6,8 +6,6 @@ $if not ctx.user:
 
 
 $if doc.type.key == '/type/author':
-    $ add_url = doc.url('/add-photo')
-    $ manage_url = doc.url('/manage-photos')
     $ title = _('Author Photos')
     $if doc.get_photo():
         $ change = _('Manage Author Photos')
@@ -16,8 +14,6 @@ $if doc.type.key == '/type/author':
         $ change = _('Add Author Photo')
         $ size = "smallest"
 $else:
-    $ add_url = doc.url('/add-cover')
-    $ manage_url = doc.url('/manage-covers')
     $ title = _('Book Covers')
 
     $if doc.get_cover():
@@ -84,7 +80,7 @@ $code:
 
 <!-- The below style is inlined to avoid repaints -->
 <div class="$size manageCoversContainer" style="position: absolute; bottom: 15px">
-  <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers dialog--open" href="$(manage_url if doc.get_cover() else add_url)" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector})">$change</ol-button>
+  <ol-button size="small" elevation="floating" aria-controls="addImage-$imagesId" class="manageCovers dialog--open" data-config="$json_encode({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector})">$change</ol-button>
 </div>
 
 <ol-dialog id="addImage-$imagesId" label="$title" width="large" fullscreen-on-mobile>

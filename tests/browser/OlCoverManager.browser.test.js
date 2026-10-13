@@ -3,7 +3,6 @@
  * input, a real file drop, and the page behind the dialog picking up the saved
  * cover (via covers.js). Only the network is stubbed.
  */
-import $ from 'jquery';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { userEvent } from 'vitest/browser';
 import '../../openlibrary/components/lit/OLButton.js';
@@ -90,8 +89,6 @@ const q = (el, selector) => el.renderRoot.querySelector(selector);
 const saveButton = (el) => q(el, 'ol-button[variant="primary"]');
 
 beforeAll(async() => {
-    // covers.js pulls in jQuery UI, which expects the global jQuery the site bundle provides.
-    window.jQuery = $;
     const { initCoversChange } = await import('../../openlibrary/plugins/openlibrary/js/covers.js');
     // Listens on document, so once for the whole file.
     initCoversChange();

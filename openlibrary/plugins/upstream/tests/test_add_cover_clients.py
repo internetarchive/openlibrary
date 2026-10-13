@@ -67,8 +67,6 @@ def setup(monkeypatch, render_template, request_context_fixture):
     web.ctx.ip = "127.0.0.1"
     user = MagicMock(key="/people/bwbimportbot", is_read_only=lambda: False)
     monkeypatch.setattr(covers.accounts, "get_current_user", lambda: user)
-    # The add form needs macros this fixture doesn't load; what matters is that it isn't the saved page.
-    monkeypatch.setattr(covers, "render_template", lambda name, *a, **kw: render_template(name, *a, **kw) if name == "covers/saved" else name)
     monkeypatch.setattr(Image, "info", lambda self, fetch_author=True: web.storage(author=None, created=datetime.datetime(2026, 1, 1), source_url=None))
 
     uploads = []
@@ -107,12 +105,13 @@ def test_upload_from_url_like_add_bookcover(setup):
     assert book.saves[0][2] == {"url": COVER_URL}
 
 
-def test_rejected_file_does_not_say_saved(setup):
+def test_rejected_file_is_a_400(setup):
     book, uploads = setup
     post_form({"file": ("cover.txt", b"not an image", "text/plain"), "url": (None, "https://"), "upload": (None, "Submit")})
 
-    html = str(covers.add_cover().POST("/books/OL1M"))
+    with pytest.raises(web.BadRequest) as error:
+        covers.add_cover().POST("/books/OL1M")
 
-    assert html == "covers/add"
+    assert error.value.data == "Unsupported file extension"
     assert uploads == []
     assert book.saves == []

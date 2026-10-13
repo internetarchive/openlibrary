@@ -11,7 +11,6 @@ from PIL import Image as PILImage
 from PIL import UnidentifiedImageError
 
 from infogami.utils import delegate
-from infogami.utils.view import safeint
 from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import (
@@ -251,12 +250,10 @@ def apply_cover_changes(doc, *, image_id: int | None = None, suggestion: str | N
 
 
 class add_cover(delegate.page):
+    """POST-only: the form that used it is gone, but openlibrary-client and BWBCoverBot still post here and look for "Saved!"."""
+
     path = r"(/books/OL\d+M)/add-cover"
     kind: RecordImages = IMAGE_KINDS["/type/edition"]
-
-    def GET(self, key):
-        book = web.ctx.site.get(key)
-        return render_template("covers/add", book)
 
     def POST(self, key):
         book = web.ctx.site.get(key)
@@ -278,13 +275,10 @@ class add_cover(delegate.page):
 
         data = self.upload(key, i)
 
-        if coverid := data.get("id"):
-            self.save(book, coverid, url=i.url)
-            cover = Image(web.ctx.site, "b", coverid)
-            image_info = cover.info()
-            return render_template("covers/saved", cover, image_info=image_info)
-        else:
-            return render_template("covers/add", book, {"url": i.url}, data)
+        if not (coverid := data.get("id")):
+            raise web.badrequest(data.get("message") or data.get("error") or "Upload failed")
+        self.save(book, coverid, url=i.url)
+        return render_template("covers/saved", Image(web.ctx.site, self.kind.category, coverid))
 
     def upload(self, key, i):
         """Uploads a cover to coverstore and returns the response."""
@@ -321,56 +315,7 @@ class add_work_cover(add_cover):
     path = r"(/works/OL\d+W)/add-cover"
     kind = IMAGE_KINDS["/type/work"]
 
-    def upload(self, key, i):
-        if "coverid" in i and safeint(i.coverid):
-            return web.storage(id=int(i.coverid))
-        else:
-            return add_cover.upload(self, key, i)
-
 
 class add_photo(add_cover):
     path = r"(/authors/OL\d+A)/add-photo"
-    kind = IMAGE_KINDS["/type/author"]
-
-    def GET(self, key):
-        author = web.ctx.site.get(key)
-        wikidata_images = author.wikidata().get_image_urls() if author and author.wikidata() else []
-        return render_template("covers/add", author, {"wikidata_images": wikidata_images})
-
-
-class manage_covers(delegate.page):
-    path = r"(/books/OL\d+M)/manage-covers"
-    kind: RecordImages = IMAGE_KINDS["/type/edition"]
-
-    def GET(self, key):
-        book = web.ctx.site.get(key)
-        if not book:
-            raise web.notfound()
-        return render_template("covers/manage", key, self.kind.images(book))
-
-    def POST(self, key):
-        if not accounts.get_current_user():
-            raise web.unauthorized()
-        book = web.ctx.site.get(key)
-        if not book:
-            raise web.notfound()
-
-        images = web.input(image=[]).image
-        if "-" in images:
-            images = [int(id) for id in images[: images.index("-")]]
-            self.kind.save(book, images)
-            cover = next(iter(self.kind.images(book)), None)
-            return render_template("covers/saved", cover, image_info=None, showinfo=False)
-        else:
-            # ERROR
-            pass
-
-
-class manage_work_covers(manage_covers):
-    path = r"(/works/OL\d+W)/manage-covers"
-    kind = IMAGE_KINDS["/type/work"]
-
-
-class manage_photos(manage_covers):
-    path = r"(/authors/OL\d+A)/manage-photos"
     kind = IMAGE_KINDS["/type/author"]

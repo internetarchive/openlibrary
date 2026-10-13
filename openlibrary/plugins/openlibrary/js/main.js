@@ -264,23 +264,9 @@ $(function() {
     }
 
 
-    const manageCoversElement = document.getElementsByClassName('manageCovers').length;
-    const addCoversElement = document.getElementsByClassName('imageIntro').length;
-    const coverForm = document.querySelector('.ol-cover-form--clipboard');
-
-    if (addCoversElement || manageCoversElement || coverForm) {
+    if (document.getElementsByClassName('manageCovers').length) {
         import('./covers')
-            .then((module) => {
-                if (manageCoversElement) {
-                    module.initCoversChange();
-                }
-                if (addCoversElement) {
-                    module.initCoversAddManage();
-                }
-                if (coverForm) {
-                    module.initPasteForm(coverForm);
-                }
-            });
+            .then((module) => module.initCoversChange());
     }
 
     if (document.getElementById('addbook')) {

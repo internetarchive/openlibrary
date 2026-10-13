@@ -1,9 +1,6 @@
-import $ from 'jquery';
 /**
  * Functionality for templates/covers
  */
-import './jquery-ui-sortable'; // disable-selection + sortable for drag-to-reorder
-import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
 // covers/change.html: show the cover <ol-cover-manager> just saved on the page behind it.
 export function initCoversChange() {
@@ -42,32 +39,6 @@ export function initCoversChange() {
     });
 }
 
-function showLoadingIndicator() {
-    const loadingIndicator = document.querySelector('.loadingIndicator');
-    const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
-
-    if (loadingIndicator) {
-        loadingIndicator.classList.remove('hidden');
-        formDivs.forEach(div => div.classList.add('hidden'));
-    }
-}
-
-// covers/manage.html and covers/add.html
-export function initCoversAddManage() {
-    $('.ol-cover-form').on('submit', function() {
-        showLoadingIndicator();
-    });
-
-    $('.column').sortable({
-        connectWith: '.trash'
-    });
-    $('.trash').sortable({
-        connectWith: '.column'
-    });
-    $('.column').disableSelection();
-    $('.trash').disableSelection();
-}
-
 // Point every enlarged preview dialog, and its trigger's fallback link, at the newly saved image.
 // Author pages render two (`seeImage-mobile`, `seeImage-desktop`); book pages one (`seeImage`).
 function updateCoverPreview(largeUrl) {
@@ -75,65 +46,5 @@ function updateCoverPreview(largeUrl) {
         link.href = largeUrl;
         const preview = document.getElementById(link.getAttribute('aria-controls'))?.querySelector('img.cover-preview');
         if (preview) preview.src = largeUrl;
-    });
-}
-
-// This function will be triggered when the user clicks the "Paste" button
-async function pasteImage() {
-    let formData = null;
-    try {
-        const clipboardItems = await navigator.clipboard.read();
-        for (const item of clipboardItems) {
-            if (!item.types.includes('image/png') && !item.types.includes('image/jpeg') && !item.types.includes('image/jpg')) {
-                continue;
-            }
-
-            const mimeType = item.types.includes('image/png') ? 'image/png' : (item.types.includes('image/jpeg') ? 'image/jpeg' : 'image/jpg');
-            const fileExtension = mimeType === 'image/png' ? 'png' : (mimeType === 'image/jpeg' ? 'jpeg' : 'jpg');
-            const blob = await item.getType(mimeType);
-            const image = document.createElement('img');
-            image.src = URL.createObjectURL(blob);
-            image.alt = '';
-            const imageContainer = document.querySelector('.image-container');
-            imageContainer.replaceChildren(image);
-
-            // Update the global formData with the new image blob
-            formData = new FormData();
-            formData.append('file', blob, `pasted-image.${fileExtension}`);
-
-            // Automatically fill in the hidden file input with the FormData
-            const fileInput = document.getElementById('hiddenFileInput');
-            const file = new File([blob], `pasted-image.${fileExtension}`, { type: mimeType });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files; // This sets the file input with the image
-
-            // Show the upload button
-            const uploadButton = document.getElementById('uploadButtonPaste');
-            uploadButton.classList.remove('hidden');
-
-            return formData;
-        }
-        alert('No image found in clipboard');
-    } catch (error) {
-    // Silence errors - user alert already shown
-    }
-}
-
-export function initPasteForm(coverForm) {
-    const pasteButton = coverForm.querySelector('#pasteButton');
-    let formData = null;
-
-    pasteButton.addEventListener('click', async() => {
-        formData = await pasteImage(coverForm);
-        pasteButton.textContent = 'Change Image';
-    });
-
-    coverForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        if (formData) {
-            showLoadingIndicator();
-            coverForm.submit();
-        }
     });
 }

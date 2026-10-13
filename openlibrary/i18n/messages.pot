@@ -626,7 +626,7 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html covers/add.html covers/change.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/change.html showia.html type/edition/view.html type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -1455,7 +1455,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/change.html covers/manage.html my_books/shelf_button_i18n.html
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html contribute/parts.html.jinja covers/change.html my_books/shelf_button_i18n.html
 msgid "Save"
 msgstr ""
 
@@ -4112,79 +4112,6 @@ msgstr ""
 msgid "Saved %(field)s for %(link_start)s%(title)s%(link_end)s"
 msgstr ""
 
-#: covers/add.html
-msgid "There are two ways to put an author's image on Open Library."
-msgstr ""
-
-#: covers/add.html covers/change.html
-msgid "Image Guidelines"
-msgstr ""
-
-#: covers/add.html
-msgid "There are a few ways to put a cover image on Open Library."
-msgstr ""
-
-#: covers/add.html covers/change.html
-msgid "Cover Guidelines"
-msgstr ""
-
-#: covers/add.html
-msgid "Please provide an image URL."
-msgstr ""
-
-#: covers/add.html
-msgid "Please provide a valid image."
-msgstr ""
-
-#: covers/add.html
-#, python-format
-msgid "Learn more by reading our <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
-msgstr ""
-
-#: covers/add.html
-msgid "<strong>Pick one</strong> from the existing covers"
-msgstr ""
-
-#: covers/add.html
-msgid "Use this image"
-msgstr ""
-
-#: covers/add.html
-msgid "Choose a JPG, GIF, PNG or WebP on your computer"
-msgstr ""
-
-#: covers/add.html
-msgid "Upload"
-msgstr ""
-
-#: covers/add.html
-msgid "Or, paste an image from your clipboard"
-msgstr ""
-
-#: covers/add.html
-msgid "Paste image from clipboard"
-msgstr ""
-
-#: covers/add.html
-msgid "Paste Image"
-msgstr ""
-
-#: covers/add.html
-msgid "Upload image"
-msgstr ""
-
-#: covers/add.html covers/external_image.html
-msgid "Upload Image"
-msgstr ""
-
-#: covers/add.html
-msgid "Uploading..."
-msgstr ""
-
-#: covers/add.html covers/change.html
-msgid "Wikidata"
-msgstr ""
-
 #: covers/author_photo.html
 msgid "Pull up a larger author photo"
 msgstr ""
@@ -4283,6 +4210,10 @@ msgid "Current"
 msgstr ""
 
 #: covers/change.html
+msgid "Wikidata"
+msgstr ""
+
+#: covers/change.html
 msgid "Uploaded"
 msgstr ""
 
@@ -4353,6 +4284,14 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: covers/change.html
+msgid "Image Guidelines"
+msgstr ""
+
+#: covers/change.html
+msgid "Cover Guidelines"
+msgstr ""
+
+#: covers/change.html
 msgid "Photo updated"
 msgstr ""
 
@@ -4388,33 +4327,8 @@ msgstr ""
 msgid "Your changes couldn’t be saved. Try again."
 msgstr ""
 
-#: covers/external_image.html
-#, python-format
-msgid "Or, use an image from %s"
-msgstr ""
-
-#: covers/manage.html
-msgid "You can drag and drop thumbnails to reorder, or into the trash to delete them."
-msgstr ""
-
-#: covers/saved.html
-msgid "New book cover"
-msgstr ""
-
 #: covers/saved.html
 msgid "Saved!"
-msgstr ""
-
-#: covers/saved.html
-msgid "Notes:"
-msgstr ""
-
-#: covers/saved.html
-msgid "Add another image"
-msgstr ""
-
-#: covers/saved.html
-msgid "Finished"
 msgstr ""
 
 #: email/account/pd_request.html
