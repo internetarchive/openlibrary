@@ -5,7 +5,7 @@ Babel==2.18.0
 beautifulsoup4==4.14.3
 cryptography==44.0.2
 eventer==0.1.1
-fastapi==0.142.2
+fastapi==0.143.0
 feedparser==6.0.12
 flup-py3==1.0.3
 Genshi==0.7.11
@@ -35,7 +35,7 @@ python-multipart==0.0.32
 PyYAML==6.0.3
 qrcode==7.4.2
 requests==2.34.2
-sentry-sdk[fastapi]==2.71.0
+sentry-sdk[fastapi]==2.72.0
 simplejson==3.20.2
 statsd==4.0.1
 uvicorn[standard]==0.54.0

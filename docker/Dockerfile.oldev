@@ -8,7 +8,6 @@ ARG HTTPS_PROXY
 
 WORKDIR /openlibrary
 
-
 COPY --chown=openlibrary:openlibrary requirements*.txt ./
 USER root
 RUN uv pip install -r requirements_test.txt
