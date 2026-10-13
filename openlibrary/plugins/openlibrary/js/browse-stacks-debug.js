@@ -17,7 +17,9 @@ function saveState(state) {
     try {
         if (state) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         else localStorage.removeItem(STORAGE_KEY);
-    } catch { /* storage blocked */ }
+    } catch {
+        /* storage blocked */
+    }
 }
 
 /** @param {HTMLElement} tile */
@@ -56,13 +58,15 @@ export function initStacksDebug({ tiles, filterTiles }) {
     // Trending isn't a genre, so it always stays.
     const empty = tiles.filter(tile => !tile.hasAttribute('data-pinned') && !subgenresOf(tile).length);
 
-    list.append(...tiles.map(tile => {
-        const item = document.createElement('li');
-        const count = subgenresOf(tile).length;
-        item.textContent = `${JSON.parse(tile.dataset.shelf).name} — ${count}`;
-        item.classList.toggle('stacks-debug__empty', empty.includes(tile));
-        return item;
-    }));
+    list.append(
+        ...tiles.map(tile => {
+            const item = document.createElement('li');
+            const count = subgenresOf(tile).length;
+            item.textContent = `${JSON.parse(tile.dataset.shelf).name} — ${count}`;
+            item.classList.toggle('stacks-debug__empty', empty.includes(tile));
+            return item;
+        })
+    );
 
     function apply() {
         toggle.checked = state.hideEmpty;
@@ -72,7 +76,7 @@ export function initStacksDebug({ tiles, filterTiles }) {
         stats.textContent = `Showing ${shown} of ${tiles.length} tiles · ${empty.length} without subgenres`;
     }
 
-    toggle.addEventListener('ol-toggle-change', (e) => {
+    toggle.addEventListener('ol-toggle-change', e => {
         state.hideEmpty = e.detail.checked;
         saveState(state);
         apply();

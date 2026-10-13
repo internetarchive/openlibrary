@@ -150,9 +150,7 @@ export function initBrowseStacks(root) {
         const prefetch = shelf.prefetch;
         delete shelf.prefetch;
         try {
-            const resp = await (initial && prefetch?.slug === slug
-                ? prefetch.response
-                : fetch(buildPartialsUrl('HomeGenre', { genre: slug }), { signal }));
+            const resp = await (initial && prefetch?.slug === slug ? prefetch.response : fetch(buildPartialsUrl('HomeGenre', { genre: slug }), { signal }));
             if (!resp.ok) throw new Error('Failed to fetch genre shelf');
             const [data, lazyCarousel] = await Promise.all([resp.json(), lazyCarouselModule]);
             if (signal.aborted) return false;
@@ -164,7 +162,7 @@ export function initBrowseStacks(root) {
             if (e.name === 'AbortError') return false;
             trackEvent('BrowseStacks', 'LoadError', slug);
             shelf.innerHTML = `<p class="genre-shelf__error"><a href="#" class="genre-shelf__retry">${i18n.error || 'Try again?'}</a></p>`;
-            shelf.querySelector('.genre-shelf__retry').addEventListener('click', (ev) => {
+            shelf.querySelector('.genre-shelf__retry').addEventListener('click', ev => {
                 ev.preventDefault();
                 trackEvent('BrowseStacks', 'Retry', slug);
                 load(slug);
@@ -226,12 +224,15 @@ export function initBrowseStacks(root) {
     if (first) open(first.dataset.genre, { initial: true });
 
     // Scroll events don't cross ol-carousel's shadow root.
-    customElements.whenDefined('ol-carousel').then(() => rail.updateComplete).then(() => {
-        scroller = rail.shadowRoot?.querySelector('.viewport');
-        scroller?.addEventListener('scroll', track, { passive: true });
-        anchor();
-    });
-    rail.addEventListener('ol-carousel-page-change', (e) => {
+    customElements
+        .whenDefined('ol-carousel')
+        .then(() => rail.updateComplete)
+        .then(() => {
+            scroller = rail.shadowRoot?.querySelector('.viewport');
+            scroller?.addEventListener('scroll', track, { passive: true });
+            anchor();
+        });
+    rail.addEventListener('ol-carousel-page-change', e => {
         anchor();
         // Labelled with the page reached (1-based), to see how far into the genres readers look.
         if (e.detail.page > e.detail.previousPage) trackEvent('BrowseStacks', 'RailNext', String(e.detail.page + 1));
@@ -239,7 +240,7 @@ export function initBrowseStacks(root) {
     window.addEventListener('resize', anchor);
 
     // Escape only from inside the stacks, and not from a popover, which handles its own.
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
         if (e.key !== 'Escape' || !current || e.defaultPrevented) return;
         if (!e.composedPath().includes(root)) return;
         if (e.target.closest?.('ol-menu-popover, ol-popover, ol-select-popover, ol-options-popover')) return;
@@ -250,7 +251,9 @@ export function initBrowseStacks(root) {
     let debug = new URLSearchParams(location.search).get('debug') === 'stacks';
     try {
         debug ||= localStorage.getItem('ol-stacks-debug') !== null;
-    } catch { /* storage blocked */ }
+    } catch {
+        /* storage blocked */
+    }
     if (debug) {
         import('./browse-stacks-debug').then(module => module.initStacksDebug({ tiles, filterTiles }));
     }

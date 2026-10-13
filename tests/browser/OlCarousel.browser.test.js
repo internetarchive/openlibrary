@@ -69,13 +69,11 @@ test('Next really scrolls the rail, settles it, and announces the page', async (
     expect(el.page).toBe(1);
 });
 
-test('breakpoints override the default columns', async() => {
+test('breakpoints override the default columns', async () => {
     await page.viewport(1280, 800);
     render(html`
         <ol-carousel label="Trending" breakpoints="[[480, 2], [null, 7]]" style="width: 1200px">
-            ${Array.from({ length: 18 }, (_, i) => html`
-                <div style="height: 120px">Card ${i}</div>
-            `)}
+            ${Array.from({ length: 18 }, (_, i) => html` <div style="height: 120px">Card ${i}</div> `)}
         </ol-carousel>
     `);
     const el = document.querySelector('ol-carousel');
@@ -88,13 +86,11 @@ test('breakpoints override the default columns', async() => {
     expect(items[8].style.scrollSnapAlign).toBe('');
 });
 
-test('breakpoints pick the columns at narrow widths too', async() => {
+test('breakpoints pick the columns at narrow widths too', async () => {
     await page.viewport(1280, 800);
     render(html`
         <ol-carousel label="Trending" breakpoints="[[480, 2], [null, 7]]" style="width: 400px">
-            ${Array.from({ length: 6 }, (_, i) => html`
-                <div style="height: 120px">Card ${i}</div>
-            `)}
+            ${Array.from({ length: 6 }, (_, i) => html` <div style="height: 120px">Card ${i}</div> `)}
         </ol-carousel>
     `);
     const el = document.querySelector('ol-carousel');
@@ -103,13 +99,11 @@ test('breakpoints pick the columns at narrow widths too', async() => {
     await expect.poll(() => el.totalPages).toBe(3);
 });
 
-test('deferred items are released one page ahead, and further as the rail pages', async() => {
+test('deferred items are released one page ahead, and further as the rail pages', async () => {
     await page.viewport(1280, 800);
     render(html`
         <ol-carousel label="Trending" style="width: 1200px">
-            ${Array.from({ length: 32 }, (_, i) => html`
-                <div style="height: 120px"><span ?deferred=${i >= 8}>Card ${i}</span></div>
-            `)}
+            ${Array.from({ length: 32 }, (_, i) => html` <div style="height: 120px"><span ?deferred=${i >= 8}>Card ${i}</span></div> `)}
         </ol-carousel>
     `);
     const el = document.querySelector('ol-carousel');

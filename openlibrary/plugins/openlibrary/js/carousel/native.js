@@ -7,17 +7,17 @@ import { buildPartialsUrl } from '../utils.js';
  * @param {Iterable<HTMLElement>} elems `ol-carousel` elements
  */
 export function initNativeCarousels(elems) {
-    elems.forEach((carousel) => {
+    elems.forEach(carousel => {
         const config = JSON.parse(carousel.dataset.config || '{}');
         const category = config.analyticsCategory || 'Carousel';
         const key = config.carouselKey || '';
 
-        carousel.addEventListener('ol-carousel-page-change', (e) => {
+        carousel.addEventListener('ol-carousel-page-change', e => {
             if (e.detail.page > e.detail.previousPage) trackEvent(category, 'Next', key);
         });
 
         // The cover link is in ol-book-cover's shadow root, out of reach of `data-ol-link-track`.
-        carousel.addEventListener('ol-book-cover-click', (e) => {
+        carousel.addEventListener('ol-book-cover-click', e => {
             const track = e.target.closest('[data-cover-track]')?.dataset.coverTrack;
             if (track) trackEvent(...track.split('|'));
         });
@@ -26,7 +26,7 @@ export function initNativeCarousels(elems) {
         if (!loadMore?.queryType) return;
         let locked = false;
         let allDone = carousel.children.length < loadMore.limit;
-        carousel.addEventListener('ol-carousel-near-end', async(e) => {
+        carousel.addEventListener('ol-carousel-near-end', async e => {
             if (locked || allDone) return;
             locked = true;
             trackEvent(category, 'LoadMore', key);
@@ -62,7 +62,7 @@ async function fetchMoreCards(loadMore, itemCount) {
         hasFulltextOnly: loadMore.hasFulltextOnly,
         secondaryAction: loadMore.secondaryAction,
         layout: loadMore.layout,
-        key: loadMore.key,
+        key: loadMore.key
     });
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('Failed to fetch more carousel cards');

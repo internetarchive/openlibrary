@@ -92,7 +92,7 @@ describe('pre-loaded row impressions', () => {
         global.IntersectionObserver = originalIntersectionObserver;
     });
 
-    test('reports an impression for a row that arrives loaded', async() => {
+    test('reports an impression for a row that arrives loaded', async () => {
         const shelf = document.createElement('div');
         shelf.innerHTML = `
             <div class="lazy-carousel-loaded" data-config='{"key": "genre-horror"}'>
@@ -121,18 +121,18 @@ describe('lazy carousel empty rows', () => {
         global.IntersectionObserver = originalIntersectionObserver;
     });
 
-    test('drops a row that loads with nothing to show', async() => {
+    test('drops a row that loads with nothing to show', async () => {
         respondWith('<div class="carousel-section"></div>');
-        initLazyCarousel([makePlaceholder({key: 'genre-horror-gothic'})]);
+        initLazyCarousel([makePlaceholder({ key: 'genre-horror-gothic' })]);
         await flushPromises();
 
         expect(document.querySelector('.lazy-carousel')).toBeNull();
         expect(document.querySelector('.lazy-carousel-loaded')).toBeNull();
     });
 
-    test('keeps a grid row, which has cards but no carousel to initialize', async() => {
+    test('keeps a grid row, which has cards but no carousel to initialize', async () => {
         respondWith('<div class="carousel carousel--grid"></div>');
-        initLazyCarousel([makePlaceholder({key: 'grid-row', layout: 'grid'})]);
+        initLazyCarousel([makePlaceholder({ key: 'grid-row', layout: 'grid' })]);
         await flushPromises();
 
         expect(document.querySelector('.lazy-carousel')).toBeNull();
