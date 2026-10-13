@@ -14,7 +14,7 @@ const COVERSTORE = 'https://covers.openlibrary.org';
 const EDITION_STATE = {
     key: '/books/OL1M',
     current: 'img:10',
-    items: [{ id: 'img:10', kind: 'upload', image_id: 10, thumb: '10-M.jpg' }],
+    items: [{ id: 'img:10', kind: 'upload', image_id: 10, thumb: '10-M.jpg' }]
 };
 
 const UPLOADED = { id: 'img:77', kind: 'upload', image_id: 77, thumb: '77-M.jpg' };
@@ -26,7 +26,7 @@ let calls;
 /** Answer `METHOD url` routes with JSON; anything else is a test bug. */
 function stubFetch(routes) {
     calls = [];
-    window.fetch = vi.fn(async(url, init = {}) => {
+    window.fetch = vi.fn(async (url, init = {}) => {
         const route = `${init.method ?? 'GET'} ${url}`;
         calls.push({ route, init });
         if (!(route in routes)) throw new Error(`Unexpected fetch: ${route}`);
@@ -55,7 +55,7 @@ function seedEditionPage() {
 
 /** The author page renders authors/infobox twice (mobile + desktop), each with its own photo, preview dialog, and manager. */
 function seedAuthorPage() {
-    const infobox = (imagesId) => `
+    const infobox = imagesId => `
         <div class="infobox">
             <div class="author coverMagic">
                 <div class="SRPCover bookCover">
@@ -86,9 +86,9 @@ async function openManager(dialogId) {
 }
 
 const q = (el, selector) => el.renderRoot.querySelector(selector);
-const saveButton = (el) => q(el, 'ol-button[variant="primary"]');
+const saveButton = el => q(el, 'ol-button[variant="primary"]');
 
-beforeAll(async() => {
+beforeAll(async () => {
     const { initCoversChange } = await import('../../openlibrary/plugins/openlibrary/js/covers.js');
     // Listens on document, so once for the whole file.
     initCoversChange();
@@ -99,20 +99,20 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-test('choosing a real file uploads it, and Save puts it on the page at full resolution', async() => {
+test('choosing a real file uploads it, and Save puts it on the page at full resolution', async () => {
     seedEditionPage();
     stubFetch({
         'GET /books/OL1M/covers.json': EDITION_STATE,
         'POST /books/OL1M/covers/upload.json': UPLOADED,
-        'POST /books/OL1M/covers.json': { cover_id: 77 },
+        'POST /books/OL1M/covers.json': { cover_id: 77 }
     });
     const manager = await openManager('addImage-0');
 
-    await userEvent.upload(q(manager, 'input[type="file"]'), new File(['x'], 'Ada\'s cover.png', { type: 'image/png' }));
+    await userEvent.upload(q(manager, 'input[type="file"]'), new File(['x'], "Ada's cover.png", { type: 'image/png' }));
     await vi.waitFor(() => expect(manager._selected).toBe('img:77'));
 
     // The firewall rejects some real filenames (#13286), so the upload goes out under a neutral one.
-    const upload = calls.find((c) => c.route === 'POST /books/OL1M/covers/upload.json');
+    const upload = calls.find(c => c.route === 'POST /books/OL1M/covers/upload.json');
     expect(upload.init.body.get('file').name).toBe('image.png');
 
     await manager.updateComplete;
@@ -120,7 +120,7 @@ test('choosing a real file uploads it, and Save puts it on the page at full reso
     await userEvent.click(saveButton(manager));
 
     await vi.waitFor(() => expect(document.querySelector('.bookCover img').getAttribute('src')).toBe(`${COVERSTORE}/b/id/77-M.jpg`));
-    const save = calls.find((c) => c.route === 'POST /books/OL1M/covers.json');
+    const save = calls.find(c => c.route === 'POST /books/OL1M/covers.json');
     expect(JSON.parse(save.init.body)).toEqual({ image_id: 77, added: [77], removed: [] });
     expect(document.querySelector('.bookCover img').getAttribute('srcset')).toBe(`${COVERSTORE}/b/id/77-L.jpg 2x`);
     expect(document.querySelector('#seeImage img').getAttribute('src')).toBe(`${COVERSTORE}/b/id/77-L.jpg`);
@@ -128,11 +128,11 @@ test('choosing a real file uploads it, and Save puts it on the page at full reso
     await vi.waitFor(() => expect(document.getElementById('addImage-0').open).toBe(false));
 });
 
-test('dragging a file over the grid shows the drop target, and dropping it uploads', async() => {
+test('dragging a file over the grid shows the drop target, and dropping it uploads', async () => {
     seedEditionPage();
     stubFetch({
         'GET /books/OL1M/covers.json': EDITION_STATE,
-        'POST /books/OL1M/covers/upload.json': UPLOADED,
+        'POST /books/OL1M/covers/upload.json': UPLOADED
     });
     const manager = await openManager('addImage-0');
 
@@ -150,23 +150,23 @@ test('dragging a file over the grid shows the drop target, and dropping it uploa
     expect(q(manager, '.drop-target')).toBeNull();
 
     await vi.waitFor(() => expect(manager._selected).toBe('img:77'));
-    const upload = calls.find((c) => c.route === 'POST /books/OL1M/covers/upload.json');
+    const upload = calls.find(c => c.route === 'POST /books/OL1M/covers/upload.json');
     expect(upload.init.body.get('file').name).toBe('image.jpg');
 });
 
-test('saving an author photo updates both infobox copies and both preview dialogs', async() => {
+test('saving an author photo updates both infobox copies and both preview dialogs', async () => {
     seedAuthorPage();
     const state = {
         key: '/authors/OL1A',
         current: 'img:5',
         items: [
             { id: 'img:5', kind: 'upload', image_id: 5, thumb: '5-M.jpg' },
-            { id: 'img:6', kind: 'upload', image_id: 6, thumb: '6-M.jpg' },
-        ],
+            { id: 'img:6', kind: 'upload', image_id: 6, thumb: '6-M.jpg' }
+        ]
     };
     stubFetch({
         'GET /authors/OL1A/photos.json': state,
-        'POST /authors/OL1A/photos.json': { cover_id: 6 },
+        'POST /authors/OL1A/photos.json': { cover_id: 6 }
     });
     // Save from the desktop copy; the mobile copy must follow.
     const manager = await openManager('addImage-desktop');
@@ -188,33 +188,31 @@ test('saving an author photo updates both infobox copies and both preview dialog
     }
 });
 
-test('the Paste button uploads an image read from the clipboard', async() => {
+test('the Paste button uploads an image read from the clipboard', async () => {
     seedEditionPage();
     stubFetch({
         'GET /books/OL1M/covers.json': EDITION_STATE,
-        'POST /books/OL1M/covers/upload.json': UPLOADED,
+        'POST /books/OL1M/covers/upload.json': UPLOADED
     });
-    vi.spyOn(navigator.clipboard, 'read').mockResolvedValue([
-        { types: ['text/html', 'image/png'], getType: async(type) => new Blob(['x'], { type }) },
-    ]);
+    vi.spyOn(navigator.clipboard, 'read').mockResolvedValue([{ types: ['text/html', 'image/png'], getType: async type => new Blob(['x'], { type }) }]);
     const manager = await openManager('addImage-0');
 
     // Shown only to touch pointers; the click works the same either way.
     q(manager, '.paste ol-button').click();
 
     await vi.waitFor(() => expect(manager._selected).toBe('img:77'));
-    const upload = calls.find((c) => c.route === 'POST /books/OL1M/covers/upload.json');
+    const upload = calls.find(c => c.route === 'POST /books/OL1M/covers/upload.json');
     expect(upload.init.body.get('file').name).toBe('image.png');
 });
 
-test('the Paste button explains when the clipboard has no image', async() => {
+test('the Paste button explains when the clipboard has no image', async () => {
     seedEditionPage();
     stubFetch({ 'GET /books/OL1M/covers.json': EDITION_STATE });
-    vi.spyOn(navigator.clipboard, 'read').mockResolvedValue([{ types: ['text/plain'], getType: async() => new Blob(['hi']) }]);
+    vi.spyOn(navigator.clipboard, 'read').mockResolvedValue([{ types: ['text/plain'], getType: async () => new Blob(['hi']) }]);
     const manager = await openManager('addImage-0');
 
     q(manager, '.paste ol-button').click();
 
     await vi.waitFor(() => expect(q(manager, '.error')?.textContent).toContain('No image found on your clipboard.'));
-    expect(calls.some((c) => c.route.startsWith('POST'))).toBe(false);
+    expect(calls.some(c => c.route.startsWith('POST'))).toBe(false);
 });

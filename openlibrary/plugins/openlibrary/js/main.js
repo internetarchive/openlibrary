@@ -256,10 +256,8 @@ $(function () {
         });
     }
 
-
     if (document.getElementsByClassName('manageCovers').length) {
-        import('./covers')
-            .then((module) => module.initCoversChange());
+        import('./covers').then(module => module.initCoversChange());
     }
 
     if (document.getElementById('addbook')) {

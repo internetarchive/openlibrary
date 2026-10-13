@@ -11,18 +11,18 @@ const STATE = {
         { id: 'suggestion:archive-cover', kind: 'archive_cover', suggestion: 'archive-cover', image_id: null, thumb: 'scan-cover.jpg' },
         { id: 'suggestion:archive-title', kind: 'archive_title', suggestion: 'archive-title', image_id: null, thumb: 'scan-title.jpg' },
         { id: 'img:10', kind: 'upload', image_id: 10, thumb: '10-M.jpg', added_by: { key: '/people/ada', name: 'Ada' }, created: '2024-03-02T00:00:00' },
-        { id: 'img:11', kind: 'upload', image_id: 11, thumb: '11-M.jpg', added_by: null, created: null },
-    ],
+        { id: 'img:11', kind: 'upload', image_id: 11, thumb: '11-M.jpg', added_by: null, created: null }
+    ]
 };
 
 let calls;
 
 function stubFetch(routes = {}) {
     calls = [];
-    global.fetch = vi.fn(async(url, init = {}) => {
+    global.fetch = vi.fn(async (url, init = {}) => {
         calls.push({ url, init });
         const reply = routes[`${init.method ?? 'GET'} ${url}`] ?? { body: STATE };
-        return { ok: reply.ok ?? true, status: reply.ok === false ? 400 : 200, statusText: '', json: async() => reply.body };
+        return { ok: reply.ok ?? true, status: reply.ok === false ? 400 : 200, statusText: '', json: async () => reply.body };
     });
 }
 
@@ -42,29 +42,29 @@ async function mount() {
 
 const q = (el, selector) => el.renderRoot.querySelector(selector);
 const qa = (el, selector) => [...el.renderRoot.querySelectorAll(selector)];
-const status = (el) => q(el, '.status').textContent.trim();
-const saveButton = (el) => q(el, 'ol-button[variant="primary"]');
+const status = el => q(el, '.status').textContent.trim();
+const saveButton = el => q(el, 'ol-button[variant="primary"]');
 
 afterEach(() => {
     document.body.innerHTML = '';
 });
 
 describe('ol-cover-manager listing', () => {
-    test('loads the covers endpoint and lists suggestions before uploads, after the add tile', async() => {
+    test('loads the covers endpoint and lists suggestions before uploads, after the add tile', async () => {
         stubFetch();
         const el = await mount();
         expect(calls[0].url).toBe('/books/OL1M/covers.json');
         expect(q(el, '.add')).not.toBeNull();
-        const labels = qa(el, '.pick').map((b) => b.getAttribute('aria-label'));
+        const labels = qa(el, '.pick').map(b => b.getAttribute('aria-label'));
         expect(labels).toEqual([
             'Internet Archive, Scan · cover page',
             'Internet Archive, Scan · title page',
             'Uploaded, Ada · Mar 2024 (current cover)',
-            'Uploaded',
+            'Uploaded'
         ]);
     });
 
-    test('author records use the photos endpoint', async() => {
+    test('author records use the photos endpoint', async () => {
         stubFetch();
         const el = document.createElement('ol-cover-manager');
         el.docKey = '/authors/OL1A';
@@ -72,16 +72,16 @@ describe('ol-cover-manager listing', () => {
         await vi.waitFor(() => expect(calls[0]?.url).toBe('/authors/OL1A/photos.json'));
     });
 
-    test('the current cover starts selected, and Save starts disabled', async() => {
+    test('the current cover starts selected, and Save starts disabled', async () => {
         stubFetch();
         const el = await mount();
-        const pressed = qa(el, '.pick').filter((b) => b.getAttribute('aria-pressed') === 'true');
+        const pressed = qa(el, '.pick').filter(b => b.getAttribute('aria-pressed') === 'true');
         expect(pressed).toHaveLength(1);
         expect(pressed[0].getAttribute('aria-label')).toContain('current cover');
         expect(saveButton(el).disabled).toBe(true);
     });
 
-    test('a scan page that fails to load is dropped', async() => {
+    test('a scan page that fails to load is dropped', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.pick img')[1].dispatchEvent(new Event('error'));
@@ -89,7 +89,7 @@ describe('ol-cover-manager listing', () => {
         expect(qa(el, '.pick')).toHaveLength(3);
     });
 
-    test('a failed load offers a retry', async() => {
+    test('a failed load offers a retry', async () => {
         stubFetch({ 'GET /books/OL1M/covers.json': { ok: false, body: {} } });
         const el = document.createElement('ol-cover-manager');
         el.docKey = '/books/OL1M';
@@ -101,7 +101,7 @@ describe('ol-cover-manager listing', () => {
 });
 
 describe('ol-cover-manager choosing and removing', () => {
-    test('picking another image says what Save will do', async() => {
+    test('picking another image says what Save will do', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.pick')[0].click();
@@ -110,14 +110,14 @@ describe('ol-cover-manager choosing and removing', () => {
         expect(saveButton(el).disabled).toBe(false);
     });
 
-    test('suggestions have no Remove; the selected image has none either', async() => {
+    test('suggestions have no Remove; the selected image has none either', async () => {
         stubFetch();
         const el = await mount();
-        const removable = qa(el, '.tile').filter((tile) => tile.querySelector('.text-action.danger'));
-        expect(removable.map((tile) => tile.querySelector('.pick').getAttribute('aria-label'))).toEqual(['Uploaded']);
+        const removable = qa(el, '.tile').filter(tile => tile.querySelector('.text-action.danger'));
+        expect(removable.map(tile => tile.querySelector('.pick').getAttribute('aria-label'))).toEqual(['Uploaded']);
     });
 
-    test('the current cover can be removed once something else is picked', async() => {
+    test('the current cover can be removed once something else is picked', async () => {
         stubFetch();
         const el = await mount();
         qa(el, '.pick')[0].click();
@@ -125,7 +125,7 @@ describe('ol-cover-manager choosing and removing', () => {
         expect(qa(el, '.tile')[3].querySelector('.text-action.danger')).not.toBeNull();
     });
 
-    test('remove disables the tile and Undo restores it', async() => {
+    test('remove disables the tile and Undo restores it', async () => {
         stubFetch();
         const el = await mount();
         const tile = () => qa(el, '.tile')[4];
@@ -143,7 +143,7 @@ describe('ol-cover-manager choosing and removing', () => {
 describe('ol-cover-manager adding', () => {
     const file = (name, type, size = 10) => new File([new Uint8Array(size)], name, { type });
 
-    test('rejects files that are not JPG, GIF, PNG or WebP', async() => {
+    test('rejects files that are not JPG, GIF, PNG or WebP', async () => {
         stubFetch();
         const el = await mount();
         el._addFiles([file('notes.pdf', 'application/pdf')]);
@@ -152,9 +152,11 @@ describe('ol-cover-manager adding', () => {
         expect(calls).toHaveLength(1);
     });
 
-    test('a pasted image uploads and becomes the selection', async() => {
+    test('a pasted image uploads and becomes the selection', async () => {
         stubFetch({
-            'POST /books/OL1M/covers/upload.json': { body: { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg', added_by: { key: '/people/me', name: 'Me' } } },
+            'POST /books/OL1M/covers/upload.json': {
+                body: { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg', added_by: { key: '/people/me', name: 'Me' } }
+            }
         });
         const el = await mount();
         const paste = new Event('paste', { cancelable: true });
@@ -167,15 +169,15 @@ describe('ol-cover-manager adding', () => {
         expect(status(el)).toBe('When you save, the selected image becomes the cover.');
     });
 
-    test('uploads under a neutral filename with the type’s extension', async() => {
+    test('uploads under a neutral filename with the type’s extension', async () => {
         stubFetch();
         const el = await mount();
-        el._addFiles([file('Portrait d’Ada\'s.JPEG', 'image/jpeg')]);
+        el._addFiles([file("Portrait d’Ada's.JPEG", 'image/jpeg')]);
         await vi.waitFor(() => expect(calls).toHaveLength(2));
         expect(calls[1].init.body.get('file').name).toBe('image.jpg');
     });
 
-    test('a failed upload drops its placeholder and says so', async() => {
+    test('a failed upload drops its placeholder and says so', async () => {
         stubFetch({ 'POST /books/OL1M/covers/upload.json': { ok: false, body: { detail: 'Not a valid image file' } } });
         const el = await mount();
         el._addFiles([file('cover.jpg', 'image/jpeg')]);
@@ -185,10 +187,10 @@ describe('ol-cover-manager adding', () => {
 });
 
 describe('ol-cover-manager saving', () => {
-    test('sends the selection, new uploads and removals, then reports the cover', async() => {
+    test('sends the selection, new uploads and removals, then reports the cover', async () => {
         stubFetch({
             'POST /books/OL1M/covers/upload.json': { body: { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg' } },
-            'POST /books/OL1M/covers.json': { body: { cover_id: 77 } },
+            'POST /books/OL1M/covers.json': { body: { cover_id: 77 } }
         });
         const el = await mount();
         el._addFiles([new File([new Uint8Array(4)], 'c.jpg', { type: 'image/jpeg' })]);
@@ -199,14 +201,14 @@ describe('ol-cover-manager saving', () => {
         expect(status(el)).toBe('When you save, the selected image becomes the cover. 1 new image will be added. 1 image will be removed.');
 
         const saved = vi.fn();
-        el.addEventListener('ol-cover-manager-save', (e) => saved(e.detail));
+        el.addEventListener('ol-cover-manager-save', e => saved(e.detail));
         await el._save();
-        const post = calls.find((c) => c.url === '/books/OL1M/covers.json' && c.init.method === 'POST');
+        const post = calls.find(c => c.url === '/books/OL1M/covers.json' && c.init.method === 'POST');
         expect(JSON.parse(post.init.body)).toEqual({ suggestion: 'archive-cover', added: [99], removed: [11] });
         expect(saved).toHaveBeenCalledWith({ coverId: 77 });
     });
 
-    test('a failed save keeps the dialog state and shows an error', async() => {
+    test('a failed save keeps the dialog state and shows an error', async () => {
         stubFetch({ 'POST /books/OL1M/covers.json': { ok: false, body: {} } });
         const el = await mount();
         el._select(STATE.items[1]);

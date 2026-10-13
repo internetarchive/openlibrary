@@ -44,7 +44,7 @@ export const DEFAULT_LABELS = {
     errorType: 'Choose a JPG, GIF, PNG or WebP image.',
     errorSize: 'Images must be 10 MB or smaller.',
     errorUpload: 'That image couldn’t be uploaded.',
-    errorSave: 'Your changes couldn’t be saved. Try again.',
+    errorSave: 'Your changes couldn’t be saved. Try again.'
 };
 
 const ACCEPT = '.jpg,.jpeg,.gif,.png,.webp,image/jpeg,image/gif,image/png,image/webp';
@@ -84,7 +84,7 @@ export class OlCoverManager extends LitElement {
         _hidden: { state: true },
         _saving: { state: true },
         _dragging: { state: true },
-        _error: { state: true },
+        _error: { state: true }
     };
 
     static styles = css`
@@ -232,7 +232,9 @@ export class OlCoverManager extends LitElement {
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .meta {
@@ -415,7 +417,9 @@ export class OlCoverManager extends LitElement {
         }
 
         @keyframes pulse {
-            to { opacity: 0.5; }
+            to {
+                opacity: 0.5;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -454,7 +458,7 @@ export class OlCoverManager extends LitElement {
         this._dialog = null;
         this._onOpen = () => this.load();
         this._onClosed = () => this._reset();
-        this._onPaste = (e) => this._handlePaste(e);
+        this._onPaste = e => this._handlePaste(e);
     }
 
     connectedCallback() {
@@ -518,13 +522,13 @@ export class OlCoverManager extends LitElement {
     /** Session uploads first, after the suggestions; then what the record already has. */
     get _items() {
         const items = this._data?.items ?? [];
-        const suggested = items.filter((item) => item.kind !== 'upload');
-        const uploads = items.filter((item) => item.kind === 'upload');
-        return [...suggested, ...this._added, ...uploads].filter((item) => !this._hidden.has(item.id));
+        const suggested = items.filter(item => item.kind !== 'upload');
+        const uploads = items.filter(item => item.kind === 'upload');
+        return [...suggested, ...this._added, ...uploads].filter(item => !this._hidden.has(item.id));
     }
 
     get _uploadedIds() {
-        return this._added.filter((item) => !item.pending && !this._removed.has(item.image_id)).map((item) => item.image_id);
+        return this._added.filter(item => !item.pending && !this._removed.has(item.image_id)).map(item => item.image_id);
     }
 
     get _isDirty() {
@@ -552,7 +556,7 @@ export class OlCoverManager extends LitElement {
         const files = [];
         try {
             for (const item of await navigator.clipboard.read()) {
-                const type = item.types.find((t) => IMAGE_TYPES.includes(t));
+                const type = item.types.find(t => IMAGE_TYPES.includes(t));
                 if (type) files.push(new File([await item.getType(type)], 'pasted', { type }));
             }
         } catch {
@@ -564,7 +568,7 @@ export class OlCoverManager extends LitElement {
 
     _handlePaste(e) {
         if (!this._isOpen() || this._loadState !== 'ready') return;
-        const files = [...(e.clipboardData?.files ?? [])].filter((file) => file.type.startsWith('image/'));
+        const files = [...(e.clipboardData?.files ?? [])].filter(file => file.type.startsWith('image/'));
         if (!files.length) return;
         e.preventDefault();
         this._addFiles(files);
@@ -631,11 +635,11 @@ export class OlCoverManager extends LitElement {
             if (!response.ok) throw new Error(result.detail || response.statusText);
             // Keep showing the local preview: the coverstore may still be making its thumbnails.
             const item = { ...result, thumb: objectUrl, objectUrl, session: true };
-            this._added = this._added.map((added) => (added.id === placeholder.id ? item : added));
+            this._added = this._added.map(added => (added.id === placeholder.id ? item : added));
             this._selected = item.id;
         } catch {
             URL.revokeObjectURL(objectUrl);
-            this._added = this._added.filter((added) => added.id !== placeholder.id);
+            this._added = this._added.filter(added => added.id !== placeholder.id);
             this._error = this._t('errorUpload');
         }
     }
@@ -669,7 +673,13 @@ export class OlCoverManager extends LitElement {
         if (current === -1) return;
         const rtl = getComputedStyle(this).direction === 'rtl';
         const key = rtl && e.key === 'ArrowLeft' ? 'ArrowRight' : rtl && e.key === 'ArrowRight' ? 'ArrowLeft' : e.key;
-        const next = getNextKeyboardFocusIndex(key, { count: picks.length, current, orientation: 'horizontal', wrap: false, isDisabled: (i) => picks[i].disabled });
+        const next = getNextKeyboardFocusIndex(key, {
+            count: picks.length,
+            current,
+            orientation: 'horizontal',
+            wrap: false,
+            isDisabled: i => picks[i].disabled
+        });
         if (next === -1) return;
         e.preventDefault();
         picks[next].focus();
@@ -682,22 +692,24 @@ export class OlCoverManager extends LitElement {
         this._saving = true;
         this._error = '';
         // An image the record has is picked by id; a suggestion not copied in yet, by name.
-        const selected = this._items.find((item) => item.id === this._selected);
+        const selected = this._items.find(item => item.id === this._selected);
         const selection = selected.image_id ? { image_id: selected.image_id } : { suggestion: selected.suggestion };
         try {
             const response = await fetch(`${this._endpoint}.json`, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-                body: JSON.stringify({ ...selection, added: this._uploadedIds, removed: [...this._removed] }),
+                body: JSON.stringify({ ...selection, added: this._uploadedIds, removed: [...this._removed] })
             });
             if (!response.ok) throw new Error(response.statusText);
             const { cover_id: coverId } = await response.json();
-            this.dispatchEvent(new CustomEvent('ol-cover-manager-save', {
-                detail: { coverId },
-                bubbles: true,
-                composed: true,
-            }));
+            this.dispatchEvent(
+                new CustomEvent('ol-cover-manager-save', {
+                    detail: { coverId },
+                    bubbles: true,
+                    composed: true
+                })
+            );
             this._dialog?.close('saved');
             showToast(this._t('saved'), { type: 'success' });
         } catch {
@@ -715,20 +727,25 @@ export class OlCoverManager extends LitElement {
     // Rendering
 
     _describe(item) {
-        const date = item.created ? new Intl.DateTimeFormat(document.documentElement.lang || 'en', { month: 'short', year: 'numeric' }).format(new Date(item.created)) : '';
+        const date = item.created
+            ? new Intl.DateTimeFormat(document.documentElement.lang || 'en', { month: 'short', year: 'numeric' }).format(new Date(item.created))
+            : '';
         switch (item.kind) {
-        case 'archive_cover': return { source: this._t('sourceArchive'), detail: this._t('detailScanCover'), suggested: true };
-        case 'archive_title': return { source: this._t('sourceArchive'), detail: this._t('detailScanTitle'), suggested: true };
-        case 'wikidata': return { source: this._t('sourceWikidata'), detail: this._t('detailWikidata'), suggested: true };
-        default: {
-            if (item.session) return { source: this._t('sourceUpload'), detail: this._t('detailYou'), suggested: false };
-            const uploader = item.added_by?.name ?? '';
-            let detail = date;
-            if (uploader && date) detail = this._t('detailUploadBy', { name: uploader, date });
-            else if (uploader) detail = uploader;
-            // `detail` is the one-line form for labels; the caption shows `uploader` and `date` on separate lines.
-            return { source: this._t('sourceUpload'), detail, uploader, date, suggested: false };
-        }
+            case 'archive_cover':
+                return { source: this._t('sourceArchive'), detail: this._t('detailScanCover'), suggested: true };
+            case 'archive_title':
+                return { source: this._t('sourceArchive'), detail: this._t('detailScanTitle'), suggested: true };
+            case 'wikidata':
+                return { source: this._t('sourceWikidata'), detail: this._t('detailWikidata'), suggested: true };
+            default: {
+                if (item.session) return { source: this._t('sourceUpload'), detail: this._t('detailYou'), suggested: false };
+                const uploader = item.added_by?.name ?? '';
+                let detail = date;
+                if (uploader && date) detail = this._t('detailUploadBy', { name: uploader, date });
+                else if (uploader) detail = uploader;
+                // `detail` is the one-line form for labels; the caption shows `uploader` and `date` on separate lines.
+                return { source: this._t('sourceUpload'), detail, uploader, date, suggested: false };
+            }
         }
     }
 
@@ -752,7 +769,7 @@ export class OlCoverManager extends LitElement {
                 ?disabled=${removed || item.pending}
                 @click=${() => this._select(item)}
             >
-                <span class="frame"><img src=${item.thumb} alt="" loading="lazy" @error=${() => this._hide(item)}></span>
+                <span class="frame"><img src=${item.thumb} alt="" loading="lazy" @error=${() => this._hide(item)} /></span>
                 ${isCurrent ? html`<span class="badge" aria-hidden="true">${this._t('current')}</span>` : nothing}
                 ${selected ? html`<span class="check" aria-hidden="true"><ol-icon name="check" size="sm"></ol-icon></span>` : nothing}
                 ${item.pending ? html`<span class="busy"><ol-icon name="loader"></ol-icon>${this._t('uploading')}</span>` : nothing}
@@ -777,11 +794,11 @@ export class OlCoverManager extends LitElement {
     }
 
     _renderStatus() {
-        if (this._added.some((item) => item.pending)) return this._t('uploading');
+        if (this._added.some(item => item.pending)) return this._t('uploading');
         if (!this._isDirty) return nothing;
         const parts = [];
         if (this._selected !== this._data.current) parts.push(this._t('statusSelect'));
-        const newUploads = this._uploadedIds.filter((id) => `img:${id}` !== this._selected).length;
+        const newUploads = this._uploadedIds.filter(id => `img:${id}` !== this._selected).length;
         if (newUploads) parts.push(this._t('statusAdd', { count: newUploads }));
         if (this._removed.size) parts.push(this._t('statusRemove', { count: this._removed.size }));
         return parts.join(' ');
@@ -798,29 +815,37 @@ export class OlCoverManager extends LitElement {
 
         if (this._loadState !== 'ready') {
             return html`${this._renderIntro()}
-                <ul class="grid skeleton" aria-busy="true" aria-label=${this._t('loading')}>${[0, 1, 2, 3].map(() => html`<li class="tile"><span class="pick"><span class="frame"></span></span></li>`)}</ul>`;
+                <ul class="grid skeleton" aria-busy="true" aria-label=${this._t('loading')}>
+                    ${[0, 1, 2, 3].map(
+                        () =>
+                            html`<li class="tile">
+                                <span class="pick"><span class="frame"></span></span>
+                            </li>`
+                    )}
+                </ul>`;
         }
 
-        const pending = this._added.some((item) => item.pending);
+        const pending = this._added.some(item => item.pending);
         return html`
             ${this._renderIntro()}
-            <div
-                class="grid-wrap"
-                @dragenter=${this._onDragEnter}
-                @dragover=${this._onDragOver}
-                @dragleave=${this._onDragLeave}
-                @drop=${this._onDrop}
-            >
-                <ul class="grid" aria-label=${this._t('images')} @keydown=${this._onGridKeydown}><li class="tile">
+            <div class="grid-wrap" @dragenter=${this._onDragEnter} @dragover=${this._onDragOver} @dragleave=${this._onDragLeave} @drop=${this._onDrop}>
+                <ul class="grid" aria-label=${this._t('images')} @keydown=${this._onGridKeydown}>
+                    <li class="tile">
                         <button class="add" type="button" @click=${this._openPicker}>
                             <ol-icon name="upload" size="lg"></ol-icon>
                             <strong>${this._t('addImage')}</strong>
                             <span class="hint-touch">${this._t('addHintTouch')}</span>
                             <span class="hint-pointer">${this._t('addHint')}</span>
                         </button>
-                        <input class="visually-hidden" type="file" accept=${ACCEPT} multiple tabindex="-1" aria-hidden="true" @change=${this._onFileInput}>
+                        <input class="visually-hidden" type="file" accept=${ACCEPT} multiple tabindex="-1" aria-hidden="true" @change=${this._onFileInput} />
                         ${CAN_READ_CLIPBOARD ? html`<div class="meta paste"><ol-button variant="secondary" size="small" @click=${this._pasteFromClipboard}>${this._t('paste')}</ol-button></div>` : nothing}
-                    </li>${repeat(this._items, (item) => item.id, (item) => this._renderTile(item))}</ul>
+                    </li>
+                    ${repeat(
+                        this._items,
+                        item => item.id,
+                        item => this._renderTile(item)
+                    )}
+                </ul>
                 ${this._dragging ? html`<div class="drop-target">${this._t('dropHere')}</div>` : nothing}
             </div>
             ${this._error ? html`<p class="error" role="alert"><ol-icon name="circle-alert" size="sm"></ol-icon>${this._error}</p>` : nothing}
@@ -828,7 +853,9 @@ export class OlCoverManager extends LitElement {
                 <p class="status" aria-live="polite">${this._renderStatus()}</p>
                 <div class="actions">
                     <ol-button variant="secondary" @click=${this._cancel}>${this._t('cancel')}</ol-button>
-                    <ol-button variant="primary" ?disabled=${!this._isDirty || pending} ?loading=${this._saving} @click=${this._save}>${this._t('save')}</ol-button>
+                    <ol-button variant="primary" ?disabled=${!this._isDirty || pending} ?loading=${this._saving} @click=${this._save}
+                        >${this._t('save')}</ol-button
+                    >
                 </div>
             </div>
         `;
