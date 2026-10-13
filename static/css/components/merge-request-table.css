@@ -355,3 +355,17 @@
 .mr-comment-toggle__speech-bubble {
   width: 20px;
 }
+
+/* Statistics page */
+.mr-stats-table {
+  width: 100%;
+  background-color: var(--white);
+  border-collapse: collapse;
+}
+
+.mr-stats-table th,
+.mr-stats-table td {
+  padding: var(--spacing-inset-sm);
+  text-align: left;
+  border-top: 1px solid var(--color-border-subtle);
+}
