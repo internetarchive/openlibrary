@@ -1,4 +1,4 @@
-"""Tests for openlibrary.core.layout — guarantee layout is data-only."""
+"""Tests for openlibrary.core.shell — guarantee layout is data-only."""
 
 import pathlib
 import re
@@ -7,23 +7,35 @@ import pytest
 
 import infogami.utils.flash as flash_module
 from infogami.utils.context import context as infogami_ctx
-from openlibrary.core.layout import AnnouncementBanner, LayoutContext, can_show_librarian_tools
+from openlibrary.core.shell import (
+    AnnouncementBanner,
+    HeadContext,
+    HeaderContext,
+    LayoutContext,
+    SearchModalContext,
+    SentryContext,
+    can_show_librarian_tools,
+)
 
 
 @pytest.fixture(autouse=True)
 def _patch_get_current_user(monkeypatch):
     """Default get_current_user to None for layout tests so LayoutContext.build() is safe."""
-    monkeypatch.setattr("openlibrary.core.layout.get_current_user", lambda: None)
+    monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", lambda: None)
 
 
 TEMPLATES_DIR = pathlib.Path(__file__).resolve().parents[3] / "openlibrary" / "templates"
 LAYOUT_TEMPLATES = [
-    TEMPLATES_DIR / "site.html.jinja",
-    TEMPLATES_DIR / "site" / "alert.html.jinja",
-    TEMPLATES_DIR / "site" / "banner.html.jinja",
-    TEMPLATES_DIR / "lib" / "nav_foot.html.jinja",
-    TEMPLATES_DIR / "languages" / "language_list.html.jinja",
-    TEMPLATES_DIR / "site" / "stats.html.jinja",
+    TEMPLATES_DIR / "shell" / "base.html.jinja",
+    TEMPLATES_DIR / "shell" / "alert.html.jinja",
+    TEMPLATES_DIR / "shell" / "banner.html.jinja",
+    TEMPLATES_DIR / "shell" / "head.html.jinja",
+    TEMPLATES_DIR / "shell" / "footer.html.jinja",
+    TEMPLATES_DIR / "shell" / "header.html.jinja",
+    TEMPLATES_DIR / "shell" / "browse_popover.html.jinja",
+    TEMPLATES_DIR / "shell" / "mybooks_popover.html.jinja",
+    TEMPLATES_DIR / "shell" / "language_list.html.jinja",
+    TEMPLATES_DIR / "shell" / "stats.html.jinja",
 ]
 
 
@@ -31,7 +43,7 @@ def test_layout_context_contains_no_callables(request_context_fixture):
     """LayoutContext.build() must be pure data — no functions that could hide I/O."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
-    # __post_init__ already guards this, but double-check via to_dict
+    # Double-check via to_dict; the frozen dataclass is deliberate
     for key, val in layout.to_dict().items():
         assert not callable(val), f"{key} is callable"
         if isinstance(val, dict):
@@ -83,6 +95,34 @@ def test_layout_context_is_frozen():
         body_attrs=[],
         donate_script_url="",
         flash_messages=[],
+        ol_env="production",
+        is_local_dev=False,
+        header=HeaderContext(
+            user=None,
+            page_status_url="",
+            is_recognized_bot=False,
+            is_print_disabled=False,
+            homepath="",
+            mybooks_links=[[]],
+            browse_links=[],
+            browse_featured_count=4,
+            search_modal=SearchModalContext(availability={}, strings={}),
+        ),
+        head=HeadContext(
+            title="",
+            domain="",
+            canonical_url="",
+            disable_analytics=False,
+            page_css_path="build/css/page-user.css",
+            experiments_json="{}",
+            robots="",
+            description="",
+            links=[],
+            metatags=[],
+            icon_sprite_url="",
+            days_registered_json='"visitor"',
+            sentry=None,
+        ),
         announcement_banner=None,
     )
     with pytest.raises((AttributeError, TypeError)):
@@ -125,7 +165,7 @@ def test_layout_build_body_classes_and_librarian_tools(monkeypatch, request_cont
     infogami_ctx["show_ol_shell"] = True
     infogami_ctx["path"] = "/works/OL12345W"
     infogami_ctx["user"] = mock_user
-    monkeypatch.setattr("openlibrary.core.layout.get_current_user", lambda: mock_user)
+    monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", lambda: mock_user)
 
     layout = LayoutContext.build()
     assert "custom-class" in layout.body_classes
@@ -148,11 +188,10 @@ def test_layout_build_active_ui_lang(request_context_fixture):
 
 
 def test_layout_build_donate_script_url(monkeypatch, request_context_fixture):
-    """LayoutContext should set donate_script_url and backward-compatible donate_script_src."""
+    """LayoutContext should set donate_script_url."""
     request_context_fixture(lang="en")
     layout = LayoutContext.build()
     assert layout.donate_script_url == "/cdn/archive.org/donate.js"
-    assert layout.donate_script_src == "/cdn/archive.org/donate.js"
 
 
 def test_layout_build_flash_messages(monkeypatch, request_context_fixture):
@@ -175,3 +214,143 @@ def test_announcement_banner_structure():
     assert banner.cookie_duration_days == 7
     with pytest.raises((AttributeError, TypeError)):
         banner.content = "New content"  # type: ignore[misc]
+
+
+def test_layout_build_header_user_logged_out(request_context_fixture):
+    """LayoutContext should have user=None when no user is logged in."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    assert layout.header.user is None
+
+
+def test_layout_build_header_user_logged_in(monkeypatch, request_context_fixture):
+    """LayoutContext should build HeaderUser when a user is logged in."""
+    request_context_fixture(lang="en")
+
+    class MockUser:
+        key = "/people/super_librarian"
+        created = "2020-01-01"
+
+        def is_librarian_or_higher(self):
+            return True
+
+        def is_super_librarian_or_higher(self):
+            return True
+
+    monkeypatch.setattr("openlibrary.core.shell.context.get_current_user", MockUser)
+    monkeypatch.setattr("openlibrary.core.shell.header.get_internet_archive_id", lambda key: "ia_bob")
+    monkeypatch.setattr("openlibrary.core.shell.header.cached_get_counts_by_mode", lambda mode="open": 42)
+
+    layout = LayoutContext.build()
+    assert layout.header.user is not None
+    assert layout.header.user.key == "/people/super_librarian"
+    assert layout.header.user.username == "super_librarian"
+    assert layout.header.user.ia_id == "ia_bob"
+    assert "super_librarian" in layout.header.user.account_title
+    assert layout.header.user.is_privileged_user is True
+    assert layout.header.user.shows_merge_count is True
+    assert layout.header.user.open_merges_count == 42
+
+
+def test_layout_build_header_navigation(request_context_fixture):
+    """LayoutContext should build header navigation props and browse links."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    assert layout.header.mybooks_links[0][0].track == "MyBooks"
+    assert all(group for group in layout.header.mybooks_links)
+    assert len(layout.header.browse_links) > 0
+    assert layout.header.browse_featured_count == 4
+    assert layout.ol_env in ("production", "development", "testing")
+
+
+def test_layout_build_search_modal_preserves_client_fill_placeholders(request_context_fixture):
+    """Client-fill strings must keep their ``%s`` for browser-side ``sprintf``.
+
+    Building them in Python (rather than a Jinja template) is what keeps Jinja's
+    formatting ``_`` away from placeholders it cannot fill.
+    """
+    request_context_fixture(lang="en")
+    modal = LayoutContext.build().header.search_modal
+    assert modal.availability["all"]["label"] == "All books"
+    assert modal.strings["seeOne"] == "See %s book"
+    assert modal.strings["resultsAnnounce"] == "Showing %s of %s results"
+    assert modal.strings["removeRecent"] == 'Remove "%s" from recent searches'
+
+
+def test_layout_build_head_defaults(request_context_fixture):
+    """Head fields should have safe defaults on a bare request context."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build()
+    head = layout.head
+    assert head.title == ""
+    assert head.disable_analytics is False
+    assert head.page_css_path == "build/css/page-user.css"
+    assert head.experiments_json == "{}"
+    assert head.robots == ""
+    assert head.description == ""
+    assert head.links == []
+    assert head.metatags == []
+    assert head.days_registered_json == '"visitor"'
+    assert head.sentry is None
+    assert isinstance(head.canonical_url, str)
+    assert isinstance(head.domain, str)
+    assert isinstance(head.icon_sprite_url, str)
+    assert isinstance(layout.is_local_dev, bool)
+
+
+def test_layout_build_head_title_passthrough(request_context_fixture):
+    """``build(title=...)`` should surface the page title for the <head>."""
+    request_context_fixture(lang="en")
+    layout = LayoutContext.build(title="The Hobbit")
+    assert layout.head.title == "The Hobbit"
+
+
+def test_layout_build_head_reads_page_context(request_context_fixture):
+    """Head fields should be sourced from the per-page infogami context."""
+    request_context_fixture(lang="en")
+    infogami_ctx["disable_analytics"] = True
+    infogami_ctx["cssfile"] = "work"
+    infogami_ctx["experiments"] = {"foo": "bar"}
+    infogami_ctx["robots"] = "noindex"
+    infogami_ctx["description"] = "A description"
+    infogami_ctx["links"] = ['<link rel="alternate" href="/x">']
+    infogami_ctx["metatags"] = ['<meta name="custom" content="v">']
+    try:
+        head = LayoutContext.build().head
+        assert head.disable_analytics is True
+        assert head.page_css_path == "build/css/page-work.css"
+        assert head.experiments_json == '{"foo": "bar"}'
+        assert head.robots == "noindex"
+        assert head.description == "A description"
+        assert head.links == ['<link rel="alternate" href="/x">']
+        assert head.metatags == ['<meta name="custom" content="v">']
+    finally:
+        infogami_ctx.clear()
+
+
+def test_sentry_context_build_disabled_returns_none(monkeypatch):
+    """Sentry should be None when no client is configured."""
+    monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: None)
+
+    assert SentryContext.build() is None
+
+
+def test_sentry_context_build_enabled_precomputes_fields(monkeypatch):
+    """An enabled Sentry client should be flattened into a frozen data object."""
+    sentry = type(
+        "Sentry",
+        (),
+        {
+            "enabled": True,
+            "get_traceparent": lambda self: "TRACE",
+            "get_baggage": lambda self: "BAGGAGE",
+            "get_frontend_config": lambda self: {"dsn": "https://x"},
+        },
+    )()
+    monkeypatch.setattr("openlibrary.utils.sentry.get_sentry", lambda: sentry)
+
+    result = SentryContext.build()
+    assert isinstance(result, SentryContext)
+    assert result.traceparent == "TRACE"
+    assert result.baggage == "BAGGAGE"
+    assert result.frontend_config_json == '{"dsn": "https://x"}'

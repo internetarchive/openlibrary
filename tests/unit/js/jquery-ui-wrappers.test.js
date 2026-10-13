@@ -11,31 +11,29 @@ describe('jquery-ui wrapper modules', () => {
     const WRAPPER_DIR = path.join(__dirname, '../../..', 'openlibrary/plugins/openlibrary/js');
     const wrappers = ['jquery-ui-tabs', 'jquery-ui-autocomplete', 'jquery-ui-sortable'];
 
-    const depsOf = (file) => {
+    const depsOf = file => {
         const code = fs.readFileSync(path.join(JQ, file), 'utf8');
         const match = code.match(/define\s*\(\s*\[([\s\S]*?)\]\s*,\s*factory\s*\)/);
         if (!match) return [];
-        return [...match[1].matchAll(/"([^"\\]+)"/g)]
-            .map((m) => m[1])
-            .filter((d) => d !== 'jquery'); // jquery is a window global
+        return [...match[1].matchAll(/"([^"\\]+)"/g)].map(m => m[1]).filter(d => d !== 'jquery'); // jquery is a window global
     };
 
     // Wrapper imports use the bare `jquery-ui/...` specifier; map to the file
     // path relative to the jquery-ui package root for the checks below.
-    const stripSpecifier = (spec) => spec.replace(/^jquery-ui\//, '');
+    const stripSpecifier = spec => spec.replace(/^jquery-ui\//, '');
 
-    test.each(wrappers)('%s lists jquery-ui files that all exist', (name) => {
+    test.each(wrappers)('%s lists jquery-ui files that all exist', name => {
         const code = fs.readFileSync(path.join(WRAPPER_DIR, `${name}.js`), 'utf8');
-        const files = [...code.matchAll(/^import '([^']+)';/gm)].map((m) => stripSpecifier(m[1]));
+        const files = [...code.matchAll(/^import '([^']+)';/gm)].map(m => stripSpecifier(m[1]));
         expect(files.length).toBeGreaterThan(0);
         for (const f of files) {
             expect(() => fs.statSync(path.join(JQ, `${f}.js`))).not.toThrow();
         }
     });
 
-    test.each(wrappers)('%s is a valid topological order of jquery-ui AMD deps', (name) => {
+    test.each(wrappers)('%s is a valid topological order of jquery-ui AMD deps', name => {
         const code = fs.readFileSync(path.join(WRAPPER_DIR, `${name}.js`), 'utf8');
-        const files = [...code.matchAll(/^import '([^']+)';/gm)].map((m) => `${stripSpecifier(m[1])}.js`);
+        const files = [...code.matchAll(/^import '([^']+)';/gm)].map(m => `${stripSpecifier(m[1])}.js`);
         const pos = new Map(files.map((f, i) => [f, i]));
         for (const f of files) {
             for (const dep of depsOf(f)) {

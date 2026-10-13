@@ -1,7 +1,7 @@
 # Analytics Events (client-side)
 
 > **Status:** `partial`
-> **Sources:** codebase investigation against `origin/master` 2026-08-05 (`js/ol.analytics.js`, `js/banner-analytics.js`, `components/lit/OlBanner.js`, `plugins/upstream/account.py`, `fastapi/account.py`, `templates/site/head.html`); PRs #13038, #12910, #12849, #12764; issue #13020; filed as #13261
+> **Sources:** codebase investigation against `origin/master` 2026-08-05 (`js/ol.analytics.js`, `js/banner-analytics.js`, `components/lit/OlBanner.js`, `plugins/upstream/account.py`, `fastapi/account.py`, `templates/shell/head.html.jinja` — then `templates/site/head.html`); PRs #13038, #12910, #12849, #12764; issue #13020; filed as #13261
 > **Last ingested:** 2026-08-05
 
 How Open Library custom interaction events reach Matomo — and the two-pipeline split that has now silently swallowed events three separate times.

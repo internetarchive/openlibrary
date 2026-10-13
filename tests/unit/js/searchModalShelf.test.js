@@ -8,21 +8,21 @@ import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-
 
 const WORKS = [
     { key: '/works/OL1W', title: 'The Two Towers', author_name: ['J. R. R. Tolkien'] },
-    { key: '/works/OL2W', title: 'Dune', editions: { docs: [{ key: '/books/OL22M', title: 'Dune (1965)' }] } },
+    { key: '/works/OL2W', title: 'Dune', editions: { docs: [{ key: '/books/OL22M', title: 'Dune (1965)' }] } }
 ];
 
 const STATE = {
     OL1W: { shelf: 1, rating: null, read_date: null, event_id: null },
-    OL2W: { shelf: 3, rating: 4, read_date: '2026-01', event_id: 9 },
+    OL2W: { shelf: 3, rating: 4, read_date: '2026-01', event_id: 9 }
 };
 
 let calls;
 
 function stubFetch({ ok = true, works = STATE } = {}) {
     calls = [];
-    global.fetch = vi.fn(async(url) => {
+    global.fetch = vi.fn(async url => {
         calls.push(String(url));
-        return { ok, status: ok ? 200 : 500, json: async() => ({ user_key: '/people/tester', works }) };
+        return { ok, status: ok ? 200 : 500, json: async () => ({ user_key: '/people/tester', works }) };
     });
 }
 
@@ -43,7 +43,7 @@ describe('fetching on intent', () => {
         expect(calls).toHaveLength(0);
     });
 
-    test('the first intent fetches every row in one batch', async() => {
+    test('the first intent fetches every row in one batch', async () => {
         const modal = makeModal();
         modal._onShelfIntent();
         await tick();
@@ -53,7 +53,7 @@ describe('fetching on intent', () => {
         expect(modal._readingState.get('OL2W')).toEqual(STATE.OL2W);
     });
 
-    test('a second intent, or the same rows again, never refetches', async() => {
+    test('a second intent, or the same rows again, never refetches', async () => {
         const modal = makeModal();
         modal._onShelfIntent();
         await tick();
@@ -62,14 +62,14 @@ describe('fetching on intent', () => {
         expect(calls).toHaveLength(1);
     });
 
-    test('signed out, intent fetches nothing', async() => {
+    test('signed out, intent fetches nothing', async () => {
         const modal = makeModal({ userKey: '' });
         modal._onShelfIntent();
         await tick();
         expect(calls).toHaveLength(0);
     });
 
-    test('once wanted, a new result set is fetched for its unknown rows only', async() => {
+    test('once wanted, a new result set is fetched for its unknown rows only', async () => {
         const modal = makeModal();
         modal._onShelfIntent();
         await tick();
@@ -79,7 +79,7 @@ describe('fetching on intent', () => {
         expect(decodeURIComponent(calls[1])).toContain('work_ids=OL3W');
     });
 
-    test('a failed batch is retried on the next intent', async() => {
+    test('a failed batch is retried on the next intent', async () => {
         stubFetch({ ok: false });
         const modal = makeModal();
         modal._onShelfIntent();
@@ -91,7 +91,7 @@ describe('fetching on intent', () => {
         expect(modal._readingState.size).toBe(2);
     });
 
-    test('closing the modal forgets the intent but keeps the state', async() => {
+    test('closing the modal forgets the intent but keeps the state', async () => {
         const modal = makeModal();
         modal._onShelfIntent();
         await tick();
@@ -112,7 +112,7 @@ describe('changes made elsewhere', () => {
         document.body.innerHTML = '';
     });
 
-    test('a shelf change on the page updates a known book', async() => {
+    test('a shelf change on the page updates a known book', async () => {
         const modal = attached();
         modal._onShelfIntent();
         await tick();
@@ -120,7 +120,7 @@ describe('changes made elsewhere', () => {
         expect(modal._readingState.get('OL1W')).toEqual({ shelf: null, rating: 2, read_date: null, event_id: null });
     });
 
-    test('coming off a shelf drops the check-in with it', async() => {
+    test('coming off a shelf drops the check-in with it', async () => {
         const modal = attached();
         modal._onShelfIntent();
         await tick();
@@ -129,7 +129,7 @@ describe('changes made elsewhere', () => {
         expect(modal._readingState.get('OL2W').event_id).toBeNull();
     });
 
-    test('a check-in lands on the book', async() => {
+    test('a check-in lands on the book', async () => {
         const modal = attached();
         modal._onShelfIntent();
         await tick();
@@ -145,7 +145,7 @@ describe('changes made elsewhere', () => {
         expect(calls).toHaveLength(0);
     });
 
-    test('once intent is shown, a change to an unknown book fetches it whole', async() => {
+    test('once intent is shown, a change to an unknown book fetches it whole', async () => {
         const modal = attached();
         modal._onShelfIntent();
         await tick();
@@ -159,7 +159,7 @@ describe('changes made elsewhere', () => {
         expect(modal._readingState.get('OL3W')).toEqual(emma);
     });
 
-    test('stops listening once detached', async() => {
+    test('stops listening once detached', async () => {
         const modal = attached();
         modal._onShelfIntent();
         await tick();
@@ -183,7 +183,7 @@ describe('the rendered row', () => {
         return modal;
     }
 
-    test('each row has a button beside the link, not inside it', async() => {
+    test('each row has a button beside the link, not inside it', async () => {
         const modal = await rendered();
         const rows = modal.renderRoot.querySelectorAll('.results-list .result-row');
         expect(rows).toHaveLength(2);
@@ -194,7 +194,7 @@ describe('the rendered row', () => {
         expect(button.getAttribute('user-key')).toBe('/people/tester');
     });
 
-    test('acts on the work even when the row links to an edition, and records the edition', async() => {
+    test('acts on the work even when the row links to an edition, and records the edition', async () => {
         const modal = await rendered();
         const button = modal.renderRoot.querySelectorAll('.results-list ol-shelf-button')[1];
         expect(button.getAttribute('work-key')).toBe('/works/OL2W');
@@ -202,7 +202,7 @@ describe('the rendered row', () => {
         expect(modal.renderRoot.querySelectorAll('.results-list ol-shelf-button')[0].hasAttribute('edition-key')).toBe(false);
     });
 
-    test('signed in, a row is pending until its state is known, then carries it', async() => {
+    test('signed in, a row is pending until its state is known, then carries it', async () => {
         const modal = await rendered();
         const button = () => modal.renderRoot.querySelectorAll('.results-list ol-shelf-button')[1];
         expect(button().hasAttribute('pending')).toBe(true);
@@ -217,7 +217,7 @@ describe('the rendered row', () => {
         expect(button().eventId).toBe(9);
     });
 
-    test('signed out, nothing is pending: the click goes to login', async() => {
+    test('signed out, nothing is pending: the click goes to login', async () => {
         const modal = await rendered({ userKey: '' });
         const button = modal.renderRoot.querySelector('.results-list ol-shelf-button');
         expect(button.hasAttribute('pending')).toBe(false);

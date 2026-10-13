@@ -4,7 +4,7 @@
  * HeaderBar
  * https://docs.openlibrary.org/designers/design-pattern-library.html#headerbar
  * Defined in:
- *  - openlibrary/templates/lib/nav_head.html
+ *  - openlibrary/templates/shell/header.html.jinja
  *  - openlibrary/plugins/openlibrary/js/ol.js
  */
 
@@ -464,8 +464,8 @@
 }
 
 /* ── Nav popovers (Browse, My Books) ─────────────────────────
- * These nav items are <ol-popover>s (see lib/browse_popover.html and
- * lib/mybooks_popover.html), not <details> dropdowns. ol-popover owns the panel
+ * These nav items are <ol-popover>s (see shell/browse_popover.html.jinja and
+ * shell/mybooks_popover.html.jinja), not <details> dropdowns. ol-popover owns the panel
  * chrome and the mobile tray; these rules style the slotted trigger and content.
  */
 

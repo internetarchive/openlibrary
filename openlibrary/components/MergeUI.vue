@@ -1,54 +1,29 @@
 <template>
-  <div id="app">
-    <div v-if="!olids.length">
-      No records to merge. Specify some records in the url like so: <code>?records=OL123W,OL234W</code>
+    <div id="app">
+        <div v-if="!olids.length">No records to merge. Specify some records in the url like so: <code>?records=OL123W,OL234W</code></div>
+        <template v-else>
+            <MergeTable ref="mergeTable" :olids="olids" :show-diffs="showDiffs" :primary="primary" />
+            <div class="action-bar">
+                <div class="comment-input">
+                    <label for="comment">Comment: </label>
+                    <input v-model="comment" name="comment" type="text" />
+                </div>
+                <div class="btn-group">
+                    <button class="merge-btn" :disabled="isDisabled" @click="doMerge">
+                        {{ mergeStatus }}
+                    </button>
+                    <button v-if="showRejectButton" class="reject-btn" @click="rejectMerge">Reject Merge</button>
+                </div>
+                <div id="diffs-toggle">
+                    <label>
+                        <input v-model="showDiffs" type="checkbox" title="Show textual differences" />
+                        Show text diffs
+                    </label>
+                </div>
+            </div>
+            <pre v-if="mergeOutput">{{ mergeOutput }}</pre>
+        </template>
     </div>
-    <template v-else>
-      <MergeTable
-        ref="mergeTable"
-        :olids="olids"
-        :show-diffs="showDiffs"
-        :primary="primary"
-      />
-      <div class="action-bar">
-        <div class="comment-input">
-          <label for="comment">Comment: </label>
-          <input
-            v-model="comment"
-            name="comment"
-            type="text"
-          >
-        </div>
-        <div class="btn-group">
-          <button
-            class="merge-btn"
-            :disabled="isDisabled"
-            @click="doMerge"
-          >
-            {{ mergeStatus }}
-          </button>
-          <button
-            v-if="showRejectButton"
-            class="reject-btn"
-            @click="rejectMerge"
-          >
-            Reject Merge
-          </button>
-        </div>
-        <div id="diffs-toggle">
-          <label>
-            <input
-              v-model="showDiffs"
-              type="checkbox"
-              title="Show textual differences"
-            >
-            Show text diffs
-          </label>
-        </div>
-      </div>
-      <pre v-if="mergeOutput">{{ mergeOutput }}</pre>
-    </template>
-  </div>
 </template>
 
 <script>
@@ -79,7 +54,7 @@ export default {
         canmerge: {
             type: String,
             required: false,
-            default: 'true',
+            default: 'true'
         }
     },
     data() {
@@ -95,10 +70,12 @@ export default {
         olids() {
             const olidsString = this.url.searchParams.get('records');
             if (!olidsString) return [];
-            return olidsString
-                .split(',')
-                // Ignore trailing commas
-                .filter(Boolean);
+            return (
+                olidsString
+                    .split(',')
+                    // Ignore trailing commas
+                    .filter(Boolean)
+            );
         },
 
         isSuperLibrarian() {
@@ -115,12 +92,9 @@ export default {
     },
     mounted() {
         const readyCta = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE;
-        this.$watch(
-            '$refs.mergeTable.merge',
-            (new_value) => {
-                if (new_value !== undefined && this.mergeStatus === LOADING) this.mergeStatus = readyCta;
-            }
-        );
+        this.$watch('$refs.mergeTable.merge', new_value => {
+            if (new_value !== undefined && this.mergeStatus === LOADING) this.mergeStatus = readyCta;
+        });
     },
     methods: {
         async doMerge() {
@@ -131,13 +105,11 @@ export default {
             if (this.isSuperLibrarian) {
                 // Perform the merge and create new/update existing merge request
                 try {
-                    if (unmergeable_works.length)
-                    {
+                    if (unmergeable_works.length) {
                         throw new Error(`Could not merge: ${unmergeable_works.join(', ')} has more than ${DEFAULT_EDITION_LIMIT} editions.`);
                     }
                     const r = await do_merge(master, dupes, editions_to_move, this.mrid);
-                    if (r.status === 403)
-                    {
+                    if (r.status === 403) {
                         throw new Error('Merge failed, your account may be missing the /usergroup/api permission.');
                     }
                     this.mergeOutput = await r.json();
