@@ -95,8 +95,6 @@ repos:
     rev: v2.3.0
     hooks:
       - id: mypy  # See pyproject.toml for args
-        # Two top-level conftest modules collide; docker/mockservices/tests stays flat on purpose.
-        exclude: ^conftest\.py$
         additional_dependencies:
           - types-PyYAML
           - types-aiofiles
