@@ -8,7 +8,7 @@ import pytest
 
 from openlibrary.core import async_db
 from openlibrary.core.admin import get_unique_logins_since
-from openlibrary.core.cache import invalidate
+from openlibrary.core.cache import invalidate, memcache_cache
 
 # --- Unit test (no postgres required) ------------------------------------------
 
@@ -56,6 +56,14 @@ async def test_get_unique_logins_since_zero_when_no_results(helpers):
 
 @pytest.mark.integration
 class TestGetUniqueLoginsSinceIntegration:
+    @pytest.fixture(autouse=True)
+    def clear_cache(self):
+        """Clear the memoize cache before each test."""
+        # The memoize key for get_unique_logins_since(30) is "logins_since-30"
+        memcache_cache.delete("logins_since-30")
+        yield
+        memcache_cache.delete("logins_since-30")
+
     @pytest.mark.asyncio
     async def test_get_unique_logins_since_returns_count(self, pg_db):
         # Use dates relative to now: recent (within 30 days) and older (beyond 30 days)
@@ -63,18 +71,26 @@ class TestGetUniqueLoginsSinceIntegration:
         older = (datetime.now() - timedelta(days=40)).strftime("%Y-%m-%d")
 
         async with async_db.connection() as conn:
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS store_index (
+                    id serial primary key,
+                    type text,
+                    name text,
+                    value text
+                )
+            """)
             await conn.execute(
-                "INSERT INTO store_index (id, type, name, value) VALUES (%(id)s, %(type)s, %(name)s, %(value)s)",
-                {"id": "acc1", "type": "account", "name": "last_login", "value": recent},
+                "INSERT INTO store_index (type, name, value) VALUES (%(type)s, %(name)s, %(value)s)",
+                {"type": "account", "name": "last_login", "value": recent},
             )
             await conn.execute(
-                "INSERT INTO store_index (id, type, name, value) VALUES (%(id)s, %(type)s, %(name)s, %(value)s)",
-                {"id": "acc2", "type": "account", "name": "last_login", "value": recent},
+                "INSERT INTO store_index (type, name, value) VALUES (%(type)s, %(name)s, %(value)s)",
+                {"type": "account", "name": "last_login", "value": recent},
             )
             # Older than 30 days - should not count
             await conn.execute(
-                "INSERT INTO store_index (id, type, name, value) VALUES (%(id)s, %(type)s, %(name)s, %(value)s)",
-                {"id": "acc3", "type": "account", "name": "last_login", "value": older},
+                "INSERT INTO store_index (type, name, value) VALUES (%(type)s, %(name)s, %(value)s)",
+                {"type": "account", "name": "last_login", "value": older},
             )
 
         count = await get_unique_logins_since(30)
@@ -82,5 +98,15 @@ class TestGetUniqueLoginsSinceIntegration:
 
     @pytest.mark.asyncio
     async def test_get_unique_logins_since_zero_when_no_logins(self, pg_db):
+        async with async_db.connection() as conn:
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS store_index (
+                    id serial primary key,
+                    type text,
+                    name text,
+                    value text
+                )
+            """)
+
         count = await get_unique_logins_since(30)
         assert count == 0
