@@ -1690,38 +1690,83 @@ class TestLennyReturnRoute:
         self._go()
         assert self._flash() == [("success", "This book has been returned.")]
 
-    def test_a_node_that_cannot_be_reached_does_not_claim_a_return(self, ret, monkeypatch):
-        """The cache is NOT invalidated and the patron is told honestly, so the
-        loan keeps showing rather than vanishing on a return that did not
-        happen -- `provider_unreachable` is a real state the loans page models."""
+    def test_a_connection_dropped_mid_flight_invalidates_because_the_write_may_have_landed(self, ret, monkeypatch):
+        """A reset after the request was sent: `unborrow()` may have committed
+        server-side before the connection dropped. The predicate for a mutation
+        is 'could the write have landed', not 'did the node answer' -- so the
+        cache is dropped (the next render re-fetches and, if the node is truly
+        down, renders `provider_unreachable` accurately), while the patron still
+        sees an honest error, not a success."""
 
         def boom(issuer, token, edition_id):
-            raise RuntimeError("connection reset")
+            raise ConnectionError("connection reset")
 
         monkeypatch.setattr(lenny, "return_loan", boom)
         self._go()
-        assert ret["invalidated"] == []
+        assert ret["invalidated"] == ["patron"]
         assert self._flash()[0][0] == "error"
 
+    def test_a_read_timeout_invalidates_because_the_node_may_have_processed_it(self, ret, monkeypatch):
+        """A timeout AFTER the request was sent (the node may have processed the
+        return and failed to answer in time) is on the same side as a 5xx: drop
+        the cache so a patron who did return the book is not shown it borrowed
+        for the full TTL."""
+
+        def slow(issuer, token, edition_id):
+            raise lenny.requests.exceptions.ReadTimeout("timed out")
+
+        monkeypatch.setattr(lenny, "return_loan", slow)
+        self._go()
+        assert ret["invalidated"] == ["patron"]
+        assert self._flash()[0][0] == "error"
+
+    def test_invalidation_runs_after_the_call_not_before_it(self, ret, monkeypatch):
+        """Invalidating BEFORE the call opens a TOCTOU window: a concurrent
+        same-patron render (a second tab, a prefetch, a double-submit) between
+        the invalidate and the node actually processing the return re-fetches
+        the still-present loan and re-primes the cache; the return then lands
+        and nothing invalidates again, so the book page offers a returned loan
+        until the TTL. Running the invalidate AFTER the call (in a `finally`)
+        closes the window -- it fires once the write has had its chance to land.
+        Pinned as call ordering: invalidate must follow return_loan."""
+        order: list[str] = []
+
+        def recording_return(issuer, token, edition_id):
+            order.append("return_loan")
+            return {"status": "returned"}
+
+        monkeypatch.setattr(lenny, "return_loan", recording_return)
+        monkeypatch.setattr(lenny, "invalidate_provider_loans", lambda username: order.append("invalidate"))
+        self._go()
+        assert order == ["return_loan", "invalidate"]
+
     @pytest.mark.parametrize(("status", "error"), [(401, "invalid_token"), (403, "insufficient_scope")])
-    def test_a_rejected_token_asks_the_patron_to_reconnect_without_invalidating(self, ret, monkeypatch, status, error):
+    def test_a_rejected_token_asks_the_patron_to_reconnect_and_invalidates(self, ret, monkeypatch, status, error):
+        """401/403 is still an answer from the node, so the cache is dropped
+        (the next render will re-fetch and, if the grant is still rejected, the
+        loan falls away as unauthorized rather than lingering). The message asks
+        the patron to reconnect, since only re-authorizing fixes the grant."""
+
         def rejected(issuer, token, edition_id):
             raise lenny.LennyReturnError(error, status)
 
         monkeypatch.setattr(lenny, "return_loan", rejected)
         self._go()
-        assert ret["invalidated"] == []
+        assert ret["invalidated"] == ["patron"]
         flashed = self._flash()
         assert flashed[0][0] == "error"
         assert "reconnect" in flashed[0][1].lower() or "borrow again" in flashed[0][1].lower()
 
-    def test_a_typed_refusal_is_shown_and_does_not_invalidate(self, ret, monkeypatch):
+    def test_a_typed_refusal_is_shown_and_still_invalidates(self, ret, monkeypatch):
+        """A refusal we did not special-case (e.g. a 409): the node answered, so
+        the cache is dropped; the patron sees an honest error, not a success."""
+
         def refused(issuer, token, edition_id):
             raise lenny.LennyReturnError("conflict", 409)
 
         monkeypatch.setattr(lenny, "return_loan", refused)
         self._go()
-        assert ret["invalidated"] == []
+        assert ret["invalidated"] == ["patron"]
         assert self._flash()[0][0] == "error"
 
     @pytest.mark.parametrize(("error", "status"), [("no_active_loan", 404), ("not_lendable", 400)])
@@ -1742,41 +1787,65 @@ class TestLennyReturnRoute:
         assert ret["invalidated"] == ["patron"]
         assert self._flash() == [("success", "This book has been returned.")]
 
-    def test_not_found_is_a_genuine_fault_and_does_not_invalidate(self, ret, monkeypatch):
-        """The other 404: no such item on the node. Unlike `no_active_loan`
-        this is a real error and must not read as a return."""
+    def test_not_found_flashes_an_error_but_still_invalidates(self, ret, monkeypatch):
+        """The other 404: no such item on the node. It is not a return, so the
+        patron sees an error, not a success -- but the node ANSWERED, and if it
+        does not hold that edition then a cached loan on it is definitionally
+        stale, so the cache is dropped. (Lead ruling: invalidate on any answer,
+        gate only the *message* on success.)"""
 
         def missing(issuer, token, edition_id):
             raise lenny.LennyReturnError("not_found", 404)
 
         monkeypatch.setattr(lenny, "return_loan", missing)
         self._go()
-        assert ret["invalidated"] == []
+        assert ret["invalidated"] == ["patron"]
         assert self._flash()[0][0] == "error"
 
-    def test_a_malformed_request_400_is_an_error_not_a_return(self, ret, monkeypatch):
-        """A 400 whose code is NOT `not_lendable` is a real fault. Status alone
-        cannot separate it from `not_lendable`; the code is what does."""
+    def test_an_unreadable_node_answer_flashes_an_error_but_still_invalidates(self, ret, monkeypatch):
+        """The decoupling, pinned in one test: the node ANSWERED (a 4xx whose
+        body we could not parse -> `unknown_error`), so the cached loan may no
+        longer match it and must be dropped -- but we read no body confirming a
+        return, so we must not claim success. Error message AND invalidation.
+        Fails against either half alone: against 'honest error, no invalidate'
+        the invalidation assertion fails; against 'invalidate + success' the
+        message assertion fails."""
+
+        def unreadable(issuer, token, edition_id):
+            raise lenny.LennyReturnError("unknown_error", 404)
+
+        monkeypatch.setattr(lenny, "return_loan", unreadable)
+        self._go()
+        assert ret["invalidated"] == ["patron"]
+        assert self._flash()[0][0] == "error"
+
+    def test_a_malformed_request_400_is_an_error_but_still_invalidates(self, ret, monkeypatch):
+        """A 400 whose code is NOT `not_lendable` gets an error message, not a
+        success (the code, not the status, decides the message). But the node
+        answered, so the cache is still dropped."""
 
         def bad(issuer, token, edition_id):
             raise lenny.LennyReturnError("invalid_request", 400)
 
         monkeypatch.setattr(lenny, "return_loan", bad)
         self._go()
-        assert ret["invalidated"] == []
+        assert ret["invalidated"] == ["patron"]
         assert self._flash()[0][0] == "error"
 
-    def test_an_unexpected_server_error_is_the_honest_error_path(self, ret, monkeypatch):
+    def test_an_unexpected_server_error_is_an_error_but_still_invalidates(self, ret, monkeypatch):
         """A node 5xx -- e.g. an out-of-BIGINT edition_id 500s identically on
-        borrow and return (#249, pre-existing) -- must read as an honest error
-        and must not invalidate: the loan state is unknown, not confirmed gone."""
+        borrow and return (#249, pre-existing) -- reads as an honest error, and
+        still invalidates: the node answered, so the next render re-fetches and
+        reconciles with whatever actually happened server-side (the return may
+        have landed before the 500). Keeping the cache could only preserve a
+        stale belief; dropping it cannot be wrong once the node has spoken."""
 
         def boom(issuer, token, edition_id):
             raise lenny.LennyReturnError("unknown_error", 500)
 
         monkeypatch.setattr(lenny, "return_loan", boom)
         self._go()
-        assert ret["invalidated"] == []
+        assert ret["invalidated"] == ["patron"]
         assert self._flash()[0][0] == "error"
 
     def test_no_stored_grant_does_not_invalidate_and_does_not_call_the_node(self, ret, monkeypatch):

@@ -800,8 +800,8 @@ class LennyBorrowError(Exception):
 
 
 RETURN_NOT_NEEDED = frozenset({"no_active_loan", "not_lendable"})
-"""Node error codes that are not failures from the patron's side: there is
-nothing to give back and they are not in a bad state (ArchiveLabs/lenny#249).
+"""Answered error codes that mean the patron got the outcome they asked for, so
+the return SUCCESS message is shown rather than an error (ArchiveLabs/lenny#249).
 
 - ``no_active_loan`` (404): the item exists but the patron holds no live loan on
   it -- it is already returned.
@@ -809,11 +809,13 @@ nothing to give back and they are not in a bad state (ArchiveLabs/lenny#249).
 
 Both reach this flow only through a race (an item flipped open-access on the
 node, or a ``lending.provider_loans`` entry outliving the change), because a
-Return control is offered only where ``get_provider_loan`` reports a loan. The
-handler treats them as an accomplished return -- invalidate and re-render as
-un-borrowed -- rather than showing an error for a state the patron is fine in.
-Matched on the error *code*, never the status: ``not_lendable`` and a genuinely
-malformed request both arrive as 400 and want opposite handling."""
+Return control is offered only where ``get_provider_loan`` reports a loan.
+
+This gates the message only, not the cache invalidation: the handler clears the
+cache on every answer the node gives (see :class:`lenny_return`), so this set is
+about what the patron is *told*, not whether the cache is dropped. Matched on the
+error *code*, never the status: ``not_lendable`` and a genuinely malformed
+request both arrive as 400 and want opposite messages."""
 
 RETURN_ERRORS = {
     "not_found": "This book is not in that library's collection.",
@@ -1095,6 +1097,10 @@ class lenny_return(delegate.page):
             logger.exception("lenny could not read a stored grant to return for %s at %s", username, provider_name)
             token = None
         if not token:
+            # Nothing is ever sent to the node, so nothing can have been
+            # returned: the cached loan is still our best belief and is kept.
+            # This is the ONLY path that keeps it (see the invalidation note
+            # below).
             add_flash_message("error", _("Open Library could not reach that library to return this book. Please try again later."))
             raise web.seeother(redirect_to)
 
@@ -1103,39 +1109,64 @@ class lenny_return(delegate.page):
         except ValueError, TypeError:
             raise web.notfound()
 
+        # Drop the cached loan around the call, in a `finally`. For a mutation
+        # the predicate is "could the write have landed", not "did the node
+        # answer": `item.unborrow()` can commit server-side and still fail to
+        # respond -- a 5xx, or a timeout/reset after the request was sent -- so
+        # the cache is dropped on every path that reaches the call, whatever its
+        # outcome. Invalidation is cheap and is NOT a claim (only the flash
+        # message is, and it stays gated on success below); a node that is
+        # genuinely down then renders as `provider_unreachable`, which is
+        # accurate. The token guard above is the one path that keeps the cache --
+        # nothing was sent, so nothing can have landed.
+        #
+        # It runs AFTER the call, not before: invalidating before opens a
+        # TOCTOU window where a concurrent same-patron render re-fetches the
+        # still-present loan and re-primes the cache, after which the return
+        # lands and nothing invalidates again. `finally` fires once the write
+        # has had its chance to land, which closes that window, while keeping
+        # one place and no exception-taxonomy branching (`requests` cannot
+        # reliably tell a not-sent connect failure from a reset/timeout after
+        # send anyway). `invalidate_provider_loans` swallows its own errors, so
+        # the `finally` never masks the redirect it runs alongside.
         try:
             return_loan(node["issuer"], token, edition_id)
         except LennyReturnError as e:
             logger.info("lenny return refused (%s/%s)", e.status, e.error)
             if e.error in RETURN_NOT_NEEDED:
-                # Nothing to give back and the patron is not in a bad state
-                # (loan already gone, or the item is open access). That is the
-                # outcome they asked for, so this takes the success path, not an
-                # error: the cache is cleared so the next render shows the book
-                # as un-borrowed. Keyed on the code, not the status, because a
-                # benign `not_lendable` and a malformed request are both 400.
-                # `not_found` is a genuine fault and falls through to the error.
-                return self._returned(username, redirect_to)
+                # Nothing to give back and the patron is not in a bad state (loan
+                # already gone, or the item is open access): the outcome they
+                # asked for. Keyed on the code, not the status, because a benign
+                # `not_lendable` and a malformed request are both 400.
+                return self._returned(redirect_to)
             if e.status in REJECTED_TOKEN_STATUSES:
                 # A revoked or under-scoped grant: only re-authorizing fixes it,
                 # and re-authorizing happens through a borrow.
                 add_flash_message("error", _("Open Library is no longer connected to that library. Please borrow again to reconnect, then return."))
             else:
+                # `not_found`, or a body we could not read (`unknown_error`): we
+                # do not invent a return the node never confirmed.
                 add_flash_message("error", e.message)
             raise web.seeother(redirect_to)
         except Exception:
+            # The attempt failed (network error, reset, timeout). The write may
+            # still have landed, which is why the `finally` drops the cache
+            # regardless; we just cannot tell the patron it succeeded.
             logger.exception("lenny return failed for %s at %s", username, provider_name)
             add_flash_message("error", _("That library could not return this book right now. Please try again later."))
             raise web.seeother(redirect_to)
+        finally:
+            invalidate_provider_loans(username)
 
-        return self._returned(username, redirect_to)
+        return self._returned(redirect_to)
 
     @staticmethod
-    def _returned(username: str, redirect_to: str):
-        """The shared ending for a return the node confirms is gone: forget the
-        cached loan so the next render shows the book as un-borrowed, and say so.
+    def _returned(redirect_to: str):
+        """The success ending: tell the patron the book is returned. The cache
+        invalidation is the caller's, deliberately not done here -- it happens
+        once, before the call is attempted, on every path except the no-token
+        one, so it must not be welded to this success message.
         """
-        invalidate_provider_loans(username)
         add_flash_message("success", _("This book has been returned."))
         raise web.seeother(redirect_to)
 
