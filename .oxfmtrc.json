@@ -10,6 +10,6 @@
   "overrides": [
     { "files": ["*.css"], "options": { "tabWidth": 2, "singleQuote": false, "trailingComma": "all", "printWidth": 80 } },
     { "files": ["**/tokens/*.css"], "options": { "printWidth": 320 } },
-    { "files": ["*.vue"], "options": { "embeddedLanguageFormatting": "auto" } }
+    { "files": ["*.js", "*.vue"], "options": { "embeddedLanguageFormatting": "auto" } }
   ]
 }
