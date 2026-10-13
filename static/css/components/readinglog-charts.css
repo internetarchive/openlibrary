@@ -40,9 +40,12 @@
   border-top: var(--border-divider);
 }
 
+/* cursor: pointer also marks the header as clickable for Firefox on Android, which otherwise
+   snaps taps on it to the chart canvas underneath (it has a click listener) */
 .selected-works__summary {
   position: sticky;
   top: 0;
+  cursor: pointer;
   padding: var(--spacing-inset-xs);
   background-color: var(--color-surface-sunken);
 }

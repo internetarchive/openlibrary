@@ -68,19 +68,27 @@ export function init(config) {
     Chart.defaults.color = token('--color-text-secondary');
     /** @type {Chart[]} */
     const charts = [];
-    const selectedWorksList = document.querySelector('.selected-works__list');
+    const selectedWorks = /** @type {HTMLDetailsElement} */ (document.querySelector('.selected-works'));
+    const selectedWorksList = selectedWorks.querySelector('.selected-works__list');
+    /** @type {{chart: Chart, index: number} | null} */
+    let selected = null;
 
     /**
-     * Highlight one bar (or none) across every chart, since the works list shows a single selection
+     * Select one bar (or none) across every chart, since the works list shows a single selection
      * @param {Chart} [selectedChart]
      * @param {number} [selectedIndex]
+     * @param {Work[]} [works]
      */
-    function selectBar(selectedChart, selectedIndex) {
+    function selectBar(selectedChart, selectedIndex, works) {
+        selected = selectedChart ? { chart: selectedChart, index: selectedIndex } : null;
         for (const chart of charts) {
             const dataset = chart.data.datasets[0];
             dataset.backgroundColor = dataset.data.map((_, i) => (chart === selectedChart && i === selectedIndex ? selectedBarColor : barColor));
             chart.update('none');
         }
+        selectedWorksList.innerHTML = works ? window.render_works_list(works) : '';
+        // Reopen the panel if the reader collapsed it, so the new selection is visible
+        if (works) selectedWorks.open = true;
     }
     const authors_by_id = Object.fromEntries(config.authors.map(a => [a.key, a]));
 
@@ -162,12 +170,11 @@ export function init(config) {
                     canvas.style.cursor = elements.length ? 'pointer' : 'default';
                 },
                 onClick: (e, [chartEl]) => {
-                    if (chartEl) {
-                        selectBar(chart, chartEl.index);
-                        selectedWorksList.innerHTML = window.render_works_list(bars[chartEl.index][1]);
-                    } else {
+                    // Tapping the selected bar again clears the selection
+                    if (!chartEl || (selected?.chart === chart && selected.index === chartEl.index)) {
                         selectBar();
-                        selectedWorksList.innerHTML = '';
+                    } else {
+                        selectBar(chart, chartEl.index, bars[chartEl.index][1]);
                     }
                 },
                 plugins: {
