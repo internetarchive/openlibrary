@@ -102,12 +102,12 @@ $jsdef render_excluded_works_list(works, total):
     </section>
 </div>
 
-<details class="selected-works" open>
-    <summary class="selected-works__summary">$_("Matching works")</summary>
-    <div class="selected-works__body">
-        <div class="selected-works__list"></div>
-        <div class="selected-works__empty">
-            $_("Click on a bar to see matching works")
-        </div>
+<section class="selected-works" aria-label="$_('Matching works')">
+    <div class="selected-works__header">
+        <p class="selected-works__title" aria-live="polite">$_("Click on a bar to see matching works")</p>
+        <ol-button class="selected-works__close" variant="ghost" shape="icon" size="small" aria-label="$_('Clear selection')" hidden>
+            $:macros.icon("x", size="sm")
+        </ol-button>
     </div>
-</details>
+    <div class="selected-works__list" hidden></div>
+</section>

@@ -23,34 +23,42 @@
   }
 }
 
-/* Panel listing the works behind the clicked bar */
+/* Panel listing the works behind the clicked bar. Stays a one-line hint until
+   a bar is selected, so it doesn't cover the charts on small screens. */
 .selected-works {
   position: sticky;
   bottom: 0;
-  max-height: 160px;
-  overflow: auto;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  padding-bottom: max(var(--spacing-inset-xs), env(safe-area-inset-bottom));
   background-color: var(--color-surface);
   border-top: var(--border-divider);
 }
 
-.selected-works__summary {
-  position: sticky;
-  top: 0;
-  padding: var(--spacing-inset-xs);
-  background-color: var(--color-surface-sunken);
+.selected-works__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-inline-md);
+  min-height: var(--control-height-small);
 }
 
-.selected-works__body {
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm)
-    var(--spacing-inset-sm);
+.selected-works__title {
+  margin: 0;
+  color: var(--color-text-secondary);
 }
 
-.selected-works__empty {
+.selected-works--open .selected-works__title {
+  color: var(--color-text);
+}
+
+/* ol-button's :host display would otherwise override [hidden] */
+.selected-works__close[hidden] {
   display: none;
 }
 
-.selected-works__list:empty + .selected-works__empty {
-  display: block;
+.selected-works__list {
+  max-height: 40vh;
+  overflow: auto;
 }
 
 /* Hanging indent, so wrapped entries line up under the title */

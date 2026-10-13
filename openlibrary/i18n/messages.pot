@@ -1682,6 +1682,10 @@ msgstr ""
 msgid "Click on a bar to see matching works"
 msgstr ""
 
+#: account/readinglog_stats.html
+msgid "Clear selection"
+msgstr ""
+
 #: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
 msgstr ""
