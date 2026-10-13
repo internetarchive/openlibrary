@@ -4,7 +4,7 @@ const TABS_OPTIONS = { fx: { opacity: 'toggle' } };
 
 export function initTabs($node) {
     $node.tabs(TABS_OPTIONS);
-    $node.filter('.autohash').on('tabsselect', function(event, ui) {
+    $node.filter('.autohash').on('tabsselect', function (event, ui) {
         document.location.hash = ui.panel.id;
     });
 }

@@ -52,7 +52,7 @@ export class OlMenuPopover extends LitElement {
         value: { type: String, reflect: true },
         label: { type: String },
         heading: { type: String },
-        _focusIndex: { state: true },
+        _focusIndex: { state: true }
     };
 
     static styles = css`
@@ -146,7 +146,7 @@ export class OlMenuPopover extends LitElement {
         /* No radio on the row, so the label carries the state — colour only,
            since a weight change would re-measure the label and shift the row.
            The fill stays reserved for hover. */
-        .item[aria-checked="true"] {
+        .item[aria-checked='true'] {
             color: var(--color-link);
         }
 
@@ -170,9 +170,7 @@ export class OlMenuPopover extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        const hasConsumerTrigger = Array.from(this.children).some(
-            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
-        );
+        const hasConsumerTrigger = Array.from(this.children).some(el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger');
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
@@ -187,15 +185,8 @@ export class OlMenuPopover extends LitElement {
 
     render() {
         return html`
-            <ol-popover
-                aria-label=${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}
-                @ol-popover-open=${this._onPopoverOpen}
-            >
-                <slot
-                    name="trigger"
-                    slot="trigger"
-                    @keydown=${this._onTriggerKeydown}
-                ></slot>
+            <ol-popover aria-label=${ifDefined(this.getAttribute('aria-label') || this.label || undefined)} @ol-popover-open=${this._onPopoverOpen}>
+                <slot name="trigger" slot="trigger" @keydown=${this._onTriggerKeydown}></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
@@ -281,7 +272,9 @@ export class OlMenuPopover extends LitElement {
                 aria-checked=${isCurrent ? 'true' : 'false'}
                 tabindex=${i === this._focusIndex ? '0' : '-1'}
                 @click=${() => this._activate(item.value)}
-            >${item.icon ? html`<ol-icon class="item-icon" name=${item.icon} size="sm"></ol-icon>` : nothing}${item.label}</button>
+            >
+                ${item.icon ? html`<ol-icon class="item-icon" name=${item.icon} size="sm"></ol-icon>` : nothing}${item.label}
+            </button>
         `;
     }
 
@@ -317,7 +310,7 @@ export class OlMenuPopover extends LitElement {
             count: items.length,
             current: this._focusIndex,
             orientation: 'vertical',
-            wrap: true,
+            wrap: true
         });
         if (target === -1) return;
         e.preventDefault();
@@ -332,10 +325,13 @@ export class OlMenuPopover extends LitElement {
 
     _activate(value) {
         this.value = value;
-        this.dispatchEvent(new CustomEvent('ol-menu-popover-select', {
-            bubbles: true, composed: true,
-            detail: { value },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-menu-popover-select', {
+                bubbles: true,
+                composed: true,
+                detail: { value }
+            })
+        );
         const popover = this.renderRoot?.querySelector('ol-popover');
         if (popover) popover.open = false;
     }

@@ -4,8 +4,8 @@ const booksAdded = {
         bars: {
             show: true,
             align: 'left',
-            barWidth: 20 * 60 * 60 * 1000,
-        },
+            barWidth: 20 * 60 * 60 * 1000
+        }
     },
     grid: {
         hoverable: true,
@@ -28,8 +28,8 @@ const loans = {
         bars: {
             show: true,
             align: 'left',
-            barWidth: 20 * 60 * 60 * 1000,
-        },
+            barWidth: 20 * 60 * 60 * 1000
+        }
     },
     grid: {
         hoverable: true,

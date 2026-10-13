@@ -21,7 +21,7 @@ export function initResultsFilterToggles(toggles) {
         const { filterParam, filterValue } = toggle.dataset;
         if (!filterParam || !filterValue) continue;
 
-        toggle.addEventListener('ol-toggle-change', (e) => {
+        toggle.addEventListener('ol-toggle-change', e => {
             const params = new URLSearchParams(window.location.search);
             if (e.detail.checked) {
                 params.set(filterParam, filterValue);

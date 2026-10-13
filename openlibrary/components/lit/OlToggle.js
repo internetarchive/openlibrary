@@ -69,7 +69,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         value: { type: String },
         // Internal: whether the default slot holds real content — see
         // slotHasContent() for why native <slot> fallback can't be used.
-        _hasSlottedLabel: { state: true },
+        _hasSlottedLabel: { state: true }
     };
 
     static styles = css`
@@ -177,23 +177,23 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         /* ── Small size ─────────────────────────────────────────────────── */
-        :host([size="small"]) {
+        :host([size='small']) {
             --toggle-track-width: 28px;
             --toggle-track-height: 16px;
             --toggle-knob-size: 12px;
             --toggle-gap: var(--spacing-xs);
         }
 
-        :host([size="small"]) .toggle {
+        :host([size='small']) .toggle {
             font-size: var(--font-size-label-medium);
         }
 
-        :host([size="small"][variant="button"]) .toggle {
+        :host([size='small'][variant='button']) .toggle {
             height: var(--control-height-small);
             padding: 0 var(--spacing-sm);
         }
 
-        :host([size="small"][variant="button"]) .toggle--described {
+        :host([size='small'][variant='button']) .toggle--described {
             height: auto;
             min-height: var(--control-height-small);
             padding-block: var(--spacing-2xs);
@@ -232,14 +232,14 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         /* ── Button variant: bordered, raised container ─────────────────── */
-        :host([variant="button"]) {
+        :host([variant='button']) {
             --_toggle-border: var(--color-control-border);
             --_toggle-bg: var(--color-control-bg);
 
             display: inline-block;
         }
 
-        :host([variant="button"]) .toggle {
+        :host([variant='button']) .toggle {
             /* Height-locked to the shared control-height token (like ol-button,
                ol-segmented-control, inputs) so the button lines up exactly with
                its sibling controls in the filter row regardless of its switch
@@ -257,9 +257,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                focus-visible rule can re-add the focus ring on top without
                duplicating (or drifting from) the resting shadow. */
             --_toggle-inset-highlight: transparent;
-            --_toggle-raised-shadow:
-                var(--box-shadow-raised),
-                inset 0 1px 0 var(--_toggle-inset-highlight);
+            --_toggle-raised-shadow: var(--box-shadow-raised), inset 0 1px 0 var(--_toggle-inset-highlight);
             box-shadow: var(--_toggle-raised-shadow);
             /* Hover colors snap in; only the press-scale animates. */
             transition: transform var(--duration-press);
@@ -267,7 +265,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* A description needs two lines, so the height lock becomes a floor and
            the padding takes over vertically. */
-        :host([variant="button"]) .toggle--described {
+        :host([variant='button']) .toggle--described {
             height: auto;
             min-height: var(--control-height-medium);
             padding-block: var(--spacing-xs);
@@ -276,7 +274,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         /* Press feedback — the button variant is a self-contained control (its
            own border, fill, and raised shadow), so it squeezes on press like
            ol-button. Its text-control width puts it in the default tier. */
-        :host([variant="button"]) .toggle:active {
+        :host([variant='button']) .toggle:active {
             transform: scale(var(--press-scale));
         }
 
@@ -285,7 +283,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            (:host([variant="button"]) .toggle), so the ring never showed. Re-add
            it here at higher specificity, layering the focus ring on top of the
            raised shadow so the lift survives focus too. */
-        :host([variant="button"]) .toggle:focus-visible {
+        :host([variant='button']) .toggle:focus-visible {
             box-shadow: var(--box-shadow-focus), var(--_toggle-raised-shadow);
         }
 
@@ -294,7 +292,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            dark-blue text, so the active state reads clearly without the harsh
            solid-blue block. The switch track stays solid primary-blue so the
            on-state remains obvious against the pale surface. */
-        :host([variant="button"][checked]) {
+        :host([variant='button'][checked]) {
             --_toggle-bg: var(--color-control-selected-bg);
             --_toggle-fg: var(--color-link);
             --_toggle-sublabel-fg: var(--color-primary);
@@ -309,7 +307,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            states also light up the inset specular top edge — toned to the hover
            fill, the same color-mix ol-button uses for its highlight. */
         @media (hover: hover) and (pointer: fine) {
-            :host([variant="button"]:not(:disabled)) .toggle:hover {
+            :host([variant='button']:not(:disabled)) .toggle:hover {
                 --_toggle-bg: var(--color-control-hover);
                 /* Nudge the border darker in step with the fill, matching
                    ol-button[variant="secondary"] so the whole control reads as
@@ -318,7 +316,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--color-control-hover));
             }
 
-            :host([variant="button"][checked]:not(:disabled)) .toggle:hover {
+            :host([variant='button'][checked]:not(:disabled)) .toggle:hover {
                 --_toggle-bg: var(--color-control-selected-bg-hover);
                 --_toggle-border: var(--color-control-selected-border-hover);
                 --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--color-control-selected-surface-hover));
@@ -380,11 +378,13 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
     _handleClick() {
         if (this.isDisabled) return;
         this.checked = !this.checked;
-        this.dispatchEvent(new CustomEvent('ol-toggle-change', {
-            bubbles: true,
-            composed: true,
-            detail: { checked: this.checked },
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-toggle-change', {
+                bubbles: true,
+                composed: true,
+                detail: { checked: this.checked }
+            })
+        );
     }
 
     render() {
@@ -403,13 +403,17 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 </span>
                 <span class="toggle__text">
                     <slot @slotchange=${this._handleLabelSlotChange}></slot>
-                    ${this._hasSlottedLabel ? nothing : html`
-                        <span class="toggle__label-row">
-                            ${this.label ? html`<span>${this.label}</span>` : nothing}
-                            ${this.sublabel ? html`<span class="toggle__sublabel">${this.sublabel}</span>` : nothing}
-                        </span>
-                        ${this.description ? html`<span class="toggle__description">${this.description}</span>` : nothing}
-                    `}
+                    ${
+                        this._hasSlottedLabel
+                            ? nothing
+                            : html`
+                                  <span class="toggle__label-row">
+                                      ${this.label ? html`<span>${this.label}</span>` : nothing}
+                                      ${this.sublabel ? html`<span class="toggle__sublabel">${this.sublabel}</span>` : nothing}
+                                  </span>
+                                  ${this.description ? html`<span class="toggle__description">${this.description}</span>` : nothing}
+                              `
+                    }
                 </span>
             </button>
         `;

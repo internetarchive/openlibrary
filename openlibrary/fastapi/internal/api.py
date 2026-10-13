@@ -9,7 +9,6 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import io
-import os
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
@@ -23,6 +22,7 @@ from openlibrary import accounts
 from openlibrary.core import lending, models
 from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
@@ -47,7 +47,7 @@ from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT, get_trending_books
 
-SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 router = APIRouter(tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 DAY_SECONDS = 60 * 60 * 24
 
@@ -543,6 +543,6 @@ class MonthlyLoginsResponse(BaseModel):
 
 
 @router.get("/api/monthly_logins.json", response_model=MonthlyLoginsResponse)
-def monthly_logins() -> MonthlyLoginsResponse:
+async def monthly_logins() -> MonthlyLoginsResponse:
     """Return the cached unique monthly login count for the admin stats UI."""
-    return MonthlyLoginsResponse(loginCount=get_unique_logins_since())
+    return MonthlyLoginsResponse(loginCount=await get_unique_logins_since())

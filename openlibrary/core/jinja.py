@@ -20,7 +20,7 @@ def render_jinja_template(template_name: str, **kwargs: Any) -> str:
         $:render_template("MyTemplate.html.jinja", foo="bar")
 
     Usage in Python (e.g. serving the site layout):
-        render_jinja_template("site.html.jinja", page=page)
+        render_jinja_template("shell/base.html.jinja", page=page)
     """
     env = get_jinja_env()
     template = env.get_template(template_name)

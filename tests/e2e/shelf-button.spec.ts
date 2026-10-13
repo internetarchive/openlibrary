@@ -12,9 +12,7 @@ import { collectConsoleErrors, login } from './helpers';
 
 // A work of this spec's own, since it changes the reader's shelves while other
 // specs scan theirs in parallel. OL20600W is in the dev seed; OL27448W is prod.
-const WORK_URL = process.env.OL_BASE_URL?.startsWith('https')
-    ? '/works/OL27448W'
-    : '/works/OL20600W';
+const WORK_URL = process.env.OL_BASE_URL?.startsWith('https') ? '/works/OL27448W' : '/works/OL20600W';
 const WORK_OLID = WORK_URL.split('/').pop()!;
 
 const WANT_TO_READ = '1';
@@ -22,7 +20,7 @@ const WANT_TO_READ = '1';
 /** Take a work off whatever shelf it is on. */
 async function clearShelf(page: Page, olid: string): Promise<void> {
     const response = await page.request.post(`/works/${olid}/bookshelves.json`, {
-        form: { bookshelf_id: '-1' },
+        form: { bookshelf_id: '-1' }
     });
     expect(response.ok(), `could not clear ${olid}: ${await response.text()}`).toBe(true);
 }
@@ -46,8 +44,7 @@ test.describe('ol-shelf-button', () => {
             await expect(button).not.toHaveAttribute('shelf');
             await expect(main).toHaveAttribute('aria-pressed', 'false');
 
-            const saved = page.waitForResponse((r) =>
-                r.url().includes(`/works/${WORK_OLID}/bookshelves.json`) && r.request().method() === 'POST');
+            const saved = page.waitForResponse(r => r.url().includes(`/works/${WORK_OLID}/bookshelves.json`) && r.request().method() === 'POST');
             await main.click();
             expect((await saved).ok()).toBe(true);
 
@@ -107,7 +104,9 @@ test.describe('ol-shelf-button', () => {
 
         test('anonymous: carousel buttons render, and nothing is fetched', async ({ page }) => {
             const stateRequests: string[] = [];
-            page.on('request', (r) => { if (r.url().includes('/partials/ReadingState.json')) stateRequests.push(r.url()); });
+            page.on('request', r => {
+                if (r.url().includes('/partials/ReadingState.json')) stateRequests.push(r.url());
+            });
             await page.goto('/');
             const button = page.locator(CAROUSEL_BUTTON).first();
             await expect(button).toBeAttached({ timeout: 15_000 });
@@ -117,7 +116,7 @@ test.describe('ol-shelf-button', () => {
         });
 
         test('buttons in off-screen slides are inert, so a hidden slide holds nothing focusable', async ({ page }) => {
-            await page.route('https://archive.org/**', (route) => route.abort());
+            await page.route('https://archive.org/**', route => route.abort());
             await page.goto('/');
             const hidden = page.locator(`.slick-slide[aria-hidden="true"] ${CAROUSEL_BUTTON}`).first();
             const shown = page.locator(`.slick-slide[aria-hidden="false"] ${CAROUSEL_BUTTON}`).first();
@@ -139,7 +138,7 @@ test.describe('ol-shelf-button', () => {
 
             test('one batched request fills in the reader and their shelves', async ({ page }) => {
                 const errors = collectConsoleErrors(page);
-                const firstFetch = page.waitForResponse((r) => r.url().includes('/partials/ReadingState.json'));
+                const firstFetch = page.waitForResponse(r => r.url().includes('/partials/ReadingState.json'));
                 await page.goto('/');
                 const response = await firstFetch;
                 expect(response.ok()).toBe(true);
@@ -161,7 +160,7 @@ test.describe('ol-shelf-button', () => {
                 // Shelve it behind the page's back; the next load draws it shelved.
                 await clearShelf(page, olid);
                 const shelved = await page.request.post(`/works/${olid}/bookshelves.json`, {
-                    form: { bookshelf_id: WANT_TO_READ },
+                    form: { bookshelf_id: WANT_TO_READ }
                 });
                 expect(shelved.ok()).toBe(true);
 

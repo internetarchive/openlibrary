@@ -110,11 +110,28 @@ repos:
     hooks:
       - id: oxfmt
         name: oxfmt
-        # Mirror hook targets JS/TS by default.
-        types_or: [css]
+        # Mirror hook targets JS/TS by default; also run it on CSS and Vue.
+        types_or: [css, javascript, ts, vue]
+        files: \.(css|js|mjs|cjs|ts|vue)$
         args: [--no-error-on-unmatched-pattern]
         additional_dependencies:
           - oxfmt@0.72.0
+
+  - repo: https://github.com/oxc-project/mirrors-oxlint
+    # Mirror tag lags npm; pin the same version as package.json.
+    rev: v1.86.0
+    hooks:
+      - id: oxlint
+        name: oxlint
+        # Mirror hook targets JS/TS by default.
+        types_or: [javascript, ts]
+        files: \.(js|mjs|cjs|ts)$
+        # --no-error-on-unmatched-pattern: oxlint exits 1 when every staged path
+        # is excluded by .oxlintrc.json's ignorePatterns, which would otherwise
+        # spuriously fail the hook. Mirrors the oxfmt hook above.
+        args: [--no-error-on-unmatched-pattern]
+        additional_dependencies:
+          - oxlint@1.87.0
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
     rev: 0.0.2
@@ -141,20 +158,19 @@ repos:
         args: [--allow-empty-input]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.8.0
+    rev: v10.12.0
     hooks:
+      # JS is linted by oxlint, and JS and Vue are formatted by oxfmt; ESLint is
+      # only kept for the Vue-specific rules oxlint can't run on .vue templates.
       - id: eslint
         types: [file]
-        types_or: [javascript, vue]
+        types_or: [vue]
         additional_dependencies:
-          - eslint@9.39.4
-          - "@eslint/js@9.39.4"
-          - eslint-plugin-no-jquery@3.1.1
-          - eslint-plugin-vue@9.32.0
+          - eslint@10.12.0
+          - "@eslint/js@10.0.1"
+          - eslint-config-prettier@10.1.8
+          - eslint-plugin-vue@10.11.1
           - globals@15.14.0
-          - "@babel/eslint-parser@7.24.7"
-          - "@babel/core@7.24.7"
-          - "@babel/preset-env@7.24.7"
         args: [--fix]
 
   - repo: local
@@ -200,19 +216,13 @@ repos:
       require_serial: true
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.2.2
+    rev: 4.4.0
     hooks:
       - id: sqlfluff-lint
         args: [--dialect, postgres]
         files: \.sql$
         # Rule exclusions and their rationale are documented in pyproject.toml
         # under [tool.sqlfluff.core].
-        # patron_data.sql contains raw PostgreSQL COPY data rows with tab-separated
-        # values and \N nulls which sqlfluff cannot parse.
-        # import-partial.sql uses a psql variable placeholder (:source) in a COPY
-        # command which sqlfluff cannot parse.
-        # See: https://github.com/internetarchive/openlibrary/issues/12245
-        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.29.0

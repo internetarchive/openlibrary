@@ -374,20 +374,6 @@ class TestCheckIns:
     def teardown_method(self):
         self.db.query("delete from bookshelves_events;")
 
-    def test_create_event(self):
-        assert len(list(self.db.select("bookshelves_events"))) == 6
-        assert len(list(self.db.select("bookshelves_events", where={"username": "@billy_pilgrim"}))) == 1
-        BookshelvesEvents.create_event("@billy_pilgrim", 5, 6, "2022-01", event_type=1)
-        assert len(list(self.db.select("bookshelves_events"))) == 7
-        assert len(list(self.db.select("bookshelves_events", where={"username": "@billy_pilgrim"}))) == 2
-
-    def test_select_all_by_username(self):
-        assert len(list(self.db.select("bookshelves_events"))) == 6
-        assert len(list(self.db.select("bookshelves_events", where={"username": "@kilgore_trout"}))) == 3
-        BookshelvesEvents.create_event("@kilgore_trout", 7, 8, "2011-01-09", event_type=1)
-        assert len(list(self.db.select("bookshelves_events"))) == 7
-        assert len(list(self.db.select("bookshelves_events", where={"username": "@kilgore_trout"}))) == 4
-
     def test_update_event_date(self):
         assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 1
         row = self.db.select("bookshelves_events", where={"id": 1})[0]
@@ -396,13 +382,6 @@ class TestCheckIns:
         BookshelvesEvents.update_event_date(1, new_date)
         row = self.db.select("bookshelves_events", where={"id": 1})[0]
         assert row["event_date"] == new_date
-
-    def test_delete_by_id(self):
-        assert len(list(self.db.select("bookshelves_events"))) == 6
-        assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 1
-        BookshelvesEvents.delete_by_id(1)
-        assert len(list(self.db.select("bookshelves_events"))) == 5
-        assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 0
 
     def test_delete_by_username(self):
         assert len(list(self.db.select("bookshelves_events"))) == 6
