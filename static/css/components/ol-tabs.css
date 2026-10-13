@@ -1,0 +1,82 @@
+/**
+ * ol-tabs — styles for the light-DOM tabs and panels of <ol-tabs>.
+ *
+ * The tabs are server-rendered <a> links and the panels are plain elements,
+ * slotted into the component's shadow root (see OlTabs.js). They're styled here
+ * rather than with ::slotted(), because page rules such as `a:link` beat
+ * ::slotted() and would turn the tabs back into underlined links.
+ *
+ * The same rules cover the moment before the component upgrades, so the markup
+ * already reads as a row of tabs over one panel and the upgrade doesn't shift
+ * the page. Panels are only collapsed early when JS is expected
+ * (`body.client-js`): without JS every panel stays visible and the tabs work as
+ * in-page links.
+ */
+
+ol-tabs {
+  display: block;
+}
+
+/* Before upgrade the host lays out the row itself; after, its shadow tablist does. */
+ol-tabs:not(:defined) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3xs);
+}
+
+ol-tabs > a[slot="tab"] {
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+  color: var(--color-link);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-label-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-overline);
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Before upgrade, mark the tab that will be selected. */
+:where(.client-js ol-tabs:not(:defined, [selected]))
+  > a[slot="tab"]:first-child {
+  background-color: var(--color-surface-header);
+  color: var(--color-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  ol-tabs > a[slot="tab"]:hover {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+  }
+}
+
+ol-tabs > a[slot="tab"][aria-selected="true"] {
+  background-color: var(--color-surface-header);
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: default;
+}
+
+ol-tabs > a[slot="tab"]:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--focus-width));
+}
+
+ol-tabs > :not([slot]) {
+  flex-basis: 100%;
+  border: var(--border-width-heavy) solid var(--color-surface-header);
+  background-color: var(--color-surface);
+}
+
+/* Page CSS that sets display on a panel must not un-hide it. */
+ol-tabs > [hidden] {
+  display: none !important;
+}
+
+/* Before upgrade the first panel shows, unless the server picked another with
+   `selected`, in which case none shows until the component knows which. */
+:where(.client-js ol-tabs:not(:defined)) > :not([slot]) ~ :not([slot]),
+:where(.client-js ol-tabs[selected]:not(:defined)) > :not([slot]) {
+  display: none;
+}
