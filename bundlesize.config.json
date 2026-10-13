@@ -49,10 +49,6 @@
       "maxSize": "5KB"
     },
     {
-      "path": "static/build/js/tabs.*.js",
-      "maxSize": "5KB"
-    },
-    {
       "path": "static/build/js/main.*.js",
       "maxSize": "102.5KB"
     },
