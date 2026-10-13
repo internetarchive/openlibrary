@@ -15,6 +15,7 @@ from openlibrary.core.edits import (
     STATS_SORT_COLUMNS,
     ApiMode,
     CommunityEditsQueue,
+    StatsRole,
     get_status_for_view,
 )
 from openlibrary.utils.request_context import site
@@ -88,7 +89,7 @@ class community_edits_queue_stats(delegate.page):
     path = "/merges/stats"
 
     STATS_PAGE_SIZE = 25
-    GROUPS: ClassVar[dict[str, str]] = {"reviewers": "reviewer", "submitters": "submitter"}
+    GROUPS: ClassVar[dict[str, StatsRole]] = {"reviewers": "reviewer", "submitters": "submitter"}
 
     @require_login
     def GET(self) -> str | web.HTTPError:
