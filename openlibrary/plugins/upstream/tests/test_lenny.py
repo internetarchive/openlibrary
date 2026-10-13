@@ -1573,6 +1573,45 @@ class TestReturnCall:
         assert excinfo.value.status == 502
         assert excinfo.value.error == "unknown_error"
 
+    def test_an_error_body_with_a_json_header_but_unparsable_body_does_not_crash(self, monkeypatch):
+        """Same loose-node shape as the 2xx case, on the ERROR path: a 4xx with
+        an `application/json` header over an empty or non-JSON body. The parse
+        must not raise a bare `ValueError` -- that is not a `LennyReturnError`,
+        so it would sail past `lenny_return`'s typed-error branch into its
+        `except Exception` and be misread as a generic failure. It must surface
+        as a `LennyReturnError` carrying the real status, so the handler can
+        classify on it."""
+
+        class Resp:
+            status_code = 404
+            headers: ClassVar[dict] = {"content-type": "application/json"}
+
+            def json(self):
+                raise ValueError("empty body")
+
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: Resp())
+        with pytest.raises(lenny.LennyReturnError) as excinfo:
+            lenny.return_loan(NODE["issuer"], "at-123", 1)
+        assert excinfo.value.status == 404
+        assert excinfo.value.error == "unknown_error"
+
+    def test_a_non_dict_json_error_body_does_not_crash(self, monkeypatch):
+        """A JSON body that parses to a list/string rather than an object must
+        not raise `AttributeError` on `.get`."""
+
+        class Resp:
+            status_code = 400
+            headers: ClassVar[dict] = {"content-type": "application/json"}
+
+            def json(self):
+                return ["not", "an", "object"]
+
+        monkeypatch.setattr(lenny.requests, "post", lambda *a, **k: Resp())
+        with pytest.raises(lenny.LennyReturnError) as excinfo:
+            lenny.return_loan(NODE["issuer"], "at-123", 1)
+        assert excinfo.value.status == 400
+        assert excinfo.value.error == "unknown_error"
+
 
 class TestLennyReturnRoute:
     """The `/borrow/lenny/<OLID>/return` handler. The load-bearing property is

@@ -845,8 +845,23 @@ def return_loan(issuer: str, token: str, edition_id: int) -> dict[str, Any]:
         timeout=HTTP_TIMEOUT_SECONDS,
     )
     if resp.status_code >= 400:
-        is_json = resp.headers.get("content-type", "").startswith("application/json")
-        error = (resp.json() or {}).get("error") if is_json else None
+        # Guard the parse: a node answering 4xx with an application/json header
+        # over an empty, non-JSON, or non-object body must not raise a bare
+        # ValueError/AttributeError here. That is not a LennyReturnError, so it
+        # would sail past lenny_return's typed-error branch into `except
+        # Exception` and be misread as a generic failure -- the same
+        # success-vs-failure confusion the 2xx path above avoids, and worse on
+        # the error path because a benign `no_active_loan` would then skip its
+        # invalidation. An unreadable error body yields no code, so the status
+        # alone classifies it (401/403 reconnect; anything else honest error).
+        error = None
+        if resp.headers.get("content-type", "").startswith("application/json"):
+            try:
+                body = resp.json()
+            except ValueError:
+                body = None
+            if isinstance(body, dict):
+                error = body.get("error")
         raise LennyReturnError(error or "unknown_error", resp.status_code)
     return {}
 
