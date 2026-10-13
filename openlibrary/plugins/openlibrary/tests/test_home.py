@@ -6,7 +6,22 @@ from bs4 import BeautifulSoup
 
 from openlibrary.core.admin import Stats
 from openlibrary.core.carousels import format_book_data
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.plugins.openlibrary import home
+
+
+class MockStats:
+    """Stands in for admin.Stats: a fixed list of [timestamp_ms, count] pairs."""
+
+    def __init__(self, counts):
+        self.counts = counts
+
+    def get_counts(self, ndays=28, times=False):
+        return self.counts
+
+    def get_summary(self, ndays=28):
+        return sum(count for _, count in self.counts)
 
 
 class MockDoc(dict):
@@ -71,10 +86,30 @@ class TestHomeTemplates:
         assert blog is not None
         assert len(blog.find_all("li")) == 1
 
-    def test_stats_template(self, render_template):
+    def test_stats_template(self):
         # Make sure that it works fine without any input (skipping section)
-        html = str(render_template("home/stats"))
-        assert html == ""
+        assert render_jinja_template("home/stats.html.jinja", charts=None).strip() == ""
+
+    def test_stats_charts(self, monkeypatch):
+        day = 24 * 60 * 60 * 1000
+        stat = MockStats([[3 * day, 4], [day, 8], [2 * day, 0]])
+        monkeypatch.setattr(home, "format_date", lambda d: d.strftime("%Y-%m-%d"))
+        monkeypatch.setattr(home, "commify", str)
+
+        charts = home.get_home_stats_charts(dict.fromkeys(["visitors", "members", "human_edits", "lists", "loans"], stat))
+        chart = charts["members"]
+        assert chart["total"] == 12
+        # Oldest first, scaled so the busiest day fills the chart height
+        assert [bar["title"] for bar in chart["bars"]] == ["1970-01-02: 8", "1970-01-03: 0", "1970-01-04: 4"]
+        assert [bar["height"] for bar in chart["bars"]] == [60, 0, 30]
+        assert [bar["y"] for bar in chart["bars"]] == [0, 60, 30]
+
+        html = render_jinja_template("home/stats.html.jinja", charts=charts)
+        soup = BeautifulSoup(html, "lxml")
+        assert len(soup.select("svg.chart-graph")) == 5
+        assert len(soup.select("svg.chart-graph--members .chart-graph__bar")) == 3
+        assert soup.select_one("svg.chart-graph--members title").text == "1970-01-02: 8"
+        assert home.get_home_stats_charts(None) is None
 
     def test_home_template(self, render_template, monkeypatch, mock_site):
         self.setup_monkeypatch(monkeypatch)

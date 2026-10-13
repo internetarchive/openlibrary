@@ -2062,7 +2062,7 @@ msgstr ""
 msgid "Covers Added"
 msgstr ""
 
-#: admin/index.html home/stats.html
+#: admin/index.html home/stats.html.jinja
 msgid "New Members"
 msgstr ""
 
@@ -2114,7 +2114,7 @@ msgstr ""
 msgid "Star Rating Patrons"
 msgstr ""
 
-#: admin/index.html home/stats.html
+#: admin/index.html home/stats.html.jinja
 msgid "Unique Visitors"
 msgstr ""
 
@@ -4362,63 +4362,63 @@ msgstr ""
 msgid "Books in Local Environment"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Around the Library"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "See all visitors to OpenLibrary.org"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Area graph of recent unique visitors"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "How many new Open Library members have we welcomed?"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Area graph of new members"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "People are constantly updating the catalog"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Area graph of recent catalog edits"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Catalog Edits"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Members can create Lists"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Area graph of lists created recently"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Lists Created"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "We're a library, so we lend books, too"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "Area graph of ebooks borrowed recently"
 msgstr ""
 
-#: home/stats.html
+#: home/stats.html.jinja
 msgid "eBooks Borrowed"
 msgstr ""
 

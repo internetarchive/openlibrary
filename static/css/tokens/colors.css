@@ -86,6 +86,14 @@
      600 is the selected bar, a clear step darker. */
   --pink-400: hsl(348, 95%, 65%);
   --pink-600: hsl(345, 62%, 42%);
+
+  /* One hue per homepage "Around the Library" stat. Decorative: each chart's
+     total is printed beside it as text. */
+  --stat-red: hsl(8, 78%, 53%);
+  --stat-olive: hsl(77, 45%, 38%);
+  --stat-teal: hsl(184, 100%, 21%);
+  --stat-orange: hsl(32, 100%, 61%);
+  --stat-green: hsl(113, 38%, 29%);
 }
 
 /**
@@ -225,6 +233,13 @@
   /* Bars in data charts (reading-log stats). Counts sit past the bar end in text ink. */
   --color-chart-bar: var(--pink-400);
   --color-chart-bar-selected: var(--pink-600);
+
+  /* Bars in the homepage "Around the Library" stat charts, one hue per stat. */
+  --color-home-stat-visitors: var(--stat-red);
+  --color-home-stat-members: var(--stat-olive);
+  --color-home-stat-edits: var(--stat-teal);
+  --color-home-stat-lists: var(--stat-orange);
+  --color-home-stat-loans: var(--stat-green);
 }
 
 /**

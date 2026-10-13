@@ -1,0 +1,38 @@
+{# Homepage "Around the Library": a 28-day bar chart and total per stat, drawn as inline SVG. #}
+{% macro stats_chart(chart, stat, href, link_title, graph_title, label) %}
+    <div class="statschart">
+        <a href="{{ href }}" title="{{ link_title }}">
+            <svg class="chart-graph chart-graph--{{ stat }}"
+                 viewBox="0 0 150 60"
+                 role="img"
+                 aria-label="{{ graph_title }}">
+                {% for bar in chart.bars %}
+                    <g class="chart-graph__day">
+                    <title>{{ bar.title }}</title>
+                    {# A full-height hit area, so short bars are easy to hover #}
+                    <rect class="chart-graph__hit" x="{{ bar.x }}" y="0" width="{{ chart.bar_step }}" height="60"></rect>
+                    <rect class="chart-graph__bar" x="{{ bar.x }}" y="{{ bar.y }}" width="{{ chart.bar_width }}" height="{{ bar.height }}"></rect>
+                    </g>
+                {% endfor %}
+            </svg>
+            <span class="ticks">{{ chart.total_label }}</span><span class="label">{{ label }}</span>
+        </a>
+    </div>
+{% endmacro %}
+{% if charts %}
+    <div id="home-stats">
+        <div class="head">
+            <h2 class="inline">{{ _("Around the Library") }}</h2>
+            <p class="inline sansserif large collapse">&nbsp;{{ _("Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>") | safe }}.</p>
+        </div>
+        <div id="home-stats-charts">
+            {% if charts.visitors.total %}
+                {{ stats_chart(charts.visitors, "visitors", "//archive.org/stats", _("See all visitors to OpenLibrary.org"), _("Area graph of recent unique visitors"), _("Unique Visitors")) }}
+            {% endif %}
+            {{ stats_chart(charts.members, "members", "/stats", _("How many new Open Library members have we welcomed?"), _("Area graph of new members"), _("New Members")) }}
+            {{ stats_chart(charts.human_edits, "edits", "/recentchanges", _("People are constantly updating the catalog"), _("Area graph of recent catalog edits"), _("Catalog Edits")) }}
+            {{ stats_chart(charts.lists, "lists", "/lists", _("Members can create Lists"), _("Area graph of lists created recently"), _("Lists Created")) }}
+            {{ stats_chart(charts.loans, "loans", "/subjects/in_library#ebooks=true", _("We're a library, so we lend books, too"), _("Area graph of ebooks borrowed recently"), _("eBooks Borrowed")) }}
+        </div>
+    </div>
+{% endif %}

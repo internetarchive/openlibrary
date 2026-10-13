@@ -66,24 +66,54 @@ div.tutorial__item img {
   padding: 1px;
 }
 
-/* stylelint-disable-next-line max-nesting-depth */
-#home-stats-charts .statschart .chartShow {
+/* Bar charts drawn as inline SVG by home/stats.html.jinja */
+#home-stats-charts .chart-graph {
+  display: block;
   width: 145px;
   height: 60px;
-  margin: 0 var(--spacing-inline-sm);
-  border-bottom: 1px solid var(--grey);
-  cursor: pointer;
+  /* Centred, so the chart lines up with its centred total at any tile width */
+  margin: 0 auto;
+  border-bottom: var(--border-width-divider) solid var(--color-border);
 }
 
-/* stylelint-disable-next-line max-nesting-depth */
-#home-stats-charts .statschart .chartShow .chart-graph {
-  width: 150px;
-  height: 60px;
+.chart-graph__hit {
+  fill: transparent;
+}
+
+.chart-graph__bar {
+  fill: currentcolor;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chart-graph__day:hover .chart-graph__bar {
+    opacity: 0.7;
+  }
+}
+
+.chart-graph--visitors {
+  color: var(--color-home-stat-visitors);
+}
+
+.chart-graph--members {
+  color: var(--color-home-stat-members);
+}
+
+.chart-graph--edits {
+  color: var(--color-home-stat-edits);
+}
+
+.chart-graph--lists {
+  color: var(--color-home-stat-lists);
+}
+
+.chart-graph--loans {
+  color: var(--color-home-stat-loans);
 }
 
 /* stylelint-disable no-descending-specificity */
 /* stylelint-disable max-nesting-depth */
 #home-stats-charts .statschart a {
+  display: block;
   color: var(--black);
   text-decoration: none;
 }
