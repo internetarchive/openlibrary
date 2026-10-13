@@ -90,6 +90,15 @@ repos:
         language: python
         types: [python]
         exclude: (^|/)tests?/
+      - id: no-direct-local-dev-read
+        name: Read LOCAL_DEV through get_ol_env()
+        description: >
+          Direct environment reads bypass the single flag tests patch, so
+          behaviour then differs between the dev container and CI.
+        entry: (getenv|environ\.get|environ\[)\(?\s*["']LOCAL_DEV["']
+        language: pygrep
+        types: [python]
+        exclude: ^openlibrary/core/env\.py$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v2.3.0

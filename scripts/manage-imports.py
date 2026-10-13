@@ -11,6 +11,7 @@ import time
 
 from openlibrary.api import OLError, OpenLibrary
 from openlibrary.config import load_config
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.ia import get_candidate_ocaids
 from openlibrary.core.imports import Batch, ImportItem
 
@@ -20,7 +21,7 @@ logger = logging.getLogger("openlibrary.importer")
 @functools.cache
 def get_ol(servername: str) -> OpenLibrary:
     ol = OpenLibrary(servername)
-    if os.getenv("LOCAL_DEV"):
+    if get_ol_env().LOCAL_DEV:
         ol.login("openlibrary@example.com", "admin123")
     else:
         # Log in with RC file from OPENLIBRARY_RCFILE env var
