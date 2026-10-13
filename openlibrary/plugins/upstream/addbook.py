@@ -732,6 +732,7 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
+        work.genres = self.process_managed_tags(work.get("genres"), "genres")
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -744,6 +745,40 @@ class SaveBookHelper:
         work.authors = [a for a in work.get("authors", []) if a.get("author", {}).get("key", "").strip()]
 
         return trim_doc(work)
+
+    @staticmethod
+    def process_managed_tags(values, tag_type: str) -> list[dict]:
+        """Normalise posted managed-Tag references to a list of refs.
+
+        The work edit form submits each selected Tag as its key
+        (``/tags/OL…T``). A work may already store the field in either shape —
+        plain key strings (every work from the scripted backfill) or refs — so
+        both are accepted on input, mixed and in any order, and deduplicated.
+
+        Only keys that resolve to an existing Tag whose ``tag_type`` matches
+        ``tag_type`` (the plural form, e.g. ``"genres"``) are kept. Unknown or
+        wrong-typed keys are dropped rather than saved: a reference to a missing
+        Tag fails the save, and ``save_many`` is atomic, so one bad key would
+        reject the whole edit. The edit page only ever offers existing Tags, so
+        a dropped key means a stale form or a tampered request, not normal use.
+
+        :param values: the posted ``genres`` value — a list of key strings
+            and/or ``{"key": …}`` refs, or ``None`` when the field is absent.
+        :param tag_type: the Tag type the field holds, e.g. ``"genres"``.
+        :return: ``[{"key": "/tags/OL…T"}, …]``, empty if nothing valid remains.
+            An empty list clears the field (``trim_doc`` maps it to ``None``).
+        """
+        keys: list[str] = []
+        seen: set[str] = set()
+        for value in values or []:
+            key = value.get("key") if isinstance(value, dict) else value
+            if key and key not in seen:
+                seen.add(key)
+                keys.append(key)
+        if not keys:
+            return []
+        tags = {tag.key: tag for tag in web.ctx.site.get_many(keys)}
+        return [{"key": key} for key in keys if (tag := tags.get(key)) and tag.type.key == "/type/tag" and tag.get("tag_type") == tag_type]
 
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid

@@ -491,6 +491,135 @@ class TestSaveBookHelper:
         assert not new_work.subjects
 
 
+class TestProcessManagedTags:
+    """``SaveBookHelper.process_managed_tags`` validates and normalises the
+    genre Tag references posted from the work edit page."""
+
+    def setup_method(self, method):
+        web.ctx.site = MockSite()
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL1T", "name": "Fantasy", "tag_type": "genres"},
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL2T", "name": "Horror", "tag_type": "genres"},
+                # A Tag of a different type — must never be accepted as a genre.
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL9T", "name": "Novel", "tag_type": "content_formats"},
+                # A non-Tag document sharing the key space.
+                {"type": {"key": "/type/work"}, "key": "/works/OL5W", "title": "Not a tag"},
+            ]
+        )
+
+    def process(self, values):
+        return addbook.SaveBookHelper.process_managed_tags(values, "genres")
+
+    def test_valid_key_strings_become_refs(self):
+        assert self.process(["/tags/OL1T", "/tags/OL2T"]) == [
+            {"key": "/tags/OL1T"},
+            {"key": "/tags/OL2T"},
+        ]
+
+    def test_accepts_ref_shaped_input(self):
+        # Works from the scripted backfill store plain strings; later saves store
+        # refs. Both shapes, mixed, must normalise to refs.
+        assert self.process([{"key": "/tags/OL1T"}, "/tags/OL2T"]) == [
+            {"key": "/tags/OL1T"},
+            {"key": "/tags/OL2T"},
+        ]
+
+    def test_drops_unknown_keys(self):
+        # /tags/OL404T does not exist: a ref to a missing Tag would fail the
+        # atomic save, so it is dropped rather than persisted.
+        assert self.process(["/tags/OL1T", "/tags/OL404T"]) == [{"key": "/tags/OL1T"}]
+
+    def test_drops_wrong_tag_type(self):
+        # OL9T is a real Tag, but a content_formats one — not a genre.
+        assert self.process(["/tags/OL1T", "/tags/OL9T"]) == [{"key": "/tags/OL1T"}]
+
+    def test_drops_non_tag_documents(self):
+        # OL5W resolves, but it is a work, not a Tag.
+        assert self.process(["/tags/OL1T", "/works/OL5W"]) == [{"key": "/tags/OL1T"}]
+
+    def test_deduplicates_preserving_order(self):
+        assert self.process(["/tags/OL2T", "/tags/OL1T", "/tags/OL2T"]) == [
+            {"key": "/tags/OL2T"},
+            {"key": "/tags/OL1T"},
+        ]
+
+    def test_empty_and_absent_yield_empty_list(self):
+        assert self.process([]) == []
+        assert self.process(None) == []
+
+    def test_save_persists_genres_as_refs(self, monkeypatch):
+        """End-to-end through save(): the indexed form shape the edit page posts
+        (``work--genres--N--key``) lands on the work as a list of refs."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/work"}, "key": "/works/OL10W", "title": "A Work"},
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL10M",
+                    "title": "A Work",
+                    "works": [{"key": "/works/OL10W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL10W")
+        edition = web.ctx.site.get("/books/OL10M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL10W",
+                "work--title": "A Work",
+                "work--genres--0--key": "/tags/OL1T",
+                "work--genres--1--key": "/tags/OL2T",
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL10W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        assert web.ctx.site.get("/works/OL10W").genres == [
+            {"key": "/tags/OL1T"},
+            {"key": "/tags/OL2T"},
+        ]
+
+    def test_save_clears_genres_when_none_posted(self, monkeypatch):
+        """Posting no genre rows clears a work's existing genres."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL11W",
+                    "title": "A Work",
+                    "genres": [{"key": "/tags/OL1T"}],
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL11M",
+                    "title": "A Work",
+                    "works": [{"key": "/works/OL11W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL11W")
+        edition = web.ctx.site.get("/books/OL11M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL11W",
+                "work--title": "A Work",
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL11W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        assert not web.ctx.site.get("/works/OL11W").get("genres")
+
+
 class TestDaisyPage:
     def setup_method(self, method):
         web.ctx.site = MockSite()
