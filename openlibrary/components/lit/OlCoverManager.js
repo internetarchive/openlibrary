@@ -12,6 +12,9 @@ export const DEFAULT_LABELS = {
     images: 'Images',
     addImage: 'Add image',
     addHint: 'Drop a file, paste, or browse',
+    addHintTouch: 'Take a photo or choose a file',
+    paste: 'Paste image',
+    errorClipboard: 'No image found on your clipboard.',
     dropHere: 'Drop the image to upload it',
     current: 'Current',
     sourceArchive: 'Internet Archive',
@@ -47,6 +50,7 @@ export const DEFAULT_LABELS = {
 const ACCEPT = '.jpg,.jpeg,.gif,.png,.webp,image/jpeg,image/gif,image/png,image/webp';
 const IMAGE_TYPES = ['image/jpeg', 'image/gif', 'image/png', 'image/webp'];
 const MAX_BYTES = 10 * 1024 * 1024;
+const CAN_READ_CLIPBOARD = typeof navigator !== 'undefined' && typeof navigator.clipboard?.read === 'function';
 
 /**
  * Picks and manages the images for a book, work, or author: every image
@@ -312,7 +316,21 @@ export class OlCoverManager extends LitElement {
             font-weight: var(--font-weight-semibold);
         }
 
+        /* Touch gets a Paste button and its own hint; a mouse has Cmd/Ctrl+V and drag and drop. */
+        .hint-pointer {
+            display: none;
+        }
+
         @media (hover: hover) and (pointer: fine) {
+            .hint-touch,
+            .paste {
+                display: none;
+            }
+
+            .hint-pointer {
+                display: inline;
+            }
+
             .pick:hover:not(:disabled):not([aria-pressed='true']) {
                 background: var(--color-hover-overlay);
             }
@@ -526,6 +544,22 @@ export class OlCoverManager extends LitElement {
     _onFileInput(e) {
         this._addFiles([...e.target.files]);
         e.target.value = '';
+    }
+
+    /** Touch devices have no paste shortcut, so the Paste button reads the clipboard directly. */
+    async _pasteFromClipboard() {
+        this._error = '';
+        const files = [];
+        try {
+            for (const item of await navigator.clipboard.read()) {
+                const type = item.types.find((t) => IMAGE_TYPES.includes(t));
+                if (type) files.push(new File([await item.getType(type)], 'pasted', { type }));
+            }
+        } catch {
+            // Permission denied or nothing readable: same message as an empty clipboard.
+        }
+        if (files.length) this._addFiles(files);
+        else this._error = this._t('errorClipboard');
     }
 
     _handlePaste(e) {
@@ -779,9 +813,11 @@ export class OlCoverManager extends LitElement {
                         <button class="add" type="button" @click=${this._openPicker}>
                             <ol-icon name="upload" size="lg"></ol-icon>
                             <strong>${this._t('addImage')}</strong>
-                            <span>${this._t('addHint')}</span>
+                            <span class="hint-touch">${this._t('addHintTouch')}</span>
+                            <span class="hint-pointer">${this._t('addHint')}</span>
                         </button>
                         <input class="visually-hidden" type="file" accept=${ACCEPT} multiple tabindex="-1" aria-hidden="true" @change=${this._onFileInput}>
+                        ${CAN_READ_CLIPBOARD ? html`<div class="meta paste"><ol-button variant="secondary" size="small" @click=${this._pasteFromClipboard}>${this._t('paste')}</ol-button></div>` : nothing}
                     </li>${repeat(this._items, (item) => item.id, (item) => this._renderTile(item))}</ul>
                 ${this._dragging ? html`<div class="drop-target">${this._t('dropHere')}</div>` : nothing}
             </div>

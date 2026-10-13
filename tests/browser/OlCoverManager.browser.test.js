@@ -188,3 +188,34 @@ test('saving an author photo updates both infobox copies and both preview dialog
         expect(document.querySelector(`.coverLook[aria-controls="seeImage-${imagesId}"]`).getAttribute('href')).toBe(`${COVERSTORE}/a/id/6-L.jpg`);
     }
 });
+
+test('the Paste button uploads an image read from the clipboard', async() => {
+    seedEditionPage();
+    stubFetch({
+        'GET /books/OL1M/covers.json': EDITION_STATE,
+        'POST /books/OL1M/covers/upload.json': UPLOADED,
+    });
+    vi.spyOn(navigator.clipboard, 'read').mockResolvedValue([
+        { types: ['text/html', 'image/png'], getType: async(type) => new Blob(['x'], { type }) },
+    ]);
+    const manager = await openManager('addImage-0');
+
+    // Shown only to touch pointers; the click works the same either way.
+    q(manager, '.paste ol-button').click();
+
+    await vi.waitFor(() => expect(manager._selected).toBe('img:77'));
+    const upload = calls.find((c) => c.route === 'POST /books/OL1M/covers/upload.json');
+    expect(upload.init.body.get('file').name).toBe('image.png');
+});
+
+test('the Paste button explains when the clipboard has no image', async() => {
+    seedEditionPage();
+    stubFetch({ 'GET /books/OL1M/covers.json': EDITION_STATE });
+    vi.spyOn(navigator.clipboard, 'read').mockResolvedValue([{ types: ['text/plain'], getType: async() => new Blob(['hi']) }]);
+    const manager = await openManager('addImage-0');
+
+    q(manager, '.paste ol-button').click();
+
+    await vi.waitFor(() => expect(q(manager, '.error')?.textContent).toContain('No image found on your clipboard.'));
+    expect(calls.some((c) => c.route.startsWith('POST'))).toBe(false);
+});

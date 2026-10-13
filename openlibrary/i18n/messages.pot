@@ -4263,6 +4263,18 @@ msgid "Drop a file, paste, or browse"
 msgstr ""
 
 #: covers/change.html
+msgid "Take a photo or choose a file"
+msgstr ""
+
+#: covers/change.html
+msgid "Paste image"
+msgstr ""
+
+#: covers/change.html
+msgid "No image found on your clipboard."
+msgstr ""
+
+#: covers/change.html
 msgid "Drop the image to upload it"
 msgstr ""
 
