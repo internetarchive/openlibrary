@@ -28,10 +28,11 @@ $jsdef render_works_list(works):
     </ul>
 
 $jsdef render_excluded_works_list(works, total):
-    <details>
-        <summary><meter value="$(total - len(works))" max="$total"></meter> $len(works) works excluded due to missing data</summary>
-        $:render_works_list(works)
-    </details>
+    $if len(works) > 0:
+        <details class="excluded-works">
+            <summary class="excluded-works__summary"><meter value="$(total - len(works))" max="$total"></meter> $len(works) works excluded due to missing data</summary>
+            $:render_works_list(works)
+        </details>
 
 
 <div id="contentHead">

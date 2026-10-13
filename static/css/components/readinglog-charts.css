@@ -23,6 +23,13 @@
   }
 }
 
+/* Disclosure under a chart listing the works it couldn't place. Padding gives
+   the one-line summary a comfortable tap height on phones. */
+.excluded-works__summary {
+  padding-block: var(--spacing-inset-sm);
+  cursor: pointer;
+}
+
 /* Panel listing the works behind the clicked bar. Stays a one-line hint until
    a bar is selected, so it doesn't cover the charts on small screens. */
 .selected-works {
