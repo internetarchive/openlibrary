@@ -103,12 +103,12 @@ $jsdef render_excluded_works_list(works, total):
     </section>
 </div>
 
-<details class="selected-works" open>
-    <summary class="selected-works__summary">$_("Matching works")</summary>
+<details class="selected-works">
+    <summary class="selected-works__summary">
+        <span class="selected-works__hint">$_("Click on a bar to see matching works")</span>
+        <span class="selected-works__heading" hidden>$_("Matching works") · <span class="selected-works__selection"></span></span>
+    </summary>
     <div class="selected-works__body">
         <div class="selected-works__list"></div>
-        <div class="selected-works__empty">
-            $_("Click on a bar to see matching works")
-        </div>
     </div>
 </details>

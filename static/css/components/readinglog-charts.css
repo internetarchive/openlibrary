@@ -55,14 +55,6 @@
     var(--spacing-inset-sm);
 }
 
-.selected-works__empty {
-  display: none;
-}
-
-.selected-works__list:empty + .selected-works__empty {
-  display: block;
-}
-
 /* Hanging indent, so wrapped entries line up under the title */
 .works-list > li {
   padding-inline-start: 1.5em;

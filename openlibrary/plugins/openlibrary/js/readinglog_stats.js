@@ -66,10 +66,18 @@ export function init(config) {
     Chart.defaults.font.family = token('--font-family-body');
     Chart.defaults.font.size = parseInt(token('--font-size-body-small'));
     Chart.defaults.color = token('--color-text-secondary');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) Chart.defaults.animation = false;
     /** @type {Chart[]} */
     const charts = [];
     const selectedWorks = /** @type {HTMLDetailsElement} */ (document.querySelector('.selected-works'));
     const selectedWorksList = selectedWorks.querySelector('.selected-works__list');
+    const selectedWorksHint = /** @type {HTMLElement} */ (selectedWorks.querySelector('.selected-works__hint'));
+    const selectedWorksHeading = /** @type {HTMLElement} */ (selectedWorks.querySelector('.selected-works__heading'));
+    const selectedWorksSelection = selectedWorks.querySelector('.selected-works__selection');
+    // With nothing selected the panel has nothing to show, so its header shouldn't open it
+    selectedWorks.querySelector('summary').addEventListener('click', event => {
+        if (!selected) event.preventDefault();
+    });
     /** @type {{chart: Chart, index: number} | null} */
     let selected = null;
 
@@ -77,18 +85,22 @@ export function init(config) {
      * Select one bar (or none) across every chart, since the works list shows a single selection
      * @param {Chart} [selectedChart]
      * @param {number} [selectedIndex]
-     * @param {Work[]} [works]
+     * @param {[string, Work[]]} [bar] the selected bar's label and works
      */
-    function selectBar(selectedChart, selectedIndex, works) {
+    function selectBar(selectedChart, selectedIndex, bar) {
         selected = selectedChart ? { chart: selectedChart, index: selectedIndex } : null;
         for (const chart of charts) {
             const dataset = chart.data.datasets[0];
             dataset.backgroundColor = dataset.data.map((_, i) => (chart === selectedChart && i === selectedIndex ? selectedBarColor : barColor));
             chart.update('none');
         }
-        selectedWorksList.innerHTML = works ? window.render_works_list(works) : '';
-        // Reopen the panel if the reader collapsed it, so the new selection is visible
-        if (works) selectedWorks.open = true;
+        // The full label, since the chart axis may show it shortened
+        selectedWorksSelection.textContent = bar ? `${bar[0]} (${bar[1].length})` : '';
+        selectedWorksHint.hidden = Boolean(bar);
+        selectedWorksHeading.hidden = !bar;
+        selectedWorksList.innerHTML = bar ? window.render_works_list(bar[1]) : '';
+        // Open the panel to show a new selection, and collapse it when the selection is cleared
+        selectedWorks.open = Boolean(bar);
     }
     const authors_by_id = Object.fromEntries(config.authors.map(a => [a.key, a]));
 
@@ -174,7 +186,7 @@ export function init(config) {
                     if (!chartEl || (selected?.chart === chart && selected.index === chartEl.index)) {
                         selectBar();
                     } else {
-                        selectBar(chart, chartEl.index, bars[chartEl.index][1]);
+                        selectBar(chart, chartEl.index, bars[chartEl.index]);
                     }
                 },
                 plugins: {
