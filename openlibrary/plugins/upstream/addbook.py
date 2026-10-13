@@ -769,14 +769,16 @@ class SaveBookHelper:
 
         When the editor **changes** the genre set, each posted key is checked:
 
-        - A key already stored on the work is kept if it still resolves to a live
-          ``/type/tag`` document. Its ``tag_type`` is NOT re-checked, so a retyped
-          or legacy singular ``tag_type`` genre (e.g. ``/tags/OL84T``) survives. A
-          ref to a Tag since **deleted or merged** no longer resolves to a
-          ``/type/tag`` and is dropped — otherwise, once ``/type/work`` declares
-          ``genres`` with ``expected_type /type/tag``, that dangling ref would
-          make Infobase reject the whole (atomic) save, leaving the work
-          un-editable on any genre change.
+        - A key already stored on the work is resolved to a live ``/type/tag``.
+          Its ``tag_type`` is NOT re-checked, so a retyped or legacy singular
+          ``tag_type`` genre (e.g. ``/tags/OL84T``) survives. A ref to a Tag since
+          **merged** (a ``/type/redirect``) is followed to its target (up to two
+          hops) and the target key substituted — a merge means "these are the same
+          genre", so dropping it would silently un-tag the work. A ref to a
+          **deleted** Tag, or one that doesn't resolve to a ``/type/tag``, is
+          dropped. (Otherwise, once ``/type/work`` declares ``genres`` with
+          ``expected_type /type/tag``, a dangling ref would make Infobase reject
+          the whole atomic save, leaving the work un-editable on any genre change.)
         - An **added** key (posted but not stored) is kept only if it resolves to
           an existing Tag whose ``tag_type`` matches ``tag_type`` (the plural
           form, e.g. ``"genres"``). A ref to a missing Tag would fail the atomic
@@ -814,16 +816,43 @@ class SaveBookHelper:
             return [{"key": key} for key in posted]
 
         stored_keys = set(stored_list)
-        docs = {doc.key: doc for doc in web.ctx.site.get_many(posted)}
+        site = web.ctx.site
+
+        def resolve_live_tag(key: str, hops: int = 2) -> str | None:
+            """Follow ``/type/redirect`` refs (a merged Tag) to the live
+            ``/type/tag`` they point at, up to ``hops`` hops. Returns the final
+            Tag key, or ``None`` if it is deleted / doesn't resolve to a Tag."""
+            visited: set[str] = set()
+            for _hop in range(hops + 1):
+                if not key or key in visited:
+                    return None
+                visited.add(key)
+                doc = site.get(key)
+                if doc is None:
+                    return None
+                type_key = doc.type.key
+                if type_key == "/type/tag":
+                    return key
+                if type_key == "/type/redirect":
+                    key = doc.get("location")
+                    continue
+                return None
+            return None
+
         out: list[str] = []
+        seen: set[str] = set()
         for key in posted:
-            doc = docs.get(key)
-            if doc is None or doc.type.key != "/type/tag":
-                continue  # missing, deleted or merged (not a live Tag) -> drop
-            # A retained stored ref is kept for being a live Tag (its tag_type is
-            # not re-checked); an added key must be of the right tag_type.
-            if key in stored_keys or doc.get("tag_type") == tag_type:
-                out.append(key)
+            if key in stored_keys:
+                # Retained ref: follow a merge to its target, drop if dead. Its
+                # tag_type is not re-checked, so retyped/legacy genres survive.
+                final = resolve_live_tag(key)
+            else:
+                # Added key: must be an existing Tag of the right tag_type.
+                doc = site.get(key)
+                final = key if (doc is not None and doc.type.key == "/type/tag" and doc.get("tag_type") == tag_type) else None
+            if final and final not in seen:
+                seen.add(final)
+                out.append(final)
         return [{"key": key} for key in out]
 
     def _prevent_ocaid_deletion(self, edition) -> None:

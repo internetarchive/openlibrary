@@ -509,6 +509,8 @@ class TestProcessManagedTags:
                 {"type": {"key": "/type/tag"}, "key": "/tags/OL84T", "name": "Legacy", "tag_type": "genre"},
                 # A deleted Tag (tombstone): no longer a /type/tag.
                 {"type": {"key": "/type/delete"}, "key": "/tags/OL77T"},
+                # A merged Tag: a redirect pointing at the live OL1T.
+                {"type": {"key": "/type/redirect"}, "key": "/tags/OL78T", "location": "/tags/OL1T"},
                 # A non-Tag document sharing the key space.
                 {"type": {"key": "/type/work"}, "key": "/works/OL5W", "title": "Not a tag"},
             ]
@@ -613,6 +615,23 @@ class TestProcessManagedTags:
             ["/tags/OL84T", "/tags/OL1T"],
             stored=["/tags/OL84T"],
         ) == [{"key": "/tags/OL84T"}, {"key": "/tags/OL1T"}]
+
+    def test_merged_stored_ref_followed_to_target_when_set_changes(self):
+        # OL78T is a redirect (a merged Tag) pointing at the live OL1T. On a genre
+        # change the stored ref is followed to its target rather than dropped — a
+        # merge means they are the same genre, so the work keeps it as OL1T.
+        assert self.process(
+            ["/tags/OL78T", "/tags/OL2T"],
+            stored=["/tags/OL78T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]
+
+    def test_merged_stored_ref_dedupes_against_existing_target(self):
+        # On a change, if the redirect's target is already present, following it
+        # dedupes to a single ref.
+        assert self.process(
+            ["/tags/OL78T", "/tags/OL1T", "/tags/OL2T"],
+            stored=["/tags/OL78T", "/tags/OL1T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]
 
     def test_save_persists_genres_as_refs(self, monkeypatch):
         """End-to-end through save(): the indexed form shape the edit page posts
