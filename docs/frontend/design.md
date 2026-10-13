@@ -36,7 +36,7 @@ The principles these rules serve — and the tensions between them — are on `/
 }
 ```
 
-**Tabular numbers:** Use `font-variant-numeric: tabular-nums` for numbers that change dynamically (counters, prices, timers).
+**Tabular numbers:** Use `font-variant-numeric: tabular-nums` for numbers that change dynamically (counters, prices, timers), so the text doesn't shift width as digits change.
 
 ```css
 .counter {
@@ -81,11 +81,12 @@ h3 {
 
 ### Scroll Margins
 
-Set `scroll-margin-top` for scrollable elements to ensure proper space above elements when scrolling to anchors:
+Set `scroll-margin-top` on anchor targets so a sticky header doesn't cover them when scrolling to a fragment. Derive the offset from the header's height token, never a bare pixel value:
 
 ```css
+/* page-design.css — the design page's sticky masthead */
 [id] {
-  scroll-margin-top: 80px; /* Height of sticky header */
+  scroll-margin-top: calc(var(--ds-masthead-height) + var(--spacing-inset-md));
 }
 ```
 
@@ -117,33 +118,6 @@ Glyphs that point in the reading direction (a "next" arrow, a toggle knob's trav
 
 Symmetric glyphs (close, search, chevron-down) stay as they are.
 
-### Blur follows modality, not viewport width
-
-A surface blurs the page behind it when it is **modal** — when the page is
-inert and a tap on the scrim is a dismiss. Blur is the signal that what's
-behind is out of reach, so it tracks reachability, not screen size.
-
-`ol-dialog` and `ol-drawer` are always modal, so they always carry the scrim
-and its `backdrop-filter`. `ol-popover` is the instructive case: as a desktop
-popover it is non-modal — the page stays live behind it, so it has no backdrop
-at all — while its mobile bottom tray *is* modal, with a tap-to-dismiss scrim,
-and so it blurs. The same component blurs in one mode and not the other because
-modality changed, not because the viewport got narrow.
-
-The practical consequence: don't reach for a blur because a surface is
-full-screen on a phone, and don't drop one because a surface is small. Ask
-whether the page behind is still usable.
-
-```css
-/* Both come from the shared overlay tokens, so every modal surface
-   dims and blurs by the same amount. */
-.scrim {
-  background: var(--overlay-backdrop-color);
-  backdrop-filter: blur(var(--overlay-backdrop-blur));
-  -webkit-backdrop-filter: blur(var(--overlay-backdrop-blur));
-}
-```
-
 ## Components
 
 Before writing new markup or CSS, check whether an existing component already does the job. Every row is documented with live examples and a generated API table at `/developers/design`; the *Avoid* column is the same text the design page shows, sourced from `COMPONENTS` in `openlibrary/plugins/openlibrary/design.py` — change it there and here together.
@@ -171,6 +145,9 @@ Before writing new markup or CSS, check whether an existing component already do
 | Read More | `ol-read-more` | Collapse long prose behind an expander | Only for prose. Don't hide controls or lists behind it. |
 | Markdown Editor | `ol-markdown-editor` | WYSIWYG editing of a Markdown body | For a plain text field use <textarea>; this is for Markdown bodies only. |
 | Icon | `ol-icon` | One icon from the Open Library set | Only for icons from the set; don't use it to embed arbitrary SVG. |
+| Book Cover | `ol-book-cover` | A cover at a fixed 2:3 ratio, with a title/author panel when there is no artwork and an `overlay` slot for a control | |
+| Shelf Button | `ol-shelf-button` | Put a book on a reading-log shelf; split, icon, and outline shapes all open Shelf Actions | |
+| Shelf Actions | `ol-shelf-actions` | The per-book popover: shelves, rating, add to list, check-in | |
 
 `ol-otp-login` is also registered but is a single login flow, not a reusable component. For when to build something new versus enhance a template, see [When to Build a Component](web-components.md#when-to-build-a-component).
 
@@ -235,7 +212,7 @@ Raw values with no semantic meaning — the base palette. `colors.css` defines f
 --neutral-800: hsl(41, 14%, 21%);
 --blue-500: hsl(210, 82%, 40%);
 --spacing-lg: 1rem;
---border-radius-lg: 9px;
+--border-radius-lg: 12px;
 ```
 
 You should rarely use primitives directly in component or template styles.
@@ -248,14 +225,25 @@ Semantic tokens reference primitives and describe purpose, not appearance.
 --color-text: var(--neutral-800);
 --color-link: var(--blue-600);
 --color-surface: var(--white);
---border-radius-card: var(--border-radius-lg);
+--border-radius-card: var(--border-radius-md);
 ```
 
-The main semantic groups in `colors.css`: text (`--color-text`, `-heading`, `-secondary`, `-muted`, `-inverse`), icons (`--color-icon-muted`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), borders (`--color-border`, `-muted`, `-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{info,success,error,warning}-{fg,bg,border}`).
+The radius tokens carry one extra rule, because a shape says what kind of object
+it is: **12px floats** (dialog, popover, toast, tray), **8px sits in the page**
+(card, banner, button, input, menu row), **4px is a small object in its own
+right** (badge, tag). Reach for the token whose tier matches the thing, not the
+one whose number you like — a card at the overlay radius makes a search result
+and a modal the same shape, and the page loses a distinction it was using.
 
-Two of these are a **decorative tier** and carry that caveat in `colors.css`: `--color-border-muted` (1.6:1 on white) and `--color-icon-muted` (2.5:1). In new code they're for dividers and inert chrome — anything a user has to *read*, or that is the sole marker of a control's edge, needs `--color-border` or darker.
+The main semantic groups in `colors.css`: text (`--color-text`, `-heading`, `-secondary`, `-muted`, `-inverse`), icons (`--color-icon-muted`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`, `-inverse`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), destructive action (`--color-destructive`), borders (`--color-border`, `-muted`, `-subtle`, `-extra-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{info,success,error,warning}-{fg,bg,border}`, plus `--color-{success,error,warning,neutral}-object` for status *shapes* like badges and switch tracks).
+
+Three of these are a **decorative tier** and carry that caveat in `colors.css`: `--color-border-muted` (1.6:1 on white), `--color-border-extra-subtle` (1.11:1) and `--color-icon-muted` (2.5:1). In new code they're for dividers and inert chrome — anything a user has to *read*, or that is the sole marker of a control's edge, needs `--color-border` or darker.
+
+The three border weights are a scale, not three names for the same job. `--color-border-subtle` (1.3:1) is the everyday divider. `--color-border-extra-subtle` is for a separator that *repeats* — the rules between rows of a result list — where the everyday weight accumulates into a grid and the list starts reading as a spreadsheet.
 
 You will find existing control borders on `--color-border-muted`. They were migrated at their original weight so the token rollout stayed a no-op; that they sit below 3:1 is a pre-existing gap to fix deliberately, not a precedent to copy.
+
+Selected has one look: `--color-control-selected-bg` with `--color-link` text, shared by `ol-button[selected]`, the toggle's button variant, the current pagination page, the Scorecard's active tab, and the editor's pressed toolbar buttons. A grey fill for "selected" is legacy, not a second option. The exception is a row inside a menu panel, where the radio or checkbox carries the state and the row itself stays untinted — see [Menu rows](#menu-rows).
 
 Hover has two tokens, split by mechanism rather than by surface. `--color-hover-overlay` is a translucent overlay for flat interactive rows (popover items, menu items, list rows) — it composes over whatever surface it lands on, so a row on `--color-surface-sunken` or `-header` still darkens instead of matching its own background. `--color-control-hover` is an opaque fill for raised controls, and must stay opaque: alpha fed to `--control-surface` inverts the specular highlight.
 
@@ -265,7 +253,7 @@ This indirection enables visual redesigns, dark mode, and brand refreshes by cha
 
 ### Deprecated aliases
 
-The bottom of `colors.css` re-points every legacy token name (`--grey`, `--beige`, `--primary-blue`, …) at the ramps so old consumers keep working. Never use these in new code; when touching a file that uses one, migrate it to a semantic token.
+The bottom of `colors.css` re-points every legacy token name (`--grey`, `--beige`, `--primary-blue`, …) at the ramps so old consumers keep working. Never use these in new code; when you modify a declaration that uses one, migrate that declaration to a semantic token (see [Scope](#scope)).
 
 ### Which tier to use
 
@@ -278,15 +266,14 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | `static/css/tokens/colors.css` | Color primitives, semantic color tokens, deprecated legacy aliases |
 | `static/css/tokens/spacing.css` | Spacing scale (inset / inline / stack) |
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
-| `static/css/tokens/borders.css` | Border widths, divider and overlay borders, backdrop scrim |
-| `static/css/tokens/breakpoints.css` | Viewport breakpoints |
-| `static/css/tokens/control-heights.css` | Control heights and the menu-row contract |
-| `static/css/tokens/font-families.css` | Font families and sizes |
-| `static/css/tokens/icon-sizes.css` | Icon sizes |
-| `static/css/tokens/line-heights.css` | Line heights |
-| `static/css/tokens/motion.css` | Durations and easing curves |
-| `static/css/tokens/press.css` | Press-feedback scale tiers |
-| `static/css/tokens/z-index.css` | Stacking levels |
+| `static/css/tokens/typography.css` | All text tokens: family, size, weight, and line-height primitives, then the text-style roles (`heading`, `subheading`, `overline`) one token per property; apply a role's tokens together |
+| `static/css/tokens/motion.css` | Easing primitives and semantic motion tokens (`--ease-enter`, `--duration-base`, …) |
+| `static/css/tokens/press.css` | Press-feedback scale tiers (`--press-scale-compact` / `--press-scale` / `--press-scale-wide`) |
+| `static/css/tokens/borders.css` | Border and shadow tokens, plus the modal overlay scrim (`--overlay-backdrop-color` / `--overlay-backdrop-blur`) |
+| `static/css/tokens/z-index.css` | Stacking primitives and semantic layers (`--z-index-sticky`, `-dropdown`, `-modal`, `-toast`, …) plus `--z-index-local-*` for layering inside an `isolation: isolate` root |
+| `static/css/tokens/breakpoints.css` | Breakpoint scale — reference only, see [Breakpoints](#breakpoints) |
+| `static/css/tokens/control-heights.css` | Outer heights for single-line controls, plus the menu-row height and pill inset (`--menu-row-height` / `-inset` / `-padding-inline`) |
+| `static/css/tokens/icon-sizes.css` | Icon size and per-size stroke tokens |
 
 ### Tokens in Shadow DOM
 
@@ -325,6 +312,60 @@ shorthand. And **the pair moves together**: change `--border-radius-overlay` and
 token rather than borrowing `--border-radius-button`. A button is a free-standing
 control and keeps its radius wherever it sits; a menu row does not.
 
+### Blur follows modality, not viewport width
+
+An overlay dims and blurs the page behind it **if and only if it is modal** — it
+traps focus, inerts the background, and the page behind genuinely cannot be
+reached. The blur is not decoration; it is how "the page is inert" gets
+rendered. An overlay whose page stays interactive gets no scrim and no blur: its
+own border and shadow do the separating, and dimming a page you can still click
+is a lie.
+
+| Surface | Modal? | Scrim + blur |
+|---|---|---|
+| `ol-dialog` | yes — native `showModal()` | yes |
+| `ol-drawer` | yes — `showModal()` + focus trap | yes |
+| `ol-popover` mobile tray | yes — `aria-modal`, scrim, scroll lock | yes |
+| `ol-popover` desktop panel | no — Tab leaves, page stays live | no |
+| `ol-tooltip` | no | no |
+
+The one pair that looks like a viewport rule is `ol-popover`, whose tray blurs
+and whose desktop panel doesn't. **That is not a mobile rule.** The 767px check
+in `OlPopover` picks the *shape*; modality follows from the shape; blur follows
+modality. Never key a blur off a breakpoint — the first modal surface on desktop
+(or non-modal panel on mobile) breaks it.
+
+Every modal surface reads the same two tokens, `--overlay-backdrop-color` and
+`--overlay-backdrop-blur`. Don't hand-roll a per-component scrim value: a
+hamburger drawer that dims harder than a confirm dialog reads as the more
+serious interruption, which is backwards.
+
+**The blur is what lets the dim stay light.** 32% black over a page of book
+covers still leaves a legible, busy field competing with the panel — you can
+read the titles through it. The blur destroys that detail so nothing behind
+reads as content any more, which is what buys the dim the freedom to stay at
+0.32 and keep the page feeling present rather than switched off. Drop the blur
+and you inevitably compensate with more black.
+
+**Declare the blur constant; animate only opacity.** Never transition a blur
+radius — the layer is viewport-sized and the drawer's enter runs 400ms. Setting
+`backdrop-filter` on the scrim and transitioning the scrim's `opacity` fades the
+blur in with it for free, since an element's opacity carries its own
+`backdrop-filter`. This is also what makes the drawer's swipe-to-dismiss work:
+it drives `opacity` directly from drag progress and the blur tracks it.
+
+Two consequences worth knowing before adding a scrim to something new:
+
+- **`backdrop-filter` establishes a containing block**, so a blurred scrim is a
+  positioning trap for any `position: fixed` descendant. Our scrims have no
+  descendants (the drawer's panel is a *sibling* of its scrim, not a child) —
+  keep it that way, and see [Overlays and the top
+  layer](web-components.md#overlays-and-the-top-layer) for the full trap.
+- **Nested modals compound**, since each scrim blurs whatever is painted below
+  it. A popover tray opened from inside the drawer stacks two scrims, and the
+  drawer panel is pushed back along with the page. That reads as depth rather
+  than a bug — but only because the shared token is light. Don't raise it.
+
 ## Animations
 
 ### Hover state changes are instant
@@ -339,20 +380,20 @@ color changes.
 ```css
 /* Bad - hover background eases in, feels laggy */
 .button {
-  background: var(--white);
+  background: var(--color-surface);
   transition: background-color 0.15s ease;
 }
 .button:hover {
-  background: var(--lightest-grey);
+  background: var(--color-control-hover);
 }
 
 /* Good - hover is instant; only the press-scale animates */
 .button {
-  background: var(--white);
+  background: var(--color-surface);
   transition: transform var(--duration-press);
 }
 .button:hover {
-  background: var(--lightest-grey);
+  background: var(--color-control-hover);
 }
 .button:active {
   transform: scale(var(--press-scale));
@@ -367,29 +408,31 @@ Two rules keep hover feedback coherent across our controls (`ol-button`,
 **1. The border moves with the fill.** When a control darkens (or lightens) its
 fill on hover, its border must shift by the same amount. A fill that darkens
 inside a static outline reads as two disconnected pieces; moving both together
-reads as one solid shape. Match the magnitude — our light controls drop the fill
-~7% in lightness (`--white` → `--lightest-grey`) and the border tracks it (`--color-border-subtle`
-→ `--light-grey`, both ~7%).
+reads as one solid shape. Match the magnitude — our light controls step the fill
+one rung down the ramp (`--color-surface` → `--color-control-hover`) and the border
+tracks it (`--color-border-subtle` → `--color-border-muted`), each a 6–9% drop in
+lightness. `OLButton.js` is the reference implementation; keep these examples in
+lockstep with it.
 
 ```css
 /* Bad - fill darkens inside a frozen border */
 .button:hover {
-  background: var(--lightest-grey);
+  background: var(--color-control-hover);
 }
 
 /* Good - border tracks the fill by the same amount */
 .button:hover {
-  background: var(--lightest-grey);
-  border-color: var(--light-grey);
+  background: var(--color-control-hover);
+  border-color: var(--color-border-muted);
 }
 ```
 
 **2. Light fills darken; saturated/dark fills lighten.** Hover should always
 shift the fill toward *more* activation, and the visible direction of that shift
 depends on where the fill starts. A near-white control (secondary button,
-unchecked toggle, neutral chip) darkens. A solid, saturated fill (primary and
-destructive buttons, the selected chip) instead *lightens* — darkening an
-already-dark fill barely registers, and lightening reads as the control coming
+unchecked toggle, neutral chip) darkens. A solid, saturated fill (a primary button,
+with or without `tone="danger"`, or the selected chip) instead *lightens* —
+darkening an already-dark fill barely registers, and lightening reads as the control coming
 forward. For a saturated fill, `filter: brightness(1.1)` is the cleanest tool:
 it carries the fill, the border, and any inset specular highlight together in
 one declaration, so there's nothing to keep in sync.
@@ -398,12 +441,11 @@ one declaration, so there's nothing to keep in sync.
 /* Light fill: darken fill + border on hover */
 :host([variant="secondary"]) .control:hover {
   background-color: var(--color-control-hover);
-  border-color: var(--light-grey);
+  border-color: var(--color-border-muted);
 }
 
 /* Saturated fill: lighten the whole thing at once */
-:host([variant="primary"]) .control:hover,
-:host([variant="destructive"]) .control:hover {
+:host([variant="primary"]) .control:hover {
   filter: brightness(1.1);
 }
 ```
@@ -477,14 +519,9 @@ Every transition and animation gets a `prefers-reduced-motion: reduce` override 
 
 | Scenario | Solution |
 | --- | --- |
-| Make buttons feel responsive | Add `transform: scale(var(--press-scale))` on `:active` — buttons only; icon-only controls take `--press-scale-compact` and stretched ones `--press-scale-wide` (see `tokens/press.css`). Menu rows and drawer items press with a fill, no squeeze: a shrinking row reads as the panel moving rather than the row being pressed. |
 | Icon next to a button label | Put the SVG in `ol-button`'s `icon-start` / `icon-end` slot — it's sized to the button (14/16/18px by size) and gapped automatically; don't set width/height/margin on the SVG or add a `::part(label)` gap |
 | Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
-| Hover border looks detached from fill | Shift `border-color` by the same amount as the fill |
 | Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)`; time it with `--duration-base` and `--ease-enter` |
-| Shaky/jittery animations | Add `will-change: transform` |
-| Hover causes flicker | Animate child element, not parent |
-| Popover scales from wrong point | Set `transform-origin` to trigger location |
 | Sequential tooltips feel slow | Skip delay/animation after first tooltip |
 | Hover triggers on mobile | Use `@media (hover: hover) and (pointer: fine)` — see [Mobile](#mobile) |
 
@@ -507,7 +544,7 @@ This fix relies on the page declaring `<meta name="viewport" content="width=devi
 
 ### Fullscreen on mobile is for scrolling content, not forms
 
-`ol-dialog`'s `fullscreen-on-mobile` renders the dialog edge-to-edge at ≤767px with `height: 100dvh`. **`dvh` tracks browser chrome, not the virtual keyboard** — and the site's viewport meta (`templates/site/head.html`) has no `interactive-widget=resizes-content`, so on iOS the keyboard doesn't resize the layout viewport at all. A full-height dialog therefore stays taller than the visible area while a field is focused: its footer is pinned to the bottom of a box that is now behind the keyboard, so the buttons the reader needs are unreachable. The taller-than-visible box also lets iOS pan the visual viewport and expose the page behind the dialog, which is why `ol-dialog` blurs the focused field on `touchmove` in fullscreen mode — a mitigation, not a fix.
+`ol-dialog`'s `fullscreen-on-mobile` renders the dialog edge-to-edge at ≤767px with `height: 100dvh`. **`dvh` tracks browser chrome, not the virtual keyboard** — and the site's viewport meta (`openlibrary/templates/shell/head.html.jinja`) has no `interactive-widget=resizes-content`, so on iOS the keyboard doesn't resize the layout viewport at all. A full-height dialog therefore stays taller than the visible area while a field is focused: its footer is pinned to the bottom of a box that is now behind the keyboard, so the buttons the reader needs are unreachable. The taller-than-visible box also lets iOS pan the visual viewport and expose the page behind the dialog, which is why `ol-dialog` blurs the focused field on `touchmove` in fullscreen mode — a mitigation, not a fix.
 
 Reach for fullscreen when the content itself scrolls and the actions are in the header or inline: a search palette, a result list, a picker. A dialog that is a label, a field, and two buttons stays compact, and the footer sits directly under the field where the keyboard can't reach it. The notes dialog (`macros/NotesModalDialog.html`) measures 372×396 at phone width against roughly 508px of keyboard-free space.
 
@@ -521,12 +558,12 @@ Wrap hover styles in `@media (hover: hover) and (pointer: fine)` so they only ap
 
 ```css
 .chip {
-  background: var(--white);
+  background: var(--color-surface);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .chip:hover {
-    background: var(--lightest-grey);
+    background: var(--color-control-hover);
   }
 }
 ```
