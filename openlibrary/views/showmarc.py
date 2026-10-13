@@ -3,13 +3,14 @@ Hook to show MARC or other source record details in Open Library.
 """
 
 import re
+
 import requests
 import web
 
-from .. import app
 from openlibrary.catalog.get_ia import get_from_archive_bulk
 from openlibrary.catalog.marc import html
 
+from .. import app
 
 re_bad_meta_mrc = re.compile(r"^([^/]+)_meta\.mrc$")
 
@@ -117,7 +118,7 @@ class show_marc(app.view):
         length = int(length)
         loc = f"marc:{filename}:{offset}:{length}"
 
-        result, next_offset, next_length = get_from_archive_bulk(loc)
+        result, _next_offset, next_length = get_from_archive_bulk(loc)
         if (len_in_rec := int(result[:5])) != length:
             raise web.seeother(f"/show-records/{filename}:{offset}:{len_in_rec}")
 
