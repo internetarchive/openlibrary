@@ -107,7 +107,7 @@ export function initBrowseStacks(root) {
         } catch (e) {
             if (e.name === 'AbortError') return false;
             shelf.innerHTML = `<p class="genre-shelf__error"><a href="#" class="genre-shelf__retry">${i18n.error || 'Try again?'}</a></p>`;
-            shelf.querySelector('.genre-shelf__retry').addEventListener('click', (ev) => {
+            shelf.querySelector('.genre-shelf__retry').addEventListener('click', ev => {
                 ev.preventDefault();
                 load(slug);
             });
@@ -142,17 +142,20 @@ export function initBrowseStacks(root) {
     tiles.forEach(tile => tile.addEventListener('click', () => open(tile.dataset.genre)));
 
     // The scroller is inside ol-carousel's shadow root; scroll events don't cross it.
-    customElements.whenDefined('ol-carousel').then(() => rail.updateComplete).then(() => {
-        scroller = rail.shadowRoot?.querySelector('.viewport');
-        scroller?.addEventListener('scroll', track, { passive: true });
-        anchor();
-    });
+    customElements
+        .whenDefined('ol-carousel')
+        .then(() => rail.updateComplete)
+        .then(() => {
+            scroller = rail.shadowRoot?.querySelector('.viewport');
+            scroller?.addEventListener('scroll', track, { passive: true });
+            anchor();
+        });
     rail.addEventListener('ol-carousel-page-change', anchor);
     window.addEventListener('resize', anchor);
 
     // Document-level so Escape still works after a carousel refetch drops focus to <body>.
     // A popover inside the shelf owns its own Escape (its host is the retargeted event target).
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
         if (e.key !== 'Escape' || !current || e.defaultPrevented) return;
         if (e.target.closest?.('ol-menu-popover, ol-popover, ol-select-popover, ol-options-popover')) return;
         close();

@@ -15,7 +15,7 @@ export function getGlobalPreferences() {
         const parsed = (stored && JSON.parse(stored)) || {};
 
         return {
-            mode: normalizeMode(parsed.global?.mode),
+            mode: normalizeMode(parsed.global?.mode)
         };
     } catch (e) {
         return { mode: DEFAULT_MODE };
@@ -24,7 +24,7 @@ export function getGlobalPreferences() {
 
 export function mapPreferencesToBackend(prefs) {
     return {
-        hasFulltextOnly: normalizeMode(prefs?.mode) === 'fulltext',
+        hasFulltextOnly: normalizeMode(prefs?.mode) === 'fulltext'
     };
 }
 
@@ -37,7 +37,7 @@ export function setGlobalPreferences(prefs) {
         const parsed = stored ? JSON.parse(stored) : {};
 
         parsed.global = {
-            mode: normalizeMode(prefs.mode),
+            mode: normalizeMode(prefs.mode)
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
@@ -57,7 +57,7 @@ export function resetGlobalPreferences() {
 }
 
 export function onGlobalPreferencesChange(callback) {
-    window.addEventListener('storage', (event) => {
+    window.addEventListener('storage', event => {
         if (event.key === STORAGE_KEY) {
             callback(getGlobalPreferences());
         }

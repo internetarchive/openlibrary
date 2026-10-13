@@ -1,6 +1,11 @@
-
-import { getGlobalPreferences, mapPreferencesToBackend, setGlobalPreferences, resetGlobalPreferences,
-    onGlobalPreferencesChange, updateAllCarousels} from '../../../openlibrary/plugins/openlibrary/js/preferences';
+import {
+    getGlobalPreferences,
+    mapPreferencesToBackend,
+    setGlobalPreferences,
+    resetGlobalPreferences,
+    onGlobalPreferencesChange,
+    updateAllCarousels
+} from '../../../openlibrary/plugins/openlibrary/js/preferences';
 
 describe('getGlobalPreferences', () => {
     beforeEach(() => {
@@ -60,8 +65,6 @@ describe('setGlobalPreferences', () => {
 
         expect(result.mode).toBe('fulltext');
     });
-
-
 
     it('silently fails when localStorage quota is exceeded', () => {
         const prefs = { mode: 'fulltext' };
@@ -195,7 +198,7 @@ describe('onGlobalPreferencesChange', () => {
         onGlobalPreferencesChange(mockCallback);
 
         const storageEvent = new StorageEvent('storage', {
-            key: 'some-other-key',  // Not 'preferences'
+            key: 'some-other-key', // Not 'preferences'
             newValue: 'some-value',
             oldValue: null,
             storageArea: localStorage

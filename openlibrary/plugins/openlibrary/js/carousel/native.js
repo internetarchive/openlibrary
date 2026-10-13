@@ -10,12 +10,12 @@ import { buildPartialsUrl } from '../utils.js';
  * @param {Iterable<HTMLElement>} elems `ol-carousel` elements
  */
 export function initNativeCarousels(elems) {
-    elems.forEach((carousel) => {
+    elems.forEach(carousel => {
         const config = JSON.parse(carousel.dataset.config || '{}');
         const category = config.analyticsCategory || 'Carousel';
         const key = config.carouselKey || '';
 
-        carousel.addEventListener('ol-carousel-page-change', (e) => {
+        carousel.addEventListener('ol-carousel-page-change', e => {
             if (e.detail.page > e.detail.previousPage) trackEvent(category, 'Next', key);
         });
 
@@ -24,7 +24,7 @@ export function initNativeCarousels(elems) {
         let locked = false;
         // A first batch short of the limit is the whole result set; don't ask for more.
         let allDone = carousel.children.length < loadMore.limit;
-        carousel.addEventListener('ol-carousel-near-end', async(e) => {
+        carousel.addEventListener('ol-carousel-near-end', async e => {
             if (locked || allDone) return;
             locked = true;
             carousel.setAttribute('aria-busy', 'true');
@@ -62,7 +62,7 @@ async function fetchMoreCards(loadMore, itemCount) {
         hasFulltextOnly: loadMore.hasFulltextOnly,
         secondaryAction: loadMore.secondaryAction,
         layout: loadMore.layout,
-        key: loadMore.key,
+        key: loadMore.key
     });
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('Failed to fetch more carousel cards');

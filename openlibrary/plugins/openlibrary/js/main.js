@@ -611,8 +611,7 @@ $(function () {
     // Home page "Browse the stacks" genre tiles
     const browseStacks = document.querySelector('.browse-stacks');
     if (browseStacks) {
-        import('./browse-stacks')
-            .then(module => module.initBrowseStacks(browseStacks));
+        import('./browse-stacks').then(module => module.initBrowseStacks(browseStacks));
     }
 
     // Generalized carousel lazy-loading
