@@ -27,7 +27,7 @@
 /* Headline, body and button on the left; the three facts stacked on the right. */
 .librarian-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 200px;
+  grid-template-columns: minmax(0, 1fr) 240px;
   gap: var(--spacing-inline-xl);
   background: var(--color-surface-sunken);
 }
@@ -58,10 +58,10 @@
   color: var(--color-text-secondary);
 }
 
-/* The button sits at the bottom of the column, level with the facts' last line. */
+/* The button follows the body as its action, with a little more room than the text stack. */
 .librarian-card__cta {
   align-self: flex-start;
-  margin-top: auto;
+  margin-top: var(--spacing-stack-sm);
 }
 
 /* base/dl.css floats every dt/dd into a two-column definition list; these are
@@ -120,7 +120,7 @@
 .library-stats {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-stack-lg);
+  gap: var(--spacing-stack-md);
   background: var(--color-surface);
 }
 
@@ -145,7 +145,7 @@
 .library-stats__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-stack-lg) var(--spacing-inline-xl);
+  gap: var(--spacing-stack-md) var(--spacing-inline-xl);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -162,7 +162,7 @@
 
 .library-stat__value {
   font-family: var(--font-family-title);
-  font-size: var(--font-size-headline-medium);
+  font-size: var(--font-size-headline-small);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-display);
   font-variant-numeric: tabular-nums;
@@ -177,7 +177,7 @@
 .library-stat__spark {
   display: block;
   width: 100%;
-  height: 28px;
+  height: 20px;
   margin-top: var(--spacing-stack-xs);
   overflow: visible;
 }
@@ -208,7 +208,6 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .library-stats__range:hover,
   .library-stat:hover .library-stat__label {
     color: var(--color-link-hover);
     text-decoration: underline;
@@ -222,7 +221,7 @@
     gap: var(--spacing-stack-md);
   }
 
-  /* One column: title, body, facts, then the button still ends the card. */
+  /* One column: title, body, facts, then the button ends the card. */
   .librarian-card {
     display: flex;
     flex-direction: column;
