@@ -66,43 +66,22 @@ export function init(config) {
     Chart.defaults.font.family = token('--font-family-body');
     Chart.defaults.font.size = parseInt(token('--font-size-body-small'));
     Chart.defaults.color = token('--color-text-secondary');
-    /** @type {Map<Chart, [string, Work[]][]>} each chart's bars, as [label, works] */
-    const chartBars = new Map();
-    /** @type {{chart: Chart, index: number} | null} */
-    let selected = null;
-
-    const panel = /** @type {HTMLElement} */ (document.querySelector('.selected-works'));
-    const panelTitle = /** @type {HTMLElement} */ (panel.querySelector('.selected-works__title'));
-    const panelList = /** @type {HTMLElement} */ (panel.querySelector('.selected-works__list'));
-    const panelClose = /** @type {HTMLElement} */ (panel.querySelector('.selected-works__close'));
-    const panelHint = panelTitle.textContent.trim();
-    panelClose.addEventListener('click', () => select(null));
+    /** @type {Chart[]} */
+    const charts = [];
+    const selectedWorksList = document.querySelector('.selected-works__list');
 
     /**
-     * Select one bar (or none) across every chart, since the panel shows a single selection
-     * @param {{chart: Chart, index: number} | null} selection
+     * Highlight one bar (or none) across every chart, since the works list shows a single selection
+     * @param {Chart} [selectedChart]
+     * @param {number} [selectedIndex]
      */
-    function select(selection) {
-        selected = selection;
-        for (const chart of chartBars.keys()) {
+    function selectBar(selectedChart, selectedIndex) {
+        for (const chart of charts) {
             const dataset = chart.data.datasets[0];
-            dataset.backgroundColor = dataset.data.map((_, i) => (chart === selected?.chart && i === selected.index ? selectedBarColor : barColor));
+            dataset.backgroundColor = dataset.data.map((_, i) => (chart === selectedChart && i === selectedIndex ? selectedBarColor : barColor));
             chart.update('none');
         }
-        if (selected) {
-            const [label, works] = chartBars.get(selected.chart)[selected.index];
-            // The full label, since the axis may show it shortened
-            panelTitle.textContent = `${label} (${works.length})`;
-            panelList.innerHTML = window.render_works_list(works);
-        } else {
-            panelTitle.textContent = panelHint;
-            panelList.innerHTML = '';
-        }
-        panelList.hidden = !selected;
-        panelClose.hidden = !selected;
-        panel.classList.toggle('selected-works--open', Boolean(selected));
     }
-
     const authors_by_id = Object.fromEntries(config.authors.map(a => [a.key, a]));
 
     /**
@@ -177,12 +156,16 @@ export function init(config) {
                 // Pick the nearest bar by height, so a tap anywhere across a row counts, not just on the bar
                 interaction: { axis: 'y', intersect: false },
                 onHover: (e, elements) => {
-                    canvas.style.cursor = elements.length ? 'pointer' : '';
+                    canvas.style.cursor = elements.length ? 'pointer' : 'default';
                 },
-                onClick: (e, [element]) => {
-                    if (!element) return;
-                    const isSelected = selected?.chart === chart && selected.index === element.index;
-                    select(isSelected ? null : { chart, index: element.index });
+                onClick: (e, [chartEl]) => {
+                    if (chartEl) {
+                        selectBar(chart, chartEl.index);
+                        selectedWorksList.innerHTML = window.render_works_list(bars[chartEl.index][1]);
+                    } else {
+                        selectBar();
+                        selectedWorksList.innerHTML = '';
+                    }
                 },
                 plugins: {
                     tooltip: { enabled: false },
@@ -196,7 +179,7 @@ export function init(config) {
                 }
             }
         });
-        chartBars.set(chart, bars);
+        charts.push(chart);
 
         container.insertAdjacentHTML('beforeend', window.render_excluded_works_list(excluded, config.works.length));
     }
