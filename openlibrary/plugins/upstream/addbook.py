@@ -17,7 +17,7 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
@@ -732,6 +732,18 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
+        # An absent section must not clear genres or bypass Tag validation.
+        if work.get("_genres_present"):
+            values = work.get("genres")
+            stored = self.work.get("genres") if self.work else None
+            if set(self.managed_tag_keys(values)) != set(self.managed_tag_keys(stored)):
+                work.genres = self.process_managed_tags(values, "genres", stored)
+            else:
+                # Preserve the original shape/order on unrelated edits, including
+                # legacy strings and references to since-deleted Tags.
+                work.pop("genres", None)
+        else:
+            work.pop("genres", None)
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -744,6 +756,66 @@ class SaveBookHelper:
         work.authors = [a for a in work.get("authors", []) if a.get("author", {}).get("key", "").strip()]
 
         return trim_doc(work)
+
+    @staticmethod
+    def managed_tag_keys(values) -> list[str]:
+        """Read distinct Tag keys from stored strings, refs, or client Things."""
+        if values is None:
+            return []
+        if not isinstance(values, list):
+            raise ValidationException(_("Invalid genre selection"))
+        keys: list[str] = []
+        for value in values:
+            key = value.get("key") if isinstance(value, dict) else getattr(value, "key", value)
+            if isinstance(key, str) and re.fullmatch(r"/tags/OL[0-9]+T", key) and key not in keys:
+                keys.append(key)
+        return keys
+
+    @staticmethod
+    def process_managed_tags(values, tag_type: str, stored=None) -> list[dict]:
+        """Validate additions and preserve retained managed Tags.
+
+        New keys must resolve to Tags of the requested type. Retained keys may
+        have a legacy/retyped tag_type; keep them while they are live Tags.
+        On a selection change, follow stored merge redirects (at most two hops),
+        deduplicate their targets, and discard deleted/missing references so
+        Infobase can validate the changed field. Unchanged selections retain
+        their original order and are not resolved or migrated.
+
+        Based on internetarchive/openlibrary#13900, with input hardening and
+        preservation of unchanged selections in process_work.
+        """
+        posted = SaveBookHelper.managed_tag_keys(values)
+        stored_keys = SaveBookHelper.managed_tag_keys(stored)
+        if set(posted) == set(stored_keys):
+            return [{"key": key} for key in stored_keys]
+
+        def resolve_live_tag(key: str) -> str | None:
+            visited: set[str] = set()
+            for _hop in range(3):
+                if not isinstance(key, str) or key in visited:
+                    return None
+                visited.add(key)
+                doc = web.ctx.site.get(key)
+                if doc is None:
+                    return None
+                if doc.type.key == "/type/tag":
+                    return key
+                if doc.type.key != "/type/redirect":
+                    return None
+                key = doc.get("location")
+            return None
+
+        keys: list[str] = []
+        for key in posted:
+            if key in stored_keys:
+                final = resolve_live_tag(key)
+            else:
+                doc = web.ctx.site.get(key)
+                final = key if doc is not None and doc.type.key == "/type/tag" and doc.get("tag_type") == tag_type else None
+            if final and final not in keys:
+                keys.append(final)
+        return [{"key": key} for key in keys]
 
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid

@@ -75,6 +75,7 @@ $(function() {
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
     const autocompleteSeeds = document.querySelector('.multi-input-autocomplete--seeds');
     const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
+    const genresTagPicker = document.querySelector('.work-genres');
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
     const classifications = document.querySelector('#classifications');
@@ -86,7 +87,7 @@ $(function() {
     if (
         edition ||
         autocompleteAuthor || autocompleteSeries || autocompleteLanguage || autocompleteWorks ||
-        autocompleteSeeds || autocompleteSubjects ||
+        autocompleteSeeds || autocompleteSubjects || genresTagPicker ||
         addRowButton || roles || classifications ||
         excerpts || links || deleteRecordButtons.length
     ) {
@@ -124,6 +125,9 @@ $(function() {
                 }
                 if (autocompleteSubjects) {
                     module.initSubjectsAutocomplete();
+                }
+                if (genresTagPicker) {
+                    module.initGenresTagPicker();
                 }
                 if (autocompleteSeeds) {
                     module.initSeedsMultiInputAutocomplete();
