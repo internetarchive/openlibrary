@@ -66,9 +66,8 @@ div.tutorial__item img {
   padding: 1px;
 }
 
-/* Bar charts drawn as inline SVG by home/stats.html.jinja */
-#home-stats-charts .chart-graph {
-  display: block;
+/* Bar charts from StatsBarChart.html.jinja, one colour per stat */
+#home-stats-charts .stats-bar-chart {
   width: 145px;
   height: 60px;
   /* Centred, so the chart lines up with its centred total at any tile width */
@@ -76,37 +75,23 @@ div.tutorial__item img {
   border-bottom: var(--border-width-divider) solid var(--color-border);
 }
 
-.chart-graph__hit {
-  fill: transparent;
-}
-
-.chart-graph__bar {
-  fill: currentcolor;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .chart-graph__day:hover .chart-graph__bar {
-    opacity: 0.7;
-  }
-}
-
-.chart-graph--visitors {
+#home-stats-charts .stats-bar-chart--visitors {
   color: var(--color-home-stat-visitors);
 }
 
-.chart-graph--members {
+#home-stats-charts .stats-bar-chart--members {
   color: var(--color-home-stat-members);
 }
 
-.chart-graph--edits {
+#home-stats-charts .stats-bar-chart--edits {
   color: var(--color-home-stat-edits);
 }
 
-.chart-graph--lists {
+#home-stats-charts .stats-bar-chart--lists {
   color: var(--color-home-stat-lists);
 }
 
-.chart-graph--loans {
+#home-stats-charts .stats-bar-chart--loans {
   color: var(--color-home-stat-loans);
 }
 

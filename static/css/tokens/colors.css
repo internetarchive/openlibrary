@@ -94,6 +94,7 @@
   --stat-teal: hsl(184, 100%, 21%);
   --stat-orange: hsl(32, 100%, 61%);
   --stat-green: hsl(113, 38%, 29%);
+  --stat-yellow: hsl(45, 83%, 59%);
 }
 
 /**
@@ -233,6 +234,9 @@
   /* Bars in data charts (reading-log stats). Counts sit past the bar end in text ink. */
   --color-chart-bar: var(--pink-400);
   --color-chart-bar-selected: var(--pink-600);
+
+  /* Default bar colour for the daily stats charts on /stats. */
+  --color-stats-chart-bar: var(--stat-yellow);
 
   /* Bars in the homepage "Around the Library" stat charts, one hue per stat. */
   --color-home-stat-visitors: var(--stat-red);

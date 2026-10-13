@@ -2,14 +2,6 @@ import { loadGraphIfExists, loadEditionsGraph } from './plot';
 import options from './options.js';
 
 export function plotAdminGraphs() {
-    loadGraphIfExists('editgraph', {}, 'edit(s) on');
-    loadGraphIfExists('membergraph', {}, 'new members(s) on');
-    loadGraphIfExists('works_minigraph', {}, ' works on ');
-    loadGraphIfExists('editions_minigraph', {}, ' editions on ');
-    loadGraphIfExists('covers_minigraph', {}, ' covers on ');
-    loadGraphIfExists('authors_minigraph', {}, ' authors on ');
-    loadGraphIfExists('lists_minigraph', {}, ' lists on ');
-    loadGraphIfExists('members_minigraph', {}, ' members on ');
     loadGraphIfExists('books-added-per-day', options.booksAdded);
 }
 

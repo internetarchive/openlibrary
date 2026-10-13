@@ -2,7 +2,6 @@
 
 import logging
 import random
-from datetime import UTC, datetime
 
 import web
 
@@ -11,7 +10,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, env
 from openlibrary.core.carousels import get_carousel_data
-from openlibrary.core.helpers import commify, format_date
+from openlibrary.core.helpers import commify
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
@@ -24,38 +23,17 @@ from openlibrary.utils.request_context import caching_prethread, req_context
 
 logger = logging.getLogger("openlibrary.home")
 
-STATS_CHART_DAYS = 28
-# Matches the viewBox in home/stats.html.jinja
-STATS_CHART_WIDTH = 150
-STATS_CHART_HEIGHT = 60
-
 
 @public
 def get_home_stats_charts(stats) -> dict | None:
     """Data for the homepage "Around the Library" charts, keyed by stat: the 28-day total and one bar per day."""
     if not stats:
         return None
-    return {key: _get_stats_chart(stats[key]) for key in ("visitors", "members", "human_edits", "lists", "loans")}
-
-
-def _get_stats_chart(stat) -> dict:
-    counts = sorted(stat.get_counts(STATS_CHART_DAYS, True))
-    peak = max((count for _, count in counts), default=0) or 1
-    step = STATS_CHART_WIDTH / max(len(counts), 1)
-    bars = []
-    for i, (timestamp, count) in enumerate(counts):
-        height = count / peak * STATS_CHART_HEIGHT
-        day = datetime.fromtimestamp(timestamp / 1000, tz=UTC)
-        bars.append(
-            {
-                "x": round(i * step, 2),
-                "y": round(STATS_CHART_HEIGHT - height, 2),
-                "height": round(height, 2),
-                "title": f"{format_date(day)}: {commify(count)}",
-            }
-        )
-    total = stat.get_summary(STATS_CHART_DAYS)
-    return {"total": total, "total_label": commify(total), "bar_step": round(step, 2), "bar_width": round(max(step - 1, 1), 2), "bars": bars}
+    charts = {}
+    for key in ("visitors", "members", "human_edits", "lists", "loans"):
+        total = stats[key].get_summary(28)
+        charts[key] = {**stats[key].get_bar_chart(28, width=150, height=60), "total": total, "total_label": commify(total)}
+    return charts
 
 
 def get_homepage(devmode):
