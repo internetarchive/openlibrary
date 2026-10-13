@@ -1,7 +1,9 @@
 // @ts-check
 import { uniqBy } from './nonjquery_utils.js';
-import Chart from 'chart.js';
-import 'chartjs-plugin-datalabels';
+import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
 /**
  * @typedef {object} Work
@@ -36,7 +38,9 @@ import 'chartjs-plugin-datalabels';
  * @param {Config} config
  */
 export function init(config) {
-    Chart.scaleService.updateScaleDefaults('linear', { ticks: { beginAtZero: true, stepSize: 1 } });
+    const tokens = getComputedStyle(document.documentElement);
+    const barColor = tokens.getPropertyValue('--color-chart-bar').trim();
+    const barLabelColor = tokens.getPropertyValue('--color-chart-bar-label').trim();
     const authors_by_id = Object.fromEntries(config.authors.map(a => [a.key, a]));
 
     /**
@@ -69,31 +73,33 @@ export function init(config) {
         const bars = Object.entries(grouped)
             .sort((a, b) => b[1].length - a[1].length)
             .slice(0, 20);
-        canvas.height = bars.length * 20 + 5;
-        canvas.width = 400;
-        new Chart(canvas.getContext('2d'), {
-            type: 'horizontalBar',
+        // Let Chart.js size the canvas to the wrapper so its click hit-testing matches what is drawn
+        /** @type {HTMLElement} */ (canvas.parentElement).style.height = `${bars.length * 20 + 5}px`;
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', `${chartConfig.title}: ${bars.map(([label, works]) => `${label} (${works.length})`).join(', ')}`);
+        new Chart(canvas, {
+            type: 'bar',
+            plugins: [ChartDataLabels],
             data: {
                 labels: bars.map(b => b[0]),
                 datasets: [
                     {
-                        backgroundColor: 'rgb(255, 99, 132)',
-                        borderColor: 'rgb(255, 99, 132)',
-                        borderWidth: 0,
+                        backgroundColor: barColor,
+                        barPercentage: 1,
                         data: bars.map(b => b[1].length)
                     }
                 ]
             },
             options: {
-                responsive: false,
-                legend: { display: false },
+                indexAxis: 'y',
+                maintainAspectRatio: false,
                 scales: {
-                    xAxes: [{ display: false }],
-                    yAxes: [{ barPercentage: 1, gridLines: { display: false }, stacked: true }]
+                    x: { display: false },
+                    y: { grid: { display: false } }
                 },
                 onClick: (e, [chartEl]) => {
                     if (chartEl) {
-                        const bar = bars[chartEl._index];
+                        const bar = bars[chartEl.index];
                         document.querySelector('.selected-works--list').innerHTML = window.render_works_list(bar[1]);
                     } else {
                         document.querySelector('.selected-works--list').innerHTML = '';
@@ -101,7 +107,7 @@ export function init(config) {
                 },
                 plugins: {
                     datalabels: {
-                        color: '#FFF',
+                        color: barLabelColor,
                         anchor: 'end',
                         align: 'left',
                         offset: 0
@@ -206,8 +212,11 @@ export function init(config) {
 
     for (const container of document.querySelectorAll(config.charts_selector)) {
         const chartConfig = JSON.parse(container.dataset['config']);
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
         const canvas = document.createElement('canvas');
-        container.append(canvas);
+        wrapper.append(canvas);
+        container.append(wrapper);
 
         if (chartConfig.type === 'work-chart') {
             createWorkChart(config, chartConfig, container, canvas);

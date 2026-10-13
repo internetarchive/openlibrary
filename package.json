@@ -54,7 +54,7 @@
     "axe-core": "^4.13.0",
     "bundlesize2": "^0.0.35",
     "chart.js": "4.5.1",
-    "chartjs-plugin-datalabels": "0.7.0",
+    "chartjs-plugin-datalabels": "2.2.0",
     "concurrently": "^10.0.0",
     "datatables.net-dt": "1.13.11",
     "diff": "^4.0.4",
