@@ -16,7 +16,11 @@ export function initCoversChange() {
         const covers = document.querySelectorAll(selector);
 
         if (key === '/type/author') {
-            covers.forEach((img) => { img.src = coverId ? `${url}/a/id/${coverId}-M.jpg` : '/static/images/icons/avatar_author-lg.png'; });
+            covers.forEach((img) => {
+                img.src = coverId ? `${url}/a/id/${coverId}-M.jpg` : '/static/images/icons/avatar_author-lg.png';
+                // The old photo's aspect ratio would squeeze the new one.
+                img.style.aspectRatio = '';
+            });
             if (coverId) updateCoverPreview(`${url}/a/id/${coverId}-L.jpg`);
             return;
         }

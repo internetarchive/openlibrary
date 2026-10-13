@@ -15,10 +15,10 @@ const COVERSTORE = 'https://covers.openlibrary.org';
 const EDITION_STATE = {
     key: '/books/OL1M',
     current: 'img:10',
-    items: [{ id: 'img:10', kind: 'upload', image_id: 10, thumb: '10-M.jpg', large: '10-L.jpg', removable: true }],
+    items: [{ id: 'img:10', kind: 'upload', image_id: 10, thumb: '10-M.jpg' }],
 };
 
-const UPLOADED = { id: 'img:77', kind: 'upload', image_id: 77, thumb: '77-M.jpg', large: '77-L.jpg', attached: false, removable: true };
+const UPLOADED = { id: 'img:77', kind: 'upload', image_id: 77, thumb: '77-M.jpg' };
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
@@ -61,7 +61,7 @@ function seedAuthorPage() {
             <div class="author coverMagic">
                 <div class="SRPCover bookCover">
                     <a href="${COVERSTORE}/a/id/5-L.jpg" aria-controls="seeImage-${imagesId}" class="coverLook">
-                        <img class="cover" src="${COVERSTORE}/a/id/5-M.jpg" alt="">
+                        <img class="cover" src="${COVERSTORE}/a/id/5-M.jpg" style="aspect-ratio: 0.75" alt="">
                     </a>
                 </div>
             </div>
@@ -107,7 +107,7 @@ test('choosing a real file uploads it, and Save puts it on the page at full reso
     stubFetch({
         'GET /books/OL1M/covers.json': EDITION_STATE,
         'POST /books/OL1M/covers/upload.json': UPLOADED,
-        'POST /books/OL1M/covers.json': { cover_id: 77, state: { ...EDITION_STATE, current: 'img:77', items: [{ ...UPLOADED, attached: true }] } },
+        'POST /books/OL1M/covers.json': { cover_id: 77 },
     });
     const manager = await openManager('addImage-0');
 
@@ -124,7 +124,7 @@ test('choosing a real file uploads it, and Save puts it on the page at full reso
 
     await vi.waitFor(() => expect(document.querySelector('.bookCover img').getAttribute('src')).toBe(`${COVERSTORE}/b/id/77-M.jpg`));
     const save = calls.find((c) => c.route === 'POST /books/OL1M/covers.json');
-    expect(JSON.parse(save.init.body)).toEqual({ selected: 'img:77', added: [77], removed: [] });
+    expect(JSON.parse(save.init.body)).toEqual({ image_id: 77, added: [77], removed: [] });
     expect(document.querySelector('.bookCover img').getAttribute('srcset')).toBe(`${COVERSTORE}/b/id/77-L.jpg 2x`);
     expect(document.querySelector('#seeImage img').getAttribute('src')).toBe(`${COVERSTORE}/b/id/77-L.jpg`);
     expect(document.querySelector('.coverLook').getAttribute('href')).toBe(`${COVERSTORE}/b/id/77-L.jpg`);
@@ -163,13 +163,13 @@ test('saving an author photo updates both infobox copies and both preview dialog
         key: '/authors/OL1A',
         current: 'img:5',
         items: [
-            { id: 'img:5', kind: 'upload', image_id: 5, thumb: '5-M.jpg', large: '5-L.jpg', removable: true },
-            { id: 'img:6', kind: 'upload', image_id: 6, thumb: '6-M.jpg', large: '6-L.jpg', removable: true },
+            { id: 'img:5', kind: 'upload', image_id: 5, thumb: '5-M.jpg' },
+            { id: 'img:6', kind: 'upload', image_id: 6, thumb: '6-M.jpg' },
         ],
     };
     stubFetch({
         'GET /authors/OL1A/photos.json': state,
-        'POST /authors/OL1A/photos.json': { cover_id: 6, state: { ...state, current: 'img:6' } },
+        'POST /authors/OL1A/photos.json': { cover_id: 6 },
     });
     // Save from the desktop copy; the mobile copy must follow.
     const manager = await openManager('addImage-desktop');
@@ -181,6 +181,8 @@ test('saving an author photo updates both infobox copies and both preview dialog
     await vi.waitFor(() => {
         for (const img of document.querySelectorAll('.bookCover img')) {
             expect(img.getAttribute('src')).toBe(`${COVERSTORE}/a/id/6-M.jpg`);
+            // The old photo's inline aspect ratio would squeeze the new one.
+            expect(img.style.aspectRatio).toBe('');
         }
     });
     for (const imagesId of ['mobile', 'desktop']) {

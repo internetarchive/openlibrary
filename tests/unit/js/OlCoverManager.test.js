@@ -8,10 +8,10 @@ const STATE = {
     key: '/books/OL1M',
     current: 'img:10',
     items: [
-        { id: 'suggestion:archive-cover', kind: 'archive_cover', suggestion: 'archive-cover', image_id: null, thumb: 'scan-cover.jpg', removable: false },
-        { id: 'suggestion:archive-title', kind: 'archive_title', suggestion: 'archive-title', image_id: null, thumb: 'scan-title.jpg', removable: false },
-        { id: 'img:10', kind: 'upload', image_id: 10, thumb: '10-M.jpg', added_by: { key: '/people/ada', name: 'Ada' }, created: '2024-03-02T00:00:00', removable: true },
-        { id: 'img:11', kind: 'upload', image_id: 11, thumb: '11-M.jpg', added_by: null, created: null, removable: true },
+        { id: 'suggestion:archive-cover', kind: 'archive_cover', suggestion: 'archive-cover', image_id: null, thumb: 'scan-cover.jpg' },
+        { id: 'suggestion:archive-title', kind: 'archive_title', suggestion: 'archive-title', image_id: null, thumb: 'scan-title.jpg' },
+        { id: 'img:10', kind: 'upload', image_id: 10, thumb: '10-M.jpg', added_by: { key: '/people/ada', name: 'Ada' }, created: '2024-03-02T00:00:00' },
+        { id: 'img:11', kind: 'upload', image_id: 11, thumb: '11-M.jpg', added_by: null, created: null },
     ],
 };
 
@@ -154,7 +154,7 @@ describe('ol-cover-manager adding', () => {
 
     test('a pasted image uploads and becomes the selection', async() => {
         stubFetch({
-            'POST /books/OL1M/covers/upload.json': { body: { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg', added_by: { key: '/people/me', name: 'Me' }, removable: true } },
+            'POST /books/OL1M/covers/upload.json': { body: { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg', added_by: { key: '/people/me', name: 'Me' } } },
         });
         const el = await mount();
         const paste = new Event('paste', { cancelable: true });
@@ -187,8 +187,8 @@ describe('ol-cover-manager adding', () => {
 describe('ol-cover-manager saving', () => {
     test('sends the selection, new uploads and removals, then reports the cover', async() => {
         stubFetch({
-            'POST /books/OL1M/covers/upload.json': { body: { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg', removable: true } },
-            'POST /books/OL1M/covers.json': { body: { cover_id: 77, state: { ...STATE, current: 'img:77', items: [{ id: 'img:77', image_id: 77, thumb: '77-M.jpg', large: '77-L.jpg' }] } } },
+            'POST /books/OL1M/covers/upload.json': { body: { id: 'img:99', kind: 'upload', image_id: 99, thumb: '99-M.jpg' } },
+            'POST /books/OL1M/covers.json': { body: { cover_id: 77 } },
         });
         const el = await mount();
         el._addFiles([new File([new Uint8Array(4)], 'c.jpg', { type: 'image/jpeg' })]);
@@ -202,8 +202,8 @@ describe('ol-cover-manager saving', () => {
         el.addEventListener('ol-cover-manager-save', (e) => saved(e.detail));
         await el._save();
         const post = calls.find((c) => c.url === '/books/OL1M/covers.json' && c.init.method === 'POST');
-        expect(JSON.parse(post.init.body)).toEqual({ selected: 'suggestion:archive-cover', added: [99], removed: [11] });
-        expect(saved).toHaveBeenCalledWith({ coverId: 77, thumb: '77-M.jpg', large: '77-L.jpg' });
+        expect(JSON.parse(post.init.body)).toEqual({ suggestion: 'archive-cover', added: [99], removed: [11] });
+        expect(saved).toHaveBeenCalledWith({ coverId: 77 });
     });
 
     test('a failed save keeps the dialog state and shows an error', async() => {

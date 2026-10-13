@@ -2,6 +2,7 @@
 
 import os
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from logging import getLogger
 
 import requests
@@ -69,34 +70,86 @@ def upload_to_coverstore(category: str, olid: str, *, data=None, source_url: str
 # suggestions (Internet Archive scans, Wikidata) that stay listed whether or
 # not they've been used.
 
-IMAGE_CATEGORIES = {"/type/edition": "b", "/type/work": "w", "/type/author": "a"}
+
+@dataclass(frozen=True)
+class Suggestion:
+    """An image that can become the cover without an upload."""
+
+    name: str
+    kind: str
+    source_url: str
+    thumb: str
 
 
-def image_field(doc) -> str:
-    return "photos" if doc.type.key == "/type/author" else "covers"
+class RecordImages:
+    """How one record type keeps its images: coverstore category, suggestions, and the edit a save writes."""
+
+    category: str
+    # The suggestion a record with no image of its own shows instead.
+    fallback: str | None = None
+
+    def images(self, doc) -> list[Image]:
+        raise NotImplementedError
+
+    def suggestions(self, doc) -> list[Suggestion]:
+        return []
+
+    def save(self, doc, ids: list[int], *, new_id: int | None = None, url: str | None = None) -> None:
+        """Store `ids` as the record's images; `new_id` is an image this edit added, `url` where it was copied from."""
+        raise NotImplementedError
 
 
-def attached_images(doc) -> list[Image]:
-    if doc.type.key == "/type/author":
-        return doc.get_photos()
-    if doc.type.key == "/type/work":
-        return doc.get_covers(use_solr=False)
-    return doc.get_covers()
+class BookImages(RecordImages):
+    def images(self, doc) -> list[Image]:
+        return doc.get_covers()
+
+    def save(self, doc, ids, *, new_id=None, url=None):
+        doc.covers = ids
+        if new_id:
+            # Recent changes renders an add-cover comment as the cover's thumbnail.
+            doc._save(f"{get_coverstore_public_url()}/{self.category}/id/{new_id}-S.jpg", action="add-cover", data={"url": url})
+        else:
+            doc._save("Update covers", action="update-book-covers")
 
 
-def cover_suggestions(doc) -> list[web.storage]:
-    """Images that can become this doc's cover without an upload, in display order."""
-    if doc.type.key == "/type/edition" and doc.ocaid:
+class EditionImages(BookImages):
+    category = "b"
+    fallback = "archive-cover"
+
+    def suggestions(self, doc):
+        if not doc.ocaid:
+            return []
         base = f"https://archive.org/download/{doc.ocaid}/page"
-        return [
-            web.storage(name=f"archive-{page}", kind=f"archive_{page}", source_url=f"{base}/{page}", thumb=f"{base}/{page}_w360.jpg")
-            for page in ("cover", "title")
-        ]
-    if doc.type.key == "/type/author":
+        return [Suggestion(f"archive-{page}", f"archive_{page}", f"{base}/{page}", f"{base}/{page}_w360.jpg") for page in ("cover", "title")]
+
+
+class WorkImages(BookImages):
+    category = "w"
+
+    def images(self, doc):
+        return doc.get_covers(use_solr=False)
+
+
+class AuthorImages(RecordImages):
+    category = "a"
+
+    def images(self, doc):
+        return doc.get_photos()
+
+    def suggestions(self, doc):
         wikidata = doc.wikidata()
         urls = wikidata.get_image_urls() if wikidata else []
-        return [web.storage(name="wikidata", kind="wikidata", source_url=urls[0], thumb=f"{urls[0]}?width=360")] if urls else []
-    return []
+        return [Suggestion("wikidata", "wikidata", urls[0], f"{urls[0]}?width=360")] if urls else []
+
+    def save(self, doc, ids, *, new_id=None, url=None):
+        doc.photos = ids
+        if new_id:
+            doc._save("Added new photo", action="add-photo", data={"url": url})
+        else:
+            doc._save("Update photos", action="update-author-photos")
+
+
+IMAGE_KINDS: dict[str, RecordImages] = {"/type/edition": EditionImages(), "/type/work": WorkImages(), "/type/author": AuthorImages()}
 
 
 def _fetch_infos(images: list[Image]) -> dict[int, web.storage]:
@@ -108,126 +161,98 @@ def _fetch_infos(images: list[Image]) -> dict[int, web.storage]:
     return {img.id: info for img, info in zip(images, infos) if info}
 
 
-def _image_item(img: Image, info: web.storage | None, authors: dict, **extra) -> dict:
-    author = info and authors.get(info.author)
+def _imported(images: list[Image], infos: dict[int, web.storage]) -> dict[str, Image]:
+    """Attached images by the URL they were copied from, so a used suggestion shows as its copy."""
+    return {infos[img.id].source_url: img for img in images if img.id in infos and infos[img.id].source_url}
+
+
+def image_item(img: Image, *, info: web.storage | None = None, added_by=None, kind: str = "upload") -> dict:
+    """One attached (or just uploaded) image as the dialog lists it; `added_by` is a user or author record."""
     return {
         "id": f"img:{img.id}",
+        "kind": kind,
         "image_id": img.id,
         "thumb": img.url("M"),
-        "large": img.url("L"),
-        "source_url": (info and info.source_url) or None,
-        "added_by": {"key": author.key, "name": author.displayname or author.key.split("/")[-1]} if author else None,
-        "created": info and info.created.isoformat(),
-        "width": info and info.width,
-        "height": info and info.height,
-        "attached": True,
-        "removable": True,
-        "kind": "upload",
-    } | extra
+        "added_by": {"key": added_by.key, "name": added_by.displayname or added_by.key.split("/")[-1]} if added_by else None,
+        "created": info.created.isoformat() if info else None,
+    }
 
 
 def cover_manager_state(doc) -> dict:
-    images = attached_images(doc)
+    kind = IMAGE_KINDS[doc.type.key]
+    images = kind.images(doc)
     infos = _fetch_infos(images)
     author_keys = {info.author for info in infos.values() if info.author and info.author != "None"}
     authors = {a.key: a for a in doc._site.get_many(list(author_keys))} if author_keys else {}
-    by_source = {infos[img.id].source_url: img for img in images if img.id in infos and infos[img.id].source_url}
 
+    def item(img: Image, **extra) -> dict:
+        info = infos.get(img.id)
+        return image_item(img, info=info, added_by=info and authors.get(info.author), **extra)
+
+    imported = _imported(images, infos)
     items, merged = [], set()
-    for s in cover_suggestions(doc):
-        if img := by_source.get(s.source_url):
-            # A suggestion that's already been copied in shows as that copy.
+    for s in kind.suggestions(doc):
+        if img := imported.get(s.source_url):
             merged.add(img.id)
-            items.append(_image_item(img, infos[img.id], authors, kind=s.kind, suggestion=s.name, removable=False))
+            items.append(item(img, kind=s.kind))
         else:
-            items.append(
-                {
-                    "id": f"suggestion:{s.name}",
-                    "kind": s.kind,
-                    "suggestion": s.name,
-                    "image_id": None,
-                    "thumb": s.thumb,
-                    "large": s.source_url,
-                    "source_url": s.source_url,
-                    "added_by": None,
-                    "created": None,
-                    "width": None,
-                    "height": None,
-                    "attached": False,
-                    "removable": False,
-                }
-            )
-    items += [_image_item(img, infos.get(img.id), authors) for img in images if img.id not in merged]
+            items.append({"id": f"suggestion:{s.name}", "kind": s.kind, "suggestion": s.name, "thumb": s.thumb})
+    items += [item(img) for img in images if img.id not in merged]
 
+    current: str | None = None
     if images:
         current = f"img:{images[0].id}"
-    elif doc.type.key == "/type/edition" and doc.ocaid:
-        # With no cover of its own, an edition shows its scan's cover page.
-        current = "suggestion:archive-cover"
-    else:
-        current = None
+    elif kind.fallback:
+        current = f"suggestion:{kind.fallback}"
     if current and not any(item["id"] == current for item in items):
         current = None
     return {"key": doc.key, "current": current, "items": items}
 
 
-def apply_cover_changes(doc, selected: str, added: list[int], removed: list[int], user, ip: str) -> int | None:
-    """Make `selected` the cover, attach `added` uploads and detach `removed`; returns the new cover id.
+def apply_cover_changes(doc, *, image_id: int | None = None, suggestion: str | None = None, added: list[int], removed: list[int], user, ip: str) -> int:
+    """Make `image_id` (or a copy of `suggestion`) the cover, attach `added` uploads and detach `removed`; returns the cover id.
 
-    Raises ValueError for an id that isn't this doc's to pick, and RuntimeError when the coverstore fails.
+    Raises ValueError for an image that isn't this record's to pick, and RuntimeError when the coverstore fails.
     """
-    category = IMAGE_CATEGORIES[doc.type.key]
+    kind = IMAGE_KINDS[doc.type.key]
     olid = doc.key.split("/")[-1]
-    current_ids = [img.id for img in attached_images(doc)]
-    suggestions = {s.name: s for s in cover_suggestions(doc)}
+    images = kind.images(doc)
+    current_ids = [img.id for img in images]
 
     added = [i for i in dict.fromkeys(added) if i not in current_ids]
-    for image_id in added:
-        info = Image(doc._site, category, image_id).info(fetch_author=False)
+    for i in added:
+        info = Image(doc._site, kind.category, i).info(fetch_author=False)
         if not info or info.get("olid") != olid:
-            raise ValueError(f"Image {image_id} was not uploaded for {doc.key}")
+            raise ValueError(f"Image {i} was not uploaded for {doc.key}")
 
     imported_from = None
-    if selected.startswith("suggestion:"):
-        if not (s := suggestions.get(selected.removeprefix("suggestion:"))):
-            raise ValueError(f"Unknown suggestion {selected}")
-        infos = _fetch_infos([Image(doc._site, category, i) for i in current_ids])
-        existing = next((i for i in current_ids if i in infos and infos[i].source_url == s.source_url), None)
-        if existing:
-            selected_id = existing
+    if suggestion is not None:
+        if not (s := next((s for s in kind.suggestions(doc) if s.name == suggestion), None)):
+            raise ValueError(f"Unknown suggestion {suggestion}")
+        if img := _imported(images, _fetch_infos(images)).get(s.source_url):
+            selected_id = img.id
         else:
-            result = upload_to_coverstore(category, olid, source_url=s.source_url, author_key=user and user.key, ip=ip)
+            result = upload_to_coverstore(kind.category, olid, source_url=s.source_url, author_key=user and user.key, ip=ip)
             if not result.get("id"):
                 raise RuntimeError(result.get("message") or result.get("error") or "Upload failed")
             selected_id = int(result.id)
             imported_from = s.source_url
-    elif selected.startswith("img:") and selected[4:].isdigit():
-        selected_id = int(selected[4:])
-        if selected_id not in set(current_ids) | set(added):
-            raise ValueError(f"Image {selected_id} is not one of this book's images")
+    elif image_id in current_ids or image_id in added:
+        selected_id = image_id
     else:
-        raise ValueError(f"Unknown selection {selected}")
+        raise ValueError(f"Image {image_id} is not one of {doc.key}'s images")
 
     removed_ids = set(removed) - {selected_id}
     new_ids = [i for i in dict.fromkeys([selected_id, *current_ids, *added]) if i not in removed_ids]
-    if new_ids == current_ids:
-        return selected_id
-
-    setattr(doc, image_field(doc), new_ids)
-    if doc.type.key == "/type/author":
-        is_new = bool(added or imported_from)
-        doc._save("Added new photo" if is_new else "Update photos", action="add-photo" if is_new else "update-author-photos", data={"url": imported_from})
-    elif selected_id in added or imported_from:
-        # Recent changes renders an add-cover comment as the cover's thumbnail.
-        doc._save(f"{get_coverstore_public_url()}/b/id/{selected_id}-S.jpg", action="add-cover", data={"url": imported_from})
-    else:
-        doc._save("Update covers", action="update-book-covers")
+    if new_ids != current_ids:
+        new_id = selected_id if imported_from or selected_id in added else next((i for i in added if i not in removed_ids), None)
+        kind.save(doc, new_ids, new_id=new_id, url=imported_from)
     return selected_id
 
 
 class add_cover(delegate.page):
     path = r"(/books/OL\d+M)/add-cover"
-    cover_category = "b"
+    kind: RecordImages = IMAGE_KINDS["/type/edition"]
 
     def GET(self, key):
         book = web.ctx.site.get(key)
@@ -286,20 +311,15 @@ class add_cover(delegate.page):
             i.url = ""
 
         user = accounts.get_current_user()
-        return upload_to_coverstore(self.cover_category, olid, data=data, source_url=i.url, author_key=user and user.key, ip=web.ctx.ip)
+        return upload_to_coverstore(self.kind.category, olid, data=data, source_url=i.url, author_key=user and user.key, ip=web.ctx.ip)
 
-    def save(self, book, coverid, url=None):
-        book.covers = [coverid] + [cover.id for cover in book.get_covers()]
-        book._save(
-            f"{get_coverstore_public_url()}/b/id/{coverid}-S.jpg",
-            action="add-cover",
-            data={"url": url},
-        )
+    def save(self, doc, coverid, url=None):
+        self.kind.save(doc, [coverid] + [image.id for image in self.kind.images(doc)], new_id=coverid, url=url)
 
 
 class add_work_cover(add_cover):
     path = r"(/works/OL\d+W)/add-cover"
-    cover_category = "w"
+    kind = IMAGE_KINDS["/type/work"]
 
     def upload(self, key, i):
         if "coverid" in i and safeint(i.coverid):
@@ -310,36 +330,23 @@ class add_work_cover(add_cover):
 
 class add_photo(add_cover):
     path = r"(/authors/OL\d+A)/add-photo"
-    cover_category = "a"
+    kind = IMAGE_KINDS["/type/author"]
 
     def GET(self, key):
         author = web.ctx.site.get(key)
         wikidata_images = author.wikidata().get_image_urls() if author and author.wikidata() else []
         return render_template("covers/add", author, {"wikidata_images": wikidata_images})
 
-    def save(self, author, photoid, url=None):
-        author.photos = [photoid] + [photo.id for photo in author.get_photos()]
-        author._save("Added new photo", action="add-photo", data={"url": url})
-
 
 class manage_covers(delegate.page):
     path = r"(/books/OL\d+M)/manage-covers"
+    kind: RecordImages = IMAGE_KINDS["/type/edition"]
 
     def GET(self, key):
         book = web.ctx.site.get(key)
         if not book:
             raise web.notfound()
-        return render_template("covers/manage", key, self.get_images(book))
-
-    def get_images(self, book):
-        return book.get_covers()
-
-    def get_image(self, book):
-        return book.get_cover()
-
-    def save_images(self, book, covers):
-        book.covers = covers
-        book._save("Update covers", action="update-book-covers")
+        return render_template("covers/manage", key, self.kind.images(book))
 
     def POST(self, key):
         if not accounts.get_current_user():
@@ -351,8 +358,8 @@ class manage_covers(delegate.page):
         images = web.input(image=[]).image
         if "-" in images:
             images = [int(id) for id in images[: images.index("-")]]
-            self.save_images(book, images)
-            cover = self.get_image(book)
+            self.kind.save(book, images)
+            cover = next(iter(self.kind.images(book)), None)
             return render_template("covers/saved", cover, image_info=None, showinfo=False)
         else:
             # ERROR
@@ -361,17 +368,9 @@ class manage_covers(delegate.page):
 
 class manage_work_covers(manage_covers):
     path = r"(/works/OL\d+W)/manage-covers"
+    kind = IMAGE_KINDS["/type/work"]
 
 
 class manage_photos(manage_covers):
     path = r"(/authors/OL\d+A)/manage-photos"
-
-    def get_images(self, author):
-        return author.get_photos()
-
-    def get_image(self, author):
-        return author.get_photo()
-
-    def save_images(self, author, photos):
-        author.photos = photos
-        author._save("Update photos", action="update-author-photos")
+    kind = IMAGE_KINDS["/type/author"]

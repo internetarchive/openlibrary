@@ -45,26 +45,36 @@ def test_read_only_patrons_cannot_save(fastapi_client, mock_authenticated_user, 
     user = MagicMock()
     user.is_read_only.return_value = True
     monkeypatch.setattr("openlibrary.fastapi.covers.get_current_user", lambda: user)
-    assert fastapi_client.post("/books/OL1M/covers.json", json={"selected": "img:1"}).status_code == 403
+    assert fastapi_client.post("/books/OL1M/covers.json", json={"image_id": 1}).status_code == 403
 
 
 def test_save(fastapi_client, mock_authenticated_user, doc, monkeypatch):
     calls = []
-    monkeypatch.setattr("openlibrary.fastapi.covers.apply_cover_changes", lambda *args: calls.append(args) or 7)
-    response = fastapi_client.post("/books/OL1M/covers.json", json={"selected": "img:7", "added": [7], "removed": [3]})
+    monkeypatch.setattr("openlibrary.fastapi.covers.apply_cover_changes", lambda doc, **kwargs: calls.append(kwargs) or 7)
+    response = fastapi_client.post("/books/OL1M/covers.json", json={"image_id": 7, "added": [7], "removed": [3]})
     assert response.status_code == 200
-    assert response.json() == {"cover_id": 7, "state": STATE}
-    assert calls[0][1:4] == ("img:7", [7], [3])
-    assert calls[0][5] == "1.2.3.4"
+    assert response.json() == {"cover_id": 7}
+    assert {k: calls[0][k] for k in ("image_id", "suggestion", "added", "removed", "ip")} == {
+        "image_id": 7,
+        "suggestion": None,
+        "added": [7],
+        "removed": [3],
+        "ip": "1.2.3.4",
+    }
+
+
+@pytest.mark.parametrize("body", [{}, {"image_id": 7, "suggestion": "archive-cover"}])
+def test_save_needs_exactly_one_selection(fastapi_client, mock_authenticated_user, doc, body):
+    assert fastapi_client.post("/books/OL1M/covers.json", json=body).status_code == 422
 
 
 @pytest.mark.parametrize(("error", "code"), [(ValueError("not this book's image"), 400), (RuntimeError("coverstore down"), 502)])
 def test_save_errors(fastapi_client, mock_authenticated_user, doc, monkeypatch, error, code):
-    def fail(*args):
+    def fail(*args, **kwargs):
         raise error
 
     monkeypatch.setattr("openlibrary.fastapi.covers.apply_cover_changes", fail)
-    response = fastapi_client.post("/books/OL1M/covers.json", json={"selected": "img:7"})
+    response = fastapi_client.post("/books/OL1M/covers.json", json={"image_id": 7})
     assert response.status_code == code
     assert response.json()["detail"] == str(error)
 

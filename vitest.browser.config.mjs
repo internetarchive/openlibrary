@@ -18,6 +18,21 @@ export default defineConfig({
     // Compiles .vue single-file components (only .vue files are affected, so
     // the Lit suites are untouched).
     plugins: [vue()],
+    // Pre-bundle deps reached only through covers.js's dynamic import. On a cold
+    // cache (CI) Vite otherwise finds them mid-run and reloads, failing the import.
+    optimizeDeps: {
+        include: [
+            'jquery',
+            'jquery-ui/ui/version',
+            'jquery-ui/ui/widget',
+            'jquery-ui/ui/widgets/mouse',
+            'jquery-ui/ui/data',
+            'jquery-ui/ui/scroll-parent',
+            'jquery-ui/ui/disable-selection',
+            'jquery-ui/ui/widgets/sortable',
+            'jquery-ui-touch-punch',
+        ],
+    },
     test: {
         include: ['tests/browser/**/*.browser.test.js'],
         browser: {

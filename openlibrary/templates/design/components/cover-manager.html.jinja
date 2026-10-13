@@ -18,9 +18,9 @@
                 const DOC = '/books/OL0M/covers';
                 const scan = 'https://archive.org/download/goodytwoshoes00newyiala/page';
                 let items = [
-                    { id: 'suggestion:archive-cover', kind: 'archive_cover', suggestion: 'archive-cover', image_id: null, thumb: scan + '/cover_w360.jpg', removable: false },
-                    { id: 'suggestion:archive-title', kind: 'archive_title', suggestion: 'archive-title', image_id: null, thumb: scan + '/title_w360.jpg', removable: false },
-                    { id: 'img:12622062', kind: 'upload', image_id: 12622062, thumb: 'https://covers.openlibrary.org/b/id/12622062-M.jpg', added_by: { key: '/people/ada', name: 'ada' }, created: '2024-03-02T00:00:00', removable: true },
+                    { id: 'suggestion:archive-cover', kind: 'archive_cover', suggestion: 'archive-cover', thumb: scan + '/cover_w360.jpg' },
+                    { id: 'suggestion:archive-title', kind: 'archive_title', suggestion: 'archive-title', thumb: scan + '/title_w360.jpg' },
+                    { id: 'img:12622062', kind: 'upload', image_id: 12622062, thumb: 'https://covers.openlibrary.org/b/id/12622062-M.jpg', added_by: { key: '/people/ada', name: 'ada' }, created: '2024-03-02T00:00:00' },
                 ];
                 let current = 'img:12622062';
                 let nextId = 1;
@@ -31,13 +31,13 @@
                     if (typeof url !== 'string' || !url.startsWith(DOC)) return realFetch(url, init);
                     if (url.endsWith('/upload.json')) {
                         const id = nextId++;
-                        return reply({ id: 'img:' + id, kind: 'upload', image_id: id, thumb: '', added_by: { key: '/people/you', name: 'you' }, removable: true });
+                        return reply({ id: 'img:' + id, kind: 'upload', image_id: id, thumb: '', added_by: { key: '/people/you', name: 'you' } });
                     }
                     if (init.method === 'POST') {
-                        const { selected, added, removed } = JSON.parse(init.body);
+                        const { image_id, suggestion, removed } = JSON.parse(init.body);
                         items = items.filter((item) => !removed.includes(item.image_id));
-                        current = selected;
-                        return reply({ cover_id: Number(selected.split(':')[1]) || null, state: { key: '/books/OL0M', current, items } });
+                        current = image_id ? 'img:' + image_id : 'suggestion:' + suggestion;
+                        return reply({ cover_id: image_id || 0 });
                     }
                     return reply({ key: '/books/OL0M', current, items });
                 };

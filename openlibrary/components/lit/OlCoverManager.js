@@ -69,7 +69,7 @@ const CAN_READ_CLIPBOARD = typeof navigator !== 'undefined' && typeof navigator.
  * @prop {String} guidelinesUrl - Link shown after the intro. Attribute: `guidelines-url`.
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS.
  *
- * @fires ol-cover-manager-save - The cover was saved. detail: { coverId: Number|null, thumb: String|null, large: String|null }
+ * @fires ol-cover-manager-save - The cover was saved. detail: { coverId: Number }
  */
 export class OlCoverManager extends LitElement {
     static properties = {
@@ -619,7 +619,7 @@ export class OlCoverManager extends LitElement {
     async _upload(file) {
         this._pendingCount += 1;
         const objectUrl = URL.createObjectURL(file);
-        const placeholder = { id: `pending:${this._pendingCount}`, kind: 'upload', pending: true, thumb: objectUrl, objectUrl, removable: false };
+        const placeholder = { id: `pending:${this._pendingCount}`, kind: 'upload', pending: true, thumb: objectUrl, objectUrl };
         this._added = [placeholder, ...this._added];
 
         const body = new FormData();
@@ -681,18 +681,20 @@ export class OlCoverManager extends LitElement {
         if (!this._isDirty || this._saving) return;
         this._saving = true;
         this._error = '';
+        // An image the record has is picked by id; a suggestion not copied in yet, by name.
+        const selected = this._items.find((item) => item.id === this._selected);
+        const selection = selected.image_id ? { image_id: selected.image_id } : { suggestion: selected.suggestion };
         try {
             const response = await fetch(`${this._endpoint}.json`, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-                body: JSON.stringify({ selected: this._selected, added: this._uploadedIds, removed: [...this._removed] }),
+                body: JSON.stringify({ ...selection, added: this._uploadedIds, removed: [...this._removed] }),
             });
             if (!response.ok) throw new Error(response.statusText);
-            const { cover_id: coverId, state } = await response.json();
-            const cover = state.items.find((item) => item.image_id === coverId);
+            const { cover_id: coverId } = await response.json();
             this.dispatchEvent(new CustomEvent('ol-cover-manager-save', {
-                detail: { coverId, thumb: cover?.thumb ?? null, large: cover?.large ?? null },
+                detail: { coverId },
                 bubbles: true,
                 composed: true,
             }));
@@ -737,8 +739,8 @@ export class OlCoverManager extends LitElement {
         const selected = item.id === this._selected;
         const isCurrent = item.id === this._data.current;
         const removed = this._removed.has(item.image_id);
-        // The current cover can go once another image is picked to replace it.
-        const canRemove = item.removable && !item.pending && !selected;
+        // Suggestions stay listed; an upload, even the current cover, can go once another image is picked.
+        const canRemove = item.kind === 'upload' && !item.pending && !selected;
         const label = isCurrent ? this._t('pickLabelCurrent', { name }) : name;
 
         return html`<li class="tile ${removed ? 'removed' : ''}">

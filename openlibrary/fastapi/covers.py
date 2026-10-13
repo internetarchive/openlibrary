@@ -9,15 +9,16 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile, status
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.fastapi.shared.dependencies import ClientIpDep  # noqa: TC001
 from openlibrary.plugins.upstream.covers import (
-    IMAGE_CATEGORIES,
+    IMAGE_KINDS,
     apply_cover_changes,
     cover_manager_state,
+    image_item,
     image_validator,
     upload_to_coverstore,
 )
@@ -42,17 +43,11 @@ class CoverItem(BaseModel):
 
     id: str
     kind: Literal["upload", "archive_cover", "archive_title", "wikidata"]
-    image_id: int | None
+    image_id: int | None = None
     suggestion: str | None = None
     thumb: str
-    large: str
-    source_url: str | None
-    added_by: CoverAddedBy | None
-    created: str | None
-    width: int | None
-    height: int | None
-    attached: bool
-    removable: bool
+    added_by: CoverAddedBy | None = None
+    created: str | None = None
 
 
 class CoverManagerState(BaseModel):
@@ -62,19 +57,27 @@ class CoverManagerState(BaseModel):
 
 
 class SaveCoversBody(BaseModel):
-    selected: str
+    """The new cover is either an image the record has (or just uploaded) or a suggestion to copy in."""
+
+    image_id: int | None = None
+    suggestion: str | None = None
     added: list[int] = []
     removed: list[int] = []
 
+    @model_validator(mode="after")
+    def _one_selection(self) -> SaveCoversBody:
+        if (self.image_id is None) == (self.suggestion is None):
+            raise ValueError("Send one of image_id or suggestion")
+        return self
+
 
 class SaveCoversResponse(BaseModel):
-    cover_id: int | None
-    state: CoverManagerState
+    cover_id: int
 
 
 def _get_doc(key: str):
     doc = site.get().get(key)
-    if not doc or doc.type.key not in IMAGE_CATEGORIES:
+    if not doc or doc.type.key not in IMAGE_KINDS:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     return doc
 
@@ -103,38 +106,25 @@ def _upload(key: str, file: UploadFile, client_ip: str) -> CoverItem:
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    category = IMAGE_CATEGORIES[doc.type.key]
+    category = IMAGE_KINDS[doc.type.key].category
     result = upload_to_coverstore(category, key.rsplit("/", maxsplit=1)[-1], data=file.file, author_key=user.key, ip=client_ip)
     if not (image_id := result.get("id")):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.get("message") or result.get("error") or "Upload failed")
-
-    image = Image(site.get(), category, int(image_id))
-    return CoverItem(
-        id=f"img:{image.id}",
-        kind="upload",
-        image_id=image.id,
-        thumb=image.url("M"),
-        large=image.url("L"),
-        source_url=None,
-        added_by=CoverAddedBy(key=user.key, name=user.displayname or user.key.split("/")[-1]),
-        created=None,
-        width=None,
-        height=None,
-        attached=False,
-        removable=True,
-    )
+    return CoverItem.model_validate(image_item(Image(site.get(), category, int(image_id)), added_by=user))
 
 
 def _save(key: str, body: SaveCoversBody, client_ip: str) -> SaveCoversResponse:
     doc, user = _get_writable_doc(key)
     try:
         with web_ctx_ip(client_ip):
-            cover_id = apply_cover_changes(doc, body.selected, body.added, body.removed, user, client_ip)
+            cover_id = apply_cover_changes(
+                doc, image_id=body.image_id, suggestion=body.suggestion, added=body.added, removed=body.removed, user=user, ip=client_ip
+            )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
-    return SaveCoversResponse(cover_id=cover_id, state=_state(key))
+    return SaveCoversResponse(cover_id=cover_id)
 
 
 @router.get("/books/{olid}/covers.json", response_model=CoverManagerState)
