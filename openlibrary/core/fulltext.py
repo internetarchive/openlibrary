@@ -293,7 +293,9 @@ async def fulltext_search_api(params):
         return {"error": "Error converting search engine data to JSON"}
 
 
-async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None, phrase=True):
+async def fulltext_search_async(
+    q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None, phrase=True, used_fallback=False
+):
     if offset is None:
         offset = (page - 1) * limit
     # Skip an empty query after optional phrase normalization.
@@ -317,6 +319,11 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
         availability = await get_availability_async("identifier", ocaids)
         if "error" in availability:
             availability = {}
+
+        if ia_results["hits"]["hits"] == 0 and is_auto_phrased_query(q) and not used_fallback:
+            params["phrase"] = False
+            params["use_fallback"] = True
+            ia_results = await fulltext_search_api(params)
 
         if readable:
             # Filter before hydrating so dropped hits cost no Infobase lookup.

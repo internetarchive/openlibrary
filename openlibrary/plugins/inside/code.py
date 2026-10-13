@@ -47,6 +47,31 @@ def empty_reason(query: str, rows: list, total: int, filtered: bool) -> str | No
     return "filtered_out" if filtered else "past_end"
 
 
+async def search_with_auto_phrase_fallback(
+    query: str,
+    *,
+    page: int,
+    readable: bool,
+    language: str | None,
+    phrase: bool,
+) -> tuple[dict, bool, int]:
+    """Search inside, retrying an automatic phrase query as all words once."""
+    search_kwargs = {
+        "limit": RESULTS_PER_PAGE,
+        "facets": False,
+        "readable": readable,
+        "language": language,
+    }
+    results = await fulltext_search_async(query, page=page, phrase=phrase, **search_kwargs)
+    if results.get("error") or not phrase or not is_auto_phrased_query(query) or results.get("hits", {}).get("total"):
+        return results, False, page
+
+    # The original query has no results, so start the all-words retry at its first page.
+    results = await fulltext_search_async(query, page=1, phrase=False, **search_kwargs)
+    used_fallback = bool(results.get("hits", {}).get("total"))
+    return results, used_fallback, 1 if used_fallback else page
+
+
 class search_inside(delegate.page):
     path = "/search/inside"
 
@@ -60,21 +85,20 @@ class search_inside(delegate.page):
         language = resolve_language(i.language)
 
         # Readable filters fetched hits, not `q` (see the `lang` note in fulltext_search_async).
-        results = (
+        results, used_fallback, page = (
             async_bridge.run(
-                fulltext_search_async(
+                search_with_auto_phrase_fallback(
                     query,
                     page=page,
-                    limit=RESULTS_PER_PAGE,
-                    facets=False,
                     readable=readable,
                     language=language[1] if language else None,
                     phrase=phrase,
                 )
             )
             if query
-            else {}
+            else ({}, False, page)
         )
+        phrase = phrase and not used_fallback
         rows, total = fulltext_page(results)
 
         return render_template(
@@ -88,6 +112,7 @@ class search_inside(delegate.page):
             readable=readable,
             phrase=phrase,
             was_auto_phrased=phrase and is_auto_phrased_query(query),
+            used_fallback=used_fallback,
             unphrased_url=unphrased_query_url(query, language, readable),
             error=results.get("error"),
             empty_reason=empty_reason(query, rows, total, filtered=readable or bool(language)),

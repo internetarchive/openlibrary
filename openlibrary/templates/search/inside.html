@@ -1,4 +1,4 @@
-$def with (q, rows, total, page=1, results_per_page=20, language=None, readable=False, phrase=True, was_auto_phrased=False, unphrased_url=None, error=None, empty_reason=None)
+$def with (q, rows, total, page=1, results_per_page=20, language=None, readable=False, phrase=True, was_auto_phrased=False, used_fallback=False, unphrased_url=None, error=None, empty_reason=None)
 
 $var title: $_('Search Open Library for %s', q)
 
@@ -49,7 +49,9 @@ $ range_start = (page - 1) * results_per_page + 1
       </div>
 
       $if total:
-        $if was_auto_phrased:
+        $if used_fallback:
+          <div class="search-results-stats"><em>$_('No exact matches for "%(query)s". Showing books containing all of these words.', query=websafe(q))</em></div>
+        $elif was_auto_phrased:
           $# Keep the whole message translatable so its link can be repositioned for each language.
           <div class="search-results-stats"><em>$:_('Showing exact matches for "%(query)s". %(link_start)sSearch for all of these words instead.%(link_end)s', query=websafe(q), link_start='<a href="%s">' % websafe(unphrased_url), link_end='</a>')</em></div>
         $if filtered or not rows:
@@ -69,6 +71,6 @@ $ range_start = (page - 1) * results_per_page + 1
 
   $if rows:
     <div class="resultsContainer search-results-container">
-      $:macros.FulltextResults(q, rows, total, page=page, results_per_page=results_per_page)
+      $:macros.FulltextResults(q, rows, total, page=page, results_per_page=results_per_page, phrase=phrase)
     </div>
 </div>
