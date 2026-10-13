@@ -42,7 +42,7 @@ class Ratings(db.CommonExtras):
 
     @classmethod
     async def total_num_books_rated(cls, since=None, distinct=False) -> int | None:
-        query = "SELECT count(%s work_id) from ratings" % ("DISTINCT" if distinct else "")
+        query = "SELECT count(%s) from ratings" % ("DISTINCT work_id" if distinct else "work_id")
         if since:
             query += " WHERE created >= %(since)s"
         count = await fetch_val(query, {"since": since} if since else None)

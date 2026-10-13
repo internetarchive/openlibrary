@@ -116,7 +116,7 @@ async def test_total_num_books_rated(helpers):
     count = await Ratings.total_num_books_rated()
 
     assert count == 100
-    helpers.fetch_val.assert_awaited_once_with("SELECT count( work_id) from ratings", None)
+    helpers.fetch_val.assert_awaited_once_with("SELECT count(work_id) from ratings", None)
 
 
 @pytest.mark.asyncio
