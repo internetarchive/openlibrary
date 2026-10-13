@@ -193,6 +193,16 @@ describe('ol-tabs', () => {
             expect(visiblePanels(el)).toEqual(['one']);
         });
 
+        it('leaves browser shortcuts like Alt+ArrowLeft alone', async () => {
+            const el = await mount();
+            const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', altKey: true, bubbles: true, composed: true, cancelable: true });
+            tabs(el)[0].dispatchEvent(event);
+            await el.updateComplete;
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(visiblePanels(el)).toEqual(['one']);
+        });
+
         it('ignores keys outside the pattern', async () => {
             const el = await mount();
             const event = press(tabs(el)[0], 'ArrowDown');

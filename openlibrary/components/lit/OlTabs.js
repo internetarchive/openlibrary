@@ -93,7 +93,7 @@ export class OlTabs extends LitElement {
 
     get _selectedIndex() {
         const tabs = this._tabs;
-        const i = tabs.findIndex(tab => this._panelIdOf(tab) === this.selected && this._panelFor(this.selected));
+        const i = this._panelFor(this.selected) ? tabs.findIndex(tab => this._panelIdOf(tab) === this.selected) : -1;
         return i === -1 && tabs.length ? 0 : i;
     }
 
@@ -141,6 +141,8 @@ export class OlTabs extends LitElement {
     }
 
     _onKeydown(e) {
+        // Leave browser shortcuts alone (Alt+Arrow is Back/Forward).
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
         const target = getNextKeyboardFocusIndex(e.key, {
             count: this._tabs.length,
             current: this._selectedIndex,

@@ -74,9 +74,8 @@ ol-tabs > [hidden] {
   display: none !important;
 }
 
-/* Before upgrade the first panel shows, unless the server picked another with
-   `selected`, in which case none shows until the component knows which. */
-:where(.client-js ol-tabs:not(:defined)) > :not([slot]) ~ :not([slot]),
-:where(.client-js ol-tabs[selected]:not(:defined)) > :not([slot]) {
+/* Before upgrade only the first panel shows. Never hide them all: if the
+   component fails to load, the first panel must still be usable. */
+:where(.client-js ol-tabs:not(:defined)) > :not([slot]) ~ :not([slot]) {
   display: none;
 }
