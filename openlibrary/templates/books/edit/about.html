@@ -59,6 +59,10 @@ $jsdef render_subject_autocomplete_item(item):
                 if gk:
                     genre_keys.append(gk)
         <div class="input work-genres">
+            $# Marks that this form carried the Genres section, so the save path
+            $# edits genres instead of leaving them untouched. The `_` prefix keeps
+            $# it out of the saved work (trim_doc drops underscore-prefixed keys).
+            <input type="hidden" name="work--_genres_present" value="1"/>
             $# The picker is a name-less UI control: the hidden inputs below are the
             $# authoritative form values, so a work's genres survive even if the
             $# picker's JavaScript fails to load (edit.js initGenresTagPicker syncs them).
