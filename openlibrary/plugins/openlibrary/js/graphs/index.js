@@ -1,9 +1,4 @@
-import { loadGraphIfExists, loadEditionsGraph } from './plot';
-import options from './options.js';
-
-export function plotAdminGraphs() {
-    loadGraphIfExists('books-added-per-day', options.booksAdded);
-}
+import { loadEditionsGraph } from './plot';
 
 export function initPublishersGraph() {
     if (document.getElementById('chartPubHistory')) {
@@ -12,6 +7,5 @@ export function initPublishersGraph() {
 }
 
 export function init() {
-    plotAdminGraphs();
     initPublishersGraph();
 }
