@@ -19,13 +19,14 @@ from pydantic import BaseModel, BeforeValidator, Field
 from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
-from openlibrary.core import lending, models
+from openlibrary.core import lending
 from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
+from openlibrary.core.ratings import Ratings
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -43,7 +44,6 @@ from openlibrary.plugins.openlibrary.api import (
     get_works_data_async,
     process_work_bookshelves,
 )
-from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, TRENDING_NOW_LIMIT, get_trending_books
 
@@ -213,7 +213,35 @@ async def browse(
 @router.get("/works/OL{work_id}W/ratings.json")
 async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
     """Get ratings summary for a work."""
-    return legacy_ratings.get_ratings_summary(work_id)
+    if stats := await Ratings.get_work_ratings_summary(work_id):
+        return {
+            "summary": {
+                "average": stats["ratings_average"],
+                "count": stats["ratings_count"],
+                "sortable": stats["ratings_sortable"],
+            },
+            "counts": {
+                "1": stats["ratings_count_1"],
+                "2": stats["ratings_count_2"],
+                "3": stats["ratings_count_3"],
+                "4": stats["ratings_count_4"],
+                "5": stats["ratings_count_5"],
+            },
+        }
+    else:
+        return {
+            "summary": {
+                "average": None,
+                "count": 0,
+            },
+            "counts": {
+                "1": 0,
+                "2": 0,
+                "3": 0,
+                "4": 0,
+                "5": 0,
+            },
+        }
 
 
 @router.post("/works/OL{work_id}W/ratings.json")
@@ -231,10 +259,10 @@ async def post_ratings(
     resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
 
     if rating is None:
-        models.Ratings.remove(user.username, work_id)
+        await Ratings.remove(user.username, work_id)
         return {"success": "removed rating"}
 
-    models.Ratings.add(
+    await Ratings.add(
         username=user.username,
         work_id=work_id,
         rating=rating,

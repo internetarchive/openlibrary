@@ -1,6 +1,8 @@
 from math import sqrt
 from typing import TypedDict
 
+from openlibrary.core.async_db import execute, fetch_all, fetch_one, fetch_val
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -27,60 +29,66 @@ class Ratings(db.CommonExtras):
     def summary(cls) -> dict:
         return {
             "total_books_starred": {
-                "total": Ratings.total_num_books_rated(),
-                "month": Ratings.total_num_books_rated(since=DATE_ONE_MONTH_AGO),
-                "week": Ratings.total_num_books_rated(since=DATE_ONE_WEEK_AGO),
+                "total": Ratings.total_num_books_rated_sync(),
+                "month": Ratings.total_num_books_rated_sync(since=DATE_ONE_MONTH_AGO),
+                "week": Ratings.total_num_books_rated_sync(since=DATE_ONE_WEEK_AGO),
             },
             "total_star_raters": {
-                "total": Ratings.total_num_unique_raters(),
-                "month": Ratings.total_num_unique_raters(since=DATE_ONE_MONTH_AGO),
-                "week": Ratings.total_num_unique_raters(since=DATE_ONE_WEEK_AGO),
+                "total": Ratings.total_num_unique_raters_sync(),
+                "month": Ratings.total_num_unique_raters_sync(since=DATE_ONE_MONTH_AGO),
+                "week": Ratings.total_num_unique_raters_sync(since=DATE_ONE_WEEK_AGO),
             },
         }
 
     @classmethod
-    def total_num_books_rated(cls, since=None, distinct=False) -> int | None:
-        oldb = db.get_db()
+    async def total_num_books_rated(cls, since=None, distinct=False) -> int | None:
         query = "SELECT count(%s work_id) from ratings" % ("DISTINCT" if distinct else "")
         if since:
-            query += " WHERE created >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+            query += " WHERE created >= %(since)s"
+        count = await fetch_val(query, {"since": since} if since else None)
+        return count or 0
 
     @classmethod
-    def total_num_unique_raters(cls, since=None) -> int:
-        oldb = db.get_db()
+    def total_num_books_rated_sync(cls, since=None, distinct=False) -> int | None:
+        return async_bridge.run(cls.total_num_books_rated(since, distinct))
+
+    @classmethod
+    async def total_num_unique_raters(cls, since=None) -> int:
         query = "select count(DISTINCT username) from ratings"
         if since:
-            query += " WHERE created >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+            query += " WHERE created >= %(since)s"
+        count = await fetch_val(query, {"since": since} if since else None)
+        return count or 0
 
     @classmethod
-    def most_rated_books(cls, limit=10, since=False) -> list:
-        oldb = db.get_db()
+    def total_num_unique_raters_sync(cls, since=None) -> int:
+        return async_bridge.run(cls.total_num_unique_raters(since))
+
+    @classmethod
+    async def most_rated_books(cls, limit=10, since=False) -> list:
         query = "select work_id, count(*) as cnt from ratings "
         if since:
-            query += " WHERE created >= $since"
-        query += " group by work_id order by cnt desc limit $limit"
-        return list(oldb.query(query, vars={"limit": limit, "since": since}))
+            query += " WHERE created >= %(since)s"
+        query += " group by work_id order by cnt desc limit %(limit)s"
+        return await fetch_all(query, {"limit": limit, "since": since} if since else {"limit": limit})
 
     @classmethod
-    def get_users_ratings(cls, username) -> list:
-        oldb = db.get_db()
-        query = "select * from ratings where username=$username"
-        return list(oldb.query(query, vars={"username": username}))
+    async def get_users_ratings(cls, username) -> list:
+        query = "select * from ratings where username=%(username)s"
+        return await fetch_all(query, {"username": username})
 
     @classmethod
-    def get_rating_stats(cls, work_id) -> dict:
-        oldb = db.get_db()
-        query = "SELECT AVG(rating) as avg_rating, COUNT(DISTINCT username) as num_ratings FROM ratings WHERE work_id = $work_id"
-        result = oldb.query(query, vars={"work_id": int(work_id)})
-        return result[0] if result else {}
+    async def get_rating_stats(cls, work_id) -> dict:
+        query = "SELECT AVG(rating) as avg_rating, COUNT(DISTINCT username) as num_ratings FROM ratings WHERE work_id = %(work_id)s"
+        row = await fetch_one(query, {"work_id": int(work_id)})
+        return row or {}
 
     @classmethod
-    def get_work_ratings_summary(cls, work_id: int) -> WorkRatingsSummary | None:
-        oldb = db.get_db()
+    def get_rating_stats_sync(cls, work_id) -> dict:
+        return async_bridge.run(cls.get_rating_stats(work_id))
+
+    @classmethod
+    async def get_work_ratings_summary(cls, work_id: int) -> WorkRatingsSummary | None:
         query = """
             SELECT
                 count(*) FILTER (WHERE rating = 1) AS ratings_count_1,
@@ -89,14 +97,17 @@ class Ratings(db.CommonExtras):
                 count(*) FILTER (WHERE rating = 4) AS ratings_count_4,
                 count(*) FILTER (WHERE rating = 5) AS ratings_count_5
             FROM ratings
-            WHERE work_id = $work_id
+            WHERE work_id = %(work_id)s
         """
-        result = oldb.query(query, vars={"work_id": work_id})
-        if not result:
+        row = await fetch_one(query, {"work_id": work_id})
+        if not row:
             return None
 
-        row = result[0]
         return cls.work_ratings_summary_from_counts([row[f"ratings_count_{i}"] for i in range(1, 6)])
+
+    @classmethod
+    def get_work_ratings_summary_sync(cls, work_id: int) -> WorkRatingsSummary | None:
+        return async_bridge.run(cls.get_work_ratings_summary(work_id))
 
     @classmethod
     def work_ratings_summary_from_counts(cls, rating_counts: list[int]) -> WorkRatingsSummary:
@@ -135,46 +146,55 @@ class Ratings(db.CommonExtras):
         )
 
     @classmethod
-    def get_all_works_ratings(cls, work_id) -> list:
-        oldb = db.get_db()
-        query = "select * from ratings where work_id=$work_id"
-        return list(oldb.query(query, vars={"work_id": int(work_id)}))
+    async def get_all_works_ratings(cls, work_id) -> list:
+        query = "select * from ratings where work_id=%(work_id)s"
+        return await fetch_all(query, {"work_id": int(work_id)})
 
     @classmethod
-    def get_users_rating_for_work(cls, username: str, work_id: str | int) -> int | None:
+    def get_all_works_ratings_sync(cls, work_id) -> list:
+        return async_bridge.run(cls.get_all_works_ratings(work_id))
+
+    @classmethod
+    async def get_users_rating_for_work(cls, username: str, work_id: str | int) -> int | None:
         """work_id must be convertible to int."""
-        oldb = db.get_db()
-        data = {"username": username, "work_id": int(work_id)}
-        query = "SELECT * from ratings where username=$username AND work_id=$work_id"
-        results = list(oldb.query(query, vars=data))
-        rating: int | None = results[0].rating if results else None
-        return rating
+        query = "SELECT * from ratings where username=%(username)s AND work_id=%(work_id)s"
+        row = await fetch_one(query, {"username": username, "work_id": int(work_id)})
+        return row.rating if row else None
 
     @classmethod
-    def get_users_ratings_of_works(cls, username: str, work_ids: list[int]) -> dict[int, int]:
+    def get_users_rating_for_work_sync(cls, username: str, work_id: str | int) -> int | None:
+        return async_bridge.run(cls.get_users_rating_for_work(username, work_id))
+
+    @classmethod
+    async def get_users_ratings_of_works(cls, username: str, work_ids: list[int]) -> dict[int, int]:
         """Map work_id -> rating for the subset of `work_ids` this user has rated."""
         if not work_ids:
             return {}
-        oldb = db.get_db()
-        query = "SELECT work_id, rating FROM ratings WHERE username=$username AND work_id IN $work_ids"
-        return {row.work_id: row.rating for row in oldb.query(query, vars={"username": username, "work_ids": work_ids})}
+        query = "SELECT work_id, rating FROM ratings WHERE username=%(username)s AND work_id IN %(work_ids)s"
+        rows = await fetch_all(query, {"username": username, "work_ids": work_ids})
+        return {row.work_id: row.rating for row in rows}
 
     @classmethod
-    def remove(cls, username, work_id):
-        oldb = db.get_db()
-        where = {"username": username, "work_id": int(work_id)}
-        try:
-            return oldb.delete("ratings", where=("work_id=$work_id AND username=$username"), vars=where)
-        except:  # we want to catch no entry exists
-            return None
+    def get_users_ratings_of_works_sync(cls, username: str, work_ids: list[int]) -> dict[int, int]:
+        return async_bridge.run(cls.get_users_ratings_of_works(username, work_ids))
 
     @classmethod
-    def add(cls, username, work_id, rating, edition_id=None):
+    async def remove(cls, username, work_id):
+        work_id = int(work_id)
+        await execute(
+            "DELETE FROM ratings WHERE work_id = %(work_id)s AND username = %(username)s",
+            {"work_id": work_id, "username": username},
+        )
+
+    @classmethod
+    def remove_sync(cls, username, work_id):
+        return async_bridge.run(cls.remove(username, work_id))
+
+    @classmethod
+    async def add(cls, username, work_id, rating, edition_id=None):
         from openlibrary.core.bookshelves import Bookshelves
 
-        oldb = db.get_db()
         work_id = int(work_id)
-        data = {"work_id": work_id, "username": username}
 
         if rating not in cls.VALID_STAR_RATINGS:
             return None
@@ -182,49 +202,50 @@ class Ratings(db.CommonExtras):
         # Vote implies user read book, so shelve unshelved (or Want to Read) books
         # as "Already Read". Never overwrite Currently Reading or Stopped Reading,
         # where the patron has explicitly said otherwise.
-        users_read_status_for_work = Bookshelves.get_users_read_status_of_work(username, work_id)
+        users_read_status_for_work = await Bookshelves.get_users_read_status_of_work(username, work_id)
         if users_read_status_for_work in (
             None,
             Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
         ):
-            Bookshelves.add(
+            await Bookshelves.add(
                 username,
                 Bookshelves.PRESET_BOOKSHELVES["Already Read"],
                 work_id,
                 edition_id=edition_id,
             )
 
-        users_rating_for_work = cls.get_users_rating_for_work(username, work_id)
+        users_rating_for_work = await cls.get_users_rating_for_work(username, work_id)
         if not users_rating_for_work:
-            return oldb.insert(
-                "ratings",
-                username=username,
-                work_id=work_id,
-                rating=rating,
-                edition_id=edition_id,
+            await execute(
+                "INSERT INTO ratings (username, work_id, rating, edition_id) VALUES (%(username)s, %(work_id)s, %(rating)s, %(edition_id)s)",
+                {"username": username, "work_id": work_id, "rating": rating, "edition_id": edition_id},
             )
         else:
-            where = "work_id=$work_id AND username=$username"
-            return oldb.update("ratings", where=where, rating=rating, vars=data)
+            await execute(
+                "UPDATE ratings SET rating = %(rating)s WHERE work_id = %(work_id)s AND username = %(username)s",
+                {"username": username, "work_id": work_id, "rating": rating},
+            )
 
     @classmethod
-    def calc_star_rating_counts(cls) -> dict[str, int]:
-        results = {}
-        oldb = db.get_db()
+    def add_sync(cls, username, work_id, rating, edition_id=None):
+        return async_bridge.run(cls.add(username, work_id, rating, edition_id))
+
+    @classmethod
+    async def calc_star_rating_counts(cls) -> dict[str, int]:
         total_ratings_query = """
             select count(*) from ratings
             WHERE created >= date_trunc('hour', now() - interval '1 hour')
                 AND created < date_trunc('hour', now());
         """
-        totals = oldb.query(total_ratings_query)
-        results["star_ratings"] = next(iter(totals))["count"]
+        totals = await fetch_val(total_ratings_query)
+        star_ratings = totals or 0
 
         distinct_raters_query = """
             select count(distinct username) from ratings
             WHERE created >= date_trunc('hour', now() - interval '1 hour')
                 AND created < date_trunc('hour', now());
         """
-        distinct_totals = oldb.query(distinct_raters_query)
-        results["distinct_star_ratings"] = next(iter(distinct_totals))["count"]
+        distinct_totals = await fetch_val(distinct_raters_query)
+        distinct_star_ratings = distinct_totals or 0
 
-        return results
+        return {"star_ratings": star_ratings, "distinct_star_ratings": distinct_star_ratings}

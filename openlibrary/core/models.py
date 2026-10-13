@@ -543,7 +543,7 @@ class Work(Thing):
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        rating = Ratings.get_users_rating_for_work(username, work_id)
+        rating = Ratings.get_users_rating_for_work_sync(username, work_id)
         return rating
 
     def get_patrons_who_also_read(self):
@@ -605,7 +605,7 @@ class Work(Thing):
         if not self.key:  # a dummy work
             return {"avg_rating": 0, "num_ratings": 0}
         work_id = extract_numeric_id_from_olid(self.key)
-        rating_stats = Ratings.get_rating_stats(work_id)
+        rating_stats = Ratings.get_rating_stats_sync(work_id)
         if rating_stats and rating_stats["num_ratings"] > 0:
             return {
                 "avg_rating": round(rating_stats["avg_rating"], 2),
@@ -742,7 +742,7 @@ class Work(Thing):
 
             # count reading log entries
             r["occurrences"]["readinglog"] = len(Bookshelves.get_works_shelves(olid))
-            r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings(olid))
+            r["occurrences"]["ratings"] = len(Ratings.get_all_works_ratings_sync(olid))
             r["occurrences"]["booknotes"] = len(Booknotes.get_booknotes_for_work(olid))
             r["occurrences"]["bestbooks"] = Bestbook.get_count(work_id=olid)
             r["occurrences"]["observations"] = len(Observations.get_observations_for_work(olid))
@@ -1340,7 +1340,7 @@ class LoggedBooksData:
         """
         for doc in self.docs:
             work_id = extract_numeric_id_from_olid(doc.key)
-            rating = Ratings.get_users_rating_for_work(self.username, work_id)
+            rating = Ratings.get_users_rating_for_work_sync(self.username, work_id)
             self.ratings.append(rating or 0)
 
 
