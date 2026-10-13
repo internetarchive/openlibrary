@@ -23,6 +23,10 @@
   background-position: 340px 60px;
   box-sizing: border-box;
 }
+/* The chart canvas is transparent, so drop the spinner background once it's drawn */
+.chart:has(canvas) {
+  background-image: none;
+}
 /* Only show the spinner background while its loading indicator is visible --
    otherwise it bleeds through the async-partial-retry prompt, which lives
    alongside it rather than replacing .chart outright. */
@@ -60,6 +64,10 @@
   height: var(--chart-height);
   width: 100%;
   overflow-y: hidden;
+}
+/* chartjs-plugin-zoom's pinch handler sets touch-action: none inline; keep vertical scrolling working over the chart */
+.chart .thisChart canvas {
+  touch-action: pan-y !important;
 }
 
 /* --width-breakpoint-desktop: 960px */
