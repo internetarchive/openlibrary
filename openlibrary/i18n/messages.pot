@@ -1675,11 +1675,11 @@ msgid "Works by Time Period"
 msgstr ""
 
 #: account/readinglog_stats.html
-msgid "Matching works"
+msgid "Click on a bar to see matching works"
 msgstr ""
 
 #: account/readinglog_stats.html
-msgid "Click on a bar to see matching works"
+msgid "Matching works"
 msgstr ""
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py

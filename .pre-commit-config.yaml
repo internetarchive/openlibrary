@@ -158,7 +158,7 @@ repos:
         args: [--allow-empty-input]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.8.0
+    rev: v10.12.0
     hooks:
       # JS is linted by oxlint, and JS and Vue are formatted by oxfmt; ESLint is
       # only kept for the Vue-specific rules oxlint can't run on .vue templates.
@@ -166,10 +166,10 @@ repos:
         types: [file]
         types_or: [vue]
         additional_dependencies:
-          - eslint@9.39.4
-          - "@eslint/js@9.39.4"
+          - eslint@10.12.0
+          - "@eslint/js@10.0.1"
           - eslint-config-prettier@10.1.8
-          - eslint-plugin-vue@9.32.0
+          - eslint-plugin-vue@10.11.1
           - globals@15.14.0
         args: [--fix]
 

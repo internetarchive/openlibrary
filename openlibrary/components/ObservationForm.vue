@@ -2,7 +2,6 @@
     <div class="observation-form">
         <SavedTags :all-selected-values="allSelectedValues" :work-key="workKey" :username="username" />
         <CategorySelector
-            ref="categories"
             :observations-array="observationsArray"
             :all-selected-values="allSelectedValues"
             :initial-selected-id="getSelectedId"
@@ -10,7 +9,6 @@
         />
         <ValueCard
             v-if="selectedObservation"
-            ref="value-card"
             :type="selectedObservation.label"
             :description="selectedObservation.description"
             :multi-select="selectedObservation.multi_choice"

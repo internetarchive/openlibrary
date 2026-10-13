@@ -87,7 +87,20 @@ module.exports = [
             'vue/require-explicit-emits': 'error',
             'vue/require-default-prop': 'error',
             'vue/no-v-html': 'error',
-            'vue/no-template-shadow': 'error'
+            'vue/no-template-shadow': 'error',
+            'vue/no-unused-refs': 'error',
+            'vue/no-unused-properties': 'error',
+            'vue/no-unused-emit-declarations': 'error',
+            'vue/no-useless-v-bind': 'error',
+            'vue/no-import-compiler-macros': 'error',
+            'vue/no-undef-components': [
+                'error',
+                {
+                    // Lit components, treated as custom elements by the Vue
+                    // build's isCustomElement (tag.startsWith('ol-')).
+                    ignorePatterns: ['^ol-']
+                }
+            ]
         }
     },
 

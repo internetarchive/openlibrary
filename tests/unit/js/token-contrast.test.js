@@ -80,6 +80,9 @@ const MATRIX = [
     ['--color-on-primary', '--color-primary', 4.5],
     ['--color-on-primary', '--color-primary-hover', 4.5],
     ['--color-on-primary', '--color-primary-active', 4.5],
+    // Chart bars are non-text shapes on the card surface
+    ['--color-chart-bar', '--color-surface', 3],
+    ['--color-chart-bar-selected', '--color-surface', 3],
     // Status text on white and on its own tint
     ['--color-info-fg', '--color-surface', 4.5],
     ['--color-info-fg', '--color-info-bg', 4.5],
