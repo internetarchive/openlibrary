@@ -406,6 +406,42 @@ export function initSubjectsAutocomplete() {
     });
 }
 
+/**
+ * Wires the work edit page's Genres <ol-tag-picker> to the hidden form inputs
+ * that actually submit.
+ *
+ * The picker is used name-less (it does not participate in the form itself).
+ * Instead, the current genres are server-rendered as hidden
+ * `work--genres--N--key` inputs — the openlibrary form convention that
+ * `utils.unflatten` turns into `[{"key": "/tags/OL…T"}]` — and this glue keeps
+ * those inputs in sync with the picker's selection. Because the authoritative
+ * values are plain server-rendered HTML, a work's genres survive even if this
+ * script (or the component) never runs; the picker is then a read-only preserve
+ * rather than an editable control.
+ */
+export function initGenresTagPicker() {
+    const container = document.querySelector('.work-genres');
+    if (!container) return;
+    const picker = container.querySelector('ol-tag-picker');
+    const inputs = container.querySelector('.work-genres__inputs');
+    if (!picker || !inputs) return;
+
+    picker.addEventListener('ol-tag-picker-change', (event) => {
+        // Rebuild the whole set on every change so removals — including clearing
+        // to empty, which submits no inputs and clears the field — are reflected.
+        const keys = event.detail.value || [];
+        inputs.replaceChildren(
+            ...keys.map((key, idx) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `work--genres--${idx}--key`;
+                input.value = key;
+                return input;
+            })
+        );
+    });
+}
+
 export function initEditRow(){
     document.querySelector('#add_row_button').addEventListener('click', ()=>add_row('website'));
 }

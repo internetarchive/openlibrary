@@ -491,6 +491,339 @@ class TestSaveBookHelper:
         assert not new_work.subjects
 
 
+class TestProcessManagedTags:
+    """``SaveBookHelper.process_managed_tags`` merges the genre Tag selection
+    posted from the work edit page into a list of refs, validating only
+    additions so an unrelated edit never silently drops a stored genre."""
+
+    def setup_method(self, method):
+        web.ctx.site = MockSite()
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL1T", "name": "Fantasy", "tag_type": "genres"},
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL2T", "name": "Horror", "tag_type": "genres"},
+                # A Tag of a different type — must never be accepted as a genre.
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL9T", "name": "Novel", "tag_type": "content_formats"},
+                # A real genre Tag carrying the LEGACY singular tag_type — it
+                # would fail today's validation, but must survive once stored.
+                {"type": {"key": "/type/tag"}, "key": "/tags/OL84T", "name": "Legacy", "tag_type": "genre"},
+                # A deleted Tag (tombstone): no longer a /type/tag.
+                {"type": {"key": "/type/delete"}, "key": "/tags/OL77T"},
+                # A merged Tag: a redirect pointing at the live OL1T.
+                {"type": {"key": "/type/redirect"}, "key": "/tags/OL78T", "location": "/tags/OL1T"},
+                # A non-Tag document sharing the key space.
+                {"type": {"key": "/type/work"}, "key": "/works/OL5W", "title": "Not a tag"},
+            ]
+        )
+
+    def process(self, values, stored=None):
+        return addbook.SaveBookHelper.process_managed_tags(values, "genres", stored)
+
+    def test_valid_key_strings_become_refs(self):
+        assert self.process(["/tags/OL1T", "/tags/OL2T"]) == [
+            {"key": "/tags/OL1T"},
+            {"key": "/tags/OL2T"},
+        ]
+
+    def test_accepts_ref_shaped_input(self):
+        # Works from the scripted backfill store plain strings; later saves store
+        # refs. Both shapes, mixed, must normalise to refs.
+        assert self.process([{"key": "/tags/OL1T"}, "/tags/OL2T"]) == [
+            {"key": "/tags/OL1T"},
+            {"key": "/tags/OL2T"},
+        ]
+
+    def test_drops_unknown_added_keys(self):
+        # /tags/OL404T does not exist: a ref to a missing Tag would fail the
+        # atomic save, so an added one is dropped rather than persisted.
+        assert self.process(["/tags/OL1T", "/tags/OL404T"]) == [{"key": "/tags/OL1T"}]
+
+    def test_drops_wrong_tag_type_when_added(self):
+        # OL9T is a real Tag, but a content_formats one — not a genre.
+        assert self.process(["/tags/OL1T", "/tags/OL9T"]) == [{"key": "/tags/OL1T"}]
+
+    def test_drops_non_tag_documents_when_added(self):
+        # OL5W resolves, but it is a work, not a Tag.
+        assert self.process(["/tags/OL1T", "/works/OL5W"]) == [{"key": "/tags/OL1T"}]
+
+    def test_deduplicates_preserving_order(self):
+        assert self.process(["/tags/OL2T", "/tags/OL1T", "/tags/OL2T"]) == [
+            {"key": "/tags/OL2T"},
+            {"key": "/tags/OL1T"},
+        ]
+
+    def test_empty_and_absent_yield_empty_list(self):
+        assert self.process([]) == []
+        assert self.process(None) == []
+
+    def test_preserves_stored_key_that_fails_validation_today(self):
+        # OL84T is a genre Tag with the legacy singular tag_type "genre"; if it is
+        # already stored, re-posting it unchanged (e.g. on a title edit) must keep
+        # it — validating stored keys would be a silent data migration.
+        assert self.process(
+            ["/tags/OL1T", "/tags/OL84T"],
+            stored=["/tags/OL1T", "/tags/OL84T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL84T"}]
+
+    def test_preserves_stored_key_stored_as_plain_string(self):
+        # A backfilled work stores plain strings; re-posting them converts to refs
+        # and preserves them, even the legacy-typed one.
+        assert self.process(
+            ["/tags/OL84T"],
+            stored=["/tags/OL84T"],
+        ) == [{"key": "/tags/OL84T"}]
+
+    def test_still_rejects_an_added_wrong_type_key_when_others_stored(self):
+        # A newly ADDED wrong-type key is still dropped even while a valid key is
+        # passed through from storage.
+        assert self.process(
+            ["/tags/OL1T", "/tags/OL9T"],
+            stored=["/tags/OL1T"],
+        ) == [{"key": "/tags/OL1T"}]
+
+    def test_removes_key_dropped_from_the_picker(self):
+        # A stored key no longer in the posted set was removed by the editor.
+        assert self.process(
+            ["/tags/OL1T"],
+            stored=["/tags/OL1T", "/tags/OL2T"],
+        ) == [{"key": "/tags/OL1T"}]
+
+    def test_dead_stored_ref_preserved_when_set_unchanged(self):
+        # OL77T is a deleted Tag. An unrelated edit re-posts the stored set
+        # unchanged, so nothing is migrated — the dead ref rides through (Infobase
+        # skips the unchanged value, so it won't reject the save either).
+        assert self.process(
+            ["/tags/OL1T", "/tags/OL77T"],
+            stored=["/tags/OL1T", "/tags/OL77T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL77T"}]
+
+    def test_dead_stored_ref_dropped_when_set_changes(self):
+        # Adding a genre changes the set, so stored refs are checked: the deleted
+        # OL77T no longer resolves to a /type/tag and is dropped (otherwise it
+        # would reject the atomic save once /type/work declares genres); the valid
+        # stored and added keys survive.
+        assert self.process(
+            ["/tags/OL1T", "/tags/OL77T", "/tags/OL2T"],
+            stored=["/tags/OL1T", "/tags/OL77T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]
+
+    def test_legacy_typed_stored_ref_preserved_when_set_changes(self):
+        # OL84T is a live /type/tag with a legacy singular tag_type. Even when the
+        # set changes (a key is added), a stored ref is checked only for /type/tag,
+        # never tag_type, so the legacy genre survives.
+        assert self.process(
+            ["/tags/OL84T", "/tags/OL1T"],
+            stored=["/tags/OL84T"],
+        ) == [{"key": "/tags/OL84T"}, {"key": "/tags/OL1T"}]
+
+    def test_merged_stored_ref_followed_to_target_when_set_changes(self):
+        # OL78T is a redirect (a merged Tag) pointing at the live OL1T. On a genre
+        # change the stored ref is followed to its target rather than dropped — a
+        # merge means they are the same genre, so the work keeps it as OL1T.
+        assert self.process(
+            ["/tags/OL78T", "/tags/OL2T"],
+            stored=["/tags/OL78T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]
+
+    def test_merged_stored_ref_dedupes_against_existing_target(self):
+        # On a change, if the redirect's target is already present, following it
+        # dedupes to a single ref.
+        assert self.process(
+            ["/tags/OL78T", "/tags/OL1T", "/tags/OL2T"],
+            stored=["/tags/OL78T", "/tags/OL1T"],
+        ) == [{"key": "/tags/OL1T"}, {"key": "/tags/OL2T"}]
+
+    def test_save_persists_genres_as_refs(self, monkeypatch):
+        """End-to-end through save(): the indexed form shape the edit page posts
+        (``work--genres--N--key``) lands on the work as a list of refs."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/work"}, "key": "/works/OL10W", "title": "A Work"},
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL10M",
+                    "title": "A Work",
+                    "works": [{"key": "/works/OL10W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL10W")
+        edition = web.ctx.site.get("/books/OL10M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL10W",
+                "work--title": "A Work",
+                "work--_genres_present": "1",
+                "work--genres--0--key": "/tags/OL1T",
+                "work--genres--1--key": "/tags/OL2T",
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL10W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        # Assert on the persisted shape (what the indexer in #13753 reads), not
+        # the Thing refs MockSite rehydrates on get().
+        assert web.ctx.site.docs["/works/OL10W"]["genres"] == [
+            {"key": "/tags/OL1T"},
+            {"key": "/tags/OL2T"},
+        ]
+
+    def test_save_drops_an_invalid_added_key(self, monkeypatch):
+        """Validation runs on the real save path, not just the helper: an added
+        key that is not an existing genre Tag is dropped before it is persisted
+        (otherwise it would ride through on unflatten's raw refs and, once
+        /type/work declares genres, reject the atomic save)."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {"type": {"key": "/type/work"}, "key": "/works/OL14W", "title": "A Work"},
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL14M",
+                    "title": "A Work",
+                    "works": [{"key": "/works/OL14W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL14W")
+        edition = web.ctx.site.get("/books/OL14M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL14W",
+                "work--title": "A Work",
+                "work--_genres_present": "1",
+                "work--genres--0--key": "/tags/OL1T",  # valid genre
+                "work--genres--1--key": "/tags/OL404T",  # does not exist
+                "work--genres--2--key": "/tags/OL9T",  # exists, but content_formats
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL14W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        assert web.ctx.site.docs["/works/OL14W"]["genres"] == [{"key": "/tags/OL1T"}]
+
+    def test_save_clears_genres_when_none_posted(self, monkeypatch):
+        """With the Genres section present but empty, saving clears the field."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL11W",
+                    "title": "A Work",
+                    "genres": [{"key": "/tags/OL1T"}],
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL11M",
+                    "title": "A Work",
+                    "works": [{"key": "/works/OL11W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL11W")
+        edition = web.ctx.site.get("/books/OL11M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL11W",
+                "work--title": "A Work",
+                "work--_genres_present": "1",
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL11W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        assert not web.ctx.site.docs["/works/OL11W"].get("genres")
+
+    def test_save_preserves_stored_genres_on_an_unrelated_title_edit(self, monkeypatch):
+        """A title edit that re-posts the stored genres must keep them all — even
+        a plain-string-stored, legacy-typed genre that would fail validation."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL12W",
+                    "title": "Old Title",
+                    # plain-string shape, and OL84T is legacy singular-typed
+                    "genres": ["/tags/OL1T", "/tags/OL84T"],
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL12M",
+                    "title": "Old Title",
+                    "works": [{"key": "/works/OL12W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL12W")
+        edition = web.ctx.site.get("/books/OL12M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL12W",
+                "work--title": "New Title",
+                "work--_genres_present": "1",
+                "work--genres--0--key": "/tags/OL1T",
+                "work--genres--1--key": "/tags/OL84T",
+                "edition--title": "Old Title",
+                "edition--works--0--key": "/works/OL12W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        saved = web.ctx.site.docs["/works/OL12W"]
+        assert saved["title"] == "New Title"
+        assert saved["genres"] == [{"key": "/tags/OL1T"}, {"key": "/tags/OL84T"}]
+
+    def test_save_without_genres_section_leaves_genres_untouched(self, monkeypatch):
+        """A form that doesn't carry the Genres section (no presence marker) must
+        not clear a work's genres."""
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL13W",
+                    "title": "A Work",
+                    "genres": [{"key": "/tags/OL1T"}],
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL13M",
+                    "title": "A Work",
+                    "works": [{"key": "/works/OL13W"}],
+                },
+            ]
+        )
+        work = web.ctx.site.get("/works/OL13W")
+        edition = web.ctx.site.get("/books/OL13M")
+
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL13W",
+                "work--title": "A Work",
+                "edition--title": "A Work",
+                "edition--works--0--key": "/works/OL13W",
+            }
+        )
+
+        addbook.SaveBookHelper(work, edition).save(formdata)
+
+        assert web.ctx.site.docs["/works/OL13W"]["genres"] == [{"key": "/tags/OL1T"}]
+
+
 class TestDaisyPage:
     def setup_method(self, method):
         web.ctx.site = MockSite()

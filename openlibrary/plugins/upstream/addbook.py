@@ -732,6 +732,13 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get("subject_places", "")))
         work.subject_times = list(read_subject(work.get("subject_times", "")))
         work.subject_people = list(read_subject(work.get("subject_people", "")))
+        # Only touch genres when the edit form actually carried the Genres
+        # section (books/edit/about.html renders a hidden `_genres_present`
+        # marker). A form without the section leaves the field untouched rather
+        # than clearing it — see process_managed_tags.
+        if work.get("_genres_present"):
+            stored_genres = self.work.get("genres") if self.work else None
+            work.genres = self.process_managed_tags(work.get("genres"), "genres", stored_genres)
         if ": " in work.get("title", ""):
             work.title, work.subtitle = work.title.split(": ", 1)
         else:
@@ -744,6 +751,109 @@ class SaveBookHelper:
         work.authors = [a for a in work.get("authors", []) if a.get("author", {}).get("key", "").strip()]
 
         return trim_doc(work)
+
+    @staticmethod
+    def process_managed_tags(values, tag_type: str, stored=None) -> list[dict]:
+        """Merge the posted managed-Tag selection into a list of refs.
+
+        The work edit form submits each selected Tag as its key
+        (``/tags/OL…T``). Both stored shapes are accepted on input — plain key
+        strings (every work from the scripted backfill) and ``{"key": …}`` refs,
+        mixed, in any order — and the result is normalised to refs and
+        deduplicated, preserving the posted order.
+
+        An **unrelated edit never migrates genres.** If the posted genre set is
+        identical to what is stored (a title edit re-posts the stored keys
+        unchanged), every key passes through untouched — Infobase skips
+        validation of an unchanged value, so nothing is re-checked or dropped.
+
+        When the editor **changes** the genre set, each posted key is checked:
+
+        - A key already stored on the work is resolved to a live ``/type/tag``.
+          Its ``tag_type`` is NOT re-checked, so a retyped or legacy singular
+          ``tag_type`` genre (e.g. ``/tags/OL84T``) survives. A ref to a Tag since
+          **merged** (a ``/type/redirect``) is followed to its target (up to two
+          hops) and the target key substituted — a merge means "these are the same
+          genre", so dropping it would silently un-tag the work. A ref to a
+          **deleted** Tag, or one that doesn't resolve to a ``/type/tag``, is
+          dropped. (Otherwise, once ``/type/work`` declares ``genres`` with
+          ``expected_type /type/tag``, a dangling ref would make Infobase reject
+          the whole atomic save, leaving the work un-editable on any genre change.)
+        - An **added** key (posted but not stored) is kept only if it resolves to
+          an existing Tag whose ``tag_type`` matches ``tag_type`` (the plural
+          form, e.g. ``"genres"``). A ref to a missing Tag would fail the atomic
+          save, so a bad added key is dropped rather than persisted.
+
+        :param values: the posted value — a list of key strings and/or
+            ``{"key": …}`` refs, or ``None`` when nothing is selected.
+        :param tag_type: the Tag type the field holds, e.g. ``"genres"``.
+        :param stored: the work's currently stored value (either shape), used to
+            tell additions from keys that were already present.
+        :return: ``[{"key": "/tags/OL…T"}, …]``, empty if nothing remains. An
+            empty list clears the field (``trim_doc`` maps it to ``None``).
+        """
+
+        def keys_of(items) -> list[str]:
+            out: list[str] = []
+            seen: set[str] = set()
+            for item in items or []:
+                if isinstance(item, dict):
+                    key = item.get("key")
+                elif hasattr(item, "key"):
+                    key = item.key
+                else:
+                    key = item
+                if key and key not in seen:
+                    seen.add(key)
+                    out.append(key)
+            return out
+
+        posted = keys_of(values)
+        stored_list = keys_of(stored)
+        # Unchanged set: never migrate on an unrelated edit (Infobase skips an
+        # unchanged value, so a dead stored ref can't reject the save either).
+        if posted == stored_list:
+            return [{"key": key} for key in posted]
+
+        stored_keys = set(stored_list)
+        site = web.ctx.site
+
+        def resolve_live_tag(key: str, hops: int = 2) -> str | None:
+            """Follow ``/type/redirect`` refs (a merged Tag) to the live
+            ``/type/tag`` they point at, up to ``hops`` hops. Returns the final
+            Tag key, or ``None`` if it is deleted / doesn't resolve to a Tag."""
+            visited: set[str] = set()
+            for _hop in range(hops + 1):
+                if not key or key in visited:
+                    return None
+                visited.add(key)
+                doc = site.get(key)
+                if doc is None:
+                    return None
+                type_key = doc.type.key
+                if type_key == "/type/tag":
+                    return key
+                if type_key == "/type/redirect":
+                    key = doc.get("location")
+                    continue
+                return None
+            return None
+
+        out: list[str] = []
+        seen: set[str] = set()
+        for key in posted:
+            if key in stored_keys:
+                # Retained ref: follow a merge to its target, drop if dead. Its
+                # tag_type is not re-checked, so retyped/legacy genres survive.
+                final = resolve_live_tag(key)
+            else:
+                # Added key: must be an existing Tag of the right tag_type.
+                doc = site.get(key)
+                final = key if (doc is not None and doc.type.key == "/type/tag" and doc.get("tag_type") == tag_type) else None
+            if final and final not in seen:
+                seen.add(final)
+                out.append(final)
+        return [{"key": key} for key in out]
 
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid
