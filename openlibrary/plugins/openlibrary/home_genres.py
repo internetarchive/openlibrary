@@ -4,18 +4,38 @@
 scripts/generate_home_genres.py. Works aren't tagged with genres yet (#13151), so each node
 approximates its genre with a `subject_key` clause; a subgenre searches on its own unless
 `requiresIntersection` scopes it to its parent.
+
+The effective genres come from the editable /config/home doc (#13893) when it's present and valid,
+and from the bundled file otherwise — a bad or missing doc can never blank the homepage.
 """
 
 import functools
 import json
+import logging
+import time
 from pathlib import Path
 from typing import NotRequired, TypedDict, cast
 
+import web
+
 from openlibrary.i18n import gettext as _
+from openlibrary.utils import dateutil
+
+logger = logging.getLogger("openlibrary.home_genres")
 
 GENRES_JSON_PATH = Path(__file__).parent / "home_genres.json"
 # Hand-picked, not generated.
 GENRE_COVERS_JSON_PATH = Path(__file__).parent / "home_genre_covers.json"
+
+# The editable homepage-config doc (#13893). A `/type/page` used purely as a DATA CONTAINER (Mek,
+# 2026-10-12): its `/type/text` `body` holds a JSON object `{"genres": [...]}`, editable in the
+# standard page editor. The homepage still renders through home.py and the home templates — nothing
+# routes "/" through the page renderer; this only reads the genres out of the doc's body. A bad or
+# missing doc falls back to the bundled file so an edit can never blank the homepage.
+HOME_CONFIG_KEY = "/config/home"
+# Staff edits to /config/home appear within this window, with no restart. Short enough to feel
+# live, long enough that the drill-down partials don't read infobase on every request.
+GENRES_CACHE_TTL = 5 * dateutil.MINUTE_SECS
 
 # Minimum readable (borrowable or public) books, counted against production when the JSON was
 # generated, for a tile or a subgenre row to be worth showing.
@@ -47,9 +67,102 @@ TRENDING: Genre = {
 }
 
 
-@functools.cache
+# The keys load_home_genres() and its consumers rely on. Top-level nodes additionally carry `kind`
+# (display_name/solr_query subscript it) and a `children` list; children don't.
+_NODE_KEYS = frozenset({"name", "slug", "query", "count"})
+_GENRE_KEYS = _NODE_KEYS | {"kind", "children"}
+
+
+def _valid_node(node: object, *, keys: frozenset[str]) -> bool:
+    count = node.get("count") if isinstance(node, dict) else None
+    # bool is an int subclass; a True/False count is not a real count.
+    return isinstance(node, dict) and keys <= node.keys() and isinstance(count, int) and not isinstance(count, bool)
+
+
+def _valid_genres(genres: object) -> bool:
+    """A usable `genres` value: a non-empty list of genre nodes, each with a list of child nodes."""
+    return (
+        isinstance(genres, list)
+        and len(genres) > 0
+        and all(
+            _valid_node(node, keys=_GENRE_KEYS) and isinstance(node["children"], list) and all(_valid_node(child, keys=_NODE_KEYS) for child in node["children"])
+            for node in genres
+        )
+    )
+
+
+def _config_home_genres() -> list | None:
+    """The `genres` parsed from /config/home's JSON `body`, or None when there's no site or no doc.
+
+    /config/home is a /type/page data container; its `body` (a /type/text) holds `{"genres": [...]}`.
+    When the doc is absent (e.g. not seeded yet) this returns None quietly. When the doc is PRESENT
+    but its body is empty or not valid JSON, json.loads raises and the caller logs it and falls back
+    to the file — a broken data container is a real error, unlike an unseeded one.
+    """
+    site = getattr(web.ctx, "site", None)
+    if site is None:
+        return None
+    doc = site.get(HOME_CONFIG_KEY)
+    if not doc:
+        return None
+    body = doc.dict().get("body")
+    # A /type/text round-trips through .dict() as {"type": "/type/text", "value": "..."}; a mock or a
+    # plain-string store gives the string directly. Handle both.
+    if isinstance(body, dict):
+        body = body.get("value")
+    data = json.loads(body or "")  # empty/invalid body -> JSONDecodeError -> logged + file by caller
+    return data.get("genres") if isinstance(data, dict) else None
+
+
+def _load_home_genre_nodes() -> list[dict]:
+    """Effective raw ClassificationNode list: /config/home's `genres` when valid, else the file."""
+    try:
+        genres = _config_home_genres()
+    except Exception:
+        logger.exception("Reading %s failed; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
+    else:
+        if genres is None:
+            # Absent/unseeded doc is the expected pre-seed state — debug, not error. Only fires once
+            # per process per node TTL (see load_home_genre_nodes), so it's a breadcrumb for "why
+            # isn't my edit showing", not spam.
+            logger.debug("%s absent or has no genres; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
+        elif _valid_genres(genres):
+            logger.debug("Using genres from %s", HOME_CONFIG_KEY)
+            return genres
+        else:
+            logger.error("%s has an invalid `genres`; using %s", HOME_CONFIG_KEY, GENRES_JSON_PATH.name)
+    return json.loads(GENRES_JSON_PATH.read_text())
+
+
+# (expiry_monotonic, nodes). Per-process, like the old @functools.cache but with a TTL instead of
+# forever. Deliberately not memcache_memoize: _load_home_genre_nodes does not establish a request
+# context, so a stale-while-revalidate refresh of IT on memcache's worker thread would run with no
+# web.ctx.site and read the file, not the doc. (home.get_featured_genres avoids this by calling
+# delegate.fakeload(), which sets a site; this loader has no such hook.) A per-process TTL read on
+# the calling thread keeps the site in scope and skips the memcache round-trip. reset_genres_cache()
+# clears it (tests, or a future edit hook).
+_nodes_cache: tuple[float, list[dict]] | None = None
+
+
+def reset_genres_cache() -> None:
+    global _nodes_cache
+    _nodes_cache = None
+
+
+def load_home_genre_nodes() -> list[dict]:
+    """``_load_home_genre_nodes`` behind a short per-process TTL, so a staff edit to /config/home
+    shows within ``GENRES_CACHE_TTL`` without pinning a doc read for the process lifetime (what the
+    old ``@functools.cache`` did) or re-reading infobase on every drill-down request."""
+    global _nodes_cache
+    cached = _nodes_cache  # snapshot: reset_genres_cache() may null the global on another thread
+    now = time.monotonic()
+    if cached is None or now >= cached[0]:
+        cached = (now + GENRES_CACHE_TTL, _load_home_genre_nodes())
+        _nodes_cache = cached
+    return cached[1]
+
+
 def load_home_genres() -> list[Genre]:
-    nodes = json.loads(GENRES_JSON_PATH.read_text())
     return [
         cast(
             Genre,
@@ -58,7 +171,7 @@ def load_home_genres() -> list[Genre]:
                 "subgenres": [c for c in node["children"] if c["count"] >= MIN_SUBGENRE_READABLE],
             },
         )
-        for node in nodes
+        for node in load_home_genre_nodes()
         if node["count"] >= MIN_GENRE_READABLE
     ]
 

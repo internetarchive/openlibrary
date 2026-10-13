@@ -125,6 +125,14 @@ class TestHomeTemplates:
         assert "About the Project" in html
 
 
+@pytest.fixture(autouse=True)
+def _reset_home_genres_cache():
+    """load_home_genres() reads a process-global TTL node cache; keep these tests order-independent."""
+    home.home_genres.reset_genres_cache()
+    yield
+    home.home_genres.reset_genres_cache()
+
+
 TILE_GENRES = [
     {"name": "Horror", "slug": "horror", "query": "horror*", "kind": "genre", "subgenres": []},
     {"name": "History", "slug": "history", "query": "history*", "kind": "subject", "subgenres": []},
@@ -206,6 +214,46 @@ class TestFeaturedGenres:
         slugs = {g["slug"] for g in home.home_genres.load_home_genres()}
         assert set(picked) == slugs
         assert all(len(covers) == home.GENRE_TILE_COVERS for covers in picked.values())
+
+    def test_tiles_are_built_from_the_passed_genres_not_a_reread(self):
+        """get_cached_featured_genres keys the day cache on the genres it passes in, so the build
+        must use exactly those — not a fresh read. Otherwise memcache_memoize's stale-while-
+        revalidate refresh could build file-tiles and cache them under the doc's fingerprint for a
+        day (the tile-lag race). Passing a genre absent from load_home_genres proves the arg wins."""
+        passed = [{"name": "Aye", "slug": "aye", "query": "a*", "kind": "genre", "subgenres": []}]
+        with (
+            patch.object(home.home_genres, "load_home_genres", return_value=TILE_GENRES),  # a different set
+            patch.object(home.home_genres, "load_tile_covers", return_value={"aye": [1, 2, 3]}),
+            patch.object(home, "get_trending_tile_covers", return_value=[]),
+        ):
+            web.ctx.env = {}
+            genres = home.get_featured_genres(passed)
+        assert [g["slug"] for g in genres] == ["trending", "aye"]
+
+    def test_featured_genres_cache_key_fits_memcache(self):
+        """The genres list is kilobytes, so its day cache must hash its args (hash_args=True). The
+        raw-args key would overflow memcache's 250-char limit and silently disable the cache —
+        emptying the genre rail and running the Solr/cover queries on every homepage load."""
+        captured = {}
+        real_memoize = home.cache.memcache_memoize
+
+        def spy(f, key_prefix, **kw):
+            mc = real_memoize(f, key_prefix, **kw)
+
+            def call(*args, **kwargs):
+                captured["key"] = mc.compute_key(args, kwargs)
+                return []
+
+            return call
+
+        with (
+            patch.object(home.cache, "memcache_memoize", spy),
+            patch.object(home, "caching_prethread", return_value=None),
+        ):
+            home.get_cached_featured_genres()
+        key = captured["key"]
+        assert len(key) <= 250, f"cache key is {len(key)} chars (> memcache's 250 limit)"
+        assert not any(ch.isspace() or ord(ch) < 33 for ch in key)
 
 
 class TestTrendingStack:

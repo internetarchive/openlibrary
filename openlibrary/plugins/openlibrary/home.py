@@ -241,22 +241,40 @@ def get_trending_tile_covers() -> list[int]:
     return [doc["cover_i"] for doc in results.get("docs", []) if doc.get("cover_i")][:GENRE_TILE_COVERS]
 
 
-def get_featured_genres():
-    """Tiles for home/browse_stacks.html.jinja, Trending first. A genre without picked covers gets no tile."""
+def get_featured_genres(genres=None):
+    """Tiles for home/browse_stacks.html.jinja, Trending first. A genre without picked covers gets no tile.
+
+    ``genres`` is passed in by get_cached_featured_genres so the tiles are built from the exact same
+    genres the cache key is derived from — see the note there. Defaults to a fresh read for direct
+    (uncached) callers.
+    """
     if "env" not in web.ctx:
         delegate.fakeload()
+    if genres is None:
+        genres = home_genres.load_home_genres()
     picked = {home_genres.TRENDING["slug"]: get_trending_tile_covers(), **home_genres.load_tile_covers()}
-    nodes = [home_genres.TRENDING, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
+    nodes = [home_genres.TRENDING, *(genre for genre in genres if picked.get(genre["slug"]))]
     return [{**genre, "covers": picked[genre["slug"]][:GENRE_TILE_COVERS]} for genre in nodes]
 
 
 def get_cached_featured_genres():
+    # Resolve the genres ONCE here, on the request thread, and pass them straight into the build, so
+    # the day cache's key and its tiles come from the same read. hash_args md5s the genres into the
+    # key: the list is kilobytes and the raw args would blow past memcache's 250-char key limit (see
+    # subjects.notable_authors, which uses hash_args for the same reason), silently disabling the
+    # cache. That md5 IS the fingerprint — a staff edit to /config/home changes it and busts the
+    # cache at once, so the tiles stay in step with the drill-down rows (both ~5 min behind an edit)
+    # rather than lagging a day. memcache_memoize hands the same genres to its stale-while-revalidate
+    # rebuild worker, so a transient re-read there can't cache file-tiles under the doc's key. The
+    # DAY timeout still protects the per-build Solr/cover queries when nothing is edited.
+    genres = home_genres.load_home_genres()
     return cache.memcache_memoize(
         get_featured_genres,
         "home.featured_genres",
         timeout=dateutil.DAY_SECS,
         prethread=caching_prethread(),
-    )()
+        hash_args=True,
+    )(genres)
 
 
 def setup():
