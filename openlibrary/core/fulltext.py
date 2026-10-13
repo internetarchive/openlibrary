@@ -9,8 +9,8 @@ from urllib.parse import urlencode
 
 import httpx
 import web
-
 from infogami import config
+
 from openlibrary.core.carousels import format_book_data
 from openlibrary.core.lending import get_availability_async
 from openlibrary.utils.async_utils import async_bridge
@@ -213,10 +213,23 @@ def has_double_quotes(q: str | None) -> bool:
 
     >>> has_double_quotes('"United Nations" "world hunger"')
     True
-    >>> has_double_quotes("‘United Nations’")
+    >>> has_double_quotes("\u2018United Nations\u2019")
     False
     """
     return bool(_DOUBLE_QUOTE_PATTERN.search((q or "").translate(_CURLY_DOUBLE_QUOTES)))
+
+
+def is_auto_phrased_query(q: str | None) -> bool:
+    """Whether an unquoted query with two or more words will be auto-phrased.
+
+    >>> is_auto_phrased_query("argentina brazil")
+    True
+    >>> is_auto_phrased_query('"argentina brazil"')
+    False
+    >>> is_auto_phrased_query("argentina")
+    False
+    """
+    return not has_double_quotes(q) and len((q or "").split()) >= 2
 
 
 def phrase_query(q: str | None) -> str:
@@ -237,10 +250,12 @@ def phrase_query(q: str | None) -> str:
     '"United Nations" "world hunger"'
     >>> print(phrase_query("it's a truth\\n  universally acknowledged"))
     "it's a truth universally acknowledged"
-    >>> phrase_query("‘United Nations’")
-    '"‘United Nations’"'
+    >>> phrase_query("\u2018United Nations\u2019")
+    '"\u2018United Nations\u2019"'
     """
     normalized_q = (q or "").translate(_CURLY_DOUBLE_QUOTES)
+    if not normalized_q.replace('"', "").strip():
+        return ""
     if has_double_quotes(normalized_q):
         return normalized_q
     words = normalized_q.split()
@@ -278,11 +293,11 @@ async def fulltext_search_api(params):
         return {"error": "Error converting search engine data to JSON"}
 
 
-async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None):
+async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None, phrase=True):
     if offset is None:
         offset = (page - 1) * limit
-    # Empty once quotes are stripped: skip the upstream call.
-    if not (q := phrase_query(q)):
+    # Skip an empty query after optional phrase normalization.
+    if not (q := phrase_query(q) if phrase else q):
         return {"hits": {"hits": [], "total": 0}}
     params = {
         "q": q,

@@ -8,7 +8,7 @@ from openlibrary.core.fulltext import (
     parse_snippet,
     resolve_language,
 )
-from openlibrary.plugins.inside.code import empty_reason
+from openlibrary.plugins.inside.code import empty_reason, unphrased_query_url
 
 
 def hit(ocaid: str) -> dict:
@@ -145,6 +145,12 @@ def test_empty_reason_distinguishes_filtered_from_past_the_end():
     assert empty_reason("dune", [], 4312, filtered=True) == "filtered_out"
     assert empty_reason("dune", [], 4312, filtered=False) == "past_end"
     assert empty_reason("dune", ["row"], 4312, filtered=True) is None
+
+
+def test_unphrased_query_url_preserves_filters_and_resets_pagination():
+    assert (
+        unphrased_query_url("argentina brazil", ("ger", "German"), readable=True) == "/search/inside?q=argentina+brazil&phrase=false&language=ger&readable=true"
+    )
 
 
 # ── Outgoing search params ─────────────────────────────────────────────────

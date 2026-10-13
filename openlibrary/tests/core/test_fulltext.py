@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
-
 from infogami import config
+
 from openlibrary.core import fulltext
 from openlibrary.utils import request_context
 
@@ -147,12 +147,26 @@ class Test_phrase_query:
         [
             ('"United Nations" "world hunger"', True),
             ("“United Nations”", True),
-            ("‘United Nations’", False),
+            ("\u2018United Nations\u2019", False),
             ("'United Nations'", False),
         ],
     )
     def test_has_double_quotes(self, raw, expected):
         assert fulltext.has_double_quotes(raw) is expected
+
+    @pytest.mark.parametrize(
+        ("raw", "expected"),
+        [
+            ("argentina brazil", True),
+            ("  argentina\n brazil  ", True),
+            ('"argentina brazil"', False),
+            ("“argentina brazil”", False),
+            ("argentina", False),
+            ("", False),
+        ],
+    )
+    def test_is_auto_phrased_query(self, raw, expected):
+        assert fulltext.is_auto_phrased_query(raw) is expected
 
     @pytest.mark.parametrize(
         ("raw", "expected"),
@@ -225,7 +239,7 @@ class Test_fulltext_search_async_phrasing:
         [
             ("it was the best of times", '"it was the best of times"'),
             ('"it was the best of times"', '"it was the best of times"'),
-            ('he said "hello there" softly', '"he said hello there softly"'),
+            ('he said "hello there" softly', 'he said "hello there" softly'),
             ("“it was the best of times”", '"it was the best of times"'),
         ],
     )
@@ -249,6 +263,15 @@ class Test_fulltext_search_async_phrasing:
         assert results == {"hits": {"hits": [], "total": 0}}
         assert httpx_mock.get_request() is None
         assert fulltext.fulltext_page(results) == ([], 0)
+
+    @pytest.mark.asyncio
+    async def test_backend_receives_unphrased_query_when_requested(self, httpx_mock, monkeypatch):
+        monkeypatch.setattr(config, "plugin_inside", {"search_endpoint": "http://mock"}, raising=False)
+        httpx_mock.add_response(json={"hits": {"hits": [], "total": 0}})
+
+        await fulltext.fulltext_search_async("argentina brazil", phrase=False)
+
+        assert httpx_mock.get_request().url.params["q"] == "argentina brazil"
 
 
 def test_exclude_ocaids_drops_scans_already_on_the_page():

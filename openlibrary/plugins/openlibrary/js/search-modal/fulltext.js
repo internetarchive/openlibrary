@@ -6,6 +6,8 @@ export const PASSAGE_WORD_COUNT = 5;
 /** Top Solr docs checked by solrLooksWeak. */
 export const WEAK_SCAN_LIMIT = 3;
 
+const DOUBLE_QUOTES = /["\u201c\u201d\u201e\u201f]/;
+
 // Too common to count as title/author overlap. Interrogatives are included so
 // "how do birds navigate?" isn't "answered" by a "How to..." title.
 const OVERLAP_STOPWORDS = new Set([
@@ -27,6 +29,16 @@ export function phraseQuery(query) {
     if (/"/.test(normalizedQuery)) return normalizedQuery;
     const words = normalizedQuery.split(/\s+/).filter(Boolean);
     return words.length ? `"${words.join(' ')}"` : '';
+}
+
+/** Whether a query contains a straight or curly double quote. Mirrors has_double_quotes in core/fulltext.py. */
+export function hasDoubleQuotes(query) {
+    return DOUBLE_QUOTES.test(query || '');
+}
+
+/** Whether a two-or-more-word query will be automatically turned into a phrase. */
+export function isAutoPhrasedQuery(query) {
+    return !hasDoubleQuotes(query) && (query || '').trim().split(/\s+/).filter(Boolean).length >= 2;
 }
 
 /** Lowercase and strip diacritics so "garcia" matches "García". */

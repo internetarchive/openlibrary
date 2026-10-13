@@ -1,15 +1,28 @@
-import web
+from urllib.parse import urlencode
 
+import web
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+
 from openlibrary.core.fulltext import (
     fulltext_page,
     fulltext_search_async,
+    is_auto_phrased_query,
     resolve_language,
 )
 from openlibrary.utils.async_utils import async_bridge
 
 RESULTS_PER_PAGE = 20
+
+
+def unphrased_query_url(query: str, language: tuple[str, str] | None, readable: bool) -> str:
+    """Search URL that preserves filters but opts out of automatic phrasing."""
+    params = [("q", query), ("phrase", "false")]
+    if language:
+        params.append(("language", language[0]))
+    if readable:
+        params.append(("readable", "true"))
+    return f"/search/inside?{urlencode(params)}"
 
 
 def empty_reason(query: str, rows: list, total: int, filtered: bool) -> str | None:
@@ -38,10 +51,11 @@ class search_inside(delegate.page):
     path = "/search/inside"
 
     def GET(self):
-        i = web.input(q="", page=1, language=[], readable="")
+        i = web.input(q="", page=1, language=[], readable="", phrase="true")
         query = i.q
         page = int(i.page)
         readable = i.readable == "true"
+        phrase = i.phrase != "false"
         # (code, name): FTS takes the name; generated URLs keep the code.
         language = resolve_language(i.language)
 
@@ -55,6 +69,7 @@ class search_inside(delegate.page):
                     facets=False,
                     readable=readable,
                     language=language[1] if language else None,
+                    phrase=phrase,
                 )
             )
             if query
@@ -71,6 +86,9 @@ class search_inside(delegate.page):
             results_per_page=RESULTS_PER_PAGE,
             language=language,
             readable=readable,
+            phrase=phrase,
+            was_auto_phrased=phrase and is_auto_phrased_query(query),
+            unphrased_url=unphrased_query_url(query, language, readable),
             error=results.get("error"),
             empty_reason=empty_reason(query, rows, total, filtered=readable or bool(language)),
         )

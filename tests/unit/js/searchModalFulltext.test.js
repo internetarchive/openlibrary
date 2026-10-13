@@ -2,6 +2,8 @@ import {
     creatorsFromMeta,
     dedupeFulltextHits,
     fulltextHitDisplay,
+    hasDoubleQuotes,
+    isAutoPhrasedQuery,
     isPassageQuery,
     parseSnippet,
     phraseQuery,
@@ -262,6 +264,20 @@ describe('phraseQuery', () => {
         expect(phraseQuery('  a\n  b  ')).toBe('"a b"');
         expect(phraseQuery('  "  "  ')).toBe('  "  "  ');
         expect(phraseQuery('')).toBe('');
+    });
+});
+
+describe('isAutoPhrasedQuery', () => {
+    test('identifies unquoted queries with two or more words', () => {
+        expect(isAutoPhrasedQuery('argentina brazil')).toBe(true);
+        expect(isAutoPhrasedQuery('  argentina\n brazil  ')).toBe(true);
+        expect(isAutoPhrasedQuery('argentina')).toBe(false);
+    });
+
+    test('does not identify queries with straight or curly double quotes', () => {
+        expect(hasDoubleQuotes('“argentina brazil”')).toBe(true);
+        expect(isAutoPhrasedQuery('"argentina brazil"')).toBe(false);
+        expect(isAutoPhrasedQuery('“argentina brazil”')).toBe(false);
     });
 });
 
