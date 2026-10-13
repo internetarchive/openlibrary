@@ -200,24 +200,6 @@ export function initBrowseStacks(root) {
         if (!initial) shelf.querySelector('.genre-shelf')?.focus({ preventScroll: true });
     }
 
-    /**
-     * Take tiles out of the rail (ol-carousel pages by its slotted children, so hiding in place isn't enough).
-     * @param {(tile: HTMLElement) => boolean} keep
-     */
-    function filterTiles(keep) {
-        tiles.forEach(tile => (keep(tile) ? rail.append(tile) : tile.remove()));
-        if (current && tileFor(current).isConnected) {
-            requestAnimationFrame(anchor);
-            return;
-        }
-        const first = tiles.find(tile => tile.isConnected);
-        controller?.abort();
-        current = null;
-        remember(null);
-        shelf.hidden = true;
-        if (first) open(first.dataset.genre, { initial: true });
-    }
-
     tiles.forEach(tile => tile.addEventListener('click', () => open(tile.dataset.genre)));
 
     const first = requested() || tiles[0];
@@ -246,15 +228,4 @@ export function initBrowseStacks(root) {
         if (e.target.closest?.('ol-menu-popover, ol-popover, ol-select-popover, ol-options-popover')) return;
         close();
     });
-
-    // Dev tool: ?debug=stacks turns on a floating panel, which stays until closed.
-    let debug = new URLSearchParams(location.search).get('debug') === 'stacks';
-    try {
-        debug ||= localStorage.getItem('ol-stacks-debug') !== null;
-    } catch {
-        /* storage blocked */
-    }
-    if (debug) {
-        import('./browse-stacks-debug').then(module => module.initStacksDebug({ tiles, filterTiles }));
-    }
 }

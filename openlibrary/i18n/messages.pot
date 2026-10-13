@@ -6826,7 +6826,7 @@ msgstr ""
 msgid "Readers"
 msgstr ""
 
-#: type/permission/view.html
+#: openlibrary/plugins/openlibrary/home_genres.py type/permission/view.html
 msgid "Writers"
 msgstr ""
 
@@ -8802,7 +8802,7 @@ msgstr ""
 msgid "Science Fiction"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: openlibrary/plugins/openlibrary/home.py openlibrary/plugins/openlibrary/home_genres.py
 msgid "Fantasy"
 msgstr ""
 
@@ -8864,6 +8864,98 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home_genres.py
 msgid "Cooking"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Friendship"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Adventure"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Mystery"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "School"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Picture books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Humor"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "United States"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Great Britain"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "World War II"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Military"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Ancient"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Middle Ages"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Historical"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Western"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Regency"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Paranormal"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Contemporary"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Suspense"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Women"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Memoir"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Royalty"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Artists"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home_genres.py
+msgid "Presidents"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py

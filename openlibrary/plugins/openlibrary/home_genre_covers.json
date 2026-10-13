@@ -1,6 +1,23 @@
 {
-  "_comment": "Hand-picked covers fanned on each \"Browse the stacks\" tile, keyed by the slug in home_genres.json. Representative, recognisable works whose covers read at 44x66; a genre with no entry gets no tile.",
+  "_comment": "Hand-picked covers fanned on each \"Browse the stacks\" tile, keyed by the slug in home_genres.json. Representative, recognisable works whose covers read at 44x66; a genre with no entry gets no tile. \"trending\" is only the fallback for when the live Trending query comes back empty.",
   "covers": {
+    "trending": [
+      {
+        "work": "/works/OL98459W",
+        "cover_id": 12727001,
+        "title": "Slaughterhouse-Five"
+      },
+      {
+        "work": "/works/OL118388W",
+        "cover_id": 10069547,
+        "title": "Flatland"
+      },
+      {
+        "work": "/works/OL100672W",
+        "cover_id": 12736044,
+        "title": "Candide"
+      }
+    ],
     "action": [
       {
         "work": "/works/OL159452W",

@@ -34,7 +34,14 @@ def get_homepage(devmode):
     blog_posts = get_blog_feeds()
     # The genre cache is shared across languages, so names are translated per page.
     try:
-        featured_genres = [{**genre, "name": home_genres.display_name(genre)} for genre in get_cached_featured_genres()]
+        featured_genres = [
+            {
+                **genre,
+                "name": home_genres.display_name(genre),
+                "subgenres": [{**s, "name": home_genres.subgenre_name(s)} for s in genre["subgenres"]],
+            }
+            for genre in get_cached_featured_genres()
+        ]
     except Exception:
         logger.error("Error in getting featured genres", exc_info=True)
         featured_genres = []
@@ -245,7 +252,9 @@ def get_featured_genres():
     """Tiles for home/browse_stacks.html.jinja, Trending first. A genre without picked covers gets no tile."""
     if "env" not in web.ctx:
         delegate.fakeload()
-    picked = {home_genres.TRENDING["slug"]: get_trending_tile_covers(), **home_genres.load_tile_covers()}
+    picked = home_genres.load_tile_covers()
+    # Fall back to the picked Trending covers when the live query is empty (Solr error, or a dev index with no trending data).
+    picked = {**picked, home_genres.TRENDING["slug"]: get_trending_tile_covers() or picked.get(home_genres.TRENDING["slug"], [])}
     nodes = [home_genres.TRENDING, *(genre for genre in home_genres.load_home_genres() if picked.get(genre["slug"]))]
     return [{**genre, "covers": picked[genre["slug"]][:GENRE_TILE_COVERS]} for genre in nodes]
 

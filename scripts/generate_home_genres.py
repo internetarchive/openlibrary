@@ -79,6 +79,45 @@ QUERY_OVERRIDES = {
     "Western": "(western_stories OR westerns OR western_fiction OR western OR fiction_westerns*)",
 }
 
+# Reader-facing subgenres the vocabulary doesn't have (yet), by tile slug: display name (translated in
+# home_genres.subgenre_labels()) and subject_key clause. Counted and thresholded like vocabulary
+# subgenres; a vocabulary term with the same slug wins. Picked by readers' engagement on production.
+CURATED_SUBGENRES = {
+    "kids": [
+        ("Friendship", "friendship*"),
+        ("Adventure", "adventure*"),
+        ("Fantasy", "fantasy*"),
+        ("Mystery", "mystery*"),
+        ("School", "school*"),
+        ("Picture books", "picture_books*"),
+        ("Humor", "humorous_stories*"),
+    ],
+    "history": [
+        ("United States", "united_states*"),
+        ("Great Britain", "great_britain*"),
+        ("World War II", "world_war_1939-1945*"),
+        ("Military", "military*"),
+        ("Ancient", "ancient*"),
+        ("Middle Ages", "middle_ages*"),
+    ],
+    "romance": [
+        ("Historical", "historical_romance*"),
+        ("Western", "western_romance*"),
+        ("Regency", "regency*"),
+        ("Paranormal", "paranormal_romance*"),
+        ("Contemporary", "contemporary_romance*"),
+        ("Suspense", "romantic_suspense*"),
+    ],
+    "biography": [
+        ("Women", "women*"),
+        ("Writers", "authors*"),
+        ("Memoir", "(autobiography* OR personal_narratives* OR memoirs*)"),
+        ("Royalty", "kings_and_rulers*"),
+        ("Artists", "artists*"),
+        ("Presidents", "presidents*"),
+    ],
+}
+
 # Same normalization Solr indexing applies to a subject string (work.py: subject_name_to_key).
 _RE_SUBJECT = re.compile("[, _]+")
 
@@ -153,8 +192,23 @@ def node(tag: dict) -> dict:
     }
 
 
+def within(parent: dict, sg_node: dict) -> dict:
+    """A subgenre filters its parent's shelf, so its counts are for books in both."""
+    both = f"subject_key:{parent['query']} subject_key:{sg_node['query']}"
+    return {**sg_node, "work_count": fetch_count(both), "readable_count": fetch_count(f"{both} {READABLE_CLAUSE}")}
+
+
+def add_curated_subgenres(parent: dict) -> None:
+    taken = {s["slug"] for s in parent["subgenres"]}
+    for name, query in CURATED_SUBGENRES.get(parent["slug"], []):
+        slug = re.sub("[^a-z0-9]+", "-", name.lower()).strip("-")
+        if slug not in taken:
+            parent["subgenres"].append(within(parent, {"name": name, "slug": slug, "tag_key": None, "query": query}))
+    parent["subgenres"].sort(key=lambda s: -s["readable_count"])
+
+
 def build_subjects() -> list[dict]:
-    return [
+    subjects = [
         {
             "name": name,
             "slug": slug,
@@ -166,6 +220,9 @@ def build_subjects() -> list[dict]:
         }
         for name, slug, query, page in SUBJECTS
     ]
+    for subject in subjects:
+        add_curated_subgenres(subject)
+    return subjects
 
 
 def build(genres: list[dict], subgenres: list[dict]) -> list[dict]:
@@ -174,11 +231,9 @@ def build(genres: list[dict], subgenres: list[dict]) -> list[dict]:
         sg_node = node(sg)
         for parent in sg.get("parent_genres", []):
             if parent in tree:
-                # A subgenre filters its parent's shelf, so its counts are for books in both.
-                both = f"subject_key:{tree[parent]['query']} subject_key:{sg_node['query']}"
-                tree[parent]["subgenres"].append({**sg_node, "work_count": fetch_count(both), "readable_count": fetch_count(f"{both} {READABLE_CLAUSE}")})
+                tree[parent]["subgenres"].append(within(tree[parent], sg_node))
     for g in tree.values():
-        g["subgenres"].sort(key=lambda s: -s["readable_count"])
+        add_curated_subgenres(g)
     return sorted(tree.values(), key=lambda g: g["name"])
 
 

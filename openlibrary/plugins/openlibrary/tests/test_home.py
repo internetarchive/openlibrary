@@ -1,5 +1,6 @@
 import datetime
-from unittest.mock import AsyncMock, patch
+import json
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 import web
@@ -127,7 +128,13 @@ class TestHomeTemplates:
 
 TILE_GENRES = [
     {"name": "Horror", "slug": "horror", "query": "horror*", "kind": "genre", "subgenres": []},
-    {"name": "History", "slug": "history", "query": "history*", "kind": "subject", "subgenres": []},
+    {
+        "name": "History",
+        "slug": "history",
+        "query": "history*",
+        "kind": "subject",
+        "subgenres": [{"name": "World War II", "slug": "world-war-ii", "query": "world_war_1939-1945*", "work_count": 1, "readable_count": 1}],
+    },
     {"name": "Absurd", "slug": "absurd", "query": "absurd*", "kind": "genre", "subgenres": []},
 ]
 
@@ -162,7 +169,16 @@ class TestFeaturedGenres:
         assert genres[0]["kind"] == "trending"
         assert genres[0]["covers"] == [7, 8, 9]
 
-    def test_trending_without_covers_still_gets_a_tile(self):
+    def test_live_trending_covers_beat_the_picked_fallback(self):
+        genres = self.featured(picked={**PICKED_COVERS, "trending": [40, 41, 42]}, trending_covers=[7, 8, 9])
+        assert genres[0]["covers"] == [7, 8, 9]
+
+    def test_empty_trending_falls_back_to_picked_covers(self):
+        """A Solr error or a dev index without trending data mustn't leave (and cache) a blank tile."""
+        genres = self.featured(picked={**PICKED_COVERS, "trending": [40, 41, 42]}, trending_covers=[])
+        assert (genres[0]["slug"], genres[0]["covers"]) == ("trending", [40, 41, 42])
+
+    def test_trending_without_any_covers_still_gets_a_tile(self):
         genres = self.featured(trending_covers=[])
         assert (genres[0]["slug"], genres[0]["covers"]) == ("trending", [])
 
@@ -183,6 +199,7 @@ class TestFeaturedGenres:
         with (
             patch.object(home, "get_cached_featured_genres", return_value=genres),
             patch.object(home.home_genres, "subject_tile_labels", return_value={"history": "Histoire"}),
+            patch.object(home.home_genres, "subgenre_labels", return_value={"world-war-ii": "Seconde Guerre mondiale"}),
             patch.object(home.admin, "get_stats", return_value=None),
             patch.object(home, "get_blog_feeds", return_value=[]),
             patch.object(home, "render_template", return_value={}) as render,
@@ -190,6 +207,7 @@ class TestFeaturedGenres:
             home.get_homepage(devmode=False)
         featured = render.call_args.kwargs["featured_genres"]
         assert [g["name"] for g in featured] == ["Trending", "Horror", "Histoire", "Absurd"]
+        assert [s["name"] for s in featured[2]["subgenres"]] == ["Seconde Guerre mondiale"]
 
     def test_solr_failure_costs_the_rail_not_the_page(self):
         with (
@@ -201,11 +219,31 @@ class TestFeaturedGenres:
             home.get_homepage(devmode=False)
         assert render.call_args.kwargs["featured_genres"] == []
 
-    def test_picked_covers_file_matches_the_tiles(self):
+    def test_picked_covers_file_covers_the_tiles(self):
+        """Every tile has picked covers; the file may also hold covers for genres waiting on subgenres."""
         picked = home.home_genres.load_tile_covers()
-        slugs = {g["slug"] for g in home.home_genres.load_home_genres()}
-        assert set(picked) == slugs
+        slugs = {g["slug"] for g in home.home_genres.load_home_genres()} | {TRENDING["slug"]}
+        assert slugs <= set(picked)
         assert all(len(covers) == home.GENRE_TILE_COVERS for covers in picked.values())
+
+    def test_a_genre_without_subgenres_gets_no_tile(self):
+        def node(slug, readable_count, *subgenres):
+            return {"name": slug.title(), "slug": slug, "query": f"{slug}*", "readable_count": readable_count, "subgenres": list(subgenres)}
+
+        data = {
+            "genres": [
+                node("horror", 5000, node("gothic", 249)),
+                node("western", 6873),
+                node("drama", 13079, node("melodrama", 7)),
+            ],
+            "subjects": [],
+        }
+        with patch.object(home.home_genres, "GENRES_JSON_PATH", Mock(read_text=Mock(return_value=json.dumps(data)))):
+            home.home_genres.load_home_genres.cache_clear()
+            try:
+                assert [g["slug"] for g in home.home_genres.load_home_genres()] == ["horror"]
+            finally:
+                home.home_genres.load_home_genres.cache_clear()
 
 
 class TestTrendingStack:

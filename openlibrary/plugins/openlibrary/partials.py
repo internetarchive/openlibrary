@@ -1129,7 +1129,7 @@ class HomeGenrePartial:
 
     @classmethod
     def jump_links(cls, genre: home_genres.Genre) -> list[SubgenreOption]:
-        return [SubgenreOption(name=s["name"], href=f"#{cls.row_key(genre, s)}") for s in genre["subgenres"]]
+        return [SubgenreOption(name=home_genres.subgenre_name(s), href=f"#{cls.row_key(genre, s)}") for s in genre["subgenres"]]
 
     @classmethod
     def narrow(cls, params: LazyCarouselParams, genre: home_genres.Genre) -> LazyCarouselParams:
@@ -1140,14 +1140,14 @@ class HomeGenrePartial:
         if params.safe_mode:
             query = f"{query} {_SAFE_MODE_FILTER}"
         url = _with_sort(home_genres.search_url(node, parent=parent, lang_clause=lang_clause), params.sort)
-        title = subgenre["name"] if subgenre else cls.genre_row_title(genre, params.sort)
+        title = home_genres.subgenre_name(subgenre) if subgenre else cls.genre_row_title(genre, params.sort)
         return params.model_copy(update={"query": query, "url": url, "title": title, "subgenre": subgenre and subgenre["slug"]})
 
     @classmethod
     def row(cls, genre: home_genres.Genre, subgenre: home_genres.GenreNode | None = None) -> LazyCarouselParams:
         """`narrow` fills in the query when the row is fetched."""
         return LazyCarouselParams(
-            title=subgenre["name"] if subgenre else cls.genre_row_title(genre, "trending"),
+            title=home_genres.subgenre_name(subgenre) if subgenre else cls.genre_row_title(genre, "trending"),
             sort="trending",
             key=cls.row_key(genre, subgenre),
             limit=20,

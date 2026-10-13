@@ -98,6 +98,13 @@ class TestHomeGenreNarrow:
             {"name": "Psychological", "href": "#genre-horror-psychological"},
         ]
 
+    def test_curated_subgenre_names_are_translated(self):
+        """Vocabulary names pass through; curated ones (scripts/generate_home_genres.py) are localized."""
+        with patch.object(home_genres, "subgenre_labels", return_value={"gothic": "Gothique"}):
+            assert [link["name"] for link in HomeGenrePartial.jump_links(HORROR)] == ["Gothique", "Psychological"]
+            assert self.narrow("gothic").title == "Gothique"
+            assert HomeGenrePartial.row(HORROR, HORROR["subgenres"][0]).title == "Gothique"
+
 
 class TestHomeGenreShelf:
     """One request renders the header, the loaded genre row and a lazy placeholder per subgenre."""

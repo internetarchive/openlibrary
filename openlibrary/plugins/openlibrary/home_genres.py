@@ -51,20 +51,15 @@ TRENDING: Genre = {
 
 @functools.cache
 def load_home_genres() -> list[Genre]:
+    """Genres with enough readable books and at least one subgenre that has too; a shelf with one row isn't a stack."""
     data = json.loads(GENRES_JSON_PATH.read_text())
-    return [
-        cast(
-            Genre,
-            {
-                **node,
-                "kind": kind,
-                "subgenres": [s for s in node["subgenres"] if s["readable_count"] >= MIN_SUBGENRE_READABLE],
-            },
-        )
-        for kind, nodes in (("genre", data["genres"]), ("subject", data["subjects"]))
-        for node in nodes
-        if node["readable_count"] >= MIN_GENRE_READABLE
-    ]
+    genres = []
+    for kind, nodes in (("genre", data["genres"]), ("subject", data["subjects"])):
+        for node in nodes:
+            subgenres = [s for s in node["subgenres"] if s["readable_count"] >= MIN_SUBGENRE_READABLE]
+            if node["readable_count"] >= MIN_GENRE_READABLE and subgenres:
+                genres.append(cast(Genre, {**node, "kind": kind, "subgenres": subgenres}))
+    return genres
 
 
 @functools.cache
@@ -89,6 +84,41 @@ def subject_tile_labels() -> dict[str, str]:
         "art": _("Art"),
         "textbooks": _("Textbooks"),
     }
+
+
+def subgenre_labels() -> dict[str, str]:
+    """Curated subgenres (CURATED_SUBGENRES in scripts/generate_home_genres.py), by slug. Vocabulary terms aren't translated yet."""
+    return {
+        "friendship": _("Friendship"),
+        "adventure": _("Adventure"),
+        "fantasy": _("Fantasy"),
+        "mystery": _("Mystery"),
+        "school": _("School"),
+        "picture-books": _("Picture books"),
+        "humor": _("Humor"),
+        "united-states": _("United States"),
+        "great-britain": _("Great Britain"),
+        "world-war-ii": _("World War II"),
+        "military": _("Military"),
+        "ancient": _("Ancient"),
+        "middle-ages": _("Middle Ages"),
+        "historical": _("Historical"),
+        "western": _("Western"),
+        "regency": _("Regency"),
+        "paranormal": _("Paranormal"),
+        "contemporary": _("Contemporary"),
+        "suspense": _("Suspense"),
+        "women": _("Women"),
+        "writers": _("Writers"),
+        "memoir": _("Memoir"),
+        "royalty": _("Royalty"),
+        "artists": _("Artists"),
+        "presidents": _("Presidents"),
+    }
+
+
+def subgenre_name(subgenre: GenreNode) -> str:
+    return subgenre_labels().get(subgenre["slug"], subgenre["name"])
 
 
 def display_name(genre: Genre) -> str:
