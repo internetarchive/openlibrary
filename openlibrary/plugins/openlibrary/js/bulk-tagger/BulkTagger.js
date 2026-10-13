@@ -159,7 +159,7 @@ export class BulkTagger {
         });
 
         // Prevent redirect on batch subject submission:
-        this.submitButton.addEventListener('click', (event) => {
+        this.submitButton.addEventListener('click', event => {
             event.preventDefault();
             this.submitBatch();
         });
@@ -236,36 +236,38 @@ export class BulkTagger {
     async fetchSubjectsForWorks(workIds) {
         const worksWithMissingSubjects = workIds.filter(id => !this.existingSubjects.has(id));
 
-        await Promise.all(worksWithMissingSubjects.map(async(id) => {
-            // XXX : Too many network requests --- use bulk search if/when it is available
-            await this.fetchWork(id)
-                // XXX : Handle failures
-                .then(response => response.json())
-                .then(data => {
-                    const entry = {
-                        subjects: data.subjects || [],
-                        subject_people: data.subject_people || [],
-                        subject_places: data.subject_places || [],
-                        subject_times: data.subject_times || []
-                    };
-                    // Move collection labels from `subjects` to `collections`
-                    entry.collections = entry.subjects.filter((label) => label.startsWith(COLLECTION_PREFIX));
-                    entry.subjects = entry.subjects.filter((label) => !entry.collections.includes(label));
-                    for (let i = 0; i < entry.collections.length; ++i) {
-                        // Remove collection prefix from label
-                        entry.collections[i] = entry.collections[i].substring(COLLECTION_PREFIX.length);
-                    }
-                    if (!this.existingSubjects.has(id)) {
-                        this.existingSubjects.set(id, []);
-                    }
-                    // `key` is the type, `value` is the array of tag names
-                    for (const [key, value] of Object.entries(entry)) {
-                        for (const tagName of value) {
-                            this.existingSubjects.get(id).push(new Tag(tagName, key));
+        await Promise.all(
+            worksWithMissingSubjects.map(async id => {
+                // XXX : Too many network requests --- use bulk search if/when it is available
+                await this.fetchWork(id)
+                    // XXX : Handle failures
+                    .then(response => response.json())
+                    .then(data => {
+                        const entry = {
+                            subjects: data.subjects || [],
+                            subject_people: data.subject_people || [],
+                            subject_places: data.subject_places || [],
+                            subject_times: data.subject_times || []
+                        };
+                        // Move collection labels from `subjects` to `collections`
+                        entry.collections = entry.subjects.filter(label => label.startsWith(COLLECTION_PREFIX));
+                        entry.subjects = entry.subjects.filter(label => !entry.collections.includes(label));
+                        for (let i = 0; i < entry.collections.length; ++i) {
+                            // Remove collection prefix from label
+                            entry.collections[i] = entry.collections[i].substring(COLLECTION_PREFIX.length);
                         }
-                    }
-                });
-        }));
+                        if (!this.existingSubjects.has(id)) {
+                            this.existingSubjects.set(id, []);
+                        }
+                        // `key` is the type, `value` is the array of tag names
+                        for (const [key, value] of Object.entries(entry)) {
+                            for (const tagName of value) {
+                                this.existingSubjects.get(id).push(new Tag(tagName, key));
+                            }
+                        }
+                    });
+            })
+        );
     }
 
     /**
@@ -279,13 +281,13 @@ export class BulkTagger {
         // This order prevents unnecessary state mangement steps.
 
         // Create menu options for each staged tag:
-        this.tagsToAdd.forEach((tag) => {
+        this.tagsToAdd.forEach(tag => {
             const menuOption = new MenuOption(tag, MenuOptionState.ALL_TAGGED, this.selectedWorks.length);
             menuOption.initialize();
             this.selectedOptionsContainer.add(menuOption);
         });
 
-        this.tagsToRemove.forEach((tag) => {
+        this.tagsToRemove.forEach(tag => {
             const menuOption = new MenuOption(tag, MenuOptionState.NONE_TAGGED, 0);
             menuOption.initialize();
             this.selectedOptionsContainer.add(menuOption);
@@ -296,12 +298,10 @@ export class BulkTagger {
         for (const workOlid of this.selectedWorks) {
             const existingTagsForWork = this.existingSubjects.get(workOlid);
             for (const tag of existingTagsForWork) {
-
                 // Does an option for this tag already exist in the container?
                 if (!this.selectedOptionsContainer.containsOptionWithTag(tag)) {
-
                     // Have we already created and staged a menu option for this tag?
-                    const stagedOption = stagedMenuOptions.find((option) => option.tag.equals(tag));
+                    const stagedOption = stagedMenuOptions.find(option => option.tag.equals(tag));
                     if (stagedOption) {
                         stagedOption.taggedWorksCount++;
                         if (stagedOption.taggedWorksCount === this.selectedWorks.length) {
@@ -317,7 +317,7 @@ export class BulkTagger {
             }
         }
 
-        stagedMenuOptions.forEach((option) => option.rootElement.addEventListener('click', () => this.onMenuOptionClick(option)));
+        stagedMenuOptions.forEach(option => option.rootElement.addEventListener('click', () => this.onMenuOptionClick(option)));
         this.selectedOptionsContainer.add(...stagedMenuOptions);
     }
 
@@ -332,26 +332,26 @@ export class BulkTagger {
     onMenuOptionClick(menuOption) {
         let stagedTagIndex;
         switch (menuOption.optionState) {
-        case MenuOptionState.NONE_TAGGED:
-            stagedTagIndex = this.tagsToRemove.findIndex((tag) => (tag.tagName === menuOption.tag.tagName && tag.tagType === menuOption.tag.tagType));
-            if (stagedTagIndex > -1) {
-                this.tagsToRemove.splice(stagedTagIndex, 1);
-            }
-            this.tagsToAdd.push(menuOption.tag);
-            menuOption.updateMenuOptionState(MenuOptionState.ALL_TAGGED);
-            break;
-        case MenuOptionState.SOME_TAGGED:
-            this.tagsToAdd.push(menuOption.tag);
-            menuOption.updateMenuOptionState(MenuOptionState.ALL_TAGGED);
-            break;
-        case MenuOptionState.ALL_TAGGED:
-            stagedTagIndex = this.tagsToAdd.findIndex((tag) => (tag.tagName === menuOption.tag.tagName && tag.tagType === menuOption.tag.tagType));
-            if (stagedTagIndex > -1) {
-                this.tagsToAdd.splice(stagedTagIndex, 1);
-            }
-            this.tagsToRemove.push(menuOption.tag);
-            menuOption.updateMenuOptionState(MenuOptionState.NONE_TAGGED);
-            break;
+            case MenuOptionState.NONE_TAGGED:
+                stagedTagIndex = this.tagsToRemove.findIndex(tag => tag.tagName === menuOption.tag.tagName && tag.tagType === menuOption.tag.tagType);
+                if (stagedTagIndex > -1) {
+                    this.tagsToRemove.splice(stagedTagIndex, 1);
+                }
+                this.tagsToAdd.push(menuOption.tag);
+                menuOption.updateMenuOptionState(MenuOptionState.ALL_TAGGED);
+                break;
+            case MenuOptionState.SOME_TAGGED:
+                this.tagsToAdd.push(menuOption.tag);
+                menuOption.updateMenuOptionState(MenuOptionState.ALL_TAGGED);
+                break;
+            case MenuOptionState.ALL_TAGGED:
+                stagedTagIndex = this.tagsToAdd.findIndex(tag => tag.tagName === menuOption.tag.tagName && tag.tagType === menuOption.tag.tagType);
+                if (stagedTagIndex > -1) {
+                    this.tagsToAdd.splice(stagedTagIndex, 1);
+                }
+                this.tagsToRemove.push(menuOption.tag);
+                menuOption.updateMenuOptionState(MenuOptionState.NONE_TAGGED);
+                break;
         }
 
         menuOption.stage();
@@ -394,14 +394,14 @@ export class BulkTagger {
      */
     onSearchInputChange(searchTerm) {
         // Remove search results that are not selected:
-        const resultsToRemove = this.searchResultsOptionsContainer.sortedMenuOptions.filter((option) => option.optionState !== MenuOptionState.ALL_TAGGED);
+        const resultsToRemove = this.searchResultsOptionsContainer.sortedMenuOptions.filter(option => option.optionState !== MenuOptionState.ALL_TAGGED);
         this.searchResultsOptionsContainer.remove(...resultsToRemove);
 
         // Hide menu options that do not begin with the search term (case-insensitive)
         const trimmedSearchTerm = searchTerm.trim();
 
         const allOptions = this.selectedOptionsContainer.sortedMenuOptions.concat(this.searchResultsOptionsContainer.sortedMenuOptions);
-        allOptions.forEach((option) => {
+        allOptions.forEach(option => {
             if (option.tag.tagName.toLowerCase().startsWith(trimmedSearchTerm.toLowerCase())) {
                 option.show();
             } else {
@@ -409,10 +409,11 @@ export class BulkTagger {
             }
         });
 
-        if (trimmedSearchTerm !== '') {  // Perform search:
+        if (trimmedSearchTerm !== '') {
+            // Perform search:
             fetch(`/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`)
-                .then((response) => response.json())
-                .then((data) => {
+                .then(response => response.json())
+                .then(data => {
                     if (data['docs'].length !== 0) {
                         for (const obj of data['docs']) {
                             const tag = new Tag(obj.name, null, obj['subject_type']);
@@ -517,8 +518,6 @@ export class BulkTagger {
      * Submits the bulk tagging form and updates the view.
      */
     submitBatch() {
-
-
         // Disable button
         this.submitButton.disabled = true;
 
@@ -534,24 +533,23 @@ export class BulkTagger {
         fetch(url, {
             method: 'post',
             body: formData
-        })
-            .then(response => {
-                if (!response.ok) {
-                    this.submitButton.disabled = false;
-                    this.submitButton.textContent = 'Submit';
-                    new FadingToast('Batch subject update failed. Please try again in a few minutes.').show();
-                } else {
-                    this.hideTaggingMenu();
-                    new FadingToast('Subjects successfully updated.').show();
-                    this.submitButton.textContent = 'Submit';
-                    this.updateFetchedSubjects();
-                    this.resetTaggingMenu();
-                    if (this.isBookPageEdit) {
-                        window.ILE.clearAndReset();
-                        window.location.reload();
-                    }
+        }).then(response => {
+            if (!response.ok) {
+                this.submitButton.disabled = false;
+                this.submitButton.textContent = 'Submit';
+                new FadingToast('Batch subject update failed. Please try again in a few minutes.').show();
+            } else {
+                this.hideTaggingMenu();
+                new FadingToast('Subjects successfully updated.').show();
+                this.submitButton.textContent = 'Submit';
+                this.updateFetchedSubjects();
+                this.resetTaggingMenu();
+                if (this.isBookPageEdit) {
+                    window.ILE.clearAndReset();
+                    window.location.reload();
                 }
-            });
+            }
+        });
     }
 
     /**
@@ -609,8 +607,8 @@ export class BulkTagger {
      */
     updateFetchedSubjects() {
         for (const tag of this.tagsToAdd) {
-            this.existingSubjects.forEach((tags) => {
-                const tagExists = tags.findIndex((t) => t.tagName === tag.tagName && t.tagType === tag.tagType) > -1;
+            this.existingSubjects.forEach(tags => {
+                const tagExists = tags.findIndex(t => t.tagName === tag.tagName && t.tagType === tag.tagType) > -1;
                 if (!tagExists) {
                     tags.push(tag);
                 }
@@ -618,8 +616,8 @@ export class BulkTagger {
         }
 
         for (const tag of this.tagsToRemove) {
-            this.existingSubjects.forEach((tags) => {
-                const tagIndex = tags.findIndex((t) => t.tagName === tag.tagName && t.tagType === tag.tagType);
+            this.existingSubjects.forEach(tags => {
+                const tagIndex = tags.findIndex(t => t.tagName === tag.tagName && t.tagType === tag.tagType);
                 const tagExists = tagIndex > -1;
                 if (tagExists) {
                     tags.splice(tagIndex, 1);

@@ -42,7 +42,7 @@ export function createEditor({ element, content, placeholder, onUpdate, onTransa
             }),
             Image.configure({
                 inline: true,
-                allowBase64: false,
+                allowBase64: false
             }),
             HtmlBlock,
             Placeholder.configure({ placeholder })

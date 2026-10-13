@@ -14,7 +14,7 @@ export const createWebComponentSimple = (rootComponent, name) => {
             if (elementName === 'ol-merge-ui') {
                 app.use(AsyncComputed);
             }
-        },
+        }
     });
 
     if (!customElements.get(elementName)) {

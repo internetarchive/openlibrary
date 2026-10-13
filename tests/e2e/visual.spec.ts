@@ -19,7 +19,7 @@ const visual = process.env.OL_VISUAL === '1';
 const PAGES: Array<[name: string, path: string]> = [
     ['home', '/'],
     ['search', '/search?q=lord+of+the+rings'],
-    ['book', '/works/OL286811W'],
+    ['book', '/works/OL286811W']
 ];
 
 for (const [name, path] of PAGES) {
@@ -31,7 +31,7 @@ for (const [name, path] of PAGES) {
             fullPage: true,
             // Covers and carousels vary with dev data; mask the volatile bits.
             mask: [page.locator('.bookcover img'), page.locator('.carousel')],
-            maxDiffPixelRatio: 0.02,
+            maxDiffPixelRatio: 0.02
         });
     });
 
@@ -42,7 +42,7 @@ for (const [name, path] of PAGES) {
         await expect(page).toHaveScreenshot(`${name}-mobile-full.png`, {
             fullPage: true,
             mask: [page.locator('.bookcover img'), page.locator('.carousel')],
-            maxDiffPixelRatio: 0.02,
+            maxDiffPixelRatio: 0.02
         });
     });
 }

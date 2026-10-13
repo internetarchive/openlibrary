@@ -103,7 +103,7 @@ export class OlCarousel extends LitElement {
         _columns: { type: Number, state: true },
         _itemCount: { type: Number, state: true },
         _atStart: { type: Boolean, state: true },
-        _atEnd: { type: Boolean, state: true },
+        _atEnd: { type: Boolean, state: true }
     };
 
     static styles = css`
@@ -157,7 +157,7 @@ export class OlCarousel extends LitElement {
             outline-offset: 2px;
         }
 
-        .indicator[aria-current="true"] {
+        .indicator[aria-current='true'] {
             background: var(--_indicator-active);
         }
 
@@ -377,7 +377,7 @@ export class OlCarousel extends LitElement {
         [600, 4],
         [768, 5],
         [1024, 7],
-        [null, 8],
+        [null, 8]
     ];
 
     /** Safari only got `scrollend` in 26.2; without it we debounce `scroll`. */
@@ -483,7 +483,7 @@ export class OlCarousel extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this._resizeObserver = new ResizeObserver((entries) => {
+        this._resizeObserver = new ResizeObserver(entries => {
             const width = entries[0]?.contentRect.width ?? this.clientWidth;
             const prevColumns = this._columns;
             // First item of the current page — the reader's place. A column
@@ -538,8 +538,7 @@ export class OlCarousel extends LitElement {
     }
 
     updated(changedProperties) {
-        if (changedProperties.has('_columns') || changedProperties.has('_itemCount')
-            || changedProperties.has('peek') || changedProperties.has('gap')) {
+        if (changedProperties.has('_columns') || changedProperties.has('_itemCount') || changedProperties.has('peek') || changedProperties.has('gap')) {
             this._recalculate();
             this._applyTrackLayout();
             this._refreshGeometry();
@@ -554,10 +553,14 @@ export class OlCarousel extends LitElement {
     // ── Public API ──
 
     /** Current page (0-indexed). Meaningful after `firstUpdated`/`updateComplete`. */
-    get page() { return this._page; }
+    get page() {
+        return this._page;
+    }
 
     /** Total number of pages. Depends on measured width, so read after `updateComplete`. */
-    get totalPages() { return this._totalPages; }
+    get totalPages() {
+        return this._totalPages;
+    }
 
     /** Advance to the next page. */
     next() {
@@ -764,24 +767,22 @@ export class OlCarousel extends LitElement {
         if (!this._itemObserver) {
             this._itemObserver = new IntersectionObserver(this._onItemIntersect, {
                 root: scroller,
-                threshold: OlCarousel._inViewThreshold,
+                threshold: OlCarousel._inViewThreshold
             });
         }
         this._itemObserver.disconnect();
         this._inView.clear();
-        this._items.forEach((item) => this._itemObserver.observe(item));
+        this._items.forEach(item => this._itemObserver.observe(item));
 
         if (!this._nearObserver) {
             // 100% of the viewport's width: one page either side.
             this._nearObserver = new IntersectionObserver(this._onItemNear, {
                 root: scroller,
-                rootMargin: '0px 100%',
+                rootMargin: '0px 100%'
             });
         }
         this._nearObserver.disconnect();
-        this._items
-            .filter((item) => item.matches('[deferred]') || item.querySelector('[deferred]'))
-            .forEach((item) => this._nearObserver.observe(item));
+        this._items.filter(item => item.matches('[deferred]') || item.querySelector('[deferred]')).forEach(item => this._nearObserver.observe(item));
     }
 
     _onItemNear(entries) {
@@ -789,7 +790,7 @@ export class OlCarousel extends LitElement {
             if (!entry.isIntersecting) continue;
             const item = entry.target;
             item.removeAttribute('deferred');
-            item.querySelectorAll('[deferred]').forEach((el) => el.removeAttribute('deferred'));
+            item.querySelectorAll('[deferred]').forEach(el => el.removeAttribute('deferred'));
             this._nearObserver.unobserve(item);
         }
     }
@@ -835,11 +836,13 @@ export class OlCarousel extends LitElement {
     }
 
     _emitPageChange(previousPage) {
-        this.dispatchEvent(new CustomEvent('ol-carousel-page-change', {
-            detail: { page: this._page, previousPage, totalPages: this._totalPages },
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-carousel-page-change', {
+                detail: { page: this._page, previousPage, totalPages: this._totalPages },
+                bubbles: true,
+                composed: true
+            })
+        );
     }
 
     /** Update the polite live region so a screen-reader user hears arrow,
@@ -850,7 +853,7 @@ export class OlCarousel extends LitElement {
         if (!announcer) return;
         announcer.textContent = this._interpolateLabel(this.labelPageAnnouncement, {
             page: this._page + 1,
-            total: this._totalPages,
+            total: this._totalPages
         });
     }
 
@@ -862,11 +865,13 @@ export class OlCarousel extends LitElement {
         if (this._page < this._totalPages - OlCarousel._nearEndPageBuffer) return;
         if (this._itemCount === this._nearEndEmittedForCount) return;
         this._nearEndEmittedForCount = this._itemCount;
-        this.dispatchEvent(new CustomEvent('ol-carousel-near-end', {
-            detail: { page: this._page, totalPages: this._totalPages, itemCount: this._itemCount },
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchEvent(
+            new CustomEvent('ol-carousel-near-end', {
+                detail: { page: this._page, totalPages: this._totalPages, itemCount: this._itemCount },
+                bubbles: true,
+                composed: true
+            })
+        );
     }
 
     // ── Mouse drag ──
@@ -887,8 +892,7 @@ export class OlCarousel extends LitElement {
         this._dragSamples = [{ t: performance.now(), x: e.clientX }];
         // Off a resting offset means the rail was still moving: this grab is
         // a stop, and stopping is not clicking, however little it moves.
-        this._dragFromMotion =
-            Math.abs(scroller.scrollLeft - (this._pageOffsets[this._pageFromScroll()] ?? 0)) > 1;
+        this._dragFromMotion = Math.abs(scroller.scrollLeft - (this._pageOffsets[this._pageFromScroll()] ?? 0)) > 1;
         clearTimeout(this._scrollEndTimer);
 
         scroller.addEventListener('pointermove', this._onDragPointerMove);
@@ -925,7 +929,9 @@ export class OlCarousel extends LitElement {
             if (typeof scroller.setPointerCapture === 'function') {
                 scroller.setPointerCapture(e.pointerId);
             }
-        } catch { /* stale pointer id or jsdom — capture is best-effort */ }
+        } catch {
+            /* stale pointer id or jsdom — capture is best-effort */
+        }
     }
 
     _onDragPointerMove(e) {
@@ -1091,10 +1097,12 @@ export class OlCarousel extends LitElement {
         let keyboard = true;
         try {
             keyboard = target.matches(':focus-visible');
-        } catch { /* selector unsupported: treat the focus as keyboard */ }
+        } catch {
+            /* selector unsupported: treat the focus as keyboard */
+        }
         if (!keyboard) return;
 
-        const index = this._items.findIndex((item) => item.contains(target));
+        const index = this._items.findIndex(item => item.contains(target));
         if (index === -1 || this._columns <= 0) return;
         const page = this._pageForItem(index);
         if (page !== this._page) {
@@ -1108,20 +1116,20 @@ export class OlCarousel extends LitElement {
     _onIndicatorKeydown(e) {
         let target;
         switch (e.key) {
-        case 'ArrowLeft':
-            target = this._page - 1;
-            break;
-        case 'ArrowRight':
-            target = this._page + 1;
-            break;
-        case 'Home':
-            target = 0;
-            break;
-        case 'End':
-            target = this._totalPages - 1;
-            break;
-        default:
-            return;
+            case 'ArrowLeft':
+                target = this._page - 1;
+                break;
+            case 'ArrowRight':
+                target = this._page + 1;
+                break;
+            case 'Home':
+                target = 0;
+                break;
+            case 'End':
+                target = this._totalPages - 1;
+                break;
+            default:
+                return;
         }
         e.preventDefault();
         const clamped = Math.max(0, Math.min(target, this._totalPages - 1));
@@ -1150,23 +1158,21 @@ export class OlCarousel extends LitElement {
     _renderIndicators() {
         if (!this.showIndicators || this._totalPages <= 1) return nothing;
         return html`
-            <div
-                class="indicators"
-                role="tablist"
-                aria-label=${this.labelPages}
-                @keydown=${this._onIndicatorKeydown}
-            >
-                ${Array.from({ length: this._totalPages }, (_, i) => html`
-                    <button
-                        class="indicator"
-                        role="tab"
-                        aria-label=${this._interpolateLabel(this.labelGoToPage, { page: i + 1, total: this._totalPages })}
-                        aria-current=${i === this._page ? 'true' : 'false'}
-                        aria-selected=${i === this._page ? 'true' : 'false'}
-                        tabindex=${i === this._page ? '0' : '-1'}
-                        @click=${() => this.goToPage(i)}
-                    ></button>
-                `)}
+            <div class="indicators" role="tablist" aria-label=${this.labelPages} @keydown=${this._onIndicatorKeydown}>
+                ${Array.from(
+                    { length: this._totalPages },
+                    (_, i) => html`
+                        <button
+                            class="indicator"
+                            role="tab"
+                            aria-label=${this._interpolateLabel(this.labelGoToPage, { page: i + 1, total: this._totalPages })}
+                            aria-current=${i === this._page ? 'true' : 'false'}
+                            aria-selected=${i === this._page ? 'true' : 'false'}
+                            tabindex=${i === this._page ? '0' : '-1'}
+                            @click=${() => this.goToPage(i)}
+                        ></button>
+                    `
+                )}
             </div>
         `;
     }
@@ -1177,23 +1183,15 @@ export class OlCarousel extends LitElement {
         const showNext = multiPage && !this._atEnd;
 
         return html`
-            <section
-                class="carousel"
-                role="region"
-                aria-roledescription="carousel"
-                aria-label=${this.label}
-            >
+            <section class="carousel" role="region" aria-roledescription="carousel" aria-label=${this.label}>
                 ${this._renderIndicators()}
                 <div class="frame">
                     <div class="edge-fade prev" ?hidden=${!showPrev}></div>
                     <div class="edge-fade next" ?hidden=${!showNext}></div>
 
-                    <button
-                        class="arrow prev"
-                        aria-label=${this.labelPrevious}
-                        ?hidden=${!showPrev}
-                        @click=${() => this.prev()}
-                    ><span class="arrow-icon">${OlCarousel._leftArrow}</span></button>
+                    <button class="arrow prev" aria-label=${this.labelPrevious} ?hidden=${!showPrev} @click=${() => this.prev()}>
+                        <span class="arrow-icon">${OlCarousel._leftArrow}</span>
+                    </button>
 
                     <div
                         class="viewport"
@@ -1207,12 +1205,9 @@ export class OlCarousel extends LitElement {
                         <slot @slotchange=${this._onSlotChange}></slot>
                     </div>
 
-                    <button
-                        class="arrow next"
-                        aria-label=${this.labelNext}
-                        ?hidden=${!showNext}
-                        @click=${() => this.next()}
-                    ><span class="arrow-icon">${OlCarousel._rightArrow}</span></button>
+                    <button class="arrow next" aria-label=${this.labelNext} ?hidden=${!showNext} @click=${() => this.next()}>
+                        <span class="arrow-icon">${OlCarousel._rightArrow}</span>
+                    </button>
                 </div>
                 <div class="announcer" aria-live="polite" aria-atomic="true"></div>
             </section>

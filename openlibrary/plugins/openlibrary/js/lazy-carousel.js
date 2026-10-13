@@ -1,4 +1,4 @@
-import {initialzeCarousels} from './carousel';
+import { initialzeCarousels } from './carousel';
 import { initNativeCarousels } from './carousel/native.js';
 import { trackEvent } from './ol.analytics.js';
 import { buildPartialsUrl, whenVisible } from './utils';
@@ -13,7 +13,7 @@ const ROW_SELECTOR = '.carousel, ol-carousel';
 function initCarousels(elems) {
     const slick = [];
     const native = [];
-    elems.forEach((elem) => (elem.localName === 'ol-carousel' ? native : slick).push(elem));
+    elems.forEach(elem => (elem.localName === 'ol-carousel' ? native : slick).push(elem));
     initialzeCarousels(slick);
     initNativeCarousels(native);
 }
@@ -26,12 +26,12 @@ function initCarousels(elems) {
 export function initLoadedCarousels(root) {
     initCarousels(root.querySelectorAll(CAROUSEL_SELECTOR));
     // Counted like a lazy row's, which reports once it's loaded.
-    root.querySelectorAll('.lazy-carousel-loaded[data-config]').forEach((row) => {
+    root.querySelectorAll('.lazy-carousel-loaded[data-config]').forEach(row => {
         if (row.querySelector(CAROUSEL_SELECTOR)) trackImpression(row, JSON.parse(row.dataset.config).key);
     });
 }
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', e => {
     if (e.target.closest('a[data-ol-link-track="OpenRelatedBooks|BannerClick"]')) {
         bannerClicked = true;
     }
@@ -49,7 +49,7 @@ export function initLazyCarousel(elems) {
 
         // Add retry listener
         const retryElem = elem.querySelector('.retry-btn');
-        retryElem.addEventListener('click', (e) => {
+        retryElem.addEventListener('click', e => {
             e.preventDefault();
             handleRetry(elem);
         });
@@ -154,7 +154,7 @@ function doFetchAndUpdate(target) {
                         window.archive_analytics.ol_send_event_ping({
                             category: 'OpenRelatedBooks',
                             action: action,
-                            label: lendingState,
+                            label: lendingState
                         });
                         relatedBooksTracked = true;
                     }
@@ -176,8 +176,7 @@ function doFetchAndUpdate(target) {
  * @param key {string}
  */
 function trackImpression(elem, key) {
-    whenVisible(elem, { rootMargin: '0px', threshold: 0.5 })
-        .then(() => trackEvent('BookCarousel', 'Impression', key));
+    whenVisible(elem, { rootMargin: '0px', threshold: 0.5 }).then(() => trackEvent('BookCarousel', 'Impression', key));
 }
 
 /**
@@ -197,7 +196,7 @@ function handleRetry(target) {
 }
 
 // A "Browse the stacks" shelf's sort control re-sorts every row, loaded or not.
-document.addEventListener('ol-menu-popover-select', (e) => {
+document.addEventListener('ol-menu-popover-select', e => {
     const shelf = e.target.closest?.('.genre-shelf__sort')?.closest('.genre-shelf');
     if (!shelf) return;
     const sort = e.detail.value;
@@ -205,10 +204,10 @@ document.addEventListener('ol-menu-popover-select', (e) => {
     if (sort === shelf.dataset.sort) return;
     shelf.dataset.sort = sort;
     trackEvent('CarouselSort', sort, `genre-${shelf.dataset.genre}`);
-    shelf.querySelectorAll('.lazy-carousel-loaded[data-config]').forEach((row) => {
+    shelf.querySelectorAll('.lazy-carousel-loaded[data-config]').forEach(row => {
         refetch(row, { ...JSON.parse(row.dataset.config), sort });
     });
-    shelf.querySelectorAll('.lazy-carousel[data-config]').forEach((placeholder) => {
+    shelf.querySelectorAll('.lazy-carousel[data-config]').forEach(placeholder => {
         placeholder.dataset.config = JSON.stringify({ ...JSON.parse(placeholder.dataset.config), sort });
     });
 });
