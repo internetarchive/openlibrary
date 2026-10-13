@@ -30,6 +30,7 @@ $code:
        sort_options = [
          { 'sort': 'index', 'name': _("List Order"), 'ga_key': 'ListOrder' },
          { 'sort': 'last_modified', 'name': _("Last Modified"), 'ga_key': 'LastModified' },
+         { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
        ]
      elif search_scheme == 'languages':
        sort_options = [
