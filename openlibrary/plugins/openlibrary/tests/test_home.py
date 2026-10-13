@@ -156,7 +156,7 @@ class TestHomeTemplates:
         assert "Recently Returned" in html
         assert "bookPreview" in html
         assert "Around the Library" in html
-        assert "A library owned by the people who use it." in html
+        assert "A library made by the people who use it." in html
         assert 'href="/librarians"' in html
         assert "About the Project" in html
 
@@ -168,7 +168,7 @@ class TestHomeTemplates:
         # The Jinja row draws its button arrow through the icon global, which reads the sprite macro.
         monkeypatch.setitem(get_jinja_env().globals, "icon", lambda *args, **kwargs: '<svg class="ol-icon"></svg>')
         html = str(render_template("home/index", stats=None, test=True, featured_subjects=[], carousel_data=None))
-        assert "A library owned by the people who use it." in html
+        assert "A library made by the people who use it." in html
         assert "Around the Library" not in html
         assert "library-row--solo" in html
 

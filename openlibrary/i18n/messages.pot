@@ -4363,15 +4363,15 @@ msgid "Books in Local Environment"
 msgstr ""
 
 #: home/library_row.html.jinja
-msgid "A library owned by the people who use it."
+msgid "A library made by the people who use it."
 msgstr ""
 
 #: home/library_row.html.jinja
-msgid "Not a store, not a feed. A catalog of every book ever published, written and corrected by readers, with every byte of it free for anyone to take."
+msgid "A catalog for every book ever published, maintained by readers like you."
 msgstr ""
 
 #: home/library_row.html.jinja
-msgid "See how librarians help"
+msgid "Become an Open Librarian"
 msgstr ""
 
 #: home/library_row.html.jinja
